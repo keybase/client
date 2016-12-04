@@ -33,7 +33,8 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 		Key: kbfscrypto.MakeFakeSigningKeyOrBust("key"),
 	}
 
-	extra := FakeInitialRekey(brmd, crypto, bh, kbfscrypto.TLFPublicKey{})
+	extra := FakeInitialRekey(
+		brmd, codec, crypto, bh, kbfscrypto.TLFPublicKey{})
 
 	brmd.SetLastModifyingWriter(uid)
 	brmd.SetLastModifyingUser(uid)

@@ -17,8 +17,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-func makeBRMDForTest(t *testing.T, crypto cryptoPure, id tlf.ID,
-	h tlf.Handle, revision MetadataRevision, uid keybase1.UID,
+func makeBRMDForTest(t *testing.T, codec kbfscodec.Codec, crypto cryptoPure,
+	id tlf.ID, h tlf.Handle, revision MetadataRevision, uid keybase1.UID,
 	prevRoot MdID) *BareRootMetadataV2 {
 	var md BareRootMetadataV2
 	// MDv3 TODO: uncomment the below when we're ready for MDv3
@@ -28,7 +28,7 @@ func makeBRMDForTest(t *testing.T, crypto cryptoPure, id tlf.ID,
 	md.SetRevision(revision)
 	md.SetLastModifyingWriter(uid)
 	md.SetLastModifyingUser(uid)
-	FakeInitialRekey(&md, crypto, h, kbfscrypto.TLFPublicKey{})
+	FakeInitialRekey(&md, codec, crypto, h, kbfscrypto.TLFPublicKey{})
 	md.SetPrevRoot(prevRoot)
 	return &md
 }
@@ -72,7 +72,7 @@ func TestMDServerBasics(t *testing.T) {
 	prevRoot := MdID{}
 	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
-		brmd := makeBRMDForTest(t, config.Crypto(), id, h, i, uid, prevRoot)
+		brmd := makeBRMDForTest(t, config.Codec(), config.Crypto(), id, h, i, uid, prevRoot)
 		rmds := signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
 		// MDv3 TODO: pass actual key bundles
 		err = mdServer.Put(ctx, rmds, nil)
@@ -85,7 +85,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (3) trigger a conflict
-	brmd := makeBRMDForTest(t, config.Crypto(), id, h, 10, uid, prevRoot)
+	brmd := makeBRMDForTest(t, config.Codec(), config.Crypto(), id, h, 10, uid, prevRoot)
 	rmds = signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
 	// MDv3 TODO: pass actual key bundles
 	err = mdServer.Put(ctx, rmds, nil)
@@ -97,7 +97,7 @@ func TestMDServerBasics(t *testing.T) {
 	bid, err := config.Crypto().MakeRandomBranchID()
 	require.NoError(t, err)
 	for i := MetadataRevision(6); i < 41; i++ {
-		brmd := makeBRMDForTest(t, config.Crypto(), id, h, i, uid, prevRoot)
+		brmd := makeBRMDForTest(t, config.Codec(), config.Crypto(), id, h, i, uid, prevRoot)
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
 		rmds := signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)

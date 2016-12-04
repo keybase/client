@@ -349,7 +349,7 @@ func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 		}
 		for _, k := range keys {
 			km.log.CDebugf(ctx, "Checking key %v", k.KID())
-			if _, ok := kids[k.KID()]; !ok {
+			if _, ok := kids[k]; !ok {
 				km.log.CInfof(ctx, "Rekey %s: adding new device %s for user %s",
 					tlfID, k.KID(), u)
 				users[u] = true
@@ -364,7 +364,7 @@ func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 	tlfID tlf.ID, keyInfoMap UserDeviceKeyInfoMap,
 	expectedKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) map[keybase1.UID]bool {
 	users := make(map[keybase1.UID]bool)
-	for u, kids := range keyInfoMap {
+	for u, keyInfos := range keyInfoMap {
 		keys, ok := expectedKeys[u]
 		if !ok {
 			// Currently there probably shouldn't be any users removed
@@ -378,70 +378,17 @@ func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 		for _, key := range keys {
 			keyLookup[key.KID()] = true
 		}
-		for kid := range kids {
+		for key := range keyInfos {
 			// Make sure every kid has an expected key
-			if !keyLookup[kid] {
+			if !keyLookup[key.KID()] {
 				km.log.CInfof(ctx,
-					"Rekey %s: removing device %s for user %s", tlfID, kid, u)
+					"Rekey %s: removing device %s for user %s", tlfID, key, u)
 				users[u] = true
 				break
 			}
 		}
 	}
 	return users
-}
-
-func (km *KeyManagerStandard) deleteKeysForRemovedDevices(ctx context.Context,
-	md *RootMetadata, info UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) error {
-	kops := km.config.KeyOps()
-	var usersToDelete []keybase1.UID
-	for u, kids := range info {
-		keys, ok := expectedKeys[u]
-		if !ok {
-			// The user was completely removed from the handle, which
-			// shouldn't happen but might as well make it work just in
-			// case.
-			km.log.CInfof(ctx, "Rekey %s: removing all server key halves "+
-				"for user %s", md.TlfID(), u)
-			usersToDelete = append(usersToDelete, u)
-			for kid, keyInfo := range kids {
-				err := kops.DeleteTLFCryptKeyServerHalf(ctx, u, kid,
-					keyInfo.ServerHalfID)
-				if err != nil {
-					return err
-				}
-			}
-			continue
-		}
-		keyLookup := make(map[keybase1.KID]bool)
-		for _, key := range keys {
-			keyLookup[key.KID()] = true
-		}
-		var toRemove []keybase1.KID
-		for kid, keyInfo := range kids {
-			// Remove any keys that no longer belong.
-			if !keyLookup[kid] {
-				toRemove = append(toRemove, kid)
-				km.log.CInfof(ctx, "Rekey %s: removing server key halves "+
-					" for device %s of user %s", md.TlfID(), kid, u)
-				err := kops.DeleteTLFCryptKeyServerHalf(ctx, u, kid,
-					keyInfo.ServerHalfID)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		for _, kid := range toRemove {
-			delete(info[u], kid)
-		}
-	}
-
-	for _, u := range usersToDelete {
-		delete(info, u)
-	}
-
-	return nil
 }
 
 func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
@@ -594,7 +541,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	if !incKeyGen {
 		// See if there is at least one new device in relation to the
 		// current key bundle
-		rDkim, wDkim, err := md.getUserDeviceKeyInfoMaps(currKeyGen)
+		rDkim, wDkim, err := md.getUserDeviceKeyInfoMaps(
+			km.config.Codec(), currKeyGen)
 		if err != nil {
 			return false, nil, err
 		}
@@ -606,6 +554,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 		wRemoved := km.usersWithRemovedDevices(ctx, md.TlfID(), wDkim, wKeys)
 		rRemoved := km.usersWithRemovedDevices(ctx, md.TlfID(), rDkim, rKeys)
+		// TODO: This is incorrectly true if we're only
+		// promoting readers. This is KBFS-1744.
 		incKeyGen = len(wRemoved) > 0 || len(rRemoved) > 0
 
 		promotedReaders = make(map[keybase1.UID]bool, len(rRemoved))
@@ -670,6 +620,21 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, err
 	}
 
+	for uid := range promotedReaders {
+		// If there are readers that need to be promoted to
+		// writers, do that here.
+		err := md.promoteReader(uid)
+		if err != nil {
+			return false, nil, err
+		}
+	}
+
+	// Note: For MDv3, if incKeyGen is true, then all the
+	// manipulations below aren't needed, since they'll just be
+	// replaced by the new key generation. However, do them
+	// anyway, as they may have some side effects, e.g. removing
+	// server key halves.
+
 	// If there's at least one new device, add that device to every key bundle.
 	if addNewReaderDevice || addNewWriterDevice {
 		for keyGen := FirstValidKeyGen; keyGen <= currKeyGen; keyGen++ {
@@ -682,23 +647,12 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 				return false, nil, err
 			}
 
-			// If there are readers that need to be promoted to writers, do
-			// that here.
-			rDkim, wDkim, err := md.getUserDeviceKeyInfoMaps(keyGen)
+			err = km.updateKeyBundle(ctx, md, keyGen, wKeys, rKeys,
+				ePubKey, ePrivKey, currTlfCryptKey)
 			if _, noDkim := err.(TLFCryptKeyNotPerDeviceEncrypted); noDkim {
 				// No DKIM for this generation. This is possible for MDv3.
 				continue
 			}
-			if err != nil {
-				return false, nil, err
-			}
-			for u := range promotedReaders {
-				wDkim[u] = rDkim[u]
-				delete(rDkim, u)
-			}
-
-			err = km.updateKeyBundle(ctx, md, keyGen, wKeys, rKeys,
-				ePubKey, ePrivKey, currTlfCryptKey)
 			if err != nil {
 				return false, nil, err
 			}
@@ -763,8 +717,42 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	// Send rekey start notification once we're sure that this device
 	// can perform the rekey.
+	//
+	// TODO: Shouldn't this happen earlier?
 	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, resolvedHandle,
 		false))
+
+	// Delete server-side key halves for any revoked devices, if
+	// there are any previous key generations. Do this before
+	// adding a new key generation, as MDv3 only keeps track of
+	// the latest key generation.
+	//
+	// TODO: Add test coverage for this.
+	if currKeyGen >= FirstValidKeyGen {
+		allRemovalInfo, err := md.revokeRemovedDevices(wKeys, rKeys)
+		if err != nil {
+			return false, nil, err
+		}
+		kops := km.config.KeyOps()
+		for uid, userRemovalInfo := range allRemovalInfo {
+			if userRemovalInfo.userRemoved {
+				km.log.CInfof(ctx, "Rekey %s: removed user %s entirely",
+					md.TlfID(), uid)
+			}
+			for key, serverHalfIDs := range userRemovalInfo.deviceServerHalfIDs {
+				km.log.CInfof(ctx, "Rekey %s: removing %d server key halves "+
+					" for device %s of user %s", md.TlfID(),
+					len(serverHalfIDs), key, uid)
+				for _, serverHalfID := range serverHalfIDs {
+					err := kops.DeleteTLFCryptKeyServerHalf(
+						ctx, uid, key.KID(), serverHalfID)
+					if err != nil {
+						return false, nil, err
+					}
+				}
+			}
+		}
+	}
 
 	// Get the previous TLF crypt key if needed. It's
 	// symmetrically encrypted and appended to a list for MDv3
@@ -785,7 +773,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		}
 		currTLFCryptKey = tlfCryptKey
 	}
-	err = md.AddKeyGeneration(
+	err = md.AddKeyGeneration(km.config.Codec(),
 		km.config.Crypto(), prevTLFCryptKey, currTLFCryptKey, pubKey)
 	if err != nil {
 		return false, nil, err
@@ -797,26 +785,6 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, err
 	}
 	md.data.TLFPrivateKey = privKey
-
-	// Delete server-side key halves for any revoked devices.
-	for keygen := FirstValidKeyGen; keygen <= currKeyGen; keygen++ {
-		rDkim, wDkim, err := md.getUserDeviceKeyInfoMaps(keygen)
-		if _, noDkim := err.(TLFCryptKeyNotPerDeviceEncrypted); noDkim {
-			// No DKIM for this generation. This is possible for MDv3.
-			continue
-		}
-		if err != nil {
-			return false, nil, err
-		}
-		err = km.deleteKeysForRemovedDevices(ctx, md, wDkim, wKeys)
-		if err != nil {
-			return false, nil, err
-		}
-		err = km.deleteKeysForRemovedDevices(ctx, md, rDkim, rKeys)
-		if err != nil {
-			return false, nil, err
-		}
-	}
 
 	return true, &tlfCryptKey, nil
 }

@@ -273,11 +273,11 @@ func (md *RootMetadata) MakeSuccessor(
 	return newMd, nil
 }
 
-func (md *RootMetadata) addKeyGenerationForTest(
+func (md *RootMetadata) addKeyGenerationForTest(codec kbfscodec.Codec,
 	crypto cryptoPure, currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
 	wDkim, rDkim UserDeviceKeyInfoMap) {
 	extra := md.bareMd.addKeyGenerationForTest(
-		crypto, md.extra, currCryptKey, nextCryptKey,
+		codec, crypto, md.extra, currCryptKey, nextCryptKey,
 		kbfscrypto.TLFPublicKey{}, wDkim, rDkim)
 	md.extra = extra
 }
@@ -658,13 +658,14 @@ func (md *RootMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
 
 // fakeInitialRekey wraps the FakeInitialRekey test function for
 // convenience.
-func (md *RootMetadata) fakeInitialRekey(crypto cryptoPure) {
+func (md *RootMetadata) fakeInitialRekey(
+	codec kbfscodec.Codec, crypto cryptoPure) {
 	bh, err := md.tlfHandle.ToBareHandle()
 	if err != nil {
 		panic(err)
 	}
 	md.extra = FakeInitialRekey(md.bareMd,
-		crypto, bh, kbfscrypto.TLFPublicKey{})
+		codec, crypto, bh, kbfscrypto.TLFPublicKey{})
 }
 
 // GetBareRootMetadata returns an interface to the underlying serializeable metadata.
@@ -673,16 +674,26 @@ func (md *RootMetadata) GetBareRootMetadata() BareRootMetadata {
 }
 
 // AddKeyGeneration adds a new key generation to this revision of metadata.
-func (md *RootMetadata) AddKeyGeneration(
+func (md *RootMetadata) AddKeyGeneration(codec kbfscodec.Codec,
 	crypto cryptoPure, prevCryptKey, currCryptKey kbfscrypto.TLFCryptKey,
 	pubKey kbfscrypto.TLFPublicKey) error {
 	newExtra, err := md.bareMd.AddKeyGeneration(
-		crypto, md.extra, prevCryptKey, currCryptKey, pubKey)
+		codec, crypto, md.extra, prevCryptKey, currCryptKey, pubKey)
 	if err != nil {
 		return err
 	}
 	md.extra = newExtra
 	return nil
+}
+
+func (md *RootMetadata) promoteReader(uid keybase1.UID) error {
+	return md.bareMd.PromoteReader(uid, md.extra)
+}
+
+func (md *RootMetadata) revokeRemovedDevices(
+	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) (
+	ServerHalfRemovalInfo, error) {
+	return md.bareMd.RevokeRemovedDevices(wKeys, rKeys, md.extra)
 }
 
 func (md *RootMetadata) fillInDevices(crypto Crypto,
@@ -693,10 +704,14 @@ func (md *RootMetadata) fillInDevices(crypto Crypto,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (serverKeyMap, error) {
 
 	if bareV3, ok := md.bareMd.(*BareRootMetadataV3); ok {
+		if keyGen != md.LatestKeyGeneration() {
+			return nil, TLFCryptKeyNotPerDeviceEncrypted{md.TlfID(), keyGen}
+		}
+
 		// v3 bundles aren't embedded.
 		wkb, rkb, ok := getKeyBundlesV3(md.extra)
 		if !ok {
-			return serverKeyMap{}, errors.New("Missing key bundles")
+			return nil, errors.New("Missing key bundles")
 		}
 		return bareV3.fillInDevices(crypto,
 			wkb, rkb, wKeys, rKeys,
@@ -707,14 +722,14 @@ func (md *RootMetadata) fillInDevices(crypto Crypto,
 		// v1 & v2 bundles are embedded.
 		wkb, rkb, err := md.bareMd.GetTLFKeyBundles(keyGen)
 		if err != nil {
-			return serverKeyMap{}, err
+			return nil, err
 		}
 		return bareV2.fillInDevices(crypto,
 			wkb, rkb, wKeys, rKeys,
 			ePubKey, ePrivKey, tlfCryptKey)
 	}
 
-	return serverKeyMap{}, errors.New("Unknown bare metadata version")
+	return nil, errors.New("Unknown bare metadata version")
 }
 
 func (md *RootMetadata) finalizeRekey(crypto cryptoPure) error {
@@ -732,9 +747,10 @@ func (md *RootMetadata) finalizeRekey(crypto cryptoPure) error {
 	return err
 }
 
-func (md *RootMetadata) getUserDeviceKeyInfoMaps(keyGen KeyGen) (
+func (md *RootMetadata) getUserDeviceKeyInfoMaps(
+	codec kbfscodec.Codec, keyGen KeyGen) (
 	rDkim, wDkim UserDeviceKeyInfoMap, err error) {
-	return md.bareMd.GetUserDeviceKeyInfoMaps(keyGen, md.extra)
+	return md.bareMd.GetUserDeviceKeyInfoMaps(codec, keyGen, md.extra)
 }
 
 // StoresHistoricTLFCryptKeys implements the KeyMetadata interface for RootMetadata.

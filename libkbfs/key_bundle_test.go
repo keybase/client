@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -13,7 +15,6 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 type tlfCryptKeyInfoFuture struct {
@@ -53,238 +54,295 @@ func TestTLFCryptKeyInfoUnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakeTLFCryptKeyInfoFuture(t))
 }
 
-func testKeyBundleGetKeysOrBust(t *testing.T, config Config, uid keybase1.UID,
-	keys map[keybase1.UID][]kbfscrypto.CryptPublicKey) {
-	publicKeys, err := config.KBPKI().GetCryptPublicKeys(
-		context.Background(), uid)
-	if err != nil {
-		t.Fatalf("Couldn't get keys for %s: %v", uid, err)
+func TestUserServerHalfRemovalInfoAddGeneration(t *testing.T) {
+	key1 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key1")
+	key2 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key2")
+	key3 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key3")
+	key4 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key4")
+
+	half1a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
+	half1b := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
+	half1c := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x3})
+	half2a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x4})
+	half2b := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x5})
+	half2c := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x6})
+
+	uid := keybase1.MakeTestUID(0x1)
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid, key1.KID(), half1a)
+	require.NoError(t, err)
+	id1b, err := crypto.GetTLFCryptKeyServerHalfID(uid, key1.KID(), half1b)
+	require.NoError(t, err)
+	id1c, err := crypto.GetTLFCryptKeyServerHalfID(uid, key1.KID(), half1c)
+	require.NoError(t, err)
+	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid, key2.KID(), half2a)
+	require.NoError(t, err)
+	id2b, err := crypto.GetTLFCryptKeyServerHalfID(uid, key2.KID(), half2b)
+	require.NoError(t, err)
+	id2c, err := crypto.GetTLFCryptKeyServerHalfID(uid, key2.KID(), half2c)
+	require.NoError(t, err)
+
+	// Required because addGeneration may modify its object even
+	// if it returns an error.
+	makeInfo := func(good bool) userServerHalfRemovalInfo {
+		var key2IDs []TLFCryptKeyServerHalfID
+		if good {
+			key2IDs = []TLFCryptKeyServerHalfID{id2a, id2b}
+		} else {
+			key2IDs = []TLFCryptKeyServerHalfID{id2a}
+		}
+		return userServerHalfRemovalInfo{
+			userRemoved: true,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key1: {id1a, id1b},
+				key2: key2IDs,
+			},
+		}
 	}
-	keys[uid] = publicKeys
+
+	genInfo := userServerHalfRemovalInfo{
+		userRemoved: false,
+	}
+
+	err = makeInfo(true).addGeneration(uid, genInfo)
+	require.Error(t, err)
+	require.True(t, strings.HasPrefix(err.Error(), "userRemoved=true"),
+		"err=%v", err)
+
+	genInfo.userRemoved = true
+	err = makeInfo(true).addGeneration(uid, genInfo)
+	require.Error(t, err)
+	require.True(t, strings.HasPrefix(err.Error(), "device count=2"),
+		"err=%v", err)
+
+	genInfo.deviceServerHalfIDs = deviceServerHalfRemovalInfo{
+		key1: {id1c},
+		key2: {id2c},
+	}
+	err = makeInfo(false).addGeneration(uid, genInfo)
+	require.Error(t, err)
+	require.True(t,
+		// Required because of go's random iteration order.
+		strings.HasPrefix(err.Error(), "expected 2 keys") ||
+			strings.HasPrefix(err.Error(), "expected 1 keys"),
+		"err=%v", err)
+
+	genInfo.deviceServerHalfIDs = deviceServerHalfRemovalInfo{
+		key1: {},
+		key2: {},
+	}
+	err = makeInfo(true).addGeneration(uid, genInfo)
+	require.Error(t, err)
+	require.True(t, strings.HasPrefix(err.Error(),
+		"expected exactly one key"), "err=%v", err)
+
+	genInfo.deviceServerHalfIDs = deviceServerHalfRemovalInfo{
+		key3: {id1c},
+		key4: {id2c},
+	}
+	err = makeInfo(true).addGeneration(uid, genInfo)
+	require.Error(t, err)
+	require.True(t, strings.HasPrefix(err.Error(),
+		"no generation info"), "err=%v", err)
+
+	genInfo.deviceServerHalfIDs = deviceServerHalfRemovalInfo{
+		key1: {id1c},
+		key2: {id2c},
+	}
+	info := makeInfo(true)
+	err = info.addGeneration(uid, genInfo)
+	require.NoError(t, err)
+	require.Equal(t, userServerHalfRemovalInfo{
+		userRemoved: true,
+		deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+			key1: {id1a, id1b, id1c},
+			key2: {id2a, id2b, id2c},
+		},
+	}, info)
 }
 
-func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
-	wkb TLFWriterKeyBundleV2, ePubKey kbfscrypto.TLFEphemeralPublicKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey, serverMap serverKeyMap) {
-	ctx := context.Background()
-	// Check that every user can recover the crypt key
-	cryptPublicKey, err := config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get current public key for user %s: %v", uid, err)
-	}
-	info, ok := wkb.WKeys[uid][cryptPublicKey.KID()]
-	if !ok {
-		t.Fatalf("Couldn't get current key info for user %s: %v", uid, err)
-	}
-	if info.EPubKeyIndex < 0 || info.EPubKeyIndex >= len(wkb.TLFEphemeralPublicKeys) {
-		t.Fatalf("Error getting ephemeral public key for user %s: %v", uid, err)
-	}
-	userEPubKey := wkb.TLFEphemeralPublicKeys[info.EPubKeyIndex]
-	if g, e := userEPubKey, ePubKey; g != e {
-		t.Fatalf("Unexpected ePubKey for user %s: %s vs %s", uid, g, e)
-	}
-	clientHalf, err := config.Crypto().DecryptTLFCryptKeyClientHalf(
-		ctx, userEPubKey, info.ClientHalf)
-	if err != nil {
-		t.Fatalf("Couldn't decrypt client key half for user %s: %v", uid, err)
-	}
-	serverHalf, ok := serverMap[uid][cryptPublicKey.KID()]
-	if !ok {
-		t.Fatalf("No server half for user %s", uid)
-	}
-	userTLFCryptKey, err :=
-		config.Crypto().UnmaskTLFCryptKey(serverHalf, clientHalf)
-	if err != nil {
-		t.Fatalf("Couldn't unmask TLF key for user %s: %v", uid, err)
-	}
-	if g, e := userTLFCryptKey, tlfCryptKey; g != e {
-		t.Fatalf("TLF crypt key didn't match for user %s: %s vs. %s", uid, g, e)
-	}
-}
+func TestServerHalfRemovalInfoAddGeneration(t *testing.T) {
+	key1 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key1")
+	key2 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key2")
 
-func TestKeyBundleFillInDevices(t *testing.T) {
-	config1 := MakeTestConfigOrBust(t, "u1", "u2", "u3")
-	defer CheckConfigAndShutdown(t, config1)
-	config2 := ConfigAsUser(config1, "u2")
-	defer CheckConfigAndShutdown(t, config2)
-	config3 := ConfigAsUser(config1, "u3")
-	defer CheckConfigAndShutdown(t, config3)
+	half1a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
+	half1b := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
+	half1c := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x3})
+	half2a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x4})
+	half2b := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x5})
+	half2c := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x6})
 
-	ctx := context.Background()
-	_, u1, err := config1.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get uid for user 1: %v", err)
-	}
-	_, u2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get uid for user 2: %v", err)
-	}
-	_, u3, err := config3.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get uid for user 3: %v", err)
+	uid1 := keybase1.MakeTestUID(0x1)
+	uid2 := keybase1.MakeTestUID(0x2)
+	uid3 := keybase1.MakeTestUID(0x3)
+
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1.KID(), half1a)
+	require.NoError(t, err)
+	id1b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1.KID(), half1b)
+	require.NoError(t, err)
+	id1c, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1.KID(), half1c)
+	require.NoError(t, err)
+	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key2.KID(), half2a)
+	require.NoError(t, err)
+	id2b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key2.KID(), half2b)
+	require.NoError(t, err)
+	id2c, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key2.KID(), half2c)
+	require.NoError(t, err)
+
+	// Required because addGeneration may modify its object even
+	// if it returns an error.
+	makeInfo := func() ServerHalfRemovalInfo {
+		return ServerHalfRemovalInfo{
+			uid1: userServerHalfRemovalInfo{
+				userRemoved: true,
+				deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+					key1: {id1a, id1b},
+					key2: {id2a, id2b},
+				},
+			},
+			uid2: userServerHalfRemovalInfo{
+				userRemoved: false,
+				deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+					key1: {id1a, id1c},
+					key2: {id2a, id2c},
+				},
+			},
+		}
 	}
 
-	// Make a wkb with empty writer key maps
-	wkb := TLFWriterKeyBundleV2{
-		WKeys: make(UserDeviceKeyInfoMap),
-		TLFEphemeralPublicKeys: make(kbfscrypto.TLFEphemeralPublicKeys, 1),
-	}
-
-	// Generate keys
-	wKeys := make(map[keybase1.UID][]kbfscrypto.CryptPublicKey)
-
-	testKeyBundleGetKeysOrBust(t, config1, u1, wKeys)
-	testKeyBundleGetKeysOrBust(t, config1, u2, wKeys)
-	testKeyBundleGetKeysOrBust(t, config1, u3, wKeys)
-
-	// Fill in the bundle
-	_, _, ePubKey, ePrivKey, tlfCryptKey, err :=
-		config1.Crypto().MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatalf("Couldn't make keys: %v", err)
-	}
-	serverMap, err := fillInDevices(
-		config1.Crypto(), &wkb, &TLFReaderKeyBundleV2{},
-		wKeys, nil, ePubKey, ePrivKey, tlfCryptKey)
-	if err != nil {
-		t.Fatalf("Fill in devices failed: %v", err)
-	}
-
-	testKeyBundleCheckKeys(t, config1, u1, wkb, ePubKey, tlfCryptKey, serverMap)
-	testKeyBundleCheckKeys(t, config2, u2, wkb, ePubKey, tlfCryptKey, serverMap)
-	testKeyBundleCheckKeys(t, config3, u3, wkb, ePubKey, tlfCryptKey, serverMap)
-
-	// Add a device key for user 1
-	devIndex := AddDeviceForLocalUserOrBust(t, config1, u1)
-	config1B := ConfigAsUser(config1, "u1")
-	defer CheckConfigAndShutdown(t, config1B)
-	SwitchDeviceForLocalUserOrBust(t, config1B, devIndex)
-	newCryptPublicKey, err := config1B.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		t.Fatalf("COuldn't get new publc device key for user %s: %v", u1, err)
-	}
-	wKeys[u1] = append(wKeys[u1], newCryptPublicKey)
-
-	// Fill in the bundle again, make sure only the new device key
-	// gets a ePubKeyIndex bump
-	_, _, ePubKey2, ePrivKey2, _, err := config1.Crypto().MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatalf("Couldn't make keys: %v", err)
-	}
-	serverMap2, err := fillInDevices(
-		config1.Crypto(), &wkb, &TLFReaderKeyBundleV2{},
-		wKeys, nil, ePubKey2, ePrivKey2, tlfCryptKey)
-	if err != nil {
-		t.Fatalf("Fill in devices failed: %v", err)
-	}
-
-	testKeyBundleCheckKeys(t, config1B, u1, wkb, ePubKey2, tlfCryptKey,
-		serverMap2)
-	if len(serverMap2) > 1 {
-		t.Fatalf("Generated more than one key after device add: %d",
-			len(serverMap2))
-	}
-}
-
-type deviceKeyInfoMapFuture map[keybase1.KID]tlfCryptKeyInfoFuture
-
-func (dkimf deviceKeyInfoMapFuture) toCurrent() DeviceKeyInfoMap {
-	dkim := make(DeviceKeyInfoMap, len(dkimf))
-	for k, kif := range dkimf {
-		ki := kif.toCurrent()
-		dkim[k] = TLFCryptKeyInfo(ki)
-	}
-	return dkim
-}
-
-type userDeviceKeyInfoMapFuture map[keybase1.UID]deviceKeyInfoMapFuture
-
-func (udkimf userDeviceKeyInfoMapFuture) toCurrent() UserDeviceKeyInfoMap {
-	udkim := make(UserDeviceKeyInfoMap)
-	for u, dkimf := range udkimf {
-		dkim := dkimf.toCurrent()
-		udkim[u] = dkim
-	}
-	return udkim
-}
-
-type tlfWriterKeyBundleFuture struct {
-	TLFWriterKeyBundleV2
-	// Override TLFWriterKeyBundleV2.WKeys.
-	WKeys userDeviceKeyInfoMapFuture
-	kbfscodec.Extra
-}
-
-func (wkbf tlfWriterKeyBundleFuture) toCurrent() TLFWriterKeyBundleV2 {
-	wkb := wkbf.TLFWriterKeyBundleV2
-	wkb.WKeys = wkbf.WKeys.toCurrent()
-	return wkb
-}
-
-func (wkbf tlfWriterKeyBundleFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
-	return wkbf.toCurrent()
-}
-
-func makeFakeDeviceKeyInfoMapFuture(t *testing.T) userDeviceKeyInfoMapFuture {
-	return userDeviceKeyInfoMapFuture{
-		"fake uid": deviceKeyInfoMapFuture{
-			"fake kid": makeFakeTLFCryptKeyInfoFuture(t),
+	genInfo := ServerHalfRemovalInfo{
+		uid1: userServerHalfRemovalInfo{
+			userRemoved: true,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key1: {id1c},
+				key2: {id2c},
+			},
 		},
 	}
-}
 
-func makeFakeTLFWriterKeyBundleFuture(t *testing.T) tlfWriterKeyBundleFuture {
-	wkb := TLFWriterKeyBundleV2{
-		nil,
-		kbfscrypto.MakeTLFPublicKey([32]byte{0xa}),
-		kbfscrypto.TLFEphemeralPublicKeys{
-			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xb}),
+	err = makeInfo().addGeneration(genInfo)
+	require.Error(t, err)
+	require.True(t, strings.HasPrefix(err.Error(), "user count=2"),
+		"err=%v", err)
+
+	genInfo[uid3] = userServerHalfRemovalInfo{
+		userRemoved: false,
+		deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+			key1: {id1b},
+			key2: {id2b},
 		},
-		codec.UnknownFieldSetHandler{},
 	}
-	return tlfWriterKeyBundleFuture{
-		wkb,
-		makeFakeDeviceKeyInfoMapFuture(t),
-		kbfscodec.MakeExtraOrBust("TLFWriterKeyBundleV2", t),
-	}
-}
 
-func TestTLFWriterKeyBundleV2UnknownFields(t *testing.T) {
-	testStructUnknownFields(t, makeFakeTLFWriterKeyBundleFuture(t))
-}
+	err = makeInfo().addGeneration(genInfo)
+	require.Error(t, err)
+	require.True(t, strings.HasPrefix(err.Error(), "no generation info"),
+		"err=%v", err)
 
-type tlfReaderKeyBundleFuture struct {
-	TLFReaderKeyBundleV2
-	// Override TLFReaderKeyBundleV2.WKeys.
-	RKeys userDeviceKeyInfoMapFuture
-	kbfscodec.Extra
-}
-
-func (rkbf tlfReaderKeyBundleFuture) toCurrent() TLFReaderKeyBundleV2 {
-	rkb := rkbf.TLFReaderKeyBundleV2
-	rkb.RKeys = rkbf.RKeys.toCurrent()
-	return rkb
-}
-
-func (rkbf tlfReaderKeyBundleFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
-	return rkbf.toCurrent()
-}
-
-func makeFakeTLFReaderKeyBundleFuture(t *testing.T) tlfReaderKeyBundleFuture {
-	rkb := TLFReaderKeyBundleV2{
-		nil,
-		kbfscrypto.TLFEphemeralPublicKeys{
-			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xc}),
+	genInfo[uid2] = userServerHalfRemovalInfo{
+		userRemoved: true,
+		deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+			key1: {id1b},
+			key2: {id2b},
 		},
-		codec.UnknownFieldSetHandler{},
 	}
-	return tlfReaderKeyBundleFuture{
-		rkb,
-		makeFakeDeviceKeyInfoMapFuture(t),
-		kbfscodec.MakeExtraOrBust("TLFReaderKeyBundleV2", t),
+	delete(genInfo, uid3)
+
+	err = makeInfo().addGeneration(genInfo)
+	require.Error(t, err)
+	require.True(t, strings.HasPrefix(err.Error(), "userRemoved=false"),
+		"err=%v", err)
+
+	genInfo[uid2] = userServerHalfRemovalInfo{
+		userRemoved: false,
+		deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+			key1: {id1b},
+			key2: {id2b},
+		},
 	}
+	info := makeInfo()
+	err = info.addGeneration(genInfo)
+	require.NoError(t, err)
+	require.Equal(t, ServerHalfRemovalInfo{
+		uid1: userServerHalfRemovalInfo{
+			userRemoved: true,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key1: {id1a, id1b, id1c},
+				key2: {id2a, id2b, id2c},
+			},
+		},
+		uid2: userServerHalfRemovalInfo{
+			userRemoved: false,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key1: {id1a, id1c, id1b},
+				key2: {id2a, id2c, id2b},
+			},
+		},
+	}, info)
 }
 
-func TestTLFReaderKeyBundleV2UnknownFields(t *testing.T) {
-	testStructUnknownFields(t, makeFakeTLFReaderKeyBundleFuture(t))
+func TestServerHalfRemovalInfoMergeUsers(t *testing.T) {
+	key1 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key1")
+	key2 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key2")
+
+	half1a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
+	half1b := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
+	half2a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x3})
+	half2b := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x4})
+
+	uid1 := keybase1.MakeTestUID(0x1)
+	uid2 := keybase1.MakeTestUID(0x2)
+	uid3 := keybase1.MakeTestUID(0x3)
+	uid4 := keybase1.MakeTestUID(0x4)
+
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1.KID(), half1a)
+	require.NoError(t, err)
+	id1b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1.KID(), half1b)
+	require.NoError(t, err)
+	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key2.KID(), half2a)
+	require.NoError(t, err)
+	id2b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key2.KID(), half2b)
+	require.NoError(t, err)
+
+	userRemovalInfo := userServerHalfRemovalInfo{
+		userRemoved: true,
+		deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+			key1: {id1a, id1b},
+			key2: {id2a, id2b},
+		},
+	}
+
+	info1 := ServerHalfRemovalInfo{
+		uid1: userRemovalInfo,
+		uid2: userRemovalInfo,
+	}
+
+	info2 := ServerHalfRemovalInfo{
+		uid1: userRemovalInfo,
+		uid3: userRemovalInfo,
+	}
+
+	_, err = info1.mergeUsers(info2)
+	require.Error(t, err)
+	require.True(t, strings.HasPrefix(err.Error(),
+		fmt.Sprintf("user %s is in both", uid1)),
+		"err=%v", err)
+
+	info2 = ServerHalfRemovalInfo{
+		uid3: userRemovalInfo,
+		uid4: userRemovalInfo,
+	}
+
+	info3, err := info1.mergeUsers(info2)
+	require.NoError(t, err)
+	require.Equal(t, ServerHalfRemovalInfo{
+		uid1: userRemovalInfo,
+		uid2: userRemovalInfo,
+		uid3: userRemovalInfo,
+		uid4: userRemovalInfo,
+	}, info3)
 }

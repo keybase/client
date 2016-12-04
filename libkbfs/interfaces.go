@@ -1702,6 +1702,11 @@ type BareRootMetadata interface {
 	GetHistoricTLFCryptKey(c cryptoPure, keyGen KeyGen,
 		currentKey kbfscrypto.TLFCryptKey, extra ExtraMetadata) (
 		kbfscrypto.TLFCryptKey, error)
+	// GetUserDeviceKeyInfoMaps returns copies of the given user
+	// device key info maps for the given key generation.
+	GetUserDeviceKeyInfoMaps(
+		codec kbfscodec.Codec, keyGen KeyGen, extra ExtraMetadata) (
+		readers, writers UserDeviceKeyInfoMap, err error)
 }
 
 // MutableBareRootMetadata is a mutable interface to the bare serializeable MD that is signed by the reader or writer.
@@ -1755,7 +1760,8 @@ type MutableBareRootMetadata interface {
 	// StoresHistoricTLFCryptKeys is false, and takes in
 	// pre-filled UserDeviceKeyInfoMaps, and also calls
 	// FinalizeRekey.
-	addKeyGenerationForTest(crypto cryptoPure, prevExtra ExtraMetadata,
+	addKeyGenerationForTest(codec kbfscodec.Codec, crypto cryptoPure,
+		prevExtra ExtraMetadata,
 		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
 		pubKey kbfscrypto.TLFPublicKey,
 		wDkim, rDkim UserDeviceKeyInfoMap) ExtraMetadata
@@ -1768,7 +1774,8 @@ type MutableBareRootMetadata interface {
 	//
 	// AddKeyGeneration must only be called on metadata for
 	// private TLFs.
-	AddKeyGeneration(crypto cryptoPure, prevExtra ExtraMetadata,
+	AddKeyGeneration(codec kbfscodec.Codec, crypto cryptoPure,
+		prevExtra ExtraMetadata,
 		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
 		pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error)
 	// SetUnresolvedReaders sets the list of unresolved readers assoiated with this folder.
@@ -1786,10 +1793,18 @@ type MutableBareRootMetadata interface {
 	// Returns the TLF key bundles for this metadata at the given key generation.
 	// MDv3 TODO: Get rid of this.
 	GetTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundleV2, *TLFReaderKeyBundleV2, error)
-	// GetUserDeviceKeyInfoMaps returns the given user device key info maps for the given
-	// key generation.
-	GetUserDeviceKeyInfoMaps(keyGen KeyGen, extra ExtraMetadata) (
-		readers, writers UserDeviceKeyInfoMap, err error)
+	// PromoteReader converts the given user from a reader to a writer.
+	PromoteReader(uid keybase1.UID, extra ExtraMetadata) error
+	// RevokeRemovedDevices removes key info for any device not in
+	// the given maps, and returns a corresponding map of server
+	// halves to delete from the server.
+	//
+	// Note: the returned server halves may not be for all key
+	// generations, e.g. for MDv3 it's only for the latest key
+	// generation.
+	RevokeRemovedDevices(
+		wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+		extra ExtraMetadata) (ServerHalfRemovalInfo, error)
 	// FinalizeRekey must be called called after all rekeying work
 	// has been performed on the underlying metadata.
 	FinalizeRekey(c cryptoPure, extra ExtraMetadata) error

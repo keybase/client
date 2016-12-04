@@ -62,7 +62,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	prevRoot := MdID{}
 	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
-		brmd := makeBRMDForTest(t, crypto, tlfID, h, i, uid, prevRoot)
+		brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, i, uid, prevRoot)
 		rmds := signRMDSForTest(t, codec, signer, brmd)
 		// MDv3 TODO: pass extra metadata
 		recordBranchID, err := s.put(uid, verifyingKey, rmds, nil)
@@ -79,7 +79,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (3) Trigger a conflict.
 
-	brmd := makeBRMDForTest(t, crypto, tlfID, h, 10, uid, prevRoot)
+	brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, 10, uid, prevRoot)
 	rmds := signRMDSForTest(t, codec, signer, brmd)
 	// MDv3 TODO: pass extra metadata
 	_, err = s.put(uid, verifyingKey, rmds, nil)
@@ -93,7 +93,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	prevRoot = middleRoot
 	bid := FakeBranchID(1)
 	for i := MetadataRevision(6); i < 41; i++ {
-		brmd := makeBRMDForTest(t, crypto, tlfID, h, i, uid, prevRoot)
+		brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, i, uid, prevRoot)
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
 		rmds := signRMDSForTest(t, codec, signer, brmd)

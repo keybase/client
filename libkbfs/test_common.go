@@ -282,14 +282,14 @@ func FakeBranchID(b byte) BranchID {
 // NewEmptyTLFWriterKeyBundle creates a new empty TLFWriterKeyBundleV2
 func NewEmptyTLFWriterKeyBundle() TLFWriterKeyBundleV2 {
 	return TLFWriterKeyBundleV2{
-		WKeys: make(UserDeviceKeyInfoMap, 0),
+		WKeys: make(UserDeviceKeyInfoMapV2, 0),
 	}
 }
 
 // NewEmptyTLFReaderKeyBundle creates a new empty TLFReaderKeyBundleV2
 func NewEmptyTLFReaderKeyBundle() TLFReaderKeyBundleV2 {
 	return TLFReaderKeyBundleV2{
-		RKeys: make(UserDeviceKeyInfoMap, 0),
+		RKeys: make(UserDeviceKeyInfoMapV2, 0),
 	}
 }
 

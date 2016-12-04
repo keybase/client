@@ -90,7 +90,7 @@ func addFakeRMDData(t *testing.T,
 	rmd.SetLastModifyingWriter(h.FirstResolvedWriter())
 	rmd.SetLastModifyingUser(h.FirstResolvedWriter())
 	if !h.IsPublic() {
-		rmd.fakeInitialRekey(crypto)
+		rmd.fakeInitialRekey(codec, crypto)
 	}
 }
 

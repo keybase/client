@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -14,7 +15,7 @@ import (
 // BareRootMetadata objects don't have enough data to build a
 // TlfHandle from until the first rekey. pubKey is non-empty only for
 // server-side tests.
-func FakeInitialRekey(md MutableBareRootMetadata,
+func FakeInitialRekey(md MutableBareRootMetadata, codec kbfscodec.Codec,
 	crypto cryptoPure, h tlf.Handle,
 	pubKey kbfscrypto.TLFPublicKey) ExtraMetadata {
 	var readerEPubKeyIndex int
@@ -26,7 +27,7 @@ func FakeInitialRekey(md MutableBareRootMetadata,
 	for _, w := range h.Writers {
 		k := kbfscrypto.MakeFakeCryptPublicKeyOrBust(string(w))
 		wDkim[w] = DeviceKeyInfoMap{
-			k.KID(): TLFCryptKeyInfo{},
+			k: TLFCryptKeyInfo{},
 		}
 	}
 
@@ -34,13 +35,13 @@ func FakeInitialRekey(md MutableBareRootMetadata,
 	for _, r := range h.Readers {
 		k := kbfscrypto.MakeFakeCryptPublicKeyOrBust(string(r))
 		rDkim[r] = DeviceKeyInfoMap{
-			k.KID(): TLFCryptKeyInfo{
+			k: TLFCryptKeyInfo{
 				EPubKeyIndex: readerEPubKeyIndex,
 			},
 		}
 	}
 
 	tlfCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
-	return md.addKeyGenerationForTest(crypto, nil,
+	return md.addKeyGenerationForTest(codec, crypto, nil,
 		kbfscrypto.TLFCryptKey{}, tlfCryptKey, pubKey, wDkim, rDkim)
 }

@@ -40,12 +40,13 @@ func TestIsValidRekeyRequestBasicV3(t *testing.T) {
 	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	brmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
-	extra := FakeInitialRekey(brmd, crypto, bh, kbfscrypto.TLFPublicKey{})
+	extra := FakeInitialRekey(
+		brmd, codec, crypto, bh, kbfscrypto.TLFPublicKey{})
 
 	newBrmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 	newExtra := FakeInitialRekey(
-		newBrmd, crypto, bh, kbfscrypto.TLFPublicKey{})
+		newBrmd, codec, crypto, bh, kbfscrypto.TLFPublicKey{})
 
 	ok, err := newBrmd.IsValidRekeyRequest(
 		codec, brmd, newBrmd.LastModifyingWriter(), extra, newExtra)
@@ -78,4 +79,112 @@ func TestRootMetadataPublicVersionV3(t *testing.T) {
 
 	bh2, err := rmd.MakeBareTlfHandle(nil)
 	require.Equal(t, bh, bh2)
+}
+
+func TestRevokeRemovedDevicesV3(t *testing.T) {
+	uid1 := keybase1.MakeTestUID(0x1)
+	uid2 := keybase1.MakeTestUID(0x2)
+	uid3 := keybase1.MakeTestUID(0x3)
+
+	key1 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key1")
+	key2 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key2")
+	key3 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key3")
+
+	half1a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
+	half2a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x3})
+	half3a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x5})
+
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1.KID(), half1a)
+	require.NoError(t, err)
+	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2.KID(), half2a)
+	require.NoError(t, err)
+	id3a, err := crypto.GetTLFCryptKeyServerHalfID(uid3, key3.KID(), half3a)
+	require.NoError(t, err)
+
+	tlfID := tlf.FakeID(1, false)
+
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3}, nil, nil, nil)
+	require.NoError(t, err)
+
+	brmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	require.NoError(t, err)
+
+	extra := FakeInitialRekey(
+		brmd, codec, crypto, bh, kbfscrypto.TLFPublicKey{})
+
+	wkb, rkb, ok := getKeyBundlesV3(extra)
+	require.True(t, ok)
+
+	*wkb = TLFWriterKeyBundleV3{
+		Keys: UserDeviceKeyInfoMapV3{
+			uid1: DeviceKeyInfoMapV3{
+				key1: TLFCryptKeyInfo{
+					ServerHalfID: id1a,
+					EPubKeyIndex: 0,
+				},
+			},
+			uid2: DeviceKeyInfoMapV3{
+				key2: TLFCryptKeyInfo{
+					ServerHalfID: id2a,
+					EPubKeyIndex: 0,
+				},
+			},
+		},
+	}
+
+	*rkb = TLFReaderKeyBundleV3{
+		Keys: UserDeviceKeyInfoMapV3{
+			uid3: DeviceKeyInfoMapV3{
+				key3: TLFCryptKeyInfo{
+					ServerHalfID: id3a,
+					EPubKeyIndex: 0,
+				},
+			},
+		},
+	}
+
+	wKeys := map[keybase1.UID][]kbfscrypto.CryptPublicKey{
+		uid1: {key1},
+	}
+	rKeys := map[keybase1.UID][]kbfscrypto.CryptPublicKey{
+		uid3: {key3},
+	}
+
+	removalInfo, err := brmd.RevokeRemovedDevices(wKeys, rKeys, extra)
+	require.NoError(t, err)
+	require.Equal(t, ServerHalfRemovalInfo{
+		uid2: userServerHalfRemovalInfo{
+			userRemoved: true,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key2: []TLFCryptKeyServerHalfID{id2a},
+			},
+		},
+	}, removalInfo)
+
+	expectedWKB := TLFWriterKeyBundleV3{
+		Keys: UserDeviceKeyInfoMapV3{
+			uid1: DeviceKeyInfoMapV3{
+				key1: TLFCryptKeyInfo{
+					ServerHalfID: id1a,
+					EPubKeyIndex: 0,
+				},
+			},
+		},
+	}
+	require.Equal(t, expectedWKB, *wkb)
+
+	expectedRKB := TLFReaderKeyBundleV3{
+		Keys: UserDeviceKeyInfoMapV3{
+			uid3: DeviceKeyInfoMapV3{
+				key3: TLFCryptKeyInfo{
+					ServerHalfID: id3a,
+					EPubKeyIndex: 0,
+				},
+			},
+		},
+	}
+	require.Equal(t, expectedRKB, *rkb)
 }

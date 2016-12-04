@@ -34,7 +34,7 @@ type WriterMetadataV2 struct {
 	// For private TLFs. Writer key generations for this metadata. The
 	// most recent one is last in the array. Must be same length as
 	// BareRootMetadata.RKeys.
-	WKeys TLFWriterKeyGenerations `codec:",omitempty"`
+	WKeys TLFWriterKeyGenerationsV2 `codec:",omitempty"`
 	// The directory ID, signed over to make verification easier
 	ID tlf.ID
 	// The branch ID, currently only set if this is in unmerged per-device history.
@@ -54,7 +54,7 @@ type WriterMetadataV2 struct {
 
 // ToWriterMetadataV3 converts the WriterMetadataV2 to a WriterMetadataV3 in place.
 func (wmd *WriterMetadataV2) ToWriterMetadataV3(
-	ctx context.Context, crypto cryptoPure, keyManager KeyManager,
+	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure, keyManager KeyManager,
 	kmd KeyMetadata, wmdCopy *WriterMetadataV3) (
 	*TLFWriterKeyBundleV3, error) {
 
@@ -77,7 +77,7 @@ func (wmd *WriterMetadataV2) ToWriterMetadataV3(
 	} else {
 		wmdCopy.LatestKeyGen = wmd.WKeys.LatestKeyGeneration()
 		var err error
-		wkb, err = wmd.WKeys.ToTLFWriterKeyBundleV3(ctx, crypto, keyManager, kmd)
+		wkb, err = wmd.WKeys.ToTLFWriterKeyBundleV3(ctx, codec, crypto, keyManager, kmd)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +127,7 @@ type BareRootMetadataV2 struct {
 	// most recent one is last in the array. Must be same length as
 	// WriterMetadata.WKeys. If there are no readers, each generation
 	// is empty.
-	RKeys TLFReaderKeyGenerations `codec:",omitempty"`
+	RKeys TLFReaderKeyGenerationsV2 `codec:",omitempty"`
 	// For private TLFs. Any unresolved social assertions for readers.
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
 
@@ -154,14 +154,14 @@ func MakeInitialBareRootMetadataV2(tlfID tlf.ID, h tlf.Handle) (
 	}
 
 	var writers []keybase1.UID
-	var wKeys TLFWriterKeyGenerations
-	var rKeys TLFReaderKeyGenerations
+	var wKeys TLFWriterKeyGenerationsV2
+	var rKeys TLFReaderKeyGenerationsV2
 	if tlfID.IsPublic() {
 		writers = make([]keybase1.UID, len(h.Writers))
 		copy(writers, h.Writers)
 	} else {
-		wKeys = make(TLFWriterKeyGenerations, 0, 1)
-		rKeys = make(TLFReaderKeyGenerations, 0, 1)
+		wKeys = make(TLFWriterKeyGenerationsV2, 0, 1)
+		rKeys = make(TLFReaderKeyGenerationsV2, 0, 1)
 	}
 
 	var unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion
@@ -379,7 +379,7 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Co
 
 	// Fill out the writer metadata and new writer key bundle.
 	wkb, err := md.WriterMetadataV2.ToWriterMetadataV3(
-		ctx, config.Crypto(), config.KeyManager(), kmd, &mdCopy.WriterMetadata)
+		ctx, config.Codec(), config.Crypto(), config.KeyManager(), kmd, &mdCopy.WriterMetadata)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -387,7 +387,7 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Co
 	var rkb *TLFReaderKeyBundleV3
 	if md.LatestKeyGeneration() != PublicKeyGen {
 		// Fill out the reader key bundle.
-		rkb, err = md.RKeys.ToTLFReaderKeyBundleV3(wkb)
+		rkb, err = md.RKeys.ToTLFReaderKeyBundleV3(config.Codec(), wkb)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -565,6 +565,66 @@ func (md *BareRootMetadataV2) TlfHandleExtensions() (
 		extensions = append(extensions, *md.FinalizedInfo)
 	}
 	return extensions
+}
+
+// PromoteReader implements the BareRootMetadata interface for
+// BareRootMetadataV2.
+func (md *BareRootMetadataV2) PromoteReader(
+	uid keybase1.UID, _ ExtraMetadata) error {
+	if md.TlfID().IsPublic() {
+		return InvalidPublicTLFOperation{md.TlfID(), "PromoteReader"}
+	}
+
+	for i, rkb := range md.RKeys {
+		dkim, ok := rkb.RKeys[uid]
+		if !ok {
+			return fmt.Errorf("Could not find %s in key gen %d",
+				uid, FirstValidKeyGen+KeyGen(i))
+		}
+		md.WKeys[i].WKeys[uid] = dkim
+		delete(rkb.RKeys, uid)
+	}
+
+	return nil
+}
+
+// RevokeRemovedDevices implements the BareRootMetadata interface for
+// BareRootMetadataV2.
+func (md *BareRootMetadataV2) RevokeRemovedDevices(
+	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	_ ExtraMetadata) (ServerHalfRemovalInfo, error) {
+	if md.TlfID().IsPublic() {
+		return nil, InvalidPublicTLFOperation{
+			md.TlfID(), "RevokeRemovedDevices"}
+	}
+
+	var wRemovalInfo ServerHalfRemovalInfo
+	for _, wkb := range md.WKeys {
+		removalInfo := wkb.WKeys.removeDevicesNotIn(wKeys)
+		if wRemovalInfo == nil {
+			wRemovalInfo = removalInfo
+		} else {
+			err := wRemovalInfo.addGeneration(removalInfo)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	var rRemovalInfo ServerHalfRemovalInfo
+	for _, rkb := range md.RKeys {
+		removalInfo := rkb.RKeys.removeDevicesNotIn(rKeys)
+		if rRemovalInfo == nil {
+			rRemovalInfo = removalInfo
+		} else {
+			err := rRemovalInfo.addGeneration(removalInfo)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return wRemovalInfo.mergeUsers(rRemovalInfo)
 }
 
 // GetTLFKeyBundles implements the BareRootMetadata interface for
@@ -947,21 +1007,31 @@ func (md *BareRootMetadataV2) SetRevision(revision MetadataRevision) {
 	md.Revision = revision
 }
 
-func (md *BareRootMetadataV2) addKeyGenerationHelper(
-	pubKey kbfscrypto.TLFPublicKey, wDkim, rDkim UserDeviceKeyInfoMap,
+func (md *BareRootMetadataV2) addKeyGenerationHelper(codec kbfscodec.Codec,
+	pubKey kbfscrypto.TLFPublicKey, wUDKIM, rUDKIM UserDeviceKeyInfoMap,
 	wPublicKeys, rPublicKeys []kbfscrypto.TLFEphemeralPublicKey) error {
 	if md.TlfID().IsPublic() {
 		return InvalidPublicTLFOperation{
 			md.TlfID(), "addKeyGenerationHelper"}
 	}
 
+	wUDKIMV2, err := udkimToV2(codec, wUDKIM)
+	if err != nil {
+		return err
+	}
+
+	rUDKIMV2, err := udkimToV2(codec, rUDKIM)
+	if err != nil {
+		return err
+	}
+
 	newWriterKeys := TLFWriterKeyBundleV2{
-		WKeys:                  wDkim,
+		WKeys:                  wUDKIMV2,
 		TLFPublicKey:           pubKey,
 		TLFEphemeralPublicKeys: wPublicKeys,
 	}
 	newReaderKeys := TLFReaderKeyBundleV2{
-		RKeys: rDkim,
+		RKeys: rUDKIMV2,
 		TLFReaderEphemeralPublicKeys: rPublicKeys,
 	}
 	md.WKeys = append(md.WKeys, newWriterKeys)
@@ -971,11 +1041,11 @@ func (md *BareRootMetadataV2) addKeyGenerationHelper(
 
 // addKeyGenerationForTest implements the MutableBareRootMetadata
 // interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) addKeyGenerationForTest(
+func (md *BareRootMetadataV2) addKeyGenerationForTest(codec kbfscodec.Codec,
 	crypto cryptoPure, _ ExtraMetadata,
 	_, _ kbfscrypto.TLFCryptKey, pubKey kbfscrypto.TLFPublicKey,
-	wDkim, rDkim UserDeviceKeyInfoMap) ExtraMetadata {
-	for _, dkim := range wDkim {
+	wUDKIM, rUDKIM UserDeviceKeyInfoMap) ExtraMetadata {
+	for _, dkim := range wUDKIM {
 		for _, info := range dkim {
 			if info.EPubKeyIndex < 0 {
 				panic("negative EPubKeyIndex for writer (v2)")
@@ -986,7 +1056,7 @@ func (md *BareRootMetadataV2) addKeyGenerationForTest(
 			}
 		}
 	}
-	for _, dkim := range rDkim {
+	for _, dkim := range rUDKIM {
 		for _, info := range dkim {
 			if info.EPubKeyIndex >= 0 {
 				panic("non-negative EPubKeyIndex for reader (v2)")
@@ -1003,7 +1073,7 @@ func (md *BareRootMetadataV2) addKeyGenerationForTest(
 	// negative hack) for readers.
 	rPublicKeys := make([]kbfscrypto.TLFEphemeralPublicKey, 1)
 	err := md.addKeyGenerationHelper(
-		pubKey, wDkim, rDkim, wPublicKeys, rPublicKeys)
+		codec, pubKey, wUDKIM, rUDKIM, wPublicKeys, rPublicKeys)
 	if err != nil {
 		panic(err)
 	}
@@ -1102,19 +1172,31 @@ func (md *BareRootMetadataV2) GetUnresolvedParticipants() (readers, writers []ke
 	return md.UnresolvedReaders, md.WriterMetadataV2.Extra.UnresolvedWriters
 }
 
-// GetUserDeviceKeyInfoMaps implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) GetUserDeviceKeyInfoMaps(keyGen KeyGen, _ ExtraMetadata) (
+// GetUserDeviceKeyInfoMaps implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) GetUserDeviceKeyInfoMaps(
+	codec kbfscodec.Codec, keyGen KeyGen, _ ExtraMetadata) (
 	readers, writers UserDeviceKeyInfoMap, err error) {
 	wkb, rkb, err := md.GetTLFKeyBundles(keyGen)
 	if err != nil {
 		return nil, nil, err
 	}
-	return rkb.RKeys, wkb.WKeys, nil
+
+	rUDKIM, err := rkb.RKeys.toUDKIM(codec)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	wUDKIM, err := wkb.WKeys.toUDKIM(codec)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return rUDKIM, wUDKIM, nil
 }
 
 // AddKeyGeneration implements the MutableBareRootMetadata interface
 // for BareRootMetadataV2.
-func (md *BareRootMetadataV2) AddKeyGeneration(
+func (md *BareRootMetadataV2) AddKeyGeneration(codec kbfscodec.Codec,
 	_ cryptoPure, _ ExtraMetadata,
 	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
 	pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error) {
@@ -1124,9 +1206,9 @@ func (md *BareRootMetadataV2) AddKeyGeneration(
 	if nextCryptKey != (kbfscrypto.TLFCryptKey{}) {
 		return nil, errors.New("nextCryptKey unexpectedly non-zero")
 	}
-	wDkim := make(UserDeviceKeyInfoMap)
-	rDkim := make(UserDeviceKeyInfoMap)
-	err := md.addKeyGenerationHelper(pubKey, wDkim, rDkim, nil, nil)
+	wUDKIM := make(UserDeviceKeyInfoMap)
+	rUDKIM := make(UserDeviceKeyInfoMap)
+	err := md.addKeyGenerationHelper(codec, pubKey, wUDKIM, rUDKIM, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1160,12 +1242,12 @@ func (md *BareRootMetadataV2) fillInDevices(crypto Crypto,
 
 	// now fill in the secret keys as needed
 	newServerKeys := serverKeyMap{}
-	err := fillInDevicesAndServerMap(crypto, newIndex, wKeys, wkb.WKeys,
+	err := fillInDevicesAndServerMapV2(crypto, newIndex, wKeys, wkb.WKeys,
 		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
 	if err != nil {
 		return nil, err
 	}
-	err = fillInDevicesAndServerMap(crypto, newIndex, rKeys, rkb.RKeys,
+	err = fillInDevicesAndServerMapV2(crypto, newIndex, rKeys, rkb.RKeys,
 		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
 	if err != nil {
 		return nil, err

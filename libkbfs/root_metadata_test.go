@@ -175,7 +175,7 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
 	require.NoError(t, err)
 
-	rmd.fakeInitialRekey(crypto)
+	rmd.fakeInitialRekey(codec, crypto)
 
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
@@ -198,7 +198,7 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
 	}
-	rmd.fakeInitialRekey(crypto)
+	rmd.fakeInitialRekey(codec, crypto)
 	if rmd.LatestKeyGeneration() != FirstValidKeyGen {
 		t.Errorf("Expected key generation to be valid(%d)", FirstValidKeyGen)
 	}
@@ -275,7 +275,7 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 	wm := WriterMetadataV2{
 		ID:      tlf.FakeID(0xa, false),
 		Writers: []keybase1.UID{"uid1", "uid2"},
-		WKeys:   TLFWriterKeyGenerations{{}},
+		WKeys:   TLFWriterKeyGenerationsV2{{}},
 		Extra: WriterMetadataExtra{
 			UnresolvedWriters: []keybase1.SocialAssertion{sa1, sa2},
 		},
@@ -321,10 +321,10 @@ func (wmef writerMetadataExtraFuture) toCurrent() WriterMetadataExtra {
 	return wmef.WriterMetadataExtra
 }
 
-type tlfWriterKeyGenerationsFuture []*tlfWriterKeyBundleFuture
+type tlfWriterKeyGenerationsV2Future []*tlfWriterKeyBundleV2Future
 
-func (wkgf tlfWriterKeyGenerationsFuture) toCurrent() TLFWriterKeyGenerations {
-	wkg := make(TLFWriterKeyGenerations, len(wkgf))
+func (wkgf tlfWriterKeyGenerationsV2Future) toCurrent() TLFWriterKeyGenerationsV2 {
+	wkg := make(TLFWriterKeyGenerationsV2, len(wkgf))
 	for i, wkbf := range wkgf {
 		wkb := wkbf.toCurrent()
 		wkg[i] = wkb
@@ -335,7 +335,7 @@ func (wkgf tlfWriterKeyGenerationsFuture) toCurrent() TLFWriterKeyGenerations {
 type writerMetadataFuture struct {
 	WriterMetadataV2
 	// Override WriterMetadata.WKeys.
-	WKeys tlfWriterKeyGenerationsFuture
+	WKeys tlfWriterKeyGenerationsV2Future
 	// Override WriterMetadata.Extra.
 	Extra writerMetadataExtraFuture `codec:"x,omitempty,omitemptycheckstruct"`
 }
@@ -368,11 +368,11 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 		101,
 		WriterMetadataExtra{},
 	}
-	wkb := makeFakeTLFWriterKeyBundleFuture(t)
+	wkb := makeFakeTLFWriterKeyBundleV2Future(t)
 	sa, _ := externals.NormalizeSocialAssertion("foo@twitter")
 	return writerMetadataFuture{
 		wmd,
-		tlfWriterKeyGenerationsFuture{&wkb},
+		tlfWriterKeyGenerationsV2Future{&wkb},
 		writerMetadataExtraFuture{
 			WriterMetadataExtra{
 				// This needs to be list format so it fails to compile if new
@@ -390,10 +390,10 @@ func TestWriterMetadataUnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakeWriterMetadataFuture(t))
 }
 
-type tlfReaderKeyGenerationsFuture []*tlfReaderKeyBundleFuture
+type tlfReaderKeyGenerationsV2Future []*tlfReaderKeyBundleV2Future
 
-func (rkgf tlfReaderKeyGenerationsFuture) toCurrent() TLFReaderKeyGenerations {
-	rkg := make(TLFReaderKeyGenerations, len(rkgf))
+func (rkgf tlfReaderKeyGenerationsV2Future) toCurrent() TLFReaderKeyGenerationsV2 {
+	rkg := make(TLFReaderKeyGenerationsV2, len(rkgf))
 	for i, rkbf := range rkgf {
 		rkb := rkbf.toCurrent()
 		rkg[i] = rkb
@@ -417,7 +417,7 @@ type bareRootMetadataFuture struct {
 
 	bareRootMetadataWrapper
 	// Override BareRootMetadata.RKeys.
-	RKeys tlfReaderKeyGenerationsFuture `codec:",omitempty"`
+	RKeys tlfReaderKeyGenerationsV2Future `codec:",omitempty"`
 	kbfscodec.Extra
 }
 
@@ -434,7 +434,7 @@ func (brmf *bareRootMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 
 func makeFakeBareRootMetadataFuture(t *testing.T) *bareRootMetadataFuture {
 	wmf := makeFakeWriterMetadataFuture(t)
-	rkb := makeFakeTLFReaderKeyBundleFuture(t)
+	rkb := makeFakeTLFReaderKeyBundleV2Future(t)
 	h, err := kbfshash.DefaultHash([]byte("fake buf"))
 	require.NoError(t, err)
 	sa, _ := externals.NormalizeSocialAssertion("bar@github")
@@ -464,7 +464,7 @@ func makeFakeBareRootMetadataFuture(t *testing.T) *bareRootMetadataFuture {
 				codec.UnknownFieldSetHandler{},
 			},
 		},
-		[]*tlfReaderKeyBundleFuture{&rkb},
+		[]*tlfReaderKeyBundleV2Future{&rkb},
 		kbfscodec.MakeExtraOrBust("BareRootMetadata", t),
 	}
 	return &rmf
@@ -483,7 +483,7 @@ func TestMakeRekeyReadError(t *testing.T) {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 
-	rmd.fakeInitialRekey(config.Crypto())
+	rmd.fakeInitialRekey(config.Codec(), config.Crypto())
 
 	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
 	require.NoError(t, err)
@@ -511,7 +511,7 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
 
-	rmd.fakeInitialRekey(config.Crypto())
+	rmd.fakeInitialRekey(config.Codec(), config.Crypto())
 
 	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
 	require.NoError(t, err)
@@ -753,7 +753,7 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	h := makeFakeTlfHandle(t, 14, false, nil, nil)
 	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)
 	require.NoError(t, err)
-	rmd.fakeInitialRekey(config.Crypto())
+	rmd.fakeInitialRekey(config.Codec(), config.Crypto())
 	rmd.SetLastModifyingWriter(uid)
 	rmd.SetLastModifyingUser(uid)
 
