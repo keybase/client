@@ -98,7 +98,7 @@ func TestNonblockChannel(t *testing.T) {
 
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
+			TlfID:     []byte{4, 5, 6},
 			TopicType: 0,
 			TopicID:   []byte{0},
 		},
@@ -165,7 +165,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
+			TlfID:     []byte{4, 5, 6},
 			TopicType: 0,
 			TopicID:   []byte{0},
 		},
@@ -296,7 +296,7 @@ func TestFailing(t *testing.T) {
 
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
+			TlfID:     []byte{4, 5, 6},
 			TopicType: 0,
 			TopicID:   []byte{0},
 		},
