@@ -126,7 +126,7 @@ helpers.rootLinuxNode(env, {
                                     sh "yarn"
                                 }
                                 dir("shared") {
-                                    sh "./node_modules/.bin/flow"
+                                    sh "../desktop/node_modules/.bin/flow"
                                 }
                                 sh "desktop/node_modules/.bin/eslint ."
                                 dir("desktop") {
