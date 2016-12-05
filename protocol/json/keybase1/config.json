@@ -42,23 +42,28 @@
       "fields": [
         {
           "type": "string",
-          "name": "SessionFor"
+          "name": "SessionFor",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
-          "name": "Loaded"
+          "name": "Loaded",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
-          "name": "Cleared"
+          "name": "Cleared",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
-          "name": "SaltOnly"
+          "name": "SaltOnly",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
-          "name": "Expired"
+          "name": "Expired",
+          "lint": "ignore"
         }
       ]
     },
@@ -208,7 +213,8 @@
             "type": "array",
             "items": "ClientDetails"
           },
-          "name": "Clients"
+          "name": "Clients",
+          "lint": "ignore"
         },
         {
           "type": "PlatformInfo",

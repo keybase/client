@@ -223,6 +223,18 @@ export function localGetThreadLocalRpcPromise (request: $Exact<requestCommon & {
   return new Promise((resolve, reject) => { localGetThreadLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localMarkAsReadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localMarkAsReadLocalResult) => void} & {param: localMarkAsReadLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.markAsReadLocal'})
+}
+
+export function localMarkAsReadLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localMarkAsReadLocalResult) => void} & {param: localMarkAsReadLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localMarkAsReadLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localMarkAsReadLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localMarkAsReadLocalResult) => void} & {param: localMarkAsReadLocalRpcParam}>): Promise<localMarkAsReadLocalResult> {
+  return new Promise((resolve, reject) => { localMarkAsReadLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localNewConversationLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localNewConversationLocalResult) => void} & {param: localNewConversationLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.newConversationLocal'})
 }
@@ -528,7 +540,7 @@ export type ConversationLocal = {
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
-  isFinalized: bool,
+  isFinalized: boolean,
   activeList?: ?Array<gregor1.UID>,
 }
 
@@ -852,7 +864,7 @@ export type MessageUnboxedValid = {
   senderDeviceType: string,
   headerHash: Hash,
   headerSignature?: ?SignatureInfo,
-  fromRevokedDevice: bool,
+  fromRevokedDevice: boolean,
 }
 
 export type NewConversationInfo = {
@@ -1098,6 +1110,11 @@ export type localGetThreadLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localMarkAsReadLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  msgID: MessageID
+}>
+
 export type localNewConversationLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
@@ -1223,6 +1240,8 @@ type localGetMessagesLocalResult = GetMessagesLocalRes
 
 type localGetThreadLocalResult = GetThreadLocalRes
 
+type localMarkAsReadLocalResult = MarkAsReadRes
+
 type localNewConversationLocalResult = NewConversationLocalRes
 
 type localPostAttachmentLocalResult = PostLocalRes
@@ -1267,6 +1286,7 @@ export type rpc =
   | localGetInboxSummaryForCLILocalRpc
   | localGetMessagesLocalRpc
   | localGetThreadLocalRpc
+  | localMarkAsReadLocalRpc
   | localNewConversationLocalRpc
   | localPostAttachmentLocalRpc
   | localPostFileAttachmentLocalRpc

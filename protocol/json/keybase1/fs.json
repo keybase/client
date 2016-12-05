@@ -39,7 +39,8 @@
         }
       ],
       "response": "ListResult",
-      "doc": "List files in a path. Implemented by KBFS service."
+      "doc": "List files in a path. Implemented by KBFS service.",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

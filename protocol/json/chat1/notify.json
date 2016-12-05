@@ -162,7 +162,8 @@
         }
       ],
       "response": null,
-      "notify": ""
+      "notify": "",
+      "lint": "ignore"
     }
   },
   "namespace": "chat.1"

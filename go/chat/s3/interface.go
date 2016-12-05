@@ -19,6 +19,7 @@ type BucketInt interface {
 	GetReader(ctx context.Context, path string) (rc io.ReadCloser, err error)
 	PutReader(ctx context.Context, path string, r io.Reader, length int64, contType string, perm ACL, options Options) error
 	Multi(ctx context.Context, key, contType string, perm ACL) (MultiInt, error)
+	Del(ctx context.Context, path string) error
 }
 
 type MultiInt interface {

@@ -16,7 +16,9 @@ protocol tlfKeys {
   record CanonicalTlfName {}
 
   record CryptKey {
+    @lint("ignore")
     int KeyGeneration;
+    @lint("ignore")
     Bytes32 Key;
   }
 
@@ -34,6 +36,7 @@ protocol tlfKeys {
 
     // crypt keys of all generations for this TLF, in order, starting from
     // FirstValidKeyGen
+    @lint("ignore")
     array<CryptKey> CryptKeys;
   }
 
@@ -50,6 +53,7 @@ protocol tlfKeys {
 
   record CanonicalTLFNameAndIDWithBreaks {
     TLFID tlfID;
+    @lint("ignore")
     CanonicalTlfName CanonicalName;
 
     TLFBreak breaks;
@@ -58,6 +62,6 @@ protocol tlfKeys {
   /**
    getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.
    TLF ID should not be cached or stored persistently.
-   */   
+   */
   CanonicalTLFNameAndIDWithBreaks getPublicCanonicalTLFNameAndID(TLFQuery query);
 }

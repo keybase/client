@@ -30,6 +30,10 @@ protocol Common {
   @typedef("string")
   record KID {}
 
+  // Chain link IDs
+  @typedef("string")
+  record LinkID {}
+
   // But sometimes we need binary kids...
   @typedef("bytes")
   record BinaryKID {}
@@ -51,8 +55,11 @@ protocol Common {
   }
 
   record PublicKey {
+    @lint("ignore")
     KID KID;
+    @lint("ignore")
     string PGPFingerprint; // empty for non-PGP keys
+    @lint("ignore")
     array<PGPIdentity> PGPIdentities; // same
     boolean isSibkey;
     boolean isEldest;
@@ -144,9 +151,16 @@ protocol Common {
       UserVersionVector uvv;
   }
 
+  record RemoteTrack {
+      string username;
+      UID uid;
+      LinkID linkID;
+  }
+
   record UserPlusAllKeys {
       UserPlusKeys base;
       array<PublicKey> pgpKeys;
+      array<RemoteTrack> remoteTracks;
   }
 
   enum MerkleTreeID {

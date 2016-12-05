@@ -4,10 +4,9 @@
 package engine
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"testing"
 )
 
 func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
@@ -354,6 +353,14 @@ func TestIdentifyTrackRaceDetection(t *testing.T) {
 		fui1 := &FakeIdentifyUI{}
 		fui2 := &FakeIdentifyUI{}
 		doID(dev1, fui1)
+		if i > 0 {
+			// Device2 won't know that device1 made a change to the ME user
+			// in time to make this test pass. So we hack in an invalidation.
+			// We might have used the fact the userchanged notifications are bounced
+			// off of the server, but that might slow down this test, so do the
+			// simple and non-flakey thing.
+			dev2.G.CachedUserLoader.Invalidate(libkb.UsernameToUID(user.Username))
+		}
 		doID(dev2, fui2)
 		trackSucceed(dev1, fui1)
 		trackFail(dev2, fui2, (i == 0))

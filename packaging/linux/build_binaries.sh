@@ -61,7 +61,9 @@ if should_build_kbfs ; then
   export NODE_ENV=development
   export KEYBASE_SKIP_DEV_TOOLS=1
   npm cache clean
-  (cd "$this_repo/desktop" && npm i)
+  # FIXME: running npm with --unsafe-perm here because a hack in our
+  # postinstall script (2f79249b) needs to write to package files.
+  (cd "$this_repo/desktop" && npm --unsafe-perm i)
   unset KEYBASE_SKIP_DEV_TOOLS
   export NODE_ENV=production
 fi

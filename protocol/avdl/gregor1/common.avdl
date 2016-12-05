@@ -84,7 +84,7 @@ protocol common {
 		union { null, InBandMessage } ibm;
 	}
 
-	@typedef("int64") record DurationMsec {}
+	@typedef("int64") @lint("ignore") record DurationMsec {}
 	@typedef("string") record Category {}
 	@typedef("string") record System {}
 	@typedef("bytes") record UID {}

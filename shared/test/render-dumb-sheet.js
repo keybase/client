@@ -54,7 +54,8 @@ function onDisplay (ev, msg) {
   try {
     ReactDOM.render(displayTree, appEl, () => {
       // Remove pesky blinking cursors
-      if (document.activeElement.tagName === 'INPUT') {
+      if (document.activeElement.tagName === 'INPUT' ||
+          document.activeElement.tagName === 'TEXTAREA') {
         document.activeElement.blur()
       }
 

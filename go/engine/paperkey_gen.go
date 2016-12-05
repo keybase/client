@@ -100,7 +100,7 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 	}
 	e.G().NotifyRouter.HandleKeyfamilyChanged(e.arg.Me.GetUID())
 	// Remove this after kbfs notification change complete
-	e.G().NotifyRouter.HandleUserChanged(e.arg.Me.GetUID())
+	e.G().UserChanged(e.arg.Me.GetUID())
 
 	return nil
 }

@@ -31,6 +31,10 @@ func GetLinkID(w *jsonw.Wrapper) (LinkID, error) {
 	return ret, err
 }
 
+func ImportLinkID(i keybase1.LinkID) (LinkID, error) {
+	return LinkIDFromHex(string(i))
+}
+
 func GetLinkIDVoid(w *jsonw.Wrapper, l *LinkID, e *error) {
 	ret, err := GetLinkID(w)
 	if err != nil {
@@ -748,4 +752,8 @@ func (c *ChainLink) Copy() ChainLink {
 	}
 
 	return r
+}
+
+func (c ChainLink) LinkID() LinkID {
+	return c.id
 }

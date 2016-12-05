@@ -35,7 +35,9 @@ protocol metadata {
   }
 
   record KeyBundleResponse {
+         @lint("ignore")
          KeyBundle WriterBundle;
+         @lint("ignore")
          KeyBundle ReaderBundle;
   }
 
