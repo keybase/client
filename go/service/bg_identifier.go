@@ -1,4 +1,3 @@
-
 package service
 
 import (
@@ -8,22 +7,22 @@ import (
 )
 
 type bgiUser struct {
-	uid keybase1.UID
+	uid    keybase1.UID
 	lastID time.Time
 }
 
 type BackgroundIdentifier struct {
 	libkb.Contextified
-	queue []bgiUser
-	members map[keybase1.UID]bool
+	queue     []bgiUser
+	members   map[keybase1.UID]bool
 	deletions map[keybase1.UID]bool
 }
 
 func NewBackgroundIdentifier(g *libkb.GlobalContext) *BackgroundIdentifier {
 	return &BackgroundIdentifier{
-		Contextified : libkb.NewContextified(g),
-		members : make(map[keybase1.UID]bool),
-		deletions : make(map[keybase1.UID]bool),
+		Contextified: libkb.NewContextified(g),
+		members:      make(map[keybase1.UID]bool),
+		deletions:    make(map[keybase1.UID]bool),
 	}
 }
 
@@ -31,7 +30,7 @@ func (b *BackgroundIdentifier) Add(u keybase1.UID) bool {
 	if b.members[u] {
 		return false
 	}
-	b.queue = append(b.queue, bgiUser{ uid : u })
+	b.queue = append(b.queue, bgiUser{uid: u})
 	b.members[u] = true
 	delete(b.deletions, u)
 	return true
