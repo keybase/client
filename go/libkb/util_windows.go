@@ -109,7 +109,9 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return err
 }
 
-
+// RemoteSettingsRepairman does a one-time move of everyting from the roaming
+// target directory to local. We depend on the .exe files having been uninstalled from
+// there first.
 func RemoteSettingsRepairman(g *GlobalContext) error {
 	var retErr error
 	w := Win32{Base{"keybase",
