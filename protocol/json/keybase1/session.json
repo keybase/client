@@ -25,11 +25,13 @@
         },
         {
           "type": "KID",
-          "name": "deviceSubkeyKid"
+          "name": "deviceSubkeyKid",
+          "lint": "ignore"
         },
         {
           "type": "KID",
-          "name": "deviceSibkeyKid"
+          "name": "deviceSibkeyKid",
+          "lint": "ignore"
         }
       ]
     }

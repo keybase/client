@@ -24,7 +24,8 @@
       "type": "record",
       "name": "CanonicalTlfName",
       "fields": [],
-      "typedef": "string"
+      "typedef": "string",
+      "lint": "ignore"
     },
     {
       "type": "record",

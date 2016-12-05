@@ -84,13 +84,16 @@ protocol pgp {
   array<KeyInfo> pgpExportByFingerprint(int sessionID, PGPQuery options);
   array<KeyInfo> pgpExportByKID(int sessionID, PGPQuery options);
 
+  @lint("ignore")
   record PGPCreateUids {
     boolean useDefault;
     array<PGPIdentity> ids;
   }
 
+  @lint("ignore")
   void pgpKeyGen(int sessionID, int primaryBits, int subkeyBits, PGPCreateUids createUids, boolean allowMulti, boolean doExport, boolean pushSecret);
 
+  @lint("ignore")
   void pgpKeyGenDefault(int sessionID, PGPCreateUids createUids);
 
   void pgpDeletePrimary(int sessionID);

@@ -87,6 +87,7 @@ protocol common {
   }
 
   record ConversationIDTriple {
+    @lint("ignore")
     TLFID tlfid;
     TopicType topicType;
     TopicID topicID;

@@ -972,7 +972,8 @@
         },
         {
           "type": "ConversationID",
-          "name": "conversationId"
+          "name": "conversationId",
+          "lint": "ignore"
         }
       ]
     },
