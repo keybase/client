@@ -44,6 +44,22 @@ type ChatAttachmentDownloadDoneArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type ChatInboxUnverifiedArg struct {
+	SessionID int              `codec:"sessionID" json:"sessionID"`
+	Inbox     GetInboxLocalRes `codec:"inbox" json:"inbox"`
+}
+
+type ChatInboxConversationArg struct {
+	SessionID int               `codec:"sessionID" json:"sessionID"`
+	Conv      ConversationLocal `codec:"conv" json:"conv"`
+}
+
+type ChatInboxFailedArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Error     string         `codec:"error" json:"error"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentUploadStart(context.Context, int) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
@@ -53,6 +69,9 @@ type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
 	ChatAttachmentDownloadDone(context.Context, int) error
+	ChatInboxUnverified(context.Context, ChatInboxUnverifiedArg) error
+	ChatInboxConversation(context.Context, ChatInboxConversationArg) error
+	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -187,6 +206,54 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"chatInboxUnverified": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatInboxUnverifiedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatInboxUnverifiedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatInboxUnverifiedArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxUnverified(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"chatInboxConversation": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatInboxConversationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatInboxConversationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatInboxConversationArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxConversation(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"chatInboxFailed": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatInboxFailedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatInboxFailedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatInboxFailedArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxFailed(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -238,5 +305,20 @@ func (c ChatUiClient) ChatAttachmentDownloadProgress(ctx context.Context, __arg 
 func (c ChatUiClient) ChatAttachmentDownloadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentDownloadDoneArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadDone", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatInboxUnverified(ctx context.Context, __arg ChatInboxUnverifiedArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxUnverified", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatInboxConversation(ctx context.Context, __arg ChatInboxConversationArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxConversation", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatInboxFailed(ctx context.Context, __arg ChatInboxFailedArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxFailed", []interface{}{__arg}, nil)
 	return
 }

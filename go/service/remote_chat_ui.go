@@ -52,3 +52,15 @@ func (r *RemoteChatUI) ChatAttachmentDownloadProgress(ctx context.Context, arg c
 func (r *RemoteChatUI) ChatAttachmentDownloadDone(ctx context.Context) error {
 	return r.cli.ChatAttachmentDownloadDone(ctx, r.sessionID)
 }
+
+func (r *RemoteChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
+	return r.cli.ChatInboxConversation(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
+	return r.cli.ChatInboxFailed(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
+	return r.cli.ChatInboxUnverified(ctx, arg)
+}

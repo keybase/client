@@ -15,9 +15,10 @@ import (
 )
 
 type Inbox struct {
-	Version    chat1.InboxVers
-	Convs      []chat1.ConversationLocal
-	Pagination *chat1.Pagination
+	Version         chat1.InboxVers
+	ConvsUnverified []chat1.Conversation
+	Convs           []chat1.ConversationLocal
+	Pagination      *chat1.Pagination
 }
 
 type InboxSource interface {
@@ -29,9 +30,24 @@ type InboxSource interface {
 		p *chat1.Pagination, identifyBehavior keybase1.TLFIdentifyBehavior) (Inbox, *chat1.RateLimit, error)
 }
 
+type localizer struct {
+	libkb.Contextified
+	udc             *utils.UserDeviceCache
+	getTlfInterface func() keybase1.TlfInterface
+}
+
+func newLocalizer(g *libkb.GlobalContext, udc *utils.UserDeviceCache, getTlfInterface func() keybase1.TlfInterface) *localizer {
+	return &localizer{
+		Contextified:    libkb.NewContextified(g),
+		udc:             udc,
+		getTlfInterface: getTlfInterface,
+	}
+}
+
 type RemoteInboxSource struct {
 	libkb.Contextified
 
+	localizer        *localizer
 	boxer            *Boxer
 	getTlfInterface  func() keybase1.TlfInterface
 	getChatInterface func() chat1.RemoteInterface
@@ -39,8 +55,10 @@ type RemoteInboxSource struct {
 
 func NewRemoteInboxSource(g *libkb.GlobalContext, boxer *Boxer, ri func() chat1.RemoteInterface,
 	tlf func() keybase1.TlfInterface) *RemoteInboxSource {
+	udc := utils.NewUserDeviceCache(g)
 	return &RemoteInboxSource{
 		Contextified:     libkb.NewContextified(g),
+		localizer:        newLocalizer(g, udc, tlf),
 		getTlfInterface:  tlf,
 		getChatInterface: ri,
 		boxer:            boxer,
@@ -67,8 +85,8 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 
 	var res []chat1.ConversationLocal
 	ctx, _ = utils.GetUserInfoMapper(ctx, s.G())
-	convLocals, err := s.localizeConversationsPipeline(ctx, uid, ib.Inbox.Full().Conversations,
-		identifyBehavior)
+	convLocals, err := s.localizer.localizeConversationsPipeline(ctx, uid, ib.Inbox.Full().Conversations,
+		identifyBehavior, nil)
 	if err != nil {
 		return Inbox{}, ib.RateLimit, err
 	}
@@ -101,6 +119,77 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		Convs:      res,
 		Pagination: ib.Inbox.Full().Pagination,
 	}, ib.RateLimit, nil
+}
+
+type NonblockInboxResult struct {
+	ConvID   chat1.ConversationID
+	Err      error
+	ConvRes  *chat1.ConversationLocal
+	InboxRes *Inbox
+}
+
+type NonblockRemoteInboxSource struct {
+	libkb.Contextified
+
+	localizer        *localizer
+	boxer            *Boxer
+	udc              *utils.UserDeviceCache
+	localizeCb       chan NonblockInboxResult
+	getTlfInterface  func() keybase1.TlfInterface
+	getChatInterface func() chat1.RemoteInterface
+}
+
+func NewNonblockRemoteInboxSource(g *libkb.GlobalContext, boxer *Boxer, ri func() chat1.RemoteInterface,
+	tlf func() keybase1.TlfInterface, localizeCb chan NonblockInboxResult) *NonblockRemoteInboxSource {
+	return &NonblockRemoteInboxSource{
+		Contextified:     libkb.NewContextified(g),
+		getTlfInterface:  tlf,
+		getChatInterface: ri,
+		boxer:            boxer,
+		localizeCb:       localizeCb,
+		localizer:        newLocalizer(g, udc, tlf),
+	}
+}
+
+func (s *NonblockRemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
+	query *chat1.GetInboxLocalQuery, p *chat1.Pagination,
+	identifyBehavior keybase1.TLFIdentifyBehavior) (
+	Inbox, *chat1.RateLimit, error) {
+
+	rquery, _, err := utils.GetInboxQueryLocalToRemote(ctx,
+		s.getTlfInterface(), query, identifyBehavior)
+	if err != nil {
+		return Inbox{}, nil, err
+	}
+	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query:      rquery,
+		Pagination: p,
+	})
+	if err != nil {
+		return Inbox{}, ib.RateLimit, err
+	}
+	inbox := Inbox{
+		Version:         ib.Inbox.Full().Vers,
+		ConvsUnverified: ib.Inbox.Full().Conversations,
+		Pagination:      ib.Inbox.Full().Pagination,
+	}
+
+	// Send inbox over localize channel
+	s.localizeCb <- NonblockInboxResult{
+		InboxRes: &inbox,
+	}
+
+	// Spawn off localization into its own goroutine and use cb to communicate with outside world
+	go func() {
+		bctx, _ := utils.GetUserInfoMapper(context.Background(), s.G())
+		s.localizer.localizeConversationsPipeline(bctx, uid,
+			ib.Inbox.Full().Conversations, identifyBehavior, &s.localizeCb)
+
+		// Shutdown localize channel
+		close(s.localizeCb)
+	}()
+
+	return inbox, ib.RateLimit, nil
 }
 
 type HybridInboxSource struct {
@@ -178,8 +267,9 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 	return ib, rl, nil
 }
 
-func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
-	convs []chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
+func (s *localizer) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
+	convs []chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior,
+	localizeCb *chan NonblockInboxResult) ([]chat1.ConversationLocal, error) {
 
 	// Fetch conversation local information in parallel
 	ctx, _ = utils.GetUserInfoMapper(ctx, s.G())
@@ -210,6 +300,13 @@ func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, u
 			for conv := range convCh {
 				convLocal, err := s.localizeConversation(ctx, uid, conv.conv, identifyBehavior)
 				if err != nil {
+					// If we got an error, then send that back as a result
+					if localizeCb != nil {
+						*localizeCb <- NonblockInboxResult{
+							Err:    err,
+							ConvID: conv.conv.Metadata.ConversationID,
+						}
+					}
 					return err
 				}
 				jr := jobRes{
@@ -220,6 +317,14 @@ func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, u
 				case retCh <- jr:
 				case <-ctx.Done():
 					return ctx.Err()
+				}
+
+				// If a localize callback channel exists, send along the result as well
+				if localizeCb != nil {
+					*localizeCb <- NonblockInboxResult{
+						ConvRes: &convLocal,
+						ConvID:  convLocal.Info.Id,
+					}
 				}
 			}
 			return nil
@@ -239,7 +344,7 @@ func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, u
 	return res, nil
 }
 
-func (s *RemoteInboxSource) localizeConversation(ctx context.Context, uid gregor1.UID,
+func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) (
 	conversationLocal chat1.ConversationLocal, err error) {
 
