@@ -18,7 +18,8 @@
       "type": "record",
       "name": "MessageID",
       "fields": [],
-      "typedef": "uint"
+      "typedef": "uint",
+      "lint": "ignore"
     },
     {
       "type": "record",
@@ -48,7 +49,8 @@
       "type": "record",
       "name": "InboxVers",
       "fields": [],
-      "typedef": "uint64"
+      "typedef": "uint64",
+      "lint": "ignore"
     },
     {
       "type": "record",
@@ -247,7 +249,7 @@
           "name": "conversationID"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "isFinalized"
         },
         {

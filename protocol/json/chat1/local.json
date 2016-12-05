@@ -251,7 +251,8 @@
         },
         {
           "type": "MessagePlaintext",
-          "name": "Msg"
+          "name": "Msg",
+          "lint": "ignore"
         }
       ]
     },
@@ -438,7 +439,7 @@
           "name": "headerSignature"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "fromRevokedDevice"
         }
       ]
@@ -498,15 +499,18 @@
       "fields": [
         {
           "type": "int",
-          "name": "NumRead"
+          "name": "NumRead",
+          "lint": "ignore"
         },
         {
           "type": "int",
-          "name": "AtLeast"
+          "name": "AtLeast",
+          "lint": "ignore"
         },
         {
           "type": "int",
-          "name": "AtMost"
+          "name": "AtMost",
+          "lint": "ignore"
         }
       ]
     },
@@ -957,14 +961,16 @@
             "type": "array",
             "items": "MessageType"
           },
-          "name": "MessageTypes"
+          "name": "MessageTypes",
+          "lint": "ignore"
         },
         {
           "type": [
             null,
             "string"
           ],
-          "name": "Since"
+          "name": "Since",
+          "lint": "ignore"
         },
         {
           "type": "UnreadFirstNumLimit",
@@ -1203,7 +1209,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "SetConversationStatusLocalRes"
+      "response": "SetConversationStatusLocalRes",
+      "lint": "ignore"
     },
     "newConversationLocal": {
       "request": [
@@ -1269,7 +1276,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "GetMessagesLocalRes"
+      "response": "GetMessagesLocalRes",
+      "lint": "ignore"
     },
     "postAttachmentLocal": {
       "request": [
@@ -1378,7 +1386,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "DownloadAttachmentLocalRes"
+      "response": "DownloadAttachmentLocalRes",
+      "lint": "ignore"
     },
     "DownloadFileAttachmentLocal": {
       "request": [
@@ -1407,7 +1416,8 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "DownloadAttachmentLocalRes"
+      "response": "DownloadAttachmentLocalRes",
+      "lint": "ignore"
     },
     "CancelPost": {
       "request": [
@@ -1416,7 +1426,8 @@
           "type": "OutboxID"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
     },
     "RetryPost": {
       "request": [
@@ -1425,7 +1436,21 @@
           "type": "OutboxID"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
+    },
+    "markAsReadLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "MarkAsReadRes"
     }
   },
   "namespace": "chat.1"

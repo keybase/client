@@ -55,7 +55,9 @@ export default connect(
           isLoading: conversationState.isLoading,
           firstNewMessageID: conversationState.firstNewMessageID,
           selectedConversation,
+          emojiPickerOpen: false,
           metaData: state.chat.get('metaData'),
+          bannerMessage: null,
         }
       }
     }
@@ -67,6 +69,7 @@ export default connect(
       isLoading: false,
       selectedConversation,
       metaData: Map(),
+      bannerMessage: null,
     }
   },
   (dispatch: Dispatch) => ({

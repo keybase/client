@@ -353,11 +353,24 @@ func (d *Service) hourlyChecks() {
 }
 
 func (d *Service) tryGregordConnect() error {
+	// If we're logged out, LoggedInLoad() will return false with no error,
+	// even if the network is down. However, if we're logged in and the network
+	// is down, it will still return false, along with the network error. We
+	// need to handle that case specifically, so that we still start the gregor
+	// connect loop.
 	loggedIn, err := d.G().LoginState().LoggedInLoad()
 	if err != nil {
-		return err
-	}
-	if !loggedIn {
+		// A network error means we *think* we're logged in, and we tried to
+		// confirm with the API server. In that case we'll swallow the error
+		// and allow control to proceeed to the gregor loop. We'll still
+		// short-circuit for any unexpected errors though.
+		_, isNetworkError := err.(libkb.APINetError)
+		if !isNetworkError {
+			d.G().Log.Warning("Unexpected non-network error in tryGregordConnect: %s", err)
+			return err
+		}
+	} else if !loggedIn {
+		// We only respect the loggedIn flag in the no-error case.
 		d.G().Log.Debug("not logged in, so not connecting to gregord")
 		return nil
 	}

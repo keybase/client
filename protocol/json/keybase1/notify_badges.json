@@ -60,7 +60,8 @@
         },
         {
           "type": "int",
-          "name": "UnreadMessages"
+          "name": "UnreadMessages",
+          "lint": "ignore"
         }
       ]
     }

@@ -13,6 +13,7 @@ protocol fs {
   /**
    List files in a path. Implemented by KBFS service.
    */
+  @lint("ignore")
   ListResult List(int sessionID, string path);
 
 }

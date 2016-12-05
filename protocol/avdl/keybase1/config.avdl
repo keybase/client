@@ -15,10 +15,15 @@ protocol config {
   GetCurrentStatusRes getCurrentStatus(int sessionID);
 
   record SessionStatus {
+    @lint("ignore")
     string SessionFor;
+    @lint("ignore")
     boolean Loaded;
+    @lint("ignore")
     boolean Cleared;
+    @lint("ignore")
     boolean SaltOnly;
+    @lint("ignore")
     boolean Expired;
   }
 
@@ -58,6 +63,7 @@ protocol config {
     union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
+    @lint("ignore")
     array<ClientDetails> Clients;
     PlatformInfo platformInfo;
     DeviceID defaultDeviceID;               /* this contains the device ID for defaultUsername

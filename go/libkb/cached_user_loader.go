@@ -141,6 +141,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	ret.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 	u.Lock()
 	u.m[arg.UID.String()] = ret
+	u.G().Log.Debug("| CachedUserLoader#Load(%s): Caching: %+v", arg.UID, *ret)
 	u.Unlock()
 
 	return ret, user, nil
@@ -196,4 +197,11 @@ func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlus
 	}
 	up = upak.Base
 	return up, nil
+}
+
+func (u *CachedUserLoader) Invalidate(uid keybase1.UID) {
+	u.Lock()
+	defer u.Unlock()
+	u.G().Log.Debug("CachedUserLoader#Invalidate(%s)", uid)
+	delete(u.m, uid.String())
 }

@@ -4,6 +4,8 @@ import {Provider} from 'react-redux'
 import {MuiThemeProvider} from 'material-ui/styles'
 import materialTheme from '../shared/styles/material-theme.desktop'
 
+import '../renderer/style.css'
+
 const Root = ({store, children}: any) => (
   <MuiThemeProvider muiTheme={materialTheme}>
     <Provider store={store}>

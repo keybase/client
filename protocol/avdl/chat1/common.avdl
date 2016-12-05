@@ -4,12 +4,12 @@ protocol common {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   @typedef("bytes")  record ThreadID {}
-  @typedef("uint")   record MessageID {}
+  @typedef("uint") @lint("ignore") record MessageID {}
   @typedef("bytes")  record TopicID {}
   @typedef("bytes")  record ConversationID {}
   @typedef("bytes")  record TLFID {}
   @typedef("bytes")  record Hash {}
-  @typedef("uint64") record InboxVers {}
+  @typedef("uint64") @lint("ignore") record InboxVers {}
   @typedef("bytes")  record OutboxID {}
 
   enum MessageType {
@@ -95,7 +95,7 @@ protocol common {
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
-    bool isFinalized;
+    boolean isFinalized;
     // List of users sorted by recency of last [intentional] post.
     // Most recent first. May be incomplete or empty.
     array<gregor1.UID> activeList;
@@ -131,8 +131,8 @@ protocol common {
   record OutboxInfo {
     MessageID prev; // This is the message ID the sending client device saw as the previous
     gregor1.Time composeTime;
-  }    
-  
+  }
+
   record MessageClientHeader {
     ConversationIDTriple conv;
     string tlfName;
@@ -168,7 +168,7 @@ protocol common {
   record InboxViewFull {
     InboxVers vers;
     array<Conversation> conversations;
-    union { null, Pagination } pagination;  
+    union { null, Pagination } pagination;
   }
 
   variant InboxView switch (InboxResType rtype) {

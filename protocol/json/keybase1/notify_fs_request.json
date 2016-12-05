@@ -16,7 +16,8 @@
         }
       ],
       "response": null,
-      "notify": ""
+      "notify": "",
+      "lint": "ignore"
     },
     "FSSyncStatusRequest": {
       "request": [
@@ -26,7 +27,8 @@
         }
       ],
       "response": null,
-      "notify": ""
+      "notify": "",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

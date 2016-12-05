@@ -476,24 +476,32 @@ func (u *User) Equal(other *User) bool {
 }
 
 func (u *User) TmpTrackChainLinkFor(username string, uid keybase1.UID) (tcl *TrackChainLink, err error) {
-	u.G().Log.Debug("+ TmpTrackChainLinkFor for %s", uid)
-	tcl, err = LocalTmpTrackChainLinkFor(u.id, uid, u.G())
-	u.G().Log.Debug("- TmpTrackChainLinkFor for %s -> %v, %v", uid, (tcl != nil), err)
+	return TmpTrackChainLinkFor(u.id, uid, u.G())
+}
+
+func TmpTrackChainLinkFor(me keybase1.UID, them keybase1.UID, g *GlobalContext) (tcl *TrackChainLink, err error) {
+	g.Log.Debug("+ TmpTrackChainLinkFor for %s", them)
+	tcl, err = LocalTmpTrackChainLinkFor(me, them, g)
+	g.Log.Debug("- TmpTrackChainLinkFor for %s -> %v, %v", them, (tcl != nil), err)
 	return tcl, err
 }
 
 func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
 	u.G().Log.Debug("+ TrackChainLinkFor for %s", uid)
 	defer u.G().Log.Debug("- TrackChainLinkFor for %s", uid)
-
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
-	local, e2 := LocalTrackChainLinkFor(u.id, uid, u.G())
+	return TrackChainLinkFor(u.id, uid, remote, e1, u.G())
+}
 
-	u.G().Log.Debug("| Load remote -> %v", (remote != nil))
-	u.G().Log.Debug("| Load local -> %v", (local != nil))
+func TrackChainLinkFor(me keybase1.UID, them keybase1.UID, remote *TrackChainLink, remoteErr error, g *GlobalContext) (*TrackChainLink, error) {
 
-	if e1 != nil && e2 != nil {
-		return nil, e1
+	local, e2 := LocalTrackChainLinkFor(me, them, g)
+
+	g.Log.Debug("| Load remote -> %v", (remote != nil))
+	g.Log.Debug("| Load local -> %v", (local != nil))
+
+	if remoteErr != nil && e2 != nil {
+		return nil, remoteErr
 	}
 
 	if local == nil && remote == nil {
@@ -505,12 +513,12 @@ func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChain
 	}
 
 	if remote == nil && local != nil {
-		u.g.Log.Debug("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
+		g.Log.Debug("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
 		return local, nil
 	}
 
 	if remote.GetCTime().After(local.GetCTime()) {
-		u.G().Log.Debug("| Returning newer remote")
+		g.Log.Debug("| Returning newer remote")
 		return remote, nil
 	}
 

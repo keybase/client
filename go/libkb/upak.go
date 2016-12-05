@@ -3,6 +3,7 @@ package libkb
 // UPAK = "User Plus All Keys"
 
 import (
+	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -50,4 +51,38 @@ func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revoke
 		return found, nil
 	}
 	return checkKIDKeybase(u, kid)
+}
+
+func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
+	defer g.Trace(fmt.Sprintf("UPAK.GetRemoteChainLinkFor(%s,%s,%s)", u.Base.Uid, username, uid), func() error { return err })()
+	g.Log.Debug("| Full user: %+v\n", *u)
+	rtl := u.GetRemoteTrack(username.String())
+	if rtl == nil {
+		g.Log.Debug("| no remote track found")
+		return nil, nil
+	}
+	if !rtl.Uid.Equal(uid) {
+		return nil, UIDMismatchError{Msg: fmt.Sprintf("didn't match username %q", username.String())}
+	}
+	var lid LinkID
+	g.Log.Debug("| remote track found with linkID=%s", rtl.LinkID)
+	lid, err = ImportLinkID(rtl.LinkID)
+	if err != nil {
+		g.Log.Debug("| Failed to import link ID")
+		return nil, err
+	}
+	var link *ChainLink
+	link, err = ImportLinkFromStorage(lid, u.Base.Uid, g)
+	if err != nil {
+		g.Log.Debug("| failed to import link from storage")
+		return nil, err
+	}
+	ret, err = ParseTrackChainLink(GenericChainLink{link})
+	g.Log.Debug("| ParseTrackChainLink -> found=%v", (ret != nil))
+	return ret, err
+}
+
+func TrackChainLinkFromUserPlusAllKeys(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (*TrackChainLink, error) {
+	tcl, err := GetRemoteChainLinkFor(u, username, uid, g)
+	return TrackChainLinkFor(u.Base.Uid, uid, tcl, err, g)
 }

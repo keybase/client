@@ -4,11 +4,15 @@ protocol NotifyFS {
   import idl "kbfs_common.avdl";
 
   @notify("")
+  @lint("ignore")
   void FSActivity(FSNotification notification);
 
+  @lint("ignore")
   void FSSyncActivity(FSPathSyncStatus status) oneway;
 
+  @lint("ignore")
   void FSEditListResponse(array<FSNotification> edits, int requestID) oneway;
 
+  @lint("ignore")
   void FSSyncStatusResponse(FSSyncStatus status, int requestID) oneway;
 }

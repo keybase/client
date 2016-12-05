@@ -46,7 +46,7 @@ func (r *userHandler) keyChange() error {
 }
 
 func (r *userHandler) identityChange() error {
-	r.G().NotifyRouter.HandleUserChanged(r.G().Env.GetUID())
+	r.G().UserChanged(r.G().Env.GetUID())
 	return nil
 }
 
