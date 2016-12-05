@@ -173,7 +173,8 @@
           },
           "name": "ids"
         }
-      ]
+      ],
+      "lint": "ignore"
     },
     {
       "type": "record",
@@ -385,7 +386,8 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
     },
     "pgpKeyGenDefault": {
       "request": [
@@ -398,7 +400,8 @@
           "type": "PGPCreateUids"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
     },
     "pgpDeletePrimary": {
       "request": [
