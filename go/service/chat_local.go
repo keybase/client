@@ -189,7 +189,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	}
 
 	triple := chat1.ConversationIDTriple{
-		Tlfid:     tlfID,
+		TlfID:     tlfID,
 		TopicType: arg.TopicType,
 		TopicID:   make(chat1.TopicID, 16),
 	}
@@ -413,12 +413,12 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 
 	ibres, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			ConvID: &arg.ConversationId,
+			ConvID: &arg.ConversationID,
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
-		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationId, err)
+		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationID, err)
 	}
 	rlimits = append(rlimits, ibres.RateLimits...)
 	if len(ibres.Conversations) != 1 {
@@ -444,7 +444,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 
 	tv, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-		ConversationID:   arg.ConversationId,
+		ConversationID:   arg.ConversationID,
 		Query:            &query,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})

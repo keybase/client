@@ -44,7 +44,7 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 	if conversationInfo == nil {
 		return chat1.ConversationLocal{}, nil, nil
 	}
-	f.query.ConversationId = conversationInfo.Id
+	f.query.ConversationID = conversationInfo.Id
 
 	gcfclres, err := chatClient.GetConversationForCLILocal(ctx, f.query)
 	if err != nil {

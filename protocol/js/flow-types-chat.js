@@ -514,7 +514,7 @@ export type Conversation = {
 export type ConversationID = bytes
 
 export type ConversationIDTriple = {
-  tlfid: TLFID,
+  tlfID: TLFID,
   topicType: TopicType,
   topicID: TopicID,
 }
@@ -580,7 +580,7 @@ export type GetConversationForCLILocalQuery = {
   messageTypes?: ?Array<MessageType>,
   since?: ?string,
   limit: UnreadFirstNumLimit,
-  conversationId: ConversationID,
+  conversationID: ConversationID,
 }
 
 export type GetConversationForCLILocalRes = {

@@ -627,7 +627,7 @@ type GetConversationForCLILocalQuery struct {
 	MessageTypes   []MessageType       `codec:"messageTypes" json:"messageTypes"`
 	Since          *string             `codec:"since,omitempty" json:"since,omitempty"`
 	Limit          UnreadFirstNumLimit `codec:"limit" json:"limit"`
-	ConversationId ConversationID      `codec:"conversationId" json:"conversationId"`
+	ConversationID ConversationID      `codec:"conversationID" json:"conversationID"`
 }
 
 type GetConversationForCLILocalRes struct {
