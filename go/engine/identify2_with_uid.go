@@ -17,12 +17,13 @@ import (
 var locktab libkb.LockTable
 
 type Identify2WithUIDTestArgs struct {
-	noMe     bool                  // don't load ME
-	tcl      *libkb.TrackChainLink // the track chainlink to use
-	selfLoad bool                  // on if this is a self load
-	noCache  bool                  // on if we shouldn't use the cache
-	cache    libkb.Identify2Cacher
-	clock    func() time.Time
+	noMe             bool                  // don't load ME
+	tcl              *libkb.TrackChainLink // the track chainlink to use
+	selfLoad         bool                  // on if this is a self load
+	noCache          bool                  // on if we shouldn't use the cache
+	cache            libkb.Identify2Cacher
+	clock            func() time.Time
+	forceRemoteCheck bool // on if we should force remote checks (like busting caches)
 }
 
 type identify2TrackType int
@@ -280,7 +281,13 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 func (e *Identify2WithUID) run(ctx *Context) {
 	err := e.runReturnError(ctx)
 	e.unblock( /* isFinal */ true, err)
-	ctx.IdentifyUI.Cancel() // always cancel IdentifyUI to allow clients to clean up
+
+	// always cancel IdentifyUI to allow clients to clean up.
+	// If no identify was specified (because running the background)
+	// then don't do anything.
+	if ctx.IdentifyUI != nil {
+		ctx.IdentifyUI.Cancel()
+	}
 }
 
 func (e *Identify2WithUID) hitFastCache() bool {
@@ -575,7 +582,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	if err = them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, iui, e); err != nil {
+	if err = them.IDTable().Identify(e.state, e.forceRemoteCheck(), iui, e); err != nil {
 		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
@@ -618,6 +625,10 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	return err
 }
 
+func (e *Identify2WithUID) forceRemoteCheck() bool {
+	return e.arg.ForceRemoteCheck || (e.testArgs != nil && e.testArgs.forceRemoteCheck)
+}
+
 func (e *Identify2WithUID) createIdentifyState() (err error) {
 	defer e.G().Trace("createIdentifyState", func() error { return err })()
 	var them *libkb.User
@@ -656,9 +667,11 @@ func (e *Identify2WithUID) createIdentifyState() (err error) {
 
 // RequiredUIs returns the required UIs.
 func (e *Identify2WithUID) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.IdentifyUIKind,
+	ret := []libkb.UIKind{}
+	if e.arg == nil || !e.arg.ChatGUIMode {
+		ret = append(ret, libkb.IdentifyUIKind)
 	}
+	return ret
 }
 
 // SubConsumers returns the other UI consumers for this engine.
