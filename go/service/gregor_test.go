@@ -100,6 +100,7 @@ func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                          
 func (n *nlistener) PGPKeyInSecretStoreFile()                                      {}
 func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
 func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
+func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                   {}
 
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {
