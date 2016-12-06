@@ -62,7 +62,7 @@ def doBuild() {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
     } 
     stage('Build UI') {
-        withEnv(["PATH=${env.PATH};${env.ProgramFiles(x86)}\yarn\bin"]) {
+        withEnv(["PATH=${env.PATH};${env.ProgramFiles(x86)}\\yarn\\bin"]) {
             bat "rmdir /s src\\github.com\\keybase\\client\\desktop\\node_modules"
             bat 'src\\github.com\\keybase\\client\\packaging\\windows\\buildui.bat'
         }
