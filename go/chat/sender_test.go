@@ -43,6 +43,7 @@ func (n *chatListener) FavoritesChanged(uid keybase1.UID)                       
 func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                            {}
 func (n *chatListener) PGPKeyInSecretStoreFile()                                     {}
 func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                    {}
+func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                  {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
