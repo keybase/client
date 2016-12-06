@@ -6,11 +6,10 @@
     "start": "node_modules/react-native/packager/packager.sh",
     "gobuild-ios": "./gobuild.sh ios",
     "gobuild-android": "./gobuild.sh android",
-    "packager-wipe-cache": "node ./wipe-cache.js",
-    "watch": "npm run sync && cd ../shared && watchman-make -p '**' --make 'cd ../react-native && npm run sync && cd ../shared' -t all",
+    "packager-wipe-cache": "node ../shared/packager/wipe-cache.js",
+    "watch": "yarn run sync && cd ../shared && watchman-make -p '**' --make 'cd ../react-native && yarn run sync && cd ../shared' -t all",
     "sync": "rsync -avhW --delete --exclude='*.desktop.js' ../shared/ ./shared/",
-    "wrap": "npm prune && npm shrinkwrap --dev",
-    "postinstall": "npm run sync; node make-shim net ; node make-shim tls ; node make-shim msgpack",
+    "postinstall": "yarn run sync; node make-shim net ; node make-shim tls ; node make-shim msgpack",
     "test-ios": "xcodebuild test -project ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'"
   },
   "dependencies": {

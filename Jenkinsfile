@@ -121,14 +121,12 @@ helpers.rootLinuxNode(env, {
                             test_linux_js: { withEnv([
                                 "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                "KEYBASE_JS_VENDOR_DIR=${env.BASEDIR}/js-vendor-desktop",
                             ]) {
                                 dir("desktop") {
-                                    sh "npm run vendor-install"
-                                    sh "unzip ${env.KEYBASE_JS_VENDOR_DIR}/flow/flow-linux64*.zip -d ${env.BASEDIR}"
-                                    sh "${env.BASEDIR}/flow/flow status shared"
-                                    sh "npm run shrinkwrap-audit"
-                                    sh "npm run shrinkwrap-audit -- ../react-native"
+                                    sh "yarn"
+                                }
+                                dir("shared") {
+                                    sh "../desktop/node_modules/.bin/flow"
                                 }
                                 sh "desktop/node_modules/.bin/eslint ."
                                 dir("desktop") {
@@ -151,9 +149,8 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("visdiff") {
-                                            sh "npm install"
+                                            sh "yarn"
                                         }
-                                        sh "npm install ./visdiff"
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
                                                 dir("desktop") {
@@ -202,7 +199,6 @@ helpers.rootLinuxNode(env, {
                                 'GOROOT=C:\\tools\\go',
                                 "GOPATH=\"${GOPATH}\"",
                                 "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
-                                "KEYBASE_JS_VENDOR_DIR=${BASEDIR}\\js-vendor-desktop",
                                 "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                             ]) {
@@ -239,11 +235,10 @@ helpers.rootLinuxNode(env, {
                                     wrap([$class: 'Xvfb']) {
                                         println "Test Windows JS"
                                         dir("visdiff") {
-                                            bat "npm install"
+                                            bat "yarn"
                                         }
-                                        bat "npm install .\\visdiff"
                                         dir("desktop") {
-                                            bat "npm run vendor-install"
+                                            bat "yarn"
                                             withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                     credentialsId: 'visdiff-aws-creds',
                                                     usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
