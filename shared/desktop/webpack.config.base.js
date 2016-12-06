@@ -4,7 +4,7 @@ const webpack = require('webpack')
 const path = require('path')
 const getenv = require('getenv')
 
-const babelConfig = JSON.parse(fs.readFileSync('./.babelrc', 'utf8'))
+const babelConfig = JSON.parse(fs.readFileSync('./desktop/.babelrc', 'utf8'))
 
 const defines = {
   '__HOT__': JSON.stringify(getenv.boolish('HOT', false)),

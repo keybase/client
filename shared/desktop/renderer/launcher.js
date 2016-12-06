@@ -10,7 +10,6 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import {makeEngine} from '../../engine'
 import {remote} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
-// $FlowIssue
 import {setupSource} from '../../util/forward-logs'
 
 setupSource()

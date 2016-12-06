@@ -504,7 +504,6 @@ function exec (command, env, options) {
     env = process.env
   }
 
-  // $FlowIssue
   console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
 }
 

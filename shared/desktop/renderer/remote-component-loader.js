@@ -12,11 +12,9 @@ import purgeMessage from '../../pgp/container.desktop'
 import tracker from '../../tracker'
 import unlockFolders from '../../unlock-folders'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-// $FlowIssue
 import {globalColors} from '../../styles'
 import {remote, ipcRenderer} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
-// $FlowIssue
 import {setupSource} from '../../util/forward-logs'
 
 setupSource()
@@ -172,7 +170,7 @@ const styles = {
     backgroundColor: globalColors.white,
   },
   loading: {
-    backgroundColor: globalColors.grey5,
+    backgroundColor: globalColors.grey,
   },
 }
 

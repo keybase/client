@@ -6,7 +6,7 @@ const packager = require('electron-packager')
 const del = require('del')
 const exec = require('child_process').exec
 const argv = require('minimist')(process.argv.slice(2))
-const devDeps = Object.keys(require('./package.json').devDependencies)
+const devDeps = Object.keys(require('../package.json').devDependencies)
 const fs = require('fs-extra')
 
 const appName = 'Keybase'

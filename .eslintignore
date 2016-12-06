@@ -1,13 +1,9 @@
-/desktop/build/**
-/desktop/dist/**
-/desktop/release/**
-/desktop/node_modules
-/desktop/shared
-/desktop/js-vendor-desktop
-/react-native/node_modules
-/react-native/shared
+/shared/desktop/build/**
+/shared/desktop/dist/**
+/shared/desktop/release/**
 /shared/libs/immutable-interface.js
 /shared/libs/flow-interface.js
+/shared/node_modules
 /shared/flow-typed/**
 /shared/constants/types/keybase-v1.js
 /shared/constants/types/flow-types.js

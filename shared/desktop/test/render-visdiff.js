@@ -5,7 +5,7 @@ import fs from 'fs'
 import _ from 'lodash'
 import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
-import dumbComponentMap from '../shared/dev/dumb-sheet/component-map.desktop'
+import dumbComponentMap from '../../dev/dumb-sheet/component-map.desktop'
 
 const WORKER_COUNT = 10
 const CANVAS_SIZE = 1000

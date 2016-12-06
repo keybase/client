@@ -1,6 +1,7 @@
 // @flow
 var os = require('os')
 var path = require('path')
+// $FlowIssue
 var tmpDir = os.tmpDir()
 var fs = require('fs')
 var exec = require('child_process').exec
