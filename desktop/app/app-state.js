@@ -16,6 +16,12 @@ export default class AppState {
   managed: Managed;
 
   constructor (opts: Options) {
+    if (process.platform === 'win32') {
+      localAppData = getenv.string('LOCALAPPDATA', '')
+      if(localAppData) {
+        app.setPath('userData', localAppData)
+      }
+    }
     this.state = {
       x: null,
       y: null,
