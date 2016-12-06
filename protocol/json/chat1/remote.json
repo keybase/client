@@ -334,12 +334,11 @@
           "type": "ConversationIDTriple"
         },
         {
-          "name": "TLFMessage",
+          "name": "tlfMessage",
           "type": "MessageBoxed"
         }
       ],
-      "response": "NewConversationRemoteRes",
-      "lint": "ignore"
+      "response": "NewConversationRemoteRes"
     },
     "getMessagesRemote": {
       "request": [
@@ -370,7 +369,7 @@
       ],
       "response": "MarkAsReadRes"
     },
-    "SetConversationStatus": {
+    "setConversationStatus": {
       "request": [
         {
           "name": "conversationID",
@@ -381,8 +380,7 @@
           "type": "ConversationStatus"
         }
       ],
-      "response": "SetConversationStatusRes",
-      "lint": "ignore"
+      "response": "SetConversationStatusRes"
     },
     "tlfFinalize": {
       "request": [
@@ -393,15 +391,14 @@
       ],
       "response": null
     },
-    "GetUnreadUpdateFull": {
+    "getUnreadUpdateFull": {
       "request": [
         {
           "name": "inboxVers",
           "type": "InboxVers"
         }
       ],
-      "response": "UnreadUpdateFull",
-      "lint": "ignore"
+      "response": "UnreadUpdateFull"
     },
     "getS3Params": {
       "request": [

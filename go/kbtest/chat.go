@@ -195,7 +195,7 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 			if arg.Query.ConvID != nil && !conv.Metadata.ConversationID.Eq(*arg.Query.ConvID) {
 				continue
 			}
-			if arg.Query.TlfID != nil && !conv.Metadata.IdTriple.Tlfid.Eq(*arg.Query.TlfID) {
+			if arg.Query.TlfID != nil && !conv.Metadata.IdTriple.TlfID.Eq(*arg.Query.TlfID) {
 				continue
 			}
 			if arg.Query.TopicType != nil && conv.Metadata.IdTriple.TopicType != *arg.Query.TopicType {
@@ -230,7 +230,7 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 
 func (m *ChatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.TLFID) (res chat1.GetInboxByTLFIDRemoteRes, err error) {
 	for _, conv := range m.world.conversations {
-		if tlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
+		if tlfID.Eq(conv.Metadata.IdTriple.TlfID) {
 			convToAppend := *conv
 			convToAppend.ReaderInfo = m.makeReaderInfo(convToAppend.Metadata.ConversationID)
 			res.Convs = []chat1.Conversation{convToAppend}
@@ -325,14 +325,14 @@ func (m *ChatRemoteMock) NewConversationRemote(ctx context.Context, arg chat1.Co
 
 func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.NewConversationRemote2Arg) (res chat1.NewConversationRemoteRes, err error) {
 	for _, conv := range m.world.conversations {
-		if conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
+		if conv.Metadata.IdTriple.TlfID.Eq(arg.IdTriple.TlfID) &&
 			conv.Metadata.IdTriple.TopicID.String() == arg.IdTriple.TopicID.String() &&
 			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
 			// Identical triple
 			return res, libkb.ChatConvExistsError{ConvID: conv.Metadata.ConversationID}
 		}
 		if arg.IdTriple.TopicType == chat1.TopicType_CHAT &&
-			conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
+			conv.Metadata.IdTriple.TlfID.Eq(arg.IdTriple.TlfID) &&
 			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
 			// Existing CHAT conv
 			return res, libkb.ChatConvExistsError{ConvID: conv.Metadata.ConversationID}
@@ -341,7 +341,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 
 	res.ConvID = arg.IdTriple.ToConversationID([2]byte{0, 0})
 
-	first := m.insertMsgAndSort(res.ConvID, arg.TLFMessage)
+	first := m.insertMsgAndSort(res.ConvID, arg.TlfMessage)
 	m.world.conversations = append(m.world.conversations, &chat1.Conversation{
 		Metadata: chat1.ConversationMetadata{
 			IdTriple:       arg.IdTriple,

@@ -8,7 +8,7 @@
   ],
   "types": [],
   "messages": {
-    "CryptKeys": {
+    "cryptKeys": {
       "request": [
         {
           "name": "query",
@@ -16,8 +16,7 @@
         }
       ],
       "response": "GetTLFCryptKeysRes",
-      "doc": "CryptKeys returns TLF crypt keys from all generations.",
-      "lint": "ignore"
+      "doc": "CryptKeys returns TLF crypt keys from all generations."
     },
     "publicCanonicalTLFNameAndID": {
       "request": [

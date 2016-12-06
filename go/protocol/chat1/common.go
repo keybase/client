@@ -144,7 +144,7 @@ type GetInboxQuery struct {
 }
 
 type ConversationIDTriple struct {
-	Tlfid     TLFID     `codec:"tlfid" json:"tlfid"`
+	TlfID     TLFID     `codec:"tlfID" json:"tlfID"`
 	TopicType TopicType `codec:"topicType" json:"topicType"`
 	TopicID   TopicID   `codec:"topicID" json:"topicID"`
 }

@@ -71,22 +71,19 @@ protocol remote {
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
 
   // on duplication of idTriple, and error is returned and the conversation ID of the existing conversation is returned.
-  @lint("ignore")
-  NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage);
+  NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed tlfMessage);
   GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
 
   MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID);
 
-  @lint("ignore")
-  SetConversationStatusRes SetConversationStatus(ConversationID conversationID, ConversationStatus status);
+  SetConversationStatusRes setConversationStatus(ConversationID conversationID, ConversationStatus status);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
   // conversation per TLF ID on GetInboxRemote.
   void tlfFinalize(TLFID tlfID);
 
-  @lint("ignore")
-  UnreadUpdateFull GetUnreadUpdateFull(InboxVers inboxVers);
+  UnreadUpdateFull getUnreadUpdateFull(InboxVers inboxVers);
   // The full set of updates of all convs in a single user's inbox
   record UnreadUpdateFull {
       // Set if this update should be ignored because the requester was already up to date
