@@ -532,9 +532,9 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   const parsed = JSON.parse(results.body)
   const payload = {}
   action.payload.users.forEach((username, idx) => {
-    payload[username] = new MetaDataRecord({
-      fullname: parsed.them[idx].profile.full_name,
-    })
+    const record = parsed.them[idx]
+    const fullname = (record && record.profile && record.profile.full_name) || ''
+    payload[username] = new MetaDataRecord({fullname})
   })
 
   yield put({

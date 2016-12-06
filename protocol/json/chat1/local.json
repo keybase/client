@@ -978,7 +978,8 @@
         },
         {
           "type": "ConversationID",
-          "name": "conversationId"
+          "name": "conversationId",
+          "lint": "ignore"
         }
       ]
     },
@@ -1441,6 +1442,10 @@
     },
     "markAsReadLocal": {
       "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
         {
           "name": "conversationID",
           "type": "ConversationID"

@@ -23,7 +23,8 @@
         },
         {
           "type": "int",
-          "name": "newTlfs"
+          "name": "newTlfs",
+          "lint": "ignore"
         },
         {
           "type": "int",

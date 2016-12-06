@@ -13,6 +13,7 @@ protocol tlfKeys {
   }
 
   @typedef("string")
+  @lint("ignore")
   record CanonicalTlfName {}
 
   record CryptKey {

@@ -36,7 +36,8 @@
           "type": "TLFQuery"
         }
       ],
-      "response": "CanonicalTLFNameAndIDWithBreaks"
+      "response": "CanonicalTLFNameAndIDWithBreaks",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

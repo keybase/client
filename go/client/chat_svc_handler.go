@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -24,6 +25,7 @@ type ChatServiceHandler interface {
 	AttachV1(context.Context, attachOptionsV1) Reply
 	DownloadV1(context.Context, downloadOptionsV1) Reply
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
+	MarkV1(context.Context, markOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -64,6 +66,14 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	var cl ChatList
 	cl.Conversations = make([]ConvSummary, len(inbox.ConversationsUnverified))
 	for i, conv := range inbox.ConversationsUnverified {
+		readerInfo := conv.ReaderInfo
+		convUnread := false
+		var convMtime gregor1.Time
+		if readerInfo != nil {
+			convUnread = readerInfo.ReadMsgid < readerInfo.MaxMsgid
+			convMtime = readerInfo.Mtime
+		}
+
 		maxID := chat1.MessageID(0)
 		for _, msg := range conv.MaxMsgs {
 			if msg.ServerHeader.MessageID > maxID {
@@ -76,6 +86,9 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 						Public:    pub,
 						TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
 					},
+					Unread:     convUnread,
+					ActiveAt:   convMtime.UnixSeconds(),
+					ActiveAtMs: convMtime.UnixMilliseconds(),
 				}
 				maxID = msg.ServerHeader.MessageID
 			}
@@ -93,15 +106,15 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	conv, rlimits, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
 
 	arg := chat1.GetThreadLocalArg{
-		ConversationID: convID,
+		ConversationID: conv.Info.Id,
 		Query: &chat1.GetThreadQuery{
-			MarkAsRead: true,
+			MarkAsRead: !opts.Peek,
 		},
 	}
 	threadView, err := client.GetThreadLocal(ctx, arg)
@@ -109,6 +122,8 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 	rlimits = append(rlimits, threadView.RateLimits...)
+
+	readMsgID := conv.ReaderInfo.ReadMsgid
 
 	var thread Thread
 	for _, m := range threadView.Thread.Messages {
@@ -126,15 +141,23 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		}
 
 		mv := m.Valid()
+
 		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
 			// skip TLFNAME messages
 			continue
 		}
+
+		unread := mv.ServerHeader.MessageID > readMsgID
+		if opts.UnreadOnly && !unread {
+			continue
+		}
+
 		prev := mv.ClientHeader.Prev
 		// Avoid having null show up in the output JSON.
 		if prev == nil {
 			prev = []chat1.MessagePreviousPointer{}
 		}
+
 		msg := MsgSummary{
 			ID: mv.ServerHeader.MessageID,
 			Channel: ChatChannel{
@@ -149,17 +172,21 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			SentAt:   mv.ServerHeader.Ctime.UnixSeconds(),
 			SentAtMs: mv.ServerHeader.Ctime.UnixMilliseconds(),
 			Prev:     prev,
+			Unread:   unread,
 		}
-		msg.Content = c.convertMsgBody(mv.MessageBody)
 
+		msg.Content = c.convertMsgBody(mv.MessageBody)
 		msg.Sender.Username = mv.SenderUsername
 		msg.Sender.DeviceName = mv.SenderDeviceName
 
 		thread.Messages = append(thread.Messages, Message{
 			Msg: &msg,
 		})
-		continue
+	}
 
+	// Avoid having null show up in the output JSON.
+	if thread.Messages == nil {
+		thread.Messages = []Message{}
 	}
 
 	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
@@ -547,6 +574,40 @@ func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOpti
 	return Reply{Result: res}
 }
 
+func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Reply {
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.MarkAsReadLocalArg{
+		ConversationID: convID,
+		MsgID:          opts.MessageID,
+	}
+
+	res, err := client.MarkAsReadLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	allLimits := rlimits
+	if res.RateLimit != nil {
+		allLimits = append(allLimits, *res.RateLimit)
+	}
+
+	cres := EmptyRes{
+		RateLimits: RateLimits{
+			c.aggRateLimits(allLimits),
+		},
+	}
+	return Reply{Result: cres}
+}
+
 type sendArgV1 struct {
 	// convQuery  chat1.GetInboxLocalQuery
 	conversationID chat1.ConversationID
@@ -760,46 +821,57 @@ func (c *chatServiceHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []Rat
 // Prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
 // Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
 func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr string, channel ChatChannel) (chat1.ConversationID, []chat1.RateLimit, error) {
-	var convID chat1.ConversationID
+	conv, limits, err := c.findConversation(ctx, convIDStr, channel)
+	if err != nil {
+		return chat1.ConversationID{}, nil, err
+	}
+	return conv.Info.Id, limits, nil
+}
+
+// findConversation finds a conversation.
+// It prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
+// Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
+func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr string, channel ChatChannel) (chat1.ConversationLocal, []chat1.RateLimit, error) {
+	var conv chat1.ConversationLocal
 	var rlimits []chat1.RateLimit
 
 	if (channel == ChatChannel{}) && len(convIDStr) == 0 {
-		return convID, rlimits, fmt.Errorf("missing conversation specificer")
+		return conv, rlimits, errors.New("missing conversation specificer")
 	}
 
+	var convID chat1.ConversationID
 	if channel == (ChatChannel{}) {
-		// Use ConvID as a fallback if channel is blank.
-		// Support for API usage of ConvIDs is scheduled for termination.
-		convID, err := chat1.MakeConvID(convIDStr)
+		var err error
+		convID, err = chat1.MakeConvID(convIDStr)
 		if err != nil {
-			return convID, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
+			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
 		}
 	}
 
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
-		return convID, rlimits, err
+		return conv, rlimits, err
 	}
-	query, err := c.getInboxLocalQuery(ctx, chat1.ConversationID{}, channel)
+	query, err := c.getInboxLocalQuery(ctx, convID, channel)
 	if err != nil {
-		return convID, rlimits, err
+		return conv, rlimits, err
 	}
 	gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &query,
 	})
 	if err != nil {
-		return convID, rlimits, err
+		return conv, rlimits, err
 	}
 	rlimits = append(rlimits, gilres.RateLimits...)
 	existing := gilres.Conversations
 	if len(existing) > 1 {
-		return convID, rlimits, fmt.Errorf("multiple conversations matched %q", channel.Name)
+		return conv, rlimits, fmt.Errorf("multiple conversations matched %q", channel.Name)
 	}
 	if len(existing) == 0 {
-		return convID, rlimits, fmt.Errorf("no conversations matched %q", channel.Name)
+		return conv, rlimits, fmt.Errorf("no conversations matched %q", channel.Name)
 	}
-	convID = existing[0].Info.Id
-	return convID, rlimits, nil
+
+	return existing[0], rlimits, nil
 }
 
 func TopicTypeFromStrDefault(str string) (chat1.TopicType, error) {
@@ -842,6 +914,7 @@ type MsgSummary struct {
 	SentAtMs int64                          `json:"sent_at_ms"`
 	Content  MsgContent                     `json:"content"`
 	Prev     []chat1.MessagePreviousPointer `json:"prev"`
+	Unread   bool                           `json:"unread"`
 }
 
 // Message contains eiter a MsgSummary or an Error.  Used for JSON output.
@@ -858,8 +931,11 @@ type Thread struct {
 
 // ConvSummary is used for JSON output of a conversation in the inbox.
 type ConvSummary struct {
-	ID      string      `json:"id"`
-	Channel ChatChannel `json:"channel"`
+	ID         string      `json:"id"`
+	Channel    ChatChannel `json:"channel"`
+	Unread     bool        `json:"unread"`
+	ActiveAt   int64       `json:"active_at"`
+	ActiveAtMs int64       `json:"active_at_ms"`
 }
 
 // ChatList is a list of conversations in the inbox.

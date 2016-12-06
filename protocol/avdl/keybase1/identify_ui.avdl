@@ -10,6 +10,7 @@ protocol identifyUi {
   }
 
   record IdentifyRow {
+    @lint("ignore")
     int rowId;
     RemoteProof proof;
     union { null, TrackDiff } trackDiff;
@@ -25,6 +26,7 @@ protocol identifyUi {
   }
 
   record Cryptocurrency {
+    @lint("ignore")
     int rowId;
     bytes pkhash;
     string address;
@@ -49,6 +51,7 @@ protocol identifyUi {
   }
 
   record SigHint {
+    @lint("ignore")
     string remoteId;
     string humanUrl;
     string apiUrl;
@@ -68,6 +71,7 @@ protocol identifyUi {
   }
 
   record LinkCheckResult {
+    @lint("ignore")
     int proofId;
     ProofResult proofResult;
     ProofResult snoozedResult;

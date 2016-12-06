@@ -17,6 +17,7 @@ protocol rekey {
 
     // MK Note 2016.06.29 -- Please excuse snake case here. It's too much
     // of a pain to change it on the server, so leave it here.
+    @lint("ignore")
     array<KID> solution_kids;
   }
 

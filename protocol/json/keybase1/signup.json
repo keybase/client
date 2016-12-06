@@ -13,15 +13,18 @@
       "fields": [
         {
           "type": "boolean",
-          "name": "passphraseOk"
+          "name": "passphraseOk",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
-          "name": "postOk"
+          "name": "postOk",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
-          "name": "writeOk"
+          "name": "writeOk",
+          "lint": "ignore"
         }
       ]
     }
