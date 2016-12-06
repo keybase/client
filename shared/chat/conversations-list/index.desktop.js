@@ -18,17 +18,22 @@ const AddNewRow = ({onNewChat}: Props) => (
 )
 
 const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: boolean, isSelected: boolean) => {
-  if (idx === lastParticipantIndex) {
-    if (lastParticipantIndex === 1) {
-      if (hasUnread) {
-        return globalColors.orange
-      }
-      return isSelected ? globalColors.darkBlue2 : globalColors.darkBlue4
-    }
+  // Not the most recent? Don't color
+  if (idx !== lastParticipantIndex) {
+    return undefined
+  }
+
+  // Only one avatar?
+  if (lastParticipantIndex === 0) {
     return hasUnread ? globalColors.orange : undefined
   }
 
-  return undefined
+  // Multiple avatars?
+  if (hasUnread) {
+    return globalColors.orange
+  }
+
+  return isSelected ? globalColors.darkBlue2 : globalColors.darkBlue4
 }
 
 const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation}: Props & {conversation: InboxState}) => {
