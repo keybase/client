@@ -4,7 +4,7 @@ set -e -u -o pipefail # Fail on error
 
 cd $RN_DIR
 
-npm start &
+yarn run start &
 npm_cmd_pid=$!
 
 while [[ -z "$(pgrep -P $npm_cmd_pid)" ]]
