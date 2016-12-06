@@ -63,6 +63,7 @@ def doBuild() {
     } 
     stage('Build UI') {
         withEnv(["PATH=${env.PATH};%ProgramFiles(x86)%\\yarn\\bin"]) {
+            bat 'path'
             bat 'src\\github.com\\keybase\\client\\packaging\\windows\\buildui.bat'
         }
     }
