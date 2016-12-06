@@ -1104,8 +1104,8 @@ func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
 
 // undupChildrenInCopy takes a top block that's been copied via
 // deepCopy(), and un-deduplicates all leaf children of the block.  It
-// add all child blocks to the provided `bps`, including both the ones
-// that were deduplicated and the ones that weren't (TODO).  It
+// adds all child blocks to the provided `bps`, including both the
+// ones that were deduplicated and the ones that weren't (TODO).  It
 // returns the BlockInfos for all children, including ones that
 // weren't de-duplicated.
 func (fd *fileData) undupChildrenInCopy(ctx context.Context,

@@ -611,7 +611,7 @@ type createMapKey struct {
 // that doesn't represent a file.
 func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
 	lState *lockState, unmergedChains *crChains, currPath path, op op) error {
-	// For files with indirect pointers, and all child blocks
+	// For files with indirect pointers, add all child blocks
 	// as refblocks for the re-created file.
 	infos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
 		ctx, lState, unmergedChains.mostRecentChainMDInfo.kmd, currPath)
@@ -2120,8 +2120,8 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	if err != nil {
 		return BlockPointer{}, err
 	}
-	fblock, ok := block.(*FileBlock)
-	if !ok {
+	fblock, isFileBlock := block.(*FileBlock)
+	if !isFileBlock {
 		return BlockPointer{}, NotFileBlockError{ptr, cr.fbo.branch(), file}
 	}
 
