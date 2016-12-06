@@ -42,7 +42,11 @@ function start () {
       app.quit()
       return
     }
-  }
+  } else if (os.platform() === "win32") {
+      app.setPath("appData", process.env.LOCALAPPDATA);
+      app.setPath("userData", path.join(process.env.LOCALAPPDATA, app.getName()));
+  }      
+
 
   process.on('uncaughtException', e => {
     console.log('Uncaught exception on main thread:', e)

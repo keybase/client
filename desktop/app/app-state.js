@@ -16,11 +16,6 @@ export default class AppState {
   managed: Managed;
 
   constructor (opts: Options) {
-    if (process.platform == "win32") {
-        app.setPath("appData", process.env.LOCALAPPDATA);
-        app.setPath("userData", path.join(process.env.LOCALAPPDATA, app.getName()));
-    }      
-
     this.state = {
       x: null,
       y: null,
