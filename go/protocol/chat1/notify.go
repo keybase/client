@@ -206,7 +206,7 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "chat.1.NotifyChat",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"NewChatActivity": {
+			"newChatActivity": {
 				MakeArg: func() interface{} {
 					ret := make([]NewChatActivityArg, 1)
 					return &ret
@@ -231,6 +231,6 @@ type NotifyChatClient struct {
 }
 
 func (c NotifyChatClient) NewChatActivity(ctx context.Context, __arg NewChatActivityArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatActivity", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.newChatActivity", []interface{}{__arg})
 	return
 }

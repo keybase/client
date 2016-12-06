@@ -51,6 +51,5 @@ protocol NotifyChat {
   }
 
   @notify("")
-  @lint("ignore")
-  void NewChatActivity(keybase1.UID uid, ChatActivity activity);
+  void newChatActivity(keybase1.UID uid, ChatActivity activity);
 }

@@ -7,8 +7,7 @@ protocol tlf {
   /**
    CryptKeys returns TLF crypt keys from all generations.
    */
-  @lint("ignore")
-  GetTLFCryptKeysRes CryptKeys(TLFQuery query);
+  GetTLFCryptKeysRes cryptKeys(TLFQuery query);
 
   /**
    * tlfCanonicalID returns the canonical name and TLFID for tlfName.
