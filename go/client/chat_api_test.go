@@ -23,6 +23,7 @@ type handlerTracker struct {
 	attachV1    int
 	downloadV1  int
 	setstatusV1 int
+	markV1      int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -62,6 +63,11 @@ func (h *handlerTracker) DownloadV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) SetStatusV1(context.Context, Call, io.Writer) error {
 	h.setstatusV1++
+	return nil
+}
+
+func (h *handlerTracker) MarkV1(context.Context, Call, io.Writer) error {
+	h.markV1++
 	return nil
 }
 
@@ -105,6 +111,10 @@ func (c *chatEcho) SetStatusV1(context.Context, setStatusOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) MarkV1(context.Context, markOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
 	input      string
 	err        error
@@ -115,6 +125,7 @@ type topTest struct {
 	deleteV1   int
 	attachV1   int
 	downloadV1 int
+	markV1     int
 }
 
 var topTests = []topTest{
@@ -137,6 +148,7 @@ var topTests = []topTest{
 	{input: `{"id": 30, "method": "delete", "params":{"version": 1}}`, deleteV1: 1},
 	{input: `{"method": "attach", "params":{"version": 1}}`, attachV1: 1},
 	{input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`, downloadV1: 1},
+	{input: `{"id": 39, "method": "mark", "params":{"version": 1}}`, markV1: 1},
 }
 
 // TestChatAPIDecoderTop tests that the "top-level" of the chat json makes it to
@@ -176,6 +188,9 @@ func TestChatAPIDecoderTop(t *testing.T) {
 		}
 		if h.downloadV1 != test.downloadV1 {
 			t.Errorf("test %d: input %s => downloadV1 = %d, expected %d", i, test.input, h.downloadV1, test.downloadV1)
+		}
+		if h.markV1 != test.markV1 {
+			t.Errorf("test %d: input %s => markV1 = %d, expected %d", i, test.input, h.markV1, test.markV1)
 		}
 	}
 }
@@ -338,6 +353,21 @@ var optTests = []optTest{
 	{
 		input: `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ignored", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
 	},
+	{
+		input: `{"id": 30, "method": "mark", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+	},
 }
 
 // TestChatAPIDecoderOptions tests the option decoding.
@@ -421,6 +451,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ignored", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 }

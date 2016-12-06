@@ -16,7 +16,8 @@
         }
       ],
       "response": null,
-      "doc": "Idea is that kbfs would call the function below whenever these actions are\n    performed on a file.\n\n    Note that this list/interface is very temporary and highly likely to change\n    significantly.\n\n    It is just a starting point to get kbfs notifications through the daemon to\n    the clients."
+      "doc": "Idea is that kbfs would call the function below whenever these actions are\n    performed on a file.\n\n    Note that this list/interface is very temporary and highly likely to change\n    significantly.\n\n    It is just a starting point to get kbfs notifications through the daemon to\n    the clients.",
+      "lint": "ignore"
     },
     "FSEditList": {
       "request": [
@@ -33,7 +34,8 @@
         }
       ],
       "response": null,
-      "doc": "kbfs calls this as a response to receiving an FSEditListRequest with a\n    given requestID."
+      "doc": "kbfs calls this as a response to receiving an FSEditListRequest with a\n    given requestID.",
+      "lint": "ignore"
     },
     "FSSyncStatus": {
       "request": [
@@ -47,7 +49,8 @@
         }
       ],
       "response": null,
-      "doc": "FSSyncStatus is called by KBFS as a response to receiving an\n    FSSyncStatusRequest with a given requestID."
+      "doc": "FSSyncStatus is called by KBFS as a response to receiving an\n    FSSyncStatusRequest with a given requestID.",
+      "lint": "ignore"
     },
     "FSSyncEvent": {
       "request": [
@@ -57,7 +60,8 @@
         }
       ],
       "response": null,
-      "doc": "FSSyncEvent is called by KBFS when the sync status of an individual path\n    changes."
+      "doc": "FSSyncEvent is called by KBFS when the sync status of an individual path\n    changes.",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

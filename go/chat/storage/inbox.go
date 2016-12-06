@@ -9,14 +9,47 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 const inboxVersion = 1
 
+// ConversationStorage is everything from chat1.ConversationLocal minus
+// IdentifyFailures.
+type ConversationStorage struct {
+	Error       *string                      `codec:"error,omitempty" json:"error,omitempty"`
+	Info        chat1.ConversationInfoLocal  `codec:"info" json:"info"`
+	ReaderInfo  chat1.ConversationReaderInfo `codec:"readerInfo" json:"readerInfo"`
+	MaxMessages []chat1.MessageUnboxed       `codec:"maxMessages" json:"maxMessages"`
+}
+
+// FromConversationLocal makes a ConversationStorage from a
+// chat1.ConversationLocal with shadow copy.
+func FromConversationLocal(cl chat1.ConversationLocal) ConversationStorage {
+	return ConversationStorage{
+		Error:       cl.Error,
+		Info:        cl.Info,
+		ReaderInfo:  cl.ReaderInfo,
+		MaxMessages: cl.MaxMessages,
+	}
+}
+
+// ToConversationLocal makes a ConversationLocal from a
+// chat1.ConversationStorage with shadow copy.
+func ToConversationLocal(cs ConversationStorage, identifyFailures []keybase1.TLFIdentifyFailure) chat1.ConversationLocal {
+	return chat1.ConversationLocal{
+		Error:            cs.Error,
+		Info:             cs.Info,
+		ReaderInfo:       cs.ReaderInfo,
+		MaxMessages:      cs.MaxMessages,
+		IdentifyFailures: identifyFailures,
+	}
+}
+
 type inboxDiskData struct {
-	Version       int                       `codec:"V"`
-	InboxVersion  chat1.InboxVers           `codec:"I"`
-	Conversations []chat1.ConversationLocal `codec:"C"`
+	Version       int                   `codec:"V"`
+	InboxVersion  chat1.InboxVers       `codec:"I"`
+	Conversations []ConversationStorage `codec:"C"`
 }
 
 type Inbox struct {
@@ -72,7 +105,7 @@ func (i *Inbox) writeDiskInbox(ibox inboxDiskData) libkb.ChatStorageError {
 	return nil
 }
 
-func (i *Inbox) Replace(vers chat1.InboxVers, convs []chat1.ConversationLocal) libkb.ChatStorageError {
+func (i *Inbox) Replace(vers chat1.InboxVers, convs []ConversationStorage) libkb.ChatStorageError {
 	i.Lock()
 	defer i.Unlock()
 
@@ -88,11 +121,11 @@ func (i *Inbox) Replace(vers chat1.InboxVers, convs []chat1.ConversationLocal) l
 	return nil
 }
 
-func (i *Inbox) applyQuery(query *chat1.GetInboxLocalQuery, convs []chat1.ConversationLocal) []chat1.ConversationLocal {
+func (i *Inbox) applyQuery(query *chat1.GetInboxLocalQuery, convs []ConversationStorage) []ConversationStorage {
 	if query == nil {
 		return convs
 	}
-	var res []chat1.ConversationLocal
+	var res []ConversationStorage
 	for _, conv := range convs {
 		ok := true
 		if query.ConvID != nil && !query.ConvID.Eq(conv.Info.Id) {
@@ -124,7 +157,7 @@ func (i *Inbox) applyQuery(query *chat1.GetInboxLocalQuery, convs []chat1.Conver
 	return res
 }
 
-func (i *Inbox) Read(query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.InboxVers, []chat1.ConversationLocal, libkb.ChatStorageError) {
+func (i *Inbox) Read(query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.InboxVers, []ConversationStorage, libkb.ChatStorageError) {
 	i.Lock()
 	defer i.Unlock()
 
@@ -166,7 +199,7 @@ func (i *Inbox) handleVersion(ourvers chat1.InboxVers, updatevers chat1.InboxVer
 	return ourvers, false, i.clear()
 }
 
-func (i *Inbox) NewConversation(vers chat1.InboxVers, conv chat1.ConversationLocal) error {
+func (i *Inbox) NewConversation(vers chat1.InboxVers, conv ConversationStorage) error {
 	i.Lock()
 	defer i.Unlock()
 
@@ -183,7 +216,7 @@ func (i *Inbox) NewConversation(vers chat1.InboxVers, conv chat1.ConversationLoc
 	}
 
 	// Add the convo
-	ibox.Conversations = append([]chat1.ConversationLocal{conv}, ibox.Conversations...)
+	ibox.Conversations = append([]ConversationStorage{conv}, ibox.Conversations...)
 
 	// Write out to disk
 	ibox.InboxVersion = vers
@@ -194,10 +227,10 @@ func (i *Inbox) NewConversation(vers chat1.InboxVers, conv chat1.ConversationLoc
 	return nil
 }
 
-func (i *Inbox) getConv(convID chat1.ConversationID, convs []chat1.ConversationLocal) (int, *chat1.ConversationLocal) {
+func (i *Inbox) getConv(convID chat1.ConversationID, convs []ConversationStorage) (int, *ConversationStorage) {
 
 	var index int
-	var conv chat1.ConversationLocal
+	var conv ConversationStorage
 	found := false
 	for index, conv = range convs {
 		if conv.Info.Id.Eq(convID) {
@@ -255,7 +288,7 @@ func (i *Inbox) NewMessage(vers chat1.InboxVers, convID chat1.ConversationID, ms
 	// Slot in at the top
 	i.debug("NewMessage: promoting convID: %s to the top of %d convs", convID, len(ibox.Conversations))
 	ibox.Conversations = append(ibox.Conversations[:index], ibox.Conversations[index+1:]...)
-	ibox.Conversations = append([]chat1.ConversationLocal{*conv}, ibox.Conversations...)
+	ibox.Conversations = append([]ConversationStorage{*conv}, ibox.Conversations...)
 
 	// Write out to disk
 	ibox.InboxVersion = vers

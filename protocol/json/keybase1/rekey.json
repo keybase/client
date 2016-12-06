@@ -56,7 +56,8 @@
             "type": "array",
             "items": "KID"
           },
-          "name": "solution_kids"
+          "name": "solution_kids",
+          "lint": "ignore"
         }
       ]
     },

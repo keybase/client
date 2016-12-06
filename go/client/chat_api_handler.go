@@ -23,6 +23,7 @@ const (
 	methodAttach    = "attach"
 	methodDownload  = "download"
 	methodSetStatus = "setstatus"
+	methodMark      = "mark"
 )
 
 // ErrInvalidOptions is returned when the options aren't valid.
@@ -86,6 +87,7 @@ type ChatAPIHandler interface {
 	AttachV1(context.Context, Call, io.Writer) error
 	DownloadV1(context.Context, Call, io.Writer) error
 	SetStatusV1(context.Context, Call, io.Writer) error
+	MarkV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -150,6 +152,8 @@ type readOptionsV1 struct {
 	Channel        ChatChannel
 	ConversationID string `json:"conversation_id"`
 	Limit          string
+	Peek           bool
+	UnreadOnly     bool `json:"unread_only"`
 }
 
 func (r readOptionsV1) Check() error {
@@ -204,6 +208,7 @@ type attachOptionsV1 struct {
 	Filename       string
 	Preview        string
 	Title          string
+	NoStream       bool
 }
 
 func (a attachOptionsV1) Check() error {
@@ -222,6 +227,7 @@ type downloadOptionsV1 struct {
 	MessageID      chat1.MessageID `json:"message_id"`
 	Output         string
 	Preview        bool
+	NoStream       bool
 }
 
 func (a downloadOptionsV1) Check() error {
@@ -245,7 +251,7 @@ type setStatusOptionsV1 struct {
 }
 
 func (o setStatusOptionsV1) Check() error {
-	if err := checkChannelConv(methodDownload, o.Channel, o.ConversationID); err != nil {
+	if err := checkChannelConv(methodSetStatus, o.Channel, o.ConversationID); err != nil {
 		return err
 	}
 	if _, ok := chat1.ConversationStatusMap[strings.ToUpper(o.Status)]; !ok {
@@ -253,6 +259,16 @@ func (o setStatusOptionsV1) Check() error {
 	}
 
 	return nil
+}
+
+type markOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string          `json:"conversation_id"`
+	MessageID      chat1.MessageID `json:"message_id"`
+}
+
+func (o markOptionsV1) Check() error {
+	return checkChannelConv(methodMark, o.Channel, o.ConversationID)
 }
 
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
@@ -376,7 +392,7 @@ func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
 
 func (a *ChatAPI) SetStatusV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodDownload, err: errors.New("empty options")}
+		return ErrInvalidOptions{version: 1, method: methodSetStatus, err: errors.New("empty options")}
 	}
 	var opts setStatusOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -389,6 +405,23 @@ func (a *ChatAPI) SetStatusV1(ctx context.Context, c Call, w io.Writer) error {
 	// opts are valid for setstatus v1
 
 	return a.encodeReply(c, a.svcHandler.SetStatusV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) MarkV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodMark, err: errors.New("empty options")}
+	}
+	var opts markOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for mark v1
+
+	return a.encodeReply(c, a.svcHandler.MarkV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

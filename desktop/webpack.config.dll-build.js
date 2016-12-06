@@ -3,6 +3,7 @@ var path = require('path')
 var webpack = require('webpack')
 
 module.exports = {
+  bail: true,
   entry: {
     vendor: ['core-js', 'html-entities', 'immutable', 'lodash', 'material-ui', 'material-ui/FlatButton', 'material-ui/Popover', 'material-ui/styles', 'material-ui/svg-icons', 'moment', 'qrcode-generator', 'react', 'react-json-tree', 'redux', 'redux-saga'],
   },

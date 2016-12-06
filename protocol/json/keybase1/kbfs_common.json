@@ -83,7 +83,8 @@
         },
         {
           "type": "UID",
-          "name": "writerUid"
+          "name": "writerUid",
+          "lint": "ignore"
         },
         {
           "type": "Time",

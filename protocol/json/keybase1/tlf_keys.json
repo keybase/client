@@ -24,7 +24,8 @@
       "type": "record",
       "name": "CanonicalTlfName",
       "fields": [],
-      "typedef": "string"
+      "typedef": "string",
+      "lint": "ignore"
     },
     {
       "type": "record",
@@ -32,11 +33,13 @@
       "fields": [
         {
           "type": "int",
-          "name": "KeyGeneration"
+          "name": "KeyGeneration",
+          "lint": "ignore"
         },
         {
           "type": "Bytes32",
-          "name": "Key"
+          "name": "Key",
+          "lint": "ignore"
         }
       ]
     },
@@ -47,7 +50,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TLFUserBreak"
+            "items": "TLFIdentifyFailure"
           },
           "name": "breaks"
         }
@@ -55,7 +58,7 @@
     },
     {
       "type": "record",
-      "name": "TLFUserBreak",
+      "name": "TLFIdentifyFailure",
       "fields": [
         {
           "type": "User",
@@ -83,7 +86,8 @@
             "type": "array",
             "items": "CryptKey"
           },
-          "name": "CryptKeys"
+          "name": "CryptKeys",
+          "lint": "ignore"
         }
       ]
     },
@@ -111,7 +115,8 @@
         },
         {
           "type": "CanonicalTlfName",
-          "name": "CanonicalName"
+          "name": "CanonicalName",
+          "lint": "ignore"
         },
         {
           "type": "TLFBreak",

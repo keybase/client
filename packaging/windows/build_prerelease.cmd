@@ -2,8 +2,6 @@
 set GOARCH=386
 set GO15VENDOREXPERIMENT=1
 
-:: for Jenkins
-if DEFINED WORKSPACE set GOPATH=%WORKSPACE%
 if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
 echo DOKAN_PATH %DOKAN_PATH%
 
@@ -17,6 +15,8 @@ pushd %GOPATH%\src\github.com\keybase\client\go\keybase
 del keybase.exe
 go version
 go generate
+
+if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
 
 for /f %%i in ('winresource.exe -cv') do set KEYBASE_VERSION=%%i
 echo KEYBASE_VERSION %KEYBASE_VERSION%
@@ -61,10 +61,9 @@ pushd %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean
 go build
 popd
 
-:: Then the desktop:
-pushd  %GOPATH%\src\github.com\keybase\client\desktop
-:: rmdir /s /q node_modules
-npm i
-
-buildui.bat
+:: release
+pushd %GOPATH%\src\github.com\keybase\release
+go build
 popd
+
+

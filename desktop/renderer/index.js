@@ -130,7 +130,8 @@ function setupHMR (store) {
     return
   }
 
-  module.hot.accept('../shared/main.desktop', () => {
+  module.hot && module.hot.accept(['../shared/main.desktop', '../shared/routes'], () => {
+    store.dispatch(setRouteDef(require('../shared/routes').default))
     try {
       store.dispatch({type: updateReloading, payload: {reloading: true}})
       const NewMain = require('../shared/main.desktop').default
@@ -139,10 +140,6 @@ function setupHMR (store) {
     } finally {
       setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
     }
-  })
-
-  module.hot && module.hot.accept(['../shared/main.desktop', '../shared/routes'], () => {
-    store.dispatch(setRouteDef(require('../shared/routes').default))
   })
 
   module.hot && module.hot.accept('../shared/local-debug-live', () => {

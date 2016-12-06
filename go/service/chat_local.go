@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -70,7 +71,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
 	}
 
-	rquery, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
+	rquery, identifyFailures, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -85,7 +86,18 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+		IdentifyFailures:        identifyFailures,
 	}, nil
+}
+
+func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalArg) (chat1.MarkAsReadRes, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.MarkAsReadRes{}, err
+	}
+	return h.remoteClient().MarkAsRead(ctx, chat1.MarkAsReadArg{
+		ConversationID: arg.ConversationID,
+		MsgID:          arg.MsgID,
+	})
 }
 
 // GetInboxAndUnboxLocal implements keybase.chatLocal.getInboxAndUnboxLocal protocol.
@@ -103,7 +115,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 		func() keybase1.TlfInterface { return h.tlf })
 
 	// Read inbox from the source
-	ib, rl, err := inbox.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination)
+	ib, rl, err := inbox.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
@@ -169,7 +181,9 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	tlfID, cname, err := utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName)
+	// we are ignoring the `identifyFailures` here since the `Read` after creating the
+	// conversation will get the identifyFailures for us.
+	tlfID, cname, _, err := utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
@@ -229,7 +243,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		// Read inbox from the source
 		ib, rl, err := inbox.Read(ctx, uid.ToBytes(), &chat1.GetInboxLocalQuery{
 			ConvID: &convID,
-		}, nil)
+		}, nil, arg.IdentifyBehavior)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, err
 		}
@@ -242,7 +256,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 		res.Conv = ib.Convs[0]
 		// Update inbox cache
-		if err = storage.NewInbox(h.G(), uid.ToBytes(), h.getSecretUI).NewConversation(0, res.Conv); err != nil {
+		if err = storage.NewInbox(h.G(), uid.ToBytes(),
+			h.getSecretUI).NewConversation(0, storage.FromConversationLocal(res.Conv)); err != nil {
 			if _, ok := err.(libkb.ChatStorageMissError); !ok {
 				return chat1.NewConversationLocalRes{}, err
 			}
@@ -337,13 +352,14 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = true, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination: &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
-			Query:      &query,
+			Pagination:       &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
+			Query:            &query,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}); err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
-		res.Conversations = append(res.Conversations, gires.Conversations...)
+		res.Conversations = gires.Conversations
 
 		more := utils.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
@@ -369,13 +385,14 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = false, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination: &chat1.Pagination{Num: arg.ActivitySortedLimit},
-			Query:      &query,
+			Pagination:       &chat1.Pagination{Num: arg.ActivitySortedLimit},
+			Query:            &query,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}); err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
-		res.Conversations = append(res.Conversations, gires.Conversations...)
+		res.Conversations = gires.Conversations
 	}
 
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
@@ -398,6 +415,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		Query: &chat1.GetInboxLocalQuery{
 			ConvID: &arg.ConversationId,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationId, err)
@@ -426,8 +444,9 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 
 	tv, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-		ConversationID: arg.ConversationId,
-		Query:          &query,
+		ConversationID:   arg.ConversationId,
+		Query:            &query,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return chat1.GetConversationForCLILocalRes{}, err
@@ -527,12 +546,18 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	arg.Msg.ClientHeader.Sender = uid.ToBytes()
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
+	// keep track of any assets that need to be deleted after deleting the message
+	pendingAssetDeletes := h.pendingAssetDeletes(ctx, arg)
+
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
 	_, _, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
+
+	h.deleteAssets(ctx, arg.ConversationID, pendingAssetDeletes)
+
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 	}, nil
@@ -562,6 +587,67 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
+	parg := postAttachmentArg{
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		ClientHeader:     arg.ClientHeader,
+		Attachment:       newStreamSource(arg.Attachment),
+		Title:            arg.Title,
+		Metadata:         arg.Metadata,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	defer parg.Attachment.Close()
+
+	if arg.Preview != nil {
+		parg.Preview = newStreamSource(*arg.Preview)
+		defer parg.Preview.Close()
+	}
+
+	return h.postAttachmentLocal(ctx, parg)
+}
+
+// PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
+func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (chat1.PostLocalRes, error) {
+	parg := postAttachmentArg{
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		ClientHeader:     arg.ClientHeader,
+		Title:            arg.Title,
+		Metadata:         arg.Metadata,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	asrc, err := newFileSource(arg.Attachment)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	parg.Attachment = asrc
+	defer parg.Attachment.Close()
+
+	if arg.Preview != nil {
+		psrc, err := newFileSource(*arg.Preview)
+		if err != nil {
+			return chat1.PostLocalRes{}, err
+		}
+		parg.Preview = psrc
+		defer parg.Preview.Close()
+	}
+
+	return h.postAttachmentLocal(ctx, parg)
+}
+
+// postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
+type postAttachmentArg struct {
+	SessionID        int
+	ConversationID   chat1.ConversationID
+	ClientHeader     chat1.MessageClientHeader
+	Attachment       assetSource
+	Preview          assetSource
+	Title            string
+	Metadata         []byte
+	IdentifyBehavior keybase1.TLFIdentifyBehavior
+}
+
+func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
@@ -603,7 +689,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, arg.ConversationID, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview, arg.ConversationID, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -635,12 +721,54 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			ClientHeader: arg.ClientHeader,
 			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
 		},
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	return h.PostLocal(ctx, postArg)
 }
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
 func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	darg := downloadAttachmentArg{
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		MessageID:        arg.MessageID,
+		Preview:          arg.Preview,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	cli := h.getStreamUICli()
+	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
+
+	return h.downloadAttachmentLocal(ctx, darg)
+}
+
+// DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
+func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	darg := downloadAttachmentArg{
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		MessageID:        arg.MessageID,
+		Preview:          arg.Preview,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	sink, err := os.Create(arg.Filename)
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	darg.Sink = sink
+
+	return h.downloadAttachmentLocal(ctx, darg)
+}
+
+type downloadAttachmentArg struct {
+	SessionID        int
+	ConversationID   chat1.ConversationID
+	MessageID        chat1.MessageID
+	Sink             io.WriteCloser
+	Preview          bool
+	IdentifyBehavior keybase1.TLFIdentifyBehavior
+}
+
+func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
 	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int) {
 		parg := chat1.ChatAttachmentDownloadProgressArg{
@@ -657,41 +785,8 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
-	marg := chat1.GetMessagesLocalArg{
-		ConversationID: arg.ConversationID,
-		MessageIDs:     []chat1.MessageID{arg.MessageID},
-	}
-	msgs, err := h.GetMessagesLocal(ctx, marg)
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
-	if len(msgs.Messages) == 0 {
-		return chat1.DownloadAttachmentLocalRes{}, libkb.NotFoundError{}
-	}
-	first := msgs.Messages[0]
-	st, err := first.State()
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
-	if st == chat1.MessageUnboxedState_ERROR {
-		em := first.Error().ErrMsg
-		// XXX temporary to fix master:
-		// (wanted to return ChatUnboxingError)
-		return chat1.DownloadAttachmentLocalRes{}, errors.New(em)
-	}
+	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID, arg.IdentifyBehavior)
 
-	cli := h.getStreamUICli()
-	sink := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-
-	msg := first.Valid()
-	body := msg.MessageBody
-	if t, err := body.MessageType(); err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	} else if t != chat1.MessageType_ATTACHMENT {
-		return chat1.DownloadAttachmentLocalRes{}, errors.New("not an attachment message")
-	}
-
-	attachment := msg.MessageBody.Attachment()
 	obj := attachment.Object
 	if arg.Preview {
 		if attachment.Preview == nil {
@@ -701,17 +796,17 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		obj = *attachment.Preview
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	if err := h.store.DownloadAsset(ctx, params, obj, sink, h, progress); err != nil {
-		sink.Close()
+	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
+		arg.Sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 	chatUI.ChatAttachmentDownloadDone(ctx)
 
-	if err := sink.Close(); err != nil {
+	if err := arg.Sink.Close(); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
-	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
+	return chat1.DownloadAttachmentLocalRes{RateLimits: limits}, nil
 }
 
 func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.OutboxID) error {
@@ -790,14 +885,18 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 	return h.remoteClient().S3Sign(context.Background(), arg)
 }
 
-func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
+func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local assetSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
-	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
+	src, err := local.Open(sessionID, cli)
+	if err != nil {
+		return chat1.Asset{}, err
+	}
 
 	task := chat.UploadTask{
 		S3Params:       params,
-		LocalSrc:       local,
+		Filename:       local.Basename(),
+		FileSize:       local.FileSize(),
 		Plaintext:      src,
 		S3Signer:       h,
 		ConversationID: conversationID,
@@ -805,4 +904,97 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 		Progress:       progress,
 	}
 	return h.store.UploadAsset(ctx, &task)
+}
+
+func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) ([]chat1.Asset, error) {
+	attachment, _, err := h.attachmentMessage(ctx, conversationID, msgID, idBehavior)
+	if err != nil {
+		return nil, err
+	}
+
+	assets := []chat1.Asset{attachment.Object}
+	if attachment.Preview != nil {
+		assets = append(assets, *attachment.Preview)
+	}
+
+	return assets, nil
+}
+
+func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) (*chat1.MessageAttachment, []chat1.RateLimit, error) {
+	arg := chat1.GetMessagesLocalArg{
+		ConversationID:   conversationID,
+		MessageIDs:       []chat1.MessageID{msgID},
+		IdentifyBehavior: idBehavior,
+	}
+	msgs, err := h.GetMessagesLocal(ctx, arg)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(msgs.Messages) == 0 {
+		return nil, nil, libkb.NotFoundError{}
+	}
+	first := msgs.Messages[0]
+
+	st, err := first.State()
+	if err != nil {
+		return nil, msgs.RateLimits, err
+	}
+	if st == chat1.MessageUnboxedState_ERROR {
+		em := first.Error().ErrMsg
+		return nil, msgs.RateLimits, errors.New(em)
+	}
+
+	msg := first.Valid()
+	body := msg.MessageBody
+	if t, err := body.MessageType(); err != nil {
+		return nil, msgs.RateLimits, err
+	} else if t != chat1.MessageType_ATTACHMENT {
+		return nil, msgs.RateLimits, errors.New("not an attachment message")
+	}
+
+	attachment := msg.MessageBody.Attachment()
+	return &attachment, msgs.RateLimits, nil
+}
+
+func (h *chatLocalHandler) pendingAssetDeletes(ctx context.Context, arg chat1.PostLocalArg) []chat1.Asset {
+	var pending []chat1.Asset
+	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_DELETE {
+		// check to see if deleting an attachment
+		md := arg.Msg.MessageBody.Delete()
+		for _, msgID := range md.MessageIDs {
+			assets, err := h.assetsForMessage(ctx, arg.ConversationID, msgID, arg.IdentifyBehavior)
+			if err != nil {
+				h.G().Log.Debug("error getting assets for message: %s", err)
+				// continue despite error?  Or return error and let user try again.
+			}
+			if len(assets) > 0 {
+				pending = append(pending, assets...)
+			}
+		}
+	}
+	return pending
+}
+
+func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat1.ConversationID, assets []chat1.Asset) {
+	if len(assets) == 0 {
+		return
+	}
+
+	// get s3 params from server
+	params, err := h.remoteClient().GetS3Params(ctx, conversationID)
+	if err != nil {
+		h.G().Log.Debug("error getting s3 params: %s", err)
+		return
+	}
+
+	if err := h.store.DeleteAssets(ctx, params, h, assets); err != nil {
+		h.G().Log.Debug("error deleting assets: %s", err)
+
+		// there's no way to get asset information after this point.
+		// any assets not deleted will be stranded on s3.
+
+		return
+	}
+
+	h.G().Log.Debug("deleted %d assets", len(assets))
 }

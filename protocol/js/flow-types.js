@@ -3068,7 +3068,7 @@ export type GetTLFCryptKeysRes = {
 }
 
 export type HasServerKeysRes = {
-  hasServerKeys: bool,
+  hasServerKeys: boolean,
 }
 
 export type Hello2Res = {
@@ -3239,6 +3239,8 @@ export type LinkCheckResult = {
   hint?: ?SigHint,
   breaksTracking: boolean,
 }
+
+export type LinkID = string
 
 export type ListResult = {
   files?: ?Array<File>,
@@ -3618,6 +3620,12 @@ export type RemoteProof = {
   mTime: Time,
 }
 
+export type RemoteTrack = {
+  username: string,
+  uid: UID,
+  linkID: LinkID,
+}
+
 export type RevokeWarning = {
   endangeredTLFs?: ?Array<TLF>,
 }
@@ -3935,7 +3943,7 @@ export type TLF = {
 }
 
 export type TLFBreak = {
-  breaks?: ?Array<TLFUserBreak>,
+  breaks?: ?Array<TLFIdentifyFailure>,
 }
 
 export type TLFID = string
@@ -3945,14 +3953,14 @@ export type TLFIdentifyBehavior =
   | 1 // CHAT_CLI_1
   | 2 // CHAT_GUI_2
 
+export type TLFIdentifyFailure = {
+  user: User,
+  breaks?: ?IdentifyTrackBreaks,
+}
+
 export type TLFQuery = {
   tlfName: string,
   identifyBehavior: TLFIdentifyBehavior,
-}
-
-export type TLFUserBreak = {
-  user: User,
-  breaks?: ?IdentifyTrackBreaks,
 }
 
 export type Test = {
@@ -4054,6 +4062,7 @@ export type UserCard = {
 export type UserPlusAllKeys = {
   base: UserPlusKeys,
   pgpKeys?: ?Array<PublicKey>,
+  remoteTracks?: ?Array<RemoteTrack>,
 }
 
 export type UserPlusKeys = {

@@ -1,5 +1,7 @@
 // @flow
 import MessageText from './text'
+import Timestamp from './timestamp'
+import {formatTimeForMessages} from '../../../util/timestamp'
 import React from 'react'
 import {Box} from '../../../common-adapters'
 
@@ -22,6 +24,12 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
         onAction={onAction}
+        />
+    case 'Timestamp':
+      return <Timestamp
+        timestamp={formatTimeForMessages(message.timestamp)}
+        key={message.timestamp}
+        style={style}
         />
     default:
       return <Box key={key} style={style} />
