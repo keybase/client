@@ -60,12 +60,16 @@ func (u *CachedUserLoader) Disable() {
 	u.Freshness = time.Duration(0)
 }
 
+func culDebug(u keybase1.UID) string {
+	return fmt.Sprintf("CachedUserLoader#Load(%s)", u)
+}
+
 // loadWithInfo loads a user by UID from the CachedUserLoader object. The 'info'
 // object contains information about how the request was handled, but otherwise,
 // this method behaves like (and implements) the public CachedUserLoader#Load
 // method below.
 func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
-	defer u.G().Trace(fmt.Sprintf("CachedUserLoader#Load(%s)", arg.UID), func() error { return err })()
+	defer u.G().Trace(culDebug(arg.UID), func() error { return err })()
 
 	if arg.UID.IsNil() {
 		err = errors.New("need a UID to load UPK from loader")
@@ -81,8 +85,12 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	if !arg.ForceReload {
 		upk, fresh = u.getCachedUPK(arg.UID)
 	}
+	if arg.ForcePoll {
+		fresh = false
+	}
 
 	if upk != nil {
+		u.G().Log.Debug("%s: cache-hit; fresh=%v", culDebug(arg.UID), fresh)
 		if info != nil {
 			info.InCache = true
 		}
@@ -108,7 +116,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			info.LoadedLeaf = true
 		}
 		if leaf.public != nil && leaf.public.Seqno == Seqno(upk.Base.Uvv.SigChain) {
-			u.G().Log.Debug("| user was still fresh after check with merkle tree")
+			u.G().Log.Debug("%s: cache-hit; fresh after poll", culDebug(arg.UID), fresh)
 			upk.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 			return upk.DeepCopy(), nil, nil
 		}
@@ -120,6 +128,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		arg.MerkleLeaf = leaf
 	}
 
+	u.G().Log.Debug("%s: LoadUser", culDebug(arg.UID))
 	user, err = LoadUser(arg)
 	if info != nil {
 		info.LoadedUser = true
@@ -141,7 +150,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	ret.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 	u.Lock()
 	u.m[arg.UID.String()] = ret
-	u.G().Log.Debug("| CachedUserLoader#Load(%s): Caching: %+v", arg.UID, *ret)
+	u.G().Log.Debug("| %s: Caching: %+v", culDebug(arg.UID), *ret)
 	u.Unlock()
 
 	return ret, user, nil
@@ -186,7 +195,7 @@ func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlus
 	arg.PublicKeyOptional = true
 
 	// We need to force a reload to make KBFS tests pass
-	arg.ForceReload = true
+	arg.ForcePoll = true
 
 	upak, _, err := u.Load(arg)
 	if err != nil {
