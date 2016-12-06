@@ -16,10 +16,29 @@ import {switchTo} from './route-tree'
 import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 
-import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation, OpenFolder, UpdateMetadata} from '../constants/chat'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
+import type {
+  ConversationIDKey,
+  DeleteMessage,
+  EditMessage,
+  InboxState,
+  IncomingMessage,
+  LoadInbox,
+  LoadMoreMessages,
+  LoadedInbox,
+  MaybeTimestamp,
+  Message,
+  NewChat,
+  OpenFolder,
+  PostMessage,
+  SelectConversation,
+  SetupNewChatHandler,
+  StartConversation,
+  UnhandledMessage,
+  UpdateMetadata,
+} from '../constants/chat'
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord, makeSnippet, MetaDataRecord} = Constants
 
@@ -49,6 +68,14 @@ function loadInbox (): LoadInbox {
 
 function loadMoreMessages (): LoadMoreMessages {
   return {type: Constants.loadMoreMessages, payload: undefined}
+}
+
+function editMessage (message: Message): EditMessage {
+  return {type: Constants.editMessage, payload: {message}}
+}
+
+function deleteMessage (message: Message): DeleteMessage {
+  return {type: Constants.deleteMessage, payload: {message}}
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
@@ -100,8 +127,9 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string
 }
 
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
+  const {conversationIDKey} = action.payload
   const infoSelector = (state: TypedState) => {
-    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === action.payload.conversationIDKey)
+    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
     if (convo) {
       return convo.get('info')
     }
@@ -149,7 +177,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 
   const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
-      conversationID: keyToConversationID(action.payload.conversationIDKey),
+      conversationID: keyToConversationID(conversationIDKey),
       msg: {
         clientHeader,
         messageBody: {
@@ -172,12 +200,29 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       messageState: 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
       followState: 'You',
+      deviceType: '',
+      deviceName: '',
+      conversationIDKey: action.payload.conversationIDKey,
     }
+
+    // Time to decide: should we add a timestamp before our new message?
+    const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+    const conversationState = yield select(conversationStateSelector)
+    let messages = []
+    if (conversationState && conversationState.messages !== null) {
+      const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
+      const timestamp = _maybeAddTimestamp(message, prevMessage)
+      if (timestamp !== null) {
+        messages.push(timestamp)
+      }
+    }
+
+    messages.push(message)
     yield put({
       type: Constants.appendMessages,
       payload: {
-        conversationIDKey: action.payload.conversationIDKey,
-        messages: [message],
+        conversationIDKey,
+        messages,
       },
     })
   }
@@ -190,8 +235,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       if (incomingMessage) {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
-        const message = _unboxedToMessage(messageUnboxed, 0, yourName)
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
+        const message = _unboxedToMessage(messageUnboxed, 0, yourName, conversationIDKey)
 
         // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
         const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
@@ -213,6 +258,20 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             },
           })
         } else {
+          // How long was it between the previous message and this one?
+          if (conversationState && conversationState.messages !== null) {
+            const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
+            const timestamp = _maybeAddTimestamp(message, prevMessage)
+            if (timestamp !== null) {
+              yield put({
+                type: Constants.appendMessages,
+                payload: {
+                  conversationIDKey,
+                  messages: [timestamp],
+                },
+              })
+            }
+          }
           yield put({
             type: Constants.appendMessages,
             payload: {
@@ -224,7 +283,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       }
       break
     default:
-      console.warn('Unsupported incoming message type for Chat')
+      console.warn('Unsupported incoming message type for Chat:', action.payload.activity)
   }
 }
 
@@ -300,14 +359,25 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   }})
 
   const yourName = yield select(usernameSelector)
-  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName)).reverse()
+  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, conversationIDKey)).reverse()
+  let newMessages = []
+  messages.forEach((message, idx) => {
+    if (idx >= 2) {
+      const timestamp = _maybeAddTimestamp(messages[idx], messages[idx - 1])
+      if (timestamp !== null) {
+        newMessages.push(timestamp)
+      }
+    }
+    newMessages.push(message)
+  })
+
   const pagination = _threadToPagination(thread)
 
   yield put({
     type: Constants.prependMessages,
     payload: {
       conversationIDKey,
-      messages,
+      messages: newMessages,
       moreToLoad: !pagination.last,
       paginationNext: pagination.next,
     },
@@ -333,14 +403,30 @@ function _threadToPagination (thread) {
   }
 }
 
-function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Message {
+function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
+  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp') {
+    return null
+  }
+  if (message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) { // ms
+    return {
+      type: 'Timestamp',
+      timestamp: prevMessage.timestamp,
+    }
+  }
+  return null
+}
+
+function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
       const common = {
         author: payload.senderUsername,
+        deviceName: payload.senderDeviceName,
+        deviceType: payload.senderDeviceType,
         timestamp: payload.serverHeader.ctime,
         messageID: payload.serverHeader.messageID,
+        conversationIDKey: conversationIDKey,
       }
 
       const isYou = common.author === yourName
@@ -356,10 +442,11 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
             outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         default:
-          return {
+          const unhandled: UnhandledMessage = {
             ...common,
             type: 'Unhandled',
           }
+          return unhandled
       }
     }
   }
@@ -368,6 +455,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
     messageID: idx,
     timestamp: Date.now(),
     reason: 'temp',
+    conversationIDKey: conversationIDKey,
   }
 }
 
@@ -444,9 +532,9 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   const parsed = JSON.parse(results.body)
   const payload = {}
   action.payload.users.forEach((username, idx) => {
-    payload[username] = new MetaDataRecord({
-      fullname: parsed.them[idx].profile.full_name,
-    })
+    const record = parsed.them[idx]
+    const fullname = (record && record.profile && record.profile.full_name) || ''
+    payload[username] = new MetaDataRecord({fullname})
   })
 
   yield put({
@@ -489,6 +577,8 @@ function * chatSaga (): SagaGenerator<any, any> {
 export default chatSaga
 
 export {
+  deleteMessage,
+  editMessage,
   loadInbox,
   loadMoreMessages,
   newChat,

@@ -73,6 +73,12 @@
     },
     {
       "type": "record",
+      "name": "LinkID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "BinaryKID",
       "fields": [],
       "typedef": "bytes"
@@ -126,18 +132,21 @@
       "fields": [
         {
           "type": "KID",
-          "name": "KID"
+          "name": "KID",
+          "lint": "ignore"
         },
         {
           "type": "string",
-          "name": "PGPFingerprint"
+          "name": "PGPFingerprint",
+          "lint": "ignore"
         },
         {
           "type": {
             "type": "array",
             "items": "PGPIdentity"
           },
-          "name": "PGPIdentities"
+          "name": "PGPIdentities",
+          "lint": "ignore"
         },
         {
           "type": "boolean",
@@ -367,6 +376,24 @@
     },
     {
       "type": "record",
+      "name": "RemoteTrack",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "LinkID",
+          "name": "linkID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserPlusAllKeys",
       "fields": [
         {
@@ -379,6 +406,13 @@
             "items": "PublicKey"
           },
           "name": "pgpKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RemoteTrack"
+          },
+          "name": "remoteTracks"
         }
       ]
     },

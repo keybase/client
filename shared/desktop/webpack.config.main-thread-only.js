@@ -16,6 +16,8 @@ const defines = {
 
 console.warn('Injecting dev defines: ', defines)
 
+// Error out on errors
+config.bail = true
 config.debug = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'inline-eval-cheap-source-map'
 config.pathinfo = true
@@ -26,7 +28,6 @@ config.entry = {
 }
 
 config.plugins.push(
-  new webpack.NoErrorsPlugin(),
   new webpack.DefinePlugin(defines)
 )
 

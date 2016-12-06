@@ -138,6 +138,16 @@ func loadIdentifyUser(g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb
 	return ret, err
 }
 
+func (i *identifyUser) trackChainLinkFor(name string, uid keybase1.UID, g *libkb.GlobalContext) (*libkb.TrackChainLink, error) {
+	if i.full != nil {
+		return i.full.TrackChainLinkFor(name, uid)
+	}
+	if i.thin != nil {
+		return libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, libkb.NewNormalizedUsername(name), uid, g)
+	}
+	return nil, nil
+}
+
 //
 // TODOs:
 //   - think harder about what we're caching in failure cases; right now we're only
@@ -608,38 +618,35 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	return err
 }
 
-func (e *Identify2WithUID) getTrackChainLink(tmp bool) (*libkb.TrackChainLink, error) {
-	if e.testArgs != nil && e.testArgs.tcl != nil {
-		return e.testArgs.tcl, nil
-	}
-	if e.me == nil {
-		return nil, nil
-	}
-	me, err := e.me.User(e.getCache())
-	if err != nil {
-		return nil, err
-	}
-	if tmp {
-		return me.TmpTrackChainLinkFor(e.them.GetName(), e.them.GetUID())
-	}
-	return me.TrackChainLinkFor(e.them.GetName(), e.them.GetUID())
-}
-
 func (e *Identify2WithUID) createIdentifyState() (err error) {
+	defer e.G().Trace("createIdentifyState", func() error { return err })()
 	var them *libkb.User
 	them, err = e.them.User(e.getCache())
 	if err != nil {
 		return err
 	}
+
 	e.state = libkb.NewIdentifyStateWithGregorItem(e.responsibleGregorItem, them)
-	tcl, err := e.getTrackChainLink(false)
-	if err != nil {
-		return err
+
+	if e.testArgs != nil && e.testArgs.tcl != nil {
+		e.G().Log.Debug("| using test track")
+		e.useTracking = true
+		e.state.SetTrackLookup(e.testArgs.tcl)
+		return nil
 	}
+
+	if e.me == nil {
+		e.G().Log.Debug("| null me")
+		return nil
+	}
+
+	tcl, err := e.me.trackChainLinkFor(them.GetName(), them.GetUID(), e.G())
 	if tcl != nil {
+		e.G().Log.Debug("| using track token %s", tcl.LinkID())
 		e.useTracking = true
 		e.state.SetTrackLookup(tcl)
-		if ttcl, _ := e.getTrackChainLink(true); ttcl != nil {
+		if ttcl, _ := libkb.TmpTrackChainLinkFor(e.me.GetUID(), them.GetUID(), e.G()); ttcl != nil {
+			e.G().Log.Debug("| also have temporary track")
 			e.state.SetTmpTrackLookup(ttcl)
 		}
 	}

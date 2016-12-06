@@ -24,7 +24,8 @@ type ReadResetter interface {
 
 type UploadTask struct {
 	S3Params       chat1.S3Params
-	LocalSrc       chat1.LocalSource
+	Filename       string
+	FileSize       int
 	Plaintext      ReadResetter
 	plaintextHash  []byte
 	S3Signer       s3.Signer
@@ -104,7 +105,7 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 
 	// encrypt the stream
 	enc := NewSignEncrypter()
-	len := enc.EncryptedLen(task.LocalSrc.Size)
+	len := enc.EncryptedLen(task.FileSize)
 
 	// check for previous interrupted upload attempt
 	var previous *AttachmentInfo
@@ -135,7 +136,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 	var err error
 	var encReader io.Reader
 	if previous != nil {
-		a.log.Debug("found previous upload for %s in conv %x", task.LocalSrc.Filename, task.ConversationID)
+		a.log.Debug("found previous upload for %s in conv %x", task.Filename, task.ConversationID)
 		encReader, err = enc.EncryptResume(task.Plaintext, task.Nonce(), previous.EncKey, previous.SignKey, previous.VerifyKey)
 		if err != nil {
 			return chat1.Asset{}, err
@@ -160,7 +161,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 	tee := io.TeeReader(encReader, hash)
 
 	// post to s3
-	length := int64(enc.EncryptedLen(task.LocalSrc.Size))
+	length := int64(enc.EncryptedLen(task.FileSize))
 	upRes, err := a.PutS3(ctx, tee, length, task, previous)
 	if err != nil {
 		if err == ErrAbortOnPartMismatch && previous != nil {
@@ -172,7 +173,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 	a.log.Debug("chat attachment upload: %+v", upRes)
 
 	asset := chat1.Asset{
-		Filename:  filepath.Base(task.LocalSrc.Filename),
+		Filename:  filepath.Base(task.Filename),
 		Region:    upRes.Region,
 		Endpoint:  upRes.Endpoint,
 		Bucket:    upRes.Bucket,
@@ -294,4 +295,26 @@ func (a *AttachmentStore) s3Conn(signer s3.Signer, region s3.Region, accessKey s
 	conn := a.s3c.New(signer, region)
 	conn.SetAccessKey(accessKey)
 	return conn
+}
+
+func (a *AttachmentStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error {
+	var errs []error
+	for _, asset := range assets {
+		if err := a.DeleteAsset(ctx, params, signer, asset); err != nil {
+			a.log.Debug("DeleteAsset error: %s", err)
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		a.log.Debug("DeleteAssets errors: %d, returning first one", len(errs))
+		return errs[0]
+	}
+	return nil
+}
+
+func (a *AttachmentStore) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error {
+	region := a.regionFromAsset(asset)
+	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
+	return b.Del(ctx, asset.Path)
 }

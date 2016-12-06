@@ -34,7 +34,7 @@ protocol local {
     string path;               // path to the object in bucket
     int size;                  // size of the object
     string mimeType;           // mime type of the object
-    Hash encHash;              // hash of ciphertext object 
+    Hash encHash;              // hash of ciphertext object
     bytes key;                 // encryption key
     bytes verifyKey;           // signature verification key
     string title;              // title of the asset (defaults to filename if not provided)
@@ -67,18 +67,19 @@ protocol local {
   }
 
   record OutboxRecord {
-    OutboxState state; 
+    OutboxState state;
     OutboxID outboxID;
     ConversationID convID;
+    @lint("ignore")
     MessagePlaintext Msg;
-  }   
-  
+  }
+
   enum HeaderPlaintextVersion {
     V1_1
   }
 
   // HeaderPlaintextV1 is version 1 of HeaderPlaintext.
-  // The fields here cannot change.  To modify, 
+  // The fields here cannot change.  To modify,
   // create a new record type with a new version.
   record HeaderPlaintextV1 {
     ConversationIDTriple conv;
@@ -99,7 +100,7 @@ protocol local {
   variant HeaderPlaintext switch (HeaderPlaintextVersion version) {
     case V1: HeaderPlaintextV1;
   }
-  
+
   enum BodyPlaintextVersion {
     V1_1
   }
@@ -134,14 +135,20 @@ protocol local {
     MessageBody messageBody;
     string senderUsername;
     string senderDeviceName;
+    string senderDeviceType;
     Hash headerHash;
+    union {null, SignatureInfo} headerSignature;
+    // Whether the message was sent by a device that is now revoked.
+    // We aren't sure whether the device was revoked when the message was sent.
+    // Re-evaluated when unboxed or pulled from the cache.
+    boolean fromRevokedDevice;
   }
 
   record MessageUnboxedError {
     string errMsg;
     MessageID messageID;
     MessageType messageType;
-  } 
+  }
 
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
@@ -157,9 +164,12 @@ protocol local {
   // By definition, one could use a same non-zero number for both AtLeast and
   // AtMost to precisely control the number of items returned.
   record UnreadFirstNumLimit {
+    @lint("ignore")
     int NumRead;
 
+    @lint("ignore")
     int AtLeast;
+    @lint("ignore")
     int AtMost;
   }
 
@@ -175,19 +185,26 @@ protocol local {
     array<string> readerNames;
   }
 
+  // ConversationLocal, whenever present, has a valid `identifyFailures` field that
+  // faithfully represent identify result. If identify information is not
+  // availabe, we should use a different type.
   record ConversationLocal {
     union { null, string } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
     array<MessageUnboxed> maxMessages; // the latest message for each message type
-  } 
+
+    // This field, if null or empty, indicates identify succeeded without any
+    // break.
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
 
   record ThreadView {
     array<MessageUnboxed> messages;
     union { null, Pagination } pagination;
   }
 
-  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
+  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetThreadQuery {
     boolean markAsRead;
     array<MessageType> messageTypes;
@@ -197,18 +214,24 @@ protocol local {
   record GetThreadLocalRes {
     ThreadView thread;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   // topicName in GetInboxLocalQuery is ignored
-  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;
+
+    // This only contains identify failures if a TLF name is specified in arg.
+    // It doesn't contain identifyFailures otherwise, since GetInboxLocal
+    // doesn't run identify for each conversation in the inbox.
+    // GetInboxAndUnboxLocal should be used if identify failures are needed.
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
-
+  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
@@ -235,32 +258,27 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg);
+  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
-  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev);
 
-  SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
+  @lint("ignore")
+  SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);
   record SetConversationStatusLocalRes {
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  record LocalSource {
-    keybase1.Stream source;
-    string filename;
-    int size;
-  }
-
-  // Post an attachment in source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata);
-
-  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
+  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
     array<RateLimit> rateLimits;
@@ -291,12 +309,15 @@ protocol local {
   GetConversationForCLILocalRes getConversationForCLILocal(GetConversationForCLILocalQuery query);
   record GetConversationForCLILocalQuery {
     boolean markAsRead;
+    @lint("ignore")
     array<MessageType> MessageTypes;
 
+    @lint("ignore")
     union { null, string } Since;
 
     UnreadFirstNumLimit limit;
 
+    @lint("ignore")
     ConversationID conversationId;
   }
   record GetConversationForCLILocalRes {
@@ -306,19 +327,52 @@ protocol local {
   }
 
   // Get messages by ID.
-  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs);
+  @lint("ignore")
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  // Download an attachment from a message into sink.
+  // LocalSource is a stream attachment source.
+  record LocalSource {
+    keybase1.Stream source;
+    string filename;
+    int size;
+  }
+
+  // Post an attachment from stream source to conversationID.
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  // LocalFileSource is a file attachment source.  Filename must be readable
+  // by the service for the duration of the attachment upload.
+  record LocalFileSource {
+    string filename;
+  }
+
+  // Post an attachment from file source to conversationID.
+  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, LocalFileSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+
   record DownloadAttachmentLocalRes {
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
-  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
 
-  void CancelPost(OutboxID outboxID); 
+  // Download an attachment from a message into sink stream.
+  @lint("ignore")
+  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  // Download an attachment from a message into a local file.
+  // Filename must be writable by the service.
+  @lint("ignore")
+  DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  @lint("ignore")
+  void CancelPost(OutboxID outboxID);
+  @lint("ignore")
   void RetryPost(OutboxID outboxID);
+
+  MarkAsReadRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
 
 }

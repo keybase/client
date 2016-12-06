@@ -12,7 +12,7 @@
       "name": "HasServerKeysRes",
       "fields": [
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "hasServerKeys"
         }
       ]

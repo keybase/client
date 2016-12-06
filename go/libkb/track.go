@@ -421,7 +421,7 @@ func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g 
 	if localExpires {
 		linkETime = cl.GetCTime().Add(g.Env.GetLocalTrackMaxAge())
 
-		g.Log.Debug("| := local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkETime.String(), g.Clock().Now())
+		g.Log.Debug("| local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkETime.String(), g.Clock().Now())
 
 		if linkETime.Before(g.Clock().Now()) {
 			g.Log.Debug("| expired local track, deleting")

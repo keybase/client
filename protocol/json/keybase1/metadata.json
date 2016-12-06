@@ -104,11 +104,13 @@
       "fields": [
         {
           "type": "KeyBundle",
-          "name": "WriterBundle"
+          "name": "WriterBundle",
+          "lint": "ignore"
         },
         {
           "type": "KeyBundle",
-          "name": "ReaderBundle"
+          "name": "ReaderBundle",
+          "lint": "ignore"
         }
       ]
     }

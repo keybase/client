@@ -395,3 +395,32 @@ func TestStorageLocalMax(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, tv.Messages, 10)
 }
+
+func TestStorageFetchMessages(t *testing.T) {
+	_, storage, uid := setupStorageTest(t, "fetchMessages")
+
+	msgs := makeMsgRange(20)
+	conv := makeConversation(25)
+
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+
+	msgIDs := []chat1.MessageID{10, 15, 6}
+	umsgs, err := storage.FetchMessages(context.TODO(), conv.Metadata.ConversationID, uid, msgIDs)
+	require.NoError(t, err)
+	require.Equal(t, len(msgIDs), len(umsgs), "size mismatch")
+	for _, umsg := range umsgs {
+		require.NotNil(t, umsg, "msg not found")
+	}
+
+	msgIDs = []chat1.MessageID{10, 15, 6, 21}
+	umsgs, err = storage.FetchMessages(context.TODO(), conv.Metadata.ConversationID, uid, msgIDs)
+	require.NoError(t, err)
+	require.Equal(t, len(msgIDs), len(umsgs), "size mismatch")
+	nils := 0
+	for _, umsg := range umsgs {
+		if umsg == nil {
+			nils++
+		}
+	}
+	require.Equal(t, 1, nils, "wrong number of nils")
+}

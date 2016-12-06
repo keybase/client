@@ -338,7 +338,8 @@
           "type": "MessageBoxed"
         }
       ],
-      "response": "NewConversationRemoteRes"
+      "response": "NewConversationRemoteRes",
+      "lint": "ignore"
     },
     "getMessagesRemote": {
       "request": [
@@ -380,7 +381,8 @@
           "type": "ConversationStatus"
         }
       ],
-      "response": "SetConversationStatusRes"
+      "response": "SetConversationStatusRes",
+      "lint": "ignore"
     },
     "tlfFinalize": {
       "request": [
@@ -398,7 +400,8 @@
           "type": "InboxVers"
         }
       ],
-      "response": "UnreadUpdateFull"
+      "response": "UnreadUpdateFull",
+      "lint": "ignore"
     },
     "getS3Params": {
       "request": [

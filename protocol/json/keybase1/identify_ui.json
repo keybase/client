@@ -35,7 +35,8 @@
       "fields": [
         {
           "type": "int",
-          "name": "rowId"
+          "name": "rowId",
+          "lint": "ignore"
         },
         {
           "type": "RemoteProof",
@@ -60,7 +61,8 @@
         },
         {
           "type": "KID",
-          "name": "KID"
+          "name": "KID",
+          "lint": "ignore"
         },
         {
           "type": [
@@ -81,7 +83,8 @@
       "fields": [
         {
           "type": "int",
-          "name": "rowId"
+          "name": "rowId",
+          "lint": "ignore"
         },
         {
           "type": "bytes",
@@ -174,7 +177,8 @@
       "fields": [
         {
           "type": "string",
-          "name": "remoteId"
+          "name": "remoteId",
+          "lint": "ignore"
         },
         {
           "type": "string",
@@ -223,7 +227,8 @@
       "fields": [
         {
           "type": "int",
-          "name": "proofId"
+          "name": "proofId",
+          "lint": "ignore"
         },
         {
           "type": "ProofResult",

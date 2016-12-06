@@ -3,6 +3,7 @@ import {Component} from 'react'
 
 export type Props = {
   children?: string,
+  style?: Object,
 }
 
 export default class Markdown extends Component<void, Props, void> { }

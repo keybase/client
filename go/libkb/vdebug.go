@@ -13,8 +13,9 @@ import (
 // VDebugLog is a "Verbose" debug logger; enable it if you really
 // want spam and/or minutiae
 type VDebugLog struct {
-	log logger.Logger
-	lev VDebugLevel
+	log              logger.Logger
+	lev              VDebugLevel
+	dumpSiteLoadUser bool
 }
 
 type VDebugLevel int
@@ -38,6 +39,10 @@ func (v *VDebugLog) Log(lev VDebugLevel, fs string, args ...interface{}) {
 	}
 }
 
+func (v *VDebugLog) DumpSiteLoadUser() bool {
+	return v.dumpSiteLoadUser
+}
+
 func (v *VDebugLog) Configure(s string) {
 	if len(s) == 0 {
 		return
@@ -55,6 +60,8 @@ func (v *VDebugLog) Configure(s string) {
 			v.lev = VLog2
 		case "vlog3":
 			v.lev = VLog3
+		case "dump-site-load-user":
+			v.dumpSiteLoadUser = true
 		default:
 			v.log.Warning("Ignoring Vdebug log directive: %q", s)
 		}

@@ -85,7 +85,7 @@
         }
       ],
       "response": "GPGMethod",
-      "doc": "Called during device provisioning for the user to select a \n    GPG method, either import the key into keybase's local keyring\n    or use GPG to sign a provisioning statement.\n\n    The keys are provided for display purposes, so the UI can \n    do something like \"We found the following GPG keys on this \n    machine.  How would you like to use one of them to provision\n    this device?\"\n\n    After this, gpg_ui.selectKey will be called (if there are\n    multiple keys available)."
+      "doc": "Called during device provisioning for the user to select a\n    GPG method, either import the key into keybase's local keyring\n    or use GPG to sign a provisioning statement.\n\n    The keys are provided for display purposes, so the UI can\n    do something like \"We found the following GPG keys on this\n    machine.  How would you like to use one of them to provision\n    this device?\"\n\n    After this, gpg_ui.selectKey will be called (if there are\n    multiple keys available)."
     },
     "switchToGPGSignOK": {
       "request": [
@@ -103,7 +103,7 @@
         }
       ],
       "response": "boolean",
-      "doc": "If there was an error importing a gpg key into the local\n    keyring, tell the user and offer to switch to GPG signing\n    with this key.  Return true to switch to GPG signing, \n    false to abort provisioning."
+      "doc": "If there was an error importing a gpg key into the local\n    keyring, tell the user and offer to switch to GPG signing\n    with this key.  Return true to switch to GPG signing,\n    false to abort provisioning."
     },
     "chooseDevice": {
       "request": [
@@ -155,7 +155,8 @@
         }
       ],
       "response": "SecretResponse",
-      "doc": "DisplayAndPromptSecret displays a secret that the user can enter into the other device.\n   It also can return a secret that the user enters into this device (from the other device).\n   If it does not return a secret, it will be canceled when this device receives the secret via kex2."
+      "doc": "DisplayAndPromptSecret displays a secret that the user can enter into the other device.\n   It also can return a secret that the user enters into this device (from the other device).\n   If it does not return a secret, it will be canceled when this device receives the secret via kex2.",
+      "lint": "ignore"
     },
     "DisplaySecretExchanged": {
       "request": [
@@ -165,7 +166,8 @@
         }
       ],
       "response": null,
-      "doc": "DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two\n   devices."
+      "doc": "DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two\n   devices.",
+      "lint": "ignore"
     },
     "PromptNewDeviceName": {
       "request": [
@@ -186,7 +188,8 @@
         }
       ],
       "response": "string",
-      "doc": "PromptNewDeviceName is called when the device provisioning process needs a name for the new device.\n   To help the clients not send a duplicate name, existingDevices is populated with the current device\n   names for the user.  If the device name returned to the service is invalid or already\n   taken, it will call this again with an error message in errorMessage."
+      "doc": "PromptNewDeviceName is called when the device provisioning process needs a name for the new device.\n   To help the clients not send a duplicate name, existingDevices is populated with the current device\n   names for the user.  If the device name returned to the service is invalid or already\n   taken, it will call this again with an error message in errorMessage.",
+      "lint": "ignore"
     },
     "ProvisioneeSuccess": {
       "request": [
@@ -204,7 +207,8 @@
         }
       ],
       "response": null,
-      "doc": "ProvisioneeSuccess is called on provisionee when it is successfully provisioned."
+      "doc": "ProvisioneeSuccess is called on provisionee when it is successfully provisioned.",
+      "lint": "ignore"
     },
     "ProvisionerSuccess": {
       "request": [
@@ -222,7 +226,8 @@
         }
       ],
       "response": null,
-      "doc": "ProvisionerSuccess is called on provisioner when it successfully provisions another device."
+      "doc": "ProvisionerSuccess is called on provisioner when it successfully provisions another device.",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

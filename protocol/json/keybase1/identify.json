@@ -72,7 +72,8 @@
         }
       ],
       "response": "UID",
-      "doc": "Resolve an assertion to a UID. On failure, resolves to an empty UID and returns\n    an error."
+      "doc": "Resolve an assertion to a UID. On failure, resolves to an empty UID and returns\n    an error.",
+      "lint": "ignore"
     },
     "Resolve2": {
       "request": [
@@ -82,7 +83,8 @@
         }
       ],
       "response": "User",
-      "doc": "Resolve an assertion to a (UID,username). On failure, returns an error."
+      "doc": "Resolve an assertion to a (UID,username). On failure, returns an error.",
+      "lint": "ignore"
     },
     "identify": {
       "request": [

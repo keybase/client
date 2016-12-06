@@ -251,7 +251,8 @@
         },
         {
           "type": "MessagePlaintext",
-          "name": "Msg"
+          "name": "Msg",
+          "lint": "ignore"
         }
       ]
     },
@@ -423,8 +424,23 @@
           "name": "senderDeviceName"
         },
         {
+          "type": "string",
+          "name": "senderDeviceType"
+        },
+        {
           "type": "Hash",
           "name": "headerHash"
+        },
+        {
+          "type": [
+            null,
+            "SignatureInfo"
+          ],
+          "name": "headerSignature"
+        },
+        {
+          "type": "boolean",
+          "name": "fromRevokedDevice"
         }
       ]
     },
@@ -483,15 +499,18 @@
       "fields": [
         {
           "type": "int",
-          "name": "NumRead"
+          "name": "NumRead",
+          "lint": "ignore"
         },
         {
           "type": "int",
-          "name": "AtLeast"
+          "name": "AtLeast",
+          "lint": "ignore"
         },
         {
           "type": "int",
-          "name": "AtMost"
+          "name": "AtMost",
+          "lint": "ignore"
         }
       ]
     },
@@ -560,6 +579,13 @@
             "items": "MessageUnboxed"
           },
           "name": "maxMessages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     },
@@ -628,6 +654,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     },
@@ -655,6 +688,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     },
@@ -776,6 +816,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     },
@@ -793,6 +840,13 @@
         {
           "type": "OutboxID",
           "name": "outboxID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     },
@@ -806,24 +860,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "LocalSource",
-      "fields": [
-        {
-          "type": "keybase1.Stream",
-          "name": "source"
         },
         {
-          "type": "string",
-          "name": "filename"
-        },
-        {
-          "type": "int",
-          "name": "size"
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     },
@@ -918,14 +961,16 @@
             "type": "array",
             "items": "MessageType"
           },
-          "name": "MessageTypes"
+          "name": "MessageTypes",
+          "lint": "ignore"
         },
         {
           "type": [
             null,
             "string"
           ],
-          "name": "Since"
+          "name": "Since",
+          "lint": "ignore"
         },
         {
           "type": "UnreadFirstNumLimit",
@@ -933,7 +978,8 @@
         },
         {
           "type": "ConversationID",
-          "name": "conversationId"
+          "name": "conversationId",
+          "lint": "ignore"
         }
       ]
     },
@@ -978,6 +1024,41 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LocalSource",
+      "fields": [
+        {
+          "type": "keybase1.Stream",
+          "name": "source"
+        },
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LocalFileSource",
+      "fields": [
+        {
+          "type": "string",
+          "name": "filename"
         }
       ]
     },
@@ -991,6 +1072,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     }
@@ -1015,6 +1103,10 @@
             null,
             "Pagination"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "GetThreadLocalRes"
@@ -1034,6 +1126,10 @@
             null,
             "Pagination"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "GetInboxLocalRes"
@@ -1053,6 +1149,10 @@
             null,
             "Pagination"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "GetInboxAndUnboxLocalRes"
@@ -1066,6 +1166,10 @@
         {
           "name": "msg",
           "type": "MessagePlaintext"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "PostLocalRes"
@@ -1083,6 +1187,10 @@
         {
           "name": "clientPrev",
           "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "PostLocalNonblockRes"
@@ -1096,45 +1204,14 @@
         {
           "name": "status",
           "type": "ConversationStatus"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "SetConversationStatusLocalRes"
-    },
-    "postAttachmentLocal": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "clientHeader",
-          "type": "MessageClientHeader"
-        },
-        {
-          "name": "attachment",
-          "type": "LocalSource"
-        },
-        {
-          "name": "preview",
-          "type": [
-            null,
-            "LocalSource"
-          ]
-        },
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "metadata",
-          "type": "bytes"
-        }
-      ],
-      "response": "PostLocalRes"
+      "response": "SetConversationStatusLocalRes",
+      "lint": "ignore"
     },
     "newConversationLocal": {
       "request": [
@@ -1156,6 +1233,10 @@
             null,
             "string"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "NewConversationLocalRes"
@@ -1190,9 +1271,94 @@
             "type": "array",
             "items": "MessageID"
           }
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "GetMessagesLocalRes"
+      "response": "GetMessagesLocalRes",
+      "lint": "ignore"
+    },
+    "postAttachmentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "clientHeader",
+          "type": "MessageClientHeader"
+        },
+        {
+          "name": "attachment",
+          "type": "LocalSource"
+        },
+        {
+          "name": "preview",
+          "type": [
+            null,
+            "LocalSource"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "postFileAttachmentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "clientHeader",
+          "type": "MessageClientHeader"
+        },
+        {
+          "name": "attachment",
+          "type": "LocalFileSource"
+        },
+        {
+          "name": "preview",
+          "type": [
+            null,
+            "LocalFileSource"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
     },
     "DownloadAttachmentLocal": {
       "request": [
@@ -1215,9 +1381,44 @@
         {
           "name": "preview",
           "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "DownloadAttachmentLocalRes"
+      "response": "DownloadAttachmentLocalRes",
+      "lint": "ignore"
+    },
+    "DownloadFileAttachmentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageID",
+          "type": "MessageID"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "preview",
+          "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "DownloadAttachmentLocalRes",
+      "lint": "ignore"
     },
     "CancelPost": {
       "request": [
@@ -1226,7 +1427,8 @@
           "type": "OutboxID"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
     },
     "RetryPost": {
       "request": [
@@ -1235,7 +1437,25 @@
           "type": "OutboxID"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
+    },
+    "markAsReadLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "MarkAsReadRes"
     }
   },
   "namespace": "chat.1"

@@ -41,12 +41,6 @@ class UserPaneRender extends Component<void, Props, void> {
       <Help />
     )
   }
-
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'Search'},
-    }
-  }
 }
 
 export default UserPaneRender

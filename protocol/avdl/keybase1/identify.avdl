@@ -9,11 +9,13 @@ protocol identify {
     Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
     an error.
    */
+  @lint("ignore")
   UID Resolve(string assertion);
 
   /**
     Resolve an assertion to a (UID,username). On failure, returns an error.
    */
+  @lint("ignore")
   User Resolve2(string assertion);
 
   /**

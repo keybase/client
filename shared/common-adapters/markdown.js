@@ -1,6 +1,7 @@
 // @flow
 
 import Text from './text'
+import Emoji from './emoji'
 import React, {PureComponent} from 'react'
 import {List} from 'immutable'
 import {globalStyles, globalColors, globalMargins} from '../styles'
@@ -41,6 +42,7 @@ const openToClosePair = {
   '*': '*',
   '_': '_',
   '~': '~',
+  ':': ':',
 }
 
 // We have to escape certain marks when turning them into a regex
@@ -50,14 +52,16 @@ const markToRegex = {
   '*': '\\*',
   '_': '_',
   '~': '~',
+  ':': ':',
 }
 
 const initialOpenToTag = {
   '`': {Component: Text, props: {type: 'Body', style: codeSnippetStyle}},
   '```': {Component: Text, props: {type: 'Body', style: codeSnippetBlockStyle}},
-  '*': {Component: Text, props: {type: 'BodySemibold'}},
-  '_': {Component: Text, props: {type: 'Body', style: {fontStyle: 'italic', fontWeight: undefined}}},
-  '~': {Component: Text, props: {type: 'Body', style: {textDecoration: 'line-through', fontWeight: undefined}}},
+  '*': {Component: Text, props: {type: 'BodySemibold', style: {color: undefined}}},
+  '_': {Component: Text, props: {type: 'Body', style: {fontStyle: 'italic', fontWeight: undefined, color: undefined}}},
+  '~': {Component: Text, props: {type: 'Body', style: {textDecoration: 'line-through', fontWeight: undefined, color: undefined}}},
+  ':': {Component: Emoji, props: {size: 16}},
 }
 
 const openToNextOpenToTag = {
@@ -66,15 +70,16 @@ const openToNextOpenToTag = {
   '*': initialOpenToTag,
   '_': initialOpenToTag,
   '~': initialOpenToTag,
+  ':': {},
 }
 
-const plainStringTag = {Component: Text, props: {type: 'Body'}}
+const plainStringTag = {Component: Text, props: {type: 'Body', style: {color: undefined}}}
 
 type TagMeta = {
   componentInfo: {Component: ReactClass<*>, props: Object},
   textSoFar: string,
   elementsSoFar: List<React$Element<*> | string>,
-  openToTag: {[key: string]: TagInfo<*>},
+  openToTag: {[key: string]: TagInfo<Text> | TagInfo<Emoji>},
   closingTag: ?string,
 }
 
@@ -155,11 +160,16 @@ function _parseRecursive (text: string, tagStack: TagStack, key: number): React$
   }
 }
 
+// It's a lot easier to parse emojis if we change :santa::skin-tone-3: to :santa\:\:skin-tone-3:
+function preprocessEmojiColors (text: string): string {
+  return text.replace(/:([\w-]*)::(skin-tone-\d):/g, ':$1\\:\\:$2:')
+}
+
 const initialTagStack = new List([initalTagMeta])
 
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    return <Text type='Body'>{_parseRecursive(this.props.children || '', initialTagStack, 0)}</Text>
+    return <Text type='Body' style={this.props.style}>{_parseRecursive(preprocessEmojiColors(this.props.children || ''), initialTagStack, 0)}</Text>
   }
 }
 

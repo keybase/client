@@ -29,8 +29,8 @@ fi
 cd "$rn_dir"
 
 if [ ! "$cache_npm" = "1" ]; then
-  ../packaging/npm_mess.sh
-  npm install -g react-native-cli
+  yarn
+  yarn global add react-native-cli
 fi
 
 

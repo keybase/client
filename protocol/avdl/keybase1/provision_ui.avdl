@@ -26,12 +26,12 @@ protocol provisionUi {
     GPG_SIGN_2
   }
   /**
-    Called during device provisioning for the user to select a 
+    Called during device provisioning for the user to select a
     GPG method, either import the key into keybase's local keyring
     or use GPG to sign a provisioning statement.
 
-    The keys are provided for display purposes, so the UI can 
-    do something like "We found the following GPG keys on this 
+    The keys are provided for display purposes, so the UI can
+    do something like "We found the following GPG keys on this
     machine.  How would you like to use one of them to provision
     this device?"
 
@@ -43,7 +43,7 @@ protocol provisionUi {
   /**
     If there was an error importing a gpg key into the local
     keyring, tell the user and offer to switch to GPG signing
-    with this key.  Return true to switch to GPG signing, 
+    with this key.  Return true to switch to GPG signing,
     false to abort provisioning.
     */
   boolean switchToGPGSignOK(int sessionID, GPGKey key, string importError);
@@ -74,12 +74,14 @@ protocol provisionUi {
    It also can return a secret that the user enters into this device (from the other device).
    If it does not return a secret, it will be canceled when this device receives the secret via kex2.
    */
+  @lint("ignore")
   SecretResponse DisplayAndPromptSecret(int sessionID, bytes secret, string phrase, DeviceType otherDeviceType);
 
   /**
    DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two
    devices.
    */
+  @lint("ignore")
   void DisplaySecretExchanged(int sessionID);
 
   /**
@@ -88,15 +90,18 @@ protocol provisionUi {
    names for the user.  If the device name returned to the service is invalid or already
    taken, it will call this again with an error message in errorMessage.
    */
+  @lint("ignore")
   string PromptNewDeviceName(int sessionID, array<string> existingDevices, string errorMessage);
 
   /**
    ProvisioneeSuccess is called on provisionee when it is successfully provisioned.
    */
+  @lint("ignore")
   void ProvisioneeSuccess(int sessionID, string username, string deviceName);
 
   /**
    ProvisionerSuccess is called on provisioner when it successfully provisions another device.
    */
+  @lint("ignore")
   void ProvisionerSuccess(int sessionID, string deviceName, string deviceType);
 }

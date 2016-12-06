@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/libkb"
@@ -59,6 +60,22 @@ func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
 	return nil
+}
+
+func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+
+	rres, err := s.ri.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+		ConversationID: convID,
+		MessageIDs:     msgIDs,
+	})
+
+	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return msgs, nil
 }
 
 type HybridConversationSource struct {
@@ -135,6 +152,13 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
 
+			// Before returning the stuff, update FromRevokedDevice on each message.
+			updatedMessages, err := s.updateMessages(ctx, localData.Messages)
+			if err != nil {
+				return chat1.ThreadView{}, rl, err
+			}
+			localData.Messages = updatedMessages
+
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
 			if query != nil && query.MarkAsRead && len(localData.Messages) > 0 {
@@ -181,6 +205,50 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	return thread, rl, nil
 }
 
+func (s *HybridConversationSource) updateMessages(ctx context.Context, messages []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
+	updatedMessages := make([]chat1.MessageUnboxed, 0, len(messages))
+	for _, m := range messages {
+		m2, err := s.updateMessage(ctx, m)
+		if err != nil {
+			return updatedMessages, err
+		}
+		updatedMessages = append(updatedMessages, m2)
+	}
+	return updatedMessages, nil
+}
+
+func (s *HybridConversationSource) updateMessage(ctx context.Context, message chat1.MessageUnboxed) (chat1.MessageUnboxed, error) {
+	typ, err := message.State()
+	if err != nil {
+		return chat1.MessageUnboxed{}, err
+	}
+	switch typ {
+	case chat1.MessageUnboxedState_VALID:
+		m := message.Valid()
+		if m.HeaderSignature == nil {
+			// Skip revocation check for messages cached before the sig was part of the cache.
+			s.G().Log.Debug("updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
+			return message, nil
+		}
+
+		sender := m.ClientHeader.Sender
+		key := m.HeaderSignature.K
+		ctime := m.ServerHeader.Ctime
+		validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
+		if err != nil {
+			return chat1.MessageUnboxed{}, err
+		}
+		if !validAtCtime {
+			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
+		}
+		m.FromRevokedDevice = revoked
+		updatedMessage := chat1.NewMessageUnboxedWithValid(m)
+		return updatedMessage, nil
+	default:
+		return message, nil
+	}
+}
+
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
 
@@ -193,6 +261,71 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
 	return s.storage.MaybeNuke(true, nil, convID, uid)
+}
+
+type ByMsgID []chat1.MessageUnboxed
+
+func (m ByMsgID) Len() int           { return len(m) }
+func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
+
+func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+
+	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
+
+	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make a pass to determine which message IDs we need to grab remotely
+	var remoteMsgs []chat1.MessageID
+	for index, msg := range msgs {
+		if msg == nil {
+			remoteMsgs = append(remoteMsgs, msgIDs[index])
+		}
+	}
+
+	// Grab message from remote
+	s.G().Log.Debug("HybridConversationSource: GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs), len(remoteMsgs))
+	if len(remoteMsgs) > 0 {
+		rmsgs, err := s.ri.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+			ConversationID: convID,
+			MessageIDs:     remoteMsgs,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Unbox all the remote messages
+		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs)
+		if err != nil {
+			return nil, err
+		}
+
+		sort.Sort(ByMsgID(rmsgsUnboxed))
+		for _, rmsg := range rmsgsUnboxed {
+			rmsgsTab[rmsg.GetMessageID()] = rmsg
+		}
+
+		// Write out messages
+		if err := s.storage.Merge(ctx, convID, uid, rmsgsUnboxed); err != nil {
+			return nil, err
+		}
+	}
+
+	// Form final result
+	var res []chat1.MessageUnboxed
+	for index, msg := range msgs {
+		if msg != nil {
+			res = append(res, *msg)
+		} else {
+			res = append(res, rmsgsTab[msgIDs[index]])
+		}
+	}
+
+	return res, nil
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,

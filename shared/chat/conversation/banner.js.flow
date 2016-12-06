@@ -1,0 +1,24 @@
+// @flow
+import {Component} from 'react'
+
+export type ErrorVariant = {
+  type: 'Error',
+  text: string,
+  textLink: string,
+  textLinkOnClick: () => void,
+}
+
+export type InviteVariant = {
+  type: 'Invite',
+  inviteLink: string,
+  onClickInviteLink: () => void,
+}
+
+export type InfoVariant = {
+  type: 'Info',
+  text: string,
+}
+
+export type Props = InfoVariant | ErrorVariant | InviteVariant
+
+export default class Banner extends Component<void, Props, void> { }

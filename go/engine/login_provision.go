@@ -86,6 +86,20 @@ func (e *loginProvision) Run(ctx *Context) error {
 		return err
 	}
 
+	// transaction around config file
+	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
+	if err != nil {
+		return err
+	}
+
+	// From this point on, if there's an error, we abort the
+	// transaction.
+	defer func() {
+		if tx != nil {
+			tx.Abort()
+		}
+	}()
+
 	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
 	// through the provisioning options
@@ -94,6 +108,15 @@ func (e *loginProvision) Run(ctx *Context) error {
 		e.cleanup()
 		return err
 	}
+
+	// commit the config changes
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Zero out the TX so that we don't abort it in the defer()
+	// exit.
+	tx = nil
 
 	if err := e.ensurePaperKey(ctx); err != nil {
 		return err
@@ -106,7 +129,7 @@ func (e *loginProvision) Run(ctx *Context) error {
 	// provisioning was successful, so the user has changed:
 	e.G().NotifyRouter.HandleKeyfamilyChanged(e.arg.User.GetUID())
 	// Remove this after kbfs notification change complete
-	e.G().NotifyRouter.HandleUserChanged(e.arg.User.GetUID())
+	e.G().UserChanged(e.arg.User.GetUID())
 
 	return nil
 }

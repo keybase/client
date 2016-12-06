@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	isatty "github.com/mattn/go-isatty"
 )
 
@@ -35,6 +36,7 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 	conversationInfo, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		Interactive:       hasTTY,
+		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("resolving conversation error: %v\n", err)

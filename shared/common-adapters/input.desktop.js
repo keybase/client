@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {findDOMNode} from 'react-dom'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './input'
 
@@ -48,6 +48,14 @@ class Input extends Component<void, Props, State> {
     this._onChange({target: {value: ''}})
   }
 
+  selections () {
+    const node = this._input && this._inputNode()
+    if (node) {
+      const {selectionStart, selectionEnd} = node
+      return {selectionStart, selectionEnd}
+    }
+  }
+
   _onChange = (event: {target: {value: ?string}}) => {
     this.setState({value: event.target.value || ''})
     this._autoResize()
@@ -90,7 +98,7 @@ class Input extends Component<void, Props, State> {
       this.props.onKeyDown(e)
     }
 
-    if (this.props.onEnterKeyDown && e.key === 'Enter') {
+    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey) {
       this.props.onEnterKeyDown(e)
     }
   }
@@ -131,6 +139,8 @@ class Input extends Component<void, Props, State> {
       ...globalStyles.flexBoxColumn,
       maxWidth: 460,
       width: '100%',
+      marginTop: globalMargins.tiny,
+      marginBottom: globalMargins.tiny,
     }
   }
 
@@ -153,6 +163,7 @@ class Input extends Component<void, Props, State> {
       fontSize: _headerTextStyle.fontSize,
       lineHeight: `${_lineHeight}px`,
       backgroundColor: globalColors.transparent,
+      color: globalColors.black_75,
       flex: 1,
       border: 'none',
       outlineWidth: 0,
@@ -207,6 +218,7 @@ class Input extends Component<void, Props, State> {
 
     const multilineProps = {
       ...commonProps,
+      rows: this.props.rowsMin || defaultRowsToShow,
       style: {...textareaStyle, ...this.props.inputStyle},
     }
 
@@ -219,9 +231,12 @@ class Input extends Component<void, Props, State> {
       ...this.props.smallLabelStyle,
     }
 
+    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.2); }`
+
     return (
       <Box style={{...containerStyle, ...this.props.style}}>
-        {!this.props.small && <Text type='BodySmall' style={_floatingStyle}>{floatingHintText}</Text>}
+        <style>{inputRealCSS}</style>
+        {!this.props.small && <Text type='BodySmallSemibold' style={_floatingStyle}>{floatingHintText}</Text>}
         {!!this.props.small && !!this.props.smallLabel && <Text type='BodySmall' style={smallLabelStyle}>{this.props.smallLabel}</Text>}
         {this.props.multiline
           ? <textarea {...multilineProps} />
@@ -239,6 +254,7 @@ const _bodySmallTextStyle = getTextStyle('BodySmall')
 const _errorStyle = {
   textAlign: 'center',
   width: '100%',
+  marginTop: globalMargins.xtiny,
 }
 
 const _floatingStyle = {
@@ -246,7 +262,7 @@ const _floatingStyle = {
   minHeight: _bodySmallTextStyle.lineHeight,
   color: globalColors.blue,
   display: 'block',
-  marginBottom: 9,
+  marginBottom: globalMargins.xtiny,
 }
 
 export default Input

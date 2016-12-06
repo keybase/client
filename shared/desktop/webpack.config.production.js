@@ -15,7 +15,7 @@ const defines = {
 console.warn('Injecting production defines: ', defines)
 
 config.devtool = 'source-map'
-config.output.publicPath = './desktop/dist/'
+config.output.publicPath = '../desktop/dist/'
 config.cache = false // Electron exposes the module as 2 different things depending on the context....
 
 config.plugins.push(

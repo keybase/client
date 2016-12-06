@@ -2,6 +2,7 @@
 import {Component} from 'react'
 import {List, Map} from 'immutable'
 
+import type {Props as BannerMessage} from './banner'
 import type {ConversationIDKey, Message, MessageID, MetaData, ParticipantItem} from '../../constants/chat'
 
 export type Props = {
@@ -10,15 +11,19 @@ export type Props = {
   metaData: Map<string, MetaData>,
   moreToLoad: boolean,
   onAddParticipant: () => void,
+  onDeleteMessage: (message: Message) => void,
+  onEditMessage: (message: Message) => void,
   onLoadMoreMessages: () => void,
   onOpenFolder: () => void,
   onPostMessage: (text: string) => void,
+  emojiPickerOpen: boolean,
   onShowProfile: (username: string) => void,
   onToggleSidePanel: () => void,
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,
   firstNewMessageID: ?MessageID,
   sidePanelOpen: boolean,
+  bannerMessage: ?BannerMessage
 }
 
 export default class Conversation extends Component<void, Props, void> { }
