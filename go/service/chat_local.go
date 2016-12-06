@@ -189,7 +189,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	}
 
 	triple := chat1.ConversationIDTriple{
-		TlfID:     tlfID,
+		Tlfid:     tlfID,
 		TopicType: arg.TopicType,
 		TopicID:   make(chat1.TopicID, 16),
 	}
@@ -209,7 +209,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		var ncrres chat1.NewConversationRemoteRes
 		ncrres, reserr = h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
-			TlfMessage: *firstMessageBoxed,
+			TLFMessage: *firstMessageBoxed,
 		})
 		if ncrres.RateLimit != nil {
 			res.RateLimits = append(res.RateLimits, *ncrres.RateLimit)
@@ -413,12 +413,12 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 
 	ibres, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			ConvID: &arg.ConversationID,
+			ConvID: &arg.ConversationId,
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
-		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationID, err)
+		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationId, err)
 	}
 	rlimits = append(rlimits, ibres.RateLimits...)
 	if len(ibres.Conversations) != 1 {
@@ -444,7 +444,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 
 	tv, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-		ConversationID:   arg.ConversationID,
+		ConversationID:   arg.ConversationId,
 		Query:            &query,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})

@@ -2339,7 +2339,7 @@ export function tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise (request: $Ex
 }
 
 export function tlfCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'keybase.1.tlf.cryptKeys'})
+  engineRpcOutgoing({...request, method: 'keybase.1.tlf.CryptKeys'})
 }
 
 export function tlfCryptKeysRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>): ChannelMap<*> {
@@ -2693,7 +2693,7 @@ export type Bytes32 = any
 
 export type CanonicalTLFNameAndIDWithBreaks = {
   tlfID: TLFID,
-  canonicalName: CanonicalTlfName,
+  CanonicalName: CanonicalTlfName,
   breaks: TLFBreak,
 }
 
@@ -2786,8 +2786,8 @@ export type ConfirmResult = {
 }
 
 export type CryptKey = {
-  keyGeneration: int,
-  key: Bytes32,
+  KeyGeneration: int,
+  Key: Bytes32,
 }
 
 export type Cryptocurrency = {
@@ -3064,7 +3064,7 @@ export type GetPassphraseRes = {
 
 export type GetTLFCryptKeysRes = {
   nameIDBreaks: CanonicalTLFNameAndIDWithBreaks,
-  cryptKeys?: ?Array<CryptKey>,
+  CryptKeys?: ?Array<CryptKey>,
 }
 
 export type HasServerKeysRes = {

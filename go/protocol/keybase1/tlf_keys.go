@@ -30,8 +30,8 @@ var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
 
 type CanonicalTlfName string
 type CryptKey struct {
-	KeyGeneration int     `codec:"keyGeneration" json:"keyGeneration"`
-	Key           Bytes32 `codec:"key" json:"key"`
+	KeyGeneration int     `codec:"KeyGeneration" json:"KeyGeneration"`
+	Key           Bytes32 `codec:"Key" json:"Key"`
 }
 
 type TLFBreak struct {
@@ -45,7 +45,7 @@ type TLFIdentifyFailure struct {
 
 type GetTLFCryptKeysRes struct {
 	NameIDBreaks CanonicalTLFNameAndIDWithBreaks `codec:"nameIDBreaks" json:"nameIDBreaks"`
-	CryptKeys    []CryptKey                      `codec:"cryptKeys" json:"cryptKeys"`
+	CryptKeys    []CryptKey                      `codec:"CryptKeys" json:"CryptKeys"`
 }
 
 type TLFQuery struct {
@@ -55,7 +55,7 @@ type TLFQuery struct {
 
 type CanonicalTLFNameAndIDWithBreaks struct {
 	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
-	CanonicalName CanonicalTlfName `codec:"canonicalName" json:"canonicalName"`
+	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
 	Breaks        TLFBreak         `codec:"breaks" json:"breaks"`
 }
 

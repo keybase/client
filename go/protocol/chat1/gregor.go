@@ -8,18 +8,18 @@ import (
 )
 
 type GenericPayload struct {
-	Action string `codec:"action" json:"action"`
+	Action string `codec:"Action" json:"Action"`
 }
 
 type NewConversationPayload struct {
-	Action       string         `codec:"action" json:"action"`
+	Action       string         `codec:"Action" json:"Action"`
 	ConvID       ConversationID `codec:"convID" json:"convID"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
 	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
 type NewMessagePayload struct {
-	Action       string         `codec:"action" json:"action"`
+	Action       string         `codec:"Action" json:"Action"`
 	ConvID       ConversationID `codec:"convID" json:"convID"`
 	Message      MessageBoxed   `codec:"message" json:"message"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
@@ -27,7 +27,7 @@ type NewMessagePayload struct {
 }
 
 type ReadMessagePayload struct {
-	Action       string         `codec:"action" json:"action"`
+	Action       string         `codec:"Action" json:"Action"`
 	ConvID       ConversationID `codec:"convID" json:"convID"`
 	MsgID        MessageID      `codec:"msgID" json:"msgID"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
@@ -35,7 +35,7 @@ type ReadMessagePayload struct {
 }
 
 type SetStatusPayload struct {
-	Action       string             `codec:"action" json:"action"`
+	Action       string             `codec:"Action" json:"Action"`
 	ConvID       ConversationID     `codec:"convID" json:"convID"`
 	Status       ConversationStatus `codec:"status" json:"status"`
 	InboxVers    InboxVers          `codec:"inboxVers" json:"inboxVers"`
@@ -44,7 +44,7 @@ type SetStatusPayload struct {
 
 type UnreadUpdate struct {
 	ConvID         ConversationID `codec:"convID" json:"convID"`
-	UnreadMessages int            `codec:"unreadMessages" json:"unreadMessages"`
+	UnreadMessages int            `codec:"UnreadMessages" json:"UnreadMessages"`
 }
 
 type GregorInterface interface {

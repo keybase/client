@@ -3,14 +3,14 @@ protocol common {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
-  @typedef("bytes")                  record ThreadID {}
-  @typedef("uint")   @lint("ignore") record MessageID {}
-  @typedef("bytes")                  record TopicID {}
-  @typedef("bytes")                  record ConversationID {}
-  @typedef("bytes")                  record TLFID {}
-  @typedef("bytes")                  record Hash {}
+  @typedef("bytes")  record ThreadID {}
+  @typedef("uint") @lint("ignore") record MessageID {}
+  @typedef("bytes")  record TopicID {}
+  @typedef("bytes")  record ConversationID {}
+  @typedef("bytes")  record TLFID {}
+  @typedef("bytes")  record Hash {}
   @typedef("uint64") @lint("ignore") record InboxVers {}
-  @typedef("bytes")                  record OutboxID {}
+  @typedef("bytes")  record OutboxID {}
 
   enum MessageType {
     NONE_0,
@@ -87,7 +87,8 @@ protocol common {
   }
 
   record ConversationIDTriple {
-    TLFID tlfID;
+    @lint("ignore")
+    TLFID tlfid;
     TopicType topicType;
     TopicID topicID;
   }
