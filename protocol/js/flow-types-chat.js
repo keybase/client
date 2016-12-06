@@ -116,7 +116,7 @@ export const NotifyChatChatActivityType = {
 }
 
 export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.cancelPost'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.CancelPost'})
 }
 
 export function localCancelPostRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>): ChannelMap<*> {
@@ -128,7 +128,7 @@ export function localCancelPostRpcPromise (request: $Exact<requestCommon & reque
 }
 
 export function localDownloadAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.downloadAttachmentLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.DownloadAttachmentLocal'})
 }
 
 export function localDownloadAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>): ChannelMap<*> {
@@ -140,7 +140,7 @@ export function localDownloadAttachmentLocalRpcPromise (request: $Exact<requestC
 }
 
 export function localDownloadFileAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadFileAttachmentLocalResult) => void} & {param: localDownloadFileAttachmentLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.downloadFileAttachmentLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.DownloadFileAttachmentLocal'})
 }
 
 export function localDownloadFileAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadFileAttachmentLocalResult) => void} & {param: localDownloadFileAttachmentLocalRpcParam}>): ChannelMap<*> {
@@ -200,7 +200,7 @@ export function localGetInboxSummaryForCLILocalRpcPromise (request: $Exact<reque
 }
 
 export function localGetMessagesLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.getMessagesLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.GetMessagesLocal'})
 }
 
 export function localGetMessagesLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>): ChannelMap<*> {
@@ -296,7 +296,7 @@ export function localPostLocalRpcPromise (request: $Exact<requestCommon & {callb
 }
 
 export function localRetryPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localRetryPostRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.retryPost'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.RetryPost'})
 }
 
 export function localRetryPostRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localRetryPostRpcParam}>): ChannelMap<*> {
@@ -308,7 +308,7 @@ export function localRetryPostRpcPromise (request: $Exact<requestCommon & reques
 }
 
 export function localSetConversationStatusLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationStatusLocalResult) => void} & {param: localSetConversationStatusLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.setConversationStatusLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.SetConversationStatusLocal'})
 }
 
 export function localSetConversationStatusLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationStatusLocalResult) => void} & {param: localSetConversationStatusLocalRpcParam}>): ChannelMap<*> {
@@ -368,7 +368,7 @@ export function remoteGetThreadRemoteRpcPromise (request: $Exact<requestCommon &
 }
 
 export function remoteGetUnreadUpdateFullRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.remote.getUnreadUpdateFull'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.GetUnreadUpdateFull'})
 }
 
 export function remoteGetUnreadUpdateFullRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>): ChannelMap<*> {
@@ -440,7 +440,7 @@ export function remoteS3SignRpcPromise (request: $Exact<requestCommon & {callbac
 }
 
 export function remoteSetConversationStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetConversationStatusResult) => void} & {param: remoteSetConversationStatusRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.remote.setConversationStatus'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.SetConversationStatus'})
 }
 
 export function remoteSetConversationStatusRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetConversationStatusResult) => void} & {param: remoteSetConversationStatusRpcParam}>): ChannelMap<*> {
@@ -514,7 +514,7 @@ export type Conversation = {
 export type ConversationID = bytes
 
 export type ConversationIDTriple = {
-  tlfID: TLFID,
+  tlfid: TLFID,
   topicType: TopicType,
   topicID: TopicID,
 }
@@ -572,15 +572,15 @@ export type FailedMessageInfo = {
 }
 
 export type GenericPayload = {
-  action: string,
+  Action: string,
 }
 
 export type GetConversationForCLILocalQuery = {
   markAsRead: boolean,
-  messageTypes?: ?Array<MessageType>,
-  since?: ?string,
+  MessageTypes?: ?Array<MessageType>,
+  Since?: ?string,
   limit: UnreadFirstNumLimit,
-  conversationID: ConversationID,
+  conversationId: ConversationID,
 }
 
 export type GetConversationForCLILocalRes = {
@@ -877,7 +877,7 @@ export type NewConversationLocalRes = {
 }
 
 export type NewConversationPayload = {
-  action: string,
+  Action: string,
   convID: ConversationID,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
@@ -889,7 +889,7 @@ export type NewConversationRemoteRes = {
 }
 
 export type NewMessagePayload = {
-  action: string,
+  Action: string,
   convID: ConversationID,
   message: MessageBoxed,
   inboxVers: InboxVers,
@@ -912,7 +912,7 @@ export type OutboxRecord = {
   state: OutboxState,
   outboxID: OutboxID,
   convID: ConversationID,
-  msg: MessagePlaintext,
+  Msg: MessagePlaintext,
 }
 
 export type OutboxState = 
@@ -959,7 +959,7 @@ export type ReadMessageInfo = {
 }
 
 export type ReadMessagePayload = {
-  action: string,
+  Action: string,
   convID: ConversationID,
   msgID: MessageID,
   inboxVers: InboxVers,
@@ -991,7 +991,7 @@ export type SetStatusInfo = {
 }
 
 export type SetStatusPayload = {
-  action: string,
+  Action: string,
   convID: ConversationID,
   status: ConversationStatus,
   inboxVers: InboxVers,
@@ -1031,14 +1031,14 @@ export type TopicType =
   | 2 // DEV_2
 
 export type UnreadFirstNumLimit = {
-  numRead: int,
-  atLeast: int,
-  atMost: int,
+  NumRead: int,
+  AtLeast: int,
+  AtMost: int,
 }
 
 export type UnreadUpdate = {
   convID: ConversationID,
-  unreadMessages: int,
+  UnreadMessages: int,
 }
 
 export type UnreadUpdateFull = {
@@ -1198,7 +1198,7 @@ export type remoteMarkAsReadRpcParam = Exact<{
 
 export type remoteNewConversationRemote2RpcParam = Exact<{
   idTriple: ConversationIDTriple,
-  tlfMessage: MessageBoxed
+  TLFMessage: MessageBoxed
 }>
 
 export type remoteNewConversationRemoteRpcParam = Exact<{
@@ -1359,7 +1359,7 @@ export type incomingCallMapType = Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
-  'keybase.1.NotifyChat.newChatActivity'?: (
+  'keybase.1.NotifyChat.NewChatActivity'?: (
     params: Exact<{
       uid: keybase1.UID,
       activity: ChatActivity

@@ -70,7 +70,8 @@ protocol local {
     OutboxState state;
     OutboxID outboxID;
     ConversationID convID;
-    MessagePlaintext msg;
+    @lint("ignore")
+    MessagePlaintext Msg;
   }
 
   enum HeaderPlaintextVersion {
@@ -163,10 +164,13 @@ protocol local {
   // By definition, one could use a same non-zero number for both AtLeast and
   // AtMost to precisely control the number of items returned.
   record UnreadFirstNumLimit {
-    int numRead;
+    @lint("ignore")
+    int NumRead;
 
-    int atLeast;
-    int atMost;
+    @lint("ignore")
+    int AtLeast;
+    @lint("ignore")
+    int AtMost;
   }
 
   record ConversationInfoLocal {
@@ -267,7 +271,8 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  SetConversationStatusLocalRes setConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);
+  @lint("ignore")
+  SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);
   record SetConversationStatusLocalRes {
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
@@ -304,13 +309,16 @@ protocol local {
   GetConversationForCLILocalRes getConversationForCLILocal(GetConversationForCLILocalQuery query);
   record GetConversationForCLILocalQuery {
     boolean markAsRead;
-    array<MessageType> messageTypes;
+    @lint("ignore")
+    array<MessageType> MessageTypes;
 
-    union { null, string } since;
+    @lint("ignore")
+    union { null, string } Since;
 
     UnreadFirstNumLimit limit;
 
-    ConversationID conversationID;
+    @lint("ignore")
+    ConversationID conversationId;
   }
   record GetConversationForCLILocalRes {
     ConversationLocal conversation;
@@ -319,7 +327,8 @@ protocol local {
   }
 
   // Get messages by ID.
-  GetMessagesLocalRes getMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior);
+  @lint("ignore")
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
@@ -351,14 +360,18 @@ protocol local {
   }
 
   // Download an attachment from a message into sink stream.
-  DownloadAttachmentLocalRes downloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  @lint("ignore")
+  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
-  DownloadAttachmentLocalRes downloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  @lint("ignore")
+  DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  void cancelPost(OutboxID outboxID);
-  void retryPost(OutboxID outboxID);
+  @lint("ignore")
+  void CancelPost(OutboxID outboxID);
+  @lint("ignore")
+  void RetryPost(OutboxID outboxID);
 
   MarkAsReadRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
 

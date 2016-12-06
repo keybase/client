@@ -150,7 +150,7 @@
     }
   ],
   "messages": {
-    "newChatActivity": {
+    "NewChatActivity": {
       "request": [
         {
           "name": "uid",
@@ -162,7 +162,8 @@
         }
       ],
       "response": null,
-      "notify": ""
+      "notify": "",
+      "lint": "ignore"
     }
   },
   "namespace": "chat.1"

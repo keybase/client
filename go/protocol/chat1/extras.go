@@ -102,7 +102,7 @@ func (t TopicID) String() string {
 }
 
 func (me ConversationIDTriple) Eq(other ConversationIDTriple) bool {
-	return me.TlfID.Eq(other.TlfID) &&
+	return me.Tlfid.Eq(other.Tlfid) &&
 		bytes.Equal([]byte(me.TopicID), []byte(other.TopicID)) &&
 		me.TopicType == other.TopicType
 }
@@ -170,7 +170,7 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 
 func (t ConversationIDTriple) Hash() []byte {
 	h := sha256.New()
-	h.Write(t.TlfID)
+	h.Write(t.Tlfid)
 	h.Write(t.TopicID)
 	h.Write([]byte(strconv.Itoa(int(t.TopicType))))
 	hash := h.Sum(nil)

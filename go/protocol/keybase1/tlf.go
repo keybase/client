@@ -33,7 +33,7 @@ func TlfProtocol(i TlfInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.tlf",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"cryptKeys": {
+			"CryptKeys": {
 				MakeArg: func() interface{} {
 					ret := make([]CryptKeysArg, 1)
 					return &ret
@@ -92,7 +92,7 @@ type TlfClient struct {
 // CryptKeys returns TLF crypt keys from all generations.
 func (c TlfClient) CryptKeys(ctx context.Context, query TLFQuery) (res GetTLFCryptKeysRes, err error) {
 	__arg := CryptKeysArg{Query: query}
-	err = c.Cli.Call(ctx, "keybase.1.tlf.cryptKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.tlf.CryptKeys", []interface{}{__arg}, &res)
 	return
 }
 
