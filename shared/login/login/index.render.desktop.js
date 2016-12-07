@@ -55,7 +55,7 @@ const stylesContainer = {
   alignItems: 'center',
   justifyContent: 'center',
   flex: 1,
-  backgroundColor: globalColors.lightGrey,
+  backgroundColor: globalColors.white,
 }
 
 export default LoginRender
