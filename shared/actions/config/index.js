@@ -8,7 +8,6 @@ import {registerGregorListeners} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
 import type {AsyncAction, Action} from '../../constants/types/flux'
-import type {ShowError} from '../../constants/config'
 
 isMobile && module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/config')
@@ -34,10 +33,6 @@ function getConfig (): AsyncAction {
 
 export function isFollower (getState: any, username: string): boolean {
   return !!getState().config.followers[username]
-}
-
-export function showError(error: Error): ShowError {
-  return {type: Constants.globalError, payload: {error}}
 }
 
 function getMyFollowers (username: string): AsyncAction {
