@@ -279,6 +279,15 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 			time.Time{}, handler); err != nil {
 			g.Errorf("replayInBandMessages on PushHandler failed: %s", err)
 		}
+
+		if g.badger != nil {
+			s, err := g.getState()
+			if err != nil {
+				g.Warning("Cannot get state in PushHandler: %s", err)
+				return
+			}
+			g.badger.PushState(s)
+		}
 	}
 }
 

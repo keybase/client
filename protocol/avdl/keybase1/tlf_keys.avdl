@@ -17,8 +17,10 @@ protocol tlfKeys {
   record CanonicalTlfName {}
 
   record CryptKey {
-    int keyGeneration;
-    Bytes32 key;
+    @lint("ignore")
+    int KeyGeneration;
+    @lint("ignore")
+    Bytes32 Key;
   }
 
   record TLFBreak {
@@ -35,7 +37,8 @@ protocol tlfKeys {
 
     // crypt keys of all generations for this TLF, in order, starting from
     // FirstValidKeyGen
-    array<CryptKey> cryptKeys;
+    @lint("ignore")
+    array<CryptKey> CryptKeys;
   }
 
   record TLFQuery {
@@ -51,7 +54,8 @@ protocol tlfKeys {
 
   record CanonicalTLFNameAndIDWithBreaks {
     TLFID tlfID;
-    CanonicalTlfName canonicalName;
+    @lint("ignore")
+    CanonicalTlfName CanonicalName;
 
     TLFBreak breaks;
   }

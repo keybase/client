@@ -2,18 +2,21 @@
 protocol gregor {
 
     record GenericPayload {
-        string action;
+        @lint("ignore")
+        string Action;
     }
 
     record NewConversationPayload {
-        string action;
+        @lint("ignore")
+        string Action;
         ConversationID convID;
         InboxVers inboxVers;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
     record NewMessagePayload {
-        string action;
+        @lint("ignore")
+        string Action;
         ConversationID convID;
         MessageBoxed message;
         InboxVers inboxVers;
@@ -21,7 +24,8 @@ protocol gregor {
     }
 
     record ReadMessagePayload {
-        string action;
+        @lint("ignore")
+        string Action;
         ConversationID convID;
         MessageID msgID;
         InboxVers inboxVers;
@@ -29,7 +33,8 @@ protocol gregor {
     }
 
     record SetStatusPayload {
-        string action;
+        @lint("ignore")
+        string Action;
         ConversationID convID;
         ConversationStatus status;
         InboxVers inboxVers;
@@ -40,7 +45,8 @@ protocol gregor {
         ConversationID convID;
         // The count of unread messages to display
         // Counts only visible types of messages deserving of a badge, no EDITs
-        int unreadMessages;
+        @lint("ignore")
+        int UnreadMessages;
     }
 
 }

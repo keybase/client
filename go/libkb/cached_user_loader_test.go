@@ -60,7 +60,7 @@ func TestCachedUserLoad(t *testing.T) {
 	}
 }
 
-func TesetCheckKIDForUID(t *testing.T) {
+func TestCheckKIDForUID(t *testing.T) {
 	tc := SetupTest(t, "CheckKIDForUID", 1)
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)
