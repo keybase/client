@@ -15,7 +15,7 @@ const signupShared = {
   parentProps: {
     style: {
       position: 'relative',
-      width: 700,
+      width: 800,
       height: 580,
     },
   },

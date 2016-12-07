@@ -39,7 +39,7 @@ const stylesIcon = {
   marginTop: 60,
 }
 const stylesButton = {
-  alignSelf: 'flex-end',
+  alignSelf: 'center',
   marginTop: 40,
 }
 const stylesHeader = {
