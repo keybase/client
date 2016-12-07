@@ -37,6 +37,7 @@ build
 .vscode
 
 npm-debug.log
-node_modules
+shared/node_modules
+packaging/desktop/node_modules
 
 Keybase.app.dSYM.zip
