@@ -48,7 +48,7 @@ func (s *cmdCtlRestart) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *cmdCtlRestart) Run() error {
-	err := ctlStop(s.G(), s.components, defaultLaunchdWait)
+	err := ctlStop(s.G(), s.components)
 	if err != nil {
 		return err
 	}

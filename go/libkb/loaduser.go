@@ -19,6 +19,7 @@ type LoadUserArg struct {
 	NoCacheResult            bool // currently ignore
 	Self                     bool
 	ForceReload              bool
+	ForcePoll                bool // for cached user load, force a repoll
 	AllKeys                  bool
 	LoginContext             LoginContext
 	AbortIfSigchainUnchanged bool

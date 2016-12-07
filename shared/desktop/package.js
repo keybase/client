@@ -100,7 +100,7 @@ function startPack () {
     }
 
     copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
-    copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js', 'ttf'))
+    copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js', 'ttf', 'png'))
 
     del('release')
     .then(paths => {

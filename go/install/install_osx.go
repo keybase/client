@@ -155,7 +155,7 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string, wait time.Dur
 	var serviceInfo *libkb.ServiceInfo
 	if infoPath != "" {
 		if status.Pid != "" {
-			serviceInfo, err = libkb.WaitForServiceInfoFile(infoPath, status.Label, status.Pid, 40, 500*time.Millisecond, log)
+			serviceInfo, err = libkb.WaitForServiceInfoFile(infoPath, status.Label, status.Pid, wait, log)
 			if err != nil {
 				status.InstallStatus = keybase1.InstallStatus_ERROR
 				status.InstallAction = keybase1.InstallAction_REINSTALL
