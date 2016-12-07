@@ -160,8 +160,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "93f5b35093ba15e0f86e412cc5c767d5c10c15fd",
-			"revisionTime": "2016-10-04T11:35:44-04:00"
+			"revision": "e1fec59b86429250614193d5a3fe2d268b179c09",
+			"revisionTime": "2016-12-07T17:47:47-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
@@ -185,8 +185,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "93f5b35093ba15e0f86e412cc5c767d5c10c15fd",
-			"revisionTime": "2016-10-04T11:35:44-04:00"
+			"revision": "e1fec59b86429250614193d5a3fe2d268b179c09",
+			"revisionTime": "2016-12-07T17:47:47-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
