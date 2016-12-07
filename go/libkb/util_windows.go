@@ -152,6 +152,8 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 					continue
 				case "Local Storage":
 					continue
+				case "started.txt":
+					continue
 				}
 				newPathName := filepath.Join(currentHome, name)
 				if err := os.Rename(oldPathName, newPathName); err != nil {
