@@ -137,7 +137,20 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 			for _, oldPathName := range files {
 				_, name := filepath.Split(oldPathName)
 				// Chromium seems stubborn about hese - TBD
-				if name == "GPUCache" || name == "lockfile" {
+				switch name {
+				case "GPUCache":
+					continue
+				case "lockfile":
+					continue
+				case "app-state.json":
+					continue
+				case "Cache":
+					continue
+				case "Cookies":
+					continue
+				case "Cookies-journal":
+					continue
+				case "Local Storage":
 					continue
 				}
 				newPathName := filepath.Join(currentHome, name)
