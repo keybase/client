@@ -46,7 +46,7 @@ class GlobalError extends Component<void, Props, State> {
 
     if (newError) {
       this.timerID = this.props.setTimeout(() => {
-        // this.props.onDismiss()
+        this.props.onDismiss()
       }, 5000)
     }
   }

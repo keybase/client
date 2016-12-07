@@ -1,7 +1,6 @@
 // @flow
 import {uniq} from 'lodash'
 import {runMode} from './platform'
-import type {TypedAction} from './types/flux'
 
 // Constants
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
