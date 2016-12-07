@@ -99,6 +99,10 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	// Ignore Notify calls for now
 	config.mockRep.EXPECT().Notify(gomock.Any(), gomock.Any()).AnyTimes()
 
+	// Max out MaxPtrsPerBlock
+	config.mockBsplit.EXPECT().MaxPtrsPerBlock().
+		Return(int((^uint(0)) >> 1)).AnyTimes()
+
 	// Ignore Archive calls for now
 	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
@@ -3887,6 +3891,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	testPutBlockInCache(t, config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(t, config, fileNode.BlockPointer, id, fileBlock)
 	testPutBlockInCache(t, config, fileBlock.IPtrs[0].BlockPointer, id, block1)
+	testPutBlockInCache(t, config, fileBlock.IPtrs[1].BlockPointer, id, block2)
 
 	data := []byte{5, 4, 3, 2}
 	if err := config.KBFSOps().Truncate(ctx, n, 4); err != nil {
@@ -3921,7 +3926,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
 			rmd.UnrefBytes())
 	}
-	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID, id1},
+	checkBlockCache(t, config, id, []kbfsblock.ID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer:           p.Branch,
 			fileBlock.IPtrs[0].BlockPointer: p.Branch,

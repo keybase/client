@@ -398,11 +398,6 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	if err != nil {
 		return nil, err
 	}
-	// Currently set the max number of pointers per level of
-	// indirection to the maximum integer, as a way of turning off
-	// multiple levels of indirection in production.  TODO: remove
-	// this.
-	bsplitter.maxPtrsPerBlock = int((^uint(0)) >> 1)
 	config.SetBlockSplitter(bsplitter)
 
 	if registry := config.MetricsRegistry(); registry != nil {
