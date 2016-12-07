@@ -112,6 +112,8 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 // RemoteSettingsRepairman does a one-time move of everyting from the roaming
 // target directory to local. We depend on the .exe files having been uninstalled from
 // there first.
+// Note that Chromium still insists on keeping some stuff in roaming,
+// exceptions for which are hardcoded here.
 func RemoteSettingsRepairman(g *GlobalContext) error {
 	var retErr error
 	w := Win32{Base{"keybase",
@@ -134,6 +136,10 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 			files, _ := filepath.Glob(filepath.Join(oldHome, "*"))
 			for _, oldPathName := range files {
 				_, name := filepath.Split(oldPathName)
+				// Chromium seems stubborn about hese - TBD
+				if name == "GPUCache" || name == "lockfile" {
+					continue
+				}
 				newPathName := filepath.Join(currentHome, name)
 				if err := os.Rename(oldPathName, newPathName); err != nil {
 					g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
