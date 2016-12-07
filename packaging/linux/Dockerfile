@@ -1,9 +1,7 @@
 FROM debian
 MAINTAINER Keybase <admin@keybase.io>
 
-RUN apt-get update
-
-# Install dependencies.
+# Install dependencies from the standard repos.
 #   - Debian build requires 'fakeroot' and 'reprepro' (and 'dpkg-deb', but
 #     that's installed by default).
 #   - RPM build requires 'rpm' and 'createrepo'.
@@ -18,12 +16,12 @@ RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential
 # the Debian repos: https://github.com/s3tools/s3cmd/issues/437
 RUN pip install s3cmd
 
-# Install a recent version of Node.
+# Install nodejs and yarn. (Note that this depends on curl above.)
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 RUN apt-get update
-RUN apt-get install -y nodejs
-RUN npm install -g npm
-RUN npm cache clean
+RUN apt-get install -y nodejs yarn
 
 # Install Go directly from Google, because the Debian repos tend to be behind.
 RUN wget "https://storage.googleapis.com/golang/go1.7.1.linux-amd64.tar.gz" -O /root/go.tar
