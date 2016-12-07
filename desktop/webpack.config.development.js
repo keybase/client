@@ -9,6 +9,7 @@ const DashboardPlugin = require('webpack-dashboard/plugin')
 const USING_DLL = getenv.boolish('USING_DLL', false)
 const NO_SERVER = getenv.boolish('NO_SERVER', false)
 const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
+const HOT = getenv.boolish('HOT', false)
 const defines = {
   '__DEV__': true,
   '__SCREENSHOT__': false,
@@ -25,7 +26,7 @@ config.debug = true
 config.cache = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'eval-source-map'
 config.pathinfo = true
-config.output.publicPath = 'http://localhost:4000/dist/'
+config.output.publicPath = HOT ? 'http://localhost:4000/dist/' : '../dist/'
 
 // Uncomment below to figure out packaging bugs
 // config.bail = true
