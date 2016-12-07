@@ -78,7 +78,7 @@ type cellContent interface {
 	full() string
 }
 
-// emptyCell is an implementation of cellContent that is onlly used internally
+// emptyCell is an implementation of cellContent that is only used internally
 // in flexibletable package during rendering.
 type emptyCell struct{}
 
