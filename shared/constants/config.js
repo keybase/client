@@ -1,6 +1,7 @@
 // @flow
 import {uniq} from 'lodash'
 import {runMode} from './platform'
+import type {TypedAction} from './types/flux'
 
 // Constants
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
@@ -9,6 +10,8 @@ export const defaultPublicPrefix = '/public/'
 
 // Actions
 export const globalError = 'config:globalError'
+export type ShowError = TypedAction<'config:globalError', void, {error: Error}>
+
 export const globalErrorDismiss = 'config:globalErrorDismiss'
 export const statusLoaded = 'config:statusLoaded'
 export const configLoaded = 'config:configLoaded'

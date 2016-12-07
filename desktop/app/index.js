@@ -3,7 +3,6 @@ import MainWindow from './main-window'
 import devTools from './dev-tools'
 import hello from '../shared/util/hello'
 import installer from './installer'
-import kbfsHelper from './kbfs-helper'
 import menuBar from './menu-bar'
 import os from 'os'
 import semver from 'semver'
@@ -62,7 +61,6 @@ function start () {
   devTools()
   menuBar()
   urlHelper()
-  kbfsHelper()
   windowHelper(app)
 
   console.log('Version:', app.getVersion())
