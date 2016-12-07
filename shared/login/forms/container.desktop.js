@@ -19,7 +19,7 @@ const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
-  padding: 60,
+  padding: 64,
   flex: 1,
 }
 

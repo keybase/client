@@ -3,6 +3,7 @@ import Container from '../../forms/container'
 import React from 'react'
 import type {Props} from './index.render'
 import {Text, Button, Input, Icon} from '../../../common-adapters'
+import {globalMargins} from '../../../styles'
 
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled = true}: Props) => {
   return (
@@ -32,18 +33,18 @@ const stylesContainer = {
   alignItems: 'center',
 }
 const stylesInput = {
-  marginTop: 15,
+  marginTop: globalMargins.small,
   width: 450,
 }
 const stylesIcon = {
-  marginTop: 60,
+  marginTop: globalMargins.xlarge,
 }
 const stylesButton = {
   alignSelf: 'flex-end',
-  marginTop: 40,
+  marginTop: globalMargins.large,
 }
 const stylesHeader = {
-  marginTop: 35,
+  marginTop: globalMargins.xlarge,
 }
 
 export default SetPublicName
