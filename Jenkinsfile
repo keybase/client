@@ -122,15 +122,11 @@ helpers.rootLinuxNode(env, {
                                 "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                             ]) {
-                                dir("desktop") {
-                                    sh "yarn"
-                                }
                                 dir("shared") {
+                                    sh "yarn"
                                     sh "yarn run flow"
                                     sh "yarn run eslint"
-                                }
-                                dir("desktop") {
-                                    sh "npm test"
+                                    sh "yarn test"
                                 }
                                 // Only run visdiff for PRs
                                 if (env.CHANGE_ID) {
