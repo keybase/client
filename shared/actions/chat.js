@@ -416,7 +416,7 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   if (message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) { // ms
     return {
       type: 'Timestamp',
-      timestamp: prevMessage.timestamp,
+      timestamp: message.timestamp,
     }
   }
   return null
