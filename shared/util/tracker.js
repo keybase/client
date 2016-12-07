@@ -12,16 +12,17 @@ type StateColors = {
 }
 
 export function stateColors (currentlyFollowing: boolean, trackerState: SimpleProofState, defaultColor?: string): StateColors {
-  if ([warning, error].indexOf(trackerState) !== -1) {
-    return {
-      header: {background: globalColors.red, text: globalColors.white},
-      username: globalColors.red,
-    }
-  }
   if (currentlyFollowing) {
-    return {
-      header: {background: globalColors.green, text: globalColors.white},
-      username: globalColors.green2,
+    if ([warning, error].indexOf(trackerState) !== -1) {
+      return {
+        header: {background: globalColors.red, text: globalColors.white},
+        username: globalColors.red,
+      }
+    } else {
+      return {
+        header: {background: globalColors.green, text: globalColors.white},
+        username: globalColors.green2,
+      }
     }
   } else {
     return {
