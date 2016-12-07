@@ -60,8 +60,7 @@ if should_build_kbfs ; then
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
   export KEYBASE_SKIP_DEV_TOOLS=1
-  npm cache clean
-  (cd "$this_repo/desktop" && npm i)
+  (cd "$this_repo/desktop" && yarn)
   unset KEYBASE_SKIP_DEV_TOOLS
   export NODE_ENV=production
 fi
@@ -107,7 +106,7 @@ build_one_architecture() {
   echo "Building Electron client for $electron_arch..."
   (
     cd "$this_repo/desktop"
-    npm run package -- --platform linux --arch "$electron_arch" --appVersion "$version"
+    yarn run package -- --platform linux --arch "$electron_arch" --appVersion "$version"
     rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
   )

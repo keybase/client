@@ -56,7 +56,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		LogFile:                     logFile,
 		RunMode:                     runMode,
 		Debug:                       true,
-		LocalRPCDebug:               "Acsvip",
+		LocalRPCDebug:               "",
 		SecurityAccessGroupOverride: accessGroupOverride,
 	}
 	err = kbCtx.Configure(config, usage)

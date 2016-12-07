@@ -3,6 +3,7 @@
 protocol backendCommon {
   import idl "common.avdl";
 
+  @lint("ignore")
   record BlockIdCombo{
     string blockHash;
     UID chargedTo;

@@ -109,6 +109,14 @@ func (b *MemBucket) PutReader(ctx context.Context, path string, r io.Reader, len
 	return nil
 }
 
+func (b *MemBucket) Del(ctx context.Context, path string) error {
+	b.Lock()
+	defer b.Unlock()
+
+	delete(b.objects, path)
+	return nil
+}
+
 func (b *MemBucket) setObject(path string, data []byte) {
 	b.Lock()
 	defer b.Unlock()

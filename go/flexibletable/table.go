@@ -4,6 +4,7 @@
 package flexibletable
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -39,6 +40,72 @@ func (t *Table) Insert(row Row) error {
 		return InconsistentRowsError{existingRows: len(t.rows), newRow: len(row)}
 	}
 	t.rows = append(t.rows, row)
+	return nil
+}
+
+func (t *Table) breakOnLineBreaks() error {
+
+	// so that there's no need to resize if there's no line break
+	broken := make([]Row, 0, len(t.rows))
+
+	for _, row := range t.rows {
+
+		notEmpty := true
+		for notEmpty {
+			newRow := make(Row, 0, len(row))
+			notEmpty = false
+
+			for iCell := range row {
+				switch content := row[iCell].Content.(type) {
+				case emptyCell:
+					newRow = append(newRow, Cell{
+						Alignment: row[iCell].Alignment,
+						Frame:     [2]string{"", ""},
+						Content:   row[iCell].Content,
+					})
+				case MultiCell:
+					notEmpty = true
+					for iItem := range content.Items {
+						// we are replacing line breaks with spaces for MultiCell for now
+						content.Items[iItem] = strings.Replace(content.Items[iItem], "\n", " ", -1)
+					}
+					newRow = append(newRow, Cell{
+						Alignment: row[iCell].Alignment,
+						Frame:     row[iCell].Frame,
+						Content:   content,
+					})
+					row[iCell].Content = emptyCell{}
+				case SingleCell:
+					notEmpty = true
+					lb := strings.Index(content.Item, "\n")
+					current := ""
+					if lb >= 0 {
+						current = content.Item[:lb]
+						row[iCell].Content = SingleCell{Item: content.Item[lb+1:]}
+					} else {
+						current = content.Item
+						row[iCell].Content = emptyCell{}
+					}
+					newRow = append(newRow, Cell{
+						Alignment: row[iCell].Alignment,
+						Frame:     row[iCell].Frame,
+						Content:   SingleCell{Item: current},
+					})
+				default:
+					// unexported error because this shouldn't happen unless we make a
+					// mistake in code
+					return errors.New("unexpected cell content")
+				}
+			}
+
+			if notEmpty {
+				broken = append(broken, newRow)
+			}
+		}
+
+	}
+
+	t.rows = broken
 	return nil
 }
 
@@ -102,7 +169,9 @@ func (t Table) renderSecondPass(constraints []ColumnConstraint, widths []int) (r
 				strs = append(strs, c.full())
 			}
 		}
-		for wrapping := true; wrapping; {
+
+		wrapping := true
+		for wrapping {
 			var toAppend []string
 			wrapping = false
 			for i := range strs {
@@ -135,6 +204,11 @@ func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []C
 	}
 	if len(constraints) != len(t.rows[0]) {
 		return InconsistentRowsError{existingRows: len(t.rows[0]), newRow: len(constraints)}
+	}
+
+	err := t.breakOnLineBreaks()
+	if err != nil {
+		return err
 	}
 
 	widths, err := t.renderFirstPass(cellSep, maxWidth, constraints)

@@ -546,12 +546,18 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	arg.Msg.ClientHeader.Sender = uid.ToBytes()
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
+	// keep track of any assets that need to be deleted after deleting the message
+	pendingAssetDeletes := h.pendingAssetDeletes(ctx, arg)
+
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
 	_, _, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
+
+	h.deleteAssets(ctx, arg.ConversationID, pendingAssetDeletes)
+
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 	}, nil
@@ -779,39 +785,8 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
-	marg := chat1.GetMessagesLocalArg{
-		ConversationID:   arg.ConversationID,
-		MessageIDs:       []chat1.MessageID{arg.MessageID},
-		IdentifyBehavior: arg.IdentifyBehavior,
-	}
-	msgs, err := h.GetMessagesLocal(ctx, marg)
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
-	if len(msgs.Messages) == 0 {
-		return chat1.DownloadAttachmentLocalRes{}, libkb.NotFoundError{}
-	}
-	first := msgs.Messages[0]
-	st, err := first.State()
-	if err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	}
-	if st == chat1.MessageUnboxedState_ERROR {
-		em := first.Error().ErrMsg
-		// XXX temporary to fix master:
-		// (wanted to return ChatUnboxingError)
-		return chat1.DownloadAttachmentLocalRes{}, errors.New(em)
-	}
+	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID, arg.IdentifyBehavior)
 
-	msg := first.Valid()
-	body := msg.MessageBody
-	if t, err := body.MessageType(); err != nil {
-		return chat1.DownloadAttachmentLocalRes{}, err
-	} else if t != chat1.MessageType_ATTACHMENT {
-		return chat1.DownloadAttachmentLocalRes{}, errors.New("not an attachment message")
-	}
-
-	attachment := msg.MessageBody.Attachment()
 	obj := attachment.Object
 	if arg.Preview {
 		if attachment.Preview == nil {
@@ -831,7 +806,7 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
-	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
+	return chat1.DownloadAttachmentLocalRes{RateLimits: limits}, nil
 }
 
 func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.OutboxID) error {
@@ -929,4 +904,97 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 		Progress:       progress,
 	}
 	return h.store.UploadAsset(ctx, &task)
+}
+
+func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) ([]chat1.Asset, error) {
+	attachment, _, err := h.attachmentMessage(ctx, conversationID, msgID, idBehavior)
+	if err != nil {
+		return nil, err
+	}
+
+	assets := []chat1.Asset{attachment.Object}
+	if attachment.Preview != nil {
+		assets = append(assets, *attachment.Preview)
+	}
+
+	return assets, nil
+}
+
+func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) (*chat1.MessageAttachment, []chat1.RateLimit, error) {
+	arg := chat1.GetMessagesLocalArg{
+		ConversationID:   conversationID,
+		MessageIDs:       []chat1.MessageID{msgID},
+		IdentifyBehavior: idBehavior,
+	}
+	msgs, err := h.GetMessagesLocal(ctx, arg)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(msgs.Messages) == 0 {
+		return nil, nil, libkb.NotFoundError{}
+	}
+	first := msgs.Messages[0]
+
+	st, err := first.State()
+	if err != nil {
+		return nil, msgs.RateLimits, err
+	}
+	if st == chat1.MessageUnboxedState_ERROR {
+		em := first.Error().ErrMsg
+		return nil, msgs.RateLimits, errors.New(em)
+	}
+
+	msg := first.Valid()
+	body := msg.MessageBody
+	if t, err := body.MessageType(); err != nil {
+		return nil, msgs.RateLimits, err
+	} else if t != chat1.MessageType_ATTACHMENT {
+		return nil, msgs.RateLimits, errors.New("not an attachment message")
+	}
+
+	attachment := msg.MessageBody.Attachment()
+	return &attachment, msgs.RateLimits, nil
+}
+
+func (h *chatLocalHandler) pendingAssetDeletes(ctx context.Context, arg chat1.PostLocalArg) []chat1.Asset {
+	var pending []chat1.Asset
+	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_DELETE {
+		// check to see if deleting an attachment
+		md := arg.Msg.MessageBody.Delete()
+		for _, msgID := range md.MessageIDs {
+			assets, err := h.assetsForMessage(ctx, arg.ConversationID, msgID, arg.IdentifyBehavior)
+			if err != nil {
+				h.G().Log.Debug("error getting assets for message: %s", err)
+				// continue despite error?  Or return error and let user try again.
+			}
+			if len(assets) > 0 {
+				pending = append(pending, assets...)
+			}
+		}
+	}
+	return pending
+}
+
+func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat1.ConversationID, assets []chat1.Asset) {
+	if len(assets) == 0 {
+		return
+	}
+
+	// get s3 params from server
+	params, err := h.remoteClient().GetS3Params(ctx, conversationID)
+	if err != nil {
+		h.G().Log.Debug("error getting s3 params: %s", err)
+		return
+	}
+
+	if err := h.store.DeleteAssets(ctx, params, h, assets); err != nil {
+		h.G().Log.Debug("error deleting assets: %s", err)
+
+		// there's no way to get asset information after this point.
+		// any assets not deleted will be stranded on s3.
+
+		return
+	}
+
+	h.G().Log.Debug("deleted %d assets", len(assets))
 }

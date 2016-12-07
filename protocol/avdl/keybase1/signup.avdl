@@ -5,8 +5,11 @@ protocol signup {
   import idl "common.avdl";
 
   record SignupRes {
+    @lint("ignore")
     boolean passphraseOk;
+    @lint("ignore")
     boolean postOk;
+    @lint("ignore")
     boolean writeOk;
   }
 

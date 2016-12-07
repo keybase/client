@@ -49,6 +49,7 @@ func newCmdChatAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Specify output file (stdout default)",
 			},
 		},
+		Description: chatAPIDoc,
 	}
 }
 

@@ -55,8 +55,11 @@ protocol Common {
   }
 
   record PublicKey {
+    @lint("ignore")
     KID KID;
+    @lint("ignore")
     string PGPFingerprint; // empty for non-PGP keys
+    @lint("ignore")
     array<PGPIdentity> PGPIdentities; // same
     boolean isSibkey;
     boolean isEldest;

@@ -23,7 +23,8 @@
         },
         {
           "type": "int",
-          "name": "newTlfs"
+          "name": "newTlfs",
+          "lint": "ignore"
         },
         {
           "type": "int",
@@ -60,7 +61,8 @@
         },
         {
           "type": "int",
-          "name": "UnreadMessages"
+          "name": "UnreadMessages",
+          "lint": "ignore"
         }
       ]
     }

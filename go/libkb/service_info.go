@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/keybase/client/go/logger"
 )
 
 // ServiceInfo describes runtime info for a service.
@@ -41,12 +43,14 @@ func NewServiceInfo(version string, prerelease string, label string, pid int) Se
 }
 
 // WriteFile writes service info as JSON in runtimeDir.
-func (s ServiceInfo) WriteFile(path string) error {
+func (s ServiceInfo) WriteFile(path string, log logger.Logger) error {
 	out, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path, []byte(out), 0644)
+
+	file := NewFile(path, []byte(out), 0644)
+	return file.Save(log)
 }
 
 // serviceLog is the log interface for ServiceInfo
@@ -56,7 +60,7 @@ type serviceLog interface {
 
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
-func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts int, wait time.Duration, log serviceLog) (*ServiceInfo, error) {
+func WaitForServiceInfoFile(path string, label string, pid string, timeout time.Duration, log serviceLog) (*ServiceInfo, error) {
 	if pid == "" {
 		return nil, fmt.Errorf("No pid to wait for")
 	}
@@ -85,24 +89,58 @@ func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts i
 		return &serviceInfo, nil
 	}
 
-	attempt := 1
-	serviceInfo, lookErr := lookForServiceInfo()
-	for attempt < maxAttempts && serviceInfo == nil {
-		attempt++
-		log.Debug("Waiting for service info file (%s)...", path)
-		time.Sleep(wait)
-		serviceInfo, lookErr = lookForServiceInfo()
-	}
+	log.Debug("Looking for service info file (timeout=%s)", timeout)
+	serviceInfo, err := waitForServiceInfo(timeout, time.Millisecond*400, lookForServiceInfo)
 
 	// If no service info was found, let's return an error
 	if serviceInfo == nil {
-		if lookErr == nil {
-			lookErr = fmt.Errorf("%s isn't running (expecting pid=%s)", label, pid)
+		if err == nil {
+			err = fmt.Errorf("%s isn't running (expecting pid=%s)", label, pid)
 		}
-		return nil, lookErr
+		return nil, err
 	}
 
 	// We succeeded in finding service info
 	log.Debug("Found service info: %#v", *serviceInfo)
 	return serviceInfo, nil
+}
+
+type serviceInfoResult struct {
+	info *ServiceInfo
+	err  error
+}
+
+type loadServiceInfoFn func() (*ServiceInfo, error)
+
+func waitForServiceInfo(timeout time.Duration, delay time.Duration, fn loadServiceInfoFn) (*ServiceInfo, error) {
+	if timeout <= 0 {
+		return fn()
+	}
+
+	ticker := time.NewTicker(delay)
+	resultChan := make(chan serviceInfoResult, 1)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				info, err := fn()
+				if err != nil {
+					resultChan <- serviceInfoResult{info: nil, err: err}
+					return
+				}
+				if info != nil {
+					resultChan <- serviceInfoResult{info: info, err: nil}
+					return
+				}
+			}
+		}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.info, res.err
+	case <-time.After(timeout):
+		ticker.Stop()
+		return nil, nil
+	}
 }
