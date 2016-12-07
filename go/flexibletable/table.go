@@ -4,6 +4,7 @@
 package flexibletable
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -39,6 +40,71 @@ func (t *Table) Insert(row Row) error {
 		return InconsistentRowsError{existingRows: len(t.rows), newRow: len(row)}
 	}
 	t.rows = append(t.rows, row)
+	return nil
+}
+
+func (t *Table) breakOnLineBreaks() error {
+
+	// so that there's no need to resize if there's no line break
+	broken := make([]Row, 0, len(t.rows))
+
+	for _, row := range t.rows {
+
+		for notEmpty := true; notEmpty; {
+			newRow := make(Row, 0, len(row))
+			notEmpty = false
+
+			for i := range row {
+				switch content := row[i].Content.(type) {
+				case emptyCell:
+					newRow = append(newRow, Cell{
+						Alignment: row[i].Alignment,
+						Frame:     [2]string{"", ""},
+						Content:   row[i].Content,
+					})
+				case MultiCell:
+					notEmpty = true
+					for i := range content.Items {
+						// we are replacing line breaks with spaces for MultiCell for now
+						content.Items[i] = strings.Replace(content.Items[i], "\n", " ", -1)
+					}
+					newRow = append(newRow, Cell{
+						Alignment: row[i].Alignment,
+						Frame:     row[i].Frame,
+						Content:   content,
+					})
+					row[i].Content = emptyCell{}
+				case SingleCell:
+					notEmpty = true
+					lb := strings.Index(content.Item, "\n")
+					current := ""
+					if lb >= 0 {
+						current = content.Item[:lb]
+						row[i].Content = SingleCell{Item: content.Item[lb+1:]}
+					} else {
+						current = content.Item
+						row[i].Content = emptyCell{}
+					}
+					newRow = append(newRow, Cell{
+						Alignment: row[i].Alignment,
+						Frame:     row[i].Frame,
+						Content:   SingleCell{Item: current},
+					})
+				default:
+					// unexported error because this shouldn't happen unless we make a
+					// mistake in code
+					return errors.New("unexpect cell content")
+				}
+			}
+
+			if notEmpty {
+				broken = append(broken, newRow)
+			}
+		}
+
+	}
+
+	t.rows = broken
 	return nil
 }
 
@@ -135,6 +201,11 @@ func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []C
 	}
 	if len(constraints) != len(t.rows[0]) {
 		return InconsistentRowsError{existingRows: len(t.rows[0]), newRow: len(constraints)}
+	}
+
+	err := t.breakOnLineBreaks()
+	if err != nil {
+		return err
 	}
 
 	widths, err := t.renderFirstPass(cellSep, maxWidth, constraints)

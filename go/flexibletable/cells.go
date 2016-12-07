@@ -78,6 +78,12 @@ type cellContent interface {
 	full() string
 }
 
+type emptyCell struct{}
+
+func (emptyCell) render(int) string { return "" }
+func (emptyCell) minWidth() int     { return 0 }
+func (emptyCell) full() string      { return "" }
+
 // SingleCell defines cell content with a single string. If being truncated,
 // the truncated part is replaced with "..."
 type SingleCell struct {
