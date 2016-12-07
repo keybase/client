@@ -1,5 +1,5 @@
 // @flow
-// Helper for cross platform npm run script commands
+// Helper for cross platform yarn run script commands
 import path from 'path'
 import childProcess, {execSync} from 'child_process'
 import fs from 'fs'
