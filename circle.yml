@@ -44,8 +44,7 @@ dependencies:
     - yarn global add react-native-cli
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
-    - yarn run gobuild-android
-    - yarn run sync
+    - (cd .. && yarn run gobuild-android)
 test:
   override:
     # TODO(mm) uncomment these device tests (see todo above)
