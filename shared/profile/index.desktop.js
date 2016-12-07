@@ -239,6 +239,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
                 userInfo={this.props.userInfo}
                 currentlyFollowing={this.props.currentlyFollowing}
                 trackerState={this.props.trackerState}
+                onAvatarLoaded={this.props.onAvatarLoaded}
                 onClickAvatar={this.props.onClickAvatar}
                 onClickFollowers={this.props.onClickFollowers}
                 onClickFollowing={this.props.onClickFollowing}
@@ -277,7 +278,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
               </Box>
             </Box>
           </Box>
-          {!loading &&
+          {!loading && !!this.props.followers && !!this.props.following &&
             <Friendships
               style={styleFriendships}
               currentTab={this.props.currentFriendshipsTab}
