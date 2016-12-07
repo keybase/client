@@ -166,58 +166,85 @@ func (s Service) Restart(wait time.Duration) error {
 	return Restart(s.Label(), wait, s.log)
 }
 
+type serviceStatusResult struct {
+	status *ServiceStatus
+	err    error
+}
+
 // WaitForStatus waits for service status to be available
 func (s Service) WaitForStatus(wait time.Duration, delay time.Duration) (*ServiceStatus, error) {
+	s.log.Info("Waiting for %s to be loaded...", s.label)
+	return waitForStatus(wait, delay, s.LoadStatus)
+}
+
+type loadStatusFn func() (*ServiceStatus, error)
+
+func waitForStatus(wait time.Duration, delay time.Duration, fn loadStatusFn) (*ServiceStatus, error) {
 	if wait <= 0 {
-		return s.LoadStatus()
+		return fn()
 	}
 
-	t := time.Now()
-	i := 1
-	for time.Now().Sub(t) < wait {
-		status, err := s.LoadStatus()
-		if err != nil {
-			return nil, err
+	ticker := time.NewTicker(delay)
+	resultChan := make(chan serviceStatusResult, 1)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				status, err := fn()
+				if err != nil {
+					resultChan <- serviceStatusResult{status: nil, err: err}
+					return
+				}
+				if status != nil && status.HasRun() {
+					resultChan <- serviceStatusResult{status: status, err: nil}
+					return
+				}
+			}
 		}
-		if status != nil && status.HasRun() {
-			return status, nil
-		}
-		// Tell user we're waiting for status after every 4 delays
-		if i%4 == 0 {
-			s.log.Info("Waiting for %s to be loaded...", s.label)
-		}
-		time.Sleep(delay)
-		i++
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.status, res.err
+	case <-time.After(wait):
+		ticker.Stop()
+		return nil, nil
 	}
-	return nil, nil
 }
 
 // WaitForExit waits for service to exit
 func (s Service) WaitForExit(wait time.Duration) error {
-	delay := 200 * time.Millisecond
-	running := true
-	t := time.Now()
-	i := 1
-	for time.Now().Sub(t) < wait {
-		status, err := s.LoadStatus()
-		if err != nil {
-			return err
+	s.log.Info("Waiting for %s to exit...", s.label)
+	return waitForExit(wait, 200*time.Millisecond, s.LoadStatus)
+}
+
+func waitForExit(wait time.Duration, delay time.Duration, fn loadStatusFn) error {
+	ticker := time.NewTicker(delay)
+	errChan := make(chan error, 1)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				status, err := fn()
+				if err != nil {
+					errChan <- err
+					return
+				}
+				if status == nil || !status.IsRunning() {
+					errChan <- nil
+					return
+				}
+			}
 		}
-		if status == nil || !status.IsRunning() {
-			running = false
-			break
-		}
-		// Tell user we're waiting for exit every 4 delays
-		if i%4 == 0 {
-			s.log.Info("Waiting for %s to exit...", s.label)
-		}
-		time.Sleep(delay)
-		i++
-	}
-	if running {
+	}()
+
+	select {
+	case err := <-errChan:
+		return err
+	case <-time.After(wait):
+		ticker.Stop()
 		return fmt.Errorf("Waiting for service exit timed out")
 	}
-	return nil
 }
 
 // Install will install the launchd service

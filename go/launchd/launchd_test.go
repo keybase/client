@@ -111,3 +111,108 @@ func randStringBytes(n int) string {
 	}
 	return string(b)
 }
+
+func TestWaitForStatusOK(t *testing.T) {
+	fn := func() (*ServiceStatus, error) {
+		return &ServiceStatus{label: "ok", pid: "1"}, nil
+	}
+	status, err := waitForStatus(10*time.Millisecond, time.Millisecond, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status == nil || status.label != "ok" {
+		t.Fatalf("Invalid status")
+	}
+}
+
+func TestWaitForStatusDelayed(t *testing.T) {
+	i := 0
+	fn := func() (*ServiceStatus, error) {
+		i++
+		if i == 5 {
+			return &ServiceStatus{label: "ok_delayed", pid: "1"}, nil
+		}
+		return nil, nil
+	}
+	status, err := waitForStatus(10*time.Millisecond, time.Millisecond, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status == nil || status.label != "ok_delayed" {
+		t.Fatalf("Invalid status")
+	}
+}
+
+func TestWaitForStatusErrored(t *testing.T) {
+	fn := func() (*ServiceStatus, error) {
+		return nil, fmt.Errorf("status error")
+	}
+	_, err := waitForStatus(10*time.Millisecond, time.Millisecond, fn)
+	if err == nil {
+		t.Fatal("Expected error")
+	}
+	if err.Error() != "status error" {
+		t.Fatal("Expected error returned from fn above")
+	}
+}
+
+func TestWaitForStatusTimeout(t *testing.T) {
+	fn := func() (*ServiceStatus, error) {
+		return nil, nil
+	}
+	status, err := waitForStatus(5*time.Millisecond, time.Millisecond, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status != nil {
+		t.Fatalf("Status should be nil (timed out): %#v", status)
+	}
+}
+
+func TestWaitForExitOK(t *testing.T) {
+	fn := func() (*ServiceStatus, error) {
+		return nil, nil
+	}
+	err := waitForExit(10*time.Millisecond, time.Millisecond, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestWaitForExitDelayed(t *testing.T) {
+	i := 0
+	fn := func() (*ServiceStatus, error) {
+		i++
+		if i < 5 {
+			return &ServiceStatus{label: "ok", pid: "1"}, nil
+		}
+		return nil, nil
+	}
+	err := waitForExit(10*time.Millisecond, time.Millisecond, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestWaitForExitErrored(t *testing.T) {
+	fn := func() (*ServiceStatus, error) {
+		return nil, fmt.Errorf("status error")
+	}
+	err := waitForExit(10*time.Millisecond, time.Millisecond, fn)
+	if err == nil {
+		t.Fatal("Expected error")
+	}
+}
+
+func TestWaitForExitTimeout(t *testing.T) {
+	fn := func() (*ServiceStatus, error) {
+		return &ServiceStatus{label: "never_exit", pid: "1"}, nil
+	}
+	err := waitForExit(5*time.Millisecond, time.Millisecond, fn)
+	if err == nil {
+		t.Fatal("Should have timed out")
+	}
+	if err.Error() != "Waiting for service exit timed out" {
+		t.Fatal("Should have timed out error")
+	}
+}
