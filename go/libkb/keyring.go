@@ -438,10 +438,10 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(lctx LoginContext, me *User, passp
 
 type EmptyKeyRing struct{}
 
-func (k EmptyKeyRing) KeysById(id uint64) []openpgp.Key {
+func (k EmptyKeyRing) KeysById(id uint64, fp []byte) []openpgp.Key {
 	return []openpgp.Key{}
 }
-func (k EmptyKeyRing) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
+func (k EmptyKeyRing) KeysByIdUsage(id uint64, fp []byte, usage byte) []openpgp.Key {
 	return []openpgp.Key{}
 }
 func (k EmptyKeyRing) DecryptionKeys() []openpgp.Key {
