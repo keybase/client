@@ -78,6 +78,8 @@ type cellContent interface {
 	full() string
 }
 
+// emptyCell is an implementation of cellContent that is onlly used internally
+// in flexibletable package during rendering.
 type emptyCell struct{}
 
 func (emptyCell) render(int) string { return "" }

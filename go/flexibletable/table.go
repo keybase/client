@@ -50,50 +50,51 @@ func (t *Table) breakOnLineBreaks() error {
 
 	for _, row := range t.rows {
 
-		for notEmpty := true; notEmpty; {
+		notEmpty := true
+		for notEmpty {
 			newRow := make(Row, 0, len(row))
 			notEmpty = false
 
-			for i := range row {
-				switch content := row[i].Content.(type) {
+			for iCell := range row {
+				switch content := row[iCell].Content.(type) {
 				case emptyCell:
 					newRow = append(newRow, Cell{
-						Alignment: row[i].Alignment,
+						Alignment: row[iCell].Alignment,
 						Frame:     [2]string{"", ""},
-						Content:   row[i].Content,
+						Content:   row[iCell].Content,
 					})
 				case MultiCell:
 					notEmpty = true
-					for i := range content.Items {
+					for iItem := range content.Items {
 						// we are replacing line breaks with spaces for MultiCell for now
-						content.Items[i] = strings.Replace(content.Items[i], "\n", " ", -1)
+						content.Items[iItem] = strings.Replace(content.Items[iItem], "\n", " ", -1)
 					}
 					newRow = append(newRow, Cell{
-						Alignment: row[i].Alignment,
-						Frame:     row[i].Frame,
+						Alignment: row[iCell].Alignment,
+						Frame:     row[iCell].Frame,
 						Content:   content,
 					})
-					row[i].Content = emptyCell{}
+					row[iCell].Content = emptyCell{}
 				case SingleCell:
 					notEmpty = true
 					lb := strings.Index(content.Item, "\n")
 					current := ""
 					if lb >= 0 {
 						current = content.Item[:lb]
-						row[i].Content = SingleCell{Item: content.Item[lb+1:]}
+						row[iCell].Content = SingleCell{Item: content.Item[lb+1:]}
 					} else {
 						current = content.Item
-						row[i].Content = emptyCell{}
+						row[iCell].Content = emptyCell{}
 					}
 					newRow = append(newRow, Cell{
-						Alignment: row[i].Alignment,
-						Frame:     row[i].Frame,
+						Alignment: row[iCell].Alignment,
+						Frame:     row[iCell].Frame,
 						Content:   SingleCell{Item: current},
 					})
 				default:
 					// unexported error because this shouldn't happen unless we make a
 					// mistake in code
-					return errors.New("unexpect cell content")
+					return errors.New("unexpected cell content")
 				}
 			}
 
@@ -168,7 +169,9 @@ func (t Table) renderSecondPass(constraints []ColumnConstraint, widths []int) (r
 				strs = append(strs, c.full())
 			}
 		}
-		for wrapping := true; wrapping; {
+
+		wrapping := true
+		for wrapping {
 			var toAppend []string
 			wrapping = false
 			for i := range strs {
