@@ -19,10 +19,10 @@ const MessageText = ({message, style}: {message: TextMessage, style: Object}) =>
   switch (message.messageState) {
     case 'failed':
     case 'pending':
-      return <Markdown style={{color: globalColors.black_40, ...style}}>{text}</Markdown>
+      return <Markdown style={{color: globalColors.black_40, ...globalStyles.selectable, ...style}}>{text}</Markdown>
     case 'sent':
     default:
-      return <Markdown style={style}>{text}</Markdown>
+      return <Markdown style={{...globalStyles.selectable, ...style}}>{text}</Markdown>
   }
 }
 
