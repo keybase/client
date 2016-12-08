@@ -73,8 +73,7 @@ export default function (state: SignupState = initialState, action: SignupAction
     case Constants.checkUsernameEmail:
       const {username, email} = action.payload
       if (action.error) {
-        const emailError = action.payload.emailError && action.payload.emailError.message
-        const usernameError = action.payload.usernameError && action.payload.usernameError.message
+        const {emailError, usernameError} = action.payload
         return {
           ...state,
           emailError,
