@@ -33,13 +33,11 @@
       "fields": [
         {
           "type": "int",
-          "name": "KeyGeneration",
-          "lint": "ignore"
+          "name": "keyGeneration"
         },
         {
           "type": "Bytes32",
-          "name": "Key",
-          "lint": "ignore"
+          "name": "key"
         }
       ]
     },
@@ -86,8 +84,7 @@
             "type": "array",
             "items": "CryptKey"
           },
-          "name": "CryptKeys",
-          "lint": "ignore"
+          "name": "cryptKeys"
         }
       ]
     },
@@ -115,8 +112,7 @@
         },
         {
           "type": "CanonicalTlfName",
-          "name": "CanonicalName",
-          "lint": "ignore"
+          "name": "canonicalName"
         },
         {
           "type": "TLFBreak",

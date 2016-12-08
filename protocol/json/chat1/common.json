@@ -224,8 +224,7 @@
       "fields": [
         {
           "type": "TLFID",
-          "name": "tlfid",
-          "lint": "ignore"
+          "name": "tlfID"
         },
         {
           "type": "TopicType",

@@ -83,7 +83,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 			}
 			// The *rquery.TlfID is trusted source of TLF ID here since it's derived
 			// from the TLF name in the query.
-			if !signedTlfID.Eq(*rquery.TlfID) || !signedTlfID.Eq(convLocal.Info.Triple.Tlfid) {
+			if !signedTlfID.Eq(*rquery.TlfID) || !signedTlfID.Eq(convLocal.Info.Triple.TlfID) {
 				return Inbox{}, ib.RateLimit, errors.New("server returned conversations for different TLF than query")
 			}
 		}
