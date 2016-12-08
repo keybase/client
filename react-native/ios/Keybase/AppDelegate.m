@@ -40,7 +40,7 @@
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
-                                                   @"runmode": @"staging",
+                                                   @"runmode": @"prod",
                                                    @"homedir": home,
                                                    @"logFile": logFile,
                                                    @"serverURI": @"",

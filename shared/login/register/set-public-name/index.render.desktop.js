@@ -40,7 +40,7 @@ const stylesIcon = {
   marginTop: globalMargins.xlarge,
 }
 const stylesButton = {
-  alignSelf: 'flex-end',
+  alignSelf: 'center',
   marginTop: globalMargins.large,
 }
 const stylesHeader = {

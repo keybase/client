@@ -1,3 +1,7 @@
+## 1.0.19
+
+- Support for Curve25519 GPG keys (via vendored PR: keybase/go-crypto#38)
+- Support for Signature Subpacket 33 (via vendored PR: keybase/go-crypto#39)
 
 ## 1.0.18
 - Some people (like @brentmaxwell) had broken sigchains due to bad

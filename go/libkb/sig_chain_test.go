@@ -198,7 +198,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		}
 		if expectedTypes[foundType] {
 			// Success! We found the error we expected. This test is done.
-			G.Log.Debug("EXPECTED error encountered", sigchainErr)
+			G.Log.Debug("EXPECTED error encountered: %s", sigchainErr)
 			return
 		}
 

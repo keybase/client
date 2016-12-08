@@ -14,7 +14,7 @@ cache_go_lib=${CACHE_GO_LIB:-}
 cd "$rn_dir"
 
 if [ ! "$cache_npm" = "1" ]; then
-  yarn
+  yarn install --pure-lockfile
   yarn global add react-native-cli
 fi
 
