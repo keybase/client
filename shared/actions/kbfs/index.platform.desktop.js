@@ -9,7 +9,6 @@ import {isWindows} from '../../constants/platform'
 
 import type {FSOpen} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {AsyncAction} from '../../constants/types/flux'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
