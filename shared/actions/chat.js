@@ -83,8 +83,8 @@ function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boo
   return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
 }
 
-function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
-  return List((inbox.conversations || []).map(convo => {
+function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
+  return List((inbox.conversationsUnverified || []).map(convo => {
     if (!convo.info.id) {
       return null
     }
@@ -321,15 +321,19 @@ function * _loadInbox (): SagaGenerator<any, any> {
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'keybase.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'keybase.1.chatUi.chatInboxFailed'),
     })
+
+    if (incoming.chatInboxUnverified) {
+      incoming.chatInboxUnverified.response()
+      const inbox: GetInboxLocalRes = incoming.chatInboxUnverified.params.inbox
+
+      const author = yield select(usernameSelector)
+      const following = yield select(followingSelector)
+      const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {})
+      yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
+    } else if (incoming.chatInboxConversation) {
+    } else if (incoming.chatInboxFailed) {
+    }
   }
-
-
-  const author = yield select(usernameSelector)
-
-  const following = yield select(followingSelector)
-
-  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {})
-  yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
 }
 
 function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
