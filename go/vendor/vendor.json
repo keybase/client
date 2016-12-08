@@ -9,6 +9,12 @@
 			"revisionTime": "2016-08-11T21:01:40Z"
 		},
 		{
+			"checksumSHA1": "hYtV4dXAd8dkPaVJZZ8tqJzKlBo=",
+			"path": "camlistore.org/pkg/buildinfo",
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
+		},
+		{
 			"checksumSHA1": "GLsMO24weWLI/4sft+5lUvljMH4=",
 			"path": "camlistore.org/pkg/images",
 			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
@@ -353,6 +359,12 @@
 			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
+			"checksumSHA1": "0+tTLlssYWyGuq+vQs4IiPIXJW4=",
+			"path": "github.com/rwcarlsen/goexif/tiff",
+			"revision": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8",
+			"revisionTime": "2015-05-20T14:06:47Z"
+		},
+		{
 			"checksumSHA1": "Q2V7Zs3diLmLfmfbiuLpSxETSuY=",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "976c720a22c8eb4eb6a0b4348ad85ad12491a506",
@@ -435,6 +447,12 @@
 			"path": "github.com/syndtr/goleveldb/leveldb/util",
 			"revision": "93fc893f2dadb96ffde441c7546cc67ea290a3a8",
 			"revisionTime": "2016-03-27T11:39:39Z"
+		},
+		{
+			"checksumSHA1": "AFGQ/FSbG7cFzFu/QvAFMzWj4Ak=",
+			"path": "go4.org/readerutil",
+			"revision": "09d86de304dc27e636298361bbfee4ac6ab04f21",
+			"revisionTime": "2016-11-18T21:00:15Z"
 		},
 		{
 			"path": "golang.org/x/crypto/cast5",
@@ -560,6 +578,12 @@
 		{
 			"checksumSHA1": "0ozDsaLc0goE9CvU2E/J9Md3KOQ=",
 			"path": "golang.org/x/image/tiff",
+			"revision": "ae63d5d566065c97ac339d045f06c2da5ebd66df",
+			"revisionTime": "2016-12-08T01:05:43Z"
+		},
+		{
+			"checksumSHA1": "Xnm81x3lWS6xRxSthJuLt+fpfi0=",
+			"path": "golang.org/x/image/tiff/lzw",
 			"revision": "ae63d5d566065c97ac339d045f06c2da5ebd66df",
 			"revisionTime": "2016-12-08T01:05:43Z"
 		},
