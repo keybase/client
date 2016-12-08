@@ -136,36 +136,43 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 		jar, _ = cookiejar.New(nil)
 	}
 
-	var xprt *http.Transport
-	var timeout time.Duration
+	// http.Transport is an example of Go's implicit default behavior causing
+	// trouble. The "DefaultTransport" has many non-zero limits set in it,
+	// while a "zero Transport" doesn't set any limits at all and also disables
+	// the ProxyFromEnvironment. We copy the global default rather than
+	// starting from zero.
+	var globalDefaultTransport *http.Transport = http.DefaultTransport.(*http.Transport)
+	var transport http.Transport = *globalDefaultTransport
 
-	if (config != nil && config.RootCAs != nil) || e.GetTorMode().Enabled() {
-		xprt = &http.Transport{}
-		if config != nil && config.RootCAs != nil {
-			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
-		}
-		if e.GetTorMode().Enabled() {
-			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, e.GetTorProxy())
-			xprt.Dial = dialSocksProxy
-		} else {
-			xprt.Proxy = http.ProxyFromEnvironment
-		}
+	if config != nil && config.RootCAs != nil {
+		transport.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 	}
-	if config == nil || config.Timeout == 0 {
-		timeout = HTTPDefaultTimeout
-	} else {
+
+	timeout := HTTPDefaultTimeout
+	if config != nil && config.Timeout != 0 {
 		timeout = config.Timeout
 	}
 
+	if e.GetTorMode().Enabled() {
+		// Note that DialSocksProxy doesn't support Dial timeouts. I'm not sure
+		// we can do anything about that.
+		transport.Dial = WrapDialWithTimeout(socks.DialSocksProxy(socks.SOCKS5, e.GetTorProxy()), timeout)
+		// We have to unset the default DialContext or it will take priority
+		// over Dial.
+		transport.DialContext = nil
+		// And disable the ProxyFromEnvironment.
+		transport.Proxy = nil
+	} else {
+		dialer := NewTimeoutDialer(timeout, transport.TLSClientConfig)
+		transport.DialTLS = dialer.DialTLS
+	}
+
 	ret := &Client{
-		cli:    &http.Client{Timeout: timeout},
+		cli:    &http.Client{Transport: &transport},
 		config: config,
 	}
 	if jar != nil {
 		ret.cli.Jar = jar
-	}
-	if xprt != nil {
-		ret.cli.Transport = xprt
 	}
 	return ret
 }
