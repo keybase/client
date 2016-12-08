@@ -242,7 +242,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const message = _unboxedToMessage(messageUnboxed, 0, yourName, conversationIDKey)
 
         // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
-        const conversationStateSelector: (state: TypedState) => string = (state: TypedState) => state.chat.get('conversationStates')
+        const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+
         const conversationState = yield select(conversationStateSelector)
         if (!conversationState) {
           yield put(loadInbox())
@@ -564,7 +565,9 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 
   const inbox = yield select(inboxSelector)
   if (inbox) {
-    const action: Constants.UpdateMetadata = {type: Constants.updateMetadata, payload: {users: new HiddenThing(inbox.get('participants').thingValue().filter(p => !p.you).map(p => p.username).toArray())}}
+    const participants = inbox.get('participants').thingValue()
+    const users = participants.filter(p => !p.you).map(p => p.username).toArray()
+    const action: Constants.UpdateMetadata = {type: Constants.updateMetadata, payload: {users: new HiddenThing(users)}}
     yield put(action)
   }
 }

@@ -39,11 +39,11 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const {seenMessages, messages: knownMessages} = conversation
-          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, prependMessages)
+          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages.thingValue(), knownMessages, prependMessages)
 
           return conversation
             .set('messages', unseenMessages.concat(updatedMessages))
-            .set('seenMessages', nextSeenMessages)
+            .set('seenMessages', new HiddenThing(nextSeenMessages))
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
             .set('isLoading', false)
@@ -69,7 +69,7 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const {seenMessages, messages: knownMessages} = conversation
-          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, appendMessages)
+          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages.thingValue(), knownMessages, appendMessages)
 
           const firstMessage = appendMessages[0]
           const inConversationFocused = (isSelected && state.get('focused'))
@@ -85,7 +85,7 @@ function reducer (state: State = initialState, action: Actions) {
 
           return conversation
             .set('messages', updatedMessages.concat(unseenMessages))
-            .set('seenMessages', nextSeenMessages)
+            .set('seenMessages', new HiddenThing(nextSeenMessages))
         })
 
       let snippet
@@ -126,7 +126,7 @@ function reducer (state: State = initialState, action: Actions) {
             ...item,
             messageID,
             messageState,
-          })).set('seenMessages', conversation.seenMessages.add(messageID))
+          })).set('seenMessages', new HiddenThing(conversation.seenMessages.thingValue().add(messageID)))
         }
       )
       return state.set('conversationStates', newConversationStates)

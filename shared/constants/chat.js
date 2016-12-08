@@ -63,7 +63,7 @@ export type TimestampMessage = {
 
 export type ConversationState = Record<{
   messages: List<Message>,
-  seenMessages: Set<MessageID>,
+  seenMessages: HiddenThing<Set<MessageID>>,
   moreToLoad: HiddenThing<boolean>,
   isLoading: boolean,
   paginationNext: ?Buffer,
@@ -73,7 +73,7 @@ export type ConversationState = Record<{
 
 export const ConversationStateRecord: Class<ConversationState> = Record({
   messages: List(),
-  seenMessages: Set(),
+  seenMessages: new HiddenThing(Set()),
   moreToLoad: new HiddenThing(false),
   isLoading: true,
   paginationNext: undefined,
