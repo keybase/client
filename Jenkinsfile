@@ -123,7 +123,7 @@ helpers.rootLinuxNode(env, {
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                             ]) {
                                 dir("shared") {
-                                    sh "yarn"
+                                    sh "yarn install --pure-lockfile"
                                     sh "yarn run flow"
                                     sh "yarn run eslint"
                                     sh "yarn test"
@@ -145,7 +145,7 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("visdiff") {
-                                            sh "yarn"
+                                            sh "yarn install --pure-lockfile"
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
@@ -231,10 +231,10 @@ helpers.rootLinuxNode(env, {
                                     wrap([$class: 'Xvfb']) {
                                         println "Test Windows JS"
                                         dir("visdiff") {
-                                            bat "yarn"
+                                            bat "yarn install --pure-lockfile"
                                         }
                                         dir("desktop") {
-                                            bat "yarn"
+                                            bat "yarn install --pure-lockfile"
                                             withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                     credentialsId: 'visdiff-aws-creds',
                                                     usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
