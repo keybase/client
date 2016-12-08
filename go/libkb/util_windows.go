@@ -131,8 +131,6 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 			continue
 		case "Local Storage":
 			continue
-		case "started.txt":
-			continue
 		}
 		// explicitly skip logs
 		if strings.HasSuffix(name, ".log") {
@@ -140,6 +138,8 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 		}
 		newPathName := filepath.Join(currentHome, name)
 		var err error
+		g.Log.Info("   moving %s", name)
+
 		for i := 0; i < 5; i++ {
 			if err != nil {
 				time.Sleep(100 * time.Millisecond)
@@ -151,7 +151,7 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 		}
 		if err != nil {
 			g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
-			// Log files give problems, let's not fail on those
+			return err
 		}
 	}
 	return nil
