@@ -27,8 +27,8 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         />
     case 'Timestamp':
       return <Timestamp
-        timestamp={formatTimeForMessages(message.timestamp)}
-        key={message.timestamp}
+        timestamp={formatTimeForMessages(message.timestamp.thingValue())}
+        key={message.timestamp.thingValue()}
         style={style}
         />
     default:

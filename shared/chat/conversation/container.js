@@ -49,9 +49,9 @@ export default connect(
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
 
         return {
-          participants: selected && selected.participants || List(),
+          participants: selected && selected.participants.thingValue() || List(),
           messages: conversationState.messages,
-          moreToLoad: conversationState.moreToLoad,
+          moreToLoad: conversationState.moreToLoad.thingValue(),
           isLoading: conversationState.isLoading,
           firstNewMessageID: conversationState.firstNewMessageID,
           selectedConversation,

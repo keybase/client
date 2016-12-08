@@ -4,6 +4,7 @@ import React from 'react'
 import Text from './text'
 import {Box} from '../../../common-adapters'
 import HiddenString from '../../../util/hidden-string'
+import HiddenThing from '../../../util/hidden-thing'
 import {messageStates, followStates} from '../../../constants/chat'
 
 import type {FollowState, MessageState, TextMessage} from '../../../constants/chat'
@@ -12,13 +13,13 @@ import type {DumbComponentMap} from '../../../constants/types/more'
 function messageMock (messageState: MessageState, followState: FollowState, text?: string): TextMessage {
   return {
     type: 'Text',
-    author: 'cecileb',
+    author: new HiddenString('cecileb'),
     message: new HiddenString(text || 'hello world'),
-    followState,
-    messageState,
-    deviceName: 'Macbook',
-    deviceType: 'desktop',
-    timestamp: 1479764890000,
+    followState: new HiddenThing(followState),
+    messageState: new HiddenThing(messageState),
+    deviceName: new HiddenString('Macbook'),
+    deviceType: new HiddenThing('desktop'),
+    timestamp: new HiddenThing(1479764890000),
     conversationIDKey: 'cid1',
   }
 }

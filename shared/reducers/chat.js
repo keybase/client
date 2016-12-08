@@ -3,6 +3,8 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
+import HiddenString from '../util/hidden-string'
+import HiddenThing from '../util/hidden-thing'
 
 import type {Actions, State, ConversationState, AppendMessages, Message, MessageID, ServerMessage} from '../constants/chat'
 
@@ -48,7 +50,7 @@ function reducer (state: State = initialState, action: Actions) {
         })
 
       // Reset the unread count
-      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
+      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', new HiddenThing(0)))
 
       return state
         .set('conversationStates', newConversationStates)
@@ -100,9 +102,9 @@ function reducer (state: State = initialState, action: Actions) {
         inbox.get('conversationIDKey') !== conversationIDKey
           ? inbox
           : inbox
-            .set('unreadCount', isSelected ? 0 : inbox.get('unreadCount') + appendMessages.length)
-            .set('time', message.timestamp)
-            .set('snippet', snippet)
+            .set('unreadCount', new HiddenThing(isSelected ? 0 : inbox.get('unreadCount').thingValue() + appendMessages.length))
+            .set('time', new HiddenThing(message.timestamp))
+            .set('snippet', new HiddenString(snippet))
       ))
 
       return state
@@ -146,7 +148,7 @@ function reducer (state: State = initialState, action: Actions) {
       const conversationIDKey = action.payload.conversationIDKey
 
       // Set unread to zero
-      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
+      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', new HiddenThing(0)))
       return state
         .set('selectedConversation', conversationIDKey)
         .set('inbox', newInboxStates)

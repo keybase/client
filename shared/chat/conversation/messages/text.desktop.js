@@ -16,7 +16,7 @@ const _marginColor = (followState) => ({
 
 const MessageText = ({message, style}: {message: TextMessage, style: Object}) => {
   const text = message.message.stringValue()
-  switch (message.messageState) {
+  switch (message.messageState.thingValue()) {
     case 'failed':
     case 'pending':
       return <Markdown style={{color: globalColors.black_40, ...style}}>{text}</Markdown>
@@ -48,20 +48,20 @@ export default class MessageTextComponent extends Component<void, Props, void> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
         <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-          <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
+          <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState.thingValue())}} />
           <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
             {includeHeader
-              ? <Avatar size={24} username={message.author} style={{marginRight: globalMargins.tiny}} />
+              ? <Avatar size={24} username={message.author.stringValue()} style={{marginRight: globalMargins.tiny}} />
               : <Box style={{width: 32}} />}
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
+              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState.thingValue()), ...(message.followState.thingValue() === 'You' ? globalStyles.italic : null)}}>{message.author.stringValue()}</Text>}
               <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
                 <MessageText message={message} style={{marginTop: globalMargins.xtiny, flex: 1}} />
                 <div className='action-button'>
                   <Icon type='iconfont-ellipsis' style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}} onClick={onAction} />
                 </div>
               </Box>
-              {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
+              {message.messageState.thingValue() === 'failed' && <Retry onRetry={onRetry} />}
             </Box>
           </Box>
         </Box>

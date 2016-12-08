@@ -37,21 +37,21 @@ const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: bo
 }
 
 const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation}: Props & {conversation: InboxState}) => {
-  const participants = participantFilter(conversation.get('participants'))
+  const participants = participantFilter(conversation.get('participants').thingValue())
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
-  const isMuted = conversation.get('muted')
+  const isMuted = conversation.get('muted').thingValue()
   // $FlowIssue
   const avatarProps = participants.slice(0, 2).map((p, idx) => ({
     backgroundColor: globalColors.darkBlue4,
     username: p.username,
-    borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, !!conversation.get('unreadCount'), isSelected),
+    borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, !!conversation.get('unreadCount').thingValue(), isSelected),
   })).toArray()
-  const snippet = conversation.get('snippet')
+  const snippet = conversation.get('snippet').thingValue()
   const subColor = isSelected ? globalColors.white : globalColors.blue3_40
   return (
     <Box
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
-      title={`${conversation.get('unreadCount')} unread`}
+      title={`${conversation.get('unreadCount').thingValue()} unread`}
       style={{...rowContainerStyle, backgroundColor: isSelected ? globalColors.darkBlue2 : globalColors.transparent}}>
       <Box style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
@@ -70,7 +70,7 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
             {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, color: subColor}}>{snippet}</Text>}
           </Box>
         </Box>
-        <Text type='BodySmall' style={{marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        <Text type='BodySmall' style={{marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time').thingValue(), nowOverride)}</Text>
       </Box>
     </Box>
   )
