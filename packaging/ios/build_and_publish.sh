@@ -29,7 +29,7 @@ fi
 cd "$rn_dir"
 
 if [ ! "$cache_npm" = "1" ]; then
-  yarn
+  yarn install --pure-lockfile
   yarn global add react-native-cli
 fi
 
