@@ -412,8 +412,18 @@ func (md *RootMetadata) loadCachedBlockChanges(
 		return
 	}
 
+	if len(md.data.cachedChanges.Ops) == 0 {
+		panic("MD with no ops passed to loadCachedBlockChanges")
+	}
+
 	md.data.Changes, md.data.cachedChanges =
 		md.data.cachedChanges, md.data.Changes
+
+	// We always add the ref blocks to the first operation in the MD
+	// update.  Most MD updates will only have one op anyway, and for
+	// those that have more (like conflict resolution), it is
+	// arbitrary which one lists them as references, so putting them
+	// in the first op is the easiest thing to do.
 	md.data.Changes.Ops[0].
 		AddRefBlock(md.data.cachedChanges.Info.BlockPointer)
 	// Find the block and ref any children, if any.
@@ -433,10 +443,13 @@ func (md *RootMetadata) loadCachedBlockChanges(
 	// uid, crypto, bsplitter and log aren't used for simply getting the
 	// indirect pointers, so set them to nil.
 	var uid keybase1.UID
-	file := path{FolderBranch{md.TlfID(), MasterBranch},
+	file := path{
+		FolderBranch{md.TlfID(), MasterBranch},
 		[]pathNode{{
 			md.data.cachedChanges.Info.BlockPointer,
-			fmt.Sprintf("<MD with revision %d>", md.Revision())}}}
+			fmt.Sprintf("<MD with revision %d>", md.Revision()),
+		}},
+	}
 	fd := newFileData(file, uid, nil, nil, md.ReadOnly(),
 		func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
 			_ path, _ blockReqType) (*FileBlock, bool, error) {
