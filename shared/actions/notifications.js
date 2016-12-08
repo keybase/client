@@ -9,8 +9,9 @@ import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {setupKBFSChangedHandler} from './favorite'
 import {setupNewChatHandler} from './chat'
+import {waitForKBFS} from './config'
 
-import type {LogAction, NotificationKeys, ListenForNotifications, BadgeAppAction} from '../constants/notifications'
+import type {LogAction, NotificationKeys, ListenForNotifications, ListenForKBFSNotifications, BadgeAppAction} from '../constants/notifications'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {Text as KBText, LogLevel} from '../constants/types/flow-types'
 
@@ -21,6 +22,10 @@ function logUiLog ({text, level}: {text: KBText, level: LogLevel}, response: any
 
 function listenForNotifications (): ListenForNotifications {
   return {type: Constants.listenForNotifications, payload: undefined}
+}
+
+function listenForKBFSNotifications (): ListenForKBFSNotifications {
+  return {type: Constants.listenForKBFSNotifications, payload: undefined}
 }
 
 function * _listenSaga (): SagaGenerator<any, any> {
@@ -62,6 +67,9 @@ function * _listenSaga (): SagaGenerator<any, any> {
 
   yield put(registerIdentifyUi())
   yield put(setupUserChangedHandler())
+}
+
+function * _listenKBFSSaga (): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
   yield put(setupNewChatHandler())
 }
@@ -73,20 +81,17 @@ function badgeApp (key: NotificationKeys, on: boolean, count: number = 0): Badge
   }
 }
 
-function * _listenNotifications (): SagaGenerator<any, any> {
-  yield take(Constants.listenForNotifications)
-  yield call(_listenSaga)
-}
-
 function * notificationsSaga (): SagaGenerator<any, any> {
   yield [
-    call(_listenNotifications),
+    take(Constants.listenForNotifications, _listenSaga),
+    take(Constants.listenForKBFSNotifications, _listenKBFSSaga),
   ]
 }
 
 export {
   badgeApp,
   listenForNotifications,
+  listenForKBFSNotifications,
   logUiLog,
 }
 

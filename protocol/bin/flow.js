@@ -256,11 +256,6 @@ function parseEnumSymbol (s) {
 }
 
 function parseEnum (t) {
-  // Special case, we're always gui
-  if (t.name === 'ClientType') {
-    return ' 2 // FORCE GUI ONLY'
-  }
-
   return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} // ${s}`))
 }
 
