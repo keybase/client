@@ -66,6 +66,11 @@ type blockPtrLookup struct {
 	t  reflect.Type
 }
 
+// blockRetriever specifies a method for retrieving blocks asynchronously
+type blockRetriever interface {
+	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block) <-chan error
+}
+
 // blockRetrievalQueue manages block retrieval requests. Higher priority
 // requests are executed first. Requests are executed in FIFO order within a
 // given priority level.
@@ -87,6 +92,8 @@ type blockRetrievalQueue struct {
 	doneCh chan struct{}
 	codec  kbfscodec.Codec
 }
+
+var _ blockRetriever = (*blockRetrievalQueue)(nil)
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call WorkOnRequest
