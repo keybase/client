@@ -733,13 +733,17 @@ func (md *RootMetadata) fillInDevices(crypto Crypto,
 }
 
 func (md *RootMetadata) finalizeRekey(crypto cryptoPure) error {
+	// record the bundle IDs prior to finalizing the rekey
+	wkbID := md.bareMd.GetTLFWriterKeyBundleID()
+	rkbID := md.bareMd.GetTLFReaderKeyBundleID()
+	// finalize
 	err := md.bareMd.FinalizeRekey(crypto, md.extra)
 	if err != nil {
 		return err
 	}
-	wkbID := md.bareMd.GetTLFWriterKeyBundleID()
-	rkbID := md.bareMd.GetTLFReaderKeyBundleID()
 	if md.extra != nil {
+		// if the bundle IDs have changed copy any changed bundles
+		// to extraNew for subsequent upload
 		includeWkb := wkbID != md.bareMd.GetTLFWriterKeyBundleID()
 		includeRkb := rkbID != md.bareMd.GetTLFReaderKeyBundleID()
 		md.extraNew = md.extra.Copy(includeWkb, includeRkb)
