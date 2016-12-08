@@ -221,12 +221,12 @@ func GetPGPFingerprintFromGenericKey(k GenericKey) *PGPFingerprint {
 	}
 }
 
-func (k PGPKeyBundle) KeysById(id uint64) []openpgp.Key {
-	return k.toList().KeysById(id)
+func (k PGPKeyBundle) KeysById(id uint64, fp []byte) []openpgp.Key {
+	return k.toList().KeysById(id, fp)
 }
 
-func (k PGPKeyBundle) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
-	return k.toList().KeysByIdUsage(id, usage)
+func (k PGPKeyBundle) KeysByIdUsage(id uint64, fp []byte, usage byte) []openpgp.Key {
+	return k.toList().KeysByIdUsage(id, fp, usage)
 }
 
 func (k PGPKeyBundle) DecryptionKeys() []openpgp.Key {
