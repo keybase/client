@@ -185,6 +185,7 @@ func waitForStatus(wait time.Duration, delay time.Duration, fn loadStatusFn) (*S
 	}
 
 	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
 	resultChan := make(chan serviceStatusResult, 1)
 	go func() {
 		for {
@@ -207,7 +208,6 @@ func waitForStatus(wait time.Duration, delay time.Duration, fn loadStatusFn) (*S
 	case res := <-resultChan:
 		return res.status, res.err
 	case <-time.After(wait):
-		ticker.Stop()
 		return nil, nil
 	}
 }
@@ -220,6 +220,7 @@ func (s Service) WaitForExit(wait time.Duration) error {
 
 func waitForExit(wait time.Duration, delay time.Duration, fn loadStatusFn) error {
 	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
 	errChan := make(chan error, 1)
 	go func() {
 		for {
@@ -242,7 +243,6 @@ func waitForExit(wait time.Duration, delay time.Duration, fn loadStatusFn) error
 	case err := <-errChan:
 		return err
 	case <-time.After(wait):
-		ticker.Stop()
 		return fmt.Errorf("Waiting for service exit timed out")
 	}
 }
