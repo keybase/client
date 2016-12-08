@@ -269,8 +269,7 @@ func (c *PassphraseChange) runForcedUpdate(ctx *Context) (err error) {
 	return c.forceUpdatePassphrase(ctx, kp.sigKey, ppGen, oldClientHalf)
 }
 
-// runStandardUpdate is for when the user knows the current
-// password.
+// runStandardUpdate is for when the user knows the current password.
 func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 
 	c.G().Log.Debug("+ PassphraseChange.runStandardUpdate")
@@ -453,12 +452,6 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(ctx *Context) ([]li
 
 	var keyList []libkb.GenericKey
 	nLost := 0
-
-	// Using a paper key makes TripleSec-synced keys unrecoverable
-	if c.usingPaper {
-		c.G().Log.Debug("using a paper key, thus TripleSec-synced keys are unrecoverable")
-		return keyList, 0, nil
-	}
 
 	// Only use the synced secret keys:
 	blocks, err := c.me.AllSyncedSecretKeys(ctx.LoginContext)
