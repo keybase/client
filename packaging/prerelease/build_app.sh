@@ -92,7 +92,7 @@ if [ ! "$nowait" = "1" ]; then
   echo "Checking updater CI"
   "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
 
-  "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build and release for $platform."
+  "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build for $platform."
 fi
 
 number_of_builds=1
