@@ -14,7 +14,9 @@ import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {switchTo} from './route-tree'
 import {usernameSelector} from '../constants/selectors'
+import {changedFocus} from '../constants/window'
 
+import type {ChangedFocus} from '../constants/window'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
@@ -579,6 +581,20 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   }
 }
 
+function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
+  const focused = action.payload
+  // Reselect the current Chat conversation, to give badging a chance to
+  // update based on the focus change.
+  const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
+  const conversationIDKey = yield select(selectedSelector)
+  const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
+  const selectedTab = yield select(routeSelector)
+  const chatTabSelected = (selectedTab === chatTab)
+  if (conversationIDKey && focused && chatTabSelected) {
+    yield put(selectConversation(conversationIDKey, true))
+  }
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
@@ -592,6 +608,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
     safeTakeLatest(Constants.openFolder, _openFolder),
+    safeTakeEvery(changedFocus, _changedFocus),
   ]
 }
 
