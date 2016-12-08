@@ -134,6 +134,10 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 		case "started.txt":
 			continue
 		}
+		// explicitly skip logs
+		if strings.HasSuffix(name, ".log") {
+			continue
+		}
 		newPathName := filepath.Join(currentHome, name)
 		var err error
 		for i := 0; i < 5; i++ {
@@ -148,9 +152,6 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 		if err != nil {
 			g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
 			// Log files give problems, let's not fail on those
-			if ! strings.HasSuffix(name, ".log") {
-				return err
-			}
 		}
 	}
 	return nil
@@ -160,7 +161,7 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 // target directory to local. We depend on the .exe files having been uninstalled from
 // there first.
 // Note that Chromium still insists on keeping some stuff in roaming,
-// exceptions for which are hardcoded here.
+// exceptions for which are hardcoded.
 func RemoteSettingsRepairman(g *GlobalContext) error {
 	w := Win32{Base{"keybase",
 		func() string { return g.Env.getHomeFromCmdOrConfig() },
