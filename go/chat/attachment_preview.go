@@ -2,7 +2,6 @@ package chat
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"image"
 	"image/color/palette"
@@ -11,6 +10,8 @@ import (
 	"image/jpeg"
 	"io"
 	"log"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/nfnt/resize"
