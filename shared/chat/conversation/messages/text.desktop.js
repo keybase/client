@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {Avatar, Box, Icon, Text, Markdown} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import * as Constants from '../../../constants/chat'
@@ -42,7 +42,7 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
   </Box>
 )
 
-export default class MessageTextComponent extends Component<void, Props, void> {
+export default class MessageTextComponent extends PureComponent<void, Props, void> {
   render () {
     const {message, style, includeHeader, isFirstNewMessage, onRetry, onAction} = this.props
     return (
