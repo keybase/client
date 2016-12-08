@@ -45,6 +45,9 @@ func (b *BufferSource) FileSize() int {
 }
 
 func (b *BufferSource) Open(sessionID int, cli *keybase1.StreamUiClient) (ReadResetter, error) {
+	if b.buf == nil {
+		return nil, errors.New("nil buf in BufferSource")
+	}
 	return newBufReadResetter(b.buf.Bytes()), nil
 }
 
