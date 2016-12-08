@@ -240,13 +240,22 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const message = _unboxedToMessage(messageUnboxed, 0, yourName, conversationIDKey)
 
         // Is this message for the currently selected and focused conversation?
-        // If so, mark it as read ASAP to avoid badging it -- we don't need to
+        // And is the Chat tab the currently displayed route? If all that is
+        // true, mark it as read ASAP to avoid badging it -- we don't need to
         // badge, the user's looking at it already.
         const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
         const focusedSelector = (state: TypedState) => state.chat.get('focused')
         const selectedConversationIDKey = yield select(selectedSelector)
-        const focused = yield select(focusedSelector)
-        if (message && message.messageID && conversationIDKey === selectedConversationIDKey && focused) {
+        const appFocused = yield select(focusedSelector)
+        const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
+        const selectedTab = yield select(routeSelector)
+        const chatTabSelected = (selectedTab === chatTab)
+
+        if (message &&
+            message.messageID &&
+            conversationIDKey === selectedConversationIDKey &&
+            appFocused &&
+            chatTabSelected) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
@@ -581,7 +590,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 }
 
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
-  const focused = action.payload
+  const appFocused = action.payload
   // Reselect the current Chat conversation, to give badging a chance to
   // update based on the focus change.
   const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
@@ -589,7 +598,8 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
   const selectedTab = yield select(routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
-  if (conversationIDKey && focused && chatTabSelected) {
+
+  if (conversationIDKey && appFocused && chatTabSelected) {
     yield put(selectConversation(conversationIDKey, true))
   }
 }
