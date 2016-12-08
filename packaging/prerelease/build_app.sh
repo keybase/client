@@ -7,16 +7,15 @@ cd "$dir"
 
 gopath=${GOPATH:-}
 nobuild=${NOBUILD:-} # Don't build go binaries
-istest=${TEST:-} # Use test bucket (doesn't trigger prerelease updates)
+istest=${TEST:-} # If set to true, only build (for testing)
 nopull=${NOPULL:-} # Don't git pull
-client_commit=${CLIENT_COMMIT:-} # Commit hash on client to build from
-kbfs_commit=${KBFS_COMMIT:-} # Commit hash on kbfs to build from
+client_commit=${CLIENT_COMMIT:-} # Commit on client to build from
+kbfs_commit=${KBFS_COMMIT:-} # Commit on kbfs to build from
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-} # darwin,linux,windows (Only darwin is supported in this script)
 nos3=${NOS3:-} # Don't sync to S3
 nowait=${NOWAIT:-} # Don't wait for CI
 smoke_test=${SMOKE_TEST:-} # If set to 1, enable smoke testing
-build_desc="build"
 
 if [ "$gopath" = "" ]; then
   echo "No GOPATH"
@@ -28,12 +27,6 @@ if [ "$platform" = "" ]; then
   exit 1
 fi
 echo "Platform: $platform"
-
-# If testing, use test bucket
-if [ "$istest" = "1" ]; then
-  bucket_name="prerelease-test.keybase.io"
-  build_desc="test build"
-fi
 
 if [ "$nos3" = "1" ]; then
   bucket_name=""
@@ -57,7 +50,7 @@ client_dir="$gopath/src/github.com/keybase/client"
 kbfs_dir="$gopath/src/github.com/keybase/kbfs"
 updater_dir="$gopath/src/github.com/keybase/go-updater"
 
-"$client_dir/packaging/slack/send.sh" "Starting $platform $build_desc"
+"$client_dir/packaging/slack/send.sh" "Starting build $platform"
 
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
@@ -113,9 +106,9 @@ fi
 # Okay, here's where we start generating version numbers and doing builds.
 for ((i=1; i<=$number_of_builds; i++)); do
   if [ ! "$nobuild" = "1" ]; then
-    BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
-    BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
-    BUILD_DIR=$build_dir_updater "$dir/build_updater.sh"
+    BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
+    BUILD_DIR="$build_dir_kbfs" "$dir/build_kbfs.sh"
+    BUILD_DIR="$build_dir_updater" "$dir/build_updater.sh"
   fi
 
   version=`$build_dir_keybase/keybase version -S`
@@ -123,7 +116,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
   updater_version=`$build_dir_updater/updater -version`
 
   save_dir="/tmp/build_desktop"
-  rm -rf $save_dir
+  rm -rf "$save_dir"
 
   if [ "$platform" = "darwin" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
@@ -145,11 +138,14 @@ for ((i=1; i<=$number_of_builds; i++)); do
   BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
 done
 
-# Promote the build we just made to the test channel -- if smoketest, then
-# promote the first build; if not, then promote the only build.
-S3HOST="$s3host" "$release_bin" promote-test-releases --bucket-name="$bucket_name" --platform="$platform" --release="$build_a"
 
-if [ "$istest" = "" ]; then
+if [ ! "$istest" = "" ]; then
+  "$client_dir/packaging/slack/send.sh" "Finished test build $platform (keybase: $version). See $s3host";
+else
+  # Promote the build we just made to the test channel -- if smoketest, then
+  # promote the first build; if not, then promote the only build.
+  S3HOST="$s3host" "$release_bin" promote-test-releases --bucket-name="$bucket_name" --platform="$platform" --release="$build_a"
+
   if [ "$number_of_builds" = "2" ]; then
     # Announce the new builds to the API server.
     echo "Annoucing builds: $build_a and $build_b."
@@ -157,6 +153,6 @@ if [ "$istest" = "" ]; then
   fi
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
-fi
 
-"$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host";
+  "$client_dir/packaging/slack/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version). See $s3host";
+fi
