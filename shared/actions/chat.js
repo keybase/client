@@ -2,22 +2,22 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
-import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
+import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxNonblockLocalRpcChannelMap, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {call, put, select} from 'redux-saga/effects'
+import {call, put, select, race} from 'redux-saga/effects'
 import {searchTab, chatTab} from '../constants/tabs'
 import {openInKBFS} from './kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
-import {safeTakeEvery, safeTakeLatest} from '../util/saga'
+import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, takeFromChannelMap} from '../util/saga'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {switchTo} from './route-tree'
 import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
-import type {SagaGenerator} from '../constants/types/saga'
+import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
   ConversationIDKey,
@@ -299,12 +299,31 @@ function * _setupNewChatHandler (): SagaGenerator<any, any> {
 const followingSelector = (state: TypedState) => state.config.following
 
 function * _loadInbox (): SagaGenerator<any, any> {
-  const inbox: GetInboxAndUnboxLocalRes = ((yield call(localGetInboxAndUnboxLocalRpcPromise, {param: {
-    query: {
-      status: Object.keys(CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => CommonConversationStatus[k]),
-    },
-    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-  }})): any)
+  const channelConfig = singleFixedChannelConfig([
+    'keybase.1.chatUi.chatInboxUnverified',
+    'keybase.1.chatUi.chatInboxConversation',
+    'keybase.1.chatUi.chatInboxFailed',
+  ])
+
+  const loadInboxChanMap: ChannelMap<any> = localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
+    param: {
+      query: {
+        status: Object.keys(CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => CommonConversationStatus[k]),
+      },
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    }
+  })
+
+  while (true) {
+    // $ForceType
+    const incoming: {[key: string]: any} = yield race({
+      chatInboxUnverified: takeFromChannelMap(loadInboxChanMap, 'keybase.1.chatUi.chatInboxUnverified'),
+      chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'keybase.1.chatUi.chatInboxConversation'),
+      chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'keybase.1.chatUi.chatInboxFailed'),
+    })
+  }
+
+
   const author = yield select(usernameSelector)
 
   const following = yield select(followingSelector)
