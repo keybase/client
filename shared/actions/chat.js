@@ -238,12 +238,14 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, 0, yourName, conversationIDKey)
 
-        // Is this message for the currently selected conversation? If so, mark
-        // it as read ASAP to avoid badging it -- we don't need to badge, the
-        // user's looking at it already.
+        // Is this message for the currently selected and focused conversation?
+        // If so, mark it as read ASAP to avoid badging it -- we don't need to
+        // badge, the user's looking at it already.
         const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
+        const focusedSelector = (state: TypedState) => state.chat.get('focused')
         const selectedConversationIDKey = yield select(selectedSelector)
-        if (message && message.messageID && conversationIDKey === selectedConversationIDKey) {
+        const focused = yield select(focusedSelector)
+        if (message && message.messageID && conversationIDKey === selectedConversationIDKey && focused) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,

@@ -11,6 +11,7 @@ import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
 import settingsSaga from '../actions/settings'
 import pushSaga from '../actions/push'
+import windowSaga from '../actions/window'
 import {call} from 'redux-saga/effects'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -28,6 +29,7 @@ function * mainSaga (): SagaGenerator<any, any> {
     call(profileSaga),
     call(pushSaga),
     call(settingsSaga),
+    call(windowSaga),
   ]
 }
 
