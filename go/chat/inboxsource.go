@@ -33,7 +33,6 @@ type RemoteInboxSource struct {
 	libkb.Contextified
 
 	boxer            *Boxer
-	udc              *utils.UserDeviceCache
 	getTlfInterface  func() keybase1.TlfInterface
 	getChatInterface func() chat1.RemoteInterface
 }
@@ -45,7 +44,6 @@ func NewRemoteInboxSource(g *libkb.GlobalContext, boxer *Boxer, ri func() chat1.
 		getTlfInterface:  tlf,
 		getChatInterface: ri,
 		boxer:            boxer,
-		udc:              utils.NewUserDeviceCache(g),
 	}
 }
 
@@ -245,8 +243,6 @@ func (s *RemoteInboxSource) localizeConversation(ctx context.Context, uid gregor
 	conversationRemote chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) (
 	conversationLocal chat1.ConversationLocal, err error) {
 
-	ctx, uimap := utils.GetUserInfoMapper(ctx, s.G())
-
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id: conversationRemote.Metadata.ConversationID,
 	}
@@ -312,8 +308,7 @@ func (s *RemoteInboxSource) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
-		s.udc,
-		uimap,
+		s.G().GetUserDeviceCache(),
 		conversationLocal.Info.TlfName,
 		conversationRemote.Metadata.ActiveList)
 	if err != nil {

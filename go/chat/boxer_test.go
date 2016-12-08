@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
@@ -58,8 +57,7 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 
 func setupChatTest(t *testing.T, name string) (libkb.TestContext, *Boxer) {
 	tc := externals.SetupTest(t, name, 2)
-	udc := utils.NewUserDeviceCache(tc.G)
-	return tc, NewBoxer(tc.G, nil, udc)
+	return tc, NewBoxer(tc.G, nil)
 }
 
 func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.FakeUser) libkb.NaclSigningKeyPair {
