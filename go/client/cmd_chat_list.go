@@ -6,6 +6,8 @@ package client
 import (
 	"golang.org/x/net/context"
 
+	"time"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -41,13 +43,18 @@ func (c *cmdChatList) Run() error {
 		return err
 	}
 
-	if len(conversations) == 0 {
-		ui.Printf("no conversations\n")
-		return nil
-	}
+	if c.fetcher.async {
+		// Wait around for a bit to test async
+		time.Sleep(time.Second * 5)
+	} else {
+		if len(conversations) == 0 {
+			ui.Printf("no conversations\n")
+			return nil
+		}
 
-	if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
-		return err
+		if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
+			return err
+		}
 	}
 
 	// TODO: print summary of inbox. e.g.

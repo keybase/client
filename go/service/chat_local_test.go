@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -215,6 +216,56 @@ func TestChatGetInboxAndUnboxLocal(t *testing.T) {
 	}
 	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
 		t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
+	}
+}
+
+func TestGetInboxNonblock(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetInboxNonblockLocal", 6)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	numconvs := 5
+	cb := make(chan kbtest.NonblockInboxResult, 100)
+	ui := kbtest.NewChatUI(cb)
+	ctc.as(t, users[0]).h.mockChatUI = ui
+
+	convs := make(map[string]bool)
+	for i := 0; i < numconvs; i++ {
+		convs[mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[i+1]).user().Username).Id.String()] = true
+	}
+
+	err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
+		chat1.GetInboxNonblockLocalArg{
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		},
+	)
+	require.NoError(t, err)
+	// Get inbox
+	select {
+	case ibox := <-cb:
+		require.NotNil(t, ibox.InboxRes, "nil inbox")
+		require.Equal(t, len(convs), len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox received")
+	}
+
+	// Get all convos
+	for i := 0; i < numconvs; i++ {
+		select {
+		case conv := <-cb:
+			require.NotNil(t, conv.ConvRes, "no conv")
+			delete(convs, conv.ConvID.String())
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no conv received")
+		}
+	}
+	require.Equal(t, 0, len(convs), "didnt get all convs")
+
+	// Make sure there is nothing left
+	select {
+	case <-cb:
+		require.Fail(t, "should have drained channel")
+	default:
 	}
 }
 
