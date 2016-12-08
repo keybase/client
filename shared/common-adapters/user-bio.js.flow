@@ -21,6 +21,7 @@ export type Props = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   editFns?: ?BioEditFns,
+  onAvatarLoaded?: () => void,
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,

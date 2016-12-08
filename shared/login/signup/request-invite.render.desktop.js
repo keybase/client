@@ -42,7 +42,7 @@ const stylesButton = {
   marginTop: 50,
   marginBottom: 30,
   marginRight: 0,
-  alignSelf: 'flex-end',
+  alignSelf: 'center',
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,

@@ -64,6 +64,31 @@ func culDebug(u keybase1.UID) string {
 	return fmt.Sprintf("CachedUserLoader#Load(%s)", u)
 }
 
+func (u *CachedUserLoader) extractDeviceKey(upk *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID) (deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error) {
+	for i := range upk.Base.RevokedDeviceKeys {
+		r := &upk.Base.RevokedDeviceKeys[i]
+		pk := &r.Key
+		if pk.DeviceID == deviceID {
+			deviceKey = pk
+			revoked = r
+		}
+	}
+	for i := range upk.Base.DeviceKeys {
+		pk := &upk.Base.DeviceKeys[i]
+		if pk.DeviceID == deviceID {
+			deviceKey = pk
+			revoked = nil
+		}
+	}
+
+	if deviceKey == nil {
+		dkey := fmt.Sprintf("%s:%s", upk.Base.Uid, deviceID)
+		return nil, nil, fmt.Errorf("device not found for %s", dkey)
+	}
+
+	return deviceKey, revoked, nil
+}
+
 // loadWithInfo loads a user by UID from the CachedUserLoader object. The 'info'
 // object contains information about how the request was handled, but otherwise,
 // this method behaves like (and implements) the public CachedUserLoader#Load
@@ -213,4 +238,29 @@ func (u *CachedUserLoader) Invalidate(uid keybase1.UID) {
 	defer u.Unlock()
 	u.G().Log.Debug("CachedUserLoader#Invalidate(%s)", uid)
 	delete(u.m, uid.String())
+}
+
+// Load the PublicKey for a user's device from the local cache, falling back to LoadUser, and cache the user.
+// If the user exists but the device doesn't, will force a load in case the device is very new.
+func (u *CachedUserLoader) LoadDeviceKey(uid keybase1.UID, deviceID keybase1.DeviceID) (upk *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error) {
+	var info CachedUserLoadInfo
+	upk, _, err = u.loadWithInfo(NewLoadUserByUIDArg(u.G(), uid), &info)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	deviceKey, revoked, err = u.extractDeviceKey(upk, deviceID)
+	if err == nil {
+		// Early success, return
+		return upk, deviceKey, revoked, err
+	}
+
+	// Try again with a forced load in case the device is very new.
+	upk, _, err = u.loadWithInfo(NewLoadUserByUIDForceArg(u.G(), uid), nil)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	deviceKey, revoked, err = u.extractDeviceKey(upk, deviceID)
+	return upk, deviceKey, revoked, err
 }

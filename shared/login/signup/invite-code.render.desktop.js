@@ -3,7 +3,7 @@ import Container from '../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './invite-code.render'
 import {Box, Text, Input, Button, Icon} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalStyles, globalMargins} from '../../styles'
 
 type State = {
   inviteCode: ?string,
@@ -49,7 +49,7 @@ class InviteCodeRender extends Component<void, Props, State> {
 }
 
 const stylesButton = {
-  marginTop: 10,
+  marginTop: globalMargins.tiny,
   marginRight: 0,
   alignSelf: 'center',
 }
@@ -65,17 +65,18 @@ const stylesBox = {
   width: 580,
 }
 const stylesHeader = {
-  marginTop: 30,
+  marginTop: globalMargins.medium,
 }
 const stylesIcon = {
-  marginTop: 75 - 14,
+  marginTop: globalMargins.large,
 }
 const stylesInput = {
-  marginTop: 75 - 14,
+  marginTop: globalMargins.medium,
+  marginBottom: globalMargins.medium,
   width: 450,
 }
 const stylesText = {
-  marginTop: 40,
+  marginTop: globalMargins.large,
 }
 
 export default InviteCodeRender
