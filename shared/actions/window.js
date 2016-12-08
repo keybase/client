@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../constants/window'
 
-import type {ChangedFocused} from '../constants/window'
+import type {ChangedFocus} from '../constants/window'
 
-export function changedFocus (focus: boolean): ChangedFocused {
+export function changedFocus (focus: boolean): ChangedFocus {
   return {type: Constants.changedFocus, payload: focus}
 }
