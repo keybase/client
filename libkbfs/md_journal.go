@@ -878,7 +878,7 @@ func (j mdJournal) atLeastNNonLocalSquashes(
 	if err != nil {
 		return false, err
 	}
-	if size < ForcedBranchSquashThreshold {
+	if size < numNonLocalSquashes {
 		return false, nil
 	}
 
@@ -892,7 +892,7 @@ func (j mdJournal) atLeastNNonLocalSquashes(
 	// `numNonLocalSquashes` entries ago, and see if it's a local
 	// squash or not.
 	entry, err := j.j.readJournalEntry(
-		latestRev - MetadataRevision(numNonLocalSquashes))
+		latestRev - MetadataRevision(numNonLocalSquashes) + 1)
 	if err != nil {
 		return false, err
 	}
