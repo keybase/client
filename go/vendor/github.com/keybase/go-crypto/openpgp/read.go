@@ -343,7 +343,7 @@ func (scr *signatureCheckReader) Read(buf []byte) (n int, err error) {
 					err = errors.StructuralError("bad key fingerprint")
 				}
 			}
-			if err != nil {
+			if err == nil {
 				err = scr.md.SignedBy.PublicKey.VerifySignature(scr.h, scr.md.Signature)
 			}
 			scr.md.SignatureError = err
