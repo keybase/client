@@ -81,6 +81,11 @@ export type ConversationState = Record<{
   firstNewMessageID: ?MessageID,
 }>
 
+export type ConversationBadgeStateRecord = Record<{
+  convID: ConversationID,
+  UnreadMessages: number,
+}>
+
 export const InboxStateRecord = Record({
   info: null,
   participants: List(),
@@ -129,6 +134,7 @@ export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
 
 export const appendMessages = 'chat:appendMessages'
+export const badgeAppForChat = 'chat:badgeAppForChat'
 export const deleteMessage = 'chat:deleteMessage'
 export const editMessage = 'chat:editMessage'
 export const incomingMessage = 'chat:incomingMessage'
@@ -150,6 +156,7 @@ export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
+export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>

@@ -2,12 +2,14 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
+import _ from 'lodash'
 import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localMarkAsReadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {searchTab, chatTab} from '../constants/tabs'
 import {openInKBFS} from './kbfs'
+import {badgeApp} from './notifications'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
@@ -20,6 +22,8 @@ import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
+  BadgeAppForChat,
+  ConversationBadgeStateRecord,
   ConversationIDKey,
   DeleteMessage,
   EditMessage,
@@ -50,6 +54,10 @@ function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
 
 function updateLatestMessage (conversationIDKey: ConversationIDKey): UpdateLatestMessage {
   return {type: Constants.updateLatestMessage, payload: {conversationIDKey}}
+}
+
+function badgeAppForChat (conversations: Array<ConversationBadgeStateRecord>): BadgeAppForChat {
+  return {type: Constants.badgeAppForChat, payload: conversations}
 }
 
 function openFolder (): OpenFolder {
@@ -624,6 +632,24 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   }
 }
 
+function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
+  const conversations = action.payload
+  const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
+  const windowFocusedSelector = (state: TypedState) => state.chat.get('focused')
+  const selectedConversationIDKey = yield select(selectedSelector)
+  const windowFocused = yield select(windowFocusedSelector)
+
+  const newConversations = _.filter(conversations, conv => {
+    // Badge this conversation if it's unread and either the app doesn't have
+    // focus (so the user didn't see the message) or the conversation isn't
+    // selected (same).
+    const unread = conv.UnreadMessages > 0
+    const selected = (conversationIDToKey(conv.convID) === selectedConversationIDKey)
+    return unread && (!selected || !windowFocused)
+  }).length
+  yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
@@ -638,6 +664,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
     safeTakeLatest(Constants.openFolder, _openFolder),
+    safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
     safeTakeEvery(changedFocus, _changedFocus),
   ]
 }
@@ -645,6 +672,7 @@ function * chatSaga (): SagaGenerator<any, any> {
 export default chatSaga
 
 export {
+  badgeAppForChat,
   deleteMessage,
   editMessage,
   loadInbox,
