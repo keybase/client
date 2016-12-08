@@ -741,6 +741,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
+	arg.Preview = pre.Preview
 
 	// upload attachment and (optional) preview concurrently
 	var object chat1.Asset
@@ -782,6 +783,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	object.Title = arg.Title
 	if preview != nil {
 		preview.Title = arg.Title
+		preview.MimeType = pre.PreviewContentType
 	}
 	object.MimeType = pre.ContentType
 
@@ -962,7 +964,9 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 }
 
 type preprocess struct {
-	ContentType string
+	ContentType        string
+	Preview            assetSource
+	PreviewContentType string
 }
 
 func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment, preview assetSource) (*preprocess, error) {
@@ -982,6 +986,14 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 
 	p := preprocess{
 		ContentType: http.DetectContentType(head),
+	}
+
+	if preview == nil {
+		src.Reset()
+		p.Preview, p.PreviewContentType, err = chat.Preview(ctx, src, p.ContentType, attachment.Basename())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &p, nil
