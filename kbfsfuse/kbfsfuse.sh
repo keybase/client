@@ -11,6 +11,10 @@ trap _term SIGTERM
 if [ -z "$KEYBASE_TEST_ROOT_CERT_PEM" ]; then
     export KEYBASE_TEST_ROOT_CERT_PEM="$(echo $KEYBASE_TEST_ROOT_CERT_PEM_B64 | base64 -d)";
 fi
+if [ -z "$KBFS_METADATA_VERSION" ]; then
+    export KBFS_METADATA_VERSION=2
+fi
+echo "Using KBFS metadata version $KBFS_METADATA_VERSION"
 
 if [ -f kbfs_revision ]; then
     echo "Running KBFS Docker with KBFS revision $(cat kbfs_revision)"
@@ -21,7 +25,7 @@ fi
 
 keybase service &
 SERVICE=$!
-KEYBASE_DEBUG=1 kbfsfuse -debug -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR -log-to-file /keybase &
+KEYBASE_DEBUG=1 kbfsfuse -debug -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR -md-version $KBFS_METADATA_VERSION -log-to-file /keybase &
 KBFS=$!
 
 wait "$SERVICE"
