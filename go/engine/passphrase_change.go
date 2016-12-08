@@ -169,11 +169,17 @@ func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
 	return kp, nil
 }
 
-func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf libkb.LKSecClientHalf) error {
-
-	pgpKeys, err := c.findAndDecryptPrivatePGPKeys(ctx)
+func (c *PassphraseChange) forceUpdatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf libkb.LKSecClientHalf) error {
+	// Don't update server-synced pgp keys when recovering.
+	// This will render any server-synced pgp keys unrecoverable from the server.
+	// TODO would it responsible to ask the server to delete them?
+	pgpKeys, nPgpKeysLost, err := c.findAndDecryptPrivatePGPKeysLossy(ctx)
 	if err != nil {
 		return err
+	}
+
+	if nPgpKeysLost > 0 {
+		c.G().Log.Debug("PassphraseChange.runForcedUpdate: Losing %v synced keys", nPgpKeysLost)
 	}
 
 	var acctErr error
@@ -260,7 +266,7 @@ func (c *PassphraseChange) runForcedUpdate(ctx *Context) (err error) {
 		return
 	}
 
-	return c.updatePassphrase(ctx, kp.sigKey, ppGen, oldClientHalf)
+	return c.forceUpdatePassphrase(ctx, kp.sigKey, ppGen, oldClientHalf)
 }
 
 // runStandardUpdate is for when the user knows the current
@@ -409,8 +415,7 @@ func (c *PassphraseChange) verifySuppliedPassphrase(ctx *Context) (err error) {
 	return
 }
 
-// findAndDecryptPrivatePGPKeys gets the user's private pgp keys if
-// any exist and decrypts them.
+// findAndDecryptPrivatePGPKeys gets the user's private pgp keys if any exist and decrypts them.
 func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.GenericKey, error) {
 
 	var keyList []libkb.GenericKey
@@ -439,6 +444,44 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 	}
 
 	return keyList, nil
+}
+
+// findAndDecryptPrivatePGPKeysLossy gets the user's private pgp keys if any exist and attempts
+// to decrypt them without prompting the user. If any fail to decrypt, they are silently not returned.
+// The second return value is the number of keys which were not decrypted.
+func (c *PassphraseChange) findAndDecryptPrivatePGPKeysLossy(ctx *Context) ([]libkb.GenericKey, int, error) {
+
+	var keyList []libkb.GenericKey
+	nLost := 0
+
+	// Using a paper key makes TripleSec-synced keys unrecoverable
+	if c.usingPaper {
+		c.G().Log.Debug("using a paper key, thus TripleSec-synced keys are unrecoverable")
+		return keyList, 0, nil
+	}
+
+	// Only use the synced secret keys:
+	blocks, err := c.me.AllSyncedSecretKeys(ctx.LoginContext)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	secretRetriever := libkb.NewSecretStore(c.G(), c.me.GetNormalizedName())
+
+	for _, block := range blocks {
+		key, err := block.UnlockNoPrompt(ctx.LoginContext, secretRetriever)
+		if err == nil {
+			keyList = append(keyList, key)
+		} else {
+			if err != libkb.ErrUnlockNotPossible {
+				return nil, 0, err
+			}
+			nLost++
+			c.G().Log.Debug("findAndDecryptPrivatePGPKeysLossy: ignoring failure to decrypt key without prompt")
+		}
+	}
+
+	return keyList, nLost, nil
 }
 
 // encodePrivatePGPKey encrypts key with tsec and armor-encodes it.

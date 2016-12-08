@@ -34,6 +34,7 @@ func (c *CmdPassphraseRecover) confirm() error {
 	ui := c.G().UI.GetTerminalUI()
 	ui.Printf("Password recovery will put your account on probation for 5 days.\n")
 	ui.Printf("You won't be able to perform certain actions, like revoking devices.\n")
+	ui.Printf("If you have uploaded an encrypted PGP private key, it will be lost.\n")
 	return ui.PromptForConfirmation("Continue with password recovery?")
 }
 
