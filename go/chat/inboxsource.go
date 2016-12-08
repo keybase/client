@@ -32,14 +32,12 @@ type InboxSource interface {
 
 type localizer struct {
 	libkb.Contextified
-	udc             *utils.UserDeviceCache
 	getTlfInterface func() keybase1.TlfInterface
 }
 
-func newLocalizer(g *libkb.GlobalContext, udc *utils.UserDeviceCache, getTlfInterface func() keybase1.TlfInterface) *localizer {
+func newLocalizer(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *localizer {
 	return &localizer{
 		Contextified:    libkb.NewContextified(g),
-		udc:             udc,
 		getTlfInterface: getTlfInterface,
 	}
 }
@@ -55,10 +53,9 @@ type RemoteInboxSource struct {
 
 func NewRemoteInboxSource(g *libkb.GlobalContext, boxer *Boxer, ri func() chat1.RemoteInterface,
 	tlf func() keybase1.TlfInterface) *RemoteInboxSource {
-	udc := utils.NewUserDeviceCache(g)
 	return &RemoteInboxSource{
 		Contextified:     libkb.NewContextified(g),
-		localizer:        newLocalizer(g, udc, tlf),
+		localizer:        newLocalizer(g, tlf),
 		getTlfInterface:  tlf,
 		getChatInterface: ri,
 		boxer:            boxer,
@@ -133,7 +130,6 @@ type NonblockRemoteInboxSource struct {
 
 	localizer        *localizer
 	boxer            *Boxer
-	udc              *utils.UserDeviceCache
 	localizeCb       chan NonblockInboxResult
 	getTlfInterface  func() keybase1.TlfInterface
 	getChatInterface func() chat1.RemoteInterface
@@ -147,7 +143,7 @@ func NewNonblockRemoteInboxSource(g *libkb.GlobalContext, boxer *Boxer, ri func(
 		getChatInterface: ri,
 		boxer:            boxer,
 		localizeCb:       localizeCb,
-		localizer:        newLocalizer(g, udc, tlf),
+		localizer:        newLocalizer(g, tlf),
 	}
 }
 
