@@ -2,8 +2,9 @@
 import * as Constants from '../constants/window'
 import {safeTakeEvery} from '../util/saga'
 import {put, select} from 'redux-saga/effects'
-
 import {selectConversation} from '../actions/chat'
+import {chatTab} from '../constants/tabs'
+
 import type {ChangedFocus} from '../constants/window'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
@@ -18,8 +19,11 @@ function * _changedFocusSaga (action: ChangedFocus): SagaGenerator<any, any> {
   // update based on the focus change.
   const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
   const conversationIDKey = yield select(selectedSelector)
-  if (conversationIDKey && focused) {
-    yield put(selectConversation(conversationIDKey, false))
+  const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
+  const selectedTab = yield select(routeSelector)
+  const chatTabSelected = (selectedTab === chatTab)
+  if (conversationIDKey && focused && chatTabSelected) {
+    yield put(selectConversation(conversationIDKey, true))
   }
 }
 
