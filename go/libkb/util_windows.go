@@ -138,7 +138,7 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 		var err error
 		for i := 0; i < 5; i++ {
 			if err != nil {
-				time.Sleep(50 * time.Millisecond)
+				time.Sleep(100 * time.Millisecond)
 			}
 			err = os.Rename(oldPathName, newPathName)
 			if err == nil {
@@ -147,7 +147,10 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 		}
 		if err != nil {
 			g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
-			return err
+			// Log files give problems, let's not fail on those
+			if ! strings.HasSuffix(name, ".log") {
+				return err
+			}
 		}
 	}
 	return nil
