@@ -6,6 +6,7 @@ import {put, select} from 'redux-saga/effects'
 import {selectConversation} from '../actions/chat'
 import type {ChangedFocus} from '../constants/window'
 import type {SagaGenerator} from '../constants/types/saga'
+import type {TypedState} from '../constants/reducer'
 
 export function changedFocus (focus: boolean): ChangedFocus {
   return {type: Constants.changedFocus, payload: focus}
