@@ -109,13 +109,56 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return err
 }
 
+// helper for RemoteSettingsRepairman
+func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) error {
+	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
+	files, _ := filepath.Glob(filepath.Join(oldHome, "*"))
+	for _, oldPathName := range files {
+		_, name := filepath.Split(oldPathName)
+		// Chromium seems stubborn about these - TBD
+		switch name {
+		case "GPUCache":
+			continue
+		case "lockfile":
+			continue
+		case "app-state.json":
+			continue
+		case "Cache":
+			continue
+		case "Cookies":
+			continue
+		case "Cookies-journal":
+			continue
+		case "Local Storage":
+			continue
+		case "started.txt":
+			continue
+		}
+		newPathName := filepath.Join(currentHome, name)
+		var err error
+		for i := 0; i < 5; i++ {
+			if err != nil {
+				time.Sleep(50 * time.Millisecond)
+			}
+			err = os.Rename(oldPathName, newPathName)
+			if err == nil {
+				break
+			}
+		}
+		if err != nil {
+			g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
+			return err
+		}
+	}
+	return nil
+}
+
 // RemoteSettingsRepairman does a one-time move of everyting from the roaming
 // target directory to local. We depend on the .exe files having been uninstalled from
 // there first.
 // Note that Chromium still insists on keeping some stuff in roaming,
 // exceptions for which are hardcoded here.
 func RemoteSettingsRepairman(g *GlobalContext) error {
-	var retErr error
 	w := Win32{Base{"keybase",
 		func() string { return g.Env.getHomeFromCmdOrConfig() },
 		func() RunMode { return g.Env.GetRunMode() }}}
@@ -132,39 +175,8 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 	oldConfig := filepath.Join(oldHome, configName)
 	if oldExists, _ := FileExists(oldConfig); oldExists {
 		if currentExists, _ := FileExists(currentConfig); !currentExists {
-			g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
-			files, _ := filepath.Glob(filepath.Join(oldHome, "*"))
-			for _, oldPathName := range files {
-				_, name := filepath.Split(oldPathName)
-				// Chromium seems stubborn about hese - TBD
-				switch name {
-				case "GPUCache":
-					continue
-				case "lockfile":
-					continue
-				case "app-state.json":
-					continue
-				case "Cache":
-					continue
-				case "Cookies":
-					continue
-				case "Cookies-journal":
-					continue
-				case "Local Storage":
-					continue
-				case "started.txt":
-					continue
-				}
-				newPathName := filepath.Join(currentHome, name)
-				if err := os.Rename(oldPathName, newPathName); err != nil {
-					g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
-					retErr = err // record the last error and keep going
-				}
-			}
+			return moveNonChromiumFiles(g, oldHome, currentHome)
 		}
 	}
-	if retErr == nil {
-		retErr = os.Remove(oldHome)
-	}
-	return retErr
+	return nil
 }
