@@ -231,9 +231,6 @@ function * _listSaga (): SagaGenerator<any, any> {
     const listedAction: FavoriteListed = {type: Constants.favoriteListed, payload: {folders: state}}
     yield put(listedAction)
 
-    const badgeAction: Action = badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge), state.publicBadge + state.privateBadge)
-    yield put(badgeAction)
-
     yield call(_notify, state)
   } catch (e) {
     console.warn('Error listing favorites:', e)

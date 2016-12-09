@@ -49,10 +49,8 @@ export default function (state: State = initialState, action: NotificationAction
       }
 
       if (badgeAction.payload.key === 'newTLFs') {
-        // Short term until we get this from the daemon
         menuNotifications.folderBadge = badgeAction.payload.count || 0
       } else if (badgeAction.payload.key === 'chatInbox') {
-        // Short term until we get this from the daemon
         menuNotifications.chatBadge = badgeAction.payload.count || 0
       }
 
