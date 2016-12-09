@@ -1,3 +1,10 @@
+// // TODO
+// load inbox unveriried
+// convert and set w/ no snippet
+// load snippets in async
+// if user clicks on convo wait for it to be verified then load messages, show spinner in meantime, no inputbox
+// if we get a fail from inbox load we show a global error and remove it from the inbox list
+//
 // @flow
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
