@@ -31,7 +31,6 @@ const stylesInnerContainer = {
 }
 
 const stylesButton = {
-  zIndex: 9999,
   position: 'absolute',
 }
 
