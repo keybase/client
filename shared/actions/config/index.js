@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
-import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
+import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {navBasedOnLoginState} from '../../actions/login'
 import {registerGregorListeners} from '../../actions/gregor'
@@ -97,14 +97,14 @@ export function waitForKBFS (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       configWaitForClientRpc({
-        param: {clientType: 3, timeout: 10.0},
+        param: {clientType: CommonClientType.kbfs, timeout: 10.0},
         callback: (error, found) => {
           if (error) {
             reject(error)
             return
           }
           if (!found) {
-            reject(new Error('KBFS client not found'))
+            reject(new Error('Waited for KBFS client, but it wasn\'t not found'))
             return
           }
           resolve()
