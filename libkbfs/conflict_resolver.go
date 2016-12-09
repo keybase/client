@@ -140,7 +140,11 @@ func (cr *ConflictResolver) cancelExistingLocked(ci conflictInput) bool {
 // doesn't have to hold inputChanLock.
 func (cr *ConflictResolver) processInput(baseCtx context.Context,
 	inputChan <-chan conflictInput) {
-	var prevCRDone chan struct{}
+
+	// Start off with a closed prevCRDone, so that the first CR call
+	// doesn't have to wait.
+	prevCRDone := make(chan struct{})
+	close(prevCRDone)
 	defer func() {
 		cr.inputLock.Lock()
 		defer cr.inputLock.Unlock()
@@ -152,19 +156,18 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 	for ci := range inputChan {
 		ctx := ctxWithRandomIDReplayable(baseCtx, CtxCRIDKey, CtxCROpID, cr.log)
 
-		valid, doWait := func() (bool, bool) {
+		valid := func() bool {
 			cr.inputLock.Lock()
 			defer cr.inputLock.Unlock()
 			valid := cr.cancelExistingLocked(ci)
 			if !valid {
-				return false, false
+				return false
 			}
 			cr.log.CDebugf(ctx, "New conflict input %v following old "+
 				"input %v", ci, cr.currInput)
 			cr.currInput = ci
-			doWait := cr.currCancel != nil
 			ctx, cr.currCancel = context.WithCancel(ctx)
-			return true, doWait
+			return true
 		}()
 		if !valid {
 			cr.log.CDebugf(ctx, "Ignoring uninteresting input: %v", ci)
@@ -172,24 +175,19 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 			continue
 		}
 
-		var waitChan chan struct{}
-		if doWait {
-			waitChan = prevCRDone
-		}
+		waitChan := prevCRDone
 		prevCRDone = make(chan struct{}) // closed when doResolve finishes
 		go func(ci conflictInput, done chan<- struct{}) {
 			defer cr.resolveGroup.Done()
 			defer close(done)
-			if waitChan != nil {
-				// Wait for the previous CR without blocking any
-				// Resolve callers, as that could result in deadlock
-				// (KBFS-1001).
-				select {
-				case <-waitChan:
-				case <-ctx.Done():
-					cr.log.CDebugf(ctx, "Resolution canceled before starting")
-					return
-				}
+			// Wait for the previous CR without blocking any
+			// Resolve callers, as that could result in deadlock
+			// (KBFS-1001).
+			select {
+			case <-waitChan:
+			case <-ctx.Done():
+				cr.log.CDebugf(ctx, "Resolution canceled before starting")
+				return
 			}
 			cr.doResolve(ctx, ci)
 		}(ci, prevCRDone)
@@ -213,6 +211,9 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 		// Cancel any running CR before we return, so the caller can be
 		// confident any ongoing CR superseded by this new input will be
 		// canceled before it releases any locks it holds.
+		//
+		// TODO: return early if this returns false, and log something
+		// using a newly-pass-in context.
 		_ = cr.cancelExistingLocked(ci)
 	}()
 
