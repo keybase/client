@@ -203,23 +203,35 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 // Put implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Put(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
-	// If it's the right type of block and lifetime, store the
-	// hash -> ID mapping.
-	if fBlock, ok := block.(*FileBlock); b.ids != nil && lifetime == TransientEntry && ok && !fBlock.IsInd {
-		if fBlock.hash == nil {
-			_, hash := kbfshash.DoRawDefaultHash(fBlock.Contents)
-			fBlock.hash = &hash
-		}
 
-		key := idCacheKey{tlf, *fBlock.hash}
-		// zero out the refnonce, it doesn't matter
-		ptr.RefNonce = ZeroBlockRefNonce
-		b.ids.Add(key, ptr)
-	}
+	madeRoom := false
 
 	switch lifetime {
+	case NoCacheEntry:
+		return nil
+
 	case TransientEntry:
+		// If it's the right type of block, store the hash -> ID mapping.
+		if fBlock, isFileBlock := block.(*FileBlock); b.ids != nil && isFileBlock && !fBlock.IsInd {
+			if fBlock.hash == nil {
+				_, hash := kbfshash.DoRawDefaultHash(fBlock.Contents)
+				fBlock.hash = &hash
+			}
+
+			key := idCacheKey{tlf, *fBlock.hash}
+			// zero out the refnonce, it doesn't matter
+			ptr.RefNonce = ZeroBlockRefNonce
+			b.ids.Add(key, ptr)
+		}
+		if b.cleanTransient == nil {
+			return nil
+		}
 		// Cache it later, once we know there's room
+		defer func() {
+			if madeRoom {
+				b.cleanTransient.Add(ptr.ID, block)
+			}
+		}()
 
 	case PermanentEntry:
 		func() {
@@ -232,11 +244,10 @@ func (b *BlockCacheStandard) Put(
 		return fmt.Errorf("Unknown lifetime %v", lifetime)
 	}
 
+	// We must make room whether the cache is transient or permanent
 	size := uint64(getCachedBlockSize(block))
-	madeRoom := b.makeRoomForSize(size)
-	if madeRoom && lifetime == TransientEntry && b.cleanTransient != nil {
-		b.cleanTransient.Add(ptr.ID, block)
-	}
+	madeRoom = b.makeRoomForSize(size)
+
 	return nil
 }
 
