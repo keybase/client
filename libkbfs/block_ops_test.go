@@ -208,7 +208,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	expectBlockDecrypt(config, kmd, blockPtr, encData, decData, nil)
 
 	var gotBlock TestBlock
-	err := config.BlockOps().Get(ctx, kmd, blockPtr, &gotBlock)
+	err := config.BlockOps().Get(ctx, kmd, blockPtr, &gotBlock, NoCacheEntry)
 	if err != nil {
 		t.Fatalf("Got error on get: %v", err)
 	}
@@ -231,8 +231,8 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 		nil, kbfscrypto.BlockCryptKeyServerHalf{}, err)
 
 	block := &TestBlock{}
-	if err2 := config.BlockOps().Get(
-		ctx, kmd, blockPtr, block); err2 != err {
+	err2 := config.BlockOps().Get(ctx, kmd, blockPtr, block, NoCacheEntry)
+	if err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -252,8 +252,8 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
 
 	block := &TestBlock{}
-	if err2 := config.BlockOps().Get(
-		ctx, kmd, blockPtr, block); err2 != err {
+	err2 := config.BlockOps().Get(ctx, kmd, blockPtr, block, NoCacheEntry)
+	if err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -274,8 +274,8 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	block := &TestBlock{}
 	expectBlockDecrypt(config, kmd, blockPtr, encData, block, err)
 
-	if err2 := config.BlockOps().Get(
-		ctx, kmd, blockPtr, block); err2 != err {
+	err2 := config.BlockOps().Get(ctx, kmd, blockPtr, block, NoCacheEntry)
+	if err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }

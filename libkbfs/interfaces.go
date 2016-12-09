@@ -1011,7 +1011,7 @@ type BlockOps interface {
 	// object with its contents, if the logged-in user has read
 	// permission for that block.
 	Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
-		block Block) error
+		block Block, cacheLifetime BlockCacheLifetime) error
 
 	// Ready turns the given block (which belongs to the TLF with
 	// the given key metadata) into encoded (and encrypted) data,

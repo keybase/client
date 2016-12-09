@@ -325,19 +325,15 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	var err error
 	if rtype != blockReadParallel && rtype != blockLookup {
 		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
-			err = bops.Get(ctx, kmd, ptr, block)
+			err = bops.Get(ctx, kmd, ptr, block, lifetime)
 		})
 	} else {
-		err = bops.Get(ctx, kmd, ptr, block)
+		err = bops.Get(ctx, kmd, ptr, block, lifetime)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	if err := fbo.config.BlockCache().Put(ptr, fbo.id(), block,
-		lifetime); err != nil {
-		return nil, err
-	}
 	return block, nil
 }
 

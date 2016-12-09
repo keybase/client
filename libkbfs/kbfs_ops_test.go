@@ -454,7 +454,7 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 
 func expectBlock(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, block Block, err error) {
 	config.mockBops.EXPECT().Get(gomock.Any(), kmdMatcher{kmd},
-		ptrMatcher{blockPtr}, gomock.Any()).
+		ptrMatcher{blockPtr}, gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, kmd KeyMetadata,
 			blockPtr BlockPointer, getBlock Block) {
 			switch v := getBlock.(type) {
@@ -2080,7 +2080,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et EntryType) {
 	// The operation might be retried several times.
 	config.mockBops.EXPECT().Get(
 		gomock.Any(), gomock.Any(), p.tailPointer(),
-		gomock.Any()).Return(BServerErrorBlockNonExistent{}).MinTimes(1)
+		gomock.Any(), gomock.Any()).Return(BServerErrorBlockNonExistent{}).MinTimes(1)
 
 	// sync block
 	var newRmd ImmutableRootMetadata
@@ -2141,7 +2141,7 @@ func TestKBFSOpsRemoveDirMissingBlock(t *testing.T) {
 	// The operation might be retried several times.
 	config.mockBops.EXPECT().Get(
 		gomock.Any(), gomock.Any(), p.tailPointer(),
-		gomock.Any()).Return(BServerErrorBlockNonExistent{}).MinTimes(1)
+		gomock.Any(), gomock.Any()).Return(BServerErrorBlockNonExistent{}).MinTimes(1)
 
 	// sync block
 	var newRmd ImmutableRootMetadata

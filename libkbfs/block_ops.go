@@ -35,7 +35,7 @@ func NewBlockOpsStandard(config Config, queueSize int) *BlockOpsStandard {
 
 // Get implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
-	blockPtr BlockPointer, block Block) error {
+	blockPtr BlockPointer, block Block, lifetime BlockCacheLifetime) error {
 	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd, blockPtr, block)
 	return <-errCh
 }

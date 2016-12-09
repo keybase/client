@@ -2652,14 +2652,14 @@ func (_m *MockBlockOps) EXPECT() *_MockBlockOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockOps) Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
-	ret := _m.ctrl.Call(_m, "Get", ctx, kmd, blockPtr, block)
+func (_m *MockBlockOps) Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block, cacheLifetime BlockCacheLifetime) error {
+	ret := _m.ctrl.Call(_m, "Get", ctx, kmd, blockPtr, block, cacheLifetime)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
+func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockBlockOps) Ready(ctx context.Context, kmd KeyMetadata, block Block) (BlockID, int, ReadyBlockData, error) {
