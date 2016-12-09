@@ -773,6 +773,14 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 	if err != nil {
 		return state, err
 	}
+	if state.Service == keybase1.ProofType_ROOTER {
+		from2, err := rooterRewriteURL(g, from)
+		if err != nil {
+			return state, libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE,
+				"Could not rewrite rooter URL: %v", err)
+		}
+		from = from2
+	}
 
 	switch fetchMode(ins.Kind) {
 	case fetchModeString:
