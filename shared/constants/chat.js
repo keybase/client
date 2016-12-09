@@ -89,6 +89,7 @@ export const InboxStateRecord = Record({
   time: '',
   snippet: '',
   unreadCount: 0,
+  validated: false,
 })
 
 export type InboxState = Record<{
@@ -99,6 +100,7 @@ export type InboxState = Record<{
   time: string,
   snippet: string,
   unreadCount: number,
+  validated: boolean,
 }>
 
 export type MetaData = Record<{

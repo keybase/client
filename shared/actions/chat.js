@@ -16,6 +16,7 @@ import {badgeApp} from './notifications'
 import {call, put, select, race} from 'redux-saga/effects'
 import {searchTab, chatTab} from '../constants/tabs'
 import {openInKBFS} from './kbfs'
+import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, takeFromChannelMap} from '../util/saga'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
@@ -23,7 +24,7 @@ import {switchTo} from './route-tree'
 import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 
-import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
+import type {GetInboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
@@ -91,44 +92,32 @@ function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boo
 }
 
 function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
-  return List((inbox.conversationsUnverified || []).map(convo => {
-    if (!convo.info.id) {
+  return List((inbox.conversationsUnverified || []).map(convoUnverified => {
+    const msgBoxed = convoUnverified.maxMsgs && convoUnverified.maxMsgs.length && convoUnverified.maxMsgs[0]
+
+    if (!msgBoxed) {
       return null
     }
 
-    let snippet
-    (convo.maxMessages || []).some(message => {
-      if (message.state === LocalMessageUnboxedState.valid && message.valid) {
-        switch (message.valid.messageBody.messageType) {
-          case CommonMessageType.text:
-            snippet = makeSnippet(message.valid.messageBody.text && message.valid.messageBody.text.body, 100)
-            return true
-          case CommonMessageType.attachment:
-            snippet = 'Attachment'
-            return true
-          default:
-            return false
-        }
-      }
-      return false
-    })
-
-    // TODO in recent order... somehow
-    const participants = List((convo.info.writerNames || []).map(username => ({
-      username,
-      broken: false, // TODO
-      you: author && username === author,
-      following: !!following[username],
-    })))
+    const participants = List((parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName)
+      .map(ul => ul.username))
+      .map(username => ({
+        username,
+        broken: false, // TODO
+        you: author && username === author,
+        following: !!following[username],
+      }))
+    )
 
     return new InboxStateRecord({
-      info: convo.info,
-      conversationIDKey: conversationIDToKey(convo.info.id),
+      info: null,
+      conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
       participants,
       muted: false, // TODO integrate this when it's available
-      time: convo.readerInfo.mtime,
-      snippet,
-      unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid, // TODO likely get this from the notifications payload miles is working on
+      time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
+      snippet: '',
+      unreadCount: convoUnverified.readerInfo && (convoUnverified.readerInfo.maxMsgid - convoUnverified.readerInfo.readMsgid),
+      validated: false,
     })
   }).filter(Boolean))
 }
@@ -307,38 +296,51 @@ const followingSelector = (state: TypedState) => state.config.following
 
 function * _loadInbox (): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
-    'keybase.1.chatUi.chatInboxUnverified',
-    'keybase.1.chatUi.chatInboxConversation',
-    'keybase.1.chatUi.chatInboxFailed',
+    'chat.1.chatUi.chatInboxUnverified',
+    'chat.1.chatUi.chatInboxConversation',
+    'chat.1.chatUi.chatInboxFailed',
   ])
 
   const loadInboxChanMap: ChannelMap<any> = localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
     param: {
       query: {
         status: Object.keys(CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => CommonConversationStatus[k]),
+        computeActiveList: true,
+        tlfVisibility: CommonTLFVisibility.private,
+        topicType: CommonTopicType.chat,
       },
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-    }
+    },
   })
 
-  while (true) {
+  const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
+
+  if (!chatInboxUnverified) {
+    throw new Error("Can't load inbox")
+  }
+
+  chatInboxUnverified.response.result()
+  const inbox: GetInboxLocalRes = chatInboxUnverified.params.inbox
+
+  const author = yield select(usernameSelector)
+  const following = yield select(followingSelector)
+  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {})
+  yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
+
+  const total = inbox.conversationsUnverified.length
+  for (let i = 0; i < total; ++i) {
     // $ForceType
     const incoming: {[key: string]: any} = yield race({
-      chatInboxUnverified: takeFromChannelMap(loadInboxChanMap, 'keybase.1.chatUi.chatInboxUnverified'),
-      chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'keybase.1.chatUi.chatInboxConversation'),
-      chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'keybase.1.chatUi.chatInboxFailed'),
+      chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
+      chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
     })
 
-    if (incoming.chatInboxUnverified) {
-      incoming.chatInboxUnverified.response()
-      const inbox: GetInboxLocalRes = incoming.chatInboxUnverified.params.inbox
-
-      const author = yield select(usernameSelector)
-      const following = yield select(followingSelector)
-      const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {})
-      yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
-    } else if (incoming.chatInboxConversation) {
+    if (incoming.chatInboxConversation) {
+      // TODO
+      incoming.chatInboxConversation.response.result()
     } else if (incoming.chatInboxFailed) {
+      // TODO
+      incoming.chatInboxFailed.response.result()
     }
   }
 }
