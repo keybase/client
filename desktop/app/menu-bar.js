@@ -1,6 +1,7 @@
 // @flow
 import hotPath from '../hot-path'
 import menubar from 'menubar'
+import {injectReactQueryParams} from '../shared/util/dev'
 import {ipcMain, systemPreferences} from 'electron'
 // $FlowIssue doens't understand symlinks
 import {isDarwin, isWindows, isLinux} from '../shared/constants/platform'
@@ -32,7 +33,7 @@ const getIcon = (invertColors) => {
 
 export default function () {
   const mb = menubar({
-    index: resolveRootAsURL('renderer', 'renderer.html?menubar'),
+    index: resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?menubar')),
     width: 320,
     height: 350,
     resizable: false,

@@ -31,6 +31,7 @@ class ConversationList extends Component<void, Props, State> {
   _list: any;
   state: State;
   _toRemeasure: List;
+  _lastWidth: ?number;
 
   constructor (props: Props) {
     super(props)
@@ -102,6 +103,7 @@ class ConversationList extends Component<void, Props, State> {
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
       this.setState({isLockedToBottom: true})
+      this._recomputeList(true)
     }
 
     // If we're not scrolling let's update our internal messages
@@ -152,7 +154,7 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled()
   }, 100)
 
-  showPopup (message: Message, event: any) {
+  _showPopup (message: Message, event: any) {
     if (message.type !== 'Text') return
     this.setState({
       selectedMessageID: message.messageID,
@@ -177,7 +179,6 @@ class ConversationList extends Component<void, Props, State> {
       style={{position: 'absolute', top: y, left: x}}
       />
     const container = document.getElementById('popupContainer')
-    // ReactDOM.render(popupComponent, event.target)
     ReactDOM.render(popupComponent, container)
   }
 
@@ -190,13 +191,22 @@ class ConversationList extends Component<void, Props, State> {
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
-    const onAction = (event) => { this.showPopup(message, event) }
+    const onAction = (event) => { this._showPopup(message, event) }
     const isSelected = this.state.selectedMessageID === message.messageID
     const isFirstNewMessage = this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
     return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected)
+  }
+
+  _recomputeListDebounced = _.debounce(() => {
+    this._recomputeList()
+  }, 300)
+
+  _recomputeList () {
+    this._cellCache.clearAllRowHeights()
+    this._list.recomputeRowHeights()
   }
 
   render () {
@@ -223,16 +233,23 @@ class ConversationList extends Component<void, Props, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
         <style>{realCSS}</style>
-        <AutoSizer>
-          {({height, width}) => (
-            <CellMeasurer
+        <AutoSizer
+          onResize={({width}) => {
+            if (width !== this._lastWidth) {
+              this._lastWidth = width
+              this._recomputeListDebounced()
+            }
+          }} >
+          {({height, width}) => {
+            return <CellMeasurer
               cellRenderer={({rowIndex, ...rest}) => this._rowRenderer({index: rowIndex, ...rest})}
               columnCount={1}
               ref={r => { this._cellMeasurer = r }}
               cellSizeCache={this._cellCache}
-              rowCount={countWithLoading} >
-              {({getRowHeight}) => (
-                <List
+              rowCount={countWithLoading}
+              width={width} >
+              {({getRowHeight}) => {
+                return <List
                   style={{outline: 'none'}}
                   height={height}
                   ref={r => { this._list = r }}
@@ -242,10 +259,11 @@ class ConversationList extends Component<void, Props, State> {
                   scrollToIndex={scrollToIndex}
                   rowCount={countWithLoading}
                   rowHeight={getRowHeight}
+                  columnWidth={width}
                   rowRenderer={this._rowRenderer} />
-              )}
+              }}
             </CellMeasurer>
-          )}
+          }}
         </AutoSizer>
         {this.props.sidePanelOpen && <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', right: 0, top: 0, bottom: 0, width: 320}}>
           <SidePanel {...this.props} />
@@ -259,7 +277,7 @@ class CellSizeCache extends defaultCellMeasurerCellSizeCache {
   _indexToID: (index: number) => ?number;
 
   constructor (indexToID) {
-    super({uniformColumnWidth: true})
+    super({uniformColumnWidth: true, uniformRowHeight: false})
     this._indexToID = indexToID
   }
 
@@ -267,16 +285,24 @@ class CellSizeCache extends defaultCellMeasurerCellSizeCache {
     return super.getRowHeight(this._indexToID(index))
   }
 
+  getColumnWidth (index) {
+    return super.getColumnWidth(this._indexToID(index))
+  }
+
   setRowHeight (index, height) {
     super.setRowHeight(this._indexToID(index), height)
   }
 
-  hasRowHeight (index) {
-    return super.hasRowHeight(this._indexToID(index))
+  setColumnWidth (index, width) {
+    super.setColumnWidth(this._indexToID(index), width)
   }
 
   clearRowHeight (index) {
-    return super.clearRowHeight(this._indexToID(index))
+    super.clearRowHeight(this._indexToID(index))
+  }
+
+  clearColumnWidth (index) {
+    super.clearColumnWidth(this._indexToID(index))
   }
 }
 

@@ -104,11 +104,12 @@ class Profile extends Component<void, Props, State> {
     return {
       header: {
         title: 'header',
-        view:
+        view: (
           <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.flexBoxCenter}}>
             <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.white}}>{platformFriendlyName(proof.type)}</Text>
             {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.white}}>Posted on {moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
-          </Box>,
+          </Box>
+        ),
       },
       items: [
         {title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`, onClick: () => this.props.onViewProof(proof)},
