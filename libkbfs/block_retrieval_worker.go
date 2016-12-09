@@ -77,7 +77,11 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	default:
 	}
 
-	return brw.getBlock(retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block)
+	err := brw.getBlock(retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block)
+	if err != nil {
+		brw.queue.Put(retrieval.blockPtr, retrieval.tlf, block, retrieval.lifetime)
+	}
+	return err
 }
 
 // Shutdown shuts down the blockRetrievalWorker once its current work is done.

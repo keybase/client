@@ -11,8 +11,10 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
+
+	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
 )
 
 const (
@@ -40,11 +42,15 @@ type blockRetrieval struct {
 	// cancel function for the context
 	cancelFunc context.CancelFunc
 
-	// protects requests
+	// protects requests and lifetime
 	reqMtx sync.RWMutex
 	// the individual requests for this block pointer: they must be notified
 	// once the block is returned
 	requests []*blockRetrievalRequest
+	// the cache lifetime for the retrieval
+	cacheLifetime BlockCacheLifetime
+	// the ID of the TLF for this retrieval
+	tlf tlf.ID
 
 	//// Queueing Metadata
 	// the index of the retrieval in the heap
@@ -68,13 +74,14 @@ type blockPtrLookup struct {
 
 // blockRetriever specifies a method for retrieving blocks asynchronously
 type blockRetriever interface {
-	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block) <-chan error
+	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
 }
 
 // blockRetrievalQueue manages block retrieval requests. Higher priority
 // requests are executed first. Requests are executed in FIFO order within a
 // given priority level.
 type blockRetrievalQueue struct {
+	BlockCacheSimple
 	// protects ptrs, insertionCount, and the heap
 	mtx sync.RWMutex
 	// queued or in progress retrievals
@@ -90,7 +97,9 @@ type blockRetrievalQueue struct {
 	workerQueue chan chan *blockRetrieval
 	// channel to be closed when we're done accepting requests
 	doneCh chan struct{}
-	codec  kbfscodec.Codec
+
+	// Codec for copying blocks
+	codec kbfscodec.Codec
 }
 
 var _ blockRetriever = (*blockRetrievalQueue)(nil)
@@ -98,13 +107,14 @@ var _ blockRetriever = (*blockRetrievalQueue)(nil)
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call WorkOnRequest
 // (more than numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec) *blockRetrievalQueue {
+func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec, cache BlockCacheSimple) *blockRetrievalQueue {
 	return &blockRetrievalQueue{
-		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
-		heap:        &blockRetrievalHeap{},
-		workerQueue: make(chan chan *blockRetrieval, numWorkers),
-		doneCh:      make(chan struct{}),
-		codec:       codec,
+		BlockCacheSimple: cache,
+		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
+		heap:             &blockRetrievalHeap{},
+		workerQueue:      make(chan chan *blockRetrieval, numWorkers),
+		doneCh:           make(chan struct{}),
+		codec:            codec,
 	}
 }
 
@@ -134,7 +144,7 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 }
 
 // Request submits a block request to the queue.
-func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block) <-chan error {
+func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error {
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
 	select {
@@ -166,6 +176,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 				index:          -1,
 				priority:       priority,
 				insertionOrder: brq.insertionCount,
+				cacheLifetime:  lifetime,
+				// TODO pass TLF here
 			}
 			br.ctx, br.cancelFunc = NewCoalescingContext(ctx)
 			brq.insertionCount++
@@ -186,6 +198,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			block:  block,
 			doneCh: ch,
 		})
+		if lifetime > br.cacheLifetime {
+			br.cacheLifetime = lifetime
+		}
 		br.reqMtx.Unlock()
 		// If the new request priority is higher, elevate the retrieval in the
 		// queue.  Skip this if the request is no longer in the queue (which means

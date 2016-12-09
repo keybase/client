@@ -611,29 +611,22 @@ type KeyCache interface {
 type BlockCacheLifetime int
 
 const (
+	// NoCacheEntry means that the entry will not be cached.
+	NoCacheEntry BlockCacheLifetime = iota
 	// TransientEntry means that the cache entry may be evicted at
 	// any time.
-	TransientEntry BlockCacheLifetime = iota
+	TransientEntry
 	// PermanentEntry means that the cache entry must remain until
 	// explicitly removed from the cache.
 	PermanentEntry
-	// NoCacheEntry means that the entry will not be cached.
-	NoCacheEntry
 )
 
-// BlockCache gets and puts plaintext dir blocks and file blocks into
+// BlockCacheSimple gets and puts plaintext dir blocks and file blocks into
 // a cache.  These blocks are immutable and identified by their
 // content hash.
-type BlockCache interface {
+type BlockCacheSimple interface {
 	// Get gets the block associated with the given block ID.
 	Get(ptr BlockPointer) (Block, error)
-	// CheckForKnownPtr sees whether this cache has a transient
-	// entry for the given file block, which must be a direct file
-	// block containing data).  Returns the full BlockPointer
-	// associated with that ID, including key and data versions.
-	// If no ID is known, return an uninitialized BlockPointer and
-	// a nil error.
-	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
 	// Put stores the final (content-addressable) block associated
 	// with the given block ID. If lifetime is TransientEntry,
 	// then it is assumed that the block exists on the server and
@@ -647,6 +640,19 @@ type BlockCache interface {
 	// fine, since the block should be the same.
 	Put(ptr BlockPointer, tlf tlf.ID, block Block,
 		lifetime BlockCacheLifetime) error
+}
+
+// BlockCache specifies the interface of BlockCacheSimple, and also more
+// advanced and internal methods.
+type BlockCache interface {
+	BlockCacheSimple
+	// CheckForKnownPtr sees whether this cache has a transient
+	// entry for the given file block, which must be a direct file
+	// block containing data).  Returns the full BlockPointer
+	// associated with that ID, including key and data versions.
+	// If no ID is known, return an uninitialized BlockPointer and
+	// a nil error.
+	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
 	// DeleteTransient removes the transient entry for the given
 	// pointer from the cache, as well as any cached IDs so the block
 	// won't be reused.
