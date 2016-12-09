@@ -44,7 +44,7 @@ func getMDJournalLength(t *testing.T, j *mdJournal) int {
 	return int(len)
 }
 
-func setupMDJournalTest(t *testing.T) (
+func setupMDJournalTestWithMetadataVer(t testing.TB, mdVer MetadataVer) (
 	codec kbfscodec.Codec, crypto CryptoCommon, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg singleEncryptionKeyGetter,
 	bsplit BlockSplitter, tempdir string, j *mdJournal) {
@@ -84,12 +84,20 @@ func setupMDJournalTest(t *testing.T) (
 	return codec, crypto, tlfID, signer, ekg, bsplit, tempdir, j
 }
 
-func teardownMDJournalTest(t *testing.T, tempdir string) {
+// setupMDJournalTest sets up MD journal test with defaultClientMetadataVer
+func setupMDJournalTest(t testing.TB) (
+	codec kbfscodec.Codec, crypto CryptoCommon, tlfID tlf.ID,
+	signer kbfscrypto.Signer, ekg singleEncryptionKeyGetter,
+	bsplit BlockSplitter, tempdir string, j *mdJournal) {
+	return setupMDJournalTestWithMetadataVer(t, defaultClientMetadataVer)
+}
+
+func teardownMDJournalTest(t testing.TB, tempdir string) {
 	err := os.RemoveAll(tempdir)
 	assert.NoError(t, err)
 }
 
-func makeMDForTest(t *testing.T, tlfID tlf.ID, revision MetadataRevision,
+func makeMDForTest(t testing.TB, tlfID tlf.ID, revision MetadataRevision,
 	uid keybase1.UID, signer kbfscrypto.Signer, prevRoot MdID) *RootMetadata {
 	nug := testNormalizedUsernameGetter{
 		uid: "fake_username",
@@ -112,7 +120,7 @@ func makeMDForTest(t *testing.T, tlfID tlf.ID, revision MetadataRevision,
 	return md
 }
 
-func putMDRange(t *testing.T, tlfID tlf.ID, signer kbfscrypto.Signer,
+func putMDRange(t testing.TB, tlfID tlf.ID, signer kbfscrypto.Signer,
 	ekg encryptionKeyGetter, bsplit BlockSplitter,
 	firstRevision MetadataRevision, firstPrevRoot MdID, mdCount int,
 	j *mdJournal) MdID {
@@ -160,6 +168,44 @@ func checkIBRMDRange(t *testing.T, uid keybase1.UID,
 		err := ibrmds[i-1].CheckValidSuccessor(
 			prevID, ibrmds[i])
 		require.NoError(t, err)
+	}
+}
+
+func BenchmarkMDJournalBasicMDv2(b *testing.B) {
+	_, _, id, signer, ekg, bsplit, tempdir, j :=
+		setupMDJournalTestWithMetadataVer(b, InitialExtraMetadataVer)
+	defer teardownMDJournalTest(b, tempdir)
+
+	mdCount := 500
+	revision := MetadataRevision(10)
+	prevRoot := fakeMdID(1)
+
+	b.ResetTimer()
+	defer b.StopTimer()
+
+	for i := 0; i < b.N; i++ {
+		prevRoot = putMDRange(b, id, signer, ekg, bsplit,
+			revision, prevRoot, mdCount, j)
+		revision += MetadataRevision(mdCount)
+	}
+}
+
+func BenchmarkMDJournalBasicMDv3(b *testing.B) {
+	_, _, id, signer, ekg, bsplit, tempdir, j :=
+		setupMDJournalTestWithMetadataVer(b, SegregatedKeyBundlesVer)
+	defer teardownMDJournalTest(b, tempdir)
+
+	mdCount := 500
+	revision := MetadataRevision(10)
+	prevRoot := fakeMdID(1)
+
+	b.ResetTimer()
+	defer b.StopTimer()
+
+	for i := 0; i < b.N; i++ {
+		prevRoot = putMDRange(b, id, signer, ekg, bsplit,
+			revision, prevRoot, mdCount, j)
+		revision += MetadataRevision(mdCount)
 	}
 }
 
