@@ -123,7 +123,7 @@ helpers.rootLinuxNode(env, {
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                             ]) {
                                 dir("shared") {
-                                    sh "yarn install --pure-lockfile"
+                                    sh "yarn install --pure-lockfile --verbose"
                                     sh "yarn run flow"
                                     sh "yarn run eslint"
                                     sh "yarn test"
