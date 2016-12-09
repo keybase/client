@@ -617,6 +617,8 @@ const (
 	// PermanentEntry means that the cache entry must remain until
 	// explicitly removed from the cache.
 	PermanentEntry
+	// NoCacheEntry means that the entry will not be cached.
+	NoCacheEntry
 )
 
 // BlockCache gets and puts plaintext dir blocks and file blocks into
