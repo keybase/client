@@ -807,7 +807,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 	case fetchModeHTML:
 		if ins.Into != "" {
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"JSON fetch must not specify 'into' register")
+				"HTML fetch must not specify 'into' register")
 		}
 		res, err1 := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(from))
 		if err1 != nil {
