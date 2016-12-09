@@ -293,9 +293,9 @@ export type SessionID = number
 export type SessionIDKey = string // used in our maps, really converted to a string key
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void
 export type ResponseType = {
-  cancel: (...args: Array<any>) => void,
-  result: (...args: Array<any>) => void,
-  error: (...args: Array<any>) => void,
+  cancel(...args: Array<any>): void,
+  result(...args: Array<any>): void,
+  error(...args: Array<any>): void,
 }
 
 let engine

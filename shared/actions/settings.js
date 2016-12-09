@@ -82,7 +82,6 @@ function loadSettings (): LoadSettings {
 
 function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
   try {
-    // $ForceType
     const {hasServerKeys} = yield call(accountHasServerKeysRpcPromise)
     yield put(_onUpdatedPGPSettings(hasServerKeys))
   } catch (error) {
