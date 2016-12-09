@@ -596,7 +596,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 }
 
 function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
-  // If we're switching to a badged conversation, unbadge it.
+  // Update gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
   const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
   const conversationState = yield select(conversationStateSelector)
@@ -610,9 +610,8 @@ function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
 }
 
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
+  // Update badging and the latest message due to the refocus.
   const appFocused = action.payload
-  // Reselect the current Chat conversation, to give badging a chance to
-  // update based on the focus change.
   const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
   const conversationIDKey = yield select(selectedSelector)
   const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
