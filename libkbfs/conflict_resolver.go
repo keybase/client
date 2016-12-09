@@ -610,25 +610,19 @@ type createMapKey struct {
 // the given file.  It will return an error if called with a pointer
 // that doesn't represent a file.
 func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
-	lState *lockState, original BlockPointer, unmergedChains *crChains,
-	currPath path, op op) error {
-	mostRecent, err := unmergedChains.mostRecentFromOriginalOrSame(original)
-	if err != nil {
-		return err
-	}
-	// For files with indirect pointers, and all child blocks
+	lState *lockState, unmergedChains *crChains, currPath path, op op) error {
+	// For files with indirect pointers, add all child blocks
 	// as refblocks for the re-created file.
-	fblock, err := cr.fbo.blocks.GetFileBlockForReading(ctx, lState,
-		unmergedChains.mostRecentChainMDInfo.kmd,
-		mostRecent, currPath.Branch, currPath)
+	infos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
+		ctx, lState, unmergedChains.mostRecentChainMDInfo.kmd, currPath)
 	if err != nil {
 		return err
 	}
-	if fblock.IsInd {
+	if len(infos) > 0 {
 		cr.log.CDebugf(ctx, "Adding child pointers for recreated "+
 			"file %s", currPath)
-		for _, ptr := range fblock.IPtrs {
-			op.AddRefBlock(ptr.BlockPointer)
+		for _, info := range infos {
+			op.AddRefBlock(info.BlockPointer)
 		}
 	}
 	return nil
@@ -756,7 +750,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 
 		if co.Type != Dir {
 			err = cr.addChildBlocksIfIndirectFile(ctx, lState,
-				currOriginal, unmergedChains, currPath, co)
+				unmergedChains, currPath, co)
 			if err != nil {
 				return path{}, BlockPointer{}, nil, err
 			}
@@ -2071,6 +2065,27 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	return dblock, nil
 }
 
+func (cr *ConflictResolver) newFileData(lState *lockState,
+	file path, uid keybase1.UID, kmd KeyMetadata,
+	dirtyBcache DirtyBlockCache) *fileData {
+	return newFileData(file, uid, cr.config.Crypto(),
+		cr.config.BlockSplitter(), kmd,
+		// We shouldn't ever be fetching dirty blocks during a successful
+		// conflict resolution.
+		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+			file path, rtype blockReqType) (*FileBlock, bool, error) {
+			block, err := cr.fbo.blocks.GetFileBlockForReading(
+				ctx, lState, kmd, ptr, file.Branch, file)
+			if err != nil {
+				return nil, false, err
+			}
+			return block, false, nil
+		},
+		func(ptr BlockPointer, block Block) error {
+			return dirtyBcache.Put(cr.fbo.id(), ptr, cr.fbo.branch(), block)
+		}, cr.log)
+}
+
 // fileBlockMap maps latest merged block pointer to a map of final
 // merged name -> file block.
 type fileBlockMap map[BlockPointer]map[string]*FileBlock
@@ -2080,43 +2095,36 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	name string, ptr BlockPointer, blocks fileBlockMap) (
 	BlockPointer, error) {
 	kmd := chains.mostRecentChainMDInfo.kmd
-	fblock, err := cr.fbo.blocks.GetFileBlockForReading(
-		ctx, lState, kmd, ptr, parentPath.Branch,
-		parentPath.ChildPath(name, ptr))
-	if err != nil {
-		return BlockPointer{}, err
-	}
-	fblock, err = fblock.DeepCopy(cr.config.Codec())
-	if err != nil {
-		return BlockPointer{}, err
-	}
-	newPtr := ptr
 	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return BlockPointer{}, err
 	}
-	if fblock.IsInd {
-		newID, err := cr.config.Crypto().MakeTemporaryBlockID()
-		if err != nil {
-			return BlockPointer{}, err
-		}
-		newPtr = BlockPointer{
-			ID:      newID,
-			KeyGen:  kmd.LatestKeyGeneration(),
-			DataVer: cr.config.DataVersion(),
-			BlockContext: BlockContext{
-				Creator:  uid,
-				RefNonce: ZeroBlockRefNonce,
-			},
-		}
-	} else {
-		newPtr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
-		if err != nil {
-			return BlockPointer{}, err
-		}
-		newPtr.SetWriter(uid)
+
+	dirtyBcache := simpleDirtyBlockCacheStandard()
+	// Simple dirty bcaches don't need to be shut down.
+
+	file := parentPath.ChildPath(name, ptr)
+	fd := cr.newFileData(lState, file, uid, kmd, dirtyBcache)
+	oldInfos, err := fd.getIndirectFileBlockInfos(ctx)
+	if err != nil {
+		return BlockPointer{}, err
 	}
-	cr.log.CDebugf(ctx, "Deep copying file %s: %v -> %v", name, ptr, newPtr)
+
+	newPtr, allChildPtrs, err := fd.deepCopy(
+		ctx, cr.config.Codec(), cr.config.DataVersion())
+	if err != nil {
+		return BlockPointer{}, err
+	}
+
+	block, err := dirtyBcache.Get(cr.fbo.id(), newPtr, cr.fbo.branch())
+	if err != nil {
+		return BlockPointer{}, err
+	}
+	fblock, isFileBlock := block.(*FileBlock)
+	if !isFileBlock {
+		return BlockPointer{}, NotFileBlockError{ptr, cr.fbo.branch(), file}
+	}
+
 	// Mark this as having been created during this chain, so that
 	// later during block accounting we can infer the origin of the
 	// block.
@@ -2130,32 +2138,24 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	newlyCreated := chains.isCreated(original)
 	if newlyCreated {
 		chains.toUnrefPointers[original] = true
+		for _, oldInfo := range oldInfos {
+			chains.toUnrefPointers[oldInfo.BlockPointer] = true
+		}
 	}
 
 	if _, ok := blocks[mergedMostRecent]; !ok {
 		blocks[mergedMostRecent] = make(map[string]*FileBlock)
 	}
 
-	// Dup all of the leaf blocks.
-	// TODO: deal with multiple levels of indirection.
-	if fblock.IsInd {
-		for i, iptr := range fblock.IPtrs {
-			if newlyCreated {
-				chains.toUnrefPointers[iptr.BlockPointer] = true
-			}
-
-			// Generate a new nonce for each one.
-			iptr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
-			if err != nil {
-				return BlockPointer{}, err
-			}
-			iptr.SetWriter(uid)
-			fblock.IPtrs[i] = iptr
-			chains.createdOriginals[iptr.BlockPointer] = true
-		}
+	for _, childPtr := range allChildPtrs {
+		chains.createdOriginals[childPtr] = true
 	}
 
 	blocks[mergedMostRecent][name] = fblock
+	// TODO: when we support multiple levels of indirection, for any
+	// mid-level indirect blocks in allChildPtrs, save the
+	// corresponding dirty block to some structure where it will later
+	// be added to the blockPutState and written to the server.
 	return newPtr, nil
 }
 
@@ -2374,8 +2374,15 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 					// in this branch, just use the create op.
 					op = chains.copyOpAndRevertUnrefsToOriginals(cop)
 					if cop.Type != Dir {
-						err := cr.addChildBlocksIfIndirectFile(ctx, lState,
-							renameOriginal, chains, cop.getFinalPath(), op)
+						renameMostRecent, err :=
+							chains.mostRecentFromOriginalOrSame(renameOriginal)
+						if err != nil {
+							return nil, err
+						}
+
+						err = cr.addChildBlocksIfIndirectFile(ctx, lState,
+							chains, cop.getFinalPath().ChildPath(
+								cop.NewName, renameMostRecent), op)
 						if err != nil {
 							return nil, err
 						}
@@ -2832,41 +2839,42 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 
 		var childBps *blockPutState
 		if entryType != Dir && fblock.IsInd {
-			childBps = newBlockPutState(len(fblock.IPtrs))
+			childBps = newBlockPutState(1)
 			// For an indirect file block, make sure a new
 			// reference is made for every child block.
-			for i, iptr := range fblock.IPtrs {
-				// If journaling is enabled, new references aren't
-				// supported.  We have to fetch each block and ready
-				// it.  TODO: remove this when KBFS-1149 is fixed.
-				//
-				// TODO: parallelize the block fetches.
-				if TLFJournalEnabled(cr.config, cr.fbo.id()) {
-					cr.log.CDebugf(ctx, "Duplicating data from child block %v",
-						iptr.BlockPointer)
-					childBlock, err := cr.fbo.blocks.GetFileBlockForReading(
-						ctx, lState,
-						unmergedChains.mostRecentChainMDInfo.kmd,
-						iptr.BlockPointer, node.mergedPath.Branch,
-						node.mergedPath)
-					if err != nil {
-						return nil, err
-					}
-					info, _, readyBlockData, err := ReadyBlock(
-						ctx, cr.config.BlockCache(), cr.config.BlockOps(),
-						cr.config.Crypto(), newMD.ReadOnly(), childBlock, uid)
-					if err != nil {
-						return nil, err
-					}
-					fblock.IPtrs[i].BlockInfo = info
-					childBps.addNewBlock(info.BlockPointer, childBlock,
-						readyBlockData, nil)
-					newMD.AddRefBlock(info)
-				} else {
-					childBps.addNewBlock(iptr.BlockPointer, nil,
-						ReadyBlockData{}, nil)
-					newMD.AddRefBlock(iptr.BlockInfo)
+
+			dirtyBcache := simpleDirtyBlockCacheStandard()
+			// Simple dirty bcaches don't need to be shut down.
+
+			fd := cr.newFileData(
+				lState, node.mergedPath, uid, newMD.ReadOnly(), dirtyBcache)
+			var infos []BlockInfo
+			var err error
+
+			// If journaling is enabled, new references aren't
+			// supported.  We have to fetch each block and ready
+			// it.  TODO: remove this when KBFS-1149 is fixed.
+			if TLFJournalEnabled(cr.config, cr.fbo.id()) {
+				infos, err = fd.undupChildrenInCopy(
+					ctx, cr.config.BlockCache(), cr.config.BlockOps(),
+					childBps, fblock)
+				if err != nil {
+					return nil, err
 				}
+			} else {
+				infos, err = fd.getIndirectFileBlockInfosWithTopBlock(
+					ctx, fblock)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, info := range infos {
+					childBps.addNewBlock(info.BlockPointer, nil,
+						ReadyBlockData{}, nil)
+				}
+			}
+			for _, info := range infos {
+				newMD.AddRefBlock(info)
 			}
 		}
 
