@@ -639,14 +639,14 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   const selectedConversationIDKey = yield select(selectedSelector)
   const windowFocused = yield select(windowFocusedSelector)
 
-  const newConversations = _.filter(conversations, conv => {
+  const newConversations = _.reduce(conversations, (acc, conv) => {
     // Badge this conversation if it's unread and either the app doesn't have
     // focus (so the user didn't see the message) or the conversation isn't
     // selected (same).
     const unread = conv.UnreadMessages > 0
     const selected = (conversationIDToKey(conv.convID) === selectedConversationIDKey)
-    return unread && (!selected || !windowFocused)
-  }).length
+    return (unread && (!selected || !windowFocused)) ? acc + 1 : acc
+  }, 0)
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
