@@ -108,9 +108,9 @@ func GetDefaultMetadataVersion(ctx Context) MetadataVer {
 	case libkb.StagingRunMode:
 		return SegregatedKeyBundlesVer
 	case libkb.ProductionRunMode:
-		return SegregatedKeyBundlesVer
+		return InitialExtraMetadataVer
 	default:
-		return SegregatedKeyBundlesVer
+		return InitialExtraMetadataVer
 	}
 }
 
