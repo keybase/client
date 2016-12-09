@@ -42,8 +42,8 @@ class UsernameEmailForm extends Component {
 // $FlowIssue type this connector
 export default connect(
   state => ({
-    usernameErrorText: state.signup.usernameError,
-    emailErrorText: state.signup.emailError,
+    usernameErrorText: state.signup.usernameError && state.signup.usernameError.message,
+    emailErrorText: state.signup.emailError && state.signup.emailError.message,
     username: state.signup.username,
     email: state.signup.email,
     waiting: state.signup.waiting,

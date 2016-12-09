@@ -14,14 +14,14 @@ cache_go_lib=${CACHE_GO_LIB:-}
 cd "$rn_dir"
 
 if [ ! "$cache_npm" = "1" ]; then
-  ../packaging/npm_mess.sh
-  npm install -g react-native-cli
+  yarn install --pure-lockfile
+  yarn global add react-native-cli
 fi
 
 
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"
-  npm run gobuild-android
+  yarn run gobuild-android
 fi
 
 # We can't currently automate this :(, we used to be able to `echo y | android update ...` but that no longer works

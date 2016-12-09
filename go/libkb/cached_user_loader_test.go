@@ -1,12 +1,15 @@
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+// There are two test files by this name. One in libkb, one in engine.
+
 package libkb
 
 import (
+	"testing"
+
 	"github.com/jonboulle/clockwork"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"testing"
 )
 
 func TestCachedUserLoad(t *testing.T) {
@@ -60,7 +63,7 @@ func TestCachedUserLoad(t *testing.T) {
 	}
 }
 
-func TesetCheckKIDForUID(t *testing.T) {
+func TestCheckKIDForUID(t *testing.T) {
 	tc := SetupTest(t, "CheckKIDForUID", 1)
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.SetClock(fakeClock)

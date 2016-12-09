@@ -18,6 +18,7 @@ type CommonProps = {
   backgroundColor?: string,
   opacity?: number,
   children?: any,
+  onAvatarLoaded?: () => void,
 }
 
 export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)

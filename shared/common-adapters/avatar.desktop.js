@@ -58,12 +58,12 @@ class Avatar extends PureComponent<void, Props, State> {
             ...avatarStyle,
             ...borderStyle,
             display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
-            backgroundColor: globalColors.white,
+            backgroundColor: this.props.backgroundColor || globalColors.white,
             opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
             backgroundClip: 'padding-box',
           }}
-          onError={() => this.setState({errored: true})}
-          onLoad={() => this.setState({avatarLoaded: true})} />
+          onError={() => { this.setState({errored: true}); this.props.onAvatarLoaded && this.props.onAvatarLoaded() }}
+          onLoad={() => { this.setState({avatarLoaded: true}); this.props.onAvatarLoaded && this.props.onAvatarLoaded() }} />
         <div>
           {size > 16 && (this.props.following || this.props.followsYou) &&
             <div>

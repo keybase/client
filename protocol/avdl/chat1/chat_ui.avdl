@@ -11,4 +11,8 @@ protocol chatUi {
   void chatAttachmentDownloadStart(int sessionID);	
   void chatAttachmentDownloadProgress(int sessionID, int bytesComplete, int bytesTotal);     
   void chatAttachmentDownloadDone(int sessionID);	
+
+  void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
+  void chatInboxConversation(int sessionID, ConversationLocal conv);
+  void chatInboxFailed(int sessionID, ConversationID convID, string error);
 }

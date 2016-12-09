@@ -72,6 +72,7 @@ class BioRender extends Component<void, Props, void> {
               style={globalStyles.clickable}
               url={userInfo.avatar}
               size={avatarSize}
+              onAvatarLoaded={this.props.onAvatarLoaded}
               following={currentlyFollowing && !editFns}
               followsYou={followsYou && !editFns} />
             {editFns &&

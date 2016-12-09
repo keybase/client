@@ -17,7 +17,7 @@ class LoginRender extends Component<void, Props, void> {
     }
 
     const checkboxProps = [
-      {label: 'Show Typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }},
+      {label: 'Show typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }},
     ]
 
     return (
@@ -41,7 +41,7 @@ class LoginRender extends Component<void, Props, void> {
             type='Primary'
             label='Log in'
             onClick={() => this.props.onSubmit()} />
-          <Text link={true} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: globalMargins.medium}}>Forgot passphrase?</Text>
+          <Text link={true} type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: globalMargins.medium}}>Forgot passphrase?</Text>
         </UserCard>
         <Text style={{marginTop: 30}} type='BodyPrimaryLink' onClick={this.props.onSignup}>Create an account</Text>
       </Box>

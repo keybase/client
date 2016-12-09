@@ -129,7 +129,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		}
 		if msg == nil {
 			// Skip conversations with no TEXT messages.
-			g.Log.Debug("Skipped conversation with no TEXT: %v", conv.Info.Id)
+			g.Log.Warning("Skipped conversation with no TEXT: %v", conv.Info.Id)
 			continue
 		}
 

@@ -72,8 +72,11 @@ func doUninstallAction(uninst string, list bool, log *log.Logger) int {
 }
 
 func removeKeybaseStartupShortcuts() {
+	// APPDATA is legacy - remove this after a few releases
 	os.Remove(os.ExpandEnv("$APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk"))
 	os.Remove(os.ExpandEnv("$APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk"))
+	os.Remove(os.ExpandEnv("$LOCALAPPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk"))
+	os.Remove(os.ExpandEnv("$LOCALAPPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk"))
 }
 
 // Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library".

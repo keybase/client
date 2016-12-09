@@ -22,7 +22,7 @@ class UsernameEmailFormRender extends Component {
 }
 
 const stylesOuter = {
-  backgroundColor: globalColors.black_10,
+  backgroundColor: globalColors.white,
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,

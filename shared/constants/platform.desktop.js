@@ -38,7 +38,7 @@ const envedPathWin32 = {
 const socketName = 'keybased.sock'
 
 function win32SocketDialPath (): string {
-  let appdata = getenv('APPDATA', '')
+  let appdata = getenv('LOCALAPPDATA', '')
   // Remove leading drive letter e.g. C:
   if (/^[a-zA-Z]:/.test(appdata)) {
     appdata = appdata.slice(2)
@@ -77,7 +77,7 @@ function findDataRoot (): string {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`,
     'linux': `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`,
-    'win32': `${getenv('APPDATA', '')}\\Keybase\\`,
+    'win32': `${getenv('LOCALAPPDATA', '')}\\Keybase\\`,
   }
 
   return paths[process.platform]
@@ -87,7 +87,7 @@ function logFileName (): string {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`,
     'linux': null, // linux is null because we can redirect stdout
-    'win32': `${getenv('APPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`,
+    'win32': `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`,
   }
 
   return paths[process.platform]

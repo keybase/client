@@ -20,7 +20,7 @@ if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
 fi
 
 # Ensure we have packaging tools
-npm install
+yarn install --pure-lockfile
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
@@ -31,8 +31,6 @@ comment=""
 keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
-
-updater_version=`$updater_binpath -version`
 
 icon_path="$client_dir/media/icons/Keybase.icns"
 
@@ -149,8 +147,8 @@ get_deps() {(
 package_electron() {(
   cd "$client_dir/desktop"
 
-  ../packaging/npm_mess.sh
-  npm run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
+  yarn install --pure-lockfile
+  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
   rsync -av release/darwin-x64/Keybase-darwin-x64 "$build_dir"
 
   # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4

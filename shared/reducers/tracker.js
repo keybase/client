@@ -116,7 +116,7 @@ function dedupeProofs (proofs: Array<Proof>): Array<Proof> {
   return _.uniqBy(proofs, 'id')
 }
 
-function updateUserState (state: TrackerState, action: Action): TrackerState {
+function updateUserState (username: string, state: TrackerState, action: Action): TrackerState {
   switch (action.type) {
     case Constants.identifyStarted:
       return {...state, error: null}
@@ -220,7 +220,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         proofs: dedupeProofs([
           ...state.proofs,
           ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
-          ...(identity.proofs || []).map(rp => remoteProofToProof(checking, rp.proof)),
+          ...(identity.proofs || []).map(rp => remoteProofToProof(username, checking, rp.proof)),
         ]),
       }
 
@@ -308,7 +308,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const lcr: LinkCheckResult = action.payload.linkCheckResult
       return {
         ...state,
-        proofs: updateProof(state.proofs, rp, lcr),
+        proofs: updateProof(username, state.proofs, rp, lcr),
       }
 
     case Constants.updateUserInfo:
@@ -434,7 +434,7 @@ export default function (state: State = initialState, action: Action): State {
   }
 
   if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'tracker') {
-    const newTrackerState = updateUserState(trackerOrNonUserState, action)
+    const newTrackerState = updateUserState(userKey, trackerOrNonUserState, action)
     if (newTrackerState === trackerOrNonUserState) {
       return state
     }
@@ -666,11 +666,11 @@ function revokedProofToProof (rv: RevokedProof): Proof {
   }
 }
 
-function remoteProofToProof (oldProofState: SimpleProofState, rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
+function remoteProofToProof (username: string, oldProofState: SimpleProofState, rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || oldProofState
   const isTracked = !!(lcr && lcr.diff && lcr.diff.type === IdentifyCommonTrackDiffType.none && !lcr.breaksTracking)
   const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult, isTracked)
-  const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
+  const humanUrl = ((rp.key !== 'dns') && lcr && lcr.hint && lcr.hint.humanUrl) || `https://keybase.io/${username}/sigchain#${rp.sigID}`
 
   return {
     state: proofState,
@@ -686,18 +686,18 @@ function remoteProofToProof (oldProofState: SimpleProofState, rp: RemoteProof, l
   }
 }
 
-function updateProof (proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResult): Array<Proof> {
+function updateProof (username: string, proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResult): Array<Proof> {
   let found = false
   let updated = proofs.map(proof => {
     if (proof.id === rp.sigID) {
       found = true
-      return remoteProofToProof(proof.state, rp, lcr)
+      return remoteProofToProof(username, proof.state, rp, lcr)
     }
     return proof
   })
 
   if (!found) {
-    updated.push(remoteProofToProof(checking, rp, lcr))
+    updated.push(remoteProofToProof(username, checking, rp, lcr))
   }
 
   return updated

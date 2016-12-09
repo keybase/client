@@ -86,6 +86,7 @@ type GlobalContext struct {
 	GregorListener   GregorListener            // for alerting about clients connecting and registering UI protocols
 	OutOfDateInfo    keybase1.OutOfDateInfo    // Stores out of date messages we got from API server headers.
 	CachedUserLoader *CachedUserLoader         // Load flat users with the ability to hit the cache
+	UserDeviceCache  *UserDeviceCache          // Cache user and device names forever
 
 	CardCache *UserCardCache // cache of keybase1.UserCard objects
 
@@ -108,6 +109,7 @@ func (g *GlobalContext) GetAPI() API                            { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI            { return g.XAPI }
 func (g *GlobalContext) GetServerURI() string                   { return g.Env.GetServerURI() }
 func (g *GlobalContext) GetCachedUserLoader() *CachedUserLoader { return g.CachedUserLoader }
+func (g *GlobalContext) GetUserDeviceCache() *UserDeviceCache   { return g.UserDeviceCache }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -136,7 +138,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
 	g.CachedUserLoader = NewCachedUserLoader(g, CachedUserTimeout)
-
+	g.UserDeviceCache = NewUserDeviceCache(g)
 	return g
 }
 
@@ -238,8 +240,12 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 }
 
 func (g *GlobalContext) ConfigureConfig() error {
+	err := RemoteSettingsRepairman(g)
+	if err != nil {
+		return err
+	}
 	c := NewJSONConfigFile(g, g.Env.GetConfigFilename())
-	err := c.Load(false)
+	err = c.Load(false)
 	if err != nil {
 		return err
 	}

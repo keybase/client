@@ -90,6 +90,49 @@
         }
       ],
       "response": null
+    },
+    "chatInboxUnverified": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "inbox",
+          "type": "GetInboxLocalRes"
+        }
+      ],
+      "response": null
+    },
+    "chatInboxConversation": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conv",
+          "type": "ConversationLocal"
+        }
+      ],
+      "response": null
+    },
+    "chatInboxFailed": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "error",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

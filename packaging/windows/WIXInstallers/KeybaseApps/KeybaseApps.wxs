@@ -16,7 +16,7 @@
                       Type="raw" />
     </Property>
     
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />		
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
 		<Feature Id="ProductFeature" Title="Keybase Application" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
@@ -30,11 +30,13 @@
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="StopUpdater" Before="InstallValidate"/>
+      <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
+      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"/>
+      <Custom Action="StopMainAppRoaming" Before="StopGUI"/>
       <Custom Action="StopMainApp" Before="StopGUI"/>
       <Custom Action="StopGUI" Before="InstallValidate"/>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
-      
     </InstallExecuteSequence>
 
 
@@ -52,7 +54,7 @@
   </Product>
   <Fragment>
 		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="AppDataFolder">
+			<Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="Keybase">
           <Directory Id="PROMPTERFOLDER" Name="prompter"/>
         </Directory>
@@ -62,8 +64,12 @@
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
       <Directory Id="SystemFolder" Name="System" />
+      <Directory Id="AppDataFolder">
+        <Directory Id="ROAMINGINSTALLFOLDER" Name="Keybase">
+        </Directory>
+      </Directory>
     </Directory>
-	</Fragment>
+  </Fragment>
   
 	<Fragment>
 		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
@@ -74,6 +80,7 @@
         and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiSharedDirRemove" On="uninstall" Directory="GuiSharedDir"/>
+        <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -215,6 +222,20 @@
     <CustomAction Id="StopUpdater"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopMainAppRoaming"
+              Directory="ROAMINGINSTALLFOLDER"
+              ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopUpdaterRoaming"
+              Directory="ROAMINGINSTALLFOLDER"
+              ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>

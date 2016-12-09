@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
 	istorage "github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -278,6 +277,15 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 		if _, err := g.replayInBandMessages(context.TODO(), gregor1.IncomingClient{Cli: g.cli},
 			time.Time{}, handler); err != nil {
 			g.Errorf("replayInBandMessages on PushHandler failed: %s", err)
+		}
+
+		if g.badger != nil {
+			s, err := g.getState()
+			if err != nil {
+				g.Warning("Cannot get state in PushHandler: %s", err)
+				return
+			}
+			g.badger.PushState(s)
 		}
 	}
 }
@@ -997,7 +1005,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		// We need to get this conversation and then localize it
 		var inbox chat.Inbox
 		tlf := newTlfHandler(nil, g.G())
-		boxer := chat.NewBoxer(g.G(), tlf, utils.NewUserDeviceCache(g.G()))
+		boxer := chat.NewBoxer(g.G(), tlf)
 		inboxSource := chat.NewRemoteInboxSource(g.G(), boxer,
 			func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: g.cli} },
 			func() keybase1.TlfInterface { return tlf })
