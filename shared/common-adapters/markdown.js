@@ -1,11 +1,13 @@
 // @flow
 
 import Text from './text'
+import {emojiIndex} from 'emoji-mart'
 import Emoji from './emoji'
 import React, {PureComponent} from 'react'
 import {List} from 'immutable'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
+import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
 import type {PropsOf} from '../constants/types/more'
 
@@ -55,13 +57,23 @@ const markToRegex = {
   ':': ':',
 }
 
+const plainStringTag = {Component: Text, props: {type: 'Body', style: {color: undefined}}}
+
+class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
+  render () {
+    const emoji = this.props.children && this.props.children.join('')
+    const exists = emojiIndex.emojis.hasOwnProperty(emoji)
+    return exists ? <Emoji {...this.props} /> : <Text {...plainStringTag.props}>:{emoji}:</Text>
+  }
+}
+
 const initialOpenToTag = {
   '`': {Component: Text, props: {type: 'Body', style: codeSnippetStyle}},
   '```': {Component: Text, props: {type: 'Body', style: codeSnippetBlockStyle}},
   '*': {Component: Text, props: {type: 'BodySemibold', style: {color: undefined}}},
   '_': {Component: Text, props: {type: 'Body', style: {fontStyle: 'italic', fontWeight: undefined, color: undefined}}},
   '~': {Component: Text, props: {type: 'Body', style: {textDecoration: 'line-through', fontWeight: undefined, color: undefined}}},
-  ':': {Component: Emoji, props: {size: 16}},
+  ':': {Component: EmojiIfExists, props: {size: 16}},
 }
 
 const openToNextOpenToTag = {
@@ -73,13 +85,11 @@ const openToNextOpenToTag = {
   ':': {},
 }
 
-const plainStringTag = {Component: Text, props: {type: 'Body', style: {color: undefined}}}
-
 type TagMeta = {
   componentInfo: {Component: ReactClass<*>, props: Object},
   textSoFar: string,
   elementsSoFar: List<React$Element<*> | string>,
-  openToTag: {[key: string]: TagInfo<Text> | TagInfo<Emoji>},
+  openToTag: {[key: string]: TagInfo<Text> | TagInfo<EmojiIfExists>},
   closingTag: ?string,
 }
 
