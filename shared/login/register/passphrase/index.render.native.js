@@ -13,7 +13,7 @@ class PassphraseRender extends Component<void, Props, void> {
     return (
       <Container
         style={stylesContainer}
-        outerStyle={{backgroundColor: globalColors.lightGrey, padding: 0}}
+        outerStyle={{backgroundColor: globalColors.white, padding: 0}}
         onBack={this.props.onBack}>
         <UserCard style={stylesCard} username={this.props.username}>
           <Text type='HeaderBig' style={{color: globalColors.orange, ...usernameStyle}}>{this.props.username}</Text>
@@ -38,7 +38,7 @@ class PassphraseRender extends Component<void, Props, void> {
             type='Primary'
             onClick={this.props.onSubmit}
             enabled={this.props.passphrase && this.props.passphrase.length} />
-          <Text style={stylesForgot} type='BodyPrimaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
+          <Text style={stylesForgot} type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
         </UserCard>
       </Container>
     )

@@ -80,7 +80,7 @@ const stylesIcon = {
 }
 const stylesWont = {
   marginTop: 10,
-  alignSelf: 'flex-end',
+  alignSelf: 'center',
 }
 
 export default Render

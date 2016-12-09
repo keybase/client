@@ -3,7 +3,7 @@ import Container from '../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './request-invite.render'
 import {Box, Text, Icon, Input, Button} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalStyles, globalMargins} from '../../styles'
 
 class RequestInviteRender extends Component<void, Props, void> {
   render () {
@@ -57,7 +57,7 @@ const stylesBox = {
 }
 
 const stylesHeader = {
-  marginTop: 30,
+  marginTop: globalMargins.medium,
 }
 const stylesIcon = {
   marginTop: 55 - 11,
