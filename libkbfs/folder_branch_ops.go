@@ -1234,7 +1234,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	md.loadCachedBlockChanges(bps)
+	md.loadCachedBlockChanges(ctx, bps)
 
 	err = fbo.finalizeBlocks(bps)
 	if err != nil {
@@ -2218,7 +2218,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 	}
 
-	md.loadCachedBlockChanges(bps)
+	md.loadCachedBlockChanges(ctx, bps)
 
 	err = fbo.finalizeBlocks(bps)
 	if err != nil {
@@ -2334,7 +2334,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 	}
 
-	md.loadCachedBlockChanges(nil)
+	md.loadCachedBlockChanges(ctx, nil)
 
 	var key kbfscrypto.VerifyingKey
 	if md.IsWriterMetadataCopiedSet() {
@@ -2389,7 +2389,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	fbo.setBranchIDLocked(lState, NullBranchID)
-	md.loadCachedBlockChanges(bps)
+	md.loadCachedBlockChanges(ctx, bps)
 
 	err = fbo.finalizeBlocks(bps)
 	if err != nil {
@@ -5031,7 +5031,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		defer fbo.config.RekeyQueue().Enqueue(md.TlfID())
 	}
 
-	md.loadCachedBlockChanges(bps)
+	md.loadCachedBlockChanges(ctx, bps)
 
 	err = fbo.finalizeBlocks(bps)
 	if err != nil {
