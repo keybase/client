@@ -106,10 +106,12 @@ func TestPassphraseRecover(t *testing.T) {
 	signup := client.NewCmdSignupRunner(tc2.G)
 	signup.SetTest()
 
+	t.Logf("Signup on tc2")
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)
 	}
 
+	t.Logf("Verify on tc")
 	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(userInfo.passphrase); err != nil {
 		t.Fatal(err)
 	}
@@ -123,18 +125,22 @@ func TestPassphraseRecover(t *testing.T) {
 	sui.info.passphrase = newPassphrase
 	recoverCmd := client.NewCmdPassphraseRecoverRunner(tc2.G)
 
+	t.Logf("Recover on tc2")
 	if err := recoverCmd.Run(); err != nil {
 		t.Fatal(err)
 	}
 
+	t.Logf("Verify on tc")
 	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase); err != nil {
 		t.Fatal(err)
 	}
 
+	t.Logf("Verify on tc")
 	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(oldPassphrase); err == nil {
 		t.Fatal("old passphrase passed verification after passphrase change")
 	}
 
+	t.Logf("Stop tc2")
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
