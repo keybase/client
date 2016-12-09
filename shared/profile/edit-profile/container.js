@@ -1,54 +1,46 @@
 // @flow
-import React, {Component} from 'react'
 import Render from '.'
+import {compose, withState, withProps, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
 
-import type {Props} from '.'
+export default compose(
+  withState('fullnameCache', 'onFullnameChange', ''),
+  withState('locationCache', 'onLocationChange', ''),
+  withState('bioCache', 'onBioChange', ''),
+  lifecycle({
+    componentWillUnmount: function () {
+      // console.log('aaaa lifecylcle unmount', this.props)
+      this.props.setRouteState({
+        fullname: this.props.fullnameCache,
+        location: this.props.locationCache,
+        bio: this.props.bioCache,
+      })
+    },
+  }),
+  // $FlowIssue TODO type this
+  connect(
+    (state, {routeState, fullnameCache, locationCache, bioCache, ...rest}) => {
+      const userInfo = state.tracker.trackers[state.config.username].userInfo
+      const bio = bioCache || routeState.bio || userInfo.bio
+      const fullname = fullnameCache || routeState.fullname || userInfo.fullname
+      const location = locationCache || routeState.location || userInfo.location
+      const props = {
+        bio,
+        fullname,
+        location,
+        bioLengthLeft: maxProfileBioChars - bio.length,
+      }
 
-class EditProfile extends Component<void, Props, void> {
-  onSubmit () {
-    this.props.onEditProfile()
-  }
-
-  render () {
-    const bioMaxChars = maxProfileBioChars
-    const bioLengthLeft = bioMaxChars - this.props.bio.length
-    return <Render
-      bio={this.props.bio}
-      bioLengthLeft={bioLengthLeft}
-      fullname={this.props.fullname}
-      location={this.props.location}
-      onBack={this.props.onBack}
-      onBioChange={this.props.onBioChange}
-      onCancel={this.props.onBack}
-      onEditProfile={this.props.onEditProfile}
-      onFullnameChange={this.props.onFullnameChange}
-      onLocationChange={this.props.onLocationChange}
-      onSubmit={() => this.onSubmit()}
-    />
-  }
-}
-
-// $FlowIssue type this connector
-export default connect(
-  (state, {routeState}) => {
-    const userInfo = state.tracker.trackers[state.config.username].userInfo
-    return ({
-      bio: routeState.bio || userInfo.bio,
-      fullname: routeState.fullname || userInfo.fullname,
-      location: routeState.location || userInfo.location,
-    })
-  },
-  (dispatch, {routeState, setRouteState}) => {
-    return {
+      // console.log('aaaa connect state', props, rest)
+      return props
+    },
+    (dispatch, {routeState, setRouteState, bioCache, fullnameCache, locationCache}) => ({
+      onCancel: () => dispatch(navigateUp()),
       onBack: () => dispatch(navigateUp()),
-      onBioChange: bio => { setRouteState({bio}) },
-      onFullnameChange: fullname => { setRouteState({fullname}) },
-      onLocationChange: location => { setRouteState({location}) },
-      onEditProfile: () => dispatch(editProfile(routeState.bio, routeState.fullname, routeState.location)),
-    }
-  }
-)(EditProfile)
+      onSubmit: () => dispatch(editProfile(bioCache, fullnameCache, locationCache)),
+    })
+  )
+)(Render)
