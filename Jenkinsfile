@@ -116,7 +116,7 @@ helpers.rootLinuxNode(env, {
                                 "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                             ]) {
-                                testNixGo("Linux")
+                                // testNixGo("Linux")
                             }},
                             test_linux_js: { withEnv([
                                 "PATH=${env.HOME}/.node/bin:${env.PATH}",
