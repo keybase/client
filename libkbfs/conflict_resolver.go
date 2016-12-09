@@ -206,13 +206,15 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 		return
 	}
 
-	cr.inputLock.Lock()
-	defer cr.inputLock.Unlock()
 	ci := conflictInput{unmerged, merged}
-	// Cancel any running CR before we return, so the caller can be
-	// confident any ongoing CR superseded by this new input will be
-	// canceled before it releases any locks it holds.
-	_ = cr.cancelExistingLocked(ci)
+	func() {
+		cr.inputLock.Lock()
+		defer cr.inputLock.Unlock()
+		// Cancel any running CR before we return, so the caller can be
+		// confident any ongoing CR superseded by this new input will be
+		// canceled before it releases any locks it holds.
+		_ = cr.cancelExistingLocked(ci)
+	}()
 
 	cr.resolveGroup.Add(1)
 	cr.inputChan <- ci
