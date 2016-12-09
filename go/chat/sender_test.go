@@ -73,8 +73,7 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	tlf := kbtest.NewTlfMock(world)
 	tc, u := getUser(world)
 	tc.G.SetService()
-	udc := utils.NewUserDeviceCache(tc.G)
-	boxer := NewBoxer(tc.G, tlf, udc)
+	boxer := NewBoxer(tc.G, tlf)
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}

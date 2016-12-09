@@ -31,25 +31,23 @@ type chatLocalHandler struct {
 	libkb.Contextified
 	gh    *gregorHandler
 	tlf   keybase1.TlfInterface
-	udc   *utils.UserDeviceCache
 	boxer *chat.Boxer
 	store *chat.AttachmentStore
 
 	// Only for testing
-	rc chat1.RemoteInterface
+	rc         chat1.RemoteInterface
+	mockChatUI libkb.ChatUI
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	tlf := newTlfHandler(nil, g)
-	udc := utils.NewUserDeviceCache(g)
 	h := &chatLocalHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
 		tlf:          tlf,
-		udc:          udc,
-		boxer:        chat.NewBoxer(g, tlf, udc),
+		boxer:        chat.NewBoxer(g, tlf),
 		store:        chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 	}
 
@@ -88,6 +86,76 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 		IdentifyFailures:        identifyFailures,
 	}, nil
+}
+
+func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
+	if h.mockChatUI != nil {
+		return h.mockChatUI
+	}
+	return h.BaseHandler.getChatUI(sessionID)
+}
+
+func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return libkb.LoginRequiredError{}
+	}
+
+	// Create localized conversation callback channel
+	chatUI := h.getChatUI(arg.SessionID)
+	localizeCb := make(chan chat.NonblockInboxResult, 1)
+
+	inboxSource := chat.NewNonblockRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
+		func() keybase1.TlfInterface { return h.tlf }, localizeCb)
+
+	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
+	_, rl, err := inboxSource.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination, arg.IdentifyBehavior)
+	if err != nil {
+		return err
+	}
+
+	// Wait for inbox to get sent to us
+	select {
+	case lres := <-localizeCb:
+		if lres.InboxRes == nil {
+			return fmt.Errorf("invalid conversation localize callback received")
+		}
+		chatUI.ChatInboxUnverified(context.Background(), chat1.ChatInboxUnverifiedArg{
+			SessionID: arg.SessionID,
+			Inbox: chat1.GetInboxLocalRes{
+				ConversationsUnverified: lres.InboxRes.ConvsUnverified,
+				Pagination:              lres.InboxRes.Pagination,
+				RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+			},
+		})
+	case <-time.After(15 * time.Second):
+		return fmt.Errorf("timeout waiting for inbox result")
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	// Consume localize callbacks and send out to UI.
+	go func() {
+		for convRes := range localizeCb {
+			if convRes.Err != nil {
+				chatUI.ChatInboxFailed(context.Background(), chat1.ChatInboxFailedArg{
+					SessionID: arg.SessionID,
+					Error:     convRes.Err.Error(),
+					ConvID:    convRes.ConvID,
+				})
+			} else if convRes.ConvRes != nil {
+				chatUI.ChatInboxConversation(context.Background(), chat1.ChatInboxConversationArg{
+					SessionID: arg.SessionID,
+					Conv:      *convRes.ConvRes,
+				})
+			}
+		}
+	}()
+
+	return nil
 }
 
 func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalArg) (chat1.MarkAsReadRes, error) {
