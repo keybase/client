@@ -25,11 +25,11 @@ function Nav (props: Props) {
           }}
         />
       }
+      <GlobalError />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {props.children}
       </Box>
       <div id='popupContainer' />
-      <GlobalError />
     </Box>
   )
 }
