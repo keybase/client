@@ -258,6 +258,7 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 	if err = RunEngine(dec, ctx); err != errTrackingBroke {
 		t.Fatalf("Expected an error %v; but got %v", errTrackingBroke, err)
 	}
+	t.Fatalf("@@@ let's see some logs :)")
 }
 
 func TestSaltpackNoEncryptionForDevice(t *testing.T) {

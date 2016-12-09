@@ -43,6 +43,7 @@ func (rc *RooterChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) (err
 		ctx.GetLog().Debug("- Rooter check hint: %v", err)
 	}()
 
+	ctx.GetLog().Debug("@@@ h.GetAPIUrl():%v", h.GetAPIURL())
 	u, perr := url.Parse(strings.ToLower(h.GetAPIURL()))
 	if perr != nil {
 		err = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
@@ -51,6 +52,8 @@ func (rc *RooterChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) (err
 	}
 	wantedMedID := rc.proof.GetSigID().ToMediumID()
 	wantedPathPrefix := libkb.APIURIPathPrefix + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
+	ctx.GetLog().Debug("@@@ wantedPathPrefix:%v", wantedPathPrefix)
+	ctx.GetLog().Debug("@@@ h.GetCheckText():%v", h.GetCheckText())
 	if !strings.HasPrefix(u.Path, wantedPathPrefix) {
 		err = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should have path prefix '%s'; got %v", wantedPathPrefix, u)
@@ -148,6 +151,7 @@ func (rc *RooterChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint)
 	}()
 
 	url, err := rc.rewriteURL(ctx, h.GetAPIURL())
+	ctx.GetLog().Debug("@@@ rewrittenUrl:%v", url)
 	if err != nil {
 		return libkb.XapiError(err, url)
 	}
