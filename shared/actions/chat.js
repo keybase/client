@@ -645,7 +645,8 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
     // selected (same).
     const unread = conv.UnreadMessages > 0
     const selected = (conversationIDToKey(conv.convID) === selectedConversationIDKey)
-    return (unread && (!selected || !windowFocused)) ? acc + 1 : acc
+    const addThisConv = (unread && (!selected || !windowFocused))
+    return addThisConv ? acc + 1 : acc
   }, 0)
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
