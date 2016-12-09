@@ -23,6 +23,11 @@ type IndirectDirPtr struct {
 
 // IndirectFilePtr pairs an indirect file block with the start of that
 // block's range of bytes (inclusive)
+//
+// If `Holes` is true, then this pointer is part of a list of pointers
+// that has non-continuous offsets; that is, the offset of ptr `i`
+// plus the length of the corresponding block contents is less than
+// the offset of ptr `i`+1.
 type IndirectFilePtr struct {
 	// When the EncodedSize field is non-zero, the block must not
 	// be dirty.

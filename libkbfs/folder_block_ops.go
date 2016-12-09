@@ -36,6 +36,9 @@ const (
 	blockRead blockReqType = iota
 	// A block write request.
 	blockWrite
+	// A block read request that is happening from a different
+	// goroutine than the blockLock rlock holder, using the same lState.
+	blockReadParallel
 )
 
 type mdToCleanIfUnused struct {
@@ -261,14 +264,21 @@ func (fbo *folderBlockOps) checkDataVersion(p path, ptr BlockPointer) error {
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
 // must be valid, either from the cache or from the server. If
 // notifyPath is valid and the block isn't cached, trigger a read
-// notification.
+// notification.  If `rtype` is `blockReadParallel`, it's assumed that
+// some coordinating goroutine is holding the correct locks, and
+// in that case `lState` must be `nil`.
 //
 // This must be called only by get{File,Dir}BlockHelperLocked().
 func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer, branch BranchName,
-	newBlock makeNewBlock, doCache bool, notifyPath path) (
+	newBlock makeNewBlock, doCache bool, notifyPath path, rtype blockReqType) (
 	Block, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
+	if rtype != blockReadParallel {
+		fbo.blockLock.AssertAnyLocked(lState)
+	} else if lState != nil {
+		panic("Non-nil lState passed to getBlockHelperLocked " +
+			"with blockReadParallel")
+	}
 
 	if !ptr.IsValid() {
 		return nil, InvalidBlockRefError{ptr.Ref()}
@@ -298,14 +308,23 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	}
 
 	// Unlock the blockLock while we wait for the network, only if
-	// it's locked for reading.  If it's locked for writing, that
-	// indicates we are performing an atomic write operation, and we
-	// need to ensure that nothing else comes in and modifies the
-	// blocks, so don't unlock.
+	// it's locked for reading by a single goroutine.  If it's locked
+	// for writing, that indicates we are performing an atomic write
+	// operation, and we need to ensure that nothing else comes in and
+	// modifies the blocks, so don't unlock.
+	//
+	// If there may be multiple goroutines fetching blocks under the
+	// same lState, we can't safely unlock since some of the other
+	// goroutines may be operating on the data assuming they have the
+	// lock.
 	var err error
-	fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
+	if rtype != blockReadParallel {
+		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
+			err = bops.Get(ctx, kmd, ptr, block)
+		})
+	} else {
 		err = bops.Get(ctx, kmd, ptr, block)
-	})
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +341,9 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 // getFileBlockHelperLocked retrieves the block pointed to by ptr,
 // which must be valid, either from an internal cache, the block
 // cache, or from the server. An error is returned if the retrieved
-// block is not a file block.
+// block is not a file block.  If `rtype` is `blockReadParallel`, it's
+// assumed that some coordinating goroutine is holding the correct
+// locks, and in that case `lState` must be `nil`.
 //
 // This must be called only by GetFileBlockForReading(),
 // getFileBlockLocked(), and getFileLocked().
@@ -331,12 +352,17 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 // notifications, and can be empty.
 func (fbo *folderBlockOps) getFileBlockHelperLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer,
-	branch BranchName, p path) (
+	branch BranchName, p path, rtype blockReqType) (
 	*FileBlock, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
+	if rtype != blockReadParallel {
+		fbo.blockLock.AssertAnyLocked(lState)
+	} else if lState != nil {
+		panic("Non-nil lState passed to getFileBlockHelperLocked " +
+			"with blockReadParallel")
+	}
 
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, kmd, ptr, branch, NewFileBlock, true, p)
+		ctx, lState, kmd, ptr, branch, NewFileBlock, true, p, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +389,7 @@ func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	return fbo.getBlockHelperLocked(ctx, lState, kmd, ptr, branch,
-		NewCommonBlock, false, path{})
+		NewCommonBlock, false, path{}, blockRead)
 }
 
 // getDirBlockHelperLocked retrieves the block pointed to by ptr, which
@@ -376,13 +402,15 @@ func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
 // p is used only when reporting errors, and can be empty.
 func (fbo *folderBlockOps) getDirBlockHelperLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer,
-	branch BranchName, p path) (*DirBlock, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
+	branch BranchName, p path, rtype blockReqType) (*DirBlock, error) {
+	if rtype != blockReadParallel {
+		fbo.blockLock.AssertAnyLocked(lState)
+	}
 
 	// Pass in an empty notify path because notifications should only
 	// trigger for file reads.
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, kmd, ptr, branch, NewDirBlock, true, path{})
+		ctx, lState, kmd, ptr, branch, NewDirBlock, true, path{}, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +437,8 @@ func (fbo *folderBlockOps) GetFileBlockForReading(ctx context.Context,
 	branch BranchName, p path) (*FileBlock, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getFileBlockHelperLocked(ctx, lState, kmd, ptr, branch, p)
+	return fbo.getFileBlockHelperLocked(
+		ctx, lState, kmd, ptr, branch, p, blockRead)
 }
 
 // GetDirBlockForReading retrieves the block pointed to by ptr, which
@@ -426,7 +455,8 @@ func (fbo *folderBlockOps) GetDirBlockForReading(ctx context.Context,
 	branch BranchName, p path) (*DirBlock, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getDirBlockHelperLocked(ctx, lState, kmd, ptr, branch, p)
+	return fbo.getDirBlockHelperLocked(
+		ctx, lState, kmd, ptr, branch, p, blockRead)
 }
 
 // getFileBlockLocked retrieves the block pointed to by ptr, which
@@ -449,21 +479,33 @@ func (fbo *folderBlockOps) GetDirBlockForReading(ctx context.Context,
 // back to the cache as dirty.
 //
 // Note that blockLock must be locked exactly when rtype ==
-// blockWrite, and must be r-locked otherwise.  (This differs from
-// getDirLocked.)  This is because a write operation (like write,
-// truncate and sync which lock blockLock) fetching a file block will
-// almost always need to modify that block, and so will pass in
-// blockWrite.
+// blockWrite, and must be r-locked when rtype == blockRead.  (This
+// differs from getDirLocked.)  This is because a write operation
+// (like write, truncate and sync which lock blockLock) fetching a
+// file block will almost always need to modify that block, and so
+// will pass in blockWrite.  If rtype == blockReadParallel, it's
+// assumed that some coordinating goroutine is holding the correct
+// locks, and in that case `lState` must be `nil`.
 //
 // This method also returns whether the block was already dirty.
 func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer,
 	file path, rtype blockReqType) (
 	fblock *FileBlock, wasDirty bool, err error) {
-	if rtype == blockRead {
+	switch rtype {
+	case blockRead:
 		fbo.blockLock.AssertRLocked(lState)
-	} else {
+	case blockWrite:
 		fbo.blockLock.AssertLocked(lState)
+	case blockReadParallel:
+		// This goroutine might not be the official lock holder, so
+		// don't make any assertions.
+		if lState != nil {
+			panic("Non-nil lState passed to getFileBlockLocked " +
+				"with blockReadParallel")
+		}
+	default:
+		panic(fmt.Sprintf("Unknown block req type: %d", rtype))
 	}
 
 	// Callers should have already done this check, but it doesn't
@@ -473,7 +515,7 @@ func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 	}
 
 	fblock, err = fbo.getFileBlockHelperLocked(
-		ctx, lState, kmd, ptr, file.Branch, file)
+		ctx, lState, kmd, ptr, file.Branch, file, rtype)
 	if err != nil {
 		return nil, false, err
 	}
@@ -553,7 +595,7 @@ func (fbo *folderBlockOps) getDirLocked(ctx context.Context,
 
 	// Get the block for the last element in the path.
 	dblock, err := fbo.getDirBlockHelperLocked(
-		ctx, lState, kmd, dir.tailPointer(), dir.Branch, dir)
+		ctx, lState, kmd, dir.tailPointer(), dir.Branch, dir, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -995,6 +1037,10 @@ func (fbo *folderBlockOps) newFileData(lState *lockState,
 		fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
 			file path, rtype blockReqType) (*FileBlock, bool, error) {
+			lState := lState
+			if rtype == blockReadParallel {
+				lState = nil
+			}
 			return fbo.getFileBlockLocked(
 				ctx, lState, kmd, ptr, file, rtype)
 		},
@@ -1003,9 +1049,6 @@ func (fbo *folderBlockOps) newFileData(lState *lockState,
 				lState, ptr, file, block)
 		}, fbo.log)
 }
-
-// The amount that the read timeout is smaller than the global one.
-const readTimeoutSmallerBy = 2 * time.Second
 
 // Read reads from the given file into the given buffer at the given
 // offset. It returns the number of bytes read and nil, or 0 and the
@@ -1018,81 +1061,9 @@ func (fbo *folderBlockOps) Read(
 
 	fbo.log.CDebugf(ctx, "Reading from %v", file.tailPointer())
 
-	// getFileLocked already checks read permissions
-	fblock, err := fbo.getFileLocked(ctx, lState, kmd, file, blockRead)
-	if err != nil {
-		return 0, err
-	}
-
-	// If we have a large enough timeout add a temporary timeout that is
-	// readTimeoutSmallerBy. Use that for reading so short reads get returned
-	// upstream without triggering the global timeout.
-	now := time.Now()
-	deadline, haveTimeout := ctx.Deadline()
-	if haveTimeout {
-		rem := deadline.Sub(now) - readTimeoutSmallerBy
-		if rem > 0 {
-			var cancel func()
-			ctx, cancel = context.WithTimeout(ctx, rem)
-			defer cancel()
-		}
-	}
-
-	nRead := int64(0)
-	n := int64(len(dest))
-
 	var uid keybase1.UID // Data reads don't depend on the uid.
 	fd := fbo.newFileData(lState, file, uid, kmd)
-
-	for nRead < n {
-		nextByte := nRead + off
-		toRead := n - nRead
-		_, _, block, nextBlockOff, startOff, _, err := fd.getFileBlockAtOffset(
-			ctx, fblock, nextByte, blockRead)
-		if err != nil {
-			// If we hit a timeout while reading then return the bytes already read
-			// and no error. If the upstream tries to do something blocking they
-			// will encounter the error with the context again. Only do this
-			// if we have already read some bytes to avoid pathological cases
-			// causing a reader looping.
-			if err == context.DeadlineExceeded && nRead > 0 {
-				fbo.log.CDebugf(ctx, "Read short: read %d bytes of %d\n", nRead, n)
-				return nRead, nil
-			}
-			return 0, err
-		}
-		blockLen := int64(len(block.Contents))
-		lastByteInBlock := startOff + blockLen
-
-		if nextByte >= lastByteInBlock {
-			if nextBlockOff > 0 {
-				fill := nextBlockOff - nextByte
-				if fill > toRead {
-					fill = toRead
-				}
-				fbo.log.CDebugf(ctx, "Read from hole: nextByte=%d lastByteInBlock=%d fill=%d\n", nextByte, lastByteInBlock, fill)
-				if fill <= 0 {
-					fbo.log.CErrorf(ctx, "Read invalid file fill <= 0 while reading hole")
-					return nRead, BadSplitError{}
-				}
-				for i := 0; i < int(fill); i++ {
-					dest[int(nRead)+i] = 0
-				}
-				nRead += fill
-				continue
-			}
-			return nRead, nil
-		} else if toRead > lastByteInBlock-nextByte {
-			toRead = lastByteInBlock - nextByte
-		}
-
-		firstByteToRead := nextByte - startOff
-		copy(dest[nRead:nRead+toRead],
-			block.Contents[firstByteToRead:toRead+firstByteToRead])
-		nRead += toRead
-	}
-
-	return n, nil
+	return fd.read(ctx, dest, off)
 }
 
 func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(

@@ -9,11 +9,11 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
-	"golang.org/x/sync/errgroup"
 
 	"golang.org/x/net/context"
 )
@@ -236,7 +236,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 				config.BlockCache(), config.BlockOps(),
 				config.KeyManager(), uid,
 				rmd.GetSerializedPrivateMetadata(),
-				rmd, latestRmd)
+				rmd, latestRmd, config.MakeLogger(""))
 			if err != nil {
 				return nil, err
 			}
@@ -399,88 +399,55 @@ func getFileBlockForMD(ctx context.Context, bcache BlockCache, bops BlockOps,
 
 func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	bcache BlockCache, bops BlockOps, tlfID tlf.ID, pmd *PrivateMetadata,
-	rmdWithKeys KeyMetadata) error {
+	rmdWithKeys KeyMetadata, log logger.Logger) error {
 	info := pmd.Changes.Info
 	if info.BlockPointer == zeroPtr {
 		return nil
 	}
 
-	// Fetch the top-level block.
-	fblock, err := getFileBlockForMD(
-		ctx, bcache, bops, info.BlockPointer, tlfID, rmdWithKeys)
+	// Treat the unembedded block change like a file so we can reuse
+	// the file reading code.
+	file := path{FolderBranch{tlfID, MasterBranch},
+		[]pathNode{{
+			info.BlockPointer, fmt.Sprintf("<MD with block change pointer %s>",
+				info.BlockPointer)}}}
+	getter := func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+		p path, rtype blockReqType) (*FileBlock, bool, error) {
+		block, err := getFileBlockForMD(ctx, bcache, bops, ptr, tlfID, kmd)
+		if err != nil {
+			return nil, false, err
+		}
+		return block, false, nil
+	}
+	cacher := func(ptr BlockPointer, block Block) error {
+		return nil
+	}
+	// Reading doesn't use crypto or the block splitter, so for now
+	// just pass in nil.  Also, reading doesn't depend on the UID, so
+	// it's ok to be empty.
+	var uid keybase1.UID
+	fd := newFileData(file, uid, nil, nil, rmdWithKeys, getter, cacher, log)
+
+	buf, err := fd.getBytes(ctx, 0, -1)
 	if err != nil {
 		return err
-	}
-
-	buf := fblock.Contents
-	if fblock.IsInd {
-		numFetchers := len(fblock.IPtrs)
-		if numFetchers > maxParallelBlockGets {
-			numFetchers = maxParallelBlockGets
-		}
-
-		type iptrAndBlock struct {
-			ptr   IndirectFilePtr
-			block *FileBlock
-		}
-
-		// Fetch all the child blocks in parallel.
-		iptrsToFetch := make(chan IndirectFilePtr, len(fblock.IPtrs))
-		indirectBlocks := make(chan iptrAndBlock, len(fblock.IPtrs))
-		eg, groupCtx := errgroup.WithContext(ctx)
-		fetchFn := func() error {
-			for iptr := range iptrsToFetch {
-				select {
-				case <-groupCtx.Done():
-					return groupCtx.Err()
-				default:
-				}
-
-				fblock, err := getFileBlockForMD(groupCtx, bcache, bops,
-					iptr.BlockPointer, tlfID, rmdWithKeys)
-				if err != nil {
-					return err
-				}
-
-				indirectBlocks <- iptrAndBlock{iptr, fblock}
-			}
-			return nil
-		}
-		for i := 0; i < numFetchers; i++ {
-			eg.Go(fetchFn)
-		}
-		for _, iptr := range fblock.IPtrs {
-			iptrsToFetch <- iptr
-		}
-		close(iptrsToFetch)
-		if err := eg.Wait(); err != nil {
-			return err
-		}
-		close(indirectBlocks)
-
-		// Reconstruct the buffer by appending bytes in order of offset.
-		blocks := make(map[int64]*FileBlock)
-		for iab := range indirectBlocks {
-			blocks[iab.ptr.Off] = iab.block
-		}
-		lastOff := fblock.IPtrs[len(fblock.IPtrs)-1].Off
-		buf = make([]byte, lastOff+int64(len(blocks[lastOff].Contents)))
-		for _, iptr := range fblock.IPtrs {
-			block := blocks[iptr.Off]
-			blockSize := int64(len(block.Contents))
-			copy(buf[iptr.Off:iptr.Off+blockSize], block.Contents)
-		}
 	}
 
 	err = codec.Decode(buf, &pmd.Changes)
 	if err != nil {
 		return err
 	}
+
 	// The changes block pointers are implicit ref blocks.
 	pmd.Changes.Ops[0].AddRefBlock(info.BlockPointer)
-	for _, iptr := range fblock.IPtrs {
+	iptrs, err := fd.getIndirectFileBlockInfos(ctx)
+	if err != nil {
+		return err
+	}
+	for _, iptr := range iptrs {
 		pmd.Changes.Ops[0].AddRefBlock(iptr.BlockPointer)
 	}
+
 	pmd.cachedChanges.Info = info
 	return nil
 }
@@ -490,7 +457,8 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	crypto Crypto, bcache BlockCache, bops BlockOps,
 	keyGetter mdDecryptionKeyGetter, uid keybase1.UID,
 	serializedPrivateMetadata []byte,
-	rmdToDecrypt, rmdWithKeys KeyMetadata) (PrivateMetadata, error) {
+	rmdToDecrypt, rmdWithKeys KeyMetadata, log logger.Logger) (
+	PrivateMetadata, error) {
 	handle := rmdToDecrypt.GetTlfHandle()
 
 	var pmd PrivateMetadata
@@ -533,7 +501,7 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	// Re-embed the block changes if it's needed.
 	err := reembedBlockChanges(
 		ctx, codec, bcache, bops, rmdWithKeys.TlfID(),
-		&pmd, rmdWithKeys)
+		&pmd, rmdWithKeys, log)
 	if err != nil {
 		return PrivateMetadata{}, err
 	}

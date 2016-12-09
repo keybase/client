@@ -667,7 +667,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		pmd, err := decryptMDPrivateData(
 			ctx, km.config.Codec(), km.config.Crypto(),
 			km.config.BlockCache(), km.config.BlockOps(),
-			km, uid, md.GetSerializedPrivateMetadata(), md, md)
+			km, uid, md.GetSerializedPrivateMetadata(), md, md, km.log)
 		if err != nil {
 			return false, nil, err
 		}

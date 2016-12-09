@@ -176,6 +176,14 @@ func NewDirtyBlockCacheStandard(clock Clock,
 	return d
 }
 
+// simpleDirtyBlockCacheStandard that can only handle block
+// put/get/delete requests; it cannot track dirty bytes.
+func simpleDirtyBlockCacheStandard() *DirtyBlockCacheStandard {
+	return &DirtyBlockCacheStandard{
+		cache: make(map[dirtyBlockID]Block),
+	}
+}
+
 // Get implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) Get(_ tlf.ID, ptr BlockPointer,

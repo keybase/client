@@ -1739,60 +1739,92 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		return err
 	}
 
+	// Treat the block change list as a file so we can reuse all the
+	// indirection code in fileData.
 	block := NewFileBlock().(*FileBlock)
-	copied := fbo.config.BlockSplitter().CopyUntilSplit(block, false, buf, 0)
-	info, _, err := fbo.readyBlockMultiple(ctx, md.ReadOnly(), block, uid, bps)
+	bid, err := fbo.config.Crypto().MakeTemporaryBlockID()
 	if err != nil {
 		return err
 	}
-	md.AddRefBytes(uint64(info.EncodedSize))
-	md.AddDiskUsage(uint64(info.EncodedSize))
+	ptr := BlockPointer{
+		ID:      bid,
+		KeyGen:  md.LatestKeyGeneration(),
+		DataVer: fbo.config.DataVersion(),
+		BlockContext: BlockContext{
+			Creator:  uid,
+			RefNonce: ZeroBlockRefNonce,
+		},
+	}
+	file := path{fbo.folderBranch,
+		[]pathNode{{ptr, fmt.Sprintf("<MD rev %d>", md.Revision())}}}
 
-	// Everything fits in one block.
-	toCopy := int64(len(buf))
-	if copied >= toCopy {
-		changes.Info = info
-		md.data.cachedChanges = *changes
-		changes.Ops = nil
-		return nil
+	dirtyBcache := simpleDirtyBlockCacheStandard()
+	// Simple dirty bcaches don't need to be shut down.
+
+	getter := func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
+		_ path, _ blockReqType) (*FileBlock, bool, error) {
+		block, err := dirtyBcache.Get(fbo.id(), ptr, fbo.branch())
+		if err != nil {
+			return nil, false, err
+		}
+		fblock, ok := block.(*FileBlock)
+		if !ok {
+			return nil, false,
+				fmt.Errorf("Block for %s is not a file block", ptr)
+		}
+		return fblock, true, nil
+	}
+	cacher := func(ptr BlockPointer, block Block) error {
+		return dirtyBcache.Put(fbo.id(), ptr, fbo.branch(), block)
+	}
+	// Start off the cache with the new block
+	err = cacher(ptr, block)
+	if err != nil {
+		return err
 	}
 
-	// Otherwise make a top block and split up the remaining buffer.
-	topBlock := NewFileBlock().(*FileBlock)
-	topBlock.IsInd = true
-	topBlock.IPtrs = append(topBlock.IPtrs, IndirectFilePtr{
-		BlockInfo: info,
-		Off:       0,
-	})
-	copiedSize := copied
-	for copiedSize < toCopy {
-		block := NewFileBlock().(*FileBlock)
-		currOff := copiedSize
-		copied := fbo.config.BlockSplitter().CopyUntilSplit(block, false,
-			buf[currOff:], 0)
-		copiedSize += copied
-		info, _, err := fbo.readyBlockMultiple(
-			ctx, md.ReadOnly(), block, uid, bps)
-		if err != nil {
-			return err
-		}
+	df := newDirtyFile(file, dirtyBcache)
+	fd := newFileData(file, uid, fbo.config.Crypto(),
+		fbo.config.BlockSplitter(), md.ReadOnly(), getter, cacher, fbo.log)
 
-		topBlock.IPtrs = append(topBlock.IPtrs, IndirectFilePtr{
-			BlockInfo: info,
-			Off:       currOff,
-		})
+	// Write all the data.
+	_, _, _, _, _, err = fd.write(ctx, buf, 0, block, DirEntry{}, df)
+	if err != nil {
+		return err
+	}
+
+	// There might be a new top block.
+	topBlock, err := dirtyBcache.Get(fbo.id(), ptr, fbo.branch())
+	if err != nil {
+		return err
+	}
+	block, ok := topBlock.(*FileBlock)
+	if !ok {
+		return errors.New("Top block change block no longer a file block")
+	}
+
+	// Ready all the child blocks.
+	infos, err := fd.ready(ctx, fbo.id(), fbo.config.BlockCache(),
+		dirtyBcache, fbo.config.BlockOps(), bps, block, df)
+	if err != nil {
+		return err
+	}
+	for info := range infos {
 		md.AddRefBytes(uint64(info.EncodedSize))
 		md.AddDiskUsage(uint64(info.EncodedSize))
 	}
+	fbo.log.CDebugf(ctx, "%d unembedded child blocks", len(infos))
 
-	info, _, err = fbo.readyBlockMultiple(
-		ctx, md.ReadOnly(), topBlock, uid, bps)
+	// Ready the top block.
+	info, _, err := fbo.readyBlockMultiple(
+		ctx, md.ReadOnly(), block, uid, bps)
 	if err != nil {
 		return err
 	}
-	changes.Info = info
+
 	md.AddRefBytes(uint64(info.EncodedSize))
 	md.AddDiskUsage(uint64(info.EncodedSize))
+	changes.Info = info
 	md.data.cachedChanges = *changes
 	changes.Ops = nil
 	return nil
