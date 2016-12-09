@@ -138,22 +138,20 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	}
 
 	// Consume localize callbacks and send out to UI.
-	go func() {
-		for convRes := range localizeCb {
-			if convRes.Err != nil {
-				chatUI.ChatInboxFailed(context.Background(), chat1.ChatInboxFailedArg{
-					SessionID: arg.SessionID,
-					Error:     convRes.Err.Error(),
-					ConvID:    convRes.ConvID,
-				})
-			} else if convRes.ConvRes != nil {
-				chatUI.ChatInboxConversation(context.Background(), chat1.ChatInboxConversationArg{
-					SessionID: arg.SessionID,
-					Conv:      *convRes.ConvRes,
-				})
-			}
+	for convRes := range localizeCb {
+		if convRes.Err != nil {
+			chatUI.ChatInboxFailed(context.Background(), chat1.ChatInboxFailedArg{
+				SessionID: arg.SessionID,
+				Error:     convRes.Err.Error(),
+				ConvID:    convRes.ConvID,
+			})
+		} else if convRes.ConvRes != nil {
+			chatUI.ChatInboxConversation(context.Background(), chat1.ChatInboxConversationArg{
+				SessionID: arg.SessionID,
+				Conv:      *convRes.ConvRes,
+			})
 		}
-	}()
+	}
 
 	return nil
 }
