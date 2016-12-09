@@ -65,6 +65,7 @@ type ConflictResolver struct {
 
 	inputLock     sync.Mutex
 	currInput     conflictInput
+	currCancel    context.CancelFunc
 	lockNextTime  bool
 	canceledCount int
 }
@@ -119,17 +120,36 @@ func (cr *ConflictResolver) stopProcessing() {
 	cr.inputChan = nil
 }
 
+// cancelExistingLocked must be called while holding cr.inputLock.
+func (cr *ConflictResolver) cancelExistingLocked(ci conflictInput) bool {
+	// The input is only interesting if one of the revisions is
+	// greater than what we've looked at to date.
+	if ci.unmerged <= cr.currInput.unmerged &&
+		ci.merged <= cr.currInput.merged {
+		return false
+	}
+	if cr.currCancel != nil {
+		cr.currCancel()
+	}
+	return true
+}
+
 // processInput processes conflict resolution jobs from the given
 // channel until it is closed. This function uses a parameter for the
 // channel instead of accessing cr.inputChan directly so that it
 // doesn't have to hold inputChanLock.
 func (cr *ConflictResolver) processInput(baseCtx context.Context,
 	inputChan <-chan conflictInput) {
-	var cancel context.CancelFunc
-	var prevCRDone chan struct{}
+
+	// Start off with a closed prevCRDone, so that the first CR call
+	// doesn't have to wait.
+	prevCRDone := make(chan struct{})
+	close(prevCRDone)
 	defer func() {
-		if cancel != nil {
-			cancel()
+		cr.inputLock.Lock()
+		defer cr.inputLock.Unlock()
+		if cr.currCancel != nil {
+			cr.currCancel()
 		}
 		CleanupCancellationDelayer(baseCtx)
 	}()
@@ -139,19 +159,14 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 		valid := func() bool {
 			cr.inputLock.Lock()
 			defer cr.inputLock.Unlock()
-			// The input is only interesting if one of the revisions
-			// is greater than what we've looked at to date.
-			if ci.unmerged <= cr.currInput.unmerged &&
-				ci.merged <= cr.currInput.merged {
+			valid := cr.cancelExistingLocked(ci)
+			if !valid {
 				return false
 			}
 			cr.log.CDebugf(ctx, "New conflict input %v following old "+
 				"input %v", ci, cr.currInput)
 			cr.currInput = ci
-			// cancel the existing conflict resolution (if any)
-			if cancel != nil {
-				cancel()
-			}
+			ctx, cr.currCancel = context.WithCancel(ctx)
 			return true
 		}()
 		if !valid {
@@ -160,25 +175,19 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 			continue
 		}
 
-		var waitChan chan struct{}
-		if cancel != nil {
-			waitChan = prevCRDone
-		}
-		ctx, cancel = context.WithCancel(ctx)
+		waitChan := prevCRDone
 		prevCRDone = make(chan struct{}) // closed when doResolve finishes
 		go func(ci conflictInput, done chan<- struct{}) {
 			defer cr.resolveGroup.Done()
 			defer close(done)
-			if waitChan != nil {
-				// Wait for the previous CR without blocking any
-				// Resolve callers, as that could result in deadlock
-				// (KBFS-1001).
-				select {
-				case <-waitChan:
-				case <-ctx.Done():
-					cr.log.CDebugf(ctx, "Resolution canceled before starting")
-					return
-				}
+			// Wait for the previous CR without blocking any
+			// Resolve callers, as that could result in deadlock
+			// (KBFS-1001).
+			select {
+			case <-waitChan:
+			case <-ctx.Done():
+				cr.log.CDebugf(ctx, "Resolution canceled before starting")
+				return
 			}
 			cr.doResolve(ctx, ci)
 		}(ci, prevCRDone)
@@ -195,8 +204,21 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 		return
 	}
 
+	ci := conflictInput{unmerged, merged}
+	func() {
+		cr.inputLock.Lock()
+		defer cr.inputLock.Unlock()
+		// Cancel any running CR before we return, so the caller can be
+		// confident any ongoing CR superseded by this new input will be
+		// canceled before it releases any locks it holds.
+		//
+		// TODO: return early if this returns false, and log something
+		// using a newly-pass-in context.
+		_ = cr.cancelExistingLocked(ci)
+	}()
+
 	cr.resolveGroup.Add(1)
-	cr.inputChan <- conflictInput{unmerged, merged}
+	cr.inputChan <- ci
 }
 
 // Wait blocks until the current set of submitted resolutions are
