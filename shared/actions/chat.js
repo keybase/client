@@ -319,15 +319,14 @@ function * _loadInbox (): SagaGenerator<any, any> {
     throw new Error("Can't load inbox")
   }
 
-  chatInboxUnverified.response.result()
   const inbox: GetInboxLocalRes = chatInboxUnverified.params.inbox
-
   const author = yield select(usernameSelector)
   const following = yield select(followingSelector)
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {})
   yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
+  chatInboxUnverified.response.result()
 
-  const total = inbox.conversationsUnverified.length
+  const total = inbox.conversationsUnverified && inbox.conversationsUnverified.length || 0
   for (let i = 0; i < total; ++i) {
     // $ForceType
     const incoming: {[key: string]: any} = yield race({
