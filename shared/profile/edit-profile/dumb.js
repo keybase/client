@@ -1,9 +1,9 @@
 // @flow
-import EditProfile from './render'
+import EditProfile from '.'
 import {isMobile} from '../../constants/platform'
 
 import type {DumbComponentMap} from '../../constants/types/more'
-import type {Props as RenderProps} from './render'
+import type {Props as RenderProps} from '.'
 
 const propsBase: RenderProps = {
   bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
