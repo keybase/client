@@ -725,7 +725,9 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	require.Equal(t, rmd2.LatestKeyGeneration(), PublicKeyGen)
 	require.Equal(t, rmd2.Revision(), MetadataRevision(2))
 	require.Equal(t, rmd2.Version(), SegregatedKeyBundlesVer)
-	require.Nil(t, rmd2.extra)
+	// Do this instead of require.Nil because we want to assert
+	// that it's untyped nil.
+	require.True(t, rmd2.extra == nil)
 
 	// compare numbers
 	require.Equal(t, diskUsage, rmd2.DiskUsage())

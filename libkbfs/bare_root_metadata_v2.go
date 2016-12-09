@@ -374,7 +374,7 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV2(config Config, isReadableAndWr
 }
 
 func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Config, kmd KeyMetadata) (
-	*BareRootMetadataV3, *ExtraMetadataV3, error) {
+	*BareRootMetadataV3, ExtraMetadata, error) {
 	mdCopy := &BareRootMetadataV3{}
 
 	// Fill out the writer metadata and new writer key bundle.
@@ -415,7 +415,9 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Co
 		return nil, nil, errors.New("Non-nil finalized info")
 	}
 
-	var extraCopy *ExtraMetadataV3
+	// Have this as ExtraMetadata so we return an untyped nil
+	// instead of a typed nil.
+	var extraCopy ExtraMetadata
 	if !md.ID.IsPublic() {
 		extraCopy = &ExtraMetadataV3{wkb: wkb, rkb: rkb}
 	}
