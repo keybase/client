@@ -3,6 +3,8 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
+import HiddenString from '../util/hidden-string'
+import HiddenThing from '../util/hidden-thing'
 
 import type {Actions, State, ConversationState, AppendMessages, Message, MessageID, ServerMessage} from '../constants/chat'
 
@@ -37,18 +39,18 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const {seenMessages, messages: knownMessages} = conversation
-          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, prependMessages)
+          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages.thingValue(), knownMessages, prependMessages)
 
           return conversation
             .set('messages', unseenMessages.concat(updatedMessages))
-            .set('seenMessages', nextSeenMessages)
+            .set('seenMessages', new HiddenThing(nextSeenMessages))
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
             .set('isLoading', false)
         })
 
       // Reset the unread count
-      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
+      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', new HiddenThing(0)))
 
       return state
         .set('conversationStates', newConversationStates)
@@ -67,7 +69,7 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const {seenMessages, messages: knownMessages} = conversation
-          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, appendMessages)
+          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages.thingValue(), knownMessages, appendMessages)
 
           const firstMessage = appendMessages[0]
           const inConversationFocused = (isSelected && state.get('focused'))
@@ -83,7 +85,7 @@ function reducer (state: State = initialState, action: Actions) {
 
           return conversation
             .set('messages', updatedMessages.concat(unseenMessages))
-            .set('seenMessages', nextSeenMessages)
+            .set('seenMessages', new HiddenThing(nextSeenMessages))
         })
 
       let snippet
@@ -100,9 +102,9 @@ function reducer (state: State = initialState, action: Actions) {
         inbox.get('conversationIDKey') !== conversationIDKey
           ? inbox
           : inbox
-            .set('unreadCount', isSelected ? 0 : inbox.get('unreadCount') + appendMessages.length)
-            .set('time', message.timestamp)
-            .set('snippet', snippet)
+            .set('unreadCount', new HiddenThing(isSelected ? 0 : inbox.get('unreadCount').thingValue() + appendMessages.length))
+            .set('time', new HiddenThing(message.timestamp))
+            .set('snippet', new HiddenString(snippet))
       ))
 
       return state
@@ -124,7 +126,7 @@ function reducer (state: State = initialState, action: Actions) {
             ...item,
             messageID,
             messageState,
-          })).set('seenMessages', conversation.seenMessages.add(messageID))
+          })).set('seenMessages', new HiddenThing(conversation.seenMessages.thingValue().add(messageID)))
         }
       )
       return state.set('conversationStates', newConversationStates)
@@ -146,7 +148,7 @@ function reducer (state: State = initialState, action: Actions) {
       const conversationIDKey = action.payload.conversationIDKey
 
       // Set unread to zero
-      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
+      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', new HiddenThing(0)))
       return state
         .set('selectedConversation', conversationIDKey)
         .set('inbox', newInboxStates)

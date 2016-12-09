@@ -16,13 +16,13 @@ function iconNameForDeviceType (deviceType: string): IconType {
 }
 
 const TextMessagePopup = ({message: {deviceName, deviceType, timestamp}}: {message: TextMessage}) => {
-  const iconName = iconNameForDeviceType(deviceType)
+  const iconName = iconNameForDeviceType(deviceType.thingValue())
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={iconName} />
       <Text type='BodySmall' style={{color: globalColors.green2}}>ENCRYPTED & SIGNED</Text>
-      <Text type='BodySmall' style={{color: globalColors.black_40}}>{`by ${deviceName}`}</Text>
-      <Text type='BodySmall' style={{color: globalColors.black_40}}>{formatTimeForMessages(timestamp)}</Text>
+      <Text type='BodySmall' style={{color: globalColors.black_40}}>{`by ${deviceName.stringValue()}`}</Text>
+      <Text type='BodySmall' style={{color: globalColors.black_40}}>{formatTimeForMessages(timestamp.thingValue())}</Text>
     </Box>
   )
 }

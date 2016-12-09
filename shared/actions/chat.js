@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
+import HiddenThing from '../util/hidden-thing'
 import engine from '../engine'
 import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
@@ -28,7 +29,6 @@ import type {
   LoadInbox,
   LoadMoreMessages,
   LoadedInbox,
-  MaybeTimestamp,
   Message,
   NewChat,
   OpenFolder,
@@ -36,6 +36,7 @@ import type {
   SelectConversation,
   SetupNewChatHandler,
   StartConversation,
+  TimestampMessage,
   UnhandledMessage,
   UpdateMetadata,
 } from '../constants/chat'
@@ -115,13 +116,13 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string
     })))
 
     return new InboxStateRecord({
-      info: convo.info,
+      info: new HiddenThing(convo.info),
       conversationIDKey: conversationIDToKey(convo.info.id),
-      participants,
-      muted: false, // TODO integrate this when it's available
-      time: convo.readerInfo.mtime,
-      snippet,
-      unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid, // TODO likely get this from the notifications payload miles is working on
+      participants: new HiddenThing(participants),
+      muted: new HiddenThing(false), // TODO integrate this when it's available
+      time: new HiddenThing(convo.readerInfo.mtime),
+      snippet: new HiddenThing(snippet),
+      unreadCount: new HiddenThing(convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid), // TODO likely get this from the notifications payload miles is working on
     })
   }).filter(Boolean))
 }
@@ -131,7 +132,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const infoSelector = (state: TypedState) => {
     const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
     if (convo) {
-      return convo.get('info')
+      return convo.get('info').thingValue()
     }
     return null
   }
@@ -195,14 +196,14 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   if (sent && author) {
     const message: Message = {
       type: 'Text',
-      author,
+      author: new HiddenString(author),
       outboxID: sent.outboxID.toString('hex'),
-      timestamp: Date.now(),
-      messageState: 'pending',
+      timestamp: new HiddenThing(Date.now()),
+      messageState: new HiddenThing('pending'),
       message: new HiddenString(action.payload.text.stringValue()),
-      followState: 'You',
-      deviceType: '',
-      deviceName: '',
+      followState: new HiddenThing('You'),
+      deviceType: new HiddenThing(''),
+      deviceName: new HiddenString(''),
       conversationIDKey: action.payload.conversationIDKey,
     }
 
@@ -230,9 +231,10 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
-  switch (action.payload.activity.activityType) {
+  const activity = action.payload.activity.thingValue()
+  switch (activity.activityType) {
     case NotifyChatChatActivityType.incomingMessage:
-      const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
+      const incomingMessage: ?IncomingMessageRPCType = activity.incomingMessage
       if (incomingMessage) {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
@@ -241,12 +243,13 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
 
         // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
         const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+
         const conversationState = yield select(conversationStateSelector)
         if (!conversationState) {
           yield put(loadInbox())
         }
 
-        if (message.outboxID && message.type === 'Text' && yourName === message.author) {
+        if (message.outboxID && message.type === 'Text' && yourName === message.author.thingValue()) {
           // If the message has an outboxID, then we sent it and have already
           // rendered it in the message list; we just need to mark it as sent.
           yield put({
@@ -255,7 +258,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               conversationIDKey,
               outboxID: message.outboxID,
               messageID: message.messageID,
-              messageState: 'sent',
+              messageState: new HiddenThing('sent'),
             },
           })
         } else {
@@ -284,14 +287,15 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       }
       break
     default:
-      console.warn('Unsupported incoming message type for Chat:', action.payload.activity)
+      console.warn('Unsupported incoming message type for Chat:', activity.activityType)
   }
 }
 
 function * _setupNewChatHandler (): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({uid, activity}) => {
-      dispatch({type: Constants.incomingMessage, payload: {activity}})
+      const action: Constants.IncomingMessage = {type: Constants.incomingMessage, payload: {activity: new HiddenThing(activity)}}
+      dispatch(action)
     })
   })
 }
@@ -344,7 +348,7 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
       return
     }
 
-    if (!oldConversationState.get('moreToLoad')) {
+    if (!oldConversationState.get('moreToLoad').thingValue()) {
       __DEV__ && console.log('Bailing on chat load more due to no more to load')
       return
     }
@@ -384,7 +388,7 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
     payload: {
       conversationIDKey,
       messages: newMessages,
-      moreToLoad: !pagination.last,
+      moreToLoad: new HiddenThing(!pagination.last),
       paginationNext: pagination.next,
     },
   })
@@ -395,7 +399,7 @@ function * _updateBadge (): SagaGenerator<any, any> {
   const inboxSelector = (state: TypedState) => state.chat.get('inbox')
   const inbox: List<InboxState> = ((yield select(inboxSelector)): any)
 
-  const total = inbox.reduce((total, i) => total + i.get('unreadCount'), 0)
+  const total = inbox.reduce((total, i) => total + i.get('unreadCount').thingValue(), 0)
   yield put(badgeApp('chatInbox', total > 0, total))
 }
 
@@ -409,11 +413,11 @@ function _threadToPagination (thread) {
   }
 }
 
-function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
+function _maybeAddTimestamp (message: Message, prevMessage: Message): ?TimestampMessage {
   if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp') {
     return null
   }
-  if (message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) { // ms
+  if (message.timestamp.thingValue() - prevMessage.timestamp.thingValue() > Constants.howLongBetweenTimestampsMs) { // ms
     return {
       type: 'Timestamp',
       timestamp: message.timestamp,
@@ -427,15 +431,15 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
     const payload = message.valid
     if (payload) {
       const common = {
-        author: payload.senderUsername,
-        deviceName: payload.senderDeviceName,
-        deviceType: payload.senderDeviceType,
-        timestamp: payload.serverHeader.ctime,
+        author: new HiddenString(payload.senderUsername),
+        deviceName: new HiddenString(payload.senderDeviceName),
+        deviceType: new HiddenThing(payload.senderDeviceType),
+        timestamp: new HiddenThing(payload.serverHeader.ctime),
         messageID: payload.serverHeader.messageID,
         conversationIDKey: conversationIDKey,
       }
 
-      const isYou = common.author === yourName
+      const isYou = common.author.thingValue() === yourName
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
@@ -443,8 +447,8 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             type: 'Text',
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
-            followState: isYou ? 'You' : 'Following', // TODO get this
-            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            followState: new HiddenThing(isYou ? 'You' : 'Following'), // TODO get this
+            messageState: new HiddenThing('sent'), // TODO, distinguish sent/pending once CORE sends it.
             outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         default:
@@ -459,8 +463,8 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
   return {
     type: 'Error', // TODO
     messageID: idx,
-    timestamp: Date.now(),
-    reason: 'temp',
+    timestamp: new HiddenThing(Date.now()),
+    reason: new HiddenString('temp'),
     conversationIDKey: conversationIDKey,
   }
 }
@@ -493,7 +497,7 @@ function * _openFolder (): SagaGenerator<any, any> {
   const inbox = yield select(inboxSelector)
   if (inbox) {
     const helper = inbox.get('info').visibility === CommonTLFVisibility.public ? publicFolderWithUsers : privateFolderWithUsers
-    const path = helper(inbox.get('participants').map(p => p.username).toArray())
+    const path = helper(inbox.get('participants').thingValue().map(p => p.username).toArray())
     yield put(openInKBFS(path))
   } else {
     throw new Error(`Can't find conversation path`)
@@ -522,7 +526,8 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
 
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   // Don't send sharing before signup values
-  const usernames = action.payload.users.filter(name => name.indexOf('@') === -1).join(',')
+  const users = action.payload.users.thingValue()
+  const usernames = users.filter(name => name.indexOf('@') === -1).join(',')
   if (!usernames) {
     return
   }
@@ -538,7 +543,7 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 
   const parsed = JSON.parse(results.body)
   const payload = {}
-  action.payload.users.forEach((username, idx) => {
+  users.forEach((username, idx) => {
     const record = parsed.them[idx]
     const fullname = (record && record.profile && record.profile.full_name) || ''
     payload[username] = new MetaDataRecord({fullname})
@@ -560,7 +565,10 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 
   const inbox = yield select(inboxSelector)
   if (inbox) {
-    yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => !p.you).map(p => p.username).toArray()}})
+    const participants = inbox.get('participants').thingValue()
+    const users = participants.filter(p => !p.you).map(p => p.username).toArray()
+    const action: Constants.UpdateMetadata = {type: Constants.updateMetadata, payload: {users: new HiddenThing(users)}}
+    yield put(action)
   }
 }
 
