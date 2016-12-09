@@ -1,15 +1,25 @@
 package libkbfs
 
 type prefetcher struct {
-	blockRetriever
-	config Config
-	cache  BlockCache
+	retriever blockRetriever
+	config    Config
 }
 
-func newPrefetcher(config Config, cache BlockCache, retriever blockRetriever) *prefetcher {
+func newPrefetcher(config Config, retriever blockRetriever) *prefetcher {
 	return &prefetcher{
-		blockRetriever: retriever,
-		config:         config,
-		cache:          cache,
+		retriever: retriever,
+		config:    config,
 	}
+}
+
+func (p *prefetcher) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) {
+	// Only prefetch if the cache
+	if _, err := p.config.BlockCache().Get(ptr); err == nil {
+		return
+	}
+	requestCh := p.retriever.Request(ctx, priority, kmd, ptr, block)
+	go func() {
+		err <- requestCh
+
+	}()
 }
