@@ -224,8 +224,12 @@ outer:
 			for ptr, block := range r.blocks {
 				blocks[ptr] = block
 			}
+			// We want to find the leftmost block offset that's to the
+			// right of the range, the one immediately following the
+			// end of the range.
 			if r.nextBlockOffset != -1 &&
-				r.nextBlockOffset < minNextBlockOffsetChild {
+				(minNextBlockOffsetChild == -1 ||
+					r.nextBlockOffset < minNextBlockOffsetChild) {
 				minNextBlockOffsetChild = r.nextBlockOffset
 			}
 		default:
@@ -263,10 +267,10 @@ outer:
 // whatever prefix of the data it could fetch within the deadine.
 func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 	startOff, endOff int64, prefixOk bool) ([][]byte, error) {
-	if (endOff != -1 && endOff <= startOff) || startOff < 0 {
-		return nil, nil
-	} else if startOff < -1 || endOff < -1 {
+	if startOff < 0 || endOff < -1 {
 		return nil, fmt.Errorf("Bad offset range [%d, %d)", startOff, endOff)
+	} else if endOff != -1 && endOff <= startOff {
+		return nil, nil
 	}
 
 	topBlock, _, err := fd.getter(ctx, fd.kmd, fd.file.tailPointer(),
@@ -358,12 +362,6 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 		} else if toRead > lastByteInBlock-nextByte {
 			toRead = lastByteInBlock - nextByte
 		}
-
-		/**
-		if toRead == 0 {
-			continue
-		}
-		*/
 
 		firstByteToRead := nextByte - blockOff
 		bytes = append(bytes,
