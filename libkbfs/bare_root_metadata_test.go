@@ -25,6 +25,7 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadata(ver, tlfID, bh)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	codec := kbfscodec.NewMsgpack()

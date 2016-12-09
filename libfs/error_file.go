@@ -7,7 +7,7 @@ package libfs
 import (
 	"time"
 
-	"github.com/go-errors/errors"
+	goerrors "github.com/go-errors/errors"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -16,15 +16,15 @@ import (
 type JSONReportedError struct {
 	Time  time.Time
 	Error string
-	Stack []errors.StackFrame
+	Stack []goerrors.StackFrame
 }
 
-func convertStack(stack []uintptr) []errors.StackFrame {
-	frames := make([]errors.StackFrame, len(stack))
+func convertStack(stack []uintptr) []goerrors.StackFrame {
+	frames := make([]goerrors.StackFrame, len(stack))
 	for i, pc := range stack {
 		// TODO: Handle panics correctly, as described in the
 		// docs for runtime.Callers().
-		frames[i] = errors.NewStackFrame(pc)
+		frames[i] = goerrors.NewStackFrame(pc)
 	}
 	return frames
 }

@@ -40,6 +40,7 @@ func TestIsValidRekeyRequestBasicV3(t *testing.T) {
 	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	brmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	require.NoError(t, err)
 	extra := FakeInitialRekey(
 		brmd, codec, crypto, bh, kbfscrypto.TLFPublicKey{})
 

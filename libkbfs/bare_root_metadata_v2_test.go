@@ -57,6 +57,7 @@ func TestIsValidRekeyRequestBasicV2(t *testing.T) {
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	codec := kbfscodec.NewMsgpack()

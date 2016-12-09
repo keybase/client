@@ -22,7 +22,7 @@ func getKeyBundlesForTesting(t *testing.T, c Config, tlfByte byte, handleStr str
 	rkbID := rmd.bareMd.GetTLFReaderKeyBundleID()
 	wkb, rkb, ok := getKeyBundlesV3(rmd.extra)
 	if !ok {
-		t.Fatal("Missing key bundles")
+		t.Fatal(makeMissingKeyBundlesError())
 	}
 	return tlfID, wkbID, wkb, rkbID, rkb
 }

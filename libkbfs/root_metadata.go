@@ -711,7 +711,7 @@ func (md *RootMetadata) fillInDevices(crypto Crypto,
 		// v3 bundles aren't embedded.
 		wkb, rkb, ok := getKeyBundlesV3(md.extra)
 		if !ok {
-			return nil, errors.New("Missing key bundles")
+			return nil, makeMissingKeyBundlesError()
 		}
 		return bareV3.fillInDevices(crypto,
 			wkb, rkb, wKeys, rKeys,
