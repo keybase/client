@@ -129,20 +129,18 @@ function reducer (state: State = initialState, action: Actions) {
       )
       return state.set('conversationStates', newConversationStates)
     }
-    case Constants.selectConversation:
-
-      // Clear new messages id when switching away from conversation (if select was from a user)
-      if (action.payload.fromUser) {
-        const previousConversation = state.get('selectedConversation')
-        if (previousConversation) {
-          const newConversationStates = state.get('conversationStates').update(
-            previousConversation,
-            initialConversation,
-            conversation => conversation.set('firstNewMessageID', null))
-          state = state.set('conversationStates', newConversationStates)
-        }
+    case Constants.updateLatestMessage:
+      // Clear new messages id when switching away from conversation
+      const previousConversation = state.get('selectedConversation')
+      if (previousConversation) {
+        const newConversationStates = state.get('conversationStates').update(
+          previousConversation,
+          initialConversation,
+          conversation => conversation.set('firstNewMessageID', null))
+        state = state.set('conversationStates', newConversationStates)
       }
-
+      return state
+    case Constants.selectConversation:
       const conversationIDKey = action.payload.conversationIDKey
 
       // Set unread to zero

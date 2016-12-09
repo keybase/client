@@ -37,10 +37,20 @@ import type {
   SetupNewChatHandler,
   StartConversation,
   UnhandledMessage,
+  UpdateBadging,
+  UpdateLatestMessage,
   UpdateMetadata,
 } from '../constants/chat'
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord, makeSnippet, MetaDataRecord} = Constants
+
+function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
+  return {type: Constants.updateBadging, payload: {conversationIDKey}}
+}
+
+function updateLatestMessage (conversationIDKey: ConversationIDKey): UpdateLatestMessage {
+  return {type: Constants.updateLatestMessage, payload: {conversationIDKey}}
+}
 
 function openFolder (): OpenFolder {
   return {type: Constants.openFolder, payload: undefined}
@@ -567,25 +577,35 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 }
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
+  const {conversationIDKey, fromUser} = action.payload
   yield put(loadMoreMessages())
 
   const inboxSelector = (state: TypedState) => {
-    return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === action.payload.conversationIDKey)
+    return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
   }
 
   const inbox = yield select(inboxSelector)
   if (inbox) {
     yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => !p.you).map(p => p.username).toArray()}})
-    // If we're switching to a badged conversation, unbadge it.
-    const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(action.payload.conversationIDKey)
-    const conversationState = yield select(conversationStateSelector)
-    if (conversationState && conversationState.messages !== null) {
-      const conversationID = keyToConversationID(action.payload.conversationIDKey)
-      const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
-      yield call(localMarkAsReadLocalRpcPromise, {
-        param: {conversationID, msgID},
-      })
-    }
+  }
+
+  if (fromUser) {
+    yield put(updateBadging(conversationIDKey))
+    yield put(updateLatestMessage(conversationIDKey))
+  }
+}
+
+function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
+  // If we're switching to a badged conversation, unbadge it.
+  const {conversationIDKey} = action.payload
+  const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+  const conversationState = yield select(conversationStateSelector)
+  if (conversationState && conversationState.messages !== null) {
+    const conversationID = keyToConversationID(conversationIDKey)
+    const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
+    yield call(localMarkAsReadLocalRpcPromise, {
+      param: {conversationID, msgID},
+    })
   }
 }
 
@@ -600,7 +620,8 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   const chatTabSelected = (selectedTab === chatTab)
 
   if (conversationIDKey && appFocused && chatTabSelected) {
-    yield put(selectConversation(conversationIDKey, true))
+    yield put(updateBadging(conversationIDKey))
+    yield put(updateLatestMessage(conversationIDKey))
   }
 }
 
@@ -610,6 +631,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.loadedInbox, _loadedInbox),
     safeTakeEvery(Constants.loadMoreMessages, _loadMoreMessages),
     safeTakeLatest(Constants.selectConversation, _selectConversation),
+    safeTakeEvery(Constants.updateBadging, _updateBadging),
     safeTakeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
     safeTakeEvery(Constants.newChat, _newChat),
