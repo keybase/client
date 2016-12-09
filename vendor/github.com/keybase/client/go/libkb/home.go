@@ -185,7 +185,7 @@ func (w Win32) Home(emptyOk bool) string {
 		ret = w.getHome()
 	}
 	if len(ret) == 0 && !emptyOk {
-		ret, _ = AppDataDir()
+		ret, _ = LocalDataDir()
 		if len(ret) == 0 {
 			G.Log.Info("APPDATA environment variable not found")
 		}

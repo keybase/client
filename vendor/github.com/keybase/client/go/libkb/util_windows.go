@@ -9,9 +9,11 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
+	"unsafe"
 
 	"golang.org/x/sys/windows"
 )
@@ -23,8 +25,14 @@ type GUID struct {
 	Data4 [8]byte
 }
 
+// 3EB685DB-65F9-4CF6-A03A-E3EF65729F3D
 var (
 	FOLDERID_RoamingAppData = GUID{0x3EB685DB, 0x65F9, 0x4CF6, [8]byte{0xA0, 0x3A, 0xE3, 0xEF, 0x65, 0x72, 0x9F, 0x3D}}
+)
+
+// F1B32785-6FBA-4FCF-9D55-7B8E7F157091
+var (
+	FOLDERID_LocalAppData = GUID{0xF1B32785, 0x6FBA, 0x4FCF, [8]byte{0x9D, 0x55, 0x7B, 0x8E, 0x7F, 0x15, 0x70, 0x91}}
 )
 
 var (
@@ -55,28 +63,32 @@ func coTaskMemFree(pv uintptr) {
 	return
 }
 
-func AppDataDir() (string, error) {
+func GetDataDir(id GUID) (string, error) {
 
-	//  go vet will not let us convert an LPWSTR to a go string.
-	//  Seems we'll need to be able to do that sometime - then we can do this.
-	//
-	//	var pszPath uintptr
-	//	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&FOLDERID_RoamingAppData)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
-	//	if r0 != 0 {
-	//		return "", errors.New("can't get AppData directory")
-	//	}
+	var pszPath uintptr
+	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
+	if r0 != 0 {
+		return "", errors.New("can't get FOLDERID_RoamingAppData")
+	}
 
-	//	defer coTaskMemFree(pszPath)
+	defer coTaskMemFree(pszPath)
 
-	//	// go vet: "possible misuse of unsafe.Pointer"
-	//	folder := syscall.UTF16ToString((*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:])
+	// go vet: "possible misuse of unsafe.Pointer"
+	folder := syscall.UTF16ToString((*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:])
 
-	folder := os.Getenv("APPDATA")
 	if len(folder) == 0 {
 		return "", errors.New("can't get AppData directory")
 	}
 
 	return folder, nil
+}
+
+func AppDataDir() (string, error) {
+	return GetDataDir(FOLDERID_RoamingAppData)
+}
+
+func LocalDataDir() (string, error) {
+	return GetDataDir(FOLDERID_LocalAppData)
 }
 
 // SafeWriteToFile retries safeWriteToFileOnce a few times on Windows,
@@ -95,4 +107,27 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 		}
 	}
 	return err
+}
+
+func RemoteSettingsRepairman(g *GlobalContext) {
+	w := Win32{Base{"keybase",
+		func() string { return g.Env.getHomeFromCmdOrConfig() },
+		func() RunMode { return g.Env.GetRunMode() }}}
+
+	currentPathname := w.Home(false)
+	kbDir := filepath.Base(currentPathname)
+	oldDir, err := AppDataDir()
+	if err != nil {
+		return
+	}
+	oldPathname := filepath.Join(oldDir, kbDir)
+	if oldExists, _ := FileExists(oldPathname); oldExists {
+		if currentExists, _ := FileExists(currentPathname); !currentExists {
+			g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldPathname, currentPathname)
+			err = os.Rename(oldPathname, currentPathname)
+			if err != nil {
+				g.Log.Error("RemoteSettingsRepairman error - %s", err)
+			}
+		}
+	}
 }

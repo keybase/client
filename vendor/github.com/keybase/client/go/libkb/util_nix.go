@@ -47,7 +47,14 @@ func AppDataDir() (string, error) {
 	return "", errors.New("unsupported: AppDataDir")
 }
 
+func LocalDataDir() (string, error) {
+	return "", errors.New("unsupported: LocalDataDir")
+}
+
 // SafeWriteToFile is a pass-through to safeWriteToFileOnce on non-Windows.
 func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return safeWriteToFileOnce(g, t, mode)
+}
+
+func RemoteSettingsRepairman(g *GlobalContext) {
 }
