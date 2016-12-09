@@ -9,6 +9,30 @@
 			"revisionTime": "2016-08-11T21:01:40Z"
 		},
 		{
+			"checksumSHA1": "hYtV4dXAd8dkPaVJZZ8tqJzKlBo=",
+			"path": "camlistore.org/pkg/buildinfo",
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
+		},
+		{
+			"checksumSHA1": "GLsMO24weWLI/4sft+5lUvljMH4=",
+			"path": "camlistore.org/pkg/images",
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
+		},
+		{
+			"checksumSHA1": "1je72I+oh+Nx9mrSHY8PN2sdDSA=",
+			"path": "camlistore.org/pkg/images/fastjpeg",
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
+		},
+		{
+			"checksumSHA1": "MbnwDeEckBC4pLM8GEsPNeSMd+c=",
+			"path": "camlistore.org/pkg/images/resize",
+			"revision": "c55c8602d3cea4511081630e17bca7ed601abc44",
+			"revisionTime": "2016-12-05T18:39:50Z"
+		},
+		{
 			"path": "code.google.com/p/rsc/gf256",
 			"revision": "2d8aa6027fab",
 			"revisionTime": "2014-11-30T16:07:12-05:00"
@@ -306,6 +330,18 @@
 			"revisionTime": "2015-12-11T09:06:21+09:00"
 		},
 		{
+			"checksumSHA1": "rZ4W4fT8VjifBeSBQSEjWWI4ISU=",
+			"path": "github.com/nf/cr2",
+			"revision": "05d46fef4f2f903240751e25871cd318d001deba",
+			"revisionTime": "2014-05-28T04:38:46Z"
+		},
+		{
+			"checksumSHA1": "r5eQHkttko6kxroDEENXbmXKrSs=",
+			"path": "github.com/nfnt/resize",
+			"revision": "891127d8d1b52734debe1b3c3d7e747502b6c366",
+			"revisionTime": "2016-07-24T20:39:20Z"
+		},
+		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
@@ -315,6 +351,18 @@
 			"path": "github.com/rogpeppe/rog-go/reverse",
 			"revision": "f57ad5e24ab7813942c045f86eda1066eb969e98",
 			"revisionTime": "2015-01-10T16:24:53Z"
+		},
+		{
+			"checksumSHA1": "Q68FxXX04PtPDIG7C1RlSDhx/ko=",
+			"path": "github.com/rwcarlsen/goexif/exif",
+			"revision": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8",
+			"revisionTime": "2015-05-20T14:06:47Z"
+		},
+		{
+			"checksumSHA1": "0+tTLlssYWyGuq+vQs4IiPIXJW4=",
+			"path": "github.com/rwcarlsen/goexif/tiff",
+			"revision": "709fab3d192d7c62f86043caff1e7e3fb0f42bd8",
+			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
 			"checksumSHA1": "Q2V7Zs3diLmLfmfbiuLpSxETSuY=",
@@ -399,6 +447,12 @@
 			"path": "github.com/syndtr/goleveldb/leveldb/util",
 			"revision": "93fc893f2dadb96ffde441c7546cc67ea290a3a8",
 			"revisionTime": "2016-03-27T11:39:39Z"
+		},
+		{
+			"checksumSHA1": "AFGQ/FSbG7cFzFu/QvAFMzWj4Ak=",
+			"path": "go4.org/readerutil",
+			"revision": "09d86de304dc27e636298361bbfee4ac6ab04f21",
+			"revisionTime": "2016-11-18T21:00:15Z"
 		},
 		{
 			"path": "golang.org/x/crypto/cast5",
@@ -520,6 +574,18 @@
 			"path": "golang.org/x/image/math/f64",
 			"revision": "bb355ba4424d077d404aafbb59b05776b2e88fa7",
 			"revisionTime": "2016-09-05T09:50:44Z"
+		},
+		{
+			"checksumSHA1": "0ozDsaLc0goE9CvU2E/J9Md3KOQ=",
+			"path": "golang.org/x/image/tiff",
+			"revision": "ae63d5d566065c97ac339d045f06c2da5ebd66df",
+			"revisionTime": "2016-12-08T01:05:43Z"
+		},
+		{
+			"checksumSHA1": "Xnm81x3lWS6xRxSthJuLt+fpfi0=",
+			"path": "golang.org/x/image/tiff/lzw",
+			"revision": "ae63d5d566065c97ac339d045f06c2da5ebd66df",
+			"revisionTime": "2016-12-08T01:05:43Z"
 		},
 		{
 			"checksumSHA1": "/7kE7RA30R1A9nZ3mXbbfA/UDQY=",

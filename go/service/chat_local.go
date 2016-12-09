@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"time"
 
@@ -733,6 +734,16 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return chat1.PostLocalRes{}, err
 	}
 
+	// preprocess asset (get content type, create preview if possible)
+	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	if pre.Preview != nil {
+		h.G().Log.Debug("created preview in preprocess")
+		arg.Preview = pre.Preview
+	}
+
 	// upload attachment and (optional) preview concurrently
 	var object chat1.Asset
 	var preview *chat1.Asset
@@ -773,7 +784,9 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	object.Title = arg.Title
 	if preview != nil {
 		preview.Title = arg.Title
+		preview.MimeType = pre.PreviewContentType
 	}
+	object.MimeType = pre.ContentType
 
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
@@ -949,6 +962,42 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 		Version: 1,
 	}
 	return h.remoteClient().S3Sign(context.Background(), arg)
+}
+
+type preprocess struct {
+	ContentType        string
+	Preview            *chat.BufferSource
+	PreviewContentType string
+}
+
+func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment, preview assetSource) (*preprocess, error) {
+	// create a buffered stream
+	cli := h.getStreamUICli()
+	src, err := attachment.Open(sessionID, cli)
+	if err != nil {
+		return nil, err
+	}
+	defer src.Reset()
+
+	head := make([]byte, 512)
+	_, err = io.ReadFull(src, head)
+	if err != nil && err != io.ErrUnexpectedEOF {
+		return nil, err
+	}
+
+	p := preprocess{
+		ContentType: http.DetectContentType(head),
+	}
+
+	if preview == nil {
+		src.Reset()
+		p.Preview, p.PreviewContentType, err = chat.Preview(ctx, src, p.ContentType, attachment.Basename())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &p, nil
 }
 
 func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local assetSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
