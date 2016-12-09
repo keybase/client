@@ -1,5 +1,9 @@
 package libkbfs
 
+import (
+	"golang.org/x/net/context"
+)
+
 type prefetcher struct {
 	retriever blockRetriever
 	config    Config
@@ -19,7 +23,7 @@ func (p *prefetcher) Request(ctx context.Context, priority int, kmd KeyMetadata,
 	}
 	requestCh := p.retriever.Request(ctx, priority, kmd, ptr, block)
 	go func() {
-		err <- requestCh
+		_ := <-requestCh
 
 	}()
 }
