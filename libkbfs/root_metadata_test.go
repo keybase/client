@@ -652,6 +652,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, rmd2.LatestKeyGeneration(), KeyGen(2))
 	require.Equal(t, rmd2.Revision(), MetadataRevision(2))
 	require.Equal(t, rmd2.Version(), SegregatedKeyBundlesVer)
+	require.NotNil(t, rmd2.extra)
 
 	// compare numbers
 	require.Equal(t, diskUsage, rmd2.DiskUsage())
@@ -724,6 +725,7 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	require.Equal(t, rmd2.LatestKeyGeneration(), PublicKeyGen)
 	require.Equal(t, rmd2.Revision(), MetadataRevision(2))
 	require.Equal(t, rmd2.Version(), SegregatedKeyBundlesVer)
+	require.Nil(t, rmd2.extra)
 
 	// compare numbers
 	require.Equal(t, diskUsage, rmd2.DiskUsage())

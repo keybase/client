@@ -415,7 +415,10 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Co
 		return nil, nil, errors.New("Non-nil finalized info")
 	}
 
-	extraCopy := &ExtraMetadataV3{wkb: wkb, rkb: rkb}
+	var extraCopy *ExtraMetadataV3
+	if !md.ID.IsPublic() {
+		extraCopy = &ExtraMetadataV3{wkb: wkb, rkb: rkb}
+	}
 	return mdCopy, extraCopy, nil
 }
 
