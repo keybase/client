@@ -9,7 +9,6 @@ import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {setupKBFSChangedHandler} from './favorite'
 import {setupNewChatHandler} from './chat'
-import {waitForKBFS} from './config'
 
 import type {LogAction, NotificationKeys, ListenForNotifications, ListenForKBFSNotifications, BadgeAppAction} from '../constants/notifications'
 import type {SagaGenerator} from '../constants/types/saga'

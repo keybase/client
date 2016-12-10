@@ -9,7 +9,6 @@ import {resetSignup} from '../../actions/signup'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 
 import type {AsyncAction, Action} from '../../constants/types/flux'
-import type {ClientDetails} from '../../constants/types/flow-types'
 
 isMobile && module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/config')
@@ -108,7 +107,7 @@ export function waitForKBFS (): AsyncAction {
             return
           }
           resolve()
-        }
+        },
       })
     })
   }
