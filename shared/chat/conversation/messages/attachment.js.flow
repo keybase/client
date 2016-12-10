@@ -1,0 +1,15 @@
+// @flow
+import {Component} from 'react'
+
+import type {MessageID, AttachmentMessage} from '../../../constants/chat'
+
+export type Props = {
+  message: AttachmentMessage,
+  includeHeader: boolean,
+  isFirstNewMessage: boolean,
+  onLoadAttachment: (messageID: MessageID) => void,
+  onAction: (event: any) => void,
+  style: Object,
+}
+
+export default class AttachmentMessageComponent extends Component<void, Props, void> { }
