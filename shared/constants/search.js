@@ -28,12 +28,12 @@ export type ExtraInfo = {
   fullName: string,
 }
 
-export type SearchResult = {
+export type SearchResult = {|
   service: 'keybase',
   username: string,
   isFollowing: boolean,
   extraInfo: ExtraInfo,
-} | {
+|} | {|
   service: 'external',
   icon: IconType,
   username: string,
@@ -42,7 +42,7 @@ export type SearchResult = {
   profileUrl: string,
   extraInfo: ExtraInfo,
   keybaseSearchResult: ?SearchResult, // If we want to grab the keybase version of a search result
-}
+|}
 
 // Keys for service+username to use in cross referencing things
 export function searchResultKeys (result: SearchResult) : Array<string> {
