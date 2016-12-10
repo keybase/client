@@ -14,7 +14,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/tlf"
 )
 
 const (
@@ -49,8 +48,6 @@ type blockRetrieval struct {
 	requests []*blockRetrievalRequest
 	// the cache lifetime for the retrieval
 	cacheLifetime BlockCacheLifetime
-	// the ID of the TLF for this retrieval
-	tlf tlf.ID
 
 	//// Queueing Metadata
 	// the index of the retrieval in the heap
@@ -103,6 +100,7 @@ type blockRetrievalQueue struct {
 }
 
 var _ blockRetriever = (*blockRetrievalQueue)(nil)
+var _ BlockCacheSimple = (*blockRetrievalQueue)(nil)
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call WorkOnRequest

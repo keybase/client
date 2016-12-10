@@ -55,6 +55,12 @@ func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
 		kbfscrypto.TLFCryptKey{}, nil)
 }
 
+func expectGetBlockFromServer(config *ConfigMock, kmd KeyMetadata, id BlockID, blockPtr BlockPointer, encData []byte, lifetime BlockCacheLifetime, err error) {
+	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
+		encData, kbfscrypto.BlockCryptKeyServerHalf{}, err)
+	config.mockBcache.EXPECT().Put(blockPtr, kmd.TlfID(), gomock.Any(), lifetime).Return(nil)
+}
+
 // TODO: Add test coverage for decryption of blocks with an old key
 // generation.
 
@@ -227,8 +233,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	id := fakeBlockID(1)
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		nil, kbfscrypto.BlockCryptKeyServerHalf{}, err)
+	expectGetBlockFromServer(config, kmd, id, blockPtr, nil, NoCacheEntry, err)
 
 	block := &TestBlock{}
 	err2 := config.BlockOps().Get(ctx, kmd, blockPtr, block, NoCacheEntry)
@@ -247,8 +252,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	err := errors.New("Fake verification fail")
 	blockPtr := BlockPointer{ID: id}
 	encData := []byte{1, 2, 3}
-	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
+	expectGetBlockFromServer(config, kmd, id, blockPtr, encData, NoCacheEntry, nil)
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
 
 	block := &TestBlock{}
@@ -267,8 +271,7 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
+	expectGetBlockFromServer(config, kmd, id, blockPtr, encData, NoCacheEntry, nil)
 	err := errors.New("Fake fail")
 
 	block := &TestBlock{}

@@ -21,9 +21,9 @@ func (p *prefetcher) Request(ctx context.Context, priority int, kmd KeyMetadata,
 	if _, err := p.config.BlockCache().Get(ptr); err == nil {
 		return
 	}
-	requestCh := p.retriever.Request(ctx, priority, kmd, ptr, block)
+	requestCh := p.retriever.Request(ctx, priority, kmd, ptr, block, lifetime)
 	go func() {
-		_ := <-requestCh
+		_ = <-requestCh
 
 	}()
 }

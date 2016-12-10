@@ -23,7 +23,7 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 func NewBlockOpsStandard(config Config, queueSize int) *BlockOpsStandard {
 	bops := &BlockOpsStandard{
 		config:  config,
-		queue:   newBlockRetrievalQueue(queueSize, config.Codec()),
+		queue:   newBlockRetrievalQueue(queueSize, config.Codec(), config.BlockCache()),
 		workers: make([]*blockRetrievalWorker, 0, queueSize),
 	}
 	bg := &realBlockGetter{config: config}
@@ -36,7 +36,7 @@ func NewBlockOpsStandard(config Config, queueSize int) *BlockOpsStandard {
 // Get implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 	blockPtr BlockPointer, block Block, lifetime BlockCacheLifetime) error {
-	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd, blockPtr, block)
+	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd, blockPtr, block, lifetime)
 	return <-errCh
 }
 
