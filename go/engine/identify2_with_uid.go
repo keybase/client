@@ -283,7 +283,7 @@ func (e *Identify2WithUID) run(ctx *Context) {
 	e.unblock( /* isFinal */ true, err)
 
 	// always cancel IdentifyUI to allow clients to clean up.
-	// If no identify was specified (because running the background)
+	// If no identifyUI was specified (because running the background)
 	// then don't do anything.
 	if ctx.IdentifyUI != nil {
 		ctx.IdentifyUI.Cancel()

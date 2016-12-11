@@ -17,7 +17,7 @@ type bgiUser struct {
 	index int // The index of the item in the heap.
 }
 
-// A PriorityQueue implements heap.Interface and holds Items.
+// A PriorityQueue implements heap.Interface and holds bgiUsers
 type priorityQueue []*bgiUser
 
 var _ heap.Interface = (*priorityQueue)(nil)
@@ -25,7 +25,9 @@ var _ heap.Interface = (*priorityQueue)(nil)
 func (pq priorityQueue) Len() int { return len(pq) }
 
 func (pq priorityQueue) Less(i, j int) bool {
-	// We want Pop to give us the not lowest timeout, so user less than
+	// The goal is for Pop() to give us the event
+	// that needs to happen first. Thus, use `Before`
+	// (and not `After`) here.
 	return pq[i].nextRun.Before(pq[j].nextRun)
 }
 
