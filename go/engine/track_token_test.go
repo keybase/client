@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 )
 
 func TestTrackToken(t *testing.T) {

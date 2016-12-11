@@ -23,9 +23,9 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 )
 
 type ShutdownHook func() error

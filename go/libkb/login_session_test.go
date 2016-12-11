@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonboulle/clockwork"
+	"github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
 )
 

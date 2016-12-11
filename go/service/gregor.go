@@ -10,7 +10,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
 	istorage "github.com/keybase/client/go/chat/storage"
@@ -22,6 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
