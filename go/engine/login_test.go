@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonboulle/clockwork"
+	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kex2"

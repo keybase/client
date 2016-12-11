@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"github.com/jonboulle/clockwork"
+	"github.com/keybase/clockwork"
 	"testing"
 	"time"
 )

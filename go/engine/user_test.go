@@ -4,8 +4,8 @@
 package engine
 
 import (
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/clockwork"
 	"testing"
 	"time"
 )

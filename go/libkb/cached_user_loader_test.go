@@ -8,8 +8,8 @@ package libkb
 import (
 	"testing"
 
-	"github.com/jonboulle/clockwork"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 )
 
 func TestCachedUserLoad(t *testing.T) {
