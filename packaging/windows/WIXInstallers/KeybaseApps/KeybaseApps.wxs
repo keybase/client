@@ -188,11 +188,12 @@
           <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
           <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
       </Component>
-      <Component Id="GUIShortCutComponent" Guid="{034E2E25-3676-4101-87F5-F6E081CA446A}">
+      <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI])with gui.xsl-->
+      <Component Id="GUIShortCutComponent" Guid="{1DCD73F4-1129-409E-9D8B-42F2BAD26867}">
         <Shortcut Id="GUIShortCut"
                   Name="Keybase"
                   Description="Start GUI"
-                  Target="[GuiDir]Keybase.exe"
+                  Target="[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]"
                   WorkingDirectory="GuiDir"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"  />
