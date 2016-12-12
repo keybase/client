@@ -249,14 +249,16 @@ func waitForExit(wait time.Duration, delay time.Duration, fn loadStatusFn) error
 
 // Install will install the launchd service
 func (s Service) Install(p Plist, wait time.Duration) error {
-	plistDest := s.plistDestination()
-	return s.install(p, plistDest, wait)
+	return s.install(p, wait)
 }
 
-func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
+func (s Service) savePlist(p Plist) error {
+	plistDest := s.plistDestination()
+
 	if _, ferr := os.Stat(p.binPath); os.IsNotExist(ferr) {
 		return fmt.Errorf("%s doesn't exist", p.binPath)
 	}
+
 	plist := p.plistXML()
 
 	// Plist directory (~/Library/LaunchAgents/) might not exist on clean OS installs
@@ -271,6 +273,11 @@ func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 		return err
 	}
 
+	return nil
+}
+
+func (s Service) install(p Plist, wait time.Duration) error {
+	s.savePlist(p)
 	return s.Start(wait)
 }
 
