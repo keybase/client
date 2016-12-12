@@ -3393,6 +3393,7 @@ export type OutOfDateInfo = {
   upgradeTo: string,
   upgradeURI: string,
   customMessage: string,
+  criticalClockSkew: long,
 }
 
 export type Outcome = 
