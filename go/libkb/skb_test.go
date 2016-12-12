@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonboulle/clockwork"
+	"github.com/keybase/clockwork"
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/openpgp"

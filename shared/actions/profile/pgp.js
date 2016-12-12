@@ -132,11 +132,9 @@ function * _generatePgpSaga (): SagaGenerator<any, any> {
 
   // $ForceType
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
-  // $ForceType
   const generatePgpKeyChanMap: ChannelMap<any> = yield call(_generatePgpKey, channelConfig, pgpInfo)
 
   try {
-    // $ForceType
     const {cancel, keyGenerated}: {keyGenerated: any, cancel: ?any} = yield race({
       keyGenerated: takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.keyGenerated'),
       cancel: take(Constants.cancelPgpGen),
@@ -154,15 +152,12 @@ function * _generatePgpSaga (): SagaGenerator<any, any> {
     yield put({type: Constants.updatePgpPublicKey, payload: {publicKey}})
     yield put(navigateAppend(['finished'], [profileTab, 'pgp']))
 
-    // $ForceType
     const finishedAction: FinishedWithKeyGen = yield take(Constants.finishedWithKeyGen)
     const {shouldStoreKeyOnServer} = finishedAction.payload
 
-    // $ForceType
     const {response} = yield takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.shouldPushPrivate')
     yield call([response, response.result], shouldStoreKeyOnServer)
 
-    // $FlowIssue
     const {response: finishedResponse} = yield takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.finished')
     yield call([finishedResponse, finishedResponse.result])
 

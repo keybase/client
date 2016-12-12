@@ -83,6 +83,17 @@ function findDataRoot (): string {
   return paths[process.platform]
 }
 
+function findCacheRoot (): string {
+  const linuxDefaultRoot = `${getenv('HOME', '')}/.cache`
+  const paths = {
+    'darwin': darwinCacheRoot,
+    'linux': `${getenv('XDG_CACHE_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`,
+    'win32': `${getenv('APPDATA', '')}\\Keybase\\`,
+  }
+
+  return paths[process.platform]
+}
+
 function logFileName (): string {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`,
@@ -95,10 +106,11 @@ function logFileName (): string {
 
 const socketPath = findSocketDialPath()
 const dataRoot = findDataRoot()
-const splashRoot = isDarwin ? darwinCacheRoot : dataRoot
+const cacheRoot = findCacheRoot()
 
 export {
   dataRoot,
+  cacheRoot,
   isAndroid,
   isDarwin,
   isElectron,
@@ -109,5 +121,4 @@ export {
   logFileName,
   runMode,
   socketPath,
-  splashRoot,
 }
