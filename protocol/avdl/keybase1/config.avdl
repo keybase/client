@@ -126,6 +126,7 @@ protocol config {
     string upgradeTo;
     string upgradeURI;
     string customMessage;
+    long criticalClockSkew;
   }
 
   /**

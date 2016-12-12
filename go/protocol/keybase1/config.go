@@ -113,9 +113,10 @@ type ConfigValue struct {
 }
 
 type OutOfDateInfo struct {
-	UpgradeTo     string `codec:"upgradeTo" json:"upgradeTo"`
-	UpgradeURI    string `codec:"upgradeURI" json:"upgradeURI"`
-	CustomMessage string `codec:"customMessage" json:"customMessage"`
+	UpgradeTo         string `codec:"upgradeTo" json:"upgradeTo"`
+	UpgradeURI        string `codec:"upgradeURI" json:"upgradeURI"`
+	CustomMessage     string `codec:"customMessage" json:"customMessage"`
+	CriticalClockSkew int64  `codec:"criticalClockSkew" json:"criticalClockSkew"`
 }
 
 type GetCurrentStatusArg struct {
