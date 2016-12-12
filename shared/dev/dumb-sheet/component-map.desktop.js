@@ -10,6 +10,7 @@ import FoldersMap from '../../folders/dumb'
 import LoginMap from '../../login/dumb.desktop'
 import MenubarMap from '../../menubar/dumb.desktop'
 import MessagesMap from '../../chat/conversation/messages/dumb'
+import MessageNoticesMap from '../../chat/conversation/notices/dumb'
 import PgpMap from '../../pgp/dumb.desktop'
 import PinentryMap from '../../pinentry/dumb.desktop'
 import ProfileMap from '../../profile/dumb'
@@ -34,6 +35,7 @@ const map: any = {
   ...LoginMap,
   ...MenubarMap,
   ...MessagesMap,
+  ...MessageNoticesMap,
   ...PgpMap,
   ...PinentryMap,
   ...ProfileMap,
