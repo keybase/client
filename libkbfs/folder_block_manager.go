@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -508,16 +507,21 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 				"revision, and proceeding with the cleanup",
 				toDelete.md.Revision())
 		} else {
-			dirsEqual, err := kbfscodec.Equal(fbm.config.Codec(),
-				rmd.data.Dir, toDelete.md.data.Dir)
+			mdID, err := fbm.config.Crypto().MakeMdID(toDelete.md.bareMd)
 			if err != nil {
 				fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
-			} else if dirsEqual {
+			} else if mdID == rmd.mdID {
+				if err := isArchivableMDOrError(rmd.ReadOnly()); err != nil {
+					fbm.log.CDebugf(ctx, "Skipping archiving for non-deleted, "+
+						"unarchivable revision %d: %v", rmd.Revision(), err)
+					return nil
+				}
+
 				// This md is part of the history of the folder, so we
 				// shouldn't delete the blocks.  But, since this MD
 				// put seems to have succeeded, we should archive it.
 				fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
-					"archiving it", rmd.Revision)
+					"archiving it", rmd.Revision())
 				// Don't block on archiving the MD, because that could
 				// lead to deadlock.
 				fbm.archiveUnrefBlocksNoWait(rmd.ReadOnly())
