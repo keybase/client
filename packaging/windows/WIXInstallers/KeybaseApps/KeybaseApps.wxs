@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
+  <!-- UpgradeCode must not change ProductCode and version should change each build Id="*" unless creating a patch: then use ProductCode from the base release -->
+  <Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
     <MediaTemplate EmbedCab="yes"/>
     <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\media\icons\Keybase.ico"/>
@@ -16,17 +17,20 @@
                       Type="raw" />
     </Property>
     
+    <!--Check installer property WIX_UPGRADE_DETECTED or UPGRADINGPRODUCTCODE to see if an upgrade is in progrss-->
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
 		<Feature Id="ProductFeature" Title="Keybase Application" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComponents" />
       <ComponentGroupRef Id="PrompterComponents" />
       <ComponentGroupRef Id="ApplicationShortcuts" />
       <ComponentGroupRef Id="StartupShortcuts" />
     </Feature>
 
+    <FeatureRef Id="KBFSFeature" />
 
+    <!--Some actions have been moved in this project to fragments to be near the component-->
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="StopUpdater" Before="InstallValidate"/>
@@ -95,14 +99,7 @@
         <File Id="runquiet.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe" Checksum="yes"/>
       </Component>
 
-      <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
-        <CreateFolder />
-        <RemoveFolder Id="RemoveDokan" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
-      </Component>
+
 
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />
@@ -152,6 +149,7 @@
       </Component>
     </ComponentGroup>
   </Fragment>
+  
   <Fragment>
     <ComponentGroup Id="StartupShortcuts" Directory="StartupFolder">
       <Component Id="AppShortCutStartUpComponent" Guid="{2EE65854-7CA1-4010-B62B-780F1C39ED0A}">
@@ -174,8 +172,7 @@
           <RegistryValue Name="ShortCutStartUpGUI" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-    </ComponentGroup>
-    
+    </ComponentGroup>  
   </Fragment>
   
   <Fragment>
@@ -201,9 +198,28 @@
           <RegistryValue Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-
     </ComponentGroup>
   </Fragment>
+
+  <Fragment>
+    <!--KBFS as a separate feature so it can be optional 
+    Set Level to a larger value to make it unselected by default-->
+    <Feature Id="KBFSFeature" Title="Keybase File System" Level="1">
+      <ComponentGroupRef Id="KBFSComponents" />
+    </Feature>
+    
+    <ComponentGroup Id="KBFSComponents" Directory="INSTALLFOLDER">
+      <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDokan" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
   <Fragment>
     <CustomAction Id="RunMainApp"
               Directory="INSTALLFOLDER"
