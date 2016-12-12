@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -106,6 +107,33 @@ func (c *ConnectionManager) Label(id ConnectionID, d keybase1.ClientDetails) err
 	retCh := make(chan error)
 	c.labelConnectionCh <- labelConnectionObj{id: id, details: d, ch: retCh}
 	return <-retCh
+}
+
+func (c *ConnectionManager) hasClientType(clientType keybase1.ClientType) bool {
+	for _, con := range c.ListAllLabeledConnections() {
+		if clientType == con.ClientType {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *ConnectionManager) WaitForClientType(clientType keybase1.ClientType, timeout time.Duration) bool {
+	if c.hasClientType(clientType) {
+		return true
+	}
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			if c.hasClientType(clientType) {
+				return true
+			}
+		case <-time.After(timeout):
+			return false
+		}
+	}
 }
 
 func (c *ConnectionManager) ListAllLabeledConnections() []keybase1.ClientDetails {

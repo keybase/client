@@ -193,6 +193,7 @@ export const IdentifyCommonIdentifyReasonType = {
   decrypt: 4,
   verify: 5,
   resource: 6,
+  background: 7,
 }
 
 export const IdentifyCommonTrackDiffType = {
@@ -878,6 +879,18 @@ export function configSetValueRpcChannelMap (channelConfig: ChannelConfig<*>, re
 
 export function configSetValueRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { configSetValueRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configWaitForClientRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.config.waitForClient'})
+}
+
+export function configWaitForClientRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => configWaitForClientRpc({...request, incomingCallMap, callback}))
+}
+
+export function configWaitForClientRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>): Promise<configWaitForClientResult> {
+  return new Promise((resolve, reject) => { configWaitForClientRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function cryptoSignED25519ForKBFSRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519ForKBFSResult) => void} & {param: cryptoSignED25519ForKBFSRpcParam}>) {
@@ -2785,7 +2798,11 @@ export type ClientDetails = {
   version: string,
 }
 
-export type ClientType =  2 // FORCE GUI ONLY
+export type ClientType = 
+    0 // NONE_0
+  | 1 // CLI_1
+  | 2 // GUI_2
+  | 3 // KBFS_3
 
 export type ComponentResult = {
   name: string,
@@ -2886,6 +2903,8 @@ export type DowngradeReferenceRes = {
   completed?: ?Array<BlockReferenceCount>,
   failed: BlockReference,
 }
+
+export type DurationSec = double
 
 export type ED25519PublicKey = any
 
@@ -3168,6 +3187,7 @@ export type IdentifyReasonType =
   | 4 // DECRYPT_4
   | 5 // VERIFY_5
   | 6 // RESOURCE_6
+  | 7 // BACKGROUND_7
 
 export type IdentifyRes = {
   user?: ?User,
@@ -4286,6 +4306,11 @@ export type configSetValueRpcParam = Exact<{
   value: ConfigValue
 }>
 
+export type configWaitForClientRpcParam = Exact<{
+  clientType: ClientType,
+  timeout: DurationSec
+}>
+
 export type cryptoSignED25519ForKBFSRpcParam = Exact<{
   msg: bytes,
   reason: string
@@ -5124,6 +5149,8 @@ type configGetExtendedStatusResult = ExtendedStatus
 
 type configGetValueResult = ConfigValue
 
+type configWaitForClientResult = boolean
+
 type cryptoSignED25519ForKBFSResult = ED25519SignatureInfo
 
 type cryptoSignED25519Result = ED25519SignatureInfo
@@ -5370,6 +5397,7 @@ export type rpc =
   | configSetPathRpc
   | configSetUserConfigRpc
   | configSetValueRpc
+  | configWaitForClientRpc
   | cryptoSignED25519ForKBFSRpc
   | cryptoSignED25519Rpc
   | cryptoSignToStringRpc

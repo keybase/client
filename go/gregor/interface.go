@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/jonboulle/clockwork"
+	"github.com/keybase/clockwork"
 )
 
 type InBandMsgType int

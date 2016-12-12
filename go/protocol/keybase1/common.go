@@ -8,6 +8,7 @@ import (
 )
 
 type Time int64
+type DurationSec float64
 type StringKVPair struct {
 	Key   string `codec:"key" json:"key"`
 	Value string `codec:"value" json:"value"`
