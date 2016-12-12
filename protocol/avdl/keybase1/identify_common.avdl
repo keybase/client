@@ -59,6 +59,7 @@ protocol identifyCommon {
     boolean bypassConfirm;
     boolean forceRetrack;  // only used in testing
     boolean expiringLocal;
+    boolean forPGPPull;
   }
 
   enum IdentifyReasonType {

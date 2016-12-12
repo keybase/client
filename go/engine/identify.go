@@ -47,16 +47,6 @@ func NewIdentifyArg(targetUsername string, withTracking, forceRemoteCheck bool) 
 	}
 }
 
-func NewIdentifyTrackArg(targetUsername string, withTracking, forceRemoteCheck bool, options keybase1.TrackOptions) *IdentifyArg {
-	return &IdentifyArg{
-		TargetUsername:   targetUsername,
-		WithTracking:     withTracking,
-		TrackOptions:     options,
-		AllowSelf:        false,
-		ForceRemoteCheck: forceRemoteCheck,
-	}
-}
-
 func (ia *IdentifyArg) SelfID() bool {
 	return len(ia.TargetUsername) == 0
 }

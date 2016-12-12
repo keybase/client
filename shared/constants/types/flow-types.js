@@ -3999,6 +3999,7 @@ export type TrackOptions = {
   bypassConfirm: boolean,
   forceRetrack: boolean,
   expiringLocal: boolean,
+  forPGPPull: boolean,
 }
 
 export type TrackProof = {

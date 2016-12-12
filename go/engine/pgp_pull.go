@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -143,29 +144,38 @@ func (e *PGPPullEngine) runLoggedOut(ctx *Context) error {
 }
 
 func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
-	iarg := NewIdentifyTrackArg(u, false, true, keybase1.TrackOptions{
+	iarg := keybase1.Identify2Arg{
+		UserAssertion:    u,
+		ForceRemoteCheck: true,
+	}
+	topts := keybase1.TrackOptions{
 		LocalOnly: true,
-	})
-	ieng := NewIdentify(iarg, e.G())
+	}
+	ieng := NewResolveThenIdentify2WithTrack(e.G(), &iarg, topts)
 	if err := RunEngine(ieng, ctx); err != nil {
 		e.G().Log.Info("identify run err: %s", err)
 		return err
 	}
 
 	// prompt if the identify is correct
-	outcome := ieng.Outcome().Export()
-	outcome.ForPGPPull = true
-	result, err := ctx.IdentifyUI.Confirm(outcome)
-	if err != nil {
-		return err
-	}
-
+	result := ieng.ConfirmResult()
 	if !result.IdentityConfirmed {
 		e.G().Log.Warning("Not confirmed; skipping key import")
 		return nil
 	}
 
-	if err = e.exportKeysToGPG(ctx, ieng.User(), nil); err != nil {
+	idRes := ieng.Result()
+	if idRes == nil {
+		return errors.New("nil identify2 result")
+	}
+	// with more plumbing, there is likely a more efficient way to get this identified user out
+	// of the identify2 engine, but `pgp pull` is not likely to be called often.
+	arg := libkb.NewLoadUserByUIDArg(e.G(), idRes.Upk.Uid)
+	user, err := libkb.LoadUser(arg)
+	if err != nil {
+		return err
+	}
+	if err := e.exportKeysToGPG(ctx, user, nil); err != nil {
 		return err
 	}
 
