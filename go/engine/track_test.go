@@ -4,9 +4,11 @@
 package engine
 
 import (
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"testing"
 )
 
 func runTrack(tc libkb.TestContext, fu *FakeUser, username string) (idUI *FakeIdentifyUI, them *libkb.User, err error) {
@@ -78,7 +80,8 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	checkAliceProofs(tc.T, idUI, res)
+	upk := res.ExportToUserPlusKeys(keybase1.ToTime(time.Now()))
+	checkAliceProofs(tc.T, idUI, &upk)
 	assertTracking(tc, "t_alice")
 	return
 }
@@ -92,11 +95,13 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.Tr
 	// codepath through idenfity2. (For example, in one case it triggered a
 	// race condition that aborted tracking without waiting for the UI to
 	// confirm, which wasn't present in the regular "t_bob" case.)
+
 	idUI, res, err := runTrackWithOptions(tc, fu, "kbtester1@twitter", options, secretUI, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	checkBobProofs(tc.T, idUI, res)
+	upk := res.ExportToUserPlusKeys(keybase1.ToTime(time.Now()))
+	checkBobProofs(tc.T, idUI, &upk)
 	assertTracking(tc, "t_bob")
 	return
 }
