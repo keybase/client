@@ -1,46 +1,53 @@
 // @flow
-import Render from '.'
+import EditProfile from '.'
 import {compose, withState, withProps, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
 
+import type {TypedDispatch} from '../../constants/types/flux'
+import type {TypedState} from '../../constants/reducer'
+
+type OwnProps = {
+  routeState: {
+    bio: ?string,
+    location: ?string,
+    fullname: ?string,
+  },
+}
+
 export default compose(
-  withState('fullnameCache', 'onFullnameChange', ''),
-  withState('locationCache', 'onLocationChange', ''),
-  withState('bioCache', 'onBioChange', ''),
-  lifecycle({
-    componentWillUnmount: function () {
-      // console.log('aaaa lifecylcle unmount', this.props)
-      this.props.setRouteState({
-        fullname: this.props.fullnameCache,
-        location: this.props.locationCache,
-        bio: this.props.bioCache,
-      })
-    },
-  }),
-  // $FlowIssue TODO type this
   connect(
-    (state, {routeState, fullnameCache, locationCache, bioCache, ...rest}) => {
-      const userInfo = state.tracker.trackers[state.config.username].userInfo
-      const bio = bioCache || routeState.bio || userInfo.bio
-      const fullname = fullnameCache || routeState.fullname || userInfo.fullname
-      const location = locationCache || routeState.location || userInfo.location
-      const props = {
+    (state: TypedState, {routeState}: OwnProps) => {
+      const tracker = state.tracker.trackers[state.config.username || '']
+      const userInfo = tracker && tracker.type === 'tracker' && tracker.userInfo
+      const bio = routeState.hasOwnProperty('bio') && routeState.bio || userInfo && userInfo.bio || ''
+      const fullname = routeState.hasOwnProperty('fullname') && routeState.fullname || userInfo && userInfo.fullname
+      const location = routeState.hasOwnProperty('location') && routeState.location || userInfo && userInfo.location
+      return {
         bio,
         fullname,
         location,
         bioLengthLeft: maxProfileBioChars - bio.length,
       }
-
-      // console.log('aaaa connect state', props, rest)
-      return props
     },
-    (dispatch, {routeState, setRouteState, bioCache, fullnameCache, locationCache}) => ({
+    (dispatch: TypedDispatch<*>, {routeState, setRouteState, bio, fullname, location}) => ({
       onCancel: () => dispatch(navigateUp()),
       onBack: () => dispatch(navigateUp()),
-      onSubmit: () => dispatch(editProfile(bioCache, fullnameCache, locationCache)),
+      onSubmit: (bio, fullname, location) => dispatch(editProfile(bio, fullname, location)),
     })
-  )
-)(Render)
+  ),
+  withState('fullname', 'onFullnameChange', props => props.fullname),
+  withState('location', 'onLocationChange', props => props.location),
+  withState('bio', 'onBioChange', props => props.bio),
+  withProps(props => ({
+    onSubmit: () => props.onSubmit(props.fullname, props.location, props.bio),
+  })),
+  lifecycle({
+    componentWillUnmount: function () {
+      const {setRouteState, fullname, location, bio} = this.props
+      setRouteState({fullname, location, bio})
+    },
+  }),
+)(EditProfile)
