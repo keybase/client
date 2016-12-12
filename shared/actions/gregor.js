@@ -3,7 +3,7 @@
 import * as Constants from '../constants/gregor'
 import engine from '../engine'
 import {call, put, select} from 'redux-saga/effects'
-import {delegateUiCtlRegisterGregorFirehoseRpc, reachabilityCheckReachabilityRpc, reachabilityStartReachabilityRpc, ReachabilityReachable} from '../constants/types/flow-types'
+import {delegateUiCtlRegisterGregorFirehoseRpc, reachabilityCheckReachabilityRpcPromise, reachabilityStartReachabilityRpc, ReachabilityReachable} from '../constants/types/flow-types'
 import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
 import {bootstrap} from '../actions/config'
@@ -58,6 +58,31 @@ function toNonNullGregorItems (state: GregorState): Array<NonNullGregorItem> {
     .filter(Boolean)
 }
 
+function registerReachability () {
+  return (dispatch: Dispatch) => {
+    engine().setIncomingHandler('keybase.1.reachability.reachabilityChanged', ({reachability}, response) => {
+      dispatch(updateReachability(reachability))
+
+      if (reachability.reachable === ReachabilityReachable.yes) {
+        // TODO: We should be able to recover from connection problems
+        // without re-bootstrapping. Originally we used to do this on HTML5
+        // 'online' event, but reachability is more precise.
+        dispatch(bootstrap())
+      }
+    })
+
+    reachabilityStartReachabilityRpc({
+      callback: (err, reachability) => {
+        if (err) {
+          console.warn('error bootstrapping reachability: ', err)
+          return
+        }
+        dispatch(updateReachability(reachability))
+      },
+    })
+  }
+}
+
 function registerGregorListeners () {
   return (dispatch: Dispatch) => {
     delegateUiCtlRegisterGregorFirehoseRpc({
@@ -84,27 +109,6 @@ function registerGregorListeners () {
         }
       }
       response && response.result()
-    })
-
-    engine().setIncomingHandler('keybase.1.reachability.reachabilityChanged', ({reachability}, response) => {
-      dispatch(updateReachability(reachability))
-
-      if (reachability.reachable === ReachabilityReachable.yes) {
-        // TODO: We should be able to recover from connection problems
-        // without re-bootstrapping. Originally we used to do this on HTML5
-        // 'online' event, but reachability is more precise.
-        dispatch(bootstrap())
-      }
-    })
-
-    reachabilityStartReachabilityRpc({
-      callback: (err, reachability) => {
-        if (err) {
-          console.warn('error bootstrapping reachability: ', err)
-          return
-        }
-        dispatch(updateReachability(reachability))
-      },
     })
   }
 }
@@ -165,8 +169,8 @@ function * handlePushOOBM (pushOOBM: pushOOBM) {
 }
 
 function * handleCheckReachability (): SagaGenerator<any, any> {
-  const reachability = yield call(reachabilityCheckReachabilityRpc)
-  put({type: Constants.updateReachability, payload: {reachability}})
+  const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
+  yield put({type: Constants.updateReachability, payload: {reachability}})
 }
 
 function * gregorSaga (): SagaGenerator<any, any> {
@@ -181,6 +185,7 @@ export {
   checkReachability,
   pushState,
   registerGregorListeners,
+  registerReachability,
 }
 
 export default gregorSaga

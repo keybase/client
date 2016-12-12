@@ -4,7 +4,7 @@ import engine from '../../engine'
 import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {navBasedOnLoginState} from '../../actions/login'
-import {registerGregorListeners} from '../../actions/gregor'
+import {registerGregorListeners, registerReachability} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 
@@ -134,6 +134,7 @@ export function getExtendedStatus (): AsyncAction {
 function _registerListeners (): AsyncAction {
   return dispatch => {
     dispatch(registerGregorListeners())
+    dispatch(registerReachability())
   }
 }
 
