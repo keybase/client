@@ -44,10 +44,11 @@ func (h *reachabilityHandler) CheckReachability(_ context.Context) (keybase1.Rea
 
 type reachability struct {
 	libkb.Contextified
-	sync.Mutex
 	lastReachability keybase1.Reachability
 	started          bool
 	shutdownCh       chan bool
+	startMutex       sync.Mutex
+	setMutex         sync.Mutex
 }
 
 func newReachability(g *libkb.GlobalContext) *reachability {
@@ -58,6 +59,9 @@ func newReachability(g *libkb.GlobalContext) *reachability {
 }
 
 func (h *reachability) setReachability(r keybase1.Reachability) {
+	h.setMutex.Lock()
+	defer h.setMutex.Unlock()
+
 	if h.lastReachability.Reachable != r.Reachable {
 		h.G().Log.Info("Reachability changed: %#v", r)
 		h.G().NotifyRouter.HandleReachability(r)
@@ -66,7 +70,9 @@ func (h *reachability) setReachability(r keybase1.Reachability) {
 }
 
 func (h *reachability) start() keybase1.Reachability {
-	h.Lock()
+	h.startMutex.Lock()
+	defer h.startMutex.Unlock()
+
 	if !h.started {
 		h.started = true
 		go func() {
@@ -84,7 +90,6 @@ func (h *reachability) start() keybase1.Reachability {
 			}
 		}()
 	}
-	h.Unlock()
 	return h.lastReachability
 }
 
@@ -98,7 +103,6 @@ func (h *reachability) check() (k keybase1.Reachability) {
 		return
 	}
 
-	h.G().Log.Debug("Reachability host: %s", u.Host)
 	conn, err := net.DialTimeout("tcp", u.Host, 10*time.Second)
 	if conn != nil {
 		conn.Close()
