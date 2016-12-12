@@ -1,53 +1,49 @@
 // @flow
 import React, {Component} from 'react'
 import _ from 'lodash'
-
 import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalStyles, globalColors, transition} from '../../styles'
 import {platformToLogo24} from '../../constants/search'
+import {withState, compose, withHandlers} from 'recompose'
 
 import type {SearchPlatforms} from '../../constants/search'
 import type {ServiceFn} from './render'
 import type {IconType} from '../../common-adapters/icon'
 import type {Props} from './search-bar'
 
-type ServiceIconState = {showingTooltip: boolean}
-type ServiceIconProps = {serviceName: SearchPlatforms, tooltip: string,
-  iconType: IconType, selected: boolean, onClickService: ServiceFn}
-class ServiceIcon extends Component<void, ServiceIconProps, ServiceIconState> {
-  state: ServiceIconState;
-
-  constructor (props: ServiceIconProps) {
-    super(props)
-
-    this.state = {
-      showingTooltip: false,
-    }
-  }
-
-  render () {
-    const {serviceName, tooltip, iconType, selected, onClickService} = this.props
-    return (
-      <Box style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
-        onMouseEnter={() => this.setState({showingTooltip: true})}
-        onMouseLeave={() => this.setState({showingTooltip: false})}
-        onClick={() => onClickService(serviceName)} >
-        <Icon type={iconType} style={{...serviceIconStyle,
-          opacity: selected || this.state.showingTooltip ? 1.0 : 0.6}} />
-        <Text type='BodySmall' style={{...serviceTooltipStyle,
-          opacity: this.state.showingTooltip ? 1 : 0}}>{tooltip}</Text>
-      </Box>
-    )
-  }
+type ServiceIconProps = {
+  serviceName: SearchPlatforms,
+  tooltip: string,
+  iconType: IconType,
+  selected: boolean,
+  onClickService: ServiceFn,
+  onMouseEnter: () => void,
+  onMouseLeave: () => void,
+  onClick: () => void,
+  showingTooltip: boolean,
 }
 
-class SearchBar extends Component<void, Props, void> {
-  _onDebouncedSearch: (overridePlatform?: SearchPlatforms) => void;
+const ServiceIcon =
+  compose(
+    withState('showingTooltip', 'setShowingTooltip'),
+    withHandlers({
+      onClick: props => event => props.onClickService(props.serviceName),
+      onMouseEnter: props => event => props.setShowingTooltip(true),
+      onMouseLeave: props => event => props.setShowingTooltip(false),
+    })
+  )(({serviceName, tooltip, iconType, selected, onClick, onMouseEnter, onMouseLeave, showingTooltip}: ServiceIconProps) => (
+    <Box style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick} >
+      <Icon type={iconType} style={{...serviceIconStyle, opacity: selected || showingTooltip ? 1.0 : 0.6}} />
+      <Text type='BodySmall' style={{...serviceTooltipStyle, opacity: showingTooltip ? 1 : 0}}>{tooltip}</Text>
+    </Box>
+  )
+)
 
-  constructor (props: Props) {
-    super(props)
-    this._onDebouncedSearch = _.debounce(this._onSearch, 500)
-  }
+class SearchBar extends Component<void, Props, void> {
+  _onDebouncedSearch = _.debounce(this._onSearch, 500)
 
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
@@ -69,18 +65,18 @@ class SearchBar extends Component<void, Props, void> {
     }
   }
 
-  render () {
-    const services = ['Keybase', 'Twitter', 'Facebook', 'Github', 'Coinbase', 'Reddit', 'Hackernews']
-    const tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
+  _services = ['Keybase', 'Twitter', 'Facebook', 'Github', 'Coinbase', 'Reddit', 'Hackernews']
+  _tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
 
+  render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
         <Box style={stylesServicesContainer}>
-          {services.map(s => (
+          {this._services.map(s => (
             <ServiceIcon
               key={s}
               serviceName={s}
-              tooltip={tooltips[s] || s}
+              tooltip={this._tooltips[s] || s}
               iconType={platformToLogo24(s)}
               selected={this.props.selectedService === s}
               onClickService={p => this._onClickService(p)}
