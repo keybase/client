@@ -17,6 +17,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingFor
         rowsMax={3}
         style={styles.input}
         errorText={error}
+        floatingHintTextOverride='Paper key'
         hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
         onEnterKeyDown={() => onSubmit()}
         onChangeText={text => onChangePaperKey(text)}
