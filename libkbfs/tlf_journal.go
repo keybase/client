@@ -71,6 +71,9 @@ const (
 	// revisions in the journal that will trigger an automatic branch
 	// conversion (and subsequent resolution).
 	ForcedBranchSquashThreshold = 20
+	// Maximum number of blocks to delete from the local saved block
+	// journal at a time while holding the lock.
+	maxSavedBlockRemovalsAtATime = uint64(500)
 )
 
 // TLFJournalStatus represents the status of a TLF's journal for
@@ -812,17 +815,52 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
 	return true, nil
 }
 
+func (j *tlfJournal) doOnMDFlush(ctx context.Context,
+	rmds *RootMetadataSigned) error {
+	if j.onMDFlush != nil {
+		j.onMDFlush.onMDFlush(rmds.MD.TlfID(), rmds.MD.BID(),
+			rmds.MD.RevisionNumber())
+	}
+
+	// Remove saved blocks in chunks to avoid starving foreground file
+	// system operations that need the lock for too long.  TODO: If
+	// lock acquires are unfair, this can still result in long
+	// foreground starvation -- maybe we need sleeps or some kind of
+	// explicit runtime scheduling control?
+	lastToRemove := journalOrdinal(0)
+	for {
+		err := func() error {
+			j.journalLock.Lock()
+			defer j.journalLock.Unlock()
+			if err := j.checkEnabledLocked(); err != nil {
+				return err
+			}
+
+			var err error
+			lastToRemove, err = j.blockJournal.onMDFlush(
+				ctx, maxSavedBlockRemovalsAtATime, lastToRemove)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}()
+		if err != nil {
+			return err
+		}
+		if lastToRemove == 0 {
+			break
+		}
+	}
+
+	return nil
+}
+
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 	mdID MdID, rmds *RootMetadataSigned) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return err
-	}
-
-	// This isn't with the call to j.onMDFlush since it needs to be
-	// under lock.
-	if err := j.blockJournal.onMDFlush(ctx); err != nil {
 		return err
 	}
 
@@ -895,9 +933,9 @@ func (j *tlfJournal) flushOneMDOp(
 		return false, pushErr
 	}
 
-	if j.onMDFlush != nil {
-		j.onMDFlush.onMDFlush(rmds.MD.TlfID(), rmds.MD.BID(),
-			rmds.MD.RevisionNumber())
+	err = j.doOnMDFlush(ctx, rmds)
+	if err != nil {
+		return false, err
 	}
 
 	err = j.removeFlushedMDEntry(ctx, mdID, rmds)

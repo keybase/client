@@ -860,65 +860,107 @@ func (j *blockJournal) saveBlocksUntilNextMDFlush() error {
 	return nil
 }
 
-func (j *blockJournal) onMDFlush(ctx context.Context) error {
+// onMDFlush removes at most `maxToRemove` blocks from the
+// `saveUntilMDFlush` journal if one exists.  If `lastToRemove` is
+// zero, it flushes the complete `saveUntilMDFlush` if it has fewer
+// than `maxToRemove` entries; if it doesn't flush the entire journal,
+// it returns the ordinal of the current last entry.  If
+// `lastToRemove` is non-zero, it only flushes up to the minimum of
+// `lastToRemove` and the earliest entry + `maxToRemove`; if this
+// flushes the entire saved journal, it returns 0, otherwise it
+// returns `lastToRemove`.
+func (j *blockJournal) onMDFlush(ctx context.Context,
+	maxToRemove uint64, lastToRemove journalOrdinal) (journalOrdinal, error) {
 	if j.saveUntilMDFlush == nil {
-		return nil
+		return 0, nil
+	}
+
+	if maxToRemove == 0 {
+		return 0, errors.New("maxToRemove must be non-zero")
 	}
 
 	// Delete the block data for anything in the saved journal.
 	first, err := j.saveUntilMDFlush.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
-		return nil
+		return 0, nil
 	} else if err != nil {
-		return err
+		return 0, err
 	}
 
 	last, err := j.saveUntilMDFlush.readLatestOrdinal()
 	if ioutil.IsNotExist(err) {
-		return nil
+		return 0, nil
 	} else if err != nil {
-		return err
+		return 0, err
 	}
 
-	j.log.CDebugf(ctx, "Removing saved data for entries [%d, %d]", first, last)
-	for i := first; i <= last; i++ {
+	if lastToRemove != 0 {
+		if last < lastToRemove {
+			return 0, errors.Errorf("Last removal requested is %d, but "+
+				"last entry in journal is %d", lastToRemove, last)
+		} else if first > lastToRemove {
+			return 0, errors.Errorf("Last removal requested is %d, but first "+
+				"entry in journal is %d", lastToRemove, first)
+		}
+
+		last = lastToRemove
+	}
+
+	lastMin := last
+	if max := journalOrdinal(maxToRemove); lastMin > first+max-1 {
+		j.log.CDebugf(ctx, "Last removal requested is %d, but capping at %d",
+			last, first+max-1)
+		lastMin = first + max - 1
+	}
+
+	j.log.CDebugf(ctx, "Removing saved data for entries [%d, %d]",
+		first, lastMin)
+	for i := first; i <= lastMin; i++ {
 		e, err := j.saveUntilMDFlush.readJournalEntry(i)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		_, err = j.saveUntilMDFlush.removeEarliest()
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		entry, ok := e.(blockJournalEntry)
 		if !ok {
-			return errors.New("Unexpected block journal entry type in saved")
+			return 0, errors.New("Unexpected block journal entry type in saved")
 		}
 
 		for id := range entry.Contexts {
 			hasRef, err := j.s.hasAnyRef(id)
 			if err != nil {
-				return err
+				return 0, err
 			}
 			if !hasRef {
 				// Garbage-collect the old entry.
 				err = j.remove(id)
 				if err != nil {
-					return err
+					return 0, err
 				}
 			}
 		}
 	}
 
+	if last > lastMin {
+		// The saved journal isn't empty and we were asked to remove
+		// more entries than we were able to; the caller must call us
+		// again.
+		return last, nil
+	}
+
+	j.log.CDebugf(ctx, "Removed last saved entry, removing saved journal")
 	err = ioutil.RemoveAll(j.saveUntilMDFlush.dir)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	j.saveUntilMDFlush = nil
-	return nil
+	return 0, nil
 }
 
 func (j *blockJournal) getAllRefsForTest() (map[BlockID]blockRefMap, error) {
