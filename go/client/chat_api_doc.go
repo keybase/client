@@ -11,7 +11,7 @@ Read a conversation:
     {"method": "read", "params": {"options": {"channel": {"name": "you,them"}}}}
 
 Send a message:
-    {"method": "send", "params": {"options": {"channel": {"name": "you,kbot"}, "message": {"body": "sqrt(2)"}}}}
+    {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}}}
 
 Delete a message:
     {"method": "delete", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314}}}
