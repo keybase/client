@@ -4,10 +4,10 @@
 package utils
 
 import (
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 )
 
 // KeybaseContext defines what chat needs from Keybase

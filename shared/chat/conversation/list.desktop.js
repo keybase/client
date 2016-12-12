@@ -78,7 +78,7 @@ class ConversationList extends Component<void, Props, State> {
     // heights for it (which will re-render it and everything after it)
     if (this._toRemeasure.length) {
       this._toRemeasure.forEach(item => {
-        this._list.recomputeRowHeights(item)
+        this._list && this._list.recomputeRowHeights(item)
       })
       this._toRemeasure = []
     }
@@ -206,7 +206,7 @@ class ConversationList extends Component<void, Props, State> {
 
   _recomputeList () {
     this._cellCache.clearAllRowHeights()
-    this._list.recomputeRowHeights()
+    this._list && this._list.recomputeRowHeights()
   }
 
   render () {

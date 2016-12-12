@@ -68,7 +68,8 @@ protocol identifyCommon {
     ENCRYPT_3,
     DECRYPT_4,
     VERIFY_5,
-    RESOURCE_6
+    RESOURCE_6,
+    BACKGROUND_7
   }
 
   record IdentifyReason {

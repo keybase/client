@@ -193,6 +193,7 @@ export const IdentifyCommonIdentifyReasonType = {
   decrypt: 4,
   verify: 5,
   resource: 6,
+  background: 7,
 }
 
 export const IdentifyCommonTrackDiffType = {
@@ -3126,6 +3127,7 @@ export type IdentifyReasonType =
   | 4 // DECRYPT_4
   | 5 // VERIFY_5
   | 6 // RESOURCE_6
+  | 7 // BACKGROUND_7
 
 export type IdentifyRes = {
   user?: ?User,

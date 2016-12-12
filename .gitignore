@@ -40,5 +40,6 @@ npm-debug.log
 desktop/node_modules
 react-native/node_modules
 packaging/desktop/node_modules/
+packaging/prerelease/node_modules/
 
 Keybase.app.dSYM.zip

@@ -6,8 +6,6 @@ package client
 import (
 	"golang.org/x/net/context"
 
-	"time"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -43,10 +41,7 @@ func (c *cmdChatList) Run() error {
 		return err
 	}
 
-	if c.fetcher.async {
-		// Wait around for a bit to test async
-		time.Sleep(time.Second * 5)
-	} else {
+	if !c.fetcher.async {
 		if len(conversations) == 0 {
 			ui.Printf("no conversations\n")
 			return nil

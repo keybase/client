@@ -20,7 +20,7 @@ const base = {
   },
 }
 
-const mui = getMuiTheme(base, mui)
+const mui = getMuiTheme(base)
 
 // TODO endit sub properties here if you need to
 

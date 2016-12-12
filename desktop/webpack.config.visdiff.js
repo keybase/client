@@ -1,4 +1,5 @@
-const webpack = require('webpack') // eslint-disable-line flowtype/require-valid-file-annotation
+/* eslint-disable flowtype/require-valid-file-annotation */
+const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
