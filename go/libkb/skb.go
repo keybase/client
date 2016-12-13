@@ -449,7 +449,7 @@ func (s *SKB) UnlockWithStoredSecret(lctx LoginContext, secretRetriever SecretRe
 	return s.unlockSecretKeyFromSecretRetriever(lctx, secretRetriever)
 }
 
-var errUnlockNotPossible = errors.New("unlock not possible")
+var ErrUnlockNotPossible = errors.New("unlock not possible")
 
 func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore) (GenericKey, error) {
 	// already have decrypted secret?
@@ -477,7 +477,7 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore) (Generi
 		s.G().LoginState().PassphraseStreamCache(func(sc *PassphraseStreamCache) {
 			tsec = sc.Triplesec()
 			pps = sc.PassphraseStream()
-		}, "skb - PromptAndUnlock - tsec, pps")
+		}, "skb - UnlockNoPrompt - tsec, pps")
 	}
 
 	if tsec != nil || pps != nil {
@@ -496,7 +496,7 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore) (Generi
 	}
 
 	// failed to unlock without prompting user for passphrase
-	return nil, errUnlockNotPossible
+	return nil, ErrUnlockNotPossible
 }
 
 func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, secretStore SecretStore, me *User) (GenericKey, error) {
@@ -560,7 +560,7 @@ func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, secretStore SecretStore, m
 	if err == nil {
 		return
 	}
-	if err != errUnlockNotPossible {
+	if err != ErrUnlockNotPossible {
 		return
 	}
 
