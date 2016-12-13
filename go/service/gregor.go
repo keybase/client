@@ -1115,20 +1115,8 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 	}
 	g.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
 
-	tlsConfig, err := rpc.TLSConfigFromRootCerts([]byte(rawCA))
-	if err != nil {
-		return err
-	}
-	dialer := libkb.NewTimeoutDialer(20*time.Second, tlsConfig)
-	dialer.Dialer.KeepAlive = 10 * time.Second
-	opts := rpc.ConnectionOpts{
-		LogFactory:    libkb.NewRPCLogFactory(g.G()),
-		WrapErrorFunc: libkb.WrapError,
-		DialTLS:       dialer.DialTLS,
-	}
-
 	g.connMutex.Lock()
-	g.conn = rpc.NewTLSConnectionWithOpts(uri.HostPort, libkb.ErrorUnwrapper{}, g, g.G().Log, opts)
+	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), libkb.WrapError, g.G().Log, nil)
 	g.connMutex.Unlock()
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.

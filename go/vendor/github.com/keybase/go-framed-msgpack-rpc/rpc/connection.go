@@ -424,6 +424,8 @@ func (c *Connection) connect(ctx context.Context) error {
 // DoCommand executes the specific rpc command wrapped in rpcFunc.
 func (c *Connection) DoCommand(ctx context.Context, name string,
 	rpcFunc func(GenericClient) error) error {
+	fmt.Println("JACK DoCommand", name)
+	defer fmt.Println("JACK finished DoCommand")
 	for {
 		// we may or may not be in the process of reconnecting.
 		// if so we'll block here unless canceled by the caller.
@@ -446,8 +448,10 @@ func (c *Connection) DoCommand(ctx context.Context, name string,
 			// retry connectivity errors w/backoff.
 			throttleErr := rpcFunc(rawClient)
 			if throttleErr != nil && c.handler.ShouldRetry(name, throttleErr) {
+				fmt.Printf("JACK GOT ShouldRetry %#v\n", throttleErr)
 				return throttleErr
 			}
+			fmt.Printf("JACK didn't get ShouldRetry %#v\n", throttleErr)
 			rpcErr = throttleErr
 			return nil
 		}, c.doCommandBackoff, c.handler.OnDoCommandError)
@@ -459,13 +463,18 @@ func (c *Connection) DoCommand(ctx context.Context, name string,
 
 		// check to see if we need to retry it.
 		if !c.checkForRetry(rpcErr) {
+			fmt.Printf("JACK FAILED checkForRetry %#v\n", rpcErr)
 			return rpcErr
 		}
+		fmt.Printf("JACK did not fail checkForRetry %#v\n", rpcErr)
 	}
 }
 
 // Blocks until a connnection is ready for use or the context is canceled.
 func (c *Connection) waitForConnection(ctx context.Context) error {
+	fmt.Println("JACK waitForConnection")
+	defer fmt.Println("JACK finished waitForConnection")
+
 	if c.IsConnected() {
 		// already connected
 		return nil
@@ -474,13 +483,16 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 	// or for the caller to cancel.
 	reconnectChan, disconnectStatus, reconnectErrPtr := c.getReconnectChan()
 	c.log.Debug("Connection: waitForConnection; status: %d", disconnectStatus)
+	fmt.Println("JACK selecting")
 	select {
 	case <-ctx.Done():
 		// caller canceled
+		fmt.Println("JACK ctx.Done")
 		return ctx.Err()
 	case <-reconnectChan:
 		// Reconnect complete.  If something unretriable happened to
 		// shut down the connection, this will be non-nil.
+		fmt.Println("JACK reconnectChan")
 		return *reconnectErrPtr
 	}
 }
@@ -537,6 +549,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	c.handler.OnDisconnected(ctx, disconnectStatus)
 	err := backoff.RetryNotify(func() error {
 		// try to connect
+		fmt.Println("JACK attempting connect")
 		err := c.connect(ctx)
 		select {
 		case <-ctx.Done():
