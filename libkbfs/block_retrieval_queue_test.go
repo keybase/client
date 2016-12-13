@@ -22,7 +22,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 	ptr1 := makeFakeBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1.")
-	_ = q.Request(ctx, 1, nil, ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
 
 	t.Log("Begin working on the request.")
 	br := <-q.WorkOnRequest()
@@ -45,8 +45,8 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	ptr2 := makeFakeBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 and a higher priority retrieval for ptr2.")
-	_ = q.Request(ctx, 1, nil, ptr1, block, NoCacheEntry)
-	_ = q.Request(ctx, 2, nil, ptr2, block, NoCacheEntry)
+	_ = q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 2, makeKMD(), ptr2, block, NoCacheEntry)
 
 	t.Log("Begin working on the preempted ptr2 request.")
 	br := <-q.WorkOnRequest()
@@ -73,8 +73,8 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	ptr2 := makeFakeBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 and ptr2.")
-	_ = q.Request(ctx, 1, nil, ptr1, block, NoCacheEntry)
-	_ = q.Request(ctx, 1, nil, ptr2, block, NoCacheEntry)
+	_ = q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 1, makeKMD(), ptr2, block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 request.")
 	br := <-q.WorkOnRequest()
@@ -85,7 +85,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 	ptr3 := makeFakeBlockPointer(t)
 	t.Log("Preempt the ptr2 request with the ptr3 request.")
-	_ = q.Request(ctx, 2, nil, ptr3, block, NoCacheEntry)
+	_ = q.Request(ctx, 2, makeKMD(), ptr3, block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr3 request.")
 	br = <-q.WorkOnRequest()
@@ -111,8 +111,8 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	ptr1 := makeFakeBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 twice.")
-	_ = q.Request(ctx, 1, nil, ptr1, block, NoCacheEntry)
-	_ = q.Request(ctx, 1, nil, ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 2 requests and that the queue is now empty.")
 	br := <-q.WorkOnRequest()
@@ -138,9 +138,9 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	ptr3 := makeFakeBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request 3 block retrievals, each preempting the previous one.")
-	_ = q.Request(ctx, 1, nil, ptr1, block, NoCacheEntry)
-	_ = q.Request(ctx, 2, nil, ptr2, block, NoCacheEntry)
-	_ = q.Request(ctx, 3, nil, ptr3, block, NoCacheEntry)
+	_ = q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 2, makeKMD(), ptr2, block, NoCacheEntry)
+	_ = q.Request(ctx, 3, makeKMD(), ptr3, block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr3 retrieval.")
 	br := <-q.WorkOnRequest()
@@ -150,7 +150,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	require.Equal(t, uint64(2), br.insertionOrder)
 
 	t.Log("Preempt the remaining retrievals with another retrieval for ptr1.")
-	_ = q.Request(ctx, 3, nil, ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 3, makeKMD(), ptr1, block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has increased in priority and has 2 requests.")
 	br = <-q.WorkOnRequest()
@@ -177,7 +177,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	ptr1 := makeFakeBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1.")
-	_ = q.Request(ctx, 1, nil, ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 1, makeKMD(), ptr1, block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 1 request.")
 	br := <-q.WorkOnRequest()
@@ -189,7 +189,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	require.Equal(t, block, br.requests[0].block)
 
 	t.Log("Request another block retrieval for ptr1 before it has finished. Verify that the priority is unchanged but there are now 2 requests.")
-	_ = q.Request(ctx, 2, nil, ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 2, makeKMD(), ptr1, block, NoCacheEntry)
 	require.Equal(t, 1, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
 	require.Len(t, br.requests, 2)
@@ -199,7 +199,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Finalize the existing request for ptr1.")
 	q.FinalizeRequest(br, &FileBlock{}, nil)
 	t.Log("Make another request for the same block. Verify that this is a new request.")
-	_ = q.Request(ctx, 2, nil, ptr1, block, NoCacheEntry)
+	_ = q.Request(ctx, 2, makeKMD(), ptr1, block, NoCacheEntry)
 	br = <-q.WorkOnRequest()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, 2, br.priority)
