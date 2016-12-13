@@ -59,6 +59,10 @@ const {conversationIDToKey, keyToConversationID, InboxStateRecord, MetaDataRecor
 
 const _selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
 
+const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
+  return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
+}
+
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: Constants.updateBadging, payload: {conversationIDKey}}
 }
@@ -325,8 +329,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         }
 
         // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
-        const inboxSelector = (state: TypedState) => state.chat.get('inbox', List()).find(i => i.get('conversationIDKey') === conversationIDKey)
-        const inboxConvo = yield select(inboxSelector)
+        const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
 
         if (!inboxConvo) {
           yield put(loadInbox())
@@ -469,12 +472,18 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
 
   const conversationID = keyToConversationID(conversationIDKey)
   const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+  const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
+  if (inboxConvo && !inboxConvo.validated) {
+    __DEV__ && console.log('Bailing on not yet validated conversation')
+    return
+  }
+
   const oldConversationState = yield select(conversationStateSelector)
 
   let next
   if (oldConversationState) {
-    if (oldConversationState.get('isLoading')) {
-      __DEV__ && console.log('Bailing on chat load more due to isloading already')
+    if (oldConversationState.get('isRequesting')) {
+      __DEV__ && console.log('Bailing on chat load more due to isRequesting already')
       return
     }
 
@@ -616,11 +625,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
 function * _openFolder (): SagaGenerator<any, any> {
   const conversationIDKey = yield select(_selectedSelector)
 
-  const inboxSelector = (state: TypedState) => {
-    return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
-  }
-
-  const inbox = yield select(inboxSelector)
+  const inbox = yield select(_selectedInboxSelector, conversationIDKey )
   if (inbox) {
     const helper = inbox.get('info').visibility === CommonTLFVisibility.public ? publicFolderWithUsers : privateFolderWithUsers
     const path = helper(inbox.get('participants').map(p => p.username).toArray())
@@ -684,11 +689,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   const {conversationIDKey, fromUser} = action.payload
   yield put(loadMoreMessages())
 
-  const inboxSelector = (state: TypedState) => {
-    return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
-  }
-
-  const inbox = yield select(inboxSelector)
+  const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox && !inbox.get('validated')) {
     return
   }

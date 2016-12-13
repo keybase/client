@@ -11,7 +11,7 @@ import Popup from './messages/popup'
 import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {Box} from '../../common-adapters'
+import {Box, ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {Message, MessageID} from '../../constants/chat'
@@ -200,6 +200,13 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   render () {
+    if (!this.props.validated) {
+      return (
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <ProgressIndicator style={{width: 20}} />
+        </Box>
+      )
+    }
     const messageCount = this.state.messages.count()
     const countWithLoading = messageCount + 1 // Loading row on top always
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined

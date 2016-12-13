@@ -41,7 +41,7 @@ function reducer (state: State = initialState, action: Actions) {
             .set('seenMessages', nextSeenMessages)
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
-            .set('isLoading', false)
+            .set('isRequesting', false)
         })
 
       // Reset the unread count
@@ -148,7 +148,7 @@ function reducer (state: State = initialState, action: Actions) {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
         initialConversation,
-        conversation => conversation.set('isLoading', true))
+        conversation => conversation.set('isRequesting', true))
 
       return state.set('conversationStates', newConversationStates)
     }

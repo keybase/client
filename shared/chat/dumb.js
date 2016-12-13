@@ -100,7 +100,7 @@ const commonConvoProps = {
   messages: List(messages),
   participants: List(participants),
   moreToLoad: false,
-  isLoading: false,
+  isRequesting: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
   emojiPickerOpen: false,
