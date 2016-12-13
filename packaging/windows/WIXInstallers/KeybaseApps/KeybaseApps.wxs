@@ -20,8 +20,16 @@
     
     <!--Check installer property WIX_UPGRADE_DETECTED or UPGRADINGPRODUCTCODE to see if an upgrade is in progrss-->
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />
-   
-		<Feature Id="ProductFeature" Title="Keybase Application" Level="1">
+
+    <!--Detect the "old installer" version of Keybase in the Roaming directory
+    TODO when this "new installer" is released the Maximum should be set to the old version. Assume 1.0.18 for now-->
+    <Property Id="PREVIOUS_KEYBASE_INSTALLER" Secure="yes">
+      <DirectorySearch Id="searchOldKeybasesIntaller" Path="[ROAMINGINSTALLFOLDER]" Depth="0">
+        <FileSearch Name="keybase.exe" MaxVersion="1.0.18"/>
+      </DirectorySearch>
+    </Property>
+
+    <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComponents" />
       <ComponentGroupRef Id="PrompterComponents" />
