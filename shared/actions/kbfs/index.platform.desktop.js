@@ -23,17 +23,8 @@ function pathToURL (path: string): string {
   return encodeURI('file://' + path).replace(/#/g, '%23')
 }
 
-function openInDefault (openPath: string): Promise<*> {
+function openInDefaultDirectory (openPath: string): Promise<*> {
   return new Promise((resolve, reject) => {
-    console.log('openInDefault:', openPath)
-    // Path resolve removes any ..
-    openPath = path.resolve(openPath)
-    // Paths MUST start with defaultKBFSPath
-    if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-      reject(new Error(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`))
-      return
-    }
-
     // Paths in directories might be symlinks, so resolve using
     // realpath.
     // For example /keybase/private/gabrielh,chris gets redirected to
@@ -55,24 +46,71 @@ function openInDefault (openPath: string): Promise<*> {
           reject(err)
           return
         }
+        console.log('Opened directory:', openPath)
         resolve()
       })
     })
   })
 }
 
+function isDirectory (openPath: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    fs.stat(openPath, (err, stats) => {
+      if (err) {
+        reject(new Error(`Unable to open/stat file: ${openPath}`))
+        return
+      }
+      if (stats.isFile()) {
+        resolve(false)
+      } else if (stats.isDirectory()) {
+        resolve(true)
+      } else {
+        reject(new Error(`Unable to open: Not a file or directory`))
+      }
+    })
+  })
+}
+
+function openInDefault (openPath: string): Promise<*> {
+  return new Promise((resolve, reject) => {
+    console.log('openInDefault:', openPath)
+    // Path resolve removes any ..
+    openPath = path.resolve(openPath)
+    // Paths MUST start with defaultKBFSPath
+    if (!openPath.startsWith(Constants.defaultKBFSPath)) {
+      reject(new Error(`openInDefault requires ${Constants.defaultKBFSPath} prefix: ${openPath}`))
+      return
+    }
+
+    isDirectory(openPath).then((isDir) => {
+      if (isDir) {
+        openInDefaultDirectory(openPath).then(resolve).catch(reject)
+      } else {
+        if (shell.showItemInFolder(openPath)) {
+          resolve()
+        } else {
+          reject(`Unable to open item in folder: ${openPath}`)
+        }
+      }
+    })
+  })
+}
+
 function * openInWindows (openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-    throw new Error(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+    throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
   openPath = openPath.slice(Constants.defaultKBFSPath.length)
 
   let kbfsPath = yield select(state => state.config.kbfsPath)
 
+  if (!kbfsPath) {
+    throw new Error('No kbfsPath')
+  }
+
   // On windows the path isn't /keybase
-  // We can figure it out by looking at the extendedConfig though
   if (kbfsPath === Constants.defaultKBFSPath) {
-    // make call
+    // Get current mount
     kbfsPath = yield call(kbfsMountGetCurrentMountDirRpcPromise)
 
     if (!kbfsPath) {
@@ -82,17 +120,24 @@ function * openInWindows (openPath: string): SagaGenerator<any, any> {
     yield put({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
   }
 
-  if (!kbfsPath) {
-    throw new Error('No kbfsPath')
-  }
-
   openPath = path.resolve(kbfsPath, openPath)
   // Check to make sure our resolved path starts with the kbfsPath
   // i.e. (not opening a folder outside kbfs)
   if (!openPath.startsWith(kbfsPath)) {
-    throw new Error(`openInKBFS requires ${kbfsPath} prefix: ${openPath}`)
+    throw new Error(`openInWindows requires ${kbfsPath} prefix: ${openPath}`)
   }
-  shell.openItem(openPath)
+
+  isDirectory(openPath).then((isDir) => {
+    if (isDir) {
+      if (!shell.openItem(openPath)) {
+        throw new Error(`Unable to open item: ${openPath}`)
+      }
+    } else {
+      if (!shell.showItemInFolder(openPath)) {
+        throw new Error(`Unable to open item in folder: ${openPath}`)
+      }
+    }
+  })
 }
 
 function * openSaga (action: FSOpen): SagaGenerator<any, any> {
