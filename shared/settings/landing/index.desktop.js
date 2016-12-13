@@ -175,16 +175,16 @@ function AccountEmail ({email, onChangeEmail, isVerified}: {email: string, isVer
   return (
     <Box style={{...globalStyles.flexBoxRow, minHeight: ROW_HEIGHT, justifyContent: 'space-between', alignItems: 'center'}}>
       <Box style={globalStyles.flexBoxColumn}>
-        <Text type='Body'>{email}</Text>
+        <Text type='BodySemibold'>{email}</Text>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Icon type={isVerified ? 'iconfont-check' : 'iconfont-close'}
-            style={{fontSize: 12, color: isVerified ? globalColors.green2 : globalColors.red}} />
+            style={{fontSize: 10, color: isVerified ? globalColors.green2 : globalColors.red}} />
           <Text type='BodySmall' style={{marginLeft: globalMargins.xtiny, color: isVerified ? globalColors.green2 : globalColors.red}}>
             {isVerified ? 'Verified' : 'Not verified'}
           </Text>
         </Box>
       </Box>
-      <Text type='BodySmall' style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>Edit</Text>
+      <Text type='Body' style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>Edit</Text>
     </Box>
   )
 }
@@ -192,11 +192,11 @@ function AccountEmail ({email, onChangeEmail, isVerified}: {email: string, isVer
 function AccountPassphrase ({onChangePassphrase}: {onChangePassphrase: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, minHeight: ROW_HEIGHT, alignItems: 'center'}}>
-      <Text type='BodySmall' style={{marginRight: globalMargins.xtiny}}>
+      <Text type='Body' style={{marginRight: globalMargins.xtiny}}>
         Passphrase:
       </Text>
       <Text type='Body' style={{flex: 1}}>•••••••••</Text>
-      <Text type='BodySmall' style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>Edit</Text>
+      <Text type='Body' style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>Edit</Text>
     </Box>
   )
 }
@@ -213,7 +213,7 @@ function Account ({email, isVerified, onChangeEmail, onChangePassphrase}: Accoun
 
 function Landing (props: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: 32}}>
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: 40}}>
       <Account {...props.account} />
       {flags.plansEnabled && <Plan {...props.plan} plans={props.plans} />}
     </Box>

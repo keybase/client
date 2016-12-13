@@ -25,7 +25,7 @@ export function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsIt
 
 function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
   return (
-    <Box style={globalStyles.flexBoxColumn}>
+    <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.large, backgroundColor: globalColors.lightGrey}}>
       <SettingsItem
         text='Your Account'
         selected={selectedTab === landingTab}
@@ -58,7 +58,7 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
       />
       {__DEV__ &&
         <SettingsItem
-          text='😎 Dev Menu'
+          text='😎 &nbsp; Dev Menu'
           selected={selectedTab === devMenuTab}
           onClick={() => onTabChange(devMenuTab)}
         />
