@@ -9,6 +9,17 @@
     <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
     <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
+
+    <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ProductUpdater" />
+      <ComponentGroupRef Id="PrompterComponents" />      
+      <ComponentGroupRef Id="GUI" />
+      <ComponentGroupRef Id="ApplicationShortcuts" />
+    </Feature>
+
+    <FeatureRef Id="KBFSFeature" />
+        
     <!-- This seems to be the best way to detect pending reboot - MsiSystemRebootPending did NOT work -->
     <Property Id="RESTART_PENDING">
       <RegistrySearch Id="RestartPending"
@@ -18,9 +29,6 @@
                       Type="raw" />
     </Property>
     
-    <!--Check installer property WIX_UPGRADE_DETECTED or UPGRADINGPRODUCTCODE to see if an upgrade is in progrss-->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />
-
     <!--Detect the "old installer" version of Keybase in the Roaming directory
     TODO when this "new installer" is released the Maximum should be set to the old version. Assume 1.0.18 for now-->
     <Property Id="PREVIOUS_KEYBASE_INSTALLER" Secure="yes">
@@ -29,16 +37,8 @@
       </DirectorySearch>
     </Property>
 
-    <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
-      <ComponentGroupRef Id="ProductComponents" />
-      <ComponentGroupRef Id="ProductUpdater" />
-      <ComponentGroupRef Id="GUI" />
-      <ComponentGroupRef Id="PrompterComponents" />
-      <ComponentGroupRef Id="ApplicationShortcuts" />
-      <ComponentGroupRef Id="StartupRunKeys" />
-    </Feature>
-
-    <FeatureRef Id="KBFSFeature" />
+    <!--Check installer property WIX_UPGRADE_DETECTED or UPGRADINGPRODUCTCODE to see if an upgrade is in progrss-->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />    
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <!--Typically C:\Users\USERNAME\AppData\Local-->
@@ -59,10 +59,8 @@
       </Directory>
     </Directory>    
 
-
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-
       <!--See Fragment sections for actions specific to those components-->
     </InstallExecuteSequence>
 
@@ -93,8 +91,14 @@
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
         <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
-			</Component>
-      
+      </Component>
+
+      <!--Start the application on user logon
+      TODO These must be disabled/deleted if there is an interim reboot between upgrading Dokan and upgrading Keybase Apps -->
+      <Component Id="AppRunKeyComponent" Guid="{B0F58F8C-A2F0-483F-8193-E4E254B7779F}">
+        <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="Keybase" Value="&quot;[#runquiet.exe]&quot; &quot;[#keybase.exe]&quot; ctl watchdog2" Type="string" />
+      </Component>
+
       <Component Id="runquiet.exe" Guid="{1265F74B-0775-4522-A67D-25422D1984A3}">
         <CreateFolder />
         <RemoveFolder Id="RemoveMyAppRunner" On="uninstall" />
@@ -130,8 +134,15 @@
   </Fragment>
 
   <Fragment>
-    <ComponentGroup Id="GUI">     
-      <ComponentGroupRef Id="GuiComponents" />    
+    <ComponentGroup Id="GUI" Directory="INSTALLFOLDER" >     
+      <ComponentGroupRef Id="GuiComponents" />
+
+      <!--Start the  GUI on user logon
+      TODO These must be disabled/deleted if there is an interim reboot between upgrading Dokan and upgrading Keybase Apps -->
+      <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
+      <Component Id="GUIRunKeyComponent" Guid="{117D9139-9E66-4BDB-B5BF-F7F508F27BDC}">
+        <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="KeybaseGUI" Value="&quot;[#runquiet.exe]&quot; &quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;" Type="string" />
+      </Component>
     </ComponentGroup>
 
     <InstallExecuteSequence>
@@ -225,23 +236,8 @@
   </Fragment>
 
   <Fragment>
-    <!--Start the application and GUI on user logon
-    TODO These must be disabled/deleted if there is an interim reboot between upgrading Dokan and upgrading Keybase Apps -->
-    <ComponentGroup Id="StartupRunKeys" Directory="INSTALLFOLDER">
-      <Component Id="AppRunKeyComponent" Guid="{B0F58F8C-A2F0-483F-8193-E4E254B7779F}">
-        <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="Keybase" Value="&quot;[#runquiet.exe]&quot; &quot;[#keybase.exe]&quot; ctl watchdog2" Type="string" />
-      </Component>
-      
-      <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
-      <Component Id="GUIRunKeyComponent" Guid="{117D9139-9E66-4BDB-B5BF-F7F508F27BDC}">
-        <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="KeybaseGUI" Value="&quot;[#runquiet.exe]&quot; &quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;" Type="string" />
-      </Component>
-    </ComponentGroup>
-  </Fragment>
- 
-  <Fragment>
-    <ComponentGroup Id="ApplicationShortcuts" Directory="APPLICATIONPROGRAMSLFOLDER">
-      <Component Id="ApplicationShortcut" Guid="E05F8D29-F530-4791-AE6B-B89DAE1F6D5C">
+    <ComponentGroup Id="ApplicationShortcuts" Directory="APPLICATIONPROGRAMSLFOLDER" >
+      <Component Id="ApplicationShortcut" Guid="E05F8D29-F530-4791-AE6B-B89DAE1F6D5C" >
           <Shortcut Id="ApplicationStartMenuShortcut"
               Name="Keybase Shell"
               Description="Open command console with keybase in the local path"
