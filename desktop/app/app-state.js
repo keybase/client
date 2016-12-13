@@ -52,7 +52,6 @@ export default class AppState {
   saveState () {
     let configPath = this.config.path
     let stateToSave = this.state
-    console.log('Saving state:', stateToSave, configPath)
     jsonfile.writeFile(configPath, stateToSave, function (err) {
       if (err) {
         console.log('Error saving file:', err)
