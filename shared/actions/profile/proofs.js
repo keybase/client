@@ -279,7 +279,7 @@ function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress):
     yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true, wantedFamily}})
     yield put(_waitingForResponse(false))
     yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
-    yield put(navigateAppend(['ConfirmOrPending'], [profileTab]))
+    yield put(navigateAppend(['postProof', 'confirmOrPending'], [profileTab]))
   } catch (error) {
     console.warn('Error making proof')
     yield put(_waitingForResponse(false))

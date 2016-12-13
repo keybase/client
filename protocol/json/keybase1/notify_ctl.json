@@ -62,6 +62,10 @@
         {
           "type": "boolean",
           "name": "badges"
+        },
+        {
+          "type": "boolean",
+          "name": "reachability"
         }
       ]
     }

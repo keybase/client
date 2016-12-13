@@ -118,6 +118,7 @@ func waitForServiceInfo(timeout time.Duration, delay time.Duration, fn loadServi
 	}
 
 	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
 	resultChan := make(chan serviceInfoResult, 1)
 	go func() {
 		for {
@@ -140,7 +141,6 @@ func waitForServiceInfo(timeout time.Duration, delay time.Duration, fn loadServi
 	case res := <-resultChan:
 		return res.info, res.err
 	case <-time.After(timeout):
-		ticker.Stop()
 		return nil, nil
 	}
 }

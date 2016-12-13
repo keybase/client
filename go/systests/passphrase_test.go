@@ -114,12 +114,6 @@ func TestPassphraseRecover(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// logout before recovering passphrase
-	logout := client.NewCmdLogoutRunner(tc2.G)
-	if err := logout.Run(); err != nil {
-		t.Fatal(err)
-	}
-
 	// the paper key displayed during signup is in userInfo now, and it will be used
 	// during passphrase recovery
 	tc.G.Log.Debug("signup paper key: %s", userInfo.displayedPaperKey)

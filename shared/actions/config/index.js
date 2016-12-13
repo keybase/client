@@ -1,11 +1,12 @@
 // @flow
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
-import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
+import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {navBasedOnLoginState} from '../../actions/login'
-import {registerGregorListeners} from '../../actions/gregor'
+import {registerGregorListeners, registerReachability} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
+import {listenForKBFSNotifications} from '../../actions/notifications'
 
 import type {AsyncAction, Action} from '../../constants/types/flux'
 
@@ -91,7 +92,28 @@ function getMyFollowing (username: string): AsyncAction {
   }
 }
 
-function getExtendedStatus (): AsyncAction {
+export function waitForKBFS (): AsyncAction {
+  return dispatch => {
+    return new Promise((resolve, reject) => {
+      configWaitForClientRpc({
+        param: {clientType: CommonClientType.kbfs, timeout: 10.0},
+        callback: (error, found) => {
+          if (error) {
+            reject(error)
+            return
+          }
+          if (!found) {
+            reject(new Error('Waited for KBFS client, but it wasn\'t not found'))
+            return
+          }
+          resolve()
+        },
+      })
+    })
+  }
+}
+
+export function getExtendedStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       configGetExtendedStatusRpc({
@@ -112,6 +134,7 @@ function getExtendedStatus (): AsyncAction {
 function _registerListeners (): AsyncAction {
   return dispatch => {
     dispatch(registerGregorListeners())
+    dispatch(registerReachability())
   }
 }
 
@@ -125,7 +148,6 @@ export function retryBootstrap (): AsyncAction {
 let bootstrapSetup = false
 export function bootstrap (): AsyncAction {
   return (dispatch, getState) => {
-    const state = getState()
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('[bootstrap] registered bootstrap')
@@ -133,18 +155,16 @@ export function bootstrap (): AsyncAction {
         console.log('[bootstrap] bootstrapping on connect')
         dispatch(bootstrap())
       })
-    } else if (state.dev && state.dev.reloading) {
-      // Let's still register the listeners
-      dispatch(_registerListeners())
     } else {
       console.log('[bootstrap] performing bootstrap...')
       Promise.all(
-        [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(([username]) => {
+        [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig()), dispatch(waitForKBFS())]).then(([username]) => {
           if (username) {
             dispatch(getMyFollowers(username))
             dispatch(getMyFollowing(username))
           }
           dispatch({type: Constants.bootstrapped, payload: null})
+          dispatch(listenForKBFSNotifications())
           dispatch(navBasedOnLoginState())
           dispatch((resetSignup(): Action))
           dispatch(_registerListeners())
@@ -186,5 +206,3 @@ function getCurrentStatus (): AsyncAction {
     })
   }
 }
-
-export {getExtendedStatus}

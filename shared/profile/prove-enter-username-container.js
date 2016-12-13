@@ -24,7 +24,7 @@ export default compose(
       }
 
       return {
-        canContinue: profile.usernameValid,
+        canContinue: true,
         errorCode: profile.errorCode,
         errorText: profile.errorText,
         onCancel: () => { dispatch(cancelAddProof()) },

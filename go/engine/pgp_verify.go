@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/clearsign"
@@ -60,7 +61,7 @@ func (e *PGPVerify) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&PGPDecrypt{},
 		&ScanKeys{},
-		&Identify{},
+		&ResolveThenIdentify2{},
 	}
 }
 
@@ -235,20 +236,20 @@ func (e *PGPVerify) checkSignedBy(ctx *Context) error {
 	e.G().Log.Debug("checking signed by assertion: %q", e.arg.SignedBy)
 
 	// load the user in SignedBy
-	arg := NewIdentifyArg(e.arg.SignedBy, false, false)
-	eng := NewIdentify(arg, e.G())
+	arg := keybase1.Identify2Arg{
+		UserAssertion: e.arg.SignedBy,
+		AlwaysBlock:   true,
+		NeedProofSet:  true,
+		NoSkipSelf:    true,
+	}
+	eng := NewResolveThenIdentify2(e.G(), &arg)
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
 	}
-	signByUser := eng.User()
-	if signByUser == nil {
-		// this shouldn't happen (engine should return an error in this state)
-		// but just in case:
-		return libkb.ErrNilUser
-	}
+	signByUser := eng.Result().Upk
 
 	// check if it is equal to signature owner
-	if !e.signer.Equal(signByUser) {
+	if !e.signer.GetUID().Equal(signByUser.Uid) {
 		return libkb.BadSigError{
 			E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.signer.GetName(), e.arg.SignedBy),
 		}

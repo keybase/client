@@ -534,11 +534,13 @@ var hardcodedPVLString = `
         {
           "assert_regex_match": {
             "case_insensitive": true,
+            "from": "hint_url",
             "pattern": "^https?://[\\w:_\\-\\.]+/_/api/1\\.0/rooter/%{username_service}/.*$"
           }
         },
         {
           "fetch": {
+            "from": "hint_url",
             "kind": "json"
           }
         },

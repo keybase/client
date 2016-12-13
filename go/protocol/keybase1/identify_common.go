@@ -110,6 +110,7 @@ type TrackOptions struct {
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
 	ForceRetrack  bool `codec:"forceRetrack" json:"forceRetrack"`
 	ExpiringLocal bool `codec:"expiringLocal" json:"expiringLocal"`
+	ForPGPPull    bool `codec:"forPGPPull" json:"forPGPPull"`
 }
 
 type IdentifyReasonType int

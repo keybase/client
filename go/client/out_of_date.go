@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/keybase/client/go/libkb"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 func PrintOutOfDateWarnings(g *libkb.GlobalContext) {
@@ -35,6 +36,10 @@ func PrintOutOfDateWarnings(g *libkb.GlobalContext) {
 	}
 	if info.UpgradeURI != "" {
 		libkb.PlatformSpecificUpgradeInstructions(g, info.UpgradeURI)
+	}
+	if info.CriticalClockSkew != 0 {
+		g.Log.Warning("Critical clock skew: Your clock is %s off from the server",
+			time.Duration(info.CriticalClockSkew))
 	}
 }
 
