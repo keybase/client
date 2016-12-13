@@ -39,6 +39,10 @@ const (
 	// A block read request that is happening from a different
 	// goroutine than the blockLock rlock holder, using the same lState.
 	blockReadParallel
+	// We are looking up a block for the purposes of creating a new
+	// node in the node cache for it; avoid any unlocks as part of the
+	// lookup process.
+	blockLookup
 )
 
 type mdToCleanIfUnused struct {
@@ -318,7 +322,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	// goroutines may be operating on the data assuming they have the
 	// lock.
 	var err error
-	if rtype != blockReadParallel {
+	if rtype != blockReadParallel && rtype != blockLookup {
 		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
 			err = bops.Get(ctx, kmd, ptr, block)
 		})
@@ -504,6 +508,8 @@ func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 			panic("Non-nil lState passed to getFileBlockLocked " +
 				"with blockReadParallel")
 		}
+	case blockLookup:
+		panic("blockLookup should only be used for directory blocks")
 	default:
 		panic(fmt.Sprintf("Unknown block req type: %d", rtype))
 	}
@@ -766,7 +772,7 @@ func (fbo *folderBlockOps) getDirtyEntryLocked(ctx context.Context,
 	// TODO: Since we only need a single DirEntry, avoid having to
 	// look up every entry in the DirBlock.
 	_, de, err := fbo.getDirtyParentAndEntryLocked(
-		ctx, lState, kmd, file, blockRead)
+		ctx, lState, kmd, file, blockLookup)
 	return de, err
 }
 
