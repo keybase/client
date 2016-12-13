@@ -37,7 +37,7 @@ export default class AttachmentMessage extends Component<void, Props, void> {
               {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
               <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
                 {!message.imageSource &&
-                  <Text type='Body' style={{marginTop: globalMargins.xtiny, flex: 1}} onClick={() => onLoadAttachment(message.messageID)}>
+                  <Text type='Body' style={{marginTop: globalMargins.xtiny, flex: 1}} onClick={() => onLoadAttachment(message.messageID, message.filename)}>
                     Click to load: {message.title} - {message.filename}
                   </Text>}
                 {!!message.imageSource && <Box style={{marginTop: globalMargins.xtiny, flex: 1}}><img src={message.imageSource} /></Box>}

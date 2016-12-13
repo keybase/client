@@ -25,6 +25,34 @@ function dedupeMessages (seenMessages: Set<MessageID>, knownMessages: List<Serve
   }
 }
 
+type ConversationsStates = Map<Constants.ConversationIDKey, ConversationState>
+type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
+function updateConversation (conversationStates: ConversationsStates, conversationIDKey: Constants.ConversationIDKey, conversationUpdateFn: ConversationUpdateFn): ConversationsStates {
+  return conversationStates.update(
+    conversationIDKey,
+    initialConversation,
+    conversationUpdateFn,
+  )
+}
+
+type MessageUpdateFn = (message: $Subtype<Message>) => Message
+type MessageFindPredFn = (message: Message) => boolean
+function updateConversationMessage (conversationStates: ConversationsStates, conversationIDKey: Constants.ConversationIDKey, pred: MessageFindPredFn, messageUpdateFn: MessageUpdateFn): ConversationsStates {
+  return updateConversation(
+    conversationStates,
+    conversationIDKey,
+    conversation => {
+      const index = conversation.get('messages').findIndex(pred)
+      if (index < 0) {
+        console.warn("Couldn't find an outbox entry to modify")
+        return conversation
+      }
+      // $FlowIssue
+      return conversation.updateIn(['messages', index], messageUpdateFn)
+    }
+  )
+}
+
 function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
@@ -110,24 +138,36 @@ function reducer (state: State = initialState, action: Actions) {
         .set('inbox', newInboxStates)
     }
     case Constants.pendingMessageWasSent: {
-      const {outboxID, messageID, messageState} = action.payload
-      const newConversationStates = state.get('conversationStates').update(
-        action.payload.conversationIDKey,
-        initialConversation,
-        conversation => {
-          const index = conversation.get('messages').findIndex(item => item.outboxID === outboxID)
-          if (index < 0) {
-            console.warn("Couldn't find an outbox entry to modify")
-            return conversation
-          }
-          return conversation.updateIn(['messages', index], item => ({
-            ...item,
+      const {outboxID, conversationIDKey, messageID, messageState} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.outboxID && item.outboxID === outboxID,
+          (m: Constants.TextMessage) => (({
+            ...m,
             messageID,
             messageState,
-          })).set('seenMessages', conversation.seenMessages.add(messageID))
-        }
-      )
-      return state.set('conversationStates', newConversationStates)
+          }): Constants.TextMessage)
+      )).update('conversationStates', conversationStates => updateConversation(
+        conversationStates,
+        conversationIDKey,
+        // $FlowIssue
+        conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageID))
+      ))
+    }
+    case 'chat:attachmentLoaded': {
+      const {conversationIDKey, messageID, imageSource} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.messageID && item.messageID === messageID,
+        m => ({
+          ...m,
+          imageSource,
+        })
+      ))
     }
     case Constants.updateLatestMessage:
       // Clear new messages id when switching away from conversation

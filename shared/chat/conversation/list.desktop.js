@@ -76,8 +76,10 @@ class ConversationList extends Component<void, Props, State> {
   componentWillUpdate (nextProps: Props, nextState: State) {
     // If a message has moved from pending to sent, tell the List to discard
     // heights for it (which will re-render it and everything after it)
+    // TODO this doesn't work for things that take a bit to load (imgs)
     if (this._toRemeasure.length) {
       this._toRemeasure.forEach(item => {
+        this._cellCache.clearRowHeight(item)
         this._list && this._list.recomputeRowHeights(item)
       })
       this._toRemeasure = []
@@ -118,6 +120,11 @@ class ConversationList extends Component<void, Props, State> {
   _invalidateChangedMessages (props: Props) {
     this.state.messages.forEach((item, index) => {
       if (item.messageID !== props.messages.get(index, {}).messageID) {
+        this._toRemeasure.push(index + 1)
+      }
+
+      if (item.imageSource !== props.messages.get(index, {}).imageSource) {
+        console.log('remeasuring:', index, item)
         this._toRemeasure.push(index + 1)
       }
     })
@@ -197,7 +204,7 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected, this.props.onLoadAttachment)
   }
 
   _recomputeListDebounced = _.debounce(() => {

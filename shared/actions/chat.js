@@ -3,19 +3,23 @@ import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
 import _ from 'lodash'
-import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localMarkAsReadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
-import {call, put, select} from 'redux-saga/effects'
+import {badgeApp} from './notifications'
+import {call, put, select, cancel} from 'redux-saga/effects'
 import {searchTab, chatTab} from '../constants/tabs'
 import {openInKBFS} from './kbfs'
 import {badgeApp} from './notifications'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
-import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {switchTo} from './route-tree'
 import {usernameSelector} from '../constants/selectors'
 import {changedFocus} from '../constants/window'
+import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
+import {tmpFile} from '../util/file'
+
+import * as ChatTypes from '../constants/types/flow-types-chat'
+import * as Types from '../constants/types/flow-types'
 
 import type {ChangedFocus} from '../constants/window'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
@@ -45,6 +49,22 @@ import type {
   UpdateLatestMessage,
   UpdateMetadata,
 } from '../constants/chat'
+
+const {
+  CommonConversationStatus,
+  CommonMessageType,
+  CommonTLFVisibility,
+  CommonTopicType,
+  LocalMessageUnboxedState,
+  NotifyChatChatActivityType,
+  localDownloadFileAttachmentLocalRpcChannelMap,
+  localGetInboxAndUnboxLocalRpcPromise,
+  localGetThreadLocalRpcPromise,
+  localMarkAsReadLocalRpcPromise,
+  localNewConversationLocalRpcPromise,
+  localPostFileAttachmentLocalRpcChannelMap,
+  localPostLocalNonblockRpcPromise,
+} = ChatTypes
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord, makeSnippet, MetaDataRecord} = Constants
 
@@ -96,6 +116,14 @@ function deleteMessage (message: Message): DeleteMessage {
   return {type: Constants.deleteMessage, payload: {message}}
 }
 
+function onAttach (conversationIDKey: ConversationIDKey, filename: string): Constants.ClickedAttach {
+  return {type: Constants.clickedAttach, payload: {conversationIDKey, filename}}
+}
+
+function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, filename: string): Constants.LoadAttachment {
+  return {type: 'chat:loadAttachment', payload: {conversationIDKey, messageID, loadPreview, filename}}
+}
+
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
 function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
   return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
@@ -144,8 +172,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string
   }).filter(Boolean))
 }
 
-function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
-  const {conversationIDKey} = action.payload
+function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any>  {
   const infoSelector = (state: TypedState) => {
     const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
     if (convo) {
@@ -183,15 +210,20 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     return
   }
 
-  const clientHeader = {
+  return {
     conv: info.triple,
     tlfName: info.tlfName,
     tlfPublic: info.visibility === CommonTLFVisibility.public,
-    messageType: CommonMessageType.text,
+    messageType,
     supersedes: 0,
     sender: Buffer.from(uid, 'hex'),
     senderDevice: Buffer.from(deviceID, 'hex'),
   }
+}
+
+function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
+  const {conversationIDKey} = action.payload
+  const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
 
   const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
@@ -323,6 +355,10 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               messages: [message],
             },
           })
+
+          if (message.type === 'Attachment' && !message.imageSource) {
+            yield put(loadAttachment(conversationIDKey, message.messageID, true, tmpFile(message.filename)))
+          }
         }
       }
       break
@@ -431,6 +467,10 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
       paginationNext: pagination.next,
     },
   })
+
+  // Load previews for attachments
+  const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' ? acc.push(m) : acc, new List())
+  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, tmpFile(filename)))).toArray()
 }
 
 function _threadToPagination (thread) {
@@ -480,6 +520,17 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             followState: isYou ? 'You' : 'Following', // TODO get this
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
+          }
+        case CommonMessageType.attachment:
+          return {
+            type: 'Attachment',
+            ...common,
+            followState: isYou ? 'You' : 'Following', // TODO get this
+            // $FlowIssue todo fix
+            filename: payload.messageBody.attachment.object.filename,
+            // $FlowIssue todo fix
+            title: payload.messageBody.attachment.object.title,
+            imageSource: null,
           }
         default:
           const unhandled: UnhandledMessage = {
@@ -651,6 +702,113 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
+function * _clickedAttach ({payload: {conversationIDKey, filename}}: Constants.ClickedAttach): SagaGenerator<any, any> {
+  const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
+  const attachment = {
+    filename,
+  }
+
+  const param = {
+    conversationID: keyToConversationID(conversationIDKey),
+    clientHeader,
+    attachment,
+    title: 'The Strib', // TODO
+    metadata: null,
+    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+  }
+
+  const channelConfig = singleFixedChannelConfig([
+    'chat.1.chatUi.chatAttachmentUploadStart',
+    'chat.1.chatUi.chatAttachmentPreviewUploadStart',
+    'chat.1.chatUi.chatAttachmentUploadProgress',
+    'chat.1.chatUi.chatAttachmentUploadDone',
+    'chat.1.chatUi.chatAttachmentPreviewUploadDone',
+  ])
+
+  const channelMap = ((yield call(localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
+
+  const progressTask = yield effectOnChannelMap(c => safeTakeEvery(c, function * ({response}) {
+    const {bytesComplete, bytesTotal} = response.param
+    const action: Constants.UploadProgress = {
+      type: 'chat:uploadProgress',
+      payload: {bytesTotal, bytesComplete},
+    }
+    yield put(action)
+    response.result()
+  }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
+
+  const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
+  // $FlowIssue
+  uploadStart.response.result()
+
+  const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
+  // $FlowIssue
+  previewUploadStart.response.result()
+
+  const uploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
+  // $FlowIssue
+  uploadDone.response.result()
+
+  const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
+  // $FlowIssue
+  previewUploadDone.response.result()
+
+  yield cancel(progressTask)
+  closeChannelMap(channelMap)
+}
+
+// TODO load previews too
+function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
+  console.log('Going to try downloading some data')
+
+  const param = {
+    conversationID: keyToConversationID(conversationIDKey),
+    messageID,
+    filename,
+    preview: loadPreview,
+    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+  }
+
+  const channelConfig = singleFixedChannelConfig([
+    'chat.1.chatUi.chatAttachmentDownloadStart',
+    'chat.1.chatUi.chatAttachmentDownloadProgress',
+    'chat.1.chatUi.chatAttachmentDownloadDone',
+  ])
+
+  const channelMap = ((yield call(localDownloadFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
+
+  const progressTask = yield effectOnChannelMap(c => safeTakeEvery(c, function * ({response}) {
+    const {bytesComplete, bytesTotal} = response.param
+    const action: Constants.DownloadProgress = {
+      type: 'chat:downloadProgress',
+      payload: {conversationIDKey, messageID, bytesTotal, bytesComplete},
+    }
+    yield put(action)
+    response.result()
+  }), channelMap, 'chat.1.chatUi.chatAttachmentDownloadProgress')
+
+  {
+    // $FlowIssue
+    const {response} = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentDownloadStart')
+    response.result()
+  }
+
+  {
+    // $FlowIssue
+    const {response} = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentDownloadDone')
+    response.result()
+  }
+
+  yield cancel(progressTask)
+  closeChannelMap(channelMap)
+
+  const action: Constants.AttachmentLoaded = {
+    type: 'chat:attachmentLoaded',
+    payload: {conversationIDKey, messageID, imageSource: filename},
+  }
+  yield put(action)
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
@@ -664,6 +822,8 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.postMessage, _postMessage),
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
+    safeTakeEvery(Constants.clickedAttach, _clickedAttach),
+    safeTakeEvery('chat:loadAttachment', _loadAttachment),
     safeTakeLatest(Constants.openFolder, _openFolder),
     safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
     safeTakeEvery(changedFocus, _changedFocus),
@@ -676,9 +836,11 @@ export {
   badgeAppForChat,
   deleteMessage,
   editMessage,
+  loadAttachment,
   loadInbox,
   loadMoreMessages,
   newChat,
+  onAttach,
   openFolder,
   postMessage,
   selectConversation,

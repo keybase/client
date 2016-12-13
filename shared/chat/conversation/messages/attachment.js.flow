@@ -7,7 +7,7 @@ export type Props = {
   message: AttachmentMessage,
   includeHeader: boolean,
   isFirstNewMessage: boolean,
-  onLoadAttachment: (messageID: MessageID) => void,
+  onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onAction: (event: any) => void,
   style: Object,
 }
