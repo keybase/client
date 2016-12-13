@@ -156,6 +156,8 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('metaData', state.get('metaData').merge(action.payload))
     case Constants.loadedInbox:
       return state.set('inbox', action.payload.inbox)
+    case Constants.updateInboxComplete:
+      return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
     case Constants.updateInbox:
       const convo: InboxState = action.payload.conversation
       const toFind = convo.get('conversationIDKey')

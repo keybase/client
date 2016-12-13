@@ -70,7 +70,7 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
               containerStyle={{color: isMuted ? globalColors.blue3_40 : globalColors.white, paddingRight: 7}}
               users={participants.toArray()}
               title={participants.map(p => p.username).join(', ')} />
-            {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, ...boldOverride, color: subColor}}>{snippet}</Text>}
+            {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Text>}
           </Box>
         </Box>
         <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>

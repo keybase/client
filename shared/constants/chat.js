@@ -161,6 +161,7 @@ export const updateLatestMessage = 'chat:updateLatestMessage'
 export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
 export const updateInbox = 'chat:updateInbox'
+export const updateInboxComplete = 'chat:updateInboxComplete'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
@@ -168,6 +169,7 @@ export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: M
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
+export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
@@ -198,6 +200,7 @@ export type Actions = AppendMessages
   | StartConversation
   | UpdateBadging
   | UpdateInbox
+  | UpdateInboxComplete
   | UpdateLatestMessage
   | UpdateMetadata
   | UpdatedMetadata

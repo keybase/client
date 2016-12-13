@@ -1,10 +1,3 @@
-// // TODO
-// load inbox unveriried
-// convert and set w/ no snippet
-// load snippets in async
-// if user clicks on convo wait for it to be verified then load messages, show spinner in meantime, no inputbox
-// if we get a fail from inbox load we show a global error and remove it from the inbox list
-//
 // @flow
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
@@ -182,7 +175,7 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
       participants,
       muted: false, // TODO integrate this when it's available
       time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
-      snippet: '',
+      snippet: ' ',
       unreadCount: convoUnverified.readerInfo && (convoUnverified.readerInfo.maxMsgid - convoUnverified.readerInfo.readMsgid),
       validated: false,
     })
@@ -395,6 +388,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
     'chat.1.chatUi.chatInboxFailed',
+    'finished',
   ])
 
   const loadInboxChanMap: ChannelMap<any> = localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
@@ -424,11 +418,13 @@ function * _loadInbox (): SagaGenerator<any, any> {
   yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
   chatInboxUnverified.response.result()
 
-  const total = inbox.conversationsUnverified && inbox.conversationsUnverified.length || 0
+  // +1 for the finish call
+  const total = inbox.conversationsUnverified && inbox.conversationsUnverified.length + 1 || 0
   for (let i = 0; i < total; ++i) {
     const incoming: {[key: string]: any} = yield race({
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
+      finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
     })
 
     if (incoming.chatInboxConversation) {
@@ -439,8 +435,9 @@ function * _loadInbox (): SagaGenerator<any, any> {
       }
       // find it
     } else if (incoming.chatInboxFailed) {
-      // TODO
       incoming.chatInboxFailed.response.result()
+    } else if (incoming.finished) {
+      yield put({type: Constants.updateInboxComplete, payload: undefined})
     }
   }
 }
