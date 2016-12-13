@@ -50,18 +50,16 @@
       <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
       <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
 
-
       <!-- These roaming actions are temporary, while we switch from appdata to localappdata.
-      TODO Condition these to run only if upgrading from the "old installer" keybase-->
+      These should run only if upgrading from the "old installer" Keybase-->
+      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
+      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
+      <Custom Action="StopGUIRoaming" Before="InstallValidate"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
 
-      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"/>
-      <Custom Action="StopMainAppRoaming" Before="StopGUI"/>
-
-
+      <!--TODO These should run only if there is not a restart pending after install or upgrade-->
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
-
 
     <Property Id="Setup">Setup</Property>
     <Property Id="ButtonText_No">&amp;No</Property>
@@ -75,6 +73,7 @@
     <Binary Id="info" SourceFile="Binary\Info.ico" />
     <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
   </Product>
+  
   <Fragment>
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="LocalAppDataFolder">
@@ -245,49 +244,57 @@
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe &quot;[INSTALLFOLDER]keybase.exe&quot; ctl watchdog2"
               Execute="commit"
+              Impersonate="yes"
               Return="ignore"/>    
-  </Fragment>
-  <Fragment>
+
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
-  <Fragment>
+
+  <Fragment>   
     <CustomAction Id="StopUpdater"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
-  <Fragment>
-    <CustomAction Id="StopMainAppRoaming"
-              Directory="ROAMINGINSTALLFOLDER"
-              ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
-    <CustomAction Id="StopUpdaterRoaming"
-              Directory="ROAMINGINSTALLFOLDER"
-              ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-
+  
   <Fragment>
     <CustomAction Id="RunGUI"
               Directory="GuiDir"
               ExeCommand="[INSTALLFOLDER]runquiet.exe &quot;[GuiDir]Keybase.exe&quot;"
               Execute="commit"
+              Impersonate="yes"
               Return="ignore"/>
-  </Fragment>
-  <Fragment>
+
     <CustomAction Id="StopGUI"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
               Execute="immediate"
               Return="ignore"/>
+  </Fragment>
+
+  <Fragment>
+    <!--These stop Keybase before upgrade when an "old installer" version of Keybase is installed in the Roaming folder-->
+    <CustomAction Id="StopMainAppRoaming"
+          Directory="ROAMINGINSTALLFOLDER"
+          ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
+          Execute="immediate"
+          Return="ignore"/>
+
+    <CustomAction Id="StopUpdaterRoaming"
+          Directory="ROAMINGINSTALLFOLDER"
+          ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
+          Execute="immediate"
+          Return="ignore"/>
+
+    <CustomAction Id="StopGUIRoaming"
+          Directory="ROAMINGINSTALLFOLDER"
+          ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
+          Execute="immediate"
+          Return="ignore"/>
   </Fragment>
   </Wix>
