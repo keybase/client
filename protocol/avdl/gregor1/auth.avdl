@@ -5,6 +5,7 @@
 protocol auth {
 	record AuthResult {
 		UID uid;
+		string username;
 		SessionID sid;
 		boolean isAdmin;
 	}
