@@ -13,9 +13,6 @@ export type BadgeAppAction = TypedAction<'notifications:badgeApp', {key: Notific
 export const listenForNotifications = 'notifications:listenForNotifications'
 export type ListenForNotifications = NoErrorTypedAction<'notifications:listenForNotifications', void>
 
-export const listenForKBFSNotifications = 'notifications:listenForKBFSNotifications'
-export type ListenForKBFSNotifications = NoErrorTypedAction<'notifications:listenForKBFSNotifications', void>
-
 export type BadgeType = 'regular' | 'update' | 'badged' | 'uploading'
 
 export type MenuNotificationState = {

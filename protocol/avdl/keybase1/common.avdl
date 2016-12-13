@@ -5,10 +5,6 @@ protocol Common {
   @typedef("long")
   record Time {}
 
-  // Duration in seconds
-  @typedef("double")
-  record DurationSec {}
-
   record StringKVPair {
     string key;
     string value;

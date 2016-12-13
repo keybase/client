@@ -10,12 +10,6 @@
     },
     {
       "type": "record",
-      "name": "DurationSec",
-      "fields": [],
-      "typedef": "double"
-    },
-    {
-      "type": "record",
       "name": "StringKVPair",
       "fields": [
         {

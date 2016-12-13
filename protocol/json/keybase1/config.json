@@ -462,20 +462,6 @@
       "request": [],
       "response": "OutOfDateInfo",
       "doc": "Check whether the API server has told us we're out of date."
-    },
-    "waitForClient": {
-      "request": [
-        {
-          "name": "clientType",
-          "type": "ClientType"
-        },
-        {
-          "name": "timeout",
-          "type": "DurationSec"
-        }
-      ],
-      "response": "boolean",
-      "doc": "Wait for client type to connect to service."
     }
   },
   "namespace": "keybase.1"

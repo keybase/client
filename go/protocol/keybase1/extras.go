@@ -816,7 +816,3 @@ func (u UserVersionVector) Equal(u2 UserVersionVector) bool {
 	}
 	return true
 }
-
-func (d DurationSec) Duration() time.Duration {
-	return time.Duration(d) * time.Second
-}
