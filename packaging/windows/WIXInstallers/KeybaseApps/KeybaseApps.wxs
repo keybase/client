@@ -116,8 +116,6 @@
         <File Id="runquiet.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe" Checksum="yes"/>
       </Component>
 
-
-
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />
         <RemoveFolder Id="RemoveUpdater" On="uninstall" />
@@ -138,6 +136,7 @@
       
     </ComponentGroup>
   </Fragment>
+  
   <Fragment>
     <ComponentGroup Id="PrompterComponents" Directory="PROMPTERFOLDER">
       <Component Id="prompter.hta" Guid="{424BA879-35A2-4853-8F3D-6D8112655FF6}">
