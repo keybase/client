@@ -11,7 +11,7 @@ class Intro extends Component<void, IntroProps, void> {
       <Box style={stylesLoginForm}>
         <Icon type='icon-keybase-logo-160' />
         <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
-        <Text style={stylesHeaderSub} type='Body'>Loading…</Text>
+        <Text style={stylesHeaderSub} type='BodySmall'>Loading…</Text>
       </Box>
     )
   }
@@ -48,7 +48,7 @@ class Intro extends Component<void, IntroProps, void> {
         </Box>}
         <Icon type='icon-keybase-logo-160' />
         <Text style={stylesHeader} type='HeaderBig'>Join Keybase</Text>
-        <Text style={stylesHeaderSub} type='Body'>Public key crypto for everyone</Text>
+        <Text style={stylesHeaderSub} type='BodySemibold'>Public key crypto for everyone</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />
         <Box style={stylesFooter}>
           <Text type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text><br />
@@ -83,16 +83,17 @@ const stylesHeader = {
   color: globalColors.orange,
 }
 const stylesHeaderSub = {
-  marginTop: 3,
+  marginTop: globalMargins.xtiny,
 }
 const stylesMessage = {
+  marginTop: globalMargins.small,
   marginLeft: globalMargins.large,
   marginRight: globalMargins.large,
   marginBottom: globalMargins.large,
   textAlign: 'center',
 }
 const stylesButton = {
-  marginTop: 15,
+  marginTop: globalMargins.medium,
 }
 const stylesFooter = {
   marginTop: 91,

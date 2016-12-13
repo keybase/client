@@ -97,6 +97,7 @@ function setupTarget () {
       }
     }
 
+    // $FlowIssue these can no longer be written to
     console[key] = override
     ipcMain.on(`console.${key}`, (event, ...args) => {
       const prologue = `From ${event.sender.getTitle()}: `
@@ -112,6 +113,7 @@ function setupSource () {
   }
 
   ['log', 'warn', 'error'].forEach(key => {
+    // $FlowIssue these can no longer be written to
     console[key] = (...args) => {
       try {
         key === 'log' && localLog(...args)

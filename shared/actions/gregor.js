@@ -3,15 +3,16 @@
 import * as Constants from '../constants/gregor'
 import engine from '../engine'
 import {call, put, select} from 'redux-saga/effects'
-import {delegateUiCtlRegisterGregorFirehoseRpc} from '../constants/types/flow-types'
+import {delegateUiCtlRegisterGregorFirehoseRpc, reachabilityCheckReachabilityRpcPromise, reachabilityStartReachabilityRpc, ReachabilityReachable} from '../constants/types/flow-types'
 import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
-import {safeTakeEvery} from '../util/saga'
+import {bootstrap} from '../actions/config'
+import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {usernameSelector} from '../constants/selectors'
 
-import type {PushState, PushOOBM, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
+import type {CheckReachability, PushState, PushOOBM, UpdateReachability, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
 import type {Dispatch} from '../constants/types/flux'
-import type {PushReason} from '../constants/types/flow-types'
+import type {PushReason, Reachability} from '../constants/types/flow-types'
 import type {State as GregorState, ItemAndMetadata as GregorItem, OutOfBandMessage} from '../constants/types/flow-types-gregor'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
@@ -24,12 +25,16 @@ function pushOOBM (messages: Array<OutOfBandMessage>): PushOOBM {
   return {type: Constants.pushOOBM, payload: {messages}}
 }
 
-function updateSeenMsgs (seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
-  return {type: Constants.updateSeenMsgs, payload: {seenMsgs}}
+function updateReachability (reachability: Reachability): UpdateReachability {
+  return {type: Constants.updateReachability, payload: {reachability}}
 }
 
-function isNonNullGregorItem (gItem: GregorItem): boolean {
-  return !!(gItem && gItem.item && gItem.md)
+function checkReachability (): CheckReachability {
+  return {type: Constants.checkReachability, payload: undefined}
+}
+
+function updateSeenMsgs (seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
+  return {type: Constants.updateSeenMsgs, payload: {seenMsgs}}
 }
 
 function isTlfItem (gItem: GregorItem): boolean {
@@ -37,8 +42,45 @@ function isTlfItem (gItem: GregorItem): boolean {
 }
 
 function toNonNullGregorItems (state: GregorState): Array<NonNullGregorItem> {
-  // $ForceType
-  return (state.items || []).filter(isNonNullGregorItem)
+  if (!state.items) {
+    return []
+  }
+
+  // We need to do this in two steps because flow understands filter(Boolean)
+  // can un-Maybe a type, but it doesn't understand general predicates.
+  return state.items
+    .map(x => {
+      const md = x.md
+      const item = x.item
+      // Gotta copy the object because flow is VERY UNCHILL about casting these maybes.
+      return md && item ? {md, item} : null
+    })
+    .filter(Boolean)
+}
+
+function registerReachability () {
+  return (dispatch: Dispatch) => {
+    engine().setIncomingHandler('keybase.1.reachability.reachabilityChanged', ({reachability}, response) => {
+      dispatch(updateReachability(reachability))
+
+      if (reachability.reachable === ReachabilityReachable.yes) {
+        // TODO: We should be able to recover from connection problems
+        // without re-bootstrapping. Originally we used to do this on HTML5
+        // 'online' event, but reachability is more precise.
+        dispatch(bootstrap())
+      }
+    })
+
+    reachabilityStartReachabilityRpc({
+      callback: (err, reachability) => {
+        if (err) {
+          console.warn('error bootstrapping reachability: ', err)
+          return
+        }
+        dispatch(updateReachability(reachability))
+      },
+    })
+  }
 }
 
 function registerGregorListeners () {
@@ -72,7 +114,6 @@ function registerGregorListeners () {
 }
 
 function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
-  // $ForceType
   const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
@@ -127,16 +168,24 @@ function * handlePushOOBM (pushOOBM: pushOOBM) {
   }
 }
 
+function * handleCheckReachability (): SagaGenerator<any, any> {
+  const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
+  yield put({type: Constants.updateReachability, payload: {reachability}})
+}
+
 function * gregorSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeEvery(Constants.pushState, handlePushState),
     safeTakeEvery(Constants.pushOOBM, handlePushOOBM),
+    safeTakeLatest(Constants.checkReachability, handleCheckReachability),
   ]
 }
 
 export {
+  checkReachability,
   pushState,
   registerGregorListeners,
+  registerReachability,
 }
 
 export default gregorSaga

@@ -4,8 +4,11 @@ import type {AvatarSize} from './avatar'
 
 export function createAvatarUrl (props: {url: ?string} | {username: ?string, size: AvatarSize}): ?string {
   if (__SCREENSHOT__ || isTesting) return null
-  if (typeof props.url === 'string') return props.url
-  if (props.username) {
+  if (typeof props.url === 'string') {
+    return props.url
+  } else if (typeof props.username === 'string') {
+    const name = props.username
+
     const formatSize = {
       '176': 200,
       '112': 200,
@@ -24,7 +27,7 @@ export function createAvatarUrl (props: {url: ?string} | {username: ?string, siz
       '360': '?format=square_360',
     }[String(formatSize)]
 
-    return `https://keybase.io/${props.username || ''}/picture${format}`
+    return `https://keybase.io/${name}/picture${format}`
   }
   return null
 }

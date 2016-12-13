@@ -115,23 +115,25 @@ type TrackOptions struct {
 type IdentifyReasonType int
 
 const (
-	IdentifyReasonType_NONE     IdentifyReasonType = 0
-	IdentifyReasonType_ID       IdentifyReasonType = 1
-	IdentifyReasonType_TRACK    IdentifyReasonType = 2
-	IdentifyReasonType_ENCRYPT  IdentifyReasonType = 3
-	IdentifyReasonType_DECRYPT  IdentifyReasonType = 4
-	IdentifyReasonType_VERIFY   IdentifyReasonType = 5
-	IdentifyReasonType_RESOURCE IdentifyReasonType = 6
+	IdentifyReasonType_NONE       IdentifyReasonType = 0
+	IdentifyReasonType_ID         IdentifyReasonType = 1
+	IdentifyReasonType_TRACK      IdentifyReasonType = 2
+	IdentifyReasonType_ENCRYPT    IdentifyReasonType = 3
+	IdentifyReasonType_DECRYPT    IdentifyReasonType = 4
+	IdentifyReasonType_VERIFY     IdentifyReasonType = 5
+	IdentifyReasonType_RESOURCE   IdentifyReasonType = 6
+	IdentifyReasonType_BACKGROUND IdentifyReasonType = 7
 )
 
 var IdentifyReasonTypeMap = map[string]IdentifyReasonType{
-	"NONE":     0,
-	"ID":       1,
-	"TRACK":    2,
-	"ENCRYPT":  3,
-	"DECRYPT":  4,
-	"VERIFY":   5,
-	"RESOURCE": 6,
+	"NONE":       0,
+	"ID":         1,
+	"TRACK":      2,
+	"ENCRYPT":    3,
+	"DECRYPT":    4,
+	"VERIFY":     5,
+	"RESOURCE":   6,
+	"BACKGROUND": 7,
 }
 
 var IdentifyReasonTypeRevMap = map[IdentifyReasonType]string{
@@ -142,6 +144,7 @@ var IdentifyReasonTypeRevMap = map[IdentifyReasonType]string{
 	4: "DECRYPT",
 	5: "VERIFY",
 	6: "RESOURCE",
+	7: "BACKGROUND",
 }
 
 type IdentifyReason struct {

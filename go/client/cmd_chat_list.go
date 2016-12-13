@@ -41,13 +41,15 @@ func (c *cmdChatList) Run() error {
 		return err
 	}
 
-	if len(conversations) == 0 {
-		ui.Printf("no conversations\n")
-		return nil
-	}
+	if !c.fetcher.async {
+		if len(conversations) == 0 {
+			ui.Printf("no conversations\n")
+			return nil
+		}
 
-	if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
-		return err
+		if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
+			return err
+		}
 	}
 
 	// TODO: print summary of inbox. e.g.

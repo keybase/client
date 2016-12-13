@@ -16,7 +16,6 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libcmdline"
@@ -39,6 +38,7 @@ type Service struct {
 	rekeyMaster      *rekeyMaster
 	messageDeliverer *chat.Deliverer
 	badger           *Badger
+	reachability     *reachability
 }
 
 type Shutdowner interface {
@@ -54,6 +54,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		logForwarder: newLogFwd(),
 		rekeyMaster:  newRekeyMaster(g),
 		badger:       newBadger(g),
+		reachability: newReachability(g),
 	}
 }
 
@@ -82,6 +83,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, g)),
+		keybase1.ReachabilityProtocol(newReachabilityHandler(xp, g, d.reachability)),
 		keybase1.RevokeProtocol(NewRevokeHandler(xp, g)),
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),
 		keybase1.SaltpackProtocol(NewSaltpackHandler(xp, g)),
@@ -235,9 +237,8 @@ func (d *Service) createMessageDeliverer() {
 	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	tlf := newTlfHandler(nil, d.G())
-	udc := utils.NewUserDeviceCache(d.G())
 
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf, udc), ri, si)
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), ri, si)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 
 	uid := d.G().Env.GetUID()

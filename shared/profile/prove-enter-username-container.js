@@ -1,4 +1,5 @@
 // @flow
+import React, {Component} from 'react'
 import ProveEnterUsername from './prove-enter-username'
 import {TypedConnector} from '../util/typed-connect'
 import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress, submitZcashAddress} from '../actions/profile'
@@ -6,6 +7,22 @@ import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress, submit
 import type {Props} from './prove-enter-username'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
+
+type State = {
+  username: ?string,
+}
+
+class ProveEnterUsernameContainer extends Component<void, any, State> {
+  state: State;
+  constructor () {
+    super()
+    this.state = {username: null}
+  }
+
+  render () {
+    return <ProveEnterUsername {...this.props} onUsernameChange={username => this.setState({username})} onContinue={() => this.props.onContinue(this.state.username)} />
+  }
+}
 
 const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
@@ -18,11 +35,13 @@ export default connector.connect(
     }
 
     return {
-      canContinue: profile.usernameValid,
+      canContinue: true,
       errorCode: profile.errorCode,
       errorText: profile.errorText,
       onCancel: () => { dispatch(cancelAddProof()) },
-      onContinue: () => {
+      onContinue: (username: string) => {
+        dispatch(updateUsername(username))
+
         if (profile.platform === 'btc') {
           dispatch(submitBTCAddress())
         } else if (profile.platform === 'zcash') {
@@ -31,10 +50,9 @@ export default connector.connect(
           dispatch(submitUsername())
         }
       },
-      onUsernameChange: (username: string) => { dispatch(updateUsername(username)) },
       platform: profile.platform,
       username: profile.username,
       waiting: profile.waiting,
     }
   }
-)(ProveEnterUsername)
+)(ProveEnterUsernameContainer)

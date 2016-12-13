@@ -24,17 +24,19 @@ const PostProof = (props: Props) => {
     }}>
       <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
       {!!errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySemibold'>{errorMessage}</Text></Box>}
-      <Box style={styleContentContainer}>
-        <PlatformIcon platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} />
-        <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
-        {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
-        {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}
-        {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
-        {!!noteText && <Text style={styleNoteText} type='Body'>{noteText}</Text>}
-        {!!proofAction && !!proofActionText && !!proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
-        <Box style={styleButtonsContainer}>
-          {!!onCancelText && <Button type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
-          <Button type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
+      <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
+        <Box style={styleContentContainer}>
+          <PlatformIcon platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} />
+          <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
+          {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
+          {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}
+          {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
+          {!!noteText && <Text style={styleNoteText} type='Body'>{noteText}</Text>}
+          {!!proofAction && !!proofActionText && !!proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
+          <Box style={styleButtonsContainer}>
+            {!!onCancelText && <Button type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
+            <Button type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
+          </Box>
         </Box>
       </Box>
     </Box>
@@ -44,7 +46,6 @@ const PostProof = (props: Props) => {
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  alignItems: 'center',
   position: 'relative',
   paddingTop: globalMargins.large,
   paddingBottom: globalMargins.large,
@@ -73,7 +74,6 @@ const styleErrorBanner = {
 
 const styleErrorBannerText = {
   color: globalColors.white,
-  maxWidth: 512,
   textAlign: 'center',
 }
 
@@ -84,7 +84,6 @@ const styleContentContainer = {
   alignItems: 'center',
   margin: globalMargins.large,
   width: '100%',
-  maxWidth: 512,
   textAlign: 'center',
 }
 
@@ -100,7 +99,6 @@ const stylePlatformSubtitle = {
 const styleProofText = {
   width: '100%',
   minHeight: 116,
-  maxHeight: 116,
   flexGrow: 1,
   marginTop: globalMargins.small,
 }

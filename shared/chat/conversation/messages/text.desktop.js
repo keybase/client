@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {Avatar, Box, Icon, Text, Markdown} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import * as Constants from '../../../constants/chat'
@@ -19,10 +19,10 @@ const MessageText = ({message, style}: {message: TextMessage, style: Object}) =>
   switch (message.messageState) {
     case 'failed':
     case 'pending':
-      return <Markdown style={{color: globalColors.black_40, ...style}}>{text}</Markdown>
+      return <Markdown style={{color: globalColors.black_40, ...globalStyles.selectable, ...style}}>{text}</Markdown>
     case 'sent':
     default:
-      return <Markdown style={style}>{text}</Markdown>
+      return <Markdown style={{...globalStyles.selectable, ...style}}>{text}</Markdown>
   }
 }
 
@@ -42,7 +42,7 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
   </Box>
 )
 
-export default class MessageTextComponent extends Component<void, Props, void> {
+export default class MessageTextComponent extends PureComponent<void, Props, void> {
   render () {
     const {message, style, includeHeader, isFirstNewMessage, onRetry, onAction} = this.props
     return (

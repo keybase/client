@@ -246,3 +246,23 @@ func validateProtocol(s string, allowed []string) (string, bool) {
 	}
 	return canon, false
 }
+
+func rooterRewriteURL(ctx libkb.ProofContext, s string) (string, error) {
+	u1, err := url.Parse(s)
+	if err != nil {
+		return "", err
+	}
+	u2, err := url.Parse(ctx.GetServerURI())
+	if err != nil {
+		return "", err
+	}
+
+	u3 := url.URL{
+		Host:     u2.Host,
+		Scheme:   u2.Scheme,
+		Path:     u1.Path,
+		Fragment: u1.Fragment,
+	}
+
+	return u3.String(), nil
+}

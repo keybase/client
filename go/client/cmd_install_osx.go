@@ -79,6 +79,13 @@ func (v *CmdInstall) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }
 
+var defaultInstallComponents = []string{
+	install.ComponentNameUpdater.String(),
+	install.ComponentNameService.String(),
+	install.ComponentNameMountDir.String(),
+	install.ComponentNameKBFS.String(),
+}
+
 func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.force = ctx.Bool("force")
 	v.format = ctx.String("format")
@@ -89,7 +96,7 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 		v.timeout = 11 * time.Second
 	}
 	if ctx.String("components") == "" {
-		v.components = []string{"updater", "service", "kbfs"}
+		v.components = defaultInstallComponents
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
 	}
@@ -133,6 +140,7 @@ func (v *CmdInstall) Run() error {
 var defaultUninstallComponents = []string{
 	install.ComponentNameService.String(),
 	install.ComponentNameKBFS.String(),
+	install.ComponentNameMountDir.String(),
 	install.ComponentNameUpdater.String(),
 	install.ComponentNameFuse.String(),
 	install.ComponentNameHelper.String(),
@@ -166,6 +174,7 @@ type CmdUninstall struct {
 	libkb.Contextified
 	format     string
 	components []string
+	isDefault  bool
 }
 
 func NewCmdUninstallRunner(g *libkb.GlobalContext) *CmdUninstall {
@@ -181,6 +190,7 @@ func (v *CmdUninstall) GetUsage() libkb.Usage {
 func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 	v.format = ctx.String("format")
 	if ctx.String("components") == "" {
+		v.isDefault = true
 		if libkb.IsBrewBuild {
 			v.components = []string{"service"}
 		} else {
@@ -205,8 +215,10 @@ func (v *CmdUninstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else {
-		t := v.G().UI.GetTerminalUI()
-		t.Printf("\nYou can now remove %s to complete your uninstall.\n", bundlePath)
+		if v.isDefault {
+			t := v.G().UI.GetTerminalUI()
+			t.Printf("\nYou can now remove %s to complete your uninstall.\n", bundlePath)
+		}
 	}
 	return nil
 }

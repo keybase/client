@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import hotPath from '../hot-path'
 import menuHelper from '../app/menu-helper'
+import {injectReactQueryParams} from '../shared/util/dev'
 import {remote, ipcRenderer, screen as electronScreen} from 'electron'
 import {resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
@@ -64,7 +65,7 @@ class RemoteComponent extends Component {
     ipcRenderer.send('showDockIconForRemoteWindow', this.remoteWindowId)
     ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindowId)
 
-    this.remoteWindow.loadURL(resolveRootAsURL('renderer', `renderer.html?${this.props.component || ''}`))
+    this.remoteWindow.loadURL(resolveRootAsURL('renderer', injectReactQueryParams(`renderer.html?${this.props.component || ''}`)))
 
     const webContents = this.remoteWindow.webContents
     webContents.on('did-finish-load', () => {

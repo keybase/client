@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	isatty "github.com/mattn/go-isatty"
 )
 
@@ -56,6 +57,7 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 
 type chatCLIInboxFetcher struct {
 	query chat1.GetInboxSummaryForCLILocalQuery
+	async bool
 }
 
 func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, err error) {
@@ -64,12 +66,34 @@ func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) 
 		return nil, fmt.Errorf("Getting chat service client error: %s", err)
 	}
 
-	res, err := chatClient.GetInboxSummaryForCLILocal(ctx, f.query)
-	if err != nil {
-		return nil, err
+	var convs []chat1.ConversationLocal
+	if f.async {
+		ui := &ChatUI{
+			Contextified: libkb.NewContextified(g),
+			terminal:     g.UI.GetTerminalUI(),
+		}
+		protocols := []rpc.Protocol{
+			chat1.ChatUiProtocol(ui),
+		}
+		if err := RegisterProtocolsWithContext(protocols, g); err != nil {
+			return nil, err
+		}
+
+		err = chatClient.GetInboxNonblockLocal(ctx, chat1.GetInboxNonblockLocalArg{
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		res, err := chatClient.GetInboxSummaryForCLILocal(ctx, f.query)
+		if err != nil {
+			return nil, err
+		}
+		convs = res.Conversations
 	}
 
-	return res.Conversations, nil
+	return convs, nil
 }
 
 func fetchOneMessage(g *libkb.GlobalContext, conversationID chat1.ConversationID, messageID chat1.MessageID) (chat1.MessageUnboxed, error) {

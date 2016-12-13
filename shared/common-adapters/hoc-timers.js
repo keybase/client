@@ -17,7 +17,7 @@ function clearId (clearFunc: (id?: number) => void, array: Array<number>, id?: ?
   }
 }
 
-export default function HOCTimers<P> (ComposedComponent: ReactClass<P & TimerProps>): ReactClass<P> {
+export default function HOCTimers<P: Object> (ComposedComponent: ReactClass<P & TimerProps>): ReactClass<P> {
   class TimersComponent extends Component<void, P, void> {
     _timeoutIds: Array<number>
     _intervalIds: Array<number>

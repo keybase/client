@@ -38,16 +38,14 @@ type Boxer struct {
 	tlf    keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
 	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
-	udc    *utils.UserDeviceCache
 	kbCtx  utils.KeybaseContext
 }
 
-func NewBoxer(kbCtx utils.KeybaseContext, tlf keybase1.TlfInterface, udc *utils.UserDeviceCache) *Boxer {
+func NewBoxer(kbCtx utils.KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
 	return &Boxer{
 		tlf:    tlf,
 		hashV1: hashSha256V1,
 		sign:   sign,
-		udc:    udc,
 		kbCtx:  kbCtx,
 	}
 }
@@ -103,8 +101,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 	}
 	pt := umwkr.messagePlaintext
 
-	_, uimap := utils.GetUserInfoMapper(ctx, b.kbCtx)
-	username, deviceName, deviceType, err := b.getSenderInfoLocal(uimap, pt.ClientHeader)
+	username, deviceName, deviceType, err := b.getSenderInfoLocal(pt.ClientHeader)
 	if err != nil {
 		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
 			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
@@ -259,20 +256,22 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 	return thread, nil
 }
 
-func (b *Boxer) getUsernameAndDevice(uid keybase1.UID, deviceID keybase1.DeviceID,
-	uimap *utils.UserInfoMapper) (string, string, string, error) {
-	return b.udc.LookupUsernameAndDevice(uimap, uid, deviceID)
+func (b *Boxer) getUsernameAndDevice(uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
+	udc := b.kbCtx.GetUserDeviceCache()
+	if udc == nil {
+		return "", "", "", fmt.Errorf("missing UserDeviceCache")
+	}
+	return udc.LookupUsernameAndDevice(uid, deviceID)
 }
 
-func (b *Boxer) getSenderInfoLocal(uimap *utils.UserInfoMapper, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
+func (b *Boxer) getSenderInfoLocal(clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
 	uid := keybase1.UID(clientHeader.Sender.String())
 	did := keybase1.DeviceID(clientHeader.SenderDevice.String())
-	return b.getUsernameAndDevice(uid, did, uimap)
+	return b.getUsernameAndDevice(uid, did)
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
 	finder := NewKeyFinder()
-	ctx, _ = utils.GetUserInfoMapper(ctx, b.kbCtx)
 	for _, msg := range boxed {
 		decmsg, err := b.UnboxMessage(ctx, finder, msg)
 		if err != nil {

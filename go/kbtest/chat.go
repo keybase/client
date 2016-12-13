@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
 
@@ -456,4 +456,75 @@ func (m *ChatRemoteMock) GetS3Params(context.Context, chat1.ConversationID) (cha
 
 func (m *ChatRemoteMock) S3Sign(context.Context, chat1.S3SignArg) ([]byte, error) {
 	return nil, errors.New("GetS3Params not mocked")
+}
+
+type NonblockInboxResult struct {
+	ConvID   chat1.ConversationID
+	Err      error
+	ConvRes  *chat1.ConversationLocal
+	InboxRes *chat1.GetInboxLocalRes
+}
+
+type ChatUI struct {
+	cb chan NonblockInboxResult
+}
+
+func NewChatUI(cb chan NonblockInboxResult) *ChatUI {
+	return &ChatUI{
+		cb: cb,
+	}
+}
+
+func (c *ChatUI) ChatAttachmentUploadStart(context.Context) error {
+	return nil
+}
+
+func (c *ChatUI) ChatAttachmentUploadProgress(ctx context.Context, arg chat1.ChatAttachmentUploadProgressArg) error {
+	return nil
+}
+
+func (c *ChatUI) ChatAttachmentUploadDone(context.Context) error {
+	return nil
+}
+
+func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context) error {
+	return nil
+}
+
+func (c *ChatUI) ChatAttachmentPreviewUploadDone(context.Context) error {
+	return nil
+}
+
+func (c *ChatUI) ChatAttachmentDownloadStart(context.Context) error {
+	return nil
+}
+
+func (c *ChatUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.ChatAttachmentDownloadProgressArg) error {
+	return nil
+}
+
+func (c *ChatUI) ChatAttachmentDownloadDone(context.Context) error {
+	return nil
+}
+
+func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
+	c.cb <- NonblockInboxResult{
+		ConvRes: &arg.Conv,
+		ConvID:  arg.Conv.Info.Id,
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
+	c.cb <- NonblockInboxResult{
+		Err: fmt.Errorf("%s", arg.Error),
+	}
+	return nil
+}
+
+func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
+	c.cb <- NonblockInboxResult{
+		InboxRes: &arg.Inbox,
+	}
+	return nil
 }

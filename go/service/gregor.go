@@ -10,11 +10,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
 	istorage "github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -23,6 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
@@ -1006,7 +1005,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		// We need to get this conversation and then localize it
 		var inbox chat.Inbox
 		tlf := newTlfHandler(nil, g.G())
-		boxer := chat.NewBoxer(g.G(), tlf, utils.NewUserDeviceCache(g.G()))
+		boxer := chat.NewBoxer(g.G(), tlf)
 		inboxSource := chat.NewRemoteInboxSource(g.G(), boxer,
 			func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: g.cli} },
 			func() keybase1.TlfInterface { return tlf })

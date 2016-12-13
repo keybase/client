@@ -110,9 +110,9 @@ func (s *ScanKeys) Count() int {
 
 // KeysById returns the set of keys that have the given key id.
 // It is only called during decryption by openpgp.
-func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
+func (s *ScanKeys) KeysById(id uint64, fp []byte) []openpgp.Key {
 	primaries := s.unlockByID(id)
-	memres := primaries.KeysById(id)
+	memres := primaries.KeysById(id, fp)
 	s.G().Log.Debug("ScanKeys:KeysById(%016x) => %d keys match in memory", id, len(memres))
 	if len(memres) > 0 {
 		s.G().Log.Debug("ScanKeys:KeysById(%016x) => owner == me (%s)", id, s.me.GetName())
@@ -138,14 +138,14 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 // keys are required.  If this ever changes upstream in openpgp,
 // this function will panic.
 //
-func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
+func (s *ScanKeys) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) []openpgp.Key {
 	if requiredUsage != packet.KeyFlagSign {
 		panic(fmt.Sprintf("ScanKeys:  unexpected requiredUsage flags set: %x", requiredUsage))
 	}
 
 	// check the local keys first.
 	primaries := s.publicByID(id)
-	memres := primaries.KeysByIdUsage(id, requiredUsage)
+	memres := primaries.KeysByIdUsage(id, fp, requiredUsage)
 	s.G().Log.Debug("ScanKeys:KeysByIdUsage(%016x, %x) => %d keys match in memory", id, requiredUsage, len(memres))
 	if len(memres) > 0 {
 		s.G().Log.Debug("ScanKeys:KeysByIdUsage(%016x) => owner == me (%s)", id, s.me.GetName())
@@ -163,7 +163,7 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	}
 	// use the list to find the keys correctly
 	s.G().Log.Debug("ScanKeys:KeysByIdUsage(%d, %x) => %d keys found via api scan", id, requiredUsage, len(list))
-	return list.KeysByIdUsage(id, requiredUsage)
+	return list.KeysByIdUsage(id, fp, requiredUsage)
 }
 
 // DecryptionKeys returns all private keys that are valid for
@@ -285,7 +285,7 @@ func (s *ScanKeys) publicByID(id uint64) openpgp.EntityList {
 		if !ok {
 			continue
 		}
-		if len(bundle.KeysById(id)) == 0 {
+		if len(bundle.KeysById(id, nil)) == 0 {
 			// no match
 			continue
 		}
@@ -306,7 +306,7 @@ func (s *ScanKeys) unlockByID(id uint64) openpgp.EntityList {
 		if !ok {
 			continue
 		}
-		if len(bundle.KeysById(id)) == 0 {
+		if len(bundle.KeysById(id, nil)) == 0 {
 			// no match
 			continue
 		}

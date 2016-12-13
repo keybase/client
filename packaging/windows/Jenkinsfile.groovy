@@ -41,9 +41,11 @@ def publish(bucket, excluded, source) {
 def doBuild() {
     stage('Checkout Client') {
         // Reset symlink due to node/git/windows problems
-        bat 'if EXIST src\\github.com\\keybase\\client\\shared cd src\\github.com\\keybase\\client && git checkout shared'
-        bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
-        bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\renderer\\fonts cd src\\github.com\\keybase\\client && git checkout desktop/renderer/fonts'
+        retry(3) {
+            bat 'if EXIST src\\github.com\\keybase\\client\\shared cd src\\github.com\\keybase\\client && git checkout shared'
+            bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
+            bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\renderer\\fonts cd src\\github.com\\keybase\\client && git checkout desktop/renderer/fonts'
+        }
         parallel(
             checkout_client: { checkout_keybase('client', ClientRevision) },
             checkout_kbfs: { checkout_keybase('kbfs', KBFSRevision) },
@@ -60,7 +62,10 @@ def doBuild() {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
     } 
     stage('Build UI') {
-        bat 'src\\github.com\\keybase\\client\\packaging\\windows\\buildui.bat'
+        withEnv(["PATH=${env.PATH};C:\\Program Files (x86)\\yarn\\bin"]) {
+            bat 'path'
+            bat 'src\\github.com\\keybase\\client\\packaging\\windows\\buildui.bat'
+        }
     }
     stage('Build Installer') {
         bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\doinstaller_wix.cmd'

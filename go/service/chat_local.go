@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"time"
 
@@ -31,25 +32,23 @@ type chatLocalHandler struct {
 	libkb.Contextified
 	gh    *gregorHandler
 	tlf   keybase1.TlfInterface
-	udc   *utils.UserDeviceCache
 	boxer *chat.Boxer
 	store *chat.AttachmentStore
 
 	// Only for testing
-	rc chat1.RemoteInterface
+	rc         chat1.RemoteInterface
+	mockChatUI libkb.ChatUI
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	tlf := newTlfHandler(nil, g)
-	udc := utils.NewUserDeviceCache(g)
 	h := &chatLocalHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
 		tlf:          tlf,
-		udc:          udc,
-		boxer:        chat.NewBoxer(g, tlf, udc),
+		boxer:        chat.NewBoxer(g, tlf),
 		store:        chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 	}
 
@@ -88,6 +87,74 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 		IdentifyFailures:        identifyFailures,
 	}, nil
+}
+
+func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
+	if h.mockChatUI != nil {
+		return h.mockChatUI
+	}
+	return h.BaseHandler.getChatUI(sessionID)
+}
+
+func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return libkb.LoginRequiredError{}
+	}
+
+	// Create localized conversation callback channel
+	chatUI := h.getChatUI(arg.SessionID)
+	localizeCb := make(chan chat.NonblockInboxResult, 1)
+
+	inboxSource := chat.NewNonblockRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
+		func() keybase1.TlfInterface { return h.tlf }, localizeCb)
+
+	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
+	_, rl, err := inboxSource.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination, arg.IdentifyBehavior)
+	if err != nil {
+		return err
+	}
+
+	// Wait for inbox to get sent to us
+	select {
+	case lres := <-localizeCb:
+		if lres.InboxRes == nil {
+			return fmt.Errorf("invalid conversation localize callback received")
+		}
+		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
+			SessionID: arg.SessionID,
+			Inbox: chat1.GetInboxLocalRes{
+				ConversationsUnverified: lres.InboxRes.ConvsUnverified,
+				Pagination:              lres.InboxRes.Pagination,
+				RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+			},
+		})
+	case <-time.After(15 * time.Second):
+		return fmt.Errorf("timeout waiting for inbox result")
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	// Consume localize callbacks and send out to UI.
+	for convRes := range localizeCb {
+		if convRes.Err != nil {
+			chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
+				SessionID: arg.SessionID,
+				Error:     convRes.Err.Error(),
+				ConvID:    convRes.ConvID,
+			})
+		} else if convRes.ConvRes != nil {
+			chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
+				SessionID: arg.SessionID,
+				Conv:      *convRes.ConvRes,
+			})
+		}
+	}
+
+	return nil
 }
 
 func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalArg) (chat1.MarkAsReadRes, error) {
@@ -667,6 +734,16 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return chat1.PostLocalRes{}, err
 	}
 
+	// preprocess asset (get content type, create preview if possible)
+	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	if pre.Preview != nil {
+		h.G().Log.Debug("created preview in preprocess")
+		arg.Preview = pre.Preview
+	}
+
 	// upload attachment and (optional) preview concurrently
 	var object chat1.Asset
 	var preview *chat1.Asset
@@ -707,7 +784,9 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	object.Title = arg.Title
 	if preview != nil {
 		preview.Title = arg.Title
+		preview.MimeType = pre.PreviewContentType
 	}
+	object.MimeType = pre.ContentType
 
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
@@ -883,6 +962,42 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 		Version: 1,
 	}
 	return h.remoteClient().S3Sign(context.Background(), arg)
+}
+
+type preprocess struct {
+	ContentType        string
+	Preview            *chat.BufferSource
+	PreviewContentType string
+}
+
+func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment, preview assetSource) (*preprocess, error) {
+	// create a buffered stream
+	cli := h.getStreamUICli()
+	src, err := attachment.Open(sessionID, cli)
+	if err != nil {
+		return nil, err
+	}
+	defer src.Reset()
+
+	head := make([]byte, 512)
+	_, err = io.ReadFull(src, head)
+	if err != nil && err != io.ErrUnexpectedEOF {
+		return nil, err
+	}
+
+	p := preprocess{
+		ContentType: http.DetectContentType(head),
+	}
+
+	if preview == nil {
+		src.Reset()
+		p.Preview, p.PreviewContentType, err = chat.Preview(ctx, src, p.ContentType, attachment.Basename())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &p, nil
 }
 
 func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local assetSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {

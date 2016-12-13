@@ -8,13 +8,13 @@ import (
 
 	"encoding/hex"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -43,6 +43,7 @@ func (n *chatListener) FavoritesChanged(uid keybase1.UID)                       
 func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                            {}
 func (n *chatListener) PGPKeyInSecretStoreFile()                                     {}
 func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                    {}
+func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                  {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
@@ -73,8 +74,7 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	tlf := kbtest.NewTlfMock(world)
 	tc, u := getUser(world)
 	tc.G.SetService()
-	udc := utils.NewUserDeviceCache(tc.G)
-	boxer := NewBoxer(tc.G, tlf, udc)
+	boxer := NewBoxer(tc.G, tlf)
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}

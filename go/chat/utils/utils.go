@@ -116,7 +116,7 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // Reorder participants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
+func ReorderParticipants(udc *libkb.UserDeviceCache, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
 	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
 	if err != nil {
 		return writerNames, readerNames, err
@@ -132,7 +132,7 @@ func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname st
 	// Fill from the active list first.
 	for _, uid := range activeList {
 		kbUID := keybase1.UID(uid.String())
-		user, err := udc.LookupUsername(uimap, kbUID)
+		user, err := udc.LookupUsername(kbUID)
 		if err != nil {
 			continue
 		}

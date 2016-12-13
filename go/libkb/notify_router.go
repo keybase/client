@@ -43,6 +43,7 @@ type NotifyListener interface {
 	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
+	ReachabilityChanged(r keybase1.Reachability)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -638,4 +639,19 @@ func (n *NotifyRouter) HandlePGPKeyInSecretStoreFile() {
 		n.listener.PGPKeyInSecretStoreFile()
 	}
 	n.G().Log.Debug("- Sent pgpKeyInSecretStoreFile notification")
+}
+
+func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
+	n.G().Log.Debug("+ Sending reachability")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Reachability {
+			go func() {
+				(keybase1.ReachabilityClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).ReachabilityChanged(context.Background(), r)
+			}()
+		}
+		return true
+	})
+	n.G().Log.Debug("- Sent reachability")
 }

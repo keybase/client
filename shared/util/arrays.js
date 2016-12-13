@@ -16,7 +16,7 @@ export function intersperseFn (separatorFn: (index: number, x: any) => any, arr:
   }, [arr[0]])
 }
 
+// $FlowIssue can't understand this
 export function filterNull<X> (arr: Array<?X>): Array<X> {
-  // $FlowIssue can't understand this
   return arr.filter(i => !!i)
 }

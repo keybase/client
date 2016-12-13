@@ -10,7 +10,7 @@ class PassphraseRender extends Component<void, Props, void> {
     return (
       <Container
         style={stylesContainer}
-        outerStyle={{backgroundColor: globalColors.lightGrey}}
+        outerStyle={{backgroundColor: globalColors.white}}
         onBack={() => this.props.onBack()}>
         <UserCard style={stylesCard} username={this.props.username}>
           <Text type='HeaderBig' style={{color: globalColors.orange}}>{this.props.username}</Text>

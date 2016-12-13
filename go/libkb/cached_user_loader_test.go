@@ -1,12 +1,15 @@
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+// There are two test files by this name. One in libkb, one in engine.
+
 package libkb
 
 import (
-	"github.com/jonboulle/clockwork"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"testing"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 )
 
 func TestCachedUserLoad(t *testing.T) {

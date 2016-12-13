@@ -19,7 +19,7 @@ class LoginRender extends Component<void, Props, void> {
     }
 
     const checkboxProps = [
-      {label: 'Show Typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }},
+      {label: 'Show typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }},
     ]
 
     return (
@@ -55,7 +55,7 @@ const stylesContainer = {
   alignItems: 'center',
   justifyContent: 'center',
   flex: 1,
-  backgroundColor: globalColors.lightGrey,
+  backgroundColor: globalColors.white,
 }
 
 export default LoginRender

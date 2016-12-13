@@ -20,7 +20,7 @@ function setupKBFSChangedHandler (): SetupKBFSChangedHandler {
   return {type: Constants.setupKBFSChangedHandler, payload: undefined}
 }
 
-function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
+function favoriteSwitchTab (showingPrivate: boolean): FavoriteSwitchTab {
   return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
 }
 
@@ -231,9 +231,6 @@ function * _listSaga (): SagaGenerator<any, any> {
     const listedAction: FavoriteListed = {type: Constants.favoriteListed, payload: {folders: state}}
     yield put(listedAction)
 
-    const badgeAction: Action = badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge), state.publicBadge + state.privateBadge)
-    yield put(badgeAction)
-
     yield call(_notify, state)
   } catch (e) {
     console.warn('Error listing favorites:', e)
@@ -312,7 +309,7 @@ export {
   ignoreFolder,
   markTLFCreated,
   setupKBFSChangedHandler,
-  switchTab,
+  favoriteSwitchTab,
   toggleShowIgnored,
 }
 
