@@ -65,7 +65,9 @@ export type AttachmentMessage = {
   messageID: MessageID,
   filename: string,
   title: string,
-  imageSource: ?string,
+  previewType: ?('Image' | 'Other'),
+  previewPath: ?string,
+  downloadedPath: ?string,
 }
 
 export type TimestampMessage = {
@@ -195,7 +197,7 @@ export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: 
 
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
-export type ClickedAttach = NoErrorTypedAction<'chat:clickedAttach', {conversationIDKey: ConversationIDKey, filename: string}>
+export type ClickedAttach = NoErrorTypedAction<'chat:clickedAttach', {conversationIDKey: ConversationIDKey, filename: string, title: string}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   bytesComplete: number,
   bytesTotal: number,
@@ -214,7 +216,8 @@ export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
 export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,
-  imageSource: string,
+  isPreview: boolean,
+  path: string,
 }>
 
 export type Actions = AppendMessages

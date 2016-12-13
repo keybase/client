@@ -9,6 +9,7 @@ export type Props = {
   isFirstNewMessage: boolean,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onAction: (event: any) => void,
+  onOpenInFileUI: (path: string) => void,
   style: Object,
 }
 

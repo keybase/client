@@ -123,7 +123,7 @@ class ConversationList extends Component<void, Props, State> {
         this._toRemeasure.push(index + 1)
       }
 
-      if (item.imageSource !== props.messages.get(index, {}).imageSource) {
+      if (item.previewPath !== props.messages.get(index, {}).previewPath) {
         console.log('remeasuring:', index, item)
         this._toRemeasure.push(index + 1)
       }
@@ -204,7 +204,7 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected, this.props.onLoadAttachment)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
   }
 
   _recomputeListDebounced = _.debounce(() => {

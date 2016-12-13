@@ -24,7 +24,8 @@ const colorForAuthor = (followState: Constants.FollowState) => {
 // TODO abstract this part so it is the same as message text
 export default class AttachmentMessage extends Component<void, Props, void> {
   render () {
-    const {message, style, includeHeader, isFirstNewMessage, onAction, onLoadAttachment} = this.props
+    const {message, style, includeHeader, isFirstNewMessage, onAction, onLoadAttachment, onOpenInFileUI} = this.props
+    const {downloadedPath} = message
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
         <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
@@ -36,11 +37,15 @@ export default class AttachmentMessage extends Component<void, Props, void> {
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
               {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
               <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-                {!message.imageSource &&
+                {!message.downloadedPath &&
                   <Text type='Body' style={{marginTop: globalMargins.xtiny, flex: 1}} onClick={() => onLoadAttachment(message.messageID, message.filename)}>
-                    Click to load: {message.title} - {message.filename}
+                    Click to download: {message.title} - {message.filename}
                   </Text>}
-                {!!message.imageSource && <Box style={{marginTop: globalMargins.xtiny, flex: 1}}><img src={message.imageSource} /></Box>}
+                {!!downloadedPath &&
+                  <Text type='Body' style={{marginTop: globalMargins.xtiny, flex: 1}} onClick={() => onOpenInFileUI(downloadedPath)}>
+                    Show downloaded file.
+                  </Text>}
+                {!!message.previewPath && message.previewType === 'Image' && <Box style={{marginTop: globalMargins.xtiny, flex: 1}}><img src={message.previewPath} /></Box>}
                 <div className='action-button'>
                   <Icon type='iconfont-ellipsis' style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}} onClick={onAction} />
                 </div>

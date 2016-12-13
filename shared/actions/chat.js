@@ -19,7 +19,6 @@ import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap
 import {tmpFile} from '../util/file'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
-import * as Types from '../constants/types/flow-types'
 
 import type {ChangedFocus} from '../constants/window'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
@@ -116,8 +115,8 @@ function deleteMessage (message: Message): DeleteMessage {
   return {type: Constants.deleteMessage, payload: {message}}
 }
 
-function onAttach (conversationIDKey: ConversationIDKey, filename: string): Constants.ClickedAttach {
-  return {type: Constants.clickedAttach, payload: {conversationIDKey, filename}}
+function onAttach (conversationIDKey: ConversationIDKey, filename: string, title: string): Constants.ClickedAttach {
+  return {type: Constants.clickedAttach, payload: {conversationIDKey, filename, title}}
 }
 
 function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, filename: string): Constants.LoadAttachment {
@@ -172,7 +171,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string
   }).filter(Boolean))
 }
 
-function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any>  {
+function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {
   const infoSelector = (state: TypedState) => {
     const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
     if (convo) {
@@ -356,7 +355,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             },
           })
 
-          if (message.type === 'Attachment' && !message.imageSource) {
+          if (message.type === 'Attachment' && !message.previewPath) {
             yield put(loadAttachment(conversationIDKey, message.messageID, true, tmpFile(message.filename)))
           }
         }
@@ -522,6 +521,10 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         case CommonMessageType.attachment:
+          // $FlowIssue
+          const preview = payload.messageBody.attachment.preview
+          const mimeType = preview && preview.mimeType
+
           return {
             type: 'Attachment',
             ...common,
@@ -530,7 +533,9 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             filename: payload.messageBody.attachment.object.filename,
             // $FlowIssue todo fix
             title: payload.messageBody.attachment.object.title,
-            imageSource: null,
+            previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
+            previewPath: null,
+            downloadedPath: null,
           }
         default:
           const unhandled: UnhandledMessage = {
@@ -702,7 +707,7 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
-function * _clickedAttach ({payload: {conversationIDKey, filename}}: Constants.ClickedAttach): SagaGenerator<any, any> {
+function * _clickedAttach ({payload: {conversationIDKey, filename, title}}: Constants.ClickedAttach): SagaGenerator<any, any> {
   const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
   const attachment = {
     filename,
@@ -712,7 +717,7 @@ function * _clickedAttach ({payload: {conversationIDKey, filename}}: Constants.C
     conversationID: keyToConversationID(conversationIDKey),
     clientHeader,
     attachment,
-    title: 'The Strib', // TODO
+    title,
     metadata: null,
     identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
   }
@@ -759,8 +764,6 @@ function * _clickedAttach ({payload: {conversationIDKey, filename}}: Constants.C
 
 // TODO load previews too
 function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
-  console.log('Going to try downloading some data')
-
   const param = {
     conversationID: keyToConversationID(conversationIDKey),
     messageID,
@@ -804,7 +807,7 @@ function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview
 
   const action: Constants.AttachmentLoaded = {
     type: 'chat:attachmentLoaded',
-    payload: {conversationIDKey, messageID, imageSource: filename},
+    payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview},
   }
   yield put(action)
 }

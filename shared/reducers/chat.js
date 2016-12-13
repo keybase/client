@@ -157,7 +157,10 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case 'chat:attachmentLoaded': {
-      const {conversationIDKey, messageID, imageSource} = action.payload
+      const {conversationIDKey, messageID, path, isPreview} = action.payload
+
+      const toMerge = isPreview ? {previewPath: path} : {downloadedPath: path}
+
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
@@ -165,7 +168,7 @@ function reducer (state: State = initialState, action: Actions) {
         item => !!item.messageID && item.messageID === messageID,
         m => ({
           ...m,
-          imageSource,
+          ...toMerge,
         })
       ))
     }

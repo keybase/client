@@ -57,7 +57,7 @@ function openURLWithExecInMacOS (url) {
 }
 
 export default function () {
-  ipcMain.on('openInKBFS', (e, path) => {
+  ipcMain.on('openInFileUI', (e, path) => {
     fs.stat(path, (err, stats) => {
       if (err) {
         console.warn('Error opening %s:', path, err)

@@ -6,12 +6,12 @@ import {call, put, select} from 'redux-saga/effects'
 import {ipcRenderer} from 'electron'
 import {isWindows} from '../../constants/platform'
 
-import type {FSOpen} from '../../constants/kbfs'
+import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
 
 function open (openPath: string) {
   console.log('openItem:', openPath)
-  ipcRenderer.send('openInKBFS', openPath)
+  ipcRenderer.send('openInFileUI', openPath)
 }
 
 function openInDefault (openPath: string) {
@@ -71,6 +71,11 @@ function * openSaga (action: FSOpen): SagaGenerator<any, any> {
   }
 }
 
+function * openInFileUISaga ({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
+  open(path)
+}
+
 export {
+  openInFileUISaga,
   openSaga,
 }

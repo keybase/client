@@ -9,7 +9,7 @@ import {Box} from '../../../common-adapters'
 
 import type {Message} from '../../../constants/chat'
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void) => {
+const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void) => {
   if (!message) {
     return <Box key={key} style={style} />
   }
@@ -42,6 +42,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         onLoadAttachment={onLoadAttachment}
+        onOpenInFileUI={onOpenInFileUI}
         messageID={message.messageID}
         onAction={onAction}
         />

@@ -21,7 +21,7 @@ export type Props = {
   onToggleSidePanel: () => void,
   onAttach: () => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
-  onOpenInFinder: (filename: string) => void,
+  onOpenInFileUI: (filename: string) => void,
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,
   firstNewMessageID: ?MessageID,

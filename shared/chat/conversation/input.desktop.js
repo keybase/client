@@ -45,8 +45,8 @@ class Conversation extends Component<void, Props, State> {
 
   _pickFile () {
     if (this._fileInput && this._fileInput.files && this._fileInput.files[0]) {
-      const path = this._fileInput.files[0].path
-      this.props.onAttach(path)
+      const {path, name} = this._fileInput.files[0]
+      this.props.onAttach(path, name)
       this._fileInput.value = null
     }
   }
@@ -55,7 +55,7 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
-          <input type="file" style={{display: 'none'}} ref={r => this._fileInput = r} onChange={() => this._pickFile()} />
+          <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
             small={true}
             style={styleInput}
