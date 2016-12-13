@@ -31,7 +31,8 @@
 
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
-      <ComponentGroupRef Id="GuiComponents" />
+      <ComponentGroupRef Id="ProductUpdater" />
+      <ComponentGroupRef Id="GUI" />
       <ComponentGroupRef Id="PrompterComponents" />
       <ComponentGroupRef Id="ApplicationShortcuts" />
       <ComponentGroupRef Id="StartupRunKeys" />
@@ -39,44 +40,9 @@
 
     <FeatureRef Id="KBFSFeature" />
 
-    <InstallExecuteSequence>
-      <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-
-      <!--Stop actions are conditioned to run only if the product is already Installed 
-      These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
-      <!--TODO Stop Keybase command line since prompt will typically be in the install directory-->
-      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
-
-      <!-- These roaming actions are temporary, while we switch from appdata to localappdata.
-      These should run only if upgrading from the "old installer" Keybase-->
-      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
-      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
-      <Custom Action="StopGUIRoaming" Before="InstallValidate"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
-
-      <!--TODO These should run only if there is not a restart pending after install or upgrade-->
-      <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
-      <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
-    </InstallExecuteSequence>
-
-    <Property Id="Setup">Setup</Property>
-    <Property Id="ButtonText_No">&amp;No</Property>
-    <Property Id="ButtonText_Yes">&amp;Yes</Property>
-    <Property Id="ButtonText_Install">&amp;Install</Property>
-    <Property Id="ButtonText_Cancel">Cancel</Property>
-    <Property Id="BannerBitmap">bannrbmp</Property>
-    <Property Id="Wizard">Setup Wizard</Property>
-    <Property Id="InfoIcon">info</Property>
-
-    <Binary Id="info" SourceFile="Binary\Info.ico" />
-    <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
-  </Product>
-  
-  <Fragment>
-		<Directory Id="TARGETDIR" Name="SourceDir">
+    <Directory Id="TARGETDIR" Name="SourceDir">
       <!--Typically C:\Users\USERNAME\AppData\Local-->
-			<Directory Id="LocalAppDataFolder">
+      <Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="Keybase">
           <Directory Id="PROMPTERFOLDER" Name="prompter"/>
         </Directory>
@@ -91,8 +57,27 @@
         <Directory Id="ROAMINGINSTALLFOLDER" Name="Keybase">
         </Directory>
       </Directory>
-    </Directory>
-  </Fragment>
+    </Directory>    
+
+
+    <InstallExecuteSequence>
+      <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
+
+      <!--See Fragment sections for actions specific to those components-->
+    </InstallExecuteSequence>
+
+    <Property Id="Setup">Setup</Property>
+    <Property Id="ButtonText_No">&amp;No</Property>
+    <Property Id="ButtonText_Yes">&amp;Yes</Property>
+    <Property Id="ButtonText_Install">&amp;Install</Property>
+    <Property Id="ButtonText_Cancel">Cancel</Property>
+    <Property Id="BannerBitmap">bannrbmp</Property>
+    <Property Id="Wizard">Setup Wizard</Property>
+    <Property Id="InfoIcon">info</Property>
+
+    <Binary Id="info" SourceFile="Binary\Info.ico" />
+    <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
+  </Product>
   
 	<Fragment>
 		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
@@ -109,6 +94,7 @@
         </RegistryKey>
         <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
 			</Component>
+      
       <Component Id="runquiet.exe" Guid="{1265F74B-0775-4522-A67D-25422D1984A3}">
         <CreateFolder />
         <RemoveFolder Id="RemoveMyAppRunner" On="uninstall" />
@@ -117,7 +103,63 @@
         </RegistryKey>
         <File Id="runquiet.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe" Checksum="yes"/>
       </Component>
+    </ComponentGroup>
 
+    <InstallExecuteSequence>
+      <!--Stop actions are conditioned to run only if the product is already Installed 
+      These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
+      <!--TODO Stop Keybase command line since prompt will typically be in the install directory-->      
+      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
+
+      <!--TODO These should run only if there is not a restart pending after install or upgrade-->
+      <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+    </InstallExecuteSequence>
+
+    <CustomAction Id="RunMainApp"
+              FileKey="runquiet.exe"
+              ExeCommand="&quot;[#keybase.exe]&quot; ctl watchdog2"
+              Execute="commit"
+              Impersonate="yes"
+              Return="ignore"/>
+
+    <CustomAction Id="StopMainApp"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="GUI">     
+      <ComponentGroupRef Id="GuiComponents" />    
+    </ComponentGroup>
+
+    <InstallExecuteSequence>
+      <!--Stop actions are conditioned to run only if the product is already Installed 
+      These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+
+      <!--TODO These should run only if there is not a restart pending after install or upgrade-->
+      <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+    </InstallExecuteSequence>    
+    
+    <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
+    <CustomAction Id="RunGUI"
+              FileKey="runquiet.exe"
+              ExeCommand="&quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;"
+              Execute="commit"
+              Impersonate="yes"
+              Return="ignore"/>
+
+    <CustomAction Id="StopGUI"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
+              Execute="immediate"
+              Return="ignore"/>    
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductUpdater" Directory="INSTALLFOLDER">
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />
         <RemoveFolder Id="RemoveUpdater" On="uninstall" />
@@ -126,6 +168,7 @@
         </RegistryKey>
         <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\service\upd.exe" Checksum="yes"/>
       </Component>
+      
       <!-- The cleaner will look at these to make sure it only scrubs the driver we installed -->
       <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
         <RegistryKey Root="HKCU"
@@ -135,8 +178,19 @@
           <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
         </RegistryKey>
       </Component>
-      
     </ComponentGroup>
+
+    <InstallExecuteSequence>
+      <!--Stop actions are conditioned to run only if the product is already Installed 
+      These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
+      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+    </InstallExecuteSequence>    
+
+    <CustomAction Id="StopUpdater"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
+              Execute="immediate"
+              Return="ignore"/>
   </Fragment>
   
   <Fragment>
@@ -149,6 +203,7 @@
         </RegistryKey>
         <File Id="prompter.hta" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\prompter\prompter.hta" Checksum="yes"/>
       </Component>
+      
       <Component Id="keybase.ico" Guid="{747ACACB-5F0E-4979-AFA8-6C6401481C19}">
         <CreateFolder />
         <RemoveFolder Id="RemovePrompterKeybaseIco" On="uninstall" />
@@ -157,6 +212,7 @@
         </RegistryKey>
         <File Id="keybase.ico" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\prompter\keybase.ico" Checksum="yes"/>
       </Component>
+      
       <Component Id="keybase.png" Guid="{FC444587-2B9D-4E7D-A926-F0BC5A239F42}">
         <CreateFolder />
         <RemoveFolder Id="RemovePrompterKeybasePng" On="uninstall" />
@@ -168,7 +224,6 @@
     </ComponentGroup>
   </Fragment>
 
-
   <Fragment>
     <!--Start the application and GUI on user logon
     TODO These must be disabled/deleted if there is an interim reboot between upgrading Dokan and upgrading Keybase Apps -->
@@ -176,6 +231,7 @@
       <Component Id="AppRunKeyComponent" Guid="{B0F58F8C-A2F0-483F-8193-E4E254B7779F}">
         <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="Keybase" Value="&quot;[#runquiet.exe]&quot; &quot;[#keybase.exe]&quot; ctl watchdog2" Type="string" />
       </Component>
+      
       <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
       <Component Id="GUIRunKeyComponent" Guid="{117D9139-9E66-4BDB-B5BF-F7F508F27BDC}">
         <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="KeybaseGUI" Value="&quot;[#runquiet.exe]&quot; &quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;" Type="string" />
@@ -196,6 +252,7 @@
           <RemoveFolder Id="APPLICATIONPROGRAMSLFOLDER" On="uninstall"/>
           <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
       </Component>
+      
       <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
       <Component Id="GUIShortCutComponent" Guid="{1DCD73F4-1129-409E-9D8B-42F2BAD26867}">
         <Shortcut Id="GUIShortCut"
@@ -230,46 +287,15 @@
   </Fragment>
 
   <Fragment>
-    <CustomAction Id="RunMainApp"
-              FileKey="runquiet.exe"
-              ExeCommand="&quot;[#keybase.exe]&quot; ctl watchdog2"
-              Execute="commit"
-              Impersonate="yes"
-              Return="ignore"/>    
-
-    <CustomAction Id="StopMainApp"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-
-  <Fragment>   
-    <CustomAction Id="StopUpdater"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-  
-  <Fragment>
-    <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
-    <CustomAction Id="RunGUI"
-              FileKey="runquiet.exe"
-              ExeCommand="&quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;"
-              Execute="commit"
-              Impersonate="yes"
-              Return="ignore"/>
-
-    <CustomAction Id="StopGUI"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-
-  <Fragment>
-    <!--These stop Keybase before upgrade when an "old installer" version of Keybase is installed in the Roaming folder-->
+    <InstallExecuteSequence>
+      <!-- These roaming actions are temporary, while we switch from appdata to localappdata.
+      These should run only if upgrading from the "old installer" Keybase-->
+      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
+      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
+      <Custom Action="StopGUIRoaming" Before="InstallValidate"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
+    </InstallExecuteSequence>       
+    
+    <!--These stop Keybase before upgrade when an "old installer" version of Keybase is installed in the Roaming folder. TODO eventually delete these when old upgrades are no longer supported-->
     <CustomAction Id="StopMainAppRoaming"
           Directory="ROAMINGINSTALLFOLDER"
           ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
