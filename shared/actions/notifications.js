@@ -79,10 +79,20 @@ function badgeApp (key: NotificationKeys, on: boolean, count: number = 0): Badge
   }
 }
 
+function * _listenNotifications (): SagaGenerator<any, any> {
+  yield take(Constants.listenForNotifications)
+  yield call(_listenSaga)
+}
+
+function * _listenForKBFSNotifications (): SagaGenerator<any, any> {
+  yield take(Constants.listenForKBFSNotifications)
+  yield call(_listenKBFSSaga)
+}
+
 function * notificationsSaga (): SagaGenerator<any, any> {
   yield [
-    take(Constants.listenForNotifications, _listenSaga),
-    take(Constants.listenForKBFSNotifications, _listenKBFSSaga),
+    call(_listenNotifications),
+    call(_listenForKBFSNotifications)
   ]
 }
 

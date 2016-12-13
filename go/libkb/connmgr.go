@@ -118,6 +118,7 @@ func (c *ConnectionManager) hasClientType(clientType keybase1.ClientType) bool {
 	return false
 }
 
+// WaitForClientType returns true if client type is connected, or waits until timeout for the connection
 func (c *ConnectionManager) WaitForClientType(clientType keybase1.ClientType, timeout time.Duration) bool {
 	if c.hasClientType(clientType) {
 		return true
