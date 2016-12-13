@@ -10,6 +10,8 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
+	"time"
 )
 
 func TestCachedUserLoad(t *testing.T) {
@@ -94,5 +96,32 @@ func TestCheckKIDForUID(t *testing.T) {
 	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(rebeccaUID, rebeccaKIDRevoked)
 	if !found || (revokedAt == nil) || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
+	}
+}
+
+func TestLookupUsernameAndDevice(t *testing.T) {
+	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
+	defer tc.Cleanup()
+
+	fakeClock := clockwork.NewFakeClock()
+	tc.G.SetClock(fakeClock)
+
+	test := func() {
+		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+		did := keybase1.DeviceID("e5f7f7ca6b6277de4d2c45f57b767f18")
+		un, name, typ, err := tc.G.CachedUserLoader.LookupUsernameAndDevice(uid, did)
+		require.NoError(t, err)
+		require.Equal(t, un.String(), "t_tracy", "tracy was right")
+		require.Equal(t, name, "work", "right device name")
+		require.Equal(t, typ, "desktop", "right type")
+	}
+
+	for i := 0; i < 2; i++ {
+		test()
+		test()
+		fakeClock.Advance(10 * time.Hour)
+		test()
+		test()
+		tc.G.CachedUserLoader.ClearMemory()
 	}
 }

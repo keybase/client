@@ -168,6 +168,7 @@ func (j JSONLocalDbTransaction) Discard() {
 
 const (
 	DBUser                    = 0x00
+	DBUserPlusAllKeys         = 0x19
 	DBSig                     = 0x0f
 	DBLink                    = 0xe0
 	DBLocalTrack              = 0xe1
