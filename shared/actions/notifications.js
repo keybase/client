@@ -92,7 +92,7 @@ function * _listenForKBFSNotifications (): SagaGenerator<any, any> {
 function * notificationsSaga (): SagaGenerator<any, any> {
   yield [
     call(_listenNotifications),
-    call(_listenForKBFSNotifications)
+    call(_listenForKBFSNotifications),
   ]
 }
 
