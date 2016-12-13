@@ -133,6 +133,7 @@ type ConnectionTransportTLS struct {
 	rootCerts []byte
 	srvAddr   string
 	tlsConfig *tls.Config
+	dialTLS   func(network, address string) (net.Conn, error)
 
 	// Protects everything below.
 	mutex           sync.Mutex
@@ -166,9 +167,13 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		}
 		// connect
 		var err error
-		conn, err = tls.DialWithDialer(&net.Dialer{
-			KeepAlive: 10 * time.Second,
-		}, "tcp", ct.srvAddr, config)
+		if ct.dialTLS != nil {
+			conn, err = ct.dialTLS("tcp", ct.srvAddr)
+		} else {
+			conn, err = tls.DialWithDialer(&net.Dialer{
+				KeepAlive: 10 * time.Second,
+			}, "tcp", ct.srvAddr, config)
+		}
 		return err
 	})
 	if err != nil {
@@ -243,6 +248,40 @@ type Connection struct {
 	reconnectErrPtr   *error             // Filled in with fatal reconnect err (if any) before reconnectChan is closed
 	cancelFunc        context.CancelFunc // used to cancel the reconnect loop
 	reconnectedBefore bool
+}
+
+type ConnectionOpts struct {
+	TagsFunc       LogTagsFromContext
+	Protocols      []Protocol
+	DontConnectNow bool
+	LogFactory     LogFactory
+	WrapErrorFunc  WrapErrorFunc
+	DialTLS        func(network, addr string) (net.Conn, error)
+}
+
+func TLSConfigFromRootCerts(rootCerts []byte) (*tls.Config, error) {
+	certs := x509.NewCertPool()
+	if !certs.AppendCertsFromPEM(rootCerts) {
+		return nil, errors.New("Unable to load root certificates")
+	}
+	return &tls.Config{RootCAs: certs}, nil
+}
+
+func NewTLSConnectionWithOpts(
+	srvAddr string,
+	errorUnwrapper ErrorUnwrapper,
+	handler ConnectionHandler,
+	log LogOutput,
+	opts ConnectionOpts,
+) *Connection {
+	transport := &ConnectionTransportTLS{
+		srvAddr:    srvAddr,
+		dialTLS:    opts.DialTLS,
+		logFactory: opts.LogFactory,
+		wef:        opts.WrapErrorFunc,
+	}
+	return NewConnectionWithTransport(handler, transport, errorUnwrapper,
+		!opts.DontConnectNow, opts.WrapErrorFunc, log, opts.TagsFunc)
 }
 
 // NewTLSConnection returns a connection that tries to connect to the
