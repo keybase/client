@@ -163,6 +163,11 @@ type GetValueArg struct {
 type CheckAPIServerOutOfDateWarningArg struct {
 }
 
+type WaitForClientArg struct {
+	ClientType ClientType  `codec:"clientType" json:"clientType"`
+	Timeout    DurationSec `codec:"timeout" json:"timeout"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
@@ -178,6 +183,8 @@ type ConfigInterface interface {
 	GetValue(context.Context, string) (ConfigValue, error)
 	// Check whether the API server has told us we're out of date.
 	CheckAPIServerOutOfDateWarning(context.Context) (OutOfDateInfo, error)
+	// Wait for client type to connect to service.
+	WaitForClient(context.Context, WaitForClientArg) (bool, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -339,6 +346,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"waitForClient": {
+				MakeArg: func() interface{} {
+					ret := make([]WaitForClientArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]WaitForClientArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]WaitForClientArg)(nil), args)
+						return
+					}
+					ret, err = i.WaitForClient(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -404,5 +427,11 @@ func (c ConfigClient) GetValue(ctx context.Context, path string) (res ConfigValu
 // Check whether the API server has told us we're out of date.
 func (c ConfigClient) CheckAPIServerOutOfDateWarning(ctx context.Context) (res OutOfDateInfo, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.checkAPIServerOutOfDateWarning", []interface{}{CheckAPIServerOutOfDateWarningArg{}}, &res)
+	return
+}
+
+// Wait for client type to connect to service.
+func (c ConfigClient) WaitForClient(ctx context.Context, __arg WaitForClientArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.waitForClient", []interface{}{__arg}, &res)
 	return
 }
