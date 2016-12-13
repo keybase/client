@@ -733,45 +733,18 @@ func (md *RootMetadata) promoteReader(uid keybase1.UID) error {
 }
 
 func (md *RootMetadata) revokeRemovedDevices(
-	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) (
+	wKeys, rKeys UserDevicePublicKeys) (
 	ServerHalfRemovalInfo, error) {
 	return md.bareMd.RevokeRemovedDevices(wKeys, rKeys, md.extra)
 }
 
-func (md *RootMetadata) fillInDevices(crypto Crypto,
-	keyGen KeyGen,
-	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+func (md *RootMetadata) updateKeyGeneration(crypto cryptoPure, keyGen KeyGen,
+	wKeys, rKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey) (serverKeyMap, error) {
-
-	if bareV3, ok := md.bareMd.(*BareRootMetadataV3); ok {
-		if keyGen != md.LatestKeyGeneration() {
-			return nil, TLFCryptKeyNotPerDeviceEncrypted{md.TlfID(), keyGen}
-		}
-
-		// v3 bundles aren't embedded.
-		wkb, rkb, ok := getKeyBundlesV3(md.extra)
-		if !ok {
-			return nil, makeMissingKeyBundlesError()
-		}
-		return bareV3.fillInDevices(crypto,
-			wkb, rkb, wKeys, rKeys,
-			ePubKey, ePrivKey, tlfCryptKey)
-	}
-
-	if bareV2, ok := md.bareMd.(*BareRootMetadataV2); ok {
-		// v1 & v2 bundles are embedded.
-		wkb, rkb, err := md.bareMd.GetTLFKeyBundles(keyGen)
-		if err != nil {
-			return nil, err
-		}
-		return bareV2.fillInDevices(crypto,
-			wkb, rkb, wKeys, rKeys,
-			ePubKey, ePrivKey, tlfCryptKey)
-	}
-
-	return nil, errors.New("Unknown bare metadata version")
+	tlfCryptKey kbfscrypto.TLFCryptKey) (UserDeviceKeyServerHalves, error) {
+	return md.bareMd.UpdateKeyGeneration(crypto, keyGen, md.extra,
+		wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKey)
 }
 
 func (md *RootMetadata) finalizeRekey(crypto cryptoPure) error {

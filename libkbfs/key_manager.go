@@ -311,22 +311,25 @@ func (km *KeyManagerStandard) unmaskTLFCryptKey(ctx context.Context, serverHalfI
 	return tlfCryptKey, nil
 }
 
-func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
-	md *RootMetadata, keyGen KeyGen,
-	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+func (km *KeyManagerStandard) updateKeyGeneration(ctx context.Context,
+	md *RootMetadata, keyGen KeyGen, wKeys, rKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) error {
 
-	newServerKeys, err := md.fillInDevices(km.config.Crypto(),
+	serverHalves, err := md.updateKeyGeneration(km.config.Crypto(),
 		keyGen, wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKey)
 	if err != nil {
 		return err
 	}
 
 	// Push new keys to the key server.
+	//
+	// TODO: Should accumulate the server halves across multiple
+	// key generations and push them all at once right before the
+	// MD push, although this only really matters for MDv2.
 	if err = km.config.KeyOps().
-		PutTLFCryptKeyServerHalves(ctx, newServerKeys); err != nil {
+		PutTLFCryptKeyServerHalves(ctx, serverHalves); err != nil {
 		return err
 	}
 
@@ -335,7 +338,7 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 
 func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 	tlfID tlf.ID, keyInfoMap UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) map[keybase1.UID]bool {
+	expectedKeys UserDevicePublicKeys) map[keybase1.UID]bool {
 	users := make(map[keybase1.UID]bool)
 	for u, keys := range expectedKeys {
 		kids, ok := keyInfoMap[u]
@@ -347,7 +350,7 @@ func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 			users[u] = true
 			continue
 		}
-		for _, k := range keys {
+		for k := range keys {
 			km.log.CDebugf(ctx, "Checking key %v", k.KID())
 			if _, ok := kids[k]; !ok {
 				km.log.CInfof(ctx, "Rekey %s: adding new device %s for user %s",
@@ -362,7 +365,7 @@ func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 
 func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 	tlfID tlf.ID, keyInfoMap UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) map[keybase1.UID]bool {
+	expectedKeys UserDevicePublicKeys) map[keybase1.UID]bool {
 	users := make(map[keybase1.UID]bool)
 	for u, keyInfos := range keyInfoMap {
 		keys, ok := expectedKeys[u]
@@ -375,7 +378,7 @@ func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 			continue
 		}
 		keyLookup := make(map[keybase1.KID]bool)
-		for _, key := range keys {
+		for key := range keys {
 			keyLookup[key.KID()] = true
 		}
 		for key := range keyInfos {
@@ -407,8 +410,8 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 
 func (km *KeyManagerStandard) generateKeyMapForUsers(
 	ctx context.Context, users []keybase1.UID) (
-	map[keybase1.UID][]kbfscrypto.CryptPublicKey, error) {
-	keyMap := make(map[keybase1.UID][]kbfscrypto.CryptPublicKey)
+	UserDevicePublicKeys, error) {
+	keyMap := make(UserDevicePublicKeys)
 
 	// TODO: parallelize
 	for _, w := range users {
@@ -418,7 +421,10 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(
 		if err != nil {
 			return nil, err
 		}
-		keyMap[w] = publicKeys
+		keyMap[w] = make(map[kbfscrypto.CryptPublicKey]bool)
+		for _, key := range publicKeys {
+			keyMap[w][key] = true
+		}
 	}
 
 	return keyMap, nil
@@ -597,7 +603,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	if !isWriter {
 		if _, userHasNewKeys := newReaderUsers[uid]; userHasNewKeys && !promotedReaders[uid] {
 			// Only rekey the logged-in reader, and only if that reader isn't being promoted
-			rKeys = map[keybase1.UID][]kbfscrypto.CryptPublicKey{
+			rKeys = UserDevicePublicKeys{
 				uid: rKeys[uid],
 			}
 			wKeys = nil
@@ -647,8 +653,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 				return false, nil, err
 			}
 
-			err = km.updateKeyBundle(ctx, md, keyGen, wKeys, rKeys,
-				ePubKey, ePrivKey, currTlfCryptKey)
+			err = km.updateKeyGeneration(ctx, md, keyGen, wKeys,
+				rKeys, ePubKey, ePrivKey, currTlfCryptKey)
 			if _, noDkim := err.(TLFCryptKeyNotPerDeviceEncrypted); noDkim {
 				// No DKIM for this generation. This is possible for MDv3.
 				continue
@@ -779,7 +785,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, err
 	}
 	currKeyGen = md.LatestKeyGeneration()
-	err = km.updateKeyBundle(ctx, md, currKeyGen, wKeys, rKeys, ePubKey,
+	err = km.updateKeyGeneration(ctx, md, currKeyGen, wKeys, rKeys, ePubKey,
 		ePrivKey, tlfCryptKey)
 	if err != nil {
 		return false, nil, err

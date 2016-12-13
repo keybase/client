@@ -27,7 +27,7 @@ func (id TLFCryptKeyServerHalfID) String() string {
 }
 
 // TLFCryptKeyInfo is a per-device key half entry in the
-// TLFWriterKeyBundleV2/TLFReaderKeyBundleV2.
+// TLF{Writer,Reader}KeyBundleV{2,3}.
 type TLFCryptKeyInfo struct {
 	ClientHalf   EncryptedTLFCryptKeyClientHalf
 	ServerHalfID TLFCryptKeyServerHalfID
@@ -49,12 +49,44 @@ type DeviceKeyInfoMap map[kbfscrypto.CryptPublicKey]TLFCryptKeyInfo
 // DeviceKeyInfoMap.
 type UserDeviceKeyInfoMap map[keybase1.UID]DeviceKeyInfoMap
 
-type serverKeyMap map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf
+// UserDevicePublicKeys is a map from users to that user's set of devices,
+// represented by each device's crypt public key.
+type UserDevicePublicKeys map[keybase1.UID]map[kbfscrypto.CryptPublicKey]bool
+
+// DeviceKeyServerHalves is a map from a user devices (identified by the
+// corresponding device CryptPublicKey) to corresponding key server
+// halves.
+type DeviceKeyServerHalves map[kbfscrypto.CryptPublicKey]kbfscrypto.TLFCryptKeyServerHalf
+
+// UserDeviceKeyServerHalves maps a user's keybase UID to their
+// DeviceServerHalves map.
+type UserDeviceKeyServerHalves map[keybase1.UID]DeviceKeyServerHalves
+
+// mergeUsers returns a UserDeviceKeyServerHalves that contains all
+// the users in serverHalves and other, which must be disjoint. This
+// isn't a deep copy.
+func (serverHalves UserDeviceKeyServerHalves) mergeUsers(
+	other UserDeviceKeyServerHalves) (UserDeviceKeyServerHalves, error) {
+	merged := make(UserDeviceKeyServerHalves,
+		len(serverHalves)+len(other))
+	for uid, deviceServerHalves := range serverHalves {
+		merged[uid] = deviceServerHalves
+	}
+	for uid, deviceServerHalves := range other {
+		if _, ok := merged[uid]; ok {
+			return nil, fmt.Errorf(
+				"user %s is in both UserDeviceKeyServerHalves",
+				uid)
+		}
+		merged[uid] = deviceServerHalves
+	}
+	return merged, nil
+}
 
 // splitTLFCryptKey splits the given TLFCryptKey into two parts -- the
 // client-side part (which is encrypted with the given keys), and the
 // server-side part, which will be uploaded to the server.
-func splitTLFCryptKey(crypto Crypto, uid keybase1.UID,
+func splitTLFCryptKey(crypto cryptoPure, uid keybase1.UID,
 	tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
 	pubKey kbfscrypto.CryptPublicKey) (
@@ -83,7 +115,7 @@ func splitTLFCryptKey(crypto Crypto, uid keybase1.UID,
 
 	var serverHalfID TLFCryptKeyServerHalfID
 	serverHalfID, err =
-		crypto.GetTLFCryptKeyServerHalfID(uid, pubKey.KID(), serverHalf)
+		crypto.GetTLFCryptKeyServerHalfID(uid, pubKey, serverHalf)
 	if err != nil {
 		return TLFCryptKeyInfo{}, kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
@@ -156,8 +188,8 @@ func (ri userServerHalfRemovalInfo) addGeneration(
 	return nil
 }
 
-// ServerHalfRemovalInfo is a map from users to and devices to a list
-// of server half IDs to remove from the server.
+// ServerHalfRemovalInfo is a map from users and devices to a list of
+// server half IDs to remove from the server.
 type ServerHalfRemovalInfo map[keybase1.UID]userServerHalfRemovalInfo
 
 // addGeneration merges the keys in genInfo (which must be one per
@@ -187,7 +219,7 @@ func (info ServerHalfRemovalInfo) addGeneration(
 // copy.
 func (info ServerHalfRemovalInfo) mergeUsers(
 	other ServerHalfRemovalInfo) (ServerHalfRemovalInfo, error) {
-	merged := make(ServerHalfRemovalInfo)
+	merged := make(ServerHalfRemovalInfo, len(info)+len(other))
 	for uid, removalInfo := range info {
 		merged[uid] = removalInfo
 	}

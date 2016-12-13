@@ -333,7 +333,7 @@ func (j mdJournal) getExtraMetadata(
 		return nil, err
 	}
 
-	err = checkKeyBundlesV3(j.crypto, wkbID, rkbID, &wkb, &rkb)
+	err = checkKeyBundleIDs(j.crypto, wkbID, rkbID, &wkb, &rkb)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func (j mdJournal) putExtraMetadata(
 		return errors.New("Invalid extra metadata")
 	}
 
-	err := checkKeyBundlesV3(
+	err := checkKeyBundleIDs(
 		j.crypto, wkbID, rkbID, extraV3.wkb, extraV3.rkb)
 	if err != nil {
 		return err

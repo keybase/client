@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
@@ -42,9 +41,9 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	serverHalf4 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{4})
 
 	// write 1
-	keyHalves := make(map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
-	deviceHalves := make(map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
-	deviceHalves[publicKey1.KID()] = serverHalf1
+	keyHalves := make(UserDeviceKeyServerHalves)
+	deviceHalves := make(DeviceKeyServerHalves)
+	deviceHalves[publicKey1] = serverHalf1
 	keyHalves[uid1] = deviceHalves
 
 	err = config1.KeyOps().PutTLFCryptKeyServerHalves(ctx, keyHalves)
@@ -53,9 +52,9 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	}
 
 	// write 2
-	keyHalves = make(map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
-	deviceHalves = make(map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
-	deviceHalves[publicKey1.KID()] = serverHalf2
+	keyHalves = make(UserDeviceKeyServerHalves)
+	deviceHalves = make(DeviceKeyServerHalves)
+	deviceHalves[publicKey1] = serverHalf2
 	keyHalves[uid1] = deviceHalves
 
 	err = config1.KeyOps().PutTLFCryptKeyServerHalves(ctx, keyHalves)
@@ -64,12 +63,12 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	}
 
 	// write 3 and 4 together
-	keyHalves = make(map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
-	deviceHalves1 := make(map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
-	deviceHalves2 := make(map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
-	deviceHalves1[publicKey1.KID()] = serverHalf3
+	keyHalves = make(UserDeviceKeyServerHalves)
+	deviceHalves1 := make(DeviceKeyServerHalves)
+	deviceHalves2 := make(DeviceKeyServerHalves)
+	deviceHalves1[publicKey1] = serverHalf3
 	keyHalves[uid1] = deviceHalves1
-	deviceHalves2[publicKey2.KID()] = serverHalf4
+	deviceHalves2[publicKey2] = serverHalf4
 	keyHalves[uid2] = deviceHalves2
 
 	err = config1.KeyOps().PutTLFCryptKeyServerHalves(ctx, keyHalves)
@@ -78,25 +77,25 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	}
 
 	serverHalfID1, err :=
-		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID(), serverHalf1)
+		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	serverHalfID2, err :=
-		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID(), serverHalf2)
+		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	serverHalfID3, err :=
-		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID(), serverHalf3)
+		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf3)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	serverHalfID4, err :=
-		config1.Crypto().GetTLFCryptKeyServerHalfID(uid2, publicKey2.KID(), serverHalf4)
+		config1.Crypto().GetTLFCryptKeyServerHalfID(uid2, publicKey2, serverHalf4)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +143,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf4, half4)
 	}
 
-	serverHalfIDNope, err := config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1.KID(), serverHalf4)
+	serverHalfIDNope, err := config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf4)
 	if err != nil {
 		t.Error(err)
 	}

@@ -330,7 +330,7 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(
 		return nil, nil, err
 	}
 
-	err = checkKeyBundlesV3(s.crypto, wkbID, rkbID, &wkb, &rkb)
+	err = checkKeyBundleIDs(s.crypto, wkbID, rkbID, &wkb, &rkb)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -338,8 +338,7 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(
 	return &wkb, &rkb, nil
 }
 
-func checkKeyBundlesV3(
-	crypto cryptoPure,
+func checkKeyBundleIDs(crypto cryptoPure,
 	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID,
 	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3) error {
 	computedWKBID, err := crypto.MakeTLFWriterKeyBundleID(wkb)
@@ -386,7 +385,7 @@ func (s *mdServerTlfStorage) putExtraMetadataLocked(
 		return errors.New("Invalid extra metadata")
 	}
 
-	err := checkKeyBundlesV3(
+	err := checkKeyBundleIDs(
 		s.crypto, wkbID, rkbID, extraV3.wkb, extraV3.rkb)
 	if err != nil {
 		return err

@@ -768,11 +768,11 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 // PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.
 func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
-	serverKeyHalves map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf) error {
+	keyServerHalves UserDeviceKeyServerHalves) error {
 	// flatten out the map into an array
 	var keyHalves []keybase1.KeyHalf
-	for user, deviceMap := range serverKeyHalves {
-		for deviceKID, serverHalf := range deviceMap {
+	for user, deviceMap := range keyServerHalves {
+		for devicePubKey, serverHalf := range deviceMap {
 			keyHalf, err := md.config.Codec().Encode(serverHalf)
 			if err != nil {
 				return err
@@ -780,7 +780,7 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 			keyHalves = append(keyHalves,
 				keybase1.KeyHalf{
 					User:      user,
-					DeviceKID: deviceKID,
+					DeviceKID: devicePubKey.KID(),
 					Key:       keyHalf,
 				})
 		}

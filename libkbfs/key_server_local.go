@@ -119,7 +119,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 // PutTLFCryptKeyServerHalves implements the KeyOps interface for KeyServerLocal.
 func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
-	serverKeyHalves map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf) error {
+	keyServerHalves UserDeviceKeyServerHalves) error {
 	ks.shutdownLock.RLock()
 	defer ks.shutdownLock.RUnlock()
 	if *ks.shutdown {
@@ -129,7 +129,7 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 	// batch up the writes such that they're atomic.
 	batch := &leveldb.Batch{}
 	crypto := ks.config.Crypto()
-	for uid, deviceMap := range serverKeyHalves {
+	for uid, deviceMap := range keyServerHalves {
 		for deviceKID, serverHalf := range deviceMap {
 			buf, err := ks.config.Codec().Encode(serverHalf)
 			if err != nil {

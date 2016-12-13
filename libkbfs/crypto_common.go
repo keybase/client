@@ -472,14 +472,14 @@ func (c CryptoCommon) DecryptBlock(
 
 // GetTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) GetTLFCryptKeyServerHalfID(
-	user keybase1.UID, deviceKID keybase1.KID,
+	user keybase1.UID, devicePubKey kbfscrypto.CryptPublicKey,
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf) (
 	TLFCryptKeyServerHalfID, error) {
 	key, err := serverHalf.MarshalBinary()
 	if err != nil {
 		return TLFCryptKeyServerHalfID{}, err
 	}
-	data := append(user.ToBytes(), deviceKID.ToBytes()...)
+	data := append(user.ToBytes(), devicePubKey.KID().ToBytes()...)
 	hmac, err := kbfshash.DefaultHMAC(key, data)
 	if err != nil {
 		return TLFCryptKeyServerHalfID{}, err

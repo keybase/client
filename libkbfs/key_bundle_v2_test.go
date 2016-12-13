@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestRemoveDevicesNotInV2(t *testing.T) {
@@ -38,17 +37,17 @@ func TestRemoveDevicesNotInV2(t *testing.T) {
 
 	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
-	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1a.KID(), half1a)
+	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1a, half1a)
 	require.NoError(t, err)
-	id1b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1b.KID(), half1b)
+	id1b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1b, half1b)
 	require.NoError(t, err)
-	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2a.KID(), half2a)
+	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2a, half2a)
 	require.NoError(t, err)
-	id2b, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2b.KID(), half2b)
+	id2b, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2b, half2b)
 	require.NoError(t, err)
-	id2c, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2c.KID(), half2c)
+	id2c, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2c, half2c)
 	require.NoError(t, err)
-	id3a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key3a.KID(), half3a)
+	id3a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key3a, half3a)
 	require.NoError(t, err)
 
 	udkimV2 := UserDeviceKeyInfoMapV2{
@@ -84,9 +83,9 @@ func TestRemoveDevicesNotInV2(t *testing.T) {
 		},
 	}
 
-	removalInfo := udkimV2.removeDevicesNotIn(map[keybase1.UID][]kbfscrypto.CryptPublicKey{
-		uid2: {key2a, key2c},
-		uid3: {key3a},
+	removalInfo := udkimV2.removeDevicesNotIn(UserDevicePublicKeys{
+		uid2: {key2a: true, key2c: true},
+		uid3: {key3a: true},
 	})
 
 	require.Equal(t, UserDeviceKeyInfoMapV2{
@@ -168,16 +167,16 @@ func TestToTLFReaderKeyBundleV3(t *testing.T) {
 	rkg := TLFReaderKeyGenerationsV2{TLFReaderKeyBundleV2{}, rkbV2}
 
 	codec := kbfscodec.NewMsgpack()
-	_, err := rkg.ToTLFReaderKeyBundleV3(codec, &TLFWriterKeyBundleV3{})
+	_, err := rkg.ToTLFReaderKeyBundleV3(codec, &TLFWriterKeyBundleV2{})
 	require.Error(t, err)
-	require.True(t, strings.HasPrefix(err.Error(), "Invalid index "),
+	require.True(t, strings.HasPrefix(err.Error(), "Invalid writer key index "),
 		"err: %v", err)
 
 	wEPubKey1 := kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0x3})
 	wEPubKey2 := kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0x4})
 	wEPubKey3 := kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0x5})
 
-	wkbV3 := TLFWriterKeyBundleV3{
+	wkbV2 := TLFWriterKeyBundleV2{
 		TLFEphemeralPublicKeys: kbfscrypto.TLFEphemeralPublicKeys{
 			wEPubKey1, wEPubKey2, wEPubKey3,
 		},
@@ -240,145 +239,10 @@ func TestToTLFReaderKeyBundleV3(t *testing.T) {
 		},
 	}
 
-	rkbV3, err := rkg.ToTLFReaderKeyBundleV3(codec, &wkbV3)
+	rkbV3, err := rkg.ToTLFReaderKeyBundleV3(codec, &wkbV2)
 	require.NoError(t, err)
 	if !reflect.DeepEqual(expectedRKBV3a, *rkbV3) {
 		require.Equal(t, expectedRKBV3b, *rkbV3)
-	}
-}
-
-func testKeyBundleGetKeysOrBust(t *testing.T, config Config, uid keybase1.UID,
-	keys map[keybase1.UID][]kbfscrypto.CryptPublicKey) {
-	publicKeys, err := config.KBPKI().GetCryptPublicKeys(
-		context.Background(), uid)
-	if err != nil {
-		t.Fatalf("Couldn't get keys for %s: %v", uid, err)
-	}
-	keys[uid] = publicKeys
-}
-
-func testKeyBundleCheckKeysV2(t *testing.T, config Config, uid keybase1.UID,
-	wkb TLFWriterKeyBundleV2, ePubKey kbfscrypto.TLFEphemeralPublicKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey, serverMap serverKeyMap) {
-	ctx := context.Background()
-	// Check that every user can recover the crypt key
-	cryptPublicKey, err := config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get current public key for user %s: %v", uid, err)
-	}
-	info, ok := wkb.WKeys[uid][cryptPublicKey.KID()]
-	if !ok {
-		t.Fatalf("Couldn't get current key info for user %s: %v", uid, err)
-	}
-	if info.EPubKeyIndex < 0 || info.EPubKeyIndex >= len(wkb.TLFEphemeralPublicKeys) {
-		t.Fatalf("Error getting ephemeral public key for user %s: %v", uid, err)
-	}
-	userEPubKey := wkb.TLFEphemeralPublicKeys[info.EPubKeyIndex]
-	if g, e := userEPubKey, ePubKey; g != e {
-		t.Fatalf("Unexpected ePubKey for user %s: %s vs %s", uid, g, e)
-	}
-	clientHalf, err := config.Crypto().DecryptTLFCryptKeyClientHalf(
-		ctx, userEPubKey, info.ClientHalf)
-	if err != nil {
-		t.Fatalf("Couldn't decrypt client key half for user %s: %v", uid, err)
-	}
-	serverHalf, ok := serverMap[uid][cryptPublicKey.KID()]
-	if !ok {
-		t.Fatalf("No server half for user %s", uid)
-	}
-	userTLFCryptKey, err :=
-		config.Crypto().UnmaskTLFCryptKey(serverHalf, clientHalf)
-	if err != nil {
-		t.Fatalf("Couldn't unmask TLF key for user %s: %v", uid, err)
-	}
-	if g, e := userTLFCryptKey, tlfCryptKey; g != e {
-		t.Fatalf("TLF crypt key didn't match for user %s: %s vs. %s", uid, g, e)
-	}
-}
-
-func TestKeyBundleFillInDevicesV2(t *testing.T) {
-	config1 := MakeTestConfigOrBust(t, "u1", "u2", "u3")
-	defer CheckConfigAndShutdown(t, config1)
-	config2 := ConfigAsUser(config1, "u2")
-	defer CheckConfigAndShutdown(t, config2)
-	config3 := ConfigAsUser(config1, "u3")
-	defer CheckConfigAndShutdown(t, config3)
-
-	ctx := context.Background()
-	_, u1, err := config1.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get uid for user 1: %v", err)
-	}
-	_, u2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get uid for user 2: %v", err)
-	}
-	_, u3, err := config3.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get uid for user 3: %v", err)
-	}
-
-	// Make a wkb with empty writer key maps
-	wkb := TLFWriterKeyBundleV2{
-		WKeys: make(UserDeviceKeyInfoMapV2),
-		TLFEphemeralPublicKeys: make(kbfscrypto.TLFEphemeralPublicKeys, 1),
-	}
-
-	// Generate keys
-	wKeys := make(map[keybase1.UID][]kbfscrypto.CryptPublicKey)
-
-	testKeyBundleGetKeysOrBust(t, config1, u1, wKeys)
-	testKeyBundleGetKeysOrBust(t, config1, u2, wKeys)
-	testKeyBundleGetKeysOrBust(t, config1, u3, wKeys)
-
-	// Fill in the bundle
-	_, _, ePubKey, ePrivKey, tlfCryptKey, err :=
-		config1.Crypto().MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatalf("Couldn't make keys: %v", err)
-	}
-	// TODO: Fix this hack.
-	var md *BareRootMetadataV2
-	serverMap, err := md.fillInDevices(
-		config1.Crypto(), &wkb, &TLFReaderKeyBundleV2{},
-		wKeys, nil, ePubKey, ePrivKey, tlfCryptKey)
-	if err != nil {
-		t.Fatalf("Fill in devices failed: %v", err)
-	}
-
-	testKeyBundleCheckKeysV2(t, config1, u1, wkb, ePubKey, tlfCryptKey, serverMap)
-	testKeyBundleCheckKeysV2(t, config2, u2, wkb, ePubKey, tlfCryptKey, serverMap)
-	testKeyBundleCheckKeysV2(t, config3, u3, wkb, ePubKey, tlfCryptKey, serverMap)
-
-	// Add a device key for user 1
-	devIndex := AddDeviceForLocalUserOrBust(t, config1, u1)
-	config1B := ConfigAsUser(config1, "u1")
-	defer CheckConfigAndShutdown(t, config1B)
-	SwitchDeviceForLocalUserOrBust(t, config1B, devIndex)
-	newCryptPublicKey, err := config1B.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		t.Fatalf("COuldn't get new publc device key for user %s: %v", u1, err)
-	}
-	wKeys[u1] = append(wKeys[u1], newCryptPublicKey)
-
-	// Fill in the bundle again, make sure only the new device key
-	// gets a ePubKeyIndex bump
-	_, _, ePubKey2, ePrivKey2, _, err := config1.Crypto().MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatalf("Couldn't make keys: %v", err)
-	}
-	serverMap2, err := md.fillInDevices(
-		config1.Crypto(), &wkb, &TLFReaderKeyBundleV2{},
-		wKeys, nil, ePubKey2, ePrivKey2, tlfCryptKey)
-	if err != nil {
-		t.Fatalf("Fill in devices failed: %v", err)
-	}
-
-	testKeyBundleCheckKeysV2(t, config1B, u1, wkb, ePubKey2, tlfCryptKey,
-		serverMap2)
-	if len(serverMap2) > 1 {
-		t.Fatalf("Generated more than one key after device add: %d",
-			len(serverMap2))
 	}
 }
 

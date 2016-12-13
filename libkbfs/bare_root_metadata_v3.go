@@ -568,8 +568,8 @@ func (md *BareRootMetadataV3) PromoteReader(
 // RevokeRemovedDevices implements the BareRootMetadata interface for
 // BareRootMetadataV3.
 func (md *BareRootMetadataV3) RevokeRemovedDevices(
-	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
-	extra ExtraMetadata) (ServerHalfRemovalInfo, error) {
+	wKeys, rKeys UserDevicePublicKeys, extra ExtraMetadata) (
+	ServerHalfRemovalInfo, error) {
 	if md.TlfID().IsPublic() {
 		return nil, InvalidPublicTLFOperation{
 			md.TlfID(), "RevokeRemovedDevices"}
@@ -583,16 +583,6 @@ func (md *BareRootMetadataV3) RevokeRemovedDevices(
 	wRemovalInfo := wkb.Keys.removeDevicesNotIn(wKeys)
 	rRemovalInfo := rkb.Keys.removeDevicesNotIn(rKeys)
 	return wRemovalInfo.mergeUsers(rRemovalInfo)
-}
-
-// GetTLFKeyBundles implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetTLFKeyBundles(_ KeyGen) (
-	*TLFWriterKeyBundleV2, *TLFReaderKeyBundleV2, error) {
-	if md.TlfID().IsPublic() {
-		return nil, nil, InvalidPublicTLFOperation{md.TlfID(), "GetTLFKeyBundles"}
-	}
-	// v3 metadata contains no key bundles.
-	return nil, nil, errors.New("Not implemented")
 }
 
 // GetDeviceKIDs implements the BareRootMetadata interface for BareRootMetadataV3.
@@ -1177,42 +1167,58 @@ func (md *BareRootMetadataV3) GetUserDeviceKeyInfoMaps(
 	return rUDKIM, wUDKIM, nil
 }
 
-// fillInDevices ensures that every device for every writer and reader
-// in the provided lists has complete TLF crypt key info, and uses the
-// new ephemeral key pair to generate the info if it doesn't yet
-// exist.
-func (md *BareRootMetadataV3) fillInDevices(crypto Crypto,
-	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3,
-	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+// UpdateKeyGeneration implements the MutableBareRootMetadata interface
+// for BareRootMetadataV3.
+func (md *BareRootMetadataV3) UpdateKeyGeneration(crypto cryptoPure,
+	keyGen KeyGen, extra ExtraMetadata, wKeys, rKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey) (
-	serverKeyMap, error) {
-	var newReaderIndex, newWriterIndex int
-	if len(rKeys) > 0 {
-		rkb.TLFEphemeralPublicKeys =
-			append(rkb.TLFEphemeralPublicKeys, ePubKey)
-		newReaderIndex = len(rkb.TLFEphemeralPublicKeys) - 1
-	}
-	if len(wKeys) > 0 {
-		wkb.TLFEphemeralPublicKeys =
-			append(wkb.TLFEphemeralPublicKeys, ePubKey)
-		newWriterIndex = len(wkb.TLFEphemeralPublicKeys) - 1
+	tlfCryptKey kbfscrypto.TLFCryptKey) (UserDeviceKeyServerHalves, error) {
+	if md.TlfID().IsPublic() {
+		return nil, InvalidPublicTLFOperation{
+			md.TlfID(), "UpdateKeyGeneration"}
 	}
 
-	// now fill in the secret keys as needed
-	newServerKeys := serverKeyMap{}
-	err := fillInDevicesAndServerMapV3(crypto, newWriterIndex, wKeys, wkb.Keys,
-		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
+	if keyGen != md.LatestKeyGeneration() {
+		return nil, TLFCryptKeyNotPerDeviceEncrypted{md.TlfID(), keyGen}
+	}
+
+	wkb, rkb, ok := getKeyBundlesV3(extra)
+	if !ok {
+		return UserDeviceKeyServerHalves{}, makeMissingKeyBundlesError()
+	}
+
+	// No need to explicitly handle the reader rekey case.
+
+	var newReaderIndex, newWriterIndex int
+	if len(rKeys) > 0 {
+		newReaderIndex = len(rkb.TLFEphemeralPublicKeys)
+	}
+	if len(wKeys) > 0 {
+		newWriterIndex = len(wkb.TLFEphemeralPublicKeys)
+	}
+
+	wServerHalves, err := wkb.Keys.fillInUserInfos(
+		crypto, newWriterIndex, wKeys, ePrivKey, tlfCryptKey)
 	if err != nil {
 		return nil, err
 	}
-	err = fillInDevicesAndServerMapV3(crypto, newReaderIndex, rKeys, rkb.Keys,
-		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
+	if len(wServerHalves) > 0 {
+		wkb.TLFEphemeralPublicKeys =
+			append(wkb.TLFEphemeralPublicKeys, ePubKey)
+	}
+
+	rServerHalves, err := rkb.Keys.fillInUserInfos(
+		crypto, newReaderIndex, rKeys, ePrivKey, tlfCryptKey)
 	if err != nil {
 		return nil, err
 	}
-	return newServerKeys, nil
+	if len(rServerHalves) > 0 {
+		rkb.TLFEphemeralPublicKeys =
+			append(rkb.TLFEphemeralPublicKeys, ePubKey)
+	}
+
+	return wServerHalves.mergeUsers(rServerHalves)
 }
 
 // GetTLFWriterKeyBundleID implements the BareRootMetadata interface for BareRootMetadataV3.

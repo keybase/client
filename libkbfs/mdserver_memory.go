@@ -770,7 +770,7 @@ func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
 		return errors.New("Invalid extra metadata")
 	}
 
-	err := checkKeyBundlesV3(md.config.cryptoPure(),
+	err := checkKeyBundleIDs(md.config.cryptoPure(),
 		wkbID, rkbID, extraV3.wkb, extraV3.rkb)
 	if err != nil {
 		return err
@@ -801,7 +801,8 @@ func (md *MDServerMemory) getKeyBundles(
 	wkb := md.writerKeyBundleDb[mdExtraWriterKey{tlfID, wkbID}]
 	rkb := md.readerKeyBundleDb[mdExtraReaderKey{tlfID, rkbID}]
 
-	err := checkKeyBundlesV3(md.config.cryptoPure(), wkbID, rkbID, wkb, rkb)
+	err := checkKeyBundleIDs(
+		md.config.cryptoPure(), wkbID, rkbID, wkb, rkb)
 	if err != nil {
 		return nil, nil, err
 	}

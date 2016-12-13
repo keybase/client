@@ -23,15 +23,14 @@ import (
 // key information.
 type DeviceKeyInfoMapV3 map[kbfscrypto.CryptPublicKey]TLFCryptKeyInfo
 
-func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfo(crypto Crypto,
+func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfos(crypto cryptoPure,
 	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
-	publicKeys []kbfscrypto.CryptPublicKey) (
-	serverMap map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf,
-	err error) {
-	serverMap = make(map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
+	publicKeys map[kbfscrypto.CryptPublicKey]bool) (
+	serverHalves DeviceKeyServerHalves, err error) {
+	serverHalves = make(DeviceKeyServerHalves, len(publicKeys))
 	// TODO: parallelize
-	for _, k := range publicKeys {
+	for k := range publicKeys {
 		// Skip existing entries, and only fill in new ones
 		if _, ok := dkimV3[k]; ok {
 			continue
@@ -44,15 +43,15 @@ func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfo(crypto Crypto,
 		}
 
 		dkimV3[k] = clientInfo
-		serverMap[k.KID()] = serverHalf
+		serverHalves[k] = serverHalf
 	}
 
-	return serverMap, nil
+	return serverHalves, nil
 }
 
 func (dkimV3 DeviceKeyInfoMapV3) toDKIM(codec kbfscodec.Codec) (
 	DeviceKeyInfoMap, error) {
-	dkim := make(DeviceKeyInfoMap)
+	dkim := make(DeviceKeyInfoMap, len(dkimV3))
 	for key, info := range dkimV3 {
 		var infoCopy TLFCryptKeyInfo
 		err := kbfscodec.Update(codec, &infoCopy, info)
@@ -66,7 +65,7 @@ func (dkimV3 DeviceKeyInfoMapV3) toDKIM(codec kbfscodec.Codec) (
 
 func dkimToV3(codec kbfscodec.Codec, dkim DeviceKeyInfoMap) (
 	DeviceKeyInfoMapV3, error) {
-	dkimV3 := make(DeviceKeyInfoMapV3)
+	dkimV3 := make(DeviceKeyInfoMapV3, len(dkim))
 	for key, info := range dkim {
 		var infoCopy TLFCryptKeyInfo
 		err := kbfscodec.Update(codec, &infoCopy, info)
@@ -78,17 +77,13 @@ func dkimToV3(codec kbfscodec.Codec, dkim DeviceKeyInfoMap) (
 	return dkimV3, nil
 }
 
-func deviceKeyInfoMapToV3(dkim DeviceKeyInfoMap) DeviceKeyInfoMapV3 {
-	return DeviceKeyInfoMapV3(dkim)
-}
-
 // UserDeviceKeyInfoMapV3 maps a user's keybase UID to their
 // DeviceKeyInfoMapV3.
 type UserDeviceKeyInfoMapV3 map[keybase1.UID]DeviceKeyInfoMapV3
 
 func (udkimV3 UserDeviceKeyInfoMapV3) toUDKIM(
 	codec kbfscodec.Codec) (UserDeviceKeyInfoMap, error) {
-	udkim := make(UserDeviceKeyInfoMap)
+	udkim := make(UserDeviceKeyInfoMap, len(udkimV3))
 	for u, dkimV3 := range udkimV3 {
 		dkim, err := dkimV3.toDKIM(codec)
 		if err != nil {
@@ -101,7 +96,7 @@ func (udkimV3 UserDeviceKeyInfoMapV3) toUDKIM(
 
 func udkimToV3(codec kbfscodec.Codec, udkim UserDeviceKeyInfoMap) (
 	UserDeviceKeyInfoMapV3, error) {
-	udkimV3 := make(UserDeviceKeyInfoMapV3)
+	udkimV3 := make(UserDeviceKeyInfoMapV3, len(udkim))
 	for u, dkim := range udkim {
 		dkimV3, err := dkimToV3(codec, dkim)
 		if err != nil {
@@ -124,18 +119,13 @@ func udkimV2ToV3(codec kbfscodec.Codec, udkimV2 UserDeviceKeyInfoMapV2) (
 // removeDevicesNotIn removes any info for any device that is not
 // contained in the given map of users and devices.
 func (udkimV3 UserDeviceKeyInfoMapV3) removeDevicesNotIn(
-	keys map[keybase1.UID][]kbfscrypto.CryptPublicKey) ServerHalfRemovalInfo {
+	keys UserDevicePublicKeys) ServerHalfRemovalInfo {
 	removalInfo := make(ServerHalfRemovalInfo)
 	for uid, dkim := range udkimV3 {
-		userKeys := make(map[kbfscrypto.CryptPublicKey]bool)
-		for _, key := range keys[uid] {
-			userKeys[key] = true
-		}
-
 		deviceServerHalfIDs := make(deviceServerHalfRemovalInfo)
 
 		for key, info := range dkim {
-			if !userKeys[key] {
+			if !keys[uid][key] {
 				delete(dkim, key)
 				deviceServerHalfIDs[key] = append(
 					deviceServerHalfIDs[key],
@@ -163,6 +153,29 @@ func (udkimV3 UserDeviceKeyInfoMapV3) removeDevicesNotIn(
 	}
 
 	return removalInfo
+}
+
+func (udkimV3 UserDeviceKeyInfoMapV3) fillInUserInfos(
+	crypto cryptoPure, newIndex int, pubKeys UserDevicePublicKeys,
+	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+	tlfCryptKey kbfscrypto.TLFCryptKey) (
+	serverHalves UserDeviceKeyServerHalves, err error) {
+	serverHalves = make(UserDeviceKeyServerHalves, len(pubKeys))
+	for u, keys := range pubKeys {
+		if _, ok := udkimV3[u]; !ok {
+			udkimV3[u] = DeviceKeyInfoMapV3{}
+		}
+
+		deviceServerHalves, err := udkimV3[u].fillInDeviceInfos(
+			crypto, u, tlfCryptKey, ePrivKey, newIndex, keys)
+		if err != nil {
+			return nil, err
+		}
+		if len(deviceServerHalves) > 0 {
+			serverHalves[u] = deviceServerHalves
+		}
+	}
+	return serverHalves, nil
 }
 
 // All section references below are to https://keybase.io/blog/kbfs-crypto
@@ -340,27 +353,4 @@ func (h *TLFReaderKeyBundleID) UnmarshalBinary(data []byte) error {
 // IsNil returns true if the ID is unset.
 func (h TLFReaderKeyBundleID) IsNil() bool {
 	return h == TLFReaderKeyBundleID{}
-}
-
-func fillInDevicesAndServerMapV3(crypto Crypto, newIndex int,
-	cryptKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
-	keyInfoMap UserDeviceKeyInfoMapV3,
-	ePubKey kbfscrypto.TLFEphemeralPublicKey,
-	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey, newServerKeys serverKeyMap) error {
-	for u, keys := range cryptKeys {
-		if _, ok := keyInfoMap[u]; !ok {
-			keyInfoMap[u] = DeviceKeyInfoMapV3{}
-		}
-
-		serverMap, err := keyInfoMap[u].fillInDeviceInfo(
-			crypto, u, tlfCryptKey, ePrivKey, newIndex, keys)
-		if err != nil {
-			return err
-		}
-		if len(serverMap) > 0 {
-			newServerKeys[u] = serverMap
-		}
-	}
-	return nil
 }

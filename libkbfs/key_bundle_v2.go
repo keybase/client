@@ -15,20 +15,64 @@ import (
 	"golang.org/x/net/context"
 )
 
+type ePubKeyTypeV2 int
+
+const (
+	writerEPubKey ePubKeyTypeV2 = 1
+	readerEPubKey ePubKeyTypeV2 = 2
+)
+
+func (t ePubKeyTypeV2) String() string {
+	switch t {
+	case writerEPubKey:
+		return "writer"
+	case readerEPubKey:
+		return "reader"
+	default:
+		return fmt.Sprintf("ePubKeyTypeV2(%d)", t)
+	}
+}
+
+// getEphemeralPublicKeyInfoV2 encapsulates all the ugly logic needed to
+// deal with the "negative hack" from
+// BareRootMetadataV2.UpdateKeyGeneration.
+func getEphemeralPublicKeyInfoV2(info TLFCryptKeyInfo,
+	wkb *TLFWriterKeyBundleV2, rkb *TLFReaderKeyBundleV2) (
+	keyType ePubKeyTypeV2, index int,
+	ePubKey kbfscrypto.TLFEphemeralPublicKey, err error) {
+	var publicKeys kbfscrypto.TLFEphemeralPublicKeys
+	if info.EPubKeyIndex >= 0 {
+		index = info.EPubKeyIndex
+		publicKeys = wkb.TLFEphemeralPublicKeys
+		keyType = writerEPubKey
+	} else {
+		index = -1 - info.EPubKeyIndex
+		publicKeys = rkb.TLFReaderEphemeralPublicKeys
+		keyType = readerEPubKey
+	}
+	keyCount := len(publicKeys)
+	if index >= keyCount {
+		return ePubKeyTypeV2(0), 0, kbfscrypto.TLFEphemeralPublicKey{},
+			fmt.Errorf("Invalid %s key index %d >= %d",
+				keyType, index, keyCount)
+	}
+
+	return keyType, index, publicKeys[index], nil
+}
+
 // DeviceKeyInfoMapV2 is a map from a user devices (identified by the
 // KID of the corresponding device CryptPublicKey) to the
 // TLF's symmetric secret key information.
 type DeviceKeyInfoMapV2 map[keybase1.KID]TLFCryptKeyInfo
 
-func (dkimV2 DeviceKeyInfoMapV2) fillInDeviceInfo(crypto Crypto,
+func (dkimV2 DeviceKeyInfoMapV2) fillInDeviceInfos(crypto cryptoPure,
 	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
-	publicKeys []kbfscrypto.CryptPublicKey) (
-	serverMap map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf,
-	err error) {
-	serverMap = make(map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
+	publicKeys map[kbfscrypto.CryptPublicKey]bool) (
+	serverHalves DeviceKeyServerHalves, err error) {
+	serverHalves = make(DeviceKeyServerHalves, len(publicKeys))
 	// TODO: parallelize
-	for _, k := range publicKeys {
+	for k := range publicKeys {
 		// Skip existing entries, and only fill in new ones.
 		if _, ok := dkimV2[k.KID()]; ok {
 			continue
@@ -41,15 +85,15 @@ func (dkimV2 DeviceKeyInfoMapV2) fillInDeviceInfo(crypto Crypto,
 		}
 
 		dkimV2[k.KID()] = clientInfo
-		serverMap[k.KID()] = serverHalf
+		serverHalves[k] = serverHalf
 	}
 
-	return serverMap, nil
+	return serverHalves, nil
 }
 
 func (dkimV2 DeviceKeyInfoMapV2) toDKIM(codec kbfscodec.Codec) (
 	DeviceKeyInfoMap, error) {
-	dkim := make(DeviceKeyInfoMap)
+	dkim := make(DeviceKeyInfoMap, len(dkimV2))
 	for kid, info := range dkimV2 {
 		var infoCopy TLFCryptKeyInfo
 		err := kbfscodec.Update(codec, &infoCopy, info)
@@ -63,7 +107,7 @@ func (dkimV2 DeviceKeyInfoMapV2) toDKIM(codec kbfscodec.Codec) (
 
 func dkimToV2(codec kbfscodec.Codec, dkim DeviceKeyInfoMap) (
 	DeviceKeyInfoMapV2, error) {
-	dkimV2 := make(DeviceKeyInfoMapV2)
+	dkimV2 := make(DeviceKeyInfoMapV2, len(dkim))
 	for key, info := range dkim {
 		var infoCopy TLFCryptKeyInfo
 		err := kbfscodec.Update(codec, &infoCopy, info)
@@ -81,7 +125,7 @@ type UserDeviceKeyInfoMapV2 map[keybase1.UID]DeviceKeyInfoMapV2
 
 func (udkimV2 UserDeviceKeyInfoMapV2) toUDKIM(
 	codec kbfscodec.Codec) (UserDeviceKeyInfoMap, error) {
-	udkim := make(UserDeviceKeyInfoMap)
+	udkim := make(UserDeviceKeyInfoMap, len(udkimV2))
 	for u, dkimV2 := range udkimV2 {
 		dkim, err := dkimV2.toDKIM(codec)
 		if err != nil {
@@ -94,7 +138,7 @@ func (udkimV2 UserDeviceKeyInfoMapV2) toUDKIM(
 
 func udkimToV2(codec kbfscodec.Codec, udkim UserDeviceKeyInfoMap) (
 	UserDeviceKeyInfoMapV2, error) {
-	udkimV2 := make(UserDeviceKeyInfoMapV2)
+	udkimV2 := make(UserDeviceKeyInfoMapV2, len(udkim))
 	for u, dkim := range udkim {
 		dkimV2, err := dkimToV2(codec, dkim)
 		if err != nil {
@@ -108,11 +152,11 @@ func udkimToV2(codec kbfscodec.Codec, udkim UserDeviceKeyInfoMap) (
 // removeDevicesNotIn removes any info for any device that is not
 // contained in the given map of users and devices.
 func (udkimV2 UserDeviceKeyInfoMapV2) removeDevicesNotIn(
-	keys map[keybase1.UID][]kbfscrypto.CryptPublicKey) ServerHalfRemovalInfo {
+	keys UserDevicePublicKeys) ServerHalfRemovalInfo {
 	removalInfo := make(ServerHalfRemovalInfo)
 	for uid, dkim := range udkimV2 {
-		userKIDs := make(map[keybase1.KID]bool)
-		for _, key := range keys[uid] {
+		userKIDs := make(map[keybase1.KID]bool, len(keys[uid]))
+		for key := range keys[uid] {
 			userKIDs[key.KID()] = true
 		}
 
@@ -148,6 +192,29 @@ func (udkimV2 UserDeviceKeyInfoMapV2) removeDevicesNotIn(
 	}
 
 	return removalInfo
+}
+
+func (udkimV2 UserDeviceKeyInfoMapV2) fillInUserInfos(
+	crypto cryptoPure, newIndex int, pubKeys UserDevicePublicKeys,
+	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+	tlfCryptKey kbfscrypto.TLFCryptKey) (
+	serverHalves UserDeviceKeyServerHalves, err error) {
+	serverHalves = make(UserDeviceKeyServerHalves, len(pubKeys))
+	for u, keys := range pubKeys {
+		if _, ok := udkimV2[u]; !ok {
+			udkimV2[u] = DeviceKeyInfoMapV2{}
+		}
+
+		deviceServerHalves, err := udkimV2[u].fillInDeviceInfos(
+			crypto, u, tlfCryptKey, ePrivKey, newIndex, keys)
+		if err != nil {
+			return nil, err
+		}
+		if len(deviceServerHalves) > 0 {
+			serverHalves[u] = deviceServerHalves
+		}
+	}
+	return serverHalves, nil
 }
 
 // All section references below are to https://keybase.io/blog/kbfs-crypto
@@ -203,40 +270,40 @@ func (wkg TLFWriterKeyGenerationsV2) IsWriter(user keybase1.UID, deviceKID keyba
 // TODO: Add a unit test for this.
 func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure, keyManager KeyManager, kmd KeyMetadata) (
-	*TLFWriterKeyBundleV3, error) {
+	*TLFWriterKeyBundleV2, *TLFWriterKeyBundleV3, error) {
 
 	keyGen := wkg.LatestKeyGeneration()
 	if keyGen < FirstValidKeyGen {
-		return nil, errors.New("No key generations to convert")
+		return nil, nil, errors.New("No key generations to convert")
 	}
 
 	wkbV3 := &TLFWriterKeyBundleV3{}
 
 	// Copy the latest UserDeviceKeyInfoMap.
-	wkb := wkg[keyGen-FirstValidKeyGen]
-	udkimV3, err := udkimV2ToV3(codec, wkb.WKeys)
+	wkbV2 := wkg[keyGen-FirstValidKeyGen]
+	udkimV3, err := udkimV2ToV3(codec, wkbV2.WKeys)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	wkbV3.Keys = udkimV3
 
 	// Copy all of the TLFEphemeralPublicKeys at this generation.
 	wkbV3.TLFEphemeralPublicKeys = make(kbfscrypto.TLFEphemeralPublicKeys,
-		len(wkb.TLFEphemeralPublicKeys))
-	copy(wkbV3.TLFEphemeralPublicKeys[:], wkb.TLFEphemeralPublicKeys)
+		len(wkbV2.TLFEphemeralPublicKeys))
+	copy(wkbV3.TLFEphemeralPublicKeys[:], wkbV2.TLFEphemeralPublicKeys)
 
 	// Copy the current TLFPublicKey.
-	wkbV3.TLFPublicKey = wkb.TLFPublicKey
+	wkbV3.TLFPublicKey = wkbV2.TLFPublicKey
 
 	if keyGen > FirstValidKeyGen {
 		// Fetch all of the TLFCryptKeys.
 		keys, err := keyManager.GetTLFCryptKeyOfAllGenerations(ctx, kmd)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		// Sanity check.
 		if len(keys) != int(keyGen) {
-			return nil, fmt.Errorf("expected %d keys, found %d", keyGen, len(keys))
+			return nil, nil, fmt.Errorf("expected %d keys, found %d", keyGen, len(keys))
 		}
 		// Save the current key.
 		currKey := keys[len(keys)-1]
@@ -245,11 +312,11 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 		// Encrypt the historic keys with the current key.
 		wkbV3.EncryptedHistoricTLFCryptKeys, err = crypto.EncryptTLFCryptKeys(keys, currKey)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
-	return wkbV3, nil
+	return &wkbV2, wkbV3, nil
 }
 
 // TLFReaderKeyBundleV2 stores all the reader keys with reader
@@ -297,7 +364,7 @@ func (rkg TLFReaderKeyGenerationsV2) IsReader(user keybase1.UID, deviceKID keyba
 
 // ToTLFReaderKeyBundleV3 converts a TLFReaderKeyGenerationsV2 to a TLFReaderkeyBundleV3.
 func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
-	codec kbfscodec.Codec, wkb *TLFWriterKeyBundleV3) (
+	codec kbfscodec.Codec, wkb *TLFWriterKeyBundleV2) (
 	*TLFReaderKeyBundleV3, error) {
 
 	keyGen := rkg.LatestKeyGeneration()
@@ -334,21 +401,17 @@ func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 				return nil, err
 			}
 
-			if info.EPubKeyIndex < 0 {
-				// Convert to the real index in the reader list.
-				newIndex := -1 - info.EPubKeyIndex
-				infoCopy.EPubKeyIndex = newIndex
-			} else {
-				oldIndex := info.EPubKeyIndex
-				if oldIndex >= len(wkb.TLFEphemeralPublicKeys) {
-					err := fmt.Errorf("Invalid index %d (len: %d)",
-						oldIndex, len(wkb.TLFEphemeralPublicKeys))
-					return nil, err
-				}
+			keyType, index, ePubKey, err := getEphemeralPublicKeyInfoV2(info, wkb, &rkb)
+			if err != nil {
+				return nil, err
+			}
+
+			switch keyType {
+			case writerEPubKey:
 				// Map the old index in the writer list to a new index
 				// at the end of the reader list.
-				if newIndex, ok := pubKeyIndicesMap[oldIndex]; !ok {
-					ePubKey := wkb.TLFEphemeralPublicKeys[oldIndex]
+				newIndex, ok := pubKeyIndicesMap[index]
+				if !ok {
 					rkbV3.TLFEphemeralPublicKeys =
 						append(rkbV3.TLFEphemeralPublicKeys, ePubKey)
 					// TODO: This index depends on
@@ -356,38 +419,18 @@ func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 					// varies. Impose a consistent
 					// order on these indices.
 					newIndex = len(rkbV3.TLFEphemeralPublicKeys) - 1
-					pubKeyIndicesMap[oldIndex] = newIndex
-					infoCopy.EPubKeyIndex = newIndex
-				} else {
-					infoCopy.EPubKeyIndex = newIndex
+					pubKeyIndicesMap[index] = newIndex
 				}
+				infoCopy.EPubKeyIndex = newIndex
+			case readerEPubKey:
+				// Use the real index in the reader list.
+				infoCopy.EPubKeyIndex = index
+			default:
+				return nil, fmt.Errorf("Unknown key type %s", keyType)
 			}
 			dkimV3[kbfscrypto.MakeCryptPublicKey(kid)] = infoCopy
 		}
 		rkbV3.Keys[uid] = dkimV3
 	}
 	return rkbV3, nil
-}
-
-func fillInDevicesAndServerMapV2(crypto Crypto, newIndex int,
-	cryptKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
-	keyInfoMap UserDeviceKeyInfoMapV2,
-	ePubKey kbfscrypto.TLFEphemeralPublicKey,
-	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey, newServerKeys serverKeyMap) error {
-	for u, keys := range cryptKeys {
-		if _, ok := keyInfoMap[u]; !ok {
-			keyInfoMap[u] = DeviceKeyInfoMapV2{}
-		}
-
-		serverMap, err := keyInfoMap[u].fillInDeviceInfo(
-			crypto, u, tlfCryptKey, ePrivKey, newIndex, keys)
-		if err != nil {
-			return err
-		}
-		if len(serverMap) > 0 {
-			newServerKeys[u] = serverMap
-		}
-	}
-	return nil
 }

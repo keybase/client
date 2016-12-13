@@ -849,7 +849,7 @@ type cryptoPure interface {
 	// GetTLFCryptKeyServerHalfID creates a unique ID for this particular
 	// kbfscrypto.TLFCryptKeyServerHalf.
 	GetTLFCryptKeyServerHalfID(
-		user keybase1.UID, deviceKID keybase1.KID,
+		user keybase1.UID, devicePubKey kbfscrypto.CryptPublicKey,
 		serverHalf kbfscrypto.TLFCryptKeyServerHalf) (
 		TLFCryptKeyServerHalfID, error)
 
@@ -991,7 +991,7 @@ type KeyOps interface {
 	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
 	// set of users and devices.
 	PutTLFCryptKeyServerHalves(ctx context.Context,
-		serverKeyHalves map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf) error
+		keyServerHalves UserDeviceKeyServerHalves) error
 
 	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
 	// device given the key half ID.
@@ -1280,7 +1280,7 @@ type KeyServer interface {
 	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
 	// set of users and devices.
 	PutTLFCryptKeyServerHalves(ctx context.Context,
-		serverKeyHalves map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf) error
+		keyServerHalves UserDeviceKeyServerHalves) error
 
 	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
 	// device given the key half ID.
@@ -1755,6 +1755,19 @@ type MutableBareRootMetadata interface {
 	SetWriterMetadataCopiedBit()
 	// SetRevision sets the revision number of the underlying metadata.
 	SetRevision(revision MetadataRevision)
+	// SetUnresolvedReaders sets the list of unresolved readers associated with this folder.
+	SetUnresolvedReaders(readers []keybase1.SocialAssertion)
+	// SetUnresolvedWriters sets the list of unresolved writers associated with this folder.
+	SetUnresolvedWriters(writers []keybase1.SocialAssertion)
+	// SetConflictInfo sets any conflict info associated with this metadata revision.
+	SetConflictInfo(ci *tlf.HandleExtension)
+	// SetFinalizedInfo sets any finalized info associated with this metadata revision.
+	SetFinalizedInfo(fi *tlf.HandleExtension)
+	// SetWriters sets the list of writers associated with this folder.
+	SetWriters(writers []keybase1.UID)
+	// SetTlfID sets the ID of the underlying folder in the metadata structure.
+	SetTlfID(tlf tlf.ID)
+
 	// addKeyGenerationForTest is like AddKeyGeneration, except
 	// currCryptKey and nextCryptKey don't have to be zero if
 	// StoresHistoricTLFCryptKeys is false, and takes in
@@ -1765,6 +1778,7 @@ type MutableBareRootMetadata interface {
 		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
 		pubKey kbfscrypto.TLFPublicKey,
 		wDkim, rDkim UserDeviceKeyInfoMap) ExtraMetadata
+
 	// AddKeyGeneration adds a new key generation to this revision
 	// of metadata. If StoresHistoricTLFCryptKeys is false, then
 	// currCryptKey and nextCryptKey must be zero. Otherwise,
@@ -1778,23 +1792,34 @@ type MutableBareRootMetadata interface {
 		prevExtra ExtraMetadata,
 		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
 		pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error)
-	// SetUnresolvedReaders sets the list of unresolved readers assoiated with this folder.
-	SetUnresolvedReaders(readers []keybase1.SocialAssertion)
-	// SetUnresolvedWriters sets the list of unresolved writers assoiated with this folder.
-	SetUnresolvedWriters(writers []keybase1.SocialAssertion)
-	// SetConflictInfo sets any conflict info associated with this metadata revision.
-	SetConflictInfo(ci *tlf.HandleExtension)
-	// SetFinalizedInfo sets any finalized info associated with this metadata revision.
-	SetFinalizedInfo(fi *tlf.HandleExtension)
-	// SetWriters sets the list of writers associated with this folder.
-	SetWriters(writers []keybase1.UID)
-	// SetTlfID sets the ID of the underlying folder in the metadata structure.
-	SetTlfID(tlf tlf.ID)
-	// Returns the TLF key bundles for this metadata at the given key generation.
-	// MDv3 TODO: Get rid of this.
-	GetTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundleV2, *TLFReaderKeyBundleV2, error)
+
+	// UpdateKeyGeneration ensures that every device in the given
+	// key generation for every writer and reader in the provided
+	// lists has complete TLF crypt key info, and uses the new
+	// ephemeral key pair to generate the info if it doesn't yet
+	// exist.
+	//
+	// wKeys and rKeys usually contains the full maps of writers
+	// to per-device crypt public keys, but for reader rekey,
+	// wKeys will be empty and rKeys will contain only a single
+	// entry.
+	//
+	// UpdateKeyGeneration must only be called on metadata for
+	// private TLFs.
+	//
+	// TODO: Also handle reader promotion.
+	//
+	// TODO: Move the key generation handling into this function.
+	UpdateKeyGeneration(crypto cryptoPure, keyGen KeyGen,
+		extra ExtraMetadata, wKeys, rKeys UserDevicePublicKeys,
+		ePubKey kbfscrypto.TLFEphemeralPublicKey,
+		ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+		tlfCryptKey kbfscrypto.TLFCryptKey) (
+		UserDeviceKeyServerHalves, error)
+
 	// PromoteReader converts the given user from a reader to a writer.
 	PromoteReader(uid keybase1.UID, extra ExtraMetadata) error
+
 	// RevokeRemovedDevices removes key info for any device not in
 	// the given maps, and returns a corresponding map of server
 	// halves to delete from the server.
@@ -1802,9 +1827,9 @@ type MutableBareRootMetadata interface {
 	// Note: the returned server halves may not be for all key
 	// generations, e.g. for MDv3 it's only for the latest key
 	// generation.
-	RevokeRemovedDevices(
-		wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	RevokeRemovedDevices(wKeys, rKeys UserDevicePublicKeys,
 		extra ExtraMetadata) (ServerHalfRemovalInfo, error)
+
 	// FinalizeRekey must be called called after all rekeying work
 	// has been performed on the underlying metadata.
 	FinalizeRekey(c cryptoPure, extra ExtraMetadata) error
