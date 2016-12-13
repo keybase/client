@@ -51,7 +51,7 @@ func (e *TrackEngine) RequiredUIs() []libkb.UIKind {
 
 func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&Identify{},
+		&ResolveThenIdentify2{},
 	}
 }
 
