@@ -37,6 +37,7 @@ export type TextMessage = {
   followState: FollowState,
   messageState: MessageState,
   outboxID?: ?string,
+  key: any,
 }
 
 export type ErrorMessage = {
@@ -45,6 +46,7 @@ export type ErrorMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
+  key: any,
 }
 
 export type UnhandledMessage = {
@@ -52,11 +54,13 @@ export type UnhandledMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
+  key: any,
 }
 
 export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
+  key: any,
 }
 
 export type MaybeTimestamp = TimestampMessage | null
@@ -156,6 +160,7 @@ export const updateBadging = 'chat:updateBadging'
 export const updateLatestMessage = 'chat:updateLatestMessage'
 export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
+export const updateInbox = 'chat:updateInbox'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
@@ -163,6 +168,7 @@ export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: M
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
+export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
@@ -191,6 +197,7 @@ export type Actions = AppendMessages
   | SelectConversation
   | StartConversation
   | UpdateBadging
+  | UpdateInbox
   | UpdateLatestMessage
   | UpdateMetadata
   | UpdatedMetadata

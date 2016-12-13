@@ -40,19 +40,22 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
   const participants = participantFilter(conversation.get('participants'))
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
+  const hasUnread = !!conversation.get('unreadCount')
   // $FlowIssue
   const avatarProps = participants.slice(0, 2).map((p, idx) => ({
     backgroundColor: globalColors.darkBlue4,
     username: p.username,
-    borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, !!conversation.get('unreadCount'), isSelected),
+    borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
   })).toArray()
   const snippet = conversation.get('snippet')
-  const subColor = isSelected ? globalColors.white : globalColors.blue3_40
+  const subColor = (isSelected || hasUnread) ? globalColors.white : globalColors.blue3_40
+  const backgroundColor = isSelected ? globalColors.darkBlue2 : hasUnread ? globalColors.darkBlue : globalColors.transparent
+  const boldOverride = hasUnread ? globalStyles.fontBold : null
   return (
     <Box
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
       title={`${conversation.get('unreadCount')} unread`}
-      style={{...rowContainerStyle, backgroundColor: isSelected ? globalColors.darkBlue2 : globalColors.transparent}}>
+      style={{...rowContainerStyle, backgroundColor}}>
       <Box style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
         {isMuted && <Icon type='iconfont-shh' style={shhStyle} />}
@@ -63,14 +66,14 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
             <Usernames
               inline={true}
               type='BodySemibold'
-              style={{color: isMuted ? globalColors.blue3_40 : globalColors.white}}
+              style={{...boldOverride, color: isMuted ? globalColors.blue3_40 : globalColors.white}}
               containerStyle={{color: isMuted ? globalColors.blue3_40 : globalColors.white, paddingRight: 7}}
               users={participants.toArray()}
               title={participants.map(p => p.username).join(', ')} />
-            {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, color: subColor}}>{snippet}</Text>}
+            {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, ...boldOverride, color: subColor}}>{snippet}</Text>}
           </Box>
         </Box>
-        <Text type='BodySmall' style={{marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
       </Box>
     </Box>
   )

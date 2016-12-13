@@ -55,17 +55,7 @@ class ConversationList extends Component<void, Props, State> {
       // minus one because loader message is there
       const messageIndex = index - 1
       const message = this.state.messages.get(messageIndex)
-      let id
-      if (message) {
-        if (message.type === 'Timestamp') {
-          id = message.timestamp
-        } else {
-          // We want a stable key -- messages have an outboxID but no
-          // messageID, then later gain a messageID.  So if we prefer
-          // outboxIDs to messageIDs for the key, every row keeps its key.
-          id = message && (message.outboxID || message.messageID)
-        }
-      }
+      const id = message && message.key
       if (id == null) {
         console.warn('id is null for index:', messageIndex)
       }

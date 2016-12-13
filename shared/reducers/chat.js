@@ -2,26 +2,24 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
-import {Set, List, Map} from 'immutable'
+import {Set, List} from 'immutable'
 
-import type {Actions, State, ConversationState, AppendMessages, Message, MessageID, ServerMessage} from '../constants/chat'
+import type {Actions, State, ConversationState, AppendMessages, Message, ServerMessage, InboxState} from '../constants/chat'
 
 const {StateRecord, ConversationStateRecord, makeSnippet} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
-function dedupeMessages (seenMessages: Set<MessageID>, knownMessages: List<ServerMessage>, newMessages: Array<ServerMessage>): {seenMessages: Set<MessageID>, updatedMessages: List<ServerMessage>, unseenMessages: List<ServerMessage>} {
-  const newButSeenMessages = newMessages
-    .filter(m => m.messageID && seenMessages.has(m.messageID))
-    .reduce((acc, m) => acc.set(m.messageID, m), Map())
+function _dedupeMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List()): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
+  const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
+  const filteredAppend = append.filter(m => !seenMessages.has(m.key))
+  const nextMessages = filteredPrepend.concat(messages, filteredAppend)
 
-  const updatedMessages = knownMessages.map(m => newButSeenMessages.get(m.messageID, m))
-  const unseenMessages = List(newMessages).filterNot(m => m.messageID && seenMessages.has(m.messageID))
+  const nextSeenMessages = nextMessages.reduce((acc, m) => acc.add(m.key), Set())
 
   return {
-    updatedMessages,
-    unseenMessages,
-    seenMessages: seenMessages.union(unseenMessages.map(m => m.messageID || -1)),
+    nextMessages,
+    nextSeenMessages,
   }
 }
 
@@ -36,11 +34,10 @@ function reducer (state: State = initialState, action: Actions) {
         conversationIDKey,
         initialConversation,
         conversation => {
-          const {seenMessages, messages: knownMessages} = conversation
-          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, prependMessages)
+          const {nextMessages, nextSeenMessages} = _dedupeMessages(conversation.seenMessages, conversation.messages, List(prependMessages), List())
 
           return conversation
-            .set('messages', unseenMessages.concat(updatedMessages))
+            .set('messages', nextMessages)
             .set('seenMessages', nextSeenMessages)
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
@@ -66,8 +63,7 @@ function reducer (state: State = initialState, action: Actions) {
         conversationIDKey,
         initialConversation,
         conversation => {
-          const {seenMessages, messages: knownMessages} = conversation
-          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, appendMessages)
+          const {nextMessages, nextSeenMessages} = _dedupeMessages(conversation.seenMessages, conversation.messages, List(), List(appendMessages))
 
           const firstMessage = appendMessages[0]
           const inConversationFocused = (isSelected && state.get('focused'))
@@ -82,7 +78,7 @@ function reducer (state: State = initialState, action: Actions) {
           }
 
           return conversation
-            .set('messages', updatedMessages.concat(unseenMessages))
+            .set('messages', nextMessages)
             .set('seenMessages', nextSeenMessages)
         })
 
@@ -160,6 +156,16 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('metaData', state.get('metaData').merge(action.payload))
     case Constants.loadedInbox:
       return state.set('inbox', action.payload.inbox)
+    case Constants.updateInbox:
+      const convo: InboxState = action.payload.conversation
+      const toFind = convo.get('conversationIDKey')
+      return state.set('inbox', state.get('inbox').map(i => {
+        if (i.get('conversationIDKey') === toFind) {
+          return convo
+        } else {
+          return i
+        }
+      }))
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
 
@@ -169,3 +175,4 @@ function reducer (state: State = initialState, action: Actions) {
 }
 
 export default reducer
+

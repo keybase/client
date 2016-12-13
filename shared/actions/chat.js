@@ -25,7 +25,7 @@ import {searchTab, chatTab} from '../constants/tabs'
 import {switchTo} from './route-tree'
 import {usernameSelector} from '../constants/selectors'
 
-import type {GetInboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
+import type {GetInboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {ChangedFocus} from '../constants/window'
 import type {TypedState} from '../constants/reducer'
@@ -50,11 +50,14 @@ import type {
   StartConversation,
   UnhandledMessage,
   UpdateBadging,
+  UpdateInbox,
   UpdateLatestMessage,
   UpdateMetadata,
 } from '../constants/chat'
 
-const {conversationIDToKey, keyToConversationID, InboxStateRecord, MetaDataRecord} = Constants
+const {conversationIDToKey, keyToConversationID, InboxStateRecord, MetaDataRecord, makeSnippet} = Constants
+
+const _selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: Constants.updateBadging, payload: {conversationIDKey}}
@@ -107,6 +110,48 @@ function deleteMessage (message: Message): DeleteMessage {
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
 function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
   return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
+}
+
+function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}): ?InboxState {
+  if (!convo || !convo.info || !convo.info.id) {
+    return null
+  }
+  const conversationIDKey = conversationIDToKey(convo.info.id)
+  let snippet
+
+  (convo.maxMessages || []).some(message => {
+    if (message.state === LocalMessageUnboxedState.valid && message.valid) {
+      switch (message.valid.messageBody.messageType) {
+        case CommonMessageType.text:
+          snippet = makeSnippet(message.valid.messageBody.text && message.valid.messageBody.text.body, 100)
+          return true
+        case CommonMessageType.attachment:
+          snippet = 'Attachment'
+          return true
+        default:
+          return false
+      }
+    }
+    return false
+  })
+
+  const participants = List((convo.info.writerNames || []).map(username => ({
+    username,
+    broken: false, // TODO
+    you: author && username === author,
+    following: !!following[username],
+  })))
+
+  return new InboxStateRecord({
+    info: convo.info,
+    conversationIDKey,
+    participants,
+    muted: false,
+    time: convo.readerInfo.mtime,
+    snippet,
+    unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid,
+    validated: true,
+  })
 }
 
 function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
@@ -207,10 +252,12 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 
   const author = yield select(usernameSelector)
   if (sent && author) {
+    const outboxID = sent.outboxID.toString('hex')
     const message: Message = {
       type: 'Text',
       author,
-      outboxID: sent.outboxID.toString('hex'),
+      outboxID,
+      key: outboxID,
       timestamp: Date.now(),
       messageState: 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
@@ -257,9 +304,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         // And is the Chat tab the currently displayed route? If all that is
         // true, mark it as read ASAP to avoid badging it -- we don't need to
         // badge, the user's looking at it already.
-        const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
         const focusedSelector = (state: TypedState) => state.chat.get('focused')
-        const selectedConversationIDKey = yield select(selectedSelector)
+        const selectedConversationIDKey = yield select(_selectedSelector)
         const appFocused = yield select(focusedSelector)
         const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
         const selectedTab = yield select(routeSelector)
@@ -279,11 +325,15 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         }
 
         // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
-        const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-        const conversationState = yield select(conversationStateSelector)
-        if (!conversationState) {
+        const inboxSelector = (state: TypedState) => state.chat.get('inbox', List()).find(i => i.get('conversationIDKey') === conversationIDKey)
+        const inboxConvo = yield select(inboxSelector)
+
+        if (!inboxConvo) {
           yield put(loadInbox())
         }
+
+        const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+        const conversationState = yield select(conversationStateSelector)
 
         if (message.outboxID && message.type === 'Text' && yourName === message.author) {
           // If the message has an outboxID, then we sent it and have already
@@ -351,6 +401,8 @@ function * _loadInbox (): SagaGenerator<any, any> {
         computeActiveList: true,
         tlfVisibility: CommonTLFVisibility.private,
         topicType: CommonTopicType.chat,
+        unreadOnly: false,
+        readOnly: false,
       },
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     },
@@ -371,15 +423,18 @@ function * _loadInbox (): SagaGenerator<any, any> {
 
   const total = inbox.conversationsUnverified && inbox.conversationsUnverified.length || 0
   for (let i = 0; i < total; ++i) {
-    // $ForceType
     const incoming: {[key: string]: any} = yield race({
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
     })
 
     if (incoming.chatInboxConversation) {
-      // TODO
       incoming.chatInboxConversation.response.result()
+      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {})
+      if (conversation) {
+        yield put({type: Constants.updateInbox, payload: {conversation}})
+      }
+      // find it
     } else if (incoming.chatInboxFailed) {
       // TODO
       incoming.chatInboxFailed.response.result()
@@ -388,8 +443,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
 }
 
 function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
-  const selector = (state: TypedState) => state.chat.get('selectedConversation')
-  const selectedConversation = yield select(selector)
+  const selectedConversation = yield select(_selectedSelector)
 
   if (!selectedConversation) {
     if (action.payload.inbox.count()) {
@@ -399,9 +453,15 @@ function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
   }
 }
 
+function * _onUpdateInbox (action: UpdateInbox): SagaGenerator<any, any> {
+  const conversationIDKey = yield select(_selectedSelector)
+  if (action.payload.conversation.get('conversationIDKey') === conversationIDKey) {
+    yield put(loadMoreMessages())
+  }
+}
+
 function * _loadMoreMessages (): SagaGenerator<any, any> {
-  const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
-  const conversationIDKey = yield select(selectedSelector)
+  const conversationIDKey = yield select(_selectedSelector)
 
   if (!conversationIDKey) {
     return
@@ -482,6 +542,7 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
     return {
       type: 'Timestamp',
       timestamp: message.timestamp,
+      key: message.timestamp,
     }
   }
   return null
@@ -504,26 +565,31 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
+          const outboxID = payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex')
           return {
             type: 'Text',
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             followState: isYou ? 'You' : 'Following', // TODO get this
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
+            outboxID,
+            key: outboxID || common.messageID,
           }
         default:
           const unhandled: UnhandledMessage = {
             ...common,
+            key: common.messageID,
             type: 'Unhandled',
           }
           return unhandled
       }
     }
   }
+
   return {
     type: 'Error', // TODO
     messageID: idx,
+    key: idx,
     timestamp: Date.now(),
     reason: 'temp',
     conversationIDKey: conversationIDKey,
@@ -548,8 +614,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
 }
 
 function * _openFolder (): SagaGenerator<any, any> {
-  const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
-  const conversationIDKey = yield select(selectedSelector)
+  const conversationIDKey = yield select(_selectedSelector)
 
   const inboxSelector = (state: TypedState) => {
     return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
@@ -624,6 +689,10 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   }
 
   const inbox = yield select(inboxSelector)
+  if (inbox && !inbox.get('validated')) {
+    return
+  }
+
   if (inbox) {
     yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => !p.you).map(p => p.username).toArray()}})
   }
@@ -639,7 +708,7 @@ function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
   const conversationState = yield select(conversationStateSelector)
-  if (conversationState && conversationState.messages !== null) {
+  if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
     const conversationID = keyToConversationID(conversationIDKey)
     const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
     yield call(localMarkAsReadLocalRpcPromise, {
@@ -651,8 +720,7 @@ function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
   const appFocused = action.payload
-  const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
-  const conversationIDKey = yield select(selectedSelector)
+  const conversationIDKey = yield select(_selectedSelector)
   const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
   const selectedTab = yield select(routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
@@ -665,9 +733,8 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
 
 function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
-  const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
   const windowFocusedSelector = (state: TypedState) => state.chat.get('focused')
-  const selectedConversationIDKey = yield select(selectedSelector)
+  const selectedConversationIDKey = yield select(_selectedSelector)
   const windowFocused = yield select(windowFocusedSelector)
 
   const newConversations = _.reduce(conversations, (acc, conv) => {
@@ -697,6 +764,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
     safeTakeLatest(Constants.openFolder, _openFolder),
     safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
+    safeTakeLatest(Constants.updateInbox, _onUpdateInbox),
     safeTakeEvery(changedFocus, _changedFocus),
   ]
 }
