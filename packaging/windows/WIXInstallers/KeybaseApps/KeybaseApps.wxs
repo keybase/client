@@ -39,7 +39,6 @@
 
     <FeatureRef Id="KBFSFeature" />
 
-    <!--Some actions have been moved in this project to fragments to be near the component-->
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
 
@@ -206,7 +205,7 @@
           <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
           <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
       </Component>
-      <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI])with gui.xsl-->
+      <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
       <Component Id="GUIShortCutComponent" Guid="{1DCD73F4-1129-409E-9D8B-42F2BAD26867}">
         <Shortcut Id="GUIShortCut"
                   Name="Keybase"
@@ -241,8 +240,8 @@
 
   <Fragment>
     <CustomAction Id="RunMainApp"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe &quot;[INSTALLFOLDER]keybase.exe&quot; ctl watchdog2"
+              FileKey="runquiet.exe"
+              ExeCommand="&quot;[#keybase.exe]&quot; ctl watchdog2"
               Execute="commit"
               Impersonate="yes"
               Return="ignore"/>    
@@ -263,9 +262,10 @@
   </Fragment>
   
   <Fragment>
+    <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
     <CustomAction Id="RunGUI"
-              Directory="GuiDir"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe &quot;[GuiDir]Keybase.exe&quot;"
+              FileKey="runquiet.exe"
+              ExeCommand="&quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;"
               Execute="commit"
               Impersonate="yes"
               Return="ignore"/>
