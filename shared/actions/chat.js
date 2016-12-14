@@ -622,7 +622,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
 function * _openFolder (): SagaGenerator<any, any> {
   const conversationIDKey = yield select(_selectedSelector)
 
-  const inbox = yield select(_selectedInboxSelector, conversationIDKey )
+  const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox) {
     const helper = inbox.get('info').visibility === CommonTLFVisibility.public ? publicFolderWithUsers : privateFolderWithUsers
     const path = helper(inbox.get('participants').map(p => p.username).toArray())
