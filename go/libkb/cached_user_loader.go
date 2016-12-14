@@ -25,12 +25,49 @@ func NewCachedUserLoader(g *GlobalContext, f time.Duration) *CachedUserLoader {
 	}
 }
 
-func (u *CachedUserLoader) getCachedUPK(uid keybase1.UID) (*keybase1.UserPlusAllKeys, bool) {
+func culDBKey(uid keybase1.UID) DbKey {
+	return DbKeyUID(DBUserPlusAllKeys, uid)
+}
+
+func (u *CachedUserLoader) ClearMemory() {
 	u.Lock()
 	defer u.Unlock()
+	u.m = make(map[string]*keybase1.UserPlusAllKeys)
+}
+
+func (u *CachedUserLoader) getCachedUPK(uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusAllKeys, bool) {
+	u.Lock()
 	upk := u.m[uid.String()]
+	u.Unlock()
+
+	// Try loading from persistent storage if we missed memory cache.
+	if upk != nil {
+		u.G().Log.Debug("| hit memory cache")
+		if info != nil {
+			info.InCache = true
+		}
+	} else {
+		var tmp keybase1.UserPlusAllKeys
+		found, err := u.G().LocalDb.GetInto(&tmp, culDBKey(uid))
+		if err != nil {
+			u.G().Log.Warning("trouble accessing UserPlusAllKeys cache: %s", err)
+		} else if !found {
+			u.G().Log.Debug("| missed disk cache")
+		} else {
+			u.G().Log.Debug("| hit disk cache")
+			upk = &tmp
+			if info != nil {
+				info.InDiskCache = true
+			}
+			// Insert disk object into memory.
+			u.Lock()
+			u.m[uid.String()] = upk
+			u.Unlock()
+		}
+	}
+
 	if upk == nil {
-		u.G().Log.Debug("| missed cached")
+		u.G().Log.Debug("| missed cache")
 		return nil, true
 	}
 	fresh := false
@@ -50,6 +87,7 @@ func (u *CachedUserLoader) getCachedUPK(uid keybase1.UID) (*keybase1.UserPlusAll
 
 type CachedUserLoadInfo struct {
 	InCache      bool
+	InDiskCache  bool
 	TimedOut     bool
 	StaleVersion bool
 	LoadedLeaf   bool
@@ -89,6 +127,19 @@ func (u *CachedUserLoader) extractDeviceKey(upk *keybase1.UserPlusAllKeys, devic
 	return deviceKey, revoked, nil
 }
 
+func (u *CachedUserLoader) putUPKToCache(obj *keybase1.UserPlusAllKeys) error {
+	uid := obj.Base.Uid
+	u.G().Log.Debug("| %s: Caching: %+v", culDebug(uid), *obj)
+	u.Lock()
+	u.m[uid.String()] = obj
+	u.Unlock()
+	err := u.G().LocalDb.PutObj(culDBKey(uid), nil, *obj)
+	if err != nil {
+		u.G().Log.Warning("Error in writing UPAK for %s: %s", uid, err)
+	}
+	return err
+}
+
 // loadWithInfo loads a user by UID from the CachedUserLoader object. The 'info'
 // object contains information about how the request was handled, but otherwise,
 // this method behaves like (and implements) the public CachedUserLoader#Load
@@ -108,7 +159,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	var fresh bool
 
 	if !arg.ForceReload {
-		upk, fresh = u.getCachedUPK(arg.UID)
+		upk, fresh = u.getCachedUPK(arg.UID, info)
 	}
 	if arg.ForcePoll {
 		fresh = false
@@ -116,10 +167,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	if upk != nil {
 		u.G().Log.Debug("%s: cache-hit; fresh=%v", culDebug(arg.UID), fresh)
-		if info != nil {
-			info.InCache = true
-		}
-		if fresh {
+		if fresh || arg.StaleOK {
 			return upk.DeepCopy(), nil, nil
 		}
 		if info != nil {
@@ -142,7 +190,12 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 		if leaf.public != nil && leaf.public.Seqno == Seqno(upk.Base.Uvv.SigChain) {
 			u.G().Log.Debug("%s: cache-hit; fresh after poll", culDebug(arg.UID), fresh)
+
 			upk.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
+			// This is only necessary to update the levelDB representation,
+			// since the previous line updates the in-memory cache satisfactorially.
+			u.putUPKToCache(upk)
+
 			return upk.DeepCopy(), nil, nil
 		}
 
@@ -173,10 +226,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	tmp := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	ret = &tmp
 	ret.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
-	u.Lock()
-	u.m[arg.UID.String()] = ret
-	u.G().Log.Debug("| %s: Caching: %+v", culDebug(arg.UID), *ret)
-	u.Unlock()
+	err = u.putUPKToCache(ret)
 
 	return ret, user, nil
 }
@@ -234,10 +284,19 @@ func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlus
 }
 
 func (u *CachedUserLoader) Invalidate(uid keybase1.UID) {
-	u.Lock()
-	defer u.Unlock()
 	u.G().Log.Debug("CachedUserLoader#Invalidate(%s)", uid)
+	lock := u.locktab.AcquireOnName(uid.String())
+	defer lock.Release()
+
+	u.Lock()
 	delete(u.m, uid.String())
+	u.Unlock()
+
+	err := u.G().LocalDb.Delete(culDBKey(uid))
+	if err != nil {
+		u.G().Log.Warning("Failed to remove %s from disk cache: %s", uid, err)
+	}
+
 }
 
 // Load the PublicKey for a user's device from the local cache, falling back to LoadUser, and cache the user.
@@ -263,4 +322,40 @@ func (u *CachedUserLoader) LoadDeviceKey(uid keybase1.UID, deviceID keybase1.Dev
 
 	deviceKey, revoked, err = u.extractDeviceKey(upk, deviceID)
 	return upk, deviceKey, revoked, err
+}
+
+func (u *CachedUserLoader) LookupUsername(uid keybase1.UID) NormalizedUsername {
+	var info CachedUserLoadInfo
+	arg := NewLoadUserByUIDArg(u.G(), uid)
+	arg.StaleOK = true
+	upk, _, _ := u.loadWithInfo(arg, &info)
+	return NewNormalizedUsername(upk.Base.Username)
+}
+
+func (u *CachedUserLoader) lookupUsernameAndDeviceWithInfo(uid keybase1.UID, did keybase1.DeviceID, info *CachedUserLoadInfo) (username NormalizedUsername, deviceName string, deviceType string, err error) {
+	arg := NewLoadUserByUIDArg(u.G(), uid)
+
+	// First iteration through, say it's OK to load a stale user. Note that the
+	// mappings of UID to Username and DeviceID to DeviceName are immutable, so this
+	// data can never be stale. However, our user might be out of date and lack the
+	// mappings, so the second time through, we request a fresh object.
+	staleOK := []bool{true, false}
+	for _, b := range staleOK {
+		arg.StaleOK = b
+		upk, _, _ := u.loadWithInfo(arg, info)
+		if upk == nil {
+			continue
+		}
+		if pk := upk.FindDevice(did); pk != nil {
+			return NewNormalizedUsername(upk.Base.Username), pk.DeviceDescription, pk.DeviceType, nil
+		}
+	}
+	if err == nil {
+		err = NotFoundError{fmt.Sprintf("UID/Device pair %s/%s not found", uid, did)}
+	}
+	return NormalizedUsername(""), "", "", err
+}
+
+func (u *CachedUserLoader) LookupUsernameAndDevice(uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error) {
+	return u.lookupUsernameAndDeviceWithInfo(uid, did, nil)
 }
