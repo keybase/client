@@ -124,7 +124,7 @@
               ExeCommand="&quot;[#keybase.exe]&quot; ctl watchdog2"
               Execute="commit"
               Impersonate="yes"
-              Return="ignore"/>
+              Return="asyncNoWait"/>
 
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"
@@ -162,7 +162,7 @@
               ExeCommand=""
               Execute="commit"
               Impersonate="yes"
-              Return="ignore"/>
+              Return="asyncNoWait"/>
 
     <CustomAction Id="StopGUI"
               Directory="INSTALLFOLDER"
