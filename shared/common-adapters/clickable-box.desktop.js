@@ -8,7 +8,7 @@ import type {Props} from './clickable-box'
 export default function ClickableBox (props: Props & {children: any}) {
   const {style, children, ...otherProps} = props
   return (
-    <FlatButton {...otherProps} style={{textAlign: 'left', height: undefined, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch'}}>
+    <FlatButton {...otherProps} rippleColor={'transparent'} hoverColor={'transparent'} style={{transition: 'none', transform: 'none', textAlign: 'left', height: undefined, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch', borderRadius: 0}}>
       <Box style={style}>{children}</Box>
     </FlatButton>
   )

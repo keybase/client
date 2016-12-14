@@ -213,7 +213,7 @@ function Account ({email, isVerified, onChangeEmail, onChangePassphrase}: Accoun
 
 function Landing (props: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: 40}}>
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: globalMargins.medium}}>
       <Account {...props.account} />
       {flags.plansEnabled && <Plan {...props.plan} plans={props.plans} />}
     </Box>
