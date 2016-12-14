@@ -1488,6 +1488,48 @@ func (_mr *_MockKeyCacheRecorder) PutTLFCryptKey(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKey", arg0, arg1, arg2)
 }
 
+// Mock of BlockCacheSimple interface
+type MockBlockCacheSimple struct {
+	ctrl     *gomock.Controller
+	recorder *_MockBlockCacheSimpleRecorder
+}
+
+// Recorder for MockBlockCacheSimple (not exported)
+type _MockBlockCacheSimpleRecorder struct {
+	mock *MockBlockCacheSimple
+}
+
+func NewMockBlockCacheSimple(ctrl *gomock.Controller) *MockBlockCacheSimple {
+	mock := &MockBlockCacheSimple{ctrl: ctrl}
+	mock.recorder = &_MockBlockCacheSimpleRecorder{mock}
+	return mock
+}
+
+func (_m *MockBlockCacheSimple) EXPECT() *_MockBlockCacheSimpleRecorder {
+	return _m.recorder
+}
+
+func (_m *MockBlockCacheSimple) Get(ptr BlockPointer) (Block, error) {
+	ret := _m.ctrl.Call(_m, "Get", ptr)
+	ret0, _ := ret[0].(Block)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBlockCacheSimpleRecorder) Get(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
+}
+
+func (_m *MockBlockCacheSimple) Put(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
+	ret := _m.ctrl.Call(_m, "Put", ptr, tlf, block, lifetime)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheSimpleRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
+}
+
 // Mock of BlockCache interface
 type MockBlockCache struct {
 	ctrl     *gomock.Controller
@@ -1520,6 +1562,16 @@ func (_mr *_MockBlockCacheRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
+func (_m *MockBlockCache) Put(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
+	ret := _m.ctrl.Call(_m, "Put", ptr, tlf, block, lifetime)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
+}
+
 func (_m *MockBlockCache) CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error) {
 	ret := _m.ctrl.Call(_m, "CheckForKnownPtr", tlf, block)
 	ret0, _ := ret[0].(BlockPointer)
@@ -1529,16 +1581,6 @@ func (_m *MockBlockCache) CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockP
 
 func (_mr *_MockBlockCacheRecorder) CheckForKnownPtr(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForKnownPtr", arg0, arg1)
-}
-
-func (_m *MockBlockCache) Put(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
-	ret := _m.ctrl.Call(_m, "Put", ptr, tlf, block, lifetime)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockBlockCache) DeleteTransient(ptr BlockPointer, tlf tlf.ID) error {
