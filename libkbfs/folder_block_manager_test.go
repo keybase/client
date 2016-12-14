@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"bytes"
 	"reflect"
 	"testing"
 	"time"
@@ -230,17 +229,13 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	data2 := make([]byte, len(data))
 	_, err = kbfsOps2.Read(ctx, aNode2, data2, 0)
 	require.NoError(t, err, "Couldn't read file: %v", err)
-	if !bytes.Equal(data, data2) {
-		t.Fatalf("Read bad data: %v", data2)
-	}
+	require.Equal(t, data, data2, "Read bad data: %v", data2)
 	bNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "b")
 	require.NoError(t, err, "Couldn't create dir: %v", err)
 	data2 = make([]byte, len(data))
 	_, err = kbfsOps2.Read(ctx, bNode2, data2, 0)
 	require.NoError(t, err, "Couldn't read file: %v", err)
-	if !bytes.Equal(otherData, data2) {
-		t.Fatalf("Read bad data: %v", data2)
-	}
+	require.Equal(t, otherData, data2, "Read bad data: %v", data2)
 
 	// Remove two of the files
 	err = kbfsOps1.RemoveEntry(ctx, rootNode1, "a")
@@ -254,9 +249,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	// Get the current set of blocks
 	bserverLocal, ok := config1.BlockServer().(blockServerLocal)
-	if !ok {
-		t.Fatalf("Bad block server")
-	}
+	require.True(t, ok, "Bad block server")
 	preQRBlocks, err := bserverLocal.getAllRefsForTest(
 		ctx, rootNode1.GetFolderBranch().Tlf)
 	require.NoError(t, err, "Couldn't get blocks: %v", err)

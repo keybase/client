@@ -78,7 +78,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	}
 
 	err = brw.getBlock(retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block)
-	if err != nil {
+	if err == nil {
 		brw.queue.Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
 	}
 	return err
