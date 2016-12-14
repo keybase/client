@@ -84,7 +84,7 @@ function openInDefault (openPath: string): Promise<*> {
 
     isDirectory(openPath).then((isDir) => {
       if (isDir) {
-        openInDefaultDirectory(openPath).then(resolve).catch(reject)
+        openInDefaultDirectory(openPath).then(resolve, reject)
       } else {
         if (shell.showItemInFolder(openPath)) {
           resolve()
@@ -114,7 +114,7 @@ function * openInWindows (openPath: string): SagaGenerator<any, any> {
     kbfsPath = yield call(kbfsMountGetCurrentMountDirRpcPromise)
 
     if (!kbfsPath) {
-      throw new Error('No kbfsPath')
+      throw new Error('No kbfsPath (RPC)')
     }
 
     yield put({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
