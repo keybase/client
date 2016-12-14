@@ -316,7 +316,8 @@
         "CLI_1",
         "GUI_2",
         "KBFS_3"
-      ]
+      ],
+      "go": "nostring"
     },
     {
       "type": "record",

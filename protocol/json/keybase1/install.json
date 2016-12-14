@@ -16,7 +16,8 @@
         "NOT_INSTALLED_2",
         "INSTALLED_4"
       ],
-      "doc": "Install status describes state of install for a component or service."
+      "doc": "Install status describes state of install for a component or service.",
+      "go": "nostring"
     },
     {
       "type": "enum",
@@ -27,7 +28,8 @@
         "UPGRADE_2",
         "REINSTALL_3",
         "INSTALL_4"
-      ]
+      ],
+      "go": "nostring"
     },
     {
       "type": "record",

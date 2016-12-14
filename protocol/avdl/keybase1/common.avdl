@@ -123,6 +123,7 @@ protocol Common {
     FATAL_7
   }
 
+  @go("nostring")
   enum ClientType {
     NONE_0,
     CLI_1,
