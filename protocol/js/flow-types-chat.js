@@ -950,6 +950,7 @@ export type PostLocalNonblockRes = {
 
 export type PostLocalRes = {
   rateLimits?: ?Array<RateLimit>,
+  messageID: MessageID,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
