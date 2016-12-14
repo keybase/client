@@ -2995,23 +2995,35 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	}
 
 	// Add bytes for every ref'd block.
+	refPtrsToFetch := make([]BlockPointer, 0, len(refs))
+	for ptr := range refs {
+		if _, ok := localBlocks[ptr]; !ok {
+			refPtrsToFetch = append(refPtrsToFetch, ptr)
+		}
+	}
+
+	// Look up the ref blocks in parallel to get their sizes.  Since
+	// we don't know whether these are files or directories, just look
+	// them up generically.
+	//
+	// TODO: If the blocks weren't already in the cache, this
+	// call won't cache them, so it's kind of wasting work.
+	// Furthermore, we might be able to get the encoded size
+	// from other sources as well (such as its directory entry
+	// or its indirect file block) if we happened to have come
+	// across it before.
+	refBlocks, err := cr.fbo.blocks.GetBlocksForReading(ctx, lState,
+		md.ReadOnly(), refPtrsToFetch, nil, cr.fbo.branch())
+	if err != nil {
+		return nil, err
+	}
+
 	for ptr := range refs {
 		block, ok := localBlocks[ptr]
 		if !ok {
-			// Look up the block to get its size.  Since we don't know
-			// whether this is a file or directory, just look it up
-			// generically.
-			//
-			// TODO: If the block wasn't already in the cache, this
-			// call won't cache it, so it's kind of wasting work.
-			// Furthermore, we might be able to get the encoded size
-			// from other sources as well (such as its directory entry
-			// or its indirect file block) if we happened to have come
-			// across it before.
-			block, err = cr.fbo.blocks.GetBlockForReading(ctx, lState,
-				md.ReadOnly(), ptr, cr.fbo.branch())
-			if err != nil {
-				return nil, err
+			block, ok = refBlocks[ptr]
+			if !ok {
+				return nil, fmt.Errorf("Didn't fetch ref ptr %v", ptr)
 			}
 		}
 
@@ -3021,8 +3033,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 		md.AddDiskUsage(size)
 	}
 
-	// Subtract bytes for every unref'd block that wasn't created in
-	// the unmerged branch.
+	unrefPtrsToFetch := make([]BlockPointer, 0, len(unrefs))
 	for ptr := range unrefs {
 		original, ok := unmergedChains.originals[ptr]
 		if !ok {
@@ -3046,20 +3057,32 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 			continue
 		}
 
-		block, err := cr.fbo.blocks.GetBlockForReading(ctx, lState,
-			mostRecentMergedMD, ptr, cr.fbo.branch())
-		if err != nil {
+		unrefPtrsToFetch = append(unrefPtrsToFetch, ptr)
+	}
+
+	// Look up the unref blocks in parallel to get their sizes.  Since
+	// we don't know whether these are files or directories, just look
+	// them up generically.  Ignore any recoverable errors for unrefs.
+	// Note that we can't combine these with the above ref fetches
+	// since they require a different MD.
+	unrefBlocks, err := cr.fbo.blocks.GetBlocksForReading(ctx, lState,
+		mostRecentMergedMD, unrefPtrsToFetch, unrefs, cr.fbo.branch())
+	if err != nil {
+		return nil, err
+	}
+
+	// Subtract bytes for every unref'd block that wasn't created in
+	// the unmerged branch.
+	for ptr := range unrefs {
+		block, ok := unrefBlocks[ptr]
+		if !ok {
 			// TODO: we might be able to recover the size of the
 			// top-most block of a removed file using the merged
 			// directory entry, the same way we do in
 			// `folderBranchOps.unrefEntry`.
-			if isRecoverableBlockErrorForRemoval(err) {
-				cr.log.CDebugf(ctx, "Unref'ing a non-existent block, "+
-					"excluding it from the MD size calculations: %v", err)
-				continue
-			}
-			cr.log.CDebugf(ctx, "Got err reading %v", ptr)
-			return nil, err
+			cr.log.CDebugf(ctx, "Unref'ing a non-existent block %v, "+
+				"excluding it from the MD size calculations: %v", ptr, err)
+			continue
 		}
 
 		size := uint64(block.GetEncodedSize())
