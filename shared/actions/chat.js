@@ -268,7 +268,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
     const conversationState = yield select(conversationStateSelector)
     let messages = []
-    if (conversationState && conversationState.messages !== null) {
+    if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
       const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
       const timestamp = _maybeAddTimestamp(message, prevMessage)
       if (timestamp !== null) {

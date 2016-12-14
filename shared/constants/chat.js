@@ -68,8 +68,8 @@ export type MaybeTimestamp = TimestampMessage | null
 export const ConversationStateRecord = Record({
   messages: List(),
   seenMessages: Set(),
-  moreToLoad: false,
-  isRequesting: true,
+  moreToLoad: true,
+  isRequesting: false,
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
