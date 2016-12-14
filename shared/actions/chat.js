@@ -286,6 +286,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       deviceType: '',
       deviceName: '',
       conversationIDKey: action.payload.conversationIDKey,
+      senderDeviceRevokedAt: null,
     }
 
     // Time to decide: should we add a timestamp before our new message?
@@ -596,6 +597,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
         timestamp: payload.serverHeader.ctime,
         messageID: payload.serverHeader.messageID,
         conversationIDKey: conversationIDKey,
+        senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
       }
 
       const isYou = common.author === yourName

@@ -38,6 +38,7 @@ export type TextMessage = {
   followState: FollowState,
   messageState: MessageState,
   outboxID?: ?string,
+  senderDeviceRevokedAt: ?number,
   key: any,
 }
 
