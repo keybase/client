@@ -86,7 +86,7 @@ function PendingEmailContent ({invite}: {invite: PendingEmailInvite}) {
         url={null}
         size={32}
       />
-      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small, marginBottom: itemAlignmentFudge}}>
+      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text
           type='BodySemibold'
         >
@@ -117,7 +117,7 @@ function AcceptedInviteItem ({invite, onClick}: {invite: AcceptedInvite, onClick
         username={invite.username}
         size={32}
       />
-      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small, marginBottom: itemAlignmentFudge}}>
+      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text
           type='BodySemibold'
           style={{color: nameColor}}
@@ -132,11 +132,9 @@ function AcceptedInviteItem ({invite, onClick}: {invite: AcceptedInvite, onClick
   )
 }
 
-const itemAlignmentFudge = 5
-
 const styleInviteItem = {
   ...globalStyles.flexBoxRow,
-  height: 48,
+  height: 40,
   alignItems: 'center',
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
