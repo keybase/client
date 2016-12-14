@@ -456,7 +456,7 @@ func expectBlock(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, blo
 	config.mockBops.EXPECT().Get(gomock.Any(), kmdMatcher{kmd},
 		ptrMatcher{blockPtr}, gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, kmd KeyMetadata,
-			blockPtr BlockPointer, getBlock Block) {
+			blockPtr BlockPointer, getBlock Block, lifetime BlockCacheLifetime) {
 			switch v := getBlock.(type) {
 			case *FileBlock:
 				*v = *block.(*FileBlock)
@@ -464,6 +464,7 @@ func expectBlock(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, blo
 			case *DirBlock:
 				*v = *block.(*DirBlock)
 			}
+			config.BlockCache().Put(blockPtr, kmd.TlfID(), getBlock, lifetime)
 		}).Return(err)
 }
 
