@@ -100,6 +100,7 @@
       </Component>
 
       <!--Start the application on user logon
+      TODO Add the Keybase icon/description to runquiet.exe binary and possibly rename runquiet. It would look better in taskmgr->Startup pane.
       TODO These must be disabled/deleted if there is an interim reboot between upgrading Dokan and upgrading Keybase Apps -->
       <Component Id="AppRunKeyComponent" Guid="{B0F58F8C-A2F0-483F-8193-E4E254B7779F}">
         <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="Keybase" Value="&quot;[#runquiet.exe]&quot; &quot;[#keybase.exe]&quot; ctl watchdog2" Type="string" />
@@ -144,10 +145,11 @@
       <ComponentGroupRef Id="GuiComponents" />
 
       <!--Start the  GUI on user logon
+      TODO Verify that GUI\Keybase.exe can be run "raw" vs with runquit. Raw looks better in taskmgr->Startup pane.
       TODO These must be disabled/deleted if there is an interim reboot between upgrading Dokan and upgrading Keybase Apps -->
       <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
       <Component Id="GUIRunKeyComponent" Guid="{117D9139-9E66-4BDB-B5BF-F7F508F27BDC}">
-        <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="KeybaseGUI" Value="&quot;[#runquiet.exe]&quot; &quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;" Type="string" />
+        <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="KeybaseGUI" Value="&quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;" Type="string" />
       </Component>
     </ComponentGroup>
 
