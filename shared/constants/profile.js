@@ -111,3 +111,13 @@ export type State = {
   usernameValid: boolean,
   waiting: boolean,
 }
+
+// A simple check, the server does a fuller check
+export function checkBTC (address: string): boolean {
+  return !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+}
+
+// A simple check, the server does a fuller check
+export function checkZcash (address: string): boolean {
+  return true // !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+}

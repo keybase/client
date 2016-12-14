@@ -1,42 +1,40 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import openURL from '../util/open-url'
 import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
+import {checkBTC, checkZcash} from '../constants/profile'
+import {compose, withHandlers, withState} from 'recompose'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {platformText} from './prove-enter-username.shared'
-import {compose, withHandlers, withState} from 'recompose'
 
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Props} from './prove-enter-username'
 
-function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
-  if (platform === 'hackernews') {
-    return (
-      <Box style={styleInfoBanner}>
-        <Text backgroundMode='Information' type='BodySemibold'>
-          &bull; You must have karma &ge; 2<br />
-          &bull; You must enter your uSeRName with exact case
-        </Text>
-      </Box>
-    )
-  }
+const UsernameTips = ({platform}: {platform: PlatformsExpandedType}) => (
+  (platform === 'hackernews')
+  ? (
+    <Box style={styleInfoBanner}>
+      <Text backgroundMode='Information' type='BodySemibold'>
+        &bull; You must have karma &ge; 2<br />
+        &bull; You must enter your uSeRName with exact case
+      </Text>
+    </Box>
+  ) : null
+)
 
-  return null
-}
-
-function customError (error: string, code: ?number) {
-  if (code === ConstantsStatusCode.scprofilenotpublic) {
-    return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
+const customError = (error: string, code: ?number) => (
+  (code === ConstantsStatusCode.scprofilenotpublic)
+  ? (
+    <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
       <Text style={styleErrorBannerText} type='BodySemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
         <Text style={styleErrorBannerText} type='BodySemibold'>Go to Coinbase</Text>
         <Icon type='iconfont-open-browser' style={{color: globalColors.white_40, marginLeft: 4}} />
       </Box>
     </Box>
-  }
-  return <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
-}
+  ) : <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
+)
 
 const ProveEnterUsername = (props: Props) => {
   const {headerText, floatingLabelText, hintText} = platformText[props.platform]
@@ -52,7 +50,7 @@ const ProveEnterUsername = (props: Props) => {
         style={styleInput}
         floatingHintTextOverride={floatingLabelText}
         hintText={hintText}
-        value={this.state.username}
+        value={props.username}
         onChangeText={props.onUsernameChange}
         onEnterKeyDown={props.onContinue} />
       <UsernameTips platform={props.platform} />
@@ -113,10 +111,15 @@ const styleInfoBanner = {
 
 export default compose(
   withState('username', 'setUsername', props => props.username),
+  withState('canContinue', 'setCanContinue', props => props.canContinue),
   withHandlers({
     onUsernameChange: props => (username: string) => {
       props.setUsername(username)
-      props.updateUsername(username)
+      if (props.platform === 'btc') {
+        props.setCanContinue(checkBTC(username))
+      } else if (props.platform === 'zcash') {
+        props.setCanContinue(checkZcash(username))
+      }
     },
     onContinue: props => () => props.onContinue(props.username),
   }),
