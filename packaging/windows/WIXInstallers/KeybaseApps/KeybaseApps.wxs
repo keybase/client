@@ -139,9 +139,8 @@
       <!--Start the  GUI on user logon
       TODO Verify that GUI\Keybase.exe can be run "raw" vs with runquit. Raw looks better in taskmgr->Startup pane.
       TODO These must be disabled/deleted if there is an interim reboot between upgrading Dokan and upgrading Keybase Apps -->
-      <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
       <Component Id="GUIRunKeyComponent" Guid="{117D9139-9E66-4BDB-B5BF-F7F508F27BDC}">
-        <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="KeybaseGUI" Value="&quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;" Type="string" />
+        <RegistryValue Root="HKCU" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run" Name="KeybaseGUI" Value="&quot;[#KeybaseGUI]&quot;" Type="string" />
       </Component>
     </ComponentGroup>
 
@@ -155,9 +154,8 @@
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>    
     
-    <!--TODO change GUI Keybase.exe to a human readable file id (for example KeybaseGUI) with gui.xsl-->
     <CustomAction Id="RunGUI"
-              FileKey="filFCBDD0EBC22C5E5F749A2CF084F8DA8A"
+              FileKey="KeybaseGUI"
               ExeCommand=""
               Execute="commit"
               Impersonate="yes"
@@ -251,12 +249,11 @@
           <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
       </Component>
       
-      <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
       <Component Id="GUIShortCutComponent" Guid="{1DCD73F4-1129-409E-9D8B-42F2BAD26867}">
         <Shortcut Id="GUIShortCut"
                   Name="Keybase"
                   Description="Start GUI"
-                  Target="[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]"
+                  Target="[#KeybaseGUI]"
                   WorkingDirectory="GuiDir"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"  />

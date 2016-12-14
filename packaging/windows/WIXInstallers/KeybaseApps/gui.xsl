@@ -4,21 +4,26 @@
   <xsl:copy>
    <xsl:apply-templates select="node()|@*"/>
   </xsl:copy>
- </xsl:template>  
+ </xsl:template>
 
- <xsl:template match="wix:Directory[@Name='Keybase-win32-ia32']/@Id">
-  <xsl:attribute name="Id">GuiDir</xsl:attribute>
- </xsl:template>
- <xsl:template match="wix:Directory[@Name='Keybase-win32-ia32']/@Name">
-  <xsl:attribute name="Name">Gui</xsl:attribute>
- </xsl:template>
- <xsl:template match="wix:Directory[@Name='resources']/@Id">
-  <xsl:attribute name="Id">GuiResourcesDir</xsl:attribute>
- </xsl:template>
- <xsl:template match="wix:Directory[@Name='shared']/@Id">
-  <xsl:attribute name="Id">GuiSharedDir</xsl:attribute>
- </xsl:template>
- 
+  <xsl:template match="wix:Directory[@Name='Keybase-win32-ia32']/@Id">
+    <xsl:attribute name="Id">GuiDir</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="wix:Directory[@Name='Keybase-win32-ia32']/@Name">
+    <xsl:attribute name="Name">Gui</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="wix:Directory[@Name='resources']/@Id">
+    <xsl:attribute name="Id">GuiResourcesDir</xsl:attribute>
+  </xsl:template>
+  <xsl:template match="wix:Directory[@Name='shared']/@Id">
+    <xsl:attribute name="Id">GuiSharedDir</xsl:attribute>
+  </xsl:template>
+
+  <!--Human readable File Id for Keybase.exe GUI-->
+  <xsl:template match="wix:File[@Source='$(var.GuiSourceDir)\Keybase.exe']/@Id">
+    <xsl:attribute name="Id">KeybaseGUI</xsl:attribute>
+  </xsl:template>
+
   <xsl:template match="wix:Component">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
