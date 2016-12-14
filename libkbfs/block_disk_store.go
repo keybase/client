@@ -53,6 +53,9 @@ import (
 //           May be missing, but should be present when data is.
 //   - refs: The list of references to the block, encoded as a serialized
 //           blockRefInfo. May be missing.
+//   - f:    Presence of this file indicates the block has been successfully
+//           flushed to the server.  However, the data might still be
+//           in the store.
 //
 // Future versions of the disk store might add more files to this
 // directory; if any code is written to move blocks around, it should
@@ -111,6 +114,10 @@ func (s *blockDiskStore) keyServerHalfPath(id BlockID) string {
 
 func (s *blockDiskStore) refsPath(id BlockID) string {
 	return filepath.Join(s.blockPath(id), "refs")
+}
+
+func (s *blockDiskStore) flushedPath(id BlockID) string {
+	return filepath.Join(s.blockPath(id), "f")
 }
 
 // makeDir makes the directory for the given block ID and writes the
@@ -260,6 +267,31 @@ func (s *blockDiskStore) hasContext(id BlockID, context BlockContext) (
 func (s *blockDiskStore) hasData(id BlockID) error {
 	_, err := ioutil.Stat(s.dataPath(id))
 	return err
+}
+
+var errFlushedButPresentData = errors.New("Data is flushed but present")
+
+func (s *blockDiskStore) isUnflushed(id BlockID) error {
+	_, err := ioutil.Stat(s.dataPath(id))
+	if err != nil {
+		return err
+	}
+	_, err = ioutil.Stat(s.flushedPath(id))
+	// If the flushed file exists, then the data is not unflushed.
+	if err == nil {
+		return errFlushedButPresentData
+	}
+	return err
+}
+
+func (s *blockDiskStore) flushed(id BlockID) error {
+	fPath := s.flushedPath(id)
+	f, err := ioutil.Create(fPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return nil
 }
 
 func (s *blockDiskStore) getDataSize(id BlockID) (int64, error) {

@@ -717,13 +717,13 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	require.Zero(t, lastToRemove)
 	require.Nil(t, j.saveUntilMDFlush)
 
-	err = j.hasData(bID1)
+	err = j.isUnflushed(bID1)
 	require.True(t, ioutil.IsNotExist(err))
-	err = j.hasData(bID2)
+	err = j.isUnflushed(bID2)
 	require.True(t, ioutil.IsNotExist(err))
-	err = j.hasData(bID3)
+	err = j.isUnflushed(bID3)
 	require.True(t, ioutil.IsNotExist(err))
-	err = j.hasData(bID4)
+	err = j.isUnflushed(bID4)
 	require.True(t, ioutil.IsNotExist(err))
 
 	testBlockJournalGCd(t, j)

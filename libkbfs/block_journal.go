@@ -271,6 +271,10 @@ func (j *blockJournal) hasData(id BlockID) error {
 	return j.s.hasData(id)
 }
 
+func (j *blockJournal) isUnflushed(id BlockID) error {
+	return j.s.isUnflushed(id)
+}
+
 func (j *blockJournal) remove(id BlockID) error {
 	// TODO: we'll eventually need a sweeper to clean up entries
 	// left behind if we crash here.
@@ -695,6 +699,12 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 		if err != nil {
 			return 0, err
 		}
+
+		err = j.s.flushed(id)
+		if err != nil {
+			return 0, err
+		}
+
 		flushedBytes, err = j.s.getDataSize(id)
 		if err != nil {
 			return 0, err
