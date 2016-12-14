@@ -102,9 +102,10 @@ func start() *libfs.Error {
 	}
 
 	options := libfuse.StartOptions{
-		KbfsParams: *kbfsParams,
-		RuntimeDir: *runtimeDir,
-		Label:      *label,
+		KbfsParams:     *kbfsParams,
+		PlatformParams: *platformParams,
+		RuntimeDir:     *runtimeDir,
+		Label:          *label,
 	}
 
 	return libfuse.Start(mounter, options, ctx)

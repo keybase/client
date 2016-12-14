@@ -38,7 +38,7 @@ func createEngine(t testing.TB) Engine {
 
 func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser {
-	filesys := libfuse.NewFS(config, nil, false)
+	filesys := libfuse.NewFS(config, nil, false, libfuse.PlatformParams{})
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.SetFuseConn(mnt.Server, mnt.Conn)
 		return filesys

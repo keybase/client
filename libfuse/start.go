@@ -16,9 +16,10 @@ import (
 
 // StartOptions are options for starting up
 type StartOptions struct {
-	KbfsParams libkbfs.InitParams
-	RuntimeDir string
-	Label      string
+	KbfsParams     libkbfs.InitParams
+	PlatformParams PlatformParams
+	RuntimeDir     string
+	Label          string
 }
 
 // Start the filesystem
@@ -90,7 +91,7 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 
 	if c != nil {
 		log.Debug("Creating filesystem")
-		fs := NewFS(config, c, options.KbfsParams.Debug)
+		fs := NewFS(config, c, options.KbfsParams.Debug, options.PlatformParams)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)

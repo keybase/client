@@ -160,7 +160,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		}
 		// Non-canonical name.
 		n := &Alias{
-			canon: err.NameToTry,
+			realPath: err.NameToTry,
 		}
 		return n, nil
 

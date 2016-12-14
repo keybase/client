@@ -12,6 +12,10 @@ import "flag"
 // passed to New{Default,Force}Mounter.
 type PlatformParams struct{}
 
+func (p PlatformParams) shouldAppendPlatformRootDirs() bool {
+	return false
+}
+
 // GetPlatformUsageString returns a string to be included in a usage
 // string corresponding to the flags added by AddPlatformFlags.
 func GetPlatformUsageString() string {

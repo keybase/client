@@ -12,10 +12,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Alias is a top-level folder accessed through its non-canonical name.
+// Alias represents an alias. A use case for it is a top-level folder accessed
+// through its non-canonical name.
 type Alias struct {
-	// canonical name for this folder
-	canon string
+	// The real path this alias points to. In case of TLF alias, this is the
+	// canonical name for the folder.
+	realPath string
 }
 
 var _ fs.Node = (*Alias)(nil)
@@ -30,5 +32,5 @@ var _ fs.NodeReadlinker = (*Alias)(nil)
 
 // Readlink implements the fs.NodeReadlinker interface for Alias.
 func (a *Alias) Readlink(ctx context.Context, req *fuse.ReadlinkRequest) (string, error) {
-	return a.canon, nil
+	return a.realPath, nil
 }

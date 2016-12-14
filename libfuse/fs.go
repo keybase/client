@@ -37,10 +37,12 @@ type FS struct {
 	execAfterDelay func(d time.Duration, f func())
 
 	root Root
+
+	platformParams PlatformParams
 }
 
 // NewFS creates an FS
-func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
+func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams PlatformParams) *FS {
 	log := config.MakeLogger("kbfsfuse")
 	// We need extra depth for errors, so that we can report the line
 	// number for the caller of reportErr, not reportErr itself.
@@ -52,11 +54,12 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
 		errLog.Configure("", true, "")
 	}
 	fs := &FS{
-		config:        config,
-		conn:          conn,
-		log:           log,
-		errLog:        errLog,
-		notifications: libfs.NewFSNotifications(log),
+		config:         config,
+		conn:           conn,
+		log:            log,
+		errLog:         errLog,
+		notifications:  libfs.NewFSNotifications(log),
+		platformParams: platformParams,
 	}
 	fs.root.private = &FolderList{
 		fs:      fs,
@@ -300,6 +303,9 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Type: fuse.DT_Dir,
 			Name: PublicName,
 		},
+	}
+	if r.private.fs.platformParams.shouldAppendPlatformRootDirs() {
+		res = append(res, platformRootDirs...)
 	}
 
 	if name := r.private.fs.remoteStatus.ExtraFileName(); name != "" {

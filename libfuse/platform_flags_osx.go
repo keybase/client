@@ -12,12 +12,17 @@ import "flag"
 // passed to New{Default,Force}Mounter.
 type PlatformParams struct {
 	UseSystemFuse bool
+	UseLocal      bool
+}
+
+func (p PlatformParams) shouldAppendPlatformRootDirs() bool {
+	return p.UseLocal
 }
 
 // GetPlatformUsageString returns a string to be included in a usage
 // string corresponding to the flags added by AddPlatformFlags.
 func GetPlatformUsageString() string {
-	return "[--use-system-fuse] "
+	return "[--use-system-fuse] [--local-experimental]"
 }
 
 // AddPlatformFlags adds platform-specific flags to the given FlagSet
@@ -27,5 +32,10 @@ func AddPlatformFlags(flags *flag.FlagSet) *PlatformParams {
 	var params PlatformParams
 	flags.BoolVar(&params.UseSystemFuse, "use-system-fuse", false,
 		"Use the system OSXFUSE instead of keybase's OSXFUSE")
+	flags.BoolVar(&params.UseLocal, "local-experimental", false,
+		"Use 'local' mount option and enable other hacky stuff for testing macOS "+
+			"apps. The \"hacky stuff\" includes a Trash implementation that only "+
+			"works for the user's own private TLF, so if you enable this please "+
+			"only work under your own private TLF.")
 	return &params
 }
