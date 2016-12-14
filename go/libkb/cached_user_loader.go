@@ -334,6 +334,11 @@ func (u *CachedUserLoader) LookupUsername(uid keybase1.UID) NormalizedUsername {
 
 func (u *CachedUserLoader) lookupUsernameAndDeviceWithInfo(uid keybase1.UID, did keybase1.DeviceID, info *CachedUserLoadInfo) (username NormalizedUsername, deviceName string, deviceType string, err error) {
 	arg := NewLoadUserByUIDArg(u.G(), uid)
+
+	// First iteration through, say it's OK to load a stale user. Note that the
+	// mappings of UID to Username and DeviceID to DeviceName are immutable, so this
+	// data can never be stale. However, our user might be out of date and lack the
+	// mappings, so the second time through, we request a fresh object.
 	staleOK := []bool{true, false}
 	for _, b := range staleOK {
 		arg.StaleOK = b
