@@ -402,10 +402,10 @@ func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
 // returned block may have a generic type (not DirBlock or FileBlock).
 //
 // The caller can specify a set of pointers using
-// `ignoreRecoverableErrors` for which "recoverable" fetch errors are
-// tolerated.  In that case, the returned map will not have an entry
-// for any pointers in the `ignoreRecoverableErrors` set that hit such
-// an error.
+// `ignoreRecoverableForRemovalErrors` for which "recoverable" fetch
+// errors are tolerated.  In that case, the returned map will not have
+// an entry for any pointers in the
+// `ignoreRecoverableForRemovalErrors` set that hit such an error.
 //
 // This should be called for "internal" operations, like conflict
 // resolution and state checking, which don't know what kind of block
@@ -413,22 +413,16 @@ func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
 // weren't in the cache already.
 func (fbo *folderBlockOps) GetBlocksForReading(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptrs []BlockPointer,
-	ignoreRecoverableErrors map[BlockPointer]bool,
+	ignoreRecoverableForRemovalErrors map[BlockPointer]bool,
 	branch BranchName) (map[BlockPointer]Block, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
-	type resp struct {
-		ptr   BlockPointer
-		block Block
-	}
-
-	respChans := make([]<-chan resp, 0, len(ptrs))
+	blockResults := make([]Block, len(ptrs))
 	eg, groupCtx := errgroup.WithContext(ctx)
-	for _, ptr := range ptrs {
+	for i, ptr := range ptrs {
+		index := i
 		ptr := ptr
-		respCh := make(chan resp, 1)
-		respChans = append(respChans, respCh)
 		eg.Go(func() error {
 			block, err := fbo.getBlockHelperLocked(groupCtx, nil, kmd, ptr,
 				branch, NewCommonBlock, false, path{}, blockReadParallel)
@@ -437,17 +431,16 @@ func (fbo *folderBlockOps) GetBlocksForReading(ctx context.Context,
 			// directory entry, the same way we do in
 			// `folderBranchOps.unrefEntry`.
 			if isRecoverableBlockErrorForRemoval(err) &&
-				ignoreRecoverableErrors[ptr] {
+				ignoreRecoverableForRemovalErrors[ptr] {
 				fbo.log.CDebugf(groupCtx, "Hit an ignorable, recoverable "+
 					"error for block %v: %v", ptr, err)
-				respCh <- resp{}
 				return nil
 			}
 
 			if err != nil {
 				return err
 			}
-			respCh <- resp{ptr, block}
+			blockResults[index] = block
 			return nil
 		})
 	}
@@ -456,11 +449,11 @@ func (fbo *folderBlockOps) GetBlocksForReading(ctx context.Context,
 		return nil, err
 	}
 
-	blocks := make(map[BlockPointer]Block)
-	for _, respCh := range respChans {
-		resp := <-respCh
-		if resp.ptr.IsValid() {
-			blocks[resp.ptr] = resp.block
+	blocks := make(map[BlockPointer]Block, len(ptrs))
+	for i, ptr := range ptrs {
+		block := blockResults[i]
+		if block != nil {
+			blocks[ptr] = block
 		}
 	}
 	return blocks, nil
