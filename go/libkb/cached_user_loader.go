@@ -190,7 +190,12 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 		if leaf.public != nil && leaf.public.Seqno == Seqno(upk.Base.Uvv.SigChain) {
 			u.G().Log.Debug("%s: cache-hit; fresh after poll", culDebug(arg.UID), fresh)
+
 			upk.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
+			// This is only necessary to update the levelDB representation,
+			// since the previous line updates the in-memory cache satisfactorially.
+			u.putUPKToCache(upk)
+
 			return upk.DeepCopy(), nil, nil
 		}
 

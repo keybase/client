@@ -6,11 +6,10 @@
 package libkb
 
 import (
-	"testing"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
+	"testing"
 	"time"
 )
 
@@ -97,6 +96,39 @@ func TestCheckKIDForUID(t *testing.T) {
 	if !found || (revokedAt == nil) || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
+}
+
+func TestCacheFallbacks(t *testing.T) {
+	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
+	defer tc.Cleanup()
+	fakeClock := clockwork.NewFakeClock()
+	tc.G.SetClock(fakeClock)
+
+	test := func() *CachedUserLoadInfo {
+		var ret CachedUserLoadInfo
+		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+		var arg LoadUserArg
+		arg.UID = uid
+		upk, _, err := tc.G.CachedUserLoader.loadWithInfo(arg, &ret)
+		require.NoError(t, err)
+		require.Equal(t, upk.Base.Username, "t_tracy", "tracy was right")
+		return &ret
+	}
+	i := test()
+	require.True(t, (!i.InCache && !i.InDiskCache && !i.TimedOut && !i.StaleVersion && !i.LoadedLeaf && i.LoadedUser))
+	i = test()
+	require.True(t, (i.InCache && !i.InDiskCache && !i.TimedOut && !i.StaleVersion && !i.LoadedLeaf && !i.LoadedUser))
+	tc.G.CachedUserLoader.ClearMemory()
+	i = test()
+	require.True(t, (!i.InCache && i.InDiskCache && !i.TimedOut && !i.StaleVersion && !i.LoadedLeaf && !i.LoadedUser))
+	i = test()
+	require.True(t, (i.InCache && !i.InDiskCache && !i.TimedOut && !i.StaleVersion && !i.LoadedLeaf && !i.LoadedUser))
+	fakeClock.Advance(10 * time.Hour)
+	i = test()
+	require.True(t, (i.InCache && !i.InDiskCache && i.TimedOut && !i.StaleVersion && i.LoadedLeaf && !i.LoadedUser))
+	tc.G.CachedUserLoader.ClearMemory()
+	i = test()
+	require.True(t, (!i.InCache && i.InDiskCache && !i.TimedOut && !i.StaleVersion && !i.LoadedLeaf && !i.LoadedUser))
 }
 
 func TestLookupUsernameAndDevice(t *testing.T) {
