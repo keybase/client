@@ -29,14 +29,6 @@
                       Type="raw" />
     </Property>
     
-    <!--Detect the "old installer" version of Keybase in the Roaming directory
-    TODO when this "new installer" is released the Maximum should be set to the old version. Assume 1.0.18 for now-->
-    <Property Id="PREVIOUS_KEYBASE_INSTALLER" Secure="yes">
-      <DirectorySearch Id="searchOldKeybasesIntaller" Path="[ROAMINGINSTALLFOLDER]" Depth="0">
-        <FileSearch Name="keybase.exe" MaxVersion="1.0.18"/>
-      </DirectorySearch>
-    </Property>
-
     <!--Check installer property WIX_UPGRADE_DETECTED or UPGRADINGPRODUCTCODE to see if an upgrade is in progrss-->
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />    
 
@@ -62,12 +54,6 @@
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <!--See Fragment sections for actions specific to those components-->
-
-      <!-- These roaming actions are temporary, while we switch from appdata to localappdata.
-      These should run only if upgrading from the "old installer" Keybase-->
-      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[WIX_UPGRADE_DETECTED AND PREVIOUS_KEYBASE_INSTALLER]]></Custom>
-      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[WIX_UPGRADE_DETECTED AND PREVIOUS_KEYBASE_INSTALLER]]></Custom>
-      <Custom Action="StopGUIRoaming" Before="InstallValidate"><![CDATA[WIX_UPGRADE_DETECTED AND PREVIOUS_KEYBASE_INSTALLER]]></Custom>
     </InstallExecuteSequence>
 
     <Property Id="Setup">Setup</Property>
@@ -118,9 +104,10 @@
 
     <InstallExecuteSequence>
       <!--Stop actions are conditioned to run only if the product is already Installed 
-      These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
+      These should only run when servicing (repair/modify/uninstall). 
+      Note that this version is not considered installed when upgrading and thus will not run. The old version of Keybase on the system handles stopping as part of it's uninstall-->
       <!--TODO Stop Keybase command line since prompt will typically be in the install directory-->      
-      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed OR (WIX_UPGRADE_DETECTED AND NOT PREVIOUS_KEYBASE_INSTALLER)]]></Custom>
+      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
 
       <!--TODO These should run only if there is not a restart pending after install or upgrade-->
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -155,8 +142,9 @@
 
     <InstallExecuteSequence>
       <!--Stop actions are conditioned to run only if the product is already Installed 
-      These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR (WIX_UPGRADE_DETECTED AND NOT PREVIOUS_KEYBASE_INSTALLER)]]></Custom>
+      These should only run when servicing (repair/modify/uninstall). 
+      Note that this version is not considered installed when upgrading and thus will not run. The old version of Keybase on the system handles stopping as part of it's uninstall-->
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
 
       <!--TODO These should run only if there is not a restart pending after install or upgrade-->
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -201,8 +189,9 @@
 
     <InstallExecuteSequence>
       <!--Stop actions are conditioned to run only if the product is already Installed 
-      These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
-      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed OR (WIX_UPGRADE_DETECTED AND NOT PREVIOUS_KEYBASE_INSTALLER)]]></Custom>
+      These should only run when servicing (repair/modify/uninstall). 
+      Note that this version is not considered installed when upgrading and thus will not run. The old version of Keybase on the system handles stopping as part of it's uninstall-->
+      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
     </InstallExecuteSequence>    
 
     <CustomAction Id="StopUpdater"
@@ -290,24 +279,4 @@
     </ComponentGroup>
   </Fragment>
 
-  <Fragment>      
-    <!--These stop Keybase before upgrade when an "old installer" version of Keybase is installed in the Roaming folder. TODO eventually delete these when old upgrades are no longer supported-->
-    <CustomAction Id="StopMainAppRoaming"
-          Directory="ROAMINGINSTALLFOLDER"
-          ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
-          Execute="immediate"
-          Return="ignore"/>
-
-    <CustomAction Id="StopUpdaterRoaming"
-          Directory="ROAMINGINSTALLFOLDER"
-          ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
-          Execute="immediate"
-          Return="ignore"/>
-
-    <CustomAction Id="StopGUIRoaming"
-          Directory="ROAMINGINSTALLFOLDER"
-          ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
-          Execute="immediate"
-          Return="ignore"/>
-  </Fragment>
   </Wix>
