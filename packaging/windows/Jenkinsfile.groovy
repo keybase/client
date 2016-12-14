@@ -77,6 +77,7 @@ def doBuild() {
             publish("prerelease.keybase.io/windows", 
                     "", 
                     "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.exe") 
+            // Test channel json
             publish("prerelease.keybase.io", 
                     "", 
                     "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json") 
@@ -88,13 +89,19 @@ def doBuild() {
     
     stage('Invoke SmokeB build') {
         if (UpdateChannel == "Smoke"){
+            // Smoke A json
+            publish("prerelease.keybase.io/windows-support", 
+                "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json",
+                "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.json") 
+
             def clientCommit = getCommit('src\\github.com\\keybase\\client')
             def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
             def updaterCommit =  getCommit('src\\github.com\\keybase\\go-updater')
             def releaseCommit =  getCommit('src\\github.com\\keybase\\release')
             def smokeASemVer = ''
             dir('src\\github.com\\keybase\\client\\go\\keybase') {
-                smokeASemVer = bat(returnStdout: true, script: '@echo off && winresource.exe -cv').trim()
+                // Capture keybase's semantic version
+                smokeASemVer = bat(returnStdout: true, script: '@echo off && for /f "tokens=3" %%i in (\'keybase -version\') do echo %%i').trim()
             }
             build([
                 job: "${env.JOB_NAME}",
@@ -110,18 +117,21 @@ def doBuild() {
                 wait: false
             ])
         } else {
-            echo "Not a smoke build"
+            echo "Not a Smoke build"
         }
     }
     stage('Publish smoke updater jsons to S3') {
         if (UpdateChannel == "Smoke2") {
+            // Smoke B json
             publish("prerelease.keybase.io/windows-support", 
                 "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json",
                 "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.json") 
             def smokeBSemVer = ''
             dir('src\\github.com\\keybase\\client\\go\\keybase') {
-                smokeBSemVer = bat(returnStdout: true, script: '@echo off && winresource.exe -cv').trim()
+                // Capture keybase's semantic version
+                smokeBSemVer = bat(returnStdout: true, script: '@echo off && for /f "tokens=3" %%i in (\'keybase -version\') do echo %%i').trim()
             }
+            echo "SmokeASemVer: ${params.SmokeASemVer}"
             withCredentials([[
                 $class: 'StringBinding',
                 credentialsId: 'KEYBASE_TOKEN',
@@ -132,7 +142,7 @@ def doBuild() {
                 }
             }
         } else {
-            echo "Non smoke build"
+            echo "Non Smoke2 build"
         }
     }
 }
