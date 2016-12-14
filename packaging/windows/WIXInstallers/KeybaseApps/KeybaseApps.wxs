@@ -81,9 +81,9 @@
         <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Property="ROAMINGINSTALLFOLDER"/> <!--This entry is to avoid ICE64 error-->
         <util:RemoveFolderEx Id="ROAMINGINSTALLFOLDERClean" On="uninstall" Property="ROAMINGINSTALLFOLDER"/> <!--Clean up in old location directory tree when we uninstall. NOT during install since user files must be moved by App. TODO eventually remove this-->
         <RemoveFile Id="RemoveServiceLog" Name="keybase.service.log" On="uninstall"/>
-        <RemoveFile Id="RemoveRoamingServiceLog" Name="keybase.service.log" Directory="ROAMINGINSTALLFOLDER" On="install"/>
+        <RemoveFile Id="RemoveRoamingServiceLog" Name="keybase.service.log" Directory="ROAMINGINSTALLFOLDER" On="install"/> <!--Clean up in old location when we install. TODO eventually remove this-->
         <RemoveFile Id="RemoveAppLog" Name="keybase.app.log" On="uninstall"/>
-        <RemoveFile Id="RemoveRoamingAppLog" Name="keybase.app.log" Directory="ROAMINGINSTALLFOLDER" On="install"/>
+        <RemoveFile Id="RemoveRoamingAppLog" Name="keybase.app.log" Directory="ROAMINGINSTALLFOLDER" On="both"/> <!--TODO eventually remove this when GUI writes to LocalAppDataFolder/Keybase-->
         <!--Clean up in old location when we install. TODO eventually remove this-->        
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
@@ -280,7 +280,7 @@
         <CreateFolder />
         <RemoveFolder Id="RemoveDokan" On="uninstall" />
         <RemoveFile Id="RemoveKBFSLog" Name="keybase.kbfs.log" On="uninstall"/>
-        <RemoveFile Id="RemoveRoamingKBFSLog" Name="keybase.kbfs.log" Directory="ROAMINGINSTALLFOLDER" On="install"/>
+        <RemoveFile Id="RemoveRoamingKBFSLog" Name="keybase.kbfs.log" Directory="ROAMINGINSTALLFOLDER" On="install"/> <!--Clean up in old location when we install. TODO eventually remove this-->
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
