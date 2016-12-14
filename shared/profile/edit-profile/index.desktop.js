@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {BackButton, Box, Button, Input} from '../../common-adapters'
+import {compose, withState, withProps, lifecycle} from 'recompose'
 import {globalStyles} from '../../styles'
 
 import type {Props} from '.'
@@ -64,4 +65,17 @@ const styleEditProfile = {
   minWidth: 450,
 }
 
-export default EditProfileRender
+export default compose(
+  withState('fullname', 'onFullnameChange', props => props.fullname),
+  withState('location', 'onLocationChange', props => props.location),
+  withState('bio', 'onBioChange', props => props.bio),
+  withProps(props => ({
+    onSubmit: () => props.onSubmit(props.fullname, props.location, props.bio),
+  })),
+  lifecycle({
+    componentWillUnmount: function () {
+      const {setRouteState, fullname, location, bio} = this.props
+      setRouteState({fullname, location, bio})
+    },
+  }),
+)(EditProfileRender)

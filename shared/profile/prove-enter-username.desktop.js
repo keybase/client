@@ -36,7 +36,7 @@ const customError = (error: string, code: ?number) => (
   ) : <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
 )
 
-const ProveEnterUsername = (props: Props) => {
+const ProveEnterUsername = (props: (Props & {onSubmit: () => void})) => {
   const {headerText, floatingLabelText, hintText} = platformText[props.platform]
 
   return (
@@ -52,11 +52,11 @@ const ProveEnterUsername = (props: Props) => {
         hintText={hintText}
         value={props.username}
         onChangeText={props.onUsernameChange}
-        onEnterKeyDown={props.onContinue} />
+        onEnterKeyDown={props.onSubmit} />
       <UsernameTips platform={props.platform} />
       <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
         <Button type='Secondary' onClick={props.onCancel} label='Cancel' />
-        <Button type='Primary' disabled={!props.canContinue} onClick={props.onContinue} label='Continue' />
+        <Button type='Primary' disabled={!props.canContinue} onClick={props.onSubmit} label='Continue' />
       </Box>
     </Box>
   )
@@ -121,6 +121,6 @@ export default compose(
         props.setCanContinue(checkZcash(username))
       }
     },
-    onContinue: props => () => props.onContinue(props.username),
+    onSubmit: props => event => props.onContinue(props.username),
   }),
 )(ProveEnterUsername)

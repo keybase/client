@@ -4,7 +4,7 @@ import _ from 'lodash'
 import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalStyles, globalColors, transition} from '../../styles'
 import {platformToLogo24} from '../../constants/search'
-import {withState, compose, withHandlers} from 'recompose'
+import {withState, withProps, compose, withHandlers} from 'recompose'
 
 import type {SearchPlatforms} from '../../constants/search'
 import type {ServiceFn} from './render'
@@ -23,60 +23,57 @@ type ServiceIconProps = {
   showingTooltip: boolean,
 }
 
+const _ServiceIcon = ({serviceName, tooltip, iconType, selected, onClick, onMouseEnter, onMouseLeave, showingTooltip}: ServiceIconProps) => (
+  <Box style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
+    onClick={onClick} >
+    <Icon type={iconType} style={{...serviceIconStyle, opacity: selected || showingTooltip ? 1.0 : 0.6}} />
+    <Text type='BodySmall' style={{...serviceTooltipStyle, opacity: showingTooltip ? 1 : 0}}>{tooltip}</Text>
+  </Box>
+)
+
 const ServiceIcon =
   compose(
-    withState('showingTooltip', 'setShowingTooltip'),
+    withState('showingTooltip', 'setShowingTooltip', false),
     withHandlers({
       onClick: props => event => props.onClickService(props.serviceName),
       onMouseEnter: props => event => props.setShowingTooltip(true),
       onMouseLeave: props => event => props.setShowingTooltip(false),
     })
-  )(({serviceName, tooltip, iconType, selected, onClick, onMouseEnter, onMouseLeave, showingTooltip}: ServiceIconProps) => (
-    <Box style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onClick={onClick} >
-      <Icon type={iconType} style={{...serviceIconStyle, opacity: selected || showingTooltip ? 1.0 : 0.6}} />
-      <Text type='BodySmall' style={{...serviceTooltipStyle, opacity: showingTooltip ? 1 : 0}}>{tooltip}</Text>
-    </Box>
-  )
-)
+  )(_ServiceIcon)
 
-class SearchBar extends Component<void, Props, void> {
-  _onDebouncedSearch = _.debounce(this._onSearch, 500)
+const _services = ['Keybase', 'Twitter', 'Facebook', 'Github', 'Coinbase', 'Reddit', 'Hackernews']
+const _tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
 
-  componentWillReceiveProps (nextProps: Props) {
-    if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
-      this.refs && this.refs.searchBox && this.refs.searchBox.clearValue()
-    }
-  }
+type ComposedProps = {
+  onSearch: () => void,
+  setSelectedService: (platform: SearchPlatforms) => void,
+  setSearchText: (term: string) => void,
+  onEnterKeyDown: () => void,
+  onChangeText: () => void,
+}
 
-  _onSearch (overridePlatform?: SearchPlatforms) {
-    this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '', overridePlatform || null)
-  }
-
+class _SearchBar extends Component<void, Props & ComposedProps, void> {
   _onClickService (platform: SearchPlatforms) {
     this.props.onClickService(platform)
     if (this.refs.searchBox) {
-      if (this.refs.searchBox.getValue()) {
-        this._onSearch(platform)
-      }
       this.refs.searchBox.focus()
     }
-  }
 
-  _services = ['Keybase', 'Twitter', 'Facebook', 'Github', 'Coinbase', 'Reddit', 'Hackernews']
-  _tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
+    this.props.setSelectedService(platform)
+    this.props.onSearch()
+  }
 
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
         <Box style={stylesServicesContainer}>
-          {this._services.map(s => (
+          {_services.map(s => (
             <ServiceIcon
               key={s}
               serviceName={s}
-              tooltip={this._tooltips[s] || s}
+              tooltip={_tooltips[s] || s}
               iconType={platformToLogo24(s)}
               selected={this.props.selectedService === s}
               onClickService={p => this._onClickService(p)}
@@ -90,8 +87,8 @@ class SearchBar extends Component<void, Props, void> {
             type='text'
             autoFocus={true}
             ref='searchBox'
-            onEnterKeyDown={() => this._onSearch()}
-            onChangeText={() => this._onDebouncedSearch()}
+            onEnterKeyDown={this.props.onEnterKeyDown}
+            onChangeText={this.props.onChangeText}
             value={this.props.searchText}
             hintText={this.props.searchHintText}
             style={{paddingLeft: 20}}
@@ -149,4 +146,23 @@ const serviceTooltipStyle = {
   top: -24,
 }
 
-export default SearchBar
+export default compose(
+  withState('searchText', 'setSearchText', props => props.searchText),
+  withState('selectedService', 'setSelectedService', props => props.selectedService),
+  withProps(props => ({
+    onSearch: () => {
+      console.log('aaaaaa', props.searchText, props.selectedService)
+      props.onSearch(props.searchText, props.selectedService)
+    },
+  })),
+  withProps(props => ({
+    onDebouncedSearch: _.debounce(props.onSearch, 500),
+  })),
+  withHandlers({
+    onEnterKeyDown: props => props.onSearch,
+    onChangeText: props => term => {
+      props.setSearchText(term)
+      props.onDebouncedSearch()
+    },
+  })
+)(_SearchBar)
