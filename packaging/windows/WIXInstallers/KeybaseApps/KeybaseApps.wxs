@@ -35,6 +35,7 @@
       <Custom Action="StopMainAppRoaming" Before="StopGUI"/>
       <Custom Action="StopMainApp" Before="StopGUI"/>
       <Custom Action="StopGUI" Before="InstallValidate"/>
+      <Custom Action="RunMainAppDummyForRepair" Before="RunMainApp"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
@@ -203,6 +204,14 @@
       </Component>
 
     </ComponentGroup>
+  </Fragment>
+  <Fragment>
+    <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
+    <CustomAction Id="RunMainAppDummyForRepair"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; --standalone ping"
+              Execute="commit"
+              Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="RunMainApp"
