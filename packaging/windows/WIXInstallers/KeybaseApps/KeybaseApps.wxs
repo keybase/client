@@ -79,6 +79,11 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiSharedDirRemove" On="uninstall" Directory="GuiSharedDir"/>
         <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
+        <RemoveFile Id="RemoveServiceLog" Name="keybase.service.log" On="uninstall"/>
+        <RemoveFile Id="RemoveRoamingServiceLog" Name="keybase.service.log" Directory="ROAMINGINSTALLFOLDER" On="install"/>
+        <RemoveFile Id="RemoveAppLog" Name="keybase.app.log" On="uninstall"/>
+        <RemoveFile Id="RemoveRoamingAppLog" Name="keybase.app.log" Directory="ROAMINGINSTALLFOLDER" On="install"/>
+        <!--Clean up in old location when we install. TODO eventually remove this-->        
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -170,6 +175,8 @@
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />
         <RemoveFolder Id="RemoveUpdater" On="uninstall" />
+        <RemoveFile Id="RemoveUpdaterLog" Name="keybase.updater.log" On="uninstall"/>
+        <RemoveFile Id="RemoveRoamingUpdaterLog" Name="keybase.updater.log" Directory="ROAMINGINSTALLFOLDER" On="install"/> <!--Clean up in old location when we install. TODO eventually remove this-->
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="updaterexe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -271,6 +278,8 @@
       <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
         <CreateFolder />
         <RemoveFolder Id="RemoveDokan" On="uninstall" />
+        <RemoveFile Id="RemoveKBFSLog" Name="keybase.kbfs.log" On="uninstall"/>
+        <RemoveFile Id="RemoveRoamingKBFSLog" Name="keybase.kbfs.log" Directory="ROAMINGINSTALLFOLDER" On="install"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
