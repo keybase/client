@@ -284,10 +284,19 @@ func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlus
 }
 
 func (u *CachedUserLoader) Invalidate(uid keybase1.UID) {
-	u.Lock()
-	defer u.Unlock()
 	u.G().Log.Debug("CachedUserLoader#Invalidate(%s)", uid)
+	lock := u.locktab.AcquireOnName(uid.String())
+	defer lock.Release()
+
+	u.Lock()
 	delete(u.m, uid.String())
+	u.Unlock()
+
+	err := u.G().LocalDb.Delete(culDBKey(uid))
+	if err != nil {
+		u.G().Log.Warning("Failed to remove %s from disk cache: %s", uid, err)
+	}
+
 }
 
 // Load the PublicKey for a user's device from the local cache, falling back to LoadUser, and cache the user.
