@@ -421,8 +421,7 @@ func (fbo *folderBlockOps) GetBlocksForReading(ctx context.Context,
 	blockResults := make([]Block, len(ptrs))
 	eg, groupCtx := errgroup.WithContext(ctx)
 	for i, ptr := range ptrs {
-		index := i
-		ptr := ptr
+		i, ptr := i, ptr
 		eg.Go(func() error {
 			block, err := fbo.getBlockHelperLocked(groupCtx, nil, kmd, ptr,
 				branch, NewCommonBlock, false, path{}, blockReadParallel)
@@ -440,7 +439,7 @@ func (fbo *folderBlockOps) GetBlocksForReading(ctx context.Context,
 			if err != nil {
 				return err
 			}
-			blockResults[index] = block
+			blockResults[i] = block
 			return nil
 		})
 	}
