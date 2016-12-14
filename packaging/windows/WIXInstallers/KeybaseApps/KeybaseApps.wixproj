@@ -32,6 +32,12 @@
   <ItemGroup>
     <None Include="gui.xsl" />
   </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+      <Name>WixUtilExtension</Name>
+    </WixExtension>
+  </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
     <PreBuildEvent>"%25WIX%25bin\heat" dir %25GOPATH%25\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32 -cg GuiComponents -ag -sfrag -template fragment  -var var.GuiSourceDir  -dr INSTALLFOLDER -t $(ProjectDir)\gui.xsl -out $(ProjectDir)\gui.wxs</PreBuildEvent>
