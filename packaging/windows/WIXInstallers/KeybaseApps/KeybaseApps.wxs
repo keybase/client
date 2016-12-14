@@ -156,10 +156,10 @@
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>    
     
-    <!--TODO change GUI Keybase.exe to a human readable file id (for example [#KeybaseGUI]) with gui.xsl-->
+    <!--TODO change GUI Keybase.exe to a human readable file id (for example KeybaseGUI) with gui.xsl-->
     <CustomAction Id="RunGUI"
-              FileKey="runquiet.exe"
-              ExeCommand="&quot;[#filFCBDD0EBC22C5E5F749A2CF084F8DA8A]&quot;"
+              FileKey="filFCBDD0EBC22C5E5F749A2CF084F8DA8A"
+              ExeCommand=""
               Execute="commit"
               Impersonate="yes"
               Return="ignore"/>
