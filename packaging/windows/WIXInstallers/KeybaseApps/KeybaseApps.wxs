@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?include ..\version.xml ?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <!-- UpgradeCode must not change ProductCode and version should change each build Id="*" unless creating a patch: then use ProductCode from the base release -->
+  <!-- UpgradeCode must not change, ProductCode and version should change each build (Id="*") unless creating a patch: then use ProductCode from the base release -->
   <Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="$(var.UpgradeCodeKeybase)">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
     <MediaTemplate EmbedCab="yes"/>
@@ -62,6 +62,12 @@
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <!--See Fragment sections for actions specific to those components-->
+
+      <!-- These roaming actions are temporary, while we switch from appdata to localappdata.
+      These should run only if upgrading from the "old installer" Keybase-->
+      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[WIX_UPGRADE_DETECTED AND PREVIOUS_KEYBASE_INSTALLER]]></Custom>
+      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[WIX_UPGRADE_DETECTED AND PREVIOUS_KEYBASE_INSTALLER]]></Custom>
+      <Custom Action="StopGUIRoaming" Before="InstallValidate"><![CDATA[WIX_UPGRADE_DETECTED AND PREVIOUS_KEYBASE_INSTALLER]]></Custom>
     </InstallExecuteSequence>
 
     <Property Id="Setup">Setup</Property>
@@ -113,7 +119,7 @@
       <!--Stop actions are conditioned to run only if the product is already Installed 
       These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
       <!--TODO Stop Keybase command line since prompt will typically be in the install directory-->      
-      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed OR (WIX_UPGRADE_DETECTED AND NOT PREVIOUS_KEYBASE_INSTALLER)]]></Custom>
 
       <!--TODO These should run only if there is not a restart pending after install or upgrade-->
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -148,7 +154,7 @@
     <InstallExecuteSequence>
       <!--Stop actions are conditioned to run only if the product is already Installed 
       These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
-      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed OR (WIX_UPGRADE_DETECTED AND NOT PREVIOUS_KEYBASE_INSTALLER)]]></Custom>
 
       <!--TODO These should run only if there is not a restart pending after install or upgrade-->
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -194,7 +200,7 @@
     <InstallExecuteSequence>
       <!--Stop actions are conditioned to run only if the product is already Installed 
       These should run on upgade or uninstall and must be sequenced before RemoveExistingProducts-->
-      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
+      <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed OR (WIX_UPGRADE_DETECTED AND NOT PREVIOUS_KEYBASE_INSTALLER)]]></Custom>
     </InstallExecuteSequence>    
 
     <CustomAction Id="StopUpdater"
@@ -282,15 +288,7 @@
     </ComponentGroup>
   </Fragment>
 
-  <Fragment>
-    <InstallExecuteSequence>
-      <!-- These roaming actions are temporary, while we switch from appdata to localappdata.
-      These should run only if upgrading from the "old installer" Keybase-->
-      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
-      <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
-      <Custom Action="StopGUIRoaming" Before="InstallValidate"><![CDATA[PREVIOUS_KEYBASE_INSTALLER]]></Custom>
-    </InstallExecuteSequence>       
-    
+  <Fragment>      
     <!--These stop Keybase before upgrade when an "old installer" version of Keybase is installed in the Roaming folder. TODO eventually delete these when old upgrades are no longer supported-->
     <CustomAction Id="StopMainAppRoaming"
           Directory="ROAMINGINSTALLFOLDER"
