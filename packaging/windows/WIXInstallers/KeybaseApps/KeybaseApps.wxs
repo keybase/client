@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?include ..\version.xml ?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util='http://schemas.microsoft.com/wix/UtilExtension'>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- UpgradeCode must not change, ProductCode and version should change each build (Id="*") unless creating a patch: then use ProductCode from the base release -->
   <Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="$(var.UpgradeCodeKeybase)">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
@@ -79,7 +79,6 @@
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiSharedDirRemove" On="uninstall" Directory="GuiSharedDir"/>
         <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Property="ROAMINGINSTALLFOLDER"/> <!--This entry is to avoid ICE64 error-->
-        <util:RemoveFolderEx Id="ROAMINGINSTALLFOLDERClean" On="uninstall" Property="ROAMINGINSTALLFOLDER"/> <!--Clean up in old location directory tree when we uninstall. NOT during install since user files must be moved by App. TODO eventually remove this-->
         <RemoveFile Id="RemoveServiceLog" Name="keybase.service.log" On="uninstall"/>
         <RemoveFile Id="RemoveRoamingServiceLog" Name="keybase.service.log" Directory="ROAMINGINSTALLFOLDER" On="install"/> <!--Clean up in old location when we install. TODO eventually remove this-->
         <RemoveFile Id="RemoveAppLog" Name="keybase.app.log" On="uninstall"/>
