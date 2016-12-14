@@ -296,6 +296,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             type: Constants.pendingMessageWasSent,
             payload: {
               conversationIDKey,
+              deviceName: message.deviceName,
+              deviceType: message.deviceType,
               outboxID: message.outboxID,
               messageID: message.messageID,
               messageState: 'sent',

@@ -110,7 +110,7 @@ function reducer (state: State = initialState, action: Actions) {
         .set('inbox', newInboxStates)
     }
     case Constants.pendingMessageWasSent: {
-      const {outboxID, messageID, messageState} = action.payload
+      const {deviceName, deviceType, outboxID, messageID, messageState} = action.payload
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
         initialConversation,
@@ -122,6 +122,8 @@ function reducer (state: State = initialState, action: Actions) {
           }
           return conversation.updateIn(['messages', index], item => ({
             ...item,
+            deviceName,
+            deviceType,
             messageID,
             messageState,
           })).set('seenMessages', conversation.seenMessages.add(messageID))
