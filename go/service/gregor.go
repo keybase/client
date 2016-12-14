@@ -27,6 +27,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+const GregorRequestTimeout time.Duration = 30 * time.Second
+
 type IdentifyUIHandler struct {
 	libkb.Contextified
 	connID      libkb.ConnectionID
@@ -457,6 +459,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	g.Lock()
 	defer g.Unlock()
 
+	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout)
+
 	g.Debug("connected")
 	g.Debug("registering protocols")
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
@@ -465,12 +469,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Use the client parameter instead of conn.GetClient(), since we can get stuck
 	// in a recursive loop if we keep retrying on reconnect.
-	if err := g.auth(ctx, cli); err != nil {
+	if err := g.auth(ctx, timeoutCli); err != nil {
 		return err
 	}
 
 	// Sync down events since we have been dead
-	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli})
+	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli})
 	if err != nil {
 		g.Errorf("sync failure: %s", err)
 	} else {
@@ -1124,7 +1128,7 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 	// fully established in OnConnect. Anything that wants to make calls outside
 	// of OnConnect should use g.cli, everything else should the client that is
 	// a paramater to OnConnect
-	g.cli = g.conn.GetClient()
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout)
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
@@ -1141,7 +1145,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	g.connMutex.Lock()
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, true, libkb.WrapError, g.G().Log, nil)
 	g.connMutex.Unlock()
-	g.cli = g.conn.GetClient()
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout)
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
@@ -1300,4 +1304,27 @@ func (g *gregorHandler) getState() (res gregor1.State, err error) {
 
 func (g *gregorRPCHandler) GetState(_ context.Context) (res gregor1.State, err error) {
 	return g.gh.getState()
+}
+
+func WrapGenericClientWithTimeout(client rpc.GenericClient, timeout time.Duration) rpc.GenericClient {
+	return &timeoutClient{client, timeout}
+}
+
+type timeoutClient struct {
+	inner   rpc.GenericClient
+	timeout time.Duration
+}
+
+var _ rpc.GenericClient = (*timeoutClient)(nil)
+
+func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, t.timeout)
+	defer timeoutCancel()
+	return t.inner.Call(timeoutCtx, method, arg, res)
+}
+
+func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface{}) error {
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, t.timeout)
+	defer timeoutCancel()
+	return t.inner.Notify(timeoutCtx, method, arg)
 }
