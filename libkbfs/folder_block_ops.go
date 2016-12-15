@@ -2205,7 +2205,16 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 			childPath := currDir.ChildPath(name, de.BlockPointer)
 			// make a node for every pathnode
 			n := rootNode
-			for _, pn := range childPath.path[1:] {
+			for i, pn := range childPath.path[1:] {
+				if !pn.BlockPointer.IsValid() {
+					// Temporary debugging output for KBFS-1764 -- the
+					// GetOrCreate call below will panic.
+					fbo.log.CDebugf(ctx, "Invalid block pointer, path=%s, "+
+						"path.path=%v (index %d), name=%s, de=%#v, "+
+						"nodeMap=%v, newPtrs=%v, kmd=%#v",
+						childPath, childPath.path, i, name, de, nodeMap,
+						newPtrs, kmd)
+				}
 				n, err = cache.GetOrCreate(pn.BlockPointer, pn.Name, n)
 				if err != nil {
 					return 0, err
