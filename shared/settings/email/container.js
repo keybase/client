@@ -1,36 +1,37 @@
 // @flow
+import React, {Component} from 'react'
 import UpdateEmail from './index'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
-import {onSubmitNewEmail, onChangeNewEmail} from '../../actions/settings'
+import {onChangeNewEmail, onSubmitNewEmail} from '../../actions/settings'
+import {TypedConnector} from '../../util/typed-connect'
 
+import type {Props} from './index'
+import type {TypedDispatch} from '../../constants/types/flux'
 import type {TypedState} from '../../constants/reducer'
 
-export default connect(
-  (state: TypedState, ownProps: {}) => {
+const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
+
+export default connector.connect(
+  (state, dispatch, ownProps) => {
     const {waitingForResponse} = state.settings
     const {emails, error, newEmail} = state.settings.email
+    let email = ''
+    let isVerified = false
     if (emails.length > 0) {
-      const {email, isVerified} = emails[0]
-      return {
-        email,
-        isVerified,
-        edited: newEmail && newEmail !== email,
-        error,
-        waitingForResponse,
-      }
+      email = emails[0].email
+      isVerified = emails[0].isVerified
     }
     return {
-      email: null,
-      isVerified: false,
-      edited: false,
-      error: null,
+      email,
+      isVerified,
+      error,
       waitingForResponse,
+      onBack: () => { dispatch(navigateUp()) },
+      onSave: (email) => {
+        dispatch(onChangeNewEmail(email))
+        dispatch(onSubmitNewEmail())
+      },
     }
-  },
-  (dispatch: any, ownProps: {}) => ({
-    onChangeNewEmail: (email: string) => dispatch(onChangeNewEmail(email)),
-    onBack: () => dispatch(navigateUp()),
-    onSave: () => dispatch(onSubmitNewEmail()),
-  })
+  }
 )(UpdateEmail)

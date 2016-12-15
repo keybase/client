@@ -124,12 +124,10 @@ export type NotificationsState = {
 export type PassphraseState = {
   newPassphrase: HiddenString,
   newPassphraseConfirm: HiddenString,
-  showTyping: boolean,
   error: ?Error,
   newPassphraseError: ?HiddenString,
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
-  canSave: boolean,
 }
 
 export type EmailState = {

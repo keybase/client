@@ -27,7 +27,6 @@ const updateEmailBase = {
   onChangeNewEmail: () => console.log('onChangeNewEmail'),
   onSave: () => console.log('onSave'),
   onBack: () => console.log('onBack'),
-  onResendConfirmationCode: null,
 }
 
 const updateEmailMap: DumbComponentMap<UpdateEmail> = {
@@ -37,7 +36,7 @@ const updateEmailMap: DumbComponentMap<UpdateEmail> = {
     'Normal - No Email': {
       ...updateEmailBase,
       isVerified: false,
-      email: null,
+      email: '',
     },
     'Not Verified - No Email': {
       ...updateEmailBase,
