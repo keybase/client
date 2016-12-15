@@ -654,9 +654,11 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
 }
 
 function * _updateReachability (action: UpdateReachability): SagaGenerator<any, any> {
-  const {reachability} = action.payload
-  if (reachability && reachability.reachable === ReachabilityReachable.yes) {
-    yield put(loadInbox())
+  if (!action.error) {
+    const {reachability} = action.payload
+    if (reachability && reachability.reachable === ReachabilityReachable.yes) {
+      yield put(loadInbox())
+    }
   }
 }
 
