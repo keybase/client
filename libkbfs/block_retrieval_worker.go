@@ -56,20 +56,6 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		return io.EOF
 	}
 
-	// Create a new block of the same type as the first request
-	var block Block
-	func() {
-		retrieval.reqMtx.RLock()
-		defer retrieval.reqMtx.RUnlock()
-		if retrieval.requests[0].block == nil {
-			panic("Nil block passed in for first request. This should never happen.")
-		}
-		block = retrieval.requests[0].block.NewEmpty()
-	}()
-	defer func() {
-		brw.queue.FinalizeRequest(retrieval, block, err)
-	}()
-
 	// Handle canceled contexts
 	select {
 	case <-retrieval.ctx.Done():
@@ -77,9 +63,36 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	default:
 	}
 
+	var block Block
+	wasBlockCached := func() bool {
+		retrieval.reqMtx.RLock()
+		defer retrieval.reqMtx.RUnlock()
+		if retrieval.requests[0].block == nil {
+			panic("Nil block passed in for first request. This should never happen.")
+		}
+		// Attempt to retrieve the block from the cache. This might be a
+		// specific type where the request blocks are CommonBlocks, but that
+		// direction can Set correctly. The cache will never have CommonBlocks.
+		block, err = brw.queue.cache.Get(retrieval.blockPtr)
+		if err == nil && block != nil {
+			return true
+		}
+		// Create a new block of the same type as the first request
+		block = retrieval.requests[0].block.NewEmpty()
+		return false
+	}()
+
+	defer func() {
+		brw.queue.FinalizeRequest(retrieval, block, err)
+	}()
+
+	if wasBlockCached {
+		return nil
+	}
+
 	err = brw.getBlock(retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block)
 	if err == nil {
-		brw.queue.Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
+		brw.queue.cache.Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
 	}
 	return err
 }

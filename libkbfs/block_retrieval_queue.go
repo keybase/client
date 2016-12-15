@@ -78,7 +78,6 @@ type blockRetriever interface {
 // requests are executed first. Requests are executed in FIFO order within a
 // given priority level.
 type blockRetrievalQueue struct {
-	BlockCacheSimple
 	// protects ptrs, insertionCount, and the heap
 	mtx sync.RWMutex
 	// queued or in progress retrievals
@@ -97,22 +96,23 @@ type blockRetrievalQueue struct {
 
 	// Codec for copying blocks
 	codec kbfscodec.Codec
+	// BlockCacheSimple for retrieving and putting blocks
+	cache BlockCacheSimple
 }
 
 var _ blockRetriever = (*blockRetrievalQueue)(nil)
-var _ BlockCacheSimple = (*blockRetrievalQueue)(nil)
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call WorkOnRequest
 // (more than numWorkers will block).
 func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec, cache BlockCacheSimple) *blockRetrievalQueue {
 	return &blockRetrievalQueue{
-		BlockCacheSimple: cache,
-		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
-		heap:             &blockRetrievalHeap{},
-		workerQueue:      make(chan chan *blockRetrieval, numWorkers),
-		doneCh:           make(chan struct{}),
-		codec:            codec,
+		cache:       cache,
+		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
+		heap:        &blockRetrievalHeap{},
+		workerQueue: make(chan chan *blockRetrieval, numWorkers),
+		doneCh:      make(chan struct{}),
+		codec:       codec,
 	}
 }
 

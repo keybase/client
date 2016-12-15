@@ -58,6 +58,7 @@ func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
 func expectGetBlockFromServer(config *ConfigMock, kmd KeyMetadata, id BlockID, blockPtr BlockPointer, encData []byte, lifetime BlockCacheLifetime, err error, shouldCachePut bool) {
 	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		encData, kbfscrypto.BlockCryptKeyServerHalf{}, err)
+	config.mockBcache.EXPECT().Get(blockPtr).Return(nil, NoSuchBlockError{blockPtr.ID})
 	if shouldCachePut {
 		config.mockBcache.EXPECT().Put(blockPtr, kmd.TlfID(), gomock.Any(), lifetime).Return(nil)
 	}

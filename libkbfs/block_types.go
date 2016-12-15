@@ -74,12 +74,13 @@ func (cb *CommonBlock) NewEmpty() Block {
 
 // Set implements the Block interface for CommonBlock
 func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
-	otherCb := other.(*CommonBlock)
-	err := kbfscodec.Update(codec, cb, otherCb)
+	// Don't assert type for CommonBlock because we need to be able to Set from
+	// specific block types
+	err := kbfscodec.Update(codec, cb, other)
 	if err != nil {
 		panic("Unable to CommonBlock.Set")
 	}
-	cb.cachedEncodedSize = otherCb.cachedEncodedSize
+	cb.cachedEncodedSize = other.GetEncodedSize()
 }
 
 // NewCommonBlock returns a generic block, unsuitable for caching.
