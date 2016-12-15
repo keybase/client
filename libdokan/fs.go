@@ -248,6 +248,7 @@ func newSyntheticOpenContext() *openContext {
 func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
 	// Only allow the current user access
 	if !fi.IsRequestorUserSidEqualTo(currentUserSID) {
+		f.log.Errorf("Refusing access: SID match error")
 		return nil, false, dokan.ErrAccessDenied
 	}
 	f.logEnter(ctx, "FS CreateFile")
