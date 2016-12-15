@@ -29,6 +29,8 @@ import (
 
 const GregorRequestTimeout time.Duration = 30 * time.Second
 
+var GregorTimeoutError error = fmt.Errorf("Network request timed out.")
+
 type IdentifyUIHandler struct {
 	libkb.Contextified
 	connID      libkb.ConnectionID
@@ -459,7 +461,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	g.Lock()
 	defer g.Unlock()
 
-	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout)
+	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, GregorTimeoutError)
 
 	g.Debug("connected")
 	g.Debug("registering protocols")
@@ -1128,7 +1130,7 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 	// fully established in OnConnect. Anything that wants to make calls outside
 	// of OnConnect should use g.cli, everything else should the client that is
 	// a paramater to OnConnect
-	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout)
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, GregorTimeoutError)
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
@@ -1145,7 +1147,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	g.connMutex.Lock()
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, true, libkb.WrapError, g.G().Log, nil)
 	g.connMutex.Unlock()
-	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout)
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, GregorTimeoutError)
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
@@ -1306,13 +1308,14 @@ func (g *gregorRPCHandler) GetState(_ context.Context) (res gregor1.State, err e
 	return g.gh.getState()
 }
 
-func WrapGenericClientWithTimeout(client rpc.GenericClient, timeout time.Duration) rpc.GenericClient {
-	return &timeoutClient{client, timeout}
+func WrapGenericClientWithTimeout(client rpc.GenericClient, timeout time.Duration, timeoutErr error) rpc.GenericClient {
+	return &timeoutClient{client, timeout, timeoutErr}
 }
 
 type timeoutClient struct {
-	inner   rpc.GenericClient
-	timeout time.Duration
+	inner      rpc.GenericClient
+	timeout    time.Duration
+	timeoutErr error
 }
 
 var _ rpc.GenericClient = (*timeoutClient)(nil)
@@ -1320,11 +1323,19 @@ var _ rpc.GenericClient = (*timeoutClient)(nil)
 func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
 	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, t.timeout)
 	defer timeoutCancel()
-	return t.inner.Call(timeoutCtx, method, arg, res)
+	err := t.inner.Call(timeoutCtx, method, arg, res)
+	if err == context.DeadlineExceeded {
+		return t.timeoutErr
+	}
+	return err
 }
 
 func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface{}) error {
 	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, t.timeout)
 	defer timeoutCancel()
-	return t.inner.Notify(timeoutCtx, method, arg)
+	err := t.inner.Notify(timeoutCtx, method, arg)
+	if err == context.DeadlineExceeded {
+		return t.timeoutErr
+	}
+	return err
 }
