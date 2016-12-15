@@ -700,7 +700,7 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 			return 0, err
 		}
 
-		err = j.s.flushed(id)
+		err = j.s.markFlushed(id)
 		if err != nil {
 			return 0, err
 		}
