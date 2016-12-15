@@ -118,16 +118,8 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
 
   (convo.maxMessages || []).some(message => {
     if (message.state === LocalMessageUnboxedState.valid && message.valid) {
-      switch (message.valid.messageBody.messageType) {
-        case CommonMessageType.text:
-          snippet = makeSnippet(message.valid.messageBody.text && message.valid.messageBody.text.body, 100)
-          return true
-        case CommonMessageType.attachment:
-          snippet = 'Attachment'
-          return true
-        default:
-          return false
-      }
+      snippet = makeSnippet(message.valid.messageBody)
+      return !!snippet
     }
     return false
   })
@@ -268,7 +260,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
     const conversationState = yield select(conversationStateSelector)
     let messages = []
-    if (conversationState && conversationState.messages !== null) {
+    if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
       const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
       const timestamp = _maybeAddTimestamp(message, prevMessage)
       if (timestamp !== null) {
