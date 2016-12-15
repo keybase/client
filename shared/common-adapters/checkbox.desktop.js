@@ -50,7 +50,6 @@ const styleIcon = {
   color: globalColors.white,
   hoverColor: globalColors.white,
   position: 'absolute',
-  top: 1,
   left: 0,
   fontSize: 11,
 }
