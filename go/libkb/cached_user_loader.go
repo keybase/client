@@ -359,3 +359,16 @@ func (u *CachedUserLoader) lookupUsernameAndDeviceWithInfo(uid keybase1.UID, did
 func (u *CachedUserLoader) LookupUsernameAndDevice(uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error) {
 	return u.lookupUsernameAndDeviceWithInfo(uid, did, nil)
 }
+
+func (u *CachedUserLoader) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error) {
+	arg := NewLoadUserByUIDArg(u.G(), uid)
+	upk, _, err := u.Load(arg)
+	if err != nil {
+		return nil, err
+	}
+	var ret []keybase1.UID
+	for _, t := range upk.RemoteTracks {
+		ret = append(ret, t.Uid)
+	}
+	return ret, nil
+}

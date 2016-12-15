@@ -528,3 +528,10 @@ type MessageDeliverer interface {
 	Stop()
 	ForceDeliverLoop()
 }
+
+// UserChangedHandler is a generate interface for handling user changed events.
+// If the call returns an error, we'll remove this handler from the list, under the
+// supposition that it's now dead. This happens with
+type UserChangedHandler interface {
+	HandleUserChanged(uid keybase1.UID) error
+}
