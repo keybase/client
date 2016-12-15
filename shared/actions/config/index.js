@@ -4,7 +4,7 @@ import engine from '../../engine'
 import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {navBasedOnLoginState} from '../../actions/login'
-import {registerGregorListeners} from '../../actions/gregor'
+import {registerGregorListeners, registerReachability} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 
@@ -32,7 +32,7 @@ function getConfig (): AsyncAction {
   }
 }
 
-export function isFollower (getState: any, username: string) : boolean {
+export function isFollower (getState: any, username: string): boolean {
   return !!getState().config.followers[username]
 }
 
@@ -134,6 +134,7 @@ export function getExtendedStatus (): AsyncAction {
 function _registerListeners (): AsyncAction {
   return dispatch => {
     dispatch(registerGregorListeners())
+    dispatch(registerReachability())
   }
 }
 
@@ -147,7 +148,6 @@ export function retryBootstrap (): AsyncAction {
 let bootstrapSetup = false
 export function bootstrap (): AsyncAction {
   return (dispatch, getState) => {
-    const state = getState()
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('[bootstrap] registered bootstrap')
@@ -155,9 +155,6 @@ export function bootstrap (): AsyncAction {
         console.log('[bootstrap] bootstrapping on connect')
         dispatch(bootstrap())
       })
-    } else if (state.dev && state.dev.reloading) {
-      // Let's still register the listeners
-      dispatch(_registerListeners())
     } else {
       console.log('[bootstrap] performing bootstrap...')
       Promise.all(

@@ -57,3 +57,45 @@ func (n *baseNullUI) GetProvisionUI(libkb.KexRole) libkb.ProvisionUI { return ni
 
 func (n *baseNullUI) Configure() error { return nil }
 func (n *baseNullUI) Shutdown() error  { return nil }
+
+type genericUI struct {
+	g               *libkb.GlobalContext
+	DumbOutputUI    libkb.DumbOutputUI
+	IdentifyUI      libkb.IdentifyUI
+	IdentifySelfUI  libkb.IdentifyUI
+	IdentifyTrackUI libkb.IdentifyUI
+	LoginUI         libkb.LoginUI
+	TerminalUI      libkb.TerminalUI
+	SecretUI        libkb.SecretUI
+	ProveUI         libkb.ProveUI
+	GPGUI           libkb.GPGUI
+	LogUI           libkb.LogUI
+	PgpUI           libkb.PgpUI
+	ProvisionUI     libkb.ProvisionUI
+}
+
+func (n *genericUI) GetDumbOutputUI() libkb.DumbOutputUI {
+	if n.DumbOutputUI == nil {
+		return dumbUI{}
+	}
+	return n.DumbOutputUI
+}
+func (n *genericUI) GetIdentifyUI() libkb.IdentifyUI      { return n.IdentifyUI }
+func (n *genericUI) GetIdentifySelfUI() libkb.IdentifyUI  { return n.IdentifyUI }
+func (n *genericUI) GetIdentifyTrackUI() libkb.IdentifyUI { return n.IdentifyUI }
+func (n *genericUI) GetLoginUI() libkb.LoginUI            { return n.LoginUI }
+func (n *genericUI) GetTerminalUI() libkb.TerminalUI      { return n.TerminalUI }
+func (n *genericUI) GetSecretUI() libkb.SecretUI          { return n.SecretUI }
+func (n *genericUI) GetProveUI() libkb.ProveUI            { return n.ProveUI }
+func (n *genericUI) GetGPGUI() libkb.GPGUI                { return n.GPGUI }
+func (n *genericUI) GetLogUI() libkb.LogUI {
+	if n.LogUI == nil {
+		return n.g.Log
+	}
+	return n.LogUI
+}
+func (n *genericUI) GetPgpUI() libkb.PgpUI                          { return n.PgpUI }
+func (n *genericUI) GetProvisionUI(libkb.KexRole) libkb.ProvisionUI { return n.ProvisionUI }
+
+func (n *genericUI) Configure() error { return nil }
+func (n *genericUI) Shutdown() error  { return nil }

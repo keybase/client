@@ -217,7 +217,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 		promptDefault = libkb.PromptDefaultNo
 	case keybase1.TrackStatus_NEW_FAIL_PROOFS:
 		verb := "follow"
-		if o.ForPGPPull {
+		if o.TrackOptions.ForPGPPull {
 			verb = "pull PGP key for"
 		}
 		prompt = "Some proofs failed; still " + verb + " " + username + "?"

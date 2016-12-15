@@ -31,3 +31,11 @@ func passphraseChange(g *libkb.GlobalContext, arg keybase1.PassphraseChangeArg) 
 	}
 	return cli.PassphraseChange(context.TODO(), arg)
 }
+
+func hasServerKeys(g *libkb.GlobalContext) (res keybase1.HasServerKeysRes, err error) {
+	cli, err := GetAccountClient(g)
+	if err != nil {
+		return res, err
+	}
+	return cli.HasServerKeys(context.TODO(), 0 /* SessionID */)
+}

@@ -1895,9 +1895,9 @@ electron-positioner@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/electron-positioner/-/electron-positioner-3.0.0.tgz#1a3b75c9cc1e29dd37c663b23fd876d4ffab9996"
 
-electron@1.4.11:
-  version "1.4.11"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-1.4.11.tgz#368e8a85c2bf3076f62bc4840132f022c9cfb0ec"
+electron@1.4.12:
+  version "1.4.12"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-1.4.12.tgz#ae6641aa1db01dd04e41c56639ca7b84b888767a"
   dependencies:
     electron-download "^3.0.1"
     extract-zip "^1.0.3"
