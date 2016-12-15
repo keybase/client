@@ -3046,6 +3046,15 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 		block, err := cr.fbo.blocks.GetBlockForReading(ctx, lState,
 			mostRecentMergedMD, ptr, cr.fbo.branch())
 		if err != nil {
+			// TODO: we might be able to recover the size of the
+			// top-most block of a removed file using the merged
+			// directory entry, the same way we do in
+			// `folderBranchOps.unrefEntry`.
+			if isRecoverableBlockErrorForRemoval(err) {
+				cr.log.CDebugf(ctx, "Unref'ing a non-existent block, "+
+					"excluding it from the MD size calculations: %v", err)
+				continue
+			}
 			cr.log.CDebugf(ctx, "Got err reading %v", ptr)
 			return nil, err
 		}
