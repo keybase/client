@@ -168,6 +168,7 @@ protocol Common {
       array<RemoteTrack> remoteTracks;
   }
 
+  @go("nostring")
   enum MerkleTreeID {
        MASTER_0,
        KBFS_PUBLIC_1,

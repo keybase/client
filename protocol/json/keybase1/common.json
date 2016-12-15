@@ -430,7 +430,8 @@
         "MASTER_0",
         "KBFS_PUBLIC_1",
         "KBFS_PRIVATE_2"
-      ]
+      ],
+      "go": "nostring"
     },
     {
       "type": "record",
