@@ -3,7 +3,6 @@ import React, {Component} from 'react'
 import UpdatePassphrase from './index'
 import {navigateUp} from '../../actions/route-tree'
 import {onChangeNewPassphrase, onChangeNewPassphraseConfirm, onChangeShowPassphrase, onSubmitNewPassphrase, onUpdatePGPSettings} from '../../actions/settings'
-import HiddenString from '../../util/hidden-string'
 
 import type {Props} from './index'
 import type {TypedDispatch} from '../../constants/types/flux'

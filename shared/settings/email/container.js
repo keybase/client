@@ -1,7 +1,5 @@
 // @flow
-import React, {Component} from 'react'
 import UpdateEmail from './index'
-import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
 import {onChangeNewEmail, onSubmitNewEmail} from '../../actions/settings'
 import {TypedConnector} from '../../util/typed-connect'
@@ -15,7 +13,7 @@ const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new 
 export default connector.connect(
   (state, dispatch, ownProps) => {
     const {waitingForResponse} = state.settings
-    const {emails, error, newEmail} = state.settings.email
+    const {emails, error} = state.settings.email
     let email = ''
     let isVerified = false
     if (emails.length > 0) {
