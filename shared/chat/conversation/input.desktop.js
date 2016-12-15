@@ -43,6 +43,7 @@ class Conversation extends Component<void, Props, State> {
       const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
       const nextInputText = [inputText.substring(0, selectionStart), emojiColons, inputText.substring(selectionEnd)].join('')
       this.props.setInputText(nextInputText)
+      this._input.focus()
     }
   }
 
