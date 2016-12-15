@@ -2074,8 +2074,11 @@ func (cr *ConflictResolver) newFileData(lState *lockState,
 		// conflict resolution.
 		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
 			file path, rtype blockReqType) (*FileBlock, bool, error) {
+			// Use an invalid path because a) we don't know the full
+			// path here, and b) we don't need read notifications sent
+			// for these files.
 			block, err := cr.fbo.blocks.GetFileBlockForReading(
-				ctx, lState, kmd, ptr, file.Branch, file)
+				ctx, lState, kmd, ptr, file.Branch, path{})
 			if err != nil {
 				return nil, false, err
 			}
