@@ -32,7 +32,7 @@ function getConfig (): AsyncAction {
   }
 }
 
-export function isFollower (getState: any, username: string) : boolean {
+export function isFollower (getState: any, username: string): boolean {
   return !!getState().config.followers[username]
 }
 

@@ -48,7 +48,7 @@ class Main extends Component<void, Props, void> {
 
   componentDidUpdate (prevProps) {
     if (this.props.menuBadge !== prevProps.menuBadge) {
-      ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
+      ipcRenderer.send('showTray', this.props.menuBadge)
     }
   }
 
