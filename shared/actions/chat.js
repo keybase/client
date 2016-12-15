@@ -5,7 +5,7 @@ import engine from '../engine'
 import _ from 'lodash'
 import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localMarkAsReadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
-import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {searchTab, chatTab} from '../constants/tabs'
 import {openInKBFS} from './kbfs'
@@ -16,8 +16,10 @@ import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './
 import {switchTo} from './route-tree'
 import {usernameSelector} from '../constants/selectors'
 import {changedFocus} from '../constants/window'
+import {updateReachability} from '../constants/gregor'
 
 import type {ChangedFocus} from '../constants/window'
+import type {UpdateReachability} from '../constants/gregor'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
@@ -651,6 +653,15 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
+function * _updateReachability (action: UpdateReachability): SagaGenerator<any, any> {
+  if (!action.error) {
+    const {reachability} = action.payload
+    if (reachability && reachability.reachable === ReachabilityReachable.yes) {
+      yield put(loadInbox())
+    }
+  }
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
@@ -667,6 +678,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.openFolder, _openFolder),
     safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
     safeTakeEvery(changedFocus, _changedFocus),
+    safeTakeEvery(updateReachability, _updateReachability),
   ]
 }
 
