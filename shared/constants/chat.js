@@ -22,7 +22,7 @@ export type ParticipantItem = UserListItem
 export type MessageID = RPCMessageID
 
 export type ClientMessage = TimestampMessage
-export type ServerMessage = TextMessage | ErrorMessage | UnhandledMessage
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | UnhandledMessage
 
 export type Message = ClientMessage | ServerMessage
 
@@ -55,6 +55,23 @@ export type UnhandledMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
+  key: any,
+}
+
+export type AttachmentMessage = {
+  type: 'Attachment',
+  timestamp: number,
+  conversationIDKey: ConversationIDKey,
+  followState: FollowState,
+  author: string,
+  deviceName: string,
+  deviceType: string,
+  messageID: MessageID,
+  filename: string,
+  title: string,
+  previewType: ?('Image' | 'Other'),
+  previewPath: ?string,
+  downloadedPath: ?string,
   key: any,
 }
 
@@ -161,6 +178,7 @@ export const updateBadging = 'chat:updateBadging'
 export const updateLatestMessage = 'chat:updateLatestMessage'
 export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
+export const selectAttachment = 'chat:selectAttachment'
 export const updateInbox = 'chat:updateInbox'
 export const updateInboxComplete = 'chat:updateInboxComplete'
 
@@ -187,6 +205,30 @@ export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversati
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
+export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string}>
+export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
+  bytesComplete: number,
+  bytesTotal: number,
+  conversationIDKey: ConversationIDKey,
+}>
+export type DownloadProgress = NoErrorTypedAction<'chat:downloadProgress', {
+  bytesComplete: number,
+  bytesTotal: number,
+  conversationIDKey: ConversationIDKey,
+  messageID: MessageID,
+}>
+export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
+  messageID: MessageID,
+  conversationIDKey: ConversationIDKey,
+  loadPreview: boolean,
+  filename: string,
+}>
+export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
+  messageID: MessageID,
+  conversationIDKey: ConversationIDKey,
+  isPreview: boolean,
+  path: string,
+}>
 
 export type Actions = AppendMessages
   | DeleteMessage

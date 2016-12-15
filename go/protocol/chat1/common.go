@@ -149,11 +149,17 @@ type ConversationIDTriple struct {
 	TopicID   TopicID   `codec:"topicID" json:"topicID"`
 }
 
+type ConversationFinalizeInfo struct {
+	ResetUser      string       `codec:"resetUser" json:"resetUser"`
+	ResetDate      string       `codec:"resetDate" json:"resetDate"`
+	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
+}
+
 type ConversationMetadata struct {
-	IdTriple       ConversationIDTriple `codec:"idTriple" json:"idTriple"`
-	ConversationID ConversationID       `codec:"conversationID" json:"conversationID"`
-	IsFinalized    bool                 `codec:"isFinalized" json:"isFinalized"`
-	ActiveList     []gregor1.UID        `codec:"activeList" json:"activeList"`
+	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
+	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
+	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
 }
 
 type ConversationReaderInfo struct {
@@ -196,6 +202,7 @@ type MessageClientHeader struct {
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	MerkleRoot   *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
@@ -210,6 +217,11 @@ type SignatureInfo struct {
 	V int    `codec:"v" json:"v"`
 	S []byte `codec:"s" json:"s"`
 	K []byte `codec:"k" json:"k"`
+}
+
+type MerkleRoot struct {
+	Seqno int64  `codec:"seqno" json:"seqno"`
+	Hash  []byte `codec:"hash" json:"hash"`
 }
 
 type InboxResType int

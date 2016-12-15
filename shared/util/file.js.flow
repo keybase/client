@@ -1,0 +1,9 @@
+// @flow
+
+declare function tmpFile (suffix: string): string;
+declare function downloadFilePath (filename: string): string;
+
+export {
+  downloadFilePath,
+  tmpFile,
+}

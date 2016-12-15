@@ -110,6 +110,7 @@ func (g *GlobalContext) GetExternalAPI() ExternalAPI            { return g.XAPI 
 func (g *GlobalContext) GetServerURI() string                   { return g.Env.GetServerURI() }
 func (g *GlobalContext) GetCachedUserLoader() *CachedUserLoader { return g.CachedUserLoader }
 func (g *GlobalContext) GetUserDeviceCache() *UserDeviceCache   { return g.UserDeviceCache }
+func (g *GlobalContext) GetMerkleClient() *MerkleClient         { return g.MerkleClient }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
