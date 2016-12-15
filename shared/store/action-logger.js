@@ -4,6 +4,8 @@ import {Iterable} from 'immutable'
 import {logStatFrequency, actionStatFrequency, forwardLogs} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 import {startTiming, endTiming, printTimingStats, shouldRunStats} from '../util/stats'
+import {noPayloadTransformer} from '../constants/types/flux'
+import {stateLogTransformer} from '../constants/reducer'
 
 import type {StatSink} from '../util/stats'
 
@@ -39,7 +41,10 @@ const actionStatSink: StatSink = {
 }
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
-  const log1 = [`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(action) : action]
+  const actionLogTransformer = action.logTransformer || noPayloadTransformer
+
+  const actionToLog = actionLogTransformer(action)
+  const log1 = [`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(actionToLog) : actionToLog]
 
   const shouldRunActionStats = shouldRunStats(actionStatFrequency)
   const shouldRunLogStats = shouldRunStats(logStatFrequency)
@@ -53,7 +58,8 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
   const newState = store.getState()
 
   startTiming(shouldRunLogStats, loggingStatSink)
-  const diff = deep.diff(objToJS(oldState), objToJS(newState))
+  const transformer = s => objToJS(stateLogTransformer(s))
+  const diff = deep.diff(transformer(oldState), transformer(newState))
   const log2 = ['Diff: ', forwardLogs ? JSON.stringify(diff) : diff]
   endTiming(shouldRunLogStats, loggingStatSink)
 
