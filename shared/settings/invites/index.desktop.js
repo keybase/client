@@ -16,7 +16,7 @@ function intersperseDividers (arr) {
 
 function Invites (props: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flexShrink: 0, flex: 1}}>
+    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1}}>
       <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'center', marginTop: globalMargins.small}}>
         <Input
           hintText="Friend's email (optional)"
