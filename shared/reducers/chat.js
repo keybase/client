@@ -125,21 +125,20 @@ function reducer (state: State = initialState, action: Actions) {
         .set('inbox', newInboxStates)
     }
     case Constants.pendingMessageWasSent: {
-      const {outboxID, messageID, messageState} = action.payload
+      const {conversationIDKey, message, messageState} = action.payload
       const newConversationStates = state.get('conversationStates').update(
-        action.payload.conversationIDKey,
+        conversationIDKey,
         initialConversation,
         conversation => {
-          const index = conversation.get('messages').findIndex(item => item.outboxID === outboxID)
+          const index = conversation.get('messages').findIndex(item => item.outboxID === message.outboxID)
           if (index < 0) {
             console.warn("Couldn't find an outbox entry to modify")
             return conversation
           }
           return conversation.updateIn(['messages', index], item => ({
-            ...item,
-            messageID,
+            ...message,
             messageState,
-          })).set('seenMessages', conversation.seenMessages.add(messageID))
+          })).set('seenMessages', conversation.seenMessages.add(message.messageID))
         }
       )
       return state.set('conversationStates', newConversationStates)
