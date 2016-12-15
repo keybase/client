@@ -5,6 +5,7 @@ import _ from 'lodash'
 import engine from '../engine'
 import {CommonConversationStatus, CommonMessageType, CommonTLFVisibility, CommonTopicType, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxNonblockLocalRpcChannelMap, localGetThreadLocalRpcPromise, localMarkAsReadLocalRpcPromise, localNewConversationLocalRpcPromise, localPostLocalNonblockRpcPromise} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
+import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race} from 'redux-saga/effects'
@@ -25,6 +26,7 @@ import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {UpdateReachability} from '../constants/gregor'
 import type {
+  AppendMessages,
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
@@ -50,13 +52,16 @@ import type {
   UpdateMetadata,
 } from '../constants/chat'
 
-const {conversationIDToKey, keyToConversationID, InboxStateRecord, MetaDataRecord, makeSnippet} = Constants
+const {conversationIDToKey, keyToConversationID, InboxStateRecord, MetaDataRecord, makeSnippet, serverMessageToMessageBody} = Constants
 
 const _selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
 
 const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
 }
+
+const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
+const _focusedSelector = (state: TypedState) => state.chat.get('focused')
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: Constants.updateBadging, payload: {conversationIDKey}}
@@ -295,11 +300,9 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         // And is the Chat tab the currently displayed route? If all that is
         // true, mark it as read ASAP to avoid badging it -- we don't need to
         // badge, the user's looking at it already.
-        const focusedSelector = (state: TypedState) => state.chat.get('focused')
         const selectedConversationIDKey = yield select(_selectedSelector)
-        const appFocused = yield select(focusedSelector)
-        const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
-        const selectedTab = yield select(routeSelector)
+        const appFocused = yield select(_focusedSelector)
+        const selectedTab = yield select(_routeSelector)
         const chatTabSelected = (selectedTab === chatTab)
 
         if (message &&
@@ -713,8 +716,7 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
   const appFocused = action.payload
   const conversationIDKey = yield select(_selectedSelector)
-  const routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
-  const selectedTab = yield select(routeSelector)
+  const selectedTab = yield select(_routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
   if (conversationIDKey && appFocused && chatTabSelected) {
@@ -725,9 +727,8 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
 
 function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
-  const windowFocusedSelector = (state: TypedState) => state.chat.get('focused')
   const selectedConversationIDKey = yield select(_selectedSelector)
-  const windowFocused = yield select(windowFocusedSelector)
+  const windowFocused = yield select(_focusedSelector)
 
   const newConversations = _.reduce(conversations, (acc, conv) => {
     // Badge this conversation if it's unread and either the app doesn't have
@@ -750,6 +751,23 @@ function * _updateReachability (action: UpdateReachability): SagaGenerator<any, 
   }
 }
 
+function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> {
+  const appFocused = yield select(_focusedSelector)
+  const conversationIDKey = yield select(_selectedSelector)
+  const selectedTab = yield select(_routeSelector)
+  const chatTabSelected = (selectedTab === chatTab)
+
+  // Only send if you're not looking at it
+  if (conversationIDKey !== action.payload.conversationIDKey || !appFocused || !chatTabSelected) {
+    const me = yield select(usernameSelector)
+    const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
+    if (message && message.type === 'Text') {
+      const snippet = makeSnippet(serverMessageToMessageBody(message))
+      NotifyPopup(message.author, {body: snippet})
+    }
+  }
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
@@ -763,6 +781,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.postMessage, _postMessage),
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
+    safeTakeEvery(Constants.appendMessages, _sendNotifications),
     safeTakeLatest(Constants.openFolder, _openFolder),
     safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
     safeTakeLatest(Constants.updateInbox, _onUpdateInbox),
