@@ -7,9 +7,9 @@ import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
 import dumbComponentMap from '../shared/dev/dumb-sheet/component-map.desktop'
 
-const WORKER_COUNT = 1
+const WORKER_COUNT = 10
 const CANVAS_SIZE = 1000
-const DEBUG_WINDOWS = true
+const DEBUG_WINDOWS = false
 
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
@@ -24,9 +24,7 @@ if (!fs.existsSync(outputDir)) {
 const toRender = []
 Object.keys(dumbComponentMap).forEach(key => {
   Object.keys(dumbComponentMap[key].mocks).forEach(mockKey => {
-    if (mockKey == 'Emoji Open') {
-      toRender.push({key, mockKey})
-    }
+    toRender.push({key, mockKey})
   })
 })
 
@@ -59,7 +57,9 @@ app.on('ready', () => {
 
   ipcMain.on('display-done', (ev, msg) => {
     const sender = ev.sender
-    sender.getOwnerBrowserWindow().capturePage(msg.rect, img => {
+
+    sender.invalidate()
+    sender.capturePage(msg.rect, img => {
       const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
       const filename = filenameParts.join('-') + '.png'
       fs.writeFile(path.join(outputDir, filename), img.toPng(), err => {
@@ -70,7 +70,7 @@ app.on('ready', () => {
         count++
         console.log(`[${count} / ${total}] wrote ${filename}`)
         rendering--
-        //renderNext(sender)
+        renderNext(sender)
       })
     })
   })
@@ -79,7 +79,7 @@ app.on('ready', () => {
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
       console.log('Creating new worker window', i)
-      const workerWin = new BrowserWindow({show: DEBUG_WINDOWS, width: CANVAS_SIZE, height: CANVAS_SIZE})
+      const workerWin = new BrowserWindow({show: DEBUG_WINDOWS, width: CANVAS_SIZE, height: CANVAS_SIZE, webPreferences: {offscreen: true}})
       console.log('Created new worker window', i)
 
       workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
@@ -90,6 +90,7 @@ app.on('ready', () => {
         }
 
         console.log('Worker window did-finish-load:', i)
+        workerWin.webContents.stopPainting()
         workerWin.webContents.send('load', {
           scripts: [scriptPath],
           firstDisplay,
