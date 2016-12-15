@@ -170,7 +170,7 @@ export const updateBadging = 'chat:updateBadging'
 export const updateLatestMessage = 'chat:updateLatestMessage'
 export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
-export const clickedAttach = 'chat:clickedAttach'
+export const selectAttachment = 'chat:selectAttachment'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
@@ -193,7 +193,7 @@ export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversati
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
-export type ClickedAttach = NoErrorTypedAction<'chat:clickedAttach', {conversationIDKey: ConversationIDKey, filename: string, title: string}>
+export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   bytesComplete: number,
   bytesTotal: number,

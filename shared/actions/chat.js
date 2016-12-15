@@ -114,8 +114,8 @@ function deleteMessage (message: Message): DeleteMessage {
   return {type: Constants.deleteMessage, payload: {message}}
 }
 
-function clickedAttach (conversationIDKey: ConversationIDKey, filename: string, title: string): Constants.ClickedAttach {
-  return {type: Constants.clickedAttach, payload: {conversationIDKey, filename, title}}
+function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string): Constants.SelectAttachment {
+  return {type: Constants.selectAttachment, payload: {conversationIDKey, filename, title}}
 }
 
 function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, filename: string): Constants.LoadAttachment {
@@ -706,7 +706,7 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
-function * _clickedAttach ({payload: {conversationIDKey, filename, title}}: Constants.ClickedAttach): SagaGenerator<any, any> {
+function * _selectAttachment ({payload: {conversationIDKey, filename, title}}: Constants.SelectAttachment): SagaGenerator<any, any> {
   const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
   const attachment = {
     filename,
@@ -818,7 +818,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.postMessage, _postMessage),
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
-    safeTakeEvery(Constants.clickedAttach, _clickedAttach),
+    safeTakeEvery(Constants.selectAttachment, _selectAttachment),
     safeTakeEvery('chat:loadAttachment', _loadAttachment),
     safeTakeLatest(Constants.openFolder, _openFolder),
     safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
@@ -836,7 +836,7 @@ export {
   loadInbox,
   loadMoreMessages,
   newChat,
-  clickedAttach,
+  selectAttachment,
   openFolder,
   postMessage,
   selectConversation,
