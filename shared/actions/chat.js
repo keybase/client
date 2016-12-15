@@ -118,16 +118,8 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
 
   (convo.maxMessages || []).some(message => {
     if (message.state === LocalMessageUnboxedState.valid && message.valid) {
-      switch (message.valid.messageBody.messageType) {
-        case CommonMessageType.text:
-          snippet = makeSnippet(message.valid.messageBody.text && message.valid.messageBody.text.body, 100)
-          return true
-        case CommonMessageType.attachment:
-          snippet = 'Attachment'
-          return true
-        default:
-          return false
-      }
+      snippet = makeSnippet(message.valid.messageBody)
+      return !!snippet
     }
     return false
   })

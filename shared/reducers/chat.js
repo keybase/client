@@ -4,9 +4,9 @@ import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List} from 'immutable'
 
-import type {Actions, State, ConversationState, AppendMessages, Message, ServerMessage, InboxState} from '../constants/chat'
+import type {Actions, State, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, makeSnippet} = Constants
+const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -54,7 +54,7 @@ function reducer (state: State = initialState, action: Actions) {
     case Constants.appendMessages: {
       const appendAction: AppendMessages = action
       const appendMessages = appendAction.payload.messages
-      const message: Message = appendMessages[0]
+      const message: ServerMessage = appendMessages[appendMessages.length - 1]
       const conversationIDKey = appendAction.payload.conversationIDKey
 
       const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
@@ -82,24 +82,43 @@ function reducer (state: State = initialState, action: Actions) {
             .set('seenMessages', nextSeenMessages)
         })
 
-      let snippet
+      const snippet = makeSnippet(serverMessageToMessageBody(message))
+      const author = message.type === 'Text' && message.author
+      // Update snippets / unread / participant order
 
-      switch (message.type) {
-        case 'Text':
-          snippet = makeSnippet(message.message && message.message.stringValue(), 100)
-          break
-        default:
-          snippet = ''
+      let updatedIdx = -1
+      let newInboxStates = state.get('inbox').map((inbox, inboxIdx) => {
+        if (inbox.get('conversationIDKey') !== conversationIDKey) {
+          return inbox
+        }
+
+        updatedIdx = inboxIdx
+
+        let newInbox = inbox
+          .set('unreadCount', isSelected ? 0 : inbox.get('unreadCount') + appendMessages.length)
+          .set('time', message.timestamp)
+
+        if (snippet) {
+          newInbox = newInbox.set('snippet', snippet)
+        }
+
+        const oldParticipants = newInbox.get('participants')
+
+        if (author && oldParticipants.count() > 1) {
+          const idx = oldParticipants.findKey(p => p.username === author)
+          if (idx > 0) {
+            const newFirst = oldParticipants.get(idx)
+            newInbox = newInbox.set('participants', oldParticipants.delete(idx).unshift(newFirst))
+          }
+        }
+
+        return newInbox
+      })
+
+      if (updatedIdx !== -1) {
+        const newFirst = newInboxStates.get(updatedIdx)
+        newInboxStates = newInboxStates.delete(updatedIdx).unshift(newFirst)
       }
-
-      const newInboxStates = state.get('inbox').map(inbox => (
-        inbox.get('conversationIDKey') !== conversationIDKey
-          ? inbox
-          : inbox
-            .set('unreadCount', isSelected ? 0 : inbox.get('unreadCount') + appendMessages.length)
-            .set('time', message.timestamp)
-            .set('snippet', snippet)
-      ))
 
       return state
         .set('conversationStates', newConversationStates)

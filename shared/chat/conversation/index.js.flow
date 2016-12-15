@@ -24,7 +24,9 @@ export type Props = {
   selectedConversation: ?ConversationIDKey,
   firstNewMessageID: ?MessageID,
   sidePanelOpen: boolean,
-  bannerMessage: ?BannerMessage
+  bannerMessage: ?BannerMessage,
+  inputText: string,
+  setInputText: (text: string) => void,
 }
 
 export default class Conversation extends Component<void, Props, void> { }
