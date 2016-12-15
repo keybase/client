@@ -13,8 +13,6 @@ import {
 
 import type {Props, SettingsItem as SettingsItemType} from './index'
 
-//style={{color: selected ? globalColors.black_75 : globalColors.black_60, textTransform: 'uppercase'}}
-
 export function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsItemType) {
   return (
     <ClickableBox onClick={onClick} style={selected ? selectedStyle : itemStyle}>
@@ -69,11 +67,11 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
 }
 
 const styleNavBox = {
-  ...globalStyles.flexBoxColumn, 
-  backgroundColor: globalColors.white, 
-  borderRight: '1px solid '+ globalColors.black_05,
-  width: 144, 
-  paddingTop: globalMargins.large
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
+  borderRight: '1px solid ' + globalColors.black_05,
+  width: 144,
+  paddingTop: globalMargins.large,
 }
 
 const itemStyle = {
@@ -88,7 +86,7 @@ const itemStyle = {
 
 const selectedStyle = {
   ...itemStyle,
-  borderLeft: '3px solid '+ globalColors.blue,
+  borderLeft: '3px solid ' + globalColors.blue,
 }
 
 const itemTextStyle = {
