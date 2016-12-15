@@ -7,9 +7,9 @@ import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
 import dumbComponentMap from '../shared/dev/dumb-sheet/component-map.desktop'
 
-const WORKER_COUNT = 10
+const WORKER_COUNT = 1
 const CANVAS_SIZE = 1000
-const DEBUG_WINDOWS = false
+const DEBUG_WINDOWS = true
 
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
@@ -24,7 +24,9 @@ if (!fs.existsSync(outputDir)) {
 const toRender = []
 Object.keys(dumbComponentMap).forEach(key => {
   Object.keys(dumbComponentMap[key].mocks).forEach(mockKey => {
-    toRender.push({key, mockKey})
+    if (mockKey == 'Emoji Open') {
+      toRender.push({key, mockKey})
+    }
   })
 })
 
@@ -68,7 +70,7 @@ app.on('ready', () => {
         count++
         console.log(`[${count} / ${total}] wrote ${filename}`)
         rendering--
-        renderNext(sender)
+        //renderNext(sender)
       })
     })
   })
