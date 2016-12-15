@@ -29,6 +29,7 @@
             />
     </BootstrapperApplicationRef>
 
+    <!-- TODO Proper detection of other Dokans installed by the user. We may need to look at Upgrade code or the signing cert-->
     <!-- Dokany 
          This is the target we need to install with. If it's not there,
          we may need to invoke the dokan cleaner. -->
@@ -81,10 +82,7 @@
     <Chain>
       <PackageGroupRef Id="NetFx40Web"/>
       
-      <!-- Remember: if DetectCondition is true, this package is considered already present. 
-        WixBundleAction of 4 means install. 3 is uninstall, 5 is upgrade.
-        Making this permanent prevents it from being invoked on uninstall or other removal.
-      -->
+      <!-- Remember: if DetectCondition is true, this package is considered already present and will not be installed.-->
       <ExePackage
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe"
         DetectCondition="DokanUninstallString OR nodriver"
@@ -95,17 +93,17 @@
         <ExitCode Value="3010" Behavior="forceReboot"/>
         <ExitCode Value="0" Behavior="success" />
       </ExePackage>
-
+      
       <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
  	   which need to remain in sync -->	    
       <ExePackage Id="vcredist_2015_x86.exe"
                   Name="vc_redist.x86.exe"
-                  InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  RepairCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  InstallCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
+                  RepairCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
+                  UninstallCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
-                  DetectCondition="vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918"
+                  DetectCondition="vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.24212"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="no"
@@ -121,13 +119,13 @@
  	   which need to remain in sync -->	    
       <ExePackage Id="vcredist_2015_x64.exe"
                   Name="vc_redist.x64.exe"
-                  InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  RepairCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  InstallCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
+                  RepairCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
+                  UninstallCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
                   InstallCondition="VersionNT64"
-                  DetectCondition="vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918"
+                  DetectCondition="vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.24212"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="yes"
@@ -245,7 +243,7 @@
 
     </Chain>
 	</Bundle>
-  <Fragment>    
+  <Fragment>
     <util:FileSearch Id="WINTRUST_FileSearch"
                      Path="[SystemFolder]Wintrust.dll"
                      Variable="WINTRUSTVERSION"
