@@ -587,6 +587,7 @@ type GetInboxAndUnboxLocalRes struct {
 
 type PostLocalRes struct {
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	MessageID        MessageID                     `codec:"messageID" json:"messageID"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 

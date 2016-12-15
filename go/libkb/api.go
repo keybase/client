@@ -409,6 +409,25 @@ func (a *InternalAPIEngine) isExternal() bool { return false }
 var lastUpgradeWarningMu sync.Mutex
 var lastUpgradeWarning *time.Time
 
+func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
+	var ret time.Duration
+	if s == "" {
+		return ret
+	}
+	serverNow, err := time.Parse(time.RFC1123, s)
+
+	if err != nil {
+		g.Log.Warning("Failed to parse server time: %s", err)
+		return ret
+	}
+	ourNow := g.Clock().Now()
+	diff := serverNow.Sub(ourNow)
+	if diff > CriticalClockSkewLimit || diff < -1*CriticalClockSkewLimit {
+		ret = diff
+	}
+	return ret
+}
+
 func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 	upgradeTo := resp.Header.Get("X-Keybase-Client-Upgrade-To")
 	upgradeURI := resp.Header.Get("X-Keybase-Upgrade-URI")
@@ -422,6 +441,11 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 			a.G().Log.Errorf("Failed to decode X-Keybase-Upgrade-Message header: %s", err)
 		}
 	}
+
+	if criticalClockSkew := computeCriticalClockSkew(a.G(), resp.Header.Get("Date")); criticalClockSkew != 0 {
+		a.G().OutOfDateInfo.CriticalClockSkew = int64(criticalClockSkew)
+	}
+
 	if len(upgradeTo) > 0 || len(customMessage) > 0 {
 		now := time.Now()
 		lastUpgradeWarningMu.Lock()

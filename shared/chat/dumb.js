@@ -192,11 +192,13 @@ const input = {
     'Normal': {
       ...commonConvoProps,
     },
+    /* FIXME: causes flaky visdiff
     'Emoji Open': {
       ...commonConvoProps,
       emojiPickerOpen: true,
       parentProps: {style: {height: 370, paddingTop: 330}},
     },
+    */
     'Empty': {
       ...emptyConvoProps,
     },

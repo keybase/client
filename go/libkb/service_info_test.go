@@ -13,7 +13,7 @@ func TestWaitForServiceInfoOK(t *testing.T) {
 	fn := func() (*ServiceInfo, error) {
 		return &ServiceInfo{Label: "ok", Pid: 1}, nil
 	}
-	info, err := waitForServiceInfo(10*time.Millisecond, time.Millisecond, fn)
+	info, err := waitForServiceInfo(time.Second, time.Millisecond, fn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +31,7 @@ func TestWaitForServiceInfoDelayed(t *testing.T) {
 		}
 		return nil, nil
 	}
-	info, err := waitForServiceInfo(10*time.Millisecond, time.Millisecond, fn)
+	info, err := waitForServiceInfo(time.Second, time.Millisecond, fn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func TestWaitForServiceInfoErrored(t *testing.T) {
 	fn := func() (*ServiceInfo, error) {
 		return nil, fmt.Errorf("info error")
 	}
-	_, err := waitForServiceInfo(10*time.Millisecond, time.Millisecond, fn)
+	_, err := waitForServiceInfo(time.Second, time.Millisecond, fn)
 	if err == nil {
 		t.Fatal("Expected error")
 	}

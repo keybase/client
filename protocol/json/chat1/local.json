@@ -818,6 +818,10 @@
           "name": "rateLimits"
         },
         {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"

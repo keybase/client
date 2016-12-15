@@ -1,8 +1,10 @@
 // @flow
 import {Component} from 'react'
+import type {Reachability} from '../constants/types/flow-types'
 
 export type Props = {
   error: ?Error,
+  reachability: ?Reachability,
   onDismiss: () => void,
   setTimeout: (cb: () => void, delay: number) => any,
   clearTimeout: (id: any) => void,

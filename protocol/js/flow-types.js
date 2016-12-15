@@ -392,6 +392,12 @@ export const ProvisionUiProvisionMethod = {
   gpgSign: 4,
 }
 
+export const ReachabilityReachable = {
+  unknown: 0,
+  yes: 1,
+  no: 2,
+}
+
 export const RekeyOutcome = {
   none: 0,
   fixed: 1,
@@ -873,6 +879,18 @@ export function configSetValueRpcChannelMap (channelConfig: ChannelConfig<*>, re
 
 export function configSetValueRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { configSetValueRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configWaitForClientRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.config.waitForClient'})
+}
+
+export function configWaitForClientRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => configWaitForClientRpc({...request, incomingCallMap, callback}))
+}
+
+export function configWaitForClientRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configWaitForClientResult) => void} & {param: configWaitForClientRpcParam}>): Promise<configWaitForClientResult> {
+  return new Promise((resolve, reject) => { configWaitForClientRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function cryptoSignED25519ForKBFSRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519ForKBFSResult) => void} & {param: cryptoSignED25519ForKBFSRpcParam}>) {
@@ -2039,6 +2057,42 @@ export function quotaVerifySessionRpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => { quotaVerifySessionRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function reachabilityCheckReachabilityRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityCheckReachabilityResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.reachability.checkReachability'})
+}
+
+export function reachabilityCheckReachabilityRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityCheckReachabilityResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => reachabilityCheckReachabilityRpc({...request, incomingCallMap, callback}))
+}
+
+export function reachabilityCheckReachabilityRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityCheckReachabilityResult) => void}>): Promise<reachabilityCheckReachabilityResult> {
+  return new Promise((resolve, reject) => { reachabilityCheckReachabilityRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function reachabilityReachabilityChangedRpc (request: Exact<requestCommon & requestErrorCallback & {param: reachabilityReachabilityChangedRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.reachability.reachabilityChanged'})
+}
+
+export function reachabilityReachabilityChangedRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: reachabilityReachabilityChangedRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => reachabilityReachabilityChangedRpc({...request, incomingCallMap, callback}))
+}
+
+export function reachabilityReachabilityChangedRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: reachabilityReachabilityChangedRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { reachabilityReachabilityChangedRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function reachabilityStartReachabilityRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityStartReachabilityResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.reachability.startReachability'})
+}
+
+export function reachabilityStartReachabilityRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityStartReachabilityResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => reachabilityStartReachabilityRpc({...request, incomingCallMap, callback}))
+}
+
+export function reachabilityStartReachabilityRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: reachabilityStartReachabilityResult) => void}>): Promise<reachabilityStartReachabilityResult> {
+  return new Promise((resolve, reject) => { reachabilityStartReachabilityRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function rekeyDebugShowRekeyStatusRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'keybase.1.rekey.debugShowRekeyStatus'})
 }
@@ -2744,7 +2798,11 @@ export type ClientDetails = {
   version: string,
 }
 
-export type ClientType =  2 // FORCE GUI ONLY
+export type ClientType = 
+    0 // NONE_0
+  | 1 // CLI_1
+  | 2 // GUI_2
+  | 3 // KBFS_3
 
 export type ComponentResult = {
   name: string,
@@ -2845,6 +2903,8 @@ export type DowngradeReferenceRes = {
   completed?: ?Array<BlockReferenceCount>,
   failed: BlockReference,
 }
+
+export type DurationSec = double
 
 export type ED25519PublicKey = any
 
@@ -3306,6 +3366,7 @@ export type NotificationChannels = {
   pgp: boolean,
   kbfsrequest: boolean,
   badges: boolean,
+  reachability: boolean,
 }
 
 export type NotifyBadgesBadgeStateRpcParam = Exact<{
@@ -3375,6 +3436,7 @@ export type OutOfDateInfo = {
   upgradeTo: string,
   upgradeURI: string,
   customMessage: string,
+  criticalClockSkew: long,
 }
 
 export type Outcome = 
@@ -3591,6 +3653,15 @@ export type PushReason =
     0 // NONE_0
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
+
+export type Reachability = {
+  reachable: Reachable,
+}
+
+export type Reachable = 
+    0 // UNKNOWN_0
+  | 1 // YES_1
+  | 2 // NO_2
 
 export type RegisterAddressRes = {
   type: string,
@@ -3999,6 +4070,7 @@ export type TrackOptions = {
   bypassConfirm: boolean,
   forceRetrack: boolean,
   expiringLocal: boolean,
+  forPGPPull: boolean,
 }
 
 export type TrackProof = {
@@ -4234,6 +4306,11 @@ export type configSetUserConfigRpcParam = Exact<{
 export type configSetValueRpcParam = Exact<{
   path: string,
   value: ConfigValue
+}>
+
+export type configWaitForClientRpcParam = Exact<{
+  clientType: ClientType,
+  timeout: DurationSec
 }>
 
 export type cryptoSignED25519ForKBFSRpcParam = Exact<{
@@ -4798,6 +4875,10 @@ export type quotaVerifySessionRpcParam = Exact<{
   session: string
 }>
 
+export type reachabilityReachabilityChangedRpcParam = Exact<{
+  reachability: Reachability
+}>
+
 export type rekeyGetRevokeWarningRpcParam = Exact<{
   session: int,
   actingDevice: DeviceID,
@@ -5070,6 +5151,8 @@ type configGetExtendedStatusResult = ExtendedStatus
 
 type configGetValueResult = ConfigValue
 
+type configWaitForClientResult = boolean
+
 type cryptoSignED25519ForKBFSResult = ED25519SignatureInfo
 
 type cryptoSignED25519Result = ED25519SignatureInfo
@@ -5204,6 +5287,10 @@ type provisionUiSwitchToGPGSignOKResult = boolean
 
 type quotaVerifySessionResult = VerifySessionRes
 
+type reachabilityCheckReachabilityResult = Reachability
+
+type reachabilityStartReachabilityResult = Reachability
+
 type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
 
 type rekeyGetRevokeWarningResult = RevokeWarning
@@ -5312,6 +5399,7 @@ export type rpc =
   | configSetPathRpc
   | configSetUserConfigRpc
   | configSetValueRpc
+  | configWaitForClientRpc
   | cryptoSignED25519ForKBFSRpc
   | cryptoSignED25519Rpc
   | cryptoSignToStringRpc
@@ -5409,6 +5497,9 @@ export type rpc =
   | proveCheckProofRpc
   | proveStartProofRpc
   | quotaVerifySessionRpc
+  | reachabilityCheckReachabilityRpc
+  | reachabilityReachabilityChangedRpc
+  | reachabilityStartReachabilityRpc
   | rekeyDebugShowRekeyStatusRpc
   | rekeyGetPendingRekeyStatusRpc
   | rekeyGetRevokeWarningRpc

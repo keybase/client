@@ -17,7 +17,6 @@ function DeleteMe (props: Props) {
         label='Delete my account forever'
         onClick={props.onDelete} />
       <Box style={{flex: 1}} />
-      <Text type='BodySmallSecondaryLink' onClick={props.onRevokeCurrentDevice}>Looking to revoke this device instead?</Text>
     </Box>
   )
 }

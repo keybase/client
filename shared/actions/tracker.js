@@ -251,6 +251,7 @@ function _trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
     expiringLocal: localIgnore,
     bypassConfirm: false,
     forceRetrack: false,
+    forPGPPull: false,
   }
 
   return new Promise((resolve, reject) => {

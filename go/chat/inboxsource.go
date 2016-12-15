@@ -317,9 +317,16 @@ func (s *localizer) localizeConversationsPipeline(ctx context.Context, uid grego
 
 				// If a localize callback channel exists, send along the result as well
 				if localizeCb != nil {
-					*localizeCb <- NonblockInboxResult{
-						ConvRes: &convLocal,
-						ConvID:  convLocal.Info.Id,
+					if convLocal.Error != nil {
+						*localizeCb <- NonblockInboxResult{
+							Err:    errors.New(*convLocal.Error),
+							ConvID: conv.conv.Metadata.ConversationID,
+						}
+					} else {
+						*localizeCb <- NonblockInboxResult{
+							ConvRes: &convLocal,
+							ConvID:  convLocal.Info.Id,
+						}
 					}
 				}
 			}

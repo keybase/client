@@ -99,6 +99,10 @@
         {
           "type": "boolean",
           "name": "expiringLocal"
+        },
+        {
+          "type": "boolean",
+          "name": "forPGPPull"
         }
       ]
     },

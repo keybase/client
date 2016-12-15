@@ -5,7 +5,7 @@ import _ from 'lodash'
 import engine from '../engine'
 import {CommonConversationStatus, CommonMessageType, CommonTLFVisibility, CommonTopicType, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxNonblockLocalRpcChannelMap, localGetThreadLocalRpcPromise, localMarkAsReadLocalRpcPromise, localNewConversationLocalRpcPromise, localPostLocalNonblockRpcPromise} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
-import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
@@ -16,12 +16,14 @@ import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, takeFromChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
 import {switchTo} from './route-tree'
+import {updateReachability} from '../constants/gregor'
 import {usernameSelector} from '../constants/selectors'
 
-import type {GetInboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal} from '../constants/types/flow-types-chat'
-import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {ChangedFocus} from '../constants/window'
+import type {IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
+import type {UpdateReachability} from '../constants/gregor'
 import type {
   BadgeAppForChat,
   ConversationBadgeStateRecord,
@@ -739,6 +741,15 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
+function * _updateReachability (action: UpdateReachability): SagaGenerator<any, any> {
+  if (!action.error) {
+    const {reachability} = action.payload
+    if (reachability && reachability.reachable === ReachabilityReachable.yes) {
+      yield put(loadInbox())
+    }
+  }
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
@@ -756,6 +767,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
     safeTakeLatest(Constants.updateInbox, _onUpdateInbox),
     safeTakeEvery(changedFocus, _changedFocus),
+    safeTakeEvery(updateReachability, _updateReachability),
   ]
 }
 

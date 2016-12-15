@@ -1,0 +1,27 @@
+@namespace("keybase.1")
+protocol reachability {
+
+  enum Reachable {
+    UNKNOWN_0,
+    YES_1,
+    NO_2
+  }
+
+  record Reachability {
+    Reachable reachable;
+  }
+
+  @notify("")
+  void reachabilityChanged(Reachability reachability);
+
+  /**
+   Start reachability checks and return current status, which
+   may be cached.
+   */
+  Reachability startReachability();
+
+  /**
+   Performs a reachability check. This is not a cached response.
+   */
+  Reachability checkReachability();
+}
