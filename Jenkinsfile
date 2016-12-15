@@ -6,7 +6,7 @@ helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-help
     // helpers.slackOnError("client", env, currentBuild)
 // }, {}) {
     // TEMP
-nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
+helpers.nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
     properties([
             [$class: "BuildDiscarderProperty",
                 strategy: [$class: "LogRotator",
