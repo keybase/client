@@ -5,7 +5,7 @@ import {downloadFilePath} from '../../util/file'
 import React, {Component} from 'react'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, onAttach, loadAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, clickedAttach, loadAttachment} from '../../actions/chat'
 import {onUserClick} from '../../actions/profile'
 
 import type {TypedState} from '../../constants/reducer'
@@ -82,7 +82,7 @@ export default connect(
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
-    onAttach: (selectedConversation, filename, title) => dispatch(onAttach(selectedConversation, filename, title)),
+    onAttach: (selectedConversation, filename, title) => dispatch(clickedAttach(selectedConversation, filename, title)),
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, downloadFilePath(filename))),
     onOpenInFileUI: (path: string) => dispatch(({type: 'fs:openInFileUI', payload: {path}}: OpenInFileUI)),
   }),

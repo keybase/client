@@ -9,7 +9,6 @@ import {badgeApp} from './notifications'
 import {call, put, select, cancel} from 'redux-saga/effects'
 import {searchTab, chatTab} from '../constants/tabs'
 import {openInKBFS} from './kbfs'
-import {badgeApp} from './notifications'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {switchTo} from './route-tree'
@@ -115,7 +114,7 @@ function deleteMessage (message: Message): DeleteMessage {
   return {type: Constants.deleteMessage, payload: {message}}
 }
 
-function onAttach (conversationIDKey: ConversationIDKey, filename: string, title: string): Constants.ClickedAttach {
+function clickedAttach (conversationIDKey: ConversationIDKey, filename: string, title: string): Constants.ClickedAttach {
   return {type: Constants.clickedAttach, payload: {conversationIDKey, filename, title}}
 }
 
@@ -743,19 +742,15 @@ function * _clickedAttach ({payload: {conversationIDKey, filename, title}}: Cons
   }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
 
   const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
-  // $FlowIssue
   uploadStart.response.result()
 
   const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
-  // $FlowIssue
   previewUploadStart.response.result()
 
   const uploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
-  // $FlowIssue
   uploadDone.response.result()
 
   const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
-  // $FlowIssue
   previewUploadDone.response.result()
 
   yield cancel(progressTask)
@@ -791,13 +786,11 @@ function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview
   }), channelMap, 'chat.1.chatUi.chatAttachmentDownloadProgress')
 
   {
-    // $FlowIssue
     const {response} = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentDownloadStart')
     response.result()
   }
 
   {
-    // $FlowIssue
     const {response} = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentDownloadDone')
     response.result()
   }
@@ -843,7 +836,7 @@ export {
   loadInbox,
   loadMoreMessages,
   newChat,
-  onAttach,
+  clickedAttach,
   openFolder,
   postMessage,
   selectConversation,

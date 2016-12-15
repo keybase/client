@@ -124,7 +124,6 @@ class ConversationList extends Component<void, Props, State> {
       }
 
       if (item.previewPath !== props.messages.get(index, {}).previewPath) {
-        console.log('remeasuring:', index, item)
         this._toRemeasure.push(index + 1)
       }
     })
