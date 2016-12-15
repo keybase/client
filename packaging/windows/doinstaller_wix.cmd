@@ -20,7 +20,9 @@ if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build81
 echo DOKAN_PATH %DOKAN_PATH%
 
 for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX64=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr UpgradeCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanUpgradeCodeX64=%%x
 for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX86=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr UpgradeCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanUpgradeCodeX86=%%x
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
@@ -105,8 +107,10 @@ pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
 
 echo ^<?xml version=^"1.0^" encoding=^"utf-8^"?^> > dokanver.xml
 echo ^<Include^> >> dokanver.xml
-echo ^<?define DokanProductCodeX86=^"%DokanProductCodeX86%^" ?^> >> dokanver.xml
 echo ^<?define DokanProductCodeX64=^"%DokanProductCodeX64%^" ?^> >> dokanver.xml
+echo ^<?define DokanUpgradeCodeX64=^"%DokanUpgradeCodeX64%^" ?^> >> dokanver.xml
+echo ^<?define DokanProductCodeX86=^"%DokanProductCodeX86%^" ?^> >> dokanver.xml
+echo ^<?define DokanUpgradeCodeX86=^"%DokanUpgradeCodeX86%^" ?^> >> dokanver.xml
 echo ^<?define DOKAN_PATH=^"%DOKAN_PATH%^" ?^> >> dokanver.xml
 echo ^</Include^>  >> dokanver.xml
 

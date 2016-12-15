@@ -110,11 +110,11 @@
     <InstallExecuteSequence>
       <!--Stop actions are conditioned to run only if the product is already Installed 
       These should only run when servicing (repair/modify/uninstall). 
-      Note that this version is not considered installed when upgrading and thus will not run. The old version of Keybase on the system handles stopping as part of it's uninstall-->
-      <!--TODO Stop Keybase command line since prompt will typically be in the install directory-->      
+      Note that this version is not considered installed when upgrading and thus will not run. The old version of Keybase on the system handles stopping as part of it's uninstall-->   
       <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
+      <!--TODO Stop Keybase command line since prompt will typically be in the install directory-->
 
-      <!--TODO These should run only if there is not a restart pending after install or upgrade-->
+      <!--This These should run only if there is not a restart pending after install or upgrade-->
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
 
@@ -146,11 +146,11 @@
 
     <InstallExecuteSequence>
       <!--Stop actions are conditioned to run only if the product is already Installed 
-      These should only run when servicing (repair/modify/uninstall). 
+      This should only run when servicing (repair/modify/uninstall). 
       Note that this version is not considered installed when upgrading and thus will not run. The old version of Keybase on the system handles stopping as part of it's uninstall-->
       <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
 
-      <!--TODO These should run only if there is not a restart pending after install or upgrade-->
+      <!--TODO This should run only if there is not a restart pending after install or upgrade from either Dokan or Keybase.-->
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>    
     

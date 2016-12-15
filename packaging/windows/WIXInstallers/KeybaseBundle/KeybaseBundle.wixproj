@@ -70,15 +70,10 @@
     <PreBuildEvent>cd /d "$(ProjectDir)"
 
 if NOT exist Redist\VCRedist_2015\vc_redist.x86.exe (
-
     if NOT exist Redist\ mkdir Redist
-
     if NOT exist Redist\VCRedist_2015\ mkdir Redist\VCRedist_2015\
-
-    powershell -command "wget https://download.microsoft.com/download/2/6/8/268f7be7-8d2a-42d6-a823-5c6941a3d70a/vc_redist.x86.exe -OutFile Redist\VCRedist_2015\VC_redist.x86.exe"
-
-    powershell -command "wget https://download.microsoft.com/download/6/3/a/63abaf83-2ca6-4460-90d7-12de8e815b1a/vc_redist.x64.exe -OutFile Redist\VCRedist_2015\VC_redist.x64.exe"
-
+    powershell -command "wget https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe -OutFile Redist\VCRedist_2015\VC_redist.x86.exe"
+    powershell -command "wget https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x64.exe -OutFile Redist\VCRedist_2015\VC_redist.x64.exe"
 )
 
 if NOT exist Redist\KB2999226\Windows8.1-KB2999226-x64.msu (
