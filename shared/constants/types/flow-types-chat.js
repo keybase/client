@@ -760,6 +760,11 @@ export type MarkAsReadRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type MerkleRoot = {
+  seqno: long,
+  hash: bytes,
+}
+
 export type MessageAttachment = {
   object: Asset,
   preview?: ?Asset,
@@ -792,6 +797,7 @@ export type MessageClientHeader = {
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
+  merkleRoot?: ?MerkleRoot,
   outboxID?: ?OutboxID,
   outboxInfo?: ?OutboxInfo,
 }
