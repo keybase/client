@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/kbfs'
 import {call, put} from 'redux-saga/effects'
 import {fsListRpcPromise} from '../../constants/types/flow-types'
-import {openSaga} from './index.platform'
+import {openSaga, openInFileUISaga} from './index.platform'
 import {safeTakeLatest, safeTakeEvery} from '../../util/saga'
 
 import type {ListResult} from '../../constants/types/flow-types'
@@ -36,6 +36,7 @@ function * kbfsSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeLatest(Constants.fsList, _listSaga),
     safeTakeEvery(Constants.fsOpen, openSaga),
+    safeTakeEvery('fs:openInFileUI', openInFileUISaga),
   ]
 }
 
