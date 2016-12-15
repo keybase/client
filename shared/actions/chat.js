@@ -735,7 +735,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title}}: C
     const {bytesComplete, bytesTotal} = response.param
     const action: Constants.UploadProgress = {
       type: 'chat:uploadProgress',
-      payload: {bytesTotal, bytesComplete},
+      payload: {bytesTotal, bytesComplete, conversationIDKey},
     }
     yield put(action)
     response.result()

@@ -197,11 +197,13 @@ export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conv
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   bytesComplete: number,
   bytesTotal: number,
+  conversationIDKey: ConversationIDKey,
 }>
 export type DownloadProgress = NoErrorTypedAction<'chat:downloadProgress', {
   bytesComplete: number,
   bytesTotal: number,
   conversationIDKey: ConversationIDKey,
+  messageID: MessageID,
 }>
 export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
   messageID: MessageID,
