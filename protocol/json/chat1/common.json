@@ -239,6 +239,24 @@
     },
     {
       "type": "record",
+      "name": "ConversationFinalizeInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "resetUser"
+        },
+        {
+          "type": "string",
+          "name": "resetDate"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "resetTimestamp"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationMetadata",
       "fields": [
         {
@@ -250,8 +268,11 @@
           "name": "conversationID"
         },
         {
-          "type": "boolean",
-          "name": "isFinalized"
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
         },
         {
           "type": {

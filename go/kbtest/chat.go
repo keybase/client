@@ -391,7 +391,7 @@ func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.Se
 	return chat1.SetConversationStatusRes{}, errors.New("not implemented")
 }
 
-func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) error {
+func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, arg chat1.TlfFinalizeArg) error {
 	return nil
 }
 
