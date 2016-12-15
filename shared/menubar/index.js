@@ -203,9 +203,9 @@ export default connect(
     badgeInfo: state.notifications && state.notifications.menuNotifications || {},
   }),
   dispatch => ({
+    ...bindActionCreators({...favoriteAction, openInKBFS, openRekeyDialog}, dispatch),
     onShowLoginTab: () => { dispatch(navigateTo([loginTab])) },
     switchTab: tab => { dispatch(switchTo([tab])) },
-    ...bindActionCreators({...favoriteAction, openInKBFS, openRekeyDialog}, dispatch),
   })
 )(Menubar)
 

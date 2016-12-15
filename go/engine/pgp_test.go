@@ -289,6 +289,7 @@ func (p *pgpPair) idc(ctx *Context) int {
 	if !ok {
 		p.t.Fatalf("not FakeIdentifyUI: %T", ctx.IdentifyUI)
 	}
+	p.t.Logf("FakeIdentifyUI: %+v", ui)
 	return ui.StartCount
 }
 

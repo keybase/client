@@ -53,6 +53,7 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
+
       <!--See Fragment sections for actions specific to those components-->
     </InstallExecuteSequence>
 
@@ -114,6 +115,8 @@
       <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
       <!--TODO Stop Keybase command line since prompt will typically be in the install directory-->
 
+      <Custom Action="RunMainAppDummyForRepair" Before="RunMainApp"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+
       <!--This These should run only if there is not a restart pending after install or upgrade-->
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
@@ -124,6 +127,13 @@
               Execute="commit"
               Impersonate="yes"
               Return="asyncNoWait"/>
+
+    <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
+    <CustomAction Id="RunMainAppDummyForRepair"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; --standalone ping"
+              Execute="commit"
+              Return="ignore"/>
 
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"

@@ -376,7 +376,11 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "ConvID":
-				convID = chat1.ConversationID(field.Value)
+				bs, err := chat1.MakeConvID(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing ChatConvExistsError")
+				}
+				convID = chat1.ConversationID(bs)
 			}
 		}
 		return ChatConvExistsError{

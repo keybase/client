@@ -59,6 +59,7 @@ protocol identifyCommon {
     boolean bypassConfirm;
     boolean forceRetrack;  // only used in testing
     boolean expiringLocal;
+    boolean forPGPPull;
   }
 
   enum IdentifyReasonType {
@@ -68,7 +69,8 @@ protocol identifyCommon {
     ENCRYPT_3,
     DECRYPT_4,
     VERIFY_5,
-    RESOURCE_6
+    RESOURCE_6,
+    BACKGROUND_7
   }
 
   record IdentifyReason {

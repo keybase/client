@@ -1,0 +1,48 @@
+{
+  "protocol": "reachability",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "Reachable",
+      "symbols": [
+        "UNKNOWN_0",
+        "YES_1",
+        "NO_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Reachability",
+      "fields": [
+        {
+          "type": "Reachable",
+          "name": "reachable"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "reachabilityChanged": {
+      "request": [
+        {
+          "name": "reachability",
+          "type": "Reachability"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "startReachability": {
+      "request": [],
+      "response": "Reachability",
+      "doc": "Start reachability checks and return current status, which\n   may be cached."
+    },
+    "checkReachability": {
+      "request": [],
+      "response": "Reachability",
+      "doc": "Performs a reachability check. This is not a cached response."
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -20,7 +20,7 @@ function setupKBFSChangedHandler (): SetupKBFSChangedHandler {
   return {type: Constants.setupKBFSChangedHandler, payload: undefined}
 }
 
-function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
+function favoriteSwitchTab (showingPrivate: boolean): FavoriteSwitchTab {
   return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
 }
 
@@ -309,7 +309,7 @@ export {
   ignoreFolder,
   markTLFCreated,
   setupKBFSChangedHandler,
-  switchTab,
+  favoriteSwitchTab,
   toggleShowIgnored,
 }
 

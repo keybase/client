@@ -168,6 +168,11 @@
 			"revisionTime": "2016-03-08T10:58:20-08:00"
 		},
 		{
+			"path": "github.com/keybase/clockwork",
+			"revision": "976f45f4a979cd2fd048a639630ba20d8378c9d8",
+			"revisionTime": "2016-12-09T16:02:51-05:00"
+		},
+		{
 			"path": "github.com/keybase/go-codec/codec",
 			"revision": "8a39c1d1f00af239dd650a292922fa4f46a39fa2",
 			"revisionTime": "2016-04-04T17:08:33-07:00"

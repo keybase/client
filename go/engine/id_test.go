@@ -13,51 +13,61 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, res *IDRes, err error) {
+func runIdentify(tc *libkb.TestContext, username string) (idUI *FakeIdentifyUI, res *keybase1.Identify2Res, err error) {
 	idUI = &FakeIdentifyUI{}
-	arg := keybase1.IdentifyArg{
+	arg := keybase1.Identify2Arg{
 		UserAssertion: username,
+		AlwaysBlock:   true,
 	}
+
 	ctx := Context{
 		LogUI:      tc.G.UI.GetLogUI(),
 		IdentifyUI: idUI,
 	}
-	eng := NewIDEngine(&arg, tc.G)
+
+	eng := NewResolveThenIdentify2(tc.G, &arg)
 	err = RunEngine(eng, &ctx)
+	if err != nil {
+		return idUI, nil, err
+	}
 	res = eng.Result()
-	return
+	return idUI, res, nil
 }
 
-func checkAliceProofs(tb testing.TB, idUI *FakeIdentifyUI, user *libkb.User) {
+func checkAliceProofs(tb testing.TB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
 	checkKeyedProfile(tb, idUI, user, "alice", true, map[string]string{
 		"github":  "kbtester2",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkBobProofs(tb testing.TB, idUI *FakeIdentifyUI, user *libkb.User) {
+func checkBobProofs(tb testing.TB, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
 	checkKeyedProfile(tb, idUI, user, "bob", true, map[string]string{
 		"github":  "kbtester1",
 		"twitter": "kbtester1",
 	})
 }
 
-func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
+func checkCharlieProofs(t *testing.T, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
 	checkKeyedProfile(t, idUI, user, "charlie", true, map[string]string{
 		"github":  "tacoplusplus",
 		"twitter": "tacovontaco",
 	})
 }
 
-func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
+func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, user *keybase1.UserPlusKeys) {
 	checkKeyedProfile(t, idUI, user, "doug", false, nil)
 }
 
-func checkKeyedProfile(tb testing.TB, idUI *FakeIdentifyUI, them *libkb.User, name string, hasImg bool, expectedProofs map[string]string) {
+func checkKeyedProfile(tb testing.TB, idUI *FakeIdentifyUI, them *keybase1.UserPlusKeys, name string, hasImg bool, expectedProofs map[string]string) {
 	if them == nil {
 		tb.Fatal("nil 'them' user")
 	}
-	if exported := them.Export(); !reflect.DeepEqual(idUI.User, exported) {
+	exported := &keybase1.User{
+		Uid:      them.Uid,
+		Username: them.Username,
+	}
+	if !reflect.DeepEqual(idUI.User, exported) {
 		tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
 	}
 
@@ -86,7 +96,7 @@ func TestIdAlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkAliceProofs(t, idUI, result.User)
+	checkAliceProofs(t, idUI, &result.Upk)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -97,7 +107,7 @@ func TestIdBob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkBobProofs(t, idUI, result.User)
+	checkBobProofs(t, idUI, &result.Upk)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -108,7 +118,7 @@ func TestIdCharlie(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkCharlieProofs(t, idUI, result.User)
+	checkCharlieProofs(t, idUI, &result.Upk)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -119,7 +129,7 @@ func TestIdDoug(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	checkDougProofs(t, idUI, result.User)
+	checkDougProofs(t, idUI, &result.Upk)
 	checkDisplayKeys(t, idUI, 1, 1)
 }
 
@@ -128,9 +138,9 @@ func TestIdEllen(t *testing.T) {
 	defer tc.Cleanup()
 	idUI, _, err := runIdentify(&tc, "t_ellen")
 	if err == nil {
-		t.Fatal("Expected no public key found error.")
-	} else if _, ok := err.(libkb.NoActiveKeyError); !ok {
-		t.Fatal("Expected no public key found error. Got instead:", err)
+		t.Fatal("Expected no sigchain error.")
+	} else if _, ok := err.(libkb.NoSigChainError); !ok {
+		t.Fatalf("error: %T, expected NoSigChainError", err)
 	}
 	checkDisplayKeys(t, idUI, 0, 0)
 }

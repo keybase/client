@@ -249,9 +249,11 @@ services:
     # URL validation.
     { assert_regex_match: {
       , pattern: "^https?://[\\w:_\\-\\.]+/_/api/1\\.0/rooter/%{username_service}/.*$"
-      , case_insensitive: true} },
+      , case_insensitive: true
+      , from: "hint_url" } },
     # rooter is special cased by the interpreter to hit the api server
     { fetch: {
+      , from: "hint_url"
       , kind: "json" } },
     { selector_json: {
       , selectors: ["status", "name"]

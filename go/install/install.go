@@ -58,6 +58,8 @@ const (
 	ComponentNameFuse ComponentName = "fuse"
 	// ComponentNameHelper is the privileged helper tool
 	ComponentNameHelper ComponentName = "helper"
+	// ComponentNameMountDir is the mount directory
+	ComponentNameMountDir ComponentName = "mountdir"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )

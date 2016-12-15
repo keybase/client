@@ -220,13 +220,13 @@ class ConversationList extends Component<void, Props, State> {
       background-color: transparent;
     }
     .message .action-button {
-      visibility: hidden;
+      opacity: 0;
     }
     .message:hover {
       background-color: ${globalColors.black_05};
     }
     .message:hover .action-button {
-      visibility: visible;
+      opacity: 1;
     }
     `
 

@@ -9,9 +9,10 @@ import (
 )
 
 type AuthResult struct {
-	Uid     UID       `codec:"uid" json:"uid"`
-	Sid     SessionID `codec:"sid" json:"sid"`
-	IsAdmin bool      `codec:"isAdmin" json:"isAdmin"`
+	Uid      UID       `codec:"uid" json:"uid"`
+	Username string    `codec:"username" json:"username"`
+	Sid      SessionID `codec:"sid" json:"sid"`
+	IsAdmin  bool      `codec:"isAdmin" json:"isAdmin"`
 }
 
 type AuthenticateSessionTokenArg struct {

@@ -65,12 +65,12 @@ func TestCheckPlist(t *testing.T) {
 		t.Fatalf("We shouldn't have a plist")
 	}
 
-	err = service.Install(plist, time.Second)
+	err = service.savePlist(plist)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Check valid plist after install
+	// Check valid plist after save
 	plistIsValidAfter, err := service.CheckPlist(plist)
 	if err != nil {
 		t.Fatal(err)
@@ -89,7 +89,7 @@ func TestCheckPlist(t *testing.T) {
 		t.Fatal("New plist should be invalid")
 	}
 
-	err = service.Install(plistNew, time.Second)
+	err = service.savePlist(plistNew)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestWaitForStatusOK(t *testing.T) {
 	fn := func() (*ServiceStatus, error) {
 		return &ServiceStatus{label: "ok", pid: "1"}, nil
 	}
-	status, err := waitForStatus(10*time.Millisecond, time.Millisecond, fn)
+	status, err := waitForStatus(time.Second, time.Millisecond, fn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,11 +134,14 @@ func TestWaitForStatusDelayed(t *testing.T) {
 		}
 		return nil, nil
 	}
-	status, err := waitForStatus(10*time.Millisecond, time.Millisecond, fn)
+	status, err := waitForStatus(time.Second, time.Millisecond, fn)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if status == nil || status.label != "ok_delayed" {
+	if status == nil {
+		t.Fatalf("Wait timed out")
+	}
+	if status.label != "ok_delayed" {
 		t.Fatalf("Invalid status")
 	}
 }
@@ -147,7 +150,7 @@ func TestWaitForStatusErrored(t *testing.T) {
 	fn := func() (*ServiceStatus, error) {
 		return nil, fmt.Errorf("status error")
 	}
-	_, err := waitForStatus(10*time.Millisecond, time.Millisecond, fn)
+	_, err := waitForStatus(time.Second, time.Millisecond, fn)
 	if err == nil {
 		t.Fatal("Expected error")
 	}
@@ -173,7 +176,7 @@ func TestWaitForExitOK(t *testing.T) {
 	fn := func() (*ServiceStatus, error) {
 		return nil, nil
 	}
-	err := waitForExit(10*time.Millisecond, time.Millisecond, fn)
+	err := waitForExit(time.Second, time.Millisecond, fn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +191,7 @@ func TestWaitForExitDelayed(t *testing.T) {
 		}
 		return nil, nil
 	}
-	err := waitForExit(10*time.Millisecond, time.Millisecond, fn)
+	err := waitForExit(time.Second, time.Millisecond, fn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +201,7 @@ func TestWaitForExitErrored(t *testing.T) {
 	fn := func() (*ServiceStatus, error) {
 		return nil, fmt.Errorf("status error")
 	}
-	err := waitForExit(10*time.Millisecond, time.Millisecond, fn)
+	err := waitForExit(time.Second, time.Millisecond, fn)
 	if err == nil {
 		t.Fatal("Expected error")
 	}
