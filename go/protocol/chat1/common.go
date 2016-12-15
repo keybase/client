@@ -149,11 +149,17 @@ type ConversationIDTriple struct {
 	TopicID   TopicID   `codec:"topicID" json:"topicID"`
 }
 
+type ConversationFinalizeInfo struct {
+	ResetUser      string       `codec:"resetUser" json:"resetUser"`
+	ResetDate      string       `codec:"resetDate" json:"resetDate"`
+	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
+}
+
 type ConversationMetadata struct {
-	IdTriple       ConversationIDTriple `codec:"idTriple" json:"idTriple"`
-	ConversationID ConversationID       `codec:"conversationID" json:"conversationID"`
-	IsFinalized    bool                 `codec:"isFinalized" json:"isFinalized"`
-	ActiveList     []gregor1.UID        `codec:"activeList" json:"activeList"`
+	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
+	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
+	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
 }
 
 type ConversationReaderInfo struct {

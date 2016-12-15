@@ -93,10 +93,19 @@ protocol common {
     TopicID topicID;
   }
 
+  record ConversationFinalizeInfo {
+    string resetUser;
+    string resetDate;
+    gregor1.Time resetTimestamp;
+  }
+
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
-    boolean isFinalized;
+
+    // Finalize info for underlying TLF
+    union { null, ConversationFinalizeInfo } finalizeInfo;
+
     // List of users sorted by recency of last [intentional] post.
     // Most recent first. May be incomplete or empty.
     array<gregor1.UID> activeList;

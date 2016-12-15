@@ -523,6 +523,12 @@ export type Conversation = {
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
+export type ConversationFinalizeInfo = {
+  resetUser: string,
+  resetDate: string,
+  resetTimestamp: gregor1.Time,
+}
+
 export type ConversationID = bytes
 
 export type ConversationIDTriple = {
@@ -552,7 +558,7 @@ export type ConversationLocal = {
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
-  isFinalized: boolean,
+  finalizeInfo?: ?ConversationFinalizeInfo,
   activeList?: ?Array<gregor1.UID>,
 }
 
@@ -1253,7 +1259,10 @@ export type remoteSetConversationStatusRpcParam = Exact<{
 }>
 
 export type remoteTlfFinalizeRpcParam = Exact<{
-  tlfID: TLFID
+  tlfID: TLFID,
+  resetUser: string,
+  resetDate: string,
+  resetTimestamp: gregor1.Time
 }>
 
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
