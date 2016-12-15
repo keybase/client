@@ -18,10 +18,13 @@ class DumbSheetItem extends Component<void, Props<*>, void> {
     const Component = this.props.component
     // We don't need afterMount here, but don't want it to end up in the ...mock rest object
     // eslint-disable-next-line no-unused-vars
-    const {parentProps, afterMount, ...mock} = this.props.mock
+    const {parentProps, preload, afterMount, ...mock} = this.props.mock
     return (
       <Box id={this.props.id} style={{...styleBox, ...this.props.style}}>
         <Text type='Body' style={{marginBottom: 5}}>{this.props.mockKey}</Text>
+        <div style={{display: 'none'}}>
+          {preload && preload.map((url, idx) => <img key={idx} src={url} />)}
+        </div>
         <Box {...parentProps}>
           <Component ref={c => { this._component = c }} {...mock} />
         </Box>
