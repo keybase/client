@@ -100,7 +100,7 @@ const commonConvoProps = {
   messages: List(messages),
   participants: List(participants),
   moreToLoad: false,
-  isLoading: false,
+  isRequesting: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
   emojiPickerOpen: false,
@@ -192,11 +192,13 @@ const input = {
     'Normal': {
       ...commonConvoProps,
     },
+    /* FIXME: causes flaky visdiff
     'Emoji Open': {
       ...commonConvoProps,
       emojiPickerOpen: true,
       parentProps: {style: {height: 370, paddingTop: 330}},
     },
+    */
     'Empty': {
       ...emptyConvoProps,
     },

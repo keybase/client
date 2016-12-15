@@ -23,9 +23,11 @@ function SettingsRender (props: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       {!!props.bannerElement && <Banner element={props.bannerElement} type={props.bannerType || 'green'} />}
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         {!props.isModal && <SettingsNav badgeNumbers={props.badgeNumbers} selectedTab={props.selectedTab} onTabChange={props.onTabChange} />}
-        {props.children}
+        <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>
+          {props.children}
+        </Box>
       </Box>
     </Box>
   )
@@ -33,7 +35,7 @@ function SettingsRender (props: Props) {
 
 const commonBannerStyle = {
   ...globalStyles.flexBoxRow,
-  minHeight: 48,
+  minHeight: 40,
 }
 
 const variantBannerStyle = {

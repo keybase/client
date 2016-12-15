@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -139,21 +140,26 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	}
 
 	// Consume localize callbacks and send out to UI.
+	var wg sync.WaitGroup
 	for convRes := range localizeCb {
-		if convRes.Err != nil {
-			chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
-				SessionID: arg.SessionID,
-				Error:     convRes.Err.Error(),
-				ConvID:    convRes.ConvID,
-			})
-		} else if convRes.ConvRes != nil {
-			chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
-				SessionID: arg.SessionID,
-				Conv:      *convRes.ConvRes,
-			})
-		}
+		wg.Add(1)
+		go func(convRes chat.NonblockInboxResult) {
+			if convRes.Err != nil {
+				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
+					SessionID: arg.SessionID,
+					Error:     convRes.Err.Error(),
+					ConvID:    convRes.ConvID,
+				})
+			} else if convRes.ConvRes != nil {
+				chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
+					SessionID: arg.SessionID,
+					Conv:      *convRes.ConvRes,
+				})
+			}
+			wg.Done()
+		}(convRes)
 	}
-
+	wg.Wait()
 	return nil
 }
 
@@ -622,7 +628,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
-	_, _, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
+	_, msgID, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
@@ -631,6 +637,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		MessageID:  msgID,
 	}, nil
 }
 

@@ -107,7 +107,7 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 	w := c.terminal.ErrorWriter()
 	sender := "<unknown>"
 	snippet := "<blank>"
-	tlf := "<unknown>"
+	tlf := arg.Conv.Info.TlfName + " (unverified)"
 	for _, msg := range arg.Conv.MaxMessages {
 		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
 			sender = msg.Valid().SenderUsername

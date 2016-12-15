@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -51,6 +53,19 @@ func (c *CmdPassphraseRecover) Run() error {
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
+	}
+
+	loggedIn, err := c.G().LoginState().LoggedInLoad()
+	if err != nil {
+		c.G().Log.Debug("Passphrase recover couldn't query LoggedInProvisionedLoad: %v", err)
+		loggedIn = false
+	}
+	if !loggedIn {
+		ui := c.G().UI.GetTerminalUI()
+		ui.Printf("Passphrase recovery requires that you are logged in first.\n")
+		ui.Printf("Please run `keybase login` before `keybase passphrase recover`.\n")
+		ui.Printf("But don't panic, you can log in with a paper key.\n")
+		return fmt.Errorf("Passphrase recovery requires login")
 	}
 
 	if err := c.confirm(); err != nil {

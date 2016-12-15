@@ -2,10 +2,11 @@
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
+import {CommonMessageType} from './types/flow-types-chat'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction} from './types/flux'
-import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, ChatActivity, ConversationInfoLocal} from './types/flow-types-chat'
+import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, ChatActivity, ConversationInfoLocal, MessageBody} from './types/flow-types-chat'
 
 export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
@@ -37,6 +38,7 @@ export type TextMessage = {
   followState: FollowState,
   messageState: MessageState,
   outboxID?: ?string,
+  key: any,
 }
 
 export type ErrorMessage = {
@@ -45,6 +47,7 @@ export type ErrorMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
+  key: any,
 }
 
 export type UnhandledMessage = {
@@ -52,6 +55,7 @@ export type UnhandledMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
+  key: any,
 }
 
 export type AttachmentMessage = {
@@ -68,11 +72,13 @@ export type AttachmentMessage = {
   previewType: ?('Image' | 'Other'),
   previewPath: ?string,
   downloadedPath: ?string,
+  key: any,
 }
 
 export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
+  key: any,
 }
 
 export type MaybeTimestamp = TimestampMessage | null
@@ -80,8 +86,8 @@ export type MaybeTimestamp = TimestampMessage | null
 export const ConversationStateRecord = Record({
   messages: List(),
   seenMessages: Set(),
-  moreToLoad: false,
-  isLoading: true,
+  moreToLoad: true,
+  isRequesting: false,
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
@@ -91,7 +97,7 @@ export type ConversationState = Record<{
   messages: List<Message>,
   seenMessages: Set<MessageID>,
   moreToLoad: boolean,
-  isLoading: boolean,
+  isRequesting: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
@@ -110,6 +116,7 @@ export const InboxStateRecord = Record({
   time: '',
   snippet: '',
   unreadCount: 0,
+  validated: false,
 })
 
 export type InboxState = Record<{
@@ -120,6 +127,7 @@ export type InboxState = Record<{
   time: string,
   snippet: string,
   unreadCount: number,
+  validated: boolean,
 }>
 
 export type MetaData = Record<{
@@ -171,6 +179,8 @@ export const updateLatestMessage = 'chat:updateLatestMessage'
 export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
 export const selectAttachment = 'chat:selectAttachment'
+export const updateInbox = 'chat:updateInbox'
+export const updateInboxComplete = 'chat:updateInboxComplete'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
@@ -178,6 +188,8 @@ export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: M
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
+export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
+export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
@@ -230,6 +242,8 @@ export type Actions = AppendMessages
   | SelectConversation
   | StartConversation
   | UpdateBadging
+  | UpdateInbox
+  | UpdateInboxComplete
   | UpdateLatestMessage
   | UpdateMetadata
   | UpdatedMetadata
@@ -242,8 +256,22 @@ function keyToConversationID (key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'hex')
 }
 
+function makeSnippet (messageBody: ?MessageBody): ?string {
+  if (!messageBody) {
+    return null
+  }
+  switch (messageBody.messageType) {
+    case CommonMessageType.text:
+      return textSnippet(messageBody.text && messageBody.text.body, 100)
+    case CommonMessageType.attachment:
+      return 'Attachment'
+    default:
+      return null
+  }
+}
+
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
-function makeSnippet (message: ?string = '', max: number) {
+function textSnippet (message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
   return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
 }
@@ -257,9 +285,24 @@ function participantFilter (participants: List<ParticipantItem>): List<Participa
   return withoutYou
 }
 
+function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
+  switch (message.type) {
+    case 'Text':
+      return {
+        messageType: CommonMessageType.text,
+        text: {
+          body: message.message.stringValue(),
+        },
+      }
+    default:
+      null
+  }
+}
+
 export {
   conversationIDToKey,
   keyToConversationID,
   makeSnippet,
   participantFilter,
+  serverMessageToMessageBody,
 }

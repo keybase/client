@@ -9,6 +9,7 @@ import {messageStates, followStates} from '../../../constants/chat'
 import type {FollowState, MessageState, TextMessage} from '../../../constants/chat'
 import type {DumbComponentMap} from '../../../constants/types/more'
 
+let mockKey = 1
 function messageMock (messageState: MessageState, followState: FollowState, text?: string): TextMessage {
   return {
     type: 'Text',
@@ -20,6 +21,7 @@ function messageMock (messageState: MessageState, followState: FollowState, text
     deviceType: 'desktop',
     timestamp: 1479764890000,
     conversationIDKey: 'cid1',
+    key: mockKey++,
   }
 }
 

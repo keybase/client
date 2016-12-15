@@ -10,6 +10,7 @@ import CodePage from '../register/code-page'
 import SetPublicName from '../register/set-public-name'
 import Success from '../signup/success'
 import RegisterError from '../register/error'
+import GPGSign from '../register/gpg-sign'
 
 const recursiveLazyRoutes = I.Seq({
   login: {
@@ -26,6 +27,9 @@ const recursiveLazyRoutes = I.Seq({
   },
   passphrase: {
     component: Passphrase,
+  },
+  gpgSign: {
+    component: GPGSign,
   },
   paperkey: {
     component: PaperKey,
