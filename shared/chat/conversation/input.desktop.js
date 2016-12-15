@@ -50,7 +50,8 @@ class Conversation extends Component<void, Props, State> {
             value={this.state.inputText}
             multiline={true}
             rowsMin={1}
-            onEnterKeyDown={() => {
+            onEnterKeyDown={(e) => {
+              e.preventDefault()
               if (this.state.inputText) {
                 this.props.onPostMessage(this.state.inputText)
                 this._input.clearValue()
