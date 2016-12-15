@@ -31,15 +31,12 @@ export type Props = {
   inviteEmail: string,
   inviteMessage: string,
   showMessageField: boolean,
-  emailError: boolean,
   pendingInvites: Array<PendingInvite>,
   acceptedInvites: Array<AcceptedInvite>,
-  onChangeInviteEmail: (inviteEmail: string) => void,
-  onChangeInviteMessage: (inviteMessage: string) => void,
-  onClickUser: (username: string) => void,
+  onSelectUser: (username: string) => void,
   onReclaimInvitation: (invitationId: string) => void,
   onRefresh: () => void,
-  onGenerateInvitation: () => void,
+  onGenerateInvitation: (email: string, message: string) => void,
   waitingForResponse: boolean,
 }
 

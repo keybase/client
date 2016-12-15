@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import React, {Component} from 'react'
 import moment from 'moment'
 
 import {intersperseFn} from '../../util/arrays'
@@ -14,53 +14,80 @@ function intersperseDividers (arr) {
   return intersperseFn(i => <Divider key={i} style={{backgroundColor: globalColors.black_05}} />, arr)
 }
 
-function Invites (props: Props) {
-  return (
-    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1, overflow: 'auto'}}>
-      <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'center', marginTop: globalMargins.small}}>
-        <Input
-          hintText="Friend's email (optional)"
-          value={props.inviteEmail}
-          onChangeText={props.onChangeInviteEmail}
-          errorText={props.emailError ? ' ' : null}
-          style={{marginBottom: 0}}
-        />
-        {props.showMessageField && <Input
-          hintText='Message (optional)'
-          multiline={true}
-          value={props.inviteMessage}
-          onChangeText={props.onChangeInviteMessage}
-        />}
-        <Button
-          type='Primary'
-          label='Generate invitation'
-          onClick={props.onGenerateInvitation}
-          waiting={props.waitingForResponse}
-          style={{alignSelf: 'center', marginTop: globalMargins.medium}}
-        />
-      </Box>
-      {props.pendingInvites.length > 0 && <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16, flexShrink: 0}}>
-        <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
-        {intersperseDividers(props.pendingInvites.map(invite =>
-          <PendingInviteItem
-            key={invite.id}
-            invite={invite}
-            onReclaim={id => props.onReclaimInvitation(id)}
+type State = {
+  inviteEmail: string,
+  inviteMessage: string,
+  showMessageField: boolean,
+}
+
+class Invites extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      inviteEmail: props.inviteEmail,
+      inviteMessage: props.inviteMessage,
+      showMessageField: props.showMessageField,
+    }
+  }
+
+  handleChangeEmail (inviteEmail: string) {
+    const showMessageField = inviteEmail.length > 0
+    this.setState({
+      inviteEmail,
+      showMessageField,
+    })
+  }
+
+  render () {
+    const props = this.props
+    return (
+      <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1, overflow: 'auto'}}>
+        <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'center', marginTop: globalMargins.small}}>
+          <Input
+            hintText="Friend's email (optional)"
+            value={this.state.inviteEmail}
+            onChangeText={inviteEmail => this.handleChangeEmail(inviteEmail)}
+            style={{marginBottom: 0}}
           />
-        ))}
-      </Box>}
-      <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
-        <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
-        {intersperseDividers(props.acceptedInvites.map(invite =>
-          <AcceptedInviteItem
-            key={invite.id}
-            invite={invite}
-            onClick={() => props.onClickUser(invite.username)}
+          {this.state.showMessageField && <Input
+            hintText='Message (optional)'
+            multiline={true}
+            value={this.state.inviteMessage}
+            onChangeText={inviteMessage => this.setState({inviteMessage})}
+          />}
+          <Button
+            type='Primary'
+            label='Generate invitation'
+            onClick={() => props.onGenerateInvitation(this.state.inviteEmail, this.state.inviteMessage)}
+            waiting={props.waitingForResponse}
+            style={{alignSelf: 'center', marginTop: globalMargins.medium}}
           />
-        ))}
+        </Box>
+        {props.pendingInvites.length > 0 && <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16, flexShrink: 0}}>
+          <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
+          {intersperseDividers(props.pendingInvites.map(invite =>
+            <PendingInviteItem
+              key={invite.id}
+              invite={invite}
+              onReclaim={id => props.onReclaimInvitation(id)}
+            />
+          ))}
+        </Box>}
+        <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
+          <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
+          {intersperseDividers(props.acceptedInvites.map(invite =>
+            <AcceptedInviteItem
+              key={invite.id}
+              invite={invite}
+              onClick={() => props.onSelectUser(invite.username)}
+            />
+          ))}
+        </Box>
       </Box>
-    </Box>
-  )
+    )
+  }
 }
 
 function PendingInviteItem ({invite, onReclaim}: {invite: PendingInvite, onReclaim: (id: string) => void}) {

@@ -1,6 +1,7 @@
 // @flow
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
 import type {Email} from './types/flow-types'
+import type {AcceptedInvite, PendingInvite} from '../settings/invites/index'
 import HiddenString from '../util/hidden-string'
 
 export const invitesReclaim = 'settings:invitesReclaim'
@@ -106,8 +107,8 @@ export type Invitation = {
 }
 
 export type InvitesState = {
-  pendingInvites: Array<Invitation>,
-  acceptedInvites: Array<Invitation>,
+  pendingInvites: Array<PendingInvite>,
+  acceptedInvites: Array<AcceptedInvite>,
 }
 
 export type NotificationsState = {

@@ -413,7 +413,6 @@ const invitesBase = {
   inviteEmail: 'tcook@apple.com',
   inviteMessage: 'Hey Tim! I heard you like end-to-end encryption...',
   showMessageField: true,
-  emailError: false,
   pendingInvites: [
     {
       type: 'pending-email',
@@ -457,9 +456,7 @@ const invitesBase = {
       trackerState: 'error',
     },
   ],
-  onChangeInviteEmail: inviteEmail => console.log('onChangeInviteEmail', inviteEmail),
-  onChangeInviteMessage: inviteMessage => console.log('onChangeInviteMessage', inviteMessage),
-  onClickUser: username => console.log('onClickUser', username),
+  onSelectUser: username => console.log('onSelectUser', username),
   onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
   onGenerateInvitation: () => console.log('onGenerateInvitation'),
   waitingForResponse: false,
