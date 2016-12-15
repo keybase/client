@@ -46,7 +46,7 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
     backgroundColor: globalColors.darkBlue4,
     username: p.username,
     borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
-  })).toArray()
+  })).toArray().reverse()
   const snippet = conversation.get('snippet')
   const subColor = (isSelected || hasUnread) ? globalColors.white : globalColors.blue3_40
   const backgroundColor = isSelected ? globalColors.darkBlue2 : hasUnread ? globalColors.darkBlue : globalColors.transparent

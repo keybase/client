@@ -2,6 +2,7 @@
 import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
+import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage} from '../../actions/chat'
@@ -14,27 +15,46 @@ import type {Props} from '.'
 type OwnProps = {}
 type State = {
   sidePanelOpen: boolean,
+  inputText: string,
 }
 
 class ConversationContainer extends Component<void, Props, State> {
   state: State
+  _inputTextMap: {[key: string]: ?string}= {}
 
   constructor (props: Props) {
     super(props)
-    this.state = {sidePanelOpen: false}
+    this.state = {sidePanelOpen: false, inputText: ''}
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
-      this.setState({sidePanelOpen: false})
+      this.setState({
+        sidePanelOpen: false,
+        inputText: this._inputTextMap[nextProps.selectedConversation || ''] || '',
+      })
+    }
+  }
+
+  _setInputText = (inputText: string) => {
+    if (this.props.selectedConversation) {
+      this._inputTextMap[this.props.selectedConversation] = inputText
+      this.setState({inputText})
     }
   }
 
   render () {
+    if (!this.props.selectedConversation) {
+      return <Box style={{flex: 1}} />
+    }
+
     return <Conversation
       {...this.props}
       sidePanelOpen={this.state.sidePanelOpen}
-      onToggleSidePanel={() => this.setState({sidePanelOpen: !this.state.sidePanelOpen})} />
+      onToggleSidePanel={() => this.setState({sidePanelOpen: !this.state.sidePanelOpen})}
+      setInputText={this._setInputText}
+      inputText={this.state.inputText}
+    />
   }
 }
 
