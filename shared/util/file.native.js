@@ -2,11 +2,11 @@
 
 // TODO
 function tmpFile (suffix: string): string {
-  return ''
+  throw new Error('Unimplemented')
 }
 
 function downloadFilePath (suffix: string): string {
-  return ''
+  throw new Error('Unimplemented')
 }
 
 export {
