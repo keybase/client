@@ -144,6 +144,8 @@ protocol common {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    // Latest merkle root when sent. Can be nil.
+    union { null, MerkleRoot } merkleRoot;
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
   }
@@ -159,6 +161,11 @@ protocol common {
     int   v; // version = 1
     bytes s; // signature; output of EdDSA
     bytes k; // Verifying key
+  }
+
+  record MerkleRoot {
+    long seqno;
+    bytes hash;
   }
 
   enum InboxResType {

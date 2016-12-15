@@ -163,7 +163,6 @@ func (d *Service) Handle(c net.Conn) {
 }
 
 func (d *Service) Run() (err error) {
-
 	defer func() {
 		if d.startCh != nil {
 			close(d.startCh)

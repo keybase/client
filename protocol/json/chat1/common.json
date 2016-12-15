@@ -413,6 +413,13 @@
         {
           "type": [
             null,
+            "MerkleRoot"
+          ],
+          "name": "merkleRoot"
+        },
+        {
+          "type": [
+            null,
             "OutboxID"
           ],
           "name": "outboxID"
@@ -459,6 +466,20 @@
         {
           "type": "bytes",
           "name": "k"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MerkleRoot",
+      "fields": [
+        {
+          "type": "long",
+          "name": "seqno"
+        },
+        {
+          "type": "bytes",
+          "name": "hash"
         }
       ]
     },
