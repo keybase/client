@@ -56,14 +56,18 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		return io.EOF
 	}
 
-	// Handle canceled contexts
+	var block Block
+	defer func() {
+		brw.queue.FinalizeRequest(retrieval, block, err)
+	}()
+
+	// Handle canceled contexts.
 	select {
 	case <-retrieval.ctx.Done():
 		return retrieval.ctx.Err()
 	default:
 	}
 
-	var block Block
 	wasBlockCached := func() bool {
 		retrieval.reqMtx.RLock()
 		defer retrieval.reqMtx.RUnlock()
@@ -80,10 +84,6 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		// Create a new block of the same type as the first request
 		block = retrieval.requests[0].block.NewEmpty()
 		return false
-	}()
-
-	defer func() {
-		brw.queue.FinalizeRequest(retrieval, block, err)
 	}()
 
 	if wasBlockCached {
