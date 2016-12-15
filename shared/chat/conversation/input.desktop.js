@@ -61,6 +61,7 @@ class Conversation extends Component<void, Props, State> {
             multiline={true}
             rowsMin={1}
             onEnterKeyDown={() => {
+              e.preventDefault()
               if (this.props.inputText) {
                 this.props.onPostMessage(this.props.inputText)
                 this.props.setInputText('')
