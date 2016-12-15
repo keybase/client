@@ -82,7 +82,6 @@ const itemStyle = {
   alignItems: 'center',
   position: 'relative',
   textTransform: 'uppercase',
-  transition: 'border .1s ease-out',
 }
 
 const selectedStyle = {
