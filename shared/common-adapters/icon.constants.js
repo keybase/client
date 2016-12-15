@@ -630,6 +630,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-64.png'),
   },
+  'icon-loader-connected-112': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-connected-112.png'),
+  },
+  'icon-loader-connecting-112': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-loader-connecting-112.gif'),
+  },
   'icon-loader-infinity-64': {
     isFont: false,
     extension: 'gif',

@@ -20,6 +20,7 @@ type LoadUserArg struct {
 	Self                     bool
 	ForceReload              bool
 	ForcePoll                bool // for cached user load, force a repoll
+	StaleOK                  bool // if stale cached versions are OK (for immutable fields)
 	AllKeys                  bool
 	LoginContext             LoginContext
 	AbortIfSigchainUnchanged bool

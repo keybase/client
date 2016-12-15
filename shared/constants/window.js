@@ -3,5 +3,5 @@ import type {NoErrorTypedAction} from './types/flux'
 
 export const changedFocus = 'window:changedFocus'
 
-export type ChangedFocused = NoErrorTypedAction<'window:changedFocus', boolean>
-export type Actions = ChangedFocused
+export type ChangedFocus = NoErrorTypedAction<'window:changedFocus', boolean>
+export type Actions = ChangedFocus

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/clockwork"
 )
 
 // MemEngine is an implementation of a gregor StateMachine that just keeps

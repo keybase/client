@@ -116,7 +116,7 @@
         }
       ],
       "response": "IdentifyRes",
-      "doc": "Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).\n    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used)."
+      "doc": "DEPRECATED:  use idenitfy2\n\n    Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).\n    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used)."
     },
     "identify2": {
       "request": [

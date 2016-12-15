@@ -338,6 +338,9 @@ type ChatUI interface {
 	ChatAttachmentDownloadStart(context.Context) error
 	ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error
 	ChatAttachmentDownloadDone(context.Context) error
+	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
+	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
+	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
 }
 
 type PromptDefault int

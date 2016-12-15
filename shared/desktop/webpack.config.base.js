@@ -1,4 +1,4 @@
-// @flow
+/* eslint-disable flowtype/require-valid-file-annotation */
 const fs = require('fs')
 const webpack = require('webpack')
 const path = require('path')

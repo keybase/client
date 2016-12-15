@@ -89,7 +89,6 @@ function * _checkProof (action: CheckProof): SagaGenerator<any, any> {
 
   try {
     yield put(_waitingForResponse(true))
-    // $ForceType
     const {found, status} = yield call(proveCheckProofRpcPromise, {param: {sigID}})
     yield put(_waitingForResponse(false))
 
@@ -167,7 +166,6 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
   })
 
   while (true) {
-    // $ForceType
     const incoming: {[key: string]: any} = yield race({
       promptUsername: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptUsername'),
       outputInstructions: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputInstructions'),
@@ -186,7 +184,6 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
     if (incoming.cancel) {
       closeChannelMap(proveStartProofChanMap)
 
-      // $ForceType
       const engineInst: Engine = yield call(engine)
 
       const InputCancelError = {desc: 'Cancel Add Proof', code: ConstantsStatusCode.scinputcanceled}
@@ -282,7 +279,7 @@ function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress):
     yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true, wantedFamily}})
     yield put(_waitingForResponse(false))
     yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
-    yield put(navigateAppend(['ConfirmOrPending'], [profileTab]))
+    yield put(navigateAppend(['postProof', 'confirmOrPending'], [profileTab]))
   } catch (error) {
     console.warn('Error making proof')
     yield put(_waitingForResponse(false))

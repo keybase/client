@@ -10,7 +10,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/kbtest"
@@ -19,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -100,6 +100,7 @@ func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                          
 func (n *nlistener) PGPKeyInSecretStoreFile()                                      {}
 func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
 func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
+func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                   {}
 
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {

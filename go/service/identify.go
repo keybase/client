@@ -4,10 +4,10 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/golang/groupcache/singleflight"
 	"golang.org/x/net/context"
 	"stathat.com/c/ramcache"
 
@@ -29,8 +29,6 @@ type RemoteIdentifyUI struct {
 type IdentifyHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	resultCache *ramcache.Ramcache
-	callGroup   singleflight.Group
 }
 
 func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHandler {
@@ -41,7 +39,6 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 	return &IdentifyHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
-		resultCache:  c,
 	}
 }
 
@@ -80,105 +77,8 @@ func (h *IdentifyHandler) Resolve2(_ context.Context, arg string) (u keybase1.Us
 }
 
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (res keybase1.IdentifyRes, err error) {
-	defer h.G().Trace("IdentifyHandler.Identify", func() error { return err })()
-	var do = func() (interface{}, error) {
-		if arg.Source == keybase1.ClientType_KBFS {
-			h.G().Log.Debug("KBFS Identify: checking result cache for %q", arg.UserAssertion)
-			x, err := h.resultCache.Get(arg.UserAssertion)
-			if err == nil {
-				exp, ok := x.(*keybase1.IdentifyRes)
-				if ok {
-					h.G().Log.Debug("KBFS Identify: found cached result for %q", arg.UserAssertion)
-					return *exp, nil
-				}
-			}
-			h.G().Log.Debug("KBFS Identify: no cached result for %q", arg.UserAssertion)
-		}
-
-		res, err := h.identify(arg.SessionID, arg)
-		if err != nil {
-			return keybase1.IdentifyRes{}, err
-		}
-		exp := res.Export()
-
-		if len(arg.UserAssertion) > 0 {
-			if err := h.resultCache.Set(arg.UserAssertion, exp); err != nil {
-				h.G().Log.Debug("Identify: result cache set error: %s", err)
-			} else {
-				h.G().Log.Debug("Identify: storing result for %q in result cache", arg.UserAssertion)
-			}
-		}
-
-		return *exp, nil
-	}
-
-	// If there is already an identify in progress for arg.UserAssertion, using callGroup here will
-	// just wait for that one to finish and use its result instead of spawning a concurrent identify
-	// call for the same user assertion.
-	v, err := h.callGroup.Do(arg.UserAssertion, do)
-	if err != nil {
-		return keybase1.IdentifyRes{}, err
-	}
-	res, ok := v.(keybase1.IdentifyRes)
-	if !ok {
-		return keybase1.IdentifyRes{}, fmt.Errorf("invalid type returned by do: %T", v)
-	}
-
-	return res, nil
-}
-
-func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (ret *engine.Context, err error) {
-	var iui libkb.IdentifyUI
-
-	h.G().Log.Debug("+ makeContext(%d, %v)", sessionID, arg)
-	defer func() {
-		h.G().Log.Debug("- makeContext -> %v", err)
-	}()
-
-	if arg.UseDelegateUI {
-		h.G().Log.Debug("+ trying to delegate our UI")
-		if h.G().UIRouter == nil {
-			h.G().Log.Warning("Can't delegate to a UI in standalone mode")
-		} else {
-			iui, err = h.G().UIRouter.GetIdentifyUI()
-			if err != nil {
-				return nil, err
-			}
-		}
-		h.G().Log.Debug("- delegated UI with success=(%v)", (iui != nil))
-	}
-
-	// If we failed to delegate, we can still fallback and just log to the terminal.
-	if iui == nil {
-		h.G().Log.Debug("| using a remote UI as normal")
-		iui = h.NewRemoteIdentifyUI(sessionID, h.G())
-	}
-
-	if iui == nil {
-		err = libkb.NoUIError{Which: "Identify"}
-		return nil, err
-	}
-
-	logui := h.getLogUI(sessionID)
-
-	ctx := engine.Context{
-		LogUI:      logui,
-		IdentifyUI: iui,
-		SessionID:  sessionID,
-	}
-	return &ctx, nil
-}
-
-func (h *IdentifyHandler) identify(sessionID int, arg keybase1.IdentifyArg) (res *engine.IDRes, err error) {
-	var ctx *engine.Context
-	ctx, err = h.makeContext(sessionID, arg)
-	if err != nil {
-		return nil, err
-	}
-	eng := engine.NewIDEngine(&arg, h.G())
-	err = engine.RunEngine(eng, ctx)
-	res = eng.Result()
-	return res, err
+	h.G().Log.Info("deprecated keybase1.Identify v1 called")
+	return res, errors.New("keybase1.Identify no longer supported")
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {

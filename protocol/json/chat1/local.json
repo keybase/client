@@ -818,6 +818,10 @@
           "name": "rateLimits"
         },
         {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"
@@ -1156,6 +1160,33 @@
         }
       ],
       "response": "GetInboxAndUnboxLocalRes"
+    },
+    "getInboxNonblockLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": null
     },
     "postLocal": {
       "request": [

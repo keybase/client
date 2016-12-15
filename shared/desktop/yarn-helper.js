@@ -111,6 +111,7 @@ const commands = {
     help: 'Make a production build of the js code',
   },
   'package': {
+    env: {NO_SOURCE_MAPS: 'true'},
     nodeEnv: 'production',
     nodePathDesktop: true,
     shell: `${nodeCmd} desktop/package.js`,

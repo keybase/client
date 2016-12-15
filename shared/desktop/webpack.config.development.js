@@ -1,4 +1,4 @@
-// @flow
+/* eslint-disable flowtype/require-valid-file-annotation */
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
@@ -17,7 +17,6 @@ const defines = {
   '__VERSION__': JSON.stringify('Development'),
 }
 
-// $FlowIssue
 const config = Object.assign({}, baseConfig)
 
 console.warn('Injecting dev defines: ', defines)

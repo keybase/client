@@ -18,7 +18,7 @@ import (
 )
 
 // UsePvl says whether to use PVL for verifying proofs.
-const UsePvl = false
+const UsePvl = true
 
 // SupportedVersion is which version of PVL is supported by this client.
 const SupportedVersion int = 1
@@ -773,6 +773,14 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 	if err != nil {
 		return state, err
 	}
+	if state.Service == keybase1.ProofType_ROOTER {
+		from2, err := rooterRewriteURL(g, from)
+		if err != nil {
+			return state, libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE,
+				"Could not rewrite rooter URL: %v", err)
+		}
+		from = from2
+	}
 
 	switch fetchMode(ins.Kind) {
 	case fetchModeString:
@@ -807,7 +815,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 	case fetchModeHTML:
 		if ins.Into != "" {
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"JSON fetch must not specify 'into' register")
+				"HTML fetch must not specify 'into' register")
 		}
 		res, err1 := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(from))
 		if err1 != nil {

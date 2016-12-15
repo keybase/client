@@ -99,6 +99,10 @@
         {
           "type": "boolean",
           "name": "expiringLocal"
+        },
+        {
+          "type": "boolean",
+          "name": "forPGPPull"
         }
       ]
     },
@@ -112,7 +116,8 @@
         "ENCRYPT_3",
         "DECRYPT_4",
         "VERIFY_5",
-        "RESOURCE_6"
+        "RESOURCE_6",
+        "BACKGROUND_7"
       ]
     },
     {

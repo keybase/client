@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -35,7 +37,8 @@ type chatLocalHandler struct {
 	store *chat.AttachmentStore
 
 	// Only for testing
-	rc chat1.RemoteInterface
+	rc         chat1.RemoteInterface
+	mockChatUI libkb.ChatUI
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
@@ -85,6 +88,79 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 		IdentifyFailures:        identifyFailures,
 	}, nil
+}
+
+func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
+	if h.mockChatUI != nil {
+		return h.mockChatUI
+	}
+	return h.BaseHandler.getChatUI(sessionID)
+}
+
+func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return libkb.LoginRequiredError{}
+	}
+
+	// Create localized conversation callback channel
+	chatUI := h.getChatUI(arg.SessionID)
+	localizeCb := make(chan chat.NonblockInboxResult, 1)
+
+	inboxSource := chat.NewNonblockRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
+		func() keybase1.TlfInterface { return h.tlf }, localizeCb)
+
+	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
+	_, rl, err := inboxSource.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination, arg.IdentifyBehavior)
+	if err != nil {
+		return err
+	}
+
+	// Wait for inbox to get sent to us
+	select {
+	case lres := <-localizeCb:
+		if lres.InboxRes == nil {
+			return fmt.Errorf("invalid conversation localize callback received")
+		}
+		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
+			SessionID: arg.SessionID,
+			Inbox: chat1.GetInboxLocalRes{
+				ConversationsUnverified: lres.InboxRes.ConvsUnverified,
+				Pagination:              lres.InboxRes.Pagination,
+				RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+			},
+		})
+	case <-time.After(15 * time.Second):
+		return fmt.Errorf("timeout waiting for inbox result")
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	// Consume localize callbacks and send out to UI.
+	var wg sync.WaitGroup
+	for convRes := range localizeCb {
+		wg.Add(1)
+		go func(convRes chat.NonblockInboxResult) {
+			if convRes.Err != nil {
+				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
+					SessionID: arg.SessionID,
+					Error:     convRes.Err.Error(),
+					ConvID:    convRes.ConvID,
+				})
+			} else if convRes.ConvRes != nil {
+				chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
+					SessionID: arg.SessionID,
+					Conv:      *convRes.ConvRes,
+				})
+			}
+			wg.Done()
+		}(convRes)
+	}
+	wg.Wait()
+	return nil
 }
 
 func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalArg) (chat1.MarkAsReadRes, error) {
@@ -173,7 +249,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 // Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
-	h.G().Log.Debug("NewConversationLocal: %+v", arg)
+	defer h.G().Trace("NewConversationLocal", func() error { return reserr })()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
@@ -192,6 +268,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	}
 
 	for i := 0; i < 3; i++ {
+		h.G().Log.Debug("NewConversationLocal attempt: %v", i)
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
@@ -200,7 +277,6 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, cname, arg.TlfVisibility, arg.TopicName)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error preparing message: %s", err)
-
 		}
 
 		var ncrres chat1.NewConversationRemoteRes
@@ -216,6 +292,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 			switch cerr := reserr.(type) {
 			case libkb.ChatConvExistsError:
 				// This triple already exists.
+				h.G().Log.Debug("NewConversationLocal conv exists: %v", cerr.ConvID)
 
 				if triple.TopicType != chat1.TopicType_CHAT {
 					// Not a chat conversation. Multiples are fine. Just retry with a
@@ -227,11 +304,14 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 				convID = cerr.ConvID
 			case libkb.ChatCollisionError:
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
+				h.G().Log.Debug("NewConversationLocal collision: %v", reserr)
 				continue
 			default:
 				return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating conversation: %s", reserr)
 			}
 		}
+
+		h.G().Log.Debug("NewConversationLocal established conv: %v", convID)
 
 		// create succeeded; grabbing the conversation and returning
 		uid := h.G().Env.GetUID()
@@ -548,7 +628,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
-	_, _, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
+	_, msgID, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
@@ -557,6 +637,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		MessageID:  msgID,
 	}, nil
 }
 
@@ -664,6 +745,16 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return chat1.PostLocalRes{}, err
 	}
 
+	// preprocess asset (get content type, create preview if possible)
+	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	if pre.Preview != nil {
+		h.G().Log.Debug("created preview in preprocess")
+		arg.Preview = pre.Preview
+	}
+
 	// upload attachment and (optional) preview concurrently
 	var object chat1.Asset
 	var preview *chat1.Asset
@@ -704,7 +795,9 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	object.Title = arg.Title
 	if preview != nil {
 		preview.Title = arg.Title
+		preview.MimeType = pre.PreviewContentType
 	}
+	object.MimeType = pre.ContentType
 
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
@@ -880,6 +973,42 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 		Version: 1,
 	}
 	return h.remoteClient().S3Sign(context.Background(), arg)
+}
+
+type preprocess struct {
+	ContentType        string
+	Preview            *chat.BufferSource
+	PreviewContentType string
+}
+
+func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment, preview assetSource) (*preprocess, error) {
+	// create a buffered stream
+	cli := h.getStreamUICli()
+	src, err := attachment.Open(sessionID, cli)
+	if err != nil {
+		return nil, err
+	}
+	defer src.Reset()
+
+	head := make([]byte, 512)
+	_, err = io.ReadFull(src, head)
+	if err != nil && err != io.ErrUnexpectedEOF {
+		return nil, err
+	}
+
+	p := preprocess{
+		ContentType: http.DetectContentType(head),
+	}
+
+	if preview == nil {
+		src.Reset()
+		p.Preview, p.PreviewContentType, err = chat.Preview(ctx, src, p.ContentType, attachment.Basename())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &p, nil
 }
 
 func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local assetSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {

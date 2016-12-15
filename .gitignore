@@ -39,5 +39,6 @@ build
 npm-debug.log
 shared/node_modules
 packaging/desktop/node_modules
+packaging/prerelease/node_modules
 
 Keybase.app.dSYM.zip

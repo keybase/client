@@ -3,11 +3,10 @@ import MainWindow from './main-window'
 import devTools from './dev-tools'
 import hello from '../../util/hello'
 import installer from './installer'
-import kbfsHelper from './kbfs-helper'
 import menuBar from './menu-bar'
 import os from 'os'
 import semver from 'semver'
-import splash from './splash'
+import splash from '../shared/util/splash.desktop'
 import storeHelper from './store-helper'
 import urlHelper from './url-helper'
 import windowHelper from './window-helper'
@@ -61,7 +60,6 @@ function start () {
   devTools()
   menuBar()
   urlHelper()
-  kbfsHelper()
   windowHelper(app)
 
   console.log('Version:', app.getVersion())

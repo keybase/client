@@ -209,6 +209,7 @@ export function remindGetRemindersRpcPromise (request: $Exact<requestCommon & {c
 
 export type AuthResult = {
   uid: UID,
+  username: string,
   sid: SessionID,
   isAdmin: boolean,
 }

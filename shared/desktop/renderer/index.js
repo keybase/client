@@ -96,9 +96,6 @@ function setupApp (store) {
   store.dispatch(updateDebugConfig(require('../../local-debug-live')))
 
   store.dispatch(bootstrap())
-  // Restartup when we connect online.
-  // If you startup while offline, you'll stay in an errored state
-  window.addEventListener('online', () => store.dispatch(bootstrap()))
 }
 
 function render (store, MainComponent) {

@@ -6,6 +6,7 @@ import hotPath from '../hot-path'
 import {app, ipcMain} from 'electron'
 import {forceMainWindowPosition, showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon'
+import {injectReactQueryParams} from '../shared/util/dev'
 import {resolveRootAsURL} from '../resolve-root'
 import {windowStyle} from '../../styles'
 
@@ -17,7 +18,7 @@ export default function () {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRootAsURL('renderer', 'renderer.html?mainWindow'), {
+    resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?mainWindow')), {
       x: appState.state.x,
       y: appState.state.y,
       width: appState.state.width,

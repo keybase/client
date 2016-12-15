@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  bgColor: string,
+  username: string,
+  children?: React$Element<*>,
+}
+
+export default class UserNotice extends Component<void, Props, void> {}

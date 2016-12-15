@@ -81,6 +81,11 @@ export type ConversationState = Record<{
   firstNewMessageID: ?MessageID,
 }>
 
+export type ConversationBadgeStateRecord = Record<{
+  convID: ConversationID,
+  UnreadMessages: number,
+}>
+
 export const InboxStateRecord = Record({
   info: null,
   participants: List(),
@@ -129,43 +134,48 @@ export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
 
 export const appendMessages = 'chat:appendMessages'
-export const selectConversation = 'chat:selectConversation'
+export const badgeAppForChat = 'chat:badgeAppForChat'
+export const deleteMessage = 'chat:deleteMessage'
+export const editMessage = 'chat:editMessage'
+export const incomingMessage = 'chat:incomingMessage'
 export const loadInbox = 'chat:loadInbox'
 export const loadedInbox = 'chat:loadedInbox'
 export const loadMoreMessages = 'chat:loadMoreMessages'
 export const loadingMessages = 'chat:loadingMessages'
-export const prependMessages = 'chat:prependMessages'
-export const setupNewChatHandler = 'chat:setupNewChatHandler'
-export const incomingMessage = 'chat:incomingMessage'
-export const postMessage = 'chat:postMessage'
-export const updateBadge = 'chat:updateBadge'
-export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
 export const newChat = 'chat:newChat'
-export const startConversation = 'chat:startConversation'
 export const openFolder = 'chat:openFolder'
+export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
+export const postMessage = 'chat:postMessage'
+export const prependMessages = 'chat:prependMessages'
+export const selectConversation = 'chat:selectConversation'
+export const setupNewChatHandler = 'chat:setupNewChatHandler'
+export const startConversation = 'chat:startConversation'
+export const updateBadging = 'chat:updateBadging'
+export const updateLatestMessage = 'chat:updateLatestMessage'
 export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
-export const editMessage = 'chat:editMessage'
-export const deleteMessage = 'chat:deleteMessage'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
+export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
+export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
+export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
+export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
+export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
+export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
+export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSent', {newMessage: Message}>
+export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
-export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
-export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSent', {newMessage: Message}>
-export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
-export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
+export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
+export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
-export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
-export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 
 export type Actions = AppendMessages
   | DeleteMessage
@@ -178,6 +188,8 @@ export type Actions = AppendMessages
   | PrependMessages
   | SelectConversation
   | StartConversation
+  | UpdateBadging
+  | UpdateLatestMessage
   | UpdateMetadata
   | UpdatedMetadata
 

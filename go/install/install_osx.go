@@ -428,6 +428,14 @@ func Install(context Context, binPath string, components []string, force bool, t
 		}
 	}
 
+	if libkb.IsIn(string(ComponentNameMountDir), components, false) {
+		err = installMountDir(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
+		if err != nil {
+			log.Errorf("Error installing mount directory: %s", err)
+		}
+	}
+
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
 		err = InstallKBFS(context, binPath, force, timeout, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
@@ -502,7 +510,7 @@ func InstallService(context Context, binPath string, force bool, timeout time.Du
 		return err
 	}
 	UninstallKeybaseServices(context.GetRunMode(), log)
-	log.Debug("Installing Keybase service (%s, timeout=%s)", label, timeout)
+	log.Debug("Installing service (%s, timeout=%s)", label, timeout)
 	if _, err := installKeybaseService(context, service, plist, timeout, log); err != nil {
 		log.Errorf("Error installing Keybase service: %s", err)
 		return err
@@ -544,7 +552,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		var mountDir string
 		mountDir, err = context.GetMountDir()
 		if err == nil {
-			err = UninstallKBFS(context.GetRunMode(), mountDir, true, true, log)
+			err = UninstallKBFS(context.GetRunMode(), mountDir, true, false, log)
 		}
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 		if err != nil {
@@ -565,6 +573,14 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 		if err != nil {
 			log.Errorf("Error uninstalling updater: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameMountDir), components, false) {
+		err = uninstallMountDir(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
+		if err != nil {
+			log.Errorf("Error uninstalling mount dir: %s", err)
 		}
 	}
 
@@ -679,6 +695,11 @@ func uninstallHelper(runMode libkb.RunMode, log Log) error {
 func uninstallApp(runMode libkb.RunMode, log Log) error {
 	log.Info("Removing app")
 	return execNativeInstallerWithArg("--uninstall-app", runMode, log)
+}
+
+func installMountDir(runMode libkb.RunMode, log Log) error {
+	log.Info("Creating mount directory")
+	return execNativeInstallerWithArg("--install-mountdir", runMode, log)
 }
 
 func execNativeInstallerWithArg(arg string, runMode libkb.RunMode, log Log) error {

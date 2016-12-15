@@ -816,3 +816,16 @@ func (u UserVersionVector) Equal(u2 UserVersionVector) bool {
 	}
 	return true
 }
+
+func (d DurationSec) Duration() time.Duration {
+	return time.Duration(d) * time.Second
+}
+
+func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
+	for _, k := range u.Base.DeviceKeys {
+		if k.DeviceID.Eq(d) {
+			return &k
+		}
+	}
+	return nil
+}

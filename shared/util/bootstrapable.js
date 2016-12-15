@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {Box, Text} from '../common-adapters'
 import {globalStyles} from '../styles'
 
-export type BootstrapableProp<P> = {
+export type BootstrapableProp<P: Object> = {
   bootstrapDone: false,
   onBootstrap: () => *,
 } | {
@@ -11,7 +11,7 @@ export type BootstrapableProp<P> = {
   originalProps: P,
 }
 
-export default function Bootstrapable<P> (ComposedComponent: ReactClass<P>): ReactClass<BootstrapableProp<P>> {
+export default function Bootstrapable<P: Object> (ComposedComponent: ReactClass<P>): ReactClass<BootstrapableProp<P>> {
   return class extends Component<void, BootstrapableProp<P>, void> {
     componentWillMount () {
       !this.props.bootstrapDone && this.props.onBootstrap()

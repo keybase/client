@@ -15,8 +15,6 @@ import gm from 'gm'
 import github from 'octonode'
 import s3 from 's3'
 
-const NPM_CMD = os.platform() === 'win32' ? 'npm.cmd' : 'npm'
-
 const BUCKET_S3 = process.env['VISDIFF_S3_BUCKET']
 const BUCKET_HTTP = `https://${BUCKET_S3}.s3.amazonaws.com`
 const MAX_INLINE_IMAGES = 6
@@ -68,12 +66,7 @@ function checkout (commit) {
     console.log(`Installing dependencies for package.json:${newPackageHash}...`)
   }
 
-  if (JSON.parse(fs.readFileSync('package.json')).keybaseVendoredDependencies) {
-    spawn(NPM_CMD, ['run', 'vendor-install'], {stdio: 'inherit'})
-  } else {
-    console.log('Warning: not using vendored dependencies')
-    spawn(NPM_CMD, ['install'], {stdio: 'inherit'})
-  }
+  spawn('yarn', ['install'], {stdio: 'inherit'})
 }
 
 function renderScreenshots (commitRange) {
@@ -95,7 +88,7 @@ function renderScreenshots (commitRange) {
     console.log(`Rendering screenshots of ${commit}`)
     mkdirp.sync(`screenshots/${commit}`)
     const startTime = Date.now()
-    spawn(NPM_CMD, ['run', 'render-screenshots', '--', `screenshots/${commit}`], {stdio: 'inherit'})
+    spawn('yarn', ['run', 'render-screenshots', '--', `screenshots/${commit}`], {stdio: 'inherit'})
     console.log(`Rendered in ${(Date.now() - startTime) / 1000}s.`)
   }
 }

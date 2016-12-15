@@ -2,15 +2,19 @@
 import * as Constants from '../constants/gregor'
 import * as CommonConstants from '../constants/common'
 import {keyBy} from 'lodash'
+import {ReachabilityReachable} from '../constants/types/flow-types'
 
 import type {GregorActions, MsgMap} from '../constants/gregor'
+import type {Reachability} from '../constants/types/flow-types'
 
 export type State = {
   seenMsgs: MsgMap,
+  reachability: Reachability,
 }
 
 const initialState: State = {
   seenMsgs: {},
+  reachability: {reachable: ReachabilityReachable.unknown},
 }
 
 export default function (state: State = initialState, action: GregorActions): State {
@@ -29,6 +33,12 @@ export default function (state: State = initialState, action: GregorActions): St
         }
       }
       break
+    case Constants.updateReachability:
+      const {reachability} = action.payload
+      return {
+        ...state,
+        reachability,
+      }
   }
   return state
 }

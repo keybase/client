@@ -95,6 +95,8 @@ const (
 
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour
+
+	CriticalClockSkewLimit = time.Hour
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second

@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -96,5 +97,105 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context, int) error {
 	}
 	w := c.terminal.ErrorWriter()
 	fmt.Fprintf(w, "Attachment download "+ColorString("magenta", "finished")+"\n")
+	return nil
+}
+
+func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
+	if c.noOutput {
+		return nil
+	}
+	w := c.terminal.ErrorWriter()
+	sender := "<unknown>"
+	snippet := "<blank>"
+	tlf := arg.Conv.Info.TlfName + " (unverified)"
+	for _, msg := range arg.Conv.MaxMessages {
+		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
+			sender = msg.Valid().SenderUsername
+			snippet = msg.Valid().MessageBody.Text().Body
+			tlf = msg.Valid().ClientHeader.TlfName
+			break
+		}
+	}
+	fmt.Fprintf(w, "conversation unboxed: tlf: %s sender: %s snippet: %s\n", tlf, sender, snippet)
+	return nil
+}
+
+func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
+	if c.noOutput {
+		return nil
+	}
+	w := c.terminal.ErrorWriter()
+	fmt.Fprintf(w, "conversation unbox failure: convID: %s err: %s\n", arg.ConvID, arg.Error)
+	return nil
+}
+
+func (c *ChatUI) getUnverifiedConvo(conv chat1.Conversation) (chat1.ConversationLocal, error) {
+
+	if len(conv.MaxMsgs) == 0 {
+		return chat1.ConversationLocal{}, fmt.Errorf("no max messages")
+	}
+
+	// Get max text message
+	var txtMsg *chat1.MessageBoxed
+	for _, msg := range conv.MaxMsgs {
+		if msg.GetMessageType() == chat1.MessageType_TEXT {
+			txtMsg = &msg
+			break
+		}
+	}
+	if txtMsg == nil {
+		return chat1.ConversationLocal{}, fmt.Errorf("no text message found")
+	}
+
+	rnames, wnames, err := utils.ReorderParticipants(c.G().UserDeviceCache,
+		txtMsg.ClientHeader.TlfName, conv.Metadata.ActiveList)
+	if err != nil {
+		return chat1.ConversationLocal{}, err
+	}
+	convLocal := chat1.ConversationLocal{
+		ReaderInfo: *conv.ReaderInfo,
+		MaxMessages: []chat1.MessageUnboxed{
+			chat1.MessageUnboxed{
+				State__: chat1.MessageUnboxedState_VALID,
+				Valid__: &chat1.MessageUnboxedValid{
+					MessageBody: chat1.MessageBody{
+						MessageType__: chat1.MessageType_TEXT,
+						Text__: &chat1.MessageText{
+							Body: "<pending>",
+						},
+					},
+					ClientHeader:   txtMsg.ClientHeader,
+					ServerHeader:   *txtMsg.ServerHeader,
+					SenderUsername: "???",
+				},
+			},
+		},
+		Info: chat1.ConversationInfoLocal{
+			Id:          conv.Metadata.ConversationID,
+			TlfName:     "<pending>",
+			WriterNames: wnames,
+			ReaderNames: rnames,
+		},
+	}
+
+	return convLocal, nil
+}
+
+func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
+
+	var convs []chat1.ConversationLocal
+	for _, conv := range arg.Inbox.ConversationsUnverified {
+		convLocal, err := c.getUnverifiedConvo(conv)
+		if err != nil {
+			c.G().Log.Error("unable to convert unverified conv: %s", err.Error())
+			continue
+		}
+		convs = append(convs, convLocal)
+	}
+
+	if err := conversationListView(convs).show(c.G(), string(c.G().Env.GetUsername()), false); err != nil {
+		return err
+	}
+
 	return nil
 }

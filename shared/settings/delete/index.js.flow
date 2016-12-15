@@ -2,7 +2,6 @@
 import {Component} from 'react'
 
 export type Props = {
-  onRevokeCurrentDevice: () => void,
   onDelete: () => void,
 }
 

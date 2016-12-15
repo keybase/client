@@ -30,7 +30,7 @@ class UsernameOrEmailRender extends Component<void, Props, State> {
     return (
       <Container
         style={stylesContainer}
-        outerStyle={{backgroundColor: globalColors.lightGrey, padding: 20}}
+        outerStyle={{backgroundColor: globalColors.white, padding: 20}}
         onBack={this.props.onBack}>
         <UserCard style={stylesCard}>
           <Input

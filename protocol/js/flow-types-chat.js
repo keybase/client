@@ -187,6 +187,18 @@ export function localGetInboxLocalRpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => { localGetInboxLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localGetInboxNonblockLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: localGetInboxNonblockLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.getInboxNonblockLocal'})
+}
+
+export function localGetInboxNonblockLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localGetInboxNonblockLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localGetInboxNonblockLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localGetInboxNonblockLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localGetInboxNonblockLocalRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { localGetInboxNonblockLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localGetInboxSummaryForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryForCLILocalResult) => void} & {param: localGetInboxSummaryForCLILocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.getInboxSummaryForCLILocal'})
 }
@@ -938,6 +950,7 @@ export type PostLocalNonblockRes = {
 
 export type PostLocalRes = {
   rateLimits?: ?Array<RateLimit>,
+  messageID: MessageID,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
@@ -1057,6 +1070,19 @@ export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
   bytesTotal: int
 }>
 
+export type chatUiChatInboxConversationRpcParam = Exact<{
+  conv: ConversationLocal
+}>
+
+export type chatUiChatInboxFailedRpcParam = Exact<{
+  convID: ConversationID,
+  error: string
+}>
+
+export type chatUiChatInboxUnverifiedRpcParam = Exact<{
+  inbox: GetInboxLocalRes
+}>
+
 export type localCancelPostRpcParam = Exact<{
   outboxID: OutboxID
 }>
@@ -1088,6 +1114,12 @@ export type localGetInboxAndUnboxLocalRpcParam = Exact<{
 }>
 
 export type localGetInboxLocalRpcParam = Exact<{
+  query?: ?GetInboxLocalQuery,
+  pagination?: ?Pagination,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
+export type localGetInboxNonblockLocalRpcParam = Exact<{
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -1283,6 +1315,7 @@ export type rpc =
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxLocalRpc
+  | localGetInboxNonblockLocalRpc
   | localGetInboxSummaryForCLILocalRpc
   | localGetMessagesLocalRpc
   | localGetThreadLocalRpc
@@ -1356,6 +1389,28 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentDownloadDone'?: (
     params: Exact<{
       sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatInboxUnverified'?: (
+    params: Exact<{
+      sessionID: int,
+      inbox: GetInboxLocalRes
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatInboxConversation'?: (
+    params: Exact<{
+      sessionID: int,
+      conv: ConversationLocal
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatInboxFailed'?: (
+    params: Exact<{
+      sessionID: int,
+      convID: ConversationID,
+      error: string
     }>,
     response: CommonResponseHandler
   ) => void,

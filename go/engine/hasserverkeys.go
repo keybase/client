@@ -59,6 +59,7 @@ func (e *HasServerKeys) Run(ctx *Context) error {
 		return err
 	}
 	e.res.HasServerKeys = len(spk.PrivateKeys) > 0
+	e.G().Log.Debug("HasServerKeys: %v", e.res.HasServerKeys)
 
 	return nil
 }
