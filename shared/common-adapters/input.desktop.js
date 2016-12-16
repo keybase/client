@@ -139,8 +139,8 @@ class Input extends Component<void, Props, State> {
       ...globalStyles.flexBoxColumn,
       maxWidth: 460,
       width: '100%',
-      marginTop: globalMargins.tiny,
-      marginBottom: globalMargins.tiny,
+      marginTop: globalMargins.small,
+      marginBottom: globalMargins.small,
     }
   }
 
@@ -262,7 +262,6 @@ const _floatingStyle = {
   minHeight: _bodySmallTextStyle.lineHeight,
   color: globalColors.blue,
   display: 'block',
-  marginBottom: globalMargins.xtiny,
 }
 
 export default Input

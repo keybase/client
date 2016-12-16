@@ -88,6 +88,9 @@ type GlobalContext struct {
 	CachedUserLoader *CachedUserLoader         // Load flat users with the ability to hit the cache
 	UserDeviceCache  *UserDeviceCache          // Cache user and device names forever
 
+	uchMu               sync.Mutex           // protects the UserChangedHandler array
+	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
+
 	CardCache *UserCardCache // cache of keybase1.UserCard objects
 
 	ConvSource       ConversationSource // source of remote message bodies for chat
@@ -110,6 +113,7 @@ func (g *GlobalContext) GetExternalAPI() ExternalAPI            { return g.XAPI 
 func (g *GlobalContext) GetServerURI() string                   { return g.Env.GetServerURI() }
 func (g *GlobalContext) GetCachedUserLoader() *CachedUserLoader { return g.CachedUserLoader }
 func (g *GlobalContext) GetUserDeviceCache() *UserDeviceCache   { return g.UserDeviceCache }
+func (g *GlobalContext) GetMerkleClient() *MerkleClient         { return g.MerkleClient }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -759,9 +763,26 @@ func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	}
 }
 
+func (g *GlobalContext) AddUserChangedHandler(h UserChangedHandler) {
+	g.uchMu.Lock()
+	g.UserChangedHandlers = append(g.UserChangedHandlers, h)
+	g.uchMu.Unlock()
+}
+
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)
 	}
+
+	g.uchMu.Lock()
+	list := g.UserChangedHandlers
+	var newList []UserChangedHandler
+	for _, cc := range list {
+		if err := cc.HandleUserChanged(u); err == nil {
+			newList = append(newList, cc)
+		}
+	}
+	g.UserChangedHandlers = newList
+	g.uchMu.Unlock()
 }

@@ -83,12 +83,14 @@ type BackgroundIdentifierParameters struct {
 	WaitClean       time.Duration // = 4 * time.Hour
 	WaitHardFailure time.Duration // = 90 * time.Minute
 	WaitSoftFailure time.Duration // = 10 * time.Minute
+	DelaySlot       time.Duration // = 5 * time.Second
 }
 
 var BackgroundIdentifierDefaultParameters = BackgroundIdentifierParameters{
 	WaitClean:       4 * time.Hour,
 	WaitHardFailure: 90 * time.Minute,
 	WaitSoftFailure: 10 * time.Minute,
+	DelaySlot:       5 * time.Second,
 }
 
 func NewBackgroundIdentifier(g *libkb.GlobalContext, untilCh chan struct{}) *BackgroundIdentifier {
@@ -274,6 +276,11 @@ func (b *BackgroundIdentifier) runNext(ctx *Context) error {
 	// slip in in before the call to b.G().Clock().Now() above.
 	if b.snooperCh != nil {
 		b.snooperCh <- identifyJob{user.uid, tmp}
+	}
+
+	if d := b.params.DelaySlot; d != 0 {
+		b.G().Log.Debug("BackgroundIdentifier sleeping for %s", d)
+		b.G().Clock().Sleep(d)
 	}
 
 	return nil

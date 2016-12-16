@@ -16,8 +16,8 @@ function intersperseDividers (arr) {
 
 function Invites (props: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flexShrink: 0, flex: 1}}>
-      <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'stretch', marginTop: globalMargins.small}}>
+    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1, overflow: 'auto'}}>
+      <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'center', marginTop: globalMargins.small}}>
         <Input
           hintText="Friend's email (optional)"
           value={props.inviteEmail}
@@ -69,7 +69,7 @@ function PendingInviteItem ({invite, onReclaim}: {invite: PendingInvite, onRecla
       {invite.type === 'pending-email' ? <PendingEmailContent invite={invite} /> : <PendingURLContent invite={invite} />}
       <Box style={{flex: 1}} />
       <Text
-        type='BodySmallInlineLink'
+        type='BodyPrimaryLink'
         onClick={() => onReclaim(invite.id)}
         style={{color: globalColors.red}}
       >
@@ -86,16 +86,13 @@ function PendingEmailContent ({invite}: {invite: PendingEmailInvite}) {
         url={null}
         size={32}
       />
-      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small, marginBottom: itemAlignmentFudge}}>
+      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text
           type='BodySemibold'
         >
           {invite.email}
         </Text>
-        <Text
-          type='BodySmall'
-          style={{lineHeight: '17px'}}
-        >
+        <Text type='BodySmall'>
           Invited {moment.unix(invite.created).format('MMM D, YYYY')}
         </Text>
       </Box>
@@ -120,17 +117,14 @@ function AcceptedInviteItem ({invite, onClick}: {invite: AcceptedInvite, onClick
         username={invite.username}
         size={32}
       />
-      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small, marginBottom: itemAlignmentFudge}}>
+      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text
           type='BodySemibold'
           style={{color: nameColor}}
         >
           {invite.username}
         </Text>
-        <Text
-          type='BodySmall'
-          style={{lineHeight: '17px'}}
-        >
+        <Text type='BodySmall'>
           {invite.fullname}
         </Text>
       </Box>
@@ -138,11 +132,9 @@ function AcceptedInviteItem ({invite, onClick}: {invite: AcceptedInvite, onClick
   )
 }
 
-const itemAlignmentFudge = 5
-
 const styleInviteItem = {
   ...globalStyles.flexBoxRow,
-  height: 48,
+  height: 40,
   alignItems: 'center',
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,

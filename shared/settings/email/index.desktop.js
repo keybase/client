@@ -11,7 +11,7 @@ function VerifiedText ({isVerified, style}: {isVerified: boolean, style?: Object
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center', ...style}}>
       <Icon
         type={isVerified ? 'iconfont-check' : 'iconfont-close'}
-        style={{color, marginRight: 3, marginTop: 2}} />
+        style={{color, marginRight: 3, marginTop: 2, fontSize: 11}} />
       <Text type='Body' style={{color}}>
         {isVerified ? 'Verified' : 'Not verified'}
       </Text>

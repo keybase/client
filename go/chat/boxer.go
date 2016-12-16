@@ -283,6 +283,22 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (
 	return unboxed, nil
 }
 
+// Can return (nil, nil) if there is no saved merkle root.
+func (b *Boxer) latestMerkleRoot() (*chat1.MerkleRoot, error) {
+	merkleClient := b.kbCtx.GetMerkleClient()
+	if merkleClient == nil {
+		return nil, fmt.Errorf("no MerkleClient available")
+	}
+	merkleRoot, err := merkleClient.LastRootInfo()
+	if err != nil {
+		return nil, err
+	}
+	if merkleRoot == nil {
+		b.log().Debug("No merkle root available for chat header")
+	}
+	return merkleRoot, nil
+}
+
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
@@ -318,6 +334,12 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 			}
 		}
 	}
+
+	merkleRoot, err := b.latestMerkleRoot()
+	if err != nil {
+		return nil, libkb.ChatBoxingError{Msg: err.Error()}
+	}
+	msg.ClientHeader.MerkleRoot = merkleRoot
 
 	if len(msg.ClientHeader.TlfName) == 0 {
 		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName, msg.ClientHeader.TlfName)}

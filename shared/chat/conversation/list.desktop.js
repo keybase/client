@@ -11,7 +11,7 @@ import Popup from './messages/popup'
 import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {Box} from '../../common-adapters'
+import {Box, ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {Message, MessageID} from '../../constants/chat'
@@ -55,17 +55,7 @@ class ConversationList extends Component<void, Props, State> {
       // minus one because loader message is there
       const messageIndex = index - 1
       const message = this.state.messages.get(messageIndex)
-      let id
-      if (message) {
-        if (message.type === 'Timestamp') {
-          id = message.timestamp
-        } else {
-          // We want a stable key -- messages have an outboxID but no
-          // messageID, then later gain a messageID.  So if we prefer
-          // outboxIDs to messageIDs for the key, every row keeps its key.
-          id = message && (message.outboxID || message.messageID)
-        }
-      }
+      const id = message && message.key
       if (id == null) {
         console.warn('id is null for index:', messageIndex)
       }
@@ -76,8 +66,10 @@ class ConversationList extends Component<void, Props, State> {
   componentWillUpdate (nextProps: Props, nextState: State) {
     // If a message has moved from pending to sent, tell the List to discard
     // heights for it (which will re-render it and everything after it)
+    // TODO this doesn't work for things that take a bit to load (imgs)
     if (this._toRemeasure.length) {
       this._toRemeasure.forEach(item => {
+        this._cellCache.clearRowHeight(item)
         this._list && this._list.recomputeRowHeights(item)
       })
       this._toRemeasure = []
@@ -118,6 +110,10 @@ class ConversationList extends Component<void, Props, State> {
   _invalidateChangedMessages (props: Props) {
     this.state.messages.forEach((item, index) => {
       if (item.messageID !== props.messages.get(index, {}).messageID) {
+        this._toRemeasure.push(index + 1)
+      }
+
+      if (item.previewPath !== props.messages.get(index, {}).previewPath) {
         this._toRemeasure.push(index + 1)
       }
     })
@@ -197,7 +193,7 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
   }
 
   _recomputeListDebounced = _.debounce(() => {
@@ -210,6 +206,13 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   render () {
+    if (!this.props.validated) {
+      return (
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <ProgressIndicator style={{width: 20}} />
+        </Box>
+      )
+    }
     const messageCount = this.state.messages.count()
     const countWithLoading = messageCount + 1 // Loading row on top always
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined

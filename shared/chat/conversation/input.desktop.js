@@ -4,17 +4,16 @@ import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../common-adapters/emoji'
-import {participantFilter} from '../../constants/chat'
 
 import type {Props} from './'
 
 type State = {
   emojiPickerOpen: boolean,
-  inputText: ?string,
 }
 
 class Conversation extends Component<void, Props, State> {
   _input: any;
+  _fileInput: any;
   state: State;
 
   _setRef = r => {
@@ -24,15 +23,42 @@ class Conversation extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     const {emojiPickerOpen} = props
-    this.state = {emojiPickerOpen, inputText: null}
+    this.state = {emojiPickerOpen}
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (nextProps.selectedConversation !== this.props.selectedConversation) {
+      this._input && this._input.focus()
+    }
+  }
+
+  componentDidUpdate (prevProps: Props) {
+    if (!this.props.isLoading && prevProps.isLoading) {
+      this._input && this._input.focus()
+    }
   }
 
   _insertEmoji (emojiColons: string) {
-    const inputText = this.state.inputText || ''
+    const inputText = this.props.inputText || ''
     if (this._input) {
       const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
       const nextInputText = [inputText.substring(0, selectionStart), emojiColons, inputText.substring(selectionEnd)].join('')
-      this.setState({inputText: nextInputText})
+      this.props.setInputText(nextInputText)
+      this._input.focus()
+    }
+  }
+
+  _openFilePicker () {
+    if (this._fileInput) {
+      this._fileInput.click()
+    }
+  }
+
+  _pickFile () {
+    if (this._fileInput && this._fileInput.files && this._fileInput.files[0]) {
+      const {path, name} = this._fileInput.files[0]
+      this.props.onAttach(path, name)
+      this._fileInput.value = null
     }
   }
 
@@ -40,20 +66,22 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
+          <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
             small={true}
             style={styleInput}
             ref={this._setRef}
-            hintText={`Write to ${participantFilter(this.props.participants).map(p => p.username).join(', ')}`}
+            hintText='Write a message'
             hideUnderline={true}
-            onChangeText={inputText => this.setState({inputText})}
-            value={this.state.inputText}
+            onChangeText={inputText => this.props.setInputText(inputText)}
+            value={this.props.inputText}
             multiline={true}
             rowsMin={1}
-            onEnterKeyDown={() => {
-              if (this.state.inputText) {
-                this.props.onPostMessage(this.state.inputText)
-                this._input.clearValue()
+            onEnterKeyDown={(e) => {
+              e.preventDefault()
+              if (this.props.inputText) {
+                this.props.onPostMessage(this.props.inputText)
+                this.props.setInputText('')
               }
             }}
           />
@@ -68,7 +96,7 @@ class Conversation extends Component<void, Props, State> {
             </Box>
           )}
           <Icon onClick={() => this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})} style={styleIcon} type='iconfont-emoji' />
-          <Icon onClick={() => console.log('attachment callback')} style={styleIcon} type='iconfont-attachment' />
+          <Icon onClick={() => this._openFilePicker()} style={styleIcon} type='iconfont-attachment' />
         </Box>
         <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
       </Box>
