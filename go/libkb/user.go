@@ -36,6 +36,9 @@ type User struct {
 	// Loaded from publicKeys
 	keyFamily *KeyFamily
 
+	// Available on partially-copied clones of the User object
+	ckfShallowCopy *ComputedKeyFamily
+
 	dirty bool
 	Contextified
 }
@@ -124,8 +127,10 @@ func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
 			return nil
 		}
 		ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily, Contextified: u.Contextified}
+	} else if u.ckfShallowCopy != nil {
+		ret = u.ckfShallowCopy
 	}
-	return
+	return ret
 }
 
 // GetActivePGPKeys looks into the user's ComputedKeyFamily and
@@ -725,4 +730,24 @@ func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
 		return false
 	}
 	return true
+}
+
+// PartialCopy copies some fields of the User object, but not all.
+// For instance, it doesn't copy the SigChain or IDTable, and it only
+// makes a shallow copy of the ComputedKeyFamily.
+func (u User) PartialCopy() *User {
+	ret := &User{
+		Contextified: NewContextified(u.G()),
+		id:           u.id,
+		name:         u.name,
+		leaf:         u.leaf,
+		dirty:        false,
+	}
+	if ckf := u.GetComputedKeyFamily(); ckf != nil {
+		ret.ckfShallowCopy = ckf.ShallowCopy()
+		ret.keyFamily = ckf.kf
+	} else if u.keyFamily != nil {
+		ret.keyFamily = u.keyFamily.ShallowCopy()
+	}
+	return ret
 }

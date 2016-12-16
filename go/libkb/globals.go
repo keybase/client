@@ -96,6 +96,8 @@ type GlobalContext struct {
 	ConvSource       ConversationSource // source of remote message bodies for chat
 	MessageDeliverer MessageDeliverer   // background message delivery service
 
+	FullSelfCacher *FullSelfCacher
+
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
 
@@ -143,6 +145,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.CachedUserLoader = NewCachedUserLoader(g, CachedUserTimeout)
 	g.UserDeviceCache = NewUserDeviceCache(g)
+	g.makeFullSelfCacher()
 	return g
 }
 
@@ -285,6 +288,14 @@ func (g *GlobalContext) ConfigureTimers() error {
 func (g *GlobalContext) ConfigureKeyring() error {
 	g.Keyrings = NewKeyrings(g)
 	return nil
+}
+
+func (g *GlobalContext) makeFullSelfCacher() {
+	fsc := NewFullSelfCacher(g)
+	g.AddLoginHook(fsc)
+	g.AddLogoutHook(fsc)
+	g.AddUserChangedHandler(fsc)
+	g.FullSelfCacher = fsc
 }
 
 func VersionMessage(linefn func(string)) {
