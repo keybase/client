@@ -113,6 +113,8 @@ func (s *blockDiskStore) keyServerHalfPath(id BlockID) string {
 }
 
 func (s *blockDiskStore) infoPath(id BlockID) string {
+	// TODO: change the file name to "info" the next we change the
+	// journal layout.
 	return filepath.Join(s.blockPath(id), "refs")
 }
 
@@ -270,7 +272,11 @@ func (s *blockDiskStore) hasData(id BlockID) error {
 	return err
 }
 
-var errFlushedButPresentData = errors.New("Data is flushed but present")
+type errFlushedButPresentData struct{}
+
+func (e errFlushedButPresentData) Error() string {
+	return "Data is flushed but present"
+}
 
 func (s *blockDiskStore) isUnflushed(id BlockID) error {
 	err := s.hasData(id)
@@ -285,7 +291,7 @@ func (s *blockDiskStore) isUnflushed(id BlockID) error {
 	}
 
 	if info.Flushed {
-		return errFlushedButPresentData
+		return errors.WithStack(errFlushedButPresentData{})
 	}
 	return nil
 }
