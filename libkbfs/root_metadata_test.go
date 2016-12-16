@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"sort"
@@ -792,4 +793,87 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 
 	err = rmds.IsLastModifiedBy(uid, vk)
 	require.Equal(t, fmt.Errorf("Last writer verifying key %s != %s", vk2.String(), vk.String()), err)
+}
+
+// Test that a reader can't upconvert a private folder from v2 to v3.
+func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
+	configWriter := MakeTestConfigOrBust(t, "alice", "bob")
+	configWriter.SetKeyCache(&dummyNoKeyCache{})
+	defer configWriter.Shutdown()
+
+	tlfID := tlf.FakeID(1, false)
+	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", false)
+	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
+	require.NoError(t, err)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(0))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), PreExtraMetadataVer)
+
+	// set some dummy numbers
+	diskUsage, refBytes, unrefBytes := uint64(12345), uint64(4321), uint64(1234)
+	rmd.SetDiskUsage(diskUsage)
+	rmd.SetRefBytes(refBytes)
+	rmd.SetUnrefBytes(unrefBytes)
+
+	// Have the writer key it first.
+	done, _, err := configWriter.KeyManager().Rekey(
+		context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(1))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), PreExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 0)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 1)
+
+	// Set the private MD, to make sure it gets copied properly during
+	// upconversion.
+	_, aliceUID, err := configWriter.KBPKI().Resolve(
+		context.Background(), "alice")
+	require.NoError(t, err)
+	err = encryptMDPrivateData(context.Background(), configWriter.Codec(),
+		configWriter.Crypto(), configWriter.Crypto(),
+		configWriter.KeyManager(), aliceUID, rmd)
+	require.NoError(t, err)
+
+	// add a device for bob and rekey as bob
+	_, bobUID, err := configWriter.KBPKI().Resolve(context.Background(), "bob")
+	require.NoError(t, err)
+	configReader := ConfigAsUser(configWriter, "bob")
+	configReader.SetKeyCache(&dummyNoKeyCache{})
+	defer configReader.Shutdown()
+	AddDeviceForLocalUserOrBust(t, configWriter, bobUID)
+	AddDeviceForLocalUserOrBust(t, configReader, bobUID)
+
+	// Override the metadata version, make a successor, and rekey as
+	// reader.  This should keep the version the same, since readers
+	// can't upconvert.
+	configReader.metadataVersion = SegregatedKeyBundlesVer
+	rmd2, err := rmd.MakeSuccessor(context.Background(), configReader,
+		fakeMdID(1), false)
+	require.NoError(t, err)
+	require.Equal(t, rmd2.LatestKeyGeneration(), KeyGen(1))
+	require.Equal(t, rmd2.Revision(), MetadataRevision(2))
+	require.Equal(t, rmd2.Version(), PreExtraMetadataVer)
+	// Do this instead of require.Nil because we want to assert
+	// that it's untyped nil.
+	require.True(t, rmd2.extra == nil)
+	done, _, err = configReader.KeyManager().Rekey(
+		context.Background(), rmd2, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd2.LatestKeyGeneration(), KeyGen(1))
+	require.Equal(t, rmd2.Revision(), MetadataRevision(2))
+	require.Equal(t, rmd2.Version(), PreExtraMetadataVer)
+	require.True(t, rmd2.IsWriterMetadataCopiedSet())
+	require.True(t, bytes.Equal(rmd.GetSerializedPrivateMetadata(),
+		rmd2.GetSerializedPrivateMetadata()))
+
+	rmds, err := SignBareRootMetadata(context.Background(),
+		configReader.Codec(), configReader.Crypto(), configReader.Crypto(),
+		rmd2.bareMd, configReader.Clock().Now())
+	require.NoError(t, err)
+	err = rmds.IsValidAndSigned(configReader.Codec(), configReader.Crypto(),
+		rmd2.extra)
+	require.NoError(t, err)
 }
