@@ -156,6 +156,8 @@ function reducer (state: State = initialState, action: Actions) {
     case Constants.pendingMessageWasSent: {
       const {conversationIDKey, message} = action.payload
       const {messageID, outboxID} = message
+      // Entirely replace the placeholder pending message in the store with the
+      // finalized real message that we just received from the server.
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
