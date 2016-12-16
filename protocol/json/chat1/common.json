@@ -70,7 +70,8 @@
         "METADATA_5",
         "TLFNAME_6",
         "HEADLINE_7"
-      ]
+      ],
+      "go": "nostring"
     },
     {
       "type": "enum",
@@ -79,7 +80,8 @@
         "NONE_0",
         "CHAT_1",
         "DEV_2"
-      ]
+      ],
+      "go": "nostring"
     },
     {
       "type": "enum",

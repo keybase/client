@@ -123,6 +123,7 @@ protocol Common {
     FATAL_7
   }
 
+  @go("nostring")
   enum ClientType {
     NONE_0,
     CLI_1,
@@ -167,6 +168,7 @@ protocol Common {
       array<RemoteTrack> remoteTracks;
   }
 
+  @go("nostring")
   enum MerkleTreeID {
        MASTER_0,
        KBFS_PUBLIC_1,
