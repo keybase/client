@@ -240,7 +240,9 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	// lock.
 	retrieval.reqMtx.Lock()
 	defer retrieval.reqMtx.Unlock()
-	brq.prefetcher.HandleBlock(block, retrieval.kmd, retrieval.priority)
+	if brq.prefetcher != nil {
+		brq.prefetcher.HandleBlock(block, retrieval.kmd, retrieval.priority)
+	}
 	for _, r := range retrieval.requests {
 		req := r
 		if block != nil {
