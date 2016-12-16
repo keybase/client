@@ -82,6 +82,10 @@ class PopupMenu extends Component<void, Props, void> {
   }
 }
 
+function PopupHeaderText () {
+  // TODO
+}
+
 const styleOverlayContainer = {
   position: 'absolute',
   top: 0,
@@ -112,5 +116,7 @@ const styleMenuGroup = {
   alignItems: 'stretch',
   marginBottom: globalMargins.tiny,
 }
+
+export {PopupHeaderText}
 
 export default PopupMenu
