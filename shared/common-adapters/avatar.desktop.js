@@ -30,7 +30,7 @@ class Avatar extends PureComponent<void, Props, State> {
     const nextUrl = shared.createAvatarUrl(nextProps)
 
     if (url !== nextUrl) {
-      this.setState({avatarLoaded: false, errored: false, url})
+      this.setState({avatarLoaded: false, errored: false, url: nextUrl})
     }
   }
 
