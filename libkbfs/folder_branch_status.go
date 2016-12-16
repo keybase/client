@@ -25,6 +25,7 @@ type FolderBranchStatus struct {
 	LatestKeyGeneration KeyGen
 	FolderID            string
 	Revision            MetadataRevision
+	MDVersion           MetadataVer
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -192,6 +193,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 		fbs.LatestKeyGeneration = fbsk.md.LatestKeyGeneration()
 		fbs.FolderID = fbsk.md.TlfID().String()
 		fbs.Revision = fbsk.md.Revision()
+		fbs.MDVersion = fbsk.md.Version()
 
 		// TODO: Ideally, the journal would push status
 		// updates to this object instead, so we can notify
