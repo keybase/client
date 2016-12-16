@@ -1,9 +1,11 @@
 package libkbfs
 
 import (
+	"io"
 	"sort"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -31,17 +33,44 @@ func dirEntryMapToDirEntries(entryMap map[string]DirEntry) dirEntries {
 
 type prefetcher interface {
 	HandleBlock(b Block, kmd KeyMetadata, priority int)
+	Shutdown() <-chan struct{}
 }
 
 var _ prefetcher = (*blockPrefetcher)(nil)
 
 type blockPrefetcher struct {
-	retriever blockRetriever
+	retriever  blockRetriever
+	progressCh chan (<-chan error)
+	eg         errgroup.Group
 }
 
 func newPrefetcher(retriever blockRetriever) prefetcher {
-	return &blockPrefetcher{
-		retriever: retriever,
+	p := &blockPrefetcher{
+		retriever:  retriever,
+		progressCh: make(chan (<-chan error)),
+	}
+	go p.run()
+	return p
+}
+
+func (p *blockPrefetcher) run() {
+	for ch := range p.progressCh {
+		ch := ch
+		p.eg.Go(func() error {
+			return <-ch
+		})
+	}
+}
+
+func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	ch := p.retriever.Request(ctx, priority, kmd, ptr, block, lifetime)
+	select {
+	case p.progressCh <- ch:
+		return nil
+	default:
+		cancel()
+		return io.EOF
 	}
 }
 
@@ -54,7 +83,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadat
 	}
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, NewFileBlock(), TransientEntry)
+			ptr.BlockPointer, b.NewEmpty(), TransientEntry)
 	}
 }
 
@@ -64,8 +93,8 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata,
 		numIPtrs = defaultIndirectPointerPrefetchCount
 	}
 	for _, ptr := range b.IPtrs[:numIPtrs] {
-		p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, NewFileBlock(), TransientEntry)
+		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
+			ptr.BlockPointer, b.NewEmpty(), TransientEntry)
 	}
 }
 
@@ -114,10 +143,12 @@ func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 	}
 }
 
-func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) {
-	// TODO: track these requests and do something intelligent with
-	// cancellation
-	ctx := context.Background()
-	// Returns a buffered channel, so we don't need to read from it.
-	_ = p.retriever.Request(ctx, priority, kmd, ptr, block, lifetime)
+func (p *blockPrefetcher) Shutdown() <-chan struct{} {
+	close(p.progressCh)
+	ch := make(chan struct{})
+	go func() {
+		p.eg.Wait()
+		close(ch)
+	}()
+	return ch
 }
