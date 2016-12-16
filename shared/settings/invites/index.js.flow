@@ -8,17 +8,10 @@ type InviteBase = {
   created: Time,
 }
 
-export type PendingEmailInvite = {
-  type: 'pending-email',
+export type PendingInvite = {
+  url: string,
   email: string,
 } & InviteBase
-
-export type PendingURLInvite = {
-  type: 'pending-url',
-  url: string,
-} & InviteBase
-
-export type PendingInvite = PendingEmailInvite | PendingURLInvite
 
 export type AcceptedInvite = {
   username: string,
@@ -37,6 +30,7 @@ export type Props = {
   onReclaimInvitation: (invitationId: string) => void,
   onRefresh: () => void,
   onGenerateInvitation: (email: string, message: string) => void,
+  onSelectPendingInvite: (invite: PendingInvite) => void,
   waitingForResponse: boolean,
 }
 

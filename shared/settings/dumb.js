@@ -18,6 +18,7 @@ import Help from './help'
 import {landingTab} from '../constants/settings'
 
 import type {DumbComponentMap} from '../constants/types/more'
+import type {PendingInvite} from '../settings/invites/index'
 
 const updateEmailBase = {
   email: 'party@mypla.ce',
@@ -415,16 +416,16 @@ const invitesBase = {
   showMessageField: true,
   pendingInvites: [
     {
-      type: 'pending-email',
       id: '123456',
       created: 1469565223,
+      url: 'keybase.io/inv/9999999999',
       email: 'tcook@apple.com',
     },
     {
-      type: 'pending-url',
       id: '123457',
       created: 1469566223,
       url: 'keybase.io/inv/9999999999',
+      email: '',
     },
   ],
   acceptedInvites: [
@@ -459,6 +460,7 @@ const invitesBase = {
   onSelectUser: username => console.log('onSelectUser', username),
   onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
   onGenerateInvitation: () => console.log('onGenerateInvitation'),
+  onSelectPendingInvite: (invite: PendingInvite) => console.log('onSelectPendingInvite'),
   waitingForResponse: false,
   parentProps: {
     style: {

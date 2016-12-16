@@ -242,7 +242,6 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
       invite.type = 'accepted'
       acceptedInvites.push(invite)
     } else {
-      invite.type = i.email ? 'pending-email' : 'pending-url'
       pendingInvites.push(invite)
     }
   })

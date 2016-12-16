@@ -4,7 +4,9 @@ import {ipcRenderer} from 'electron'
 import Invites from './index'
 import {invitesReclaim, invitesRefresh, invitesSend, notificationsSave, notificationsToggle} from '../../actions/settings'
 
-import type {Props} from './index'
+import {navigateAppend} from '../../actions/route-tree'
+
+import type {Props, PendingInvite} from './index'
 import {TypedConnector} from '../../util/typed-connect'
 import type {TypedDispatch} from '../../constants/types/flux'
 import type {TypedState} from '../../constants/reducer'
@@ -36,6 +38,15 @@ export default connector.connect(
       onToggle: (name: string) => dispatch(notificationsToggle(name)),
       onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
       onSelectUser: (username: string) => { ipcRenderer.send('openURL', 'user', {username}) },
+      onSelectPendingInvite: (invite: PendingInvite) => {
+        dispatch(navigateAppend([{
+          selected: 'inviteSent',
+          props: {
+            email: invite.email,
+            link: invite.url,
+          },
+        }]))
+      }
     }
   }
 )(InvitationsContainer)
