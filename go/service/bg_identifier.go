@@ -38,7 +38,8 @@ type BackgroundIdentifier struct {
 	lastFollowerSet uidSet
 }
 
-func RunBackgroundIdentifier(g *libkb.GlobalContext, u keybase1.UID) (*BackgroundIdentifier, error) {
+func newBackgroundIdentifier(g *libkb.GlobalContext, u keybase1.UID) (*BackgroundIdentifier, error) {
+
 	ch := make(chan struct{})
 	eng := engine.NewBackgroundIdentifier(g, ch)
 	ret := &BackgroundIdentifier{
@@ -63,9 +64,20 @@ func RunBackgroundIdentifier(g *libkb.GlobalContext, u keybase1.UID) (*Backgroun
 	return ret, nil
 }
 
+func StartOrReuseBackgroundIdentifier(b *BackgroundIdentifier, g *libkb.GlobalContext, u keybase1.UID) (*BackgroundIdentifier, error) {
+	if b == nil {
+		return newBackgroundIdentifier(g, u)
+	}
+	return b.reuse(u)
+}
+
 func (b *BackgroundIdentifier) populateWithFollowees() error {
 	b.Lock()
 	defer b.Unlock()
+	return b.populateWithFolloweesLocked()
+}
+
+func (b *BackgroundIdentifier) populateWithFolloweesLocked() error {
 	uids, err := b.G().CachedUserLoader.ListFollowedUIDs(b.uid)
 	if err != nil {
 		return err
@@ -84,9 +96,13 @@ func (b *BackgroundIdentifier) populateWithFollowees() error {
 }
 
 func (b *BackgroundIdentifier) Shutdown() {
-	defer b.G().Trace("BackgroundIdentifier#Shutdown", func() error { return nil })()
 	b.Lock()
 	defer b.Unlock()
+	b.shutdownLocked()
+}
+
+func (b *BackgroundIdentifier) shutdownLocked() {
+	defer b.G().Trace("BackgroundIdentifier#Shutdown", func() error { return nil })()
 	if b.isDead {
 		b.G().Log.Debug("identifier was already shutdown")
 		return
@@ -97,16 +113,21 @@ func (b *BackgroundIdentifier) Shutdown() {
 
 func (b *BackgroundIdentifier) Logout() { b.Shutdown() }
 
-func (b *BackgroundIdentifier) Login(u keybase1.UID) (bgi *BackgroundIdentifier, err error) {
-	defer b.G().Trace("BackgroundIdentifier#Login", func() error { return err })()
-	if b.uid.Equal(u) {
+func (b *BackgroundIdentifier) reuse(u keybase1.UID) (bgi *BackgroundIdentifier, err error) {
+	defer b.G().Trace("BackgroundIdentifier#reuse", func() error { return err })()
+	b.Lock()
+	defer b.Unlock()
+	if b.uid.Equal(u) && !b.isDead {
 		return nil, nil
 	}
-	b.Logout()
-	return RunBackgroundIdentifier(b.G(), u)
+	b.shutdownLocked()
+	return newBackgroundIdentifier(b.G(), u)
 }
 
 func (b *BackgroundIdentifier) HandleUserChanged(uid keybase1.UID) error {
+	b.Lock()
+	defer b.Unlock()
+
 	if b.isDead {
 		b.G().Log.Debug("BackgroundIdentifier: dead identifier")
 		return errors.New("identifier is dead")
@@ -116,7 +137,7 @@ func (b *BackgroundIdentifier) HandleUserChanged(uid keybase1.UID) error {
 		return nil
 	}
 	// swallow error
-	err := b.populateWithFollowees()
+	err := b.populateWithFolloweesLocked()
 	if err != nil {
 		b.G().Log.Warning("BackgroundIdentifier: failed to populate with new followees: %s", err)
 	}
