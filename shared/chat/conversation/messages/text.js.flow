@@ -1,14 +1,14 @@
 // @flow
 import {Component} from 'react'
 
-import type {MessageID, TextMessage} from '../../../constants/chat'
+import type {MessageID, TextMessage, ServerMessage} from '../../../constants/chat'
 
 export type Props = {
   message: TextMessage,
   includeHeader: boolean,
   isFirstNewMessage: boolean,
   onRetry: () => void,
-  onAction: (event: any) => void,
+  onAction: (message: ServerMessage, event: any) => void,
   style: Object,
   isSelected: boolean,
 }

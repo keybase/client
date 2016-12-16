@@ -47,6 +47,14 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
+  _onClickEmoji = () => {
+    this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})
+  }
+
+  _onClickAttachment = () => {
+    console.log('attachment callback')
+  }
+
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
@@ -79,8 +87,8 @@ class Conversation extends Component<void, Props, State> {
               </Box>
             </Box>
           )}
-          <Icon onClick={() => this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})} style={styleIcon} type='iconfont-emoji' />
-          <Icon onClick={() => console.log('attachment callback')} style={styleIcon} type='iconfont-attachment' />
+          <Icon onClick={this._onClickEmoji} style={styleIcon} type='iconfont-emoji' />
+          <Icon onClick={this._onClickAttachment} style={styleIcon} type='iconfont-attachment' />
         </Box>
         <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
       </Box>
