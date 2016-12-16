@@ -58,6 +58,8 @@ const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
 }
 
+const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
+
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: Constants.updateBadging, payload: {conversationIDKey}}
 }
@@ -628,8 +630,7 @@ function * _openFolder (): SagaGenerator<any, any> {
 function * _newChat (action: NewChat): SagaGenerator<any, any> {
   yield put(searchReset())
 
-  const metaDataSelector = (state: TypedState) => state.chat.get('metaData')
-  const metaData = ((yield select(metaDataSelector)): any)
+  const metaData = ((yield select(_metaDataSelector)): any)
 
   const following = (yield select(followingSelector)) || {}
 
@@ -647,7 +648,8 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
 
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   // Don't send sharing before signup values
-  const usernames = action.payload.users.filter(name => name.indexOf('@') === -1).join(',')
+  const metaData = yield select(_metaDataSelector)
+  const usernames = action.payload.users.filter(name => !metaData.getIn([name, 'fullname']) && name.indexOf('@') === -1).join(',')
   if (!usernames) {
     return
   }
@@ -699,7 +701,7 @@ function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
   const conversationState = yield select(conversationStateSelector)
-  if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
+  if (conversationState && conversationState.firstNewMessageID && conversationState.messages !== null && conversationState.messages.size > 0) {
     const conversationID = keyToConversationID(conversationIDKey)
     const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
     yield call(localMarkAsReadLocalRpcPromise, {
