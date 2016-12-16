@@ -93,7 +93,7 @@ class Invites extends Component<void, Props, State> {
 function PendingInviteItem ({invite, props}: {invite: PendingInvite, props: Props}) {
   return (
     <Box style={styleInviteItem}>
-      {invite.email !== '' ? <PendingEmailContent invite={invite} props={props}/> : <PendingURLContent invite={invite} />}
+      {invite.email !== '' ? <PendingEmailContent invite={invite} props={props} /> : <PendingURLContent invite={invite} />}
       <Box style={{flex: 1}} />
       <Text
         type='BodyPrimaryLink'

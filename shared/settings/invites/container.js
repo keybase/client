@@ -46,7 +46,7 @@ export default connector.connect(
             link: invite.url,
           },
         }]))
-      }
+      },
     }
   }
 )(InvitationsContainer)
