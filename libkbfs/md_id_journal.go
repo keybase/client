@@ -5,13 +5,12 @@
 package libkbfs
 
 import (
-	"fmt"
-	"os"
 	"reflect"
 
 	"github.com/keybase/go-codec/codec"
-
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/pkg/errors"
 )
 
 // An mdIDJournal wraps a diskJournal to provide a persistent list of
@@ -46,16 +45,16 @@ func makeMdIDJournal(codec kbfscodec.Codec, dir string) mdIDJournal {
 func ordinalToRevision(o journalOrdinal) (MetadataRevision, error) {
 	r := MetadataRevision(o)
 	if r < MetadataRevisionInitial {
-		return MetadataRevisionUninitialized,
-			fmt.Errorf("Cannot convert ordinal %s to a MetadataRevision", o)
+		return MetadataRevisionUninitialized, errors.Errorf(
+			"Cannot convert ordinal %s to a MetadataRevision", o)
 	}
 	return r, nil
 }
 
 func revisionToOrdinal(r MetadataRevision) (journalOrdinal, error) {
 	if r < MetadataRevisionInitial {
-		return journalOrdinal(0),
-			fmt.Errorf("Cannot convert revision %s to an ordinal", r)
+		return journalOrdinal(0), errors.Errorf(
+			"Cannot convert revision %s to an ordinal", r)
 	}
 	return journalOrdinal(r), nil
 }
@@ -65,7 +64,7 @@ func revisionToOrdinal(r MetadataRevision) (journalOrdinal, error) {
 
 func (j mdIDJournal) readEarliestRevision() (MetadataRevision, error) {
 	o, err := j.j.readEarliestOrdinal()
-	if os.IsNotExist(err) {
+	if ioutil.IsNotExist(err) {
 		return MetadataRevisionUninitialized, nil
 	} else if err != nil {
 		return MetadataRevisionUninitialized, err
@@ -83,7 +82,7 @@ func (j mdIDJournal) writeEarliestRevision(r MetadataRevision) error {
 
 func (j mdIDJournal) readLatestRevision() (MetadataRevision, error) {
 	o, err := j.j.readLatestOrdinal()
-	if os.IsNotExist(err) {
+	if ioutil.IsNotExist(err) {
 		return MetadataRevisionUninitialized, nil
 	} else if err != nil {
 		return MetadataRevisionUninitialized, err

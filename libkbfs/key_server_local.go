@@ -6,13 +6,13 @@ package libkbfs
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -75,7 +75,7 @@ func NewKeyServerTempDir(config Config) (*KeyServerLocal, error) {
 		return nil, err
 	}
 	return newKeyServerDisk(config, tempdir, func(log logger.Logger) {
-		err := os.RemoveAll(tempdir)
+		err := ioutil.RemoveAll(tempdir)
 		if err != nil {
 			log.Warning("error removing %s: %s", tempdir, err)
 		}

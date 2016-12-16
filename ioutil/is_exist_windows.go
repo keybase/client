@@ -2,19 +2,21 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package ioutil
 
 import (
 	"os"
 	"syscall"
-)
 
-// This file is a workaround for
-// https://github.com/golang/go/issues/17164 .
+	"github.com/pkg/errors"
+)
 
 const _ERROR_DIR_NOT_EMPTY = syscall.Errno(145)
 
-func isExist(err error) bool {
+// IsExist wraps os.IsExist to work around
+// https://github.com/golang/go/issues/17164 .
+func IsExist(err error) bool {
+	err = errors.Cause(err)
 	if os.IsExist(err) {
 		return true
 	}

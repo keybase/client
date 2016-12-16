@@ -5,19 +5,16 @@
 package libkbfs
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
-
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -129,30 +126,11 @@ func (j *JournalServer) configPath() string {
 }
 
 func (j *JournalServer) readConfig() error {
-	configJSON, err := ioutil.ReadFile(j.configPath())
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(configJSON, &j.serverConfig)
-	if err != nil {
-		return err
-	}
-	return nil
+	return ioutil.DeserializeFromJSONFile(j.configPath(), &j.serverConfig)
 }
 
 func (j *JournalServer) writeConfig() error {
-	configJSON, err := json.Marshal(j.serverConfig)
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll(j.rootPath(), 0700)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(j.configPath(), configJSON, 0600)
+	return ioutil.SerializeToJSONFile(j.serverConfig, j.configPath())
 }
 
 func (j *JournalServer) tlfJournalPathLocked(tlfID tlf.ID) string {
@@ -197,7 +175,7 @@ func (j *JournalServer) getTLFJournal(tlfID tlf.ID) (*tlfJournal, bool) {
 		j.log.CDebugf(ctx, "Enabling a new journal for %s", tlfID)
 		err := j.Enable(ctx, tlfID, TLFJournalBackgroundWorkEnabled)
 		if err != nil {
-			j.log.CWarningf(ctx, "Couldn't enable journal for %s", tlfID)
+			j.log.CWarningf(ctx, "Couldn't enable journal for %s: %+v", tlfID, err)
 			return nil, false
 		}
 		tlfJournal, _, ok = getJournalFn()
@@ -227,7 +205,7 @@ func (j *JournalServer) EnableExistingJournals(
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx,
-				"Error when enabling existing journals: %v",
+				"Error when enabling existing journals: %+v",
 				err)
 		}
 	}()
@@ -237,7 +215,7 @@ func (j *JournalServer) EnableExistingJournals(
 
 	err = j.readConfig()
 	switch {
-	case os.IsNotExist(err):
+	case ioutil.IsNotExist(err):
 		// Config file doesn't exist, so write it.
 		err := j.writeConfig()
 		if err != nil {
@@ -248,11 +226,11 @@ func (j *JournalServer) EnableExistingJournals(
 	}
 
 	if j.currentUID != keybase1.UID("") {
-		return fmt.Errorf("Trying to set current UID from %s to %s",
+		return errors.Errorf("Trying to set current UID from %s to %s",
 			j.currentUID, currentUID)
 	}
 	if j.currentVerifyingKey != (kbfscrypto.VerifyingKey{}) {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"Trying to set current verifying key from %s to %s",
 			j.currentVerifyingKey, currentVerifyingKey)
 	}
@@ -279,7 +257,7 @@ func (j *JournalServer) EnableExistingJournals(
 	}()
 
 	fileInfos, err := ioutil.ReadDir(j.rootPath())
-	if os.IsNotExist(err) {
+	if ioutil.IsNotExist(err) {
 		enableSucceeded = true
 		return nil
 	} else if err != nil {
@@ -297,7 +275,7 @@ func (j *JournalServer) EnableExistingJournals(
 		uid, key, tlfID, err := readTLFJournalInfoFile(dir)
 		if err != nil {
 			j.log.CDebugf(
-				ctx, "Skipping non-TLF dir %q: %v", name, err)
+				ctx, "Skipping non-TLF dir %q: %+v", name, err)
 			continue
 		}
 
@@ -329,7 +307,7 @@ func (j *JournalServer) EnableExistingJournals(
 		if err != nil {
 			// Don't treat per-TLF errors as fatal.
 			j.log.CWarningf(
-				ctx, "Error when enabling existing journal for %s: %v",
+				ctx, "Error when enabling existing journal for %s: %+v",
 				tlfID, err)
 			continue
 		}
@@ -346,7 +324,7 @@ func (j *JournalServer) enableLocked(
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx,
-				"Error when enabling journal for %s: %v",
+				"Error when enabling journal for %s: %+v",
 				tlfID, err)
 		}
 	}()
@@ -364,11 +342,11 @@ func (j *JournalServer) enableLocked(
 
 	err = func() error {
 		if j.dirtyOps > 0 {
-			return fmt.Errorf("Can't enable journal for %s while there "+
+			return errors.Errorf("Can't enable journal for %s while there "+
 				"are outstanding dirty ops", tlfID)
 		}
 		if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
-			return fmt.Errorf("Can't enable journal for %s while there "+
+			return errors.Errorf("Can't enable journal for %s while there "+
 				"are any dirty blocks outstanding", tlfID)
 		}
 		return nil
@@ -379,7 +357,7 @@ func (j *JournalServer) enableLocked(
 		}
 
 		j.log.CWarningf(ctx,
-			"Got ignorable error on journal enable, and proceeding anyway: %v", err)
+			"Got ignorable error on journal enable, and proceeding anyway: %+v", err)
 	}
 
 	tlfDir := j.tlfJournalPathLocked(tlfID)
@@ -512,7 +490,7 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx,
-				"Error when disabling journal for %s: %v",
+				"Error when disabling journal for %s: %+v",
 				tlfID, err)
 		}
 	}()
@@ -526,11 +504,11 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
 	}
 
 	if j.dirtyOps > 0 {
-		return false, fmt.Errorf("Can't disable journal for %s while there "+
+		return false, errors.Errorf("Can't disable journal for %s while there "+
 			"are outstanding dirty ops", tlfID)
 	}
 	if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
-		return false, fmt.Errorf("Can't disable journal for %s while there "+
+		return false, errors.Errorf("Can't disable journal for %s while there "+
 			"are any dirty blocks outstanding", tlfID)
 	}
 
@@ -579,7 +557,7 @@ func (j *JournalServer) Status(
 		unflushedBytes, err := tlfJournal.getUnflushedBytes()
 		if err != nil {
 			j.log.CWarningf(ctx,
-				"Couldn't calculate unflushed bytes for %s: %v",
+				"Couldn't calculate unflushed bytes for %s: %+v",
 				tlfJournal.tlfID, err)
 		}
 		totalUnflushedBytes += unflushedBytes
@@ -603,13 +581,11 @@ func (j *JournalServer) JournalStatus(tlfID tlf.ID) (
 	tlfJournal, ok := j.getTLFJournal(tlfID)
 	if !ok {
 		return TLFJournalStatus{},
-			fmt.Errorf("Journal not enabled for %s", tlfID)
+			errors.Errorf("Journal not enabled for %s", tlfID)
 	}
 
 	return tlfJournal.getJournalStatus()
 }
-
-var errJournalStatusRetry = errors.New("Retry journal status")
 
 // JournalStatusWithPaths returns a TLFServerStatus object for the
 // given TLF suitable for diagnostics, including paths for all the
@@ -619,7 +595,7 @@ func (j *JournalServer) JournalStatusWithPaths(ctx context.Context,
 	tlfJournal, ok := j.getTLFJournal(tlfID)
 	if !ok {
 		return TLFJournalStatus{},
-			fmt.Errorf("Journal not enabled for %s", tlfID)
+			errors.Errorf("Journal not enabled for %s", tlfID)
 	}
 
 	return tlfJournal.getJournalStatusWithPaths(ctx, cpp)

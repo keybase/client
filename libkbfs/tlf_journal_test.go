@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"sync"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -243,7 +243,7 @@ func setupTLFJournalTest(
 	// fails.
 	defer func() {
 		if !setupSucceeded {
-			err := os.RemoveAll(tempdir)
+			err := ioutil.RemoveAll(tempdir)
 			assert.NoError(t, err)
 		}
 	}()
@@ -298,7 +298,7 @@ func teardownTLFJournalTest(
 	config.mdserver.Shutdown()
 	tlfJournal.delegateBlockServer.Shutdown()
 
-	err := os.RemoveAll(tempdir)
+	err := ioutil.RemoveAll(tempdir)
 	assert.NoError(config.t, err)
 }
 

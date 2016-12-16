@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -27,15 +28,14 @@ func (j journalBlockServer) Get(
 		}()
 		data, serverHalf, err := tlfJournal.getBlockDataWithContext(
 			id, context)
-		switch err.(type) {
+		switch errors.Cause(err).(type) {
 		case nil:
 			return data, serverHalf, nil
 		case blockNonExistentError:
 			break
+		case errTLFJournalDisabled:
+			break
 		default:
-			if err == errTLFJournalDisabled {
-				break
-			}
 			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 		}
 	}
@@ -51,7 +51,12 @@ func (j journalBlockServer) Put(
 			err = translateToBlockServerError(err)
 		}()
 		err := tlfJournal.putBlockData(ctx, id, context, buf, serverHalf)
-		if err != errTLFJournalDisabled {
+		switch errors.Cause(err).(type) {
+		case nil:
+			return nil
+		case errTLFJournalDisabled:
+			break
+		default:
 			return err
 		}
 	}
@@ -76,7 +81,12 @@ func (j journalBlockServer) AddBlockReference(
 			err = translateToBlockServerError(err)
 		}()
 		err := tlfJournal.addBlockReference(ctx, id, context)
-		if err != errTLFJournalDisabled {
+		switch errors.Cause(err).(type) {
+		case nil:
+			return nil
+		case errTLFJournalDisabled:
+			break
+		default:
 			return err
 		}
 	}

@@ -6,8 +6,6 @@ package libkbfs
 
 import (
 	"bytes"
-	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -16,7 +14,9 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/net/context"
 )
@@ -96,21 +96,33 @@ func NewMDServerTempDir(config mdServerLocalConfig) (*MDServerDisk, error) {
 		return nil, err
 	}
 	return newMDServerDisk(config, tempdir, func(log logger.Logger) {
-		err := os.RemoveAll(tempdir)
+		err := ioutil.RemoveAll(tempdir)
 		if err != nil {
 			log.Warning("error removing %s: %s", tempdir, err)
 		}
 	})
 }
 
-var errMDServerDiskShutdown = errors.New("MDServerDisk is shutdown")
+type errMDServerDiskShutdown struct{}
+
+func (e errMDServerDiskShutdown) Error() string {
+	return "MDServerDisk is shutdown"
+}
+
+func (md *MDServerDisk) checkShutdownLocked() error {
+	if md.tlfStorage == nil {
+		return errors.WithStack(errMDServerDiskShutdown{})
+	}
+	return nil
+}
 
 func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
 	storage, err := func() (*mdServerTlfStorage, error) {
 		md.lock.RLock()
 		defer md.lock.RUnlock()
-		if md.tlfStorage == nil {
-			return nil, errMDServerDiskShutdown
+		err := md.checkShutdownLocked()
+		if err != nil {
+			return nil, err
 		}
 		return md.tlfStorage[tlfID], nil
 	}()
@@ -126,7 +138,7 @@ func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	if md.tlfStorage == nil {
-		return nil, errMDServerDiskShutdown
+		return nil, errors.WithStack(errMDServerDiskShutdown{})
 	}
 
 	storage = md.tlfStorage[tlfID]
@@ -152,8 +164,9 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.handleDb == nil {
-		return tlf.NullID, false, errMDServerDiskShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return tlf.NullID, false, err
 	}
 
 	buf, err := md.handleDb.Get(handleBytes, nil)
@@ -237,9 +250,9 @@ func (md *MDServerDisk) getBranchID(ctx context.Context, id tlf.ID) (BranchID, e
 
 	md.lock.RLock()
 	defer md.lock.RUnlock()
-
-	if md.branchDb == nil {
-		return NullBranchID, errMDServerDiskShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return NullBranchID, err
 	}
 
 	buf, err := md.branchDb.Get(branchKey, nil)
@@ -261,9 +274,9 @@ func (md *MDServerDisk) putBranchID(
 	ctx context.Context, id tlf.ID, bid BranchID) error {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-
-	if md.branchDb == nil {
-		return errMDServerDiskShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return err
 	}
 
 	branchKey, err := md.getBranchKey(ctx, id)
@@ -285,9 +298,9 @@ func (md *MDServerDisk) putBranchID(
 func (md *MDServerDisk) deleteBranchID(ctx context.Context, id tlf.ID) error {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-
-	if md.branchDb == nil {
-		return errMDServerDiskShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return err
 	}
 
 	branchKey, err := md.getBranchKey(ctx, id)
@@ -456,8 +469,9 @@ func (md *MDServerDisk) TruncateLock(ctx context.Context, id tlf.ID) (
 
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.truncateLockManager == nil {
-		return false, errMDServerDiskShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return false, err
 	}
 
 	return md.truncateLockManager.truncateLock(key.KID(), id)
@@ -473,8 +487,9 @@ func (md *MDServerDisk) TruncateUnlock(ctx context.Context, id tlf.ID) (
 
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.truncateLockManager == nil {
-		return false, errMDServerDiskShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return false, err
 	}
 
 	return md.truncateLockManager.truncateUnlock(key.KID(), id)
@@ -550,9 +565,9 @@ func (md *MDServerDisk) addNewAssertionForTest(uid keybase1.UID,
 	newAssertion keybase1.SocialAssertion) error {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-
-	if md.handleDb == nil {
-		return errMDServerDiskShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return err
 	}
 
 	// Iterate through all the handles, and add handles for ones
@@ -590,9 +605,9 @@ func (md *MDServerDisk) GetLatestHandleForTLF(_ context.Context, id tlf.ID) (
 	tlf.Handle, error) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
-
-	if md.handleDb == nil {
-		return tlf.Handle{}, errMDServerDiskShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return tlf.Handle{}, err
 	}
 
 	var handle tlf.Handle
@@ -630,9 +645,9 @@ func (md *MDServerDisk) GetKeyBundles(_ context.Context,
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
-
-	if md.handleDb == nil {
-		return nil, nil, errMDServerDiskShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return nil, nil, err
 	}
 
 	tlfStorage, err := md.getStorage(tlfID)

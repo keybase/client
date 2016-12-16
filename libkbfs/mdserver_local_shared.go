@@ -13,6 +13,8 @@ import (
 	"github.com/keybase/kbfs/tlf"
 )
 
+// TODO: Have the functions below wrap their errors.
+
 // Helper to aid in enforcement that only specified public keys can
 // access TLF metadata. mergedMasterHead can be nil, in which case
 // true is returned.

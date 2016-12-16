@@ -5,12 +5,12 @@
 package libkbfs
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +29,7 @@ func setupBlockDiskStoreTest(t *testing.T) (tempdir string, s *blockDiskStore) {
 }
 
 func teardownBlockDiskStoreTest(t *testing.T, tempdir string) {
-	err := os.RemoveAll(tempdir)
+	err := ioutil.RemoveAll(tempdir)
 	assert.NoError(t, err)
 }
 

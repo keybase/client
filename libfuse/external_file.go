@@ -6,11 +6,11 @@ package libfuse
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sync"
 	"time"
 
+	"github.com/keybase/kbfs/ioutil"
 	"golang.org/x/net/context"
 )
 
@@ -27,7 +27,7 @@ func newExternalFile(path string) (*SpecialReadFile, error) {
 		read: func(context.Context) ([]byte, time.Time, error) {
 			once.Do(func() {
 				var info os.FileInfo
-				info, err = os.Stat(path)
+				info, err = ioutil.Stat(path)
 				if err != nil {
 					return
 				}

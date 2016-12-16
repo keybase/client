@@ -5,10 +5,10 @@
 package libkbfs
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +24,7 @@ func setupJournalServerTest(t *testing.T) (
 	setupSucceeded := false
 	defer func() {
 		if !setupSucceeded {
-			err := os.RemoveAll(tempdir)
+			err := ioutil.RemoveAll(tempdir)
 			assert.NoError(t, err)
 		}
 	}()
@@ -49,7 +49,7 @@ func setupJournalServerTest(t *testing.T) (
 func teardownJournalServerTest(
 	t *testing.T, tempdir string, config Config) {
 	CheckConfigAndShutdown(t, config)
-	err := os.RemoveAll(tempdir)
+	err := ioutil.RemoveAll(tempdir)
 	assert.NoError(t, err)
 }
 

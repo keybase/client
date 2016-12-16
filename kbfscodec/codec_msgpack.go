@@ -9,6 +9,7 @@ import (
 	"reflect"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/pkg/errors"
 )
 
 // ext is a no-op extension that's useful for tagging interfaces with
@@ -157,15 +158,21 @@ func NewMsgpackNoUnknownFields() *CodecMsgpack {
 }
 
 // Decode implements the Codec interface for CodecMsgpack
-func (c *CodecMsgpack) Decode(buf []byte, obj interface{}) (err error) {
-	err = codec.NewDecoderBytes(buf, c.h).Decode(obj)
-	return
+func (c *CodecMsgpack) Decode(buf []byte, obj interface{}) error {
+	err := codec.NewDecoderBytes(buf, c.h).Decode(obj)
+	if err != nil {
+		return errors.Wrap(err, "failed to decode")
+	}
+	return nil
 }
 
 // Encode implements the Codec interface for CodecMsgpack
 func (c *CodecMsgpack) Encode(obj interface{}) (buf []byte, err error) {
 	err = codec.NewEncoderBytes(&buf, c.h).Encode(obj)
-	return
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to encode")
+	}
+	return buf, nil
 }
 
 // RegisterType implements the Codec interface for CodecMsgpack

@@ -6,7 +6,6 @@ package test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -723,12 +723,12 @@ func (k *LibKBFS) Shutdown(u User) error {
 
 	if k.journalDir != "" {
 		// Remove the user journal.
-		if err := os.RemoveAll(
+		if err := ioutil.RemoveAll(
 			filepath.Join(k.journalDir, userName.String())); err != nil {
 			return err
 		}
 		// Remove the overall journal dir if it's empty.
-		if err := os.Remove(k.journalDir); err != nil {
+		if err := ioutil.Remove(k.journalDir); err != nil {
 			k.t.Logf("Journal dir %s not empty yet", k.journalDir)
 		}
 	}

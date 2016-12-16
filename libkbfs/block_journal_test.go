@@ -5,21 +5,20 @@
 package libkbfs
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 type blockJournalEntryFuture struct {
@@ -80,7 +79,7 @@ func setupBlockJournalTest(t *testing.T) (
 	setupSucceeded := false
 	defer func() {
 		if !setupSucceeded {
-			err := os.RemoveAll(tempdir)
+			err := ioutil.RemoveAll(tempdir)
 			assert.NoError(t, err)
 		}
 	}()
@@ -97,7 +96,7 @@ func teardownBlockJournalTest(t *testing.T, tempdir string, j *blockJournal) {
 	err := j.checkInSyncForTest()
 	assert.NoError(t, err)
 
-	err = os.RemoveAll(tempdir)
+	err = ioutil.RemoveAll(tempdir)
 	assert.NoError(t, err)
 }
 
@@ -709,13 +708,13 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	require.NoError(t, err)
 
 	err = j.hasData(bID1)
-	require.True(t, os.IsNotExist(err))
+	require.True(t, ioutil.IsNotExist(err))
 	err = j.hasData(bID2)
-	require.True(t, os.IsNotExist(err))
+	require.True(t, ioutil.IsNotExist(err))
 	err = j.hasData(bID3)
-	require.True(t, os.IsNotExist(err))
+	require.True(t, ioutil.IsNotExist(err))
 	err = j.hasData(bID4)
-	require.True(t, os.IsNotExist(err))
+	require.True(t, ioutil.IsNotExist(err))
 
 	testBlockJournalGCd(t, j)
 }
@@ -729,7 +728,7 @@ func TestBlockJournalUnflushedBytes(t *testing.T) {
 		var info aggregateInfo
 		err := kbfscodec.DeserializeFromFile(
 			j.codec, aggregateInfoPath(j.dir), &info)
-		if !os.IsNotExist(err) {
+		if !ioutil.IsNotExist(err) {
 			require.NoError(t, err)
 		}
 		require.Equal(t, int64(expectedSize), info.UnflushedBytes)

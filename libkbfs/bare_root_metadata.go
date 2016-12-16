@@ -6,6 +6,8 @@ package libkbfs
 
 import "github.com/keybase/kbfs/tlf"
 
+// TODO: Wrap errors coming from BareRootMetadata.
+
 // MakeInitialBareRootMetadata creates a new MutableBareRootMetadata
 // instance of the given MetadataVer with revision
 // MetadataRevisionInitial, and the given TLF ID and handle. Note that

@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/pkg/errors"
 
 	"github.com/keybase/kbfs/tlf"
 
@@ -91,9 +92,12 @@ func (j journalMDOps) getHeadFromJournal(
 	}
 
 	head, err := tlfJournal.getMDHead(ctx, bid)
-	if err == errTLFJournalDisabled {
+	switch errors.Cause(err).(type) {
+	case nil:
+		break
+	case errTLFJournalDisabled:
 		return ImmutableRootMetadata{}, nil
-	} else if err != nil {
+	default:
 		return ImmutableRootMetadata{}, err
 	}
 
@@ -158,9 +162,12 @@ func (j journalMDOps) getRangeFromJournal(
 	}
 
 	ibrmds, err := tlfJournal.getMDRange(ctx, bid, start, stop)
-	if err == errTLFJournalDisabled {
+	switch errors.Cause(err).(type) {
+	case nil:
+		break
+	case errTLFJournalDisabled:
 		return nil, nil
-	} else if err != nil {
+	default:
 		return nil, err
 	}
 
@@ -291,12 +298,18 @@ func (j journalMDOps) getRange(
 	[]ImmutableRootMetadata, error) {
 	// Grab the range from the journal first.
 	jirmds, err := j.getRangeFromJournal(ctx, id, bid, mStatus, start, stop)
-	if err != nil && err != errTLFJournalDisabled {
+	switch errors.Cause(err).(type) {
+	case nil:
+		break
+	case errTLFJournalDisabled:
+		// Fall back to the server.
+		return delegateFn(ctx, id, start, stop)
+	default:
 		return nil, err
 	}
 
-	// If it's empty or disabled, just fall back to the server.
-	if len(jirmds) == 0 || err == errTLFJournalDisabled {
+	// If it's empty, fall back to the server.
+	if len(jirmds) == 0 {
 		return delegateFn(ctx, id, start, stop)
 	}
 
@@ -352,8 +365,13 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		// Just route to the journal.
 		mdID, err := tlfJournal.putMD(ctx, rmd)
-		if err != errTLFJournalDisabled {
-			return mdID, err
+		switch errors.Cause(err).(type) {
+		case nil:
+			return mdID, nil
+		case errTLFJournalDisabled:
+			break
+		default:
+			return MdID{}, err
 		}
 	}
 
@@ -365,8 +383,13 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		rmd.SetUnmerged()
 		mdID, err := tlfJournal.putMD(ctx, rmd)
-		if err != errTLFJournalDisabled {
-			return mdID, err
+		switch errors.Cause(err).(type) {
+		case nil:
+			return mdID, nil
+		case errTLFJournalDisabled:
+			break
+		default:
+			return MdID{}, err
 		}
 	}
 
@@ -378,7 +401,12 @@ func (j journalMDOps) PruneBranch(
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		// Prune the journal, too.
 		err := tlfJournal.clearMDs(ctx, bid)
-		if err != nil && err != errTLFJournalDisabled {
+		switch errors.Cause(err).(type) {
+		case nil:
+			break
+		case errTLFJournalDisabled:
+			break
+		default:
 			return err
 		}
 	}
@@ -392,8 +420,13 @@ func (j journalMDOps) ResolveBranch(
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		mdID, err := tlfJournal.resolveBranch(
 			ctx, bid, blocksToDelete, rmd, rmd.extra)
-		if err != errTLFJournalDisabled {
-			return mdID, err
+		switch errors.Cause(err).(type) {
+		case nil:
+			return mdID, nil
+		case errTLFJournalDisabled:
+			break
+		default:
+			return MdID{}, err
 		}
 	}
 

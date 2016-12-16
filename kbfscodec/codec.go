@@ -6,10 +6,10 @@ package kbfscodec
 
 import (
 	"bytes"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"reflect"
+
+	"github.com/keybase/kbfs/ioutil"
 )
 
 // ExtCode is used to register codec extensions
@@ -79,7 +79,7 @@ func Update(c Codec, dstPtr interface{}, src interface{}) error {
 // SerializeToFile serializes the given object and writes it to the
 // given file, making its parent directory first if necessary.
 func SerializeToFile(c Codec, obj interface{}, path string) error {
-	err := os.MkdirAll(filepath.Dir(path), 0700)
+	err := ioutil.MkdirAll(filepath.Dir(path), 0700)
 	if err != nil {
 		return err
 	}
@@ -89,16 +89,12 @@ func SerializeToFile(c Codec, obj interface{}, path string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(path, buf, 0600)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ioutil.WriteFile(path, buf, 0600)
 }
 
 // DeserializeFromFile deserializes the given file into the object
-// pointed to by objPtr.
+// pointed to by objPtr. It may return an error for which
+// ioutil.IsNotExist() returns true.
 func DeserializeFromFile(c Codec, path string, objPtr interface{}) error {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {

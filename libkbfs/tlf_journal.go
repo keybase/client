@@ -5,11 +5,7 @@
 package libkbfs
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -17,10 +13,12 @@ import (
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -212,13 +210,9 @@ type tlfJournalInfo struct {
 
 func readTLFJournalInfoFile(dir string) (
 	keybase1.UID, kbfscrypto.VerifyingKey, tlf.ID, error) {
-	infoJSON, err := ioutil.ReadFile(getTLFJournalInfoFilePath(dir))
-	if err != nil {
-		return keybase1.UID(""), kbfscrypto.VerifyingKey{}, tlf.ID{}, err
-	}
-
 	var info tlfJournalInfo
-	err = json.Unmarshal(infoJSON, &info)
+	err := ioutil.DeserializeFromJSONFile(
+		getTLFJournalInfoFilePath(dir), &info)
 	if err != nil {
 		return keybase1.UID(""), kbfscrypto.VerifyingKey{}, tlf.ID{}, err
 	}
@@ -229,17 +223,7 @@ func readTLFJournalInfoFile(dir string) (
 func writeTLFJournalInfoFile(dir string, uid keybase1.UID,
 	key kbfscrypto.VerifyingKey, tlfID tlf.ID) error {
 	info := tlfJournalInfo{uid, key, tlfID}
-	infoJSON, err := json.Marshal(info)
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll(dir, 0700)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(getTLFJournalInfoFilePath(dir), infoJSON, 0600)
+	return ioutil.SerializeToJSONFile(info, getTLFJournalInfoFilePath(dir))
 }
 
 func makeTLFJournal(
@@ -260,7 +244,7 @@ func makeTLFJournal(
 
 	readUID, readKey, readTlfID, err := readTLFJournalInfoFile(dir)
 	switch {
-	case os.IsNotExist(err):
+	case ioutil.IsNotExist(err):
 		// Info file doesn't exist, so write it.
 		err := writeTLFJournalInfoFile(dir, uid, key, tlfID)
 		if err != nil {
@@ -274,18 +258,18 @@ func makeTLFJournal(
 		// Info file exists, so it should match passed-in
 		// parameters.
 		if uid != readUID {
-			return nil, fmt.Errorf(
+			return nil, errors.Errorf(
 				"Expected UID %s, got %s", uid, readUID)
 		}
 
 		if key != readKey {
-			return nil, fmt.Errorf(
+			return nil, errors.Errorf(
 				"Expected verifying key %s, got %s",
 				key, readKey)
 		}
 
 		if tlfID != readTlfID {
-			return nil, fmt.Errorf(
+			return nil, errors.Errorf(
 				"Expected TLF ID %s, got %s", tlfID, readTlfID)
 		}
 	}
@@ -574,10 +558,10 @@ func (j *tlfJournal) resumeBackgroundWork() {
 
 func (j *tlfJournal) checkEnabledLocked() error {
 	if j.blockJournal == nil || j.mdJournal == nil {
-		return errTLFJournalShutdown
+		return errors.WithStack(errTLFJournalShutdown{})
 	}
 	if j.disabled {
-		return errTLFJournalDisabled
+		return errors.WithStack(errTLFJournalDisabled{})
 	}
 	return nil
 }
@@ -688,9 +672,23 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	return nil
 }
 
-var errTLFJournalShutdown = errors.New("tlfJournal is shutdown")
-var errTLFJournalDisabled = errors.New("tlfJournal is disabled")
-var errTLFJournalNotEmpty = errors.New("tlfJournal is not empty")
+type errTLFJournalShutdown struct{}
+
+func (e errTLFJournalShutdown) Error() string {
+	return "tlfJournal is shutdown"
+}
+
+type errTLFJournalDisabled struct{}
+
+func (e errTLFJournalDisabled) Error() string {
+	return "tlfJournal is disabled"
+}
+
+type errTLFJournalNotEmpty struct{}
+
+func (e errTLFJournalNotEmpty) Error() string {
+	return "tlfJournal is not empty"
+}
 
 func (j *tlfJournal) getNextBlockEntriesToFlush(
 	ctx context.Context, end journalOrdinal) (
@@ -1198,12 +1196,14 @@ func (j *tlfJournal) disable() (wasEnabled bool, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	err = j.checkEnabledLocked()
-	if err != nil {
-		if err == errTLFJournalDisabled {
-			// Already disabled.
-			return false, nil
-		}
-		// Already shutdown.
+	switch errors.Cause(err).(type) {
+	case nil:
+		// Continue.
+		break
+	case errTLFJournalDisabled:
+		// Already disabled.
+		return false, nil
+	default:
 		return false, err
 	}
 
@@ -1219,7 +1219,7 @@ func (j *tlfJournal) disable() (wasEnabled bool, err error) {
 
 	// You can only disable an empty journal.
 	if blockEntryCount > 0 || mdEntryCount > 0 {
-		return false, errTLFJournalNotEmpty
+		return false, errors.WithStack(errTLFJournalNotEmpty{})
 	}
 
 	j.disabled = true
@@ -1230,10 +1230,14 @@ func (j *tlfJournal) enable() error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	err := j.checkEnabledLocked()
-	if err == nil {
+	switch errors.Cause(err).(type) {
+	case nil:
 		// Already enabled.
 		return nil
-	} else if err != errTLFJournalDisabled {
+	case errTLFJournalDisabled:
+		// Continue.
+		break
+	default:
 		return err
 	}
 

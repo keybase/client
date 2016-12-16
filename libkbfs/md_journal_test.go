@@ -6,21 +6,20 @@ package libkbfs
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 type singleEncryptionKeyGetter struct {
@@ -68,7 +67,7 @@ func setupMDJournalTestWithMetadataVer(t testing.TB, mdVer MetadataVer) (
 	setupSucceeded := false
 	defer func() {
 		if !setupSucceeded {
-			err := os.RemoveAll(tempdir)
+			err := ioutil.RemoveAll(tempdir)
 			assert.NoError(t, err)
 		}
 	}()
@@ -93,7 +92,7 @@ func setupMDJournalTest(t testing.TB) (
 }
 
 func teardownMDJournalTest(t testing.TB, tempdir string) {
-	err := os.RemoveAll(tempdir)
+	err := ioutil.RemoveAll(tempdir)
 	assert.NoError(t, err)
 }
 

@@ -18,6 +18,7 @@ import (
 	"unsafe"
 
 	"github.com/keybase/kbfs/dokan/winacl"
+	"github.com/keybase/kbfs/ioutil"
 	"golang.org/x/net/context"
 	"golang.org/x/sys/windows"
 )
@@ -41,7 +42,7 @@ func TestEmptyFS(t *testing.T) {
 
 func testShouldNotExist(t *testing.T) {
 	_, err := os.Open(`T:\should-not-exist`)
-	if !os.IsNotExist(err) {
+	if !ioutil.IsNotExist(err) {
 		t.Fatal("Opening non-existent file:", err)
 	}
 }
@@ -192,9 +193,9 @@ func testReaddir(t *testing.T) {
 }
 
 func testPlaceHolderRemoveRename(t *testing.T) {
-	os.Remove(`T:\hello.txt`)
-	os.Remove(`T:\`)
-	os.Rename(`T:\hello.txt`, `T:\does-not-exist2`)
+	ioutil.Remove(`T:\hello.txt`)
+	ioutil.Remove(`T:\`)
+	ioutil.Rename(`T:\hello.txt`, `T:\does-not-exist2`)
 }
 
 func testDiskFreeSpace(t *testing.T) {

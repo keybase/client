@@ -6,8 +6,6 @@ package libkbfs
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -15,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -110,7 +109,18 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 	return mdserv, nil
 }
 
-var errMDServerMemoryShutdown = errors.New("MDServerMemory is shutdown")
+type errMDServerMemoryShutdown struct{}
+
+func (e errMDServerMemoryShutdown) Error() string {
+	return "MDServerMemory is shutdown"
+}
+
+func (md *MDServerMemory) checkShutdownLocked() error {
+	if md.handleDb == nil {
+		return errors.WithStack(errMDServerMemoryShutdown{})
+	}
+	return nil
+}
 
 func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 	mStatus MergeStatus) (tlfID tlf.ID, created bool, err error) {
@@ -121,8 +131,9 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.handleDb == nil {
-		return tlf.NullID, false, errMDServerDiskShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return tlf.NullID, false, err
 	}
 
 	id, ok := md.handleDb[mdHandleKey(handleBytes)]
@@ -240,8 +251,9 @@ func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id tlf.ID,
 	}
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.mdDb == nil {
-		return nil, errMDServerMemoryShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return nil, err
 	}
 
 	blockList, ok := md.mdDb[key]
@@ -265,7 +277,7 @@ func (md *MDServerMemory) getMDKey(
 	id tlf.ID, bid BranchID, mStatus MergeStatus) (mdBlockKey, error) {
 	if (mStatus == Merged) != (bid == NullBranchID) {
 		return mdBlockKey{},
-			fmt.Errorf("mstatus=%v is inconsistent with bid=%v",
+			errors.Errorf("mstatus=%v is inconsistent with bid=%v",
 				mStatus, bid)
 	}
 	return mdBlockKey{id, bid}, nil
@@ -309,8 +321,9 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.mdDb == nil {
-		return nil, errMDServerMemoryShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return nil, err
 	}
 
 	blockList, ok := md.mdDb[key]
@@ -342,7 +355,7 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 		}
 		expectedRevision := blockList.initialRevision + MetadataRevision(i)
 		if expectedRevision != rmds.MD.RevisionNumber() {
-			panic(fmt.Errorf("expected revision %v, got %v",
+			panic(errors.Errorf("expected revision %v, got %v",
 				expectedRevision, rmds.MD.RevisionNumber()))
 		}
 		rmdses = append(rmdses, rmds)
@@ -431,7 +444,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 		}
 		if len(rmdses) != 1 {
 			return MDServerError{
-				Err: fmt.Errorf("Expected 1 MD block got %d", len(rmdses)),
+				Err: errors.Errorf("Expected 1 MD block got %d", len(rmdses)),
 			}
 		}
 		head = rmdses[0]
@@ -459,8 +472,9 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 		err = func() error {
 			md.lock.Lock()
 			defer md.lock.Unlock()
-			if md.branchDb == nil {
-				return errMDServerMemoryShutdown
+			err = md.checkShutdownLocked()
+			if err != nil {
+				return err
 			}
 			md.branchDb[branchKey] = bid
 			return nil
@@ -485,8 +499,9 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.mdDb == nil {
-		return errMDServerMemoryShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return err
 	}
 
 	blockList, ok := md.mdDb[revKey]
@@ -537,8 +552,9 @@ func (md *MDServerMemory) PruneBranch(ctx context.Context, id tlf.ID, bid Branch
 	}
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.mdDb == nil {
-		return errMDServerMemoryShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return err
 	}
 
 	delete(md.branchDb, branchKey)
@@ -552,8 +568,9 @@ func (md *MDServerMemory) getBranchID(ctx context.Context, id tlf.ID) (BranchID,
 	}
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.branchDb == nil {
-		return NullBranchID, errMDServerMemoryShutdown
+	err = md.checkShutdownLocked()
+	if err != nil {
+		return NullBranchID, err
 	}
 
 	bid, ok := md.branchDb[branchKey]
@@ -596,8 +613,9 @@ func (md *MDServerMemory) TruncateLock(ctx context.Context, id tlf.ID) (
 	bool, error) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.truncateLockManager == nil {
-		return false, errMDServerMemoryShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return false, err
 	}
 
 	myKID, err := md.getCurrentDeviceKID(ctx)
@@ -613,8 +631,9 @@ func (md *MDServerMemory) TruncateUnlock(ctx context.Context, id tlf.ID) (
 	bool, error) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.truncateLockManager == nil {
-		return false, errMDServerMemoryShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return false, err
 	}
 
 	myKID, err := md.getCurrentDeviceKID(ctx)
@@ -677,8 +696,9 @@ func (md *MDServerMemory) addNewAssertionForTest(uid keybase1.UID,
 	newAssertion keybase1.SocialAssertion) error {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.handleDb == nil {
-		return errMDServerMemoryShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return err
 	}
 
 	// Iterate through all the handles, and add handles for ones
@@ -722,8 +742,9 @@ func (md *MDServerMemory) GetLatestHandleForTLF(_ context.Context, id tlf.ID) (
 	tlf.Handle, error) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
-	if md.latestHandleDb == nil {
-		return tlf.Handle{}, errMDServerMemoryShutdown
+	err := md.checkShutdownLocked()
+	if err != nil {
+		return tlf.Handle{}, err
 	}
 
 	return md.latestHandleDb[id], nil
@@ -786,7 +807,7 @@ func (md *MDServerMemory) getKeyBundles(
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
 	if (wkbID == TLFWriterKeyBundleID{}) !=
 		(rkbID == TLFReaderKeyBundleID{}) {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.Errorf(
 			"wkbID is empty (%t) != rkbID is empty (%t)",
 			wkbID == TLFWriterKeyBundleID{},
 			rkbID == TLFReaderKeyBundleID{})

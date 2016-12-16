@@ -6,13 +6,13 @@ package libkbfs
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
 
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/pkg/errors"
 )
 
 // diskJournal stores an ordered list of entries.
@@ -57,11 +57,11 @@ type journalOrdinal uint64
 
 func makeJournalOrdinal(s string) (journalOrdinal, error) {
 	if len(s) != 16 {
-		return 0, fmt.Errorf("invalid journal ordinal %q", s)
+		return 0, errors.Errorf("invalid journal ordinal %q", s)
 	}
 	u, err := strconv.ParseUint(s, 16, 64)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrapf(err, "failed to parse %q", s)
 	}
 	return journalOrdinal(u), nil
 }
@@ -84,11 +84,11 @@ func (j diskJournal) journalEntryPath(o journalOrdinal) string {
 	return filepath.Join(j.dir, o.String())
 }
 
-// The functions below are for getting and setting the earliest and
-// latest ordinals.
+// The functions below are for reading and writing the earliest and
+// latest ordinals. The read functions may return an error for which
+// ioutil.IsNotExist() returns true.
 
-func (j diskJournal) readOrdinal(path string) (
-	journalOrdinal, error) {
+func (j diskJournal) readOrdinal(path string) (journalOrdinal, error) {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0, err
@@ -128,11 +128,11 @@ func (j diskJournal) clearOrdinals() error {
 		return err
 	}
 
-	err = os.Remove(j.earliestPath())
+	err = ioutil.Remove(j.earliestPath())
 	if err != nil {
 		return err
 	}
-	err = os.Remove(j.latestPath())
+	err = ioutil.Remove(j.latestPath())
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (j diskJournal) clearOrdinals() error {
 	// sweeper to clean up entries left behind if we crash right here.
 	for ordinal := earliestOrdinal; ordinal <= latestOrdinal; ordinal++ {
 		p := j.journalEntryPath(ordinal)
-		err = os.Remove(p)
+		err = ioutil.Remove(p)
 		if err != nil {
 			return err
 		}
@@ -176,7 +176,7 @@ func (j diskJournal) removeEarliest() (empty bool, err error) {
 	// Garbage-collect the old entry.  TODO: we'll eventually need a
 	// sweeper to clean up entries left behind if we crash right here.
 	p := j.journalEntryPath(earliestOrdinal)
-	err = os.Remove(p)
+	err = ioutil.Remove(p)
 	if err != nil {
 		return false, err
 	}
@@ -188,13 +188,8 @@ func (j diskJournal) removeEarliest() (empty bool, err error) {
 
 func (j diskJournal) readJournalEntry(o journalOrdinal) (interface{}, error) {
 	p := j.journalEntryPath(o)
-	buf, err := ioutil.ReadFile(p)
-	if err != nil {
-		return nil, err
-	}
-
 	entry := reflect.New(j.entryType)
-	err = j.codec.Decode(buf, entry)
+	err := kbfscodec.DeserializeFromFile(j.codec, p, entry)
 	if err != nil {
 		return nil, err
 	}
@@ -206,23 +201,11 @@ func (j diskJournal) writeJournalEntry(
 	o journalOrdinal, entry interface{}) error {
 	entryType := reflect.TypeOf(entry)
 	if entryType != j.entryType {
-		panic(fmt.Errorf("Expected entry type %v, got %v",
+		panic(errors.Errorf("Expected entry type %v, got %v",
 			j.entryType, entryType))
 	}
 
-	err := os.MkdirAll(j.dir, 0700)
-	if err != nil {
-		return err
-	}
-
-	p := j.journalEntryPath(o)
-
-	buf, err := j.codec.Encode(entry)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(p, buf, 0600)
+	return kbfscodec.SerializeToFile(j.codec, entry, j.journalEntryPath(o))
 }
 
 // appendJournalEntry appends the given entry to the journal. If o is
@@ -239,7 +222,7 @@ func (j diskJournal) appendJournalEntry(
 	// of reading it from disk every time.
 	var next journalOrdinal
 	lo, err := j.readLatestOrdinal()
-	if os.IsNotExist(err) {
+	if ioutil.IsNotExist(err) {
 		if o != nil {
 			next = *o
 		} else {
@@ -251,10 +234,11 @@ func (j diskJournal) appendJournalEntry(
 		next = lo + 1
 		if next == 0 {
 			// Rollover is almost certainly a bug.
-			return 0, fmt.Errorf("Ordinal rollover for %+v", entry)
+			return 0, errors.Errorf(
+				"Ordinal rollover for %+v", entry)
 		}
 		if o != nil && next != *o {
-			return 0, fmt.Errorf(
+			return 0, errors.Errorf(
 				"%v unexpectedly does not follow %v for %+v",
 				*o, lo, entry)
 		}
@@ -266,7 +250,7 @@ func (j diskJournal) appendJournalEntry(
 	}
 
 	_, err = j.readEarliestOrdinal()
-	if os.IsNotExist(err) {
+	if ioutil.IsNotExist(err) {
 		err := j.writeEarliestOrdinal(next)
 		if err != nil {
 			return 0, err
@@ -282,7 +266,7 @@ func (j diskJournal) appendJournalEntry(
 }
 
 func (j *diskJournal) move(newDir string) (oldDir string, err error) {
-	err = os.Rename(j.dir, newDir)
+	err = ioutil.Rename(j.dir, newDir)
 	if err != nil {
 		return "", err
 	}
@@ -293,7 +277,7 @@ func (j *diskJournal) move(newDir string) (oldDir string, err error) {
 
 func (j diskJournal) length() (uint64, error) {
 	first, err := j.readEarliestOrdinal()
-	if os.IsNotExist(err) {
+	if ioutil.IsNotExist(err) {
 		return 0, nil
 	} else if err != nil {
 		return 0, err

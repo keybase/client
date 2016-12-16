@@ -5,11 +5,11 @@
 package libkbfs
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -34,7 +34,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "mdserver_tlf_storage")
 	require.NoError(t, err)
 	defer func() {
-		err := os.RemoveAll(tempdir)
+		err := ioutil.RemoveAll(tempdir)
 		require.NoError(t, err)
 	}()
 

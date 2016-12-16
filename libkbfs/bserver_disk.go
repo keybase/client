@@ -7,12 +7,12 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -69,7 +69,7 @@ func NewBlockServerTempDir(codec kbfscodec.Codec, crypto cryptoPure,
 		return nil, err
 	}
 	return newBlockServerDisk(codec, crypto, log, tempdir, func(log logger.Logger) {
-		err := os.RemoveAll(tempdir)
+		err := ioutil.RemoveAll(tempdir)
 		if err != nil {
 			log.Warning("error removing %s: %s", tempdir, err)
 		}

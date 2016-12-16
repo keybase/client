@@ -20,6 +20,8 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
+// TODO: Wrap errors coming from Crypto.
+
 // CryptoCommon contains many of the function implementations need for
 // the Crypto interface, which can be reused by other implementations.
 type CryptoCommon struct {

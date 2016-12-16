@@ -5,15 +5,14 @@
 package libkbfs
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"golang.org/x/net/context"
 )
 
@@ -27,7 +26,7 @@ func setupJournalMDOpsTest(t *testing.T) (
 	setupSucceeded := false
 	defer func() {
 		if !setupSucceeded {
-			err := os.RemoveAll(tempdir)
+			err := ioutil.RemoveAll(tempdir)
 			assert.NoError(t, err)
 		}
 	}()
@@ -55,7 +54,7 @@ func setupJournalMDOpsTest(t *testing.T) (
 
 func teardownJournalMDOpsTest(t *testing.T, tempdir string, config Config) {
 	CheckConfigAndShutdown(t, config)
-	err := os.RemoveAll(tempdir)
+	err := ioutil.RemoveAll(tempdir)
 	assert.NoError(t, err)
 }
 

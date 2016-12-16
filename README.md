@@ -25,6 +25,7 @@ The code is organized as follows:
 * [env](env/): Code to implement libkbfs.Context in terms of libkb.
 * [fsrpc](fsrpc/): RPC interfaces that connected clients can call in KBFS,
   to do certain operations, such as listing files.
+* [ioutil](ioutil/): Helper functions for I/O.
 * [kbfscodec](kbfscodec/): Interfaces and types used for serialization in KBFS.
 * [kbfscrypto](kbfscrypto/): KBFS-specific cryptographic types and functions.
 * [kbfsdokan](kbfsdokan/): The main executable for running KBFS on
