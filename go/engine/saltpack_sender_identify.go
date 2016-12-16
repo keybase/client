@@ -51,7 +51,7 @@ func (e *SaltpackSenderIdentify) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
+func (e *SaltpackSenderIdentify) Run(ctx *Context) error {
 	defer e.G().Trace("SaltpackSenderIdentify::Run", func() error { return err })()
 
 	if e.arg.isAnon {
@@ -59,11 +59,15 @@ func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
 		return
 	}
 
-	if err = e.lookupSender(); err != nil {
-		if _, ok := err.(libkb.NotFoundError); ok {
-			e.res.SenderType = keybase1.SaltpackSenderType_UNKNOWN
-			err = nil
-		}
+	_, maybeUID, err := libkb.KeyLookupKIDIncludingRevoked(e.G(), e.arg.publicKey)
+	if _, ok := err.(libkb.NotFoundError); ok {
+		e.res.SenderType = keybase1.SaltpackSenderType_UNKNOWN
+	} else if err != nil {
+		return err
+	}
+
+	e.res.Uid, err = e.confirmKeyOwnership(e.G(), maybeUID)
+	if err != nil {
 		return err
 	}
 
@@ -74,11 +78,12 @@ func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *SaltpackSenderIdentify) lookupSender() (err error) {
-	defer e.G().Trace("SaltpackDecrypt::lookupSender", func() error { return err })()
-	e.G().Log.Debug("Lookup KID: %s", e.arg.publicKey)
-	e.res.Username, e.res.Uid, err = libkb.KeyLookupKID(e.G(), e.arg.publicKey)
-	return err
+func (e *SaltpackSenderIdentify) confirmKeyOwnership(ctx *Context, maybeUID keybase1.UID) error {
+	loadUserArg := NewLoadUserByUIDArg(maybeUID)
+	user, err := LoadUser(loadUserArg)
+	if err != nil {
+		return err
+	}
 }
 
 func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {

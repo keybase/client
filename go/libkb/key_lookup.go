@@ -24,15 +24,20 @@ func KeyLookupKID(g *GlobalContext, k keybase1.KID) (username string, uid keybas
 	return keyLookup(g, keyLookupArg{kid: k})
 }
 
+func KeyLookupKIDIncludingRevoked(g *GlobalContext, k keybase1.KID) (username string, uid keybase1.UID, err error) {
+	return keyLookup(g, keyLookupArg{kid: k, includeRevoked: true})
+}
+
 func KeyLookupByBoxPublicKey(g *GlobalContext, k saltpack.BoxPublicKey) (username string, uid keybase1.UID, err error) {
 	return keyLookup(g, keyLookupArg{kid: BoxPublicKeyToKeybaseKID(k)})
 }
 
 type keyLookupArg struct {
-	fp     *PGPFingerprint
-	hexID  string
-	uintID uint64
-	kid    keybase1.KID
+	fp             *PGPFingerprint
+	hexID          string
+	uintID         uint64
+	kid            keybase1.KID
+	includeRevoked bool
 }
 
 type keyBasicsReply struct {
@@ -56,6 +61,8 @@ func keyLookup(g *GlobalContext, arg keyLookupArg) (username string, uid keybase
 		httpArgs["pgp_key_id"] = UHex{Val: arg.uintID}
 	case !arg.kid.IsNil():
 		httpArgs["kid"] = S{Val: arg.kid.String()}
+	case arg.includeRevoked:
+		httpArgs["include_revoked"] = B{Val: true}
 	default:
 		return username, uid, InvalidArgumentError{Msg: "invalid pgp lookup arg"}
 	}
