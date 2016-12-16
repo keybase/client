@@ -30,7 +30,7 @@ func dirEntryMapToDirEntries(entryMap map[string]DirEntry) dirEntries {
 }
 
 type prefetcher interface {
-	HandleBlock(b Block, kmd KeyMetadata, priority int) error
+	HandleBlock(b Block, kmd KeyMetadata, priority int)
 }
 
 var _ prefetcher = (*blockPrefetcher)(nil)
@@ -45,21 +45,57 @@ func newPrefetcher(retriever blockRetriever) prefetcher {
 	}
 }
 
-func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) error {
+func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadata, priority int) {
+	// prefetch the first <n> indirect block pointers.
+	// TODO: do something smart with subsequent blocks.
+	numIPtrs := len(b.IPtrs)
+	if numIPtrs > defaultIndirectPointerPrefetchCount {
+		numIPtrs = defaultIndirectPointerPrefetchCount
+	}
+	for _, ptr := range b.IPtrs[:numIPtrs] {
+		p.request(fileIndirectBlockPrefetchPriority, kmd,
+			ptr.BlockPointer, NewFileBlock(), TransientEntry)
+	}
+}
+
+func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata, priority int) {
+	numIPtrs := len(b.IPtrs)
+	if numIPtrs > defaultIndirectPointerPrefetchCount {
+		numIPtrs = defaultIndirectPointerPrefetchCount
+	}
+	for _, ptr := range b.IPtrs[:numIPtrs] {
+		p.request(fileIndirectBlockPrefetchPriority, kmd,
+			ptr.BlockPointer, NewFileBlock(), TransientEntry)
+	}
+}
+
+func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, priority int) {
+	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
+	sort.Sort(dirEntries)
+	for i, entry := range dirEntries.dirEntries {
+		// Prioritize small files
+		priority := dirEntryPrefetchPriority - i
+		var block Block
+		switch entry.Type {
+		case Dir:
+			block = NewDirBlock()
+		case File:
+			block = NewFileBlock()
+		case Exec:
+			block = NewFileBlock()
+		default:
+			continue
+		}
+		p.request(priority, kmd, entry.BlockPointer,
+			block, TransientEntry)
+	}
+}
+
+func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 	switch b := b.(type) {
 	case *FileBlock:
-		// If this is an indirect block and the priority is on demand, prefetch
-		// the first <n> indirect block pointers.
-		// TODO: do something smart with subsequent blocks.
 		if b.IsInd && priority >= defaultOnDemandRequestPriority {
-			numIPtrs := len(b.IPtrs)
-			if numIPtrs > defaultIndirectPointerPrefetchCount {
-				numIPtrs = defaultIndirectPointerPrefetchCount
-			}
-			for _, ptr := range b.IPtrs[:numIPtrs] {
-				p.request(fileIndirectBlockPrefetchPriority, kmd,
-					ptr.BlockPointer, NewFileBlock(), TransientEntry)
-			}
+			p.prefetchIndirectFileBlock(b, kmd, priority)
 		}
 	case *DirBlock:
 		// If this is an on-demand request:
@@ -69,39 +105,13 @@ func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) er
 		// blocks.
 		if priority >= defaultOnDemandRequestPriority {
 			if b.IsInd {
-				numIPtrs := len(b.IPtrs)
-				if numIPtrs > defaultIndirectPointerPrefetchCount {
-					numIPtrs = defaultIndirectPointerPrefetchCount
-				}
-				for _, ptr := range b.IPtrs[:numIPtrs] {
-					p.request(fileIndirectBlockPrefetchPriority, kmd,
-						ptr.BlockPointer, NewFileBlock(), TransientEntry)
-				}
+				p.prefetchIndirectDirBlock(b, kmd, priority)
 			} else {
-				dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
-				sort.Sort(dirEntries)
-				for i, entry := range dirEntries.dirEntries {
-					// Prioritize small files
-					priority := dirEntryPrefetchPriority - i
-					var block Block
-					switch entry.Type {
-					case Dir:
-						block = NewDirBlock()
-					case File:
-						block = NewFileBlock()
-					case Exec:
-						block = NewFileBlock()
-					default:
-						continue
-					}
-					p.request(priority, kmd, entry.BlockPointer,
-						block, TransientEntry)
-				}
+				p.prefetchDirectDirBlock(b, kmd, priority)
 			}
 		}
 	default:
 	}
-	return nil
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) {
