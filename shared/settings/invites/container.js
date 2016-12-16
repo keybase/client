@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import {ipcRenderer} from 'electron'
 import Invites from './index'
 import {invitesReclaim, invitesRefresh, invitesSend, notificationsSave, notificationsToggle} from '../../actions/settings'
 
@@ -34,7 +35,7 @@ export default connector.connect(
       onSave: () => { dispatch(notificationsSave()) },
       onToggle: (name: string) => dispatch(notificationsToggle(name)),
       onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
-      onSelectUser: (username: string) => {},
+      onSelectUser: (username: string) => { ipcRenderer.send('openURL', 'user', {username}) },
     }
   }
 )(InvitationsContainer)

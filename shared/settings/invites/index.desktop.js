@@ -33,7 +33,7 @@ class Invites extends Component<void, Props, State> {
   }
 
   handleChangeEmail (inviteEmail: string) {
-    const showMessageField = inviteEmail.length > 0
+    const showMessageField = this.state.showMessageField || inviteEmail.length > 0
     this.setState({
       inviteEmail,
       showMessageField,
