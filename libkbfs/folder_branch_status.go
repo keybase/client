@@ -36,6 +36,8 @@ type FolderBranchStatus struct {
 	Merged   []*crChainSummary
 
 	Journal *TLFJournalStatus `json:",omitempty"`
+
+	PermanentErr string `json:",omitempty"`
 }
 
 // KBFSStatus represents the content of the top-level status file. It is
@@ -61,6 +63,7 @@ type folderBranchStatusKeeper struct {
 	nodeCache NodeCache
 
 	md         ImmutableRootMetadata
+	permErr    error
 	dirtyNodes map[NodeID]Node
 	unmerged   []*crChainSummary
 	merged     []*crChainSummary
@@ -110,6 +113,13 @@ func (fbsk *folderBranchStatusKeeper) setCRSummary(unmerged []*crChainSummary,
 	}
 	fbsk.unmerged = unmerged
 	fbsk.merged = merged
+	fbsk.signalChangeLocked()
+}
+
+func (fbsk *folderBranchStatusKeeper) setPermErr(err error) {
+	fbsk.dataMutex.Lock()
+	defer fbsk.dataMutex.Unlock()
+	fbsk.permErr = err
 	fbsk.signalChangeLocked()
 }
 
@@ -209,6 +219,10 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 
 	fbs.Unmerged = fbsk.unmerged
 	fbs.Merged = fbsk.merged
+
+	if fbsk.permErr != nil {
+		fbs.PermanentErr = fbsk.permErr.Error()
+	}
 
 	return fbs, fbsk.updateChan, nil
 }

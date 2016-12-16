@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -19,6 +18,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -4786,6 +4786,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 		// Never give up hope until we shut down
 		expBackoff.MaxElapsedTime = 0
 		// Register and wait in a loop unless we hit an unrecoverable error
+		ctx, cancel := context.WithCancel(ctx)
 		for {
 			err := backoff.RetryNotifyWithContext(ctx, func() error {
 				// Replace the FBOID one with a fresh id for every attempt
@@ -4803,10 +4804,17 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 
 				currUpdate, err := fbo.waitForAndProcessUpdates(
 					newCtx, lastUpdate, updateChan)
-				if _, ok := err.(UnmergedError); ok {
+				switch errors.Cause(err).(type) {
+				case UnmergedError:
 					// skip the back-off timer and continue directly to next
 					// registerForUpdates
 					return nil
+				case NewMetadataVersionError:
+					fbo.log.CDebugf(ctx, "Abandoning updates since we can't "+
+						"read the newest metadata: %+v", err)
+					fbo.status.setPermErr(err)
+					cancel()
+					return ctx.Err()
 				}
 				select {
 				case <-ctx.Done():
