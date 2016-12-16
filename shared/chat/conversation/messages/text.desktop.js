@@ -52,7 +52,7 @@ class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (e
           <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
           <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
             {includeHeader
-              ? <Avatar size={24} username={message.author} style={{marginRight: globalMargins.tiny}} />
+              ? <Avatar size={24} username={message.author} style={_avatarStyle} />
               : <Box style={{width: 32}} />}
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
               {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
@@ -69,6 +69,10 @@ class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (e
       </Box>
     )
   }
+}
+
+const _avatarStyle = {
+  marginRight: globalMargins.tiny,
 }
 
 export default withHandlers({
