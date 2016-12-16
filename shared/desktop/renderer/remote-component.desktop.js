@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import hotPath from '../hot-path'
 import menuHelper from '../app/menu-helper'
-import {injectReactQueryParams} from '../shared/util/dev'
+import {injectReactQueryParams} from '../../util/dev'
 import {remote, ipcRenderer, screen as electronScreen} from 'electron'
 import {resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'

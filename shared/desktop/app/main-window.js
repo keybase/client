@@ -6,7 +6,7 @@ import hotPath from '../hot-path'
 import {app, ipcMain} from 'electron'
 import {forceMainWindowPosition, showDevTools} from '../../local-debug.desktop'
 import {hideDockIcon} from './dock-icon'
-import {injectReactQueryParams} from '../shared/util/dev'
+import {injectReactQueryParams} from '../../util/dev'
 import {resolveRootAsURL} from '../resolve-root'
 import {windowStyle} from '../../styles'
 

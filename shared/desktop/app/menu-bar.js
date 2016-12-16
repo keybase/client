@@ -1,7 +1,7 @@
 // @flow
 import hotPath from '../hot-path'
 import menubar from 'menubar'
-import {injectReactQueryParams} from '../shared/util/dev'
+import {injectReactQueryParams} from '../../util/dev'
 import {ipcMain, systemPreferences} from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
