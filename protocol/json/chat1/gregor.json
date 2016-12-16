@@ -143,6 +143,23 @@
           "lint": "ignore"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TLFFinalizeUpdate",
+      "fields": [
+        {
+          "type": "ConversationFinalizeInfo",
+          "name": "finalizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
+        }
+      ]
     }
   ],
   "messages": {},
