@@ -62,7 +62,7 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1, borderBottom: `solid 1px ${globalColors.black_10}`, paddingRight: 8, paddingTop: 4, paddingBottom: 4}}>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
-          <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
+          <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'flex-start'}}>
             <Usernames
               inline={true}
               type='BodySemibold'
