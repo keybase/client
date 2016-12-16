@@ -96,8 +96,8 @@ function loadInbox (): LoadInbox {
   return {type: Constants.loadInbox, payload: undefined}
 }
 
-function loadMoreMessages (): LoadMoreMessages {
-  return {type: Constants.loadMoreMessages, payload: undefined}
+function loadMoreMessages (onlyIfUnloaded: boolean): LoadMoreMessages {
+  return {type: Constants.loadMoreMessages, payload: {onlyIfUnloaded}}
 }
 
 function editMessage (message: Message): EditMessage {
@@ -451,11 +451,11 @@ function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
 function * _onUpdateInbox (action: UpdateInbox): SagaGenerator<any, any> {
   const conversationIDKey = yield select(_selectedSelector)
   if (action.payload.conversation.get('conversationIDKey') === conversationIDKey) {
-    yield put(loadMoreMessages())
+    yield put(loadMoreMessages(true))
   }
 }
 
-function * _loadMoreMessages (): SagaGenerator<any, any> {
+function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any> {
   const conversationIDKey = yield select(_selectedSelector)
 
   if (!conversationIDKey) {
@@ -474,6 +474,11 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
 
   let next
   if (oldConversationState) {
+    if (action.payload.onlyIfUnloaded && oldConversationState.get('paginationNext')) {
+      __DEV__ && console.log('Bailing on chat load more due to already has initial load')
+      return
+    }
+
     if (oldConversationState.get('isRequesting')) {
       __DEV__ && console.log('Bailing on chat load more due to isRequesting already')
       return
@@ -653,6 +658,7 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   if (!usernames) {
     return
   }
+
   const results: any = yield call(apiserverGetRpcPromise, {
     param: {
       endpoint: 'user/lookup',
@@ -679,15 +685,15 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
-  yield put(loadMoreMessages())
+  yield put(loadMoreMessages(true))
 
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
-  if (inbox && !inbox.get('validated')) {
-    return
-  }
-
   if (inbox) {
     yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => !p.you).map(p => p.username).toArray()}})
+  }
+
+  if (inbox && !inbox.get('validated')) {
+    return
   }
 
   if (fromUser) {

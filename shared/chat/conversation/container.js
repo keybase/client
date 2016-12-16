@@ -101,7 +101,7 @@ export default connect(
   (dispatch: Dispatch) => ({
     onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onLoadMoreMessages: () => dispatch(loadMoreMessages()),
+    onLoadMoreMessages: () => dispatch(loadMoreMessages(false)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
