@@ -29,7 +29,7 @@ import (
 
 const GregorRequestTimeout time.Duration = 30 * time.Second
 
-var GregorTimeoutError error = fmt.Errorf("Network request timed out.")
+var ErrGregorTimeout = errors.New("Network request timed out.")
 
 type IdentifyUIHandler struct {
 	libkb.Contextified
@@ -461,7 +461,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	g.Lock()
 	defer g.Unlock()
 
-	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, GregorTimeoutError)
+	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, ErrGregorTimeout)
 
 	g.Debug("connected")
 	g.Debug("registering protocols")
@@ -1130,7 +1130,7 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 	// fully established in OnConnect. Anything that wants to make calls outside
 	// of OnConnect should use g.cli, everything else should the client that is
 	// a paramater to OnConnect
-	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, GregorTimeoutError)
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
@@ -1147,7 +1147,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	g.connMutex.Lock()
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, true, libkb.WrapError, g.G().Log, nil)
 	g.connMutex.Unlock()
-	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, GregorTimeoutError)
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library

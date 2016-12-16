@@ -75,23 +75,14 @@ func (c *UserDeviceCache) LookupUsernameAndDevice(uid keybase1.UID, deviceID key
 			return udCacheValue{}, fmt.Errorf("no CachedUserLoader available in context")
 		}
 
-		upk, deviceKey, _, err := cachedUserLoader.LoadDeviceKey(uid, deviceID)
+		un, deviceName, deviceType, err := cachedUserLoader.LookupUsernameAndDevice(uid, deviceID)
 		if err != nil {
 			return udCacheValue{}, err
 		}
-
-		if deviceKey.DeviceID != deviceID {
-			// TODO remove this
-			return udCacheValue{}, fmt.Errorf("@@@ fault, mismatched device ID")
-		}
-		if deviceKey.DeviceDescription == "" {
-			return udCacheValue{}, fmt.Errorf("empty device name")
-		}
-
 		return udCacheValue{
-			Username:   NewNormalizedUsername(upk.Base.Username).String(),
-			DeviceName: deviceKey.DeviceDescription,
-			DeviceType: deviceKey.DeviceType,
+			Username:   un.String(),
+			DeviceName: deviceName,
+			DeviceType: deviceType,
 		}, err
 	})
 	c.G().Log.Debug("- UserDeviceCache#LookupUsernameAndDevice(%v, %v) -> (%v, %v, %v, %v)", uid, deviceID, val.Username, val.DeviceName, val.DeviceType, err)
@@ -110,16 +101,13 @@ func (c *UserDeviceCache) LookupUsername(uid keybase1.UID) (username string, err
 		if cachedUserLoader == nil {
 			return udCacheValue{}, fmt.Errorf("no CachedUserLoader available in context")
 		}
-
-		arg := NewLoadUserByUIDArg(c.G(), uid)
-		arg.PublicKeyOptional = true
-		upk, _, err := cachedUserLoader.Load(arg)
+		un, err := cachedUserLoader.LookupUsername(uid)
 		if err != nil {
 			return udCacheValue{}, err
 		}
 
 		return udCacheValue{
-			Username: NewNormalizedUsername(upk.Base.Username).String(),
+			Username: un.String(),
 		}, nil
 	})
 	c.G().Log.Debug("- UserDeviceCache#LookupUsername(%v) -> (%v, %v)", uid, val.Username, err)
