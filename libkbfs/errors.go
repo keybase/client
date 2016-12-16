@@ -636,12 +636,13 @@ func (e NoKeysError) Error() string {
 type InvalidPublicTLFOperation struct {
 	id     tlf.ID
 	opName string
+	ver    MetadataVer
 }
 
 // Error implements the error interface for InvalidPublicTLFOperation.
 func (e InvalidPublicTLFOperation) Error() string {
-	return fmt.Sprintf("Tried to do invalid operation %s on public TLF %v",
-		e.opName, e.id)
+	return fmt.Sprintf("Tried to do invalid operation %s on public TLF %v (ver=%v)",
+		e.opName, e.id, e.ver)
 }
 
 // WrongOpsError indicates that an unexpected path got passed into a

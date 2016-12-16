@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -27,6 +28,45 @@ func TestBareRootMetadataVersionV3(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
+}
+
+type codecOnlyConfig struct {
+	Config
+	codec kbfscodec.Codec
+}
+
+func (c codecOnlyConfig) Codec() kbfscodec.Codec {
+	return c.codec
+}
+
+func TestRootMetadataV3ExtraNew(t *testing.T) {
+	tlfID := tlf.FakeID(1, false)
+
+	uid := keybase1.MakeTestUID(1)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	require.NoError(t, err)
+
+	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	require.NoError(t, err)
+
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	extra := FakeInitialRekey(
+		rmd, codec, crypto, bh, kbfscrypto.TLFPublicKey{})
+	extraV3, ok := extra.(*ExtraMetadataV3)
+	require.True(t, ok)
+	require.True(t, extraV3.wkbNew)
+	require.True(t, extraV3.rkbNew)
+
+	_, extraCopy, err := rmd.MakeSuccessorCopy(
+		context.Background(), codecOnlyConfig{nil, codec},
+		nil, extra, true)
+	require.NoError(t, err)
+
+	extraV3Copy, ok := extraCopy.(*ExtraMetadataV3)
+	require.True(t, ok)
+	require.False(t, extraV3Copy.wkbNew)
+	require.False(t, extraV3Copy.rkbNew)
 }
 
 func TestIsValidRekeyRequestBasicV3(t *testing.T) {
@@ -116,8 +156,8 @@ func TestRevokeRemovedDevicesV3(t *testing.T) {
 	extra := FakeInitialRekey(
 		brmd, codec, crypto, bh, kbfscrypto.TLFPublicKey{})
 
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	require.True(t, ok)
+	wkb, rkb, err := brmd.getTLFKeyBundles(extra)
+	require.NoError(t, err)
 
 	*wkb = TLFWriterKeyBundleV3{
 		Keys: UserDeviceKeyInfoMapV3{
@@ -357,8 +397,8 @@ func TestBareRootMetadataV3UpdateKeyGeneration(t *testing.T) {
 		kbfscrypto.TLFCryptKey{}, tlfCryptKey, pubKey)
 	require.NoError(t, err)
 
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	require.True(t, ok)
+	wkb, rkb, err := rmd.getTLFKeyBundles(extra)
+	require.NoError(t, err)
 
 	var expectedRekeyInfos []expectedRekeyInfoV3
 	checkKeyBundlesV3(t, expectedRekeyInfos, tlfCryptKey, pubKey, wkb, rkb)

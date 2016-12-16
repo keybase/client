@@ -64,9 +64,9 @@ type mdServerMemShared struct {
 	// (TLF ID, branch ID) -> list of MDs
 	mdDb map[mdBlockKey]mdBlockMemList
 	// Writer key bundle ID -> writer key bundles
-	writerKeyBundleDb map[mdExtraWriterKey]*TLFWriterKeyBundleV3
+	writerKeyBundleDb map[mdExtraWriterKey]TLFWriterKeyBundleV3
 	// Reader key bundle ID -> reader key bundles
-	readerKeyBundleDb map[mdExtraReaderKey]*TLFReaderKeyBundleV3
+	readerKeyBundleDb map[mdExtraReaderKey]TLFReaderKeyBundleV3
 	// (TLF ID, device KID) -> branch ID
 	branchDb            map[mdBranchKey]BranchID
 	truncateLockManager *mdServerLocalTruncateLockManager
@@ -91,8 +91,8 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 	latestHandleDb := make(map[tlf.ID]tlf.Handle)
 	mdDb := make(map[mdBlockKey]mdBlockMemList)
 	branchDb := make(map[mdBranchKey]BranchID)
-	writerKeyBundleDb := make(map[mdExtraWriterKey]*TLFWriterKeyBundleV3)
-	readerKeyBundleDb := make(map[mdExtraReaderKey]*TLFReaderKeyBundleV3)
+	writerKeyBundleDb := make(map[mdExtraWriterKey]TLFWriterKeyBundleV3)
+	readerKeyBundleDb := make(map[mdExtraReaderKey]TLFReaderKeyBundleV3)
 	log := config.MakeLogger("MDSM")
 	truncateLockManager := newMDServerLocalTruncatedLockManager()
 	shared := mdServerMemShared{
@@ -766,7 +766,7 @@ func (md *MDServerMemory) getExtraMetadata(
 	if wkb == nil || rkb == nil {
 		return nil, nil
 	}
-	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
+	return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 }
 
 func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
@@ -828,7 +828,7 @@ func (md *MDServerMemory) getKeyBundles(
 		return nil, nil, err
 	}
 
-	return wkb, rkb, nil
+	return &wkb, &rkb, nil
 }
 
 // GetKeyBundles implements the MDServer interface for MDServerMemory.

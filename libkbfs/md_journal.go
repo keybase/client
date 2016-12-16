@@ -318,12 +318,13 @@ func (j mdJournal) getExtraMetadata(
 		return nil, err
 	}
 
-	err = checkKeyBundleIDs(j.crypto, wkbID, rkbID, &wkb, &rkb)
+	err = checkKeyBundleIDs(j.crypto, wkbID, rkbID, wkb, rkb)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ExtraMetadataV3{wkb: &wkb, rkb: &rkb}, nil
+	// TODO: Store and retrieve the wkbNew/rkbNew parameters.
+	return NewExtraMetadataV3(wkb, rkb, true, true), nil
 }
 
 func (j mdJournal) putExtraMetadata(
@@ -347,11 +348,17 @@ func (j mdJournal) putExtraMetadata(
 		return errors.New("Invalid extra metadata")
 	}
 
+	// TODO: We lose extraV3.wkbNew and extraV3.rkbNew here. Store
+	// it as part of the mdInfo, so we don't needlessly send it
+	// while flushing.
+
 	err := checkKeyBundleIDs(
 		j.crypto, wkbID, rkbID, extraV3.wkb, extraV3.rkb)
 	if err != nil {
 		return err
 	}
+
+	// TODO: Avoid serializing if the file already exists.
 
 	err = kbfscodec.SerializeToFile(
 		j.codec, extraV3.wkb, j.writerKeyBundleV3Path(wkbID))
@@ -1047,22 +1054,6 @@ func (j *mdJournal) put(
 		}
 	}()
 
-	extra := rmd.extra
-	if extra == nil {
-		// TODO: This could fail if the key bundle isn't part
-		// of the journal. Always mandate that the extra field
-		// be plumbed through with a RootMetadata, and keep
-		// around a flag as to whether it should be sent up to
-		// the remote MDServer.
-		var err error
-		extra, err = j.getExtraMetadata(
-			rmd.bareMd.GetTLFWriterKeyBundleID(),
-			rmd.bareMd.GetTLFReaderKeyBundleID())
-		if err != nil {
-			return MdID{}, err
-		}
-	}
-
 	head, err := j.getLatest(true)
 	if err != nil {
 		return MdID{}, err
@@ -1143,7 +1134,7 @@ func (j *mdJournal) put(
 	if head != (ImmutableBareRootMetadata{}) {
 		ok, err := isWriterOrValidRekey(
 			j.codec, j.uid, head.BareRootMetadata, rmd.bareMd,
-			head.extra, extra)
+			head.extra, rmd.extra)
 		if err != nil {
 			return MdID{}, err
 		}
@@ -1188,7 +1179,7 @@ func (j *mdJournal) put(
 		return MdID{}, err
 	}
 
-	err = rmd.bareMd.IsValidAndSigned(j.codec, j.crypto, extra)
+	err = rmd.bareMd.IsValidAndSigned(j.codec, j.crypto, rmd.extra)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -1198,7 +1189,7 @@ func (j *mdJournal) put(
 		return MdID{}, err
 	}
 
-	err = j.putExtraMetadata(rmd.bareMd, extra)
+	err = j.putExtraMetadata(rmd.bareMd, rmd.extra)
 	if err != nil {
 		return MdID{}, err
 	}

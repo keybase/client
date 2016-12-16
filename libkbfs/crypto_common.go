@@ -88,7 +88,7 @@ func (c CryptoCommon) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error)
 }
 
 // MakeTLFWriterKeyBundleID implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MakeTLFWriterKeyBundleID(wkb *TLFWriterKeyBundleV3) (
+func (c CryptoCommon) MakeTLFWriterKeyBundleID(wkb TLFWriterKeyBundleV3) (
 	TLFWriterKeyBundleID, error) {
 	buf, err := c.codec.Encode(wkb)
 	if err != nil {
@@ -102,7 +102,7 @@ func (c CryptoCommon) MakeTLFWriterKeyBundleID(wkb *TLFWriterKeyBundleV3) (
 }
 
 // MakeTLFReaderKeyBundleID implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MakeTLFReaderKeyBundleID(rkb *TLFReaderKeyBundleV3) (
+func (c CryptoCommon) MakeTLFReaderKeyBundleID(rkb TLFReaderKeyBundleV3) (
 	TLFReaderKeyBundleID, error) {
 	buf, err := c.codec.Encode(rkb)
 	if err != nil {

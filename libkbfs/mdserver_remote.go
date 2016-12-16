@@ -492,26 +492,39 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 		LogTags: nil,
 	}
 
-	// add any new key bundles
-	wkb, rkb := getAnyKeyBundlesV3(extra)
-	if wkb != nil {
-		wkbBytes, err := md.config.Codec().Encode(wkb)
-		if err != nil {
-			return err
+	if rmds.Version() < SegregatedKeyBundlesVer {
+		if extra != nil {
+			return fmt.Errorf("Unexpected non-nil extra: %+v", extra)
 		}
-		arg.WriterKeyBundle = keybase1.KeyBundle{
-			Version: int(rmds.Version()),
-			Bundle:  wkbBytes,
+	} else if extra != nil {
+		// For now, if we have a non-nil extra, it must be
+		// *ExtraMetadataV3, but in the future it might be
+		// some other type (e.g., *ExtraMetadataV4).
+		extraV3, ok := extra.(*ExtraMetadataV3)
+		if !ok {
+			return fmt.Errorf("Extra of unexpected type %T", extra)
 		}
-	}
-	if rkb != nil {
-		rkbBytes, err := md.config.Codec().Encode(rkb)
-		if err != nil {
-			return err
+
+		// Add any new key bundles.
+		if extraV3.wkbNew {
+			wkbBytes, err := md.config.Codec().Encode(extraV3.wkb)
+			if err != nil {
+				return err
+			}
+			arg.WriterKeyBundle = keybase1.KeyBundle{
+				Version: int(rmds.Version()),
+				Bundle:  wkbBytes,
+			}
 		}
-		arg.ReaderKeyBundle = keybase1.KeyBundle{
-			Version: int(rmds.Version()),
-			Bundle:  rkbBytes,
+		if extraV3.rkbNew {
+			rkbBytes, err := md.config.Codec().Encode(extraV3.rkb)
+			if err != nil {
+				return err
+			}
+			arg.ReaderKeyBundle = keybase1.KeyBundle{
+				Version: int(rmds.Version()),
+				Bundle:  rkbBytes,
+			}
 		}
 	}
 
@@ -890,7 +903,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 			return nil, nil, err
 		}
 		// Verify it's what we expect.
-		bundleID, err := md.config.Crypto().MakeTLFWriterKeyBundleID(wkb)
+		bundleID, err := md.config.Crypto().MakeTLFWriterKeyBundleID(*wkb)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -914,7 +927,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 			return nil, nil, err
 		}
 		// Verify it's what we expect.
-		bundleID, err := md.config.Crypto().MakeTLFReaderKeyBundleID(rkb)
+		bundleID, err := md.config.Crypto().MakeTLFReaderKeyBundleID(*rkb)
 		if err != nil {
 			return nil, nil, err
 		}

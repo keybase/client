@@ -103,7 +103,6 @@ func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
 type ExtraMetadata interface {
 	MetadataVersion() MetadataVer
 	DeepCopy(kbfscodec.Codec) (ExtraMetadata, error)
-	Copy(includeWkb, includeRkb bool) ExtraMetadata
 }
 
 // A RootMetadata is a BareRootMetadata but with a deserialized
@@ -126,10 +125,6 @@ type RootMetadata struct {
 	// The TLF handle for this MD. May be nil if this object was
 	// deserialized (more common on the server side).
 	tlfHandle *TlfHandle
-
-	// ExtraMetadata contains any newly created key bundles for
-	// post-v2 metadata.
-	extraNew ExtraMetadata
 }
 
 var _ KeyMetadata = (*RootMetadata)(nil)
@@ -235,7 +230,7 @@ func (md *RootMetadata) MakeSuccessor(
 
 	isReadableAndWriter := md.IsReadable() && isWriter
 
-	brmdCopy, extraCopy, extraIsNew, err := md.bareMd.MakeSuccessorCopy(
+	brmdCopy, extraCopy, err := md.bareMd.MakeSuccessorCopy(
 		ctx, config, md, md.extra, isReadableAndWriter)
 	if err != nil {
 		return nil, err
@@ -246,11 +241,6 @@ func (md *RootMetadata) MakeSuccessor(
 	newMd := makeRootMetadata(brmdCopy, extraCopy, handleCopy)
 	if err := kbfscodec.Update(config.Codec(), &newMd.data, md.data); err != nil {
 		return nil, err
-	}
-	if extraIsNew {
-		// this is true on upconversion from v2 to v3. we need to set this so
-		// the new extra metadata is uploaded to the mdserver.
-		newMd.extraNew = extraCopy
 	}
 
 	if isReadableAndWriter {
@@ -748,22 +738,7 @@ func (md *RootMetadata) updateKeyGeneration(crypto cryptoPure, keyGen KeyGen,
 }
 
 func (md *RootMetadata) finalizeRekey(crypto cryptoPure) error {
-	// record the bundle IDs prior to finalizing the rekey
-	wkbID := md.bareMd.GetTLFWriterKeyBundleID()
-	rkbID := md.bareMd.GetTLFReaderKeyBundleID()
-	// finalize
-	err := md.bareMd.FinalizeRekey(crypto, md.extra)
-	if err != nil {
-		return err
-	}
-	if md.extra != nil {
-		// if the bundle IDs have changed copy any changed bundles
-		// to extraNew for subsequent upload
-		includeWkb := wkbID != md.bareMd.GetTLFWriterKeyBundleID()
-		includeRkb := rkbID != md.bareMd.GetTLFReaderKeyBundleID()
-		md.extraNew = md.extra.Copy(includeWkb, includeRkb)
-	}
-	return err
+	return md.bareMd.FinalizeRekey(crypto, md.extra)
 }
 
 func (md *RootMetadata) getUserDeviceKeyInfoMaps(
@@ -811,11 +786,6 @@ func (md ReadOnlyRootMetadata) CheckValidSuccessor(
 // *RootMetadata.
 func (md *RootMetadata) ReadOnly() ReadOnlyRootMetadata {
 	return ReadOnlyRootMetadata{md}
-}
-
-// NewExtra returns any new extra metadata.
-func (md *RootMetadata) NewExtra() ExtraMetadata {
-	return md.extraNew
 }
 
 // ImmutableRootMetadata is a thin wrapper around a

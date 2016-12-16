@@ -52,45 +52,29 @@ type WriterMetadataV2 struct {
 	Extra WriterMetadataExtra `codec:"x,omitempty,omitemptycheckstruct"`
 }
 
-// ToWriterMetadataV3 converts the WriterMetadataV2 to a WriterMetadataV3 in place.
-func (wmd *WriterMetadataV2) ToWriterMetadataV3(
-	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure, keyManager KeyManager,
-	kmd KeyMetadata, wmdCopy *WriterMetadataV3) (
-	*TLFWriterKeyBundleV2, *TLFWriterKeyBundleV3, error) {
+// ToWriterMetadataV3 converts the WriterMetadataV2 to a
+// WriterMetadataV3.
+func (wmdV2 *WriterMetadataV2) ToWriterMetadataV3() WriterMetadataV3 {
+	var wmdV3 WriterMetadataV3
+	wmdV3.Writers = make([]keybase1.UID, len(wmdV2.Writers))
+	copy(wmdV3.Writers, wmdV2.Writers)
 
-	wmdCopy.Writers = make([]keybase1.UID, len(wmd.Writers))
-	copy(wmdCopy.Writers, wmd.Writers)
+	wmdV3.UnresolvedWriters = make([]keybase1.SocialAssertion, len(wmdV2.Extra.UnresolvedWriters))
+	copy(wmdV3.UnresolvedWriters, wmdV2.Extra.UnresolvedWriters)
 
-	wmdCopy.UnresolvedWriters = make([]keybase1.SocialAssertion, len(wmd.Extra.UnresolvedWriters))
-	copy(wmdCopy.UnresolvedWriters, wmd.Extra.UnresolvedWriters)
+	wmdV3.ID = wmdV2.ID
+	wmdV3.BID = wmdV2.BID
+	wmdV3.WFlags = wmdV2.WFlags
+	wmdV3.DiskUsage = wmdV2.DiskUsage
+	wmdV3.RefBytes = wmdV2.RefBytes
+	wmdV3.UnrefBytes = wmdV2.UnrefBytes
 
-	wmdCopy.ID = wmd.ID
-	wmdCopy.BID = wmd.BID
-	wmdCopy.WFlags = wmd.WFlags
-	wmdCopy.DiskUsage = wmd.DiskUsage
-	wmdCopy.RefBytes = wmd.RefBytes
-	wmdCopy.UnrefBytes = wmd.UnrefBytes
-
-	var wkbV2 *TLFWriterKeyBundleV2
-	var wkbV3 *TLFWriterKeyBundleV3
-	if wmd.ID.IsPublic() {
-		wmdCopy.LatestKeyGen = PublicKeyGen
+	if wmdV2.ID.IsPublic() {
+		wmdV3.LatestKeyGen = PublicKeyGen
 	} else {
-		wmdCopy.LatestKeyGen = wmd.WKeys.LatestKeyGeneration()
-		var err error
-		wkbV2, wkbV3, err = wmd.WKeys.ToTLFWriterKeyBundleV3(ctx, codec, crypto, keyManager, kmd)
-		if err != nil {
-			return nil, nil, err
-		}
-		// wkbV3 is passed because in V2 metadata ephemeral public keys for readers
-		// were sometimes in the writer key bundles
-		wmdCopy.WKeyBundleID, err = crypto.MakeTLFWriterKeyBundleID(wkbV3)
-		if err != nil {
-			return nil, nil, err
-		}
+		wmdV3.LatestKeyGen = wmdV2.WKeys.LatestKeyGeneration()
 	}
-
-	return wkbV2, wkbV3, nil
+	return wmdV3
 }
 
 // WriterMetadataExtra stores more fields for WriterMetadata. (See
@@ -343,23 +327,19 @@ func (md *BareRootMetadataV2) DeepCopy(
 func (md *BareRootMetadataV2) MakeSuccessorCopy(
 	ctx context.Context, config Config, kmd KeyMetadata,
 	extra ExtraMetadata, isReadableAndWriter bool) (
-	MutableBareRootMetadata, ExtraMetadata, bool, error) {
+	MutableBareRootMetadata, ExtraMetadata, error) {
 
 	if config.MetadataVersion() < SegregatedKeyBundlesVer {
 		// Continue with the current version.
 		mdCopy, err := md.makeSuccessorCopyV2(config, isReadableAndWriter)
 		if err != nil {
-			return nil, nil, false, err
+			return nil, nil, err
 		}
-		return mdCopy, nil, false, nil
+		return mdCopy, nil, nil
 	}
 
 	// Upconvert to the new version.
-	mdCopy, extraCopy, err := md.makeSuccessorCopyV3(ctx, config, kmd)
-	if err != nil {
-		return nil, nil, false, err
-	}
-	return mdCopy, extraCopy, true, nil
+	return md.makeSuccessorCopyV3(ctx, config, kmd)
 }
 
 func (md *BareRootMetadataV2) makeSuccessorCopyV2(config Config, isReadableAndWriter bool) (
@@ -376,34 +356,52 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV2(config Config, isReadableAndWr
 
 func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Config, kmd KeyMetadata) (
 	*BareRootMetadataV3, ExtraMetadata, error) {
-	mdCopy := &BareRootMetadataV3{}
+	mdV3 := &BareRootMetadataV3{}
 
-	// Fill out the writer metadata and new writer key bundle.
-	wkbV2, wkbV3, err := md.WriterMetadataV2.ToWriterMetadataV3(
-		ctx, config.Codec(), config.Crypto(), config.KeyManager(), kmd, &mdCopy.WriterMetadata)
-	if err != nil {
-		return nil, nil, err
-	}
+	// Fill out the writer metadata.
+	mdV3.WriterMetadata = md.WriterMetadataV2.ToWriterMetadataV3()
 
-	var rkb *TLFReaderKeyBundleV3
+	// Have this as ExtraMetadata so we return an untyped nil
+	// instead of a typed nil.
+	var extraCopy ExtraMetadata
 	if md.LatestKeyGeneration() != PublicKeyGen {
-		// Fill out the reader key bundle.
-		rkb, err = md.RKeys.ToTLFReaderKeyBundleV3(config.Codec(), wkbV2)
+		// Fill out the writer key bundle.
+		wkbV2, wkbV3, err := md.WKeys.ToTLFWriterKeyBundleV3(
+			ctx, config.Codec(), config.Crypto(),
+			config.KeyManager(), kmd)
 		if err != nil {
 			return nil, nil, err
 		}
-		mdCopy.RKeyBundleID, err = config.Crypto().MakeTLFReaderKeyBundleID(rkb)
+
+		mdV3.WriterMetadata.WKeyBundleID, err =
+			config.Crypto().MakeTLFWriterKeyBundleID(wkbV3)
 		if err != nil {
 			return nil, nil, err
 		}
+
+		// Fill out the reader key bundle.  wkbV2 is passed
+		// because in V2 metadata ephemeral public keys for
+		// readers were sometimes in the writer key bundles.
+		rkbV3, err := md.RKeys.ToTLFReaderKeyBundleV3(
+			config.Codec(), wkbV2)
+		if err != nil {
+			return nil, nil, err
+		}
+		mdV3.RKeyBundleID, err =
+			config.Crypto().MakeTLFReaderKeyBundleID(rkbV3)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		extraCopy = NewExtraMetadataV3(wkbV3, rkbV3, true, true)
 	}
 
-	mdCopy.LastModifyingUser = md.LastModifyingUser
-	mdCopy.Flags = md.Flags
-	mdCopy.Revision = md.Revision // Incremented by the caller.
+	mdV3.LastModifyingUser = md.LastModifyingUser
+	mdV3.Flags = md.Flags
+	mdV3.Revision = md.Revision // Incremented by the caller.
 	// PrevRoot is set by the caller.
-	mdCopy.UnresolvedReaders = make([]keybase1.SocialAssertion, len(md.UnresolvedReaders))
-	copy(mdCopy.UnresolvedReaders, md.UnresolvedReaders)
+	mdV3.UnresolvedReaders = make([]keybase1.SocialAssertion, len(md.UnresolvedReaders))
+	copy(mdV3.UnresolvedReaders, md.UnresolvedReaders)
 
 	if md.ConflictInfo != nil {
 		ci := *md.ConflictInfo
@@ -416,13 +414,7 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Co
 		return nil, nil, errors.New("Non-nil finalized info")
 	}
 
-	// Have this as ExtraMetadata so we return an untyped nil
-	// instead of a typed nil.
-	var extraCopy ExtraMetadata
-	if !md.ID.IsPublic() {
-		extraCopy = &ExtraMetadataV3{wkb: wkbV3, rkb: rkb}
-	}
-	return mdCopy, extraCopy, nil
+	return mdV3, extraCopy, nil
 }
 
 // CheckValidSuccessor implements the BareRootMetadata interface for BareRootMetadataV2.
@@ -578,7 +570,7 @@ func (md *BareRootMetadataV2) TlfHandleExtensions() (
 func (md *BareRootMetadataV2) PromoteReader(
 	uid keybase1.UID, _ ExtraMetadata) error {
 	if md.TlfID().IsPublic() {
-		return InvalidPublicTLFOperation{md.TlfID(), "PromoteReader"}
+		return InvalidPublicTLFOperation{md.TlfID(), "PromoteReader", md.Version()}
 	}
 
 	for i, rkb := range md.RKeys {
@@ -601,7 +593,7 @@ func (md *BareRootMetadataV2) RevokeRemovedDevices(
 	ServerHalfRemovalInfo, error) {
 	if md.TlfID().IsPublic() {
 		return nil, InvalidPublicTLFOperation{
-			md.TlfID(), "RevokeRemovedDevices"}
+			md.TlfID(), "RevokeRemovedDevices", md.Version()}
 	}
 
 	var wRemovalInfo ServerHalfRemovalInfo
@@ -640,7 +632,7 @@ func (md *BareRootMetadataV2) RevokeRemovedDevices(
 func (md *BareRootMetadataV2) getTLFKeyBundles(keyGen KeyGen) (
 	*TLFWriterKeyBundleV2, *TLFReaderKeyBundleV2, error) {
 	if md.ID.IsPublic() {
-		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundles"}
+		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundles", md.Version()}
 	}
 
 	if keyGen < FirstValidKeyGen {
@@ -721,7 +713,7 @@ func (md *BareRootMetadataV2) GetTLFCryptKeyParams(
 			TLFCryptKeyServerHalfID{}, false, nil
 	}
 
-	_, _, ePubKey, err := getEphemeralPublicKeyInfoV2(info, wkb, rkb)
+	_, _, ePubKey, err := getEphemeralPublicKeyInfoV2(info, *wkb, *rkb)
 	if err != nil {
 		return kbfscrypto.TLFEphemeralPublicKey{},
 			EncryptedTLFCryptKeyClientHalf{},
@@ -1005,7 +997,7 @@ func (md *BareRootMetadataV2) addKeyGenerationHelper(codec kbfscodec.Codec,
 	wPublicKeys, rPublicKeys []kbfscrypto.TLFEphemeralPublicKey) error {
 	if md.TlfID().IsPublic() {
 		return InvalidPublicTLFOperation{
-			md.TlfID(), "addKeyGenerationHelper"}
+			md.TlfID(), "addKeyGenerationHelper", md.Version()}
 	}
 
 	wUDKIMV2, err := udkimToV2(codec, wUDKIM)
@@ -1217,7 +1209,7 @@ func (md *BareRootMetadataV2) UpdateKeyGeneration(crypto cryptoPure,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (UserDeviceKeyServerHalves, error) {
 	if md.TlfID().IsPublic() {
 		return nil, InvalidPublicTLFOperation{
-			md.TlfID(), "UpdateKeyGeneration"}
+			md.TlfID(), "UpdateKeyGeneration", md.Version()}
 	}
 
 	wkb, rkb, err := md.getTLFKeyBundles(keyGen)

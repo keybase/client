@@ -384,7 +384,7 @@ func checkGetTLFCryptKeyV2(t *testing.T, expected expectedRekeyInfoV2,
 			require.True(t, ok)
 
 			_, _, ePubKey, err := getEphemeralPublicKeyInfoV2(
-				info, wkb, rkb)
+				info, *wkb, *rkb)
 			require.NoError(t, err)
 
 			checkCryptKeyInfo(t, privKey, serverHalf,

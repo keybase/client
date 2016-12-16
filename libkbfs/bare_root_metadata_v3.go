@@ -107,17 +107,21 @@ func makeMissingKeyBundlesError() missingKeyBundlesError {
 // ExtraMetadataV3 contains references to key bundles stored outside of metadata
 // blocks.  This only ever exists in memory and is never serialized itself.
 type ExtraMetadataV3 struct {
-	wkb *TLFWriterKeyBundleV3
-	rkb *TLFReaderKeyBundleV3
+	wkb TLFWriterKeyBundleV3
+	rkb TLFReaderKeyBundleV3
+	// Set if wkb is new and should be sent to the server on an MD
+	// put.
+	wkbNew bool
+	// Set if rkb is new and should be sent to the server on an MD
+	// put.
+	rkbNew bool
 }
 
 // NewExtraMetadataV3 creates a new ExtraMetadataV3 given a pair of key bundles
-func NewExtraMetadataV3(wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3) (
-	*ExtraMetadataV3, error) {
-	if wkb == nil || rkb == nil {
-		return nil, errors.New("Nil key bundle passed")
-	}
-	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
+func NewExtraMetadataV3(
+	wkb TLFWriterKeyBundleV3, rkb TLFReaderKeyBundleV3,
+	wkbNew, rkbNew bool) *ExtraMetadataV3 {
+	return &ExtraMetadataV3{wkb, rkb, wkbNew, rkbNew}
 }
 
 // MetadataVersion implements the ExtraMetadata interface for ExtraMetadataV3.
@@ -129,61 +133,23 @@ func (extra ExtraMetadataV3) MetadataVersion() MetadataVer {
 func (extra ExtraMetadataV3) DeepCopy(codec kbfscodec.Codec) (
 	ExtraMetadata, error) {
 	wkb, rkb := TLFWriterKeyBundleV3{}, TLFReaderKeyBundleV3{}
-	if extra.rkb == nil || extra.wkb == nil {
-		return nil, makeMissingKeyBundlesError()
-	}
-	if err := kbfscodec.Update(codec, &rkb, *extra.rkb); err != nil {
+	if err := kbfscodec.Update(codec, &rkb, extra.rkb); err != nil {
 		return nil, err
 	}
-	if err := kbfscodec.Update(codec, &wkb, *extra.wkb); err != nil {
+	if err := kbfscodec.Update(codec, &wkb, extra.wkb); err != nil {
 		return nil, err
 	}
-	return &ExtraMetadataV3{wkb: &wkb, rkb: &rkb}, nil
+	return NewExtraMetadataV3(wkb, rkb, false, false), nil
 }
 
 // GetWriterKeyBundle returns the contained writer key bundle.
-func (extra ExtraMetadataV3) GetWriterKeyBundle() *TLFWriterKeyBundleV3 {
+func (extra ExtraMetadataV3) GetWriterKeyBundle() TLFWriterKeyBundleV3 {
 	return extra.wkb
 }
 
 // GetReaderKeyBundle returns the contained reader key bundle.
-func (extra ExtraMetadataV3) GetReaderKeyBundle() *TLFReaderKeyBundleV3 {
+func (extra ExtraMetadataV3) GetReaderKeyBundle() TLFReaderKeyBundleV3 {
 	return extra.rkb
-}
-
-// Copy implements the ExtraMetadata interface for ExtraMetadataV3.
-func (extra ExtraMetadataV3) Copy(includeWkb, includeRkb bool) ExtraMetadata {
-	extraCopy := &ExtraMetadataV3{}
-	if includeWkb {
-		extraCopy.wkb = extra.wkb
-	}
-	if includeRkb {
-		extraCopy.rkb = extra.rkb
-	}
-	return extraCopy
-}
-
-// Helper function to extract key bundles for the ExtraMetadata interface.
-func getKeyBundlesV3(extra ExtraMetadata) (
-	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, bool) {
-	extraV3, ok := extra.(*ExtraMetadataV3)
-	if !ok {
-		return nil, nil, false
-	}
-	if extraV3.wkb == nil || extraV3.rkb == nil {
-		return nil, nil, false
-	}
-	return extraV3.wkb, extraV3.rkb, true
-}
-
-// Helper function to extract key bundles for the ExtraMetadata interface.
-func getAnyKeyBundlesV3(extra ExtraMetadata) (
-	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3) {
-	extraV3, ok := extra.(*ExtraMetadataV3)
-	if !ok {
-		return nil, nil
-	}
-	return extraV3.wkb, extraV3.rkb
 }
 
 // MakeInitialBareRootMetadataV3 creates a new BareRootMetadataV3
@@ -293,7 +259,7 @@ func (md *BareRootMetadataV3) IsValidRekeyRequest(
 		return false, nil
 	}
 	onlyUserRKeysChanged, err := md.haveOnlyUserRKeysChanged(
-		codec, prevMd, user, *prevExtraV3.rkb, *extraV3.rkb)
+		codec, prevMd, user, prevExtraV3.rkb, extraV3.rkb)
 	if err != nil {
 		return false, err
 	}
@@ -327,10 +293,48 @@ func (md *BareRootMetadataV3) IsFinal() bool {
 	return md.Flags&MetadataFlagFinal != 0
 }
 
+func (md *BareRootMetadataV3) checkPublicExtra(extra ExtraMetadata) error {
+	if !md.TlfID().IsPublic() {
+		return errors.New("checkPublicExtra called on non-public TLF")
+	}
+
+	if extra != nil {
+		return fmt.Errorf("Expected nil, got %T", extra)
+	}
+
+	return nil
+}
+
+func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
+	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	if md.TlfID().IsPublic() {
+		return nil, nil, InvalidPublicTLFOperation{
+			md.TlfID(), "getTLFKeyBundles", md.Version(),
+		}
+	}
+
+	if extra == nil {
+		return nil, nil, makeMissingKeyBundlesError()
+	}
+
+	extraV3, ok := extra.(*ExtraMetadataV3)
+	if !ok {
+		return nil, nil, fmt.Errorf(
+			"Expected *ExtraMetadataV3, got %T", extra)
+	}
+
+	return &extraV3.wkb, &extraV3.rkb, nil
+}
+
 // IsWriter implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsWriter(
 	user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool {
 	if md.TlfID().IsPublic() {
+		err := md.checkPublicExtra(extra)
+		if err != nil {
+			panic(err)
+		}
+
 		for _, w := range md.WriterMetadata.Writers {
 			if w == user {
 				return true
@@ -338,9 +342,9 @@ func (md *BareRootMetadataV3) IsWriter(
 		}
 		return false
 	}
-	wkb, _, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return false
+	wkb, _, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		panic(err)
 	}
 	return wkb.IsWriter(user, deviceKID)
 }
@@ -349,11 +353,15 @@ func (md *BareRootMetadataV3) IsWriter(
 func (md *BareRootMetadataV3) IsReader(
 	user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool {
 	if md.TlfID().IsPublic() {
+		err := md.checkPublicExtra(extra)
+		if err != nil {
+			panic(err)
+		}
 		return true
 	}
-	_, rkb, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return false
+	_, rkb, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		panic(err)
 	}
 	return rkb.IsReader(user, deviceKID)
 }
@@ -372,21 +380,21 @@ func (md *BareRootMetadataV3) DeepCopy(
 func (md *BareRootMetadataV3) MakeSuccessorCopy(
 	ctx context.Context, config Config, kmd KeyMetadata,
 	extra ExtraMetadata, isReadableAndWriter bool) (
-	MutableBareRootMetadata, ExtraMetadata, bool, error) {
+	MutableBareRootMetadata, ExtraMetadata, error) {
 	var extraCopy ExtraMetadata
 	if extra != nil {
 		var err error
 		extraCopy, err = extra.DeepCopy(config.Codec())
 		if err != nil {
-			return nil, nil, false, err
+			return nil, nil, err
 		}
 	}
 	mdCopy, err := md.DeepCopy(config.Codec())
 	if err != nil {
-		return nil, nil, false, err
+		return nil, nil, err
 	}
 	// TODO: If there is ever a BareRootMetadataV4 this will need to perform the conversion.
-	return mdCopy, extraCopy, false, nil
+	return mdCopy, extraCopy, nil
 }
 
 // CheckValidSuccessor implements the BareRootMetadata interface for BareRootMetadataV3.
@@ -489,12 +497,17 @@ func (md *BareRootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
 	tlf.Handle, error) {
 	var writers, readers []keybase1.UID
 	if md.TlfID().IsPublic() {
+		err := md.checkPublicExtra(extra)
+		if err != nil {
+			return tlf.Handle{}, err
+		}
+
 		writers = md.WriterMetadata.Writers
 		readers = []keybase1.UID{keybase1.PublicUID}
 	} else {
-		wkb, rkb, ok := getKeyBundlesV3(extra)
-		if !ok {
-			return tlf.Handle{}, makeMissingKeyBundlesError()
+		wkb, rkb, err := md.getTLFKeyBundles(extra)
+		if err != nil {
+			return tlf.Handle{}, err
 		}
 		writers = make([]keybase1.UID, 0, len(wkb.Keys))
 		readers = make([]keybase1.UID, 0, len(rkb.Keys))
@@ -536,12 +549,12 @@ func (md *BareRootMetadataV3) TlfHandleExtensions() (
 func (md *BareRootMetadataV3) PromoteReader(
 	uid keybase1.UID, extra ExtraMetadata) error {
 	if md.TlfID().IsPublic() {
-		return InvalidPublicTLFOperation{md.TlfID(), "PromoteReader"}
+		return InvalidPublicTLFOperation{md.TlfID(), "PromoteReader", md.Version()}
 	}
 
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return errors.New("Key bundles missing")
+	wkb, rkb, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		return err
 	}
 	dkim, ok := rkb.Keys[uid]
 	if !ok {
@@ -572,12 +585,12 @@ func (md *BareRootMetadataV3) RevokeRemovedDevices(
 	ServerHalfRemovalInfo, error) {
 	if md.TlfID().IsPublic() {
 		return nil, InvalidPublicTLFOperation{
-			md.TlfID(), "RevokeRemovedDevices"}
+			md.TlfID(), "RevokeRemovedDevices", md.Version()}
 	}
 
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return nil, errors.New("Key bundles missing")
+	wkb, rkb, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		return nil, err
 	}
 
 	wRemovalInfo := wkb.Keys.removeDevicesNotIn(wKeys)
@@ -588,9 +601,14 @@ func (md *BareRootMetadataV3) RevokeRemovedDevices(
 // GetDeviceKIDs implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) GetDeviceKIDs(
 	keyGen KeyGen, user keybase1.UID, extra ExtraMetadata) ([]keybase1.KID, error) {
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return nil, makeMissingKeyBundlesError()
+	if md.TlfID().IsPublic() {
+		return nil, InvalidPublicTLFOperation{
+			md.TlfID(), "GetDeviceKIDs", md.Version()}
+	}
+
+	wkb, rkb, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		return nil, err
 	}
 	dkim := wkb.Keys[user]
 	if len(dkim) == 0 {
@@ -611,9 +629,9 @@ func (md *BareRootMetadataV3) GetDeviceKIDs(
 // HasKeyForUser implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) HasKeyForUser(
 	keyGen KeyGen, user keybase1.UID, extra ExtraMetadata) bool {
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return false
+	wkb, rkb, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		panic(err)
 	}
 	return (len(wkb.Keys[user]) > 0) || (len(rkb.Keys[user]) > 0)
 }
@@ -630,12 +648,11 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 			TLFCryptKeyServerHalfID{}, false,
 			TLFCryptKeyNotPerDeviceEncrypted{md.TlfID(), keyGen}
 	}
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	if !ok {
+	wkb, rkb, err := md.getTLFKeyBundles(extra)
+	if err != nil {
 		return kbfscrypto.TLFEphemeralPublicKey{},
 			EncryptedTLFCryptKeyClientHalf{},
-			TLFCryptKeyServerHalfID{}, false,
-			makeMissingKeyBundlesError()
+			TLFCryptKeyServerHalfID{}, false, err
 	}
 	isWriter := true
 	dkim := wkb.Keys[user]
@@ -676,13 +693,58 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 	return publicKeys[index], info.ClientHalf, info.ServerHalfID, true, nil
 }
 
+func checkWKBID(crypto cryptoPure,
+	wkbID TLFWriterKeyBundleID, wkb TLFWriterKeyBundleV3) error {
+	computedWKBID, err := crypto.MakeTLFWriterKeyBundleID(wkb)
+	if err != nil {
+		return err
+	}
+
+	if wkbID != computedWKBID {
+		return fmt.Errorf("Expected WKB ID %s, got %s",
+			wkbID, computedWKBID)
+	}
+
+	return nil
+}
+
+func checkRKBID(crypto cryptoPure,
+	rkbID TLFReaderKeyBundleID, rkb TLFReaderKeyBundleV3) error {
+	computedRKBID, err := crypto.MakeTLFReaderKeyBundleID(rkb)
+	if err != nil {
+		return err
+	}
+
+	if rkbID != computedRKBID {
+		return fmt.Errorf("Expected RKB ID %s, got %s",
+			rkbID, computedRKBID)
+	}
+
+	return nil
+}
+
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsValidAndSigned(
 	codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
-	if !md.TlfID().IsPublic() {
-		_, _, ok := getKeyBundlesV3(extra)
-		if !ok {
-			return makeMissingKeyBundlesError()
+	if md.TlfID().IsPublic() {
+		err := md.checkPublicExtra(extra)
+		if err != nil {
+			return err
+		}
+	} else {
+		wkb, rkb, err := md.getTLFKeyBundles(extra)
+		if err != nil {
+			return err
+		}
+
+		err = checkWKBID(crypto, md.GetTLFWriterKeyBundleID(), *wkb)
+		if err != nil {
+			return err
+		}
+
+		err = checkRKBID(crypto, md.GetTLFReaderKeyBundleID(), *rkb)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -932,7 +994,7 @@ func (md *BareRootMetadataV3) addKeyGenerationHelper(codec kbfscodec.Codec,
 	ExtraMetadata, error) {
 	if md.TlfID().IsPublic() {
 		return nil, InvalidPublicTLFOperation{
-			md.TlfID(), "addKeyGenerationHelper"}
+			md.TlfID(), "addKeyGenerationHelper", md.Version()}
 	}
 	if nextCryptKey == (kbfscrypto.TLFCryptKey{}) {
 		return nil, errors.New("Zero next crypt key")
@@ -991,21 +1053,18 @@ func (md *BareRootMetadataV3) addKeyGenerationHelper(codec kbfscodec.Codec,
 		return nil, err
 	}
 
-	newWriterKeys := &TLFWriterKeyBundleV3{
+	newWriterKeys := TLFWriterKeyBundleV3{
 		Keys:                          wUDKIMV3,
 		TLFPublicKey:                  pubKey,
 		EncryptedHistoricTLFCryptKeys: encryptedHistoricKeys,
 		TLFEphemeralPublicKeys:        wPublicKeys,
 	}
-	newReaderKeys := &TLFReaderKeyBundleV3{
+	newReaderKeys := TLFReaderKeyBundleV3{
 		Keys: rUDKIMV3,
 		TLFEphemeralPublicKeys: rPublicKeys,
 	}
 	md.WriterMetadata.LatestKeyGen++
-	return &ExtraMetadataV3{
-		rkb: newReaderKeys,
-		wkb: newWriterKeys,
-	}, nil
+	return NewExtraMetadataV3(newWriterKeys, newReaderKeys, true, true), nil
 }
 
 func (md *BareRootMetadataV3) addKeyGenerationForTest(codec kbfscodec.Codec,
@@ -1113,10 +1172,9 @@ func (md *BareRootMetadataV3) Version() MetadataVer {
 // for BareRootMetadataV3.
 func (md *BareRootMetadataV3) GetCurrentTLFPublicKey(
 	extra ExtraMetadata) (kbfscrypto.TLFPublicKey, error) {
-	wkb, _, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return kbfscrypto.TLFPublicKey{}, errors.New(
-			"Invalid key bundles in GetCurrentTLFPublicKey")
+	wkb, _, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		return kbfscrypto.TLFPublicKey{}, err
 	}
 	return wkb.TLFPublicKey, nil
 }
@@ -1144,14 +1202,14 @@ func (md *BareRootMetadataV3) GetUserDeviceKeyInfoMaps(
 	codec kbfscodec.Codec, keyGen KeyGen, extra ExtraMetadata) (
 	readers, writers UserDeviceKeyInfoMap, err error) {
 	if md.TlfID().IsPublic() {
-		return nil, nil, InvalidPublicTLFOperation{md.TlfID(), "GetTLFKeyBundles"}
+		return nil, nil, InvalidPublicTLFOperation{md.TlfID(), "GetTLFKeyBundles", md.Version()}
 	}
 	if keyGen != md.LatestKeyGeneration() {
 		return nil, nil, TLFCryptKeyNotPerDeviceEncrypted{md.TlfID(), keyGen}
 	}
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return nil, nil, errors.New("Key bundles missing")
+	wkb, rkb, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	rUDKIM, err := rkb.Keys.toUDKIM(codec)
@@ -1176,16 +1234,16 @@ func (md *BareRootMetadataV3) UpdateKeyGeneration(crypto cryptoPure,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (UserDeviceKeyServerHalves, error) {
 	if md.TlfID().IsPublic() {
 		return nil, InvalidPublicTLFOperation{
-			md.TlfID(), "UpdateKeyGeneration"}
+			md.TlfID(), "UpdateKeyGeneration", md.Version()}
 	}
 
 	if keyGen != md.LatestKeyGeneration() {
 		return nil, TLFCryptKeyNotPerDeviceEncrypted{md.TlfID(), keyGen}
 	}
 
-	wkb, rkb, ok := getKeyBundlesV3(extra)
-	if !ok {
-		return UserDeviceKeyServerHalves{}, makeMissingKeyBundlesError()
+	wkb, rkb, err := md.getTLFKeyBundles(extra)
+	if err != nil {
+		return UserDeviceKeyServerHalves{}, err
 	}
 
 	// No need to explicitly handle the reader rekey case.
@@ -1238,13 +1296,28 @@ func (md *BareRootMetadataV3) FinalizeRekey(
 	if !ok {
 		return errors.New("Invalid extra metadata")
 	}
-	var err error
-	md.WriterMetadata.WKeyBundleID, err = crypto.MakeTLFWriterKeyBundleID(extraV3.wkb)
+	oldWKBID := md.WriterMetadata.WKeyBundleID
+	oldRKBID := md.RKeyBundleID
+
+	newWKBID, err := crypto.MakeTLFWriterKeyBundleID(extraV3.wkb)
 	if err != nil {
 		return err
 	}
-	md.RKeyBundleID, err = crypto.MakeTLFReaderKeyBundleID(extraV3.rkb)
-	return err
+	newRKBID, err := crypto.MakeTLFReaderKeyBundleID(extraV3.rkb)
+	if err != nil {
+		return err
+	}
+
+	md.WriterMetadata.WKeyBundleID = newWKBID
+	md.RKeyBundleID = newRKBID
+
+	// TODO: This should be or'ing with the existing parameters to
+	// handle the upconvert-then-rekey case. Also add a test for
+	// this.
+	extraV3.wkbNew = newWKBID != oldWKBID
+	extraV3.rkbNew = newRKBID != oldRKBID
+
+	return nil
 }
 
 // StoresHistoricTLFCryptKeys implements the BareRootMetadata interface for BareRootMetadataV3.

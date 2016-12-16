@@ -37,7 +37,7 @@ func (t ePubKeyTypeV2) String() string {
 // deal with the "negative hack" from
 // BareRootMetadataV2.UpdateKeyGeneration.
 func getEphemeralPublicKeyInfoV2(info TLFCryptKeyInfo,
-	wkb *TLFWriterKeyBundleV2, rkb *TLFReaderKeyBundleV2) (
+	wkb TLFWriterKeyBundleV2, rkb TLFReaderKeyBundleV2) (
 	keyType ePubKeyTypeV2, index int,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey, err error) {
 	var publicKeys kbfscrypto.TLFEphemeralPublicKeys
@@ -269,21 +269,22 @@ func (wkg TLFWriterKeyGenerationsV2) IsWriter(user keybase1.UID, deviceKID keyba
 //
 // TODO: Add a unit test for this.
 func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
-	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure, keyManager KeyManager, kmd KeyMetadata) (
-	*TLFWriterKeyBundleV2, *TLFWriterKeyBundleV3, error) {
-
+	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
+	keyManager KeyManager, kmd KeyMetadata) (
+	TLFWriterKeyBundleV2, TLFWriterKeyBundleV3, error) {
 	keyGen := wkg.LatestKeyGeneration()
 	if keyGen < FirstValidKeyGen {
-		return nil, nil, errors.New("No key generations to convert")
+		return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{},
+			errors.New("No key generations to convert")
 	}
 
-	wkbV3 := &TLFWriterKeyBundleV3{}
+	var wkbV3 TLFWriterKeyBundleV3
 
 	// Copy the latest UserDeviceKeyInfoMap.
 	wkbV2 := wkg[keyGen-FirstValidKeyGen]
 	udkimV3, err := udkimV2ToV3(codec, wkbV2.WKeys)
 	if err != nil {
-		return nil, nil, err
+		return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{}, err
 	}
 	wkbV3.Keys = udkimV3
 
@@ -299,11 +300,12 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 		// Fetch all of the TLFCryptKeys.
 		keys, err := keyManager.GetTLFCryptKeyOfAllGenerations(ctx, kmd)
 		if err != nil {
-			return nil, nil, err
+			return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{}, err
 		}
 		// Sanity check.
 		if len(keys) != int(keyGen) {
-			return nil, nil, fmt.Errorf("expected %d keys, found %d", keyGen, len(keys))
+			return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{},
+				fmt.Errorf("expected %d keys, found %d", keyGen, len(keys))
 		}
 		// Save the current key.
 		currKey := keys[len(keys)-1]
@@ -312,11 +314,11 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 		// Encrypt the historic keys with the current key.
 		wkbV3.EncryptedHistoricTLFCryptKeys, err = crypto.EncryptTLFCryptKeys(keys, currKey)
 		if err != nil {
-			return nil, nil, err
+			return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{}, err
 		}
 	}
 
-	return &wkbV2, wkbV3, nil
+	return wkbV2, wkbV3, nil
 }
 
 // TLFReaderKeyBundleV2 stores all the reader keys with reader
@@ -364,15 +366,14 @@ func (rkg TLFReaderKeyGenerationsV2) IsReader(user keybase1.UID, deviceKID keyba
 
 // ToTLFReaderKeyBundleV3 converts a TLFReaderKeyGenerationsV2 to a TLFReaderkeyBundleV3.
 func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
-	codec kbfscodec.Codec, wkb *TLFWriterKeyBundleV2) (
-	*TLFReaderKeyBundleV3, error) {
-
+	codec kbfscodec.Codec, wkb TLFWriterKeyBundleV2) (
+	TLFReaderKeyBundleV3, error) {
 	keyGen := rkg.LatestKeyGeneration()
-	if keyGen < 1 {
-		return nil, errors.New("No key generations to convert")
+	if keyGen < FirstValidKeyGen {
+		return TLFReaderKeyBundleV3{}, errors.New("No key generations to convert")
 	}
 
-	rkbV3 := &TLFReaderKeyBundleV3{
+	rkbV3 := TLFReaderKeyBundleV3{
 		Keys: make(UserDeviceKeyInfoMapV3),
 	}
 
@@ -398,12 +399,12 @@ func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 			var infoCopy TLFCryptKeyInfo
 			err := kbfscodec.Update(codec, &infoCopy, info)
 			if err != nil {
-				return nil, err
+				return TLFReaderKeyBundleV3{}, err
 			}
 
-			keyType, index, ePubKey, err := getEphemeralPublicKeyInfoV2(info, wkb, &rkb)
+			keyType, index, ePubKey, err := getEphemeralPublicKeyInfoV2(info, wkb, rkb)
 			if err != nil {
-				return nil, err
+				return TLFReaderKeyBundleV3{}, err
 			}
 
 			switch keyType {
@@ -426,7 +427,7 @@ func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 				// Use the real index in the reader list.
 				infoCopy.EPubKeyIndex = index
 			default:
-				return nil, fmt.Errorf("Unknown key type %s", keyType)
+				return TLFReaderKeyBundleV3{}, fmt.Errorf("Unknown key type %s", keyType)
 			}
 			dkimV3[kbfscrypto.MakeCryptPublicKey(kid)] = infoCopy
 		}

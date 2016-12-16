@@ -35,12 +35,12 @@ func (c shimKMCrypto) DecryptTLFCryptKeys(
 }
 
 func (c shimKMCrypto) MakeTLFWriterKeyBundleID(
-	wkb *TLFWriterKeyBundleV3) (TLFWriterKeyBundleID, error) {
+	wkb TLFWriterKeyBundleV3) (TLFWriterKeyBundleID, error) {
 	return c.pure.MakeTLFWriterKeyBundleID(wkb)
 }
 
 func (c shimKMCrypto) MakeTLFReaderKeyBundleID(
-	wkb *TLFReaderKeyBundleV3) (TLFReaderKeyBundleID, error) {
+	wkb TLFReaderKeyBundleV3) (TLFReaderKeyBundleID, error) {
 	return c.pure.MakeTLFReaderKeyBundleID(wkb)
 }
 

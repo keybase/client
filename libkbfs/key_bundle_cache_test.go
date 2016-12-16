@@ -20,10 +20,9 @@ func getKeyBundlesForTesting(t *testing.T, c Config, tlfByte byte, handleStr str
 	rmd.fakeInitialRekey(c.Codec(), c.Crypto())
 	wkbID := rmd.bareMd.GetTLFWriterKeyBundleID()
 	rkbID := rmd.bareMd.GetTLFReaderKeyBundleID()
-	wkb, rkb, ok := getKeyBundlesV3(rmd.extra)
-	if !ok {
-		t.Fatal(makeMissingKeyBundlesError())
-	}
+	wkb, rkb, err := rmd.bareMd.(*BareRootMetadataV3).getTLFKeyBundles(
+		rmd.extra)
+	require.NoError(t, err)
 	return tlfID, wkbID, wkb, rkbID, rkb
 }
 

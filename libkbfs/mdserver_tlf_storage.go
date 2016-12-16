@@ -297,7 +297,7 @@ func (s *mdServerTlfStorage) getExtraMetadataReadLocked(
 	if wkb == nil || rkb == nil {
 		return nil, nil
 	}
-	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
+	return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 }
 
 func (s *mdServerTlfStorage) getKeyBundlesReadLocked(
@@ -329,7 +329,7 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(
 		return nil, nil, err
 	}
 
-	err = checkKeyBundleIDs(s.crypto, wkbID, rkbID, &wkb, &rkb)
+	err = checkKeyBundleIDs(s.crypto, wkbID, rkbID, wkb, rkb)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -339,7 +339,7 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(
 
 func checkKeyBundleIDs(crypto cryptoPure,
 	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID,
-	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3) error {
+	wkb TLFWriterKeyBundleV3, rkb TLFReaderKeyBundleV3) error {
 	computedWKBID, err := crypto.MakeTLFWriterKeyBundleID(wkb)
 	if err != nil {
 		return err

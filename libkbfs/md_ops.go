@@ -551,7 +551,7 @@ func (md *MDOpsStandard) put(
 		return MdID{}, err
 	}
 
-	err = md.config.MDServer().Put(ctx, rmds, rmd.NewExtra())
+	err = md.config.MDServer().Put(ctx, rmds, rmd.extra)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -643,7 +643,7 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 			rkbID, tlf, err2)
 	}
 	if wkb != nil && rkb != nil {
-		return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
+		return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 	}
 	if wkb != nil {
 		// Don't need the writer bundle.
@@ -661,5 +661,5 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 	// Cache the results.
 	kbcache.PutTLFWriterKeyBundle(tlf, wkbID, wkb)
 	kbcache.PutTLFReaderKeyBundle(tlf, rkbID, rkb)
-	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
+	return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 }
