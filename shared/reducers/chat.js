@@ -154,18 +154,14 @@ function reducer (state: State = initialState, action: Actions) {
         .set('inbox', newInboxStates)
     }
     case Constants.pendingMessageWasSent: {
-      const {conversationIDKey, message, messageState} = action.payload
+      const {conversationIDKey, message} = action.payload
       const {messageID, outboxID} = message
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
         conversationIDKey,
         item => !!item.outboxID && item.outboxID === outboxID,
-          (m: Constants.TextMessage) => (({
-            ...m,
-            messageID,
-            messageState,
-          }): Constants.TextMessage)
+          (m: Constants.TextMessage) => message
       )).update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
