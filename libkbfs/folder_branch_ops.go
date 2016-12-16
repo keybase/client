@@ -2347,9 +2347,18 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	return fbo.setHeadSuccessorLocked(ctx, lState,
+	err = fbo.setHeadSuccessorLocked(ctx, lState,
 		MakeImmutableRootMetadata(md, key, mdID, fbo.config.Clock().Now()),
 		rebased)
+	if err != nil {
+		return err
+	}
+
+	// Explicitly set the latest merged revision, since if journaling
+	// is on, `setHeadLocked` will not do it for us (even though
+	// rekeys bypass the journal).
+	fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision(), false)
+	return nil
 }
 
 func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
