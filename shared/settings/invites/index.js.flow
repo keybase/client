@@ -30,6 +30,7 @@ export type Props = {
   onReclaimInvitation: (invitationId: string) => void,
   onRefresh: () => void,
   onGenerateInvitation: (email: string, message: string) => void,
+  onClearError: () => void,
   onSelectPendingInvite: (invite: PendingInvite) => void,
   waitingForResponse: boolean,
   error: ?Error,

@@ -14,7 +14,6 @@ type State = {
   inviteEmail: string,
   inviteMessage: string,
   showMessageField: boolean,
-  error: ?Error,
 }
 
 class Invites extends Component<void, Props, State> {
@@ -26,12 +25,10 @@ class Invites extends Component<void, Props, State> {
       inviteEmail: props.inviteEmail,
       inviteMessage: props.inviteMessage,
       showMessageField: props.showMessageField,
-      error: props.error,
     }
   }
-
-  componentWillReceiveProps (nextProps: Props) {
-    this.setState({error: nextProps.error})
+  componentWillUnmount () {
+    if (this.props.error) this.props.onClearError()
   }
 
   handleChangeEmail (inviteEmail: string) {
@@ -39,15 +36,19 @@ class Invites extends Component<void, Props, State> {
     this.setState({
       inviteEmail,
       showMessageField,
-      error: null,
     })
+    if (this.props.error) this.props.onClearError()
+  }
+
+  invite () {
+    this.props.onGenerateInvitation(this.state.inviteEmail, this.state.inviteMessage)
   }
 
   render () {
     const props = this.props
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Banner error={this.state.error} />
+        <Banner error={this.props.error} />
         <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1, overflow: 'auto'}}>
           <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'center', marginTop: globalMargins.small}}>
             <Input
@@ -65,7 +66,7 @@ class Invites extends Component<void, Props, State> {
             <Button
               type='Primary'
               label='Generate invitation'
-              onClick={() => props.onGenerateInvitation(this.state.inviteEmail, this.state.inviteMessage)}
+              onClick={() => this.invite()}
               waiting={props.waitingForResponse}
               style={{alignSelf: 'center', marginTop: globalMargins.medium}}
             />

@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react'
-import {Box, Text} from '../common-adapters'
+import {Box} from '../common-adapters'
 
 import UpdateEmail from './email'
 import UpdatePassphrase from './passphrase'
@@ -445,6 +445,7 @@ const invitesBase = {
   onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
   onGenerateInvitation: () => console.log('onGenerateInvitation'),
   onSelectPendingInvite: (invite: PendingInvite) => console.log('onSelectPendingInvite'),
+  onClearError: () => {},
   waitingForResponse: false,
   parentProps: {
     style: {

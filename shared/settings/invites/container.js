@@ -32,6 +32,7 @@ export default connector.connect(
       showMessageField: false,
       waitingForResponse: state.settings.waitingForResponse,
       onGenerateInvitation: (email: string, message: string) => { dispatch(invitesSend(email, message)) },
+      onClearError: () => { dispatch({type: 'invites:clearError'}) },
       onRefresh: () => { dispatch(invitesRefresh()) },
       onReclaimInvitation: (inviteId: string) => { dispatch(invitesReclaim(inviteId)) },
       onSave: () => { dispatch(notificationsSave()) },

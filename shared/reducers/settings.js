@@ -127,6 +127,14 @@ function reducer (state: State = initialState, action: Actions): State {
           error: action.payload.error,
         },
       }
+    case 'invites:clearError':
+      return {
+        ...state,
+        invites: {
+          ...state.invites,
+          error: null,
+        },
+      }
     case Constants.loadedSettings: {
       return {
         ...state,
