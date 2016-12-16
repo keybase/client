@@ -27,6 +27,18 @@ func (s *SaltpackUI) doNonInteractive(arg keybase1.SaltpackPromptForDecryptArg) 
 			return nil
 		}
 		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender identity failed"}
+	case keybase1.SaltpackSenderType_REVOKED:
+		if s.force {
+			s.G().Log.Warning("The key that signed this message is revoked, but forcing through.")
+			return nil
+		}
+		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender key revoked"}
+	case keybase1.SaltpackSenderType_EXPIRED:
+		if s.force {
+			s.G().Log.Warning("The key that signed this message is expired, but forcing through.")
+			return nil
+		}
+		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender key expired"}
 	default:
 		return nil
 	}
@@ -46,6 +58,12 @@ func (s *SaltpackUI) doInteractive(arg keybase1.SaltpackPromptForDecryptArg) err
 		why = "The sender of this message has chosen to remain anonymous"
 	case keybase1.SaltpackSenderType_TRACKING_BROKE:
 		why = "You follow the sender of this message, but your view of them is broken"
+		def = libkb.PromptDefaultNo
+	case keybase1.SaltpackSenderType_REVOKED:
+		why = "The key that signed this message has been revoked"
+		def = libkb.PromptDefaultNo
+	case keybase1.SaltpackSenderType_EXPIRED:
+		why = "The key that signed this message has expired"
 		def = libkb.PromptDefaultNo
 	}
 	why += ". Go ahead and decrypt?"
@@ -75,14 +93,15 @@ func (s *SaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.Saltp
 	// write messages to stderr
 	w := s.terminal.ErrorWriter()
 	var un string
-	if arg.Sender.SenderType == keybase1.SaltpackSenderType_UNKNOWN {
+	switch arg.Sender.SenderType {
+	case keybase1.SaltpackSenderType_UNKNOWN:
 		un = "The signer of this message is unknown to Keybase"
-	} else {
-		var you string
-		if arg.Sender.SenderType == keybase1.SaltpackSenderType_SELF {
-			you = " (you)"
-		}
-		un = fmt.Sprintf("Signed by %s%s", ColorString("bold", arg.Sender.Username), you)
+	case keybase1.SaltpackSenderType_TRACKING_OK, keybase1.SaltpackSenderType_NOT_TRACKED:
+		un = fmt.Sprintf("Signed by %s", ColorString("bold", arg.Sender.Username))
+	case keybase1.SaltpackSenderType_SELF:
+		un = fmt.Sprintf("Signed by %s (you)", ColorString("bold", arg.Sender.Username))
+	default:
+		return fmt.Errorf("Unexpected sender type: %s", arg.Sender.SenderType)
 	}
 	fmt.Fprintf(w, ColorString("green", fmt.Sprintf("Signature verified. %s.\n", un)))
 	if arg.Sender.SenderType == keybase1.SaltpackSenderType_UNKNOWN {
@@ -90,4 +109,33 @@ func (s *SaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.Saltp
 	}
 
 	return nil
+}
+
+// This function is responsible for short-circuiting the output of the bad
+// message. It returns an error if the --force argument isn't present, and the
+// VerifyEngine bubbles that up. This is similar to doNonInteractive above.
+func (s *SaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.SaltpackVerifyBadSenderArg) error {
+	// write messages to stderr
+	var message string
+	var errorReason string
+	switch arg.Sender.SenderType {
+	case keybase1.SaltpackSenderType_TRACKING_BROKE:
+		message = fmt.Sprintf("Signed by %s, but their tracking statement is broken.", ColorString("bold", arg.Sender.Username))
+		errorReason = "tracking statement broken"
+	case keybase1.SaltpackSenderType_REVOKED:
+		message = fmt.Sprintf("Signed by %s, but the key they used (%s) is revoked.", ColorString("bold", arg.Sender.Username), arg.SigningKID.String())
+		errorReason = "sender key revoked"
+	case keybase1.SaltpackSenderType_EXPIRED:
+		message = fmt.Sprintf("Signed by %s, but the key they used (%s) is expired.", ColorString("bold", arg.Sender.Username), arg.SigningKID.String())
+		errorReason = "sender key expired"
+	default:
+		return fmt.Errorf("Unexpected bad sender type: %s", arg.Sender.SenderType)
+	}
+	w := s.terminal.ErrorWriter()
+	fmt.Fprintf(w, ColorString("red", fmt.Sprintf("Problem verifying the sender: %s\n", message)))
+
+	if s.force {
+		return nil
+	}
+	return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: errorReason}
 }

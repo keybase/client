@@ -48,6 +48,10 @@ func NewCmdVerify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "S, signed-by",
 				Usage: "Assert signed by the given user (can use user assertion format).",
 			},
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "Output the verified message even if the sender's identity can't be verified",
+			},
 		},
 	}
 }
@@ -58,6 +62,7 @@ type CmdVerify struct {
 	detachedData []byte
 	signedBy     string
 	spui         *SaltpackUI
+	force        bool
 }
 
 func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
@@ -88,6 +93,8 @@ func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
 		c.detachedData = data
 	}
 
+	c.force = ctx.Bool("force")
+
 	return nil
 }
 
@@ -100,6 +107,7 @@ func (c *CmdVerify) Run() (err error) {
 	c.spui = &SaltpackUI{
 		Contextified: libkb.NewContextified(c.G()),
 		terminal:     c.G().UI.GetTerminalUI(),
+		force:        c.force,
 	}
 
 	protocols := []rpc.Protocol{
