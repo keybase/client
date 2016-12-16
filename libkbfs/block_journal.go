@@ -868,7 +868,9 @@ func (j *blockJournal) saveBlocksUntilNextMDFlush() error {
 // `lastToRemove` is non-zero, it only flushes up to the minimum of
 // `lastToRemove` and the earliest entry + `maxToRemove`; if this
 // flushes the entire saved journal, it returns 0, otherwise it
-// returns `lastToRemove`.
+// returns `lastToRemove`.  It's intended that the caller should call
+// this function repeatedly until it returns 0, releasing any locks in
+// between calls so it doesn't block other operations for too long.
 func (j *blockJournal) onMDFlush(ctx context.Context,
 	maxToRemove uint64, lastToRemove journalOrdinal) (journalOrdinal, error) {
 	if j.saveUntilMDFlush == nil {
