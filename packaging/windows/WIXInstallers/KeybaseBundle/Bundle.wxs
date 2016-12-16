@@ -1,56 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated during build -->
-<?include "..\dokanver.xml"?>
+<?include "..\dokanver.xml"?> <!-- Generated during build -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
-     xmlns:netfx='http://schemas.microsoft.com/wix/NetFxExtension'>
-  <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
-
-    <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
-
-    <Variable Name="nodriver" bal:Overridable="yes" />
-    
+     xmlns:netfx='http://schemas.microsoft.com/wix/NetFxExtension'
+     >
+  
+  <Bundle Name="Keybase $(env.KEYBASE_WINVER)" 
+          Version="$(env.KEYBASE_WINVER)" 
+          Manufacturer="Keybase, Inc." 
+          UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
+   
     <Log PathVariable="LOGPATH_PROP"/>
-    <util:FileSearchRef Id='WINTRUST_FileSearch' />
+
+    <!--Very old style installer that prevent this install-->
     <util:RegistrySearchRef Id='InnoCLIUninstall' />
     <util:RegistrySearchRef Id='InnoCLIUninstall64' />
     <util:RegistrySearchRef Id='InnoKBFSUninstall' />
-    <util:RegistrySearchRef Id='InnoKBFSUninstall64' />
+    <util:RegistrySearchRef Id='InnoKBFSUninstall64' />    
+    
+    <!--Dokan prerequisite-->
+    <util:FileSearchRef Id='WINTRUST_FileSearch' />
+
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
+            LicenseFile="license.rtf"
+            LogoFile="logo-64.bmp"
+            ShowVersion="yes"
+            SuppressOptionsUI="yes"
             LicenseUrl="https://keybase.io/docs/terms"
             ThemeFile="HyperlinkTheme.xml"
             LocalizationFile="HyperlinkTheme.wxl"
-            LogoFile="logo-64.bmp"
-            LicenseFile="license.rtf"
-            ShowVersion="yes"
-            SuppressOptionsUI="yes"
+
             />
     </BootstrapperApplicationRef>
 
-    <!-- TODO Proper detection of other Dokans installed by the user. We may need to look at Upgrade code or the signing cert-->
-    <!-- Dokany 
-         This is the target we need to install with. If it's not there,
-         we may need to invoke the dokan cleaner. -->
-    <util:RegistrySearch Id="DokanUninstall"
-             Variable="DokanUninstallString"
-             Root="HKLM"
-             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(var.DokanProductCodeX86)"
-             Value="UninstallString"
-             Format="raw"
-             />
-    <util:RegistrySearch Id="DokanUninstall64"
-                 After="DokanUninstall"
-                 Condition="NOT DokanUninstallString"
-                 Variable="DokanUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(var.DokanProductCodeX64)"
-                 Value="UninstallString"
-                 Format="raw"
-                 Win64="yes"
-                 />
+    <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
+    <Variable Name="nodriver" bal:Overridable="yes" />
+    <Variable Name="DevFilesCheckbox" Type="numeric" Value="0"/> <!--Do not install Dokan developer files when value set to 0-->   
 
+
+    <!-- TODO Proper detection of other Dokans installed by the user. We may need to look at Upgrade code or the signing cert-->
+    <!--The Dokan Product codes are not needed, we should be detecting Dokan (Keybase released) or other Dokan via other methods-->    
+
+
+    <!--Dokan prerequisites-->
     <util:FileSearch Id="SearchSystem"
                      Path="[SystemFolder]advapi32.dll"
                      Variable="ADVAPIVERSION"
@@ -80,52 +74,42 @@
     <bal:Condition Message="Installation failed because your version of Windows is too old. Dokan requires Windows 7 SP1 or newer."><![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ServicePackLevel >= 1)]]></bal:Condition>
     
     <Chain>
-      <PackageGroupRef Id="NetFx40Web"/>
-      
-      <!-- Remember: if DetectCondition is true, this package is considered already present and will not be installed.-->
-      <ExePackage
-        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe"
-        DetectCondition="DokanUninstallString OR nodriver"
-        Description="Remove previous drivers"
-        PerMachine="yes"
-        Permanent="yes">
-        <ExitCode Value="1641" Behavior="forceReboot"/>
-        <ExitCode Value="3010" Behavior="forceReboot"/>
-        <ExitCode Value="0" Behavior="success" />
-      </ExePackage>
-      
+      <PackageGroupRef Id="NetFx40Web"/>  
+
       <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
- 	   which need to remain in sync -->	    
+ 	    which need to remain in sync -->
+      <!--Note the v before the DetectCondition version is necessary for WiX to parse as a version number-->     
       <ExePackage Id="vcredist_2015_x86.exe"
                   Name="vc_redist.x86.exe"
-                  InstallCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
-                  RepairCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
-                  UninstallCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
+                  InstallCommand="/norestart /q /chainingpackage ADMINDEPLOYMENT"
+                  RepairCommand="/norestart /q /chainingpackage ADMINDEPLOYMENT"
+                  UninstallCommand="/norestart /q /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
-                  DetectCondition="vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.24212"
+                  DetectCondition="vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v$(var.VCMinRequired)"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="no"
                   SuppressSignatureVerification="yes"
                   SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
-      >
+                  >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
         <ExitCode Value="3010" Behavior="scheduleReboot"/>
         <ExitCode Value="0" Behavior="success" />
       </ExePackage>
 
       <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
- 	   which need to remain in sync -->	    
+ 	    which need to remain in sync -->
+      <!--Note the v before the DetectCondition version is necessary for WiX to parse as a version number-->
       <ExePackage Id="vcredist_2015_x64.exe"
                   Name="vc_redist.x64.exe"
-                  InstallCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
-                  RepairCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
-                  UninstallCommand="/norestart /q /passive /chainingpackage ADMINDEPLOYMENT"
+                  InstallCommand="/norestart /q /chainingpackage ADMINDEPLOYMENT"
+                  RepairCommand="/norestart /q /chainingpackage ADMINDEPLOYMENT"
+                  UninstallCommand="/norestart /q /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
                   InstallCondition="VersionNT64"
-                  DetectCondition="vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.24212"
+                  DetectCondition="vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v$(var.VCMinRequired)"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="yes"
@@ -212,33 +196,34 @@
       <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
                   InstallCondition="NOT VersionNT64 AND NOT nodriver"
                   Compressed="yes"
-                  Visible="yes"
-                  Permanent="yes"
+                  Visible="no"
+                  Permanent="no"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
         <MsiProperty Name="INSTALLDIR" Value="[DokanInstallFolder]" />
-        <MsiProperty Name="INSTALLDEVFILES" Value="0" />
+        <MsiProperty Name="INSTALLDEVFILES" Value="[DevFilesCheckbox]" />
       </MsiPackage>
 
       <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
                   InstallCondition="VersionNT64 AND NOT nodriver"
                   Compressed="yes"
-                  Visible="yes"
-                  Permanent="yes"
+                  Visible="no"
+                  Permanent="no"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
         <MsiProperty Name="INSTALLDIR" Value="[DokanInstallFolder]" />
-        <MsiProperty Name="INSTALLDEVFILES" Value="0" />
+        <MsiProperty Name="INSTALLDEVFILES" Value="[DevFilesCheckbox]" />   
       </MsiPackage>
 
       <MsiPackage Id="KeybasePrograms"
                   SourceFile="$(var.KeybaseApps.TargetPath)"
                   DisplayInternalUI='no'
-                  Permanent="no">
-        <MsiProperty Name="DOKANPRODUCT86" Value="$(var.DokanProductCodeX86)" />
-        <MsiProperty Name="DOKANPRODUCT64" Value="$(var.DokanProductCodeX64)" />
+                  Compressed="yes"
+                  Visible="no"
+                  >
+        <!--The Dokan Product codes are not needed, we should be detecting Dokan (Keybase released) or other Dokan via other methods-->
       </MsiPackage>
 
     </Chain>

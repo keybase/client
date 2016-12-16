@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Include>
   <!--This should never change to support "major upgrade" style upgrades and to prevent multiple versions of Keybase from beinginstalled next to each other.-->
-  <?define UpgradeCodeKeybase="C118F7EC-9A1D-4FF1-91F5-15D208499D7B" ?>
+  <?define KeybaseUpgradeCode="C118F7EC-9A1D-4FF1-91F5-15D208499D7B" ?>
 </Include>

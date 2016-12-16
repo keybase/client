@@ -2,7 +2,7 @@
 <?include ..\version.xml ?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- UpgradeCode must not change, ProductCode and version should change each build (Id="*") unless creating a patch: then use ProductCode from the base release -->
-  <Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="$(var.UpgradeCodeKeybase)">
+  <Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="$(var.KeybaseUpgradeCode)">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
     <MediaTemplate EmbedCab="yes"/>
     <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\media\icons\Keybase.ico"/>
@@ -30,7 +30,8 @@
     </Property>
     
     <!--Check installer property WIX_UPGRADE_DETECTED or UPGRADINGPRODUCTCODE to see if an upgrade is in progrss-->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." 
+                  AllowSameVersionUpgrades="yes"  />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <!--Typically C:\Users\USERNAME\AppData\Local-->
@@ -189,15 +190,7 @@
           <RegistryValue Name="updaterexe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
         <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\service\upd.exe" Checksum="yes"/>
-      </Component>
-      
-      <!-- The cleaner will look at these to make sure it only scrubs the driver we installed -->
-      <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
-          <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
-        </RegistryKey>
-      </Component>
+      </Component>      
     </ComponentGroup>
 
     <InstallExecuteSequence>
