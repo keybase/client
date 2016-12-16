@@ -345,9 +345,7 @@ func (md *BareRootMetadataV2) MakeSuccessorCopy(
 	extra ExtraMetadata, isReadableAndWriter bool) (
 	MutableBareRootMetadata, ExtraMetadata, bool, error) {
 
-	// TODO: uncomment when we're ready to write mdv3 by default.
-	//if config.MetadataVersion() < SegregatedKeyBundlesVer {
-	if true {
+	if config.MetadataVersion() < SegregatedKeyBundlesVer {
 		// Continue with the current version.
 		mdCopy, err := md.makeSuccessorCopyV2(config, isReadableAndWriter)
 		if err != nil {

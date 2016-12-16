@@ -1390,9 +1390,7 @@ func (fbo *folderBranchOps) SetInitialHeadToNew(
 	}()
 
 	rmd, err := makeInitialRootMetadata(
-		InitialExtraMetadataVer, id, handle)
-	// TODO: uncomment when we're ready to turn mdv3 on everywhere.
-	//fbo.config.MetadataVersion(), id, handle)
+		fbo.config.MetadataVersion(), id, handle)
 	if err != nil {
 		return err
 	}
