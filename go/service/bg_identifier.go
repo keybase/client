@@ -108,7 +108,12 @@ func (b *BackgroundIdentifier) shutdownLocked() {
 		return
 	}
 	b.isDead = true
-	b.stopCh <- struct{}{}
+
+	// Do this in the background in case the BG Identifier is currently working
+	// on something.
+	go func() {
+		b.stopCh <- struct{}{}
+	}()
 }
 
 func (b *BackgroundIdentifier) Logout() { b.Shutdown() }
