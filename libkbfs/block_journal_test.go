@@ -703,9 +703,19 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 		require.NotNil(t, jRestarted.saveUntilMDFlush)
 	}
 
-	// Now remove all the data.
-	err = j.onMDFlush(ctx)
+	// Now remove all the data, one at a time.  Remember there are two
+	// revision markers that also need removal.
+	lastToRemove := journalOrdinal(0)
+	for i := 0; i < len(savedBlocks)-1+2; i++ {
+		lastToRemove, err = j.onMDFlush(ctx, 1, lastToRemove)
+		require.NoError(t, err)
+		require.NotZero(t, lastToRemove, "Iter %d", i)
+		require.NotNil(t, j.saveUntilMDFlush)
+	}
+	lastToRemove, err = j.onMDFlush(ctx, 1, lastToRemove)
 	require.NoError(t, err)
+	require.Zero(t, lastToRemove)
+	require.Nil(t, j.saveUntilMDFlush)
 
 	err = j.hasData(bID1)
 	require.True(t, ioutil.IsNotExist(err))
