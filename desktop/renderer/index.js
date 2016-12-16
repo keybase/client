@@ -22,7 +22,7 @@ import {disable as disableDragDrop} from '../shared/util/drag-drop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import {changedFocus} from '../shared/actions/window'
 import {merge} from 'lodash'
-import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
+import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../shared/local-debug.desktop'
 import {setRouteDef} from '../shared/actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 // $FlowIssue
@@ -133,7 +133,9 @@ function setupHMR (store) {
       store.dispatch({type: updateReloading, payload: {reloading: true}})
       const NewMain = require('../shared/main.desktop').default
       render(store, NewMain)
-      engine().reset()
+      if (resetEngineOnHMR) {
+        engine().reset()
+      }
     } finally {
       setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
     }
