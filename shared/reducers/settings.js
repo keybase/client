@@ -11,6 +11,7 @@ const initialState: State = {
   invites: {
     pendingInvites: [],
     acceptedInvites: [],
+    error: null,
   },
   notifications: {
     settings: null,
@@ -114,7 +115,16 @@ function reducer (state: State = initialState, action: Actions): State {
       return {
         ...state,
         invites: {
+          ...state.invites,
           ...action.payload,
+        },
+      }
+    case Constants.invitesSent:
+      return {
+        ...state,
+        invites: {
+          ...state.invites,
+          error: action.payload.error,
         },
       }
     case Constants.loadedSettings: {

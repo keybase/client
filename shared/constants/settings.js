@@ -22,7 +22,7 @@ export type InvitesSend = NoErrorTypedAction<'settings:invitesSend', {
 }>
 
 export const invitesSent = 'settings:invitesSent'
-export type InvitesSent = TypedAction<'settings:invitesSent', {email: string}, {errorText: string}>
+export type InvitesSent = TypedAction<'settings:invitesSent', {email: string}, {error: Error}>
 
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRefresh', void>
@@ -109,6 +109,7 @@ export type Invitation = {
 export type InvitesState = {
   pendingInvites: Array<PendingInvite>,
   acceptedInvites: Array<AcceptedInvite>,
+  error: ?Error,
 }
 
 export type NotificationsState = {

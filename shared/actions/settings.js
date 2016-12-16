@@ -287,6 +287,13 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
         },
       }]))
     }
+  } catch (e) {
+    console.warn('Error sending an invite:', e)
+    yield put(({
+      type: Constants.invitesSent,
+      payload: {error: e},
+      error: true,
+    }: InvitesSent))
   } finally {
     yield put(Constants.waiting(false))
   }

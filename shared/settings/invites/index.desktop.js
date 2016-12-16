@@ -3,21 +3,18 @@ import React, {Component} from 'react'
 import moment from 'moment'
 
 import {intersperseFn} from '../../util/arrays'
-import {Avatar, Box, Button, Divider, Icon, Input, Text} from '../../common-adapters'
+import {Avatar, Banner, Box, Button, Divider, Icon, Input, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 import {stateColors} from '../../util/tracker'
 import SubHeading from '../subheading'
 
 import type {Props, PendingInvite, AcceptedInvite} from './index'
 
-function intersperseDividers (arr) {
-  return intersperseFn(i => <Divider key={i} style={{backgroundColor: globalColors.black_05}} />, arr)
-}
-
 type State = {
   inviteEmail: string,
   inviteMessage: string,
   showMessageField: boolean,
+  error: ?Error,
 }
 
 class Invites extends Component<void, Props, State> {
@@ -29,7 +26,12 @@ class Invites extends Component<void, Props, State> {
       inviteEmail: props.inviteEmail,
       inviteMessage: props.inviteMessage,
       showMessageField: props.showMessageField,
+      error: props.error,
     }
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    this.setState({error: nextProps.error})
   }
 
   handleChangeEmail (inviteEmail: string) {
@@ -37,63 +39,71 @@ class Invites extends Component<void, Props, State> {
     this.setState({
       inviteEmail,
       showMessageField,
+      error: null,
     })
   }
 
   render () {
     const props = this.props
     return (
-      <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1, overflow: 'auto'}}>
-        <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'center', marginTop: globalMargins.small}}>
-          <Input
-            hintText="Friend's email (optional)"
-            value={this.state.inviteEmail}
-            onChangeText={inviteEmail => this.handleChangeEmail(inviteEmail)}
-            style={{marginBottom: 0}}
-          />
-          {this.state.showMessageField && <Input
-            hintText='Message (optional)'
-            multiline={true}
-            value={this.state.inviteMessage}
-            onChangeText={inviteMessage => this.setState({inviteMessage})}
-          />}
-          <Button
-            type='Primary'
-            label='Generate invitation'
-            onClick={() => props.onGenerateInvitation(this.state.inviteEmail, this.state.inviteMessage)}
-            waiting={props.waitingForResponse}
-            style={{alignSelf: 'center', marginTop: globalMargins.medium}}
-          />
-        </Box>
-        {props.pendingInvites.length > 0 && <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16, flexShrink: 0}}>
-          <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
-          {intersperseDividers(props.pendingInvites.map(invite =>
-            <PendingInviteItem
-              props={props}
-              invite={invite}
-              key={invite.id}
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <Banner error={this.state.error} />
+        <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1, overflow: 'auto'}}>
+          <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'center', marginTop: globalMargins.small}}>
+            <Input
+              hintText="Friend's email (optional)"
+              value={this.state.inviteEmail}
+              onChangeText={inviteEmail => this.handleChangeEmail(inviteEmail)}
+              style={{marginBottom: 0}}
             />
-          ))}
-        </Box>}
-        <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
-          <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
-          {intersperseDividers(props.acceptedInvites.map(invite =>
-            <AcceptedInviteItem
-              key={invite.id}
-              invite={invite}
-              onClick={() => props.onSelectUser(invite.username)}
+            {this.state.showMessageField && <Input
+              hintText='Message (optional)'
+              multiline={true}
+              value={this.state.inviteMessage}
+              onChangeText={inviteMessage => this.setState({inviteMessage})}
+            />}
+            <Button
+              type='Primary'
+              label='Generate invitation'
+              onClick={() => props.onGenerateInvitation(this.state.inviteEmail, this.state.inviteMessage)}
+              waiting={props.waitingForResponse}
+              style={{alignSelf: 'center', marginTop: globalMargins.medium}}
             />
-          ))}
+          </Box>
+          {props.pendingInvites.length > 0 && <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16, flexShrink: 0}}>
+            <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
+            {intersperseDividers(props.pendingInvites.map(invite =>
+              <PendingInviteItem
+                props={props}
+                invite={invite}
+                key={invite.id}
+              />
+            ))}
+          </Box>}
+          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
+            <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
+            {intersperseDividers(props.acceptedInvites.map(invite =>
+              <AcceptedInviteItem
+                key={invite.id}
+                invite={invite}
+                onClick={() => props.onSelectUser(invite.username)}
+              />
+            ))}
+          </Box>
         </Box>
       </Box>
     )
   }
 }
 
+function intersperseDividers (arr) {
+  return intersperseFn(i => <Divider key={i} style={{backgroundColor: globalColors.black_05}} />, arr)
+}
+
 function PendingInviteItem ({invite, props}: {invite: PendingInvite, props: Props}) {
   return (
     <Box style={styleInviteItem}>
-      {invite.email !== '' ? <PendingEmailContent invite={invite} props={props} /> : <PendingURLContent invite={invite} />}
+      {invite.email ? <PendingEmailContent invite={invite} props={props} /> : <PendingURLContent invite={invite} />}
       <Box style={{flex: 1}} />
       <Text
         type='BodyPrimaryLink'

@@ -32,6 +32,7 @@ export type Props = {
   onGenerateInvitation: (email: string, message: string) => void,
   onSelectPendingInvite: (invite: PendingInvite) => void,
   waitingForResponse: boolean,
+  error: ?Error,
 }
 
 export default class Invites extends Component<void, Props, void> {}

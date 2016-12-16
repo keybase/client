@@ -64,7 +64,6 @@ const styleNavBox = {
   backgroundColor: globalColors.white,
   borderRight: '1px solid ' + globalColors.black_05,
   width: 144,
-  paddingTop: globalMargins.large,
 }
 
 const itemStyle = {

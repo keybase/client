@@ -234,26 +234,10 @@ const settingsNavBase = {
   showComingSoon: false,
 }
 
-const bannerTextStyle = {
-  alignSelf: 'center',
-  textAlign: 'center',
-  flex: 1,
-}
-
 const settingsContainerMap: DumbComponentMap<SettingsContainer> = {
   component: SettingsContainer,
   mocks: {
     'Normal': settingsNavBase,
-    'Normal - Good Banner': {
-      ...settingsNavBase,
-      bannerElement: <Text type='BodySemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
-      bannerType: 'green',
-    },
-    'Normal - Bad Banner': {
-      ...settingsNavBase,
-      bannerElement: <Text type='BodySemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
-      bannerType: 'red',
-    },
   },
 }
 
@@ -340,6 +324,7 @@ const notificationsMap: DumbComponentMap<Notifications> = {
 
 const commonInvite = {
   link: 'keybase.io/inv/9999999999',
+  email: '',
   parentProps: {
     style: {
       height: 500,
@@ -358,7 +343,6 @@ const inviteGeneratedMap: DumbComponentMap<InviteGenerated> = {
     },
     'No email': {
       ...commonInvite,
-      email: null,
     },
   },
 }
@@ -468,6 +452,7 @@ const invitesBase = {
     },
   },
   onRefresh: () => console.log('onRefresh'),
+  error: null,
 }
 
 const invitesMap: DumbComponentMap<Invites> = {
@@ -488,7 +473,7 @@ const invitesMap: DumbComponentMap<Invites> = {
     'Normal': invitesBase,
     'Normal - Email Error': {
       ...invitesBase,
-      emailError: true,
+      error: new Error('Oops, you entered an invalid email address'),
     },
   },
 }
