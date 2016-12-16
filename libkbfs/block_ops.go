@@ -21,9 +21,11 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 
 // NewBlockOpsStandard creates a new BlockOpsStandard
 func NewBlockOpsStandard(config Config, queueSize int) *BlockOpsStandard {
+	q := newBlockRetrievalQueue(queueSize, config.Codec(), config.BlockCache())
+	q.prefetcher = newPrefetcher(q)
 	bops := &BlockOpsStandard{
 		config:  config,
-		queue:   newBlockRetrievalQueue(queueSize, config.Codec(), config.BlockCache()),
+		queue:   q,
 		workers: make([]*blockRetrievalWorker, 0, queueSize),
 	}
 	bg := &realBlockGetter{config: config}

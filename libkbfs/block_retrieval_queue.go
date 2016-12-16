@@ -98,6 +98,8 @@ type blockRetrievalQueue struct {
 	codec kbfscodec.Codec
 	// BlockCacheSimple for retrieving and putting blocks
 	cache BlockCacheSimple
+	// prefetcher for handling prefetching scenarios
+	prefetcher prefetcher
 }
 
 var _ blockRetriever = (*blockRetrievalQueue)(nil)
@@ -238,6 +240,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	// lock.
 	retrieval.reqMtx.Lock()
 	defer retrieval.reqMtx.Unlock()
+	brq.prefetcher.HandleBlock(block, retrieval.kmd, retrieval.priority)
 	for _, r := range retrieval.requests {
 		req := r
 		if block != nil {
