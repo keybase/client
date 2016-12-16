@@ -55,7 +55,15 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (*compatMount, *FS, func(
 }
 
 func makeFSE(t testing.TB, config *libkbfs.ConfigLocal, driveLetter byte) (*compatMount, *FS, func()) {
-	getDriveLetterLock(driveLetter).Lock()
+	makeSuccess := false
+	lock := getDriveLetterLock(driveLetter)
+	lock.Lock()
+	defer func() {
+		if !makeSuccess {
+			lock.Unlock()
+		}
+	}()
+
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	ctx, cancelFn := context.WithCancel(ctx)
 	filesys, err := NewFS(ctx, config, logger.NewTestLogger(t))
@@ -71,7 +79,9 @@ func makeFSE(t testing.TB, config *libkbfs.ConfigLocal, driveLetter byte) (*comp
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Caller will unlock lock via cm.Close().
 	cm := &compatMount{MountHandle: mnt}
+	makeSuccess = true
 	return cm, filesys, func() {
 		cancelFn()
 		libkbfs.CleanupCancellationDelayer(ctx)
