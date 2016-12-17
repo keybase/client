@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type overallBlockState int
@@ -394,6 +395,67 @@ func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
 	defer fbo.blockLock.RUnlock(lState)
 	return fbo.getBlockHelperLocked(ctx, lState, kmd, ptr, branch,
 		NewCommonBlock, false, path{}, blockRead)
+}
+
+// GetBlocksForReading retrieves the blocks pointed to by ptrs, all of
+// which must be valid, either from the cache or from the server.  The
+// returned block may have a generic type (not DirBlock or FileBlock).
+//
+// The caller can specify a set of pointers using
+// `ignoreRecoverableForRemovalErrors` for which "recoverable" fetch
+// errors are tolerated.  In that case, the returned map will not have
+// an entry for any pointers in the
+// `ignoreRecoverableForRemovalErrors` set that hit such an error.
+//
+// This should be called for "internal" operations, like conflict
+// resolution and state checking, which don't know what kind of block
+// the pointers refer to.  The blocks will not be cached, if they
+// weren't in the cache already.
+func (fbo *folderBlockOps) GetBlocksForReading(ctx context.Context,
+	lState *lockState, kmd KeyMetadata, ptrs []BlockPointer,
+	ignoreRecoverableForRemovalErrors map[BlockPointer]bool,
+	branch BranchName) (map[BlockPointer]Block, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	blockResults := make([]Block, len(ptrs))
+	eg, groupCtx := errgroup.WithContext(ctx)
+	for i, ptr := range ptrs {
+		i, ptr := i, ptr
+		eg.Go(func() error {
+			block, err := fbo.getBlockHelperLocked(groupCtx, nil, kmd, ptr,
+				branch, NewCommonBlock, false, path{}, blockReadParallel)
+			// TODO: we might be able to recover the size of the
+			// top-most block of a removed file using the merged
+			// directory entry, the same way we do in
+			// `folderBranchOps.unrefEntry`.
+			if isRecoverableBlockErrorForRemoval(err) &&
+				ignoreRecoverableForRemovalErrors[ptr] {
+				fbo.log.CDebugf(groupCtx, "Hit an ignorable, recoverable "+
+					"error for block %v: %v", ptr, err)
+				return nil
+			}
+
+			if err != nil {
+				return err
+			}
+			blockResults[i] = block
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	blocks := make(map[BlockPointer]Block, len(ptrs))
+	for i, ptr := range ptrs {
+		block := blockResults[i]
+		if block != nil {
+			blocks[ptr] = block
+		}
+	}
+	return blocks, nil
 }
 
 // getDirBlockHelperLocked retrieves the block pointed to by ptr, which
