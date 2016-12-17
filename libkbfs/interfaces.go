@@ -1140,7 +1140,11 @@ type MDServer interface {
 	// don't have a current estimate for the offset.
 	OffsetFromServerTime() (time.Duration, bool)
 
-	// GetKeyBundles returns the key bundles for the given key bundle IDs.
+	// GetKeyBundles looks up the key bundles for the given key
+	// bundle IDs. tlfID must be non-zero but either or both wkbID
+	// and rkbID can be zero, in which case nil will be returned
+	// for the respective bundle. If a bundle cannot be found, an
+	// error is returned and nils are returned for both bundles.
 	GetKeyBundles(ctx context.Context, tlfID tlf.ID,
 		wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 		*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error)

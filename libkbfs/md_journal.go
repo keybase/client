@@ -311,6 +311,11 @@ func (j mdJournal) getExtraMetadata(
 		return nil, err
 	}
 
+	err = checkWKBID(j.crypto, wkbID, wkb)
+	if err != nil {
+		return nil, err
+	}
+
 	var rkb TLFReaderKeyBundleV3
 	err = kbfscodec.DeserializeFromFile(
 		j.codec, j.readerKeyBundleV3Path(rkbID), &rkb)
@@ -318,7 +323,7 @@ func (j mdJournal) getExtraMetadata(
 		return nil, err
 	}
 
-	err = checkKeyBundleIDs(j.crypto, wkbID, rkbID, wkb, rkb)
+	err = checkRKBID(j.crypto, rkbID, rkb)
 	if err != nil {
 		return nil, err
 	}
@@ -329,16 +334,23 @@ func (j mdJournal) getExtraMetadata(
 
 func (j mdJournal) putExtraMetadata(
 	rmd BareRootMetadata, extra ExtraMetadata) error {
+	wkbID := rmd.GetTLFWriterKeyBundleID()
+	rkbID := rmd.GetTLFReaderKeyBundleID()
+
 	if extra == nil {
+		if wkbID != (TLFWriterKeyBundleID{}) {
+			panic(errors.Errorf("unexpected non-nil wkbID %s", wkbID))
+		}
+		if rkbID != (TLFReaderKeyBundleID{}) {
+			panic(errors.Errorf("unexpected non-nil rkbID %s", rkbID))
+		}
 		return nil
 	}
 
-	wkbID := rmd.GetTLFWriterKeyBundleID()
 	if wkbID == (TLFWriterKeyBundleID{}) {
 		panic("writer key bundle ID is empty")
 	}
 
-	rkbID := rmd.GetTLFReaderKeyBundleID()
 	if rkbID == (TLFReaderKeyBundleID{}) {
 		panic("reader key bundle ID is empty")
 	}
@@ -352,8 +364,12 @@ func (j mdJournal) putExtraMetadata(
 	// it as part of the mdInfo, so we don't needlessly send it
 	// while flushing.
 
-	err := checkKeyBundleIDs(
-		j.crypto, wkbID, rkbID, extraV3.wkb, extraV3.rkb)
+	err := checkWKBID(j.crypto, wkbID, extraV3.wkb)
+	if err != nil {
+		return err
+	}
+
+	err = checkRKBID(j.crypto, rkbID, extraV3.rkb)
 	if err != nil {
 		return err
 	}

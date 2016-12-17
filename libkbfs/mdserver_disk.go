@@ -655,5 +655,5 @@ func (md *MDServerDisk) GetKeyBundles(_ context.Context,
 		return nil, nil, err
 	}
 
-	return tlfStorage.getKeyBundles(wkbID, rkbID)
+	return tlfStorage.getKeyBundles(tlfID, wkbID, rkbID)
 }
