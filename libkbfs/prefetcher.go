@@ -14,23 +14,6 @@ const (
 	dirEntryPrefetchPriority            int = -200
 )
 
-type dirEntries []DirEntry
-type dirEntriesBySizeAsc struct{ dirEntries }
-type dirEntriesBySizeDesc struct{ dirEntries }
-
-func (d dirEntries) Len() int                     { return len(d) }
-func (d dirEntries) Swap(i, j int)                { d[i], d[j] = d[j], d[i] }
-func (d dirEntriesBySizeAsc) Less(i, j int) bool  { return d.dirEntries[i].Size < d.dirEntries[j].Size }
-func (d dirEntriesBySizeDesc) Less(i, j int) bool { return d.dirEntries[i].Size > d.dirEntries[j].Size }
-
-func dirEntryMapToDirEntries(entryMap map[string]DirEntry) dirEntries {
-	dirEntries := make(dirEntries, 0, len(entryMap))
-	for _, entry := range entryMap {
-		dirEntries = append(dirEntries, entry)
-	}
-	return dirEntries
-}
-
 type prefetcher interface {
 	HandleBlock(b Block, kmd KeyMetadata, priority int)
 	Shutdown() <-chan struct{}
