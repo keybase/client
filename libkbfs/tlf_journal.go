@@ -1402,12 +1402,7 @@ func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
 		return false, err
 	}
 
-	err := j.blockJournal.isUnflushed(id)
-	if err != nil {
-		// Might exist on the server
-		return false, nil
-	}
-	return true, nil
+	return j.blockJournal.isUnflushed(id)
 }
 
 func (j *tlfJournal) getBranchID() (BranchID, error) {

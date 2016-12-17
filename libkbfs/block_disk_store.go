@@ -267,33 +267,33 @@ func (s *blockDiskStore) hasContext(id BlockID, context BlockContext) (
 	return info.Refs.checkExists(context)
 }
 
-func (s *blockDiskStore) hasData(id BlockID) error {
+func (s *blockDiskStore) hasData(id BlockID) (bool, error) {
 	_, err := ioutil.Stat(s.dataPath(id))
-	return err
+	if ioutil.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-type errFlushedButPresentData struct{}
-
-func (e errFlushedButPresentData) Error() string {
-	return "Data is flushed but present"
-}
-
-func (s *blockDiskStore) isUnflushed(id BlockID) error {
-	err := s.hasData(id)
+func (s *blockDiskStore) isUnflushed(id BlockID) (bool, error) {
+	ok, err := s.hasData(id)
 	if err != nil {
-		return err
+		return false, err
+	}
+
+	if !ok {
+		return false, nil
 	}
 
 	// The data is there; has it been flushed?
 	info, err := s.getInfo(id)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	if info.Flushed {
-		return errors.WithStack(errFlushedButPresentData{})
-	}
-	return nil
+	return !info.Flushed, nil
 }
 
 func (s *blockDiskStore) markFlushed(id BlockID) error {

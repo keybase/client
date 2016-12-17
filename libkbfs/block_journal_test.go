@@ -667,8 +667,9 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	// The blocks can still be fetched from the journal.
 	for _, bid := range savedBlocks {
-		err = j.hasData(bid)
+		ok, err := j.hasData(bid)
 		require.NoError(t, err)
+		require.True(t, ok)
 	}
 
 	// No more blocks to flush though.
@@ -691,8 +692,9 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	// Make sure all the blocks still exist, including both the old
 	// and the new ones.
 	for _, bid := range savedBlocks {
-		err = j.hasData(bid)
+		ok, err := j.hasData(bid)
 		require.NoError(t, err)
+		require.True(t, ok)
 	}
 
 	{
@@ -717,14 +719,18 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	require.Zero(t, lastToRemove)
 	require.Nil(t, j.saveUntilMDFlush)
 
-	err = j.isUnflushed(bID1)
-	require.True(t, ioutil.IsNotExist(err))
-	err = j.isUnflushed(bID2)
-	require.True(t, ioutil.IsNotExist(err))
-	err = j.isUnflushed(bID3)
-	require.True(t, ioutil.IsNotExist(err))
-	err = j.isUnflushed(bID4)
-	require.True(t, ioutil.IsNotExist(err))
+	ok, err := j.isUnflushed(bID1)
+	require.NoError(t, err)
+	require.False(t, ok)
+	ok, err = j.isUnflushed(bID2)
+	require.NoError(t, err)
+	require.False(t, ok)
+	ok, err = j.isUnflushed(bID3)
+	require.NoError(t, err)
+	require.False(t, ok)
+	ok, err = j.isUnflushed(bID4)
+	require.NoError(t, err)
+	require.False(t, ok)
 
 	testBlockJournalGCd(t, j)
 }
