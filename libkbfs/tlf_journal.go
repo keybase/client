@@ -714,6 +714,14 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 		return err
 	}
 
+	// Keep the flushed blocks around until we know for sure the MD
+	// flush will succeed; otherwise if we become unmerged, conflict
+	// resolution will be very expensive.
+	err := j.blockJournal.saveBlocksUntilNextMDFlush()
+	if err != nil {
+		return err
+	}
+
 	return j.blockJournal.removeFlushedEntries(ctx, entries, j.tlfID,
 		j.config.Reporter())
 }
@@ -1394,12 +1402,7 @@ func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
 		return false, err
 	}
 
-	err := j.blockJournal.hasData(id)
-	if err != nil {
-		// Might exist on the server
-		return false, nil
-	}
-	return true, nil
+	return j.blockJournal.isUnflushed(id)
 }
 
 func (j *tlfJournal) getBranchID() (BranchID, error) {

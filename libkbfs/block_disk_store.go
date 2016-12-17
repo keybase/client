@@ -51,8 +51,11 @@ import (
 //           May be missing.
 //   - ksh:  The raw data for the associated key server half.
 //           May be missing, but should be present when data is.
-//   - refs: The list of references to the block, encoded as a serialized
-//           blockRefInfo. May be missing.
+//   - refs: The list of references to the block, along with other
+//           block-specific info, encoded as a serialized
+//           blockJournalInfo. May be missing.  TODO: rename this to
+//           something more generic if we ever upgrade the journal
+//           version.
 //
 // Future versions of the disk store might add more files to this
 // directory; if any code is written to move blocks around, it should
@@ -109,8 +112,14 @@ func (s *blockDiskStore) keyServerHalfPath(id BlockID) string {
 	return filepath.Join(s.blockPath(id), "ksh")
 }
 
-func (s *blockDiskStore) refsPath(id BlockID) string {
+func (s *blockDiskStore) infoPath(id BlockID) string {
+	// TODO: change the file name to "info" the next we change the
+	// journal layout.
 	return filepath.Join(s.blockPath(id), "refs")
+}
+
+func (s *blockDiskStore) flushedPath(id BlockID) string {
+	return filepath.Join(s.blockPath(id), "f")
 }
 
 // makeDir makes the directory for the given block ID and writes the
@@ -126,10 +135,11 @@ func (s *blockDiskStore) makeDir(id BlockID) error {
 	return ioutil.WriteFile(s.idPath(id), []byte(id.String()), 0600)
 }
 
-// blockRefInfo is a wrapper around blockRefMap, in case we want to
-// add more fields in the future.
-type blockRefInfo struct {
-	Refs blockRefMap
+// blockJournalInfo contains info about a particular block in the
+// journal, such as the set of references to it.
+type blockJournalInfo struct {
+	Refs    blockRefMap
+	Flushed bool `codec:"f,omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -137,38 +147,38 @@ type blockRefInfo struct {
 // TODO: Add caching for refs
 
 // getRefInfo returns the references for the given ID.
-func (s *blockDiskStore) getRefInfo(id BlockID) (blockRefInfo, error) {
-	var refInfo blockRefInfo
-	err := kbfscodec.DeserializeFromFile(s.codec, s.refsPath(id), &refInfo)
+func (s *blockDiskStore) getInfo(id BlockID) (blockJournalInfo, error) {
+	var info blockJournalInfo
+	err := kbfscodec.DeserializeFromFile(s.codec, s.infoPath(id), &info)
 	if !ioutil.IsNotExist(err) && err != nil {
-		return blockRefInfo{}, err
+		return blockJournalInfo{}, err
 	}
 
-	if refInfo.Refs == nil {
-		refInfo.Refs = make(blockRefMap)
+	if info.Refs == nil {
+		info.Refs = make(blockRefMap)
 	}
 
-	return refInfo, nil
+	return info, nil
 }
 
 // putRefInfo stores the given references for the given ID.
-func (s *blockDiskStore) putRefInfo(id BlockID, refs blockRefInfo) error {
-	return kbfscodec.SerializeToFile(s.codec, refs, s.refsPath(id))
+func (s *blockDiskStore) putInfo(id BlockID, info blockJournalInfo) error {
+	return kbfscodec.SerializeToFile(s.codec, info, s.infoPath(id))
 }
 
 // addRefs adds references for the given contexts to the given ID, all
 // with the same status and tag.
 func (s *blockDiskStore) addRefs(id BlockID, contexts []BlockContext,
 	status blockRefStatus, tag string) error {
-	refInfo, err := s.getRefInfo(id)
+	info, err := s.getInfo(id)
 	if err != nil {
 		return err
 	}
 
-	if len(refInfo.Refs) > 0 {
+	if len(info.Refs) > 0 {
 		// Check existing contexts, if any.
 		for _, context := range contexts {
-			_, err := refInfo.Refs.checkExists(context)
+			_, err := info.Refs.checkExists(context)
 			if err != nil {
 				return err
 			}
@@ -176,13 +186,13 @@ func (s *blockDiskStore) addRefs(id BlockID, contexts []BlockContext,
 	}
 
 	for _, context := range contexts {
-		err = refInfo.Refs.put(context, status, tag)
+		err = info.Refs.put(context, status, tag)
 		if err != nil {
 			return err
 		}
 	}
 
-	return s.putRefInfo(id, refInfo)
+	return s.putInfo(id, info)
 }
 
 // getData returns the data and server half for the given ID, if
@@ -230,36 +240,70 @@ func (s *blockDiskStore) getData(id BlockID) (
 // All functions below are public functions.
 
 func (s *blockDiskStore) hasAnyRef(id BlockID) (bool, error) {
-	refInfo, err := s.getRefInfo(id)
+	info, err := s.getInfo(id)
 	if err != nil {
 		return false, err
 	}
 
-	return len(refInfo.Refs) > 0, nil
+	return len(info.Refs) > 0, nil
 }
 
 func (s *blockDiskStore) hasNonArchivedRef(id BlockID) (bool, error) {
-	refInfo, err := s.getRefInfo(id)
+	info, err := s.getInfo(id)
 	if err != nil {
 		return false, err
 	}
 
-	return refInfo.Refs.hasNonArchivedRef(), nil
+	return info.Refs.hasNonArchivedRef(), nil
 }
 
 func (s *blockDiskStore) hasContext(id BlockID, context BlockContext) (
 	bool, error) {
-	refInfo, err := s.getRefInfo(id)
+	info, err := s.getInfo(id)
 	if err != nil {
 		return false, err
 	}
 
-	return refInfo.Refs.checkExists(context)
+	return info.Refs.checkExists(context)
 }
 
-func (s *blockDiskStore) hasData(id BlockID) error {
+func (s *blockDiskStore) hasData(id BlockID) (bool, error) {
 	_, err := ioutil.Stat(s.dataPath(id))
-	return err
+	if ioutil.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (s *blockDiskStore) isUnflushed(id BlockID) (bool, error) {
+	ok, err := s.hasData(id)
+	if err != nil {
+		return false, err
+	}
+
+	if !ok {
+		return false, nil
+	}
+
+	// The data is there; has it been flushed?
+	info, err := s.getInfo(id)
+	if err != nil {
+		return false, err
+	}
+
+	return !info.Flushed, nil
+}
+
+func (s *blockDiskStore) markFlushed(id BlockID) error {
+	info, err := s.getInfo(id)
+	if err != nil {
+		return err
+	}
+
+	info.Flushed = true
+	return s.putInfo(id, info)
 }
 
 func (s *blockDiskStore) getDataSize(id BlockID) (int64, error) {
@@ -332,13 +376,13 @@ func (s *blockDiskStore) getAllRefsForTest() (map[BlockID]blockRefMap, error) {
 					name+subName, id.String())
 			}
 
-			refInfo, err := s.getRefInfo(id)
+			info, err := s.getInfo(id)
 			if err != nil {
 				return nil, err
 			}
 
-			if len(refInfo.Refs) > 0 {
-				res[id] = refInfo.Refs
+			if len(info.Refs) > 0 {
+				res[id] = info.Refs
 			}
 		}
 	}
@@ -445,30 +489,30 @@ func (s *blockDiskStore) archiveReferences(
 func (s *blockDiskStore) removeReferences(
 	id BlockID, contexts []BlockContext, tag string) (
 	liveCount int, err error) {
-	refInfo, err := s.getRefInfo(id)
+	info, err := s.getInfo(id)
 	if err != nil {
 		return 0, err
 	}
-	if len(refInfo.Refs) == 0 {
+	if len(info.Refs) == 0 {
 		return 0, nil
 	}
 
 	for _, context := range contexts {
-		err := refInfo.Refs.remove(context, tag)
+		err := info.Refs.remove(context, tag)
 		if err != nil {
 			return 0, err
 		}
-		if len(refInfo.Refs) == 0 {
+		if len(info.Refs) == 0 {
 			break
 		}
 	}
 
-	err = s.putRefInfo(id, refInfo)
+	err = s.putInfo(id, info)
 	if err != nil {
 		return 0, err
 	}
 
-	return len(refInfo.Refs), nil
+	return len(info.Refs), nil
 }
 
 // remove removes any existing data for the given ID, which must not

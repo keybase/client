@@ -267,8 +267,12 @@ func (j *blockJournal) end() (journalOrdinal, error) {
 	return last + 1, nil
 }
 
-func (j *blockJournal) hasData(id BlockID) error {
+func (j *blockJournal) hasData(id BlockID) (bool, error) {
 	return j.s.hasData(id)
+}
+
+func (j *blockJournal) isUnflushed(id BlockID) (bool, error) {
+	return j.s.isUnflushed(id)
 }
 
 func (j *blockJournal) remove(id BlockID) error {
@@ -695,6 +699,12 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 		if err != nil {
 			return 0, err
 		}
+
+		err = j.s.markFlushed(id)
+		if err != nil {
+			return 0, err
+		}
+
 		flushedBytes, err = j.s.getDataSize(id)
 		if err != nil {
 			return 0, err
