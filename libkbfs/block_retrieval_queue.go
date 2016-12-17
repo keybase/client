@@ -240,6 +240,10 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	// lock.
 	retrieval.reqMtx.Lock()
 	defer retrieval.reqMtx.Unlock()
+	// Cache the block if there is no error
+	if brq.cache != nil && err == nil {
+		brq.cache.Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
+	}
 	if brq.prefetcher != nil {
 		brq.prefetcher.HandleBlock(block, retrieval.kmd, retrieval.priority)
 	}
