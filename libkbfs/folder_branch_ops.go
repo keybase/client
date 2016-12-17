@@ -569,7 +569,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 		wasReadable = fbo.head.IsReadable()
 
 		if fbo.head.mdID == md.mdID {
-			panic(fmt.Errorf("Re-putting the same MD: %s", md.mdID))
+			panic(errors.Errorf("Re-putting the same MD: %s", md.mdID))
 		}
 	}
 
@@ -691,7 +691,7 @@ func (fbo *folderBranchOps) setNewInitialHeadLocked(ctx context.Context,
 		return errors.New("Unexpected non-nil head in setNewInitialHeadLocked")
 	}
 	if md.Revision() != MetadataRevisionInitial {
-		return fmt.Errorf("setNewInitialHeadLocked unexpectedly called with revision %d", md.Revision())
+		return errors.Errorf("setNewInitialHeadLocked unexpectedly called with revision %d", md.Revision())
 	}
 	return fbo.setHeadLocked(ctx, lState, md)
 }
@@ -785,7 +785,7 @@ func (fbo *folderBranchOps) setHeadPredecessorLocked(ctx context.Context,
 		return errors.New("Unexpected nil head in setHeadPredecessorLocked")
 	}
 	if fbo.head.Revision() <= MetadataRevisionInitial {
-		return fmt.Errorf("setHeadPredecessorLocked unexpectedly called with revision %d", fbo.head.Revision())
+		return errors.Errorf("setHeadPredecessorLocked unexpectedly called with revision %d", fbo.head.Revision())
 	}
 
 	if fbo.head.MergedStatus() != Unmerged {
@@ -808,7 +808,7 @@ func (fbo *folderBranchOps) setHeadPredecessorLocked(ctx context.Context,
 		return err
 	}
 	if !eq {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"head handle %v unexpectedly not equal to new handle = %v",
 			oldHandle, newHandle)
 	}
@@ -923,7 +923,8 @@ func (fbo *folderBranchOps) getMDLocked(
 	}
 
 	if mergedMD == (ImmutableRootMetadata{}) {
-		return ImmutableRootMetadata{}, fmt.Errorf("Got nil RMD for %s", fbo.id())
+		return ImmutableRootMetadata{}, errors.Errorf(
+			"Got nil RMD for %s", fbo.id())
 	}
 
 	if md == (ImmutableRootMetadata{}) {
@@ -941,7 +942,7 @@ func (fbo *folderBranchOps) getMDLocked(
 	}
 
 	if md.data.Dir.Type != Dir && (!md.IsInitialized() || md.IsReadable()) {
-		return ImmutableRootMetadata{}, fmt.Errorf("Got undecryptable RMD for %s: initialized=%t, readable=%t", fbo.id(), md.IsInitialized(), md.IsReadable())
+		return ImmutableRootMetadata{}, errors.Errorf("Got undecryptable RMD for %s: initialized=%t, readable=%t", fbo.id(), md.IsInitialized(), md.IsReadable())
 	}
 
 	fbo.headLock.Lock(lState)
@@ -1119,7 +1120,7 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 		return nil, err
 	}
 	if len(ptrsToDelete) > 0 {
-		return nil, fmt.Errorf("Unexpected pointers to delete after "+
+		return nil, errors.Errorf("Unexpected pointers to delete after "+
 			"unembedding block changes in gc op: %v", ptrsToDelete)
 	}
 	return bps, nil
@@ -1190,7 +1191,8 @@ func (fbo *folderBranchOps) initMDLocked(
 			return err
 		}
 		if !rekeyDone {
-			return fmt.Errorf("Initial rekey unexpectedly not done for private TLF %v", md.TlfID())
+			return errors.Errorf("Initial rekey unexpectedly not done for "+
+				"private TLF %v", md.TlfID())
 		}
 		expectedKeyGen = FirstValidKeyGen
 	}
@@ -1244,7 +1246,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 	if fbo.head != (ImmutableRootMetadata{}) {
-		return fmt.Errorf(
+		return errors.Errorf(
 			"%v: Unexpected MD ID during new MD initialization: %v",
 			md.TlfID(), fbo.head.mdID)
 	}
@@ -1312,7 +1314,8 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 
 	if md.data.Dir.Type != Dir {
 		// Not initialized.
-		return fmt.Errorf("MD with revision=%d not initialized", md.Revision())
+		return errors.Errorf("MD with revision=%d not initialized",
+			md.Revision())
 	}
 
 	// Return early if the head is already set.  This avoids taking
@@ -1768,7 +1771,7 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		fblock, ok := block.(*FileBlock)
 		if !ok {
 			return nil, false,
-				fmt.Errorf("Block for %s is not a file block", ptr)
+				errors.Errorf("Block for %s is not a file block", ptr)
 		}
 		return fblock, true, nil
 	}
@@ -2273,11 +2276,11 @@ func (fbo *folderBranchOps) waitForJournalLocked(ctx context.Context,
 		return err
 	}
 	if jStatus.RevisionEnd != MetadataRevisionUninitialized {
-		return fmt.Errorf("Couldn't flush all MD revisions; current "+
+		return errors.Errorf("Couldn't flush all MD revisions; current "+
 			"revision end for the journal is %d", jStatus.RevisionEnd)
 	}
 	if jStatus.LastFlushErr != "" {
-		return fmt.Errorf("Couldn't flush the journal: %s",
+		return errors.Errorf("Couldn't flush the journal: %s",
 			jStatus.LastFlushErr)
 	}
 
@@ -4597,8 +4600,8 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 			}
 			// If we are still staged after the wait, then we have a problem.
 			if !fbo.isMasterBranch(lState) {
-				return fmt.Errorf("Conflict resolution didn't take us out of " +
-					"staging.")
+				return errors.Errorf("Conflict resolution didn't take us out " +
+					"of staging.")
 			}
 		}
 
