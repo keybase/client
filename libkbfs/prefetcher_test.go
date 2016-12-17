@@ -6,7 +6,6 @@ import (
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,15 +40,10 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 		makeFakeIndirectFilePtr(t, 150),
 	}
 	ptr1 := makeFakeBlockPointer(t)
-	block1 := makeFakeFileBlock(t)
-	block1.IPtrs = ptrs
+	block1 := &FileBlock{IPtrs: ptrs, Contents: make([]byte, 0)}
 	block1.IsInd = true
-	block2 := makeFakeFileBlock(t)
-	_, hash2 := kbfshash.DoRawDefaultHash(block2.Contents)
-	block2.hash = &hash2
-	block3 := makeFakeFileBlock(t)
-	_, hash3 := kbfshash.DoRawDefaultHash(block3.Contents)
-	block3.hash = &hash3
+	block2 := makeFakeFileBlock(t, true)
+	block3 := makeFakeFileBlock(t, true)
 
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	_, continueCh2 := bg.setBlockToReturn(ptrs[0].BlockPointer, block2)

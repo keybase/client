@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -73,13 +74,18 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 	}
 }
 
-func makeFakeFileBlock(t *testing.T) *FileBlock {
+func makeFakeFileBlock(t *testing.T, doHash bool) *FileBlock {
 	buf := make([]byte, 16)
 	_, err := rand.Read(buf)
 	require.NoError(t, err)
-	return &FileBlock{
+	block := &FileBlock{
 		Contents: buf,
 	}
+	if doHash {
+		_, hash := kbfshash.DoRawDefaultHash(block.Contents)
+		block.hash = &hash
+	}
+	return block
 }
 
 func TestBlockRetrievalWorkerBasic(t *testing.T) {
@@ -94,7 +100,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	defer w.Shutdown()
 
 	ptr1 := makeFakeBlockPointer(t)
-	block1 := makeFakeFileBlock(t)
+	block1 := makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 
 	block := &FileBlock{}
@@ -119,7 +125,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	defer w2.Shutdown()
 
 	ptr1, ptr2 := makeFakeBlockPointer(t), makeFakeBlockPointer(t)
-	block1, block2 := makeFakeFileBlock(t), makeFakeFileBlock(t)
+	block1, block2 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
 
@@ -160,7 +166,7 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	defer w1.Shutdown()
 
 	ptr1, ptr2, ptr3 := makeFakeBlockPointer(t), makeFakeBlockPointer(t), makeFakeBlockPointer(t)
-	block1, block2, block3 := makeFakeFileBlock(t), makeFakeFileBlock(t), makeFakeFileBlock(t)
+	block1, block2, block3 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
 	startCh1, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
 	_, continueCh3 := bg.setBlockToReturn(ptr3, block3)
@@ -211,7 +217,7 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	defer w.Shutdown()
 
 	ptr1 := makeFakeBlockPointer(t)
-	block1 := makeFakeFileBlock(t)
+	block1 := makeFakeFileBlock(t, false)
 	_, _ = bg.setBlockToReturn(ptr1, block1)
 
 	block := &FileBlock{}
@@ -233,7 +239,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	require.NotNil(t, w)
 
 	ptr1 := makeFakeBlockPointer(t)
-	block1 := makeFakeFileBlock(t)
+	block1 := makeFakeFileBlock(t, false)
 	_, continueCh := bg.setBlockToReturn(ptr1, block1)
 
 	w.Shutdown()
@@ -268,7 +274,7 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 
 	t.Log("Setup source blocks")
 	ptr1 := makeFakeBlockPointer(t)
-	block1 := makeFakeFileBlock(t)
+	block1 := makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	testCommonBlock := &CommonBlock{}
 	err := kbfscodec.Update(codec, testCommonBlock, block1)

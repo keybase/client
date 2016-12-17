@@ -131,6 +131,7 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 
 // Shutdown implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Shutdown() {
+	b.queue.prefetcher.Shutdown()
 	b.queue.Shutdown()
 	for _, w := range b.workers {
 		w.Shutdown()
