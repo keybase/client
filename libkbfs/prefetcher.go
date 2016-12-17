@@ -27,7 +27,7 @@ type blockPrefetcher struct {
 	eg         errgroup.Group
 }
 
-func newPrefetcher(retriever blockRetriever) prefetcher {
+func newPrefetcher(retriever blockRetriever) *blockPrefetcher {
 	p := &blockPrefetcher{
 		retriever:  retriever,
 		progressCh: make(chan (<-chan error)),
@@ -45,12 +45,14 @@ func (p *blockPrefetcher) run() {
 	}
 }
 
-func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) error {
+func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block) error {
 	ctx, cancel := context.WithCancel(context.Background())
-	ch := p.retriever.Request(ctx, priority, kmd, ptr, block, lifetime)
+	ch := p.retriever.Request(ctx, priority, kmd, ptr, block, TransientEntry)
 	select {
 	case p.progressCh <- ch:
 		return nil
+	// TODO: fix this so that it can't race (another channel,
+	// I guess)
 	default:
 		cancel()
 		return io.EOF
@@ -58,7 +60,7 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointe
 }
 
 func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadata, priority int) {
-	// prefetch the first <n> indirect block pointers.
+	// Prefetch the first <n> indirect block pointers.
 	// TODO: do something smart with subsequent blocks.
 	numIPtrs := len(b.IPtrs)
 	if numIPtrs > defaultIndirectPointerPrefetchCount {
@@ -66,22 +68,24 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadat
 	}
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, b.NewEmpty(), TransientEntry)
+			ptr.BlockPointer, b.NewEmpty())
 	}
 }
 
 func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata, priority int) {
+	// Prefetch the first <n> indirect block pointers.
 	numIPtrs := len(b.IPtrs)
 	if numIPtrs > defaultIndirectPointerPrefetchCount {
 		numIPtrs = defaultIndirectPointerPrefetchCount
 	}
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, b.NewEmpty(), TransientEntry)
+			ptr.BlockPointer, b.NewEmpty())
 	}
 }
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, priority int) {
+	// Prefetch all DirEntry root blocks
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
 	for i, entry := range dirEntries.dirEntries {
@@ -98,8 +102,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 		default:
 			continue
 		}
-		p.request(priority, kmd, entry.BlockPointer,
-			block, TransientEntry)
+		p.request(priority, kmd, entry.BlockPointer, block)
 	}
 }
 
@@ -111,10 +114,6 @@ func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 		}
 	case *DirBlock:
 		// If this is an on-demand request:
-		// - If the block is indirect, prefetch the first <n> indirect block
-		// pointers.
-		// - If the block is direct (has Children), prefetch all DirEntry root
-		// blocks.
 		if priority >= defaultOnDemandRequestPriority {
 			if b.IsInd {
 				p.prefetchIndirectDirBlock(b, kmd, priority)
