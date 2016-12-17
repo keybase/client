@@ -202,7 +202,8 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 }
 
 // ConfigAsUser clones a test configuration, setting another user as
-// the logged in user
+// the logged in user.  Journaling will not be enabled in the returned
+// Config, regardless of the journal status in `config`.
 func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *ConfigLocal {
 	c := newConfigForTest(config.loggerFn)
 
@@ -242,6 +243,12 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())
+	}
+
+	// If journaling was on in `config`, disable it in `c`.
+	jServer, err := GetJournalServer(config)
+	if err == nil {
+		c.SetBlockServer(jServer.delegateBlockServer)
 	}
 
 	var mdServer MDServer

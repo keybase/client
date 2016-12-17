@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"io/ioutil"
+	"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -195,6 +197,113 @@ func TestMultipleMDUpdates(t *testing.T) {
 
 func TestMultipleMDUpdatesUnembedChanges(t *testing.T) {
 	testMultipleMDUpdates(t, true)
+}
+
+func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+
+	// enable journaling to see patrick's error
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_gettlfcryptkeys")
+	if err != nil {
+		t.Fatalf("creating tempdir error: %v\n", err)
+	}
+	config1.EnableJournaling(tempdir, TLFJournalBackgroundWorkEnabled)
+	jServer, err := GetJournalServer(config1)
+	if err != nil {
+		t.Fatalf("error in GetJournalServer: %v\n", err)
+	}
+	jServer.onBranchChange = nil
+	jServer.onMDFlush = nil
+	jServer.EnableAuto(ctx)
+
+	config2 := ConfigAsUser(config1, userName2)
+	defer CheckConfigAndShutdown(t, config2)
+	name := userName1.String() + "," + userName2.String()
+
+	// user1 creates a file in a shared dir
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+
+	kbfsOps1 := config1.KBFSOps()
+	fileNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	_, err = DisableUpdatesForTesting(config1, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	DisableCRForTesting(config1, rootNode1.GetFolderBranch())
+
+	// Wait for "a" to flush to the server.
+	err = jServer.Wait(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't wait on journal: %v", err)
+	}
+
+	// then user2 write to the file
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
+
+	kbfsOps2 := config2.KBFSOps()
+	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+	data2 := []byte{2}
+	err = kbfsOps2.Write(ctx, fileNode2, data2, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	checkStatus(t, ctx, kbfsOps2, false, userName1, []string{"u1,u2/a"},
+		rootNode2.GetFolderBranch(), "Node 2 (after write)")
+	err = kbfsOps2.Sync(ctx, fileNode2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// Now when user 1 tries to write to file 1 and sync, it will
+	// become unmerged.
+	data1 := []byte{1}
+	err = kbfsOps1.Write(ctx, fileNode1, data1, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	// sync the file from u1 so that we get a clean exit state
+	err = kbfsOps1.Sync(ctx, fileNode1)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// Wait for the conflict to be detected.
+	err = jServer.Wait(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't wait on journal: %v", err)
+	}
+
+	// now re-login u1
+	config1B := ConfigAsUser(config1, userName1)
+	defer CheckConfigAndShutdown(t, config1B)
+	config1B.EnableJournaling(tempdir, TLFJournalBackgroundWorkEnabled)
+	jServer, err = GetJournalServer(config1B)
+	if err != nil {
+		t.Fatalf("error in GetJournalServer: %v\n", err)
+	}
+	jServer.onBranchChange = nil
+	jServer.onMDFlush = nil
+
+	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
+
+	tlfHandle, err := ParseTlfHandle(ctx, config1B.KBPKI(), name, false)
+	if err != nil {
+		t.Fatalf("error making tlfHandle: %s", err)
+	}
+
+	_, _, err = config1B.KBFSOps().GetTLFCryptKeys(ctx, tlfHandle)
+	if err != nil {
+		t.Fatalf("error in GetTLFCryptKeys on unmerged TLF after restart: %s", err)
+	}
 }
 
 // Tests that, in the face of a conflict, a user will commit its

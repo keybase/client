@@ -319,22 +319,31 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		lState := makeFBOLockState()
 		rmd = fbo.getHead(lState)
 	}
+	if rmd != (ImmutableRootMetadata{}) {
+		return rmd, nil
+	}
+
+	_, rmd, err = fs.config.MDOps().GetForHandle(ctx, tlfHandle, Unmerged)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
 	if rmd == (ImmutableRootMetadata{}) {
 		_, rmd, _, err = fs.getOrInitializeNewMDMaster(
 			ctx, fs.config.MDOps(), tlfHandle, true)
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
+	}
 
-		// Make sure fbo exists and head is set so that next time we use this we
-		// don't need to hit server even when there isn't any FS activity.
-		if fbo == nil {
-			fb := FolderBranch{Tlf: rmd.TlfID(), Branch: MasterBranch}
-			fbo = fs.getOpsByHandle(ctx, tlfHandle, fb)
-		}
-		if err = fbo.SetInitialHeadFromServer(ctx, rmd); err != nil {
-			return ImmutableRootMetadata{}, err
-		}
+	// Make sure fbo exists and head is set so that next time we use this we
+	// don't need to hit server even when there isn't any FS activity.
+	if fbo == nil {
+		fb := FolderBranch{Tlf: rmd.TlfID(), Branch: MasterBranch}
+		fbo = fs.getOpsByHandle(ctx, tlfHandle, fb)
+	}
+	if err = fbo.SetInitialHeadFromServer(ctx, rmd); err != nil {
+		return ImmutableRootMetadata{}, err
 	}
 
 	return rmd, nil
