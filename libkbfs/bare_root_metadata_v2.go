@@ -329,8 +329,12 @@ func (md *BareRootMetadataV2) MakeSuccessorCopy(
 	extra ExtraMetadata, isReadableAndWriter bool) (
 	MutableBareRootMetadata, ExtraMetadata, error) {
 
-	if config.MetadataVersion() < SegregatedKeyBundlesVer {
-		// Continue with the current version.
+	if !isReadableAndWriter ||
+		config.MetadataVersion() < SegregatedKeyBundlesVer {
+		// Continue with the current version.  If we're just a reader,
+		// or can't decrypt the MD, we have to continue with v2
+		// because we can't just copy a v2 signature into a v3 MD
+		// blindly.
 		mdCopy, err := md.makeSuccessorCopyV2(config, isReadableAndWriter)
 		if err != nil {
 			return nil, nil, err
