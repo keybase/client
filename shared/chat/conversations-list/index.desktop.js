@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text, MultiAvatar, Icon, Usernames} from '../../common-adapters'
+import {Text, MultiAvatar, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {participantFilter} from '../../constants/chat'
 import {formatTimeForConversationList} from '../../util/timestamp'
@@ -9,12 +9,12 @@ import type {Props} from './'
 import type {InboxState} from '../../constants/chat'
 
 const AddNewRow = ({onNewChat}: Props) => (
-  <Box
+  <div
     style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, minHeight: 48, justifyContent: 'center', alignItems: 'center', flexShrink: 0}}
     onClick={() => onNewChat()}>
     <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
     <Text type='BodyBigLink'>New chat</Text>
-  </Box>
+  </div>
 )
 
 const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: boolean, isSelected: boolean) => {
@@ -52,17 +52,17 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
   const backgroundColor = isSelected ? globalColors.darkBlue2 : hasUnread ? globalColors.darkBlue : globalColors.transparent
   const boldOverride = hasUnread ? globalStyles.fontBold : null
   return (
-    <Box
+    <div
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
       title={`${conversation.get('unreadCount')} unread`}
       style={{...rowContainerStyle, backgroundColor}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
+      <div style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
         {isMuted && <Icon type='iconfont-shh' style={shhStyle} />}
-      </Box>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, borderBottom: `solid 1px ${globalColors.black_10}`, paddingRight: 8, paddingTop: 4, paddingBottom: 4}}>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
-          <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
+      </div>
+      <div style={{...globalStyles.flexBoxRow, flex: 1, borderBottom: `solid 1px ${globalColors.black_10}`, paddingRight: 8, paddingTop: 4, paddingBottom: 4}}>
+        <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+          <div style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
             <Usernames
               inline={true}
               type='BodySemibold'
@@ -71,11 +71,11 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
               users={participants.toArray()}
               title={participants.map(p => p.username).join(', ')} />
             {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Text>}
-          </Box>
-        </Box>
+          </div>
+        </div>
         <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }
 
@@ -97,12 +97,12 @@ const shhStyle = {
 }
 
 const ConversationList = (props: Props) => (
-  <Box style={containerStyle}>
+  <div style={containerStyle}>
     <AddNewRow {...props} />
-    <Box style={scrollableStyle}>
+    <div style={scrollableStyle}>
       {props.inbox.map(conversation => <Row {...props} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
-    </Box>
-  </Box>
+    </div>
+  </div>
 )
 
 const containerStyle = {

@@ -25,20 +25,48 @@ class Text extends Component<void, Props, void> {
     sel.addRange(range)
   }
 
-  render () {
-    const style = {
-      ...getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
-      ...this.props.style,
+  _setRef = (ref: any) => {
+    this._span = ref
+  }
+
+  shouldComponentUpdate (nextProps: Props): boolean {
+    if (
+      this.props.onClick === nextProps.onClick &&
+      this.props.title === nextProps.title &&
+      this.props.children === nextProps.children &&
+      this._className(this.props) === this._className(nextProps) &&
+      JSON.stringify(this._style(this.props)) === JSON.stringify(this._style(nextProps))
+    ) {
+      return false
     }
-    const meta = metaData[this.props.type]
+
+    return true
+  }
+
+  _style (props) {
+    return {
+      ...getStyle(props.type, props.backgroundMode, props.lineClamp, !!props.onClick),
+      ...props.style,
+    }
+  }
+
+  _className (props) {
+    const meta = metaData[props.type]
     const className = [
-      this.props.className,
+      props.className,
       meta.isLink ? 'hover-underline' : null,
     ].filter(Boolean).join(' ')
 
+    return className
+  }
+
+  render () {
+    const style = this._style(this.props)
+    const className = this._className(this.props)
+
     return <span
       title={this.props.title}
-      ref={ref => { this._span = ref }}
+      ref={this._setRef}
       className={className}
       style={style}
       onClick={this.props.onClick}>{this.props.children}</span>

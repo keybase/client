@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Icon, PopupMenu, Text} from '../../../common-adapters'
+import {Icon, PopupMenu, Text} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
 import {formatTimeForMessages} from '../../../util/timestamp'
 import type {TextMessage} from '../../../constants/chat'
@@ -18,12 +18,12 @@ function iconNameForDeviceType (deviceType: string): IconType {
 const TextMessagePopup = ({message: {deviceName, deviceType, timestamp}}: {message: TextMessage}) => {
   const iconName = iconNameForDeviceType(deviceType)
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+    <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={iconName} />
       <Text type='BodySmall' style={{color: globalColors.green2}}>ENCRYPTED & SIGNED</Text>
       <Text type='BodySmall' style={{color: globalColors.black_40}}>{`by ${deviceName}`}</Text>
       <Text type='BodySmall' style={{color: globalColors.black_40}}>{formatTimeForMessages(timestamp)}</Text>
-    </Box>
+    </div>
   )
 }
 
