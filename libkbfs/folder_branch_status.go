@@ -25,6 +25,7 @@ type FolderBranchStatus struct {
 	LatestKeyGeneration KeyGen
 	FolderID            string
 	Revision            MetadataRevision
+	MDVersion           MetadataVer
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -36,6 +37,8 @@ type FolderBranchStatus struct {
 	Merged   []*crChainSummary
 
 	Journal *TLFJournalStatus `json:",omitempty"`
+
+	PermanentErr string `json:",omitempty"`
 }
 
 // KBFSStatus represents the content of the top-level status file. It is
@@ -61,6 +64,7 @@ type folderBranchStatusKeeper struct {
 	nodeCache NodeCache
 
 	md         ImmutableRootMetadata
+	permErr    error
 	dirtyNodes map[NodeID]Node
 	unmerged   []*crChainSummary
 	merged     []*crChainSummary
@@ -110,6 +114,13 @@ func (fbsk *folderBranchStatusKeeper) setCRSummary(unmerged []*crChainSummary,
 	}
 	fbsk.unmerged = unmerged
 	fbsk.merged = merged
+	fbsk.signalChangeLocked()
+}
+
+func (fbsk *folderBranchStatusKeeper) setPermErr(err error) {
+	fbsk.dataMutex.Lock()
+	defer fbsk.dataMutex.Unlock()
+	fbsk.permErr = err
 	fbsk.signalChangeLocked()
 }
 
@@ -182,6 +193,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 		fbs.LatestKeyGeneration = fbsk.md.LatestKeyGeneration()
 		fbs.FolderID = fbsk.md.TlfID().String()
 		fbs.Revision = fbsk.md.Revision()
+		fbs.MDVersion = fbsk.md.Version()
 
 		// TODO: Ideally, the journal would push status
 		// updates to this object instead, so we can notify
@@ -209,6 +221,10 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 
 	fbs.Unmerged = fbsk.unmerged
 	fbs.Merged = fbsk.merged
+
+	if fbsk.permErr != nil {
+		fbs.PermanentErr = fbsk.permErr.Error()
+	}
 
 	return fbs, fbsk.updateChan, nil
 }
