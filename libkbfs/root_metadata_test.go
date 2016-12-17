@@ -585,6 +585,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	rmd.SetDiskUsage(diskUsage)
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
+	// Make sure the MD looks readable.
+	rmd.data.Dir.BlockPointer = BlockPointer{ID: fakeBlockID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
@@ -659,8 +661,11 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 
 	// compare numbers
 	require.Equal(t, diskUsage, rmd2.DiskUsage())
-	require.Equal(t, refBytes, rmd2.RefBytes())
-	require.Equal(t, unrefBytes, rmd2.UnrefBytes())
+	require.Equal(t, rmd.data.Dir, rmd2.data.Dir)
+
+	// These should be 0 since they are reset for successors.
+	require.Equal(t, uint64(0), rmd2.RefBytes())
+	require.Equal(t, uint64(0), rmd2.UnrefBytes())
 
 	// create and compare bare tlf handles (this verifies unresolved+resolved writer/reader sets are identical)
 	rmd.tlfHandle, rmd2.tlfHandle = nil, nil // avoid a panic due to the handle already existing
