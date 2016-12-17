@@ -24,6 +24,7 @@ var _ prefetcher = (*blockPrefetcher)(nil)
 type blockPrefetcher struct {
 	retriever  blockRetriever
 	progressCh chan (<-chan error)
+	doneCh     chan struct{}
 	eg         errgroup.Group
 }
 
@@ -31,6 +32,7 @@ func newPrefetcher(retriever blockRetriever) *blockPrefetcher {
 	p := &blockPrefetcher{
 		retriever:  retriever,
 		progressCh: make(chan (<-chan error)),
+		doneCh:     make(chan struct{}),
 	}
 	go p.run()
 	return p
@@ -51,9 +53,7 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointe
 	select {
 	case p.progressCh <- ch:
 		return nil
-	// TODO: fix this so that it can't race (another channel,
-	// I guess)
-	default:
+	case <-p.doneCh:
 		cancel()
 		return io.EOF
 	}
@@ -127,6 +127,7 @@ func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 
 func (p *blockPrefetcher) Shutdown() <-chan struct{} {
 	close(p.progressCh)
+	close(p.doneCh)
 	ch := make(chan struct{})
 	go func() {
 		p.eg.Wait()
