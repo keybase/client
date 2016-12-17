@@ -58,6 +58,11 @@ func TestRootMetadataV3ExtraNew(t *testing.T) {
 	require.True(t, extraV3.wkbNew)
 	require.True(t, extraV3.rkbNew)
 
+	err = rmd.FinalizeRekey(crypto, extra)
+	require.NoError(t, err)
+	require.True(t, extraV3.wkbNew)
+	require.True(t, extraV3.rkbNew)
+
 	_, extraCopy, err := rmd.MakeSuccessorCopy(
 		context.Background(), codecOnlyConfig{nil, codec},
 		nil, extra, true)

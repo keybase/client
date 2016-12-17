@@ -129,6 +129,11 @@ func (extra ExtraMetadataV3) MetadataVersion() MetadataVer {
 	return SegregatedKeyBundlesVer
 }
 
+func (extra *ExtraMetadataV3) updateNew(wkbNew, rkbNew bool) {
+	extra.wkbNew = extra.wkbNew || wkbNew
+	extra.rkbNew = extra.rkbNew || rkbNew
+}
+
 // DeepCopy implements the ExtraMetadata interface for ExtraMetadataV3.
 func (extra ExtraMetadataV3) DeepCopy(codec kbfscodec.Codec) (
 	ExtraMetadata, error) {
@@ -1311,11 +1316,7 @@ func (md *BareRootMetadataV3) FinalizeRekey(
 	md.WriterMetadata.WKeyBundleID = newWKBID
 	md.RKeyBundleID = newRKBID
 
-	// TODO: This should be or'ing with the existing parameters to
-	// handle the upconvert-then-rekey case. Also add a test for
-	// this.
-	extraV3.wkbNew = newWKBID != oldWKBID
-	extraV3.rkbNew = newRKBID != oldRKBID
+	extraV3.updateNew(newWKBID != oldWKBID, newRKBID != oldRKBID)
 
 	return nil
 }

@@ -652,7 +652,10 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, KeyGen(2), rmd2.LatestKeyGeneration())
 	require.Equal(t, MetadataRevision(2), rmd2.Revision())
 	require.Equal(t, SegregatedKeyBundlesVer, rmd2.Version())
-	require.NotNil(t, rmd2.extra)
+	extra, ok := rmd2.extra.(*ExtraMetadataV3)
+	require.True(t, ok)
+	require.True(t, extra.wkbNew)
+	require.True(t, extra.rkbNew)
 
 	// compare numbers
 	require.Equal(t, diskUsage, rmd2.DiskUsage())
@@ -695,6 +698,14 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 
 	// compare alice and charlie's keys
 	require.Equal(t, aliceKeys, charlieKeys)
+
+	// Rekeying again shouldn't change wkbNew/rkbNew.
+	err = rmd2.finalizeRekey(config.Crypto())
+	require.NoError(t, err)
+	extra, ok = rmd2.extra.(*ExtraMetadataV3)
+	require.True(t, ok)
+	require.True(t, extra.wkbNew)
+	require.True(t, extra.rkbNew)
 }
 
 // Test upconversion from MDv2 to MDv3 for a public folder.
