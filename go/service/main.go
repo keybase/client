@@ -391,6 +391,10 @@ func (d *Service) tryGregordConnect() error {
 }
 
 func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
+	if true {
+		return
+	}
+
 	newBgi, err := StartOrReuseBackgroundIdentifier(d.backgroundIdentifier, d.G(), u)
 	if err != nil {
 		d.G().Log.Warning("Problem running new background identifier: %s", err)
