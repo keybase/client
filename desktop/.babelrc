@@ -1,6 +1,11 @@
 {
-  "presets": ["react"],
-  "plugins": [
+    "presets": ["react"],
+    "plugins": [
+        "babel-plugin-transform-runtime",
+    "react-hot-loader/babel",
+    ["babel-plugin-transform-builtin-extend", {
+        "globals": ["Error"]
+    }],
     "babel-plugin-transform-es2015-modules-commonjs",
     "babel-plugin-transform-es2015-destructuring",
     "babel-plugin-syntax-trailing-function-commas",
@@ -13,5 +18,5 @@
     "babel-plugin-transform-class-properties",
     "babel-plugin-syntax-dynamic-import",
     "babel-plugin-transform-object-rest-spread"
-  ]
+    ]
 }

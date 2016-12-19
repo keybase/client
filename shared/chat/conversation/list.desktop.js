@@ -32,6 +32,7 @@ class ConversationList extends Component<void, Props, State> {
   state: State;
   _toRemeasure: List;
   _lastWidth: ?number;
+  _mounted: boolean = false;
 
   constructor (props: Props) {
     super(props)
@@ -90,6 +91,14 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
+  componentWillMount () {
+    this._mounted = true
+  }
+
+  componentWillUnmount () {
+    this._mounted = false
+  }
+
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
       this.setState({isLockedToBottom: true})
@@ -116,15 +125,17 @@ class ConversationList extends Component<void, Props, State> {
   _onScrollSettled = _.debounce(() => {
     // If we've stopped scrolling let's update our internal messages
     this._invalidateChangedMessages(this.props)
-    this.setState({
-      isScrolling: false,
-      ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
-    })
+    if (this._mounted) {
+      this.setState({
+        isScrolling: false,
+        ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
+      })
+    }
   }, 1000)
 
   _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
     // Do nothing if we haven't really loaded anything
-    if (!clientHeight) {
+    if (!clientHeight || !this._mounted) {
       return
     }
 
@@ -182,6 +193,9 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     const message = this.state.messages.get(index - 1)
+    if (!message) {
+      return null
+    }
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
