@@ -4,14 +4,16 @@ import {connect} from 'react-redux'
 import {sawPaperKey} from '../../../actions/signup'
 import {navigateUp} from '../../../actions/route-tree'
 
-// $FlowIssue
+type OwnProps = any
+
 export default connect(
-  state => ({
+  (state: any, {routeProps}: OwnProps) => ({
     paperkey: state.signup.paperkey,
     waiting: state.signup.waiting,
+    ...routeProps,
   }),
-  dispatch => ({
-    onFinish: () => { dispatch(sawPaperKey()) },
-    onBack: () => { dispatch(navigateUp()) },
+  (dispatch, {routeProps}: OwnProps) => ({
+    onFinish: routeProps.onFinish ? routeProps.onFinish : () => { dispatch(sawPaperKey()) },
+    onBack: routeProps.onBack ? routeProps.onBack : () => { dispatch(navigateUp()) },
   })
 )(RenderSuccess)
