@@ -190,7 +190,7 @@ func main() {
 			CompanyName:      "Keybase, Inc.",
 			FileDescription:  *fileDescriptionPtr,
 			InternalName:     "Keybase",
-			LegalCopyright:   "Copyright (c) 2015, Keybase",
+			LegalCopyright:   "Copyright (c) 2015-2016, Keybase",
 			OriginalFilename: *originalFilenamePtr,
 			ProductName:      "Keybase",
 			ProductVersion:   libkb.VersionString(),
