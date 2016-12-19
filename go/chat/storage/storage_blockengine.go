@@ -236,7 +236,7 @@ func (be *blockEngine) readBlock(ctx context.Context, bi blockIndex, id int) (bl
 	}
 	pt, ok := secretbox.Open(nil, b.E, &b.N, &fkey)
 	if !ok {
-		return block{}, libkb.NewChatStorageInternalError(be.G(), "readBlock: failed to decrypt block: %d err: %s", id, err.Error())
+		return block{}, libkb.NewChatStorageInternalError(be.G(), "readBlock: failed to decrypt block: %d", id)
 	}
 
 	// Decode payload

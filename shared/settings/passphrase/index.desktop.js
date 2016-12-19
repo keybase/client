@@ -9,7 +9,7 @@ function UpdatePassphrase (props: Props) {
   const inputType = props.showTyping ? 'passwordVisible' : 'password'
   const notification = props.error
     ? {message: props.error.message, type: 'error'}
-    : props.hasPGPKeyOnServer ? {message: 'Forgot your passphrase?  That\'s ok, but you will need to make a new PGP key, assuming you don\'t have a backup of your old private one.', type: 'error'} : null
+    : props.hasPGPKeyOnServer ? {message: 'Note: changing your passphrase will delete your PGP key from Keybase, and you\'ll need to generate or upload one again.', type: 'error'} : null
   return (
     <StandardScreen
       onBack={props.onBack}

@@ -159,7 +159,7 @@ func TestChatMessageUnbox(t *testing.T) {
 	if body.Text().Body != text {
 		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
 	}
-	require.Equal(t, false, umwkr.fromRevokedDevice, "message should not be from revoked device")
+	require.Nil(t, umwkr.senderDeviceRevokedAt, "message should not be from revoked device")
 }
 
 func TestChatMessageInvalidBodyHash(t *testing.T) {
@@ -438,14 +438,14 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 
 	// The message should not unbox
 	umwkr, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	require.NotNil(t, ierr, "unboxing must err (%v)", umwkr.fromRevokedDevice)
+	require.NotNil(t, ierr, "unboxing must err (%v)", umwkr.senderDeviceRevokedAt)
 	require.IsType(t, libkb.NoKeyError{}, ierr.Inner(), "unexpected error for revoked sender key: %v", ierr)
 
 	// Test key validity
 	validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 	require.NoError(t, err, "ValidSenderKey")
 	require.False(t, validAtCtime, "revoked key should be invalid (v:%v r:%v)", validAtCtime, revoked)
-	require.True(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
+	require.NotNil(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
 }
 
 // Sent with a revoked sender key before revocation
@@ -496,16 +496,16 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 	err = doRevokeDevice(tc, u, thisDevice.ID, true)
 	require.NoError(t, err, "revoke device")
 
-	// The message should unbox but with FromRevokedDevice set
+	// The message should unbox but with senderDeviceRevokedAt set
 	umwkr, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	require.Nil(t, ierr, "unboxing err")
-	require.True(t, umwkr.fromRevokedDevice, "message should be noticed as signed by revoked key")
+	require.NotNil(t, umwkr.senderDeviceRevokedAt, "message should be noticed as signed by revoked key")
 
 	// Test key validity
 	validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 	require.NoError(t, err, "ValidSenderKey")
 	require.True(t, validAtCtime, "revoked key should be valid at time (v:%v r:%v)", validAtCtime, revoked)
-	require.True(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
+	require.NotNil(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
 }
 
 func TestChatMessagePublic(t *testing.T) {

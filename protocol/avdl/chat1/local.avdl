@@ -141,7 +141,7 @@ protocol local {
     // Whether the message was sent by a device that is now revoked.
     // We aren't sure whether the device was revoked when the message was sent.
     // Re-evaluated when unboxed or pulled from the cache.
-    boolean fromRevokedDevice;
+    union {null, gregor1.Time} senderDeviceRevokedAt;
   }
 
   record MessageUnboxedError {

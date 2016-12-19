@@ -6,6 +6,7 @@ import React, {PureComponent} from 'react'
 import _ from 'lodash'
 import moment from 'moment'
 import {Box, Icon, PlatformIcon, PopupMenu, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
+import {PopupHeaderText} from '../common-adapters/popup-menu'
 import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {normal as proofNormal, checking as proofChecking, metaUnreachable, metaPending} from '../constants/tracker'
@@ -54,25 +55,11 @@ class ProfileRender extends PureComponent<void, Props, State> {
       return
     }
 
-    const headerStyle = {
-      textAlign: 'center',
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
-      paddingTop: globalMargins.tiny,
-      paddingBottom: globalMargins.tiny,
-    }
-
     if (proof.meta === metaUnreachable) {
       return {
         header: {
           title: 'header',
-          view: <Text
-            type='BodySemibold'
-            style={{
-              ...headerStyle,
-              color: globalColors.white,
-              backgroundColor: globalColors.red,
-            }}>Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</Text>,
+          view: <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.red}>Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</PopupHeaderText>,
         },
         items: [
           ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
@@ -90,14 +77,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
       return {
         header: pendingMessage && {
           title: 'header',
-          view: <Text
-            key='header'
-            type='BodySemibold'
-            style={{
-              ...headerStyle,
-              color: globalColors.white,
-              backgroundColor: globalColors.blue,
-            }}>{pendingMessage}</Text>,
+          view: <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>{pendingMessage}</PopupHeaderText>,
         },
         items: [
           {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
