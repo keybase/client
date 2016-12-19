@@ -439,8 +439,11 @@
           "name": "headerSignature"
         },
         {
-          "type": "boolean",
-          "name": "fromRevokedDevice"
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "senderDeviceRevokedAt"
         }
       ]
     },

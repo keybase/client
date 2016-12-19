@@ -31,3 +31,13 @@ export function formatTimeForMessages (time: number, nowOverride?: number): stri
     return m.format('h:mm A') // 4:34 PM
   }
 }
+
+export function formatTimeForPopup (time: number): string {
+  const m = moment(time)
+  return m.format('ddd MMM DD h:mm A') // Wed Jan 5 2016 4:34 PM
+}
+
+export function formatTimeForRevoked (time: number): string {
+  const m = moment(time)
+  return m.format('ddd MMM DD') // Wed Jan 5 2016
+}

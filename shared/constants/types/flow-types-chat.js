@@ -888,7 +888,7 @@ export type MessageUnboxedValid = {
   senderDeviceType: string,
   headerHash: Hash,
   headerSignature?: ?SignatureInfo,
-  fromRevokedDevice: boolean,
+  senderDeviceRevokedAt?: ?gregor1.Time,
 }
 
 export type NewConversationInfo = {
