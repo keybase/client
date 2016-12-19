@@ -37,7 +37,9 @@ const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: bo
   return isSelected ? globalColors.darkBlue2 : globalColors.darkBlue4
 }
 
-const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation}: Props & {conversation: InboxState}) => {
+type RowProps = Props & {conversation: InboxState}
+
+const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation}: RowProps) => {
   const participants = participantFilter(conversation.get('participants'))
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
@@ -80,7 +82,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   )
 }
 
-const Row = shouldUpdate((props: Props, nextProps: Props) => {
+const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
   if (props.conversation !== nextProps.conversation) {
     return true
   }
