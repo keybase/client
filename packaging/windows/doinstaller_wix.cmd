@@ -21,6 +21,8 @@ echo DOKAN_PATH %DOKAN_PATH%
 
 for /F delims^=^"^ tokens^=2 %%x in ('findstr UpgradeCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanUpgradeCodeX64=%%x
 for /F delims^=^"^ tokens^=2 %%x in ('findstr UpgradeCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanUpgradeCodeX86=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr OldUpgradeCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set OldDokanUpgradeCodeX64=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr OldUpgradeCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set OldDokanUpgradeCodeX86=%%x
 for /F delims^=^"^ tokens^=2 %%x in ('findstr VCMinRequired  %DOKAN_PATH%\dokan_wix\version.xml') do set VCMinRequired=%%x
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
@@ -108,8 +110,11 @@ echo ^<?xml version=^"1.0^" encoding=^"utf-8^"?^> > dokanver.xml
 echo ^<Include^> >> dokanver.xml
 echo ^<?define DokanUpgradeCodeX64=^"%DokanUpgradeCodeX64%^" ?^> >> dokanver.xml
 echo ^<?define DokanUpgradeCodeX86=^"%DokanUpgradeCodeX86%^" ?^> >> dokanver.xml
+echo ^<?define OldDokanUpgradeCodeX64=^"%OldDokanUpgradeCodeX64%^" ?^> >> dokanver.xml
+echo ^<?define OldDokanUpgradeCodeX86=^"%OldDokanUpgradeCodeX86%^" ?^> >> dokanver.xml
 echo ^<?define VCMinRequired=^"%VCMinRequired%^" ?^> >> dokanver.xml
 echo ^<?define DOKAN_PATH=^"%DOKAN_PATH%^" ?^> >> dokanver.xml
+echo ^<?define KEYBASE_WINVER=^"%KEYBASE_WINVER%^" ?^> >> dokanver.xml
 echo ^</Include^>  >> dokanver.xml
 
 msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=x86 /t:Build

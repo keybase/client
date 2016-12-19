@@ -80,12 +80,11 @@
         and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiSharedDirRemove" On="uninstall" Directory="GuiSharedDir"/>
-        <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Property="ROAMINGINSTALLFOLDER"/> <!--This entry is to avoid ICE64 error-->
+        <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Property="ROAMINGINSTALLFOLDER"/> <!--Clean up in old location when we install. TODO eventually remove this--><!--This entry is to avoid ICE64 error-->
         <RemoveFile Id="RemoveServiceLog" Name="keybase.service.log" On="uninstall"/>
         <RemoveFile Id="RemoveRoamingServiceLog" Name="keybase.service.log" Directory="ROAMINGINSTALLFOLDER" On="install"/> <!--Clean up in old location when we install. TODO eventually remove this-->
         <RemoveFile Id="RemoveAppLog" Name="keybase.app.log" On="uninstall"/>
         <RemoveFile Id="RemoveRoamingAppLog" Name="keybase.app.log" Directory="ROAMINGINSTALLFOLDER" On="both"/> <!--TODO eventually remove this when GUI writes to LocalAppDataFolder/Keybase-->
-        <!--Clean up in old location when we install. TODO eventually remove this-->        
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
