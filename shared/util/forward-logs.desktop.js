@@ -9,19 +9,12 @@ import {logFileName, isWindows} from '../constants/platform.desktop'
 
 let fileWritable = null
 
-function fileDoesNotExist (err) {
-  if (isWindows && err.errno === -4058) { return true }
-  if (err.errno === -2) { return true }
-
-  return false
-}
-
 function setupFileWritable () {
   const logFile = logFileName()
   const logLimit = 5e6
 
   if (!logFile) {
-    console.log('No log file')
+    console.warn('No log file')
     return
   }
   // Ensure log directory exists
@@ -30,27 +23,29 @@ function setupFileWritable () {
   // Check if we can write to log file
   try {
     fs.accessSync(logFile, fs.W_OK)
-  } catch (e) {
-    if (!fileDoesNotExist(e)) {
-      console.error('Unable to write to log file:', e)
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      console.error('Unable to write to log file:', err)
       return
     }
   }
 
-  let stat = null
   try {
-    stat = fs.statSync(logFile)
-  } catch (e) {
-    if (!fileDoesNotExist(e)) {
-      console.error('Error getting status for log file:', e)
+    const stat = fs.statSync(logFile)
+    if (stat.size > logLimit) {
+      const logFileOld = logFile + '.1'
+      console.log('Log file over size limit, moving to', logFileOld)
+      if (fs.existsSync(logFileOld)) {
+        fs.unlinkSync(logFileOld) // Remove old file wrapped file
+      }
+      fs.renameSync(logFile, logFileOld)
+      fileWritable = fs.createWriteStream(logFile)
+      return
     }
-    fileWritable = fs.createWriteStream(logFile)
-    return
-  }
-
-  // If the file is too big, let's reset the log
-  if (stat.size > logLimit) {
-    console.log('File too big, resetting')
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      console.error('Error checking log file size:', err)
+    }
     fileWritable = fs.createWriteStream(logFile)
     return
   }
@@ -74,10 +69,14 @@ function tee (...writeFns) {
   return t => writeFns.forEach(w => w(t))
 }
 
+let didSetupTarget = false
+
 function setupTarget () {
   if (!forwardLogs) {
     return
   }
+  if (didSetupTarget) return
+  didSetupTarget = true
 
   const stdOutWriter = t => { !isWindows && process.stdout.write(t) }
   const stdErrWriter = t => { !isWindows && process.stderr.write(t) }
