@@ -4,6 +4,12 @@ import {connect} from 'react-redux'
 import {sawPaperKey} from '../../../actions/signup'
 import {navigateUp} from '../../../actions/route-tree'
 
+// This component's a bit special.
+//
+// It's using `state.signup` values when called from the signup path, and
+// routeTree state generated from RPC action payloads when called from either
+// the provisioning/login path or the "Devices->Add new paper key" path.
+
 type OwnProps = any
 
 export default connect(
