@@ -4,7 +4,7 @@ import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List} from 'immutable'
 
-import type {Actions, State, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
+import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
 
 const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody} = Constants
 const initialState: State = new StateRecord()
@@ -21,6 +21,35 @@ function _dedupeMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
     nextMessages,
     nextSeenMessages,
   }
+}
+
+type ConversationsStates = Map<Constants.ConversationIDKey, ConversationState>
+type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
+function updateConversation (conversationStates: ConversationsStates, conversationIDKey: Constants.ConversationIDKey, conversationUpdateFn: ConversationUpdateFn): ConversationsStates {
+  // $FlowIssue
+  return conversationStates.update(
+    conversationIDKey,
+    initialConversation,
+    conversationUpdateFn,
+  )
+}
+
+type MessageUpdateFn = (message: $Subtype<Message>) => Message
+type MessageFindPredFn = (message: Message) => boolean
+function updateConversationMessage (conversationStates: ConversationsStates, conversationIDKey: Constants.ConversationIDKey, pred: MessageFindPredFn, messageUpdateFn: MessageUpdateFn): ConversationsStates {
+  return updateConversation(
+    conversationStates,
+    conversationIDKey,
+    conversation => {
+      const index = conversation.get('messages').findIndex(pred)
+      if (index < 0) {
+        console.warn("Couldn't find an outbox entry to modify")
+        return conversation
+      }
+      // $FlowIssue
+      return conversation.updateIn(['messages', index], messageUpdateFn)
+    }
+  )
 }
 
 function reducer (state: State = initialState, action: Actions) {
@@ -125,24 +154,40 @@ function reducer (state: State = initialState, action: Actions) {
         .set('inbox', newInboxStates)
     }
     case Constants.pendingMessageWasSent: {
-      const {outboxID, messageID, messageState} = action.payload
-      const newConversationStates = state.get('conversationStates').update(
-        action.payload.conversationIDKey,
-        initialConversation,
-        conversation => {
-          const index = conversation.get('messages').findIndex(item => item.outboxID === outboxID)
-          if (index < 0) {
-            console.warn("Couldn't find an outbox entry to modify")
-            return conversation
-          }
-          return conversation.updateIn(['messages', index], item => ({
-            ...item,
+      const {conversationIDKey, message, messageState} = action.payload
+      const {messageID, outboxID} = message
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.outboxID && item.outboxID === outboxID,
+          (m: Constants.TextMessage) => (({
+            ...m,
             messageID,
             messageState,
-          })).set('seenMessages', conversation.seenMessages.add(messageID))
-        }
-      )
-      return state.set('conversationStates', newConversationStates)
+          }): Constants.TextMessage)
+      )).update('conversationStates', conversationStates => updateConversation(
+        conversationStates,
+        conversationIDKey,
+        // $FlowIssue
+        conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageID))
+      ))
+    }
+    case 'chat:attachmentLoaded': {
+      const {conversationIDKey, messageID, path, isPreview} = action.payload
+
+      const toMerge = isPreview ? {previewPath: path} : {downloadedPath: path}
+
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.messageID && item.messageID === messageID,
+        m => ({
+          ...m,
+          ...toMerge,
+        })
+      ))
     }
     case Constants.updateLatestMessage:
       // Clear new messages id when switching away from conversation

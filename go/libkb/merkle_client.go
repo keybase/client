@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -25,6 +26,7 @@ const (
 type NodeHash interface {
 	Check(s string) bool // Check if the node hashes to this string
 	String() string
+	bytes() []byte
 }
 
 type NodeHashShort [NodeHashLenShort]byte
@@ -39,8 +41,16 @@ func (h1 NodeHashShort) String() string {
 	return hex.EncodeToString(h1[:])
 }
 
+func (h1 NodeHashShort) bytes() []byte {
+	return h1[:]
+}
+
 func (h1 NodeHashLong) String() string {
 	return hex.EncodeToString(h1[:])
+}
+
+func (h1 NodeHashLong) bytes() []byte {
+	return h1[:]
 }
 
 func (h1 NodeHashLong) Check(s string) bool {
@@ -756,6 +766,13 @@ func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 	return
 }
 
+func (mr *MerkleRoot) ToInfo() chat1.MerkleRoot {
+	return chat1.MerkleRoot{
+		Seqno: int64(mr.seqno),
+		Hash:  mr.rootHash.bytes(),
+	}
+}
+
 func (mc *MerkleClient) LastRootToSigJSON() (ret *jsonw.Wrapper, err error) {
 	// Lazy-init, only when needed.
 	if err = mc.Init(); err == nil {
@@ -766,6 +783,22 @@ func (mc *MerkleClient) LastRootToSigJSON() (ret *jsonw.Wrapper, err error) {
 		mc.RUnlock()
 	}
 	return
+}
+
+// Can return (nil, nil) if no root is known.
+func (mc *MerkleClient) LastRootInfo() (*chat1.MerkleRoot, error) {
+	// Lazy-init, only when needed.
+	err := mc.Init()
+	if err != nil {
+		return nil, err
+	}
+	mc.RLock()
+	defer mc.RUnlock()
+	if mc.lastRoot == nil {
+		return nil, nil
+	}
+	mi := mc.lastRoot.ToInfo()
+	return &mi, nil
 }
 
 func (mul *MerkleUserLeaf) MatchUser(u *User, uid keybase1.UID, nun NormalizedUsername) (err error) {

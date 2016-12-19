@@ -11,7 +11,7 @@ const Notifications = (props: Props) => (
       <ProgressIndicator type='Small' style={{width: globalMargins.medium}} />
     </Box>)
   : (
-    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
+    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1}}>
       <Text type='BodyBig' style={{marginTop: globalMargins.medium}}>Email me:</Text>
       <Box style={globalStyles.flexBoxColumn}>
         {!!props.settings && props.settings.map(s => (

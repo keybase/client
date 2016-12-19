@@ -1,3 +1,9 @@
 // @flow
 import RenderGPGSign from './index.render'
-export default RenderGPGSign
+import {connect} from 'react-redux'
+
+import type {TypedState} from '../../../constants/reducer'
+
+export default connect(
+  (state: TypedState, {routeProps}) => routeProps,
+)(RenderGPGSign)

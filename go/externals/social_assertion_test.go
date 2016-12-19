@@ -4,8 +4,9 @@
 package externals
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"testing"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type nsatest struct {
@@ -32,7 +33,7 @@ var nsatests = []nsatest{
 	{in: "BOB@hackernews", out: keybase1.SocialAssertion{User: "BOB", Service: "hackernews"}, ok: true},
 	{in: "BOB@reddit", out: keybase1.SocialAssertion{User: "bob", Service: "reddit"}, ok: true},
 	{in: "BOB@rooter", out: keybase1.SocialAssertion{User: "bob", Service: "rooter"}, ok: true},
-	{in: "BOB@facebook", out: keybase1.SocialAssertion{}, ok: false},
+	{in: "BOB@facebook", out: keybase1.SocialAssertion{User: "bob", Service: "facebook"}, ok: true},
 	{in: "Akalin.Com@web", out: keybase1.SocialAssertion{User: "akalin.com", Service: "web"}, ok: true},
 }
 

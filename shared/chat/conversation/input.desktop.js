@@ -13,6 +13,7 @@ type State = {
 
 class Conversation extends Component<void, Props, State> {
   _input: any;
+  _fileInput: any;
   state: State;
 
   _setRef = r => {
@@ -43,6 +44,21 @@ class Conversation extends Component<void, Props, State> {
       const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
       const nextInputText = [inputText.substring(0, selectionStart), emojiColons, inputText.substring(selectionEnd)].join('')
       this.props.setInputText(nextInputText)
+      this._input.focus()
+    }
+  }
+
+  _openFilePicker () {
+    if (this._fileInput) {
+      this._fileInput.click()
+    }
+  }
+
+  _pickFile () {
+    if (this._fileInput && this._fileInput.files && this._fileInput.files[0]) {
+      const {path, name} = this._fileInput.files[0]
+      this.props.onAttach(path, name)
+      this._fileInput.value = null
     }
   }
 
@@ -50,6 +66,7 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
+          <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
             small={true}
             style={styleInput}
@@ -60,7 +77,8 @@ class Conversation extends Component<void, Props, State> {
             value={this.props.inputText}
             multiline={true}
             rowsMin={1}
-            onEnterKeyDown={() => {
+            onEnterKeyDown={(e) => {
+              e.preventDefault()
               if (this.props.inputText) {
                 this.props.onPostMessage(this.props.inputText)
                 this.props.setInputText('')
@@ -78,7 +96,7 @@ class Conversation extends Component<void, Props, State> {
             </Box>
           )}
           <Icon onClick={() => this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})} style={styleIcon} type='iconfont-emoji' />
-          <Icon onClick={() => console.log('attachment callback')} style={styleIcon} type='iconfont-attachment' />
+          <Icon onClick={() => this._openFilePicker()} style={styleIcon} type='iconfont-attachment' />
         </Box>
         <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
       </Box>
