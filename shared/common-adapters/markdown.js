@@ -123,51 +123,67 @@ function tagMetaToElement (m: TagMeta, key) {
   return <Component key={key} {...props}>{elementsSoFar.push(textSoFar).toArray()}</Component>
 }
 
-function _parseRecursive (text: string, tagStack: TagStack, key: number): React$Element<*> {
-  if (text.length === 0 && tagStack.count() < 1) {
-    throw new Error('Messed up parsing markdown text')
-  }
+function _parse (text: string, tagStack: TagStack, key: number): React$Element<*> {
+  // Don't recurse, use a stack
+  const parseStack = [{text, tagStack, key}]
+  while (parseStack.length) {
+    const {text, tagStack, key} = parseStack.pop()
 
-  if (text.length === 0 && tagStack.count() === 1) {
-    return tagMetaToElement(tagStack.last(), key)
-  }
+    if (text.length === 0 && tagStack.count() < 1) {
+      throw new Error('Messed up parsing markdown text')
+    }
 
-  const topTag = tagStack.last()
+    if (text.length === 0 && tagStack.count() === 1) {
+      return tagMetaToElement(tagStack.last(), key)
+    }
 
-  const {openToTag, closingTag} = topTag
-  const firstChar = text[0]
-  const match = matchWithMark(text)
-  const restText = match ? match.restText : text.slice(1)
-  const matchingMark: ?string = match && match.matchingMark
+    const topTag = tagStack.last()
 
-  if (text.length === 0 || closingTag && closingTag === matchingMark) {
-    const newElement = tagMetaToElement(topTag, key)
-    return _parseRecursive(
-      restText,
-      tagStack.pop().update(-1, m => ({...m, elementsSoFar: m.elementsSoFar.push(newElement)})),
-      key + 1
-    )
-  } else if (matchingMark && openToTag[matchingMark] && hasClosingMark(text, matchingMark)) {
-    return _parseRecursive(
-      restText,
-      tagStack
-        .update(-1, m => ({...m, textSoFar: '', elementsSoFar: m.elementsSoFar.push(m.textSoFar)}))
-        .push({
-          componentInfo: openToTag[matchingMark],
-          closingTag: openToClosePair[matchingMark],
-          textSoFar: '',
-          elementsSoFar: new List(),
-          openToTag: openToNextOpenToTag[matchingMark] || {},
-        }),
-      key
-    )
-  } else {
-    if (firstChar === '\\') {
-      return _parseRecursive(text.slice(2), tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + text[1]})), key)
+    const {openToTag, closingTag} = topTag
+    const firstChar = text[0]
+    const match = matchWithMark(text)
+    const restText = match ? match.restText : text.slice(1)
+    const matchingMark: ?string = match && match.matchingMark
+
+    if (text.length === 0 || closingTag && closingTag === matchingMark) {
+      const newElement = tagMetaToElement(topTag, key)
+      parseStack.push({
+        text: restText,
+        tagStack: tagStack.pop().update(-1, m => ({...m, elementsSoFar: m.elementsSoFar.push(newElement)})),
+        key: key + 1,
+      })
+    } else if (matchingMark && openToTag[matchingMark] && hasClosingMark(text, matchingMark)) {
+      parseStack.push({
+        text: restText,
+        tagStack: tagStack
+          .update(-1, m => ({...m, textSoFar: '', elementsSoFar: m.elementsSoFar.push(m.textSoFar)}))
+          .push({
+            componentInfo: openToTag[matchingMark],
+            closingTag: openToClosePair[matchingMark],
+            textSoFar: '',
+            elementsSoFar: new List(),
+            openToTag: openToNextOpenToTag[matchingMark] || {},
+          }),
+        key,
+      })
     } else {
-      return _parseRecursive(restText, tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + firstChar})), key)
+      if (firstChar === '\\') {
+        parseStack.push({
+          text: text.slice(2),
+          tagStack: tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + text[1]})),
+          key,
+        })
+      } else {
+        parseStack.push({
+          text: restText,
+          tagStack: tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + firstChar})),
+          key,
+        })
+      }
     }
   }
+
+  throw new Error('Messed up parsing markdown text')
 }
 
 // It's a lot easier to parse emojis if we change :santa::skin-tone-3: to :santa\:\:skin-tone-3:
@@ -179,7 +195,7 @@ const initialTagStack = new List([initalTagMeta])
 
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    return <Text type='Body' style={this.props.style}>{_parseRecursive(preprocessEmojiColors(this.props.children || ''), initialTagStack, 0)}</Text>
+    return <Text type='Body' style={this.props.style}>{_parse(preprocessEmojiColors(this.props.children || ''), initialTagStack, 0)}</Text>
   }
 }
 
