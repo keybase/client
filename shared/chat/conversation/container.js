@@ -1,14 +1,16 @@
 // @flow
 import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
+import {downloadFilePath} from '../../util/file'
 import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, selectAttachment, loadAttachment} from '../../actions/chat'
 import {onUserClick} from '../../actions/profile'
 
 import type {TypedState} from '../../constants/reducer'
+import type {OpenInFileUI} from '../../constants/kbfs'
 import type {Message} from '../../constants/chat'
 import type {Props} from '.'
 
@@ -102,12 +104,17 @@ export default connect(
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
+    onAttach: (selectedConversation, filename, title) => dispatch(selectAttachment(selectedConversation, filename, title)),
+    onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, downloadFilePath(filename))),
+    onOpenInFileUI: (path: string) => dispatch(({type: 'fs:openInFileUI', payload: {path}}: OpenInFileUI)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
     onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
+    onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
+    onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
     onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
   }),
 )(ConversationContainer)

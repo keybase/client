@@ -13,6 +13,7 @@ type State = {
 
 class Conversation extends Component<void, Props, State> {
   _input: any;
+  _fileInput: any;
   state: State;
 
   _setRef = r => {
@@ -47,10 +48,25 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
+  _openFilePicker () {
+    if (this._fileInput) {
+      this._fileInput.click()
+    }
+  }
+
+  _pickFile () {
+    if (this._fileInput && this._fileInput.files && this._fileInput.files[0]) {
+      const {path, name} = this._fileInput.files[0]
+      this.props.onAttach(path, name)
+      this._fileInput.value = null
+    }
+  }
+
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
+          <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
             small={true}
             style={styleInput}
@@ -80,7 +96,7 @@ class Conversation extends Component<void, Props, State> {
             </Box>
           )}
           <Icon onClick={() => this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})} style={styleIcon} type='iconfont-emoji' />
-          <Icon onClick={() => console.log('attachment callback')} style={styleIcon} type='iconfont-attachment' />
+          <Icon onClick={() => this._openFilePicker()} style={styleIcon} type='iconfont-attachment' />
         </Box>
         <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
       </Box>

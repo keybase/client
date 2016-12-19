@@ -157,3 +157,15 @@ func TestLookupUsernameAndDevice(t *testing.T) {
 		tc.G.CachedUserLoader.ClearMemory()
 	}
 }
+
+func TestLookupUsername(t *testing.T) {
+	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
+	defer tc.Cleanup()
+	uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+	un, err := tc.G.CachedUserLoader.LookupUsername(uid)
+	require.NoError(t, err)
+	require.Equal(t, un, NewNormalizedUsername("t_tracy"), "tracy came back")
+	badUID := keybase1.UID("eb72f49f2dde6429e5d78003dae0b919")
+	_, err = tc.G.CachedUserLoader.LookupUsername(badUID)
+	require.Error(t, err)
+}

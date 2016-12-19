@@ -9,3 +9,5 @@ export type FSListed = TypedAction<'fs:fsListed', ListResult, void>
 
 export const fsOpen = 'fs:open'
 export type FSOpen = NoErrorTypedAction<'fs:open', {path: string}>
+
+export type OpenInFileUI = NoErrorTypedAction<'fs:openInFileUI', {path: string}>

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {Box, Divider, Text} from '../common-adapters'
+import {Box, Text} from '../common-adapters'
 
 import type {Props} from './subheading'
 
@@ -14,7 +14,6 @@ function SubHeading ({children}: Props) {
       >
         {children}
       </Text>
-      <Divider style={{backgroundColor: globalColors.black_05}} />
     </Box>
   )
 }

@@ -29,6 +29,7 @@ let config: {[key: string]: any} = {
   logStatFrequency: 0,
   actionStatFrequency: 0,
   isTesting: false,
+  resetEngineOnHMR: false,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -81,6 +82,7 @@ export const {
   showAllTrackers,
   showDevTools,
   skipSecondaryDevtools,
+  resetEngineOnHMR,
 } = config
 
 export function initTabbedRouterState () {

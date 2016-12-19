@@ -12,6 +12,7 @@ protocol common {
   @typedef("uint64") @lint("ignore") record InboxVers {}
   @typedef("bytes")  record OutboxID {}
 
+  @go("nostring")
   enum MessageType {
     NONE_0,
     TEXT_1,
@@ -23,6 +24,7 @@ protocol common {
     HEADLINE_7
   }
 
+  @go("nostring")
   enum TopicType {
     NONE_0,
     CHAT_1,
@@ -93,10 +95,19 @@ protocol common {
     TopicID topicID;
   }
 
+  record ConversationFinalizeInfo {
+    string resetUser;
+    string resetDate;
+    gregor1.Time resetTimestamp;
+  }
+
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
-    boolean isFinalized;
+
+    // Finalize info for underlying TLF
+    union { null, ConversationFinalizeInfo } finalizeInfo;
+
     // List of users sorted by recency of last [intentional] post.
     // Most recent first. May be incomplete or empty.
     array<gregor1.UID> activeList;
@@ -111,8 +122,8 @@ protocol common {
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
-    union { null, ConversationMetadata } supersedes; // metadata about the conversation this supersedes from a TLF finalize (if any).
-    union { null, ConversationMetadata } supersededBy; // metadata about the conversation that superseded this conversation from a TLF finalize.
+    array<ConversationMetadata> supersedes; // metadata about the conversations this supersedes from a TLF finalize (if any).
+    array<ConversationMetadata> supersededBy; // metadata about the conversations that superseded this conversation from a TLF finalize.
 
     // maxMsgs is the maximum message for each messageType in the conversation
     array<MessageBoxed> maxMsgs;
@@ -144,6 +155,8 @@ protocol common {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    // Latest merkle root when sent. Can be nil.
+    union { null, MerkleRoot } merkleRoot;
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
   }
@@ -159,6 +172,11 @@ protocol common {
     int   v; // version = 1
     bytes s; // signature; output of EdDSA
     bytes k; // Verifying key
+  }
+
+  record MerkleRoot {
+    long seqno;
+    bytes hash;
   }
 
   enum InboxResType {
