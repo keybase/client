@@ -23,7 +23,7 @@
       require('electron').ipcRenderer.once('load', (event, options) => {
         document.title = options.title || document.title
         options.scripts
-        .reduce((promiseChain, src) => promiseChain.then(() => loadScript(src)), Promise.resolve())
+          .reduce((promiseChain, src) => promiseChain.then(() => loadScript(src)), Promise.resolve())
           .then(() => window.load && window.load(options))
           .catch(e => console.warn('error loading initial scripts:', e))
       })
