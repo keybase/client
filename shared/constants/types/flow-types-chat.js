@@ -518,8 +518,8 @@ export type ChatActivityType =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
-  supersedes?: ?ConversationMetadata,
-  supersededBy?: ?ConversationMetadata,
+  supersedes?: ?Array<ConversationMetadata>,
+  supersededBy?: ?Array<ConversationMetadata>,
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
@@ -1027,6 +1027,11 @@ export type SignatureInfo = {
   v: int,
   s: bytes,
   k: bytes,
+}
+
+export type TLFFinalizeUpdate = {
+  finalizeInfo: ConversationFinalizeInfo,
+  convIDs?: ?Array<ConversationID>,
 }
 
 export type TLFID = bytes

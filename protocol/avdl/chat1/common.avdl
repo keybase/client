@@ -122,8 +122,8 @@ protocol common {
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
-    union { null, ConversationMetadata } supersedes; // metadata about the conversation this supersedes from a TLF finalize (if any).
-    union { null, ConversationMetadata } supersededBy; // metadata about the conversation that superseded this conversation from a TLF finalize.
+    array<ConversationMetadata> supersedes; // metadata about the conversations this supersedes from a TLF finalize (if any).
+    array<ConversationMetadata> supersededBy; // metadata about the conversations that superseded this conversation from a TLF finalize.
 
     // maxMsgs is the maximum message for each messageType in the conversation
     array<MessageBoxed> maxMsgs;
