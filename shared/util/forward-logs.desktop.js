@@ -11,7 +11,7 @@ let fileWritable = null
 
 function setupFileWritable () {
   const logFile = logFileName()
-  const logLimit = 5e6
+  const logLimit = 1000 // Testing
 
   if (!logFile) {
     console.warn('No log file')
