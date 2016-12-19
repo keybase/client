@@ -47,18 +47,14 @@ popd
 
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
+%GOPATH%\src\github.com\keybase\client\go\keybase\winresource.exe -d "Keybase updater utility" -n "upd.exe" -i ../../client/media/icons/Keybase.ico -kbfsicon ../../client/media/icons/windows/keybase-root-icon.ico
 go build -a -o upd.exe
 popd
 
 :: Runquiet
 pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
-..\..\keybase\winresource.exe  -d "Keybase quiet start utility" -n "runquiet.exe" -i ../../../media/icons/Keybase.ico
+%GOPATH%\src\github.com\keybase\client\go\keybase\winresource.exe  -d "Keybase quiet start utility" -n "runquiet.exe" -i ../../../media/icons/Keybase.ico -kbfsicon ../../../media/icons/windows/keybase-root-icon.ico
 go build -ldflags "-H windowsgui"
-popd
-
-:: dokanclean
-pushd %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean
-go build
 popd
 
 :: release
