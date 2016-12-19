@@ -2,7 +2,7 @@
 <html>
   <head>
     <!-- The sha here is for the inline script below -->
-    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="default-src file: filesystem: http://localhost:4000 https://keybase.io/; img-src http://localhost:4000 https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://images.coinbase.com/ https://s3.amazonaws.com/keybase_processed_uploads/ file:; style-src 'unsafe-inline'; script-src file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval' 'sha256-Zb8Tvqopq928KRdsoNdWXBvYYljHYxHPD6bx7PFlpEA='"/>
+    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="default-src file: filesystem: http://localhost:4000 https://keybase.io/; img-src http://localhost:4000 https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://images.coinbase.com/ https://s3.amazonaws.com/keybase_processed_uploads/ file:; style-src 'unsafe-inline'; script-src file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval' 'sha256-NmoYGcE+LV5xNzZTm2Umt/MU8PVEyMdMQah6TIskytU='"/>
     <title>Keybase</title>
   </head>
   <body>
@@ -10,14 +10,22 @@
       <div title="loading..." style="flex: 1;background-color: #f5f5f5">
     </div>
     <script>
+      function loadScript (src) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+            script.src = src
+            script.onload = resolve
+            script.onerror = reject
+            document.head.appendChild(script)
+        })
+      }
+
       require('electron').ipcRenderer.once('load', (event, options) => {
         document.title = options.title || document.title
-        options.scripts.forEach(src => {
-          const script = document.createElement('script')
-          script.src = src
-          script.onload = () => window.load && window.load(options)
-          document.head.appendChild(script)
-        })
+        options.scripts
+        .reduce((promiseChain, src) => promiseChain.then(() => loadScript(src)), Promise.resolve())
+          .then(() => window.load && window.load(options))
+          .catch(e => console.warn('error loading initial scripts:', e))
       })
     </script>
   </body>
