@@ -65,11 +65,13 @@ const styleBanner = (notificationType: NotificationType) => ({
   justifyContent: 'center',
   alignItems: 'center',
   width: '100%',
-  paddingLeft: 20,
-  paddingRight: 20,
+  paddingLeft: globalMargins.xlarge,
+  paddingRight: globalMargins.xlarge,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
   textAlign: 'center',
   zIndex: 1,
-  height: globalMargins.large,
+  minHeight: globalMargins.large,
   backgroundColor: notificationType === 'error'
     ? globalColors.red
     : globalColors.green,

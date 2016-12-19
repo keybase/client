@@ -684,6 +684,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	existing := gilres.Conversations
 	switch len(existing) {
 	case 0:
+
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
 			TlfName:       *query.TlfName,
 			TlfVisibility: *query.TlfVisibility,

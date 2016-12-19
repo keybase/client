@@ -1,19 +1,16 @@
 // @flow
-import {ipcRenderer} from 'electron'
-
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import RenderRoute from './route-tree/render-route'
-import flags from './util/feature-flags'
-import {isDarwin} from './constants/platform'
-
-import {navigateUp, setRouteState} from './actions/route-tree'
 import {checkReachability} from './actions/gregor'
+import {connect} from 'react-redux'
+import {ipcRenderer} from 'electron'
+import {navigateUp, setRouteState} from './actions/route-tree'
 
 import type {RouteDefNode, RouteStateNode, Path} from './route-tree'
 
 type Props = {
   menuBadge: boolean,
+  menuBadgeCount: number,
   provisioned: boolean,
   username: string,
   navigateUp: () => void,
@@ -24,44 +21,18 @@ type Props = {
 }
 
 class Main extends Component<void, Props, void> {
-  _handleKeyDown: (e: SyntheticKeyboardEvent) => void;
-
-  constructor (props) {
-    super(props)
-    this._handleKeyDown = this._handleKeyDown.bind(this)
-  }
-
-  _handleKeyDown (e: SyntheticKeyboardEvent) {
-    const modKey = isDarwin ? e.metaKey : e.ctrlKey
-    // TODO (MBG): add back once we have a back action
-    // if (modKey && e.key === 'ArrowLeft') {
-    //   e.preventDefault()
-    //   this.props.navigateBack()
-    //   return
-    // }
-    if (modKey && e.key === 'ArrowUp') {
-      e.preventDefault()
-      this.props.navigateUp()
-      return
-    }
-  }
-
   componentDidUpdate (prevProps) {
-    if (this.props.menuBadge !== prevProps.menuBadge) {
-      ipcRenderer.send('showTray', this.props.menuBadge)
+    if (this.props.menuBadge !== prevProps.menuBadge ||
+      this.props.menuBadgeCount !== prevProps.menuBadgeCount) {
+      ipcRenderer.send('showTray', this.props.menuBadge, this.props.menuBadgeCount)
     }
   }
 
   componentDidMount () {
-    if (flags.admin) window.addEventListener('keydown', this._handleKeyDown)
-    ipcRenderer.send('showTray', this.props.menuBadge)
+    ipcRenderer.send('showTray', this.props.menuBadge, this.props.menuBadgeCount)
 
     window.addEventListener('online', this.props.checkReachability)
     window.addEventListener('offline', this.props.checkReachability)
-  }
-
-  componentWillUnmount () {
-    if (flags.admin) window.removeEventListener('keydown', this._handleKeyDown)
   }
 
   render () {
@@ -80,12 +51,13 @@ export default connect(
   ({
     routeTree: {routeDef, routeState},
     config: {extendedConfig, username},
-    notifications: {menuBadge}}) => ({
+    notifications: {menuBadge, menuBadgeCount}}) => ({
       routeDef,
       routeState,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       menuBadge,
+      menuBadgeCount,
     }),
   dispatch => {
     return {

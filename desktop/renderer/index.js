@@ -22,7 +22,7 @@ import {disable as disableDragDrop} from '../shared/util/drag-drop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import {changedFocus} from '../shared/actions/window'
 import {merge, throttle} from 'lodash'
-import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
+import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../shared/local-debug.desktop'
 import {selector as menubarSelector} from '../shared/menubar'
 import {selector as unlockFoldersSelector} from '../shared/unlock-folders'
 import {setRouteDef} from '../shared/actions/route-tree'
@@ -150,7 +150,9 @@ function setupHMR (store) {
       store.dispatch({type: updateReloading, payload: {reloading: true}})
       const NewMain = require('../shared/main.desktop').default
       render(store, NewMain)
-      engine().reset()
+      if (resetEngineOnHMR) {
+        engine().reset()
+      }
     } finally {
       setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
     }

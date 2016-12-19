@@ -42,7 +42,7 @@ function closeChannelMap<T> (channelMap: ChannelMap<T>): void {
 
 function singleFixedChannelConfig<T> (ks: Array<string>): ChannelConfig<T> {
   return ks.reduce((acc, k) => {
-    acc[k] = () => buffers.fixed(1)
+    acc[k] = () => buffers.expanding(1)
     return acc
   }, {})
 }

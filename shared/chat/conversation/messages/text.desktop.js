@@ -59,7 +59,8 @@ class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (e
               <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
                 <MessageText message={message} style={{marginTop: globalMargins.xtiny, flex: 1}} />
                 <div className='action-button'>
-                  <Icon type='iconfont-ellipsis' style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}} onClick={onIconClick} />
+                  {message.senderDeviceRevokedAt && <Icon type='iconfont-info' style={{fontSize: 10, color: globalColors.blue}} />}
+                  <Icon type='iconfont-ellipsis' style={{fontSize: 13, marginLeft: globalMargins.xtiny, marginRight: globalMargins.tiny}} onClick={onIconClick} />
                 </div>
               </Box>
               {message.messageState === 'failed' && <Retry onRetry={onRetry} />}

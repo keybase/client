@@ -1,6 +1,12 @@
 {
   "protocol": "remote",
-  "imports": [],
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
   "types": [
     {
       "type": "record",
@@ -389,6 +395,18 @@
         {
           "name": "tlfID",
           "type": "TLFID"
+        },
+        {
+          "name": "resetUser",
+          "type": "string"
+        },
+        {
+          "name": "resetDate",
+          "type": "string"
+        },
+        {
+          "name": "resetTimestamp",
+          "type": "gregor1.Time"
         }
       ],
       "response": null

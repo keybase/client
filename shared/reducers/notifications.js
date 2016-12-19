@@ -6,6 +6,7 @@ import type {NotificationKeys, NotificationAction, BadgeType, MenuNotificationSt
 
 type State = {
   menuBadge: BadgeType,
+  menuBadgeCount: number,
   menuNotifications: MenuNotificationState,
   keyState: {
     [key: NotificationKeys]: boolean,
@@ -14,6 +15,7 @@ type State = {
 
 const initialState = {
   menuBadge: 'regular',
+  menuBadgeCount: 0,
   keyState: {},
   menuNotifications: {
     folderBadge: 0,
@@ -54,9 +56,12 @@ export default function (state: State = initialState, action: NotificationAction
         menuNotifications.chatBadge = badgeAction.payload.count || 0
       }
 
+      const menuBadgeCount = Object.keys(menuNotifications).reduce((total, n) => total + menuNotifications[n], 0)
+
       return {
         ...state,
         menuBadge,
+        menuBadgeCount,
         keyState,
         menuNotifications,
       }

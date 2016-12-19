@@ -150,6 +150,7 @@ const summaryRowErrorStyle = {
 const detailStyle = {
   ...globalStyles.selectable,
   color: globalColors.white_75,
+  backgroundColor: globalColors.black_75,
   padding: 8,
   textAlign: 'center',
   paddingLeft: globalMargins.xlarge,

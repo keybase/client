@@ -15,9 +15,8 @@ import type {Props, SettingsItem as SettingsItemType} from './index'
 
 export function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsItemType) {
   return (
-    <ClickableBox onClick={onClick} style={itemStyle}>
-      <Text style={{color: selected ? globalColors.black_75 : globalColors.black_60, textTransform: 'uppercase'}} type={'BodySmallSemibold'}>{text}</Text>
-      {!!selected && <Box style={selectedStyle} />}
+    <ClickableBox onClick={onClick} style={selected ? selectedStyle : itemStyle}>
+      <Text type={'BodySmallSemibold'} style={selected ? selectedTextStyle : itemTextStyle}>{text}</Text>
       {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
     </ClickableBox>
   )
@@ -25,7 +24,7 @@ export function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsIt
 
 function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
   return (
-    <Box style={globalStyles.flexBoxColumn}>
+    <Box style={styleNavBox}>
       <SettingsItem
         text='Your Account'
         selected={selectedTab === landingTab}
@@ -58,7 +57,7 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
       />
       {__DEV__ &&
         <SettingsItem
-          text='😎 Dev Menu'
+          text='😎 &nbsp; Dev Menu'
           selected={selectedTab === devMenuTab}
           onClick={() => onTabChange(devMenuTab)}
         />
@@ -67,22 +66,35 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
   )
 }
 
+const styleNavBox = {
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
+  borderRight: '1px solid ' + globalColors.black_05,
+  width: 144,
+  paddingTop: globalMargins.large,
+}
+
 const itemStyle = {
   ...globalStyles.flexBoxRow,
-  height: 40,
+  height: 32,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
   alignItems: 'center',
   position: 'relative',
+  textTransform: 'uppercase',
 }
 
 const selectedStyle = {
-  backgroundColor: globalColors.blue,
-  height: 2,
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  right: 0,
+  ...itemStyle,
+  borderLeft: '3px solid ' + globalColors.blue,
+}
+
+const itemTextStyle = {
+  color: globalColors.black_60,
+}
+
+const selectedTextStyle = {
+  color: globalColors.black_75,
 }
 
 const badgeStyle = {
