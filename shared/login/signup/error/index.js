@@ -3,6 +3,10 @@ import React, {Component} from 'react'
 import Render from './index.render'
 import {connect} from 'react-redux'
 import {restartSignup} from '../../../actions/signup'
+import HiddenString from '../../../util/hidden-string'
+
+import type {TypedState} from '../../../constants/reducer'
+import type {TypedDispatch} from '../../../constants/types/flux'
 
 class SignupError extends Component {
   render () {
@@ -14,8 +18,7 @@ class SignupError extends Component {
   }
 }
 
-// $FlowIssue type this connector
 export default connect(
-  state => ({errorText: state.signup.signupError}),
-  dispatch => ({restartSignup: () => dispatch(restartSignup())})
+  (state: TypedState) => ({errorText: state.signup.signupError || new HiddenString('')}),
+  (dispatch: TypedDispatch<*>) => ({restartSignup: () => dispatch(restartSignup())})
 )(SignupError)

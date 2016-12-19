@@ -33,7 +33,7 @@ class SuccessRender extends Component<void, Props, State> {
         <Text type='BodySmall' style={{...textCenter, marginTop: 7}}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.</Text>
 
         <Box style={paperKeyContainerStyle}>
-          <Text type='Body' style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
+          <Text type='Body' style={paperkeyStyle}>{this.props.paperkey}</Text>
           <Icon type='icon-paper-key-corner' style={paperCornerStyle} />
         </Box>
 
