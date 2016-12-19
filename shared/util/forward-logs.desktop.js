@@ -7,8 +7,6 @@ import {forwardLogs} from '../local-debug'
 import {ipcMain, ipcRenderer} from 'electron'
 import {logFileName, isWindows} from '../constants/platform.desktop'
 
-let fileWritable = null
-
 function fileDoesNotExist (err) {
   if (isWindows && err.errno === -4058) { return true }
   if (err.errno === -2) { return true }
@@ -22,8 +20,9 @@ function setupFileWritable () {
 
   if (!logFile) {
     console.warn('No log file')
-    return
+    return null
   }
+
   // Ensure log directory exists
   mkdirp.sync(path.dirname(logFile))
 
@@ -33,7 +32,7 @@ function setupFileWritable () {
   } catch (e) {
     if (!fileDoesNotExist(e)) {
       console.error('Unable to write to log file:', e)
-      return
+      return null
     }
   }
 
@@ -43,46 +42,30 @@ function setupFileWritable () {
       const logFileOld = logFile + '.1'
       console.log('Log file over size limit, moving to', logFileOld)
       if (fs.existsSync(logFileOld)) {
-        fs.unlinkSync(logFileOld) // Remove old file wrapped file
+        fs.unlinkSync(logFileOld) // Remove old wrapped file
       }
       fs.renameSync(logFile, logFileOld)
-      console.log('Creating log file')
-      fileWritable = fs.createWriteStream(logFile)
-      return
+      return fs.createWriteStream(logFile)
     }
   } catch (e) {
     if (!fileDoesNotExist(e)) {
       console.error('Error checking log file size:', e)
     }
-    fileWritable = fs.createWriteStream(logFile)
-    return
+    return fs.createWriteStream(logFile)
   }
 
   // Append to existing log
-  fileWritable = fs.createWriteStream(logFile, {flags: 'a'})
+  return fs.createWriteStream(logFile, {flags: 'a'})
 }
 
-let localLog
-let localWarn
-let localError
-let didSetup = false
+type Log = (...args: Array<any>) => void
 
-function setupOnce () {
-  if (didSetup) return
-  didSetup = true
-  setupFileWritable()
-
-  type Log = (...args: Array<any>) => void
-
-  // $FlowIssue
-  localLog: Log = console._log || console.log.bind(console)
-  // $FlowIssue
-  localWarn: Log = console._warn || console.warn.bind(console)
-  // $FlowIssue
-  localError: Log = console._error || console.error.bind(console)
-}
-
-setupOnce()
+// $FlowIssue
+const localLog: Log = console._log || console.log.bind(console)
+// $FlowIssue
+const localWarn: Log = console._warn || console.warn.bind(console)
+// $FlowIssue
+const localError: Log = console._error || console.error.bind(console)
 
 function tee (...writeFns) {
   return t => writeFns.forEach(w => w(t))
@@ -92,6 +75,8 @@ function setupTarget () {
   if (!forwardLogs) {
     return
   }
+
+  const fileWritable = setupFileWritable()
 
   const stdOutWriter = t => { !isWindows && process.stdout.write(t) }
   const stdErrWriter = t => { !isWindows && process.stderr.write(t) }
