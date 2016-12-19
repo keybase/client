@@ -18,4 +18,14 @@ export type Props = {
   style?: Object,
 }
 
+export type HeaderTextProps = {
+  color: string,
+  backgroundColor: string,
+  style?: Object,
+  children?: React$Element<*>,
+}
+
+class PopupHeaderText extends Component<void, HeaderTextProps, void> {}
+export {PopupHeaderText}
+
 declare export default class PopupMenu extends Component<void, Props, void> {}

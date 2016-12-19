@@ -7,7 +7,7 @@ import {call, put, select} from 'redux-saga/effects'
 import {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
 
-import type {FSOpen} from '../../constants/kbfs'
+import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
 
 // pathToURL takes path and converts to (file://) url.
@@ -71,29 +71,36 @@ function isDirectory (openPath: string): Promise<boolean> {
   })
 }
 
-function openInDefault (openPath: string): Promise<*> {
+function _open (openPath: string): Promise<*> {
   return new Promise((resolve, reject) => {
-    console.log('openInDefault:', openPath)
-    // Path resolve removes any ..
-    openPath = path.resolve(openPath)
-    // Paths MUST start with defaultKBFSPath
-    if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-      reject(new Error(`openInDefault requires ${Constants.defaultKBFSPath} prefix: ${openPath}`))
-      return
-    }
-
     isDirectory(openPath).then((isDir) => {
-      if (isDir) {
+      if (isDir && isWindows) {
+        if (!shell.openItem(openPath)) {
+          reject(`Unable to open item: ${openPath}`)
+        }
+      } else if (isDir) {
         openInDefaultDirectory(openPath).then(resolve, reject)
       } else {
-        if (shell.showItemInFolder(openPath)) {
-          resolve()
-        } else {
+        if (!shell.showItemInFolder(openPath)) {
           reject(`Unable to open item in folder: ${openPath}`)
         }
       }
+
+      resolve()
     })
   })
+}
+
+function openInDefault (openPath: string): Promise<*> {
+  console.log('openInDefault:', openPath)
+  // Path resolve removes any ..
+  openPath = path.resolve(openPath)
+  // Paths MUST start with defaultKBFSPath
+  if (!openPath.startsWith(Constants.defaultKBFSPath)) {
+    throw new Error(`openInDefault requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+  }
+
+  return _open(openPath)
 }
 
 function * openInWindows (openPath: string): SagaGenerator<any, any> {
@@ -127,17 +134,7 @@ function * openInWindows (openPath: string): SagaGenerator<any, any> {
     throw new Error(`openInWindows requires ${kbfsPath} prefix: ${openPath}`)
   }
 
-  isDirectory(openPath).then((isDir) => {
-    if (isDir) {
-      if (!shell.openItem(openPath)) {
-        throw new Error(`Unable to open item: ${openPath}`)
-      }
-    } else {
-      if (!shell.showItemInFolder(openPath)) {
-        throw new Error(`Unable to open item in folder: ${openPath}`)
-      }
-    }
-  })
+  yield call(_open, openPath)
 }
 
 function * openSaga (action: FSOpen): SagaGenerator<any, any> {
@@ -151,6 +148,11 @@ function * openSaga (action: FSOpen): SagaGenerator<any, any> {
   }
 }
 
+function * openInFileUISaga ({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
+  yield call(_open, path)
+}
+
 export {
+  openInFileUISaga,
   openSaga,
 }

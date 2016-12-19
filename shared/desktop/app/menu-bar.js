@@ -2,7 +2,7 @@
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {injectReactQueryParams} from '../../util/dev'
-import {ipcMain, systemPreferences} from 'electron'
+import {ipcMain, systemPreferences, app} from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
@@ -56,9 +56,12 @@ export default function () {
     })
   }
 
-  ipcMain.on('showTray', (event, type) => {
+  ipcMain.on('showTray', (event, type, count) => {
     iconType = type
     updateIcon(false)
+    if (app.dock.isVisible()) {
+      app.setBadgeCount(count)
+    }
   })
 
   // We keep the listeners so we can cleanup on hot-reload

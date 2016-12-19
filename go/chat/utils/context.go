@@ -18,4 +18,5 @@ type KeybaseContext interface {
 	Clock() clockwork.Clock
 	GetCachedUserLoader() *libkb.CachedUserLoader
 	GetUserDeviceCache() *libkb.UserDeviceCache
+	GetMerkleClient() *libkb.MerkleClient
 }
