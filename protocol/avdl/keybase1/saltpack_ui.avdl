@@ -9,7 +9,9 @@ protocol saltpackUi {
     ANONYMOUS_2,
     TRACKING_BROKE_3,
     TRACKING_OK_4,
-    SELF_5
+    SELF_5,
+    REVOKED_6,
+    EXPIRED_7
   }
 
   record SaltpackSender {

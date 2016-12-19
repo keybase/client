@@ -17,6 +17,8 @@ const (
 	SaltpackSenderType_TRACKING_BROKE SaltpackSenderType = 3
 	SaltpackSenderType_TRACKING_OK    SaltpackSenderType = 4
 	SaltpackSenderType_SELF           SaltpackSenderType = 5
+	SaltpackSenderType_REVOKED        SaltpackSenderType = 6
+	SaltpackSenderType_EXPIRED        SaltpackSenderType = 7
 )
 
 var SaltpackSenderTypeMap = map[string]SaltpackSenderType{
@@ -26,6 +28,8 @@ var SaltpackSenderTypeMap = map[string]SaltpackSenderType{
 	"TRACKING_BROKE": 3,
 	"TRACKING_OK":    4,
 	"SELF":           5,
+	"REVOKED":        6,
+	"EXPIRED":        7,
 }
 
 var SaltpackSenderTypeRevMap = map[SaltpackSenderType]string{
@@ -35,6 +39,8 @@ var SaltpackSenderTypeRevMap = map[SaltpackSenderType]string{
 	3: "TRACKING_BROKE",
 	4: "TRACKING_OK",
 	5: "SELF",
+	6: "REVOKED",
+	7: "EXPIRED",
 }
 
 func (e SaltpackSenderType) String() string {

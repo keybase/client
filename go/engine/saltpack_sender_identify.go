@@ -51,7 +51,7 @@ func (e *SaltpackSenderIdentify) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *SaltpackSenderIdentify) Run(ctx *Context) error {
+func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
 	defer e.G().Trace("SaltpackSenderIdentify::Run", func() error { return err })()
 
 	if e.arg.isAnon {
@@ -59,31 +59,43 @@ func (e *SaltpackSenderIdentify) Run(ctx *Context) error {
 		return
 	}
 
-	_, maybeUID, err := libkb.KeyLookupKIDIncludingRevoked(e.G(), e.arg.publicKey)
+	var maybeUID keybase1.UID
+	_, maybeUID, err = libkb.KeyLookupKIDIncludingRevoked(e.G(), e.arg.publicKey)
 	if _, ok := err.(libkb.NotFoundError); ok {
 		e.res.SenderType = keybase1.SaltpackSenderType_UNKNOWN
 	} else if err != nil {
-		return err
+		return
 	}
 
-	e.res.Uid, err = e.confirmKeyOwnership(e.G(), maybeUID)
+	loadUserArg := libkb.NewLoadUserByUIDArg(e.G(), maybeUID)
+	var user *libkb.User
+	user, err = libkb.LoadUser(loadUserArg)
 	if err != nil {
-		return err
+		return
 	}
 
-	if err = e.identifySender(ctx); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (e *SaltpackSenderIdentify) confirmKeyOwnership(ctx *Context, maybeUID keybase1.UID) error {
-	loadUserArg := NewLoadUserByUIDArg(maybeUID)
-	user, err := LoadUser(loadUserArg)
+	var isActive bool
+	var senderType keybase1.SenderType
+	isActive, inactiveSenderType, err = user.GetComputedKeyInfos().GetSaltpackSenderTypeOrActive(e.arg.publicKey)
 	if err != nil {
-		return err
+		return
 	}
+
+	// At this point, since GetSaltpackSenderTypeOrActive has not returned an
+	// error, we can consider the UID/username returned by the server to be
+	// "mostly legit". It's still possible that the identify below could fail,
+	// or that we found above that the key is revoked, but those are all states
+	// that we'll report to the user.
+	e.res.Uid = user.GetUID()
+	e.res.Username = user.GetName()
+	if !isActive {
+		e.res.SenderType = inactiveSenderType
+		return
+	}
+
+	err = e.identifySender(ctx)
+
+	return
 }
 
 func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
