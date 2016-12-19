@@ -7,14 +7,14 @@ import {forwardLogs} from '../local-debug'
 import {ipcMain, ipcRenderer} from 'electron'
 import {logFileName, isWindows} from '../constants/platform.desktop'
 
+let fileWritable = null
+
 function fileDoesNotExist (err) {
   if (isWindows && err.errno === -4058) { return true }
   if (err.errno === -2) { return true }
 
   return false
 }
-
-let fileWritable = null
 
 function setupFileWritable () {
   const logFile = logFileName()
