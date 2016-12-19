@@ -4,13 +4,15 @@ import {connect} from 'react-redux'
 import {sawPaperKey} from '../../../actions/signup'
 import {navigateUp} from '../../../actions/route-tree'
 
-// $FlowIssue
+import type {TypedState} from '../../../constants/reducer'
+import type {TypedDispatch} from '../../../constants/types/flux'
+
 export default connect(
-  state => ({
-    paperkey: state.signup.paperkey,
+  (state: TypedState) => ({
+    paperkey: state.signup.paperkey && state.signup.paperkey.stringValue('') || '',
     waiting: state.signup.waiting,
   }),
-  dispatch => ({
+  (dispatch: TypedDispatch<*>) => ({
     onFinish: () => { dispatch(sawPaperKey()) },
     onBack: () => { dispatch(navigateUp()) },
   })
