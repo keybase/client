@@ -7,6 +7,13 @@ import {forwardLogs} from '../local-debug'
 import {ipcMain, ipcRenderer} from 'electron'
 import {logFileName, isWindows} from '../constants/platform.desktop'
 
+function fileDoesNotExist (err) {
+  if (isWindows && err.errno === -4058) { return true }
+  if (err.errno === -2) { return true }
+
+  return false
+}
+
 let fileWritable = null
 
 function setupFileWritable () {
@@ -23,9 +30,9 @@ function setupFileWritable () {
   // Check if we can write to log file
   try {
     fs.accessSync(logFile, fs.W_OK)
-  } catch (err) {
-    if (err.code !== 'ENOENT') {
-      console.error('Unable to write to log file:', err)
+  } catch (e) {
+    if (!fileDoesNotExist(e)) {
+      console.error('Unable to write to log file:', e)
       return
     }
   }
@@ -42,9 +49,9 @@ function setupFileWritable () {
       fileWritable = fs.createWriteStream(logFile)
       return
     }
-  } catch (err) {
-    if (err.code !== 'ENOENT') {
-      console.error('Error checking log file size:', err)
+  } catch (e) {
+    if (!fileDoesNotExist(e)) {
+      console.error('Error checking log file size:', e)
     }
     fileWritable = fs.createWriteStream(logFile)
     return
