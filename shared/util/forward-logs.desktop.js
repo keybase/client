@@ -46,6 +46,7 @@ function setupFileWritable () {
         fs.unlinkSync(logFileOld) // Remove old file wrapped file
       }
       fs.renameSync(logFile, logFileOld)
+      console.log('Creating log file')
       fileWritable = fs.createWriteStream(logFile)
       return
     }
@@ -61,29 +62,36 @@ function setupFileWritable () {
   fileWritable = fs.createWriteStream(logFile, {flags: 'a'})
 }
 
-setupFileWritable()
+let localLog
+let localWarn
+let localError
+let didSetup = false
 
-type Log = (...args: Array<any>) => void
+function setupOnce () {
+  if (didSetup) return
+  didSetup = true
+  setupFileWritable()
 
-// $FlowIssue
-const localLog: Log = console._log || console.log.bind(console)
-// $FlowIssue
-const localWarn: Log = console._warn || console.warn.bind(console)
-// $FlowIssue
-const localError: Log = console._error || console.error.bind(console)
+  type Log = (...args: Array<any>) => void
+
+  // $FlowIssue
+  localLog: Log = console._log || console.log.bind(console)
+  // $FlowIssue
+  localWarn: Log = console._warn || console.warn.bind(console)
+  // $FlowIssue
+  localError: Log = console._error || console.error.bind(console)
+}
+
+setupOnce()
 
 function tee (...writeFns) {
   return t => writeFns.forEach(w => w(t))
 }
 
-let didSetupTarget = false
-
 function setupTarget () {
   if (!forwardLogs) {
     return
   }
-  if (didSetupTarget) return
-  didSetupTarget = true
 
   const stdOutWriter = t => { !isWindows && process.stdout.write(t) }
   const stdErrWriter = t => { !isWindows && process.stderr.write(t) }
