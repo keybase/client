@@ -115,6 +115,13 @@ const commands = {
     shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} desktop/server.js` : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
   },
+  'hot-server-dumb': {
+    env: {HOT: 'true', USING_DLL: 'true', DUMB: 'true'},
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} server.js` : `webpack-dashboard -- ${nodeCmd} server.js`,
+    help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',
+  },
   'inject-sourcemaps-prod': {
     shell: 'a(){ cp \'$1\'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a',
     help: '[Path to sourcemaps]: Copy sourcemaps into currently installed Keybase app',
