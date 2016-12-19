@@ -21,8 +21,10 @@ import {devEditAction} from '../shared/reducers/dev-edit'
 import {disable as disableDragDrop} from '../shared/util/drag-drop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import {changedFocus} from '../shared/actions/window'
-import {merge} from 'lodash'
+import {merge, throttle} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../shared/local-debug.desktop'
+import {selector as menubarSelector} from '../shared/menubar'
+import {selector as unlockFoldersSelector} from '../shared/unlock-folders'
 import {setRouteDef} from '../shared/actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 // $FlowIssue
@@ -77,16 +79,31 @@ function setupApp (store) {
   })
 
   const currentWindow = electron.remote.getCurrentWindow()
-  currentWindow.on('focus', () => {
-    store.dispatch(changedFocus(true))
-  })
-  currentWindow.on('blur', () => {
-    store.dispatch(changedFocus(false))
-  })
+  // This fixes reload problems with stale listeners
+  currentWindow.removeAllListeners()
+  currentWindow.on('focus', () => { store.dispatch(changedFocus(true)) })
+  currentWindow.on('blur', () => { store.dispatch(changedFocus(false)) })
 
-  store.subscribe(() => {
-    ipcRenderer.send('stateChange', store.getState())
-  })
+  const _menubarSelector = menubarSelector()
+  const _unlockFoldersSelector = unlockFoldersSelector()
+
+  const subsetsRemotesCareAbout = (store) => {
+    return {
+      tracker: store.tracker,
+      menu: _menubarSelector(store),
+      unlockFolder: _unlockFoldersSelector(store),
+    }
+  }
+
+  let _currentStore
+  store.subscribe(throttle(() => {
+    let previousStore = _currentStore
+    _currentStore = subsetsRemotesCareAbout(store.getState())
+
+    if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
+      ipcRenderer.send('stateChange', store.getState())
+    }
+  }, 1000))
 
   // Handle notifications from the service
   store.dispatch(listenForNotifications())
