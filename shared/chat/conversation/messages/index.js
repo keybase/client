@@ -7,6 +7,8 @@ import {Box} from '../../../common-adapters'
 
 import type {Message, ServerMessage} from '../../../constants/chat'
 
+const _onRetry = () => console.log('todo, hookup onRetry')
+
 const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean) => {
   if (!message) {
     return <Box key={key} style={style} />
@@ -19,7 +21,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         key={key}
         style={style}
         message={message}
-        onRetry={() => console.log('todo, hookup onRetry')}
+        onRetry={_onRetry}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
