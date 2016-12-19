@@ -2,7 +2,7 @@
 <html>
   <head>
     <!-- The sha here is for the inline script below -->
-    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="default-src file: filesystem: http://localhost:4000 https://keybase.io/; img-src http://localhost:4000 https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://images.coinbase.com/ https://s3.amazonaws.com/keybase_processed_uploads/ file:; style-src 'unsafe-inline'; script-src file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval' 'sha256-NmoYGcE+LV5xNzZTm2Umt/MU8PVEyMdMQah6TIskytU='"/>
+    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="default-src file: filesystem: http://localhost:4000 https://keybase.io/; img-src http://localhost:4000 https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://images.coinbase.com/ https://s3.amazonaws.com/keybase_processed_uploads/ file:; style-src 'unsafe-inline'; script-src file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval' 'sha256-SqBv4oSdl7keY9mVOQ6gz1+YecMaQxjDZofDCRfubu0='"/>
     <title>Keybase</title>
   </head>
   <body>
@@ -14,6 +14,7 @@
         return new Promise((resolve, reject) => {
           const script = document.createElement('script')
             script.src = src
+            script.async = false
             script.onload = resolve
             script.onerror = reject
             document.head.appendChild(script)
@@ -22,8 +23,7 @@
 
       require('electron').ipcRenderer.once('load', (event, options) => {
         document.title = options.title || document.title
-        options.scripts
-          .reduce((promiseChain, src) => promiseChain.then(() => loadScript(src)), Promise.resolve())
+        Promise.all(options.scripts.map(src => loadScript(src)))
           .then(() => window.load && window.load(options))
           .catch(e => console.warn('error loading initial scripts:', e))
       })
