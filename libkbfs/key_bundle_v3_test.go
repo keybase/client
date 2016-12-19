@@ -14,6 +14,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Make sure creating an WKB ID for a WKB with no keys fails.
+func TestWKBID(t *testing.T) {
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+
+	var wkb TLFWriterKeyBundleV3
+
+	_, err := crypto.MakeTLFWriterKeyBundleID(wkb)
+	require.Error(t, err)
+
+	wkb.Keys = UserDeviceKeyInfoMapV3{
+		keybase1.UID(0): nil,
+	}
+
+	_, err = crypto.MakeTLFWriterKeyBundleID(wkb)
+	require.NoError(t, err)
+}
+
+// Make sure that RKBs can be created with nil vs. empty keys get the
+// same ID.
+func TestRKBID(t *testing.T) {
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+
+	var wkb1, wkb2 TLFReaderKeyBundleV3
+	wkb2.Keys = make(UserDeviceKeyInfoMapV3)
+
+	id1, err := crypto.MakeTLFReaderKeyBundleID(wkb1)
+	require.NoError(t, err)
+
+	id2, err := crypto.MakeTLFReaderKeyBundleID(wkb2)
+	require.NoError(t, err)
+
+	require.Equal(t, id1, id2)
+}
+
 func TestRemoveDevicesNotInV3(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(0x1)
 	uid2 := keybase1.MakeTestUID(0x2)

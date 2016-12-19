@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/binary"
+	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -90,6 +91,10 @@ func (c CryptoCommon) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error)
 // MakeTLFWriterKeyBundleID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeTLFWriterKeyBundleID(wkb TLFWriterKeyBundleV3) (
 	TLFWriterKeyBundleID, error) {
+	if len(wkb.Keys) == 0 {
+		return TLFWriterKeyBundleID{}, errors.New(
+			"Writer key bundle with no keys")
+	}
 	buf, err := c.codec.Encode(wkb)
 	if err != nil {
 		return TLFWriterKeyBundleID{}, err

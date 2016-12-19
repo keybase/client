@@ -142,6 +142,21 @@ const (
 	defaultClientMetadataVer MetadataVer = InitialExtraMetadataVer
 )
 
+func (v MetadataVer) String() string {
+	switch v {
+	case FirstValidMetadataVer:
+		return "MDVer(FirstValid)"
+	case PreExtraMetadataVer:
+		return "MDVer(PreExtra)"
+	case InitialExtraMetadataVer:
+		return "MDVer(InitialExtra)"
+	case SegregatedKeyBundlesVer:
+		return "MDVer(SegregatedKeyBundles)"
+	default:
+		return fmt.Sprintf("MDVer(%d)", v)
+	}
+}
+
 // DataVer is the type of a version for marshalled KBFS data
 // structures.
 type DataVer int

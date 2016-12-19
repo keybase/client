@@ -16,7 +16,62 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testMetadataVers = []MetadataVer{
+	InitialExtraMetadataVer, SegregatedKeyBundlesVer,
+}
+
+// runTestOverMetadataVers runs the given test function over all
+// metadata versions to test. Example use:
+//
+// func TestFoo(t *testing.T) {
+//	runTestOverMetadataVers(t, testFoo)
+// }
+//
+// func testFoo(t *testing.T, ver MetadataVer) {
+//	...
+// 	brmd, err := MakeInitialBareRootMetadata(ver, ...)
+//	...
+// }
+func runTestOverMetadataVers(
+	t *testing.T, f func(t *testing.T, ver MetadataVer)) {
+	for _, ver := range testMetadataVers {
+		ver := ver // capture range variable.
+		t.Run(ver.String(), func(t *testing.T) {
+			f(t, ver)
+		})
+	}
+}
+
+// runBenchmarkOverMetadataVers runs the given benchmark function over
+// all metadata versions to test. Example use:
+//
+// func BenchmarkFoo(b *testing.B) {
+//	runBenchmarkOverMetadataVers(b, testFoo)
+// }
+//
+// func benchmarkFoo(b *testing.B, ver MetadataVer) {
+//	...
+// 	brmd, err := MakeInitialBareRootMetadata(ver, ...)
+//	...
+// }
+func runBenchmarkOverMetadataVers(
+	b *testing.B, f func(b *testing.B, ver MetadataVer)) {
+	for _, ver := range testMetadataVers {
+		ver := ver // capture range variable.
+		b.Run(ver.String(), func(b *testing.B) {
+			f(b, ver)
+		})
+	}
+}
+
+// TODO: Add way to test with all possible (ver, maxVer) combos,
+// e.g. for upconversion tests.
+
 // Test verification of finalized metadata blocks.
+func TestRootMetadataFinalVerify(t *testing.T) {
+	runTestOverMetadataVers(t, testRootMetadataFinalVerify)
+}
+
 func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	tlfID := tlf.FakeID(1, false)
 
@@ -72,12 +127,4 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	rmds2.MD = md3
 	err = rmds3.IsValidAndSigned(codec, crypto, extra)
 	require.NotNil(t, err)
-}
-
-func TestRootMetadataFinalVerifyV2(t *testing.T) {
-	testRootMetadataFinalVerify(t, InitialExtraMetadataVer)
-}
-
-func TestRootMetadataFinalVerifyV3(t *testing.T) {
-	testRootMetadataFinalVerify(t, SegregatedKeyBundlesVer)
 }

@@ -20,7 +20,7 @@ import (
 // only editable by users with writer permissions.
 //
 // NOTE: Don't add new fields to this type! Instead, add them to
-// WriterMetadataExtra. This is because we want old clients to
+// WriterMetadataExtraV2. This is because we want old clients to
 // preserve unknown fields, and we're unable to do that for
 // WriterMetadata directly because it's embedded in BareRootMetadata.
 type WriterMetadataV2 struct {
@@ -49,7 +49,7 @@ type WriterMetadataV2 struct {
 	// The total number of bytes in unreferenced blocks
 	UnrefBytes uint64
 
-	Extra WriterMetadataExtra `codec:"x,omitempty,omitemptycheckstruct"`
+	Extra WriterMetadataExtraV2 `codec:"x,omitempty,omitemptycheckstruct"`
 }
 
 // ToWriterMetadataV3 converts the WriterMetadataV2 to a
@@ -77,9 +77,9 @@ func (wmdV2 *WriterMetadataV2) ToWriterMetadataV3() WriterMetadataV3 {
 	return wmdV3
 }
 
-// WriterMetadataExtra stores more fields for WriterMetadata. (See
-// WriterMetadata comments as to why this type is needed.)
-type WriterMetadataExtra struct {
+// WriterMetadataExtraV2 stores more fields for WriterMetadataV2. (See
+// WriterMetadataV2 comments as to why this type is needed.)
+type WriterMetadataExtraV2 struct {
 	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	codec.UnknownFieldSetHandler
 }
@@ -167,7 +167,7 @@ func MakeInitialBareRootMetadataV2(tlfID tlf.ID, h tlf.Handle) (
 			Writers: writers,
 			WKeys:   wKeys,
 			ID:      tlfID,
-			Extra: WriterMetadataExtra{
+			Extra: WriterMetadataExtraV2{
 				UnresolvedWriters: unresolvedWriters,
 			},
 		},

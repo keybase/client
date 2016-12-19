@@ -5,8 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
-	"fmt"
 	"runtime"
 
 	goerrors "github.com/go-errors/errors"
@@ -15,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -85,6 +84,7 @@ type BareRootMetadataV3 struct {
 	codec.UnknownFieldSetHandler
 }
 
+// TODO: Use pkg/errors instead.
 type missingKeyBundlesError struct {
 	stack []uintptr
 }
@@ -304,7 +304,7 @@ func (md *BareRootMetadataV3) checkPublicExtra(extra ExtraMetadata) error {
 	}
 
 	if extra != nil {
-		return fmt.Errorf("Expected nil, got %T", extra)
+		return errors.Errorf("Expected nil, got %T", extra)
 	}
 
 	return nil
@@ -324,7 +324,7 @@ func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
 
 	extraV3, ok := extra.(*ExtraMetadataV3)
 	if !ok {
-		return nil, nil, fmt.Errorf(
+		return nil, nil, errors.Errorf(
 			"Expected *ExtraMetadataV3, got %T", extra)
 	}
 
@@ -440,7 +440,7 @@ func (md *BareRootMetadataV3) CheckValidSuccessor(
 
 	// (5) Check branch ID.
 	if md.MergedStatus() == nextMd.MergedStatus() && md.BID() != nextMd.BID() {
-		return fmt.Errorf("Unexpected branch ID on successor: %s vs. %s",
+		return errors.Errorf("Unexpected branch ID on successor: %s vs. %s",
 			md.BID(), nextMd.BID())
 	} else if md.MergedStatus() == Unmerged && nextMd.MergedStatus() == Merged {
 		return errors.New("merged MD can't follow unmerged MD")
@@ -563,7 +563,7 @@ func (md *BareRootMetadataV3) PromoteReader(
 	}
 	dkim, ok := rkb.Keys[uid]
 	if !ok {
-		return fmt.Errorf("Could not find %s in rkb", uid)
+		return errors.Errorf("Could not find %s in rkb", uid)
 	}
 	// TODO: This is incorrect, since dkim contains offsets info
 	// rkb.TLFEphemeralPublicKeys, which don't directly translate
@@ -692,7 +692,7 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 		return kbfscrypto.TLFEphemeralPublicKey{},
 			EncryptedTLFCryptKeyClientHalf{},
 			TLFCryptKeyServerHalfID{}, false,
-			fmt.Errorf("Invalid %s key index %d >= %d",
+			errors.Errorf("Invalid %s key index %d >= %d",
 				keyType, index, keyCount)
 	}
 	return publicKeys[index], info.ClientHalf, info.ServerHalfID, true, nil
@@ -706,7 +706,7 @@ func checkWKBID(crypto cryptoPure,
 	}
 
 	if wkbID != computedWKBID {
-		return fmt.Errorf("Expected WKB ID %s, got %s",
+		return errors.Errorf("Expected WKB ID %s, got %s",
 			wkbID, computedWKBID)
 	}
 
@@ -721,7 +721,7 @@ func checkRKBID(crypto cryptoPure,
 	}
 
 	if rkbID != computedRKBID {
-		return fmt.Errorf("Expected RKB ID %s, got %s",
+		return errors.Errorf("Expected RKB ID %s, got %s",
 			rkbID, computedRKBID)
 	}
 
@@ -755,12 +755,12 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 
 	if md.IsFinal() {
 		if md.Revision < MetadataRevisionInitial+1 {
-			return fmt.Errorf("Invalid final revision %d", md.Revision)
+			return errors.Errorf("Invalid final revision %d", md.Revision)
 		}
 
 		if md.Revision == (MetadataRevisionInitial + 1) {
 			if md.PrevRoot != (MdID{}) {
-				return fmt.Errorf("Invalid PrevRoot %s for initial final revision", md.PrevRoot)
+				return errors.Errorf("Invalid PrevRoot %s for initial final revision", md.PrevRoot)
 			}
 		} else {
 			if md.PrevRoot == (MdID{}) {
@@ -769,12 +769,12 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 		}
 	} else {
 		if md.Revision < MetadataRevisionInitial {
-			return fmt.Errorf("Invalid revision %d", md.Revision)
+			return errors.Errorf("Invalid revision %d", md.Revision)
 		}
 
 		if md.Revision == MetadataRevisionInitial {
 			if md.PrevRoot != (MdID{}) {
-				return fmt.Errorf("Invalid PrevRoot %s for initial revision", md.PrevRoot)
+				return errors.Errorf("Invalid PrevRoot %s for initial revision", md.PrevRoot)
 			}
 		} else {
 			if md.PrevRoot == (MdID{}) {
@@ -788,7 +788,7 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 	}
 
 	if (md.MergedStatus() == Merged) != (md.BID() == NullBranchID) {
-		return fmt.Errorf("Branch ID %s doesn't match merged status %s",
+		return errors.Errorf("Branch ID %s doesn't match merged status %s",
 			md.BID(), md.MergedStatus())
 	}
 
@@ -800,13 +800,13 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 	// Make sure the last writer is valid.
 	writer := md.LastModifyingWriter()
 	if !handle.IsWriter(writer) {
-		return fmt.Errorf("Invalid modifying writer %s", writer)
+		return errors.Errorf("Invalid modifying writer %s", writer)
 	}
 
 	// Make sure the last modifier is valid.
 	user := md.LastModifyingUser
 	if !handle.IsReader(user) {
-		return fmt.Errorf("Invalid modifying user %s", user)
+		return errors.Errorf("Invalid modifying user %s", user)
 	}
 
 	return nil
@@ -820,14 +820,14 @@ func (md *BareRootMetadataV3) IsLastModifiedBy(
 	writer := md.LastModifyingWriter()
 	if !md.IsWriterMetadataCopiedSet() {
 		if writer != uid {
-			return fmt.Errorf("Last writer %s != %s", writer, uid)
+			return errors.Errorf("Last writer %s != %s", writer, uid)
 		}
 	}
 
 	// Verify the user and device are the last modifier.
 	user := md.GetLastModifyingUser()
 	if user != uid {
-		return fmt.Errorf("Last modifier %s != %s", user, uid)
+		return errors.Errorf("Last modifier %s != %s", user, uid)
 	}
 
 	return nil
@@ -1008,7 +1008,7 @@ func (md *BareRootMetadataV3) addKeyGenerationHelper(codec kbfscodec.Codec,
 	var encryptedHistoricKeys EncryptedTLFCryptKeys
 	if currCryptKey == (kbfscrypto.TLFCryptKey{}) {
 		if latestKeyGen >= FirstValidKeyGen {
-			return nil, fmt.Errorf(
+			return nil, errors.Errorf(
 				"Zero current crypt key with latest key generation %d",
 				latestKeyGen)
 		}
@@ -1033,7 +1033,7 @@ func (md *BareRootMetadataV3) addKeyGenerationHelper(codec kbfscodec.Codec,
 			expectedHistoricKeyCount :=
 				int(md.LatestKeyGeneration() - FirstValidKeyGen)
 			if len(historicKeys) != expectedHistoricKeyCount {
-				return nil, fmt.Errorf(
+				return nil, errors.Errorf(
 					"Expected %d historic keys, got %d",
 					expectedHistoricKeyCount,
 					len(historicKeys))
@@ -1336,7 +1336,7 @@ func (md *BareRootMetadataV3) GetHistoricTLFCryptKey(crypto cryptoPure,
 			"Invalid extra metadata")
 	}
 	if keyGen < FirstValidKeyGen || keyGen >= md.LatestKeyGeneration() {
-		return kbfscrypto.TLFCryptKey{}, fmt.Errorf(
+		return kbfscrypto.TLFCryptKey{}, errors.Errorf(
 			"Invalid key generation %d", keyGen)
 	}
 	oldKeys, err := crypto.DecryptTLFCryptKeys(
@@ -1346,7 +1346,7 @@ func (md *BareRootMetadataV3) GetHistoricTLFCryptKey(crypto cryptoPure,
 	}
 	index := int(keyGen - FirstValidKeyGen)
 	if index >= len(oldKeys) || index < 0 {
-		return kbfscrypto.TLFCryptKey{}, fmt.Errorf(
+		return kbfscrypto.TLFCryptKey{}, errors.Errorf(
 			"Index %d out of range (max: %d)", index, len(oldKeys))
 	}
 	return oldKeys[index], nil

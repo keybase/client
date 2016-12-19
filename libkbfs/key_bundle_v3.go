@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
+	"github.com/pkg/errors"
 )
 
 // A lot of this code is duplicated from key_bundle_v3.go, except with
@@ -205,6 +206,22 @@ type TLFWriterKeyBundleV3 struct {
 	codec.UnknownFieldSetHandler
 }
 
+// DeserializeTLFWriterKeyBundleV3 deserializes a TLFWriterKeyBundleV3
+// from the given path and returns it.
+func DeserializeTLFWriterKeyBundleV3(codec kbfscodec.Codec, path string) (
+	TLFWriterKeyBundleV3, error) {
+	var wkb TLFWriterKeyBundleV3
+	err := kbfscodec.DeserializeFromFile(codec, path, &wkb)
+	if err != nil {
+		return TLFWriterKeyBundleV3{}, err
+	}
+	if len(wkb.Keys) == 0 {
+		return TLFWriterKeyBundleV3{}, errors.New(
+			"Writer key bundle with no keys")
+	}
+	return wkb, nil
+}
+
 // IsWriter returns true if the given user device is in the device set.
 func (wkb TLFWriterKeyBundleV3) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
 	_, ok := wkb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
@@ -287,6 +304,21 @@ type TLFReaderKeyBundleV3 struct {
 	TLFEphemeralPublicKeys kbfscrypto.TLFEphemeralPublicKeys `codec:"rEPubKey,omitempty"`
 
 	codec.UnknownFieldSetHandler
+}
+
+// DeserializeTLFReaderKeyBundleV3 deserializes a TLFReaderKeyBundleV3
+// from the given path and returns it.
+func DeserializeTLFReaderKeyBundleV3(codec kbfscodec.Codec, path string) (
+	TLFReaderKeyBundleV3, error) {
+	var rkb TLFReaderKeyBundleV3
+	err := kbfscodec.DeserializeFromFile(codec, path, &rkb)
+	if err != nil {
+		return TLFReaderKeyBundleV3{}, err
+	}
+	if len(rkb.Keys) == 0 {
+		rkb.Keys = make(UserDeviceKeyInfoMapV3)
+	}
+	return rkb, nil
 }
 
 // IsReader returns true if the given user device is in the reader set.

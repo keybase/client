@@ -5,13 +5,13 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 

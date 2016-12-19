@@ -304,9 +304,8 @@ func (j mdJournal) getExtraMetadata(
 		return nil, nil
 	}
 
-	var wkb TLFWriterKeyBundleV3
-	err := kbfscodec.DeserializeFromFile(
-		j.codec, j.writerKeyBundleV3Path(wkbID), &wkb)
+	wkb, err := DeserializeTLFWriterKeyBundleV3(
+		j.codec, j.writerKeyBundleV3Path(wkbID))
 	if err != nil {
 		return nil, err
 	}
@@ -316,9 +315,8 @@ func (j mdJournal) getExtraMetadata(
 		return nil, err
 	}
 
-	var rkb TLFReaderKeyBundleV3
-	err = kbfscodec.DeserializeFromFile(
-		j.codec, j.readerKeyBundleV3Path(rkbID), &rkb)
+	rkb, err := DeserializeTLFReaderKeyBundleV3(
+		j.codec, j.readerKeyBundleV3Path(rkbID))
 	if err != nil {
 		return nil, err
 	}

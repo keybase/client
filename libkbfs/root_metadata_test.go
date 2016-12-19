@@ -8,17 +8,14 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
-	"sort"
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -122,6 +119,10 @@ func makeImmutableRootMetadataForTest(
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
 // public TLFs.
 func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
+	runTestOverMetadataVers(t, testRootMetadataGetTlfHandlePublic)
+}
+
+func testRootMetadataGetTlfHandlePublic(t *testing.T, ver MetadataVer) {
 	uw := []keybase1.SocialAssertion{
 		{
 			User:    "user2",
@@ -134,7 +135,7 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 	}
 	h := makeFakeTlfHandle(t, 14, true, uw, nil)
 	tlfID := tlf.FakeID(0, true)
-	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
 	dirHandle := rmd.GetTlfHandle()
@@ -149,6 +150,10 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
 // non-public TLFs.
 func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
+	runTestOverMetadataVers(t, testRootMetadataGetTlfHandlePrivate)
+}
+
+func testRootMetadataGetTlfHandlePrivate(t *testing.T, ver MetadataVer) {
 	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
 	uw := []keybase1.SocialAssertion{
@@ -173,7 +178,7 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 	}
 	h := makeFakeTlfHandle(t, 14, false, uw, ur)
 	tlfID := tlf.FakeID(0, false)
-	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
 	rmd.fakeInitialRekey(codec, crypto)
@@ -189,11 +194,15 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 
 // Test that key generations work as expected for private TLFs.
 func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
+	runTestOverMetadataVers(t, testRootMetadataLatestKeyGenerationPrivate)
+}
+
+func testRootMetadataLatestKeyGenerationPrivate(t *testing.T, ver MetadataVer) {
 	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
 	tlfID := tlf.FakeID(0, false)
 	h := makeFakeTlfHandle(t, 14, false, nil, nil)
-	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
 	if rmd.LatestKeyGeneration() != 0 {
@@ -207,9 +216,13 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 
 // Test that key generations work as expected for public TLFs.
 func TestRootMetadataLatestKeyGenerationPublic(t *testing.T) {
+	runTestOverMetadataVers(t, testRootMetadataLatestKeyGenerationPublic)
+}
+
+func testRootMetadataLatestKeyGenerationPublic(t *testing.T, ver MetadataVer) {
 	tlfID := tlf.FakeID(0, true)
 	h := makeFakeTlfHandle(t, 14, true, nil, nil)
-	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
 	if rmd.LatestKeyGeneration() != PublicKeyGen {
@@ -217,265 +230,11 @@ func TestRootMetadataLatestKeyGenerationPublic(t *testing.T) {
 	}
 }
 
-// Test that old encoded WriterMetadata objects (i.e., without any
-// extra fields) can be deserialized and serialized to the same form,
-// which is important for RootMetadata.IsValidAndSigned().
-func TestWriterMetadataUnchangedEncoding(t *testing.T) {
-	encodedWm := []byte{
-		0x89, 0xa3, 0x42, 0x49, 0x44, 0xc4, 0x10, 0x0,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xa9,
-		0x44, 0x69, 0x73, 0x6b, 0x55, 0x73, 0x61, 0x67,
-		0x65, 0x64, 0xa2, 0x49, 0x44, 0xc4, 0x10, 0x1,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-		0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x16, 0xb3,
-		0x4c, 0x61, 0x73, 0x74, 0x4d, 0x6f, 0x64, 0x69,
-		0x66, 0x79, 0x69, 0x6e, 0x67, 0x57, 0x72, 0x69,
-		0x74, 0x65, 0x72, 0xa4, 0x75, 0x69, 0x64, 0x31,
-		0xa8, 0x52, 0x65, 0x66, 0x42, 0x79, 0x74, 0x65,
-		0x73, 0x63, 0xaa, 0x55, 0x6e, 0x72, 0x65, 0x66,
-		0x42, 0x79, 0x74, 0x65, 0x73, 0x65, 0xa6, 0x57,
-		0x46, 0x6c, 0x61, 0x67, 0x73, 0xa, 0xa7, 0x57,
-		0x72, 0x69, 0x74, 0x65, 0x72, 0x73, 0x92, 0xa4,
-		0x75, 0x69, 0x64, 0x31, 0xa4, 0x75, 0x69, 0x64,
-		0x32, 0xa4, 0x64, 0x61, 0x74, 0x61, 0xc4, 0x2,
-		0xa, 0xb,
-	}
-
-	expectedWm := WriterMetadataV2{
-		SerializedPrivateMetadata: []byte{0xa, 0xb},
-		LastModifyingWriter:       "uid1",
-		Writers:                   []keybase1.UID{"uid1", "uid2"},
-		ID:                        tlf.FakeID(1, false),
-		BID:                       NullBranchID,
-		WFlags:                    0xa,
-		DiskUsage:                 100,
-		RefBytes:                  99,
-		UnrefBytes:                101,
-	}
-
-	c := kbfscodec.NewMsgpack()
-
-	var wm WriterMetadataV2
-	err := c.Decode(encodedWm, &wm)
-	require.NoError(t, err)
-
-	require.Equal(t, expectedWm, wm)
-
-	buf, err := c.Encode(wm)
-	require.NoError(t, err)
-	require.Equal(t, encodedWm, buf)
-}
-
-// Test that WriterMetadata has only a fixed (frozen) set of fields.
-func TestWriterMetadataEncodedFields(t *testing.T) {
-	sa1, _ := externals.NormalizeSocialAssertion("uid1@twitter")
-	sa2, _ := externals.NormalizeSocialAssertion("uid2@twitter")
-	// Usually exactly one of Writers/WKeys is filled in, but we
-	// fill in both here for testing.
-	wm := WriterMetadataV2{
-		ID:      tlf.FakeID(0xa, false),
-		Writers: []keybase1.UID{"uid1", "uid2"},
-		WKeys:   TLFWriterKeyGenerationsV2{{}},
-		Extra: WriterMetadataExtra{
-			UnresolvedWriters: []keybase1.SocialAssertion{sa1, sa2},
-		},
-	}
-
-	c := kbfscodec.NewMsgpack()
-
-	buf, err := c.Encode(wm)
-	require.NoError(t, err)
-
-	var m map[string]interface{}
-	err = c.Decode(buf, &m)
-	require.NoError(t, err)
-
-	expectedFields := []string{
-		"BID",
-		"DiskUsage",
-		"ID",
-		"LastModifyingWriter",
-		"RefBytes",
-		"UnrefBytes",
-		"WFlags",
-		"WKeys",
-		"Writers",
-		"data",
-		"x",
-	}
-
-	var fields []string
-	for field := range m {
-		fields = append(fields, field)
-	}
-	sort.Strings(fields)
-	require.Equal(t, expectedFields, fields)
-}
-
-type writerMetadataExtraFuture struct {
-	WriterMetadataExtra
-	kbfscodec.Extra
-}
-
-func (wmef writerMetadataExtraFuture) toCurrent() WriterMetadataExtra {
-	return wmef.WriterMetadataExtra
-}
-
-type tlfWriterKeyGenerationsV2Future []*tlfWriterKeyBundleV2Future
-
-func (wkgf tlfWriterKeyGenerationsV2Future) toCurrent() TLFWriterKeyGenerationsV2 {
-	wkg := make(TLFWriterKeyGenerationsV2, len(wkgf))
-	for i, wkbf := range wkgf {
-		wkb := wkbf.toCurrent()
-		wkg[i] = wkb
-	}
-	return wkg
-}
-
-type writerMetadataFuture struct {
-	WriterMetadataV2
-	// Override WriterMetadata.WKeys.
-	WKeys tlfWriterKeyGenerationsV2Future
-	// Override WriterMetadata.Extra.
-	Extra writerMetadataExtraFuture `codec:"x,omitempty,omitemptycheckstruct"`
-}
-
-func (wmf writerMetadataFuture) toCurrent() WriterMetadataV2 {
-	wm := wmf.WriterMetadataV2
-	wm.WKeys = wmf.WKeys.toCurrent()
-	wm.Extra = wmf.Extra.toCurrent()
-	return wm
-}
-
-func (wmf writerMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
-	return wmf.toCurrent()
-}
-
-func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
-	wmd := WriterMetadataV2{
-		// This needs to be list format so it fails to compile if new fields
-		// are added, effectively checking at compile time whether new fields
-		// have been added
-		[]byte{0xa, 0xb},
-		"uid1",
-		[]keybase1.UID{"uid1", "uid2"},
-		nil,
-		tlf.FakeID(1, false),
-		NullBranchID,
-		0xa,
-		100,
-		99,
-		101,
-		WriterMetadataExtra{},
-	}
-	wkb := makeFakeTLFWriterKeyBundleV2Future(t)
-	sa, _ := externals.NormalizeSocialAssertion("foo@twitter")
-	return writerMetadataFuture{
-		wmd,
-		tlfWriterKeyGenerationsV2Future{&wkb},
-		writerMetadataExtraFuture{
-			WriterMetadataExtra{
-				// This needs to be list format so it fails to compile if new
-				// fields are added, effectively checking at compile time
-				// whether new fields have been added
-				[]keybase1.SocialAssertion{sa},
-				codec.UnknownFieldSetHandler{},
-			},
-			kbfscodec.MakeExtraOrBust("WriterMetadata", t),
-		},
-	}
-}
-
-func TestWriterMetadataUnknownFields(t *testing.T) {
-	testStructUnknownFields(t, makeFakeWriterMetadataFuture(t))
-}
-
-type tlfReaderKeyGenerationsV2Future []*tlfReaderKeyBundleV2Future
-
-func (rkgf tlfReaderKeyGenerationsV2Future) toCurrent() TLFReaderKeyGenerationsV2 {
-	rkg := make(TLFReaderKeyGenerationsV2, len(rkgf))
-	for i, rkbf := range rkgf {
-		rkb := rkbf.toCurrent()
-		rkg[i] = rkb
-	}
-	return rkg
-}
-
-// rootMetadataWrapper exists only to add extra depth to fields
-// in RootMetadata, so that they may be overridden in
-// rootMetadataFuture.
-type bareRootMetadataWrapper struct {
-	BareRootMetadataV2
-}
-
-type bareRootMetadataFuture struct {
-	// Override BareRootMetadata.WriterMetadata. Put it first to work
-	// around a bug in codec's field lookup code.
-	//
-	// TODO: Report and fix this bug upstream.
-	writerMetadataFuture
-
-	bareRootMetadataWrapper
-	// Override BareRootMetadata.RKeys.
-	RKeys tlfReaderKeyGenerationsV2Future `codec:",omitempty"`
-	kbfscodec.Extra
-}
-
-func (brmf *bareRootMetadataFuture) toCurrent() BareRootMetadata {
-	rm := brmf.bareRootMetadataWrapper.BareRootMetadataV2
-	rm.WriterMetadataV2 = WriterMetadataV2(brmf.writerMetadataFuture.toCurrent())
-	rm.RKeys = brmf.RKeys.toCurrent()
-	return &rm
-}
-
-func (brmf *bareRootMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
-	return brmf.toCurrent()
-}
-
-func makeFakeBareRootMetadataFuture(t *testing.T) *bareRootMetadataFuture {
-	wmf := makeFakeWriterMetadataFuture(t)
-	rkb := makeFakeTLFReaderKeyBundleV2Future(t)
-	h, err := kbfshash.DefaultHash([]byte("fake buf"))
-	require.NoError(t, err)
-	sa, _ := externals.NormalizeSocialAssertion("bar@github")
-	rmf := bareRootMetadataFuture{
-		wmf,
-		bareRootMetadataWrapper{
-			BareRootMetadataV2{
-				// This needs to be list format so it
-				// fails to compile if new fields are
-				// added, effectively checking at
-				// compile time whether new fields
-				// have been added
-				WriterMetadataV2{},
-				kbfscrypto.SignatureInfo{
-					Version:      100,
-					Signature:    []byte{0xc},
-					VerifyingKey: kbfscrypto.MakeFakeVerifyingKeyOrBust("fake kid"),
-				},
-				"uid1",
-				0xb,
-				5,
-				MdID{h},
-				nil,
-				[]keybase1.SocialAssertion{sa},
-				nil,
-				nil,
-				codec.UnknownFieldSetHandler{},
-			},
-		},
-		[]*tlfReaderKeyBundleV2Future{&rkb},
-		kbfscodec.MakeExtraOrBust("BareRootMetadata", t),
-	}
-	return &rmf
-}
-
-func TestBareRootMetadataUnknownFields(t *testing.T) {
-	testStructUnknownFields(t, makeFakeBareRootMetadataFuture(t))
-}
-
 func TestMakeRekeyReadError(t *testing.T) {
+	runTestOverMetadataVers(t, testMakeRekeyReadError)
+}
+
+func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown()
 
@@ -501,6 +260,10 @@ func TestMakeRekeyReadError(t *testing.T) {
 }
 
 func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
+	runTestOverMetadataVers(t, testMakeRekeyReadErrorResolvedHandle)
+}
+
+func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown()
 
@@ -532,9 +295,13 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 
 // Test that MakeSuccessor fails when the final bit is set.
 func TestRootMetadataFinalIsFinal(t *testing.T) {
+	runTestOverMetadataVers(t, testRootMetadataFinalIsFinal)
+}
+
+func testRootMetadataFinalIsFinal(t *testing.T, ver MetadataVer) {
 	tlfID := tlf.FakeID(0, true)
 	h := makeFakeTlfHandle(t, 14, true, nil, nil)
-	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	rmd, err := makeInitialRootMetadata(ver, tlfID, h)
 	require.NoError(t, err)
 
 	rmd.SetFinalBit()
