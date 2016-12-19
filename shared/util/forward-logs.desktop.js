@@ -16,7 +16,7 @@ function fileDoesNotExist (err) {
 
 function setupFileWritable () {
   const logFile = logFileName()
-  const logLimit = 1000 // Testing
+  const logLimit = 5e6
 
   if (!logFile) {
     console.warn('No log file')
