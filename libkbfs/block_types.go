@@ -106,7 +106,7 @@ func NewDirBlock() Block {
 
 // NewEmpty implements the Block interface for DirBlock
 func (db *DirBlock) NewEmpty() Block {
-	return NewDirBlock()
+	return &DirBlock{}
 }
 
 // Set implements the Block interface for DirBlock
@@ -155,7 +155,7 @@ func NewFileBlock() Block {
 
 // NewEmpty implements the Block interface for FileBlock
 func (fb *FileBlock) NewEmpty() Block {
-	return NewFileBlock()
+	return &FileBlock{}
 }
 
 // DataVersion returns data version for this block.

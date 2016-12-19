@@ -40,7 +40,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 		makeFakeIndirectFilePtr(t, 150),
 	}
 	ptr1 := makeFakeBlockPointer(t)
-	block1 := &FileBlock{IPtrs: ptrs, Contents: make([]byte, 0)}
+	block1 := &FileBlock{IPtrs: ptrs, Contents: nil}
 	block1.IsInd = true
 	block2 := makeFakeFileBlock(t, true)
 	block3 := makeFakeFileBlock(t, true)
