@@ -391,7 +391,8 @@ func (d *Service) tryGregordConnect() error {
 }
 
 func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
-	if true {
+	if d.G().Env.GetBGIdentifierDisabled() {
+		d.G().Log.Debug("BackgroundIdentifier disabled")
 		return
 	}
 

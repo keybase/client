@@ -76,6 +76,7 @@ func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)  { retu
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetMountDir() string                           { return "" }
+func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)         { return false, false }
 
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -579,6 +580,14 @@ func (e *Env) GetGregorDisabled() bool {
 		func() (bool, bool) { return e.cmd.GetGregorDisabled() },
 		func() (bool, bool) { return getEnvBool("KEYBASE_PUSH_DISABLED") },
 		func() (bool, bool) { return e.config.GetGregorDisabled() },
+	)
+}
+
+func (e *Env) GetBGIdentifierDisabled() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetBGIdentifierDisabled() },
+		func() (bool, bool) { return getEnvBool("KEYBASE_BG_IDENTIFIER_DISABLED") },
+		func() (bool, bool) { return e.config.GetBGIdentifierDisabled() },
 	)
 }
 
