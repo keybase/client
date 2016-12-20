@@ -172,6 +172,11 @@ func (md *RootMetadata) Data() *PrivateMetadata {
 	return &md.data
 }
 
+// Extra returns the extra metadata of this RootMetadata.
+func (md *RootMetadata) Extra() ExtraMetadata {
+	return md.extra
+}
+
 // IsReadable returns true if the private metadata can be read.
 func (md *RootMetadata) IsReadable() bool {
 	return md.TlfID().IsPublic() || md.data.Dir.IsInitialized()
@@ -745,6 +750,20 @@ func (md *RootMetadata) getUserDeviceKeyInfoMaps(
 	codec kbfscodec.Codec, keyGen KeyGen) (
 	rDkim, wDkim UserDeviceKeyInfoMap, err error) {
 	return md.bareMd.GetUserDeviceKeyInfoMaps(codec, keyGen, md.extra)
+}
+
+// GetTLFWriterKeyBundleID returns the ID of the externally-stored
+// writer key bundle, or the zero value if this object stores it
+// internally.
+func (md *RootMetadata) GetTLFWriterKeyBundleID() TLFWriterKeyBundleID {
+	return md.bareMd.GetTLFWriterKeyBundleID()
+}
+
+// GetTLFReaderKeyBundleID returns the ID of the externally-stored
+// reader key bundle, or the zero value if this object stores it
+// internally.
+func (md *RootMetadata) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
+	return md.bareMd.GetTLFReaderKeyBundleID()
 }
 
 // StoresHistoricTLFCryptKeys implements the KeyMetadata interface for RootMetadata.
