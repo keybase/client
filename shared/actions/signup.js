@@ -8,11 +8,12 @@ import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceN
 import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
 import {loginTab} from '../constants/tabs'
 import {isMobile} from '../constants/platform'
-import {navigateTo, navigateAppend} from '../actions/route-tree'
+import {navigateAppend} from '../actions/route-tree'
 import type {NavigateAppend, NavigateTo} from '../constants/route-tree'
 import {CommonDeviceType, signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
   signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../constants/types/flow-types'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
+import {navBasedOnLoginState} from './login'
 
 function nextPhase (): TypedAsyncAction<NavigateAppend> {
   return (dispatch, getState) => {
@@ -306,7 +307,7 @@ export function resetSignup (): ResetSignup {
 export function restartSignup (): TypedAsyncAction<RestartSignup | NavigateTo> {
   return dispatch => new Promise((resolve, reject) => {
     dispatch({type: Constants.restartSignup, payload: {}})
-    dispatch(navigateTo([loginTab]))
+    dispatch(navBasedOnLoginState())
     resolve()
   })
 }

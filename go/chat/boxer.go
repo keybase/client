@@ -563,7 +563,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 		return false, nil, nil
 	}
 
-	var revoked *gregor1.Time = nil
+	var revoked *gregor1.Time
 	validAtCtime := true
 	if revokedAt != nil {
 		if revokedAt.Unix.IsZero() {
