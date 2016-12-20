@@ -430,7 +430,7 @@ func (d *Service) OnLogout() (err error) {
 	}
 
 	log("shutting down gregor")
-	if d.gregor == nil {
+	if d.gregor != nil {
 		d.gregor.Shutdown()
 	}
 
