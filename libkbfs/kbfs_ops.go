@@ -320,7 +320,11 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 		rmd = fbo.getHead(lState)
 	}
 	if rmd != (ImmutableRootMetadata{}) {
-		return rmd, nil
+		if !fbo.identifyDone && getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() {
+			kbpki := fs.config.KBPKI()
+			err = identifyHandle(ctx, kbpki, kbpki, tlfHandle)
+		}
+		return rmd, err
 	}
 
 	_, rmd, err = fs.config.MDOps().GetForHandle(ctx, tlfHandle, Unmerged)
