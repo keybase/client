@@ -4,9 +4,11 @@ import {Icon, PopupMenu, Text} from '../../../common-adapters'
 import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
-import type {TextMessage} from '../../../constants/chat'
-import type {IconType} from '../../../common-adapters/icon'
+import {fileUIName} from '../../../constants/platform'
+import * as Constants from '../../../constants/chat'
 
+import type {IconType} from '../../../common-adapters/icon'
+import type {DeviceType} from '../../../constants/types/more'
 import type {Props} from './popup'
 
 function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconType {
@@ -18,7 +20,16 @@ function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconTyp
   }
 }
 
-const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, followState}, isLast}: {message: TextMessage, isLast: boolean}) => {
+type MetaData = {
+  author: string,
+  deviceName: string,
+  deviceType: DeviceType,
+  timestamp: number,
+  senderDeviceRevokedAt: ?number,
+  followState: Constants.FollowState,
+}
+
+const MetaDataInfo = ({messageMetaData: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, followState}, isLast}: {messageMetaData: MetaData, isLast: boolean}) => {
   const iconName = iconNameForDeviceType(deviceType, !!senderDeviceRevokedAt)
   const whoRevoked = followState === 'You' ? 'You' : author
   return (
@@ -47,7 +58,7 @@ const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, 
   )
 }
 
-const Popup = ({message, onEditMessage, onDeleteMessage, onHidden, style}: Props) => {
+const Popup = ({message, onEditMessage, onDeleteMessage, onLoadAttachment, onOpenInFileUI, onHidden, style}: Props) => {
   if (message.type === 'Text') {
     let items = []
     if (message.followState === 'You') {
@@ -60,7 +71,7 @@ const Popup = ({message, onEditMessage, onDeleteMessage, onHidden, style}: Props
       }
     }
 
-    const headerView = <TextMessagePopup message={message} isLast={!items.length} />
+    const headerView = <MetaDataInfo messageMetaData={message} isLast={!items.length} />
     const header = {
       title: 'header',
       view: headerView,
@@ -68,6 +79,28 @@ const Popup = ({message, onEditMessage, onDeleteMessage, onHidden, style}: Props
 
     return (
       <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
+    )
+  } else if (message.type === 'Attachment') {
+    const {downloadedPath, messageID, filename} = message
+    let items = [
+      'Divider',
+      downloadedPath
+        ? {title: `Show in ${fileUIName}`, onClick: () => onOpenInFileUI(downloadedPath)}
+        : {title: 'Download', onClick: () => onLoadAttachment(messageID, filename)},
+    ]
+
+    if (message.followState === 'You') {
+      items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)})
+    }
+
+    const headerView = <MetaDataInfo messageMetaData={message} isLast={!items.length} />
+    const header = {
+      title: 'header',
+      view: headerView,
+    }
+
+    return (
+      <PopupMenu header={header} items={items} onHidden={onHidden} style={style} />
     )
   }
   return null

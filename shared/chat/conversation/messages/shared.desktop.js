@@ -13,11 +13,7 @@ type Props = {
   style: Object,
   isSelected: boolean,
   children: React$Element<*>,
-  message: {
-    author: string,
-    followState: Constants.FollowState,
-    messageState: Constants.MessageState,
-  },
+  message: Constants.TextMessage | Constants.AttachmentMessage,
 }
 
 const _marginColor = (followState) => ({

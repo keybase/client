@@ -166,6 +166,8 @@ class ConversationList extends Component<void, Props, State> {
       message={message}
       onEditMessage={this.props.onEditMessage}
       onDeleteMessage={this.props.onDeleteMessage}
+      onLoadAttachment={this.props.onLoadAttachment}
+      onOpenInFileUI={this.props.onOpenInFileUI}
       onHidden={() => {
         ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
         this.setState({

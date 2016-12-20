@@ -82,6 +82,7 @@ const attachmentBaseMessage = {
   downloadedPath: null,
   messageState: 'sent',
   key: 'foo',
+  senderDeviceRevokedAt: null,
 }
 
 const attachmentMessageWithImg = {
@@ -102,6 +103,7 @@ const attachmentMessageWithImg = {
   downloadedPath: require('file-loader!../../../images/yosemite.jpg'), // eslint-disable-line
   messageState: 'sent',
   key: 'foo',
+  senderDeviceRevokedAt: null,
 }
 
 const attachmentMessageGeneric = {
@@ -120,6 +122,7 @@ const attachmentMessageGeneric = {
   previewPath: null,
   messageState: 'sent',
   key: 'foo',
+  senderDeviceRevokedAt: null,
 }
 
 const attachmentBaseMock = {
@@ -240,9 +243,11 @@ const stackedMessagesMap = {
 }
 
 const basePopupMock = {
-  onEditMessage: () => console.log('onEditMessage'),
-  onDeleteMessage: () => console.log('onDeleteMessage'),
+  onDeleteMessage: (m: any) => console.log('onDeleteMessage', m),
+  onEditMessage: (m: any) => console.log('onEditMessage', m),
   onHidden: () => console.log('onHidden'),
+  onLoadAttachment: (messageID, filename) => console.log('message id', messageID, 'filename', filename),
+  onOpenInFileUI: (path: string) => console.log('path', path),
   parentProps: {
     style: {
       position: 'relative',
@@ -260,12 +265,27 @@ const popupMap: DumbComponentMap<Popup> = {
     'Following - Revoked': {...basePopupMock, message: messageMock('sent', 'Following', null, 123456)},
     'You - Valid': {...basePopupMock, message: messageMock('sent', 'You')},
     'You - Revoked': {...basePopupMock, message: messageMock('sent', 'You', null, 123456)},
+    'Popup - Attachment Message': {
+      ...basePopupMock,
+      message: {
+        ...attachmentMessageWithImg,
+        downloadedPath: null,
+      },
+    },
+    'Popup - Attachment Downloaded': {
+      ...basePopupMock,
+      message: {
+        ...attachmentMessageWithImg,
+        messageState: 'downloaded',
+        downloadedPath: '/tmp/foo',
+      },
+    },
   },
 }
 
 export default {
   'Text Message': textMap,
   'Stacked Text Message': stackedMessagesMap,
-  'Popup': popupMap,
+  'Popup for Chat Message': popupMap,
   'Attachment Message': attachmentMap,
 }

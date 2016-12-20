@@ -18,7 +18,9 @@ import {searchTab, chatTab} from '../constants/tabs'
 import {switchTo} from './route-tree'
 import {updateReachability} from '../constants/gregor'
 import {usernameSelector} from '../constants/selectors'
+import {isMobile} from '../constants/platform'
 import {tmpFile} from '../util/file'
+import {toDeviceType} from '../constants/types/more'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
@@ -289,7 +291,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       messageState: 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
       followState: 'You',
-      deviceType: '',
+      deviceType: isMobile ? 'mobile' : 'desktop',
       deviceName: '',
       conversationIDKey: action.payload.conversationIDKey,
       senderDeviceRevokedAt: null,
@@ -602,7 +604,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
       const common = {
         author: payload.senderUsername,
         deviceName: payload.senderDeviceName,
-        deviceType: payload.senderDeviceType,
+        deviceType: toDeviceType(payload.senderDeviceType),
         timestamp: payload.serverHeader.ctime,
         messageID: payload.serverHeader.messageID,
         conversationIDKey: conversationIDKey,

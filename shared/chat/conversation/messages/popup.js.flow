@@ -1,12 +1,14 @@
 // @flow
 import {Component} from 'react'
 
-import type {Message} from '../../../constants/chat'
+import type {Message, MessageID} from '../../../constants/chat'
 
 export type Props = {
   message: Message,
   onDeleteMessage: (message: Message) => void,
   onEditMessage: (message: Message) => void,
+  onLoadAttachment: (messageID: MessageID, filename: string) => void,
+  onOpenInFileUI: (path: string) => void,
   onHidden: () => void,
   style?: Object,
 }

@@ -7,6 +7,7 @@ import {CommonMessageType} from './types/flow-types-chat'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction} from './types/flux'
 import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, ChatActivity, ConversationInfoLocal, MessageBody} from './types/flow-types-chat'
+import type {DeviceType} from './types/more'
 
 export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
@@ -33,7 +34,7 @@ export type TextMessage = {
   message: HiddenString,
   author: string,
   deviceName: string,
-  deviceType: string,
+  deviceType: DeviceType,
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
@@ -68,7 +69,7 @@ export type AttachmentMessage = {
   followState: FollowState,
   author: string,
   deviceName: string,
-  deviceType: string,
+  deviceType: DeviceType,
   messageID: MessageID,
   filename: string,
   title: string,
@@ -78,6 +79,7 @@ export type AttachmentMessage = {
   tempID?: number,
   progress?: number, /* between 0 - 1 */
   messageState: AttachmentMessageState,
+  senderDeviceRevokedAt: ?number,
   key: any,
 }
 
