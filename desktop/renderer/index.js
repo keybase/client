@@ -79,8 +79,6 @@ function setupApp (store) {
   })
 
   const currentWindow = electron.remote.getCurrentWindow()
-  // This fixes reload problems with stale listeners
-  currentWindow.removeAllListeners()
   currentWindow.on('focus', () => { store.dispatch(changedFocus(true)) })
   currentWindow.on('blur', () => { store.dispatch(changedFocus(false)) })
 
