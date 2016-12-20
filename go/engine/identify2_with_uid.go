@@ -799,6 +799,8 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.UserPlusKeys) {
 	return ret
 }
 
+// Store (meUID, themUID) -> SuccessfulIDTime as we cache users to the slow cache.
+// Thus, after a cold boot, we don't start up with a cold identify cache.
 func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
 	defer e.G().Trace("Identify2WithUID#storeSlowCacheToDB", func() error { return err })()
 	key := e.dbKey(e.them.GetUID())
