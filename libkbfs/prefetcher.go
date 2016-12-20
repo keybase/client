@@ -94,11 +94,11 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 		var block Block
 		switch entry.Type {
 		case Dir:
-			block = NewDirBlock()
+			block = &DirBlock{}
 		case File:
-			block = NewFileBlock()
+			block = &FileBlock{}
 		case Exec:
-			block = NewFileBlock()
+			block = &FileBlock{}
 		default:
 			continue
 		}

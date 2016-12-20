@@ -112,11 +112,11 @@ func (db *DirBlock) NewEmpty() Block {
 // Set implements the Block interface for DirBlock
 func (db *DirBlock) Set(other Block, codec kbfscodec.Codec) {
 	otherDb := other.(*DirBlock)
-	copy, err := otherDb.DeepCopy(codec)
+	err := kbfscodec.Update(codec, db, otherDb)
 	if err != nil {
 		panic("Unable to DirBlock.Set")
 	}
-	*db = *copy
+	db.cachedEncodedSize = otherDb.cachedEncodedSize
 }
 
 // DeepCopy makes a complete copy of a DirBlock
