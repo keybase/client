@@ -83,10 +83,9 @@ function reducer (state: State = initialState, action: Actions) {
     case Constants.appendMessages: {
       const appendAction: AppendMessages = action
       const appendMessages = appendAction.payload.messages
+      const isSelected = action.payload.isSelected
       const message: ServerMessage = appendMessages[appendMessages.length - 1]
       const conversationIDKey = appendAction.payload.conversationIDKey
-
-      const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
 
       const newConversationStates = state.get('conversationStates').update(
         conversationIDKey,
@@ -188,15 +187,12 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case Constants.updateLatestMessage:
-      // Clear new messages id when switching away from conversation
-      const previousConversation = state.get('selectedConversation')
-      if (previousConversation) {
-        const newConversationStates = state.get('conversationStates').update(
-          previousConversation,
-          initialConversation,
-          conversation => conversation.set('firstNewMessageID', null))
-        state = state.set('conversationStates', newConversationStates)
-      }
+      // Clear new messages id of conversation
+      const newConversationStates = state.get('conversationStates').update(
+        action.payload.conversationIDKey,
+        initialConversation,
+        conversation => conversation.set('firstNewMessageID', null))
+      state = state.set('conversationStates', newConversationStates)
       return state
     case Constants.selectConversation:
       const conversationIDKey = action.payload.conversationIDKey
@@ -204,7 +200,6 @@ function reducer (state: State = initialState, action: Actions) {
       // Set unread to zero
       const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
       return state
-        .set('selectedConversation', conversationIDKey)
         .set('inbox', newInboxStates)
     case Constants.loadingMessages: {
       const newConversationStates = state.get('conversationStates').update(

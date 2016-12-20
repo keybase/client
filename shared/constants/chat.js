@@ -142,7 +142,6 @@ export const MetaDataRecord = Record({
 export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
-  selectedConversation: null,
   focused: false,
   metaData: Map(),
 })
@@ -150,13 +149,14 @@ export const StateRecord = Record({
 export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
-  selectedConversation: ?ConversationIDKey,
   focused: boolean,
   metaData: Map<string, MetaData>,
 }>
 
 export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
+
+export const nothingSelected = 'chat:noneSelected'
 
 export const appendMessages = 'chat:appendMessages'
 export const badgeAppForChat = 'chat:badgeAppForChat'
@@ -183,7 +183,7 @@ export const selectAttachment = 'chat:selectAttachment'
 export const updateInbox = 'chat:updateInbox'
 export const updateInboxComplete = 'chat:updateInboxComplete'
 
-export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
+export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
@@ -192,7 +192,7 @@ export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
-export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {onlyIfUnloaded: boolean}>
+export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>

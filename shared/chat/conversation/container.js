@@ -7,11 +7,12 @@ import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, selectAttachment, loadAttachment} from '../../actions/chat'
+import {nothingSelected} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {Message} from '../../constants/chat'
+import type {ConversationIDKey, Message} from '../../constants/chat'
 import type {Props} from '.'
 
 type OwnProps = {}
@@ -53,10 +54,10 @@ class ConversationContainer extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state: TypedState) => {
-    const selectedConversation = state.chat.get('selectedConversation')
+  (state: TypedState, {routePath}) => {
+    const selectedConversation = routePath.last()
 
-    if (selectedConversation) {
+    if (selectedConversation !== nothingSelected) {
       const conversationState = state.chat.get('conversationStates').get(selectedConversation)
       if (conversationState) {
         const inbox = state.chat.get('inbox')
@@ -91,7 +92,7 @@ export default connect(
   (dispatch: Dispatch) => ({
     onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onLoadMoreMessages: () => dispatch(loadMoreMessages(false)),
+    onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
@@ -106,6 +107,7 @@ export default connect(
     ...ownProps,
     onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
     onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
+    onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
     onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
     onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
   }),
