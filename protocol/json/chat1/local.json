@@ -584,6 +584,10 @@
           "name": "maxMessages"
         },
         {
+          "type": "boolean",
+          "name": "isEmpty"
+        },
+        {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"

@@ -111,6 +111,11 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			continue
 		}
 
+		if conv.IsEmpty {
+			// Don't display empty conversations
+			continue
+		}
+
 		unread := "*"
 		// show the last TEXT message
 		var msg *chat1.MessageUnboxed
@@ -129,6 +134,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		}
 		if msg == nil {
 			// Skip conversations with no TEXT messages.
+			// This should never happen.
 			g.Log.Warning("Skipped conversation with no TEXT: %v", conv.Info.Id)
 			continue
 		}
@@ -175,6 +181,11 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				Content:   flexibletable.SingleCell{Item: body},
 			},
 		})
+	}
+
+	if table.NumInserts() == 0 {
+		ui.Printf("no conversations\n")
+		return nil
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{

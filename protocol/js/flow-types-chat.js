@@ -552,6 +552,7 @@ export type ConversationLocal = {
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
   maxMessages?: ?Array<MessageUnboxed>,
+  isEmpty: boolean,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
