@@ -3,6 +3,7 @@
 import React from 'react'
 import Text from './text'
 import Popup from './popup'
+import AttachmentMessage from './attachment'
 import {Box} from '../../../common-adapters'
 import HiddenString from '../../../util/hidden-string'
 import {messageStates, followStates} from '../../../constants/chat'
@@ -65,6 +66,99 @@ const textMap: DumbComponentMap<Text> = {
   mocks,
 }
 
+const attachmentBaseMessage = {
+  type: 'Attachment',
+  timestamp: 1479764890000,
+  conversationIDKey: 'cid1',
+  followState: 'You',
+  author: 'marcopolo',
+  deviceName: 'MKB',
+  deviceType: 'desktop',
+  messageID: 0,
+  filename: '/tmp/Yosemite.jpg',
+  title: 'Half Dome, Merced River, Winter',
+  previewType: 'Image',
+  previewPath: null,
+  downloadedPath: null,
+  messageState: 'sent',
+  key: 'foo',
+}
+
+const attachmentMessageWithImg = {
+  type: 'Attachment',
+  timestamp: 1479764890000,
+  conversationIDKey: 'cid1',
+  followState: 'You',
+  author: 'marcopolo',
+  deviceName: 'MKB',
+  deviceType: 'desktop',
+  messageID: 0,
+  filename: '/tmp/Yosemite.jpg',
+  title: 'Half Dome, Merced River, Winter',
+  previewType: 'Image',
+  // $FlowIssue
+  previewPath: require('file-loader!../../../images/yosemite preview.jpg'), // eslint-disable-line
+  // $FlowIssue
+  downloadedPath: require('file-loader!../../../images/yosemite.jpg'), // eslint-disable-line
+  messageState: 'sent',
+  key: 'foo',
+}
+
+const attachmentBaseMock = {
+  message: attachmentBaseMessage,
+  includeHeader: true,
+  isFirstNewMessage: false,
+  onLoadAttachment: () => console.log('onLoadAttachment'),
+  onAction: () => console.log('onAction'),
+  onRetry: () => console.log('onRetry'),
+  onOpenInFileUI: () => console.log('on open in file ui'),
+  style: {},
+}
+
+const attachmentMap: DumbComponentMap<AttachmentMessage> = {
+  component: AttachmentMessage,
+  mocks: {
+    'Basic - Not loaded': attachmentBaseMock,
+    'Basic - Preview Image. Failed': {
+      ...attachmentBaseMock,
+      message: {...attachmentMessageWithImg, downloadedPath: null, messageState: 'failed'},
+    },
+    'Basic - Preview Image. Pending': {
+      ...attachmentBaseMock,
+      message: {...attachmentMessageWithImg, downloadedPath: null, messageState: 'pending'},
+    },
+    'Basic - Preview Image. Not Downloaded': {
+      ...attachmentBaseMock,
+      message: {...attachmentMessageWithImg, downloadedPath: null},
+    },
+    'Basic - Uploading': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageWithImg,
+        messageState: 'uploading',
+        downloadedPath: null,
+        progress: 0.3,
+      },
+    },
+    'Basic - Downloading': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageWithImg,
+        messageState: 'downloading',
+        downloadedPath: null,
+        progress: 0.3,
+      },
+    },
+    'Basic - Preview Image. Downloaded': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageWithImg,
+        messageState: 'downloaded',
+      },
+    },
+  },
+}
+
 const stackedMessagesMap = {
   component: StackedMessages,
   mocks: {
@@ -115,4 +209,5 @@ export default {
   'Text Message': textMap,
   'Stacked Text Message': stackedMessagesMap,
   'Popup': popupMap,
+  'Attachment Message': attachmentMap,
 }

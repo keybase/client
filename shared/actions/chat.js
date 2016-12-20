@@ -636,6 +636,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             filename: payload.messageBody.attachment.object.filename,
             // $FlowIssue todo fix
             title: payload.messageBody.attachment.object.title,
+            messageState: 'sent',
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
             downloadedPath: null,

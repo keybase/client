@@ -15,6 +15,8 @@ export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', '
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
+export type AttachmentMessageState = MessageState | 'downloading' | 'uploading' | 'downloaded'
+
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
 export type ParticipantItem = UserListItem
@@ -73,6 +75,9 @@ export type AttachmentMessage = {
   previewType: ?('Image' | 'Other'),
   previewPath: ?string,
   downloadedPath: ?string,
+  tempID?: number,
+  progress?: number, /* between 0 - 1 */
+  messageState: AttachmentMessageState,
   key: any,
 }
 
