@@ -81,7 +81,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	}()
 	<-p.Shutdown()
 
-	t.Log("Ensure the prefetched blocks are in the cache.")
+	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cache.Get(ptr1)
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
@@ -138,7 +138,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	}()
 	<-p.Shutdown()
 
-	t.Log("Ensure the prefetched blocks are in the cache.")
+	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cache.Get(ptr1)
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
@@ -169,25 +169,29 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	t.Log("Initialize a direct dir block with entries pointing to 3 files.")
 	file1 := makeFakeFileBlock(t, true)
 	file2 := makeFakeFileBlock(t, true)
-	dir1 := makeFakeDirBlock(t, "foo")
 	ptr1 := makeFakeBlockPointer(t)
-	block1 := &DirBlock{Children: map[string]DirEntry{
+	dir1 := &DirBlock{Children: map[string]DirEntry{
 		"a": makeFakeDirEntry(t, File, 100),
 		"b": makeFakeDirEntry(t, Dir, 60),
 		"c": makeFakeDirEntry(t, File, 20),
 	}}
+	dir2 := &DirBlock{Children: map[string]DirEntry{
+		"d": makeFakeDirEntry(t, File, 100),
+	}}
+	file3 := makeFakeFileBlock(t, true)
 
-	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
-	_, continueCh2 := bg.setBlockToReturn(block1.Children["a"].BlockPointer, file1)
-	_, continueCh3 := bg.setBlockToReturn(block1.Children["b"].BlockPointer, dir1)
-	_, continueCh4 := bg.setBlockToReturn(block1.Children["c"].BlockPointer, file2)
+	_, continueCh1 := bg.setBlockToReturn(ptr1, dir1)
+	_, continueCh2 := bg.setBlockToReturn(dir1.Children["a"].BlockPointer, file1)
+	_, continueCh3 := bg.setBlockToReturn(dir1.Children["b"].BlockPointer, dir2)
+	_, continueCh4 := bg.setBlockToReturn(dir1.Children["c"].BlockPointer, file2)
+	_, _ = bg.setBlockToReturn(dir2.Children["d"].BlockPointer, file3)
 
 	var block Block = &DirBlock{}
 	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, makeKMD(), ptr1, block, TransientEntry)
 	continueCh1 <- nil
 	err := <-ch
 	require.NoError(t, err)
-	require.Equal(t, block1, block)
+	require.Equal(t, dir1, block)
 
 	t.Log("Release the blocks in ascending order of their size. The largest block will error.")
 	go func() {
@@ -198,16 +202,20 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
 	<-p.Shutdown()
 
-	t.Log("Ensure the prefetched blocks are in the cache.")
+	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cache.Get(ptr1)
 	require.NoError(t, err)
-	require.Equal(t, block1, block)
-	block, err = cache.Get(block1.Children["c"].BlockPointer)
+	require.Equal(t, dir1, block)
+	block, err = cache.Get(dir1.Children["c"].BlockPointer)
 	require.NoError(t, err)
 	require.Equal(t, file2, block)
-	block, err = cache.Get(block1.Children["b"].BlockPointer)
+	block, err = cache.Get(dir1.Children["b"].BlockPointer)
 	require.NoError(t, err)
-	require.Equal(t, dir1, block)
-	block, err = cache.Get(block1.Children["a"].BlockPointer)
-	require.EqualError(t, err, NoSuchBlockError{block1.Children["a"].BlockPointer.ID}.Error())
+	require.Equal(t, dir2, block)
+	t.Log("Ensure that the largest block isn't in the cache.")
+	block, err = cache.Get(dir1.Children["a"].BlockPointer)
+	require.EqualError(t, err, NoSuchBlockError{dir1.Children["a"].BlockPointer.ID}.Error())
+	t.Log("Ensure that the second-level directory didn't cause a prefetch.")
+	block, err = cache.Get(dir2.Children["d"].BlockPointer)
+	require.EqualError(t, err, NoSuchBlockError{dir2.Children["d"].BlockPointer.ID}.Error())
 }
