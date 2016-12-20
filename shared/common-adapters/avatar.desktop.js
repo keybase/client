@@ -1,11 +1,14 @@
 // @flow
 import * as shared from './avatar.shared'
 import React, {PureComponent} from 'react'
-import type {Props} from './avatar'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
+import type {Props, AvatarLookup} from './avatar'
+
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
+// To convert usernames/uids to avatarurls
+let _urlLookup
 
 type State = {
   avatarLoaded: boolean,
@@ -14,10 +17,19 @@ type State = {
 
 class Avatar extends PureComponent<void, Props, State> {
   state: State;
+  _onURLLoaded: ?() => void;
 
   constructor (props: Props) {
     super(props)
     this.state = {avatarLoaded: false, errored: false}
+  }
+
+  componentDidMount () {
+    this._onURLLoaded = () => { this.forceUpdate() }
+  }
+
+  componentWillUnmount () {
+    this._onURLLoaded = null
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -26,14 +38,33 @@ class Avatar extends PureComponent<void, Props, State> {
 
     if (url !== nextUrl) {
       this.setState({avatarLoaded: false, errored: false})
+      // $FlowIssue
+      if (this.props.username && _urlLookup) {
+        _urlLookup(this.props.username, () => {
+          this._onURLLoaded && this._onURLLoaded()
+        })
+      }
     }
   }
 
   render () {
-    const {size} = this.props
+    // $FlowIssue
+    const {size, url, username} = this.props
     const width = size
     const height = size
-    const url = shared.createAvatarUrl(this.props) || noAvatar
+    let resolvedURL
+    if (url) {
+      resolvedURL = url
+    } else if (username) {
+      resolvedURL = _urlLookup(username, () => {
+        this._onURLLoaded && this._onURLLoaded()
+      })
+    }
+
+    if (!resolvedURL) {
+      resolvedURL = noAvatar
+    }
+
     const avatarStyle = {width, height, position: 'absolute'}
     const borderStyle = this.props.borderColor ? {borderRadius: '50%', borderWidth: 2, borderStyle: 'solid', borderColor: this.props.borderColor} : {borderRadius: '50%'}
 
@@ -53,7 +84,7 @@ class Avatar extends PureComponent<void, Props, State> {
           <img src={noAvatar} style={{...avatarStyle, ...borderStyle, display: 'block'}} />}
         {showLoadingColor && <div style={{...avatarStyle, ...borderStyle, backgroundColor: this.props.loadingColor}} />}
         <img
-          src={url}
+          src={resolvedURL}
           style={{
             ...avatarStyle,
             ...borderStyle,
@@ -112,4 +143,11 @@ const followInner = (size, color) => {
   }
 }
 
+const initLookup = (lookup: AvatarLookup) => {
+  _urlLookup = lookup
+}
+
 export default Avatar
+export {
+  initLookup,
+}

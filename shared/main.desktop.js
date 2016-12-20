@@ -1,12 +1,15 @@
 // @flow
 import React, {Component} from 'react'
 import RenderRoute from './route-tree/render-route'
+import {initAvatarLookup} from './common-adapters'
 import {checkReachability} from './actions/gregor'
 import {connect} from 'react-redux'
+import {getUserImage} from './actions/config'
 import {ipcRenderer} from 'electron'
 import {navigateUp, setRouteState} from './actions/route-tree'
 
 import type {RouteDefNode, RouteStateNode, Path} from './route-tree'
+import type {AvatarLookupCallback} from './common-adapters/avatar'
 
 type Props = {
   menuBadge: boolean,
@@ -18,9 +21,16 @@ type Props = {
   routeState: RouteStateNode,
   setRouteState: (path: Path, partialState: {}) => void,
   checkReachability: () => void,
+  getUserImage: () => void,
 }
 
 class Main extends Component<void, Props, void> {
+  constructor (props: Props) {
+    super(props)
+
+    initAvatarLookup(getUserImage)
+  }
+
   componentDidUpdate (prevProps) {
     if (this.props.menuBadge !== prevProps.menuBadge ||
       this.props.menuBadgeCount !== prevProps.menuBadgeCount) {
@@ -64,6 +74,7 @@ export default connect(
       navigateUp: () => dispatch(navigateUp()),
       setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
       checkReachability: () => dispatch(checkReachability()),
+      getUserImage: (username: string, callback: AvatarLookupCallback) => getUserImage(username, callback),
     }
   }
 )(Main)
