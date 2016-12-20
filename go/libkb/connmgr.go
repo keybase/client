@@ -32,6 +32,11 @@ type labelConnectionObj struct {
 	ch      chan<- error
 }
 
+type lookupByClientTypeObj struct {
+	typ keybase1.ClientType
+	ch  chan<- rpc.Transporter
+}
+
 // ApplyFn can be applied to every connection. It is called with the
 // RPC transporter, and also the connectionID. It should return a bool
 // true to keep going and false to stop.
@@ -48,13 +53,14 @@ type ConnectionManager struct {
 	nxt    ConnectionID
 	lookup map[ConnectionID](*rpcConnection)
 
-	addConnectionCh    chan *addConnectionObj
-	lookupConnectionCh chan *lookupConnectionObj
-	removeConnectionCh chan ConnectionID
-	applyAllCh         chan ApplyFn
-	shutdownCh         chan struct{}
-	labelConnectionCh  chan labelConnectionObj
-	listAllCh          chan chan<- []keybase1.ClientDetails
+	addConnectionCh      chan *addConnectionObj
+	lookupConnectionCh   chan *lookupConnectionObj
+	removeConnectionCh   chan ConnectionID
+	applyAllCh           chan ApplyFn
+	shutdownCh           chan struct{}
+	labelConnectionCh    chan labelConnectionObj
+	listAllCh            chan chan<- []keybase1.ClientDetails
+	lookupByClientTypeCh chan *lookupByClientTypeObj
 }
 
 // AddConnection adds a new connection to the table of Connection object, with a
@@ -92,15 +98,10 @@ func (c *ConnectionManager) lookupTransporter(i ConnectionID) (ret rpc.Transport
 	return ret
 }
 
-func (c *ConnectionManager) LookupByClientType(clientType keybase1.ClientType) *rpc.Transporter {
-	for _, v := range c.lookup {
-		if v.details != nil {
-			if v.details.ClientType == clientType {
-				return &v.transporter
-			}
-		}
-	}
-	return nil
+func (c *ConnectionManager) LookupByClientType(clientType keybase1.ClientType) rpc.Transporter {
+	retCh := make(chan rpc.Transporter)
+	c.lookupByClientTypeCh <- &lookupByClientTypeObj{clientType, retCh}
+	return <-retCh
 }
 
 func (c *ConnectionManager) Label(id ConnectionID, d keybase1.ClientDetails) error {
@@ -184,6 +185,15 @@ func (c *ConnectionManager) run() {
 			labelConnectionObj.ch <- err
 		case retCh := <-c.listAllCh:
 			retCh <- c.listAllLabeledConnections()
+		case lookupByClientTypeObj := <-c.lookupByClientTypeCh:
+			var found rpc.Transporter
+			for _, v := range c.lookup {
+				if v.details != nil && v.details.ClientType == lookupByClientTypeObj.typ {
+					found = v.transporter
+					break
+				}
+			}
+			lookupByClientTypeObj.ch <- found
 		case f := <-c.applyAllCh:
 			for k, v := range c.lookup {
 				if !f(k, v.transporter) {
