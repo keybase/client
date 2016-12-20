@@ -20,7 +20,7 @@ import (
 // channel to synchronize on with the worker.
 type blockReturner struct {
 	block      Block
-	continueCh chan struct{}
+	continueCh chan error
 	startCh    chan struct{}
 }
 
@@ -42,10 +42,10 @@ func newFakeBlockGetter() *fakeBlockGetter {
 // setBlockToReturn sets the block that will be returned for a given
 // BlockPointer. Returns a writeable channel that getBlock will wait on, to
 // allow synchronization of tests.
-func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) (startCh <-chan struct{}, continueCh chan<- struct{}) {
+func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) (startCh <-chan struct{}, continueCh chan<- error) {
 	bg.mtx.Lock()
 	defer bg.mtx.Unlock()
-	sCh, cCh := make(chan struct{}), make(chan struct{})
+	sCh, cCh := make(chan struct{}), make(chan error)
 	bg.blockMap[blockPtr] = blockReturner{
 		block:      block,
 		startCh:    sCh,
@@ -66,7 +66,10 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 	for {
 		select {
 		case source.startCh <- struct{}{}:
-		case <-source.continueCh:
+		case err := <-source.continueCh:
+			if err != nil {
+				return err
+			}
 			return kbfscodec.Update(bg.codec, block, source.block)
 		case <-ctx.Done():
 			return ctx.Err()
@@ -105,7 +108,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 
 	block := &FileBlock{}
 	ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block, NoCacheEntry)
-	continueCh1 <- struct{}{}
+	continueCh1 <- nil
 	err := <-ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
@@ -135,20 +138,20 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, block, NoCacheEntry)
 
 	t.Log("Allow the second request to complete before the first")
-	continueCh2 <- struct{}{}
+	continueCh2 <- nil
 	err := <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
 
 	t.Log("Make another request for ptr2")
 	req2Ch = q.Request(context.Background(), 1, makeKMD(), ptr2, block, NoCacheEntry)
-	continueCh2 <- struct{}{}
+	continueCh2 <- nil
 	err = <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
 
 	t.Log("Complete the ptr1 request")
-	continueCh1 <- struct{}{}
+	continueCh1 <- nil
 	err = <-req1Ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
@@ -184,13 +187,13 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	req4Ch := q.Request(context.Background(), 2, makeKMD(), ptr3, testBlock2, NoCacheEntry)
 
 	t.Log("Allow the ptr1 retrieval to complete.")
-	continueCh1 <- struct{}{}
+	continueCh1 <- nil
 	err := <-req1Ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
 
 	t.Log("Allow the ptr3 retrieval to complete. Both waiting requests should complete.")
-	continueCh3 <- struct{}{}
+	continueCh3 <- nil
 	err1 := <-req3Ch
 	err2 := <-req4Ch
 	require.NoError(t, err1)
@@ -199,7 +202,7 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	require.Equal(t, block3, testBlock2)
 
 	t.Log("Complete the ptr2 retrieval.")
-	continueCh2 <- struct{}{}
+	continueCh2 <- nil
 	err = <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
@@ -251,7 +254,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	shutdown := false
 	select {
 	case <-ch:
-	case continueCh <- struct{}{}:
+	case continueCh <- nil:
 	default:
 		shutdown = true
 	}
@@ -287,13 +290,13 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock2, NoCacheEntry)
 
 	t.Log("Allow the first ptr1 retrieval to complete.")
-	continueCh1 <- struct{}{}
+	continueCh1 <- nil
 	err = <-req1Ch
 	require.NoError(t, err)
 	require.Equal(t, testBlock1, block1)
 
 	t.Log("Allow the second ptr1 retrieval to complete.")
-	continueCh1 <- struct{}{}
+	continueCh1 <- nil
 	err = <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, testBlock2, testCommonBlock)

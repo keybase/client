@@ -177,7 +177,6 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 				priority:       priority,
 				insertionOrder: brq.insertionCount,
 				cacheLifetime:  lifetime,
-				// TODO pass TLF here
 			}
 			br.ctx, br.cancelFunc = NewCoalescingContext(ctx)
 			brq.insertionCount++
