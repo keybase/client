@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import React, {PureComponent} from 'react'
-import {Avatar, Box, Icon, Text, Markdown} from '../../../common-adapters'
+import {Avatar, Icon, Text, Markdown} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {withHandlers} from 'recompose'
 
@@ -36,40 +36,75 @@ const colorForAuthor = (followState: Constants.FollowState) => {
 }
 
 const Retry = ({onRetry}: {onRetry: () => void}) => (
-  <Box>
+  <div>
     <Text type='BodySmall' style={{fontSize: 9, color: globalColors.red}}>{'┏(>_<)┓'}</Text>
     <Text type='BodySmall' style={{color: globalColors.red}}> Failed to send. </Text>
     <Text type='BodySmall' style={{color: globalColors.red, textDecoration: 'underline'}} onClick={onRetry}>Retry</Text>
-  </Box>
+  </div>
 )
 
 class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void}, void> {
   render () {
     const {message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick} = this.props
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
-        <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-          <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
-          <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
+      <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
+        <div style={_marginContainerStyle}>
+          <div style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
+          <div style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
             {includeHeader
               ? <Avatar size={24} username={message.author} style={_avatarStyle} />
-              : <Box style={{width: 32}} />}
-            <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+              : <div style={_noHeaderStyle} />}
+            <div style={_bodyContainerStyle}>
               {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
-              <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-                <MessageText message={message} style={{marginTop: globalMargins.xtiny, flex: 1}} />
+              <div style={_textContainerStyle}>
+                <MessageText message={message} style={_messageTextStyle} />
                 <div className='action-button'>
-                  {message.senderDeviceRevokedAt && <Icon type='iconfont-info' style={{fontSize: 10, color: globalColors.blue}} />}
-                  <Icon type='iconfont-ellipsis' style={{fontSize: 13, marginLeft: globalMargins.xtiny, marginRight: globalMargins.tiny}} onClick={onIconClick} />
+                  {message.senderDeviceRevokedAt && <Icon type='iconfont-info' style={_infoStyle} />}
+                  <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
                 </div>
-              </Box>
+              </div>
               {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+            </div>
+          </div>
+        </div>
+      </div>
     )
   }
+}
+
+const _infoStyle = {
+  fontSize: 10,
+  color: globalColors.blue,
+}
+
+const _ellipsisStyle = {
+  fontSize: 13,
+  marginLeft: globalMargins.xtiny,
+  marginRight: globalMargins.tiny,
+}
+
+const _messageTextStyle = {
+  marginTop: globalMargins.xtiny,
+  flex: 1,
+}
+
+const _textContainerStyle = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+}
+
+const _marginContainerStyle = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+}
+
+const _bodyContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+}
+
+const _noHeaderStyle = {
+  width: 32,
 }
 
 const _avatarStyle = {

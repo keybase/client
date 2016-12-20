@@ -11,7 +11,7 @@ import Popup from './messages/popup'
 import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {Box, ProgressIndicator} from '../../common-adapters'
+import {ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {Message, MessageID} from '../../constants/chat'
@@ -211,9 +211,9 @@ class ConversationList extends Component<void, Props, State> {
   render () {
     if (!this.props.validated) {
       return (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <div style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <ProgressIndicator style={{width: 20}} />
-        </Box>
+        </div>
       )
     }
     const messageCount = this.state.messages.count()
@@ -237,7 +237,7 @@ class ConversationList extends Component<void, Props, State> {
     `
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+      <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
         <style>{realCSS}</style>
         <AutoSizer
           onResize={({width}) => {
@@ -271,10 +271,10 @@ class ConversationList extends Component<void, Props, State> {
             </CellMeasurer>
           }}
         </AutoSizer>
-        {this.props.sidePanelOpen && <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', right: 0, top: 0, bottom: 0, width: 320}}>
+        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, position: 'absolute', right: 0, top: 0, bottom: 0, width: 320}}>
           <SidePanel {...this.props} />
-        </Box>}
-      </Box>
+        </div>}
+      </div>
     )
   }
 }

@@ -61,7 +61,9 @@ class Avatar extends PureComponent<void, Props, State> {
     const borderStyle = this.props.borderColor ? {borderRadius: '50%', borderWidth: 2, borderStyle: 'solid', borderColor: this.props.borderColor} : {borderRadius: '50%'}
 
     const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
-    const showNoAvatar = !showLoadingColor && ((!_avatarCache.hasOwnProperty(url) && !this.state.avatarLoaded) || this.state.errored)
+    const alreadyGood = _avatarCache.hasOwnProperty(url) && _avatarCache[url]
+    const alreadyBad = _avatarCache.hasOwnProperty(url) && !_avatarCache[url]
+    const showNoAvatar = alreadyBad || (!showLoadingColor && ((!alreadyGood && !this.state.avatarLoaded) || this.state.errored))
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
@@ -75,6 +77,7 @@ class Avatar extends PureComponent<void, Props, State> {
         {showNoAvatar &&
           <img src={noAvatar} style={{...avatarStyle, ...borderStyle, display: 'block'}} />}
         {showLoadingColor && <div style={{...avatarStyle, ...borderStyle, backgroundColor: this.props.loadingColor}} />}
+        {!alreadyBad &&
         <img
           src={url}
           style={{
@@ -87,6 +90,7 @@ class Avatar extends PureComponent<void, Props, State> {
           }}
           onError={this._imgOnError}
           onLoad={this._imgOnLoad} />
+        }
         <div>
           {size > 16 && (this.props.following || this.props.followsYou) &&
             <div>
