@@ -254,9 +254,21 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
+	private := true
+	if arg.TlfVisibility == chat1.TLFVisibility_PUBLIC {
+		private = false
+	}
+
 	// we are ignoring the `identifyFailures` here since the `Read` after creating the
 	// conversation will get the identifyFailures for us.
-	tlfID, cname, _, err := utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName, arg.IdentifyBehavior)
+	var tlfID chat1.TLFID
+	var cname string
+	var err error
+	if private {
+		tlfID, cname, _, err = utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName, arg.IdentifyBehavior)
+	} else {
+		tlfID, cname, _, err = utils.PublicTLFID(ctx, h.tlf, arg.TlfName, arg.IdentifyBehavior)
+	}
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}

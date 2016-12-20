@@ -91,8 +91,12 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		if rquery != nil && rquery.TlfID != nil {
 			// Verify using signed TlfName to make sure server returned genuine
 			// conversation.
-			signedTlfID, _, _, err := utils.CryptKeysWrapper(ctx, s.getTlfInterface(),
-				convLocal.Info.TlfName, identifyBehavior)
+			var signedTlfID chat1.TLFID
+			if rquery.TlfVisibility != nil && *rquery.TlfVisibility == chat1.TLFVisibility_PUBLIC {
+				signedTlfID, _, _, err = utils.PublicTLFID(ctx, s.getTlfInterface(), convLocal.Info.TlfName, identifyBehavior)
+			} else {
+				signedTlfID, _, _, err = utils.CryptKeysWrapper(ctx, s.getTlfInterface(), convLocal.Info.TlfName, identifyBehavior)
+			}
 			if err != nil {
 				return Inbox{}, ib.RateLimit, err
 			}

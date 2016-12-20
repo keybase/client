@@ -151,9 +151,9 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 	conversationInfo *chat1.ConversationInfoLocal, err error) {
 	var newConversation string
 	if req.TopicType == chat1.TopicType_CHAT {
-		newConversation = fmt.Sprintf("Creating a new %s conversation", req.TopicType.String())
+		newConversation = fmt.Sprintf("Creating a new %s %s conversation", req.Visibility, req.TopicType)
 	} else {
-		newConversation = fmt.Sprintf("Creating a new %s conversation [%s]", req.TopicType.String(), req.TopicName)
+		newConversation = fmt.Sprintf("Creating a new %s %s conversation [%s]", req.Visibility, req.TopicType, req.TopicName)
 	}
 
 	if len(req.ctx.canonicalizedTlfName) == 0 {
