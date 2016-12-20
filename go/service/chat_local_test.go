@@ -234,7 +234,7 @@ func TestGetInboxNonblock(t *testing.T) {
 		convs[mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[i+1]).user().Username).Id.String()] = true
 	}
 
-	err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
+	_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
 		chat1.GetInboxNonblockLocalArg{
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		},
@@ -708,7 +708,7 @@ func TestGetOutbox(t *testing.T) {
 				Prev: 10,
 			},
 		},
-	})
+	}, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	require.NoError(t, err)
 
 	thread, err := h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{

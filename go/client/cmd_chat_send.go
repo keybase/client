@@ -69,6 +69,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 	var args chat1.PostLocalArg
 	args.ConversationID = conversationInfo.Id
+	args.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
 
 	var msg chat1.MessagePlaintext
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
@@ -127,6 +128,7 @@ func (c *cmdChatSend) Run() (err error) {
 		var nbarg chat1.PostLocalNonblockArg
 		nbarg.ConversationID = args.ConversationID
 		nbarg.Msg = args.Msg
+		nbarg.IdentifyBehavior = args.IdentifyBehavior
 		if _, err = chatClient.PostLocalNonblock(ctx, nbarg); err != nil {
 			return err
 		}

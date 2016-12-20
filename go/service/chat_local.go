@@ -71,7 +71,9 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
 	}
 
-	rquery, tlfInfo, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
+	var breaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &breaks)
+	rquery, tlfInfo, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -86,11 +88,8 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
-	}
-	if tlfInfo != nil {
-		inbox.IdentifyFailures = tlfInfo.IdentifyFailures
-	}
-	return inbox, nil
+		IdentifyFailures:        breaks,
+	}, nil
 }
 
 func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
@@ -100,46 +99,49 @@ func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 	return h.BaseHandler.getChatUI(sessionID)
 }
 
-func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) error {
-	if err := h.assertLoggedIn(ctx); err != nil {
-		return err
+func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.GetInboxNonblockLocalRes, err error) {
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
 	}
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
-		return libkb.LoginRequiredError{}
+		return res, libkb.LoginRequiredError{}
 	}
 
 	// Create localized conversation callback channel
 	chatUI := h.getChatUI(arg.SessionID)
 	localizeCb := make(chan chat.NonblockInboxResult, 1)
 
+	var breaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &breaks)
 	inboxSource := chat.NewNonblockRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
 		func() keybase1.TlfInterface { return h.tlf }, localizeCb)
 
 	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
-	_, rl, err := inboxSource.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination, arg.IdentifyBehavior)
+	_, rl, err := inboxSource.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination)
 	if err != nil {
-		return err
+		return res, err
 	}
+	res.RateLimits = utils.AggRateLimitsP([]*chat1.RateLimit{rl})
 
 	// Wait for inbox to get sent to us
 	select {
 	case lres := <-localizeCb:
 		if lres.InboxRes == nil {
-			return fmt.Errorf("invalid conversation localize callback received")
+			return res, fmt.Errorf("invalid conversation localize callback received")
 		}
 		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
 			SessionID: arg.SessionID,
 			Inbox: chat1.GetInboxLocalRes{
 				ConversationsUnverified: lres.InboxRes.ConvsUnverified,
 				Pagination:              lres.InboxRes.Pagination,
-				RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+				RateLimits:              res.RateLimits,
 			},
 		})
 	case <-time.After(15 * time.Second):
-		return fmt.Errorf("timeout waiting for inbox result")
+		return res, fmt.Errorf("timeout waiting for inbox result")
 	case <-ctx.Done():
-		return ctx.Err()
+		return res, ctx.Err()
 	}
 
 	// Consume localize callbacks and send out to UI.
@@ -163,7 +165,9 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 		}(convRes)
 	}
 	wg.Wait()
-	return nil
+
+	res.IdentifyFailures = breaks
+	return res, nil
 }
 
 func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalArg) (chat1.MarkAsReadRes, error) {
@@ -187,19 +191,22 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 
 	// Create inbox source
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
 	inbox := chat.NewRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
 		func() keybase1.TlfInterface { return h.tlf })
 
 	// Read inbox from the source
-	ib, rl, err := inbox.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination, arg.IdentifyBehavior)
+	ib, rl, err := inbox.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
 
 	res := chat1.GetInboxAndUnboxLocalRes{
-		Conversations: ib.Convs,
-		Pagination:    ib.Pagination,
-		RateLimits:    utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		Conversations:    ib.Convs,
+		Pagination:       ib.Pagination,
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		IdentifyFailures: identBreaks,
 	}
 
 	return res, nil
@@ -217,6 +224,8 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	if uid.IsNil() {
 		return chat1.GetThreadLocalRes{}, libkb.LoginRequiredError{}
 	}
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
 	thread, rl, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
 		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
 	if err != nil {
@@ -244,8 +253,9 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	}
 
 	return chat1.GetThreadLocalRes{
-		Thread:     thread,
-		RateLimits: utils.AggRateLimitsP(rl),
+		Thread:           thread,
+		RateLimits:       utils.AggRateLimitsP(rl),
+		IdentifyFailures: identBreaks,
 	}, nil
 }
 
@@ -257,8 +267,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	// we are ignoring the `identifyFailures` here since the `Read` after creating the
-	// conversation will get the identifyFailures for us.
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
 	info, err := utils.LookupTLF(ctx, h.tlf, arg.TlfName, arg.TlfVisibility, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
@@ -323,7 +333,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		// Read inbox from the source
 		ib, rl, err := inbox.Read(ctx, uid.ToBytes(), &chat1.GetInboxLocalQuery{
 			ConvID: &convID,
-		}, nil, arg.IdentifyBehavior)
+		}, nil)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, err
 		}
@@ -346,6 +356,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		if res.Conv.Error != nil {
 			return chat1.NewConversationLocalRes{}, errors.New(*res.Conv.Error)
 		}
+
+		res.IdentifyFailures = identBreaks
 		return res, nil
 	}
 
@@ -391,6 +403,8 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		return chat1.GetInboxSummaryForCLILocalRes{}, err
 	}
 
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks)
 	var after time.Time
 	if len(arg.After) > 0 {
 		after, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
@@ -485,6 +499,9 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		return chat1.GetConversationForCLILocalRes{}, err
 	}
 
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks)
+
 	var rlimits []chat1.RateLimit
 
 	if arg.Limit.AtMost <= 0 {
@@ -562,6 +579,9 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return deflt, err
 	}
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
+
 	rarg := chat1.GetMessagesRemoteArg{
 		ConversationID: arg.ConversationID,
 		MessageIDs:     arg.MessageIDs,
@@ -582,8 +602,9 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	}
 
 	return chat1.GetMessagesLocalRes{
-		Messages:   messages,
-		RateLimits: utils.AggRateLimits(rlimits),
+		Messages:         messages,
+		RateLimits:       utils.AggRateLimits(rlimits),
+		IdentifyFailures: identBreaks,
 	}, nil
 }
 
@@ -592,6 +613,8 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 		return chat1.SetConversationStatusLocalRes{}, err
 	}
 
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
 	scsres, err := h.remoteClient().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
 		ConversationID: arg.ConversationID,
 		Status:         arg.Status,
@@ -601,7 +624,8 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 	}
 
 	return chat1.SetConversationStatusLocalRes{
-		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
+		IdentifyFailures: identBreaks,
 	}, nil
 }
 
@@ -611,6 +635,8 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 		return chat1.PostLocalRes{}, err
 	}
 
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
 	err := msgchecker.CheckMessagePlaintext(arg.Msg)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
@@ -639,8 +665,9 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	h.deleteAssets(ctx, arg.ConversationID, pendingAssetDeletes)
 
 	return chat1.PostLocalRes{
-		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
-		MessageID:  msgID,
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		MessageID:        msgID,
+		IdentifyFailures: identBreaks,
 	}, nil
 }
 
@@ -652,6 +679,8 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	}
 
 	// Create non block sender
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
 
@@ -661,8 +690,9 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
 	return chat1.PostLocalNonblockRes{
-		OutboxID:   obid,
-		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		OutboxID:         obid,
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		IdentifyFailures: identBreaks,
 	}, nil
 }
 
@@ -831,6 +861,8 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	cli := h.getStreamUICli()
 	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
 	return h.downloadAttachmentLocal(ctx, darg)
 }
 
@@ -862,6 +894,9 @@ type downloadAttachmentArg struct {
 }
 
 func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
+
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
 	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int) {
 		parg := chat1.ChatAttachmentDownloadProgressArg{
@@ -899,7 +934,10 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
-	return chat1.DownloadAttachmentLocalRes{RateLimits: limits}, nil
+	return chat1.DownloadAttachmentLocalRes{
+		RateLimits:       limits,
+		IdentifyFailures: identBreaks,
+	}, nil
 }
 
 func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.OutboxID) error {

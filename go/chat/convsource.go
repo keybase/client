@@ -98,7 +98,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
 	var err error
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(), msg)
+	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(s.G().Log), msg)
 	if err != nil {
 		return decmsg, err
 	}
