@@ -24,7 +24,6 @@
 
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
-            LicenseFile="license.rtf"
             LogoFile="logo-64.bmp"
             ShowVersion="yes"
             SuppressOptionsUI="yes"
@@ -56,15 +55,16 @@
                      Path="[WindowsFolder]System32\ucrtbase.dll"
                      Variable="UCRTVERSION64"
                      Result="version"
+                     Condition="VersionNT64"
                        />
 
     <util:RegistrySearch Id="vcredist_2015_x86_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2015_x86_installed" Win64="no"/>
     <util:RegistrySearch Id="vcredist_2015_x86_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2015_x86_version" Result="exists" Win64="no"/>
     <util:RegistrySearch Id="vcredist_2015_x86_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2015_x86_versionnumber" Result="value" Win64="no"/>
 
-    <util:RegistrySearch Id="vcredist_2015_x64_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2015_x64_installed" Win64="yes"/>
-    <util:RegistrySearch Id="vcredist_2015_x64_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_version" Result="exists" Win64="yes"/>
-    <util:RegistrySearch Id="vcredist_2015_x64_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_versionnumber" Result="value" Win64="yes"/>
+    <util:RegistrySearch Id="vcredist_2015_x64_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2015_x64_installed" Win64="yes" Condition="VersionNT64"/>
+    <util:RegistrySearch Id="vcredist_2015_x64_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_version" Result="exists" Win64="yes" Condition="VersionNT64"/>
+    <util:RegistrySearch Id="vcredist_2015_x64_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_versionnumber" Result="value" Win64="yes" Condition="VersionNT64"/>
 
     <!--Detect if non-Keybase release of Dokan is installed-->
     <!--Keybase has it's own UpgradeCode for Dokan starting with version 1.0.2 so fail if we detect version 1.0.2 and up with the old UpgradeCode on the system-->
@@ -204,7 +204,6 @@
                   InstallCondition="NOT VersionNT64 AND NOT nodriver"
                   Compressed="yes"
                   Visible="no"
-                  Permanent="no"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -216,7 +215,6 @@
                   InstallCondition="VersionNT64 AND NOT nodriver"
                   Compressed="yes"
                   Visible="no"
-                  Permanent="no"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -259,7 +257,7 @@
           Id='InnoCLIUninstall64'
           After="InnoCLIUninstall"
           Variable="InnoCLIInstalled"
-          Condition="NOT InnoCLIInstalled"
+          Condition="(NOT InnoCLIInstalled) AND VersionNT64"
           Result="exists"
           Root="HKLM"
           Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
@@ -276,7 +274,7 @@
                  />
     <util:RegistrySearch Id="InnoKBFSUninstall64"
                  After="InnoKBFSUninstall"
-                 Condition="NOT InnoKBFSUninstallString"
+                 Condition="(NOT InnoKBFSUninstallString) AND VersionNT64"
                  Variable="InnoKBFSUninstallString"
                  Root="HKLM"
                  Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
