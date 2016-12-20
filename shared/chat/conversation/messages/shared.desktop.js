@@ -9,7 +9,7 @@ type Props = {
   includeHeader: boolean,
   isFirstNewMessage: boolean,
   onRetry: () => void,
-  onAction: (event: any) => void,
+  onAction: (message: Constants.ServerMessage, event: any) => void,
   style: Object,
   isSelected: boolean,
   children: React$Element<*>,

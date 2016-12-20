@@ -14,7 +14,7 @@ function AttachmentTitle ({messageState, title}: {messageState: Constants.Attach
     case 'uploading':
     case 'pending':
     case 'failed':
-      style = {color: globalColors.black_75}
+      style = {color: globalColors.black_40}
       break
   }
   return <Text type='BodySemibold' style={style}>{title}</Text>
@@ -60,16 +60,12 @@ function ProgressBar ({text, progress, style}, {text: string, progress: number, 
     borderBottomRightRadius: 0,
     alignItems: 'center',
     backgroundColor: globalColors.white,
-    paddingTop: globalMargins.tiny,
-    paddingBottom: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-    paddingLeft: globalMargins.xtiny,
     ...style,
   }
 
   return (
     <Box style={containerStyle}>
-      <Text type={'BodySmall'}>{text}</Text>
+      <Text type={'BodySmall'} style={{marginRight: globalMargins.xtiny}}>{text}</Text>
       <Box style={{...basicStyle, marginTop: 2, marginLeft: globalMargins.xtiny, backgroundColor: globalColors.black_05}}>
         <Box style={{...basicStyle, width: Math.ceil(64 * progress), backgroundColor: globalColors.blue}} />
       </Box>
@@ -79,7 +75,7 @@ function ProgressBar ({text, progress, style}, {text: string, progress: number, 
 
 function ImageIcon ({type, style}: {type: 'Downloaded' | 'Downloading', style: Object}) {
   let iconStyle = {
-    color: globalColors.blue,
+    color: type === 'Downloading' ? globalColors.blue : globalColors.green,
     lineHeight: 0,
     top: 2,
   }
@@ -98,8 +94,12 @@ function ImageIcon ({type, style}: {type: 'Downloaded' | 'Downloading', style: O
       // {(type === 'Downloaded') ? <div>'download-icon'</div> : <div>'downloading-icon'</div>}
 }
 
-function PreviewImageWithInfo ({message, isDownloading, onOpenInFileUI}: {message: Constants.AttachmentMessage, isDownloading: boolean, onOpenInFileUI: (path: string) => void}) {
-  const {downloadedPath} = message
+function PreviewImageWithInfo ({message, onOpenInFileUI}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void}) {
+  const {downloadedPath, messageState} = message
+
+  const progressBarStyle = {
+    ...(messageState === 'uploading' ? {position: 'absolute', bottom: 0, left: 0} : {}),
+  }
 
   return (
     <Box style={{position: 'relative'}}>
@@ -107,8 +107,8 @@ function PreviewImageWithInfo ({message, isDownloading, onOpenInFileUI}: {messag
       <Box style={{marginTop: globalMargins.xtiny}}>
         {!!message.progress &&
           <ProgressBar
-            style={isDownloading ? {} : {position: 'absolute', bottom: 0, left: 0}}
-            text={message.messageState === 'downloading' ? 'Downloading' : 'Uploading'}
+            style={progressBarStyle}
+            text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}
         {!!downloadedPath &&
           <Text type='BodySmallSecondaryLink' onClick={() => onOpenInFileUI(downloadedPath)}>
@@ -119,22 +119,73 @@ function PreviewImageWithInfo ({message, isDownloading, onOpenInFileUI}: {messag
   )
 }
 
+function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMessageState}) {
+  let iconType = 'icon-file-24'
+  let style = {}
+  switch (messageState) {
+    case 'downloading':
+      iconType = 'icon-file-downloading-24'
+      break
+    case 'downloaded':
+      iconType = 'icon-file-downloaded-24'
+      break
+    case 'uploading':
+    case 'pending':
+    case 'failed':
+      style = {...style, opacity: 0.4}
+  }
+  return <Icon type={iconType} style={style} />
+}
+
+function AttachmentMessageGeneric ({message, onOpenInFileUI}: Props) {
+  const {downloadedPath, messageState} = message
+  return (
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.tiny}}>
+      <Box>
+        <AttachmentIcon messageState={messageState} />
+      </Box>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
+        <AttachmentTitle {...message} />
+        {!!message.progress &&
+          <ProgressBar
+            text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
+            progress={message.progress} />}
+        {!!downloadedPath &&
+          <Text type='BodySmallSecondaryLink' onClick={() => onOpenInFileUI(downloadedPath)}>
+            Show in {fileUIName}
+          </Text>}
+      </Box>
+    </Box>
+  )
+}
+
+function AttachmentMessagePreviewImage ({message, onLoadAttachment, onOpenInFileUI}: Props) {
+  return (
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <AttachmentTitle {...message} />
+      <PreviewImageWithInfo message={message} onOpenInFileUI={onOpenInFileUI} />
+    </Box>
+  )
+}
+
 // TODO abstract this part so it is the same as message text
 class _AttachmentMessage extends PureComponent<void, Props, void> {
   render () {
-    const {message, onLoadAttachment, onOpenInFileUI} = this.props
-    const isDownloading = message.messageState === 'downloading'
+    const {message} = this.props
+
+    let attachment
+    switch (message.previewType) {
+      case 'Image':
+        attachment = <AttachmentMessagePreviewImage {...this.props} />
+        break
+      default:
+        attachment = <AttachmentMessageGeneric {...this.props} />
+
+    }
 
     return (
       <MessageComponent {...this.props}>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <AttachmentTitle {...message} />
-          {!message.downloadedPath &&
-            <Text type='Body' style={{marginTop: globalMargins.xtiny, flex: 1}} onClick={() => onLoadAttachment(message.messageID, message.filename)}>
-              Click to download: {message.title} - {message.filename}
-            </Text>}
-          <PreviewImageWithInfo message={message} isDownloading={isDownloading} onOpenInFileUI={onOpenInFileUI} />
-        </Box>
+        {attachment}
       </MessageComponent>
     )
   }

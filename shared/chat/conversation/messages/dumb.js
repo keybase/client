@@ -104,6 +104,24 @@ const attachmentMessageWithImg = {
   key: 'foo',
 }
 
+const attachmentMessageGeneric = {
+  type: 'Attachment',
+  timestamp: 1479764890000,
+  conversationIDKey: 'cid1',
+  followState: 'You',
+  author: 'marcopolo',
+  deviceName: 'MKB',
+  deviceType: 'desktop',
+  messageID: 0,
+  filename: '/tmp/The Nose - Topo.pdf',
+  title: 'seattle-map.pdf',
+  previewType: 'Other',
+  downloadedPath: '/tmp/somewhere', // eslint-disable-line
+  previewPath: null,
+  messageState: 'sent',
+  key: 'foo',
+}
+
 const attachmentBaseMock = {
   message: attachmentBaseMessage,
   includeHeader: true,
@@ -153,6 +171,46 @@ const attachmentMap: DumbComponentMap<AttachmentMessage> = {
       ...attachmentBaseMock,
       message: {
         ...attachmentMessageWithImg,
+        messageState: 'downloaded',
+      },
+    },
+    'Basic - Generic File. Uploading': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        downloadedPath: null,
+        messageState: 'uploading',
+        progress: 0.3,
+      },
+    },
+    'Basic - Generic File. Failed': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        messageState: 'failed',
+        downloadedPath: null,
+      },
+    },
+    'Basic - Generic File. sent': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        messageState: 'sent',
+      },
+    },
+    'Basic - Generic File. Downloading': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        messageState: 'downloading',
+        downloadedPath: null,
+        progress: 0.3,
+      },
+    },
+    'Basic - Generic File. Downloaded': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
         messageState: 'downloaded',
       },
     },
