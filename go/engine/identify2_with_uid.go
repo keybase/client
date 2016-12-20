@@ -802,7 +802,13 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.UserPlusKeys) {
 // Store (meUID, themUID) -> SuccessfulIDTime as we cache users to the slow cache.
 // Thus, after a cold boot, we don't start up with a cold identify cache.
 func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
-	defer e.G().Trace("Identify2WithUID#storeSlowCacheToDB", func() error { return err })()
+	prfx := fmt.Sprintf("Identify2WithUID#storeSlowCacheToDB(%s)", e.them.GetUID())
+	defer e.G().Trace(prfx, func() error { return err })()
+	if e.me == nil {
+		e.G().Log.Debug("not storing to persistent slow cache since no me user")
+		return nil
+	}
+
 	key := e.dbKey(e.them.GetUID())
 	now := keybase1.ToTime(time.Now())
 	err = e.G().LocalDb.PutObj(key, nil, now)
@@ -820,7 +826,7 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.LastIdentifiedAt }
 	u, _ := e.getCache().Get(e.them.GetUID(), fn, libkb.Identify2CacheLongTimeout)
 
-	if u == nil {
+	if u == nil && e.me != nil {
 		u = e.loadSlowCacheFromDB()
 	}
 	if u == nil {
