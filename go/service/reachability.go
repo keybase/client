@@ -63,7 +63,7 @@ func (h *reachability) setReachability(r keybase1.Reachability) {
 	defer h.setMutex.Unlock()
 
 	if h.lastReachability.Reachable != r.Reachable {
-		h.G().Log.Debug("Reachability changed: %#v", r)
+		h.G().Log.Info("Reachability changed: %#v", r)
 		h.G().NotifyRouter.HandleReachability(r)
 	}
 	h.lastReachability = r
