@@ -133,9 +133,9 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			}
 		}
 		if msg == nil {
-			// Skip conversations with no TEXT messages.
+			// Skip conversations with no visible messages.
 			// This should never happen.
-			g.Log.Warning("Skipped conversation with no TEXT: %v", conv.Info.Id)
+			g.Log.Error("Skipped conversation with no visible messages: %v", conv.Info.Id)
 			continue
 		}
 
