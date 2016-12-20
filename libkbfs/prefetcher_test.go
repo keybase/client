@@ -36,21 +36,31 @@ func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
 	}
 }
 
-func TestPrefetcherIndirectFileBlock(t *testing.T) {
-	t.Log("Test indirect file block prefetching.")
+func initPrefetcher(t *testing.T) (prefetcher, *blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, BlockCacheSimple) {
 	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
 	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), cache)
 	require.NotNil(t, q)
-	defer q.Shutdown()
 
 	bg := newFakeBlockGetter()
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
-	defer w.Shutdown()
 
 	p := newPrefetcher(q)
 	require.NotNil(t, q)
 	q.prefetcher = p
+
+	return p, q, w, bg, cache
+}
+
+func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {
+	q.Shutdown()
+	w.Shutdown()
+}
+
+func TestPrefetcherIndirectFileBlock(t *testing.T) {
+	t.Log("Test indirect file block prefetching.")
+	p, q, w, bg, cache := initPrefetcher(t)
+	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize an indirect file block pointing to 2 file data blocks.")
 	ptrs := []IndirectFilePtr{
@@ -95,19 +105,8 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	t.Log("Test indirect dir block prefetching.")
-	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), cache)
-	require.NotNil(t, q)
-	defer q.Shutdown()
-
-	bg := newFakeBlockGetter()
-	w := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, w)
-	defer w.Shutdown()
-
-	p := newPrefetcher(q)
-	require.NotNil(t, q)
-	q.prefetcher = p
+	p, q, w, bg, cache := initPrefetcher(t)
+	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize an indirect dir block pointing to 2 dir data blocks.")
 	ptrs := []IndirectDirPtr{
@@ -152,19 +151,8 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 
 func TestPrefetcherDirectDirBlock(t *testing.T) {
 	t.Log("Test direct dir block prefetching.")
-	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), cache)
-	require.NotNil(t, q)
-	defer q.Shutdown()
-
-	bg := newFakeBlockGetter()
-	w := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, w)
-	defer w.Shutdown()
-
-	p := newPrefetcher(q)
-	require.NotNil(t, q)
-	q.prefetcher = p
+	p, q, w, bg, cache := initPrefetcher(t)
+	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize a direct dir block with entries pointing to 3 files.")
 	file1 := makeFakeFileBlock(t, true)
@@ -173,7 +161,7 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	dir1 := &DirBlock{Children: map[string]DirEntry{
 		"a": makeFakeDirEntry(t, File, 100),
 		"b": makeFakeDirEntry(t, Dir, 60),
-		"c": makeFakeDirEntry(t, File, 20),
+		"c": makeFakeDirEntry(t, Exec, 20),
 	}}
 	dir2 := &DirBlock{Children: map[string]DirEntry{
 		"d": makeFakeDirEntry(t, File, 100),
