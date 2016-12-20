@@ -215,14 +215,15 @@ func (c *ConnectionManager) ApplyAll(f ApplyFn) {
 // routing loop running.
 func NewConnectionManager() *ConnectionManager {
 	ret := &ConnectionManager{
-		lookup:             make(map[ConnectionID](*rpcConnection)),
-		addConnectionCh:    make(chan *addConnectionObj),
-		lookupConnectionCh: make(chan *lookupConnectionObj),
-		removeConnectionCh: make(chan ConnectionID),
-		labelConnectionCh:  make(chan labelConnectionObj),
-		applyAllCh:         make(chan ApplyFn),
-		listAllCh:          make(chan chan<- []keybase1.ClientDetails),
-		shutdownCh:         make(chan struct{}),
+		lookup:               make(map[ConnectionID](*rpcConnection)),
+		addConnectionCh:      make(chan *addConnectionObj),
+		lookupConnectionCh:   make(chan *lookupConnectionObj),
+		removeConnectionCh:   make(chan ConnectionID),
+		labelConnectionCh:    make(chan labelConnectionObj),
+		applyAllCh:           make(chan ApplyFn),
+		listAllCh:            make(chan chan<- []keybase1.ClientDetails),
+		shutdownCh:           make(chan struct{}),
+		lookupByClientTypeCh: make(chan *lookupByClientTypeObj),
 	}
 	go ret.run()
 	return ret
