@@ -20,14 +20,14 @@ function start () {
   // Only one app per app in osx...
   const shouldQuit = app.makeSingleInstance(() => {
     if (mainWindow) {
-      mainWindow.show(true)
+      // mainWindow.show(true)
     }
   })
 
   if (shouldQuit) {
-    console.log('Only one instance of keybase GUI allowed, bailing!')
-    app.quit()
-    return
+    console.log('Only one instance of keybase GUI allowed, forging forward!')
+    // app.quit()
+    // return
   }
 
   // Check supported OS version
