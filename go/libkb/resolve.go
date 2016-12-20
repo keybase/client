@@ -111,6 +111,9 @@ func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, need
 		if tmp := au.ToUID(); tmp.Exists() {
 			return ResolveResult{uid: tmp}
 		}
+		if au.IsKeybase() {
+			return ResolveResult{uid: UsernameToUIDWithMap(r.G(), au.GetValue())}
+		}
 	}
 
 	ck := au.CacheKey()

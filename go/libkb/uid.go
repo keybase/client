@@ -84,3 +84,13 @@ func CheckUIDAgainstCasedUsername(uid keybase1.UID, username string) (err error)
 	}
 	return
 }
+
+func UsernameToUIDWithMap(g *GlobalContext, un string) keybase1.UID {
+	if g.Env.GetRunMode() != DevelRunMode {
+		key := NewNormalizedUsername(un).String()
+		if found, ok := LegacyUsernameToUIDLookup[key]; ok {
+			return keybase1.UID(found)
+		}
+	}
+	return UsernameToUID(un)
+}
