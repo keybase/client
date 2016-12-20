@@ -3,9 +3,9 @@ package libkbfs
 import (
 	"io"
 	"sort"
+	"sync"
 
 	"golang.org/x/net/context"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -25,7 +25,7 @@ type blockPrefetcher struct {
 	retriever  blockRetriever
 	progressCh chan (<-chan error)
 	doneCh     chan struct{}
-	eg         errgroup.Group
+	sg         sync.WaitGroup
 }
 
 func newPrefetcher(retriever blockRetriever) *blockPrefetcher {
@@ -41,9 +41,11 @@ func newPrefetcher(retriever blockRetriever) *blockPrefetcher {
 func (p *blockPrefetcher) run() {
 	for ch := range p.progressCh {
 		ch := ch
-		p.eg.Go(func() error {
+		p.sg.Add(1)
+		go func() error {
+			defer p.sg.Done()
 			return <-ch
-		})
+		}()
 	}
 }
 
@@ -130,7 +132,7 @@ func (p *blockPrefetcher) Shutdown() <-chan struct{} {
 	close(p.doneCh)
 	ch := make(chan struct{})
 	go func() {
-		p.eg.Wait()
+		p.sg.Wait()
 		close(ch)
 	}()
 	return ch
