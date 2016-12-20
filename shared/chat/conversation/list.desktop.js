@@ -178,6 +178,10 @@ class ConversationList extends Component<void, Props, State> {
     ReactDOM.render(popupComponent, container)
   }
 
+  _onAction = (message, event) => {
+    this._showPopup(message, event)
+  }
+
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
@@ -187,13 +191,12 @@ class ConversationList extends Component<void, Props, State> {
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
-    const onAction = (event) => { this._showPopup(message, event) }
     const isSelected = this.state.selectedMessageID === message.messageID
     const isFirstNewMessage = this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
   }
 
   _recomputeListDebounced = _.debounce(() => {

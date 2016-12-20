@@ -48,7 +48,11 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
-  _openFilePicker () {
+  _onClickEmoji = () => {
+    this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})
+  }
+
+  _openFilePicker = () => {
     if (this._fileInput) {
       this._fileInput.click()
     }
@@ -95,8 +99,8 @@ class Conversation extends Component<void, Props, State> {
               </Box>
             </Box>
           )}
-          <Icon onClick={() => this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})} style={styleIcon} type='iconfont-emoji' />
-          <Icon onClick={() => this._openFilePicker()} style={styleIcon} type='iconfont-attachment' />
+          <Icon onClick={this._onClickEmoji} style={styleIcon} type='iconfont-emoji' />
+          <Icon onClick={this._openFilePicker} style={styleIcon} type='iconfont-attachment' />
         </Box>
         <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
       </Box>
