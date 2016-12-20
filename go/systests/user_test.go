@@ -324,14 +324,20 @@ func TestSignupLogout(t *testing.T) {
 		tc.G.Log.Debug("Got notification from logout handler")
 	}
 
+	tc.G.Log.Debug("Waiting for tc2 Ctl service stop")
+
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
+
+	tc.G.Log.Debug("Waiting for msg on stopCh")
 
 	// If the server failed, it's also an error
 	if err := <-stopCh; err != nil {
 		t.Fatal(err)
 	}
+
+	tc.G.Log.Debug("Waiting for msg on logoutCh")
 
 	// Check that we only get one notification, not two
 	select {

@@ -395,22 +395,22 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
 		return
 	}
 
-	user, err := LoadMe(LoadUserArg{LoginContext: a, Contextified: NewContextified(a.G())})
-	if err != nil {
-		return
-	}
+	arg := LoadUserArg{LoginContext: a, Contextified: NewContextified(a.G()), Self: true}
+	err = a.G().FullSelfCacher.WithUser(arg, func(user *User) error {
+		var err error
+		deviceSubkey, err = user.GetDeviceSubkey()
+		if err != nil {
+			return err
+		}
+		deviceSibkey, err = user.GetDeviceSibkey()
+		if err != nil {
+			return err
+		}
+		uid = user.GetUID()
+		username = user.GetNormalizedName()
+		return nil
 
-	deviceSubkey, err = user.GetDeviceSubkey()
-	if err != nil {
-		return
-	}
-	deviceSibkey, err = user.GetDeviceSibkey()
-	if err != nil {
-		return
-	}
-
-	uid = user.GetUID()
-	username = user.GetNormalizedName()
+	})
 	token = a.localSession.GetToken()
 	return
 }

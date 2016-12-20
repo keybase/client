@@ -132,11 +132,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		res.Clients = h.G().ConnectionManager.ListAllLabeledConnections()
 	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(h.G()))
-	if err != nil {
-		h.G().Log.Debug("| could not load me user: %s", err)
-		res.DeviceErr = &keybase1.LoadDeviceErr{Where: "libkb.LoadMe", Desc: err.Error()}
-	} else {
+	err = h.G().FullSelfCacher.WithSelf(func(me *libkb.User) error {
 		device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
 		if err != nil {
 			h.G().Log.Debug("| GetCurrentDevice failed: %s", err)
@@ -144,6 +140,18 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		} else {
 			res.Device = device.ProtExport()
 		}
+
+		if me != nil && h.G().SecretStoreAll != nil {
+			s, err := h.G().SecretStoreAll.RetrieveSecret(me.GetNormalizedName())
+			if err == nil && !s.IsNil() {
+				res.StoredSecret = true
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		h.G().Log.Debug("| could not load me user: %s", err)
+		res.DeviceErr = &keybase1.LoadDeviceErr{Where: "libkb.LoadMe", Desc: err.Error()}
 	}
 
 	h.G().LoginState().Account(func(a *libkb.Account) {
@@ -186,13 +194,6 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 	res.ProvisionedUsernames = p
 	res.PlatformInfo = getPlatformInfo()
 	res.DefaultDeviceID = h.G().Env.GetDeviceID()
-
-	if me != nil && h.G().SecretStoreAll != nil {
-		s, err := h.G().SecretStoreAll.RetrieveSecret(me.GetNormalizedName())
-		if err == nil && !s.IsNil() {
-			res.StoredSecret = true
-		}
-	}
 
 	return res, nil
 }
