@@ -2,20 +2,22 @@
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::
-:: For Jenkins:
-if DEFINED WORKSPACE set GOPATH=%WORKSPACE%
 set GOARCH=386
-::
+
+
 :: get the target build folder. Assume winresource.exe has been built.
 :: If not, go there and do "go generate"
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build81
 echo DOKAN_PATH %DOKAN_PATH%
 
-for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX64=%%x
-for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX86=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr UpgradeCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanUpgradeCodeX64=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr UpgradeCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanUpgradeCodeX86=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr OldUpgradeCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set OldDokanUpgradeCodeX64=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr OldUpgradeCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set OldDokanUpgradeCodeX86=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr VCMinRequired  %DOKAN_PATH%\dokan_wix\version.xml') do set VCMinRequired=%%x
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
@@ -46,9 +48,13 @@ pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
 
 echo ^<?xml version=^"1.0^" encoding=^"utf-8^"?^> > dokanver.xml
 echo ^<Include^> >> dokanver.xml
-echo ^<?define DokanProductCodeX86=^"%DokanProductCodeX86%^" ?^> >> dokanver.xml
-echo ^<?define DokanProductCodeX64=^"%DokanProductCodeX64%^" ?^> >> dokanver.xml
+echo ^<?define DokanUpgradeCodeX64=^"%DokanUpgradeCodeX64%^" ?^> >> dokanver.xml
+echo ^<?define DokanUpgradeCodeX86=^"%DokanUpgradeCodeX86%^" ?^> >> dokanver.xml
+echo ^<?define OldDokanUpgradeCodeX64=^"%OldDokanUpgradeCodeX64%^" ?^> >> dokanver.xml
+echo ^<?define OldDokanUpgradeCodeX86=^"%OldDokanUpgradeCodeX86%^" ?^> >> dokanver.xml
+echo ^<?define VCMinRequired=^"%VCMinRequired%^" ?^> >> dokanver.xml
 echo ^<?define DOKAN_PATH=^"%DOKAN_PATH%^" ?^> >> dokanver.xml
+echo ^<?define KEYBASE_WINVER=^"%KEYBASE_WINVER%^" ?^> >> dokanver.xml
 echo ^</Include^>  >> dokanver.xml
 
 msbuild WIX_Installers.sln  /p:Configuration=Debug /p:Platform=x86 /t:Build
@@ -57,12 +63,13 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-go get github.com/keybase/release
-go install github.com/keybase/release
-set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
+:: Here we rely on the previous steps checking out and building release.exe
+set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe
 
 if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 
 move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseBundle\bin\Debug\*.exe %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 for /f %%i in ('dir /od /b *.exe') do set KEYBASE_INSTALLER_NAME=%%i
+
+
