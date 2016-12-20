@@ -58,6 +58,7 @@ func TestBackgroundIdentifier(t *testing.T) {
 		WaitHardFailure: bgIdentifyWaitHardFailure,
 		WaitSoftFailure: bgIdentifyWaitSoftFailure,
 		DelaySlot:       time.Duration(0),
+		Enabled:         true,
 	}
 
 	go func() {
