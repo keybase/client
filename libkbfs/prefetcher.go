@@ -24,6 +24,7 @@ var _ prefetcher = (*blockPrefetcher)(nil)
 type blockPrefetcher struct {
 	retriever  blockRetriever
 	progressCh chan (<-chan error)
+	shutdownCh chan struct{}
 	doneCh     chan struct{}
 	sg         sync.WaitGroup
 }
@@ -32,6 +33,7 @@ func newPrefetcher(retriever blockRetriever) *blockPrefetcher {
 	p := &blockPrefetcher{
 		retriever:  retriever,
 		progressCh: make(chan (<-chan error)),
+		shutdownCh: make(chan struct{}),
 		doneCh:     make(chan struct{}),
 	}
 	go p.run()
@@ -47,6 +49,8 @@ func (p *blockPrefetcher) run() {
 			return <-ch
 		}()
 	}
+	p.sg.Wait()
+	close(p.doneCh)
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block) error {
@@ -55,7 +59,7 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointe
 	select {
 	case p.progressCh <- ch:
 		return nil
-	case <-p.doneCh:
+	case <-p.shutdownCh:
 		cancel()
 		return io.EOF
 	}
@@ -129,11 +133,6 @@ func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 
 func (p *blockPrefetcher) Shutdown() <-chan struct{} {
 	close(p.progressCh)
-	close(p.doneCh)
-	ch := make(chan struct{})
-	go func() {
-		p.sg.Wait()
-		close(ch)
-	}()
-	return ch
+	close(p.shutdownCh)
+	return p.doneCh
 }
