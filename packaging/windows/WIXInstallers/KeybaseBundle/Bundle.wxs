@@ -30,14 +30,16 @@
             LicenseUrl="https://keybase.io/docs/terms"
             ThemeFile="HyperlinkTheme.xml"
             LocalizationFile="HyperlinkTheme.wxl"
-
             />
     </BootstrapperApplicationRef>
 
     <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
     <Variable Name="nodriver" bal:Overridable="yes" />
-    <Variable Name="DevFilesCheckbox" Type="numeric" Value="0"/> <!--Do not install Dokan developer files when value set to 0-->   
+    <Variable Name="DevFilesCheckbox" Type="numeric" Value="0"/> <!--Do not install Dokan developer files when value set to 0-->
 
+    <!--Displayed in bundle UI-->
+    <Variable Name="KeybaseVersion" Value="$(var.KEYBASE_WINVER)"/>
+    
     <!--Dokan prerequisites-->
     <util:FileSearch Id="SearchSystem"
                      Path="[SystemFolder]advapi32.dll"
@@ -72,11 +74,11 @@
     <util:ProductSearch Variable="OLD_DOKAN_VERSION_CONFLICT" UpgradeCode="$(var.OldDokanUpgradeCodeX64)" Condition="VersionNT64"/>
 
     <bal:Condition 
-      Message="Installation failed because an incompatible version of Dokan is already installed. Please uninstall the existing version first, reboot the system, and start the install again.">
-      <![CDATA[NOT (OLD_DOKAN_VERSION_CONFLICT >= v1.0.2)]]>
+      Message="#(loc.FailureIncompatibleDokan)">
+      <![CDATA[NOT (OLD_DOKAN_VERSION_CONFLICT > v1.0.1.82)]]>
     </bal:Condition>
 
-    <bal:Condition Message="Installation failed because your version of Windows is too old. Dokan requires Windows 7 SP1 or newer.">
+    <bal:Condition Message="#(loc.FailureWindowsVersion)">
       <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ServicePackLevel >= 1)]]>
     </bal:Condition>
     

@@ -158,8 +158,9 @@ func main() {
 		return
 	}
 
+	// Windows Installer only compares the first three fields of a windows version. 
 	if *printWinVerPtr {
-		fmt.Printf("%d.%d.%d.%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
+		fmt.Printf("%d.%d.%02d%03d", fv.Major, fv.Minor, fv.Patch, fv.Build)
 		return
 	}
 

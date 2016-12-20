@@ -30,8 +30,7 @@
     </Property>
     
     <!--Check installer property WIX_UPGRADE_DETECTED or UPGRADINGPRODUCTCODE to see if an upgrade is in progrss-->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." 
-                  AllowSameVersionUpgrades="yes"  />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed."/>
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <!--Typically C:\Users\USERNAME\AppData\Local-->

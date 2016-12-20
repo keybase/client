@@ -7,7 +7,7 @@
   <String Id="Title">Keybase</String>
   <String Id="InstallHeader">Welcome</String>
   <String Id="InstallMessage">Setup will install [WixBundleName] on your computer. Click install to continue, options to set the install directory or Close to exit.</String>
-  <String Id="InstallVersion">Version [WixBundleVersion]</String>
+  <String Id="InstallVersion">Version [KeybaseVersion]</String>
   <String Id="ConfirmCancelMessage">Are you sure you want to cancel?</String>
   <String Id="ExecuteUpgradeRelatedBundleMessage">Previous version</String>
   <String Id="HelpHeader">Setup Help</String>
@@ -52,6 +52,8 @@
   <String Id="FailureUninstallHeader">Uninstall Failed</String>
   <String Id="FailureRepairHeader">Repair Failed</String> 
   <String Id="FailureHyperlinkLogText">One or more issues caused the setup to fail. Please fix the issues and then retry setup. For more information see the &lt;a href="#"&gt;log file&lt;/a&gt;.</String>
+  <String Id="FailureIncompatibleDokan">Installation failed because an incompatible version of Dokan is already installed. Please uninstall the existing version first, reboot the system, and start the install again.</String>
+  <String Id="FailureWindowsVersion">Installation failed because your version of Windows is too old. Dokan requires Windows 7 SP1 or newer.</String>
   <String Id="FailureRestartText">You must restart your computer to complete the rollback of the software.</String>
   <String Id="FailureRestartButton">&amp;Restart</String>
   <String Id="FailureCloseButton">&amp;Close</String>
