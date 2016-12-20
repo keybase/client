@@ -143,6 +143,7 @@ func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 		return
 	}
 
+	ss.G().Log.Debug("| Returned object: %+v\n", obj)
 	if ss.keys == nil || obj.Version > ss.keys.Version {
 		ss.G().Log.Debug("| upgrade to version -> %d", obj.Version)
 		ss.keys = &obj

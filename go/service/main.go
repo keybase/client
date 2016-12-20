@@ -391,6 +391,10 @@ func (d *Service) tryGregordConnect() error {
 }
 
 func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
+	if true {
+		return
+	}
+
 	newBgi, err := StartOrReuseBackgroundIdentifier(d.backgroundIdentifier, d.G(), u)
 	if err != nil {
 		d.G().Log.Warning("Problem running new background identifier: %s", err)
@@ -417,20 +421,36 @@ func (d *Service) OnLogin() error {
 	return nil
 }
 
-func (d *Service) OnLogout() error {
+func (d *Service) OnLogout() (err error) {
+	defer d.G().Trace("Service#OnLogout", func() error { return err })()
+
+	log := func(s string) {
+		d.G().Log.Debug("Service#OnLogout: %s", s)
+	}
+
+	log("shutting down gregor")
 	if d.gregor == nil {
 		d.gregor.Shutdown()
 	}
+
+	log("shutting down message deliverer")
 	if d.messageDeliverer != nil {
 		d.messageDeliverer.Stop()
 	}
+
+	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()
+
+	log("shutting down badger")
 	if d.badger != nil {
 		d.badger.Clear(context.TODO())
 	}
+
+	log("shutting down BG identifier")
 	if d.backgroundIdentifier != nil {
 		d.backgroundIdentifier.Logout()
 	}
+
 	return nil
 }
 

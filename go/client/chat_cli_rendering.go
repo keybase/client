@@ -332,7 +332,7 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 	}
 
 	mv.MessageID = m.GetMessageID()
-	mv.FromRevokedDevice = m.Valid().FromRevokedDevice
+	mv.FromRevokedDevice = m.Valid().SenderDeviceRevokedAt != nil
 
 	// Check what message supersedes this one.
 	var mvsup *messageView

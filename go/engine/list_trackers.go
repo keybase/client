@@ -102,10 +102,12 @@ func (e *ListTrackersEngine) ensureUID() error {
 		e.uid = e.G().GetMyUID()
 		return nil
 	}
-	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.username))
-	if err != nil {
-		return err
-	}
-	e.uid = user.GetUID()
-	return nil
+
+	arg := libkb.NewLoadUserByNameArg(e.G(), e.username)
+	var err error
+	err = e.G().FullSelfCacher.WithUser(arg, func(user *libkb.User) error {
+		e.uid = user.GetUID()
+		return nil
+	})
+	return err
 }
