@@ -3,7 +3,7 @@ import React from 'react'
 import {Button, Input, StandardScreen} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 
-import type {Props} from './render'
+import type {Props} from '.'
 
 const EditProfileRender = (props: Props) => (
   <StandardScreen style={styleContainer} onClose={props.onBack}>

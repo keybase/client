@@ -1,33 +1,16 @@
 // @flow
-import React, {Component} from 'react'
 import ProveEnterUsername from './prove-enter-username'
-import {TypedConnector} from '../util/typed-connect'
+import {connect} from 'react-redux'
 import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress, submitZcashAddress} from '../actions/profile'
 
 import type {Props} from './prove-enter-username'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 
-type State = {
-  username: ?string,
-}
+type OwnProps = {}
 
-class ProveEnterUsernameContainer extends Component<void, any, State> {
-  state: State;
-  constructor () {
-    super()
-    this.state = {username: null}
-  }
-
-  render () {
-    return <ProveEnterUsername {...this.props} onUsernameChange={username => this.setState({username})} onContinue={() => this.props.onContinue(this.state.username)} />
-  }
-}
-
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
-
-export default connector.connect(
-  (state, dispatch, ownProps) => {
+export default connect(
+  (state: TypedState, ownProps: OwnProps) => {
     const profile = state.profile
 
     if (!profile.platform) {
@@ -35,24 +18,33 @@ export default connector.connect(
     }
 
     return {
-      canContinue: true,
+      canContinue: profile.usernameValid,
       errorCode: profile.errorCode,
       errorText: profile.errorText,
-      onCancel: () => { dispatch(cancelAddProof()) },
-      onContinue: (username: string) => {
-        dispatch(updateUsername(username))
-
-        if (profile.platform === 'btc') {
-          dispatch(submitBTCAddress())
-        } else if (profile.platform === 'zcash') {
-          dispatch(submitZcashAddress())
-        } else {
-          dispatch(submitUsername())
-        }
-      },
       platform: profile.platform,
       username: profile.username,
       waiting: profile.waiting,
     }
-  }
-)(ProveEnterUsernameContainer)
+  },
+  (dispatch: TypedDispatch<*>, ownProps: OwnProps) => ({
+    onCancel: () => { dispatch(cancelAddProof()) },
+    onUsernameChange: (username: string) => { dispatch(updateUsername(username)) },
+    onContinue: (username: string, platform: ?string) => {
+      dispatch(updateUsername(username))
+
+      if (platform === 'btc') {
+        dispatch(submitBTCAddress())
+      } else if (platform === 'zcash') {
+        dispatch(submitZcashAddress())
+      } else {
+        dispatch(submitUsername())
+      }
+    },
+  }),
+  (stateProps, dispatchProps, ownProps): Props => ({
+    ...stateProps,
+    ...dispatchProps,
+    ...ownProps,
+    onContinue: (username: string) => dispatchProps.onContinue(username, stateProps.platform),
+  })
+)(ProveEnterUsername)

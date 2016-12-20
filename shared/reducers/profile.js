@@ -3,6 +3,8 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/profile'
 import type {Actions, State} from '../constants/profile'
 
+const {checkBTC, checkZcash} = Constants
+
 const initialState: State = {
   errorText: null,
   errorCode: null,
@@ -26,16 +28,6 @@ const initialState: State = {
   },
   pgpPublicKey: null,
   proofText: null,
-}
-
-// A simple check, the server does a fuller check
-function checkBTC (address: string): boolean {
-  return !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
-}
-
-// A simple check, the server does a fuller check
-function checkZcash (address: string): boolean {
-  return true // !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
 }
 
 function checkUsernameValid (platform, username): boolean {
