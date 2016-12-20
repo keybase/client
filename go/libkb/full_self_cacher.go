@@ -82,6 +82,9 @@ func (m *FullSelfCacher) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 	} else {
 		m.G().Log.Debug("| FullSelfCacher#WithUser[%s]: cache hit", id)
 		u = m.me
+		if m.G().CachedUserLoader != nil {
+			m.G().CachedUserLoader.PutUserToCache(u)
+		}
 	}
 	return f(u)
 }
