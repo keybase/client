@@ -104,6 +104,7 @@ protocol common {
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
+    TLFVisibility visibility;
 
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;
