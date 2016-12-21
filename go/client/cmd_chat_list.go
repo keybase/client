@@ -34,19 +34,12 @@ func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 func (c *cmdChatList) Run() error {
-	ui := c.G().UI.GetTerminalUI()
-
 	conversations, err := c.fetcher.fetch(context.TODO(), c.G())
 	if err != nil {
 		return err
 	}
 
 	if !c.fetcher.async {
-		if len(conversations) == 0 {
-			ui.Printf("no conversations\n")
-			return nil
-		}
-
 		if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
 			return err
 		}
