@@ -790,6 +790,12 @@ func checkUnflushedPaths(expectedPaths []string) fileOp {
 	}, IsInit, fmt.Sprintf("checkUnflushedPaths(%s)", expectedPaths)}
 }
 
+func disablePrefetch() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.TogglePrefetch(c.user, false)
+	}, IsInit, "disablePrefetch()"}
+}
+
 func lsfavoritesOp(c *ctx, expected []string, public bool) error {
 	favorites, err := c.engine.GetFavorites(c.user, public)
 	if err != nil {

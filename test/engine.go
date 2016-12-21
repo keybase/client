@@ -134,6 +134,9 @@ type Engine interface {
 	// paths haven't yet been flushed from the journal.
 	UnflushedPaths(u User, tlfName string, isPublic bool) (
 		paths []string, err error)
+	// TogglePrefetch is called by the test harness as the given user to toggle
+	// whether prefetching should be enabled
+	TogglePrefetch(u User, enable bool) error
 	// Shutdown is called by the test harness when it is done with the
 	// given user.
 	Shutdown(u User) error
