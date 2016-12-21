@@ -367,6 +367,7 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id: conversationRemote.Metadata.ConversationID,
+		// XXX put conversationRemote visibility here
 	}
 
 	if len(conversationRemote.MaxMsgs) == 0 {
