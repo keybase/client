@@ -151,7 +151,7 @@ class ConversationList extends Component<void, Props, State> {
   }, 100)
 
   _showPopup (message: Message, event: any) {
-    if (message.type !== 'Text') return
+    if (message.type !== 'Text' && message.type !== 'Attachment') return
     this.setState({
       selectedMessageID: message.messageID,
     })

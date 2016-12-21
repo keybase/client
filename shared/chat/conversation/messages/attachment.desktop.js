@@ -169,7 +169,7 @@ function AttachmentMessagePreviewImage ({message, onLoadAttachment, onOpenInFile
 }
 
 // TODO abstract this part so it is the same as message text
-class _AttachmentMessage extends PureComponent<void, Props, void> {
+export default class AttachmentMessage extends PureComponent<void, Props, void> {
   render () {
     const {message} = this.props
 
@@ -189,8 +189,4 @@ class _AttachmentMessage extends PureComponent<void, Props, void> {
       </MessageComponent>
     )
   }
-}
-
-const stylesFirstNewMessage = {
-  borderTop: `solid 1px ${globalColors.orange}`,
 }
