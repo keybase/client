@@ -27,6 +27,12 @@ class Avatar extends Component<void, Props, State> {
     const url = shared.createAvatarUrl(props)
 
     this.state = {
+      ...this._getLoadedErrorState(url),
+    }
+  }
+
+  _getLoadedErrorState (url: ?string) {
+    return {
       avatarLoaded: !!url && _avatarCache.hasOwnProperty(url) && !!_avatarCache[url],
       errored: !!url && _avatarCache.hasOwnProperty(url) && !_avatarCache[url],
       url,
@@ -42,7 +48,12 @@ class Avatar extends Component<void, Props, State> {
     const nextUrl = shared.createAvatarUrl(nextProps)
 
     if (url !== nextUrl) {
-      this.setState({avatarLoaded: false, errored: false, url: nextUrl})
+      const nextState = this._getLoadedErrorState(nextUrl)
+      this.setState(nextState)
+      // if it's errored out we won't even try and load it so make sure we call teh onAvatarLoaded callback
+      if (this.props.onAvatarLoaded && nextState.errored) {
+        this.props.onAvatarLoaded()
+      }
     }
   }
 
