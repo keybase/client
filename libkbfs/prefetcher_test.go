@@ -85,10 +85,8 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	require.Equal(t, block1, block)
 
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
-	go func() {
-		continueCh2 <- nil
-		continueCh3 <- nil
-	}()
+	continueCh2 <- nil
+	continueCh3 <- nil
 	<-p.Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
@@ -131,10 +129,8 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	require.Equal(t, block1, block)
 
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
-	go func() {
-		continueCh2 <- nil
-		continueCh3 <- nil
-	}()
+	continueCh2 <- nil
+	continueCh3 <- nil
 	<-p.Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
@@ -182,11 +178,9 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	require.Equal(t, dir1, block)
 
 	t.Log("Release the blocks in ascending order of their size. The largest block will error.")
-	go func() {
-		continueCh4 <- nil
-		continueCh3 <- nil
-		continueCh2 <- context.Canceled
-	}()
+	continueCh4 <- nil
+	continueCh3 <- nil
+	continueCh2 <- context.Canceled
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
 	<-p.Shutdown()
 

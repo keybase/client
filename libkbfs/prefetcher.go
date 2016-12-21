@@ -41,13 +41,18 @@ func newPrefetcher(retriever blockRetriever) *blockPrefetcher {
 }
 
 func (p *blockPrefetcher) run() {
-	for ch := range p.progressCh {
-		ch := ch
-		p.sg.Add(1)
-		go func() error {
-			defer p.sg.Done()
-			return <-ch
-		}()
+runloop:
+	for {
+		select {
+		case ch := <-p.progressCh:
+			p.sg.Add(1)
+			go func() error {
+				defer p.sg.Done()
+				return <-ch
+			}()
+		case <-p.shutdownCh:
+			break runloop
+		}
 	}
 	p.sg.Wait()
 	close(p.doneCh)
@@ -119,7 +124,6 @@ func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 			p.prefetchIndirectFileBlock(b, kmd, priority)
 		}
 	case *DirBlock:
-		// If this is an on-demand request:
 		if priority >= defaultOnDemandRequestPriority {
 			if b.IsInd {
 				p.prefetchIndirectDirBlock(b, kmd, priority)
@@ -132,7 +136,10 @@ func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 }
 
 func (p *blockPrefetcher) Shutdown() <-chan struct{} {
-	close(p.progressCh)
-	close(p.shutdownCh)
+	select {
+	case <-p.shutdownCh:
+	default:
+		close(p.shutdownCh)
+	}
 	return p.doneCh
 }

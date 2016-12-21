@@ -124,6 +124,9 @@ func TestQRWithMultiBlockFiles(t *testing.T) {
 func TestCRAfterQR(t *testing.T) {
 	test(t,
 		users("alice", "bob"),
+		as(bob,
+			disablePrefetch(),
+		),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
