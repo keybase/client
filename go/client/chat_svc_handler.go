@@ -152,6 +152,17 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			continue
 		}
 
+		selfUID := c.G().Env.GetUID()
+		if selfUID.IsNil() {
+			c.G().Log.Error("Could not get self UID for api")
+		} else {
+			fromSelf := (mv.ClientHeader.Sender.String() == selfUID.String())
+			unread = unread && (!fromSelf)
+			if opts.UnreadOnly && fromSelf {
+				continue
+			}
+		}
+
 		prev := mv.ClientHeader.Prev
 		// Avoid having null show up in the output JSON.
 		if prev == nil {
