@@ -1,8 +1,7 @@
 // @flow
 import * as Constants from '../../constants/config'
-import {throttle} from 'lodash'
 import engine from '../../engine'
-import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc, apiserverGetRpc} from '../../constants/types/flow-types'
+import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
 import {navBasedOnLoginState} from '../../actions/login'
 import {registerGregorListeners, registerReachability} from '../../actions/gregor'
@@ -208,98 +207,3 @@ function getCurrentStatus (): AsyncAction {
   }
 }
 
-type Info = {
-  url: ?string,
-  callbacks: Array<(url: ?string) => void>,
-  requested: boolean,
-  done: boolean,
-  error: boolean,
-}
-
-const _usernameToURL: {[key: string]: ?Info} = {}
-
-const _getUserImages = throttle(() => {
-  const usersToResolve = Object.keys(_usernameToURL).filter(username => {
-    const info: ?Info = _usernameToURL[username]
-    if (!info || info.done || info.requested) {
-      return false
-    }
-
-    return true
-  })
-
-  usersToResolve.forEach(username => {
-    const info: ?Info = _usernameToURL[username]
-    if (info) {
-      info.requested = true
-    }
-  })
-
-  apiserverGetRpc({
-    param: {
-      endpoint: 'image/username_pic_lookups',
-      args: [
-        {key: 'usernames', value: usersToResolve.join(',')},
-        {key: 'formats', value: 'square_200'},
-      ],
-    },
-    callback: (error, response) => {
-      if (error) {
-        usersToResolve.forEach(username => {
-          const info = _usernameToURL[username]
-          const url = null
-          if (info) {
-            info.done = true
-            info.error = true
-            info.callbacks.forEach(cb => cb(url))
-          }
-        })
-      } else {
-        JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-          const username = usersToResolve[idx]
-          const url = picMap['square_200']
-          const info = _usernameToURL[username]
-          if (info) {
-            info.done = true
-            info.url = url
-            info.callbacks.forEach(cb => cb(url))
-          }
-        })
-      }
-    },
-  })
-}, 500)
-
-function validUsername (name: ?string) {
-  if (!name) {
-    return false
-  }
-
-  return !!name.match(/^([a-z0-9][a-z0-9_]{1,15})$/i)
-}
-
-export function getUserImage (username: string, callback: (url: ?string) => void): ?string {
-  if (!validUsername(username)) {
-    return null
-  }
-
-  const info = _usernameToURL[username]
-  if (info) {
-    if (!info.done) {
-      info.callbacks.push(callback)
-    }
-    return info.url
-  }
-
-  _usernameToURL[username] = {
-    url: null,
-    callbacks: [callback],
-    requested: false,
-    done: false,
-    error: false,
-  }
-
-  _getUserImages()
-
-  return null
-}

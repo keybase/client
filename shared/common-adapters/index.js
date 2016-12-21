@@ -1,5 +1,5 @@
 // @flow
-export {initAvatarLookup} from './index.shared'
+export {initAvatarLookup, initAvatarLoad} from './index.shared'
 export {default as Avatar} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'

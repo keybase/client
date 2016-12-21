@@ -3,10 +3,11 @@ import {Component} from 'react'
 
 export type AvatarSize = 176 | 112 | 80 | 64 | 56 | 48 | 40 | 32 | 24 | 16
 export type UserPictureSize = 360 | 200 | 40
-export type AvatarLookupCallback = (url: ?string) => void
-export type AvatarLookup = (username: string, callback: AvatarLookupCallback) => ?string
+export type AvatarLookupCallback = (username: string, url: ?string) => void
+export type AvatarLookup = (username: string) => ?string
+export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
 
-type CommonProps = {
+export type Props = {
   size: AvatarSize,
   style?: ?Object,
   onClick?: ?(() => void),
@@ -21,10 +22,11 @@ type CommonProps = {
   opacity?: number,
   children?: any,
   onAvatarLoaded?: () => void,
+  url?: ?string,
+  username?: ?string,
 }
-
-export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)
 
 export default class Avatar extends Component<void, Props, void> { }
 
 export function initLookup (lookup: AvatarLookup) { }
+export function initLoad (load: AvatarLoad) { }

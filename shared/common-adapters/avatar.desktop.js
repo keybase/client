@@ -4,32 +4,62 @@ import React, {PureComponent} from 'react'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-import type {Props, AvatarLookup} from './avatar'
+import type {Props, AvatarLookup, AvatarLoad} from './avatar'
 
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
 // To convert usernames/uids to avatarurls
 let _urlLookup
+let _urlLoad
 
 type State = {
   avatarLoaded: boolean,
   errored: boolean,
+  url: ?string,
 }
 
 class Avatar extends PureComponent<void, Props, State> {
   state: State;
-  _onURLLoaded: ?() => void;
+  _onURLLoaded: ?(username: string, url: ?string) => void;
 
   constructor (props: Props) {
     super(props)
-    this.state = {avatarLoaded: false, errored: false}
+
+    const urlState = this._getUrlState(props)
+    this.state = {avatarLoaded: false, errored: false, ...urlState}
   }
 
   componentDidMount () {
-    this._onURLLoaded = () => { this.forceUpdate() }
+    this._onURLLoaded = (username: string, url: ?string) => {
+      if (this.props.username === username) {
+        this.setState({url})
+      }
+    }
   }
 
   componentWillUnmount () {
     this._onURLLoaded = null
+  }
+
+  _getUrlState (props) {
+    if (props.url) {
+      return {url: props.url}
+    }
+
+    if (props.username && _urlLookup) {
+      const resolvedUrl = _urlLookup(props.username)
+
+      if (resolvedUrl) {
+        return {url: resolvedUrl}
+      }
+
+      if (_urlLoad && props.username) {
+        _urlLoad(props.username, (username: string, url: ?string) => {
+          this._onURLLoaded && this._onURLLoaded(username, url)
+        })
+      }
+    }
+
+    return {url: null}
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -37,34 +67,17 @@ class Avatar extends PureComponent<void, Props, State> {
     const nextUrl = shared.createAvatarUrl(nextProps)
 
     if (url !== nextUrl) {
-      this.setState({avatarLoaded: false, errored: false})
-      // $FlowIssue
-      if (this.props.username && _urlLookup) {
-        _urlLookup(this.props.username, () => {
-          this._onURLLoaded && this._onURLLoaded()
-        })
-      }
+      const urlState = this._getUrlState(nextProps)
+
+      this.setState({avatarLoaded: false, errored: false, ...urlState})
     }
   }
 
   render () {
-    // $FlowIssue
-    const {size, url, username} = this.props
+    const {size} = this.props
     const width = size
     const height = size
-    let resolvedURL
-    if (url) {
-      resolvedURL = url
-    } else if (username) {
-      resolvedURL = _urlLookup(username, () => {
-        this._onURLLoaded && this._onURLLoaded()
-      })
-    }
-
-    if (!resolvedURL) {
-      resolvedURL = noAvatar
-    }
-
+    const resolvedURL = this.state.url || noAvatar
     const avatarStyle = {width, height, position: 'absolute'}
     const borderStyle = this.props.borderColor ? {borderRadius: '50%', borderWidth: 2, borderStyle: 'solid', borderColor: this.props.borderColor} : {borderRadius: '50%'}
 
@@ -147,7 +160,12 @@ const initLookup = (lookup: AvatarLookup) => {
   _urlLookup = lookup
 }
 
+const initLoad = (load: AvatarLoad) => {
+  _urlLoad = load
+}
+
 export default Avatar
 export {
   initLookup,
+  initLoad,
 }

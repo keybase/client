@@ -1,12 +1,13 @@
 // @flow
 import * as shared from './avatar.shared'
+import Box from './box'
 import React, {Component} from 'react'
 import _ from 'lodash'
-import type {Props} from './avatar'
-import Box from './box'
 import {TouchableOpacity, Image} from 'react-native'
 import {globalStyles} from '../styles'
 import {iconMeta} from './icon.constants'
+
+import type {Props} from './avatar'
 
 type State = {
   avatarLoaded: boolean,
