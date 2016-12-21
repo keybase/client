@@ -559,6 +559,7 @@ export type ConversationLocal = {
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
+  visibility: TLFVisibility,
   finalizeInfo?: ?ConversationFinalizeInfo,
   activeList?: ?Array<gregor1.UID>,
 }

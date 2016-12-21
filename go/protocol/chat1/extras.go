@@ -192,3 +192,7 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 func (o OutboxID) Eq(r OutboxID) bool {
 	return bytes.Equal(o, r)
 }
+
+func (t TLFVisibility) Eq(r TLFVisibility) bool {
+	return int(t) == int(r)
+}
