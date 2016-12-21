@@ -140,6 +140,13 @@ func (u *CachedUserLoader) putUPKToCache(obj *keybase1.UserPlusAllKeys) error {
 	return err
 }
 
+func (u *CachedUserLoader) PutUserToCache(user *User) error {
+	upak := user.ExportToUserPlusAllKeys(keybase1.Time(0))
+	upak.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
+	err := u.putUPKToCache(&upak)
+	return err
+}
+
 // loadWithInfo loads a user by UID from the CachedUserLoader object. The 'info'
 // object contains information about how the request was handled, but otherwise,
 // this method behaves like (and implements) the public CachedUserLoader#Load
@@ -324,12 +331,19 @@ func (u *CachedUserLoader) LoadDeviceKey(uid keybase1.UID, deviceID keybase1.Dev
 	return upk, deviceKey, revoked, err
 }
 
-func (u *CachedUserLoader) LookupUsername(uid keybase1.UID) NormalizedUsername {
+func (u *CachedUserLoader) LookupUsername(uid keybase1.UID) (NormalizedUsername, error) {
 	var info CachedUserLoadInfo
 	arg := NewLoadUserByUIDArg(u.G(), uid)
 	arg.StaleOK = true
-	upk, _, _ := u.loadWithInfo(arg, &info)
-	return NewNormalizedUsername(upk.Base.Username)
+	upk, _, err := u.loadWithInfo(arg, &info)
+	var blank NormalizedUsername
+	if err != nil {
+		return blank, err
+	}
+	if upk == nil {
+		return blank, UserNotFoundError{UID: uid, Msg: "in CachedUserLoader"}
+	}
+	return NewNormalizedUsername(upk.Base.Username), nil
 }
 
 func (u *CachedUserLoader) lookupUsernameAndDeviceWithInfo(uid keybase1.UID, did keybase1.DeviceID, info *CachedUserLoadInfo) (username NormalizedUsername, deviceName string, deviceType string, err error) {
@@ -358,4 +372,17 @@ func (u *CachedUserLoader) lookupUsernameAndDeviceWithInfo(uid keybase1.UID, did
 
 func (u *CachedUserLoader) LookupUsernameAndDevice(uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error) {
 	return u.lookupUsernameAndDeviceWithInfo(uid, did, nil)
+}
+
+func (u *CachedUserLoader) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error) {
+	arg := NewLoadUserByUIDArg(u.G(), uid)
+	upk, _, err := u.Load(arg)
+	if err != nil {
+		return nil, err
+	}
+	var ret []keybase1.UID
+	for _, t := range upk.RemoteTracks {
+		ret = append(ret, t.Uid)
+	}
+	return ret, nil
 }

@@ -547,7 +547,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
       dispatch(navigateAppend([{
         selected: 'success',
         props: {
-          paperKey: new HiddenString(phrase),
+          paperkey: new HiddenString(phrase),
           waiting: false,
           onFinish: () => { response.result() },
           onBack: () => onBack(response),

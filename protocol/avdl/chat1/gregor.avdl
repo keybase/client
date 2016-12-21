@@ -49,4 +49,9 @@ protocol gregor {
         int UnreadMessages;
     }
 
+    record TLFFinalizeUpdate {
+        ConversationFinalizeInfo finalizeInfo;
+        array<ConversationID> convIDs;
+    }
+
 }

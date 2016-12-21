@@ -378,14 +378,22 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 
+	// Set to true later if visible messages are in max messages.
+	conversationLocal.IsEmpty = true
+
 	var maxValidID chat1.MessageID
 	for _, mm := range conversationLocal.MaxMessages {
 		if mm.IsValid() {
 			body := mm.Valid().MessageBody
-			if t, err := body.MessageType(); err != nil {
+			typ, err := body.MessageType()
+			if err != nil {
 				return chat1.ConversationLocal{}, err
-			} else if t == chat1.MessageType_METADATA {
+			}
+			if typ == chat1.MessageType_METADATA {
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
+			}
+			if utils.IsVisibleChatMessageType(typ) {
+				conversationLocal.IsEmpty = false
 			}
 
 			if mm.GetMessageID() >= maxValidID {

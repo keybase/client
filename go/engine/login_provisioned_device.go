@@ -56,7 +56,21 @@ func (e *LoginProvisionedDevice) Run(ctx *Context) error {
 	if err == nil && in {
 		if len(e.username) == 0 || e.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
 			// already logged in, make sure to unlock device keys
-			return e.unlockDeviceKeys(ctx, nil)
+			var partialCopy *libkb.User
+			err = e.G().FullSelfCacher.WithSelf(func(user *libkb.User) error {
+
+				// We don't want to hold onto the full cached user during
+				// the whole `unlockDeviceKey` run below, which touches
+				// a lot of (potentially reentrant) code. A partial copy
+				// will suffice. We won't need the non-copied fields
+				// (like the sigchain and ID table).
+				partialCopy = user.PartialCopy()
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			return e.unlockDeviceKeys(ctx, partialCopy)
 		}
 	}
 
@@ -135,13 +149,6 @@ func (e *LoginProvisionedDevice) Run(ctx *Context) error {
 }
 
 func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
-	if me == nil {
-		var err error
-		me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-		if err != nil {
-			return err
-		}
-	}
 
 	ska := libkb.SecretKeyArg{
 		Me:      me,

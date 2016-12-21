@@ -31,7 +31,7 @@ func (h *tlfHandler) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 		return nil, fmt.Errorf("KBFS client wasn't found")
 	}
 	return &keybase1.TlfKeysClient{
-		Cli: rpc.NewClient(*xp, libkb.ErrorUnwrapper{}),
+		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}),
 	}, nil
 }
 
