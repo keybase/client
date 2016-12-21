@@ -6,9 +6,9 @@ import {selector as remotePurgeMessageSelector} from '../shared/pgp/container.de
 import {selector as trackerSelector} from '../shared/tracker'
 import {selector as unlockFoldersSelector} from '../shared/unlock-folders'
 
-// import type {Components} from '../renderer/remote-component'
+import type {Components} from '../renderer/remote-component'
 
-const componentToSelector :{[key: string]: Function} = {
+const componentToSelector :{[key: Components]: Function} = {
   'tracker': trackerSelector,
   'menubar': menubarSelector,
   'unlockFolders': unlockFoldersSelector,
