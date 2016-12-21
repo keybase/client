@@ -237,10 +237,10 @@ const _getUserImages = throttle(() => {
 
   apiserverGetRpc({
     param: {
-      endpoint: 'user/lookup',
+      endpoint: 'image/username_pic_lookups',
       args: [
         {key: 'usernames', value: usersToResolve.join(',')},
-        {key: 'fields', value: 'profile'},
+        {key: 'formats', value: 'square_200'},
       ],
     },
     callback: (error, response) => {
@@ -255,9 +255,9 @@ const _getUserImages = throttle(() => {
           }
         })
       } else {
-        JSON.parse(response.body).them.forEach((r, idx) => {
+        JSON.parse(response.body).pictures.forEach((picMap, idx) => {
           const username = usersToResolve[idx]
-          const url = `https://keybase.io/${username}/picture`
+          const url = picMap['square_200']
           const info = _usernameToURL[username]
           if (info) {
             info.done = true
@@ -270,7 +270,19 @@ const _getUserImages = throttle(() => {
   })
 }, 500)
 
+function validUsername (name: ?string) {
+  if (!name) {
+    return false
+  }
+
+  return !!name.match(/^([a-z0-9][a-z0-9_]{1,15})$/i)
+}
+
 export function getUserImage (username: string, callback: (url: ?string) => void): ?string {
+  if (!validUsername(username)) {
+    return null
+  }
+
   const info = _usernameToURL[username]
   if (info) {
     if (!info.done) {
