@@ -11,7 +11,7 @@ class InviteGenerated extends Component<void, Props, void> {
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', justifyContent: 'center', alignItems: 'center'}}>
-        <Icon type='iconfont-close' style={{...globalStyles.clickable, position: 'absolute', right: 0, top: 0}} onClick={this.props.onClose} />
+        <Icon type='iconfont-close' style={{...globalStyles.clickable, position: 'absolute', right: globalMargins.small, top: globalMargins.small}} onClick={this.props.onClose} />
         <Icon type='icon-invite-link-48' />
         {
           this.props.email

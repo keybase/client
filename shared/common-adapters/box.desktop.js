@@ -1,7 +1,10 @@
 // @flow
-import React from 'react'
+import React, {Component} from 'react'
 
-const Box = (props: any) => (
-  <div {...props} />
-)
-export default Box
+export default class Box extends Component {
+  render () {
+    return (
+      <div {...this.props} />
+    )
+  }
+}

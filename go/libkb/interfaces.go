@@ -40,6 +40,7 @@ type configGetter interface {
 	GetGpgHome() string
 	GetGpgOptions() []string
 	GetGregorDisabled() (bool, bool)
+	GetBGIdentifierDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorURI() string
@@ -527,4 +528,13 @@ type MessageDeliverer interface {
 	Start(uid gregor1.UID)
 	Stop()
 	ForceDeliverLoop()
+}
+
+// UserChangedHandler is a generic interface for handling user changed events.
+// If the call returns an error, we'll remove this handler from the list, under the
+// supposition that it's now dead.
+type UserChangedHandler interface {
+	// HandlerUserChanged is called when the with User with the given UID has
+	// changed, either because of a sigchain change, or a profile change.
+	HandleUserChanged(uid keybase1.UID) error
 }

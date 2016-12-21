@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Text from './text'
+import Popup from './popup'
 import {Box} from '../../../common-adapters'
 import HiddenString from '../../../util/hidden-string'
 import {messageStates, followStates} from '../../../constants/chat'
@@ -10,7 +11,7 @@ import type {FollowState, MessageState, TextMessage} from '../../../constants/ch
 import type {DumbComponentMap} from '../../../constants/types/more'
 
 let mockKey = 1
-function messageMock (messageState: MessageState, followState: FollowState, text?: string): TextMessage {
+function messageMock (messageState: MessageState, followState: FollowState, text?: ?string, senderDeviceRevokedAt?: number): TextMessage {
   return {
     type: 'Text',
     author: 'cecileb',
@@ -22,6 +23,7 @@ function messageMock (messageState: MessageState, followState: FollowState, text
     timestamp: 1479764890000,
     conversationIDKey: 'cid1',
     key: mockKey++,
+    senderDeviceRevokedAt,
   }
 }
 
@@ -32,6 +34,10 @@ const baseMock = {
   onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
   onEdit: () => console.log('onEdit'),
   onDelete: () => console.log('onDelete'),
+  onAction: () => console.log('onAction'),
+  isFirstNewMessage: false,
+  isSelected: false,
+  style: {},
 }
 
 const mocks = followStates.reduce((outerAcc, followState) => (
@@ -44,6 +50,8 @@ const mocks = followStates.reduce((outerAcc, followState) => (
     ), outerAcc),
   }
 ), {})
+
+mocks['from revoked device'] = {...baseMock, message: messageMock('sent', 'Following', null, 123456)}
 
 const StackedMessages = ({mock1, mock2}: any) => (
   <Box>
@@ -79,7 +87,32 @@ const stackedMessagesMap = {
   },
 }
 
+const basePopupMock = {
+  onEditMessage: () => console.log('onEditMessage'),
+  onDeleteMessage: () => console.log('onDeleteMessage'),
+  onHidden: () => console.log('onHidden'),
+  parentProps: {
+    style: {
+      position: 'relative',
+      margin: 20,
+      height: 300,
+      width: 196,
+    },
+  },
+}
+
+const popupMap: DumbComponentMap<Popup> = {
+  component: Popup,
+  mocks: {
+    'Following - Valid': {...basePopupMock, message: messageMock('sent', 'Following')},
+    'Following - Revoked': {...basePopupMock, message: messageMock('sent', 'Following', null, 123456)},
+    'You - Valid': {...basePopupMock, message: messageMock('sent', 'You')},
+    'You - Revoked': {...basePopupMock, message: messageMock('sent', 'You', null, 123456)},
+  },
+}
+
 export default {
   'Text Message': textMap,
   'Stacked Text Message': stackedMessagesMap,
+  'Popup': popupMap,
 }

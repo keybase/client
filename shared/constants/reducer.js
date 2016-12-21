@@ -37,6 +37,27 @@ export type TypedState = {
   unlockFolders: UnlockFoldersState,
 }
 
+export type StateLogTransformer = (state: TypedState) => Object
+
 // TODO swap State with TypedState when TypedState includes everything we care about
 export type State = {[key: string]: any}
 export const stateKey = 'reducer:stateKey'
+
+// TODO expand this
+export const stateLogTransformer: StateLogTransformer = (state) => {
+  const {
+    config: {
+      username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
+    },
+    routeTree,
+    tracker,
+  } = state
+
+  return {
+    config: {
+      username, uid, loggedIn, error, bootstrapTriesRemaining, bootStatus,
+    },
+    routeTree,
+    tracker,
+  }
+}

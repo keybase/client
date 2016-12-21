@@ -24,7 +24,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
         style={{
           ...globalStyles.clickable,
           [borderLocation]: `solid 2px ${this.props.selected ? selectedColor : 'transparent'}`,
-          padding: '4px 12px',
+          padding: '8px 12px',
           ...this.props.style,
         }}>
         <Text
@@ -32,7 +32,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
           style={{
             ...globalStyles.clickable,
             color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
-            fontSize: 13,
+            fontSize: 11,
             ...underlineStyle,
           }}>
           {this.props.label}

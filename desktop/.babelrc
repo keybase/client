@@ -1,17 +1,28 @@
 {
-  "presets": ["react"],
+  "presets": [
+    [
+      "env",
+      {
+        "targets": {
+          "electron": 1.4
+        },
+        "loose": true,
+        "debug": true,
+        "useBuiltIns": false
+      }
+    ],
+    "babel-preset-react"
+  ],
   "plugins": [
-    "babel-plugin-transform-es2015-modules-commonjs",
-    "babel-plugin-transform-es2015-destructuring",
-    "babel-plugin-syntax-trailing-function-commas",
-    "babel-plugin-transform-object-rest-spread",
-    "babel-plugin-transform-class-constructor-call",
-    "babel-plugin-transform-class-properties",
-    "babel-plugin-transform-export-extensions",
-    "babel-plugin-transform-class-constructor-call",
-    "babel-plugin-transform-export-extensions",
-    "babel-plugin-transform-class-properties",
-    "babel-plugin-syntax-dynamic-import",
-    "babel-plugin-transform-object-rest-spread"
+    "babel-plugin-transform-runtime",
+    "react-hot-loader/babel",
+    [
+      "babel-plugin-transform-builtin-extend",
+      {
+        "globals": [
+          "Error"
+        ]
+      }
+    ]
   ]
 }

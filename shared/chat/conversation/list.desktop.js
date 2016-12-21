@@ -32,6 +32,7 @@ class ConversationList extends Component<void, Props, State> {
   state: State;
   _toRemeasure: List;
   _lastWidth: ?number;
+  _mounted: boolean = false;
 
   constructor (props: Props) {
     super(props)
@@ -66,8 +67,10 @@ class ConversationList extends Component<void, Props, State> {
   componentWillUpdate (nextProps: Props, nextState: State) {
     // If a message has moved from pending to sent, tell the List to discard
     // heights for it (which will re-render it and everything after it)
+    // TODO this doesn't work for things that take a bit to load (imgs)
     if (this._toRemeasure.length) {
       this._toRemeasure.forEach(item => {
+        this._cellCache.clearRowHeight(item)
         this._list && this._list.recomputeRowHeights(item)
       })
       this._toRemeasure = []
@@ -90,6 +93,14 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
+  componentWillMount () {
+    this._mounted = true
+  }
+
+  componentWillUnmount () {
+    this._mounted = false
+  }
+
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
       this.setState({isLockedToBottom: true})
@@ -110,21 +121,27 @@ class ConversationList extends Component<void, Props, State> {
       if (item.messageID !== props.messages.get(index, {}).messageID) {
         this._toRemeasure.push(index + 1)
       }
+
+      if (item.previewPath !== props.messages.get(index, {}).previewPath) {
+        this._toRemeasure.push(index + 1)
+      }
     })
   }
 
   _onScrollSettled = _.debounce(() => {
     // If we've stopped scrolling let's update our internal messages
     this._invalidateChangedMessages(this.props)
-    this.setState({
-      isScrolling: false,
-      ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
-    })
+    if (this._mounted) {
+      this.setState({
+        isScrolling: false,
+        ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
+      })
+    }
   }, 1000)
 
   _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
     // Do nothing if we haven't really loaded anything
-    if (!clientHeight) {
+    if (!clientHeight || !this._mounted) {
       return
     }
 
@@ -182,6 +199,9 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     const message = this.state.messages.get(index - 1)
+    if (!message) {
+      return null
+    }
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
@@ -190,7 +210,7 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
   }
 
   _recomputeListDebounced = _.debounce(() => {

@@ -325,3 +325,11 @@ func GetAPIServerClient(g *libkb.GlobalContext) (cli keybase1.ApiserverClient, e
 	cli = keybase1.ApiserverClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetSessionClient(g *libkb.GlobalContext) (keybase1.SessionClient, error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return keybase1.SessionClient{}, err
+	}
+	return keybase1.SessionClient{Cli: rcli}, nil
+}

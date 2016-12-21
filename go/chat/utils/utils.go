@@ -257,3 +257,19 @@ func IsVisibleChatConversationStatus(status chat1.ConversationStatus) bool {
 	}
 	return false
 }
+
+func VisibleChatMessageTypes() []chat1.MessageType {
+	return []chat1.MessageType{
+		chat1.MessageType_TEXT,
+		chat1.MessageType_ATTACHMENT,
+	}
+}
+
+func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
+	for _, mt := range VisibleChatMessageTypes() {
+		if messageType == mt {
+			return true
+		}
+	}
+	return false
+}

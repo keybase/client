@@ -122,6 +122,10 @@ func (p CommandLine) GetGregorSaveInterval() (time.Duration, bool) {
 func (p CommandLine) GetGregorDisabled() (bool, bool) {
 	return p.GetBool("push-disabled", true)
 }
+func (p CommandLine) GetBGIdentifierDisabled() (bool, bool) {
+	return p.GetBool("bg-identifier-disabled", true)
+}
+
 func (p CommandLine) GetGregorURI() string {
 	return p.GetGString("push-server-uri")
 }
@@ -472,6 +476,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "vdebug",
 			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
+		},
+		cli.BoolFlag{
+			Name:  "bg-identifier-disabled",
+			Usage: "supply to disable the BG identifier loop",
 		},
 	}
 	if extraFlags != nil {

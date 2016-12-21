@@ -60,6 +60,7 @@ class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (e
               <div style={_textContainerStyle}>
                 <MessageText message={message} style={_messageTextStyle} />
                 <div className='action-button'>
+                  {message.senderDeviceRevokedAt && <Icon type='iconfont-info' style={_infoStyle} />}
                   <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
                 </div>
               </div>
@@ -72,8 +73,14 @@ class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (e
   }
 }
 
+const _infoStyle = {
+  fontSize: 10,
+  color: globalColors.blue,
+}
+
 const _ellipsisStyle = {
-  marginLeft: globalMargins.tiny,
+  fontSize: 13,
+  marginLeft: globalMargins.xtiny,
   marginRight: globalMargins.tiny,
 }
 
@@ -105,6 +112,10 @@ const _avatarStyle = {
   marginRight: globalMargins.tiny,
 }
 
+const stylesFirstNewMessage = {
+  borderTop: `solid 1px ${globalColors.orange}`,
+}
+
 export default compose(
   shouldUpdate((props: Props, nextProps: Props) => {
     return !shallowEqual(props, nextProps, (obj, oth, key) => {
@@ -120,7 +131,3 @@ export default compose(
     },
   })
 )(_MessageTextComponent)
-
-const stylesFirstNewMessage = {
-  borderTop: `solid 1px ${globalColors.orange}`,
-}

@@ -51,12 +51,14 @@ func TestBackgroundIdentifier(t *testing.T) {
 		},
 	}
 
-	// Parameters might meet certain proportions below, so we can't
+	// Settings might meet certain proportions below, so we can't
 	// really fiddle with these without changing the tests.
-	bgi.params = BackgroundIdentifierParameters{
+	bgi.settings = BackgroundIdentifierSettings{
 		WaitClean:       bgIdentifyWaitClean,
 		WaitHardFailure: bgIdentifyWaitHardFailure,
 		WaitSoftFailure: bgIdentifyWaitSoftFailure,
+		DelaySlot:       time.Duration(0),
+		Enabled:         true,
 	}
 
 	go func() {
