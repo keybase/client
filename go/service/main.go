@@ -220,6 +220,14 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
+	d.RunBackgroundOperations(uir)
+
+	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
+
+	return err
+}
+
+func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// These are all background-ish operations that the service performs.
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
@@ -231,10 +239,6 @@ func (d *Service) Run() (err error) {
 	d.configureRekey(uir)
 	d.tryLogin()
 	d.runBackgroundIdentifier()
-
-	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
-
-	return err
 }
 
 func (d *Service) createMessageDeliverer() {
