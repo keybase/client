@@ -37,7 +37,7 @@ function start () {
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
     if (!semver.satisfies(os.release(), '>=14.0.0')) {
-      dialog.showErrorBox('Keybase Error', 'This version of OS X isn\'t currently supported.')
+      dialog.showErrorBox('Keybase Error', 'This version of macOS isn\'t currently supported.')
       app.quit()
       return
     }
