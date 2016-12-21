@@ -214,7 +214,7 @@ func lookupPrivateTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query k
 func GetInboxQueryLocalToRemote(ctx context.Context,
 	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (
-	rquery *chat1.GetInboxQuery, breaks []keybase1.TLFIdentifyFailure, err error) {
+	rquery *chat1.GetInboxQuery, info *TLFInfo, err error) {
 
 	if lquery == nil {
 		return nil, nil, nil
@@ -222,12 +222,12 @@ func GetInboxQueryLocalToRemote(ctx context.Context,
 
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
-		info, err := LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility(), identifyBehavior)
+		var err error
+		info, err = LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility(), identifyBehavior)
 		if err != nil {
 			return nil, nil, err
 		}
 		rquery.TlfID = &info.ID
-		breaks = info.IdentifyFailures
 	}
 
 	rquery.After = lquery.After
@@ -241,7 +241,7 @@ func GetInboxQueryLocalToRemote(ctx context.Context,
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
 
-	return rquery, breaks, nil
+	return rquery, info, nil
 }
 
 const (

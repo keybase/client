@@ -67,8 +67,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (
 	Inbox, *chat1.RateLimit, error) {
 
-	rquery, _, err := utils.GetInboxQueryLocalToRemote(ctx,
-		s.getTlfInterface(), query, identifyBehavior)
+	rquery, tlfInfo, err := utils.GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query, identifyBehavior)
 	if err != nil {
 		return Inbox{}, nil, err
 	}
@@ -89,31 +88,25 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	}
 	for _, convLocal := range convLocals {
 		if rquery != nil && rquery.TlfID != nil {
-
-			// PC:  Notes
-			// I don't think this call is necessary.
-			// If we are here, then query.TlfName was specified.
-			// utils.GetInboxQueryLocalToRemote() got TlfID for query.TlfName and put it in rquery.TlfID
-			// utils.GetInboxQueryLocalToRemote() also got canonical tlf name, but did nothing with it.
-			//
-			// if we save the canonical tlf name found in utils.GetInboxQueryLocalToRemote(), then
-			//
-			// doesn't it suffice to check if all the following match
-			// * convLocal.Info.TlfName matches canonical tlf name from utils.GetInboxQueryLocalToRemote()
-			// * convLocal.Info.Visibility matches rquery.Visibility()
-			// * convLocal.Info.Triple.Tlfid == rquery.TlfID
-			// ???
-
-			// Verify using signed TlfName to make sure server returned genuine conversation.
-			info, err := utils.LookupTLF(ctx, s.getTlfInterface(), convLocal.Info.TlfName, convLocal.Info.Visibility, identifyBehavior)
-			if err != nil {
-				return Inbox{}, ib.RateLimit, err
+			// inbox query contained a TLF name, so check to make sure that
+			// the conversation from the server matches tlfInfo from kbfs
+			if convLocal.Info.TlfName != tlfInfo.CanonicalName {
+				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TlfName, tlfInfo.CanonicalName)
 			}
-			// The *rquery.TlfID is trusted source of TLF ID here since it's derived
-			// from the TLF name in the query.
-			if !info.ID.Eq(*rquery.TlfID) || !info.ID.Eq(convLocal.Info.Triple.Tlfid) {
-				return Inbox{}, ib.RateLimit, errors.New("server returned conversations for different TLF than query")
+			if convLocal.Info.Visibility != rquery.Visibility() {
+				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF visibility mismatch: %s, expected %s", convLocal.Info.Visibility, rquery.Visibility())
 			}
+			if !tlfInfo.ID.Eq(convLocal.Info.Triple.Tlfid) {
+				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF ID mismatch: %s, expected %s", convLocal.Info.Triple.Tlfid, tlfInfo.ID)
+			}
+			// tlfInfo.ID and rquery.TlfID should always match, but just in case:
+			if !rquery.TlfID.Eq(convLocal.Info.Triple.Tlfid) {
+				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF ID mismatch: %s, expected %s", convLocal.Info.Triple.Tlfid, rquery.TlfID)
+			}
+
+			// Note that previously, we made a call to KBFS to lookup the TLF in
+			// convLocal.Info.TlfName and verify that, but the above checks accomplish
+			// the same thing without an RPC call.
 		}
 
 		// server can't query on topic name, so we have to do it ourselves in the loop

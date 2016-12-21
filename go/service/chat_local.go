@@ -71,7 +71,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
 	}
 
-	rquery, identifyFailures, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
+	rquery, tlfInfo, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -86,7 +86,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
-		IdentifyFailures:        identifyFailures,
+		IdentifyFailures:        tlfInfo.IdentifyFailures,
 	}, nil
 }
 
