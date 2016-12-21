@@ -105,7 +105,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 			// ???
 
 			// Verify using signed TlfName to make sure server returned genuine conversation.
-			info, err := utils.LookupTLF(ctx, s.getTlfInterface(), convLocal.Info.TlfName, rquery.Visibility(), identifyBehavior)
+			info, err := utils.LookupTLF(ctx, s.getTlfInterface(), convLocal.Info.TlfName, convLocal.Info.Visibility, identifyBehavior)
 			if err != nil {
 				return Inbox{}, ib.RateLimit, err
 			}
