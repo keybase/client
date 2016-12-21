@@ -81,6 +81,7 @@ class Conversation extends Component<void, Props, State> {
             value={this.props.inputText}
             multiline={true}
             rowsMin={1}
+            rowsMax={5}
             onEnterKeyDown={(e) => {
               e.preventDefault()
               if (this.props.inputText) {
