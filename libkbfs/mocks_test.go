@@ -2738,6 +2738,16 @@ func (_mr *_MockBlockOpsRecorder) Archive(arg0, arg1, arg2 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Archive", arg0, arg1, arg2)
 }
 
+func (_m *MockBlockOps) TogglePrefetcher(ctx context.Context, enable bool) error {
+	ret := _m.ctrl.Call(_m, "TogglePrefetcher", ctx, enable)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockOpsRecorder) TogglePrefetcher(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TogglePrefetcher", arg0, arg1)
+}
+
 func (_m *MockBlockOps) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }

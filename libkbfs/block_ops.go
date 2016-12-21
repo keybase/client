@@ -129,6 +129,20 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 	return b.config.BlockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
 }
 
+// TogglePrefetcher implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) TogglePrefetcher(ctx context.Context,
+	enable bool) error {
+	select {
+	case <-b.queue.prefetcher.Shutdown():
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	if enable {
+		b.queue.SetPrefetcher(newPrefetcher(b.queue))
+	}
+	return nil
+}
+
 // Shutdown implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Shutdown() {
 	b.queue.prefetcher.Shutdown()

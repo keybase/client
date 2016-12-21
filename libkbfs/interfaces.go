@@ -1039,6 +1039,9 @@ type BlockOps interface {
 	// than folder writers.
 	Archive(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) error
 
+	// TogglePrefetcher activates or deactivates the prefetcher.
+	TogglePrefetcher(ctx context.Context, enable bool) error
+
 	// Shutdown shuts down all the workers performing Get operations
 	Shutdown()
 }

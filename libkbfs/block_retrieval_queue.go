@@ -98,6 +98,9 @@ type blockRetrievalQueue struct {
 	codec kbfscodec.Codec
 	// BlockCacheSimple for retrieving and putting blocks
 	cache BlockCacheSimple
+
+	// protects prefetcher
+	prefetchMtx sync.RWMutex
 	// prefetcher for handling prefetching scenarios
 	prefetcher prefetcher
 }
@@ -243,9 +246,13 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	if brq.cache != nil && err == nil {
 		brq.cache.Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
 	}
-	if brq.prefetcher != nil {
-		brq.prefetcher.HandleBlock(block, retrieval.kmd, retrieval.priority)
-	}
+	go func() {
+		brq.prefetchMtx.RLock()
+		defer brq.prefetchMtx.RUnlock()
+		if brq.prefetcher != nil {
+			brq.prefetcher.HandleBlock(block, retrieval.kmd, retrieval.priority)
+		}
+	}()
 	for _, r := range retrieval.requests {
 		req := r
 		if block != nil {
@@ -264,4 +271,14 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	default:
 		close(brq.doneCh)
 	}
+}
+
+// SetPrefetcher allows us to replace the prefetcher
+func (brq *blockRetrievalQueue) SetPrefetcher(p prefetcher) {
+	brq.prefetchMtx.Lock()
+	defer brq.prefetchMtx.Unlock()
+	if brq.prefetcher != nil {
+		brq.prefetcher.Shutdown()
+	}
+	brq.prefetcher = p
 }
