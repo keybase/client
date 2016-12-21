@@ -7,6 +7,7 @@ package libdokan
 import (
 	"os"
 	"path"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/dokan"
@@ -77,9 +78,11 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 	}
 	log.CDebugf(ctx, "New folder name guess: %q %q", newFolderName, newFolderAltName)
 
-	err = mounter.Mount(&options.DokanConfig, log)
-	if err != nil {
-		return libfs.MountError(err.Error())
+	if !strings.EqualFold(options.DokanConfig.Path, "none") {
+		err = mounter.Mount(&options.DokanConfig, log)
+		if err != nil {
+			return libfs.MountError(err.Error())
+		}
 	}
 
 	return nil
