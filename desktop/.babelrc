@@ -1,7 +1,6 @@
 {
   "presets": ["babel-preset-es2015", "babel-preset-stage-1", "babel-preset-react"],
   "plugins": [
-    "transform-flow-strip-types",
     "babel-plugin-transform-runtime",
     "react-hot-loader/babel",
     ["babel-plugin-transform-builtin-extend", {
