@@ -1,6 +1,7 @@
 // @flow
 import * as shared from './avatar.shared'
-import React, {PureComponent} from 'react'
+import React, {Component} from 'react'
+import shallowEqual from 'shallowequal'
 import type {Props} from './avatar'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
@@ -17,12 +18,23 @@ type State = {
 const _avatarCache: {[key: string]: ?boolean} = {
 }
 
-class Avatar extends PureComponent<void, Props, State> {
+class Avatar extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
     super(props)
-    this.state = {avatarLoaded: false, errored: false, url: shared.createAvatarUrl(props)}
+
+    const url = shared.createAvatarUrl(props)
+
+    this.state = {
+      avatarLoaded: !!url && _avatarCache.hasOwnProperty(url) && !!_avatarCache[url],
+      errored: !!url && _avatarCache.hasOwnProperty(url) && !_avatarCache[url],
+      url,
+    }
+  }
+
+  shouldComponentUpdate (nextProps: Props, nextState: State) {
+    return !shallowEqual(this.state, nextState) || !shallowEqual(this.props, nextProps)
   }
 
   componentWillReceiveProps (nextProps: Props) {

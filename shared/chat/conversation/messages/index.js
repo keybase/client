@@ -1,13 +1,15 @@
 // @flow
-import MessageText from './text'
 import * as ChatConstants from '../../../constants/chat'
 import AttachmentMessage from './attachment'
-import Timestamp from './timestamp'
-import {formatTimeForMessages} from '../../../util/timestamp'
+import MessageText from './text'
 import React from 'react'
+import Timestamp from './timestamp'
 import {Box} from '../../../common-adapters'
+import {formatTimeForMessages} from '../../../util/timestamp'
 
 import type {Message, ServerMessage} from '../../../constants/chat'
+
+const _onRetry = () => console.log('todo, hookup onRetry')
 
 const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void) => {
   if (!message) {
@@ -21,7 +23,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         key={key}
         style={style}
         message={message}
-        onRetry={() => console.log('todo, hookup onRetry')}
+        onRetry={_onRetry}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
@@ -38,7 +40,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         key={key}
         style={style}
         message={message}
-        onRetry={() => console.log('todo, hookup onRetry')}
+        onRetry={_onRetry}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         onLoadAttachment={onLoadAttachment}

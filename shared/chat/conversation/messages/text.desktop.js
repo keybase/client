@@ -1,9 +1,10 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import React, {PureComponent} from 'react'
+import shallowEqual from 'shallowequal'
 import {Avatar, Icon, Text, Markdown} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
-import {withHandlers} from 'recompose'
+import {withHandlers, shouldUpdate, compose} from 'recompose'
 
 import type {Props} from './text'
 import type {TextMessage} from '../../../constants/chat'
@@ -111,12 +112,22 @@ const _avatarStyle = {
   marginRight: globalMargins.tiny,
 }
 
-export default withHandlers({
-  onIconClick: (props: Props) => event => {
-    props.onAction(props.message, event)
-  },
-})(_MessageTextComponent)
-
 const stylesFirstNewMessage = {
   borderTop: `solid 1px ${globalColors.orange}`,
 }
+
+export default compose(
+  shouldUpdate((props: Props, nextProps: Props) => {
+    return !shallowEqual(props, nextProps, (obj, oth, key) => {
+      if (key === 'style') {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
+  }),
+  withHandlers({
+    onIconClick: (props: Props) => event => {
+      props.onAction(props.message, event)
+    },
+  })
+)(_MessageTextComponent)
