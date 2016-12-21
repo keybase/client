@@ -7,11 +7,13 @@ import type {ConnectedComponent as TypedConnectedComponent} from '../util/typed-
 
 type LeafTagsParams = {
   modal: boolean,
+  layerOnTop: boolean,
   underStatusBar: boolean,
 }
 
 export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<LeafTagsParams> = I.Record({
   modal: false,
+  layerOnTop: false,
   underStatusBar: false,
 })
 
