@@ -199,14 +199,14 @@ func lookupPublicTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query ke
 }
 
 func lookupPrivateTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query keybase1.TLFQuery) (*TLFInfo, error) {
-	resp, err := tlfcli.CryptKeys(ctx, query)
+	resp, err := tlfcli.CompleteAndCanonicalizePrivateTlfName(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	info := TLFInfo{
-		ID:               chat1.TLFID(resp.NameIDBreaks.TlfID.ToBytes()),
-		CanonicalName:    string(resp.NameIDBreaks.CanonicalName),
-		IdentifyFailures: resp.NameIDBreaks.Breaks.Breaks,
+		ID:               chat1.TLFID(resp.TlfID.ToBytes()),
+		CanonicalName:    string(resp.CanonicalName),
+		IdentifyFailures: resp.Breaks.Breaks,
 	}
 	return &info, nil
 }

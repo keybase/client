@@ -240,8 +240,6 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 			convs := make([]chat1.ConversationLocal, 0, len(convsStorage))
 			for _, cs := range convsStorage {
 				info, err := utils.LookupTLF(ctx, s.remote.getTlfInterface(), cs.Info.TlfName, cs.Info.Visibility, identifyBehavior)
-				//				_, _, failures, err := utils.CryptKeysWrapper(ctx,
-				//					s.remote.getTlfInterface(), cs.Info.TlfName, identifyBehavior)
 				if err != nil {
 					return Inbox{}, nil, err
 				}
