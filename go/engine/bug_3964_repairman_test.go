@@ -66,8 +66,8 @@ func (a *auditLog) CFatalf(ctx context.Context, format string, args ...interface
 func (a *auditLog) Profile(fmts string, args ...interface{}) {
 	a.l.Profile(fmts, args...)
 }
-func (a *auditLog) Configure(style string, debug bool, filename string) {
-	a.l.Configure(style, debug, filename)
+func (a *auditLog) Configure(style string, debug bool, filename string, maxSize int64) {
+	a.l.Configure(style, debug, filename, maxSize)
 }
 func (a *auditLog) RotateLogFile() error {
 	return a.l.RotateLogFile()

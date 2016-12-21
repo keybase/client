@@ -14,10 +14,13 @@ func (log *Standard) RotateLogFile() error {
 	if log.filename == "" {
 		return errors.New("No log filename specified")
 	}
+	if log.maxSize <= 0 {
+		return errors.New("No max log file size specified")
+	}
 	return SetLogFileConfig(&LogFileConfig{
 		Path:         log.filename,
 		MaxAge:       30 * 24 * time.Hour, // 30 days
-		MaxSize:      128 * 1024 * 1024,   // 128mb
+		MaxSize:      log.maxSize,         // 128mb
 		MaxKeepFiles: 3,
 	})
 }

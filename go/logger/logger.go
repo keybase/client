@@ -53,7 +53,7 @@ type Logger interface {
 	// Configure sets the style, debug level, and filename of the
 	// logger.  Output isn't redirected to the file until
 	// RotateLogFile is called for the first time.
-	Configure(style string, debug bool, filename string)
+	Configure(style string, debug bool, filename string, maxSize int64)
 	// RotateLogFile rotates the log file, if the underlying logger is
 	// writing to a file.
 	RotateLogFile() error
