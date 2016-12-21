@@ -43,17 +43,6 @@ class Avatar extends PureComponent<void, Props, State> {
     this._mounted = false
   }
 
-  _imgOnLoad = () => {
-    if (this.state.url) {
-      _avatarCache[this.state.url] = true
-    }
-
-    this.props.onAvatarLoaded && this.props.onAvatarLoaded()
-    if (this._mounted) {
-      this.setState({avatarLoaded: true})
-    }
-  }
-
   _imgOnError = () => {
     if (this.state.url) {
       _avatarCache[this.state.url] = false
@@ -62,6 +51,17 @@ class Avatar extends PureComponent<void, Props, State> {
     this.props.onAvatarLoaded && this.props.onAvatarLoaded()
     if (this._mounted) {
       this.setState({errored: true})
+    }
+  }
+
+  _imgOnLoad = () => {
+    if (this.state.url) {
+      _avatarCache[this.state.url] = true
+    }
+
+    this.props.onAvatarLoaded && this.props.onAvatarLoaded()
+    if (this._mounted) {
+      this.setState({avatarLoaded: true})
     }
   }
 

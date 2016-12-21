@@ -93,17 +93,6 @@ function setupApp (store) {
     }
   }
 
-  const _menubarSelector = menubarSelector()
-  const _unlockFoldersSelector = unlockFoldersSelector()
-
-  const subsetsRemotesCareAbout = (store) => {
-    return {
-      tracker: store.tracker,
-      menu: _menubarSelector(store),
-      unlockFolder: _unlockFoldersSelector(store),
-    }
-  }
-
   let _currentStore
   store.subscribe(throttle(() => {
     let previousStore = _currentStore
