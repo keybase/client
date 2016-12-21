@@ -1,12 +1,15 @@
 // @flow
 import {Component} from 'react'
 
-import type {Message, MessageID} from '../../../constants/chat'
+import * as Constants from '../../../constants/chat'
+import type {MessageID} from '../../../constants/chat'
+
+export type PopupEnabledMessage = Constants.TextMessage | Constants.AttachmentMessage
 
 export type Props = {
-  message: Message,
-  onDeleteMessage: (message: Message) => void,
-  onEditMessage: (message: Message) => void,
+  message: PopupEnabledMessage,
+  onDeleteMessage: (message: PopupEnabledMessage) => void,
+  onEditMessage: (message: PopupEnabledMessage) => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onOpenInFileUI: (path: string) => void,
   onHidden: () => void,
