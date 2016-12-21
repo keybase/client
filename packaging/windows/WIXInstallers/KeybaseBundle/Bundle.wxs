@@ -39,7 +39,7 @@
 
     <!--Displayed in bundle UI-->
     <Variable Name="KeybaseVersion" Value="$(var.KEYBASE_WINVER)"/>
-    
+
     <!--Dokan prerequisites-->
     <util:FileSearch Id="SearchSystem"
                      Path="[SystemFolder]advapi32.dll"
@@ -68,16 +68,33 @@
     <util:RegistrySearch Id="vcredist_2015_x64_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_version" Result="exists" Win64="yes" Condition="VersionNT64"/>
     <util:RegistrySearch Id="vcredist_2015_x64_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_versionnumber" Result="value" Win64="yes" Condition="VersionNT64"/>
 
-    <!--Detect if non-Keybase release of Dokan is installed-->
+    <!--Detect if non-Keybase release of Dokan is installed. Set to 0.0.0.0 if not found.-->
     <!--Keybase has it's own UpgradeCode for Dokan starting with version 1.0.2 so fail if we detect version 1.0.2 and up with the old UpgradeCode on the system-->
-    <util:ProductSearch Variable="OLD_DOKAN_VERSION_CONFLICT" UpgradeCode="$(var.OldDokanUpgradeCodeX86)" Condition="NOT VersionNT64"/>
-    <util:ProductSearch Variable="OLD_DOKAN_VERSION_CONFLICT" UpgradeCode="$(var.OldDokanUpgradeCodeX64)" Condition="VersionNT64"/>
-
+    <util:ProductSearch Id="LegacyDokanSearchx86" Variable="OLD_DOKAN_VERSION_LEGACY" UpgradeCode="$(var.OldDokanUpgradeCodeX86)" Condition="NOT VersionNT64"/>
+    <util:ProductSearch Id="LegacyDokanSearchx64" After="LegacyDokanSearchx86" Variable="OLD_DOKAN_VERSION_LEGACY" UpgradeCode="$(var.OldDokanUpgradeCodeX64)" Condition="VersionNT64"/>
+    
     <bal:Condition 
       Message="#(loc.FailureIncompatibleDokan)">
-      <![CDATA[NOT (OLD_DOKAN_VERSION_CONFLICT > v1.0.1.82)]]>
+      <![CDATA[NOT (OLD_DOKAN_VERSION_LEGACY > v1.0.1.82)]]>
     </bal:Condition>
+   
+    <!--Warn the user of a reboot during install if Dokan must be upgraded. No warning on a clean install.-->
+    <!--Note the Value does not accept a localization string. Note must be Overridable so we can clear it if a reboot is not necessary-->
+    <Variable Name="KeybaseWarnReboot" Value="A reboot is required and will occur during the install." bal:Overridable="yes" />
 
+    <!--Detect installed Dokan version. Set to 0.0.0.0 if not found. Note ordering with the After attribute-->
+    <util:ProductSearch Id="OldDokanSearchx86" After="LegacyDokanSearchx64" Variable="OLD_DOKAN_VERSION" UpgradeCode="$(var.DokanUpgradeCodeX86)" Condition="NOT VersionNT64"/>
+    <util:ProductSearch Id="OldDokanSearchx64" After="OldDokanSearchx86" Variable="OLD_DOKAN_VERSION" UpgradeCode="$(var.DokanUpgradeCodeX64)" Condition="VersionNT64"/>
+
+    <!--HACK: Clear the KeybaseWarnReboot string variable if neither Dokan is installed or the Dokan installed version is equal to or greater the version in this bundle and thus does not need to upgrade-->
+    <!--This search must come After the ProductSearch for OLD_DOKAN_VERSION. Condition should evauluate to true if a Dokan upgrade is not needed-->
+    <!--This registry search is designed to fail and unset the "KeybaseWarnReboot" variable and thus clear the UI warning text-->
+    <util:RegistrySearch Id="DummyDokanRegistrySearch" 
+                         After="OldDokanSearchx64" 
+                         Root="HKLM" Key="SOFTWARE\Keybase\DummyKey" Value="DummyValue" 
+                         Variable="KeybaseWarnReboot" 
+                         Condition="(OLD_DOKAN_VERSION = v0.0.0.0 AND OLD_DOKAN_VERSION_LEGACY = v0.0.0.0) OR (OLD_DOKAN_VERSION &gt;= v$(var.DokanBaseVersion)$(var.DokanBuildVersion))"/> 
+    
     <bal:Condition Message="#(loc.FailureWindowsVersion)">
       <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ServicePackLevel >= 1)]]>
     </bal:Condition>
