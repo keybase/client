@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // BadgeState represents the number of badges on the app. It's threadsafe.
@@ -69,6 +70,19 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 		category := categoryObj.String()
 		switch category {
 		case "tlf":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.G().Log.Warning("BadgeState encountered non-json 'tlf' item: %v", err)
+				continue
+			}
+			itemType, err := jsw.AtKey("type").GetString()
+			if err != nil {
+				b.G().Log.Warning("BadgeState encountered gregor 'tlf' item without 'type': %v", err)
+				continue
+			}
+			if itemType != "created" {
+				continue
+			}
 			b.state.NewTlfs++
 		case "kbfs_tlf_rekey_needed", "kbfs_tlf_sbs_rekey_needed":
 			b.state.RekeysNeeded++
