@@ -123,7 +123,14 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 	}
 	rlimits = append(rlimits, threadView.RateLimits...)
 
+	// This could be lower than the truth if any messages were
+	// posted between the last two gregor rpcs.
 	readMsgID := conv.ReaderInfo.ReadMsgid
+
+	selfUID := c.G().Env.GetUID()
+	if selfUID.IsNil() {
+		c.G().Log.Warning("Could not get self UID for api")
+	}
 
 	var thread Thread
 	for _, m := range threadView.Thread.Messages {
@@ -150,6 +157,13 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		unread := mv.ServerHeader.MessageID > readMsgID
 		if opts.UnreadOnly && !unread {
 			continue
+		}
+		if !selfUID.IsNil() {
+			fromSelf := (mv.ClientHeader.Sender.String() == selfUID.String())
+			unread = unread && (!fromSelf)
+			if opts.UnreadOnly && fromSelf {
+				continue
+			}
 		}
 
 		prev := mv.ClientHeader.Prev
