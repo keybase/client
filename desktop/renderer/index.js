@@ -25,6 +25,8 @@ import {merge, throttle} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../shared/local-debug.desktop'
 import {selector as menubarSelector} from '../shared/menubar'
 import {selector as unlockFoldersSelector} from '../shared/unlock-folders'
+import {selector as pineentrySelector} from '../shared/pinentry'
+import {selector as remotePurgeMessageSelector} from '../shared/pgp/container.desktop'
 import {setRouteDef} from '../shared/actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 // $FlowIssue
@@ -84,12 +86,16 @@ function setupApp (store) {
 
   const _menubarSelector = menubarSelector()
   const _unlockFoldersSelector = unlockFoldersSelector()
+  const _pineentrySelector = pineentrySelector()
+  const _remotePurgeMessageSelector = remotePurgeMessageSelector()
 
   const subsetsRemotesCareAbout = (store) => {
     return {
       tracker: store.tracker,
       menu: _menubarSelector(store),
       unlockFolder: _unlockFoldersSelector(store),
+      pinentry: _pineentrySelector(store),
+      pgpPurgeMessage: _remotePurgeMessageSelector(store),
     }
   }
 
@@ -110,7 +116,6 @@ function setupApp (store) {
   hello(process.pid, 'Main Renderer', process.argv, __VERSION__) // eslint-disable-line no-undef
 
   store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
-
   store.dispatch(bootstrap())
 }
 

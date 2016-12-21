@@ -15,6 +15,12 @@ console.warn('Injecting defines: ', defines)
 module.exports = {
   module: {
     loaders: [{
+      test: /\.flow?$/,
+      loader: 'null',
+    }, {
+      test: /\.native\.js?$/,
+      loader: 'null',
+    }, {
       test: /\.jsx?$/,
       loader: 'babel',
       exclude: /(node_modules|\/dist\/)/,
