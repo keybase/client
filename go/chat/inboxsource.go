@@ -89,20 +89,29 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	}
 	for _, convLocal := range convLocals {
 		if rquery != nil && rquery.TlfID != nil {
-			// Verify using signed TlfName to make sure server returned genuine
-			// conversation.
-			var signedTlfID chat1.TLFID
-			if rquery.TlfVisibility != nil && *rquery.TlfVisibility == chat1.TLFVisibility_PUBLIC {
-				signedTlfID, _, _, err = utils.PublicTLFID(ctx, s.getTlfInterface(), convLocal.Info.TlfName, identifyBehavior)
-			} else {
-				signedTlfID, _, _, err = utils.CryptKeysWrapper(ctx, s.getTlfInterface(), convLocal.Info.TlfName, identifyBehavior)
-			}
+
+			// PC:  Notes
+			// I don't think this call is necessary.
+			// If we are here, then query.TlfName was specified.
+			// utils.GetInboxQueryLocalToRemote() got TlfID for query.TlfName and put it in rquery.TlfID
+			// utils.GetInboxQueryLocalToRemote() also got canonical tlf name, but did nothing with it.
+			//
+			// if we save the canonical tlf name found in utils.GetInboxQueryLocalToRemote(), then
+			//
+			// doesn't it suffice to check if all the following match
+			// * convLocal.Info.TlfName matches canonical tlf name from utils.GetInboxQueryLocalToRemote()
+			// * convLocal.Info.Visibility matches rquery.Visibility()
+			// * convLocal.Info.Triple.Tlfid == rquery.TlfID
+			// ???
+
+			// Verify using signed TlfName to make sure server returned genuine conversation.
+			info, err := utils.LookupTLF(ctx, s.getTlfInterface(), convLocal.Info.TlfName, rquery.Visibility(), identifyBehavior)
 			if err != nil {
 				return Inbox{}, ib.RateLimit, err
 			}
 			// The *rquery.TlfID is trusted source of TLF ID here since it's derived
 			// from the TLF name in the query.
-			if !signedTlfID.Eq(*rquery.TlfID) || !signedTlfID.Eq(convLocal.Info.Triple.Tlfid) {
+			if !info.ID.Eq(*rquery.TlfID) || !info.ID.Eq(convLocal.Info.Triple.Tlfid) {
 				return Inbox{}, ib.RateLimit, errors.New("server returned conversations for different TLF than query")
 			}
 		}
@@ -230,12 +239,13 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 		} else {
 			convs := make([]chat1.ConversationLocal, 0, len(convsStorage))
 			for _, cs := range convsStorage {
-				_, _, failures, err := utils.CryptKeysWrapper(ctx,
-					s.remote.getTlfInterface(), cs.Info.TlfName, identifyBehavior)
+				info, err := utils.LookupTLF(ctx, s.remote.getTlfInterface(), cs.Info.TlfName, cs.Info.Visibility, identifyBehavior)
+				//				_, _, failures, err := utils.CryptKeysWrapper(ctx,
+				//					s.remote.getTlfInterface(), cs.Info.TlfName, identifyBehavior)
 				if err != nil {
 					return Inbox{}, nil, err
 				}
-				convs = append(convs, storage.ToConversationLocal(cs, failures))
+				convs = append(convs, storage.ToConversationLocal(cs, info.IdentifyFailures))
 			}
 			s.G().Log.Debug("HybridInboxSource: hit local storage: uid: %s convs: %d", uid, len(convs))
 			// TODO: pagination
@@ -420,12 +430,13 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
 
-	if _, conversationLocal.Info.TlfName,
-		conversationLocal.IdentifyFailures, err =
-		utils.CryptKeysWrapper(ctx, s.getTlfInterface(),
-			conversationLocal.Info.TlfName, identifyBehavior); err != nil {
+	info, err := utils.LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TlfName, conversationLocal.Info.Visibility, identifyBehavior)
+	if err != nil {
 		return chat1.ConversationLocal{}, err
 	}
+	// Not sure about the utility of this TlfName assignment, but the previous code did this:
+	conversationLocal.Info.TlfName = info.CanonicalName
+	conversationLocal.IdentifyFailures = info.IdentifyFailures
 
 	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
 		s.G().GetUserDeviceCache(),
