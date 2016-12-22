@@ -164,6 +164,17 @@
       "response": null,
       "notify": "",
       "lint": "ignore"
+    },
+    "ChatIdentifyUpdate": {
+      "request": [
+        {
+          "name": "update",
+          "type": "keybase1.CanonicalTLFNameAndIDWithBreaks"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
     }
   },
   "namespace": "chat.1"

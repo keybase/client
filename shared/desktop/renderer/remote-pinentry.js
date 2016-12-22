@@ -27,6 +27,10 @@ class RemotePinentry extends Component<void, Props, void> {
   render () {
     const {pinentryStates} = this.props
 
+    if (!pinentryStates) {
+      return null
+    }
+
     return (
       <div>
         {Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map(pSessionID => {
@@ -59,4 +63,3 @@ export default connect(
     onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) => dispatch(onSubmit(sid, passphrase, features)),
   })
 )(RemotePinentry)
-

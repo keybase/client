@@ -271,7 +271,7 @@ func (b *Boxer) getSenderInfoLocal(clientHeader chat1.MessageClientHeader) (send
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
-	finder := NewKeyFinder()
+	finder := NewKeyFinder(b.log())
 	for _, msg := range boxed {
 		decmsg, err := b.UnboxMessage(ctx, finder, msg)
 		if err != nil {
@@ -563,7 +563,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 		return false, nil, nil
 	}
 
-	var revoked *gregor1.Time = nil
+	var revoked *gregor1.Time
 	validAtCtime := true
 	if revokedAt != nil {
 		if revokedAt.Unix.IsZero() {

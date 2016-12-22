@@ -1,8 +1,9 @@
 // @flow
-import React, {Component} from 'react'
+import * as Constants from '../../../constants/chat'
+import React, {PureComponent} from 'react'
 import {Avatar, Box, Icon, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
-import * as Constants from '../../../constants/chat'
+import {withHandlers} from 'recompose'
 
 import type {Props} from './attachment'
 
@@ -22,9 +23,9 @@ const colorForAuthor = (followState: Constants.FollowState) => {
 }
 
 // TODO abstract this part so it is the same as message text
-export default class AttachmentMessage extends Component<void, Props, void> {
+class _AttachmentMessage extends PureComponent<void, Props & {onIconClick: (event: any) => void}, void> {
   render () {
-    const {message, style, includeHeader, isFirstNewMessage, onAction, onLoadAttachment, onOpenInFileUI} = this.props
+    const {message, style, includeHeader, isFirstNewMessage, onLoadAttachment, onOpenInFileUI, onIconClick} = this.props
     const {downloadedPath} = message
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
@@ -47,7 +48,7 @@ export default class AttachmentMessage extends Component<void, Props, void> {
                   </Text>}
                 {!!message.previewPath && message.previewType === 'Image' && <Box style={{marginTop: globalMargins.xtiny, flex: 1}}><img src={message.previewPath} /></Box>}
                 <div className='action-button'>
-                  <Icon type='iconfont-ellipsis' style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}} onClick={onAction} />
+                  <Icon type='iconfont-ellipsis' style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}} onClick={onIconClick} />
                 </div>
               </Box>
             </Box>
@@ -57,6 +58,12 @@ export default class AttachmentMessage extends Component<void, Props, void> {
     )
   }
 }
+
+export default withHandlers({
+  onIconClick: (props: Props) => event => {
+    props.onAction(props.message, event)
+  },
+})(_AttachmentMessage)
 
 const stylesFirstNewMessage = {
   borderTop: `solid 1px ${globalColors.orange}`,

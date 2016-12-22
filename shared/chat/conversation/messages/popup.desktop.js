@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Icon, PopupMenu, Text} from '../../../common-adapters'
+import {Icon, PopupMenu, Text} from '../../../common-adapters'
 import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
@@ -22,16 +22,16 @@ const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, 
   const iconName = iconNameForDeviceType(deviceType, !!senderDeviceRevokedAt)
   const whoRevoked = followState === 'You' ? 'You' : author
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+    <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={iconName} style={{marginTop: -6}} />
-      <Box style={globalStyles.flexBoxRow}>
+      <div style={globalStyles.flexBoxRow}>
         <Text type='BodySmall' style={{color: globalColors.green2}}>ENCRYPTED</Text>
         <Text type='BodySmall' style={{color: senderDeviceRevokedAt ? globalColors.black_40 : globalColors.green2}}>&nbsp;& SIGNED</Text>
-      </Box>
-      <Box style={globalStyles.flexBoxRow}>
+      </div>
+      <div style={globalStyles.flexBoxRow}>
         <Text type='BodySmall' style={{color: globalColors.black_40}}>by</Text>
         <Text type='BodySmallItalic' style={{color: globalColors.black_60}}>&nbsp;{deviceName}</Text>
-      </Box>
+      </div>
       <Text type='BodySmall' style={{color: globalColors.black_40}}>{formatTimeForPopup(timestamp)}</Text>
       {senderDeviceRevokedAt &&
         <PopupHeaderText
@@ -43,7 +43,7 @@ const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, 
           }}
         >{whoRevoked} revoked this device on {formatTimeForRevoked(senderDeviceRevokedAt)}.</PopupHeaderText>
       }
-    </Box>
+    </div>
   )
 }
 

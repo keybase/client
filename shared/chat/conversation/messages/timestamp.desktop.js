@@ -1,13 +1,13 @@
 // @flow
 import React from 'react'
-import {Box, Text} from '../../../common-adapters'
+import {Text} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import type {Props} from './timestamp'
 
 const Timestamp = ({timestamp, style}: Props) => (
-  <Box key={timestamp} style={{...globalStyles.flexBoxRow, ...style}}>
+  <div key={timestamp} style={{...globalStyles.flexBoxRow, ...style}}>
     <Text style={styleText} type='BodySmall'>{timestamp}</Text>
-  </Box>
+  </div>
 )
 
 export const styleText = {

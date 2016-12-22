@@ -17,32 +17,26 @@ import type {Props} from '.'
 type OwnProps = {}
 type State = {
   sidePanelOpen: boolean,
-  inputText: string,
 }
 
 class ConversationContainer extends Component<void, Props, State> {
   state: State
-  _inputTextMap: {[key: string]: ?string}= {}
 
   constructor (props: Props) {
     super(props)
-    this.state = {sidePanelOpen: false, inputText: ''}
+    this.state = {sidePanelOpen: false}
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
       this.setState({
         sidePanelOpen: false,
-        inputText: this._inputTextMap[nextProps.selectedConversation || ''] || '',
       })
     }
   }
 
-  _setInputText = (inputText: string) => {
-    if (this.props.selectedConversation) {
-      this._inputTextMap[this.props.selectedConversation] = inputText
-      this.setState({inputText})
-    }
+  _onToggleSidePanel = () => {
+    this.setState({sidePanelOpen: !this.state.sidePanelOpen})
   }
 
   render () {
@@ -53,9 +47,7 @@ class ConversationContainer extends Component<void, Props, State> {
     return <Conversation
       {...this.props}
       sidePanelOpen={this.state.sidePanelOpen}
-      onToggleSidePanel={() => this.setState({sidePanelOpen: !this.state.sidePanelOpen})}
-      setInputText={this._setInputText}
-      inputText={this.state.inputText}
+      onToggleSidePanel={this._onToggleSidePanel}
     />
   }
 }
@@ -99,7 +91,7 @@ export default connect(
   (dispatch: Dispatch) => ({
     onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onLoadMoreMessages: () => dispatch(loadMoreMessages()),
+    onLoadMoreMessages: () => dispatch(loadMoreMessages(false)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),

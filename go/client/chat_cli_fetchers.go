@@ -79,12 +79,13 @@ func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) 
 			return nil, err
 		}
 
-		err = chatClient.GetInboxNonblockLocal(ctx, chat1.GetInboxNonblockLocalArg{
+		_, err := chatClient.GetInboxNonblockLocal(ctx, chat1.GetInboxNonblockLocalArg{
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		if err != nil {
 			return nil, err
 		}
+
 	} else {
 		res, err := chatClient.GetInboxSummaryForCLILocal(ctx, f.query)
 		if err != nil {

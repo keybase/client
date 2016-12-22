@@ -1,29 +1,39 @@
 // @flow
 import {ipcMain} from 'electron'
-import {selector as trackerSelector} from '../../tracker'
 import {selector as menubarSelector} from '../../menubar'
+import {selector as pineentrySelector} from '../../pinentry'
+import {selector as remotePurgeMessageSelector} from '../../pgp/container.desktop'
+import {selector as trackerSelector} from '../../tracker'
 import {selector as unlockFoldersSelector} from '../../unlock-folders'
+
+import type {Components} from '../renderer/remote-component'
+
+const componentToSelector :{[key: Components]: Function} = {
+  'tracker': trackerSelector,
+  'menubar': menubarSelector,
+  'unlockFolders': unlockFoldersSelector,
+  'pinentry': pineentrySelector,
+  'purgeMessage': remotePurgeMessageSelector,
+}
 
 export default function (mainWindow: any) {
   const subscribeStoreSubscribers = []
   let store = {}
 
   ipcMain.on('subscribeStore', (event, component, selectorParams) => {
-    let selector = {
-      'tracker': trackerSelector,
-      'menubar': menubarSelector,
-      'unlockFolders': unlockFoldersSelector,
-    }[component]
+    let selector = componentToSelector[component]
 
     if (selector) {
       selector = selector(selectorParams)
+    } else {
+      throw new Error(`Missing remote selector!: ${component}`)
     }
 
     const sender = event.sender
     subscribeStoreSubscribers.push({sender, selector})
 
     try {
-      const newStore = selector ? selector(store) : store
+      const newStore = selector(store)
       if (newStore) {
         sender.send('stateChange', newStore)
       }
@@ -36,7 +46,7 @@ export default function (mainWindow: any) {
     let dead = []
     subscribeStoreSubscribers.forEach((sub, idx) => {
       try {
-        const newStore = sub.selector ? sub.selector(store) : store
+        const newStore = sub.selector(store)
         if (newStore) {
           sub.sender.send('stateChange', newStore)
         }

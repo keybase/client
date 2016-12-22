@@ -253,6 +253,10 @@
           "type": "MessagePlaintext",
           "name": "Msg",
           "lint": "ignore"
+        },
+        {
+          "type": "keybase1.TLFIdentifyBehavior",
+          "name": "identifyBehavior"
         }
       ]
     },
@@ -584,6 +588,10 @@
           "name": "maxMessages"
         },
         {
+          "type": "boolean",
+          "name": "isEmpty"
+        },
+        {
           "type": {
             "type": "array",
             "items": "keybase1.TLFIdentifyFailure"
@@ -806,6 +814,33 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxNonblockLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     },
@@ -891,6 +926,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     },
@@ -1189,7 +1231,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": null
+      "response": "GetInboxNonblockLocalRes"
     },
     "postLocal": {
       "request": [

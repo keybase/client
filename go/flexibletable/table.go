@@ -31,7 +31,8 @@ type Row []Cell
 
 // Table defines a table and is used to do the rendering
 type Table struct {
-	rows []Row
+	rows     []Row
+	nInserts int
 }
 
 // Insert inserts a row into the table
@@ -40,7 +41,12 @@ func (t *Table) Insert(row Row) error {
 		return InconsistentRowsError{existingRows: len(t.rows), newRow: len(row)}
 	}
 	t.rows = append(t.rows, row)
+	t.nInserts++
 	return nil
+}
+
+func (t *Table) NumInserts() int {
+	return t.nInserts
 }
 
 func (t *Table) breakOnLineBreaks() error {

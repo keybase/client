@@ -28,22 +28,23 @@ type chatListener struct {
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
 
-func (n *chatListener) Logout()                                                      {}
-func (n *chatListener) Login(username string)                                        {}
-func (n *chatListener) ClientOutOfDate(to, uri, msg string)                          {}
-func (n *chatListener) UserChanged(uid keybase1.UID)                                 {}
-func (n *chatListener) TrackingChanged(uid keybase1.UID, username string)            {}
-func (n *chatListener) FSActivity(activity keybase1.FSNotification)                  {}
-func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                {}
-func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)             {}
-func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)            {}
-func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                    {}
-func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {}
-func (n *chatListener) FavoritesChanged(uid keybase1.UID)                            {}
-func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                            {}
-func (n *chatListener) PGPKeyInSecretStoreFile()                                     {}
-func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                    {}
-func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                  {}
+func (n *chatListener) Logout()                                                            {}
+func (n *chatListener) Login(username string)                                              {}
+func (n *chatListener) ClientOutOfDate(to, uri, msg string)                                {}
+func (n *chatListener) UserChanged(uid keybase1.UID)                                       {}
+func (n *chatListener) TrackingChanged(uid keybase1.UID, username string)                  {}
+func (n *chatListener) FSActivity(activity keybase1.FSNotification)                        {}
+func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                      {}
+func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                   {}
+func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                  {}
+func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                          {}
+func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)       {}
+func (n *chatListener) FavoritesChanged(uid keybase1.UID)                                  {}
+func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                                  {}
+func (n *chatListener) PGPKeyInSecretStoreFile()                                           {}
+func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                          {}
+func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                        {}
+func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
@@ -212,7 +213,7 @@ func TestNonblockTimer(t *testing.T) {
 					Prev: msgID,
 				},
 			},
-		})
+		}, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
 		require.NoError(t, err)
 		sentRef = append(sentRef, sentRecord{outboxID: &obid})

@@ -222,6 +222,52 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 	return ret
 }
 
+func (kf KeyFamily) ShallowCopy() *KeyFamily {
+	ret := &KeyFamily{
+		Contextified: NewContextified(kf.G()),
+		pgp2kid:      make(map[PGPFingerprint]keybase1.KID),
+		kid2pgp:      make(map[keybase1.KID]PGPFingerprint),
+		AllKIDs:      make(map[keybase1.KID]bool),
+		PGPKeySets:   make(map[keybase1.KID]*PGPKeySet),
+		SingleKeys:   make(map[keybase1.KID]GenericKey),
+	}
+
+	for k, v := range kf.pgp2kid {
+		ret.pgp2kid[k] = v
+	}
+
+	for k, v := range kf.kid2pgp {
+		ret.kid2pgp[k] = v
+	}
+
+	for k, v := range kf.AllKIDs {
+		ret.AllKIDs[k] = v
+	}
+
+	for k, v := range kf.PGPKeySets {
+		ret.PGPKeySets[k] = v
+	}
+
+	for k, v := range kf.SingleKeys {
+		ret.SingleKeys[k] = v
+	}
+
+	return ret
+}
+
+func (ckf ComputedKeyFamily) ShallowCopy() *ComputedKeyFamily {
+	ret := &ComputedKeyFamily{
+		Contextified: NewContextified(ckf.G()),
+	}
+	if ckf.kf != nil {
+		ret.kf = ckf.kf.ShallowCopy()
+	}
+	if ckf.cki != nil {
+		ret.cki = ckf.cki.ShallowCopy()
+	}
+	return ret
+}
+
 func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 	return &ComputedKeyInfos{
 		Contextified:  NewContextified(g),

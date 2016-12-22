@@ -74,19 +74,21 @@ type BackgroundIdentifier struct {
 	snooperCh chan<- identifyJob
 	untilCh   chan struct{}
 	testArgs  *BackgroundIdentifierTestArgs
-	params    BackgroundIdentifierParameters
+	settings  BackgroundIdentifierSettings
 }
 
 var _ (Engine) = (*BackgroundIdentifier)(nil)
 
-type BackgroundIdentifierParameters struct {
+type BackgroundIdentifierSettings struct {
+	Enabled         bool          // = true
 	WaitClean       time.Duration // = 4 * time.Hour
 	WaitHardFailure time.Duration // = 90 * time.Minute
 	WaitSoftFailure time.Duration // = 10 * time.Minute
 	DelaySlot       time.Duration // = 5 * time.Second
 }
 
-var BackgroundIdentifierDefaultParameters = BackgroundIdentifierParameters{
+var BackgroundIdentifierDefaultSettings = BackgroundIdentifierSettings{
+	Enabled:         true,
 	WaitClean:       4 * time.Hour,
 	WaitHardFailure: 90 * time.Minute,
 	WaitSoftFailure: 10 * time.Minute,
@@ -99,7 +101,7 @@ func NewBackgroundIdentifier(g *libkb.GlobalContext, untilCh chan struct{}) *Bac
 		members:      make(map[keybase1.UID]bool),
 		addCh:        make(chan struct{}),
 		untilCh:      untilCh,
-		params:       BackgroundIdentifierDefaultParameters,
+		settings:     BackgroundIdentifierDefaultSettings,
 	}
 	heap.Init(&ret.queue)
 	return ret
@@ -170,6 +172,12 @@ func (b *BackgroundIdentifier) waitUntil() time.Time {
 
 func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 	defer b.G().Trace("BackgroundIdentifier#Run", func() error { return err })()
+
+	if !b.settings.Enabled {
+		b.G().Log.Debug("Bailing out since BackgroundIdentifier isn't enabled")
+		return nil
+	}
+
 	keepGoing := true
 	for keepGoing {
 		waitUntil := b.waitUntil()
@@ -224,11 +232,11 @@ func (b *BackgroundIdentifier) requeue(u *bgiUser) {
 func (b *BackgroundIdentifier) errorToRetryDuration(e error) time.Duration {
 	switch {
 	case e == nil:
-		return b.params.WaitClean
+		return b.settings.WaitClean
 	case e == errBackgroundIdentifierBadProofsSoft:
-		return b.params.WaitSoftFailure
+		return b.settings.WaitSoftFailure
 	default:
-		return b.params.WaitHardFailure
+		return b.settings.WaitHardFailure
 	}
 }
 
@@ -278,7 +286,7 @@ func (b *BackgroundIdentifier) runNext(ctx *Context) error {
 		b.snooperCh <- identifyJob{user.uid, tmp}
 	}
 
-	if d := b.params.DelaySlot; d != 0 {
+	if d := b.settings.DelaySlot; d != 0 {
 		b.G().Log.Debug("BackgroundIdentifier sleeping for %s", d)
 		b.G().Clock().Sleep(d)
 	}

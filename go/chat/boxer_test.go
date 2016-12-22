@@ -248,7 +248,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 	boxer.hashV1 = origHashFn
 
 	// This should produce a permanent error. So err will be nil, but the decmsg will be state=error.
-	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
+	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(tc.G.Log), *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -544,7 +544,7 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
+	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(tc.G.Log), *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}

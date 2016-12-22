@@ -140,6 +140,7 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 {
 		return chatConversationResolvingRequest{}, errors.New("multiple topics are not yet supported")
 	}
+
 	if ctx.Bool("private") {
 		req.Visibility = chat1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
@@ -147,6 +148,7 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	} else {
 		req.Visibility = chat1.TLFVisibility_ANY
 	}
+
 	return req, nil
 }
 

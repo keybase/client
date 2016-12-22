@@ -17,12 +17,16 @@ import loadPerf from '../../util/load-perf'
 import routeDefs from '../../routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
+import {changedFocus} from '../../actions/window'
 import {devEditAction} from '../../reducers/dev-edit'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {listenForNotifications} from '../../actions/notifications'
-import {changedFocus} from '../../actions/window'
-import {merge} from 'lodash'
+import {merge, throttle} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../../local-debug.desktop'
+import {selector as menubarSelector} from '../../menubar'
+import {selector as pineentrySelector} from '../../pinentry'
+import {selector as remotePurgeMessageSelector} from '../../pgp/container.desktop'
+import {selector as unlockFoldersSelector} from '../../unlock-folders'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
@@ -76,16 +80,33 @@ function setupApp (store) {
   })
 
   const currentWindow = electron.remote.getCurrentWindow()
-  currentWindow.on('focus', () => {
-    store.dispatch(changedFocus(true))
-  })
-  currentWindow.on('blur', () => {
-    store.dispatch(changedFocus(false))
-  })
+  currentWindow.on('focus', () => { store.dispatch(changedFocus(true)) })
+  currentWindow.on('blur', () => { store.dispatch(changedFocus(false)) })
 
-  store.subscribe(() => {
-    ipcRenderer.send('stateChange', store.getState())
-  })
+  const _menubarSelector = menubarSelector()
+  const _unlockFoldersSelector = unlockFoldersSelector()
+  const _pineentrySelector = pineentrySelector()
+  const _remotePurgeMessageSelector = remotePurgeMessageSelector()
+
+  const subsetsRemotesCareAbout = (store) => {
+    return {
+      tracker: store.tracker,
+      menu: _menubarSelector(store),
+      unlockFolder: _unlockFoldersSelector(store),
+      pinentry: _pineentrySelector(store),
+      pgpPurgeMessage: _remotePurgeMessageSelector(store),
+    }
+  }
+
+  let _currentStore
+  store.subscribe(throttle(() => {
+    let previousStore = _currentStore
+    _currentStore = subsetsRemotesCareAbout(store.getState())
+
+    if (JSON.stringify(previousStore) !== JSON.stringify(_currentStore)) {
+      ipcRenderer.send('stateChange', store.getState())
+    }
+  }, 1000))
 
   // Handle notifications from the service
   store.dispatch(listenForNotifications())
@@ -94,7 +115,6 @@ function setupApp (store) {
   hello(process.pid, 'Main Renderer', process.argv, __VERSION__) // eslint-disable-line no-undef
 
   store.dispatch(updateDebugConfig(require('../../local-debug-live')))
-
   store.dispatch(bootstrap())
 }
 

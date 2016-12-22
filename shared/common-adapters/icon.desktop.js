@@ -1,6 +1,7 @@
 // @flow
 import * as shared from './icon.shared'
-import React, {PureComponent} from 'react'
+import React, {Component} from 'react'
+import shallowEqual from 'shallowequal'
 import {FontIcon} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
@@ -9,7 +10,16 @@ import {resolveImageAsURL} from '../desktop/resolve-root'
 import type {Exact} from '../constants/types/more'
 import type {Props} from './icon'
 
-class Icon extends PureComponent<void, Exact<Props>, void> {
+class Icon extends Component<void, Exact<Props>, void> {
+  shouldComponentUpdate (nextProps: Exact<Props>, nextState: any): boolean {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'style') {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
+  }
+
   render () {
     let color = shared.defaultColor(this.props.type)
     let hoverColor = shared.defaultHoverColor(this.props.type)

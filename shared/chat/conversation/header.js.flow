@@ -1,0 +1,14 @@
+// @flow
+import {Component} from 'react'
+import {List} from 'immutable'
+
+import type {ParticipantItem} from '../../constants/chat'
+
+export type Props = {
+  participants: List<ParticipantItem>,
+  onOpenFolder: () => void,
+  onToggleSidePanel: () => void,
+  sidePanelOpen: boolean,
+}
+
+export default class Header extends Component<void, Props, void> { }

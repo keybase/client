@@ -72,7 +72,9 @@ class RemoteComponentLoader extends Component<void, any, State> {
 
     const title = this.props.title
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
+  }
 
+  componentWillMount () {
     const component = this.props.component
     const selectorParams = this.props.selectorParams
     const components = {tracker, pinentry, unlockFolders, purgeMessage}
@@ -83,9 +85,7 @@ class RemoteComponentLoader extends Component<void, any, State> {
 
     this.store = new RemoteStore({component, selectorParams})
     this.ComponentClass = components[component]
-  }
 
-  componentWillMount () {
     const currentWindow = getCurrentWindow()
     setupContextMenu(currentWindow)
 
@@ -141,6 +141,11 @@ class RemoteComponentLoader extends Component<void, any, State> {
   }
 
   componentWillUnmount () {
+    if (this.store) {
+      this.store.cleanup()
+      this.store = null
+    }
+
     try {
       getCurrentWindow().removeAllListeners('hasProps')
     } catch (_) { }
