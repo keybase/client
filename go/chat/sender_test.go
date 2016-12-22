@@ -290,7 +290,7 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, 
 	return nil, nil
 }
 
-func TestFailing(t *testing.T) {
+func TestFailingSender(t *testing.T) {
 
 	tc, ri, u, sender, _, listener, _, _ := setupTest(t)
 	defer tc.Cleanup()
@@ -311,6 +311,7 @@ func TestFailing(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	tc.G.MessageDeliverer.Connected()
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
 	// Send nonblock
