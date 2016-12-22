@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {globalStyles, globalColors} from '../styles'
+import {isTesting} from '../local-debug'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 import type {Props, AvatarLookup, AvatarLoad} from './avatar'
@@ -47,6 +48,10 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _getURLState (props) {
+    if (__SCREENSHOT__ || isTesting) {
+      return {url: null}
+    }
+
     if (props.url) {
       return {url: props.url}
     }
