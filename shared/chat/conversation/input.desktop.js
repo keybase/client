@@ -5,11 +5,14 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../common-adapters/emoji'
 
-import type {Props} from './'
+import type {Props} from './input'
 
 type State = {
   emojiPickerOpen: boolean,
+  text: string,
 }
+
+const _cachedInput: {[key: ?string]: ?string} = { }
 
 class Conversation extends Component<void, Props, State> {
   _input: any;
@@ -23,12 +26,14 @@ class Conversation extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     const {emojiPickerOpen} = props
-    this.state = {emojiPickerOpen}
+    this.state = {emojiPickerOpen, text: _cachedInput[props.selectedConversation] || ''}
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.selectedConversation !== this.props.selectedConversation) {
       this._input && this._input.focus()
+      _cachedInput[this.props.selectedConversation] = this.state.text
+      this.setState({text: _cachedInput[nextProps.selectedConversation] || ''})
     }
   }
 
@@ -39,11 +44,11 @@ class Conversation extends Component<void, Props, State> {
   }
 
   _insertEmoji (emojiColons: string) {
-    const inputText = this.props.inputText || ''
+    const text: string = this.state.text || ''
     if (this._input) {
       const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
-      const nextInputText = [inputText.substring(0, selectionStart), emojiColons, inputText.substring(selectionEnd)].join('')
-      this.props.setInputText(nextInputText)
+      const nextText = [text.substring(0, selectionStart), emojiColons, text.substring(selectionEnd)].join('')
+      this.setState({text: nextText})
       this._input.focus()
     }
   }
@@ -77,16 +82,16 @@ class Conversation extends Component<void, Props, State> {
             ref={this._setRef}
             hintText='Write a message'
             hideUnderline={true}
-            onChangeText={inputText => this.props.setInputText(inputText)}
-            value={this.props.inputText}
+            onChangeText={text => this.setState({text})}
+            value={this.state.text}
             multiline={true}
             rowsMin={1}
             rowsMax={5}
             onEnterKeyDown={(e) => {
               e.preventDefault()
-              if (this.props.inputText) {
-                this.props.onPostMessage(this.props.inputText)
-                this.props.setInputText('')
+              if (this.state.text) {
+                this.props.onPostMessage(this.state.text)
+                this.setState({text: ''})
               }
             }}
           />
