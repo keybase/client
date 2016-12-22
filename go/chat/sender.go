@@ -211,6 +211,7 @@ type Deliverer struct {
 	shutdownCh chan struct{}
 	msgSentCh  chan struct{}
 	delivering bool
+	connected  bool
 }
 
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
@@ -262,11 +263,25 @@ func (s *Deliverer) doStop() {
 }
 
 func (s *Deliverer) ForceDeliverLoop() {
+	s.debug("force deliver loop invoked")
 	s.msgSentCh <- struct{}{}
 }
 
 func (s *Deliverer) SetSender(sender Sender) {
 	s.sender = sender
+}
+
+func (s *Deliverer) Connected() {
+	s.connected = true
+
+	// Wake up deliver loop on reconnect
+	s.debug("reconnected: forcing deliver loop run")
+	s.msgSentCh <- struct{}{}
+}
+
+func (s *Deliverer) Disconnected() {
+	s.debug("disconnected: all errors from now on will be permanent")
+	s.connected = false
 }
 
 func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext,
@@ -336,8 +351,9 @@ func (s *Deliverer) deliverLoop() {
 				s.G().Log.Error("failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
-				// Process failure
-				if obr.State.Sending() > deliverMaxAttempts {
+				// Process failure. If we have gone over the limit of failure, or we are
+				// disconnected from the chat server, mark everything as failed.
+				if obr.State.Sending() > deliverMaxAttempts || !s.connected {
 					// Mark the entire outbox as an error if we can't send
 					s.debug("max failure attempts reached, marking all as errors and notifying")
 					obids, err := s.outbox.MarkAllAsError()

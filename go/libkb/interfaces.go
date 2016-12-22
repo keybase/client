@@ -529,6 +529,8 @@ type MessageDeliverer interface {
 	Start(uid gregor1.UID)
 	Stop()
 	ForceDeliverLoop()
+	Connected()
+	Disconnected()
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
