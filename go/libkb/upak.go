@@ -4,6 +4,7 @@ package libkb
 
 import (
 	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -32,16 +33,22 @@ func checkKIDPGP(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool) {
 }
 
 func checkKIDKeybase(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime) {
+	fmt.Printf("***** checkKIDKeybase for kid %s\n", kid)
 	for _, key := range u.Base.DeviceKeys {
+		fmt.Printf("***** checkKIDKeybase device key %s\n", key.KID)
 		if key.KID.Equal(kid) {
+			fmt.Printf("***** checkKIDKeybase device key %s matched %s\n", key.KID, kid)
 			return true, nil
 		}
 	}
 	for _, key := range u.Base.RevokedDeviceKeys {
+		fmt.Printf("***** checkKIDKeybase revoked device key %s\n", key.Key.KID)
 		if key.Key.KID.Equal(kid) {
+			fmt.Printf("***** checkKIDKeybase revoked device key %s matched %s\n", key.Key.KID, kid)
 			return true, &key.Time
 		}
 	}
+	fmt.Printf("***** checkKIDKeybase no matches for kid %s\n", kid)
 	return false, nil
 }
 

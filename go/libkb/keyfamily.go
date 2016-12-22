@@ -366,6 +366,8 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 		return
 	}
 
+	g.Log.Warning("key family: %s", jw.MarshalPretty())
+
 	kf := KeyFamily{
 		Contextified: NewContextified(g),
 		pgp2kid:      make(map[PGPFingerprint]keybase1.KID),
@@ -685,7 +687,7 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
 // account whether the key has been cancelled at time t.
 func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid keybase1.KID, t time.Time) (ret KeyRole) {
 	if info, err := ckf.getCkiIfActiveAtTime(kid, t); err != nil {
-		ckf.G().Log.Debug("GetKeyRoleAtTime %s, %s => err %s", kid, t, err)
+		ckf.G().Log.Warning("GetKeyRoleAtTime %s, %s => err %s", kid, t, err)
 		ret = DLGNone
 	} else if info.Sibkey {
 		ret = DLGSibkey
@@ -821,6 +823,28 @@ func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
 	}
 
 	return revokedKeys
+}
+
+func (ckf ComputedKeyFamily) GetDeletedKeys() []GenericKey {
+	ckf.G().Log.Debug("+ GetDeletedKeys")
+	defer ckf.G().Log.Debug("- GetDeletedKeys")
+
+	var keys []GenericKey
+	for kid := range ckf.kf.AllKIDs {
+		ckf.G().Log.Warning("all kids kid: %s", kid)
+		_, ok := ckf.cki.Infos[kid]
+		if ok {
+			// key in cki.Infos, so it is in the current subchain, skip it.
+			continue
+		}
+		key, err := ckf.FindKeyWithKIDUnsafe(kid)
+		if err != nil {
+			ckf.G().Log.Errorf("No key found for %s in ckf", kid)
+			continue
+		}
+		keys = append(keys, key)
+	}
+	return keys
 }
 
 // UpdateDevices takes the Device object from the given ChainLink

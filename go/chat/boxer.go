@@ -550,7 +550,14 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 		return false, false, nil, libkb.NewTransientChatUnboxingError(err)
 	}
 	if !found {
-		return false, false, nil, nil
+		// return false, false, nil, nil
+
+		// XXX DANGER DANGER
+		// XXX only temporary
+		// XXX to see what happens for account reset
+
+		// XXX pretend a not found key (in this case DELETED) is ok
+		return true, true, nil, nil
 	}
 
 	validAtCtime := true
