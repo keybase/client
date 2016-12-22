@@ -155,7 +155,7 @@ func (s *NonblockRemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
 	Inbox, *chat1.RateLimit, error) {
 
-	rquery, err := utils.GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, _, err := utils.GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
 		return Inbox{}, nil, err
 	}
@@ -413,11 +413,11 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 
 	info, err := utils.LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TlfName, conversationLocal.Info.Visibility)
 	if err != nil {
-		return chat1.ConversationLocal{}, err
+		errMsg := err.Error()
+		return chat1.ConversationLocal{Error: &errMsg}
 	}
 	// Not sure about the utility of this TlfName assignment, but the previous code did this:
 	conversationLocal.Info.TlfName = info.CanonicalName
-	conversationLocal.IdentifyFailures = info.IdentifyFailures
 
 	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
 		s.G().GetUserDeviceCache(),

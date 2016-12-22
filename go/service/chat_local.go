@@ -73,7 +73,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &breaks)
-	rquery, tlfInfo, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
+	rquery, _, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -84,7 +84,8 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
-	inbox = chat1.GetInboxLocalRes{
+
+	return chat1.GetInboxLocalRes{
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
@@ -269,7 +270,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = utils.IdentifyModeCtx(ctx, arg.IdentifyBehavior, &identBreaks)
-	info, err := utils.LookupTLF(ctx, h.tlf, arg.TlfName, arg.TlfVisibility, arg.IdentifyBehavior)
+	info, err := utils.LookupTLF(ctx, h.tlf, arg.TlfName, arg.TlfVisibility)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
