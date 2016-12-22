@@ -24,7 +24,7 @@ import {tmpFile} from '../util/file'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
 import type {ChangedFocus} from '../constants/window'
-import type {IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {UpdateReachability} from '../constants/gregor'
@@ -332,7 +332,25 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
+  console.warn('activityType is ', action.payload.activity.activityType)
   switch (action.payload.activity.activityType) {
+    case NotifyChatChatActivityType.failedMessage:
+      const failedMessage: ?FailedMessageInfo = action.payload.activity.failedMessage
+      if (failedMessage && failedMessage.outboxRecords) {
+        for (const outboxRecord of failedMessage.outboxRecords) {
+          const conversationIDKey = conversationIDToKey(outboxRecord.convID)
+          const outboxID = outboxRecord.outboxID.toString('hex')
+          yield put({
+            type: Constants.pendingMessageFailed,
+            payload: {
+              conversationIDKey,
+              outboxID,
+              messageState: 'failed',
+            },
+          })
+        }
+      }
+      return
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
       if (incomingMessage) {
