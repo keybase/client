@@ -35,6 +35,10 @@ function usernameText ({type, users, style, inline, redColor, backgroundMode, co
 }
 
 class Usernames extends Component<void, Props, void> {
+  shouldComponentUpdate (nextProps: Props) {
+    return JSON.stringify(this.props) !== JSON.stringify(nextProps)
+  }
+
   render () {
     const containerStyle = this.props.inline ? {
       display: 'inline',

@@ -36,8 +36,14 @@ func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 	return LoadUserArg{Contextified: NewContextified(g)}
 }
 
+func NewLoadUserSelfArg(g *GlobalContext) LoadUserArg {
+	ret := NewLoadUserArg(g)
+	ret.Self = true
+	return ret
+}
+
 func NewLoadUserForceArg(g *GlobalContext) LoadUserArg {
-	arg := NewLoadUserArg(g)
+	arg := NewLoadUserPubOptionalArg(g)
 	arg.ForceReload = true
 	return arg
 }

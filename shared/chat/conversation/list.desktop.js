@@ -11,7 +11,7 @@ import Popup from './messages/popup'
 import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {Box, ProgressIndicator} from '../../common-adapters'
+import {ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {Message, MessageID} from '../../constants/chat'
@@ -178,6 +178,10 @@ class ConversationList extends Component<void, Props, State> {
     ReactDOM.render(popupComponent, container)
   }
 
+  _onAction = (message, event) => {
+    this._showPopup(message, event)
+  }
+
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
@@ -187,13 +191,12 @@ class ConversationList extends Component<void, Props, State> {
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
-    const onAction = (event) => { this._showPopup(message, event) }
     const isSelected = this.state.selectedMessageID === message.messageID
     const isFirstNewMessage = this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
   }
 
   _recomputeListDebounced = _.debounce(() => {
@@ -208,9 +211,9 @@ class ConversationList extends Component<void, Props, State> {
   render () {
     if (!this.props.validated) {
       return (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <div style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <ProgressIndicator style={{width: 20}} />
-        </Box>
+        </div>
       )
     }
     const messageCount = this.state.messages.count()
@@ -234,7 +237,7 @@ class ConversationList extends Component<void, Props, State> {
     `
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+      <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
         <style>{realCSS}</style>
         <AutoSizer
           onResize={({width}) => {
@@ -268,10 +271,10 @@ class ConversationList extends Component<void, Props, State> {
             </CellMeasurer>
           }}
         </AutoSizer>
-        {this.props.sidePanelOpen && <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', right: 0, top: 0, bottom: 0, width: 320}}>
+        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, position: 'absolute', right: 0, top: 0, bottom: 0, width: 320}}>
           <SidePanel {...this.props} />
-        </Box>}
-      </Box>
+        </div>}
+      </div>
     )
   }
 }

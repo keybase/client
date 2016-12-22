@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -268,12 +269,14 @@ func (s *Deliverer) SetSender(sender Sender) {
 	s.sender = sender
 }
 
-func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error) {
+func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext,
+	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, error) {
 
-	s.debug("queued new message: convID: %s uid: %s", convID, s.outbox.GetUID())
+	s.debug("queued new message: convID: %s uid: %s ident: %v", convID, s.outbox.GetUID(),
+		identifyBehavior)
 
 	// Push onto outbox and immediatley return
-	oid, err := s.outbox.PushMessage(convID, msg)
+	oid, err := s.outbox.PushMessage(convID, msg, identifyBehavior)
 	if err != nil {
 		return oid, err
 	}
@@ -312,6 +315,7 @@ func (s *Deliverer) deliverLoop() {
 
 		// Send messages
 		pops := 0
+		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
 
 			// Check type
@@ -326,7 +330,8 @@ func (s *Deliverer) deliverLoop() {
 			}
 
 			// Do the actual send
-			_, _, _, err = s.sender.Send(context.Background(), obr.ConvID, obr.Msg, 0)
+			bctx := utils.IdentifyModeCtx(context.Background(), obr.IdentifyBehavior, &breaks)
+			_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
 			if err != nil {
 				s.G().Log.Error("failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
@@ -393,6 +398,8 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 		Prev:        clientPrev,
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
-	oid, err := s.G().MessageDeliverer.Queue(convID, msg)
+
+	identifyBehavior, _, _ := utils.IdentifyMode(ctx)
+	oid, err := s.G().MessageDeliverer.Queue(convID, msg, identifyBehavior)
 	return oid, 0, &chat1.RateLimit{}, err
 }

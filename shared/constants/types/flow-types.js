@@ -429,6 +429,7 @@ export const TlfKeysTLFIdentifyBehavior = {
   defaultKbfs: 0,
   chatCli: 1,
   chatGui: 2,
+  chatGuiStrict: 3,
 }
 
 export const UiPromptDefault = {
@@ -4025,6 +4026,7 @@ export type TLFIdentifyBehavior =
     0 // DEFAULT_KBFS_0
   | 1 // CHAT_CLI_1
   | 2 // CHAT_GUI_2
+  | 3 // CHAT_GUI_STRICT_3
 
 export type TLFIdentifyFailure = {
   user: User,

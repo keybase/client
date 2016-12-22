@@ -7,9 +7,9 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 import React from 'react'
 import {Box} from '../../../common-adapters'
 
-import type {Message} from '../../../constants/chat'
+import type {Message, ServerMessage} from '../../../constants/chat'
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void) => {
+const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void) => {
   if (!message) {
     return <Box key={key} style={style} />
   }

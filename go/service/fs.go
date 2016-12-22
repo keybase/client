@@ -31,7 +31,7 @@ func (h *fsHandler) fsClient() (*keybase1.FsClient, error) {
 		return nil, fmt.Errorf("KBFS client wasn't found")
 	}
 	return &keybase1.FsClient{
-		Cli: rpc.NewClient(*xp, libkb.ErrorUnwrapper{}),
+		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}),
 	}, nil
 }
 

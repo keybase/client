@@ -16,6 +16,9 @@ type State = {
   url: ?string,
 }
 
+// Holds the loaded or errored state. undefined if we don't know. So we can skip trying this on repeat images
+const _avatarCache: {[key: string]: ?boolean} = { }
+
 class Avatar extends PureComponent<void, Props, State> {
   state: State;
   _onURLLoaded: ?(username: string, url: ?string) => void;
@@ -71,6 +74,24 @@ class Avatar extends PureComponent<void, Props, State> {
     }
   }
 
+  _imgOnError = () => {
+    if (this.state.url) {
+      _avatarCache[this.state.url] = false
+    }
+
+    this.setState({errored: true})
+    this.props.onAvatarLoaded && this.props.onAvatarLoaded()
+  }
+
+  _imgOnLoad = () => {
+    if (this.state.url) {
+      _avatarCache[this.state.url] = true
+    }
+
+    this.setState({avatarLoaded: true})
+    this.props.onAvatarLoaded && this.props.onAvatarLoaded()
+  }
+
   render () {
     const {size} = this.props
     const width = size
@@ -80,7 +101,9 @@ class Avatar extends PureComponent<void, Props, State> {
     const borderStyle = this.props.borderColor ? {borderRadius: '50%', borderWidth: 2, borderStyle: 'solid', borderColor: this.props.borderColor} : {borderRadius: '50%'}
 
     const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
-    const showNoAvatar = !showLoadingColor && (!this.state.avatarLoaded || this.state.errored)
+    const alreadyGood = _avatarCache.hasOwnProperty(resolvedURL) && _avatarCache[resolvedURL]
+    const alreadyBad = _avatarCache.hasOwnProperty(resolvedURL) && !_avatarCache[resolvedURL]
+    const showNoAvatar = alreadyBad || (!showLoadingColor && ((!alreadyGood && !this.state.avatarLoaded) || this.state.errored))
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
@@ -94,6 +117,7 @@ class Avatar extends PureComponent<void, Props, State> {
         {showNoAvatar &&
           <img src={noAvatar} style={{...avatarStyle, ...borderStyle, display: 'block'}} />}
         {showLoadingColor && <div style={{...avatarStyle, ...borderStyle, backgroundColor: this.props.loadingColor}} />}
+        {!alreadyBad &&
         <img
           src={resolvedURL}
           style={{
@@ -104,8 +128,9 @@ class Avatar extends PureComponent<void, Props, State> {
             opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
             backgroundClip: 'padding-box',
           }}
-          onError={() => { this.setState({errored: true}); this.props.onAvatarLoaded && this.props.onAvatarLoaded() }}
-          onLoad={() => { this.setState({avatarLoaded: true}); this.props.onAvatarLoaded && this.props.onAvatarLoaded() }} />
+          onError={this._imgOnError}
+          onLoad={this._imgOnLoad} />
+        }
         <div>
           {size > 16 && (this.props.following || this.props.followsYou) &&
             <div>

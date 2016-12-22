@@ -16,7 +16,6 @@ import (
 type DeviceHistory struct {
 	libkb.Contextified
 	username string
-	user     *libkb.User
 	devices  []keybase1.DeviceDetail
 }
 
@@ -62,40 +61,34 @@ func (e *DeviceHistory) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceHistory) Run(ctx *Context) error {
-	if err := e.loadUser(); err != nil {
-		return err
-	}
-	if err := e.loadDevices(); err != nil {
-		return err
-	}
-	return nil
+
+	arg := e.loadUserArg()
+	err := e.G().FullSelfCacher.WithUser(arg, func(u *libkb.User) error {
+		return e.loadDevices(u)
+	})
+	return err
 }
 
 func (e *DeviceHistory) Devices() []keybase1.DeviceDetail {
 	return e.devices
 }
 
-func (e *DeviceHistory) loadUser() error {
+func (e *DeviceHistory) loadUserArg() libkb.LoadUserArg {
 	arg := libkb.NewLoadUserPubOptionalArg(e.G())
 	if len(e.username) == 0 {
 		arg.Self = true
 	} else {
 		arg.Name = e.username
 	}
-	u, err := libkb.LoadUser(arg)
-	if err != nil {
-		return err
-	}
-	e.user = u
-	return nil
+	return arg
 }
 
-func (e *DeviceHistory) loadDevices() error {
-	ckf := e.user.GetComputedKeyFamily()
+func (e *DeviceHistory) loadDevices(user *libkb.User) error {
+	ckf := user.GetComputedKeyFamily()
 	if ckf == nil {
 		return errors.New("nil ComputedKeyFamily for user")
 	}
-	ckis := e.user.GetComputedKeyInfos()
+	ckis := user.GetComputedKeyInfos()
 	if ckis == nil {
 		return errors.New("nil ComputedKeyInfos for user")
 	}
@@ -143,7 +136,7 @@ func (e *DeviceHistory) loadDevices() error {
 
 	// Load the last used times, but only if these are your own devices. The
 	// API won't give you those times for other people's devices.
-	if e.user.GetNormalizedName().Eq(e.G().Env.GetUsername()) {
+	if user.GetNormalizedName().Eq(e.G().Env.GetUsername()) {
 		lastUsedTimes, err := e.getLastUsedTimes()
 		if err != nil {
 			return err
