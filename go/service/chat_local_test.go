@@ -277,9 +277,11 @@ func TestChatGetInboxAndUnboxLocalTlfName(t *testing.T) {
 	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	tlfName := ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username // not canonical
+	visibility := chat1.TLFVisibility_PRIVATE
 	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(context.Background(), chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			TlfName: &tlfName,
+			TlfName:       &tlfName,
+			TlfVisibility: &visibility,
 		},
 	})
 	if err != nil {

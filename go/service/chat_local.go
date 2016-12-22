@@ -71,7 +71,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
 	}
 
-	rquery, identifyFailures, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
+	rquery, tlfInfo, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -82,12 +82,15 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
-	return chat1.GetInboxLocalRes{
+	inbox = chat1.GetInboxLocalRes{
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
-		IdentifyFailures:        identifyFailures,
-	}, nil
+	}
+	if tlfInfo != nil {
+		inbox.IdentifyFailures = tlfInfo.IdentifyFailures
+	}
+	return inbox, nil
 }
 
 func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
@@ -256,13 +259,13 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 
 	// we are ignoring the `identifyFailures` here since the `Read` after creating the
 	// conversation will get the identifyFailures for us.
-	tlfID, cname, _, err := utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName, arg.IdentifyBehavior)
+	info, err := utils.LookupTLF(ctx, h.tlf, arg.TlfName, arg.TlfVisibility, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
 
 	triple := chat1.ConversationIDTriple{
-		Tlfid:     tlfID,
+		Tlfid:     info.ID,
 		TopicType: arg.TopicType,
 		TopicID:   make(chat1.TopicID, 16),
 	}
@@ -274,7 +277,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
 		}
 
-		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, cname, arg.TlfVisibility, arg.TopicName)
+		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, info.CanonicalName, arg.TlfVisibility, arg.TopicName)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error preparing message: %s", err)
 		}

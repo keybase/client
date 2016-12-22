@@ -154,6 +154,10 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
 		return err
 	}
+	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
+	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
+		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
+	}
 
 	nActions := 0
 

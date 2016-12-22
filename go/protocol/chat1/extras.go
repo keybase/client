@@ -196,3 +196,27 @@ func (o OutboxID) Eq(r OutboxID) bool {
 func (t TLFVisibility) Eq(r TLFVisibility) bool {
 	return int(t) == int(r)
 }
+
+// Visibility is a helper to get around a nil pointer for visibility,
+// and to get around TLFVisibility_ANY.  The default is PRIVATE.
+// Note:  not sure why visibility is a pointer, or what TLFVisibility_ANY
+// is for, but don't want to change the API.
+func (q *GetInboxLocalQuery) Visibility() TLFVisibility {
+	visibility := TLFVisibility_PRIVATE
+	if q.TlfVisibility != nil && *q.TlfVisibility == TLFVisibility_PUBLIC {
+		visibility = TLFVisibility_PUBLIC
+	}
+	return visibility
+}
+
+// Visibility is a helper to get around a nil pointer for visibility,
+// and to get around TLFVisibility_ANY.  The default is PRIVATE.
+// Note:  not sure why visibility is a pointer, or what TLFVisibility_ANY
+// is for, but don't want to change the API.
+func (q *GetInboxQuery) Visibility() TLFVisibility {
+	visibility := TLFVisibility_PRIVATE
+	if q.TlfVisibility != nil && *q.TlfVisibility == TLFVisibility_PUBLIC {
+		visibility = TLFVisibility_PUBLIC
+	}
+	return visibility
+}

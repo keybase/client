@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -169,43 +168,66 @@ func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames
 	return writerNames, readerNames, extensionSuffix, err
 }
 
-func CryptKeysWrapper(ctx context.Context,
-	tlfInterface keybase1.TlfInterface, tlfName string,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (
-	tlfID chat1.TLFID, canonicalTlfName string,
-	breaks []keybase1.TLFIdentifyFailure, err error) {
+type TLFInfo struct {
+	ID               chat1.TLFID
+	CanonicalName    string
+	IdentifyFailures []keybase1.TLFIdentifyFailure
+}
 
-	resp, err := tlfInterface.CryptKeys(ctx, keybase1.TLFQuery{
+func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string, visibility chat1.TLFVisibility, idBehavior keybase1.TLFIdentifyBehavior) (*TLFInfo, error) {
+	query := keybase1.TLFQuery{
 		TlfName:          tlfName,
-		IdentifyBehavior: identifyBehavior,
-	})
+		IdentifyBehavior: idBehavior,
+	}
+	if visibility == chat1.TLFVisibility_PUBLIC {
+		return lookupPublicTLF(ctx, tlfcli, query)
+	}
+	return lookupPrivateTLF(ctx, tlfcli, query)
+}
+
+func lookupPublicTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query keybase1.TLFQuery) (*TLFInfo, error) {
+	resp, err := tlfcli.PublicCanonicalTLFNameAndID(ctx, query)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, err
 	}
-	tlfIDb := resp.NameIDBreaks.TlfID.ToBytes()
-	if tlfIDb == nil {
-		return nil, "", resp.NameIDBreaks.Breaks.Breaks, errors.New("invalid TLF ID acquired")
+	info := TLFInfo{
+		ID:               chat1.TLFID(resp.TlfID.ToBytes()),
+		CanonicalName:    string(resp.CanonicalName),
+		IdentifyFailures: resp.Breaks.Breaks,
 	}
-	tlfID = chat1.TLFID(tlfIDb)
-	return tlfID, string(resp.NameIDBreaks.CanonicalName), resp.NameIDBreaks.Breaks.Breaks, nil
+	return &info, nil
+}
+
+func lookupPrivateTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query keybase1.TLFQuery) (*TLFInfo, error) {
+	resp, err := tlfcli.CompleteAndCanonicalizePrivateTlfName(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	info := TLFInfo{
+		ID:               chat1.TLFID(resp.TlfID.ToBytes()),
+		CanonicalName:    string(resp.CanonicalName),
+		IdentifyFailures: resp.Breaks.Breaks,
+	}
+	return &info, nil
 }
 
 func GetInboxQueryLocalToRemote(ctx context.Context,
 	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (
-	rquery *chat1.GetInboxQuery, breaks []keybase1.TLFIdentifyFailure, err error) {
+	rquery *chat1.GetInboxQuery, info *TLFInfo, err error) {
 
 	if lquery == nil {
 		return nil, nil, nil
 	}
+
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
-		tlfID, _, breaks, err := CryptKeysWrapper(ctx,
-			tlfInterface, *lquery.TlfName, identifyBehavior)
+		var err error
+		info, err = LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility(), identifyBehavior)
 		if err != nil {
-			return nil, breaks, err
+			return nil, nil, err
 		}
-		rquery.TlfID = &tlfID
+		rquery.TlfID = &info.ID
 	}
 
 	rquery.After = lquery.After
@@ -219,7 +241,7 @@ func GetInboxQueryLocalToRemote(ctx context.Context,
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
 
-	return rquery, breaks, nil
+	return rquery, info, nil
 }
 
 const (
