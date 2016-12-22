@@ -171,6 +171,19 @@ function reducer (state: State = initialState, action: Actions) {
         conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageID))
       ))
     }
+    case Constants.pendingMessageFailed: {
+      const {conversationIDKey, outboxID, messageState} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.outboxID && item.outboxID === outboxID,
+          m => ({
+            ...m,
+            messageState,
+          }))
+      )
+    }
     case 'chat:attachmentLoaded': {
       const {conversationIDKey, messageID, path, isPreview} = action.payload
 
