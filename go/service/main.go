@@ -16,6 +16,7 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libcmdline"
@@ -232,8 +233,10 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
 	d.hourlyChecks()
+	d.createConvSource()
 	d.createMessageDeliverer()
 	d.startupGregor()
+	d.startMessageDeliverer()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
@@ -248,11 +251,21 @@ func (d *Service) createMessageDeliverer() {
 
 	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), ri, si)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
+}
 
+func (d *Service) startMessageDeliverer() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
 		d.G().MessageDeliverer.Start(d.G().Env.GetUID().ToBytes())
 	}
+}
+
+func (d *Service) createConvSource() {
+	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
+	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
+	tlf := newTlfHandler(nil, d.G())
+	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
+		chat.NewBoxer(d.G(), tlf), storage.New(d.G(), si), ri)
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {

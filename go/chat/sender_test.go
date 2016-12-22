@@ -85,7 +85,8 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 		incoming: make(chan int),
 		failing:  make(chan []chat1.OutboxID),
 	}
-	tc.G.ConvSource = NewRemoteConversationSource(tc.G, boxer, ri)
+	tc.G.ConvSource = NewRemoteConversationSource(tc.G, boxer,
+		func() chat1.RemoteInterface { return ri })
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())
