@@ -284,9 +284,12 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 		sender := m.ClientHeader.Sender
 		key := m.HeaderSignature.K
 		ctime := m.ServerHeader.Ctime
-		validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
+		found, validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
 		if err != nil {
 			return chat1.MessageUnboxed{}, err
+		}
+		if !found {
+			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
 		}
 		if !validAtCtime {
 			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
