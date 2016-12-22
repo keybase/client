@@ -17,31 +17,21 @@ import type {Props} from '.'
 type OwnProps = {}
 type State = {
   sidePanelOpen: boolean,
-  inputText: string,
 }
 
 class ConversationContainer extends Component<void, Props, State> {
   state: State
-  _inputTextMap: {[key: string]: ?string}= {}
 
   constructor (props: Props) {
     super(props)
-    this.state = {sidePanelOpen: false, inputText: ''}
+    this.state = {sidePanelOpen: false}
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
       this.setState({
         sidePanelOpen: false,
-        inputText: this._inputTextMap[nextProps.selectedConversation || ''] || '',
       })
-    }
-  }
-
-  _setInputText = (inputText: string) => {
-    if (this.props.selectedConversation) {
-      this._inputTextMap[this.props.selectedConversation] = inputText
-      this.setState({inputText})
     }
   }
 
@@ -58,8 +48,6 @@ class ConversationContainer extends Component<void, Props, State> {
       {...this.props}
       sidePanelOpen={this.state.sidePanelOpen}
       onToggleSidePanel={this._onToggleSidePanel}
-      setInputText={this._setInputText}
-      inputText={this.state.inputText}
     />
   }
 }

@@ -16,7 +16,7 @@ import {ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {Message, MessageID} from '../../constants/chat'
-import type {Props} from './'
+import type {Props} from './list'
 
 type State = {
   isLockedToBottom: boolean,

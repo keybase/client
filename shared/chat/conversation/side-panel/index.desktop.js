@@ -4,7 +4,7 @@ import {Box, Divider} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
 import Participants from './participants.desktop'
 
-import type {Props} from '..'
+import type {Props} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
 const SidePanel = (props: Props) => (

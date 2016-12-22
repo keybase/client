@@ -3,7 +3,7 @@ import React from 'react'
 import {Box, Avatar, Text, Usernames, Divider, Icon} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
-import type {Props} from '..'
+import type {Props} from '.'
 
 const Participants = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn}}>

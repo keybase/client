@@ -16,31 +16,36 @@ const Conversation = (props: Props) => {
   const banner = bannerMessage && <Banner {...bannerMessage} />
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      <Header {...props} />
-      <List
-        messages={props.messages}
-        selectedConversation={props.selectedConversation}
-        onLoadMoreMessages={props.onLoadMoreMessages}
-        onEditMessage={props.onEditMessage}
-        onDeleteMessage={props.onDeleteMessage}
-        moreToLoad={props.moreToLoad}
-        firstNewMessageID={props.firstNewMessageID}
-        onLoadAttachment={props.onLoadAttachment}
-        onOpenInFileUI={props.onOpenInFileUI}
-        validated={props.validated}
-        sidePanelOpen={props.sidePanelOpen}
+      <Header
+        onOpenFolder={props.onOpenFolder}
+        onToggleSidePanel={props.onToggleSidePanel}
         participants={props.participants}
-        onShowProfile={props.onShowProfile}
+        sidePanelOpen={props.sidePanelOpen}
+      />
+      <List
+        firstNewMessageID={props.firstNewMessageID}
+        messages={props.messages}
         metaData={props.metaData}
+        moreToLoad={props.moreToLoad}
         onAddParticipant={props.onAddParticipant}
+        onDeleteMessage={props.onDeleteMessage}
+        onEditMessage={props.onEditMessage}
+        onLoadAttachment={props.onLoadAttachment}
+        onLoadMoreMessages={props.onLoadMoreMessages}
+        onOpenInFileUI={props.onOpenInFileUI}
+        onShowProfile={props.onShowProfile}
+        participants={props.participants}
+        selectedConversation={props.selectedConversation}
+        sidePanelOpen={props.sidePanelOpen}
+        validated={props.validated}
       />
       {banner}
       <Input
         emojiPickerOpen={props.emojiPickerOpen}
-        selectedConversation={props.selectedConversation}
         isLoading={props.isLoading}
-        inputText={props.inputText}
-        setInputText={props.setInputText}
+        onAttach={props.onAttach}
+        onPostMessage={props.onPostMessage}
+        selectedConversation={props.selectedConversation}
       />
     </Box>
   )

@@ -4,7 +4,7 @@ import {Box, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {participantFilter} from '../../constants/chat'
 
-import type {Props} from './'
+import type {Props} from './header'
 
 const Header = ({participants, onOpenFolder, onToggleSidePanel, sidePanelOpen}: Props) => (
   <Box style={containerStyle}>
