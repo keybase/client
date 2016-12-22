@@ -101,7 +101,7 @@ export default function () {
           }] : []),
           {
             src: hotPath('launcher.bundle.js'),
-            async: !__DEV__,
+            async: false,
           },
         ],
         selectorParams: 'menubar',

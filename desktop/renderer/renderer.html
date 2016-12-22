@@ -2,7 +2,7 @@
 <html>
   <head>
     <!-- The sha here is for the inline script below -->
-    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="default-src file: filesystem: http://localhost:4000 https://keybase.io/; img-src data: http://localhost:4000 https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://images.coinbase.com/ https://s3.amazonaws.com/keybase_processed_uploads/ file:; style-src 'unsafe-inline'; script-src file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval' 'sha256-oPHygdnnMQ+1yWFx9v6wvPEzv3L19asbj4m9ULhMKn0='"/>
+    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="default-src file: filesystem: http://localhost:4000 https://keybase.io/; img-src data: http://localhost:4000 https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://images.coinbase.com/ https://s3.amazonaws.com/keybase_processed_uploads/ file:; style-src 'unsafe-inline'; script-src file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval' 'sha256-8UbUNQudtk5tofei2bl20Euss6A28vO1NL+WVsyf4ks='"/>
     <title>Keybase</title>
   </head>
   <body>
@@ -10,8 +10,9 @@
       <div title="loading..." style="flex: 1;background-color: #f5f5f5">
     </div>
     <script>
-      function loadScript ({src, async, defer}) {
-        return new Promise((resolve, reject) => {
+      require('electron').ipcRenderer.once('load', (event, options) => {
+        document.title = options.title || document.title
+        options.scripts.map(({src, async, defer}) => {
           const script = document.createElement('script')
           if (src == null) {
             throw new Error('No src for script. Nothing to load')
@@ -19,17 +20,10 @@
           (script.src = src)
           async != null && (script.async = async)
           defer != null && (script.defer = defer)
-          script.onload = resolve
-          script.onerror = reject
+          script.onload = () => window.load && window.load(options)
+          script.onerror = e => console.warn('error loading initial scripts:', e)
           document.head.appendChild(script)
         })
-      }
-
-      require('electron').ipcRenderer.once('load', (event, options) => {
-        document.title = options.title || document.title
-        Promise.all(options.scripts.map(opts => loadScript(opts)))
-          .then(() => window.load && window.load(options))
-          .catch(e => console.warn('error loading initial scripts:', e))
       })
     </script>
   </body>

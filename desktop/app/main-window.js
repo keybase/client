@@ -40,7 +40,7 @@ export default function () {
         }] : []),
         {
           src: hotPath('index.bundle.js'),
-          async: !__DEV__,
+          async: false,
         },
       ],
     })

@@ -81,7 +81,7 @@ class RemoteComponent extends Component {
           }] : []),
           {
             src: hotPath('remote-component-loader.bundle.js'),
-            async: !__DEV__,
+            async: false,
           },
         ],
         selectorParams: this.props.selectorParams,
