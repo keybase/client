@@ -16,12 +16,11 @@
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="ProductUpdater" />
-      <ComponentGroupRef Id="PrompterComponents" />      
+      <ComponentGroupRef Id="PrompterComponents" />
+      <ComponentGroupRef Id="KBFSComponents" />      
       <ComponentGroupRef Id="GUI" />
       <ComponentGroupRef Id="ApplicationShortcuts" />
     </Feature>
-
-    <FeatureRef Id="KBFSFeature" />
         
     <!-- This seems to be the best way to detect pending reboot - MsiSystemRebootPending did NOT work -->
     <Property Id="RESTART_PENDING">
@@ -266,12 +265,6 @@
   </Fragment>
 
   <Fragment>
-    <!--KBFS as a separate feature so it can be optional 
-    Set Level to a larger value to make it unselected by default-->
-    <Feature Id="KBFSFeature" Title="Keybase File System" Level="1">
-      <ComponentGroupRef Id="KBFSComponents" />
-    </Feature>
-    
     <ComponentGroup Id="KBFSComponents" Directory="INSTALLFOLDER">
       <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
         <CreateFolder />
