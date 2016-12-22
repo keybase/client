@@ -18,6 +18,7 @@ export type Props = Exact<{
   onKeyDown?: (event: Object) => void,
   rowsMax?: number,
   rowsMin?: number,
+  charsMax?: number,
   select?: () => void,
   small?: bool,
   smallLabel?: string,

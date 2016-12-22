@@ -7,6 +7,8 @@ import {backgroundImageFn} from '../../common-adapters/emoji'
 
 import type {Props} from './input'
 
+const maxInputLength = 4000
+
 type State = {
   emojiPickerOpen: boolean,
   text: string,
@@ -86,6 +88,7 @@ class Conversation extends Component<void, Props, State> {
             value={this.state.text}
             multiline={true}
             rowsMin={1}
+            charsMax={maxInputLength}
             onEnterKeyDown={(e) => {
               e.preventDefault()
               if (this.state.text) {

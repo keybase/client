@@ -192,6 +192,7 @@ class Input extends Component<void, Props, State> {
       value: this.state.value,
       secureTextEntry: this.props.type === 'password',
       underlineColorAndroid: globalColors.transparent,
+      maxLength: this.props.charsMax,
     }
 
     const singlelineProps = {
