@@ -71,8 +71,15 @@ class RemoteComponent extends Component {
     webContents.on('did-finish-load', () => {
       webContents.send('load', {
         scripts: [
-          ...(__DEV__ ? [resolveRootAsURL('dist', 'dll', 'dll.vendor.js')] : []),
-          ...[hotPath('remote-component-loader.bundle.js')]],
+          ...(__DEV__ ? [{
+            src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+            async: false,
+          }] : []),
+          {
+            src: hotPath('remote-component-loader.bundle.js'),
+            async: !__DEV__,
+          },
+        ],
         selectorParams: this.props.selectorParams,
         title: this.props.title,
         component: this.props.component,

@@ -92,8 +92,15 @@ export default function () {
     webContents.on('did-finish-load', () => {
       webContents.send('load', {
         scripts: [
-          ...(__DEV__ ? [resolveRootAsURL('dist', 'dll/dll.vendor.js')] : []),
-          ...[hotPath('launcher.bundle.js')]],
+          ...(__DEV__ ? [{
+            src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+            async: false,
+          }] : []),
+          {
+            src: hotPath('launcher.bundle.js'),
+            async: !__DEV__,
+          },
+        ],
         selectorParams: 'menubar',
       })
     })
