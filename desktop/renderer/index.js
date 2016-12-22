@@ -44,7 +44,7 @@ function setupStore () {
   return _store
 }
 
-function setupAvatar() {
+function setupAvatar () {
   initAvatarLookup(getUserImage)
   initAvatarLoad(loadUserImage)
 }
