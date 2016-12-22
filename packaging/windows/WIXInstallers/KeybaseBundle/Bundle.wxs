@@ -6,8 +6,8 @@
      xmlns:netfx='http://schemas.microsoft.com/wix/NetFxExtension'
      >
   
-  <Bundle Name="Keybase $(var.KEYBASE_WINVER)" 
-          Version="$(var.KEYBASE_WINVER)" 
+  <Bundle Name="Keybase $(env.SEMVER)" 
+          Version="$(env.KEYBASE_INSTALLER_WINVER)" 
           Manufacturer="Keybase, Inc." 
           UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
    
@@ -38,7 +38,7 @@
     <Variable Name="DevFilesCheckbox" Type="numeric" Value="0"/> <!--Do not install Dokan developer files when value set to 0-->
 
     <!--Displayed in bundle UI-->
-    <Variable Name="KeybaseVersion" Value="$(var.KEYBASE_WINVER)"/>
+    <Variable Name="KeybaseSemanticVersion" Value="$(env.SEMVER)"/>
 
     <!--Dokan prerequisites-->
     <util:FileSearch Id="SearchSystem"
@@ -69,13 +69,14 @@
     <util:RegistrySearch Id="vcredist_2015_x64_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_versionnumber" Result="value" Win64="yes" Condition="VersionNT64"/>
 
     <!--Detect if non-Keybase release of Dokan is installed. Set to 0.0.0.0 if not found.-->
-    <!--Keybase has it's own UpgradeCode for Dokan starting with version 1.0.2 so fail if we detect version 1.0.2 and up with the old UpgradeCode on the system-->
+    <!--Keybase has it's own UpgradeCode for Dokan starting with version 1.0.20000 so fail if we detect version greater than 1.0.1.xx with the old UpgradeCode on the system-->
     <util:ProductSearch Id="LegacyDokanSearchx86" Variable="OLD_DOKAN_VERSION_LEGACY" UpgradeCode="$(var.OldDokanUpgradeCodeX86)" Condition="NOT VersionNT64"/>
     <util:ProductSearch Id="LegacyDokanSearchx64" After="LegacyDokanSearchx86" Variable="OLD_DOKAN_VERSION_LEGACY" UpgradeCode="$(var.OldDokanUpgradeCodeX64)" Condition="VersionNT64"/>
     
+    <!--TODO set this to the final released of Keybase Dokan using the old UpgradeCode-->
     <bal:Condition 
       Message="#(loc.FailureIncompatibleDokan)">
-      <![CDATA[NOT (OLD_DOKAN_VERSION_LEGACY > v1.0.1.82)]]>
+      <![CDATA[NOT (OLD_DOKAN_VERSION_LEGACY > v1.0.1.85)]]>
     </bal:Condition>
    
     <!--Warn the user of a reboot during install if Dokan must be upgraded. No warning on a clean install.-->

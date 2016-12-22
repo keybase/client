@@ -2,7 +2,7 @@
 <?include ..\version.xml ?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- UpgradeCode must not change, ProductCode and version should change each build (Id="*") unless creating a patch: then use ProductCode from the base release -->
-  <Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="$(var.KeybaseUpgradeCode)">
+  <Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_INSTALLER_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="$(var.KeybaseUpgradeCode)">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
     <MediaTemplate EmbedCab="yes"/>
     <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\media\icons\Keybase.ico"/>
@@ -10,6 +10,9 @@
     <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
 
+    <!--Keybase msi version KEYBASE_INSTALLER_WINVER is in the form 1.0.18600 so capture the semantic version in a property-->
+    <Property Id="SEMANTICVERSION" Value="$(env.SEMVER)"/>    
+    
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="ProductUpdater" />
@@ -182,7 +185,6 @@
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />
         <RemoveFolder Id="RemoveUpdater" On="uninstall" />
-        <RemoveFile Id="RemoveUpdaterLog" Name="keybase.updater.log" On="uninstall"/>
         <RemoveFile Id="RemoveRoamingUpdaterLog" Name="keybase.updater.log" Directory="ROAMINGINSTALLFOLDER" On="install"/> <!--Clean up in old location when we install. TODO eventually remove this-->
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="updaterexe" Value="1" KeyPath="yes" Type="integer" />

@@ -132,6 +132,7 @@ func main() {
 	printCustomVerPtr := flag.Bool("cv", false, "print custom version to console (no .syso output)")
 	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
+	printWinInstallVerPtr := flag.Bool("wi", false, "print windows installer three field format version to console (no .syso output)")
 	iconPtr := flag.String("i", "../../media/icons/Keybase.ico", "icon pathname")
 	kbfsIconPtr := flag.String("kbfsicon", "../../media/icons/windows/keybase-root-icon.ico", "icon pathname")
 	fileDescriptionPtr := flag.String("d", "Keybase utility", "File Description")
@@ -158,8 +159,12 @@ func main() {
 		return
 	}
 
-	// Windows Installer only compares the first three fields of a windows version. 
 	if *printWinVerPtr {
+		fmt.Printf("%d.%d.%d.%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
+		return
+	}
+
+	if *printWinInstallVerPtr {
 		fmt.Printf("%d.%d.%02d%03d", fv.Major, fv.Minor, fv.Patch, fv.Build)
 		return
 	}

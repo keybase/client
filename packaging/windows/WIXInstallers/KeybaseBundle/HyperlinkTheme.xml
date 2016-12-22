@@ -13,7 +13,7 @@
   
     <Image X="11" Y="11" Width="64" Height="64" ImageFile="logo.png" Visible="yes"/>
     <Text X="80" Y="11" Width="-11" Height="64" FontId="1" Visible="yes" DisablePrefix="yes">#(loc.Title)</Text>
-    <Text X="80" Y="55" Width="-11" Height="20" FontId="3" Visible="yes" DisablePrefix="yes">[KeybaseVersion]</Text>
+    <Text X="80" Y="55" Width="-11" Height="20" FontId="3" Visible="yes" DisablePrefix="yes">[KeybaseSemanticVersion]</Text>
 
     <Page Name="Help">
         <Text X="11" Y="80" Width="-11" Height="30" FontId="2" DisablePrefix="yes">#(loc.HelpHeader)</Text>

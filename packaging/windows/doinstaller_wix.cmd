@@ -41,6 +41,11 @@ set KEYBASE_VERSION=%SEMVER%
 
 echo KEYBASE_VERSION %KEYBASE_VERSION%
 
+:: Capture the windows installer style version
+for /f %%i in ('%Folder%winresource.exe -wi') do set KEYBASE_INSTALLER_WINVER=%%i
+echo KEYBASE_INSTALLER_WINVER %KEYBASE_INSTALLER_WINVER%
+
+
 :: dokan source binaries.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
 for /f %%i in ('PowerShell "(Get-Item %DOKAN_PATH%\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
