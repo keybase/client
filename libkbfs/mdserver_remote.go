@@ -330,9 +330,11 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 // OnDisconnected implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 	status rpc.DisconnectStatus) {
-	md.log.Warning("MDServerRemote is disconnected: %v", status)
-	md.config.Reporter().Notify(ctx,
-		connectionNotification(connectionStatusDisconnected))
+	if status == rpc.StartingNonFirstConnection {
+		md.log.CWarningf(ctx, "MDServerRemote is disconnected")
+		md.config.Reporter().Notify(ctx,
+			connectionNotification(connectionStatusDisconnected))
+	}
 
 	func() {
 		md.serverOffsetMu.Lock()
@@ -351,7 +353,9 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 	// the re-connect.
 	md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
 
-	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, errDisconnected{})
+	if status == rpc.StartingNonFirstConnection {
+		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, errDisconnected{})
+	}
 }
 
 // ShouldRetry implements the ConnectionHandler interface.
