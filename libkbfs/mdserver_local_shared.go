@@ -165,11 +165,8 @@ func (m *mdServerLocalUpdateManager) registerForUpdate(
 	return c
 }
 
-type keyBundleGetter interface {
-	getKeyBundles(tlfID tlf.ID,
-		wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-		*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error)
-}
+type keyBundleGetter func(tlf.ID, TLFWriterKeyBundleID, TLFReaderKeyBundleID) (
+	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error)
 
 func getExtraMetadata(kbg keyBundleGetter, brmd BareRootMetadata) (ExtraMetadata, error) {
 	tlfID := brmd.TlfID()
@@ -187,7 +184,7 @@ func getExtraMetadata(kbg keyBundleGetter, brmd BareRootMetadata) (ExtraMetadata
 		return nil, nil
 	}
 
-	wkb, rkb, err := kbg.getKeyBundles(tlfID, wkbID, rkbID)
+	wkb, rkb, err := kbg(tlfID, wkbID, rkbID)
 	if err != nil {
 		return nil, err
 	}

@@ -235,7 +235,8 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 	}
 
 	if mergedMasterHead != nil {
-		extra, err := getExtraMetadata(s, mergedMasterHead.MD)
+		extra, err := getExtraMetadata(
+			s.getKeyBundlesReadLocked, mergedMasterHead.MD)
 		if err != nil {
 			return MDServerError{err}
 		}
@@ -417,7 +418,8 @@ func (s *mdServerTlfStorage) put(
 
 	// TODO: Figure out nil case.
 	if mergedMasterHead != nil {
-		prevExtra, err := getExtraMetadata(s, mergedMasterHead.MD)
+		prevExtra, err := getExtraMetadata(
+			s.getKeyBundlesReadLocked, mergedMasterHead.MD)
 		if err != nil {
 			return false, MDServerError{err}
 		}
@@ -494,11 +496,9 @@ func (s *mdServerTlfStorage) put(
 	return recordBranchID, nil
 }
 
-func (s *mdServerTlfStorage) getKeyBundles(tlfID tlf.ID,
+func (s *mdServerTlfStorage) getKeyBundlesReadLocked(tlfID tlf.ID,
 	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
 	err := s.checkShutdownReadLocked()
 	if err != nil {
 		return nil, nil, err
@@ -535,6 +535,15 @@ func (s *mdServerTlfStorage) getKeyBundles(tlfID tlf.ID,
 	}
 
 	return wkb, rkb, nil
+}
+
+func (s *mdServerTlfStorage) getKeyBundles(tlfID tlf.ID,
+	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.getKeyBundlesReadLocked(tlfID, wkbID, rkbID)
+
 }
 
 func (s *mdServerTlfStorage) shutdown() {

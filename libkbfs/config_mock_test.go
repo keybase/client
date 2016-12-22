@@ -134,6 +134,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 
 	config.qrPeriod = 0 * time.Second // no auto reclamation
 	config.qrUnrefAge = qrUnrefAgeDefault
+	config.SetMetadataVersion(defaultClientMetadataVer)
 
 	return config
 }

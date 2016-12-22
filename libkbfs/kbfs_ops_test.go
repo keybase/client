@@ -294,7 +294,20 @@ func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
 	mdID MdID) ImmutableRootMetadata {
 	key, err := config.KBPKI().GetCurrentVerifyingKey(context.Background())
 	require.NoError(t, err)
-	return makeImmutableRootMetadataForTest(t, rmd, key, mdID)
+	// We have to fake out the signature here because most tests
+	// in this file modify the returned value, invalidating any
+	// real signatures. TODO: Fix all the tests in this file to
+	// not do so, and then just use MakeImmutableRootMetadata.
+	if brmdv2, ok := rmd.bareMd.(*BareRootMetadataV2); ok {
+		vk := brmdv2.WriterMetadataSigInfo.VerifyingKey
+		require.True(t, vk == (kbfscrypto.VerifyingKey{}) || vk == key,
+			"Writer signature %s with unexpected non-nil verifying key != %s",
+			brmdv2.WriterMetadataSigInfo, key)
+		brmdv2.WriterMetadataSigInfo = kbfscrypto.SignatureInfo{
+			VerifyingKey: key,
+		}
+	}
+	return MakeImmutableRootMetadata(rmd, key, mdID, time.Now())
 }
 
 // injectNewRMD creates a new RMD and makes sure the existing ops for
@@ -1035,8 +1048,11 @@ func (s shimMDOps) Put(ctx context.Context, rmd *RootMetadata) (MdID, error) {
 		return MdID{}, err
 	}
 	signingKey := MakeLocalUserSigningKeyOrBust(username)
-	rmd.bareMd.SignWriterMetadataInternally(
+	err = rmd.bareMd.SignWriterMetadataInternally(
 		ctx, s.codec, kbfscrypto.SigningKeySigner{Key: signingKey})
+	if err != nil {
+		return MdID{}, err
+	}
 	return s.crypto.MakeMdID(rmd.bareMd)
 }
 
@@ -1050,8 +1066,11 @@ func (s shimMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (MdID, er
 		return MdID{}, err
 	}
 	signingKey := MakeLocalUserSigningKeyOrBust(username)
-	rmd.bareMd.SignWriterMetadataInternally(
+	err = rmd.bareMd.SignWriterMetadataInternally(
 		ctx, s.codec, kbfscrypto.SigningKeySigner{Key: signingKey})
+	if err != nil {
+		return MdID{}, err
+	}
 	return s.crypto.MakeMdID(rmd.bareMd)
 }
 

@@ -44,9 +44,10 @@ func testMdcachePut(t *testing.T, tlf tlf.ID, rev MetadataRevision,
 	}
 
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("fake signing key")
-	rmd.bareMd.SignWriterMetadataInternally(context.Background(),
+	err = rmd.bareMd.SignWriterMetadataInternally(context.Background(),
 		kbfscodec.NewMsgpack(),
 		kbfscrypto.SigningKeySigner{Key: signingKey})
+	require.NoError(t, err)
 
 	// put the md
 	irmd := MakeImmutableRootMetadata(

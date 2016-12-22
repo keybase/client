@@ -202,7 +202,8 @@ func (md *MDServerMemory) checkGetParams(
 
 	// TODO: Figure out nil case.
 	if mergedMasterHead != nil {
-		extra, err := getExtraMetadata(md, mergedMasterHead.MD)
+		extra, err := getExtraMetadata(
+			md.getKeyBundles, mergedMasterHead.MD)
 		if err != nil {
 			return NullBranchID, MDServerError{err}
 		}
@@ -395,7 +396,8 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 	// TODO: Figure out nil case.
 	if mergedMasterHead != nil {
-		prevExtra, err := getExtraMetadata(md, mergedMasterHead.MD)
+		prevExtra, err := getExtraMetadata(
+			md.getKeyBundles, mergedMasterHead.MD)
 		if err != nil {
 			return MDServerError{err}
 		}

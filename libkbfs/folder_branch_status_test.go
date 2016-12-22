@@ -9,8 +9,10 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
@@ -111,6 +113,12 @@ func TestFBStatusAllFields(t *testing.T) {
 	rmd.SetUnmerged()
 	rmd.SetLastModifyingWriter(u)
 
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("fake seed")
+	signer := kbfscrypto.SigningKeySigner{Key: signingKey}
+	err = rmd.bareMd.SignWriterMetadataInternally(
+		ctx, kbfscodec.NewMsgpack(), signer)
+	require.NoError(t, err)
+
 	// make two nodes with expected PathFromNode calls
 	n1 := newMockNode(mockCtrl)
 	p1 := path{path: []pathNode{{Name: "a1"}, {Name: "b1"}}}
@@ -119,9 +127,9 @@ func TestFBStatusAllFields(t *testing.T) {
 	p2 := path{path: []pathNode{{Name: "a2"}, {Name: "b2"}}}
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n2}).AnyTimes().Return(p2)
 
-	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("fake key")
 	fbsk.setRootMetadata(
-		makeImmutableRootMetadataForTest(t, rmd, key, fakeMdID(1)))
+		MakeImmutableRootMetadata(rmd, signingKey.GetVerifyingKey(),
+			fakeMdID(1), time.Now()))
 	fbsk.addDirtyNode(n1)
 	fbsk.addDirtyNode(n2)
 
