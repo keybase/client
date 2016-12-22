@@ -5,6 +5,7 @@ import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, config
 import {isMobile} from '../../constants/platform'
 import {navBasedOnLoginState} from '../../actions/login'
 import {registerGregorListeners, registerReachability} from '../../actions/gregor'
+import {registerMobilePinentryListener} from '../../actions/pinentry'
 import {resetSignup} from '../../actions/signup'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 
@@ -136,6 +137,8 @@ function registerListeners (): AsyncAction {
     dispatch(registerGregorListeners())
     if (!isMobile) {
       dispatch(registerReachability())
+    } else {
+      dispatch(registerMobilePinentryListener())
     }
   }
 }
