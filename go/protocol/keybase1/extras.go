@@ -749,11 +749,36 @@ func (t TLFID) ToBytes() []byte {
 }
 
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
-	return b == TLFIdentifyBehavior_CHAT_GUI || b == TLFIdentifyBehavior_CHAT_CLI
+	return b == TLFIdentifyBehavior_CHAT_GUI || b == TLFIdentifyBehavior_CHAT_CLI ||
+		b == TLFIdentifyBehavior_CHAT_GUI_STRICT
 }
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	return b == TLFIdentifyBehavior_CHAT_GUI
+}
+
+func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
+	if c.CanonicalName != r.CanonicalName {
+		return false
+	}
+	if c.TlfID != r.TlfID {
+		return false
+	}
+	if len(c.Breaks.Breaks) != len(r.Breaks.Breaks) {
+		return false
+	}
+
+	m := make(map[string]bool)
+	for _, b := range c.Breaks.Breaks {
+		m[b.User.Username] = true
+	}
+	for _, b := range r.Breaks.Breaks {
+		if !m[b.User.Username] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (c CanonicalTlfName) String() string {

@@ -148,7 +148,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		if msg == nil {
 			// Skip conversations with no visible messages.
 			// This should never happen.
-			g.Log.Error("Skipped conversation with no visible messages: %v", conv.Info.Id)
+			g.Log.Error("Skipped conversation with no visible messages: %s", conv.Info.Id)
 			continue
 		}
 

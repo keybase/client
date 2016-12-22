@@ -3,6 +3,7 @@ package chat
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -17,11 +18,15 @@ type KeyFinder interface {
 
 type KeyFinderImpl struct {
 	keys map[string]keybase1.GetTLFCryptKeysRes
+	log  logger.Logger
 }
 
 // newKeyFinder creates a keyFinder.
-func NewKeyFinder() KeyFinder {
-	return &KeyFinderImpl{keys: make(map[string]keybase1.GetTLFCryptKeysRes)}
+func NewKeyFinder(log logger.Logger) KeyFinder {
+	return &KeyFinderImpl{
+		keys: make(map[string]keybase1.GetTLFCryptKeysRes),
+		log:  log,
+	}
 }
 
 func (k *KeyFinderImpl) cacheKey(tlfName string, tlfPublic bool) string {
@@ -38,8 +43,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlf
 	}
 
 	query := keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		TlfName: tlfName,
 	}
 
 	var keys keybase1.GetTLFCryptKeysRes

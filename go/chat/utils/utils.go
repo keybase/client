@@ -169,15 +169,14 @@ func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames
 }
 
 type TLFInfo struct {
-	ID               chat1.TLFID
-	CanonicalName    string
-	IdentifyFailures []keybase1.TLFIdentifyFailure
+	ID            chat1.TLFID
+	CanonicalName string
 }
 
-func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string, visibility chat1.TLFVisibility, idBehavior keybase1.TLFIdentifyBehavior) (*TLFInfo, error) {
+func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string,
+	visibility chat1.TLFVisibility) (*TLFInfo, error) {
 	query := keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: idBehavior,
+		TlfName: tlfName,
 	}
 	if visibility == chat1.TLFVisibility_PUBLIC {
 		return lookupPublicTLF(ctx, tlfcli, query)
@@ -191,9 +190,8 @@ func lookupPublicTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query ke
 		return nil, err
 	}
 	info := TLFInfo{
-		ID:               chat1.TLFID(resp.TlfID.ToBytes()),
-		CanonicalName:    string(resp.CanonicalName),
-		IdentifyFailures: resp.Breaks.Breaks,
+		ID:            chat1.TLFID(resp.TlfID.ToBytes()),
+		CanonicalName: string(resp.CanonicalName),
 	}
 	return &info, nil
 }
@@ -204,16 +202,14 @@ func lookupPrivateTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query k
 		return nil, err
 	}
 	info := TLFInfo{
-		ID:               chat1.TLFID(resp.TlfID.ToBytes()),
-		CanonicalName:    string(resp.CanonicalName),
-		IdentifyFailures: resp.Breaks.Breaks,
+		ID:            chat1.TLFID(resp.TlfID.ToBytes()),
+		CanonicalName: string(resp.CanonicalName),
 	}
 	return &info, nil
 }
 
 func GetInboxQueryLocalToRemote(ctx context.Context,
-	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (
+	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery) (
 	rquery *chat1.GetInboxQuery, info *TLFInfo, err error) {
 
 	if lquery == nil {
@@ -223,7 +219,7 @@ func GetInboxQueryLocalToRemote(ctx context.Context,
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
 		var err error
-		info, err = LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility(), identifyBehavior)
+		info, err = LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility())
 		if err != nil {
 			return nil, nil, err
 		}
@@ -294,4 +290,27 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 		}
 	}
 	return false
+}
+
+type identifyModeKey int
+
+var identModeKey identifyModeKey
+
+type identModeData struct {
+	mode   keybase1.TLFIdentifyBehavior
+	breaks *[]keybase1.TLFIdentifyFailure
+}
+
+func IdentifyModeCtx(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
+	breaks *[]keybase1.TLFIdentifyFailure) context.Context {
+	return context.WithValue(ctx, identModeKey, identModeData{mode: mode, breaks: breaks})
+}
+
+func IdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks *[]keybase1.TLFIdentifyFailure, ok bool) {
+	var imd identModeData
+	val := ctx.Value(identModeKey)
+	if imd, ok = val.(identModeData); ok {
+		return imd.mode, imd.breaks, ok
+	}
+	return keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, false
 }
