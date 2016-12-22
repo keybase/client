@@ -215,10 +215,21 @@ type ChatTLFFinalizeArg struct {
 	FinalizeInfo ConversationFinalizeInfo `codec:"finalizeInfo" json:"finalizeInfo"`
 }
 
+type ChatInboxStaleArg struct {
+	Uid keybase1.UID `codec:"uid" json:"uid"`
+}
+
+type ChatThreadsStaleArg struct {
+	Uid     keybase1.UID     `codec:"uid" json:"uid"`
+	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
 	ChatTLFFinalize(context.Context, ChatTLFFinalizeArg) error
+	ChatInboxStale(context.Context, keybase1.UID) error
+	ChatThreadsStale(context.Context, ChatThreadsStaleArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -273,6 +284,38 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatInboxStale": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatInboxStaleArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatInboxStaleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatInboxStaleArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxStale(ctx, (*typedArgs)[0].Uid)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"ChatThreadsStale": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatThreadsStaleArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatThreadsStaleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatThreadsStaleArg)(nil), args)
+						return
+					}
+					err = i.ChatThreadsStale(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -294,5 +337,16 @@ func (c NotifyChatClient) ChatIdentifyUpdate(ctx context.Context, update keybase
 
 func (c NotifyChatClient) ChatTLFFinalize(ctx context.Context, __arg ChatTLFFinalizeArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFFinalize", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatInboxStale(ctx context.Context, uid keybase1.UID) (err error) {
+	__arg := ChatInboxStaleArg{Uid: uid}
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxStale", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatThreadsStale(ctx context.Context, __arg ChatThreadsStaleArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatThreadsStale", []interface{}{__arg})
 	return
 }

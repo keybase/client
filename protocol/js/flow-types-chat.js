@@ -936,10 +936,19 @@ export type NotifyChatChatIdentifyUpdateRpcParam = Exact<{
   update: keybase1.CanonicalTLFNameAndIDWithBreaks
 }>
 
+export type NotifyChatChatInboxStaleRpcParam = Exact<{
+  uid: keybase1.UID
+}>
+
 export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID,
   finalizeInfo: ConversationFinalizeInfo
+}>
+
+export type NotifyChatChatThreadsStaleRpcParam = Exact<{
+  uid: keybase1.UID,
+  convIDs?: ?Array<ConversationID>
 }>
 
 export type NotifyChatNewChatActivityRpcParam = Exact<{
@@ -1480,6 +1489,21 @@ export type incomingCallMapType = Exact<{
       uid: keybase1.UID,
       convID: ConversationID,
       finalizeInfo: ConversationFinalizeInfo
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatInboxStale'?: (
+    params: Exact<{
+      uid: keybase1.UID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatThreadsStale'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convIDs?: ?Array<ConversationID>
     }> /* ,
     response: {} // Notify call
     */

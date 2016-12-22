@@ -70,6 +70,7 @@ type nlistener struct {
 	t                *testing.T
 	favoritesChanged []keybase1.UID
 	badgeState       chan keybase1.BadgeState
+	threadStale      chan []chat1.ConversationID
 	testChanTimeout  time.Duration
 }
 
@@ -79,6 +80,7 @@ func newNlistener(t *testing.T) *nlistener {
 	return &nlistener{
 		t:               t,
 		badgeState:      make(chan keybase1.BadgeState, 1),
+		threadStale:     make(chan []chat1.ConversationID, 1),
 		testChanTimeout: 20 * time.Second,
 	}
 }
@@ -102,7 +104,17 @@ func (n *nlistener) PGPKeyInSecretStoreFile()                                   
 func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                  {}
 func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                          {}
 func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                        {}
+<<<<<<< HEAD
 func (n *nlistener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
+=======
+func (n *nlistener) ChatInboxStale(uid keybase1.UID)                                    {}
+func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+	select {
+	case n.threadStale <- cids:
+	case <-time.After(n.testChanTimeout):
+		require.Fail(n.t, "thread send timeout")
+	}
+>>>>>>> send stale notifications whenever we reconnect to gregor, or detect
 }
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {

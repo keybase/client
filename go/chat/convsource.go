@@ -26,9 +26,9 @@ func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() cha
 }
 
 func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
 	// Do nothing here, we don't care about pushed messages
-	return chat1.MessageUnboxed{}, nil
+	return chat1.MessageUnboxed{}, true, nil
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
@@ -96,12 +96,14 @@ func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *stor
 }
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
+
 	var err error
+	append := false
 
 	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(s.G().Log), msg)
 	if err != nil {
-		return decmsg, err
+		return decmsg, append, err
 	}
 
 	// Check conversation ID and change to error if it is wrong
@@ -113,12 +115,21 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		})
 	}
 
-	// Store the message
+	// Check to see if we are "appending" this message to the current record.
+	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
+	switch err.(type) {
+	case libkb.ChatStorageMissError:
+		append = true
+	case nil:
+		append = maxMsgID >= decmsg.GetMessageID()-1
+	default:
+		return decmsg, append, err
+	}
 	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
-		return decmsg, err
+		return decmsg, append, err
 	}
 
-	return decmsg, nil
+	return decmsg, append, nil
 }
 
 func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,

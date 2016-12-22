@@ -177,7 +177,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
-	if _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
+	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
 	// TODO: make this cache write work
