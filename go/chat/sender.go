@@ -303,7 +303,8 @@ func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintex
 }
 
 func (s *Deliverer) deliverLoop() {
-	s.debug("starting non blocking sender deliver loop: uid: %s", s.outbox.GetUID())
+	s.debug("starting non blocking sender deliver loop: uid: %s duration: %v", s.outbox.GetUID(),
+		s.G().Env.GetChatDelivererInterval())
 	for {
 		// Wait for the signal to take action
 		select {
@@ -312,7 +313,7 @@ func (s *Deliverer) deliverLoop() {
 			return
 		case <-s.msgSentCh:
 			s.debug("flushing outbox on new message: uid: %s", s.outbox.GetUID())
-		case <-s.G().Clock().After(time.Minute):
+		case <-s.G().Clock().After(s.G().Env.GetChatDelivererInterval()):
 		}
 
 		// Fetch outbox
