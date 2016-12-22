@@ -136,6 +136,7 @@ type sendOptionsV1 struct {
 	Channel        ChatChannel
 	ConversationID string `json:"conversation_id"`
 	Message        ChatMessage
+	Nonblock       bool `json:"nonblock"`
 }
 
 func (s sendOptionsV1) Check() error {
