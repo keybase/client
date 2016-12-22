@@ -502,18 +502,12 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	if n == nil {
 		return
 	}
-
 	var wg sync.WaitGroup
-
 	n.G().Log.Debug("+ Sending ChatIdentifyUpdate notfication")
-	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Chat` notification type
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
-			// In the background do...
 			go func() {
-				// A send of a `NewChatActivity` RPC with the user's UID
 				(chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).ChatIdentifyUpdate(context.Background(), update)
