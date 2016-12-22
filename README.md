@@ -103,11 +103,11 @@ See our [kbfsdokan](kbfsdokan/) documentation.
 ### To run from source against local in-memory servers
 
 ```bash
-kbfsfuse -server-in-memory -localuser strib /keybase
+kbfsfuse -bserver=memory -mdserver=memory -localuser strib /keybase
 ```
 
-(Use "`-server-root <dir>` if instead you want to save your data to
-local disk.)
+(Use `-bserver=dir:/path/to/dir` and `-mdserver=dir:/path/to/dir` if
+instead you want to save your data to local disk.)
 
 Now you can do cool stuff like:
 

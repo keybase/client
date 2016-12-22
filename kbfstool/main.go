@@ -22,18 +22,17 @@ const usageFormatStr = `Usage:
   kbfstool -version
 
 To run against remote KBFS servers:
-  env KEYBASE_RUN_MODE=[staging|prod] kbfstool [-debug]
-    [-cpuprofile=path/to/dir] <command> [<args>]
-
-or
-
-  kbfstool [-debug] [-cpuprofile=path/to/dir] [-bserver=%s] [-mdserver=%s]
+  kbfstool
+%s
     <command> [<args>]
 
 To run in a local testing environment:
-  kbfstool [-debug] [-cpuprofile=path/to/dir]
-    [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
+  kbfstool
+%s
     <command> [<args>]
+
+Defaults:
+%s
 
 The possible commands are:
   stat		Display file status
@@ -45,16 +44,12 @@ The possible commands are:
 
 `
 
-func getUsageStr(kbCtx libkbfs.Context) string {
-	defaultBServer := libkbfs.GetDefaultBServer(kbCtx)
-	if len(defaultBServer) == 0 {
-		defaultBServer = "host:port"
-	}
-	defaultMDServer := libkbfs.GetDefaultMDServer(kbCtx)
-	if len(defaultMDServer) == 0 {
-		defaultMDServer = "host:port"
-	}
-	return fmt.Sprintf(usageFormatStr, defaultBServer, defaultMDServer)
+func getUsageString(ctx libkbfs.Context) string {
+	remoteUsageStr := libkbfs.GetRemoteUsageString()
+	localUsageStr := libkbfs.GetLocalUsageString()
+	defaultUsageStr := libkbfs.GetDefaultsUsageString(ctx)
+	return fmt.Sprintf(usageFormatStr, remoteUsageStr,
+		localUsageStr, defaultUsageStr)
 }
 
 // Define this so deferred functions get executed before exit.
@@ -70,7 +65,7 @@ func realMain() (exitStatus int) {
 	}
 
 	if len(flag.Args()) < 1 {
-		fmt.Print(getUsageStr(kbCtx))
+		fmt.Print(getUsageString(kbCtx))
 		return 1
 	}
 

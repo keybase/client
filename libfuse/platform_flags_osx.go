@@ -22,7 +22,7 @@ func (p PlatformParams) shouldAppendPlatformRootDirs() bool {
 // GetPlatformUsageString returns a string to be included in a usage
 // string corresponding to the flags added by AddPlatformFlags.
 func GetPlatformUsageString() string {
-	return "[--use-system-fuse] [--local-experimental]"
+	return "[--use-system-fuse] [--local-experimental]\n    "
 }
 
 // AddPlatformFlags adds platform-specific flags to the given FlagSet

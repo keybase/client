@@ -29,36 +29,29 @@ const usageFormatStr = `Usage:
   kbfsfuse -version
 
 To run against remote KBFS servers:
-  kbfsfuse [-debug] [-cpuprofile=path/to/dir]
-    [-bserver=%s] [-mdserver=%s]
+  kbfsfuse
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
-    [-log-to-file] [-log-file=path/to/file] [-md-version=version]
-		[-clean-bcache-cap=0]
+%s
     %s/path/to/mountpoint
 
 To run in a local testing environment:
-  kbfsfuse [-debug] [-cpuprofile=path/to/dir]
-    [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
+  kbfsfuse
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
-    [-log-to-file] [-log-file=path/to/file] [-md-version=version]
-		[-clean-bcache-cap=0]
+%s
     %s/path/to/mountpoint
 
+Defaults:
+%s
 `
 
-func getUsageStr(ctx libkbfs.Context) string {
-	defaultBServer := libkbfs.GetDefaultBServer(ctx)
-	if len(defaultBServer) == 0 {
-		defaultBServer = "host:port"
-	}
-	defaultMDServer := libkbfs.GetDefaultMDServer(ctx)
-	if len(defaultMDServer) == 0 {
-		defaultMDServer = "host:port"
-	}
-	platformUsageString := libfuse.GetPlatformUsageString()
-	return fmt.Sprintf(
-		usageFormatStr, defaultBServer, defaultMDServer,
-		platformUsageString, platformUsageString)
+func getUsageString(ctx libkbfs.Context) string {
+	remoteUsageStr := libkbfs.GetRemoteUsageString()
+	localUsageStr := libkbfs.GetLocalUsageString()
+	platformUsageStr := libfuse.GetPlatformUsageString()
+	defaultUsageStr := libkbfs.GetDefaultsUsageString(ctx)
+	return fmt.Sprintf(usageFormatStr,
+		remoteUsageStr, platformUsageStr,
+		localUsageStr, platformUsageStr, defaultUsageStr)
 }
 
 func start() *libfs.Error {
@@ -75,12 +68,12 @@ func start() *libfs.Error {
 	}
 
 	if len(flag.Args()) < 1 {
-		fmt.Print(getUsageStr(ctx))
+		fmt.Print(getUsageString(ctx))
 		return libfs.InitError("no mount specified")
 	}
 
 	if len(flag.Args()) > 1 {
-		fmt.Print(getUsageStr(ctx))
+		fmt.Print(getUsageString(ctx))
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 

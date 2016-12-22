@@ -31,33 +31,29 @@ const usageFormatStr = `Usage:
   kbfsdokan -version
 
 To run against remote KBFS servers:
-  kbfsdokan [-debug] [-cpuprofile=path/to/dir]
-    [-bserver=%s] [-mdserver=%s]
+  kbfsdokan
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
-    [-log-to-file] [-log-file=path/to/file]
-		[-clean-bcache-cap=0]
+    [-mount-flags=n] [-dokan-dll=path/to/dokan.dll]
+%s
     -mount-from-service | /path/to/mountpoint
 
 To run in a local testing environment:
-  kbfsdokan [-debug] [-cpuprofile=path/to/dir]
-    [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
+  kbfsdokan
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
-    [-log-to-file] [-log-file=path/to/file]
-		[-clean-bcache-cap=0]
+    [-mount-flags=n] [-dokan-dll=path/to/dokan.dll]
+%s
     -mount-from-service | /path/to/mountpoint
 
+Defaults:
+%s
 `
 
-func getUsageStr(ctx libkbfs.Context) string {
-	defaultBServer := libkbfs.GetDefaultBServer(ctx)
-	if len(defaultBServer) == 0 {
-		defaultBServer = "host:port"
-	}
-	defaultMDServer := libkbfs.GetDefaultMDServer(ctx)
-	if len(defaultMDServer) == 0 {
-		defaultMDServer = "host:port"
-	}
-	return fmt.Sprintf(usageFormatStr, defaultBServer, defaultMDServer)
+func getUsageString(ctx libkbfs.Context) string {
+	remoteUsageStr := libkbfs.GetRemoteUsageString()
+	localUsageStr := libkbfs.GetLocalUsageString()
+	defaultUsageStr := libkbfs.GetDefaultsUsageString(ctx)
+	return fmt.Sprintf(usageFormatStr, remoteUsageStr,
+		localUsageStr, defaultUsageStr)
 }
 
 func start() *libfs.Error {
@@ -79,7 +75,7 @@ func start() *libfs.Error {
 	var mountpoint string
 	if len(flag.Args()) < 1 {
 		if !*servicemount {
-			fmt.Print(getUsageStr(ctx))
+			fmt.Print(getUsageString(ctx))
 			return libfs.InitError("no mount specified")
 		}
 	} else {
@@ -87,7 +83,7 @@ func start() *libfs.Error {
 	}
 
 	if len(flag.Args()) > 1 {
-		fmt.Print(getUsageStr(ctx))
+		fmt.Print(getUsageString(ctx))
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 

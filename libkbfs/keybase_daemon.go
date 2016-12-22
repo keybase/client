@@ -24,7 +24,10 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 		return NewKeybaseDaemonRPC(config, ctx, log, params.Debug), nil
 	}
 
-	users := []libkb.NormalizedUsername{"strib", "max", "chris", "fred"}
+	users := []libkb.NormalizedUsername{
+		"strib", "max", "chris", "akalin", "jzila", "alness",
+		"jinyang", "songgao", "taru", "zanderz",
+	}
 	userIndex := -1
 	for i := range users {
 		if localUser == users[i] {
@@ -43,21 +46,26 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 	localUsers[1].Asserts = []string{"twitter:maxtaco"}
 	localUsers[2].Asserts = []string{"twitter:malgorithms"}
 	localUsers[3].Asserts = []string{"twitter:fakalin"}
+	localUsers[4].Asserts = []string{"twitter:jzila"}
+	localUsers[5].Asserts = []string{"github:aalness"}
+	localUsers[6].Asserts = []string{"github:jinyangli"}
+	localUsers[7].Asserts = []string{"github:songgao"}
+	// No asserts for 8.
+	localUsers[9].Asserts = []string{"github:zanderz"}
 
 	localUID := localUsers[userIndex].UID
 	codec := config.Codec()
-	serverInMemory, serverRootDir := params.ServerInMemory, params.ServerRootDir
 
-	if serverInMemory {
+	if params.LocalFavoriteStorage == memoryAddr {
 		return NewKeybaseDaemonMemory(localUID, localUsers, codec), nil
 	}
 
-	if len(serverRootDir) > 0 {
+	if serverRootDir, ok := parseRootDir(params.LocalFavoriteStorage); ok {
 		favPath := filepath.Join(serverRootDir, "kbfs_favs")
 		return NewKeybaseDaemonDisk(localUID, localUsers, favPath, codec)
 	}
 
-	return nil, errors.New("Can't user localuser without a local server")
+	return nil, errors.New("Can't user localuser without LocalFavoriteStorage being 'memory' or 'dir:/path/to/dir'")
 }
 
 func (k keybaseDaemon) NewCrypto(config Config, params InitParams, ctx Context, log logger.Logger) (Crypto, error) {

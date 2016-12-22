@@ -55,7 +55,7 @@ Fix this by setting CGOENABLED=1 and recheck `go env`.
 ## Try it out like kbfsfuse:
 
 For local only functionality:
-```kbfsdokan.exe -debug -localuser <user> -server-in-memory M:```
+```kbfsdokan.exe -debug -localuser <user> -bserver=memory -mdserver=memory M:```
 For normal functionality:
 ```kbfsdokan.exe -debug -log-to-file M:```
 
