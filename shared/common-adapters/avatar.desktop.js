@@ -1,6 +1,7 @@
 // @flow
 import * as shared from './avatar.shared'
-import React, {PureComponent} from 'react'
+import React, {Component} from 'react'
+import shallowEqual from 'shallowequal'
 import type {Props} from './avatar'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
@@ -17,13 +18,30 @@ type State = {
 const _avatarCache: {[key: string]: ?boolean} = {
 }
 
-class Avatar extends PureComponent<void, Props, State> {
+class Avatar extends Component<void, Props, State> {
   state: State;
   _mounted: boolean = false;
 
   constructor (props: Props) {
     super(props)
-    this.state = {avatarLoaded: false, errored: false, url: shared.createAvatarUrl(props)}
+
+    const url = shared.createAvatarUrl(props)
+
+    this.state = {
+      ...this._getLoadedErrorState(url),
+    }
+  }
+
+  _getLoadedErrorState (url: ?string) {
+    return {
+      avatarLoaded: !!url && _avatarCache.hasOwnProperty(url) && !!_avatarCache[url],
+      errored: !!url && _avatarCache.hasOwnProperty(url) && !_avatarCache[url],
+      url,
+    }
+  }
+
+  shouldComponentUpdate (nextProps: Props, nextState: State) {
+    return !shallowEqual(this.state, nextState) || !shallowEqual(this.props, nextProps)
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -31,7 +49,12 @@ class Avatar extends PureComponent<void, Props, State> {
     const nextUrl = shared.createAvatarUrl(nextProps)
 
     if (url !== nextUrl) {
-      this.setState({avatarLoaded: false, errored: false, url: nextUrl})
+      const nextState = this._getLoadedErrorState(nextUrl)
+      this.setState(nextState)
+      // if it's errored out we won't even try and load it so make sure we call teh onAvatarLoaded callback
+      if (this.props.onAvatarLoaded && nextState.errored) {
+        this.props.onAvatarLoaded()
+      }
     }
   }
 

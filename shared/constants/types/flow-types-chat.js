@@ -187,15 +187,15 @@ export function localGetInboxLocalRpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => { localGetInboxLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function localGetInboxNonblockLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: localGetInboxNonblockLocalRpcParam}>) {
+export function localGetInboxNonblockLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNonblockLocalResult) => void} & {param: localGetInboxNonblockLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.getInboxNonblockLocal'})
 }
 
-export function localGetInboxNonblockLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localGetInboxNonblockLocalRpcParam}>): ChannelMap<*> {
+export function localGetInboxNonblockLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNonblockLocalResult) => void} & {param: localGetInboxNonblockLocalRpcParam}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localGetInboxNonblockLocalRpc({...request, incomingCallMap, callback}))
 }
 
-export function localGetInboxNonblockLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localGetInboxNonblockLocalRpcParam}>): Promise<any> {
+export function localGetInboxNonblockLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNonblockLocalResult) => void} & {param: localGetInboxNonblockLocalRpcParam}>): Promise<localGetInboxNonblockLocalResult> {
   return new Promise((resolve, reject) => { localGetInboxNonblockLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
@@ -559,6 +559,7 @@ export type ConversationLocal = {
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
+  visibility: TLFVisibility,
   finalizeInfo?: ?ConversationFinalizeInfo,
   activeList?: ?Array<gregor1.UID>,
 }
@@ -617,6 +618,7 @@ export type GetInboxAndUnboxLocalRes = {
   conversations?: ?Array<ConversationLocal>,
   pagination?: ?Pagination,
   rateLimits?: ?Array<RateLimit>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type GetInboxByTLFIDRemoteRes = {
@@ -644,6 +646,11 @@ export type GetInboxLocalRes = {
   pagination?: ?Pagination,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
+}
+
+export type GetInboxNonblockLocalRes = {
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
+  rateLimits?: ?Array<RateLimit>,
 }
 
 export type GetInboxQuery = {
@@ -899,6 +906,7 @@ export type NewConversationInfo = {
 export type NewConversationLocalRes = {
   conv: ConversationLocal,
   rateLimits?: ?Array<RateLimit>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type NewConversationPayload = {
@@ -921,6 +929,10 @@ export type NewMessagePayload = {
   unreadUpdate?: ?UnreadUpdate,
 }
 
+export type NotifyChatChatIdentifyUpdateRpcParam = Exact<{
+  update: keybase1.CanonicalTLFNameAndIDWithBreaks
+}>
+
 export type NotifyChatNewChatActivityRpcParam = Exact<{
   uid: keybase1.UID,
   activity: ChatActivity
@@ -938,6 +950,7 @@ export type OutboxRecord = {
   outboxID: OutboxID,
   convID: ConversationID,
   Msg: MessagePlaintext,
+  identifyBehavior: keybase1.TLFIdentifyBehavior,
 }
 
 export type OutboxState = 
@@ -1287,6 +1300,8 @@ type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
 
 type localGetInboxLocalResult = GetInboxLocalRes
 
+type localGetInboxNonblockLocalResult = GetInboxNonblockLocalRes
+
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 
 type localGetMessagesLocalResult = GetMessagesLocalRes
@@ -1439,6 +1454,13 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       activity: ChatActivity
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatIdentifyUpdate'?: (
+    params: Exact<{
+      update: keybase1.CanonicalTLFNameAndIDWithBreaks
     }> /* ,
     response: {} // Notify call
     */

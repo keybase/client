@@ -27,6 +27,10 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	table := &flexibletable.Table{}
 	for i, conv := range v {
 		participants := strings.Split(conv.TlfName, ",")
+		vis := "private"
+		if conv.Visibility == chat1.TLFVisibility_PUBLIC {
+			vis = "public"
+		}
 		table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
@@ -35,12 +39,16 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: vis},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
 				Content:   flexibletable.MultiCell{Sep: ",", Items: participants},
 			},
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, flexibletable.ExpandableWrappable,
+		5, 8, flexibletable.ExpandableWrappable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}
@@ -52,15 +60,20 @@ type conversationListView []chat1.ConversationLocal
 
 // Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
-	convName := strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
-	if len(conv.Info.WriterNames) == 1 && conv.Info.WriterNames[0] == myUsername {
-		// The user is the only writer.
-		convName = myUsername
+	var name string
+	if conv.Info.Visibility == chat1.TLFVisibility_PUBLIC {
+		name = "(public) " + strings.Join(conv.Info.WriterNames, ",")
+	} else {
+		name = strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
+		if len(conv.Info.WriterNames) == 1 && conv.Info.WriterNames[0] == myUsername {
+			// The user is the only writer.
+			name = myUsername
+		}
 	}
 	if len(conv.Info.ReaderNames) > 0 {
-		convName += "#" + strings.Join(conv.Info.ReaderNames, ",")
+		name += "#" + strings.Join(conv.Info.ReaderNames, ",")
 	}
-	return convName
+	return name
 }
 
 func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el string) (res []string) {
@@ -135,7 +148,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		if msg == nil {
 			// Skip conversations with no visible messages.
 			// This should never happen.
-			g.Log.Error("Skipped conversation with no visible messages: %v", conv.Info.Id)
+			g.Log.Error("Skipped conversation with no visible messages: %s", conv.Info.Id)
 			continue
 		}
 

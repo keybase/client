@@ -95,12 +95,13 @@ func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID
 func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 	n.favoritesChanged = append(n.favoritesChanged, uid)
 }
-func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {}
-func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                             {}
-func (n *nlistener) PGPKeyInSecretStoreFile()                                      {}
-func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
-func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
-func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                   {}
+func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)      {}
+func (n *nlistener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
+func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                                  {}
+func (n *nlistener) PGPKeyInSecretStoreFile()                                           {}
+func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                  {}
+func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                          {}
+func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                        {}
 
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {

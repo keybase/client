@@ -5,7 +5,7 @@
   "main": "./dist/main.bundle.js",
   "scripts": {
     "_helper": "yarn run _node -- npm-helper.js",
-    "_node": "babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types",
+    "_node": "babel-node",
     "apply-new-fonts": "yarn run _helper apply-new-fonts",
     "build-dev": "yarn run _helper build-dev",
     "build-main-thread": "yarn run _helper build-main-thread",

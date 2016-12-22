@@ -270,6 +270,10 @@
           "name": "conversationID"
         },
         {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        },
+        {
           "type": [
             null,
             "ConversationFinalizeInfo"
