@@ -1,9 +1,10 @@
 // @flow
 import React from 'react'
 import {Text, MultiAvatar, Icon, Usernames} from '../../common-adapters'
+import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalStyles, globalColors} from '../../styles'
 import {participantFilter} from '../../constants/chat'
-import {formatTimeForConversationList} from '../../util/timestamp'
+import {shouldUpdate} from 'recompose'
 
 import type {Props} from './'
 import type {InboxState} from '../../constants/chat'
@@ -36,7 +37,9 @@ const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: bo
   return isSelected ? globalColors.darkBlue2 : globalColors.darkBlue4
 }
 
-const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation}: Props & {conversation: InboxState}) => {
+type RowProps = Props & {conversation: InboxState}
+
+const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation}: RowProps) => {
   const participants = participantFilter(conversation.get('participants'))
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
@@ -78,6 +81,21 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
     </div>
   )
 }
+
+const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
+  if (props.conversation !== nextProps.conversation) {
+    return true
+  }
+
+  const oldIsSelected = props.selectedConversation === props.conversation.get('conversationIDKey')
+  const newIsSelected = nextProps.selectedConversation === nextProps.conversation.get('conversationIDKey')
+
+  if (oldIsSelected !== newIsSelected) {
+    return true
+  }
+
+  return false
+})(_Row)
 
 const shhStyle = {
   color: globalColors.darkBlue2,

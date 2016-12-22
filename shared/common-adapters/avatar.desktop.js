@@ -1,5 +1,6 @@
 // @flow
-import React, {PureComponent} from 'react'
+import React, {Component} from 'react'
+import shallowEqual from 'shallowequal'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
@@ -19,7 +20,7 @@ type State = {
 // Holds the loaded or errored state. undefined if we don't know. So we can skip trying this on repeat images
 const _avatarCache: {[key: string]: ?boolean} = { }
 
-class Avatar extends PureComponent<void, Props, State> {
+class Avatar extends Component<void, Props, State> {
   state: State;
   _onURLLoaded: ?(username: string, url: ?string) => void;
 
@@ -27,7 +28,10 @@ class Avatar extends PureComponent<void, Props, State> {
     super(props)
 
     const urlState = this._getURLState(props)
-    this.state = {avatarLoaded: false, errored: false, ...urlState}
+    this.state = {
+      ...this._getLoadedErrorState(urlState.url),
+      ...urlState,
+    }
   }
 
   componentDidMount () {
@@ -64,13 +68,33 @@ class Avatar extends PureComponent<void, Props, State> {
     return {url: null}
   }
 
+  _getLoadedErrorState (url: ?string) {
+    return {
+      avatarLoaded: !!url && _avatarCache.hasOwnProperty(url) && !!_avatarCache[url],
+      errored: !!url && _avatarCache.hasOwnProperty(url) && !_avatarCache[url],
+    }
+  }
+
+  shouldComponentUpdate (nextProps: Props, nextState: State) {
+    return !shallowEqual(this.state, nextState) || !shallowEqual(this.props, nextProps)
+  }
+
   componentWillReceiveProps (nextProps: Props) {
     const url = this.props.url || this.props.username
     const nextUrl = nextProps.url || nextProps.username
 
     if (url !== nextUrl) {
       const urlState = this._getURLState(nextProps)
-      this.setState({avatarLoaded: false, errored: false, ...urlState})
+      const nextState = {
+        ...this._getLoadedErrorState(urlState.url),
+        ...urlState,
+      }
+
+      this.setState(nextState)
+      // if it's errored out we won't even try and load it so make sure we call teh onAvatarLoaded callback
+      if (this.props.onAvatarLoaded && nextState.errored) {
+        this.props.onAvatarLoaded()
+      }
     }
   }
 

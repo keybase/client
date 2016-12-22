@@ -1,0 +1,14 @@
+// @flow
+import {Component} from 'react'
+import {List, Map} from 'immutable'
+
+import type {MetaData, ParticipantItem} from '../../../constants/chat'
+
+export type Props = {
+  onAddParticipant: () => void,
+  participants: List<ParticipantItem>,
+  onShowProfile: (username: string) => void,
+  metaData: Map<string, MetaData>,
+}
+
+export default class SidePanel extends Component<void, Props, void> { }
