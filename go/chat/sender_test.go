@@ -341,3 +341,53 @@ func TestFailingSender(t *testing.T) {
 	require.Equal(t, len(obids), len(recvd), "invalid length")
 	require.Equal(t, obids, recvd, "list mismatch")
 }
+
+func TestDisconnectedFailure(t *testing.T) {
+
+	tc, ri, u, sender, _, listener, _, _ := setupTest(t)
+	defer tc.Cleanup()
+
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple: chat1.ConversationIDTriple{
+			Tlfid:     []byte{4, 5, 6},
+			TopicType: 0,
+			TopicID:   []byte{0},
+		},
+		TLFMessage: chat1.MessageBoxed{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:   u.Username,
+				TlfPublic: false,
+			},
+			KeyGeneration: 1,
+		},
+	})
+	require.NoError(t, err)
+
+	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
+
+	// Send nonblock
+	var obids []chat1.OutboxID
+	for i := 0; i < 3; i++ {
+		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Sender:    u.User.GetUID().ToBytes(),
+				TlfName:   u.Username,
+				TlfPublic: false,
+			},
+		}, 0)
+		require.NoError(t, err)
+		obids = append(obids, obid)
+	}
+
+	var allrecvd []chat1.OutboxID
+	var recvd []chat1.OutboxID
+	select {
+	case recvd = <-listener.failing:
+		allrecvd = append(allrecvd, recvd...)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "event not received")
+	}
+
+	require.Equal(t, len(obids), len(allrecvd), "invalid length")
+	require.Equal(t, obids, allrecvd, "list mismatch")
+}
