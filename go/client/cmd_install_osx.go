@@ -240,7 +240,7 @@ func DiagnoseSocketError(ui libkb.UI, err error) {
 				t.Printf("No app bundle: %s\n\n", err)
 				return
 			}
-			t.Printf("\nKeybase isn't running. To start you can run:\n\n\topen %s\n\n", bundlePath)
+			t.Printf("\nKeybase isn't running. To start, you can run:\n\n\topen %s\n\n", bundlePath)
 		}
 	} else if len(services) > 1 {
 		t.Printf("\nWe found multiple services:\n")
