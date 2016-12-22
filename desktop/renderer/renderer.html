@@ -2,7 +2,7 @@
 <html>
   <head>
     <!-- The sha here is for the inline script below -->
-    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="default-src file: filesystem: http://localhost:4000 https://keybase.io/; img-src data: http://localhost:4000 https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://images.coinbase.com/ https://s3.amazonaws.com/keybase_processed_uploads/ file:; style-src 'unsafe-inline'; script-src file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval' 'sha256-8UbUNQudtk5tofei2bl20Euss6A28vO1NL+WVsyf4ks='"/>
+    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="default-src file: filesystem: http://localhost:4000 https://keybase.io/; img-src data: http://localhost:4000 https://keybase.io/ https://pbs.twimg.com/ https://avatars.githubusercontent.com/ https://images.coinbase.com/ https://s3.amazonaws.com/keybase_processed_uploads/ file:; style-src 'unsafe-inline'; script-src file: http://localhost:4000 chrome-extension://react-developer-tools 'unsafe-eval' 'sha256-akuE+JRql7/9raAmKPMveeChrxKqtL83YJAn8sLzrLA='"/>
     <title>Keybase</title>
   </head>
   <body>
@@ -17,7 +17,7 @@
           if (src == null) {
             throw new Error('No src for script. Nothing to load')
           }
-          (script.src = src)
+          script.src = src
           async != null && (script.async = async)
           defer != null && (script.defer = defer)
           script.onload = () => window.load && window.load(options)
