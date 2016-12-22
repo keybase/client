@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type Outbox struct {
@@ -69,7 +70,8 @@ func (o *Outbox) readDiskOutbox() (diskOutbox, libkb.ChatStorageError) {
 	return obox, nil
 }
 
-func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, libkb.ChatStorageError) {
+func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlaintext,
+	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, libkb.ChatStorageError) {
 	o.Lock()
 	defer o.Unlock()
 
@@ -96,10 +98,11 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 	outboxID := chat1.OutboxID(rbs)
 	msg.ClientHeader.OutboxID = &outboxID
 	obox.Records = append(obox.Records, chat1.OutboxRecord{
-		State:    chat1.NewOutboxStateWithSending(0),
-		Msg:      msg,
-		ConvID:   convID,
-		OutboxID: outboxID,
+		State:            chat1.NewOutboxStateWithSending(0),
+		Msg:              msg,
+		ConvID:           convID,
+		OutboxID:         outboxID,
+		IdentifyBehavior: identifyBehavior,
 	})
 
 	// Write out box

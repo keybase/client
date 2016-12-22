@@ -49,20 +49,29 @@ type chatConversationResolver struct {
 // completeAndCanonicalizeTLFName completes tlfName and canonicalizes it if
 // necessary. The new TLF name is stored to req.ctx.canonicalizedTlfName.
 // len(tlfName) must > 0
-// TODO: support public TLFs
-func (r *chatConversationResolver) completeAndCanonicalizeTLFName(
-	ctx context.Context, tlfName string, req chatConversationResolvingRequest) error {
-	cname, err := r.TlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, keybase1.TLFQuery{
+func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Context, tlfName string, req chatConversationResolvingRequest) error {
+
+	query := keybase1.TLFQuery{
 		TlfName:          tlfName,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	})
+	}
+	var cname keybase1.CanonicalTLFNameAndIDWithBreaks
+	var err error
+	var visout string
+	if req.Visibility == chat1.TLFVisibility_PUBLIC {
+		visout = "public"
+		cname, err = r.TlfClient.PublicCanonicalTLFNameAndID(ctx, query)
+	} else {
+		visout = "private"
+		cname, err = r.TlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, query)
+	}
 	if err != nil {
 		return fmt.Errorf("completing TLF name error: %v", err)
 	}
 	if string(cname.CanonicalName) != tlfName {
 		// If we auto-complete TLF name, we should let users know.
 		// TODO: don't spam user here if it's just re-ordering
-		r.G.UI.GetTerminalUI().Printf("Using TLF %s.\n", cname.CanonicalName)
+		r.G.UI.GetTerminalUI().Printf("Using %s conversation %s.\n", visout, cname.CanonicalName)
 	}
 	req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
 
@@ -151,9 +160,9 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 	conversationInfo *chat1.ConversationInfoLocal, err error) {
 	var newConversation string
 	if req.TopicType == chat1.TopicType_CHAT {
-		newConversation = fmt.Sprintf("Creating a new %s conversation", req.TopicType.String())
+		newConversation = fmt.Sprintf("Creating a new %s %s conversation", req.Visibility, req.TopicType)
 	} else {
-		newConversation = fmt.Sprintf("Creating a new %s conversation [%s]", req.TopicType.String(), req.TopicName)
+		newConversation = fmt.Sprintf("Creating a new %s %s conversation [%s]", req.Visibility, req.TopicType, req.TopicName)
 	}
 
 	if len(req.ctx.canonicalizedTlfName) == 0 {
@@ -218,11 +227,13 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 			// Either way, we present a visual confirmation so that user knows chich
 			// conversation she's sending into or reading from.
 			if conversations[0].Triple.TopicType == chat1.TopicType_CHAT {
-				r.G.UI.GetTerminalUI().Printf("Found %s conversation: %s\n",
-					conversations[0].Triple.TopicType.String(), conversations[0].TlfName)
+				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation: %s\n",
+					conversations[0].Visibility,
+					conversations[0].Triple.TopicType, conversations[0].TlfName)
 			} else {
-				r.G.UI.GetTerminalUI().Printf("Found %s conversation [%s]: %s\n",
-					conversations[0].Triple.TopicType.String(), conversations[0].TopicName, conversations[0].TlfName)
+				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation [%s]: %s\n",
+					conversations[0].Visibility,
+					conversations[0].Triple.TopicType, conversations[0].TopicName, conversations[0].TlfName)
 			}
 		}
 		return &conversations[0], false, nil

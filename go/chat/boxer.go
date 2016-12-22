@@ -109,24 +109,24 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 	}
 
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
-		ClientHeader:      pt.ClientHeader,
-		ServerHeader:      *boxed.ServerHeader,
-		MessageBody:       pt.MessageBody,
-		SenderUsername:    username,
-		SenderDeviceName:  deviceName,
-		SenderDeviceType:  deviceType,
-		HeaderHash:        umwkr.headerHash,
-		HeaderSignature:   umwkr.headerSignature,
-		FromRevokedDevice: umwkr.fromRevokedDevice,
+		ClientHeader:          pt.ClientHeader,
+		ServerHeader:          *boxed.ServerHeader,
+		MessageBody:           pt.MessageBody,
+		SenderUsername:        username,
+		SenderDeviceName:      deviceName,
+		SenderDeviceType:      deviceType,
+		HeaderHash:            umwkr.headerHash,
+		HeaderSignature:       umwkr.headerSignature,
+		SenderDeviceRevokedAt: umwkr.senderDeviceRevokedAt,
 	}), nil
 
 }
 
 type unboxMessageWithKeyRes struct {
-	messagePlaintext  chat1.MessagePlaintext
-	headerHash        chat1.Hash
-	headerSignature   *chat1.SignatureInfo
-	fromRevokedDevice bool
+	messagePlaintext      chat1.MessagePlaintext
+	headerHash            chat1.Hash
+	headerSignature       *chat1.SignatureInfo
+	senderDeviceRevokedAt *gregor1.Time
 }
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
@@ -212,10 +212,10 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 		switch headerVersion {
 		case chat1.HeaderPlaintextVersion_V1:
 			return unboxMessageWithKeyRes{
-				messagePlaintext:  chat1.MessagePlaintext{ClientHeader: clientHeader},
-				headerHash:        headerHash,
-				headerSignature:   headerSignature,
-				fromRevokedDevice: validity.fromRevokedDevice,
+				messagePlaintext:      chat1.MessagePlaintext{ClientHeader: clientHeader},
+				headerHash:            headerHash,
+				headerSignature:       headerSignature,
+				senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 			}, nil
 		default:
 			return unboxMessageWithKeyRes{}, libkb.NewPermanentChatUnboxingError(libkb.NewChatHeaderVersionError(headerVersion))
@@ -234,9 +234,9 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 				ClientHeader: clientHeader,
 				MessageBody:  body.V1().MessageBody,
 			},
-			headerHash:        headerHash,
-			headerSignature:   headerSignature,
-			fromRevokedDevice: validity.fromRevokedDevice,
+			headerHash:            headerHash,
+			headerSignature:       headerSignature,
+			senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 		}, nil
 	default:
 		return unboxMessageWithKeyRes{}, libkb.NewPermanentChatUnboxingError(libkb.NewChatBodyVersionError(bodyVersion))
@@ -271,7 +271,7 @@ func (b *Boxer) getSenderInfoLocal(clientHeader chat1.MessageClientHeader) (send
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
-	finder := NewKeyFinder()
+	finder := NewKeyFinder(b.log())
 	for _, msg := range boxed {
 		decmsg, err := b.UnboxMessage(ctx, finder, msg)
 		if err != nil {
@@ -473,7 +473,7 @@ func sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix)
 }
 
 type verifyMessageRes struct {
-	fromRevokedDevice bool
+	senderDeviceRevokedAt *gregor1.Time
 }
 
 // verifyMessage checks that a message is valid.
@@ -522,7 +522,7 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	}
 
 	return verifyMessageRes{
-		fromRevokedDevice: revoked,
+		senderDeviceRevokedAt: revoked,
 	}, nil
 }
 
@@ -542,38 +542,39 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Signatu
 // ValidSenderKey checks that the key was active for sender at ctime.
 // This trusts the server for ctime, so a colluding server could use a revoked key and this check wouldn't notice.
 // Returns (validAtCtime, revoked, err)
-func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, bool, libkb.ChatUnboxingError) {
+func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, *gregor1.Time, libkb.ChatUnboxingError) {
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
-		return false, false, libkb.NewPermanentChatUnboxingError(err)
+		return false, nil, libkb.NewPermanentChatUnboxingError(err)
 	}
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
 	cachedUserLoader := b.kbCtx.GetCachedUserLoader()
 	if cachedUserLoader == nil {
-		return false, false, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
+		return false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
 
 	found, revokedAt, err := cachedUserLoader.CheckKIDForUID(kbSender, kid)
 	if err != nil {
-		return false, false, libkb.NewTransientChatUnboxingError(err)
+		return false, nil, libkb.NewTransientChatUnboxingError(err)
 	}
 	if !found {
-		return false, false, nil
+		return false, nil, nil
 	}
 
-	var revokedAt2 *time.Time
+	var revoked *gregor1.Time
+	validAtCtime := true
 	if revokedAt != nil {
 		if revokedAt.Unix.IsZero() {
-			return false, false, libkb.NewPermanentChatUnboxingError(fmt.Errorf("zero clock time on expired key"))
+			return false, nil, libkb.NewPermanentChatUnboxingError(fmt.Errorf("zero clock time on expired key"))
 		}
 		t := b.keybase1KeybaseTimeToTime(*revokedAt)
-		revokedAt2 = &t
+		revokedTime := gregor1.ToTime(t)
+		revoked = &revokedTime
+		validAtCtime = t.After(ctime2)
 	}
 
-	revoked := revokedAt2 != nil
-	validAtCtime := (!revoked || revokedAt2.After(ctime2))
 	return validAtCtime, revoked, nil
 }
 

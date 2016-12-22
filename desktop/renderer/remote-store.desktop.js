@@ -2,28 +2,32 @@
 import {ipcRenderer} from 'electron'
 
 class RemoteStore {
-  listeners: Array<Function>;
-  internalState: any;
+  listeners: Array<Function> = [];
+  internalState: any = {};
+
+  _onStateChange = (event, arg) => {
+    this.internalState = arg
+    this._publishChange()
+  }
 
   constructor (props: {component: string, selectorParams?: ?string}) {
-    ipcRenderer.on('stateChange', (event, arg) => {
-      this.internalState = arg
-      this._publishChange()
-    })
-
+    ipcRenderer.on('stateChange', this._onStateChange)
     ipcRenderer.send('subscribeStore', props.component, props.selectorParams)
+  }
 
-    this.listeners = []
-    this.internalState = {}
-    // $FlowIssue With reading methods inside constructor
-    this.dispatch = this.dispatch.bind(this)
+  cleanup () {
+    ipcRenderer.removeListener('stateChange', this._onStateChange)
   }
 
   getState (): any {
     return this.internalState
   }
 
-  dispatch (action: any) {
+  dispatch = (action: any) => {
+    this._dispatch(action)
+  }
+
+  _dispatch (action: any) {
     // TODO use our middlewares
     if (action.constructor === Function) {
       return action(a => this.dispatch(a), () => this.getState())

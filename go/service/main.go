@@ -27,18 +27,19 @@ import (
 
 type Service struct {
 	libkb.Contextified
-	isDaemon         bool
-	chdirTo          string
-	lockPid          *libkb.LockPIDFile
-	ForkType         keybase1.ForkType
-	startCh          chan struct{}
-	stopCh           chan keybase1.ExitCode
-	logForwarder     *logFwd
-	gregor           *gregorHandler
-	rekeyMaster      *rekeyMaster
-	messageDeliverer *chat.Deliverer
-	badger           *Badger
-	reachability     *reachability
+	isDaemon             bool
+	chdirTo              string
+	lockPid              *libkb.LockPIDFile
+	ForkType             keybase1.ForkType
+	startCh              chan struct{}
+	stopCh               chan keybase1.ExitCode
+	logForwarder         *logFwd
+	gregor               *gregorHandler
+	rekeyMaster          *rekeyMaster
+	messageDeliverer     *chat.Deliverer
+	badger               *Badger
+	reachability         *reachability
+	backgroundIdentifier *BackgroundIdentifier
 }
 
 type Shutdowner interface {
@@ -219,6 +220,17 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
+	d.RunBackgroundOperations(uir)
+
+	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
+
+	return err
+}
+
+func (d *Service) RunBackgroundOperations(uir *UIRouter) {
+	// These are all background-ish operations that the service performs.
+	// We should revisit these on mobile, or at least, when mobile apps are
+	// backgrounded.
 	d.hourlyChecks()
 	d.startupGregor()
 	d.createMessageDeliverer()
@@ -226,10 +238,7 @@ func (d *Service) Run() (err error) {
 	d.configurePath()
 	d.configureRekey(uir)
 	d.tryLogin()
-
-	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
-
-	return err
+	d.runBackgroundIdentifier()
 }
 
 func (d *Service) createMessageDeliverer() {
@@ -254,6 +263,13 @@ func (d *Service) configureRekey(uir *UIRouter) {
 	// this unfortunate dependency injection
 	rkm.gregor = d.gregor
 	rkm.Start()
+}
+
+func (d *Service) runBackgroundIdentifier() {
+	uid := d.G().Env.GetUID()
+	if !uid.IsNil() {
+		d.runBackgroundIdentifierWithUID(uid)
+	}
 }
 
 func (d *Service) startupGregor() {
@@ -378,6 +394,25 @@ func (d *Service) tryGregordConnect() error {
 	return d.gregordConnect()
 }
 
+func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
+	if d.G().Env.GetBGIdentifierDisabled() {
+		d.G().Log.Debug("BackgroundIdentifier disabled")
+		return
+	}
+
+	newBgi, err := StartOrReuseBackgroundIdentifier(d.backgroundIdentifier, d.G(), u)
+	if err != nil {
+		d.G().Log.Warning("Problem running new background identifier: %s", err)
+		return
+	}
+	if newBgi == nil {
+		d.G().Log.Debug("No new background identifier needed")
+		return
+	}
+	d.backgroundIdentifier = newBgi
+	d.G().AddUserChangedHandler(newBgi)
+}
+
 func (d *Service) OnLogin() error {
 	d.rekeyMaster.Login()
 	if err := d.gregordConnect(); err != nil {
@@ -386,21 +421,41 @@ func (d *Service) OnLogin() error {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
 		d.G().MessageDeliverer.Start(d.G().Env.GetUID().ToBytes())
+		d.runBackgroundIdentifierWithUID(uid)
 	}
 	return nil
 }
 
-func (d *Service) OnLogout() error {
-	if d.gregor == nil {
+func (d *Service) OnLogout() (err error) {
+	defer d.G().Trace("Service#OnLogout", func() error { return err })()
+
+	log := func(s string) {
+		d.G().Log.Debug("Service#OnLogout: %s", s)
+	}
+
+	log("shutting down gregor")
+	if d.gregor != nil {
 		d.gregor.Shutdown()
 	}
+
+	log("shutting down message deliverer")
 	if d.messageDeliverer != nil {
 		d.messageDeliverer.Stop()
 	}
+
+	log("shutting down rekeyMaster")
 	d.rekeyMaster.Logout()
+
+	log("shutting down badger")
 	if d.badger != nil {
 		d.badger.Clear(context.TODO())
 	}
+
+	log("shutting down BG identifier")
+	if d.backgroundIdentifier != nil {
+		d.backgroundIdentifier.Logout()
+	}
+
 	return nil
 }
 

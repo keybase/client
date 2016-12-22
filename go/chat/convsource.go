@@ -98,7 +98,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
 	var err error
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(), msg)
+	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(s.G().Log), msg)
 	if err != nil {
 		return decmsg, err
 	}
@@ -152,7 +152,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
 
-			// Before returning the stuff, update FromRevokedDevice on each message.
+			// Before returning the stuff, update SenderDeviceRevokedAt on each message.
 			updatedMessages, err := s.updateMessages(ctx, localData.Messages)
 			if err != nil {
 				return chat1.ThreadView{}, rl, err
@@ -241,7 +241,7 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 		if !validAtCtime {
 			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
 		}
-		m.FromRevokedDevice = revoked
+		m.SenderDeviceRevokedAt = revoked
 		updatedMessage := chat1.NewMessageUnboxedWithValid(m)
 		return updatedMessage, nil
 	default:

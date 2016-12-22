@@ -69,6 +69,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 	var args chat1.PostLocalArg
 	args.ConversationID = conversationInfo.Id
+	args.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
 
 	var msg chat1.MessagePlaintext
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
@@ -127,6 +128,7 @@ func (c *cmdChatSend) Run() (err error) {
 		var nbarg chat1.PostLocalNonblockArg
 		nbarg.ConversationID = args.ConversationID
 		nbarg.Msg = args.Msg
+		nbarg.IdentifyBehavior = args.IdentifyBehavior
 		if _, err = chatClient.PostLocalNonblock(ctx, nbarg); err != nil {
 			return err
 		}
@@ -153,6 +155,10 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
 		return err
+	}
+	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
+	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
+		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
 	}
 
 	nActions := 0

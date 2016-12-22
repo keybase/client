@@ -131,10 +131,12 @@ export function getExtendedStatus (): AsyncAction {
   }
 }
 
-function _registerListeners (): AsyncAction {
+function registerListeners (): AsyncAction {
   return dispatch => {
     dispatch(registerGregorListeners())
-    dispatch(registerReachability())
+    if (!isMobile) {
+      dispatch(registerReachability())
+    }
   }
 }
 
@@ -167,7 +169,7 @@ export function bootstrap (): AsyncAction {
           dispatch(listenForKBFSNotifications())
           dispatch(navBasedOnLoginState())
           dispatch((resetSignup(): Action))
-          dispatch(_registerListeners())
+          dispatch(registerListeners())
         }).catch(error => {
           console.warn('[bootstrap] error bootstrapping: ', error)
           const triesRemaining = getState().config.bootstrapTriesRemaining

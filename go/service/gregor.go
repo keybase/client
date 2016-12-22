@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
 	istorage "github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -29,7 +30,7 @@ import (
 
 const GregorRequestTimeout time.Duration = 30 * time.Second
 
-var GregorTimeoutError error = fmt.Errorf("Network request timed out.")
+var ErrGregorTimeout = errors.New("Network request timed out.")
 
 type IdentifyUIHandler struct {
 	libkb.Contextified
@@ -461,7 +462,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	g.Lock()
 	defer g.Unlock()
 
-	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, GregorTimeoutError)
+	timeoutCli := WrapGenericClientWithTimeout(cli, GregorRequestTimeout, ErrGregorTimeout)
 
 	g.Debug("connected")
 	g.Debug("registering protocols")
@@ -925,6 +926,8 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		uid := m.UID().Bytes()
 
+		var identBreaks []keybase1.TLFIdentifyFailure
+		ctx = utils.IdentifyModeCtx(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks)
 		decmsg, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
@@ -1015,9 +1018,13 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		inboxSource := chat.NewRemoteInboxSource(g.G(), boxer,
 			func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: g.cli} },
 			func() keybase1.TlfInterface { return tlf })
-		if inbox, _, err = inboxSource.Read(context.Background(), uid, &chat1.GetInboxLocalQuery{
+
+		var identBreaks []keybase1.TLFIdentifyFailure
+		ctx = utils.IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+			&identBreaks)
+		if inbox, _, err = inboxSource.Read(ctx, uid, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
-		}, nil, keybase1.TLFIdentifyBehavior_CHAT_GUI); err != nil {
+		}, nil); err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
 			return err
 		}
@@ -1130,7 +1137,7 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 	// fully established in OnConnect. Anything that wants to make calls outside
 	// of OnConnect should use g.cli, everything else should the client that is
 	// a paramater to OnConnect
-	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, GregorTimeoutError)
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
@@ -1147,7 +1154,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	g.connMutex.Lock()
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, true, libkb.WrapError, g.G().Log, nil)
 	g.connMutex.Unlock()
-	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, GregorTimeoutError)
+	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library

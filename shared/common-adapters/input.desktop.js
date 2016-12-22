@@ -208,6 +208,7 @@ class Input extends Component<void, Props, State> {
       placeholder: this.props.hintText,
       ref: r => { this._input = r },
       value: this.state.value,
+      ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 
     const singlelineProps = {

@@ -88,10 +88,15 @@ type GlobalContext struct {
 	CachedUserLoader *CachedUserLoader         // Load flat users with the ability to hit the cache
 	UserDeviceCache  *UserDeviceCache          // Cache user and device names forever
 
+	uchMu               sync.Mutex           // protects the UserChangedHandler array
+	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
+
 	CardCache *UserCardCache // cache of keybase1.UserCard objects
 
 	ConvSource       ConversationSource // source of remote message bodies for chat
 	MessageDeliverer MessageDeliverer   // background message delivery service
+
+	FullSelfCacher *FullSelfCacher
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -140,6 +145,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.CachedUserLoader = NewCachedUserLoader(g, CachedUserTimeout)
 	g.UserDeviceCache = NewUserDeviceCache(g)
+	g.makeFullSelfCacher()
 	return g
 }
 
@@ -282,6 +288,14 @@ func (g *GlobalContext) ConfigureTimers() error {
 func (g *GlobalContext) ConfigureKeyring() error {
 	g.Keyrings = NewKeyrings(g)
 	return nil
+}
+
+func (g *GlobalContext) makeFullSelfCacher() {
+	fsc := NewFullSelfCacher(g)
+	g.AddLoginHook(fsc)
+	g.AddLogoutHook(fsc)
+	g.AddUserChangedHandler(fsc)
+	g.FullSelfCacher = fsc
 }
 
 func VersionMessage(linefn func(string)) {
@@ -760,9 +774,26 @@ func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	}
 }
 
+func (g *GlobalContext) AddUserChangedHandler(h UserChangedHandler) {
+	g.uchMu.Lock()
+	g.UserChangedHandlers = append(g.UserChangedHandlers, h)
+	g.uchMu.Unlock()
+}
+
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)
 	}
+
+	g.uchMu.Lock()
+	list := g.UserChangedHandlers
+	var newList []UserChangedHandler
+	for _, cc := range list {
+		if err := cc.HandleUserChanged(u); err == nil {
+			newList = append(newList, cc)
+		}
+	}
+	g.UserChangedHandlers = newList
+	g.uchMu.Unlock()
 }
