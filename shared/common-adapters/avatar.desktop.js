@@ -1,5 +1,4 @@
 // @flow
-import * as shared from './avatar.shared'
 import React, {PureComponent} from 'react'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
@@ -24,7 +23,7 @@ class Avatar extends PureComponent<void, Props, State> {
   constructor (props: Props) {
     super(props)
 
-    const urlState = this._getUrlState(props)
+    const urlState = this._getURLState(props)
     this.state = {avatarLoaded: false, errored: false, ...urlState}
   }
 
@@ -40,7 +39,7 @@ class Avatar extends PureComponent<void, Props, State> {
     this._onURLLoaded = null
   }
 
-  _getUrlState (props) {
+  _getURLState (props) {
     if (props.url) {
       return {url: props.url}
     }
@@ -63,12 +62,11 @@ class Avatar extends PureComponent<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    const url = shared.createAvatarUrl(this.props)
-    const nextUrl = shared.createAvatarUrl(nextProps)
+    const url = this.props.url || this.props.username
+    const nextUrl = nextProps.url || nextProps.username
 
     if (url !== nextUrl) {
-      const urlState = this._getUrlState(nextProps)
-
+      const urlState = this._getURLState(nextProps)
       this.setState({avatarLoaded: false, errored: false, ...urlState})
     }
   }

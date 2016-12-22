@@ -1,4 +1,5 @@
 // @flow
+// TODO pull in username loading logic from desktop
 import * as shared from './avatar.shared'
 import Box from './box'
 import React, {Component} from 'react'

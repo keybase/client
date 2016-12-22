@@ -27,7 +27,6 @@ const _getUserImages = throttle(() => {
     delete _pendingUsernameToURL[username]
   })
 
-  console.log('aaaaaaaa loading!', usersToResolve)
   apiserverGetRpc({
     param: {
       endpoint: 'image/username_pic_lookups',
@@ -37,7 +36,6 @@ const _getUserImages = throttle(() => {
       ],
     },
     callback: (error, response) => {
-      console.log('aaaaaaaa loaded!~~~~~', usersToResolve)
       if (error) {
         usersToResolve.forEach(username => {
           const info = _usernameToURL[username]
