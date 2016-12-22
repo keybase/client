@@ -232,8 +232,8 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
 	d.hourlyChecks()
-	d.startupGregor()
 	d.createMessageDeliverer()
+	d.startupGregor()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
