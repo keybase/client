@@ -82,12 +82,15 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
-	return chat1.GetInboxLocalRes{
+	inbox = chat1.GetInboxLocalRes{
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
-		IdentifyFailures:        tlfInfo.IdentifyFailures,
-	}, nil
+	}
+	if tlfInfo != nil {
+		inbox.IdentifyFailures = tlfInfo.IdentifyFailures
+	}
+	return inbox, nil
 }
 
 func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
