@@ -39,7 +39,7 @@ protocol NotifyChat {
   }
 
   record FailedMessageInfo {
-    array<OutboxID> outboxIDs;
+    array<OutboxRecord> outboxRecords;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {

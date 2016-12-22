@@ -57,7 +57,11 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 				n.incoming <- len(n.obids)
 			}
 		} else if typ == chat1.ChatActivityType_FAILED_MESSAGE {
-			n.failing <- activity.FailedMessage().OutboxIDs
+			var rmsg []chat1.OutboxID
+			for _, obr := range activity.FailedMessage().OutboxRecords {
+				rmsg = append(rmsg, obr.OutboxID)
+			}
+			n.failing <- rmsg
 		}
 	}
 }

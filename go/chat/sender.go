@@ -357,13 +357,13 @@ func (s *Deliverer) deliverLoop() {
 				if obr.State.Sending() > deliverMaxAttempts || !s.connected {
 					// Mark the entire outbox as an error if we can't send
 					s.debug("max failure attempts reached, marking all as errors and notifying")
-					obids, err := s.outbox.MarkAllAsError()
+					deadObrs, err := s.outbox.MarkAllAsError()
 					if err != nil {
 						s.G().Log.Error("unable to mark as error on outbox: uid: %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}
 					act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-						OutboxIDs: obids,
+						OutboxRecords: deadObrs,
 					})
 					s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
 						keybase1.UID(s.outbox.GetUID().String()), &act)
