@@ -84,7 +84,7 @@ func (l RPCLoggerAdapter) Profile(format string, args ...interface{}) {
 	l.log.Profile(format, args)
 }
 
-func (l RPCLoggerAdapter) Configure(style string, debug bool, filename string) {
+func (l RPCLoggerAdapter) Configure(style string, debug bool, filename string, maxSize int64) {
 
 }
 

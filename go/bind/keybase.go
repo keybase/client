@@ -54,6 +54,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	config := libkb.AppConfig{
 		HomeDir:                     homeDir,
 		LogFile:                     logFile,
+		LogMaxSize:                  2 * 1024 * 1024, // 2MB
 		RunMode:                     runMode,
 		Debug:                       true,
 		LocalRPCDebug:               "",

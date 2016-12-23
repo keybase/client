@@ -130,7 +130,7 @@ func (log *TestLogger) Profile(fmts string, arg ...interface{}) {
 	log.log.Logf(prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
 }
 
-func (log *TestLogger) Configure(style string, debug bool, filename string) {
+func (log *TestLogger) Configure(style string, debug bool, filename string, maxSize int64) {
 	// no-op
 }
 

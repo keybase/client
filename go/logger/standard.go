@@ -76,6 +76,7 @@ type entry struct {
 type Standard struct {
 	internal       *logging.Logger
 	filename       string
+	maxSize        int64
 	configureMutex sync.Mutex
 	module         string
 
@@ -241,11 +242,12 @@ func (log *Standard) Profile(fmts string, arg ...interface{}) {
 // is enabled and a filename. If a filename is provided here it will
 // be used for logging straight away (this is a new feature).
 // SetLogFileConfig provides a way to set the log file with more control on rotation.
-func (log *Standard) Configure(style string, debug bool, filename string) {
+func (log *Standard) Configure(style string, debug bool, filename string, maxSize int64) {
 	log.configureMutex.Lock()
 	defer log.configureMutex.Unlock()
 
 	log.filename = filename
+	log.maxSize = maxSize
 
 	var logfmt string
 
@@ -339,6 +341,7 @@ func PickFirstError(errors ...error) error {
 func (log *Standard) CloneWithAddedDepth(depth int) Logger {
 	clone := Standard{
 		filename:        log.filename,
+		maxSize:         log.maxSize,
 		module:          log.module,
 		externalHandler: log.externalHandler,
 	}

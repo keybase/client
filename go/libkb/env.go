@@ -57,6 +57,7 @@ func (n NullConfiguration) GetAutoFork() (bool, bool)                     { retu
 func (n NullConfiguration) GetRunMode() (RunMode, error)                  { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { return false, false }
 func (n NullConfiguration) GetLogFile() string                            { return "" }
+func (n NullConfiguration) GetLogMaxSize() int64                          { return 0 }
 func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)      { return 0, false }
 func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)          { return 0, false }
 func (n NullConfiguration) GetTorMode() (TorMode, error)                  { return TorNone, nil }
@@ -923,6 +924,10 @@ func (e *Env) GetLogFile() string {
 	)
 }
 
+func (e *Env) GetLogMaxSize() int64 {
+	return 128 * 1024 * 1024 // 128MB
+}
+
 func (e *Env) GetDefaultLogFile() string {
 	return filepath.Join(e.GetLogDir(), ServiceLogFileName)
 }
@@ -997,6 +1002,7 @@ type AppConfig struct {
 	NullConfiguration
 	HomeDir                     string
 	LogFile                     string
+	LogMaxSize                  int64
 	RunMode                     RunMode
 	Debug                       bool
 	LocalRPCDebug               string
@@ -1006,6 +1012,10 @@ type AppConfig struct {
 
 func (c AppConfig) GetLogFile() string {
 	return c.LogFile
+}
+
+func (c AppConfig) GetLogMaxSize() int64 {
+	return c.LogMaxSize
 }
 
 func (c AppConfig) GetDebug() (bool, bool) {

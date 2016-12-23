@@ -231,10 +231,11 @@ func (g *GlobalContext) ConfigureLogging() error {
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 	logFile := g.Env.GetLogFile()
+	maxSize := g.Env.GetLogMaxSize()
 	if logFile == "" {
-		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
+		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile(), maxSize)
 	} else {
-		g.Log.Configure(style, debug, logFile)
+		g.Log.Configure(style, debug, logFile, maxSize)
 		g.Log.RotateLogFile()
 	}
 	g.Output = os.Stdout
