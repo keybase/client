@@ -528,7 +528,7 @@ type MessageDeliverer interface {
 	Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, error)
 	Start(uid gregor1.UID)
-	Stop()
+	Stop() chan struct{}
 	ForceDeliverLoop()
 	Connected()
 	Disconnected()

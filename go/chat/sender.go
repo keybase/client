@@ -205,20 +205,22 @@ type Deliverer struct {
 	libkb.Contextified
 	sync.Mutex
 
-	sender     Sender
-	outbox     *storage.Outbox
-	storage    *storage.Storage
-	shutdownCh chan struct{}
-	msgSentCh  chan struct{}
-	delivering bool
-	connected  bool
+	sender      Sender
+	outbox      *storage.Outbox
+	storage     *storage.Storage
+	shutdownCh  chan chan struct{}
+	msgSentCh   chan struct{}
+	reconnectCh chan struct{}
+	delivering  bool
+	connected   bool
 }
 
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified: libkb.NewContextified(g),
-		shutdownCh:   make(chan struct{}, 1),
+		shutdownCh:   make(chan chan struct{}, 1),
 		msgSentCh:    make(chan struct{}, 100),
+		reconnectCh:  make(chan struct{}, 100),
 		sender:       sender,
 		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
 	}
@@ -249,17 +251,23 @@ func (s *Deliverer) Start(uid gregor1.UID) {
 	go s.deliverLoop()
 }
 
-func (s *Deliverer) Stop() {
+func (s *Deliverer) Stop() chan struct{} {
 	s.Lock()
 	defer s.Unlock()
-	s.doStop()
+	return s.doStop()
 }
 
-func (s *Deliverer) doStop() {
+func (s *Deliverer) doStop() chan struct{} {
+	cb := make(chan struct{})
 	if s.delivering {
-		s.shutdownCh <- struct{}{}
+		s.debug("stopping")
+		s.shutdownCh <- cb
 		s.delivering = false
+		return cb
 	}
+
+	close(cb)
+	return cb
 }
 
 func (s *Deliverer) ForceDeliverLoop() {
@@ -276,7 +284,7 @@ func (s *Deliverer) Connected() {
 
 	// Wake up deliver loop on reconnect
 	s.debug("reconnected: forcing deliver loop run")
-	s.msgSentCh <- struct{}{}
+	s.reconnectCh <- struct{}{}
 }
 
 func (s *Deliverer) Disconnected() {
@@ -308,9 +316,12 @@ func (s *Deliverer) deliverLoop() {
 	for {
 		// Wait for the signal to take action
 		select {
-		case <-s.shutdownCh:
+		case cb := <-s.shutdownCh:
 			s.debug("shuttting down outbox deliver loop: uid: %s", s.outbox.GetUID())
+			defer close(cb)
 			return
+		case <-s.reconnectCh:
+			s.debug("flushing outbox on reconnect: uid: %s", s.outbox.GetUID())
 		case <-s.msgSentCh:
 			s.debug("flushing outbox on new message: uid: %s", s.outbox.GetUID())
 		case <-s.G().Clock().After(s.G().Env.GetChatDelivererInterval()):
@@ -347,9 +358,13 @@ func (s *Deliverer) deliverLoop() {
 
 			// Do the actual send
 			bctx := utils.IdentifyModeCtx(context.Background(), obr.IdentifyBehavior, &breaks)
-			_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
+			if !s.connected {
+				err = errors.New("disconnected from chat server")
+			} else {
+				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
+			}
 			if err != nil {
-				s.G().Log.Error("failed to send msg: uid: %s convID: %s err: %s attempts: %d",
+				s.G().Log.Error("Deliverer: failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
 				// Process failure. If we have gone over the limit of failure, or we are

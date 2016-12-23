@@ -94,6 +94,7 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())
+	tc.G.MessageDeliverer.Connected()
 
 	return tc, ri, u, sender, baseSender, &listener, f, world.Fc
 }
@@ -316,7 +317,6 @@ func TestFailingSender(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	tc.G.MessageDeliverer.Connected()
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
 	// Send nonblock
@@ -349,7 +349,7 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	tc, ri, u, sender, _, listener, _, _ := setupTest(t)
+	tc, ri, u, sender, baseSender, listener, _, _ := setupTest(t)
 	defer tc.Cleanup()
 
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
@@ -368,10 +368,11 @@ func TestDisconnectedFailure(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	tc.G.MessageDeliverer.Disconnected()
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
 	// Send nonblock
-	var obids []chat1.OutboxID
+	obids := []chat1.OutboxID{}
 	for i := 0; i < 3; i++ {
 		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -386,13 +387,62 @@ func TestDisconnectedFailure(t *testing.T) {
 
 	var allrecvd []chat1.OutboxID
 	var recvd []chat1.OutboxID
-	select {
-	case recvd = <-listener.failing:
-		allrecvd = append(allrecvd, recvd...)
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "event not received")
+	appendUnique := func(a []chat1.OutboxID, r []chat1.OutboxID) (res []chat1.OutboxID) {
+		m := make(map[string]bool)
+		for _, i := range a {
+			m[hex.EncodeToString(i)] = true
+			res = append(res, i)
+		}
+		for _, i := range r {
+			if !m[hex.EncodeToString(i)] {
+				res = append(res, i)
+			}
+		}
+		return res
+	}
+	for {
+		select {
+		case recvd = <-listener.failing:
+			allrecvd = appendUnique(allrecvd, recvd)
+			if len(allrecvd) >= len(obids) {
+				break
+			}
+			continue
+		case <-time.After(20 * time.Second):
+			break
+		}
+		break
 	}
 
 	require.Equal(t, len(obids), len(allrecvd), "invalid length")
 	require.Equal(t, obids, allrecvd, "list mismatch")
+
+	t.Logf("reconnecting and checking for successes")
+	<-tc.G.MessageDeliverer.Stop()
+	<-tc.G.MessageDeliverer.Stop()
+	tc.G.MessageDeliverer.(*Deliverer).SetSender(baseSender)
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	}
+	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
+	for _, obid := range obids {
+		require.NoError(t, outbox.RetryMessage(obid))
+	}
+	tc.G.MessageDeliverer.Connected()
+	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())
+
+	for {
+		select {
+		case inc := <-listener.incoming:
+			if inc >= len(obids) {
+				break
+			}
+			continue
+		case <-time.After(20 * time.Second):
+			break
+		}
+		break
+	}
+	require.Equal(t, len(obids), len(listener.obids), "wrong amount of successes")
+	require.Equal(t, obids, listener.obids, "wrong obids for successes")
 }
