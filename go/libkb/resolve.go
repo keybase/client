@@ -88,7 +88,7 @@ func (r *Resolver) ResolveFullExpressionWithBody(input string) (res ResolveResul
 }
 
 func (r *Resolver) resolveFullExpression(input string, withBody bool, needUsername bool) (res ResolveResult) {
-	defer r.G().Trace(fmt.Sprintf("Resolving full expression %q", input), func() error { return res.err })()
+	defer r.G().Trace(fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
 
 	var expr AssertionExpression
 	expr, res.err = AssertionParseAndOnly(r.G().MakeAssertionContext(), input)
@@ -103,6 +103,23 @@ func (r *Resolver) resolveFullExpression(input string, withBody bool, needUserna
 	return r.resolveURL(u, input, withBody, needUsername)
 }
 
+func (r *Resolver) getFromDiskCache(key string) (ret *ResolveResult) {
+	defer r.G().TraceOK(fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
+	var uid keybase1.UID
+	found, err := r.G().LocalDb.GetInto(&uid, resolveDbKey(key))
+	r.Stats.diskGets++
+	if err != nil {
+		r.G().Log.Warning("Problem fetching resolve result from local DB: %s", err)
+		return nil
+	}
+	if !found {
+		r.Stats.diskGetMisses++
+		return nil
+	}
+	r.Stats.diskGetHits++
+	return &ResolveResult{uid: uid}
+}
+
 func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, needUsername bool) ResolveResult {
 
 	// A standard keybase UID, so it's already resolved... unless we explicitly
@@ -115,7 +132,13 @@ func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, need
 
 	ck := au.CacheKey()
 
-	if p := r.getCache(ck); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+	if p := r.getFromMemCache(ck); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+		return *p
+	}
+
+	if p := r.getFromDiskCache(ck); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+		p.mutable = !au.IsKeybase()
+		r.putToMemCache(ck, *p)
 		return *p
 	}
 
@@ -123,13 +146,14 @@ func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, need
 
 	// Cache for a shorter period of time if it's not a Keybase identity
 	res.mutable = !au.IsKeybase()
+	r.putToMemCache(ck, res)
+	r.putToDiskCache(ck, res)
 
-	r.putCache(ck, res)
 	return res
 }
 
 func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, withBody bool) (res ResolveResult) {
-	defer r.G().Trace(fmt.Sprintf("resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
+	defer r.G().Trace(fmt.Sprintf("resolvedKbUsername#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	var key, val string
 	var ares *APIRes
@@ -204,6 +228,10 @@ type ResolveCacheStats struct {
 	mutableTimeouts int
 	errorTimeouts   int
 	hits            int
+	diskGets        int
+	diskGetHits     int
+	diskGetMisses   int
+	diskPuts        int
 }
 
 type Resolver struct {
@@ -239,7 +267,8 @@ func (r *Resolver) Shutdown() {
 	r.cache.Shutdown()
 }
 
-func (r *Resolver) getCache(key string) *ResolveResult {
+func (r *Resolver) getFromMemCache(key string) (ret *ResolveResult) {
+	defer r.G().TraceOK(fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
 	if r.cache == nil {
 		return nil
 	}
@@ -270,9 +299,28 @@ func (r *Resolver) getCache(key string) *ResolveResult {
 	return rres
 }
 
+func resolveDbKey(key string) DbKey {
+	return DbKey{
+		Typ: DBResolveUsernameToUID,
+		Key: NewNormalizedUsername(key).String(),
+	}
+}
+
+func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
+	// Only cache immutable resolutions to disk
+	if res.mutable {
+		return
+	}
+	r.Stats.diskPuts++
+	err := r.G().LocalDb.PutObj(resolveDbKey(key), nil, res.uid)
+	if err != nil {
+		r.G().Log.Warning("Cannot put resolve result to disk: %s", err)
+	}
+}
+
 // Put receives a copy of a ResolveResult, clears out the body
 // to avoid caching data that can go stale, and stores the result.
-func (r *Resolver) putCache(key string, res ResolveResult) {
+func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 	if r.cache == nil {
 		return
 	}
