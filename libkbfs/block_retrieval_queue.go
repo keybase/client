@@ -72,6 +72,9 @@ type blockPtrLookup struct {
 // blockRetriever specifies a method for retrieving blocks asynchronously
 type blockRetriever interface {
 	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+	Prefetcher() Prefetcher
+	SetPrefetcher(Prefetcher)
+	Shutdown()
 }
 
 // blockRetrievalQueue manages block retrieval requests. Higher priority
@@ -102,7 +105,7 @@ type blockRetrievalQueue struct {
 	// protects prefetcher
 	prefetchMtx sync.RWMutex
 	// prefetcher for handling prefetching scenarios
-	prefetcher prefetcher
+	prefetcher Prefetcher
 }
 
 var _ blockRetriever = (*blockRetrievalQueue)(nil)
@@ -111,7 +114,7 @@ var _ blockRetriever = (*blockRetrievalQueue)(nil)
 // parameter determines how many workers can concurrently call WorkOnRequest
 // (more than numWorkers will block).
 func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec, cache BlockCacheSimple) *blockRetrievalQueue {
-	return &blockRetrievalQueue{
+	q := &blockRetrievalQueue{
 		cache:       cache,
 		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
@@ -119,6 +122,8 @@ func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec, cache BlockCa
 		doneCh:      make(chan struct{}),
 		codec:       codec,
 	}
+	q.prefetcher = newBlockPrefetcher(q)
+	return q
 }
 
 func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
@@ -269,16 +274,26 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	select {
 	case <-brq.doneCh:
 	default:
+		if brq.prefetcher != nil {
+			brq.prefetcher.Shutdown()
+		}
 		close(brq.doneCh)
 	}
 }
 
 // SetPrefetcher allows us to replace the prefetcher
-func (brq *blockRetrievalQueue) SetPrefetcher(p prefetcher) {
+func (brq *blockRetrievalQueue) SetPrefetcher(p Prefetcher) {
 	brq.prefetchMtx.Lock()
 	defer brq.prefetchMtx.Unlock()
 	if brq.prefetcher != nil {
 		brq.prefetcher.Shutdown()
 	}
 	brq.prefetcher = p
+}
+
+// Prefetcher allows us to retrieve the prefetcher
+func (brq *blockRetrievalQueue) Prefetcher() Prefetcher {
+	brq.prefetchMtx.RLock()
+	defer brq.prefetchMtx.RUnlock()
+	return brq.prefetcher
 }

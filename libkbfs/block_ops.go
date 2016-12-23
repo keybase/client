@@ -22,7 +22,6 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 // NewBlockOpsStandard creates a new BlockOpsStandard
 func NewBlockOpsStandard(config Config, queueSize int) *BlockOpsStandard {
 	q := newBlockRetrievalQueue(queueSize, config.Codec(), config.BlockCache())
-	q.prefetcher = newPrefetcher(q)
 	bops := &BlockOpsStandard{
 		config:  config,
 		queue:   q,
@@ -133,19 +132,23 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 func (b *BlockOpsStandard) TogglePrefetcher(ctx context.Context,
 	enable bool) error {
 	select {
-	case <-b.queue.prefetcher.Shutdown():
+	case <-b.queue.Prefetcher().Shutdown():
 	case <-ctx.Done():
 		return ctx.Err()
 	}
 	if enable {
-		b.queue.SetPrefetcher(newPrefetcher(b.queue))
+		b.queue.SetPrefetcher(newBlockPrefetcher(b.queue))
 	}
 	return nil
 }
 
+// Prefetcher implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) Prefetcher() Prefetcher {
+	return b.queue.Prefetcher()
+}
+
 // Shutdown implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Shutdown() {
-	b.queue.prefetcher.Shutdown()
 	b.queue.Shutdown()
 	for _, w := range b.workers {
 		w.Shutdown()

@@ -14,12 +14,7 @@ const (
 	dirEntryPrefetchPriority            int = -200
 )
 
-type prefetcher interface {
-	HandleBlock(b Block, kmd KeyMetadata, priority int)
-	Shutdown() <-chan struct{}
-}
-
-var _ prefetcher = (*blockPrefetcher)(nil)
+var _ Prefetcher = (*blockPrefetcher)(nil)
 
 type blockPrefetcher struct {
 	retriever  blockRetriever
@@ -29,7 +24,7 @@ type blockPrefetcher struct {
 	sg         sync.WaitGroup
 }
 
-func newPrefetcher(retriever blockRetriever) *blockPrefetcher {
+func newBlockPrefetcher(retriever blockRetriever) *blockPrefetcher {
 	p := &blockPrefetcher{
 		retriever:  retriever,
 		progressCh: make(chan (<-chan error)),
@@ -59,6 +54,9 @@ runloop:
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block) error {
+	if p.retriever == nil {
+		return io.EOF
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	ch := p.retriever.Request(ctx, priority, kmd, ptr, block, TransientEntry)
 	select {
@@ -117,6 +115,17 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 	}
 }
 
+// PrefetchDirBlock implements the Prefetcher interface for blockPrefetcher.
+func (p *blockPrefetcher) PrefetchDirBlock(ptr BlockPointer, kmd KeyMetadata, priority int) error {
+	return p.request(priority, kmd, ptr, &DirBlock{})
+}
+
+// PrefetchFileBlock implements the Prefetcher interface for blockPrefetcher.
+func (p *blockPrefetcher) PrefetchFileBlock(ptr BlockPointer, kmd KeyMetadata, priority int) error {
+	return p.request(priority, kmd, ptr, &FileBlock{})
+}
+
+// HandleBlock implements the Prefetcher interface for blockPrefetcher.
 func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 	switch b := b.(type) {
 	case *FileBlock:
@@ -135,6 +144,7 @@ func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
 	}
 }
 
+// Shutdown implements the Prefetcher interface for blockPrefetcher.
 func (p *blockPrefetcher) Shutdown() <-chan struct{} {
 	select {
 	case <-p.shutdownCh:

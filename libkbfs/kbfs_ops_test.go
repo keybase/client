@@ -576,6 +576,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(2))
+	config.mockBops.EXPECT().Prefetcher().Return(newBlockPrefetcher(nil))
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	require.NoError(t, err)

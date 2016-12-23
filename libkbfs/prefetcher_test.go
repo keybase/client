@@ -36,7 +36,7 @@ func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
 	}
 }
 
-func initPrefetcher(t *testing.T) (prefetcher, *blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, BlockCacheSimple) {
+func initPrefetcher(t *testing.T) (Prefetcher, *blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, BlockCacheSimple) {
 	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
 	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), cache)
 	require.NotNil(t, q)
@@ -45,7 +45,7 @@ func initPrefetcher(t *testing.T) (prefetcher, *blockRetrievalQueue, *blockRetri
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 
-	p := newPrefetcher(q)
+	p := newBlockPrefetcher(q)
 	require.NotNil(t, q)
 	q.prefetcher = p
 

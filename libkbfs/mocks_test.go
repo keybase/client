@@ -2748,6 +2748,16 @@ func (_mr *_MockBlockOpsRecorder) TogglePrefetcher(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "TogglePrefetcher", arg0, arg1)
 }
 
+func (_m *MockBlockOps) Prefetcher() Prefetcher {
+	ret := _m.ctrl.Call(_m, "Prefetcher")
+	ret0, _ := ret[0].(Prefetcher)
+	return ret0
+}
+
+func (_mr *_MockBlockOpsRecorder) Prefetcher() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Prefetcher")
+}
+
 func (_m *MockBlockOps) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }
@@ -5772,4 +5782,63 @@ func (_m *MockKeyBundleCache) PutTLFWriterKeyBundle(_param0 tlf.ID, _param1 TLFW
 
 func (_mr *_MockKeyBundleCacheRecorder) PutTLFWriterKeyBundle(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFWriterKeyBundle", arg0, arg1, arg2)
+}
+
+// Mock of Prefetcher interface
+type MockPrefetcher struct {
+	ctrl     *gomock.Controller
+	recorder *_MockPrefetcherRecorder
+}
+
+// Recorder for MockPrefetcher (not exported)
+type _MockPrefetcherRecorder struct {
+	mock *MockPrefetcher
+}
+
+func NewMockPrefetcher(ctrl *gomock.Controller) *MockPrefetcher {
+	mock := &MockPrefetcher{ctrl: ctrl}
+	mock.recorder = &_MockPrefetcherRecorder{mock}
+	return mock
+}
+
+func (_m *MockPrefetcher) EXPECT() *_MockPrefetcherRecorder {
+	return _m.recorder
+}
+
+func (_m *MockPrefetcher) PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error {
+	ret := _m.ctrl.Call(_m, "PrefetchDirBlock", blockPtr, kmd, priority)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockPrefetcherRecorder) PrefetchDirBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchDirBlock", arg0, arg1, arg2)
+}
+
+func (_m *MockPrefetcher) PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error {
+	ret := _m.ctrl.Call(_m, "PrefetchFileBlock", blockPtr, kmd, priority)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockPrefetcherRecorder) PrefetchFileBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchFileBlock", arg0, arg1, arg2)
+}
+
+func (_m *MockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
+	_m.ctrl.Call(_m, "HandleBlock", b, kmd, priority)
+}
+
+func (_mr *_MockPrefetcherRecorder) HandleBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "HandleBlock", arg0, arg1, arg2)
+}
+
+func (_m *MockPrefetcher) Shutdown() <-chan struct{} {
+	ret := _m.ctrl.Call(_m, "Shutdown")
+	ret0, _ := ret[0].(<-chan struct{})
+	return ret0
+}
+
+func (_mr *_MockPrefetcherRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }

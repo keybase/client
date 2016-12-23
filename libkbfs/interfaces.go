@@ -1042,6 +1042,9 @@ type BlockOps interface {
 	// TogglePrefetcher activates or deactivates the prefetcher.
 	TogglePrefetcher(ctx context.Context, enable bool) error
 
+	// Prefetcher retrieves this BlockOps' Prefetcher.
+	Prefetcher() Prefetcher
+
 	// Shutdown shuts down all the workers performing Get operations
 	Shutdown()
 }
@@ -1860,4 +1863,18 @@ type KeyBundleCache interface {
 	PutTLFReaderKeyBundle(tlf.ID, TLFReaderKeyBundleID, *TLFReaderKeyBundleV3)
 	// PutTLFWriterKeyBundle stores the given TLFWriterKeyBundleV3.
 	PutTLFWriterKeyBundle(tlf.ID, TLFWriterKeyBundleID, *TLFWriterKeyBundleV3)
+}
+
+// Prefetcher is an interface to a block prefetcher.
+type Prefetcher interface {
+	// PrefetchDirBlock directs the prefetcher to prefetch a directory block.
+	PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
+	// PrefetchFileBlock directs the prefetcher to prefetch a file block.
+	PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
+	// HandleBlock allows the prefetcher to determine how to handle a retrieved
+	// block.
+	HandleBlock(b Block, kmd KeyMetadata, priority int)
+	// Shutdown shuts down the prefetcher idempotently. Future calls to
+	// the various Prefetch will return io.EOF.
+	Shutdown() <-chan struct{}
 }
