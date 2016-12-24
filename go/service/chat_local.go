@@ -53,11 +53,6 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		store:        chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 	}
 
-	if gh != nil {
-		g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(), h.boxer,
-			storage.New(g, h.getSecretUI), h.remoteClient())
-	}
-
 	return h
 }
 

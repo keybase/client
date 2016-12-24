@@ -72,7 +72,7 @@ type SetStatusInfo struct {
 }
 
 type FailedMessageInfo struct {
-	OutboxIDs []OutboxID `codec:"outboxIDs" json:"outboxIDs"`
+	OutboxRecords []OutboxRecord `codec:"outboxRecords" json:"outboxRecords"`
 }
 
 type ChatActivity struct {

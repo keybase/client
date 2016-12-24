@@ -97,9 +97,9 @@
         {
           "type": {
             "type": "array",
-            "items": "OutboxID"
+            "items": "OutboxRecord"
           },
-          "name": "outboxIDs"
+          "name": "outboxRecords"
         }
       ]
     },

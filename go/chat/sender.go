@@ -205,19 +205,22 @@ type Deliverer struct {
 	libkb.Contextified
 	sync.Mutex
 
-	sender     Sender
-	outbox     *storage.Outbox
-	storage    *storage.Storage
-	shutdownCh chan struct{}
-	msgSentCh  chan struct{}
-	delivering bool
+	sender      Sender
+	outbox      *storage.Outbox
+	storage     *storage.Storage
+	shutdownCh  chan chan struct{}
+	msgSentCh   chan struct{}
+	reconnectCh chan struct{}
+	delivering  bool
+	connected   bool
 }
 
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified: libkb.NewContextified(g),
-		shutdownCh:   make(chan struct{}, 1),
+		shutdownCh:   make(chan chan struct{}, 1),
 		msgSentCh:    make(chan struct{}, 100),
+		reconnectCh:  make(chan struct{}, 100),
 		sender:       sender,
 		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
 	}
@@ -248,25 +251,45 @@ func (s *Deliverer) Start(uid gregor1.UID) {
 	go s.deliverLoop()
 }
 
-func (s *Deliverer) Stop() {
+func (s *Deliverer) Stop() chan struct{} {
 	s.Lock()
 	defer s.Unlock()
-	s.doStop()
+	return s.doStop()
 }
 
-func (s *Deliverer) doStop() {
+func (s *Deliverer) doStop() chan struct{} {
+	cb := make(chan struct{})
 	if s.delivering {
-		s.shutdownCh <- struct{}{}
+		s.debug("stopping")
+		s.shutdownCh <- cb
 		s.delivering = false
+		return cb
 	}
+
+	close(cb)
+	return cb
 }
 
 func (s *Deliverer) ForceDeliverLoop() {
+	s.debug("force deliver loop invoked")
 	s.msgSentCh <- struct{}{}
 }
 
 func (s *Deliverer) SetSender(sender Sender) {
 	s.sender = sender
+}
+
+func (s *Deliverer) Connected() {
+	s.connected = true
+
+	// Wake up deliver loop on reconnect
+	s.debug("reconnected: forcing deliver loop run")
+	s.reconnectCh <- struct{}{}
+}
+
+func (s *Deliverer) Disconnected() {
+	s.debug("disconnected: all errors from now on will be permanent")
+	s.connected = false
 }
 
 func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext,
@@ -288,16 +311,20 @@ func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintex
 }
 
 func (s *Deliverer) deliverLoop() {
-	s.debug("starting non blocking sender deliver loop: uid: %s", s.outbox.GetUID())
+	s.debug("starting non blocking sender deliver loop: uid: %s duration: %v", s.outbox.GetUID(),
+		s.G().Env.GetChatDelivererInterval())
 	for {
 		// Wait for the signal to take action
 		select {
-		case <-s.shutdownCh:
+		case cb := <-s.shutdownCh:
 			s.debug("shuttting down outbox deliver loop: uid: %s", s.outbox.GetUID())
+			defer close(cb)
 			return
+		case <-s.reconnectCh:
+			s.debug("flushing outbox on reconnect: uid: %s", s.outbox.GetUID())
 		case <-s.msgSentCh:
 			s.debug("flushing outbox on new message: uid: %s", s.outbox.GetUID())
-		case <-s.G().Clock().After(time.Minute):
+		case <-s.G().Clock().After(s.G().Env.GetChatDelivererInterval()):
 		}
 
 		// Fetch outbox
@@ -331,22 +358,27 @@ func (s *Deliverer) deliverLoop() {
 
 			// Do the actual send
 			bctx := utils.IdentifyModeCtx(context.Background(), obr.IdentifyBehavior, &breaks)
-			_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
+			if !s.connected {
+				err = errors.New("disconnected from chat server")
+			} else {
+				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
+			}
 			if err != nil {
-				s.G().Log.Error("failed to send msg: uid: %s convID: %s err: %s attempts: %d",
+				s.G().Log.Error("Deliverer: failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
-				// Process failure
-				if obr.State.Sending() > deliverMaxAttempts {
+				// Process failure. If we have gone over the limit of failure, or we are
+				// disconnected from the chat server, mark everything as failed.
+				if obr.State.Sending() > deliverMaxAttempts || !s.connected {
 					// Mark the entire outbox as an error if we can't send
 					s.debug("max failure attempts reached, marking all as errors and notifying")
-					obids, err := s.outbox.MarkAllAsError()
+					deadObrs, err := s.outbox.MarkAllAsError()
 					if err != nil {
 						s.G().Log.Error("unable to mark as error on outbox: uid: %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}
 					act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-						OutboxIDs: obids,
+						OutboxRecords: deadObrs,
 					})
 					s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
 						keybase1.UID(s.outbox.GetUID().String()), &act)

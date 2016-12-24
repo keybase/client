@@ -491,6 +491,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		}(g.badger)
 	}
 
+	// Let the Deliverer know that we are back online
+	g.G().MessageDeliverer.Connected()
+
 	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
 	// reconnection any longer than we have to.
 	go func(m gregor1.Message) {
@@ -506,6 +509,7 @@ func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time
 
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 	g.Debug("disconnected: %v", status)
+	g.G().MessageDeliverer.Disconnected()
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {

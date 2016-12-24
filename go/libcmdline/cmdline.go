@@ -136,6 +136,15 @@ func (p CommandLine) GetGregorPingInterval() (time.Duration, bool) {
 	}
 	return ret, true
 }
+
+func (p CommandLine) GetChatDelivererInterval() (time.Duration, bool) {
+	ret, err := p.GetGDuration("chat-deliverer-interval")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
+}
+
 func (p CommandLine) GetRunMode() (libkb.RunMode, error) {
 	return libkb.StringToRunMode(p.GetGString("run-mode"))
 }
