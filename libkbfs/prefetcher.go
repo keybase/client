@@ -14,11 +14,18 @@ const (
 	dirEntryPrefetchPriority            int = -200
 )
 
+type prefetchRequest struct {
+	priority int
+	kmd      KeyMetadata
+	ptr      BlockPointer
+	block    Block
+}
+
 var _ Prefetcher = (*blockPrefetcher)(nil)
 
 type blockPrefetcher struct {
 	retriever  blockRetriever
-	progressCh chan (<-chan error)
+	progressCh chan prefetchRequest
 	shutdownCh chan struct{}
 	doneCh     chan struct{}
 	sg         sync.WaitGroup
@@ -27,7 +34,7 @@ type blockPrefetcher struct {
 func newBlockPrefetcher(retriever blockRetriever) *blockPrefetcher {
 	p := &blockPrefetcher{
 		retriever:  retriever,
-		progressCh: make(chan (<-chan error)),
+		progressCh: make(chan prefetchRequest),
 		shutdownCh: make(chan struct{}),
 		doneCh:     make(chan struct{}),
 	}
@@ -39,11 +46,23 @@ func (p *blockPrefetcher) run() {
 runloop:
 	for {
 		select {
-		case ch := <-p.progressCh:
+		case req := <-p.progressCh:
+			if p.retriever == nil {
+				continue
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			ch := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr, req.block, TransientEntry)
 			p.sg.Add(1)
-			go func() error {
+			go func() {
 				defer p.sg.Done()
-				return <-ch
+				select {
+				case _ = <-ch:
+				case <-p.shutdownCh:
+					// Cancel but still wait so p.doneCh accurately represents
+					// whether we still have requests pending.
+					cancel()
+					<-ch
+				}
 			}()
 		case <-p.shutdownCh:
 			break runloop
@@ -54,16 +73,10 @@ runloop:
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block) error {
-	if p.retriever == nil {
-		return io.EOF
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	ch := p.retriever.Request(ctx, priority, kmd, ptr, block, TransientEntry)
 	select {
-	case p.progressCh <- ch:
+	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
 		return nil
 	case <-p.shutdownCh:
-		cancel()
 		return io.EOF
 	}
 }
