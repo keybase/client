@@ -270,6 +270,10 @@
           "name": "conversationID"
         },
         {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        },
+        {
           "type": [
             null,
             "ConversationFinalizeInfo"
@@ -319,17 +323,17 @@
           "name": "readerInfo"
         },
         {
-          "type": [
-            null,
-            "ConversationMetadata"
-          ],
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
           "name": "supersedes"
         },
         {
-          "type": [
-            null,
-            "ConversationMetadata"
-          ],
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
           "name": "supersededBy"
         },
         {

@@ -154,5 +154,6 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
+	e.G().UserChanged(me.GetUID())
 	return nil
 }

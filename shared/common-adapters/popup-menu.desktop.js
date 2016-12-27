@@ -1,8 +1,8 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './popup-menu'
+import type {Props, HeaderTextProps} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, globalMargins, globalStyles} from '../styles'
 
 class PopupMenu extends Component<void, Props, void> {
   render () {
@@ -25,7 +25,7 @@ class PopupMenu extends Component<void, Props, void> {
         <style>{realCSS}</style>
         <Box style={{...stylesMenu, ...this.props.style}}>
           {this.props.header && this.props.header.view}
-          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: 7, paddingBottom: 7}} >
+          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: globalMargins.tiny, paddingBottom: globalMargins.tiny}}>
             {
               this.props.items.map((i, idx) => {
                 if (i === 'Divider') {
@@ -49,12 +49,28 @@ class PopupMenu extends Component<void, Props, void> {
 
 const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8}} />
 
+const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
+  <Text
+    type='BodySemibold'
+    style={{
+      textAlign: 'center',
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+      paddingTop: globalMargins.tiny,
+      paddingBottom: globalMargins.tiny,
+      color,
+      backgroundColor,
+      ...style,
+    }}
+  >{children}</Text>
+)
+
 const stylesRow = {
   ...globalStyles.flexBoxColumn,
-  paddingTop: 4,
-  paddingBottom: 4,
-  paddingLeft: 15,
-  paddingRight: 15,
+  paddingTop: globalMargins.xtiny,
+  paddingBottom: globalMargins.xtiny,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 
 const stylesMenuCatcher = {
@@ -85,5 +101,7 @@ const stylesMenuText = {
   ...globalStyles.clickable,
   color: undefined,
 }
+
+export {PopupHeaderText}
 
 export default PopupMenu

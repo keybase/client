@@ -29,12 +29,12 @@ mkdir -p "$GOPATH/src/github.com/keybase"
 go_client_dir="$GOPATH/src/github.com/keybase/client/go"
 
 if [ ! "$local_client" = "1" ]; then
-  echo "Getting client (via git clone)..."
+  echo "Getting client (via git clone)... To use local copy, set LOCAL_CLIENT=1"
   (cd "$GOPATH/src/github.com/keybase"; git clone https://github.com/keybase/client)
   # echo "Getting client (via go get)..."
   # go get -u github.com/keybase/client/go/...
 else
-  echo "Getting client (using local GOPATH)..."
+  echo "Getting client (using local GOPATH)... To use git master, set LOCAL_CLIENT=0"
   mkdir -p "$go_client_dir"
   cp -R "$client_go_dir"/* "$go_client_dir"
 fi
@@ -42,13 +42,13 @@ fi
 go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
 
 if [ ! "$local_kbfs" = "1" ]; then
-  echo "Getting KBFS (via git clone)..."
+  echo "Getting KBFS (via git clone)... To use local copy, set LOCAL_KBFS=1"
   (cd "$GOPATH/src/github.com/keybase"; git clone https://github.com/keybase/kbfs)
   # echo "Getting KBFS (via go get)..."
   # go get -u github.com/keybase/kbfs/...
 else
   # For testing local KBFS changes
-  echo "Gettings KBFS (using local GOPATH)..."
+  echo "Getting KBFS (using local GOPATH)... To use git master, set LOCAL_KBFS=0"
   mkdir -p "$go_kbfs_dir"
   cp -R "$kbfs_dir"/* "$go_kbfs_dir"
 fi

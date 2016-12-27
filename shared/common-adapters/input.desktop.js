@@ -73,7 +73,7 @@ class Input extends Component<void, Props, State> {
       return
     }
 
-    node.style.height = 'auto'
+    node.style.height = '1px'
     node.style.height = `${node.scrollHeight}px`
   }
 
@@ -208,6 +208,7 @@ class Input extends Component<void, Props, State> {
       placeholder: this.props.hintText,
       ref: r => { this._input = r },
       value: this.state.value,
+      ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 
     const singlelineProps = {

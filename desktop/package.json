@@ -5,7 +5,7 @@
   "main": "./dist/main.bundle.js",
   "scripts": {
     "_helper": "yarn run _node -- npm-helper.js",
-    "_node": "babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types",
+    "_node": "babel-node",
     "apply-new-fonts": "yarn run _helper apply-new-fonts",
     "build-dev": "yarn run _helper build-dev",
     "build-main-thread": "yarn run _helper build-main-thread",
@@ -62,10 +62,12 @@
     "react-redux": "4.4.6",
     "react-tap-event-plugin": "2.0.1",
     "react-virtualized": "8.7.1",
+    "recompose": "0.21.0",
     "redux": "3.6.0",
     "redux-saga": "0.13.0",
     "redux-thunk": "2.1.0",
-    "semver": "5.3.0"
+    "semver": "5.3.0",
+    "shallowequal": "0.2.2"
   },
   "devDependencies": {
     "babel-cli": "6.18.0",

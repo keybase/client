@@ -59,33 +59,34 @@ func (e *ListTrackingEngine) RequiredUIs() []libkb.UIKind { return []libkb.UIKin
 func (e *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
 
 func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
-	var user *libkb.User
+
+	var arg libkb.LoadUserArg
+
 	if len(e.arg.ForAssertion) > 0 {
-		user, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.arg.ForAssertion))
+		arg = libkb.NewLoadUserByNameArg(e.G(), e.arg.ForAssertion)
 	} else {
-		user, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	}
-	if err != nil {
-		return
+		arg.Self = true
 	}
 
-	var trackList TrackList
-	trackList = user.IDTable().GetTrackList()
+	err = e.G().FullSelfCacher.WithUser(arg, func(user *libkb.User) error {
 
-	trackList, err = filterRxx(trackList, e.arg.Filter)
-	if err != nil {
-		return
-	}
+		var trackList TrackList
+		var err error
+		trackList = user.IDTable().GetTrackList()
 
-	sort.Sort(trackList)
+		trackList, err = filterRxx(trackList, e.arg.Filter)
+		if err != nil {
+			return err
+		}
+		sort.Sort(trackList)
 
-	if e.arg.JSON {
-		err = e.runJSON(trackList, e.arg.Verbose)
-	} else {
-		err = e.runTable(trackList)
-	}
+		if e.arg.JSON {
+			return e.runJSON(trackList, e.arg.Verbose)
+		}
+		return e.runTable(trackList)
+	})
 
-	return
+	return err
 }
 
 func filterTracks(trackList TrackList, f func(libkb.TrackChainLink) bool) TrackList {

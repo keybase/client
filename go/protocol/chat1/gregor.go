@@ -47,6 +47,11 @@ type UnreadUpdate struct {
 	UnreadMessages int            `codec:"UnreadMessages" json:"UnreadMessages"`
 }
 
+type TLFFinalizeUpdate struct {
+	FinalizeInfo ConversationFinalizeInfo `codec:"finalizeInfo" json:"finalizeInfo"`
+	ConvIDs      []ConversationID         `codec:"convIDs" json:"convIDs"`
+}
+
 type GregorInterface interface {
 }
 

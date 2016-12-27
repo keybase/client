@@ -18,6 +18,7 @@ const base = {
     borderColor: globalColors.black_75,
     disabledColor: globalColors.black_75,
   },
+  userAgent: false,
 }
 
 const mui = getMuiTheme(base)

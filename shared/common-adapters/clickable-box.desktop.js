@@ -5,7 +5,7 @@ import {FlatButton} from 'material-ui'
 
 import type {Props} from './clickable-box'
 
-export default function ClickableBox (props: Props & {children: any}) {
+const ClickableBox = (props: Props & {children: any}) => {
   const {style, children, ...otherProps} = props
 
   return (
@@ -26,3 +26,5 @@ const styleFlatButton = {
   alignItems: 'stretch',
   borderRadius: 0,
 }
+
+export default ClickableBox

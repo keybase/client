@@ -172,6 +172,7 @@ type ConversationFinalizeInfo struct {
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
+	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
 }
@@ -185,8 +186,8 @@ type ConversationReaderInfo struct {
 type Conversation struct {
 	Metadata     ConversationMetadata    `codec:"metadata" json:"metadata"`
 	ReaderInfo   *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	Supersedes   *ConversationMetadata   `codec:"supersedes,omitempty" json:"supersedes,omitempty"`
-	SupersededBy *ConversationMetadata   `codec:"supersededBy,omitempty" json:"supersededBy,omitempty"`
+	Supersedes   []ConversationMetadata  `codec:"supersedes" json:"supersedes"`
+	SupersededBy []ConversationMetadata  `codec:"supersededBy" json:"supersededBy"`
 	MaxMsgs      []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
 }
 

@@ -22,7 +22,7 @@ if (module.hot) {
   module.hot.accept()
 }
 
-const store = new RemoteStore({component: 'menubar'})
+let _store
 
 class RemoteMenubar extends Component {
   constructor () {
@@ -31,7 +31,7 @@ class RemoteMenubar extends Component {
   }
   render () {
     return (
-      <Root store={store}>
+      <Root store={_store}>
         <Menubar />
       </Root>
     )
@@ -41,6 +41,9 @@ class RemoteMenubar extends Component {
 setupContextMenu(remote.getCurrentWindow())
 
 function load () {
+  if (!_store) {
+    _store = new RemoteStore({component: 'menubar'})
+  }
   reactDOM.render(<RemoteMenubar />, document.getElementById('root'))
 }
 

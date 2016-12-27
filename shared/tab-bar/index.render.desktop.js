@@ -17,6 +17,13 @@ import {
 
 import type {Props} from './index.render'
 
+const _searchSource = {type: 'nav', icon: 'iconfont-nav-search'}
+const _folderSource = {type: 'nav', icon: 'iconfont-folder'}
+const _chatSource = {type: 'nav', icon: 'iconfont-chat'}
+const _peopleSource = {type: 'nav', icon: 'iconfont-people'}
+const _devicesSource = {type: 'nav', icon: 'iconfont-device'}
+const _settingsSource = {type: 'nav', icon: 'iconfont-settings'}
+
 export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers}: Props) {
   const avatar = (
     <Avatar
@@ -33,7 +40,7 @@ export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers
         label='Search'
         selected={selectedTab === searchTab}
         onClick={() => onTabClick(searchTab)}
-        source={{type: 'nav', icon: 'iconfont-nav-search'}}
+        source={_searchSource}
         style={stylesTabButton}
       />
       <TabBarButton
@@ -41,7 +48,7 @@ export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers
         selected={selectedTab === folderTab}
         onClick={() => onTabClick(folderTab)}
         badgeNumber={badgeNumbers[folderTab]}
-        source={{type: 'nav', icon: 'iconfont-folder'}}
+        source={_folderSource}
         style={stylesTabButton}
       />
       {flags.tabChatEnabled &&
@@ -50,7 +57,7 @@ export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers
           selected={selectedTab === chatTab}
           onClick={() => onTabClick(chatTab)}
           badgeNumber={badgeNumbers[chatTab]}
-          source={{type: 'nav', icon: 'iconfont-chat'}}
+          source={_chatSource}
           style={stylesTabButton}
         />
       }
@@ -60,7 +67,7 @@ export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers
           selected={selectedTab === peopleTab}
           onClick={() => onTabClick(peopleTab)}
           badgeNumber={badgeNumbers[peopleTab]}
-          source={{type: 'nav', icon: 'iconfont-people'}}
+          source={_peopleSource}
           style={stylesTabButton}
         />
       }
@@ -69,7 +76,7 @@ export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers
         selected={selectedTab === devicesTab}
         onClick={() => onTabClick(devicesTab)}
         badgeNumber={badgeNumbers[devicesTab]}
-        source={{type: 'nav', icon: 'iconfont-device'}}
+        source={_devicesSource}
         style={stylesTabButton}
       />
       <TabBarButton
@@ -77,7 +84,7 @@ export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers
         selected={selectedTab === settingsTab}
         onClick={() => onTabClick(settingsTab)}
         badgeNumber={badgeNumbers[settingsTab]}
-        source={{type: 'nav', icon: 'iconfont-settings'}}
+        source={_settingsSource}
         style={stylesTabButton}
       />
       <Box style={{flex: 1}} />

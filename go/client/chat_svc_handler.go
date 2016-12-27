@@ -57,6 +57,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 			Status:    utils.VisibleChatConversationStatuses(),
 			TopicType: &topicType,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return c.errReply(err)
@@ -116,6 +117,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		Query: &chat1.GetThreadQuery{
 			MarkAsRead: !opts.Peek,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 	threadView, err := client.GetThreadLocal(ctx, arg)
 	if err != nil {
@@ -123,7 +125,14 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 	}
 	rlimits = append(rlimits, threadView.RateLimits...)
 
+	// This could be lower than the truth if any messages were
+	// posted between the last two gregor rpcs.
 	readMsgID := conv.ReaderInfo.ReadMsgid
+
+	selfUID := c.G().Env.GetUID()
+	if selfUID.IsNil() {
+		c.G().Log.Warning("Could not get self UID for api")
+	}
 
 	var thread Thread
 	for _, m := range threadView.Thread.Messages {
@@ -150,6 +159,13 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		unread := mv.ServerHeader.MessageID > readMsgID
 		if opts.UnreadOnly && !unread {
 			continue
+		}
+		if !selfUID.IsNil() {
+			fromSelf := (mv.ClientHeader.Sender.String() == selfUID.String())
+			unread = unread && (!fromSelf)
+			if opts.UnreadOnly && fromSelf {
+				continue
+			}
 		}
 
 		prev := mv.ClientHeader.Prev
@@ -205,6 +221,7 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 		body:           chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
 		mtype:          chat1.MessageType_TEXT,
 		response:       "message sent",
+		nonblock:       opts.Nonblock,
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -469,10 +486,11 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	}
 
 	arg := chat1.DownloadAttachmentLocalArg{
-		ConversationID: convID,
-		MessageID:      opts.MessageID,
-		Sink:           sink,
-		Preview:        opts.Preview,
+		ConversationID:   convID,
+		MessageID:        opts.MessageID,
+		Sink:             sink,
+		Preview:          opts.Preview,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 
 	dres, err := client.DownloadAttachmentLocal(ctx, arg)
@@ -552,8 +570,9 @@ func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOpti
 	}
 
 	setStatusArg := chat1.SetConversationStatusLocalArg{
-		ConversationID: convID,
-		Status:         status,
+		ConversationID:   convID,
+		Status:           status,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 
 	client, err := GetChatLocalClient(c.G())
@@ -617,6 +636,7 @@ type sendArgV1 struct {
 	supersedes     chat1.MessageID
 	deletes        []chat1.MessageID
 	response       string
+	nonblock       bool
 }
 
 func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
@@ -636,16 +656,30 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 			ClientHeader: header.clientHeader,
 			MessageBody:  arg.body,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-	plres, err := client.PostLocal(ctx, postArg)
-	if err != nil {
-		return c.errReply(err)
+
+	if arg.nonblock {
+		var nbarg chat1.PostLocalNonblockArg
+		nbarg.ConversationID = postArg.ConversationID
+		nbarg.Msg = postArg.Msg
+		nbarg.IdentifyBehavior = postArg.IdentifyBehavior
+		plres, err := client.PostLocalNonblock(ctx, nbarg)
+		if err != nil {
+			return c.errReply(err)
+		}
+		header.rateLimits = append(header.rateLimits, plres.RateLimits...)
+	} else {
+		plres, err := client.PostLocal(ctx, postArg)
+		if err != nil {
+			return c.errReply(err)
+		}
+		header.rateLimits = append(header.rateLimits, plres.RateLimits...)
 	}
-	header.rateLimits = append(header.rateLimits, plres.RateLimits...)
 
 	res := SendRes{
 		Message: arg.response,

@@ -363,6 +363,8 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NOT_LOGGED_IN}, err
 	}
 
+	r.G().Log.Debug("| rekeyMaster#computeProblems: logged in")
+
 	hasGregor, err := r.hasGregorTLFRekeyMessages()
 	if err != nil {
 		nextWait = rekeyTimeoutAPIError
@@ -376,6 +378,8 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NO_GREGOR_MESSAGES}, err
 	}
 
+	r.G().Log.Debug("| rekeyMaster#computeProblems: has gregor")
+
 	var problems keybase1.ProblemSet
 	problems, err = queryAPIServerForRekeyInfo(r.G())
 	if err != nil {
@@ -383,6 +387,8 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 		r.G().Log.Debug("| snoozing rekeyMaster for %ds on API error", nextWait)
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_API_ERROR}, err
 	}
+
+	r.G().Log.Debug("| rekeyMaster#computeProblems: queried API server for rekey info")
 
 	if len(problems.Tlfs) == 0 {
 		r.G().Log.Debug("| no problem TLFs found")
@@ -392,6 +398,8 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 
 	var me *libkb.User
 	me, err = libkb.LoadMe(libkb.NewLoadUserArg(r.G()))
+	r.G().Log.Debug("| rekeyMaster#computeProblems: loaded me")
+
 	if err != nil {
 		nextWait = rekeyTimeoutLoadMeError
 		r.G().Log.Debug("| snoozing rekeyMaster for %ds on LoadMe error", nextWait)
@@ -404,6 +412,8 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_CURRENT_DEVICE_CAN_REKEY}, err
 	}
 
+	r.G().Log.Debug("| rekeyMaster#computeProblems: current device computed")
+
 	var tmp keybase1.ProblemSetDevices
 	tmp, err = newProblemSetDevices(me, problems)
 	if err != nil {
@@ -411,6 +421,8 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 		r.G().Log.Debug("| hit error in loading devices")
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_DEVICE_LOAD_ERROR}, err
 	}
+
+	r.G().Log.Debug("| rekeyMaster#computeProblems: made problem set devices")
 
 	nextWait = rekeyTimeoutActive
 	return nextWait, &tmp, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_HARASS}, err

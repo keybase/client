@@ -73,7 +73,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		return &libkb.TestSecretUI{Passphrase: user.Passphrase}
 	}
 	storage := storage.New(tc.G, f)
-	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage, mockRemote)
+	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage,
+		func() chat1.RemoteInterface { return mockRemote })
 	h.setTestRemoteClient(mockRemote)
 
 	tuc := &chatTestUserContext{
@@ -234,7 +235,7 @@ func TestGetInboxNonblock(t *testing.T) {
 		convs[mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[i+1]).user().Username).Id.String()] = true
 	}
 
-	err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
+	_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
 		chat1.GetInboxNonblockLocalArg{
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		},
@@ -277,9 +278,11 @@ func TestChatGetInboxAndUnboxLocalTlfName(t *testing.T) {
 	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	tlfName := ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username // not canonical
+	visibility := chat1.TLFVisibility_PRIVATE
 	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(context.Background(), chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			TlfName: &tlfName,
+			TlfName:       &tlfName,
+			TlfVisibility: &visibility,
 		},
 	})
 	if err != nil {
@@ -706,7 +709,7 @@ func TestGetOutbox(t *testing.T) {
 				Prev: 10,
 			},
 		},
-	})
+	}, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	require.NoError(t, err)
 
 	thread, err := h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{

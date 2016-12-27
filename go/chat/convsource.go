@@ -13,11 +13,11 @@ import (
 
 type RemoteConversationSource struct {
 	libkb.Contextified
-	ri    chat1.RemoteInterface
+	ri    func() chat1.RemoteInterface
 	boxer *Boxer
 }
 
-func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri chat1.RemoteInterface) *RemoteConversationSource {
+func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface) *RemoteConversationSource {
 	return &RemoteConversationSource{
 		Contextified: libkb.NewContextified(g),
 		ri:           ri,
@@ -39,7 +39,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		Query:          query,
 		Pagination:     pagination,
 	}
-	boxed, err := s.ri.GetThreadRemote(ctx, rarg)
+	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	rl := []*chat1.RateLimit{boxed.RateLimit}
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
@@ -65,7 +65,7 @@ func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor
 func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
 
-	rres, err := s.ri.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 		ConversationID: convID,
 		MessageIDs:     msgIDs,
 	})
@@ -80,12 +80,13 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 
 type HybridConversationSource struct {
 	libkb.Contextified
-	ri      chat1.RemoteInterface
+	ri      func() chat1.RemoteInterface
 	boxer   *Boxer
 	storage *storage.Storage
 }
 
-func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage, ri chat1.RemoteInterface) *HybridConversationSource {
+func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage,
+	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified: libkb.NewContextified(g),
 		ri:           ri,
@@ -98,7 +99,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
 	var err error
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(), msg)
+	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(s.G().Log), msg)
 	if err != nil {
 		return decmsg, err
 	}
@@ -123,7 +124,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,
 	rl *[]*chat1.RateLimit) (chat1.Conversation, error) {
 
-	conv, err := s.ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+	conv, err := s.ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query: &chat1.GetInboxQuery{
 			ConvID: &convID,
 		},
@@ -152,7 +153,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
 
-			// Before returning the stuff, update FromRevokedDevice on each message.
+			// Before returning the stuff, update SenderDeviceRevokedAt on each message.
 			updatedMessages, err := s.updateMessages(ctx, localData.Messages)
 			if err != nil {
 				return chat1.ThreadView{}, rl, err
@@ -162,7 +163,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
 			if query != nil && query.MarkAsRead && len(localData.Messages) > 0 {
-				res, err := s.ri.MarkAsRead(ctx, chat1.MarkAsReadArg{
+				res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
 					ConversationID: convID,
 					MsgID:          localData.Messages[0].GetMessageID(),
 				})
@@ -185,7 +186,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		Query:          query,
 		Pagination:     pagination,
 	}
-	boxed, err := s.ri.GetThreadRemote(ctx, rarg)
+	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
 	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
@@ -241,7 +242,7 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 		if !validAtCtime {
 			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
 		}
-		m.FromRevokedDevice = revoked
+		m.SenderDeviceRevokedAt = revoked
 		updatedMessage := chat1.NewMessageUnboxedWithValid(m)
 		return updatedMessage, nil
 	default:
@@ -290,7 +291,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	// Grab message from remote
 	s.G().Log.Debug("HybridConversationSource: GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs), len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
-		rmsgs, err := s.ri.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+		rmsgs, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 			ConversationID: convID,
 			MessageIDs:     remoteMsgs,
 		})
@@ -329,7 +330,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
-	ri chat1.RemoteInterface) libkb.ConversationSource {
+	ri func() chat1.RemoteInterface) libkb.ConversationSource {
 	if typ == "hybrid" {
 		return NewHybridConversationSource(g, boxer, storage, ri)
 	}

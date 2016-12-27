@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
 	istorage "github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -490,6 +491,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		}(g.badger)
 	}
 
+	// Let the Deliverer know that we are back online
+	g.G().MessageDeliverer.Connected()
+
 	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
 	// reconnection any longer than we have to.
 	go func(m gregor1.Message) {
@@ -505,6 +509,7 @@ func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time
 
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 	g.Debug("disconnected: %v", status)
+	g.G().MessageDeliverer.Disconnected()
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
@@ -925,6 +930,8 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		uid := m.UID().Bytes()
 
+		var identBreaks []keybase1.TLFIdentifyFailure
+		ctx = utils.IdentifyModeCtx(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks)
 		decmsg, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
@@ -1015,9 +1022,13 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		inboxSource := chat.NewRemoteInboxSource(g.G(), boxer,
 			func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: g.cli} },
 			func() keybase1.TlfInterface { return tlf })
-		if inbox, _, err = inboxSource.Read(context.Background(), uid, &chat1.GetInboxLocalQuery{
+
+		var identBreaks []keybase1.TLFIdentifyFailure
+		ctx = utils.IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+			&identBreaks)
+		if inbox, _, err = inboxSource.Read(ctx, uid, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
-		}, nil, keybase1.TLFIdentifyBehavior_CHAT_GUI); err != nil {
+		}, nil); err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
 			return err
 		}

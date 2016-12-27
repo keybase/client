@@ -282,10 +282,11 @@ func NewOutboxStateWithError(v string) OutboxState {
 }
 
 type OutboxRecord struct {
-	State    OutboxState      `codec:"state" json:"state"`
-	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
-	ConvID   ConversationID   `codec:"convID" json:"convID"`
-	Msg      MessagePlaintext `codec:"Msg" json:"Msg"`
+	State            OutboxState                  `codec:"state" json:"state"`
+	OutboxID         OutboxID                     `codec:"outboxID" json:"outboxID"`
+	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	Msg              MessagePlaintext             `codec:"Msg" json:"Msg"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type HeaderPlaintextVersion int
@@ -447,15 +448,15 @@ func (e MessageUnboxedState) String() string {
 }
 
 type MessageUnboxedValid struct {
-	ClientHeader      MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
-	ServerHeader      MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
-	MessageBody       MessageBody         `codec:"messageBody" json:"messageBody"`
-	SenderUsername    string              `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName  string              `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType  string              `codec:"senderDeviceType" json:"senderDeviceType"`
-	HeaderHash        Hash                `codec:"headerHash" json:"headerHash"`
-	HeaderSignature   *SignatureInfo      `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
-	FromRevokedDevice bool                `codec:"fromRevokedDevice" json:"fromRevokedDevice"`
+	ClientHeader          MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
+	ServerHeader          MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
+	MessageBody           MessageBody         `codec:"messageBody" json:"messageBody"`
+	SenderUsername        string              `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName      string              `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType      string              `codec:"senderDeviceType" json:"senderDeviceType"`
+	HeaderHash            Hash                `codec:"headerHash" json:"headerHash"`
+	HeaderSignature       *SignatureInfo      `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	SenderDeviceRevokedAt *gregor1.Time       `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
 }
 
 type MessageUnboxedError struct {
@@ -564,6 +565,7 @@ type ConversationLocal struct {
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
+	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
@@ -608,9 +610,15 @@ type GetInboxLocalQuery struct {
 }
 
 type GetInboxAndUnboxLocalRes struct {
-	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
-	Pagination    *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
+	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
+	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+type GetInboxNonblockLocalRes struct {
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 }
 
 type PostLocalRes struct {
@@ -631,8 +639,9 @@ type SetConversationStatusLocalRes struct {
 }
 
 type NewConversationLocalRes struct {
-	Conv       ConversationLocal `codec:"conv" json:"conv"`
-	RateLimits []RateLimit       `codec:"rateLimits" json:"rateLimits"`
+	Conv             ConversationLocal             `codec:"conv" json:"conv"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type GetInboxSummaryForCLILocalQuery struct {
@@ -811,7 +820,7 @@ type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
-	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) error
+	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (GetInboxNonblockLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	PostLocalNonblock(context.Context, PostLocalNonblockArg) (PostLocalNonblockRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
@@ -891,7 +900,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetInboxNonblockLocalArg)(nil), args)
 						return
 					}
-					err = i.GetInboxNonblockLocal(ctx, (*typedArgs)[0])
+					ret, err = i.GetInboxNonblockLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1143,8 +1152,8 @@ func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAn
 	return
 }
 
-func (c LocalClient) GetInboxNonblockLocal(ctx context.Context, __arg GetInboxNonblockLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getInboxNonblockLocal", []interface{}{__arg}, nil)
+func (c LocalClient) GetInboxNonblockLocal(ctx context.Context, __arg GetInboxNonblockLocalArg) (res GetInboxNonblockLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getInboxNonblockLocal", []interface{}{__arg}, &res)
 	return
 }
 

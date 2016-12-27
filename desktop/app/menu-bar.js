@@ -2,7 +2,7 @@
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {injectReactQueryParams} from '../shared/util/dev'
-import {ipcMain, systemPreferences} from 'electron'
+import {ipcMain, systemPreferences, app} from 'electron'
 // $FlowIssue doens't understand symlinks
 import {isDarwin, isWindows, isLinux} from '../shared/constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
@@ -57,9 +57,12 @@ export default function () {
     })
   }
 
-  ipcMain.on('showTray', (event, type) => {
+  ipcMain.on('showTray', (event, type, count) => {
     iconType = type
     updateIcon(false)
+    if (app.dock.isVisible()) {
+      app.setBadgeCount(count)
+    }
   })
 
   // We keep the listeners so we can cleanup on hot-reload
@@ -92,8 +95,15 @@ export default function () {
     webContents.on('did-finish-load', () => {
       webContents.send('load', {
         scripts: [
-          ...(__DEV__ ? [resolveRootAsURL('dist', 'dll/dll.vendor.js')] : []),
-          ...[hotPath('launcher.bundle.js')]],
+          ...(__DEV__ ? [{
+            src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+            async: false,
+          }] : []),
+          {
+            src: hotPath('launcher.bundle.js'),
+            async: false,
+          },
+        ],
         selectorParams: 'menubar',
       })
     })

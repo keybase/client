@@ -16,10 +16,37 @@ const Conversation = (props: Props) => {
   const banner = bannerMessage && <Banner {...bannerMessage} />
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      <Header {...props} />
-      <List {...props} />
+      <Header
+        onOpenFolder={props.onOpenFolder}
+        onToggleSidePanel={props.onToggleSidePanel}
+        participants={props.participants}
+        sidePanelOpen={props.sidePanelOpen}
+      />
+      <List
+        firstNewMessageID={props.firstNewMessageID}
+        messages={props.messages}
+        metaData={props.metaData}
+        moreToLoad={props.moreToLoad}
+        onAddParticipant={props.onAddParticipant}
+        onDeleteMessage={props.onDeleteMessage}
+        onEditMessage={props.onEditMessage}
+        onLoadAttachment={props.onLoadAttachment}
+        onLoadMoreMessages={props.onLoadMoreMessages}
+        onOpenInFileUI={props.onOpenInFileUI}
+        onShowProfile={props.onShowProfile}
+        participants={props.participants}
+        selectedConversation={props.selectedConversation}
+        sidePanelOpen={props.sidePanelOpen}
+        validated={props.validated}
+      />
       {banner}
-      <Input {...props} />
+      <Input
+        emojiPickerOpen={props.emojiPickerOpen}
+        isLoading={props.isLoading}
+        onAttach={props.onAttach}
+        onPostMessage={props.onPostMessage}
+        selectedConversation={props.selectedConversation}
+      />
     </Box>
   )
 }

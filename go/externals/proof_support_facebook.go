@@ -155,7 +155,7 @@ type FacebookServiceType struct{ libkb.BaseServiceType }
 
 func (t FacebookServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-var facebookUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9.]{5,50})$`)
+var facebookUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9.]{1,50})$`)
 
 func (t FacebookServiceType) NormalizeUsername(s string) (string, error) {
 	if !facebookUsernameRegexp.MatchString(s) {

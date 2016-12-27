@@ -417,6 +417,9 @@ func (e *Identify2WithUID) maybeCacheResult() {
 		v := e.toUserPlusKeys()
 		e.getCache().Insert(&v)
 		e.G().Log.Debug("| insert %+v", v)
+		if err := e.storeSlowCacheToDB(); err != nil {
+			e.G().Log.Debug("| Error in storing slow cache to db: %s", err)
+		}
 	}
 	e.G().Log.Debug("- maybeCacheResult")
 }
@@ -547,12 +550,13 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.remotesReceived = e.them.BaseProofSet()
 
 	iui := ctx.IdentifyUI
-	if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
+	if e.calledFromChatGUI() {
+		e.G().Log.Debug("| using the loopback identify UI")
+		iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
+	} else if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
 		iui = newBufferedIdentifyUI(e.G(), iui, keybase1.ConfirmResult{
 			IdentityConfirmed: true,
 		})
-	} else if e.calledFromChatGUI() {
-		iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
 	}
 
 	e.G().Log.Debug("| IdentifyUI.Start(%s)", e.them.GetName())
@@ -766,17 +770,72 @@ func (e *Identify2WithUID) checkFastCacheHit() bool {
 	return true
 }
 
-func (e *Identify2WithUID) checkSlowCacheHit() bool {
+func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBIdentify,
+		Key: fmt.Sprintf("%s:%s", e.me.GetUID(), them),
+	}
+}
+
+func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.UserPlusKeys) {
+	defer e.G().TraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
+	var ktm keybase1.Time
+	key := e.dbKey(e.them.GetUID())
+	found, err := e.G().LocalDb.GetInto(&ktm, key)
+	if err != nil {
+		e.G().Log.Debug("| Error loading key %s from cache: %s", key, err)
+		return nil
+	}
+	if !found {
+		e.G().Log.Debug("| Key wasn't found: %s", key)
+		return nil
+	}
+	tm := ktm.Time()
+	if time.Since(tm) > libkb.Identify2CacheLongTimeout {
+		e.G().Log.Debug("| Object timed out %s ago", time.Now().Sub(tm))
+		return nil
+	}
+	tmp := e.them.ExportToUserPlusKeys(ktm)
+	ret = &tmp
+	return ret
+}
+
+// Store (meUID, themUID) -> SuccessfulIDTime as we cache users to the slow cache.
+// Thus, after a cold boot, we don't start up with a cold identify cache.
+func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
+	prfx := fmt.Sprintf("Identify2WithUID#storeSlowCacheToDB(%s)", e.them.GetUID())
+	defer e.G().Trace(prfx, func() error { return err })()
+	if e.me == nil {
+		e.G().Log.Debug("not storing to persistent slow cache since no me user")
+		return nil
+	}
+
+	key := e.dbKey(e.them.GetUID())
+	now := keybase1.ToTime(time.Now())
+	err = e.G().LocalDb.PutObj(key, nil, now)
+	return err
+}
+
+func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
+	prfx := fmt.Sprintf("Identify2WithUID#checkSlowCacheHit(%s)", e.them.GetUID())
+	defer e.G().TraceOK(prfx, func() bool { return ret })()
+
 	if e.getCache() == nil {
 		return false
 	}
 
 	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.LastIdentifiedAt }
 	u, _ := e.getCache().Get(e.them.GetUID(), fn, libkb.Identify2CacheLongTimeout)
+
+	if u == nil && e.me != nil {
+		u = e.loadSlowCacheFromDB()
+	}
 	if u == nil {
+		e.G().Log.Debug("%s: identify missed cache", prfx)
 		return false
 	}
 	if !e.them.IsCachedIdentifyFresh(u) {
+		e.G().Log.Debug("%s: cached identify was stale", prfx)
 		return false
 	}
 	e.cachedRes = u
