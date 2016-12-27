@@ -75,9 +75,10 @@ class Invites extends Component<void, Props, State> {
             <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
             {intersperseDividers(props.pendingInvites.map(invite =>
               <PendingInviteItem
-                props={props}
                 invite={invite}
                 key={invite.id}
+                onReclaimInvitation={id => props.onReclaimInvitation(id)}
+                onSelectPendingInvite={invite => props.onSelectPendingInvite(invite)}
               />
             ))}
           </Box>}
@@ -101,14 +102,14 @@ function intersperseDividers (arr) {
   return intersperseFn(i => <Divider key={i} style={{backgroundColor: globalColors.black_05}} />, arr)
 }
 
-function PendingInviteItem ({invite, props}: {invite: PendingInvite, props: Props}) {
+function PendingInviteItem ({invite, onReclaimInvitation, onSelectPendingInvite}: {invite: PendingInvite, onReclaimInvitation: (id: string) => void, onSelectPendingInvite: (invite: PendingInvite) => void}) {
   return (
     <Box style={styleInviteItem}>
-      {invite.email ? <PendingEmailContent invite={invite} props={props} /> : <PendingURLContent invite={invite} />}
+      {invite.email ? <PendingEmailContent invite={invite} onSelectPendingInvite={onSelectPendingInvite} /> : <PendingURLContent invite={invite} />}
       <Box style={{flex: 1}} />
       <Text
         type='BodyPrimaryLink'
-        onClick={() => props.onReclaimInvitation(invite.id)}
+        onClick={() => onReclaimInvitation(invite.id)}
         style={{color: globalColors.red}}
       >
         Reclaim
@@ -117,7 +118,7 @@ function PendingInviteItem ({invite, props}: {invite: PendingInvite, props: Prop
   )
 }
 
-function PendingEmailContent ({invite, props}: {invite: PendingInvite, props: Props}) {
+function PendingEmailContent ({invite, onSelectPendingInvite}: {invite: PendingInvite, onSelectPendingInvite: (invite: PendingInvite) => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Avatar
@@ -127,7 +128,7 @@ function PendingEmailContent ({invite, props}: {invite: PendingInvite, props: Pr
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
         <Text
           type='BodySemibold'
-          onClick={() => props.onSelectPendingInvite(invite)}
+          onClick={() => onSelectPendingInvite(invite)}
         >
           {invite.email}
         </Text>
