@@ -444,7 +444,10 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 
 	// SecretStoreAll must be created after SetCommandLine in order
 	// to correctly use -H,-home flag.
-	g.SecretStoreAll = NewSecretStoreLocked(g)
+	// Short-circuit init if we're just printing out the version
+	if !usage.VersionOnly {
+		g.SecretStoreAll = NewSecretStoreLocked(g)
+	}
 
 	return g.ConfigureUsage(usage)
 }
@@ -476,13 +479,13 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureExportedStreams(); err != nil {
 		return err
 	}
-
-	if err = g.ConfigureCaches(); err != nil {
-		return err
-	}
-
-	if err = g.ConfigureMerkleClient(); err != nil {
-		return err
+	if !usage.VersionOnly {
+		if err = g.ConfigureCaches(); err != nil {
+			return err
+		}
+		if err = g.ConfigureMerkleClient(); err != nil {
+			return err
+		}
 	}
 	if g.UI != nil {
 		if err = g.UI.Configure(); err != nil {

@@ -133,7 +133,10 @@ func mainInner(g *libkb.GlobalContext) error {
 	}
 
 	err = cmd.Run()
-	if !cl.IsService() {
+
+	// Short-circuit warnings if we're just printing out the version,
+	// since it attempts to dial the socket
+	if !cl.IsService() && !cmd.GetUsage().VersionOnly {
 		// Errors that come up in printing this warning are logged but ignored.
 		client.PrintOutOfDateWarnings(g)
 	}

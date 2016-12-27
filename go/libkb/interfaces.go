@@ -186,11 +186,12 @@ type HTTPRequest interface {
 }
 
 type Usage struct {
-	Config     bool
-	GpgKeyring bool
-	KbKeyring  bool
-	API        bool
-	Socket     bool
+	Config      bool
+	GpgKeyring  bool
+	KbKeyring   bool
+	API         bool
+	Socket      bool
+	VersionOnly bool
 }
 
 type Command interface {
