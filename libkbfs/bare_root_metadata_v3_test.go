@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"context"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -28,15 +27,6 @@ func TestBareRootMetadataVersionV3(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
-}
-
-type codecOnlyConfig struct {
-	Config
-	codec kbfscodec.Codec
-}
-
-func (c codecOnlyConfig) Codec() kbfscodec.Codec {
-	return c.codec
 }
 
 func TestRootMetadataV3ExtraNew(t *testing.T) {
@@ -64,8 +54,7 @@ func TestRootMetadataV3ExtraNew(t *testing.T) {
 	require.True(t, extraV3.rkbNew)
 
 	_, extraCopy, err := rmd.MakeSuccessorCopy(
-		context.Background(), codecOnlyConfig{nil, codec},
-		nil, extra, true)
+		codec, nil, extra, -1, nil, true)
 	require.NoError(t, err)
 
 	extraV3Copy, ok := extraCopy.(*ExtraMetadataV3)

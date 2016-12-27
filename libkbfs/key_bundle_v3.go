@@ -217,7 +217,7 @@ func DeserializeTLFWriterKeyBundleV3(codec kbfscodec.Codec, path string) (
 	}
 	if len(wkb.Keys) == 0 {
 		return TLFWriterKeyBundleV3{}, errors.New(
-			"Writer key bundle with no keys")
+			"Writer key bundle with no keys (Deserialize)")
 	}
 	return wkb, nil
 }
@@ -226,6 +226,20 @@ func DeserializeTLFWriterKeyBundleV3(codec kbfscodec.Codec, path string) (
 func (wkb TLFWriterKeyBundleV3) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
 	_, ok := wkb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
 	return ok
+}
+
+// DeepCopy creates a deep copy of this key bundle.
+func (wkb TLFWriterKeyBundleV3) DeepCopy(codec kbfscodec.Codec) (
+	TLFWriterKeyBundleV3, error) {
+	if len(wkb.Keys) == 0 {
+		return TLFWriterKeyBundleV3{}, errors.New(
+			"Writer key bundle with no keys (DeepCopy)")
+	}
+	var wkbCopy TLFWriterKeyBundleV3
+	if err := kbfscodec.Update(codec, &wkbCopy, wkb); err != nil {
+		return TLFWriterKeyBundleV3{}, err
+	}
+	return wkbCopy, nil
 }
 
 // TLFWriterKeyBundleID is the hash of a serialized TLFWriterKeyBundle.
@@ -322,9 +336,22 @@ func DeserializeTLFReaderKeyBundleV3(codec kbfscodec.Codec, path string) (
 }
 
 // IsReader returns true if the given user device is in the reader set.
-func (trb TLFReaderKeyBundleV3) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := trb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
+func (rkb TLFReaderKeyBundleV3) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+	_, ok := rkb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
 	return ok
+}
+
+// DeepCopy creates a deep copy of this key bundle.
+func (rkb TLFReaderKeyBundleV3) DeepCopy(codec kbfscodec.Codec) (
+	TLFReaderKeyBundleV3, error) {
+	var rkbCopy TLFReaderKeyBundleV3
+	if err := kbfscodec.Update(codec, &rkbCopy, rkb); err != nil {
+		return TLFReaderKeyBundleV3{}, err
+	}
+	if len(rkbCopy.Keys) == 0 {
+		rkbCopy.Keys = make(UserDeviceKeyInfoMapV3)
+	}
+	return rkbCopy, nil
 }
 
 // TLFReaderKeyBundleID is the hash of a serialized TLFReaderKeyBundle.

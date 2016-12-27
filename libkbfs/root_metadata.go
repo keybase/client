@@ -98,13 +98,6 @@ func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
 	return p.cachedChanges.Info
 }
 
-// ExtraMetadata is a per-version blob of extra metadata which may exist outside of the
-// given metadata block, e.g. key bundles for post-v2 metadata.
-type ExtraMetadata interface {
-	MetadataVersion() MetadataVer
-	DeepCopy(kbfscodec.Codec) (ExtraMetadata, error)
-}
-
 // A RootMetadata is a BareRootMetadata but with a deserialized
 // PrivateMetadata. However, note that it is possible that the
 // PrivateMetadata has to be left serialized due to not having the
@@ -223,7 +216,8 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
-	ctx context.Context, config Config, mdID MdID, isWriter bool) (
+	ctx context.Context, latestMDVer MetadataVer, codec kbfscodec.Codec,
+	crypto cryptoPure, keyManager KeyManager, mdID MdID, isWriter bool) (
 	*RootMetadata, error) {
 
 	if mdID == (MdID{}) {
@@ -236,7 +230,10 @@ func (md *RootMetadata) MakeSuccessor(
 	isReadableAndWriter := md.IsReadable() && isWriter
 
 	brmdCopy, extraCopy, err := md.bareMd.MakeSuccessorCopy(
-		ctx, config, md, md.extra, isReadableAndWriter)
+		codec, crypto, md.extra, latestMDVer,
+		func() ([]kbfscrypto.TLFCryptKey, error) {
+			return keyManager.GetTLFCryptKeyOfAllGenerations(ctx, md)
+		}, isReadableAndWriter)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +241,7 @@ func (md *RootMetadata) MakeSuccessor(
 	handleCopy := md.tlfHandle.deepCopy()
 
 	newMd := makeRootMetadata(brmdCopy, extraCopy, handleCopy)
-	if err := kbfscodec.Update(config.Codec(), &newMd.data, md.data); err != nil {
+	if err := kbfscodec.Update(codec, &newMd.data, md.data); err != nil {
 		return nil, err
 	}
 

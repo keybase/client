@@ -4,7 +4,10 @@
 
 package libkbfs
 
-import "github.com/keybase/kbfs/tlf"
+import (
+	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
+)
 
 // TODO: Wrap errors coming from BareRootMetadata.
 
@@ -28,4 +31,13 @@ func MakeInitialBareRootMetadata(
 	}
 
 	return MakeInitialBareRootMetadataV3(tlfID, h)
+}
+
+// ExtraMetadata is a per-version blob of extra metadata which may
+// exist outside of the given metadata block, e.g. key bundles for
+// post-v2 metadata.
+type ExtraMetadata interface {
+	MetadataVersion() MetadataVer
+	DeepCopy(kbfscodec.Codec) (ExtraMetadata, error)
+	MakeSuccessorCopy(kbfscodec.Codec) (ExtraMetadata, error)
 }

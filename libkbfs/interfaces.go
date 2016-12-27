@@ -1605,14 +1605,17 @@ type BareRootMetadata interface {
 	IsReader(user keybase1.UID, deviceKID keybase1.KID, extra ExtraMetadata) bool
 	// DeepCopy returns a deep copy of the underlying data structure.
 	DeepCopy(codec kbfscodec.Codec) (MutableBareRootMetadata, error)
-	// MakeSuccessorCopy returns a newly constructed successor copy to this metadata revision.
-	// It differs from DeepCopy in that it can perform an up conversion to a new metadata
-	// version.
-	//
-	// TODO: Replace Config argument.
-	MakeSuccessorCopy(ctx context.Context, config Config, kmd KeyMetadata,
-		extra ExtraMetadata, isReadableAndWriter bool) (
-		mdCopy MutableBareRootMetadata, extraCopy ExtraMetadata, err error)
+	// MakeSuccessorCopy returns a newly constructed successor
+	// copy to this metadata revision.  It differs from DeepCopy
+	// in that it can perform an up conversion to a new metadata
+	// version. tlfCryptKeyGetter should be a function that
+	// returns a list of TLFCryptKeys for all key generations in
+	// ascending order.
+	MakeSuccessorCopy(codec kbfscodec.Codec, crypto cryptoPure,
+		extra ExtraMetadata, latestMDVer MetadataVer,
+		tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error),
+		isReadableAndWriter bool) (mdCopy MutableBareRootMetadata,
+		extraCopy ExtraMetadata, err error)
 	// CheckValidSuccessor makes sure the given BareRootMetadata is a valid
 	// successor to the current one, and returns an error otherwise.
 	CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error

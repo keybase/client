@@ -117,12 +117,21 @@ func putMDRange(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, ekg encryptionKeyGetter,
 	bsplit BlockSplitter, firstRevision MetadataRevision,
 	firstPrevRoot MdID, mdCount int, j *mdJournal) ([]*RootMetadata, MdID) {
-	prevRoot := firstPrevRoot
+	require.True(t, mdCount > 0)
 	ctx := context.Background()
 	var mds []*RootMetadata
-	for i := 0; i < mdCount; i++ {
-		revision := firstRevision + MetadataRevision(i)
-		md := makeMDForTest(t, ver, tlfID, revision, j.uid, signer, prevRoot)
+	md := makeMDForTest(
+		t, ver, tlfID, firstRevision, j.uid, signer, firstPrevRoot)
+	mdID, err := j.put(ctx, signer, ekg, bsplit, md, false)
+	require.NoError(t, err)
+	mds = append(mds, md)
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	prevRoot := mdID
+	for i := 1; i < mdCount; i++ {
+		md, err = md.MakeSuccessor(ctx, ver, codec, crypto,
+			nil, prevRoot, true)
+		require.NoError(t, err)
 		mdID, err := j.put(ctx, signer, ekg, bsplit, md, false)
 		require.NoError(t, err)
 		mds = append(mds, md)
@@ -232,8 +241,8 @@ func testMDJournalBasic(t *testing.T, ver MetadataVer) {
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 
 	for i := 0; i < mdCount; i++ {
-		require.Equal(t, mds[i].bareMd, ibrmds[i].BareRootMetadata)
-		require.Equal(t, mds[i].extra, ibrmds[i].extra)
+		require.Equal(t, mds[i].bareMd, ibrmds[i].BareRootMetadata, "i=%d", i)
+		require.Equal(t, mds[i].extra, ibrmds[i].extra, "i=%d", i)
 	}
 }
 

@@ -124,6 +124,100 @@ func TestRemoveDevicesNotInV2(t *testing.T) {
 	}, removalInfo)
 }
 
+func TestToTLFWriterKeyBundleV3(t *testing.T) {
+	uid1 := keybase1.MakeTestUID(0x1)
+	uid2 := keybase1.MakeTestUID(0x2)
+
+	key1a := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key1")
+	key1b := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key2")
+	key2a := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key3")
+	key2b := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key4")
+	key2c := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key5")
+
+	wEPubKey1 := kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0x1})
+	wEPubKey2 := kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0x2})
+
+	tlfPublicKey := kbfscrypto.MakeTLFPublicKey([32]byte{0x1})
+
+	wkbV2 := TLFWriterKeyBundleV2{
+		WKeys: UserDeviceKeyInfoMapV2{
+			uid1: DeviceKeyInfoMapV2{
+				key1a.KID(): TLFCryptKeyInfo{
+					EPubKeyIndex: 0,
+				},
+				key1b.KID(): TLFCryptKeyInfo{
+					EPubKeyIndex: 1,
+				},
+			},
+			uid2: DeviceKeyInfoMapV2{
+				key2a.KID(): TLFCryptKeyInfo{
+					EPubKeyIndex: 1,
+				},
+				key2b.KID(): TLFCryptKeyInfo{
+					EPubKeyIndex: 0,
+				},
+				key2c.KID(): TLFCryptKeyInfo{
+					EPubKeyIndex: 0,
+				},
+			},
+		},
+		TLFPublicKey: tlfPublicKey,
+		TLFEphemeralPublicKeys: kbfscrypto.TLFEphemeralPublicKeys{
+			wEPubKey1, wEPubKey2,
+		},
+	}
+
+	wkg := TLFWriterKeyGenerationsV2{TLFWriterKeyBundleV2{}, wkbV2}
+
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	tlfCryptKey1 := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
+	tlfCryptKey2 := kbfscrypto.MakeTLFCryptKey([32]byte{0x2})
+	tlfCryptKeyGetter := func() ([]kbfscrypto.TLFCryptKey, error) {
+		return []kbfscrypto.TLFCryptKey{tlfCryptKey1, tlfCryptKey2}, nil
+	}
+
+	expectedWKBV3 := TLFWriterKeyBundleV3{
+		Keys: UserDeviceKeyInfoMapV3{
+			uid1: DeviceKeyInfoMapV3{
+				key1a: TLFCryptKeyInfo{
+					EPubKeyIndex: 0,
+				},
+				key1b: TLFCryptKeyInfo{
+					EPubKeyIndex: 1,
+				},
+			},
+			uid2: DeviceKeyInfoMapV3{
+				key2a: TLFCryptKeyInfo{
+					EPubKeyIndex: 1,
+				},
+				key2b: TLFCryptKeyInfo{
+					EPubKeyIndex: 0,
+				},
+				key2c: TLFCryptKeyInfo{
+					EPubKeyIndex: 0,
+				},
+			},
+		},
+		TLFPublicKey: tlfPublicKey,
+		TLFEphemeralPublicKeys: kbfscrypto.TLFEphemeralPublicKeys{
+			wEPubKey1, wEPubKey2,
+		},
+	}
+
+	retrievedWKBV2, wkbV3, err := wkg.ToTLFWriterKeyBundleV3(
+		codec, crypto, tlfCryptKeyGetter)
+	require.NoError(t, err)
+	require.Equal(t, wkbV2, retrievedWKBV2)
+	encryptedOldKeys := wkbV3.EncryptedHistoricTLFCryptKeys
+	wkbV3.EncryptedHistoricTLFCryptKeys = EncryptedTLFCryptKeys{}
+	require.Equal(t, expectedWKBV3, wkbV3)
+	oldKeys, err :=
+		crypto.DecryptTLFCryptKeys(encryptedOldKeys, tlfCryptKey2)
+	require.NoError(t, err)
+	require.Equal(t, oldKeys, []kbfscrypto.TLFCryptKey{tlfCryptKey1})
+}
+
 func TestToTLFReaderKeyBundleV3(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(0x1)
 	uid2 := keybase1.MakeTestUID(0x2)

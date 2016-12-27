@@ -28,7 +28,7 @@ func makeFakeMDIDJournalEntryFuture(t *testing.T) mdIDJournalEntryFuture {
 	ef := mdIDJournalEntryFuture{
 		mdIDJournalEntry{
 			fakeMdID(1),
-			false,
+			false, false, false,
 			codec.UnknownFieldSetHandler{},
 		},
 		kbfscodec.MakeExtraOrBust("mdIDJournalEntry", t),

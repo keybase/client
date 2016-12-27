@@ -295,7 +295,8 @@ func testRootMetadataFinalIsFinal(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	rmd.SetFinalBit()
-	_, err = rmd.MakeSuccessor(context.Background(), nil, fakeMdID(1), true)
+	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil,
+		fakeMdID(1), true)
 	_, isFinalError := err.(MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
 }
@@ -407,7 +408,9 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	config.metadataVersion = SegregatedKeyBundlesVer
 
 	// create an MDv3 successor
-	rmd2, err := rmd.MakeSuccessor(context.Background(), config, fakeMdID(1), true)
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.KeyManager(), fakeMdID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, KeyGen(2), rmd2.LatestKeyGeneration())
 	require.Equal(t, MetadataRevision(2), rmd2.Revision())
@@ -494,7 +497,9 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	config.metadataVersion = SegregatedKeyBundlesVer
 
 	// create an MDv3 successor
-	rmd2, err := rmd.MakeSuccessor(context.Background(), config, fakeMdID(1), true)
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.KeyManager(), fakeMdID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, PublicKeyGen, rmd2.LatestKeyGeneration())
 	require.Equal(t, MetadataRevision(2), rmd2.Revision())
@@ -606,7 +611,9 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	// reader.  This should keep the version the same, since readers
 	// can't upconvert.
 	configReader.metadataVersion = SegregatedKeyBundlesVer
-	rmd2, err := rmd.MakeSuccessor(context.Background(), configReader,
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		configReader.MetadataVersion(), configReader.Codec(),
+		configReader.Crypto(), configReader.KeyManager(),
 		fakeMdID(1), false)
 	require.NoError(t, err)
 	require.Equal(t, rmd2.LatestKeyGeneration(), KeyGen(1))

@@ -31,8 +31,18 @@ type mdIDJournal struct {
 // of the id journal; once there is one entry with `isLocalSquash =
 // false`, it will be the same in all the remaining entries.
 type mdIDJournalEntry struct {
-	ID            MdID
-	IsLocalSquash bool
+	ID MdID
+	// IsLocalSquash is true when this MD is the result of
+	// squashing some other local MDs.
+	IsLocalSquash bool `codec:",omitempty"`
+	// WKBNew is true when the writer key bundle for this MD is
+	// new and has to be pushed to the server. This is always
+	// false for MDv2.
+	WKBNew bool `codec:",omitempty"`
+	// RKBNew is true when the reader key bundle for this MD is
+	// new and has to be pushed to the server. This is always
+	// false for MDv2.
+	RKBNew bool `codec:",omitempty"`
 
 	codec.UnknownFieldSetHandler
 }

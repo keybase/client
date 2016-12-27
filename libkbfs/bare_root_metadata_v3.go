@@ -137,11 +137,26 @@ func (extra *ExtraMetadataV3) updateNew(wkbNew, rkbNew bool) {
 // DeepCopy implements the ExtraMetadata interface for ExtraMetadataV3.
 func (extra ExtraMetadataV3) DeepCopy(codec kbfscodec.Codec) (
 	ExtraMetadata, error) {
-	wkb, rkb := TLFWriterKeyBundleV3{}, TLFReaderKeyBundleV3{}
-	if err := kbfscodec.Update(codec, &rkb, extra.rkb); err != nil {
+	wkb, err := extra.wkb.DeepCopy(codec)
+	if err != nil {
 		return nil, err
 	}
-	if err := kbfscodec.Update(codec, &wkb, extra.wkb); err != nil {
+	rkb, err := extra.rkb.DeepCopy(codec)
+	if err != nil {
+		return nil, err
+	}
+	return NewExtraMetadataV3(wkb, rkb, extra.wkbNew, extra.rkbNew), nil
+}
+
+// MakeSuccessorCopy implements the ExtraMetadata interface for ExtraMetadataV3.
+func (extra ExtraMetadataV3) MakeSuccessorCopy(codec kbfscodec.Codec) (
+	ExtraMetadata, error) {
+	wkb, err := extra.wkb.DeepCopy(codec)
+	if err != nil {
+		return nil, err
+	}
+	rkb, err := extra.rkb.DeepCopy(codec)
+	if err != nil {
 		return nil, err
 	}
 	return NewExtraMetadataV3(wkb, rkb, false, false), nil
@@ -383,18 +398,19 @@ func (md *BareRootMetadataV3) DeepCopy(
 
 // MakeSuccessorCopy implements the ImmutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) MakeSuccessorCopy(
-	ctx context.Context, config Config, kmd KeyMetadata,
-	extra ExtraMetadata, isReadableAndWriter bool) (
+	codec kbfscodec.Codec, crypto cryptoPure,
+	extra ExtraMetadata, _ MetadataVer,
+	_ func() ([]kbfscrypto.TLFCryptKey, error), isReadableAndWriter bool) (
 	MutableBareRootMetadata, ExtraMetadata, error) {
 	var extraCopy ExtraMetadata
 	if extra != nil {
 		var err error
-		extraCopy, err = extra.DeepCopy(config.Codec())
+		extraCopy, err = extra.MakeSuccessorCopy(codec)
 		if err != nil {
 			return nil, nil, err
 		}
 	}
-	mdCopy, err := md.DeepCopy(config.Codec())
+	mdCopy, err := md.DeepCopy(codec)
 	if err != nil {
 		return nil, nil, err
 	}

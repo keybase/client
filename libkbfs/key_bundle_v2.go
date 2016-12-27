@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 type ePubKeyTypeV2 int
@@ -266,11 +265,9 @@ func (wkg TLFWriterKeyGenerationsV2) IsWriter(user keybase1.UID, deviceKID keyba
 }
 
 // ToTLFWriterKeyBundleV3 converts a TLFWriterKeyGenerationsV2 to a TLFWriterKeyBundleV3.
-//
-// TODO: Add a unit test for this.
 func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
-	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
-	keyManager KeyManager, kmd KeyMetadata) (
+	codec kbfscodec.Codec, crypto cryptoPure,
+	tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error)) (
 	TLFWriterKeyBundleV2, TLFWriterKeyBundleV3, error) {
 	keyGen := wkg.LatestKeyGeneration()
 	if keyGen < FirstValidKeyGen {
@@ -278,10 +275,23 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 			errors.New("No key generations to convert")
 	}
 
+	// Check for invalid indices into
+	// wkbV2.TLFEphemeralPublicKeys.
+	wkbV2 := wkg[keyGen-FirstValidKeyGen]
+	for u, dkimV2 := range wkbV2.WKeys {
+		for kid, keyInfo := range dkimV2 {
+			index := keyInfo.EPubKeyIndex
+			if index < 0 || index >= len(wkbV2.TLFEphemeralPublicKeys) {
+				return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{},
+					fmt.Errorf("Invalid writer key index %d for user=%s, kid=%s",
+						index, u, kid)
+			}
+		}
+	}
+
 	var wkbV3 TLFWriterKeyBundleV3
 
 	// Copy the latest UserDeviceKeyInfoMap.
-	wkbV2 := wkg[keyGen-FirstValidKeyGen]
 	udkimV3, err := udkimV2ToV3(codec, wkbV2.WKeys)
 	if err != nil {
 		return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{}, err
@@ -298,7 +308,7 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 
 	if keyGen > FirstValidKeyGen {
 		// Fetch all of the TLFCryptKeys.
-		keys, err := keyManager.GetTLFCryptKeyOfAllGenerations(ctx, kmd)
+		keys, err := tlfCryptKeyGetter()
 		if err != nil {
 			return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{}, err
 		}
