@@ -10,7 +10,7 @@ type InviteBase = {
 
 export type PendingInvite = {
   url: string,
-  email: string,
+  email: ?string,
 } & InviteBase
 
 export type AcceptedInvite = {

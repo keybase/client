@@ -26,23 +26,23 @@ class UpdatePassphrase extends Component<void, Props, State> {
     }
   }
 
-  handlePassphraseChange (passphrase: string) {
+  _handlePassphraseChange (passphrase: string) {
     const nextPassphrase = new HiddenString(passphrase)
     this.setState({
       passphrase: nextPassphrase,
-      canSave: this.canSave(nextPassphrase, this.state.passphraseConfirm),
+      canSave: this._canSave(nextPassphrase, this.state.passphraseConfirm),
     })
   }
 
-  handlePassphraseConfirmChange (passphraseConfirm: string) {
+  _handlePassphraseConfirmChange (passphraseConfirm: string) {
     const nextPassphraseConfirm = new HiddenString(passphraseConfirm)
     this.setState({
       passphraseConfirm: nextPassphraseConfirm,
-      canSave: this.canSave(this.state.passphrase, nextPassphraseConfirm),
+      canSave: this._canSave(this.state.passphrase, nextPassphraseConfirm),
     })
   }
 
-  canSave (passphrase: HiddenString, passphraseConfirm: HiddenString): boolean {
+  _canSave (passphrase: HiddenString, passphraseConfirm: HiddenString): boolean {
     const downloadedPGPState = this.props.hasPGPKeyOnServer !== null
     return downloadedPGPState && passphrase.stringValue() === passphraseConfirm.stringValue() && this.state.passphrase.stringValue().length >= 12
   }
@@ -61,7 +61,7 @@ class UpdatePassphrase extends Component<void, Props, State> {
           value={this.state.passphrase.stringValue()}
           type={inputType}
           errorText={this.props.newPassphraseError}
-          onChangeText={passphrase => this.handlePassphraseChange(passphrase)}
+          onChangeText={passphrase => this._handlePassphraseChange(passphrase)}
           style={styleInput} />
         {!this.props.newPassphraseError && <Text
           type='BodySmall'
@@ -73,7 +73,7 @@ class UpdatePassphrase extends Component<void, Props, State> {
           value={this.state.passphraseConfirm.stringValue()}
           type={inputType}
           errorText={this.props.newPassphraseConfirmError}
-          onChangeText={passphrase => this.handlePassphraseConfirmChange(passphrase)}
+          onChangeText={passphrase => this._handlePassphraseConfirmChange(passphrase)}
           style={styleInput} />
         <Checkbox
           label='Show typing'

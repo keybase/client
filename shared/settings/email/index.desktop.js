@@ -31,8 +31,8 @@ class UpdateEmail extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      originalEmail: props.email,
-      email: props.email,
+      originalEmail: props.email || '',
+      email: props.email || '',
       edited: false,
     }
   }

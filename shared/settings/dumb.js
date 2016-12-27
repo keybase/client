@@ -37,7 +37,7 @@ const updateEmailMap: DumbComponentMap<UpdateEmail> = {
     'Normal - No Email': {
       ...updateEmailBase,
       isVerified: false,
-      email: '',
+      email: null,
     },
     'Not Verified - No Email': {
       ...updateEmailBase,

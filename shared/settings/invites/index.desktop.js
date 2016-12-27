@@ -31,7 +31,7 @@ class Invites extends Component<void, Props, State> {
     if (this.props.error) this.props.onClearError()
   }
 
-  handleChangeEmail (inviteEmail: string) {
+  _handleChangeEmail (inviteEmail: string) {
     const showMessageField = this.state.showMessageField || inviteEmail.length > 0
     this.setState({
       inviteEmail,
@@ -40,7 +40,7 @@ class Invites extends Component<void, Props, State> {
     if (this.props.error) this.props.onClearError()
   }
 
-  invite () {
+  _invite () {
     this.props.onGenerateInvitation(this.state.inviteEmail, this.state.inviteMessage)
   }
 
@@ -54,7 +54,7 @@ class Invites extends Component<void, Props, State> {
             <Input
               hintText="Friend's email (optional)"
               value={this.state.inviteEmail}
-              onChangeText={inviteEmail => this.handleChangeEmail(inviteEmail)}
+              onChangeText={inviteEmail => this._handleChangeEmail(inviteEmail)}
               style={{marginBottom: 0}}
             />
             {this.state.showMessageField && <Input
@@ -66,7 +66,7 @@ class Invites extends Component<void, Props, State> {
             <Button
               type='Primary'
               label='Generate invitation'
-              onClick={() => this.invite()}
+              onClick={() => this._invite()}
               waiting={props.waitingForResponse}
               style={{alignSelf: 'center', marginTop: globalMargins.medium}}
             />

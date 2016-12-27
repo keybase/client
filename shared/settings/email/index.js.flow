@@ -2,7 +2,7 @@
 import {Component} from 'react'
 
 export type Props = {
-  email: string,
+  email: ?string,
   isVerified: boolean,
   error?: ?Error,
   onBack: () => void,
