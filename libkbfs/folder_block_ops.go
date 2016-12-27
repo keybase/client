@@ -2585,7 +2585,7 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 	return len(fbo.deferredWrites)
 }
 
-func (fbo *folderBlockOps) updatePointer(oldPtr BlockPointer, newPtr BlockPointer) {
+func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer) {
 	updated := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
 	if !updated {
 		return
@@ -2597,16 +2597,16 @@ func (fbo *folderBlockOps) updatePointer(oldPtr BlockPointer, newPtr BlockPointe
 		return
 	}
 
-	fbo.config.BlockOps().Prefetcher().PrefetchBlock(block.NewEmpty(), newPtr, nil, defaultOnDemandRequestPriority)
+	fbo.config.BlockOps().Prefetcher().PrefetchBlock(block.NewEmpty(), newPtr, kmd, defaultOnDemandRequestPriority)
 }
 
 // UpdatePointers updates all the pointers in the node cache
 // atomically.
-func (fbo *folderBlockOps) UpdatePointers(lState *lockState, op op) {
+func (fbo *folderBlockOps) UpdatePointers(kmd KeyMetadata, lState *lockState, op op) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	for _, update := range op.allUpdates() {
-		fbo.updatePointer(update.Unref, update.Ref)
+		fbo.updatePointer(kmd, update.Unref, update.Ref)
 	}
 }
 
@@ -2646,7 +2646,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 
 		fbo.log.CDebugf(ctx, "Fast-forwarding %v -> %v",
 			child.BlockPointer, entry.BlockPointer)
-		fbo.updatePointer(child.BlockPointer,
+		fbo.updatePointer(kmd, child.BlockPointer,
 			entry.BlockPointer)
 		node := fbo.nodeCache.Get(entry.BlockPointer.Ref())
 		newPath := fbo.nodeCache.PathFromNode(node)
@@ -2724,7 +2724,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding root %v -> %v",
 		rootPath.path[0].BlockPointer, md.data.Dir.BlockPointer)
-	fbo.updatePointer(rootPath.path[0].BlockPointer,
+	fbo.updatePointer(md, rootPath.path[0].BlockPointer,
 		md.data.Dir.BlockPointer)
 	rootPath.path[0].BlockPointer = md.data.Dir.BlockPointer
 	rootNode := fbo.nodeCache.Get(md.data.Dir.BlockPointer.Ref())

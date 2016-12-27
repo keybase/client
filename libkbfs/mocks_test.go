@@ -4366,8 +4366,10 @@ func (_mr *_MockNodeCacheRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockNodeCache) UpdatePointer(oldRef BlockRef, newPtr BlockPointer) {
-	_m.ctrl.Call(_m, "UpdatePointer", oldRef, newPtr)
+func (_m *MockNodeCache) UpdatePointer(oldRef BlockRef, newPtr BlockPointer) bool {
+	ret := _m.ctrl.Call(_m, "UpdatePointer", oldRef, newPtr)
+	ret0, _ := ret[0].(bool)
+	return ret0
 }
 
 func (_mr *_MockNodeCacheRecorder) UpdatePointer(arg0, arg1 interface{}) *gomock.Call {
@@ -5791,6 +5793,16 @@ func (_m *MockPrefetcher) PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetada
 
 func (_mr *_MockPrefetcherRecorder) PrefetchFileBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchFileBlock", arg0, arg1, arg2)
+}
+
+func (_m *MockPrefetcher) PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error {
+	ret := _m.ctrl.Call(_m, "PrefetchBlock", block, blockPtr, kmd, priority)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockPrefetcherRecorder) PrefetchBlock(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchBlock", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {

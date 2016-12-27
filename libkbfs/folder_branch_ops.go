@@ -3765,7 +3765,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	lState *lockState, op op, md ImmutableRootMetadata) {
 	fbo.headLock.AssertLocked(lState)
 
-	fbo.blocks.UpdatePointers(lState, op)
+	fbo.blocks.UpdatePointers(md, lState, op)
 
 	var changes []NodeChange
 	switch realOp := op.(type) {
