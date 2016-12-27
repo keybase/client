@@ -11,21 +11,24 @@ import (
 type TLFIdentifyBehavior int
 
 const (
-	TLFIdentifyBehavior_DEFAULT_KBFS TLFIdentifyBehavior = 0
-	TLFIdentifyBehavior_CHAT_CLI     TLFIdentifyBehavior = 1
-	TLFIdentifyBehavior_CHAT_GUI     TLFIdentifyBehavior = 2
+	TLFIdentifyBehavior_DEFAULT_KBFS    TLFIdentifyBehavior = 0
+	TLFIdentifyBehavior_CHAT_CLI        TLFIdentifyBehavior = 1
+	TLFIdentifyBehavior_CHAT_GUI        TLFIdentifyBehavior = 2
+	TLFIdentifyBehavior_CHAT_GUI_STRICT TLFIdentifyBehavior = 3
 )
 
 var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
-	"DEFAULT_KBFS": 0,
-	"CHAT_CLI":     1,
-	"CHAT_GUI":     2,
+	"DEFAULT_KBFS":    0,
+	"CHAT_CLI":        1,
+	"CHAT_GUI":        2,
+	"CHAT_GUI_STRICT": 3,
 }
 
 var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
 	0: "DEFAULT_KBFS",
 	1: "CHAT_CLI",
 	2: "CHAT_GUI",
+	3: "CHAT_GUI_STRICT",
 }
 
 func (e TLFIdentifyBehavior) String() string {

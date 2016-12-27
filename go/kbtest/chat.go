@@ -147,9 +147,15 @@ func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keyb
 	return res, nil
 }
 
-// Not used by service tests
-func (m TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
-	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, errors.New("unimplemented")
+func (m TlfMock) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+	var res keybase1.CanonicalTLFNameAndIDWithBreaks
+	res.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
+	var err error
+	res.TlfID, err = m.getTlfID(res.CanonicalName)
+	if err != nil {
+		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
+	}
+	return res, nil
 }
 
 func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
@@ -346,6 +352,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 		Metadata: chat1.ConversationMetadata{
 			IdTriple:       arg.IdTriple,
 			ConversationID: res.ConvID,
+			Visibility:     chat1.TLFVisibility_PRIVATE,
 		},
 		MaxMsgs: []chat1.MessageBoxed{first},
 	})

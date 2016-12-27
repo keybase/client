@@ -2,34 +2,24 @@
 import {Component} from 'react'
 import {List, Map} from 'immutable'
 
-import type {Props as BannerMessage} from './banner'
 import type {ConversationIDKey, Message, MessageID, MetaData, ParticipantItem} from '../../constants/chat'
 
 export type Props = {
-  bannerMessage: ?BannerMessage,
-  emojiPickerOpen: boolean,
   firstNewMessageID: ?MessageID,
-  inputText: string,
-  isLoading: boolean,
   messages: List<Message>,
   metaData: Map<string, MetaData>,
   moreToLoad: boolean,
   onAddParticipant: () => void,
-  onAttach: () => void,
   onDeleteMessage: (message: Message) => void,
   onEditMessage: (message: Message) => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
-  onOpenFolder: () => void,
   onOpenInFileUI: (filename: string) => void,
-  onPostMessage: (text: string) => void,
   onShowProfile: (username: string) => void,
-  onToggleSidePanel: () => void,
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,
-  setInputText: (text: string) => void,
   sidePanelOpen: boolean,
   validated: boolean,
 }
 
-export default class Conversation extends Component<void, Props, void> { }
+export default class ConversationList extends Component<void, Props, void> { }

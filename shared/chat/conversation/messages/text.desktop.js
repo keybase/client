@@ -35,4 +35,3 @@ const _messageTextStyle = {
   marginTop: globalMargins.xtiny,
   flex: 1,
 }
-

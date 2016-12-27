@@ -70,6 +70,7 @@ type configGetter interface {
 	GetUpdaterConfigFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
+	GetChatDelivererInterval() (time.Duration, bool)
 }
 
 type CommandLine interface {
@@ -524,10 +525,13 @@ type ConversationSource interface {
 }
 
 type MessageDeliverer interface {
-	Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error)
+	Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext,
+		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, error)
 	Start(uid gregor1.UID)
-	Stop()
+	Stop() chan struct{}
 	ForceDeliverLoop()
+	Connected()
+	Disconnected()
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

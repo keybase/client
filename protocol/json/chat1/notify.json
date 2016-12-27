@@ -97,9 +97,9 @@
         {
           "type": {
             "type": "array",
-            "items": "OutboxID"
+            "items": "OutboxRecord"
           },
-          "name": "outboxIDs"
+          "name": "outboxRecords"
         }
       ]
     },
@@ -159,6 +159,17 @@
         {
           "name": "activity",
           "type": "ChatActivity"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatIdentifyUpdate": {
+      "request": [
+        {
+          "name": "update",
+          "type": "keybase1.CanonicalTLFNameAndIDWithBreaks"
         }
       ],
       "response": null,

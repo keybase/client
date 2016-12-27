@@ -550,12 +550,13 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.remotesReceived = e.them.BaseProofSet()
 
 	iui := ctx.IdentifyUI
-	if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
+	if e.calledFromChatGUI() {
+		e.G().Log.Debug("| using the loopback identify UI")
+		iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
+	} else if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
 		iui = newBufferedIdentifyUI(e.G(), iui, keybase1.ConfirmResult{
 			IdentityConfirmed: true,
 		})
-	} else if e.calledFromChatGUI() {
-		iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
 	}
 
 	e.G().Log.Debug("| IdentifyUI.Start(%s)", e.them.GetName())

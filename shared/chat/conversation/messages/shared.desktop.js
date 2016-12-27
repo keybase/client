@@ -4,6 +4,7 @@ import {Avatar, Icon, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import * as Constants from '../../../constants/chat'
 import {withHandlers} from 'recompose'
+import shallowEqual from 'shallowequal'
 
 type Props = {
   includeHeader: boolean,
@@ -39,7 +40,18 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
   </div>
 )
 
-class _MessageComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void}, void> {
+type MessageProps = Props & {onIconClick: (event: any) => void}
+
+class _MessageComponent extends PureComponent<void, MessageProps, void> {
+  shouldComponentUpdate (nextProps: MessageProps) {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'style') {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
+  }
+
   render () {
     const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick} = this.props
     return (

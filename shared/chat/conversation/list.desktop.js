@@ -4,18 +4,19 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
 
 import LoadingMore from './messages/loading-more'
+import Popup from './messages/popup'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
-import Popup from './messages/popup'
 import _ from 'lodash'
 import messageFactory from './messages'
+import shallowEqual from 'shallowequal'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {Message, MessageID} from '../../constants/chat'
-import type {Props} from './'
+import type {Props} from './list'
 
 type State = {
   isLockedToBottom: boolean,
@@ -61,6 +62,10 @@ class ConversationList extends Component<void, Props, State> {
       }
       return id
     }
+  }
+
+  shouldComponentUpdate (nextProps: Props, nextState: State) {
+    return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
   }
 
   componentWillUpdate (nextProps: Props, nextState: State) {

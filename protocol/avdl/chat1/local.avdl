@@ -72,6 +72,7 @@ protocol local {
     ConversationID convID;
     @lint("ignore")
     MessagePlaintext Msg;
+    keybase1.TLFIdentifyBehavior identifyBehavior;
   }
 
   enum HeaderPlaintextVersion {
@@ -258,9 +259,14 @@ protocol local {
     array<ConversationLocal> conversations;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  void getInboxNonblockLocal(int sessionID, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior); 
+  GetInboxNonblockLocalRes getInboxNonblockLocal(int sessionID, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior); 
+  record GetInboxNonblockLocalRes {
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    array<RateLimit> rateLimits;
+  }
 
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
@@ -287,6 +293,7 @@ protocol local {
   record NewConversationLocalRes {
     ConversationLocal conv;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
 

@@ -406,7 +406,7 @@ func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string) {
 
 func (a *InternalAPIEngine) isExternal() bool { return false }
 
-var lastUpgradeWarningMu sync.Mutex
+var lastUpgradeWarningMu sync.RWMutex
 var lastUpgradeWarning *time.Time
 
 func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
@@ -428,6 +428,23 @@ func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
 	return ret
 }
 
+// If the local clock is within a reasonable offst of the server's
+// clock, we'll get 0.  Otherwise, we set the skew accordingly. Safe
+// to set this every time.
+func (a *InternalAPIEngine) updateCriticalClockSkewWarning(resp *http.Response) {
+
+	lastUpgradeWarningMu.RLock()
+	criticalClockSkew := int64(computeCriticalClockSkew(a.G(), resp.Header.Get("Date")))
+	needUpdate := (criticalClockSkew != a.G().OutOfDateInfo.CriticalClockSkew)
+	lastUpgradeWarningMu.RUnlock()
+
+	if needUpdate {
+		lastUpgradeWarningMu.Lock()
+		a.G().OutOfDateInfo.CriticalClockSkew = criticalClockSkew
+		lastUpgradeWarningMu.Unlock()
+	}
+}
+
 func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 	upgradeTo := resp.Header.Get("X-Keybase-Client-Upgrade-To")
 	upgradeURI := resp.Header.Get("X-Keybase-Upgrade-URI")
@@ -442,9 +459,7 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 		}
 	}
 
-	if criticalClockSkew := computeCriticalClockSkew(a.G(), resp.Header.Get("Date")); criticalClockSkew != 0 {
-		a.G().OutOfDateInfo.CriticalClockSkew = int64(criticalClockSkew)
-	}
+	a.updateCriticalClockSkewWarning(resp)
 
 	if len(upgradeTo) > 0 || len(customMessage) > 0 {
 		now := time.Now()

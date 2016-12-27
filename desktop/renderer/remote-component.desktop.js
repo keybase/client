@@ -3,22 +3,26 @@ import React, {Component} from 'react'
 import hotPath from '../hot-path'
 import menuHelper from '../app/menu-helper'
 import {injectReactQueryParams} from '../shared/util/dev'
-import {remote, ipcRenderer, screen as electronScreen} from 'electron'
+import electron from 'electron'
 import {resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
 
-const {BrowserWindow} = remote
+const BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow
+const ipcRenderer = electron.ipcRenderer
+
 const remoteIdsToComponents = {}
 
 // Remember if we close, it's an error to try to close an already closed window
-ipcRenderer.on('remoteWindowClosed', (event, remoteWindowId) => {
-  if (!remoteIdsToComponents[remoteWindowId]) {
-    return
-  }
+if (ipcRenderer) {
+  ipcRenderer.on('remoteWindowClosed', (event, remoteWindowId) => {
+    if (!remoteIdsToComponents[remoteWindowId]) {
+      return
+    }
 
-  remoteIdsToComponents[remoteWindowId].onClosed()
-  remoteIdsToComponents[remoteWindowId] = null
-})
+    remoteIdsToComponents[remoteWindowId].onClosed()
+    remoteIdsToComponents[remoteWindowId] = null
+  })
+}
 
 class RemoteComponent extends Component {
   closed: ?boolean;
@@ -44,8 +48,8 @@ class RemoteComponent extends Component {
 
     this.remoteWindow = new BrowserWindow(windowsOpts)
 
-    if (this.props.positionBottomRight && electronScreen.getPrimaryDisplay()) {
-      const {width, height} = electronScreen.getPrimaryDisplay().workAreaSize
+    if (this.props.positionBottomRight && electron.screen.getPrimaryDisplay()) {
+      const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
       this.remoteWindow.setPosition(width - windowsOpts.width - 100, height - windowsOpts.height - 100, false)
     }
 
@@ -71,8 +75,15 @@ class RemoteComponent extends Component {
     webContents.on('did-finish-load', () => {
       webContents.send('load', {
         scripts: [
-          ...(__DEV__ ? [resolveRootAsURL('dist', 'dll', 'dll.vendor.js')] : []),
-          ...[hotPath('remote-component-loader.bundle.js')]],
+          ...(__DEV__ ? [{
+            src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+            async: false,
+          }] : []),
+          {
+            src: hotPath('remote-component-loader.bundle.js'),
+            async: false,
+          },
+        ],
         selectorParams: this.props.selectorParams,
         title: this.props.title,
         component: this.props.component,
