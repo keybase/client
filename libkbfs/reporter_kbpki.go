@@ -159,6 +159,8 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 
 	if code < 0 && err == context.DeadlineExceeded {
 		code = keybase1.FSErrorType_TIMEOUT
+		// Workaround for DESKTOP-2442
+		filename = string(tlfName)
 	}
 
 	if code >= 0 {
