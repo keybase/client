@@ -8,17 +8,10 @@ type InviteBase = {
   created: Time,
 }
 
-export type PendingEmailInvite = {
-  type: 'pending-email',
-  email: string,
-} & InviteBase
-
-export type PendingURLInvite = {
-  type: 'pending-url',
+export type PendingInvite = {
   url: string,
+  email: ?string,
 } & InviteBase
-
-export type PendingInvite = PendingEmailInvite | PendingURLInvite
 
 export type AcceptedInvite = {
   username: string,
@@ -31,16 +24,16 @@ export type Props = {
   inviteEmail: string,
   inviteMessage: string,
   showMessageField: boolean,
-  emailError: boolean,
   pendingInvites: Array<PendingInvite>,
   acceptedInvites: Array<AcceptedInvite>,
-  onChangeInviteEmail: (inviteEmail: string) => void,
-  onChangeInviteMessage: (inviteMessage: string) => void,
-  onClickUser: (username: string) => void,
+  onSelectUser: (username: string) => void,
   onReclaimInvitation: (invitationId: string) => void,
   onRefresh: () => void,
-  onGenerateInvitation: () => void,
+  onGenerateInvitation: (email: string, message: string) => void,
+  onClearError: () => void,
+  onSelectPendingInvite: (invite: PendingInvite) => void,
   waitingForResponse: boolean,
+  error: ?Error,
 }
 
 export default class Invites extends Component<void, Props, void> {}

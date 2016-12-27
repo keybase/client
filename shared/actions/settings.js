@@ -242,7 +242,6 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
       invite.type = 'accepted'
       acceptedInvites.push(invite)
     } else {
-      invite.type = i.email ? 'pending-email' : 'pending-url'
       pendingInvites.push(invite)
     }
   })
@@ -292,7 +291,7 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
     console.warn('Error sending an invite:', e)
     yield put(({
       type: Constants.invitesSent,
-      payload: {errorText: e.desc + e.name, errorObj: e},
+      payload: {error: e},
       error: true,
     }: InvitesSent))
   } finally {

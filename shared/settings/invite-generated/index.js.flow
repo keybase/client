@@ -1,13 +1,10 @@
 // @flow
 import {Component} from 'react'
 
-export type OwnProps = {
+export type Props = {
   email: ?string,
   link: string,
-}
-
-export type Props = {
   onClose: () => void,
-} & OwnProps
+}
 
 export default class InviteGenerated extends Component<void, Props, void> { }

@@ -3,13 +3,9 @@ import {Component} from 'react'
 
 import type {Tab} from '../constants/settings'
 
-export type BannerType = 'red' | 'green'
-
 export type Props = {
   children: React$Element<*>,
   badgeNumbers: {[key: Tab]: number},
-  bannerElement?: React$Element<*>,
-  bannerType?: BannerType,
   selectedTab: Tab,
   showComingSoon: boolean,
   onTabChange: (tab: Tab) => void,
