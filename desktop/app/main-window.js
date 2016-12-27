@@ -88,7 +88,7 @@ export default function () {
   // - or, if we are restoring and dock was hidden
   // - or, if we were opened from login (but not restoring)
   const shouldHideDockIcon = openHidden || (isRestore && appState.state.dockHidden) || (openedAtLogin && !isRestore)
-  console.log('Hide dock icon: %s', shouldHideDockIcon)
+  console.log('Hide dock icon:', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()
   }
