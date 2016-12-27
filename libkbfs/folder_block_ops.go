@@ -2585,14 +2585,28 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 	return len(fbo.deferredWrites)
 }
 
+func (fbo *folderBlockOps) updatePointer(oldPtr BlockPointer, newPtr BlockPointer) {
+	updated := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
+	if !updated {
+		return
+	}
+	// Prefetch the new reference, but only if it already exists in the block
+	// cache.
+	block, err := fbo.config.BlockCache().Get(oldPtr)
+	if err != nil {
+		return
+	}
+
+	fbo.config.BlockOps().Prefetcher().PrefetchBlock(block.NewEmpty(), newPtr, nil, defaultOnDemandRequestPriority)
+}
+
 // UpdatePointers updates all the pointers in the node cache
 // atomically.
 func (fbo *folderBlockOps) UpdatePointers(lState *lockState, op op) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	for _, update := range op.allUpdates() {
-		oldRef := update.Unref.Ref()
-		fbo.nodeCache.UpdatePointer(oldRef, update.Ref)
+		fbo.updatePointer(update.Unref, update.Ref)
 	}
 }
 
@@ -2632,7 +2646,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 
 		fbo.log.CDebugf(ctx, "Fast-forwarding %v -> %v",
 			child.BlockPointer, entry.BlockPointer)
-		fbo.nodeCache.UpdatePointer(child.BlockPointer.Ref(),
+		fbo.updatePointer(child.BlockPointer,
 			entry.BlockPointer)
 		node := fbo.nodeCache.Get(entry.BlockPointer.Ref())
 		newPath := fbo.nodeCache.PathFromNode(node)
@@ -2710,7 +2724,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding root %v -> %v",
 		rootPath.path[0].BlockPointer, md.data.Dir.BlockPointer)
-	fbo.nodeCache.UpdatePointer(rootPath.path[0].BlockPointer.Ref(),
+	fbo.updatePointer(rootPath.path[0].BlockPointer,
 		md.data.Dir.BlockPointer)
 	rootPath.path[0].BlockPointer = md.data.Dir.BlockPointer
 	rootNode := fbo.nodeCache.Get(md.data.Dir.BlockPointer.Ref())

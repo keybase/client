@@ -1002,6 +1002,8 @@ type Prefetcher interface {
 	PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
 	// PrefetchFileBlock directs the prefetcher to prefetch a file block.
 	PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
+	// PrefetchBlock directs the prefetcher to prefetch a block.
+	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
@@ -1516,8 +1518,8 @@ type NodeCache interface {
 	Get(ref BlockRef) Node
 	// UpdatePointer updates the BlockPointer for the corresponding
 	// Node.  NodeCache ignores this call when oldRef is not cached in
-	// any Node.
-	UpdatePointer(oldRef BlockRef, newPtr BlockPointer)
+	// any Node. Returns whether the pointer was updated.
+	UpdatePointer(oldRef BlockRef, newPtr BlockPointer) bool
 	// Move swaps the parent node for the corresponding Node, and
 	// updates the node's name.  NodeCache ignores the call when ptr
 	// is not cached.  Returns an error if newParent cannot be found.

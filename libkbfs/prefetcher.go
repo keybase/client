@@ -16,6 +16,7 @@ const (
 	defaultIndirectPointerPrefetchCount int = 20
 	fileIndirectBlockPrefetchPriority   int = -100
 	dirEntryPrefetchPriority            int = -200
+	updatePointerPrefetchPriority       int = 0
 )
 
 type prefetchRequest struct {
@@ -139,6 +140,11 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 		}
 		p.request(priority, kmd, entry.BlockPointer, block)
 	}
+}
+
+// PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
+func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
+	return p.request(priority, kmd, ptr, block)
 }
 
 // PrefetchDirBlock implements the Prefetcher interface for blockPrefetcher.
