@@ -98,9 +98,9 @@ const attachmentMessageWithImg = {
   title: 'Half Dome, Merced River, Winter',
   previewType: 'Image',
   // $FlowIssue
-  previewPath: require('file-loader!../../../images/yosemite preview.jpg'), // eslint-disable-line
+  previewPath: require('file-loader?emitFile=false!../../../images/yosemite preview.jpg'), // eslint-disable-line
   // $FlowIssue
-  downloadedPath: require('file-loader!../../../images/yosemite.jpg'), // eslint-disable-line
+  downloadedPath: require('file-loader?emitFile=false!../../../images/yosemite.jpg'), // eslint-disable-line
   messageState: 'sent',
   key: 'foo',
   senderDeviceRevokedAt: null,

@@ -39,7 +39,7 @@ function PreviewImage ({message: {previewPath, previewType, messageState}}: {mes
 
     return (
       <Box style={style}>
-        <img style={{...globalStyles.rounded}} src={previewPath} />
+        <img style={{...globalStyles.rounded, maxHeight: 320, maxWidth: 320}} src={previewPath} />
         {(messageState === 'downloading' || messageState === 'downloaded') &&
           <ImageIcon
             style={{position: 'relative', right: 19, top: 3}}
@@ -74,7 +74,7 @@ function ProgressBar ({text, progress, style}, {text: string, progress: number, 
 }
 
 function ImageIcon ({type, style}: {type: 'Downloaded' | 'Downloading', style: Object}) {
-  let iconStyle = {
+  const iconStyle = {
     color: type === 'Downloading' ? globalColors.blue : globalColors.green,
     lineHeight: 0,
     top: 2,
@@ -91,7 +91,6 @@ function ImageIcon ({type, style}: {type: 'Downloaded' | 'Downloading', style: O
       <Icon type={'iconfont-import'} style={iconStyle} />
     </Box>
   )
-      // {(type === 'Downloaded') ? <div>'download-icon'</div> : <div>'downloading-icon'</div>}
 }
 
 function PreviewImageWithInfo ({message, onOpenInFileUI}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void}) {
@@ -180,7 +179,6 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
         break
       default:
         attachment = <AttachmentMessageGeneric {...this.props} />
-
     }
 
     return (
