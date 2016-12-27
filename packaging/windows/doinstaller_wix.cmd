@@ -149,10 +149,10 @@ set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
 IF _%UpdateChannel%_ EQU _Test_ (
   set JSON_UPDATE_FILENAME=update-windows-prod-test-v2.json
 )
-IF _%UpdateChannel%_ EQU _Smoke_ (
+IF %UpdateChannel% EQU Smoke (
   set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
 )
-IF _%UpdateChannel%_ EQU _Smoke2_ (
+IF %UpdateChannel% EQU Smoke2 (
   set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
 )
 echo %JSON_UPDATE_FILENAME%
@@ -167,6 +167,6 @@ IF %ERRORLEVEL% NEQ 0 (
 
 %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %JSON_UPDATE_FILENAME%
 
-IF _%UpdateChannel%_ EQU _Smoke_ (
+IF %UpdateChannel% EQU Smoke (
   %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > update-windows-prod-test-v2.json
 )
