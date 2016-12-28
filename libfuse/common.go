@@ -4,13 +4,6 @@
 
 package libfuse
 
-import (
-	"time"
-
-	"bazil.org/fuse"
-	"github.com/keybase/kbfs/libkbfs"
-)
-
 const (
 	// PublicName is the name of the parent of all public top-level folders.
 	PublicName = "public"
@@ -29,13 +22,3 @@ const (
 	// CtxIDKey is the type of the tag for unique operation IDs.
 	CtxIDKey CtxTagKey = iota
 )
-
-// fillAttr sets attributes based on the entry info. It only handles fields
-// common to all entryinfo types.
-func fillAttr(ei *libkbfs.EntryInfo, a *fuse.Attr) {
-	a.Valid = 1 * time.Minute
-
-	a.Size = ei.Size
-	a.Mtime = time.Unix(0, ei.Mtime)
-	a.Ctime = time.Unix(0, ei.Ctime)
-}

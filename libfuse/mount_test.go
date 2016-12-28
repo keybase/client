@@ -146,7 +146,7 @@ func TestStatRoot(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `drwxr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `dr-xr-xr-x`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }
@@ -162,7 +162,7 @@ func TestStatPrivate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `drwxr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `dr-xr-xr-x`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }
@@ -178,7 +178,7 @@ func TestStatPublic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `drwxr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `dr-xr-xr-x`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }
@@ -189,6 +189,12 @@ func TestStatMyFolder(t *testing.T) {
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
+
+	// Access the tlf once to have the *Dir populated in tlf.go
+	if err := ioutil.Mkdir(
+		path.Join(mnt.Dir, PrivateName, "jdoe", "d"), os.ModeDir); err != nil {
+		t.Fatal(err)
+	}
 
 	fi, err := ioutil.Lstat(path.Join(mnt.Dir, PrivateName, "jdoe"))
 	if err != nil {
@@ -300,6 +306,12 @@ func TestStatMyPublic(t *testing.T) {
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
 	defer cancelFn()
+
+	// Access the tlf once to have the *Dir populated in tlf.go
+	if err := ioutil.Mkdir(
+		path.Join(mnt.Dir, PublicName, "jdoe", "d"), os.ModeDir); err != nil {
+		t.Fatal(err)
+	}
 
 	fi, err := ioutil.Lstat(path.Join(mnt.Dir, PublicName, "jdoe"))
 	if err != nil {
@@ -621,7 +633,7 @@ func TestCreateExecutable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `-rwxr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `-rwx------`; g != e {
 		t.Errorf("wrong mode for executable: %q != %q", g, e)
 	}
 }
@@ -1125,7 +1137,7 @@ func TestRemoveFileWhileOpenSetEx(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `-rwxr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `-rwx------`; g != e {
 		t.Errorf("wrong mode: %q != %q", g, e)
 	}
 
@@ -1439,7 +1451,7 @@ func TestChmodExec(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `-rwxr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `-rwx------`; g != e {
 		t.Errorf("wrong mode: %q != %q", g, e)
 	}
 }
@@ -1465,7 +1477,7 @@ func TestChmodNonExec(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `-rw-r--r--`; g != e {
+	if g, e := fi.Mode().String(), `-rw-------`; g != e {
 		t.Errorf("wrong mode: %q != %q", g, e)
 	}
 }
@@ -1915,7 +1927,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	}
 	// TODO figure out right modes, note owner is the person running
 	// fuse, not the person owning the folder
-	if g, e := fi.Mode().String(), `drwxr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `dr-xr-xr-x`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }

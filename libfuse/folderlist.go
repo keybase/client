@@ -35,7 +35,7 @@ var _ fs.Node = (*FolderList)(nil)
 
 // Attr implements the fs.Node interface.
 func (*FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeDir | 0755
+	a.Mode = os.ModeDir | 0555
 	return nil
 }
 
@@ -173,7 +173,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	cname, err := libkbfs.GetCurrentUsernameIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+	cname, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
 	if err != nil {
 		return nil, err
 	}

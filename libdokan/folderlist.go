@@ -162,7 +162,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		cuser, err := libkbfs.GetCurrentUsernameIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+		cuser, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
 		if err != nil {
 			return nil, false, err
 		}

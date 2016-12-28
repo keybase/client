@@ -15,6 +15,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -69,6 +70,12 @@ func (f *Folder) name() libkbfs.CanonicalTlfName {
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
 	return libkbfs.CanonicalTlfName(f.hPreferredName)
+}
+
+func (f *Folder) isWriter(uid keybase1.UID) bool {
+	f.handleMu.RLock()
+	defer f.handleMu.RUnlock()
+	return f.h.IsWriter(uid)
 }
 
 func (f *Folder) reportErr(ctx context.Context,
@@ -311,12 +318,13 @@ func canonicalNameIfNotNil(h *libkbfs.TlfHandle) string {
 
 func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	cuser, err := libkbfs.GetCurrentUsernameIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
+	cuser, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
 	// Here we get an error, but there is little that can be done.
 	// cuser will be empty in the error case in which case we will default to the
 	// canonical format.
 	if err != nil {
-		f.fs.log.CDebugf(ctx, "tlfHandleChangeInvalidate: GetCurrentUserIfPossible failed: %v", err)
+		f.fs.log.CDebugf(ctx,
+			"tlfHandleChangeInvalidate: GetCurrentUserInfoIfPossible failed: %v", err)
 	}
 	oldName, newName := func() (libkbfs.PreferredTlfName, libkbfs.PreferredTlfName) {
 		f.handleMu.Lock()
@@ -332,6 +340,36 @@ func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 	if oldName != newName {
 		f.list.updateTlfName(ctx, string(oldName), string(newName))
 	}
+}
+
+// fillAttrWithUIDAndWritePerm sets attributes based on the entry info, and
+// pops in correct UID and write permissions. It only handles fields common to
+// all entryinfo types.
+func (f *Folder) fillAttrWithUIDAndWritePerm(
+	ctx context.Context, ei *libkbfs.EntryInfo, a *fuse.Attr) error {
+	a.Valid = 1 * time.Minute
+
+	a.Size = ei.Size
+	a.Mtime = time.Unix(0, ei.Mtime)
+	a.Ctime = time.Unix(0, ei.Ctime)
+
+	a.Uid = uint32(os.Getuid())
+
+	a.Mode &^= os.FileMode(0222) // clear write perm bits
+	_, uid, err := libkbfs.GetCurrentUserInfoIfPossible(
+		ctx, f.fs.config.KBPKI(), f.list.public)
+	// We are using GetCurrentUserInfoIfPossible here so err is only non-nil if
+	// a real problem happened. If the user is logged out, we will get an empty
+	// username and uid, with a nil error.
+	if err != nil {
+		return err
+	}
+
+	if f.isWriter(uid) {
+		a.Mode |= 0200
+	}
+
+	return nil
 }
 
 // TODO: Expire TLF nodes periodically. See
@@ -393,9 +431,11 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 		}
 		return err
 	}
-	fillAttr(&de, a)
+	if err = d.folder.fillAttrWithUIDAndWritePerm(ctx, &de, a); err != nil {
+		return err
+	}
 
-	a.Mode = os.ModeDir | 0700
+	a.Mode |= os.ModeDir | 0500
 	if d.folder.list.public {
 		a.Mode |= 0055
 	}
