@@ -270,6 +270,7 @@ export type Actions = AppendMessages
   | UpdatedMetadata
   | UpdateTempMessage
   | MarkSeenMessage
+  | AttachmentLoaded
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')

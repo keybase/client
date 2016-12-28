@@ -67,7 +67,7 @@ function ProgressBar ({text, progress, style}, {text: string, progress: number, 
     <Box style={containerStyle}>
       <Text type={'BodySmall'} style={{marginRight: globalMargins.xtiny}}>{text}</Text>
       <Box style={{...basicStyle, marginTop: 2, marginLeft: globalMargins.xtiny, backgroundColor: globalColors.black_05}}>
-        <Box style={{...basicStyle, width: Math.ceil(64 * progress), backgroundColor: globalColors.blue}} />
+        <Box style={{...basicStyle, width: 64 * progress, backgroundColor: globalColors.blue}} />
       </Box>
     </Box>
   )
@@ -105,6 +105,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI}: {message: Constants.At
       <PreviewImage message={message} />
       <Box style={{marginTop: globalMargins.xtiny}}>
         {!!message.progress &&
+          (messageState === 'uploading' || messageState === 'downloading') &&
           <ProgressBar
             style={progressBarStyle}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
