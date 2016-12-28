@@ -45,17 +45,57 @@ func TestCryptoCommonRandomBlockID(t *testing.T) {
 	}
 }
 
+// Test (very superficially) that MakeRandomTLFEphemeralKeys() returns
+// non-zero values that aren't equal.
+func TestCryptoCommonRandomTLFEphemeralKeys(t *testing.T) {
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
+
+	a1, a2, err := c.MakeRandomTLFEphemeralKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b1, b2, err := c.MakeRandomTLFEphemeralKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if a1 == (kbfscrypto.TLFEphemeralPublicKey{}) {
+		t.Errorf("zero TLFEphemeralPublicKey (a1)")
+	}
+
+	if a2 == (kbfscrypto.TLFEphemeralPrivateKey{}) {
+		t.Errorf("zero TLFEphemeralPrivateKey (a2)")
+	}
+
+	if b1 == (kbfscrypto.TLFEphemeralPublicKey{}) {
+		t.Errorf("zero TLFEphemeralPublicKey (b1)")
+	}
+
+	if b2 == (kbfscrypto.TLFEphemeralPrivateKey{}) {
+		t.Errorf("zero TLFEphemeralPrivateKey (b2)")
+	}
+
+	if a1 == b1 {
+		t.Errorf("a1 == b1")
+	}
+
+	if a2 == b2 {
+		t.Errorf("a2 == b2")
+	}
+}
+
 // Test (very superficially) that MakeRandomTLFKeys() returns non-zero
 // values that aren't equal.
 func TestCryptoCommonRandomTLFKeys(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
-	a1, a2, a3, a4, a5, err := c.MakeRandomTLFKeys()
+	a1, a2, a3, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	b1, b2, b3, b4, b5, err := c.MakeRandomTLFKeys()
+	b1, b2, b3, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,16 +108,8 @@ func TestCryptoCommonRandomTLFKeys(t *testing.T) {
 		t.Errorf("zero TLFPrivateKey (a2)")
 	}
 
-	if a3 == (kbfscrypto.TLFEphemeralPublicKey{}) {
-		t.Errorf("zero TLFEphemeralPublicKey (a3)")
-	}
-
-	if a4 == (kbfscrypto.TLFEphemeralPrivateKey{}) {
-		t.Errorf("zero TLFEphemeralPrivateKey (a4)")
-	}
-
-	if a5 == (kbfscrypto.TLFCryptKey{}) {
-		t.Errorf("zero TLFCryptKey (a5)")
+	if a3 == (kbfscrypto.TLFCryptKey{}) {
+		t.Errorf("zero TLFCryptKey (a3)")
 	}
 
 	if b1 == (kbfscrypto.TLFPublicKey{}) {
@@ -88,16 +120,8 @@ func TestCryptoCommonRandomTLFKeys(t *testing.T) {
 		t.Errorf("zero TLFPrivateKey (b2)")
 	}
 
-	if b3 == (kbfscrypto.TLFEphemeralPublicKey{}) {
-		t.Errorf("zero TLFEphemeralPublicKey (b3)")
-	}
-
-	if b4 == (kbfscrypto.TLFEphemeralPrivateKey{}) {
-		t.Errorf("zero TLFEphemeralPrivateKey (b4)")
-	}
-
-	if b5 == (kbfscrypto.TLFCryptKey{}) {
-		t.Errorf("zero TLFCryptKey (b5)")
+	if b3 == (kbfscrypto.TLFCryptKey{}) {
+		t.Errorf("zero TLFCryptKey (b3)")
 	}
 
 	if a1 == b1 {
@@ -110,14 +134,6 @@ func TestCryptoCommonRandomTLFKeys(t *testing.T) {
 
 	if a3 == b3 {
 		t.Errorf("a3 == b3")
-	}
-
-	if a4 == b4 {
-		t.Errorf("a4 == b4")
-	}
-
-	if a5 == b5 {
-		t.Errorf("a5 == b5")
 	}
 }
 
@@ -188,7 +204,7 @@ func TestCryptoCommonMaskUnmaskTLFCryptKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, _, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	_, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +242,7 @@ func TestCryptoCommonUnmaskTLFCryptKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, _, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	_, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -351,7 +367,12 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
-	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+	ephPublicKey, ephPrivateKey, err := c.MakeRandomTLFEphemeralKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -442,7 +463,7 @@ func checkSecretboxOpen(t *testing.T, encryptedData encryptedData, key [32]byte)
 func TestEncryptPrivateMetadata(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
-	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -498,7 +519,7 @@ func secretboxSealEncoded(t *testing.T, c *CryptoCommon, encodedData []byte, key
 func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
-	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -530,7 +551,7 @@ func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
-	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -609,7 +630,7 @@ func checkDecryptionFailures(
 func TestDecryptPrivateMetadataFailures(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
-	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
+	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}

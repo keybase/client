@@ -154,50 +154,45 @@ func (c CryptoCommon) MakeBlockRefNonce() (nonce BlockRefNonce, err error) {
 	return
 }
 
-// MakeRandomTLFKeys implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MakeRandomTLFKeys() (
-	tlfPublicKey kbfscrypto.TLFPublicKey,
-	tlfPrivateKey kbfscrypto.TLFPrivateKey,
-	tlfEphemeralPublicKey kbfscrypto.TLFEphemeralPublicKey,
-	tlfEphemeralPrivateKey kbfscrypto.TLFEphemeralPrivateKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey,
-	err error) {
-	defer func() {
-		if err != nil {
-			tlfPublicKey = kbfscrypto.TLFPublicKey{}
-			tlfPrivateKey = kbfscrypto.TLFPrivateKey{}
-			tlfEphemeralPublicKey = kbfscrypto.TLFEphemeralPublicKey{}
-			tlfEphemeralPrivateKey = kbfscrypto.TLFEphemeralPrivateKey{}
-			tlfCryptKey = kbfscrypto.TLFCryptKey{}
-		}
-	}()
-
-	publicKey, privateKey, err := box.GenerateKey(rand.Reader)
-	if err != nil {
-		return
-	}
-
-	tlfPublicKey = kbfscrypto.MakeTLFPublicKey(*publicKey)
-	tlfPrivateKey = kbfscrypto.MakeTLFPrivateKey(*privateKey)
-
+// MakeRandomTLFEphemeralKeys implements the Crypto interface for
+// CryptoCommon.
+func (c CryptoCommon) MakeRandomTLFEphemeralKeys() (
+	kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.TLFEphemeralPrivateKey,
+	error) {
 	keyPair, err := libkb.GenerateNaclDHKeyPair()
 	if err != nil {
-		return
+		return kbfscrypto.TLFEphemeralPublicKey{},
+			kbfscrypto.TLFEphemeralPrivateKey{}, err
 	}
 
-	tlfEphemeralPublicKey = kbfscrypto.MakeTLFEphemeralPublicKey(
-		keyPair.Public)
-	tlfEphemeralPrivateKey = kbfscrypto.MakeTLFEphemeralPrivateKey(
-		*keyPair.Private)
+	ePubKey := kbfscrypto.MakeTLFEphemeralPublicKey(keyPair.Public)
+	ePrivKey := kbfscrypto.MakeTLFEphemeralPrivateKey(*keyPair.Private)
+
+	return ePubKey, ePrivKey, nil
+}
+
+// MakeRandomTLFKeys implements the Crypto interface for CryptoCommon.
+func (c CryptoCommon) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey,
+	kbfscrypto.TLFPrivateKey, kbfscrypto.TLFCryptKey, error) {
+	publicKey, privateKey, err := box.GenerateKey(rand.Reader)
+	if err != nil {
+		return kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
+			kbfscrypto.TLFCryptKey{}, err
+	}
+
+	pubKey := kbfscrypto.MakeTLFPublicKey(*publicKey)
+	privKey := kbfscrypto.MakeTLFPrivateKey(*privateKey)
 
 	var data [32]byte
 	err = kbfscrypto.RandRead(data[:])
 	if err != nil {
-		return
+		return kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
+			kbfscrypto.TLFCryptKey{}, err
 	}
 
-	tlfCryptKey = kbfscrypto.MakeTLFCryptKey(data)
-	return
+	cryptKey := kbfscrypto.MakeTLFCryptKey(data)
+
+	return pubKey, privKey, cryptKey, nil
 }
 
 // MakeRandomTLFCryptKeyServerHalf implements the Crypto interface for

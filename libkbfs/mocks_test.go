@@ -1832,15 +1832,25 @@ func (_mr *_MockcryptoPureRecorder) MakeBlockRefNonce() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBlockRefNonce")
 }
 
-func (_m *MockcryptoPure) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey, kbfscrypto.TLFPrivateKey, kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.TLFEphemeralPrivateKey, kbfscrypto.TLFCryptKey, error) {
+func (_m *MockcryptoPure) MakeRandomTLFEphemeralKeys() (kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.TLFEphemeralPrivateKey, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomTLFEphemeralKeys")
+	ret0, _ := ret[0].(kbfscrypto.TLFEphemeralPublicKey)
+	ret1, _ := ret[1].(kbfscrypto.TLFEphemeralPrivateKey)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockcryptoPureRecorder) MakeRandomTLFEphemeralKeys() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomTLFEphemeralKeys")
+}
+
+func (_m *MockcryptoPure) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey, kbfscrypto.TLFPrivateKey, kbfscrypto.TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "MakeRandomTLFKeys")
 	ret0, _ := ret[0].(kbfscrypto.TLFPublicKey)
 	ret1, _ := ret[1].(kbfscrypto.TLFPrivateKey)
-	ret2, _ := ret[2].(kbfscrypto.TLFEphemeralPublicKey)
-	ret3, _ := ret[3].(kbfscrypto.TLFEphemeralPrivateKey)
-	ret4, _ := ret[4].(kbfscrypto.TLFCryptKey)
-	ret5, _ := ret[5].(error)
-	return ret0, ret1, ret2, ret3, ret4, ret5
+	ret2, _ := ret[2].(kbfscrypto.TLFCryptKey)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 func (_mr *_MockcryptoPureRecorder) MakeRandomTLFKeys() *gomock.Call {
@@ -2162,15 +2172,25 @@ func (_mr *_MockCryptoRecorder) MakeBlockRefNonce() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBlockRefNonce")
 }
 
-func (_m *MockCrypto) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey, kbfscrypto.TLFPrivateKey, kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.TLFEphemeralPrivateKey, kbfscrypto.TLFCryptKey, error) {
+func (_m *MockCrypto) MakeRandomTLFEphemeralKeys() (kbfscrypto.TLFEphemeralPublicKey, kbfscrypto.TLFEphemeralPrivateKey, error) {
+	ret := _m.ctrl.Call(_m, "MakeRandomTLFEphemeralKeys")
+	ret0, _ := ret[0].(kbfscrypto.TLFEphemeralPublicKey)
+	ret1, _ := ret[1].(kbfscrypto.TLFEphemeralPrivateKey)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockCryptoRecorder) MakeRandomTLFEphemeralKeys() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomTLFEphemeralKeys")
+}
+
+func (_m *MockCrypto) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey, kbfscrypto.TLFPrivateKey, kbfscrypto.TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "MakeRandomTLFKeys")
 	ret0, _ := ret[0].(kbfscrypto.TLFPublicKey)
 	ret1, _ := ret[1].(kbfscrypto.TLFPrivateKey)
-	ret2, _ := ret[2].(kbfscrypto.TLFEphemeralPublicKey)
-	ret3, _ := ret[3].(kbfscrypto.TLFEphemeralPrivateKey)
-	ret4, _ := ret[4].(kbfscrypto.TLFCryptKey)
-	ret5, _ := ret[5].(error)
-	return ret0, ret1, ret2, ret3, ret4, ret5
+	ret2, _ := ret[2].(kbfscrypto.TLFCryptKey)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 func (_mr *_MockCryptoRecorder) MakeRandomTLFKeys() *gomock.Call {

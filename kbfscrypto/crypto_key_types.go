@@ -13,8 +13,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// All section references below are to https://keybase.io/blog/kbfs-crypto
-// (version 1.3).
+// All section references below are to https://keybase.io/docs/crypto/kbfs
+// (version 1.8).
 
 type kidContainer struct {
 	kid keybase1.KID
@@ -105,7 +105,7 @@ func (c byte32Container) String() string {
 }
 
 // A TLFPrivateKey (m_f) is the private half of the permanent
-// keypair associated with a TLF. (See 4.1.1, 5.3.)
+// keypair associated with a TLF. (See §§ 4.1.1, 5.3.)
 //
 // Copies of TLFPrivateKey objects are deep copies.
 type TLFPrivateKey struct {
@@ -124,7 +124,7 @@ func MakeTLFPrivateKey(data [32]byte) TLFPrivateKey {
 
 // A TLFPublicKey (M_f) is the public half of the permanent keypair
 // associated with a TLF. It is included in the site-wide private-data
-// Merkle tree. (See 4.1.1, 5.3.)
+// Merkle tree. (See §§ 4.1.1, 5.3.)
 //
 // Copies of TLFPublicKey objects are deep copies.
 type TLFPublicKey struct {
@@ -142,8 +142,9 @@ func MakeTLFPublicKey(data [32]byte) TLFPublicKey {
 }
 
 // TLFEphemeralPrivateKey (m_e) is used (with a CryptPublicKey) to
-// encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
-// directories. (See 4.1.1.)
+// encrypt TLFCryptKeyClientHalf objects for non-public
+// directories. (See §§ 4.1.1, 6.1.1, 6.3.) It is never stored
+// permanently.
 //
 // Copies of TLFEphemeralPrivateKey objects are deep copies.
 type TLFEphemeralPrivateKey struct {
@@ -187,9 +188,8 @@ func (k CryptPrivateKey) GetPublicKey() CryptPublicKey {
 }
 
 // CryptPublicKey (M_u^i) is used (with a TLFEphemeralPrivateKey) to
-// encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
-// directories. (See 4.1.1.)  These are also sometimes known as
-// subkeys.
+// encrypt TLFCryptKeyClientHalf objects (See §§ 4.1.1, 6.1.1, 6.3.)
+// These are also sometimes known as subkeys.
 //
 // Copies of CryptPublicKey objects are deep copies.
 type CryptPublicKey struct {
@@ -213,8 +213,8 @@ func MakeCryptPublicKey(kid keybase1.KID) CryptPublicKey {
 }
 
 // TLFEphemeralPublicKey (M_e) is used along with a crypt private key
-// to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for
-// non-public directories. (See 4.1.1.)
+// to decrypt TLFCryptKeyClientHalf objects for non-public
+// directories. (See §§ 4.1.1, 6.1.1, 6.3.)
 //
 // Copies of TLFEphemeralPublicKey objects are deep copies.
 type TLFEphemeralPublicKey struct {
@@ -237,7 +237,7 @@ type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
 
 // TLFCryptKeyServerHalf (s_u^{f,0,i}) is the masked, server-side half
 // of a TLFCryptKey, which can be recovered only with both
-// halves. (See 4.1.1.)
+// halves. (See § 4.1.1.)
 //
 // Copies of TLFCryptKeyServerHalf objects are deep copies.
 type TLFCryptKeyServerHalf struct {
@@ -254,9 +254,10 @@ func MakeTLFCryptKeyServerHalf(data [32]byte) TLFCryptKeyServerHalf {
 	return TLFCryptKeyServerHalf{byte32Container{data}}
 }
 
-// TLFCryptKeyClientHalf (t_u^{f,0,i}) is the masked, client-side half
-// of a TLFCryptKey, which can be recovered only with both
-// halves. (See 4.1.1.)
+// TLFCryptKeyClientHalf (t_u^{f,k,i} for a user u, a folder f, a key
+// generation k, and a device i) is the masked, client-side half of a
+// TLFCryptKey, which can be recovered only with both halves. (See
+// §§ 4.1.1, 6.1.1, 6.3.)
 //
 // Copies of TLFCryptKeyClientHalf objects are deep copies.
 type TLFCryptKeyClientHalf struct {
@@ -275,7 +276,7 @@ func MakeTLFCryptKeyClientHalf(data [32]byte) TLFCryptKeyClientHalf {
 
 // TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private
 // portion of TLF metadata. It is also used to mask
-// BlockCryptKeys. (See 4.1.1, 4.1.2.)
+// BlockCryptKeys. (See §§ 4.1.1, 4.1.2.)
 //
 // Copies of TLFCryptKey objects are deep copies.
 type TLFCryptKey struct {
@@ -336,7 +337,7 @@ func ParseBlockCryptKeyServerHalf(s string) (BlockCryptKeyServerHalf, error) {
 	return serverHalf, nil
 }
 
-// BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
+// BlockCryptKey is used to encrypt/decrypt block data. (See § 4.1.2.)
 type BlockCryptKey struct {
 	// Should only be used by implementations of Crypto.
 	byte32Container

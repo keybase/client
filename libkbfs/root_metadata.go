@@ -66,7 +66,7 @@ type PrivateMetadata struct {
 	// directory entry for the root directory block
 	Dir DirEntry
 
-	// m_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
+	// m_f as described in § 4.1.1 of https://keybase.io/docs/crypto/kbfs.
 	TLFPrivateKey kbfscrypto.TLFPrivateKey
 	// The block changes done as part of the update that created this MD
 	Changes BlockChanges

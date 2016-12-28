@@ -13,9 +13,6 @@ import (
 	"github.com/keybase/kbfs/kbfshash"
 )
 
-// All section references below are to https://keybase.io/blog/kbfs-crypto
-// (version 1.3).
-
 // TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
 type TLFCryptKeyServerHalfID struct {
 	ID kbfshash.HMAC // Exported for serialization.

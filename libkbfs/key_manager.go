@@ -615,16 +615,11 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		}
 	}
 
-	// For addNewDevice, we only use the ephemeral keys; incKeyGen
-	// needs all of them.  ePrivKey will be discarded at the end of the
-	// function in either case.
-	//
-	// TODO: split MakeRandomTLFKeys into two separate methods.
-	pubKey, privKey, ePubKey, ePrivKey, tlfCryptKey, err :=
-		km.config.Crypto().MakeRandomTLFKeys()
-	if err != nil {
-		return false, nil, err
-	}
+	// Generate ephemeral keys to be used by addNewDevice,
+	// incKeygen, or both. ePrivKey will be discarded at the end
+	// of the function.
+	ePubKey, ePrivKey, err :=
+		km.config.Crypto().MakeRandomTLFEphemeralKeys()
 
 	for uid := range promotedReaders {
 		// If there are readers that need to be promoted to
@@ -758,6 +753,12 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 				}
 			}
 		}
+	}
+
+	pubKey, privKey, tlfCryptKey, err :=
+		km.config.Crypto().MakeRandomTLFKeys()
+	if err != nil {
+		return false, nil, err
 	}
 
 	// Get the previous TLF crypt key if needed. It's
