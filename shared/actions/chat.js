@@ -132,8 +132,8 @@ function deleteMessage (message: Message): DeleteMessage {
   return {type: Constants.deleteMessage, payload: {message}}
 }
 
-function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string): Constants.SelectAttachment {
-  return {type: Constants.selectAttachment, payload: {conversationIDKey, filename, title}}
+function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string, type: Constants.AttachmentType): Constants.SelectAttachment {
+  return {type: Constants.selectAttachment, payload: {conversationIDKey, filename, title, type}}
 }
 
 function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, filename: string): Constants.LoadAttachment {
@@ -809,7 +809,7 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
-function * _selectAttachment ({payload: {conversationIDKey, filename, title}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+function * _selectAttachment ({payload: {conversationIDKey, filename, title, type}}: Constants.SelectAttachment): SagaGenerator<any, any> {
   const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
   const attachment = {
     filename,

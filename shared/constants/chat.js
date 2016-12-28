@@ -17,6 +17,7 @@ export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
 export type AttachmentMessageState = MessageState | 'downloading' | 'uploading' | 'downloaded'
+export type AttachmentType = 'Image' | 'Other'
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
@@ -213,7 +214,7 @@ export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversati
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
-export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string}>
+export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   bytesComplete: number,
   bytesTotal: number,

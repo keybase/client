@@ -11,7 +11,7 @@ import {onUserClick} from '../../actions/profile'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {Message} from '../../constants/chat'
+import type {Message, AttachmentType} from '../../constants/chat'
 import type {Props} from '.'
 
 type OwnProps = {}
@@ -96,7 +96,7 @@ export default connect(
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
-    onAttach: (selectedConversation, filename, title) => dispatch(selectAttachment(selectedConversation, filename, title)),
+    onAttach: (selectedConversation, filename, title, type) => dispatch(selectAttachment(selectedConversation, filename, title, type)),
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, downloadFilePath(filename))),
     onOpenInFileUI: (path: string) => dispatch(({type: 'fs:openInFileUI', payload: {path}}: OpenInFileUI)),
   }),
@@ -105,7 +105,7 @@ export default connect(
     ...dispatchProps,
     ...ownProps,
     onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
-    onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
+    onAttach: (filename: string, title: string, type: AttachmentType) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title, type),
     onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
     onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
   }),
