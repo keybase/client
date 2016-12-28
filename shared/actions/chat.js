@@ -366,13 +366,27 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           // If the message has an outboxID, then we sent it and have already
           // rendered it in the message list; we just need to mark it as sent.
           yield put({
-            type: Constants.pendingMessageWasSent,
+            type: 'chat:updateTempMessage',
             payload: {
               conversationIDKey,
-              message,
-              messageState: 'sent',
+              outboxID: message.outboxID,
+              message: {
+                ...message,
+                messageState: 'sent',
+              },
             },
           })
+
+          const messageID = message.messageID
+          if (messageID) {
+            yield put(({
+              type: 'chat:markSeenMessage',
+              payload: {
+                conversationIDKey,
+                messageID,
+              },
+            }: Constants.MarkSeenMessage))
+          }
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null) {

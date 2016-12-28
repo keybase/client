@@ -5,7 +5,7 @@ import {Set, List, Map, Record} from 'immutable'
 import {CommonMessageType} from './types/flow-types-chat'
 
 import type {UserListItem} from '../common-adapters/usernames'
-import type {NoErrorTypedAction} from './types/flux'
+import type {NoErrorTypedAction, TypedAction} from './types/flux'
 import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, ChatActivity, ConversationInfoLocal, MessageBody} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 
@@ -177,7 +177,6 @@ export const loadMoreMessages = 'chat:loadMoreMessages'
 export const loadingMessages = 'chat:loadingMessages'
 export const newChat = 'chat:newChat'
 export const openFolder = 'chat:openFolder'
-export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
 export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
 export const selectConversation = 'chat:selectConversation'
@@ -204,7 +203,6 @@ export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {only
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
-export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSent', {newMessage: Message}>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
@@ -238,6 +236,20 @@ export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
   isPreview: boolean,
   path: string,
 }>
+export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
+  conversationIDKey: ConversationIDKey,
+  outboxID: number,
+  message: $Shape<AttachmentMessage> | $Shape<TextMessage>,
+}, {
+  conversationIDKey: ConversationIDKey,
+  outboxID: number,
+  error: Error,
+}>
+
+export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
+  conversationIDKey: ConversationIDKey,
+  messageID: MessageID,
+}>
 
 export type Actions = AppendMessages
   | DeleteMessage
@@ -256,6 +268,8 @@ export type Actions = AppendMessages
   | UpdateLatestMessage
   | UpdateMetadata
   | UpdatedMetadata
+  | UpdateTempMessage
+  | MarkSeenMessage
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')

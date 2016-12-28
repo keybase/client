@@ -170,18 +170,28 @@ function reducer (state: State = initialState, action: Actions) {
         .set('conversationStates', newConversationStates)
         .set('inbox', newInboxStates)
     }
-    case Constants.pendingMessageWasSent: {
-      const {conversationIDKey, message} = action.payload
-      const {messageID, outboxID} = message
-      // Entirely replace the placeholder pending message in the store with the
-      // finalized real message that we just received from the server.
+    case 'chat:updateTempMessage': {
+      if (action.error) {
+        // TODO
+        return state
+      } else {
+        const {outboxID, message, conversationIDKey} = action.payload
+        // $FlowIssue
+        return state.update('conversationStates', conversationStates => updateConversationMessage(
+          conversationStates,
+          conversationIDKey,
+          item => !!item.outboxID && item.outboxID === outboxID,
+          m => ({
+            ...m,
+            ...message,
+          })
+        ))
+      }
+    }
+    case 'chat:markSeenMessage': {
+      const {messageID, conversationIDKey} = action.payload
       // $FlowIssue
-      return state.update('conversationStates', conversationStates => updateConversationMessage(
-        conversationStates,
-        conversationIDKey,
-        item => !!item.outboxID && item.outboxID === outboxID,
-          (m: Constants.TextMessage) => message
-      )).update('conversationStates', conversationStates => updateConversation(
+      return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
         // $FlowIssue
