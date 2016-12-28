@@ -2,11 +2,11 @@
 import React from 'react'
 import {Icon, PopupMenu, Text} from '../../../common-adapters'
 import {PopupHeaderText} from '../../../common-adapters/popup-menu'
-import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
-
+import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import type {TextMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
+
 import type {Props} from './popup'
 
 function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconType {

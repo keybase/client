@@ -20,7 +20,6 @@ const _avatarCache: {[key: string]: ?boolean} = {
 
 class Avatar extends Component<void, Props, State> {
   state: State;
-  _mounted: boolean = false;
 
   constructor (props: Props) {
     super(props)
@@ -58,23 +57,13 @@ class Avatar extends Component<void, Props, State> {
     }
   }
 
-  componentWillMount () {
-    this._mounted = true
-  }
-
-  componentWillUnmount () {
-    this._mounted = false
-  }
-
   _imgOnError = () => {
     if (this.state.url) {
       _avatarCache[this.state.url] = false
     }
 
+    this.setState({errored: true})
     this.props.onAvatarLoaded && this.props.onAvatarLoaded()
-    if (this._mounted) {
-      this.setState({errored: true})
-    }
   }
 
   _imgOnLoad = () => {
@@ -82,10 +71,8 @@ class Avatar extends Component<void, Props, State> {
       _avatarCache[this.state.url] = true
     }
 
+    this.setState({avatarLoaded: true})
     this.props.onAvatarLoaded && this.props.onAvatarLoaded()
-    if (this._mounted) {
-      this.setState({avatarLoaded: true})
-    }
   }
 
   render () {
