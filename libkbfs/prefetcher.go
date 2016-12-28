@@ -48,7 +48,10 @@ func newBlockPrefetcher(retriever blockRetriever) *blockPrefetcher {
 		doneCh:     make(chan struct{}),
 	}
 	if retriever == nil {
+		// If we pass in a nil retriever, this prefetcher shouldn't do
+		// anything. Treat it as already shut down.
 		p.Shutdown()
+		close(p.doneCh)
 	} else {
 		go p.run()
 	}
@@ -64,9 +67,6 @@ func (p *blockPrefetcher) run() {
 	for {
 		select {
 		case req := <-p.progressCh:
-			if p.retriever == nil {
-				continue
-			}
 			ctx, cancel := context.WithCancel(context.Background())
 			ch := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr, req.block, TransientEntry)
 			wg.Add(1)
