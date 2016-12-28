@@ -1844,12 +1844,14 @@ type MutableBareRootMetadata interface {
 
 // KeyBundleCache is an interface to a key bundle cache for use with v3 metadata.
 type KeyBundleCache interface {
-	// GetTLFReaderKeyBundle returns the TLFReaderKeyBundleV2 for the given TLFReaderKeyBundleID.
+	// GetTLFReaderKeyBundle returns the TLFReaderKeyBundleV3 for
+	// the given TLFReaderKeyBundleID, or nil if there is none.
 	GetTLFReaderKeyBundle(tlf.ID, TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error)
-	// GetTLFWriterKeyBundle returns the TLFWriterKeyBundleV3 for the given TLFWriterKeyBundleID.
+	// GetTLFWriterKeyBundle returns the TLFWriterKeyBundleV3 for
+	// the given TLFWriterKeyBundleID, or nil if there is none.
 	GetTLFWriterKeyBundle(tlf.ID, TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error)
 	// PutTLFReaderKeyBundle stores the given TLFReaderKeyBundleV3.
-	PutTLFReaderKeyBundle(tlf.ID, TLFReaderKeyBundleID, *TLFReaderKeyBundleV3)
+	PutTLFReaderKeyBundle(tlf.ID, TLFReaderKeyBundleID, TLFReaderKeyBundleV3)
 	// PutTLFWriterKeyBundle stores the given TLFWriterKeyBundleV3.
-	PutTLFWriterKeyBundle(tlf.ID, TLFWriterKeyBundleID, *TLFWriterKeyBundleV3)
+	PutTLFWriterKeyBundle(tlf.ID, TLFWriterKeyBundleID, TLFWriterKeyBundleV3)
 }

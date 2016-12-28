@@ -46,10 +46,10 @@ func TestKeyBundleCacheBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, checkWkb)
 
-	cache.PutTLFWriterKeyBundle(tlf, wkbID, wkb)
+	cache.PutTLFWriterKeyBundle(tlf, wkbID, *wkb)
 	// add the same bundle twice
-	cache.PutTLFWriterKeyBundle(tlf, wkbID, wkb)
-	cache.PutTLFWriterKeyBundle(tlf2, wkbID2, wkb2)
+	cache.PutTLFWriterKeyBundle(tlf, wkbID, *wkb)
+	cache.PutTLFWriterKeyBundle(tlf2, wkbID2, *wkb2)
 
 	checkRkb, err := cache.GetTLFReaderKeyBundle(tlf, rkbID)
 	require.NoError(t, err)
@@ -61,10 +61,10 @@ func TestKeyBundleCacheBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, checkRkb)
 
-	cache.PutTLFReaderKeyBundle(tlf, rkbID, rkb)
+	cache.PutTLFReaderKeyBundle(tlf, rkbID, *rkb)
 	// add the same bundle twice
-	cache.PutTLFReaderKeyBundle(tlf, rkbID, rkb)
-	cache.PutTLFReaderKeyBundle(tlf2, rkbID2, rkb2)
+	cache.PutTLFReaderKeyBundle(tlf, rkbID, *rkb)
+	cache.PutTLFReaderKeyBundle(tlf2, rkbID2, *rkb2)
 
 	checkWkb, err = cache.GetTLFWriterKeyBundle(tlf, wkbID)
 	require.NoError(t, err)
@@ -94,8 +94,8 @@ func TestKeyBundleCacheBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, checkRkb)
 
-	cache.PutTLFReaderKeyBundle(tlf3, rkbID3, rkb3)
-	cache.PutTLFWriterKeyBundle(tlf3, wkbID3, wkb3)
+	cache.PutTLFReaderKeyBundle(tlf3, rkbID3, *rkb3)
+	cache.PutTLFWriterKeyBundle(tlf3, wkbID3, *wkb3)
 
 	checkWkb, err = cache.GetTLFWriterKeyBundle(tlf, wkbID)
 	require.NoError(t, err)

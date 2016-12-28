@@ -659,7 +659,7 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 		return nil, err
 	}
 	// Cache the results.
-	kbcache.PutTLFWriterKeyBundle(tlf, wkbID, wkb)
-	kbcache.PutTLFReaderKeyBundle(tlf, rkbID, rkb)
+	kbcache.PutTLFWriterKeyBundle(tlf, wkbID, *wkb)
+	kbcache.PutTLFReaderKeyBundle(tlf, rkbID, *rkb)
 	return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 }
