@@ -2019,7 +2019,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 		defer ops.mdWriterLock.Unlock(lState)
 
 		// Now cause a paper prompt unlock via a folder access
-		errCh := make(chan error)
+		errCh := make(chan error, 1)
 		go func() {
 			_, err := GetRootNodeForTest(ctx, config2Dev2, name, false)
 			select {
