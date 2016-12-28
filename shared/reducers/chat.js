@@ -2,7 +2,7 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
-import {Set, List} from 'immutable'
+import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
 
@@ -13,12 +13,30 @@ const initialConversation: ConversationState = new ConversationStateRecord()
 function _dedupeMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List()): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
   const filteredAppend = append.filter(m => !seenMessages.has(m.key))
-  const nextMessages = filteredPrepend.concat(messages, filteredAppend)
+
+  let messagesToUpdate = Map().asMutable()
+  if (filteredPrepend.count() !== prepend.count()) {
+    prepend.forEach(m => { seenMessages.has(m.key) && messagesToUpdate.set(m.key, m) })
+  }
+  if (filteredAppend.count() !== append.count()) {
+    append.forEach(m => { seenMessages.has(m.key) && messagesToUpdate.set(m.key, m) })
+  }
+
+  messagesToUpdate = messagesToUpdate.asImmutable()
+
+  const nextMessages = messages.asMutable()
+  if (messagesToUpdate.count() > 0) {
+    nextMessages.forEach((m, i) => { messagesToUpdate.has(m.key) && nextMessages.set(i, messagesToUpdate.get(m.key)) })
+  }
+
+  const filteredPrependCount = filteredPrepend.count()
+  filteredPrepend.forEach((_, i) => nextMessages.unshift(filteredPrepend.get(filteredPrependCount - 1 - i)))
+  filteredAppend.forEach(m => nextMessages.push(m))
 
   const nextSeenMessages = nextMessages.reduce((acc, m) => acc.add(m.key), Set())
 
   return {
-    nextMessages,
+    nextMessages: nextMessages.asImmutable(),
     nextSeenMessages,
   }
 }
@@ -26,7 +44,6 @@ function _dedupeMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
 type ConversationsStates = Map<Constants.ConversationIDKey, ConversationState>
 type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
 function updateConversation (conversationStates: ConversationsStates, conversationIDKey: Constants.ConversationIDKey, conversationUpdateFn: ConversationUpdateFn): ConversationsStates {
-  // $FlowIssue
   return conversationStates.update(
     conversationIDKey,
     initialConversation,
