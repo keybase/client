@@ -147,6 +147,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI}: Props) {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
         <AttachmentTitle {...message} />
         {!!message.progress &&
+          (messageState === 'uploading' || messageState === 'downloading') &&
           <ProgressBar
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}

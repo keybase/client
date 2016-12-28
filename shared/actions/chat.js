@@ -7,7 +7,7 @@ import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {call, put, select, race, cancel} from 'redux-saga/effects'
+import {call, put, select, race, cancel, fork} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
@@ -851,7 +851,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
   }
 
   // TODO use service's outboxID
-  const outboxID = Math.ceil(Math.random()*1e9)
+  const outboxID = Math.ceil(Math.random() * 1e9)
   const username = yield select(usernameSelector)
 
   yield put({
@@ -903,12 +903,13 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
     const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
     uploadStart.response.result()
 
-    const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
-    previewUploadStart.response.result()
+    const previewTask = yield fork(function * () {
+      const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
+      previewUploadStart.response.result()
 
-    const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
-    previewUploadDone.response.result()
-
+      const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
+      previewUploadDone.response.result()
+    })
 
     const uploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
     uploadDone.response.result()
@@ -934,6 +935,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
     }: Constants.MarkSeenMessage))
 
     yield cancel(progressTask)
+    yield cancel(previewTask)
     closeChannelMap(channelMap)
   } catch (e) {
     yield put(({
