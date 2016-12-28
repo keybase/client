@@ -80,7 +80,7 @@ const Popup = ({message, onEditMessage, onDeleteMessage, onLoadAttachment, onOpe
     return (
       <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
     )
-  } else if (message.type === 'Attachment') {
+  } else if (message.type === 'Attachment' && message.messageID) {
     const {downloadedPath, messageID, filename} = message
     let items = [
       'Divider',

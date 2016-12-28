@@ -410,7 +410,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             },
           })
 
-          if (message.type === 'Attachment' && !message.previewPath) {
+          if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
             yield put(loadAttachment(conversationIDKey, message.messageID, true, tmpFile(message.filename)))
           }
         }
@@ -583,7 +583,8 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   })
 
   // Load previews for attachments
-  const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' ? acc.push(m) : acc, new List())
+  const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
+  // $FlowIssue we check for messageID existance above
   yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, tmpFile(filename)))).toArray()
 }
 

@@ -71,13 +71,13 @@ export type AttachmentMessage = {
   author: string,
   deviceName: string,
   deviceType: DeviceType,
-  messageID: MessageID,
+  messageID?: MessageID,
   filename: string,
   title: string,
-  previewType: ?('Image' | 'Other'),
+  previewType: ?AttachmentType,
   previewPath: ?string,
   downloadedPath: ?string,
-  tempID?: number,
+  outboxID?: number,
   progress?: number, /* between 0 - 1 */
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
@@ -214,6 +214,7 @@ export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: A
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
+  outboxID: number,
   bytesComplete: number,
   bytesTotal: number,
   conversationIDKey: ConversationIDKey,
