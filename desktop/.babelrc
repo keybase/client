@@ -6,14 +6,21 @@
         "targets": {
           "electron": 1.4
         },
-        "loose": true,
-        "debug": true,
+        "loose": false,
+        "debug": false,
         "useBuiltIns": false
       }
-    ],
-    "babel-preset-react"
+    ]
   ],
   "plugins": [
+    "transform-react-jsx",
+    "transform-flow-strip-types",
+    "syntax-flow",
+    "syntax-jsx",
+    "transform-react-display-name",
+    "transform-object-rest-spread",
+    "transform-class-properties",
+    "transform-es2015-classes",
     "babel-plugin-transform-runtime",
     "react-hot-loader/babel",
     [
