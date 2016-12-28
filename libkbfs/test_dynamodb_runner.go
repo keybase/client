@@ -93,7 +93,7 @@ func (tdr *TestDynamoDBRunner) downloadIfNecessary() error {
 	}
 
 	// create the tmp directory if it doesn't exist
-	if _, err := ioutil.Stat(tdr.tmpDir()); os.IsNotExist(err) {
+	if _, err := ioutil.Stat(tdr.tmpDir()); ioutil.IsNotExist(err) {
 		if err := ioutil.Mkdir(tdr.tmpDir(), os.ModeDir|os.ModePerm); err != nil {
 			return err
 		}
