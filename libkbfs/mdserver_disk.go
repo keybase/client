@@ -545,7 +545,7 @@ func (md *MDServerDisk) copy(config mdServerLocalConfig) mdServerLocal {
 func (md *MDServerDisk) isShutdown() bool {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
-	return md.handleDb == nil
+	return md.checkShutdownLocked() != nil
 }
 
 // DisableRekeyUpdatesForTesting implements the MDServer interface.
@@ -643,13 +643,6 @@ func (md *MDServerDisk) OffsetFromServerTime() (time.Duration, bool) {
 func (md *MDServerDisk) GetKeyBundles(_ context.Context,
 	tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	md.lock.RLock()
-	defer md.lock.RUnlock()
-	err := md.checkShutdownLocked()
-	if err != nil {
-		return nil, nil, err
-	}
-
 	tlfStorage, err := md.getStorage(tlfID)
 	if err != nil {
 		return nil, nil, err
