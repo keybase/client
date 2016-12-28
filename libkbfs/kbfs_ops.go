@@ -253,10 +253,20 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
+	fav := handle.ToFavorite()
+	_, ok := fs.opsByFav[fav]
+	if ok {
+		// Already added.
+		return ops
+	}
+
 	// Track under its name, so we can later tell it to remove itself
-	// from the favorites list.  TODO: fix this when unresolved
-	// assertions are allowed and become resolved.
-	fs.opsByFav[handle.ToFavorite()] = ops
+	// from the favorites list.
+	fs.opsByFav[fav] = ops
+	ops.RegisterForChanges(&kbfsOpsFavoriteObserver{
+		kbfsOps: fs,
+		currFav: fav,
+	})
 	return ops
 }
 
@@ -696,6 +706,20 @@ func (fs *KBFSOpsStandard) GetNodeMetadata(ctx context.Context, node Node) (
 	return ops.GetNodeMetadata(ctx, node)
 }
 
+func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
+	oldFav Favorite, newHandle *TlfHandle) {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	ops, ok := fs.opsByFav[oldFav]
+	if !ok {
+		return
+	}
+	newFav := newHandle.ToFavorite()
+	fs.log.CDebugf(ctx, "Changing handle: %v -> %v", oldFav, newFav)
+	fs.opsByFav[newFav] = ops
+	delete(fs.opsByFav, oldFav)
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 
@@ -730,4 +754,31 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid BranchID,
 	rev MetadataRevision) {
 	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
+}
+
+// kbfsOpsFavoriteObserver deals with a handle change for a particular
+// favorites.  It ignores local and batch changes.
+type kbfsOpsFavoriteObserver struct {
+	kbfsOps *KBFSOpsStandard
+
+	lock    sync.Mutex
+	currFav Favorite
+}
+
+var _ Observer = (*kbfsOpsFavoriteObserver)(nil)
+
+func (kofo *kbfsOpsFavoriteObserver) LocalChange(
+	_ context.Context, _ Node, _ WriteRange) {
+}
+
+func (kofo *kbfsOpsFavoriteObserver) BatchChanges(
+	_ context.Context, _ []NodeChange) {
+}
+
+func (kofo *kbfsOpsFavoriteObserver) TlfHandleChange(
+	ctx context.Context, newHandle *TlfHandle) {
+	kofo.lock.Lock()
+	defer kofo.lock.Unlock()
+	kofo.kbfsOps.changeHandle(ctx, kofo.currFav, newHandle)
+	kofo.currFav = newHandle.ToFavorite()
 }
