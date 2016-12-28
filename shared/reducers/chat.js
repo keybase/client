@@ -201,7 +201,7 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:attachmentLoaded': {
       const {conversationIDKey, messageID, path, isPreview} = action.payload
 
-      const toMerge = isPreview ? {previewPath: path} : {downloadedPath: path}
+      const toMerge = isPreview ? {previewPath: path, messageState: 'sent'} : {downloadedPath: path, messageState: 'downloaded'}
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
@@ -211,6 +211,38 @@ function reducer (state: State = initialState, action: Actions) {
         m => ({
           ...m,
           ...toMerge,
+        })
+      ))
+    }
+    case 'chat:downloadProgress': {
+      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
+      const progress = bytesComplete / bytesTotal
+
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.messageID && item.messageID === messageID,
+        m => ({
+          ...m,
+          messageState: 'downloading',
+          progress,
+        })
+      ))
+    }
+    case 'chat:uploadProgress': {
+      const {conversationIDKey, outboxID, bytesComplete, bytesTotal} = action.payload
+      const progress = bytesComplete / bytesTotal
+
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.outboxID && item.outboxID === outboxID,
+        m => ({
+          ...m,
+          messageState: 'uploading',
+          progress,
         })
       ))
     }

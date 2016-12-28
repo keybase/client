@@ -612,6 +612,26 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   return null
 }
 
+const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, username: string, title: string, filename: string, outboxID: number, previewType: $PropertyType<Constants.AttachmentMessage, 'previewType'>) => ({
+  type: 'Attachment',
+  timestamp: Date.now(),
+  conversationIDKey: convID,
+  followState: 'You',
+  author: username,
+  // TODO we should be able to fill this in
+  deviceName: '',
+  deviceType: isMobile ? 'mobile' : 'desktop',
+  filename,
+  title,
+  previewType,
+  previewPath: filename,
+  downloadedPath: null,
+  outboxID,
+  progress: 0, /* between 0 - 1 */
+  messageState: 'uploading',
+  key: `temp-${outboxID}`,
+})
+
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
@@ -830,6 +850,25 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
     filename,
   }
 
+  // TODO use service's outboxID
+  const outboxID = Math.ceil(Math.random()*1e9)
+  const username = yield select(usernameSelector)
+
+  yield put({
+    type: Constants.appendMessages,
+    payload: {
+      conversationIDKey,
+      messages: [_temporaryAttachmentMessageForUpload(
+        conversationIDKey,
+        username,
+        title,
+        filename,
+        outboxID,
+        type,
+      )],
+    },
+  })
+
   const param = {
     conversationID: keyToConversationID(conversationIDKey),
     clientHeader,
@@ -845,34 +884,68 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
     'chat.1.chatUi.chatAttachmentUploadProgress',
     'chat.1.chatUi.chatAttachmentUploadDone',
     'chat.1.chatUi.chatAttachmentPreviewUploadDone',
+    'finished',
   ])
 
-  const channelMap = ((yield call(localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
+  try {
+    const channelMap = ((yield call(localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
 
-  const progressTask = yield effectOnChannelMap(c => safeTakeEvery(c, function * ({response}) {
-    const {bytesComplete, bytesTotal} = response.param
-    const action: Constants.UploadProgress = {
-      type: 'chat:uploadProgress',
-      payload: {bytesTotal, bytesComplete, conversationIDKey},
-    }
-    yield put(action)
-    response.result()
-  }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
+    const progressTask = yield effectOnChannelMap(c => safeTakeEvery(c, function * ({response}) {
+      const {bytesComplete, bytesTotal} = response.param
+      const action: Constants.UploadProgress = {
+        type: 'chat:uploadProgress',
+        payload: {bytesTotal, bytesComplete, conversationIDKey, outboxID},
+      }
+      yield put(action)
+      response.result()
+    }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
 
-  const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
-  uploadStart.response.result()
+    const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
+    uploadStart.response.result()
 
-  const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
-  previewUploadStart.response.result()
+    const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
+    previewUploadStart.response.result()
 
-  const uploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
-  uploadDone.response.result()
+    const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
+    previewUploadDone.response.result()
 
-  const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
-  previewUploadDone.response.result()
 
-  yield cancel(progressTask)
-  closeChannelMap(channelMap)
+    const uploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
+    uploadDone.response.result()
+
+    const finished = yield takeFromChannelMap(channelMap, 'finished')
+    const {params: {messageID}} = finished
+
+    yield put(({
+      type: 'chat:updateTempMessage',
+      payload: {
+        conversationIDKey,
+        outboxID,
+        message: {type: 'Attachment', messageState: 'sent', messageID, key: messageID},
+      },
+    }: Constants.UpdateTempMessage))
+
+    yield put(({
+      type: 'chat:markSeenMessage',
+      payload: {
+        conversationIDKey,
+        messageID: messageID,
+      },
+    }: Constants.MarkSeenMessage))
+
+    yield cancel(progressTask)
+    closeChannelMap(channelMap)
+  } catch (e) {
+    yield put(({
+      type: 'chat:updateTempMessage',
+      error: true,
+      payload: {
+        conversationIDKey,
+        outboxID,
+        error: e,
+      },
+    }: Constants.UpdateTempMessage))
+  }
 }
 
 // TODO load previews too
