@@ -371,15 +371,13 @@ func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
 		return false, false, err
 	}
 
-	// TODO: Avoid serializing if the file already exists.
-
-	err = kbfscodec.SerializeToFile(
+	err = kbfscodec.SerializeToFileIfNotExist(
 		j.codec, extraV3.wkb, j.writerKeyBundleV3Path(wkbID))
 	if err != nil {
 		return false, false, err
 	}
 
-	err = kbfscodec.SerializeToFile(
+	err = kbfscodec.SerializeToFileIfNotExist(
 		j.codec, extraV3.rkb, j.readerKeyBundleV3Path(rkbID))
 	if err != nil {
 		return false, false, err
@@ -486,7 +484,8 @@ func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
 		return MdID{}, nil
 	}
 
-	err = kbfscodec.SerializeToFile(j.codec, rmd, j.mdDataPath(id))
+	err = kbfscodec.SerializeToFileIfNotExist(
+		j.codec, rmd, j.mdDataPath(id))
 	if err != nil {
 		return MdID{}, err
 	}

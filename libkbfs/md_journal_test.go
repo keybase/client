@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -107,22 +108,20 @@ func makeMDForTest(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	md.fakeInitialRekey(codec, crypto)
 	md.SetPrevRoot(prevRoot)
 	md.SetDiskUsage(500)
-	err = md.bareMd.SignWriterMetadataInternally(context.Background(),
-		kbfscodec.NewMsgpack(), signer)
-	require.NoError(t, err)
 	return md
 }
 
-func putMDRange(t testing.TB, ver MetadataVer, tlfID tlf.ID,
-	signer kbfscrypto.Signer, ekg encryptionKeyGetter,
-	bsplit BlockSplitter, firstRevision MetadataRevision,
-	firstPrevRoot MdID, mdCount int, j *mdJournal) ([]*RootMetadata, MdID) {
+func putMDRangeHelper(t testing.TB, ver MetadataVer, tlfID tlf.ID,
+	signer kbfscrypto.Signer, firstRevision MetadataRevision,
+	firstPrevRoot MdID, mdCount int, uid keybase1.UID,
+	putMD func(context.Context, *RootMetadata) (MdID, error)) (
+	[]*RootMetadata, MdID) {
 	require.True(t, mdCount > 0)
 	ctx := context.Background()
 	var mds []*RootMetadata
 	md := makeMDForTest(
-		t, ver, tlfID, firstRevision, j.uid, signer, firstPrevRoot)
-	mdID, err := j.put(ctx, signer, ekg, bsplit, md, false)
+		t, ver, tlfID, firstRevision, uid, signer, firstPrevRoot)
+	mdID, err := putMD(ctx, md)
 	require.NoError(t, err)
 	mds = append(mds, md)
 	codec := kbfscodec.NewMsgpack()
@@ -132,12 +131,23 @@ func putMDRange(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 		md, err = md.MakeSuccessor(ctx, ver, codec, crypto,
 			nil, prevRoot, true)
 		require.NoError(t, err)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, false)
+		mdID, err := putMD(ctx, md)
 		require.NoError(t, err)
 		mds = append(mds, md)
 		prevRoot = mdID
 	}
 	return mds, prevRoot
+}
+
+func putMDRange(t testing.TB, ver MetadataVer, tlfID tlf.ID,
+	signer kbfscrypto.Signer, ekg encryptionKeyGetter,
+	bsplit BlockSplitter, firstRevision MetadataRevision,
+	firstPrevRoot MdID, mdCount int, j *mdJournal) ([]*RootMetadata, MdID) {
+	return putMDRangeHelper(t, ver, tlfID, signer, firstRevision,
+		firstPrevRoot, mdCount, j.uid,
+		func(ctx context.Context, md *RootMetadata) (MdID, error) {
+			return j.put(ctx, signer, ekg, bsplit, md, false)
+		})
 }
 
 func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
@@ -175,28 +185,47 @@ func checkIBRMDRange(t *testing.T, uid keybase1.UID,
 	}
 }
 
-// TODO: Create a separate journal for each iteration, instead of
-// using the same one.
+// noLogTB is an implementation of testing.TB that squelches all logs
+// (for benchmarks).
+type noLogTB struct {
+	testing.TB
+}
+
+func (tb noLogTB) Log(args ...interface{}) {}
+
+func (tb noLogTB) Logf(format string, args ...interface{}) {}
 
 func BenchmarkMDJournalBasic(b *testing.B) {
 	runBenchmarkOverMetadataVers(b, benchmarkMDJournalBasic)
 }
 
-func benchmarkMDJournalBasic(b *testing.B, ver MetadataVer) {
-	_, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(b, ver)
+func benchmarkMDJournalBasicBody(b *testing.B, ver MetadataVer, mdCount int) {
+	b.StopTimer()
+
+	_, _, id, signer, ekg, bsplit, tempdir, j :=
+		setupMDJournalTest(noLogTB{b}, ver)
 	defer teardownMDJournalTest(b, tempdir)
 
-	mdCount := 500
-	revision := MetadataRevision(10)
-	prevRoot := fakeMdID(1)
+	putMDRangeHelper(b, ver, id, signer, MetadataRevision(10),
+		fakeMdID(1), mdCount, j.uid,
+		func(ctx context.Context, md *RootMetadata) (MdID, error) {
+			b.StartTimer()
+			defer b.StopTimer()
+			return j.put(ctx, signer, ekg, bsplit, md, false)
+		})
+}
 
-	b.ResetTimer()
-	defer b.StopTimer()
-
-	for i := 0; i < b.N; i++ {
-		_, prevRoot = putMDRange(b, ver, id,
-			signer, ekg, bsplit, revision, prevRoot, mdCount, j)
-		revision += MetadataRevision(mdCount)
+func benchmarkMDJournalBasic(b *testing.B, ver MetadataVer) {
+	for _, mdCount := range []int{1, 10, 100, 1000, 10000} {
+		mdCount := mdCount // capture range variable.
+		name := fmt.Sprintf("mdCount=%d", mdCount)
+		b.Run(name, func(b *testing.B) {
+			b.StopTimer()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				benchmarkMDJournalBasicBody(b, ver, mdCount)
+			}
+		})
 	}
 }
 
@@ -585,6 +614,8 @@ func testMDJournalBranchConversion(t *testing.T, ver MetadataVer) {
 	mdcache := NewMDCacheStandard(10)
 	cachedMd := makeMDForTest(
 		t, ver, id, firstRevision, j.uid, signer, firstPrevRoot)
+	err := cachedMd.bareMd.SignWriterMetadataInternally(ctx, codec, signer)
+	require.NoError(t, err)
 	cachedMdID, _, _, _, err := j.getEarliestWithExtra(false)
 	require.NoError(t, err)
 	err = mdcache.Put(MakeImmutableRootMetadata(cachedMd,
