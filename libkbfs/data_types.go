@@ -65,6 +65,15 @@ const (
 	EncryptionSecretbox EncryptionVer = 1
 )
 
+func (v EncryptionVer) String() string {
+	switch v {
+	case EncryptionSecretbox:
+		return "EncryptionSecretbox"
+	default:
+		return fmt.Sprintf("EncryptionVer(%d)", v)
+	}
+}
+
 // encryptedData is encrypted data with a nonce and a version.
 type encryptedData struct {
 	// Exported only for serialization purposes. Should only be
@@ -74,18 +83,35 @@ type encryptedData struct {
 	Nonce         []byte        `codec:"n"`
 }
 
+func (ed encryptedData) String() string {
+	if reflect.DeepEqual(ed, encryptedData{}) {
+		return "EncryptedData{}"
+	}
+	return fmt.Sprintf("%s{data=%s, nonce=%s}",
+		ed.Version, hex.EncodeToString(ed.EncryptedData),
+		hex.EncodeToString(ed.Nonce))
+}
+
 // EncryptedTLFCryptKeyClientHalf is an encrypted
-// TLFCryptKeyCLientHalf object.
-type EncryptedTLFCryptKeyClientHalf encryptedData
+// TLFCryptKeyClientHalf object.
+type EncryptedTLFCryptKeyClientHalf struct {
+	encryptedData
+}
 
 // EncryptedPrivateMetadata is an encrypted PrivateMetadata object.
-type EncryptedPrivateMetadata encryptedData
+type EncryptedPrivateMetadata struct {
+	encryptedData
+}
 
 // EncryptedBlock is an encrypted Block.
-type EncryptedBlock encryptedData
+type EncryptedBlock struct {
+	encryptedData
+}
 
 // EncryptedTLFCryptKeys is an encrypted TLFCryptKey array.
-type EncryptedTLFCryptKeys encryptedData
+type EncryptedTLFCryptKeys struct {
+	encryptedData
+}
 
 // EncryptedMerkleLeaf is an encrypted Merkle leaf.
 type EncryptedMerkleLeaf struct {
@@ -266,6 +292,9 @@ func (c BlockContext) IsFirstRef() bool {
 }
 
 func (c BlockContext) String() string {
+	if c == (BlockContext{}) {
+		return "BlockContext{}"
+	}
 	s := fmt.Sprintf("BlockContext{Creator: %s", c.Creator)
 	if len(c.Writer) > 0 {
 		s += fmt.Sprintf(", Writer: %s", c.Writer)
@@ -302,6 +331,9 @@ func (p BlockPointer) IsValid() bool {
 }
 
 func (p BlockPointer) String() string {
+	if p == (BlockPointer{}) {
+		return "BlockPointer{}"
+	}
 	return fmt.Sprintf("BlockPointer{ID: %s, KeyGen: %d, DataVer: %d, Context: %s}", p.ID, p.KeyGen, p.DataVer, p.BlockContext)
 }
 
@@ -333,6 +365,9 @@ type BlockInfo struct {
 }
 
 func (bi BlockInfo) String() string {
+	if bi == (BlockInfo{}) {
+		return "BlockInfo{}"
+	}
 	return fmt.Sprintf("BlockInfo{BlockPointer: %s, EncodedSize: %d}",
 		bi.BlockPointer, bi.EncodedSize)
 }

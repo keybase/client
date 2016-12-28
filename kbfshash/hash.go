@@ -9,7 +9,6 @@ import (
 	"crypto/sha256"
 	"encoding"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 )
 
@@ -100,8 +99,8 @@ type Hash struct {
 var _ encoding.BinaryMarshaler = Hash{}
 var _ encoding.BinaryUnmarshaler = (*Hash)(nil)
 
-var _ json.Marshaler = Hash{}
-var _ json.Unmarshaler = (*Hash)(nil)
+var _ encoding.TextMarshaler = Hash{}
+var _ encoding.TextUnmarshaler = (*Hash)(nil)
 
 // HashFromRaw creates a hash from a type and raw hash data. If the
 // returned error is nil, the returned Hash is valid.
@@ -227,21 +226,16 @@ func (h Hash) Verify(buf []byte) error {
 	return nil
 }
 
-// MarshalJSON implements the encoding.json.Marshaler interface for
+// MarshalText implements the encoding.TextMarshaler interface for
 // Hash.
-func (h Hash) MarshalJSON() ([]byte, error) {
-	return json.Marshal(h.String())
+func (h Hash) MarshalText() ([]byte, error) {
+	return []byte(h.String()), nil
 }
 
-// UnmarshalJSON implements the encoding.json.Unmarshaler interface
+// UnmarshalText implements the encoding.TextUnmarshaler interface
 // for Hash.
-func (h *Hash) UnmarshalJSON(data []byte) error {
-	var s string
-	err := json.Unmarshal(data, &s)
-	if err != nil {
-		return err
-	}
-	newH, err := HashFromString(s)
+func (h *Hash) UnmarshalText(data []byte) error {
+	newH, err := HashFromString(string(data))
 	if err != nil {
 		return err
 	}
@@ -258,6 +252,9 @@ type HMAC struct {
 
 var _ encoding.BinaryMarshaler = HMAC{}
 var _ encoding.BinaryUnmarshaler = (*HMAC)(nil)
+
+var _ encoding.TextMarshaler = HMAC{}
+var _ encoding.TextUnmarshaler = (*HMAC)(nil)
 
 // DefaultHMAC computes the HMAC with the given key of the given data
 // using the default hash.
@@ -306,6 +303,18 @@ func (hmac HMAC) MarshalBinary() (data []byte, err error) {
 // the HMAC is invalid.
 func (hmac *HMAC) UnmarshalBinary(data []byte) error {
 	return hmac.h.UnmarshalBinary(data)
+}
+
+// MarshalText implements the encoding.TextMarshaler interface for
+// HMAC.
+func (hmac HMAC) MarshalText() ([]byte, error) {
+	return hmac.h.MarshalText()
+}
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface
+// for HMAC.
+func (hmac *HMAC) UnmarshalText(data []byte) error {
+	return hmac.h.UnmarshalText(data)
 }
 
 // Verify makes sure that the HMAC matches the given data.

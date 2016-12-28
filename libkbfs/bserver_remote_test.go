@@ -47,7 +47,11 @@ func (fc *FakeBServerClient) maybeWaitOnChannel(ctx context.Context) error {
 
 	// say we're ready, and wait for a signal to proceed or a
 	// cancellation.
-	fc.readyChan <- struct{}{}
+	select {
+	case fc.readyChan <- struct{}{}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 	select {
 	case <-fc.goChan:
 		return nil
@@ -56,10 +60,16 @@ func (fc *FakeBServerClient) maybeWaitOnChannel(ctx context.Context) error {
 	}
 }
 
-func (fc *FakeBServerClient) maybeFinishOnChannel() {
+func (fc *FakeBServerClient) maybeFinishOnChannel(ctx context.Context) error {
 	if fc.finishChan != nil {
-		fc.finishChan <- struct{}{}
+		select {
+		case fc.finishChan <- struct{}{}:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
+	return nil
 }
 
 func (fc *FakeBServerClient) GetSessionChallenge(context.Context) (keybase1.ChallengeInfo, error) {
@@ -72,10 +82,15 @@ func (fc *FakeBServerClient) AuthenticateSession(context.Context, string) error 
 
 func (fc *FakeBServerClient) PutBlock(ctx context.Context, arg keybase1.PutBlockArg) error {
 	err := fc.maybeWaitOnChannel(ctx)
-	defer fc.maybeFinishOnChannel()
 	if err != nil {
 		return err
 	}
+	defer func() {
+		finishErr := fc.maybeFinishOnChannel(ctx)
+		if err == nil {
+			err = finishErr
+		}
+	}()
 
 	id, err := BlockIDFromString(arg.Bid.BlockHash)
 	if err != nil {
@@ -101,10 +116,15 @@ func (fc *FakeBServerClient) PutBlock(ctx context.Context, arg keybase1.PutBlock
 
 func (fc *FakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlockArg) (keybase1.GetBlockRes, error) {
 	err := fc.maybeWaitOnChannel(ctx)
-	defer fc.maybeFinishOnChannel()
 	if err != nil {
 		return keybase1.GetBlockRes{}, err
 	}
+	defer func() {
+		finishErr := fc.maybeFinishOnChannel(ctx)
+		if err == nil {
+			err = finishErr
+		}
+	}()
 
 	id, err := BlockIDFromString(arg.Bid.BlockHash)
 	if err != nil {

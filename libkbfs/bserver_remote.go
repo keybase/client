@@ -292,8 +292,7 @@ func makeBlockReference(id BlockID, context BlockContext) keybase1.BlockReferenc
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 	context BlockContext) (
-	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	var err error
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	size := -1
 	defer func() {
 		if err != nil {
@@ -318,18 +317,17 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 	}
 
 	size = len(res.Buf)
-	bk, err := kbfscrypto.ParseBlockCryptKeyServerHalf(res.BlockKey)
+	serverHalf, err = kbfscrypto.ParseBlockCryptKeyServerHalf(res.BlockKey)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
-	return res.Buf, bk, nil
+	return res.Buf, serverHalf, nil
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 	context BlockContext, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	var err error
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	size := len(buf)
 	defer func() {
 		if err != nil {
@@ -358,8 +356,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
-	id BlockID, context BlockContext) error {
-	var err error
+	id BlockID, context BlockContext) (err error) {
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(

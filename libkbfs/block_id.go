@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"encoding"
-	"encoding/json"
 
 	"github.com/keybase/kbfs/kbfshash"
 )
@@ -19,8 +18,8 @@ type BlockID struct {
 var _ encoding.BinaryMarshaler = BlockID{}
 var _ encoding.BinaryUnmarshaler = (*BlockID)(nil)
 
-var _ json.Marshaler = BlockID{}
-var _ json.Unmarshaler = (*BlockID)(nil)
+var _ encoding.TextMarshaler = BlockID{}
+var _ encoding.TextUnmarshaler = (*BlockID)(nil)
 
 // MaxBlockIDStringLength is the maximum length of the string
 // representation of a BlockID.
@@ -65,14 +64,14 @@ func (id *BlockID) UnmarshalBinary(data []byte) error {
 	return id.h.UnmarshalBinary(data)
 }
 
-// MarshalJSON implements the encoding.json.Marshaler interface for
+// MarshalText implements the encoding.TextMarshaler interface for
 // BlockID.
-func (id BlockID) MarshalJSON() ([]byte, error) {
-	return id.h.MarshalJSON()
+func (id BlockID) MarshalText() ([]byte, error) {
+	return id.h.MarshalText()
 }
 
-// UnmarshalJSON implements the encoding.json.Unmarshaler interface
+// UnmarshalText implements the encoding.TextUnmarshaler interface
 // for BlockID.
-func (id *BlockID) UnmarshalJSON(buf []byte) error {
-	return id.h.UnmarshalJSON(buf)
+func (id *BlockID) UnmarshalText(buf []byte) error {
+	return id.h.UnmarshalText(buf)
 }

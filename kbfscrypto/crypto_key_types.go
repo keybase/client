@@ -8,6 +8,7 @@ import (
 	"encoding"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -22,6 +23,9 @@ type kidContainer struct {
 
 var _ encoding.BinaryMarshaler = kidContainer{}
 var _ encoding.BinaryUnmarshaler = (*kidContainer)(nil)
+
+// TODO: Make keybase1.KID implement {Binary,Text}{M,Unm}arshaler
+// directly.
 
 var _ json.Marshaler = kidContainer{}
 var _ json.Unmarshaler = (*kidContainer)(nil)
@@ -74,25 +78,28 @@ func (k kidContainer) String() string {
 	return k.kid.String()
 }
 
-type byte32Container struct {
+type publicByte32Container struct {
 	data [32]byte
 }
 
-var _ encoding.BinaryMarshaler = byte32Container{}
-var _ encoding.BinaryUnmarshaler = (*byte32Container)(nil)
+var _ encoding.BinaryMarshaler = publicByte32Container{}
+var _ encoding.BinaryUnmarshaler = (*publicByte32Container)(nil)
 
-func (c byte32Container) Data() [32]byte {
+var _ encoding.TextMarshaler = publicByte32Container{}
+var _ encoding.TextUnmarshaler = (*publicByte32Container)(nil)
+
+func (c publicByte32Container) Data() [32]byte {
 	return c.data
 }
 
-func (c byte32Container) MarshalBinary() (data []byte, err error) {
+func (c publicByte32Container) MarshalBinary() (data []byte, err error) {
 	return c.data[:], nil
 }
 
-func (c *byte32Container) UnmarshalBinary(data []byte) error {
+func (c *publicByte32Container) UnmarshalBinary(data []byte) error {
 	if len(data) != len(c.data) {
 		err := InvalidByte32DataError{data}
-		*c = byte32Container{}
+		*c = publicByte32Container{}
 		return err
 	}
 
@@ -100,8 +107,61 @@ func (c *byte32Container) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-func (c byte32Container) String() string {
+func (c publicByte32Container) MarshalText() ([]byte, error) {
+	return []byte(c.String()), nil
+}
+
+func (c *publicByte32Container) UnmarshalText(data []byte) error {
+	buf, err := hex.DecodeString(string(data))
+	if err != nil {
+		return err
+	}
+	return c.UnmarshalBinary(buf)
+}
+
+func (c publicByte32Container) String() string {
 	return hex.EncodeToString(c.data[:])
+}
+
+type privateByte32Container struct {
+	data [32]byte
+}
+
+var _ encoding.BinaryMarshaler = privateByte32Container{}
+var _ encoding.BinaryUnmarshaler = (*privateByte32Container)(nil)
+
+var _ encoding.TextMarshaler = privateByte32Container{}
+var _ encoding.TextUnmarshaler = (*privateByte32Container)(nil)
+
+func (c privateByte32Container) Data() [32]byte {
+	return c.data
+}
+
+func (c privateByte32Container) MarshalBinary() (data []byte, err error) {
+	return c.data[:], nil
+}
+
+func (c *privateByte32Container) UnmarshalBinary(data []byte) error {
+	if len(data) != len(c.data) {
+		err := InvalidByte32DataError{data}
+		*c = privateByte32Container{}
+		return err
+	}
+
+	copy(c.data[:], data)
+	return nil
+}
+
+func (c privateByte32Container) MarshalText() ([]byte, error) {
+	return nil, errors.New("Cannot marshal private 32 bytes to text")
+}
+
+func (c *privateByte32Container) UnmarshalText(data []byte) error {
+	return errors.New("Cannot unmarshal private 32 bytes from text")
+}
+
+func (c privateByte32Container) String() string {
+	return "{private 32 bytes}"
 }
 
 // A TLFPrivateKey (m_f) is the private half of the permanent
@@ -110,16 +170,19 @@ func (c byte32Container) String() string {
 // Copies of TLFPrivateKey objects are deep copies.
 type TLFPrivateKey struct {
 	// Should only be used by implementations of Crypto.
-	byte32Container
+	privateByte32Container
 }
 
 var _ encoding.BinaryMarshaler = TLFPrivateKey{}
 var _ encoding.BinaryUnmarshaler = (*TLFPrivateKey)(nil)
 
+var _ encoding.TextMarshaler = TLFPrivateKey{}
+var _ encoding.TextUnmarshaler = (*TLFPrivateKey)(nil)
+
 // MakeTLFPrivateKey returns a TLFPrivateKey containing the given
 // data.
 func MakeTLFPrivateKey(data [32]byte) TLFPrivateKey {
-	return TLFPrivateKey{byte32Container{data}}
+	return TLFPrivateKey{privateByte32Container{data}}
 }
 
 // A TLFPublicKey (M_f) is the public half of the permanent keypair
@@ -129,16 +192,19 @@ func MakeTLFPrivateKey(data [32]byte) TLFPrivateKey {
 // Copies of TLFPublicKey objects are deep copies.
 type TLFPublicKey struct {
 	// Should only be used by implementations of Crypto.
-	byte32Container
+	publicByte32Container
 }
 
 var _ encoding.BinaryMarshaler = TLFPublicKey{}
 var _ encoding.BinaryUnmarshaler = (*TLFPublicKey)(nil)
 
+var _ encoding.TextMarshaler = TLFPublicKey{}
+var _ encoding.TextUnmarshaler = (*TLFPublicKey)(nil)
+
 // MakeTLFPublicKey returns a TLFPublicKey containing the given
 // data.
 func MakeTLFPublicKey(data [32]byte) TLFPublicKey {
-	return TLFPublicKey{byte32Container{data}}
+	return TLFPublicKey{publicByte32Container{data}}
 }
 
 // TLFEphemeralPrivateKey (m_e) is used (with a CryptPublicKey) to
@@ -150,16 +216,19 @@ func MakeTLFPublicKey(data [32]byte) TLFPublicKey {
 type TLFEphemeralPrivateKey struct {
 	// Should only be used by implementations of Crypto. Meant to
 	// be converted to libkb.NaclDHKeyPrivate.
-	byte32Container
+	privateByte32Container
 }
 
 var _ encoding.BinaryMarshaler = TLFEphemeralPrivateKey{}
 var _ encoding.BinaryUnmarshaler = (*TLFEphemeralPrivateKey)(nil)
 
+var _ encoding.TextMarshaler = TLFEphemeralPrivateKey{}
+var _ encoding.TextUnmarshaler = (*TLFEphemeralPrivateKey)(nil)
+
 // MakeTLFEphemeralPrivateKey returns a TLFEphemeralPrivateKey
 // containing the given data.
 func MakeTLFEphemeralPrivateKey(data [32]byte) TLFEphemeralPrivateKey {
-	return TLFEphemeralPrivateKey{byte32Container{data}}
+	return TLFEphemeralPrivateKey{privateByte32Container{data}}
 }
 
 // CryptPrivateKey is a private key for encryption/decryption.
@@ -220,16 +289,19 @@ func MakeCryptPublicKey(kid keybase1.KID) CryptPublicKey {
 type TLFEphemeralPublicKey struct {
 	// Should only be used by implementations of Crypto. Meant to
 	// be converted to libkb.NaclDHKeyPublic.
-	byte32Container
+	publicByte32Container
 }
 
 var _ encoding.BinaryMarshaler = TLFEphemeralPublicKey{}
 var _ encoding.BinaryUnmarshaler = (*TLFEphemeralPublicKey)(nil)
 
+var _ encoding.TextMarshaler = TLFEphemeralPublicKey{}
+var _ encoding.TextUnmarshaler = (*TLFEphemeralPublicKey)(nil)
+
 // MakeTLFEphemeralPublicKey returns a TLFEphemeralPublicKey
 // containing the given data.
 func MakeTLFEphemeralPublicKey(data [32]byte) TLFEphemeralPublicKey {
-	return TLFEphemeralPublicKey{byte32Container{data}}
+	return TLFEphemeralPublicKey{publicByte32Container{data}}
 }
 
 // TLFEphemeralPublicKeys stores a list of TLFEphemeralPublicKey
@@ -242,16 +314,19 @@ type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
 // Copies of TLFCryptKeyServerHalf objects are deep copies.
 type TLFCryptKeyServerHalf struct {
 	// Should only be used by implementations of Crypto.
-	byte32Container
+	publicByte32Container
 }
 
 var _ encoding.BinaryMarshaler = TLFCryptKeyServerHalf{}
 var _ encoding.BinaryUnmarshaler = (*TLFCryptKeyServerHalf)(nil)
 
+var _ encoding.TextMarshaler = TLFCryptKeyServerHalf{}
+var _ encoding.TextUnmarshaler = (*TLFCryptKeyServerHalf)(nil)
+
 // MakeTLFCryptKeyServerHalf returns a TLFCryptKeyServerHalf
 // containing the given data.
 func MakeTLFCryptKeyServerHalf(data [32]byte) TLFCryptKeyServerHalf {
-	return TLFCryptKeyServerHalf{byte32Container{data}}
+	return TLFCryptKeyServerHalf{publicByte32Container{data}}
 }
 
 // TLFCryptKeyClientHalf (t_u^{f,k,i} for a user u, a folder f, a key
@@ -262,16 +337,19 @@ func MakeTLFCryptKeyServerHalf(data [32]byte) TLFCryptKeyServerHalf {
 // Copies of TLFCryptKeyClientHalf objects are deep copies.
 type TLFCryptKeyClientHalf struct {
 	// Should only be used by implementations of Crypto.
-	byte32Container
+	publicByte32Container
 }
 
 var _ encoding.BinaryMarshaler = TLFCryptKeyClientHalf{}
 var _ encoding.BinaryUnmarshaler = (*TLFCryptKeyClientHalf)(nil)
 
+var _ encoding.TextMarshaler = TLFCryptKeyClientHalf{}
+var _ encoding.TextUnmarshaler = (*TLFCryptKeyClientHalf)(nil)
+
 // MakeTLFCryptKeyClientHalf returns a TLFCryptKeyClientHalf
 // containing the given data.
 func MakeTLFCryptKeyClientHalf(data [32]byte) TLFCryptKeyClientHalf {
-	return TLFCryptKeyClientHalf{byte32Container{data}}
+	return TLFCryptKeyClientHalf{publicByte32Container{data}}
 }
 
 // TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private
@@ -281,15 +359,18 @@ func MakeTLFCryptKeyClientHalf(data [32]byte) TLFCryptKeyClientHalf {
 // Copies of TLFCryptKey objects are deep copies.
 type TLFCryptKey struct {
 	// Should only be used by implementations of Crypto.
-	byte32Container
+	privateByte32Container
 }
 
 var _ encoding.BinaryMarshaler = TLFCryptKey{}
 var _ encoding.BinaryUnmarshaler = (*TLFCryptKey)(nil)
 
+var _ encoding.TextMarshaler = TLFCryptKey{}
+var _ encoding.TextUnmarshaler = (*TLFCryptKey)(nil)
+
 // MakeTLFCryptKey returns a TLFCryptKey containing the given data.
 func MakeTLFCryptKey(data [32]byte) TLFCryptKey {
-	return TLFCryptKey{byte32Container{data}}
+	return TLFCryptKey{privateByte32Container{data}}
 }
 
 // PublicTLFCryptKey is the TLFCryptKey used for all public TLFs. That
@@ -310,16 +391,19 @@ var PublicTLFCryptKey = MakeTLFCryptKey([32]byte{
 // Copies of BlockCryptKeyServerHalf objects are deep copies.
 type BlockCryptKeyServerHalf struct {
 	// Should only be used by implementations of Crypto.
-	byte32Container
+	publicByte32Container
 }
 
 var _ encoding.BinaryMarshaler = BlockCryptKeyServerHalf{}
 var _ encoding.BinaryUnmarshaler = (*BlockCryptKeyServerHalf)(nil)
 
+var _ encoding.TextMarshaler = BlockCryptKeyServerHalf{}
+var _ encoding.TextUnmarshaler = (*BlockCryptKeyServerHalf)(nil)
+
 // MakeBlockCryptKeyServerHalf returns a BlockCryptKeyServerHalf
 // containing the given data.
 func MakeBlockCryptKeyServerHalf(data [32]byte) BlockCryptKeyServerHalf {
-	return BlockCryptKeyServerHalf{byte32Container{data}}
+	return BlockCryptKeyServerHalf{publicByte32Container{data}}
 }
 
 // ParseBlockCryptKeyServerHalf returns a BlockCryptKeyServerHalf
@@ -340,18 +424,21 @@ func ParseBlockCryptKeyServerHalf(s string) (BlockCryptKeyServerHalf, error) {
 // BlockCryptKey is used to encrypt/decrypt block data. (See § 4.1.2.)
 type BlockCryptKey struct {
 	// Should only be used by implementations of Crypto.
-	byte32Container
+	privateByte32Container
 }
 
 var _ encoding.BinaryMarshaler = BlockCryptKey{}
 var _ encoding.BinaryUnmarshaler = (*BlockCryptKey)(nil)
+
+var _ encoding.TextMarshaler = BlockCryptKey{}
+var _ encoding.TextUnmarshaler = (*BlockCryptKey)(nil)
 
 // MakeBlockCryptKey returns a BlockCryptKey containing the given
 // data.
 //
 // Copies of BlockCryptKey objects are deep copies.
 func MakeBlockCryptKey(data [32]byte) BlockCryptKey {
-	return BlockCryptKey{byte32Container{data}}
+	return BlockCryptKey{privateByte32Container{data}}
 }
 
 func xorKeys(x, y [32]byte) [32]byte {

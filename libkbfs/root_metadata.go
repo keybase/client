@@ -83,6 +83,20 @@ type PrivateMetadata struct {
 	cachedChanges BlockChanges
 }
 
+// DumpPrivateMetadata returns a detailed dump of the given
+// PrivateMetadata's contents.
+func DumpPrivateMetadata(
+	codec kbfscodec.Codec, pmd PrivateMetadata) (string, error) {
+	serializedPMD, err := codec.Encode(pmd)
+	if err != nil {
+		return "", err
+	}
+
+	s := fmt.Sprintf("Size: %d bytes\n", len(serializedPMD))
+	s += dumpConfig().Sdump(pmd)
+	return s, nil
+}
+
 func (p PrivateMetadata) checkValid() error {
 	for i, op := range p.Changes.Ops {
 		err := op.checkValid()
@@ -96,6 +110,38 @@ func (p PrivateMetadata) checkValid() error {
 // ChangesBlockInfo returns the block info for any unembedded changes.
 func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
 	return p.cachedChanges.Info
+}
+
+// ExtraMetadata is a per-version blob of extra metadata which may
+// exist outside of the given metadata block, e.g. key bundles for
+// post-v2 metadata.
+type ExtraMetadata interface {
+	MetadataVersion() MetadataVer
+	DeepCopy(kbfscodec.Codec) (ExtraMetadata, error)
+	MakeSuccessorCopy(kbfscodec.Codec) (ExtraMetadata, error)
+}
+
+// DumpExtraMetadata returns a detailed dump of the given
+// ExtraMetadata's contents.
+func DumpExtraMetadata(
+	codec kbfscodec.Codec, extra ExtraMetadata) (string, error) {
+	var s string
+	switch extra := extra.(type) {
+	case *ExtraMetadataV3:
+		serializedWKB, err := codec.Encode(extra.GetWriterKeyBundle())
+		if err != nil {
+			return "", err
+		}
+		serializedRKB, err := codec.Encode(extra.GetReaderKeyBundle())
+		if err != nil {
+			return "", err
+		}
+		s = fmt.Sprintf("WKB size: %d\nRKB size: %d\n",
+			len(serializedWKB), len(serializedRKB))
+	}
+
+	s += dumpConfig().Sdump(extra)
+	return s, nil
 }
 
 // A RootMetadata is a BareRootMetadata but with a deserialized

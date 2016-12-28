@@ -968,49 +968,63 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	fc.finishChan = finishChan
 
 	prevNBlocks := fc.numBlocks()
-	ctx, cancel2 := context.WithCancel(ctx)
+	ctx2, cancel2 := context.WithCancel(ctx)
 	go func() {
 		// let the first initialBlocks blocks through.
 		for i := 0; i < initialBlocks; i++ {
-			<-readyChan
+			select {
+			case <-readyChan:
+			case <-ctx.Done():
+				t.Error(ctx.Err())
+			}
 		}
 
 		for i := 0; i < initialBlocks; i++ {
-			goChan <- struct{}{}
+			select {
+			case goChan <- struct{}{}:
+			case <-ctx.Done():
+				t.Error(ctx.Err())
+			}
 		}
 
 		for i := 0; i < initialBlocks; i++ {
-			<-finishChan
+			select {
+			case <-finishChan:
+			case <-ctx.Done():
+				t.Error(ctx.Err())
+			}
 		}
 
 		// Let each parallel block worker block on readyChan.
 		for i := 0; i < maxParallelBlockPuts; i++ {
-			<-readyChan
+			select {
+			case <-readyChan:
+			case <-ctx.Done():
+				t.Error(ctx.Err())
+			}
 		}
 
 		// Make sure all the workers are busy.
 		select {
 		case <-readyChan:
 			t.Error("Worker unexpectedly ready")
+		case <-ctx.Done():
+			t.Error(ctx.Err())
 		default:
 		}
 
+		// Let all the workers go through.
 		cancel2()
 	}()
 
-	err = kbfsOps.Sync(ctx, fileNode)
-	if err != context.Canceled {
+	err = kbfsOps.Sync(ctx2, fileNode)
+	if err != ctx2.Err() {
 		t.Errorf("Sync did not get canceled error: %v", err)
 	}
 	nowNBlocks := fc.numBlocks()
 	if nowNBlocks != prevNBlocks+2 {
 		t.Errorf("Unexpected number of blocks; prev = %d, now = %d",
 			prevNBlocks, nowNBlocks)
-	}
-
-	// Now clean up by letting the rest of the blocks through.
-	for i := 0; i < maxParallelBlockPuts; i++ {
-		<-finishChan
 	}
 
 	// Make sure there are no more workers, i.e. the extra blocks
@@ -1023,11 +1037,14 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 
 	// As a regression for KBFS-635, test that a second sync succeeds,
 	// and that future operations also succeed.
-	fc.readyChan = nil
-	fc.goChan = nil
-	fc.finishChan = nil
-	ctx = BackgroundContextWithCancellationDelayer()
-	defer CleanupCancellationDelayer(ctx)
+	//
+	// Create new objects to avoid racing with goroutines from the
+	// first sync.
+	fc = NewFakeBServerClient(config.Crypto(), log, nil, nil, nil)
+	b = newBlockServerRemoteWithClient(
+		config.Codec(), config.KBPKI(), log, fc)
+	config.BlockServer().Shutdown()
+	config.SetBlockServer(b)
 	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
 		t.Fatalf("Second sync failed: %v", err)
 	}

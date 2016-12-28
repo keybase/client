@@ -84,9 +84,11 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 		publicKey := kbfscrypto.MakeTLFEphemeralPublicKey(
 			arg.PeersPublicKey)
 		encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
-			Version:       EncryptionSecretbox,
-			EncryptedData: arg.EncryptedBytes32[:],
-			Nonce:         arg.Nonce[:],
+			encryptedData{
+				Version:       EncryptionSecretbox,
+				EncryptedData: arg.EncryptedBytes32[:],
+				Nonce:         arg.Nonce[:],
+			},
 		}
 		clientHalf, err := fc.Local.DecryptTLFCryptKeyClientHalf(
 			context.Background(), publicKey, encryptedClientHalf)
@@ -107,9 +109,11 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 			ePublicKey := kbfscrypto.MakeTLFEphemeralPublicKey(
 				k.PublicKey)
 			encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
-				Version:       EncryptionSecretbox,
-				EncryptedData: make([]byte, len(k.Ciphertext)),
-				Nonce:         make([]byte, len(k.Nonce)),
+				encryptedData{
+					Version:       EncryptionSecretbox,
+					EncryptedData: make([]byte, len(k.Ciphertext)),
+					Nonce:         make([]byte, len(k.Nonce)),
+				},
 			}
 			copy(encryptedClientHalf.EncryptedData, k.Ciphertext[:])
 			copy(encryptedClientHalf.Nonce, k.Nonce[:])
@@ -223,11 +227,13 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 
 	clientHalfData := clientHalf.Data()
 	ephPrivateKeyData := ephPrivateKey.Data()
-	encryptedData := box.Seal(nil, clientHalfData[:], &nonce, (*[32]byte)(&dhKeyPair.Public), &ephPrivateKeyData)
+	encryptedBytes := box.Seal(nil, clientHalfData[:], &nonce, (*[32]byte)(&dhKeyPair.Public), &ephPrivateKeyData)
 	encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
-		Version:       EncryptionSecretbox,
-		Nonce:         nonce[:],
-		EncryptedData: encryptedData,
+		encryptedData{
+			Version:       EncryptionSecretbox,
+			Nonce:         nonce[:],
+			EncryptedData: encryptedBytes,
+		},
 	}
 
 	decryptedClientHalf, err := c.DecryptTLFCryptKeyClientHalf(

@@ -114,7 +114,9 @@ func expectBlockEncrypt(config *ConfigMock, kmd KeyMetadata, decData Block, plai
 		kbfscrypto.TLFCryptKey{}).Return(
 		kbfscrypto.BlockCryptKey{}, nil)
 	encryptedBlock := EncryptedBlock{
-		EncryptedData: encData,
+		encryptedData{
+			EncryptedData: encData,
+		},
 	}
 	config.mockCrypto.EXPECT().EncryptBlock(decData,
 		kbfscrypto.BlockCryptKey{}).

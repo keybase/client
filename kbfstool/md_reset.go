@@ -61,7 +61,7 @@ func mdResetOne(
 		"Will put an empty root block for tlfID=%s with blockInfo=%s and bufLen=%d\n",
 		rmdNext.TlfID(), info, readyBlockData.GetEncodedSize())
 	fmt.Print("Will put MD:\n")
-	err = mdDumpOneReadOnly(ctx, config, rmdNext.ReadOnly())
+	err = mdDumpReadOnlyRMD(ctx, config, rmdNext.ReadOnly())
 	if err != nil {
 		return err
 	}
