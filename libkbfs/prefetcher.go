@@ -47,7 +47,11 @@ func newBlockPrefetcher(retriever blockRetriever) *blockPrefetcher {
 		shutdownCh: make(chan struct{}),
 		doneCh:     make(chan struct{}),
 	}
-	go p.run()
+	if retriever == nil {
+		p.Shutdown()
+	} else {
+		go p.run()
+	}
 	return p
 }
 
