@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -748,11 +749,36 @@ func (t TLFID) ToBytes() []byte {
 }
 
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
-	return b == TLFIdentifyBehavior_CHAT_GUI || b == TLFIdentifyBehavior_CHAT_CLI
+	return b == TLFIdentifyBehavior_CHAT_GUI || b == TLFIdentifyBehavior_CHAT_CLI ||
+		b == TLFIdentifyBehavior_CHAT_GUI_STRICT
 }
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	return b == TLFIdentifyBehavior_CHAT_GUI
+}
+
+func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
+	if c.CanonicalName != r.CanonicalName {
+		return false
+	}
+	if c.TlfID != r.TlfID {
+		return false
+	}
+	if len(c.Breaks.Breaks) != len(r.Breaks.Breaks) {
+		return false
+	}
+
+	m := make(map[string]bool)
+	for _, b := range c.Breaks.Breaks {
+		m[b.User.Username] = true
+	}
+	for _, b := range r.Breaks.Breaks {
+		if !m[b.User.Username] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (c CanonicalTlfName) String() string {
@@ -781,6 +807,16 @@ func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
 	return &ret
 }
 
+func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
+	i := sort.Search(len(u.RemoteTracks), func(j int) bool {
+		return u.RemoteTracks[j].Username >= s
+	})
+	if i >= len(u.RemoteTracks) {
+		return nil
+	}
+	return &u.RemoteTracks[i]
+}
+
 func (u UserPlusAllKeys) GetUID() UID {
 	return u.Base.GetUID()
 }
@@ -804,4 +840,17 @@ func (u UserVersionVector) Equal(u2 UserVersionVector) bool {
 		return false
 	}
 	return true
+}
+
+func (d DurationSec) Duration() time.Duration {
+	return time.Duration(d) * time.Second
+}
+
+func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
+	for _, k := range u.Base.DeviceKeys {
+		if k.DeviceID.Eq(d) {
+			return &k
+		}
+	}
+	return nil
 }
