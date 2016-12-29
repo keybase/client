@@ -10,8 +10,10 @@ try {
 } catch (i) {
 }
 
-const name = 'dist/main.bundle.js'
-const params = [name]
+const params = [
+  '--js-flags="--harmony"',
+  'dist/main.bundle.js',
+]
 
 // Find extensions
 let devToolRoots = process.env.KEYBASE_DEV_TOOL_ROOTS
