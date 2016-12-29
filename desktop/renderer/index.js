@@ -19,6 +19,8 @@ import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../shared/actions/config'
 import {devEditAction} from '../shared/reducers/dev-edit'
 import {disable as disableDragDrop} from '../shared/util/drag-drop'
+import {getUserImage, loadUserImage} from '../shared/util/pictures'
+import {initAvatarLookup, initAvatarLoad} from '../shared/common-adapters'
 import {listenForNotifications} from '../shared/actions/notifications'
 import {changedFocus} from '../shared/actions/window'
 import {merge, throttle} from 'lodash'
@@ -42,11 +44,17 @@ function setupStore () {
   return _store
 }
 
+function setupAvatar () {
+  initAvatarLookup(getUserImage)
+  initAvatarLoad(loadUserImage)
+}
+
 function setupApp (store) {
   setupSource()
   disableDragDrop()
   makeEngine()
   loadPerf()
+  setupAvatar()
 
   if (devStoreChangingFunctions) {
     window.devEdit = (path, value) => store.dispatch(devEditAction(path, value))

@@ -8,10 +8,9 @@ const avatarSize = 112
 
 class UserCard extends Component<void, Props, void> {
   render () {
-    const url = this.props.username ? `https://keybase.io/${this.props.username}/picture` : null
     return (
       <div style={{...styles.container, ...this.props.outerStyle}}>
-        <Avatar size={avatarSize} onClick={this.props.onAvatarClicked} url={url} />
+        <Avatar size={avatarSize} onClick={this.props.onAvatarClicked} username={this.props.username} />
         <div style={{...styles.inside, ...this.props.style}}>
           {this.props.children}
         </div>
