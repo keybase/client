@@ -106,3 +106,5 @@ func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                  
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState)                          {}
 func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                        {}
 func (n *nlistener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
+func (n *nlistener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
+}
