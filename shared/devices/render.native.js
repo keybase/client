@@ -80,8 +80,8 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
 const DeviceHeader = ({onAddNew}) => (
   <ClickableBox onClick={onAddNew}>
     <Box style={{...stylesCommonRow, alignItems: 'center'}}>
-      <Icon type='icon-devices-add-64-x-48' style={{padding: 5}} />
-      <Text type='BodyPrimaryLink' style={{padding: 5}}>Add new...</Text>
+      <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 5}} />
+      <Text type='HeaderLink' style={{padding: 5}}>Add new...</Text>
     </Box>
   </ClickableBox>
 )
