@@ -317,14 +317,13 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 	}()
 	if fbo != nil {
 		lState := makeFBOLockState()
-		rmd = fbo.getHead(lState)
+		rmd, err = fbo.getMDForReadNeedIdentify(ctx, lState)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 	if rmd != (ImmutableRootMetadata{}) {
-		if !fbo.identifyDone && getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() {
-			kbpki := fs.config.KBPKI()
-			err = identifyHandle(ctx, kbpki, kbpki, tlfHandle)
-		}
-		return rmd, err
+		return rmd, nil
 	}
 
 	_, rmd, err = fs.config.MDOps().GetForHandle(ctx, tlfHandle, Unmerged)
