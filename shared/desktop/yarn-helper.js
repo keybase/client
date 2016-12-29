@@ -518,7 +518,7 @@ if (!info) {
 info = inject(info)
 
 if (info.shell) {
-  exec(info.shell, info.env)
+  exec(info.shell, info.env, info.options)
 }
 
 if (info.code) {

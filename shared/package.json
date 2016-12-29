@@ -25,7 +25,7 @@
     "postinstall": "yarn run _helper postinstall",
     "render-screenshots": "yarn run _helper render-screenshots",
     "setup-debug-main": "yarn run _helper setup-debug-main",
-    "start": "yarn run _helper start",
+    "start": "yarn run build-main-thread && yarn run build-wpdll && yarn run _helper start",
     "start-cold": "yarn run _helper start-cold",
     "start-hot": "yarn run _helper start-hot",
     "start-hot-debug": "yarn run _helper start-hot-debug",
