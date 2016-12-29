@@ -28,6 +28,9 @@ func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() cha
 func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
 	// Do nothing here, we don't care about pushed messages
+
+	// The bool param here is to indicate the update given is continuous to our current state,
+	// which for this source is not relevant, so we just return true
 	return chat1.MessageUnboxed{}, true, nil
 }
 
@@ -99,11 +102,11 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
 
 	var err error
-	append := false
+	continuousUpdate := false
 
 	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(s.G().Log), msg)
 	if err != nil {
-		return decmsg, append, err
+		return decmsg, continuousUpdate, err
 	}
 
 	// Check conversation ID and change to error if it is wrong
@@ -119,17 +122,17 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
 	switch err.(type) {
 	case libkb.ChatStorageMissError:
-		append = true
+		continuousUpdate = true
 	case nil:
-		append = maxMsgID >= decmsg.GetMessageID()-1
+		continuousUpdate = maxMsgID >= decmsg.GetMessageID()-1
 	default:
-		return decmsg, append, err
+		return decmsg, continuousUpdate, err
 	}
 	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
-		return decmsg, append, err
+		return decmsg, continuousUpdate, err
 	}
 
-	return decmsg, append, nil
+	return decmsg, continuousUpdate, nil
 }
 
 func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,
