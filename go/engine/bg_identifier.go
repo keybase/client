@@ -171,17 +171,22 @@ func (b *BackgroundIdentifier) waitUntil() time.Time {
 }
 
 func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
-	defer b.G().Trace("BackgroundIdentifier#Run", func() error { return err })()
+	fn := "BackgroundIdentifier#Run"
+	defer b.G().Trace(fn, func() error { return err })()
 
 	if !b.settings.Enabled {
-		b.G().Log.Debug("Bailing out since BackgroundIdentifier isn't enabled")
+		b.G().Log.Debug("%s: Bailing out since BackgroundIdentifier isn't enabled", fn)
 		return nil
 	}
 
 	keepGoing := true
 	for keepGoing {
 		waitUntil := b.waitUntil()
-		b.G().Log.Debug("BackgroundIdentifier#Run: waiting %s", waitUntil.Sub(b.G().Clock().Now()))
+		if waitUntil.IsZero() {
+			b.G().Log.Debug("%s: not waiting, got an immediate identifiee", fn)
+		} else {
+			b.G().Log.Debug("%s: waiting %s", fn, waitUntil.Sub(b.G().Clock().Now()))
+		}
 		select {
 		case <-b.untilCh:
 			keepGoing = false
