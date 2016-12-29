@@ -816,6 +816,15 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 	return nil
 }
 
+func (g *gregorHandler) sendChatStaleNotifications() {
+
+	// Alert Electron that all chat information could be out of date. Empty conversation ID
+	// list means everything needs to be refreshed
+	uid := keybase1.UID(g.gregorCli.User.String())
+	g.G().NotifyRouter.HandleChatInboxStale(context.Background(), uid)
+	g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), uid, []chat1.ConversationID{})
+}
+
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
 	g.Debug("handleOutOfBand: %+v", obm)
 
@@ -838,6 +847,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.chatTlfFinalize(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
+		g.sendChatStaleNotifications()
 		return nil
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())
@@ -962,12 +972,11 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		} else {
 			g.G().Log.Debug("push handler: chat activity: newMessage: outboxID is empty")
 		}
-
 		uid := m.UID().Bytes()
 
 		var identBreaks []keybase1.TLFIdentifyFailure
 		ctx = utils.IdentifyModeCtx(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks)
-		decmsg, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
+		decmsg, append, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
 		}
@@ -983,6 +992,16 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			Message: decmsg,
 			ConvID:  nm.ConvID,
 		})
+
+		// If this message was not "appended", meaning there is a hole between what we have in cache,
+		// and this message, then we send out a notification that this thread should be considered
+		// stale
+		if !append {
+			g.G().Log.Debug("push handler: chat activity: newMessage: non-append message, alerting")
+			kuid := keybase1.UID(m.UID().String())
+			g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid,
+				[]chat1.ConversationID{nm.ConvID})
+		}
 
 		if g.badger != nil && nm.UnreadUpdate != nil {
 			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
