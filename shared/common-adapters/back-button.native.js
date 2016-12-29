@@ -5,7 +5,7 @@ import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import Box from './box'
 import Text from './text'
 import Icon from './icon'
-import {globalStyles} from '../styles'
+import {globalStyles, globalColors} from '../styles'
 import type {Props} from './back-button'
 
 export default class BackButton extends Component {
@@ -23,8 +23,7 @@ export default class BackButton extends Component {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
         <Box style={{...styles.container, ...this.props.style}} >
-          <Icon type='iconfont-back' style={{...styles.icon, ...this.props.iconStyle}} />
-          {this.props.title !== null && <Text type='BodyPrimaryLink' style={this.props.textStyle} onClick={e => this.onClick(e)}>{this.props.title || 'Back'}</Text>}
+          <Icon type='iconfont-back' style={{...styles.icon, ...this.props.iconStyle, color: globalColors.blue}} />
         </Box>
       </NativeTouchableWithoutFeedback>
     )
