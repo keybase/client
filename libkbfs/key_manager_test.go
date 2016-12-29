@@ -215,10 +215,6 @@ func (kmd emptyKeyMetadata) GetHistoricTLFCryptKey(
 	return kbfscrypto.TLFCryptKey{}, nil
 }
 
-func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerPublicTLFCryptKey)
-}
-
 func testKeyManagerPublicTLFCryptKey(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -260,11 +256,6 @@ func testKeyManagerPublicTLFCryptKey(t *testing.T, ver MetadataVer) {
 	}
 }
 
-func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
-	runTestOverMetadataVers(t,
-		testKeyManagerCachedSecretKeyForEncryptionSuccess)
-}
-
 func testKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -281,11 +272,6 @@ func testKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T, ver Metadat
 	require.Equal(t, cachedTLFCryptKey, tlfCryptKey)
 }
 
-func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
-	runTestOverMetadataVers(t,
-		testKeyManagerCachedSecretKeyForMDDecryptionSuccess)
-}
-
 func testKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -300,11 +286,6 @@ func testKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T, ver Metad
 		GetTLFCryptKeyForMDDecryption(ctx, kmd, kmd)
 	require.NoError(t, err)
 	require.Equal(t, cachedTLFCryptKey, tlfCryptKey)
-}
-
-func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
-	runTestOverMetadataVers(t,
-		testKeyManagerCachedSecretKeyForBlockDecryptionSuccess)
 }
 
 func testKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver MetadataVer) {
@@ -335,11 +316,6 @@ func makeDirWKeyInfoMap(uid keybase1.UID,
 	}
 }
 
-func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
-	runTestOverMetadataVers(t,
-		testKeyManagerUncachedSecretKeyForEncryptionSuccess)
-}
-
 func testKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -367,11 +343,6 @@ func testKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T, ver Metad
 	require.Equal(t, storedTLFCryptKey, tlfCryptKey)
 }
 
-func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
-	runTestOverMetadataVers(t,
-		testKeyManagerUncachedSecretKeyForMDDecryptionSuccess)
-}
-
 func testKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -396,11 +367,6 @@ func testKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T, ver Met
 		GetTLFCryptKeyForMDDecryption(ctx, rmd, rmd)
 	require.NoError(t, err)
 	require.Equal(t, storedTLFCryptKey, tlfCryptKey)
-}
-
-func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
-	runTestOverMetadataVers(t,
-		testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess)
 }
 
 func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver MetadataVer) {
@@ -436,10 +402,6 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 	require.Equal(t, storedTLFCryptKey1, tlfCryptKey)
 }
 
-func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeySuccessPrivate)
-}
-
 func testKeyManagerRekeySuccessPrivate(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -459,10 +421,6 @@ func testKeyManagerRekeySuccessPrivate(t *testing.T, ver MetadataVer) {
 	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
 		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 	}
-}
-
-func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyResolveAgainSuccessPublic)
 }
 
 func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver MetadataVer) {
@@ -505,11 +463,6 @@ func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver MetadataVer)
 	require.NoError(t, err)
 }
 
-func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyResolveAgainSuccessPublicSelf)
-
-}
-
 func testKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -543,11 +496,6 @@ func testKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T, ver Metadata
 	require.NoError(t, err)
 	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 	rmd.tlfHandle = oldHandle
-}
-
-func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyResolveAgainSuccessPrivate)
-
 }
 
 func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer) {
@@ -627,10 +575,6 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer
 	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 }
 
-func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerPromoteReaderSuccessPrivate)
-}
-
 func testKeyManagerPromoteReaderSuccessPrivate(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -666,10 +610,6 @@ func testKeyManagerPromoteReaderSuccessPrivate(t *testing.T, ver MetadataVer) {
 	require.Equal(t,
 		CanonicalTlfName("alice,bob"),
 		newH.GetCanonicalName())
-}
-
-func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerReaderRekeyResolveAgainSuccessPrivate)
 }
 
 func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer) {
@@ -749,10 +689,6 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver Metad
 	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 }
 
-func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate)
-}
-
 func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver MetadataVer) {
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -819,10 +755,6 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver Met
 	newBareH, err := rmd.MakeBareTlfHandle()
 	require.NoError(t, err)
 	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
-}
-
-func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyAddAndRevokeDevice)
 }
 
 func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
@@ -1041,10 +973,6 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	}
 }
 
-func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyAddWriterAndReaderDevice)
-}
-
 func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) {
 	var u1, u2, u3 libkb.NormalizedUsername = "u1", "u2", "u3"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2, u3)
@@ -1139,10 +1067,6 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	_ = GetRootNodeOrBust(ctx, t, config3, name, false)
 }
 
-func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerSelfRekeyAcrossDevices)
-}
-
 func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
@@ -1226,10 +1150,6 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	}
 }
 
-func TestKeyManagerReaderRekey(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerReaderRekey)
-}
-
 func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
@@ -1311,10 +1231,6 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	if _, ok := children2["a"]; !ok {
 		t.Fatalf("Device 2 couldn't see user 1's dir entry")
 	}
-}
-
-func TestKeyManagerReaderRekeyAndRevoke(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerReaderRekeyAndRevoke)
 }
 
 func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
@@ -1408,9 +1324,6 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 // This tests 2 variations of the situation where clients w/o the folder key set the rekey bit.
 // In one case the client is a writer and in the other a reader. They both blindly copy the existing
 // metadata and simply set the rekey bit. Then another participant rekeys the folder and they try to read.
-func TestKeyManagerRekeyBit(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyBit)
-}
 
 func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	var u1, u2, u3 libkb.NormalizedUsername = "u1", "u2", "u3"
@@ -1583,9 +1496,6 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 
 // Two devices conflict when revoking a 3rd device.
 // Test that after this both can still read the latest version of the folder.
-func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyAddAndRevokeDeviceWithConflict)
-}
 
 func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver MetadataVer) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
@@ -1731,10 +1641,6 @@ func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
 		ctx, keys, promptPaper)
 }
 
-func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyAddDeviceWithPrompt)
-}
-
 func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
@@ -1851,10 +1757,6 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	if _, ok := children["b"]; !ok {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
-}
-
-func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyAddDeviceWithPromptAfterRestart)
 }
 
 func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver MetadataVer) {
@@ -1981,10 +1883,6 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	}
 }
 
-func TestKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T) {
-	runTestOverMetadataVers(t, testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess)
-}
-
 func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver MetadataVer) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
@@ -2099,4 +1997,34 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	ops.mdWriterLock.Unlock(lState)
 
 	GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
+}
+
+func TestKeyManager(t *testing.T) {
+	tests := []func(*testing.T, MetadataVer){
+		testKeyManagerPublicTLFCryptKey,
+		testKeyManagerCachedSecretKeyForEncryptionSuccess,
+		testKeyManagerCachedSecretKeyForMDDecryptionSuccess,
+		testKeyManagerCachedSecretKeyForBlockDecryptionSuccess,
+		testKeyManagerUncachedSecretKeyForEncryptionSuccess,
+		testKeyManagerUncachedSecretKeyForMDDecryptionSuccess,
+		testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess,
+		testKeyManagerRekeySuccessPrivate,
+		testKeyManagerRekeyResolveAgainSuccessPublic,
+		testKeyManagerRekeyResolveAgainSuccessPublicSelf,
+		testKeyManagerRekeyResolveAgainSuccessPrivate,
+		testKeyManagerPromoteReaderSuccessPrivate,
+		testKeyManagerReaderRekeyResolveAgainSuccessPrivate,
+		testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate,
+		testKeyManagerRekeyAddAndRevokeDevice,
+		testKeyManagerRekeyAddWriterAndReaderDevice,
+		testKeyManagerSelfRekeyAcrossDevices,
+		testKeyManagerReaderRekey,
+		testKeyManagerReaderRekeyAndRevoke,
+		testKeyManagerRekeyBit,
+		testKeyManagerRekeyAddAndRevokeDeviceWithConflict,
+		testKeyManagerRekeyAddDeviceWithPrompt,
+		testKeyManagerRekeyAddDeviceWithPromptAfterRestart,
+		testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess,
+	}
+	runTestsOverMetadataVers(t, "testKeyManager", tests)
 }
