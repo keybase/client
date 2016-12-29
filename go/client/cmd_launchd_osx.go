@@ -283,7 +283,7 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdLaunchdStatus) Run() error {
-	serviceStatus, err := install.ServiceStatus(v.G(), v.label, 0, v.G().Log)
+	serviceStatus, err := install.ServiceStatus(v.G(), v.label, defaultLaunchdWait, v.G().Log)
 	if err != nil {
 		return err
 	}

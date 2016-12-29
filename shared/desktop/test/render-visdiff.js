@@ -89,7 +89,7 @@ app.on('ready', () => {
 
         console.log('Worker window did-finish-load:', i)
         workerWin.webContents.send('load', {
-          scripts: [scriptPath],
+          scripts: [{src: scriptPath}],
           firstDisplay,
         })
         rendering++

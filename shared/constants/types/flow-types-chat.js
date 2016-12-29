@@ -588,7 +588,7 @@ export type EncryptedData = {
 }
 
 export type FailedMessageInfo = {
-  outboxIDs?: ?Array<OutboxID>,
+  outboxRecords?: ?Array<OutboxRecord>,
 }
 
 export type GenericPayload = {

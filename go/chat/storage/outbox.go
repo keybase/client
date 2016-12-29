@@ -235,7 +235,7 @@ func (o *Outbox) RetryMessage(obid chat1.OutboxID) error {
 	return nil
 }
 
-func (o *Outbox) MarkAllAsError() ([]chat1.OutboxID, error) {
+func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
 	o.Lock()
 	defer o.Unlock()
 
@@ -247,21 +247,19 @@ func (o *Outbox) MarkAllAsError() ([]chat1.OutboxID, error) {
 
 	// Loop through and find record
 	var recs []chat1.OutboxRecord
-	var res []chat1.OutboxID
 	for _, obr := range obox.Records {
 		obr.State = chat1.NewOutboxStateWithError("failed to send")
 		recs = append(recs, obr)
-		res = append(res, obr.OutboxID)
 	}
 
 	// Write out box
 	obox.Records = recs
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-		return res, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
+		return recs, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()))
 	}
 
-	return res, nil
+	return recs, nil
 }
 
 func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {

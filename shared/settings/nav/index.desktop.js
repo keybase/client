@@ -4,7 +4,6 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
 import {
   landingTab,
-  updatePaymentTab,
   invitationsTab,
   notificationsTab,
   deleteMeTab,
@@ -30,12 +29,6 @@ function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
         selected={selectedTab === landingTab}
         badgeNumber={badgeNumbers[landingTab]}
         onClick={() => onTabChange(landingTab)}
-      />
-      <SettingsItem
-        text='Update Payment'
-        selected={selectedTab === updatePaymentTab}
-        badgeNumber={badgeNumbers[updatePaymentTab]}
-        onClick={() => onTabChange(updatePaymentTab)}
       />
       <SettingsItem
         text='Invitations'
@@ -71,7 +64,6 @@ const styleNavBox = {
   backgroundColor: globalColors.white,
   borderRight: '1px solid ' + globalColors.black_05,
   width: 144,
-  paddingTop: globalMargins.large,
 }
 
 const itemStyle = {

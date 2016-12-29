@@ -33,8 +33,15 @@ export default function () {
   webContents.on('did-finish-load', () => {
     webContents.send('load', {
       scripts: [
-        ...(__DEV__ ? [resolveRootAsURL('dist', 'dll/dll.vendor.js')] : []),
-        ...[hotPath('index.bundle.js')]],
+        ...(__DEV__ ? [{
+          src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+          async: false,
+        }] : []),
+        {
+          src: hotPath('index.bundle.js'),
+          async: false,
+        },
+      ],
     })
   })
 
@@ -80,7 +87,7 @@ export default function () {
   // - or, if we are restoring and dock was hidden
   // - or, if we were opened from login (but not restoring)
   const shouldHideDockIcon = openHidden || (isRestore && appState.state.dockHidden) || (openedAtLogin && !isRestore)
-  console.log('Hide dock icon: %s', shouldHideDockIcon)
+  console.log('Hide dock icon:', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()
   }

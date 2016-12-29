@@ -73,7 +73,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		return &libkb.TestSecretUI{Passphrase: user.Passphrase}
 	}
 	storage := storage.New(tc.G, f)
-	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage, mockRemote)
+	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage,
+		func() chat1.RemoteInterface { return mockRemote })
 	h.setTestRemoteClient(mockRemote)
 
 	tuc := &chatTestUserContext{
