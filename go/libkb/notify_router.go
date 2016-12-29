@@ -42,13 +42,10 @@ type NotifyListener interface {
 	KeyfamilyChanged(uid keybase1.UID)
 	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)
 	ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)
-<<<<<<< HEAD
 	ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
 		finalizeInfo chat1.ConversationFinalizeInfo)
-=======
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
->>>>>>> send stale notifications whenever we reconnect to gregor, or detect
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -542,7 +539,11 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 			go func() {
 				(chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).ChatTLFFinalize(context.Background(), uid, convID, finalizeInfo)
+				}).ChatTLFFinalize(context.Background(), chat1.ChatTLFFinalizeArg{
+					Uid:          uid,
+					ConvID:       convID,
+					FinalizeInfo: finalizeInfo,
+				})
 				wg.Done()
 			}()
 		}
