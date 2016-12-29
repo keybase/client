@@ -57,4 +57,8 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatIdentifyUpdate(keybase1.CanonicalTLFNameAndIDWithBreaks update);
+
+  @notify("")
+  @lint("ignore")
+  void ChatTLFFinalize(keybase1.UID uid, ConversationID convID, ConversationFinalizeInfo finalizeInfo);
 }

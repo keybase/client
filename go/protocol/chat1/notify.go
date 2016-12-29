@@ -209,9 +209,16 @@ type ChatIdentifyUpdateArg struct {
 	Update keybase1.CanonicalTLFNameAndIDWithBreaks `codec:"update" json:"update"`
 }
 
+type ChatTLFFinalizeArg struct {
+	Uid          keybase1.UID             `codec:"uid" json:"uid"`
+	ConvID       ConversationID           `codec:"convID" json:"convID"`
+	FinalizeInfo ConversationFinalizeInfo `codec:"finalizeInfo" json:"finalizeInfo"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
+	ChatTLFFinalize(context.Context, ChatTLFFinalizeArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -250,6 +257,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatTLFFinalize": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatTLFFinalizeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatTLFFinalizeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatTLFFinalizeArg)(nil), args)
+						return
+					}
+					err = i.ChatTLFFinalize(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -266,5 +289,10 @@ func (c NotifyChatClient) NewChatActivity(ctx context.Context, __arg NewChatActi
 func (c NotifyChatClient) ChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) (err error) {
 	__arg := ChatIdentifyUpdateArg{Update: update}
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatIdentifyUpdate", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatTLFFinalize(ctx context.Context, __arg ChatTLFFinalizeArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFFinalize", []interface{}{__arg})
 	return
 }

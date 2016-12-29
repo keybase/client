@@ -835,6 +835,8 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
 		return g.newChatActivity(ctx, obm)
+	case "chat.tlffinalize":
+		return g.chatTlfFinalize(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -889,6 +891,31 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 		return err
 	}
 	g.G().NotifyRouter.HandleFavoritesChanged(kbUID)
+	return nil
+}
+
+func (g *gregorHandler) chatTlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) error {
+	if m.Body() == nil {
+		return errors.New("gregor handler for chat.tlffinalize: nil message body")
+	}
+
+	g.G().Log.Debug("push handler: tlf finalize received")
+
+	var finalizeInfo chat1.TLFFinalizeUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err := dec.Decode(&finalizeInfo)
+	if err != nil {
+		return err
+	}
+
+	// Send one for each conversation ID
+	uid := m.UID().String()
+	for _, convID := range finalizeInfo.ConvIDs {
+		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid),
+			convID, finalizeInfo.FinalizeInfo)
+	}
+
 	return nil
 }
 
