@@ -184,6 +184,8 @@ protocol local {
     // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;
     array<string> readerNames;
+
+    union { null, ConversationFinalizeInfo } finalizeInfo;
   }
 
   // ConversationLocal, whenever present, has a valid `identifyFailures` field that
@@ -193,9 +195,13 @@ protocol local {
     union { null, string } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
+    array<ConversationID> supersedes;
+    array<ConversationID> supersededBy;
+
     array<MessageUnboxed> maxMessages; // the latest message for each message type
-	// Whether this conversation has no content-ful messages.
-	boolean isEmpty;
+	
+    // Whether this conversation has no content-ful messages.
+	  boolean isEmpty;
 
     // This field, if null or empty, indicates identify succeeded without any
     // break.

@@ -545,12 +545,15 @@ export type ConversationInfoLocal = {
   visibility: TLFVisibility,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
+  finalizeInfo?: ?ConversationFinalizeInfo,
 }
 
 export type ConversationLocal = {
   error?: ?string,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
+  supersedes?: ?Array<ConversationID>,
+  supersededBy?: ?Array<ConversationID>,
   maxMessages?: ?Array<MessageUnboxed>,
   isEmpty: boolean,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
@@ -1052,6 +1055,7 @@ export type SignatureInfo = {
 export type TLFFinalizeUpdate = {
   finalizeInfo: ConversationFinalizeInfo,
   convIDs?: ?Array<ConversationID>,
+  inboxVers: InboxVers,
 }
 
 export type TLFID = bytes

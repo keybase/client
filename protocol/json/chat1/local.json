@@ -558,6 +558,13 @@
             "items": "string"
           },
           "name": "readerNames"
+        },
+        {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
         }
       ]
     },
@@ -579,6 +586,20 @@
         {
           "type": "ConversationReaderInfo",
           "name": "readerInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "supersededBy"
         },
         {
           "type": {
