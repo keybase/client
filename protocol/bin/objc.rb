@@ -17,20 +17,21 @@ end
 
 script_path = File.expand_path(File.dirname(__FILE__))
 
-paths = Dir["#{script_path}/../json/*.json"]
+paths = Dir["#{script_path}/../json/keybase1/*.json"]
 
 # Add common first to workaround import ordering, TODO: Fixme
-paths_move = ["#{script_path}/../json/common.json",
-  "#{script_path}/../json/prove_common.json",
-  "#{script_path}/../json/identify_common.json",
-  "#{script_path}/../json/saltpack_ui.json"]
+paths_move = ["#{script_path}/../json/keybase1/common.json",
+  "#{script_path}/../json/keybase1/prove_common.json",
+  "#{script_path}/../json/keybase1/identify_common.json",
+  "#{script_path}/../json/keybase1/identify_ui.json",
+  "#{script_path}/../json/keybase1/saltpack_ui.json"]
 paths_move.reverse.each do |p|
   paths.delete(p)
   paths.unshift(p)
 end
 # Uses external import, TODO: Fixme
-paths.delete("#{script_path}/../json/gregor_ui.json")
-paths.delete("#{script_path}/../json/gregor.json")
+paths.delete("#{script_path}/../json/keybase1/gregor_ui.json")
+paths.delete("#{script_path}/../json/keybase1/gregor.json")
 
 defined_types = []
 enums = []
@@ -41,6 +42,7 @@ def classname(type, aliases)
 
   case type
   when "int" then "NSNumber"
+  when "int64" then "NSNumber"
   when "long" then "NSNumber"
   when "float" then "NSNumber"
   when "double" then "NSNumber"
@@ -61,6 +63,7 @@ def objc_for_type(type, enums, aliases, space)
   name, ptr = case type
   when "string" then ["NSString *", true]
   when "int" then ["NSInteger", false]
+  when "int64" then ["long", false]
   when "long" then ["long", false]
   when "float" then ["float", false]
   when "double" then ["double", false]
@@ -91,7 +94,7 @@ end
 
 def is_primitive_type(type)
   type = type.find { |t| t != "null" && !t.nil? } if type.kind_of?(Array) # Union
-  ["int", "long", "float", "double", "boolean", "bool", "null", nil, "Time"].include?(type)
+  ["int", "int64", "long", "float", "double", "boolean", "bool", "null", nil, "Time"].include?(type)
 end
 
 # Deprecated
@@ -122,6 +125,7 @@ def default_name_for_type(type)
   case type
   when "string" then "str"
   when "int" then "n"
+  when "int64" then "n"
   when "long" then "l"
   when "float" then "f"
   when "double" then "d"
@@ -164,6 +168,7 @@ def value_for_type(type, name, enums, aliases)
 
   case type
   when "int" then "[#{varname} integerValue]"
+  when "int64" then "[#{varname} longValue]"
   when "long" then "[#{varname} longValue]"
   when "float" then "[#{varname} floatValue]"
   when "double" then "[#{varname} doubleValue]"
@@ -312,7 +317,9 @@ paths.each do |path|
     # Generate with params object
     request_params_items = request_params.map do |p|
       name = validate_name(p["name"], protocol)
-      if is_primitive_type(p["type"]) || enums.include?(p["type"])
+      type = p["type"]
+      type = aliases[type] if aliases[type]
+      if is_primitive_type(type) || enums.include?(type)
         "@\"#{p["name"]}\": @(params.#{alias_name(name)})"
       else
         "@\"#{p["name"]}\": KBRValue(params.#{alias_name(name)})"
@@ -337,7 +344,9 @@ paths.each do |path|
     if request_params.length > 0
       request_params_items = request_params.map do |p|
         name = validate_name(p["name"], protocol)
-        if is_primitive_type(p["type"]) || enums.include?(p["type"])
+        type = p["type"]
+        type = aliases[type] if aliases[type]
+        if is_primitive_type(type) || enums.include?(type)
           "@\"#{p["name"]}\": @(#{alias_name(name)})"
         else
           "@\"#{p["name"]}\": KBRValue(#{alias_name(name)})"

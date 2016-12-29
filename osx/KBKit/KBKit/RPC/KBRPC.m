@@ -13,6 +13,223 @@
 
 @end
 
+@implementation KBRIdentifyUiRequest
+
+- (void)displayTLFCreateWithInvite:(KBRDisplayTLFCreateWithInviteRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"folderName": KBRValue(params.folderName), @"isPrivate": @(params.isPrivate), @"assertion": KBRValue(params.assertion), @"socialAssertion": KBRValue(params.socialAssertion), @"inviteLink": KBRValue(params.inviteLink), @"throttled": @(params.throttled)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTLFCreateWithInvite" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayTLFCreateWithInviteWithFolderName:(NSString *)folderName isPrivate:(BOOL)isPrivate assertion:(NSString *)assertion socialAssertion:(KBRSocialAssertion *)socialAssertion inviteLink:(NSString *)inviteLink throttled:(BOOL)throttled completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"folderName": KBRValue(folderName), @"isPrivate": @(isPrivate), @"assertion": KBRValue(assertion), @"socialAssertion": KBRValue(socialAssertion), @"inviteLink": KBRValue(inviteLink), @"throttled": @(throttled)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTLFCreateWithInvite" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)delegateIdentifyUI:(void (^)(NSError *error, NSInteger n))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.delegateIdentifyUI" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)start:(KBRStartRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(params.username), @"reason": KBRValue(params.reason), @"forceDisplay": @(params.forceDisplay)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.start" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)startWithUsername:(NSString *)username reason:(KBRIdentifyReason *)reason forceDisplay:(BOOL)forceDisplay completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(username), @"reason": KBRValue(reason), @"forceDisplay": @(forceDisplay)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.start" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayKey:(KBRDisplayKeyRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"key": KBRValue(params.key)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayKeyWithKey:(KBRIdentifyKey *)key completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"key": KBRValue(key)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)reportLastTrack:(KBRReportLastTrackRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"track": KBRValue(params.track)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportLastTrack" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)reportLastTrackWithTrack:(KBRTrackSummary *)track completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"track": KBRValue(track)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportLastTrack" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)launchNetworkChecks:(KBRLaunchNetworkChecksRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"identity": KBRValue(params.identity), @"user": KBRValue(params.user)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.launchNetworkChecks" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)launchNetworkChecksWithIdentity:(KBRIdentity *)identity user:(KBRUser *)user completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"identity": KBRValue(identity), @"user": KBRValue(user)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.launchNetworkChecks" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayTrackStatement:(KBRDisplayTrackStatementRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"stmt": KBRValue(params.stmt)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTrackStatement" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayTrackStatementWithStmt:(NSString *)stmt completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"stmt": KBRValue(stmt)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTrackStatement" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)finishWebProofCheck:(KBRFinishWebProofCheckRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"rp": KBRValue(params.rp), @"lcr": KBRValue(params.lcr)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishWebProofCheck" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)finishWebProofCheckWithRp:(KBRRemoteProof *)rp lcr:(KBRLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"rp": KBRValue(rp), @"lcr": KBRValue(lcr)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishWebProofCheck" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)finishSocialProofCheck:(KBRFinishSocialProofCheckRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"rp": KBRValue(params.rp), @"lcr": KBRValue(params.lcr)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishSocialProofCheck" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)finishSocialProofCheckWithRp:(KBRRemoteProof *)rp lcr:(KBRLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"rp": KBRValue(rp), @"lcr": KBRValue(lcr)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishSocialProofCheck" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayCryptocurrency:(KBRDisplayCryptocurrencyRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"c": KBRValue(params.c)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayCryptocurrency" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayCryptocurrencyWithC:(KBRCryptocurrency *)c completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"c": KBRValue(c)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayCryptocurrency" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)reportTrackToken:(KBRReportTrackTokenRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"trackToken": KBRValue(params.trackToken)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportTrackToken" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)reportTrackTokenWithTrackToken:(NSString *)trackToken completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"trackToken": KBRValue(trackToken)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportTrackToken" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayUserCard:(KBRDisplayUserCardRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"card": KBRValue(params.card)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayUserCard" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)displayUserCardWithCard:(KBRUserCard *)card completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"card": KBRValue(card)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayUserCard" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)confirm:(KBRConfirmRequestParams *)params completion:(void (^)(NSError *error, KBRConfirmResult *confirmResult))completion {
+  NSDictionary *rparams = @{@"outcome": KBRValue(params.outcome)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.confirm" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRConfirmResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRConfirmResult.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)confirmWithOutcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBRConfirmResult *confirmResult))completion {
+  NSDictionary *rparams = @{@"outcome": KBRValue(outcome)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.confirm" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRConfirmResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRConfirmResult.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)cancel:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.cancel" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)finish:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finish" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)dismiss:(KBRDismissRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(params.username), @"reason": KBRValue(params.reason)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.dismiss" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)dismissWithUsername:(NSString *)username reason:(KBRDismissReason *)reason completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(username), @"reason": KBRValue(reason)};
+  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.dismiss" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRSaltpackUiRequest
 
 - (void)saltpackPromptForDecrypt:(KBRSaltpackPromptForDecryptRequestParams *)params completion:(void (^)(NSError *error))completion {
@@ -81,6 +298,32 @@
       return;
     }
     KBRGetPassphraseRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetPassphraseRes.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)emailChange:(KBREmailChangeRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"newEmail": KBRValue(params.emailNew)};
+  [self.client sendRequestWithMethod:@"keybase.1.account.emailChange" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)emailChangeWithEmailNew:(NSString *)emailNew completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"newEmail": KBRValue(emailNew)};
+  [self.client sendRequestWithMethod:@"keybase.1.account.emailChange" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)hasServerKeys:(void (^)(NSError *error, KBRHasServerKeysRes *hasServerKeysRes))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.account.hasServerKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRHasServerKeysRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRHasServerKeysRes.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
@@ -509,6 +752,20 @@
   }];
 }
 
+- (void)waitForClient:(KBRWaitForClientRequestParams *)params completion:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *rparams = @{@"clientType": @(params.clientType), @"timeout": @(params.timeout)};
+  [self.client sendRequestWithMethod:@"keybase.1.config.waitForClient" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)waitForClientWithClientType:(KBRClientType)clientType timeout:(double)timeout completion:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *rparams = @{@"clientType": @(clientType), @"timeout": @(timeout)};
+  [self.client sendRequestWithMethod:@"keybase.1.config.waitForClient" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
 @end
 
 @implementation KBRConstantsRequest
@@ -532,6 +789,30 @@
 - (void)signED25519WithMsg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRED25519SignatureInfo *eD25519SignatureInfo))completion {
   NSDictionary *rparams = @{@"msg": KBRValue(msg), @"reason": KBRValue(reason)};
   [self.client sendRequestWithMethod:@"keybase.1.crypto.signED25519" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRED25519SignatureInfo *result = retval ? [MTLJSONAdapter modelOfClass:KBRED25519SignatureInfo.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)signED25519ForKBFS:(KBRSignED25519ForKBFSRequestParams *)params completion:(void (^)(NSError *error, KBRED25519SignatureInfo *eD25519SignatureInfo))completion {
+  NSDictionary *rparams = @{@"msg": KBRValue(params.msg), @"reason": KBRValue(params.reason)};
+  [self.client sendRequestWithMethod:@"keybase.1.crypto.signED25519ForKBFS" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRED25519SignatureInfo *result = retval ? [MTLJSONAdapter modelOfClass:KBRED25519SignatureInfo.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)signED25519ForKBFSWithMsg:(NSData *)msg reason:(NSString *)reason completion:(void (^)(NSError *error, KBRED25519SignatureInfo *eD25519SignatureInfo))completion {
+  NSDictionary *rparams = @{@"msg": KBRValue(msg), @"reason": KBRValue(reason)};
+  [self.client sendRequestWithMethod:@"keybase.1.crypto.signED25519ForKBFS" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
@@ -609,6 +890,34 @@
       return;
     }
     KBRUnboxAnyRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRUnboxAnyRes.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+@end
+
+@implementation KBRCryptocurrencyRequest
+
+- (void)registerAddress:(KBRRegisterAddressRequestParams *)params completion:(void (^)(NSError *error, KBRRegisterAddressRes *registerAddressRes))completion {
+  NSDictionary *rparams = @{@"address": KBRValue(params.address), @"force": @(params.force), @"wantedFamily": KBRValue(params.wantedFamily)};
+  [self.client sendRequestWithMethod:@"keybase.1.cryptocurrency.registerAddress" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRRegisterAddressRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRRegisterAddressRes.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)registerAddressWithAddress:(NSString *)address force:(BOOL)force wantedFamily:(NSString *)wantedFamily completion:(void (^)(NSError *error, KBRRegisterAddressRes *registerAddressRes))completion {
+  NSDictionary *rparams = @{@"address": KBRValue(address), @"force": @(force), @"wantedFamily": KBRValue(wantedFamily)};
+  [self.client sendRequestWithMethod:@"keybase.1.cryptocurrency.registerAddress" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRRegisterAddressRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRRegisterAddressRes.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
@@ -803,6 +1112,20 @@
   }];
 }
 
+- (void)checkDeviceNameForUser:(KBRCheckDeviceNameForUserRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(params.username), @"devicename": KBRValue(params.devicename)};
+  [self.client sendRequestWithMethod:@"keybase.1.device.checkDeviceNameForUser" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)checkDeviceNameForUserWithUsername:(NSString *)username devicename:(NSString *)devicename completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"username": KBRValue(username), @"devicename": KBRValue(devicename)};
+  [self.client sendRequestWithMethod:@"keybase.1.device.checkDeviceNameForUser" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRFavoriteRequest
@@ -969,6 +1292,18 @@
   }];
 }
 
+- (void)getTTY:(void (^)(NSError *error, NSString *str))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.gpgUi.getTTY" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
 @end
 
 @implementation KBRIdentifyRequest
@@ -1046,7 +1381,7 @@
 }
 
 - (void)identify2:(KBRIdentify2RequestParams *)params completion:(void (^)(NSError *error, KBRIdentify2Res *identify2Res))completion {
-  NSDictionary *rparams = @{@"uid": KBRValue(params.uid), @"userAssertion": KBRValue(params.userAssertion), @"reason": KBRValue(params.reason), @"useDelegateUI": @(params.useDelegateUI), @"alwaysBlock": @(params.alwaysBlock), @"noErrorOnTrackFailure": @(params.noErrorOnTrackFailure), @"forceRemoteCheck": @(params.forceRemoteCheck), @"needProofSet": @(params.needProofSet), @"allowEmptySelfID": @(params.allowEmptySelfID), @"noSkipSelf": @(params.noSkipSelf)};
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid), @"userAssertion": KBRValue(params.userAssertion), @"reason": KBRValue(params.reason), @"useDelegateUI": @(params.useDelegateUI), @"alwaysBlock": @(params.alwaysBlock), @"noErrorOnTrackFailure": @(params.noErrorOnTrackFailure), @"forceRemoteCheck": @(params.forceRemoteCheck), @"needProofSet": @(params.needProofSet), @"allowEmptySelfID": @(params.allowEmptySelfID), @"noSkipSelf": @(params.noSkipSelf), @"canSuppressUI": @(params.canSuppressUI), @"chatGUIMode": @(params.chatGUIMode), @"forceDisplay": @(params.forceDisplay)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify2" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1057,8 +1392,8 @@
   }];
 }
 
-- (void)identify2WithUid:(NSString *)uid userAssertion:(NSString *)userAssertion reason:(KBRIdentifyReason *)reason useDelegateUI:(BOOL)useDelegateUI alwaysBlock:(BOOL)alwaysBlock noErrorOnTrackFailure:(BOOL)noErrorOnTrackFailure forceRemoteCheck:(BOOL)forceRemoteCheck needProofSet:(BOOL)needProofSet allowEmptySelfID:(BOOL)allowEmptySelfID noSkipSelf:(BOOL)noSkipSelf completion:(void (^)(NSError *error, KBRIdentify2Res *identify2Res))completion {
-  NSDictionary *rparams = @{@"uid": KBRValue(uid), @"userAssertion": KBRValue(userAssertion), @"reason": KBRValue(reason), @"useDelegateUI": @(useDelegateUI), @"alwaysBlock": @(alwaysBlock), @"noErrorOnTrackFailure": @(noErrorOnTrackFailure), @"forceRemoteCheck": @(forceRemoteCheck), @"needProofSet": @(needProofSet), @"allowEmptySelfID": @(allowEmptySelfID), @"noSkipSelf": @(noSkipSelf)};
+- (void)identify2WithUid:(NSString *)uid userAssertion:(NSString *)userAssertion reason:(KBRIdentifyReason *)reason useDelegateUI:(BOOL)useDelegateUI alwaysBlock:(BOOL)alwaysBlock noErrorOnTrackFailure:(BOOL)noErrorOnTrackFailure forceRemoteCheck:(BOOL)forceRemoteCheck needProofSet:(BOOL)needProofSet allowEmptySelfID:(BOOL)allowEmptySelfID noSkipSelf:(BOOL)noSkipSelf canSuppressUI:(BOOL)canSuppressUI chatGUIMode:(BOOL)chatGUIMode forceDisplay:(BOOL)forceDisplay completion:(void (^)(NSError *error, KBRIdentify2Res *identify2Res))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid), @"userAssertion": KBRValue(userAssertion), @"reason": KBRValue(reason), @"useDelegateUI": @(useDelegateUI), @"alwaysBlock": @(alwaysBlock), @"noErrorOnTrackFailure": @(noErrorOnTrackFailure), @"forceRemoteCheck": @(forceRemoteCheck), @"needProofSet": @(needProofSet), @"allowEmptySelfID": @(allowEmptySelfID), @"noSkipSelf": @(noSkipSelf), @"canSuppressUI": @(canSuppressUI), @"chatGUIMode": @(chatGUIMode), @"forceDisplay": @(forceDisplay)};
   [self.client sendRequestWithMethod:@"keybase.1.identify.identify2" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -1066,216 +1401,6 @@
     }
     KBRIdentify2Res *result = retval ? [MTLJSONAdapter modelOfClass:KBRIdentify2Res.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
-  }];
-}
-
-@end
-
-@implementation KBRIdentifyUiRequest
-
-- (void)displayTLFCreateWithInvite:(KBRDisplayTLFCreateWithInviteRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"folderName": KBRValue(params.folderName), @"isPrivate": @(params.isPrivate), @"assertion": KBRValue(params.assertion), @"socialAssertion": KBRValue(params.socialAssertion), @"inviteLink": KBRValue(params.inviteLink), @"throttled": @(params.throttled)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTLFCreateWithInvite" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayTLFCreateWithInviteWithFolderName:(NSString *)folderName isPrivate:(BOOL)isPrivate assertion:(NSString *)assertion socialAssertion:(KBRSocialAssertion *)socialAssertion inviteLink:(NSString *)inviteLink throttled:(BOOL)throttled completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"folderName": KBRValue(folderName), @"isPrivate": @(isPrivate), @"assertion": KBRValue(assertion), @"socialAssertion": KBRValue(socialAssertion), @"inviteLink": KBRValue(inviteLink), @"throttled": @(throttled)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTLFCreateWithInvite" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)delegateIdentifyUI:(void (^)(NSError *error, NSInteger n))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.delegateIdentifyUI" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error, 0);
-  }];
-}
-
-- (void)start:(KBRStartRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"username": KBRValue(params.username), @"reason": KBRValue(params.reason)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.start" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)startWithUsername:(NSString *)username reason:(KBRIdentifyReason *)reason completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"username": KBRValue(username), @"reason": KBRValue(reason)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.start" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayKey:(KBRDisplayKeyRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"key": KBRValue(params.key)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayKeyWithKey:(KBRIdentifyKey *)key completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"key": KBRValue(key)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayKey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)reportLastTrack:(KBRReportLastTrackRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"track": KBRValue(params.track)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportLastTrack" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)reportLastTrackWithTrack:(KBRTrackSummary *)track completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"track": KBRValue(track)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportLastTrack" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)launchNetworkChecks:(KBRLaunchNetworkChecksRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"identity": KBRValue(params.identity), @"user": KBRValue(params.user)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.launchNetworkChecks" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)launchNetworkChecksWithIdentity:(KBRIdentity *)identity user:(KBRUser *)user completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"identity": KBRValue(identity), @"user": KBRValue(user)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.launchNetworkChecks" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayTrackStatement:(KBRDisplayTrackStatementRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"stmt": KBRValue(params.stmt)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTrackStatement" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayTrackStatementWithStmt:(NSString *)stmt completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"stmt": KBRValue(stmt)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayTrackStatement" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)finishWebProofCheck:(KBRFinishWebProofCheckRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"rp": KBRValue(params.rp), @"lcr": KBRValue(params.lcr)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishWebProofCheck" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)finishWebProofCheckWithRp:(KBRRemoteProof *)rp lcr:(KBRLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"rp": KBRValue(rp), @"lcr": KBRValue(lcr)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishWebProofCheck" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)finishSocialProofCheck:(KBRFinishSocialProofCheckRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"rp": KBRValue(params.rp), @"lcr": KBRValue(params.lcr)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishSocialProofCheck" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)finishSocialProofCheckWithRp:(KBRRemoteProof *)rp lcr:(KBRLinkCheckResult *)lcr completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"rp": KBRValue(rp), @"lcr": KBRValue(lcr)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finishSocialProofCheck" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayCryptocurrency:(KBRDisplayCryptocurrencyRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"c": KBRValue(params.c)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayCryptocurrency" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayCryptocurrencyWithC:(KBRCryptocurrency *)c completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"c": KBRValue(c)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayCryptocurrency" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)reportTrackToken:(KBRReportTrackTokenRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"trackToken": KBRValue(params.trackToken)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportTrackToken" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)reportTrackTokenWithTrackToken:(NSString *)trackToken completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"trackToken": KBRValue(trackToken)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.reportTrackToken" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayUserCard:(KBRDisplayUserCardRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"card": KBRValue(params.card)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayUserCard" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)displayUserCardWithCard:(KBRUserCard *)card completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"card": KBRValue(card)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.displayUserCard" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)confirm:(KBRConfirmRequestParams *)params completion:(void (^)(NSError *error, KBRConfirmResult *confirmResult))completion {
-  NSDictionary *rparams = @{@"outcome": KBRValue(params.outcome)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.confirm" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBRConfirmResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRConfirmResult.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
-  }];
-}
-
-- (void)confirmWithOutcome:(KBRIdentifyOutcome *)outcome completion:(void (^)(NSError *error, KBRConfirmResult *confirmResult))completion {
-  NSDictionary *rparams = @{@"outcome": KBRValue(outcome)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.confirm" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    KBRConfirmResult *result = retval ? [MTLJSONAdapter modelOfClass:KBRConfirmResult.class fromJSONDictionary:retval error:&error] : nil;
-    completion(error, result);
-  }];
-}
-
-- (void)finish:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.finish" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)dismiss:(KBRDismissRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"username": KBRValue(params.username), @"reason": KBRValue(params.reason)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.dismiss" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
-  }];
-}
-
-- (void)dismissWithUsername:(NSString *)username reason:(KBRDismissReason *)reason completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"username": KBRValue(username), @"reason": KBRValue(reason)};
-  [self.client sendRequestWithMethod:@"keybase.1.identifyUi.dismiss" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
-    completion(error);
   }];
 }
 
@@ -1301,9 +1426,93 @@
   }];
 }
 
+- (void)fSEditList:(KBRFSEditListRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"edits": KBRValue(params.edits), @"requestID": @(params.requestID)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSEditList" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSEditListWithEdits:(NSArray *)edits requestID:(NSInteger)requestID completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"edits": KBRValue(edits), @"requestID": @(requestID)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSEditList" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncStatus:(KBRFSSyncStatusRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"status": KBRValue(params.status), @"requestID": @(params.requestID)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSSyncStatus" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncStatusWithStatus:(KBRFSSyncStatus *)status requestID:(NSInteger)requestID completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"status": KBRValue(status), @"requestID": @(requestID)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSSyncStatus" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncEvent:(KBRFSSyncEventRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"event": KBRValue(params.event)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSSyncEvent" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncEventWithEvent:(KBRFSPathSyncStatus *)event completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"event": KBRValue(event)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfs.FSSyncEvent" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRKbfsCommonRequest
+
+@end
+
+@implementation KBRKbfsMountRequest
+
+- (void)getCurrentMountDir:(void (^)(NSError *error, NSString *str))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfsMount.GetCurrentMountDir" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSString *result = retval ? [MTLJSONAdapter modelOfClass:NSString.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)getAllAvailableMountDirs:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfsMount.GetAllAvailableMountDirs" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:NSString.class fromJSONArray:retval error:&error] : nil;
+    completion(error, results);
+  }];
+}
+
+- (void)setCurrentMountDir:(KBRSetCurrentMountDirRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"dir": KBRValue(params.dir)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfsMount.SetCurrentMountDir" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)setCurrentMountDirWithDir:(NSString *)dir completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"dir": KBRValue(dir)};
+  [self.client sendRequestWithMethod:@"keybase.1.kbfsMount.SetCurrentMountDir" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
 
 @end
 
@@ -1343,6 +1552,48 @@
 - (void)didCounterSignWithSig:(NSData *)sig completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"sig": KBRValue(sig)};
   [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee.didCounterSign" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRKex2Provisionee2Request
+
+- (void)hello2:(KBRHello2RequestParams *)params completion:(void (^)(NSError *error, KBRHello2Res *hello2Res))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(params.uid), @"token": KBRValue(params.token), @"csrf": KBRValue(params.csrf), @"sigBody": KBRValue(params.sigBody)};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee2.hello2" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRHello2Res *result = retval ? [MTLJSONAdapter modelOfClass:KBRHello2Res.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)hello2WithUid:(NSString *)uid token:(NSString *)token csrf:(NSString *)csrf sigBody:(NSString *)sigBody completion:(void (^)(NSError *error, KBRHello2Res *hello2Res))completion {
+  NSDictionary *rparams = @{@"uid": KBRValue(uid), @"token": KBRValue(token), @"csrf": KBRValue(csrf), @"sigBody": KBRValue(sigBody)};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee2.hello2" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRHello2Res *result = retval ? [MTLJSONAdapter modelOfClass:KBRHello2Res.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)didCounterSign2:(KBRDidCounterSign2RequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"sig": KBRValue(params.sig), @"ppsEncrypted": KBRValue(params.ppsEncrypted)};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee2.didCounterSign2" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)didCounterSign2WithSig:(NSData *)sig ppsEncrypted:(NSString *)ppsEncrypted completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"sig": KBRValue(sig), @"ppsEncrypted": KBRValue(ppsEncrypted)};
+  [self.client sendRequestWithMethod:@"keybase.1.Kex2Provisionee2.didCounterSign2" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -1529,6 +1780,13 @@
   }];
 }
 
+- (void)accountDelete:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.login.accountDelete" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRLoginUiRequest
@@ -1618,14 +1876,14 @@
 }
 
 - (void)putMetadata:(KBRPutMetadataRequestParams *)params completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"mdBlock": KBRValue(params.mdBlock), @"logTags": KBRValue(params.logTags)};
+  NSDictionary *rparams = @{@"mdBlock": KBRValue(params.mdBlock), @"readerKeyBundle": KBRValue(params.readerKeyBundle), @"writerKeyBundle": KBRValue(params.writerKeyBundle), @"logTags": KBRValue(params.logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.putMetadata" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
 
-- (void)putMetadataWithMdBlock:(KBRMDBlock *)mdBlock logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion {
-  NSDictionary *rparams = @{@"mdBlock": KBRValue(mdBlock), @"logTags": KBRValue(logTags)};
+- (void)putMetadataWithMdBlock:(KBRMDBlock *)mdBlock readerKeyBundle:(KBRKeyBundle *)readerKeyBundle writerKeyBundle:(KBRKeyBundle *)writerKeyBundle logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"mdBlock": KBRValue(mdBlock), @"readerKeyBundle": KBRValue(readerKeyBundle), @"writerKeyBundle": KBRValue(writerKeyBundle), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.putMetadata" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
@@ -1844,6 +2102,30 @@
   }];
 }
 
+- (void)getKeyBundles:(KBRGetKeyBundlesRequestParams *)params completion:(void (^)(NSError *error, KBRKeyBundleResponse *keyBundleResponse))completion {
+  NSDictionary *rparams = @{@"folderID": KBRValue(params.folderID), @"writerBundleID": KBRValue(params.writerBundleID), @"readerBundleID": KBRValue(params.readerBundleID)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.getKeyBundles" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRKeyBundleResponse *result = retval ? [MTLJSONAdapter modelOfClass:KBRKeyBundleResponse.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)getKeyBundlesWithFolderID:(NSString *)folderID writerBundleID:(NSString *)writerBundleID readerBundleID:(NSString *)readerBundleID completion:(void (^)(NSError *error, KBRKeyBundleResponse *keyBundleResponse))completion {
+  NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"writerBundleID": KBRValue(writerBundleID), @"readerBundleID": KBRValue(readerBundleID)};
+  [self.client sendRequestWithMethod:@"keybase.1.metadata.getKeyBundles" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRKeyBundleResponse *result = retval ? [MTLJSONAdapter modelOfClass:KBRKeyBundleResponse.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
 - (void)getMerkleRoot:(KBRGetMerkleRootRequestParams *)params completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion {
   NSDictionary *rparams = @{@"treeID": @(params.treeID), @"seqNo": @(params.seqNo)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.getMerkleRoot" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -1985,6 +2267,24 @@
 
 @end
 
+@implementation KBRNotifyBadgesRequest
+
+- (void)badgeState:(KBRBadgeStateRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"badgeState": KBRValue(params.badgeState)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyBadges.badgeState" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)badgeStateWithBadgeState:(KBRBadgeState *)badgeState completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"badgeState": KBRValue(badgeState)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyBadges.badgeState" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRNotifyCtlRequest
 
 - (void)setNotifications:(KBRSetNotificationsRequestParams *)params completion:(void (^)(NSError *error))completion {
@@ -2037,6 +2337,80 @@
   }];
 }
 
+- (void)fSSyncActivity:(KBRFSSyncActivityRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"status": KBRValue(params.status)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSSyncActivity" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncActivityWithStatus:(KBRFSPathSyncStatus *)status completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"status": KBRValue(status)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSSyncActivity" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSEditListResponse:(KBRFSEditListResponseRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"edits": KBRValue(params.edits), @"requestID": @(params.requestID)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSEditListResponse" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSEditListResponseWithEdits:(NSArray *)edits requestID:(NSInteger)requestID completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"edits": KBRValue(edits), @"requestID": @(requestID)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSEditListResponse" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncStatusResponse:(KBRFSSyncStatusResponseRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"status": KBRValue(params.status), @"requestID": @(params.requestID)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSSyncStatusResponse" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncStatusResponseWithStatus:(KBRFSSyncStatus *)status requestID:(NSInteger)requestID completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"status": KBRValue(status), @"requestID": @(requestID)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFS.FSSyncStatusResponse" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRNotifyFSRequestRequest
+
+- (void)fSEditListRequest:(KBRFSEditListRequestRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"req": KBRValue(params.req)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFSRequest.FSEditListRequest" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSEditListRequestWithReq:(KBRFSEditListRequest *)req completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"req": KBRValue(req)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFSRequest.FSEditListRequest" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncStatusRequest:(KBRFSSyncStatusRequestRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"req": KBRValue(params.req)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFSRequest.FSSyncStatusRequest" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)fSSyncStatusRequestWithReq:(KBRFSSyncStatusRequest *)req completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"req": KBRValue(req)};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyFSRequest.FSSyncStatusRequest" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRNotifyKeyfamilyRequest
@@ -2069,6 +2443,17 @@
 - (void)paperKeyCachedWithUid:(NSString *)uid encKID:(NSString *)encKID sigKID:(NSString *)sigKID completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"uid": KBRValue(uid), @"encKID": KBRValue(encKID), @"sigKID": KBRValue(sigKID)};
   [self.client sendRequestWithMethod:@"keybase.1.NotifyPaperKey.paperKeyCached" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
+@implementation KBRNotifyPGPRequest
+
+- (void)pgpKeyInSecretStoreFile:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.NotifyPGP.pgpKeyInSecretStoreFile" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -2375,6 +2760,20 @@
   }];
 }
 
+- (void)pgpKeyGenDefault:(KBRPgpKeyGenDefaultRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"createUids": KBRValue(params.createUids)};
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpKeyGenDefault" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)pgpKeyGenDefaultWithCreateUids:(KBRPGPCreateUids *)createUids completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"createUids": KBRValue(createUids)};
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpKeyGenDefault" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)pgpDeletePrimary:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{};
   [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpDeletePrimary" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -2434,6 +2833,13 @@
   }];
 }
 
+- (void)pgpStorageDismiss:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.pgp.pgpStorageDismiss" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRPgpUiRequest
@@ -2448,6 +2854,48 @@
 - (void)outputSignatureSuccessWithFingerprint:(NSString *)fingerprint username:(NSString *)username signedAt:(long)signedAt completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"fingerprint": KBRValue(fingerprint), @"username": KBRValue(username), @"signedAt": @(signedAt)};
   [self.client sendRequestWithMethod:@"keybase.1.pgpUi.outputSignatureSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)outputSignatureSuccessNonKeybase:(KBROutputSignatureSuccessNonKeybaseRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"keyID": KBRValue(params.keyID), @"signedAt": @(params.signedAt)};
+  [self.client sendRequestWithMethod:@"keybase.1.pgpUi.outputSignatureSuccessNonKeybase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)outputSignatureSuccessNonKeybaseWithKeyID:(NSString *)keyID signedAt:(long)signedAt completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"keyID": KBRValue(keyID), @"signedAt": @(signedAt)};
+  [self.client sendRequestWithMethod:@"keybase.1.pgpUi.outputSignatureSuccessNonKeybase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)keyGenerated:(KBRKeyGeneratedRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"kid": KBRValue(params.kid), @"key": KBRValue(params.key)};
+  [self.client sendRequestWithMethod:@"keybase.1.pgpUi.keyGenerated" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)keyGeneratedWithKid:(NSString *)kid key:(KBRKeyInfo *)key completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"kid": KBRValue(kid), @"key": KBRValue(key)};
+  [self.client sendRequestWithMethod:@"keybase.1.pgpUi.keyGenerated" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)shouldPushPrivate:(void (^)(NSError *error, BOOL b))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.pgpUi.shouldPushPrivate" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error, 0);
+  }];
+}
+
+- (void)finished:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.pgpUi.finished" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -2817,6 +3265,48 @@
 
 @end
 
+@implementation KBRReachabilityRequest
+
+- (void)reachabilityChanged:(KBRReachabilityChangedRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"reachability": KBRValue(params.reachability)};
+  [self.client sendRequestWithMethod:@"keybase.1.reachability.reachabilityChanged" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)reachabilityChangedWithReachability:(KBRReachability *)reachability completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"reachability": KBRValue(reachability)};
+  [self.client sendRequestWithMethod:@"keybase.1.reachability.reachabilityChanged" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)startReachability:(void (^)(NSError *error, KBRReachability *reachability))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.reachability.startReachability" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRReachability *result = retval ? [MTLJSONAdapter modelOfClass:KBRReachability.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)checkReachability:(void (^)(NSError *error, KBRReachability *reachability))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.reachability.checkReachability" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRReachability *result = retval ? [MTLJSONAdapter modelOfClass:KBRReachability.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+@end
+
 @implementation KBRRekeyRequest
 
 - (void)showPendingRekeyStatus:(void (^)(NSError *error))completion {
@@ -2852,6 +3342,44 @@
   }];
 }
 
+- (void)rekeySync:(KBRRekeySyncRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"force": @(params.force)};
+  [self.client sendRequestWithMethod:@"keybase.1.rekey.rekeySync" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)rekeySyncWithForce:(BOOL)force completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"force": @(force)};
+  [self.client sendRequestWithMethod:@"keybase.1.rekey.rekeySync" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)getRevokeWarning:(KBRGetRevokeWarningRequestParams *)params completion:(void (^)(NSError *error, KBRRevokeWarning *revokeWarning))completion {
+  NSDictionary *rparams = @{@"session": @(params.session), @"actingDevice": KBRValue(params.actingDevice), @"targetDevice": KBRValue(params.targetDevice)};
+  [self.client sendRequestWithMethod:@"keybase.1.rekey.getRevokeWarning" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRRevokeWarning *result = retval ? [MTLJSONAdapter modelOfClass:KBRRevokeWarning.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)getRevokeWarningWithSession:(NSInteger)session actingDevice:(NSString *)actingDevice targetDevice:(NSString *)targetDevice completion:(void (^)(NSError *error, KBRRevokeWarning *revokeWarning))completion {
+  NSDictionary *rparams = @{@"session": @(session), @"actingDevice": KBRValue(actingDevice), @"targetDevice": KBRValue(targetDevice)};
+  [self.client sendRequestWithMethod:@"keybase.1.rekey.getRevokeWarning" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRRevokeWarning *result = retval ? [MTLJSONAdapter modelOfClass:KBRRevokeWarning.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
 @end
 
 @implementation KBRRekeyUIRequest
@@ -2873,6 +3401,20 @@
 - (void)refreshWithProblemSetDevices:(KBRProblemSetDevices *)problemSetDevices completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"problemSetDevices": KBRValue(problemSetDevices)};
   [self.client sendRequestWithMethod:@"keybase.1.rekeyUI.refresh" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)rekeySendEvent:(KBRRekeySendEventRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"event": KBRValue(params.event)};
+  [self.client sendRequestWithMethod:@"keybase.1.rekeyUI.rekeySendEvent" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)rekeySendEventWithEvent:(KBRRekeyEvent *)event completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"event": KBRValue(event)};
+  [self.client sendRequestWithMethod:@"keybase.1.rekeyUI.rekeySendEvent" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
   }];
 }
@@ -2995,6 +3537,24 @@
 
 @end
 
+@implementation KBRScanProofsRequest
+
+- (void)scanProofs:(KBRScanProofsRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"infile": KBRValue(params.infile), @"indices": KBRValue(params.indices), @"sigid": KBRValue(params.sigid), @"ratelimit": @(params.ratelimit), @"cachefile": KBRValue(params.cachefile), @"ignorefile": KBRValue(params.ignorefile)};
+  [self.client sendRequestWithMethod:@"keybase.1.ScanProofs.scanProofs" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)scanProofsWithInfile:(NSString *)infile indices:(NSString *)indices sigid:(NSString *)sigid ratelimit:(NSInteger)ratelimit cachefile:(NSString *)cachefile ignorefile:(NSString *)ignorefile completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"infile": KBRValue(infile), @"indices": KBRValue(indices), @"sigid": KBRValue(sigid), @"ratelimit": @(ratelimit), @"cachefile": KBRValue(cachefile), @"ignorefile": KBRValue(ignorefile)};
+  [self.client sendRequestWithMethod:@"keybase.1.ScanProofs.scanProofs" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+@end
+
 @implementation KBRSecretUiRequest
 
 - (void)getPassphrase:(KBRGetPassphraseRequestParams *)params completion:(void (^)(NSError *error, KBRGetPassphraseRes *getPassphraseRes))completion {
@@ -3053,6 +3613,13 @@
   }];
 }
 
+- (void)sessionPing:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.session.sessionPing" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 @end
 
 @implementation KBRSignupRequest
@@ -3072,7 +3639,7 @@
 }
 
 - (void)signup:(KBRSignupRequestParams *)params completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
-  NSDictionary *rparams = @{@"email": KBRValue(params.email), @"inviteCode": KBRValue(params.inviteCode), @"passphrase": KBRValue(params.passphrase), @"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName), @"storeSecret": @(params.storeSecret), @"skipMail": @(params.skipMail), @"genPGPBatch": @(params.genPGPBatch)};
+  NSDictionary *rparams = @{@"email": KBRValue(params.email), @"inviteCode": KBRValue(params.inviteCode), @"passphrase": KBRValue(params.passphrase), @"username": KBRValue(params.username), @"deviceName": KBRValue(params.deviceName), @"deviceType": @(params.deviceType), @"storeSecret": @(params.storeSecret), @"skipMail": @(params.skipMail), @"genPGPBatch": @(params.genPGPBatch)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.signup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -3083,8 +3650,8 @@
   }];
 }
 
-- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName storeSecret:(BOOL)storeSecret skipMail:(BOOL)skipMail genPGPBatch:(BOOL)genPGPBatch completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
-  NSDictionary *rparams = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username), @"deviceName": KBRValue(deviceName), @"storeSecret": @(storeSecret), @"skipMail": @(skipMail), @"genPGPBatch": @(genPGPBatch)};
+- (void)signupWithEmail:(NSString *)email inviteCode:(NSString *)inviteCode passphrase:(NSString *)passphrase username:(NSString *)username deviceName:(NSString *)deviceName deviceType:(KBRDeviceType)deviceType storeSecret:(BOOL)storeSecret skipMail:(BOOL)skipMail genPGPBatch:(BOOL)genPGPBatch completion:(void (^)(NSError *error, KBRSignupRes *signupRes))completion {
+  NSDictionary *rparams = @{@"email": KBRValue(email), @"inviteCode": KBRValue(inviteCode), @"passphrase": KBRValue(passphrase), @"username": KBRValue(username), @"deviceName": KBRValue(deviceName), @"deviceType": @(deviceType), @"storeSecret": @(storeSecret), @"skipMail": @(skipMail), @"genPGPBatch": @(genPGPBatch)};
   [self.client sendRequestWithMethod:@"keybase.1.signup.signup" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
@@ -3217,6 +3784,20 @@
   }];
 }
 
+- (void)reset:(KBRResetRequestParams *)params completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"s": KBRValue(params.s)};
+  [self.client sendRequestWithMethod:@"keybase.1.streamUi.reset" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
+- (void)resetWithS:(KBRStream *)s completion:(void (^)(NSError *error))completion {
+  NSDictionary *rparams = @{@"s": KBRValue(s)};
+  [self.client sendRequestWithMethod:@"keybase.1.streamUi.reset" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    completion(error);
+  }];
+}
+
 - (void)write:(KBRWriteRequestParams *)params completion:(void (^)(NSError *error, NSInteger n))completion {
   NSDictionary *rparams = @{@"s": KBRValue(params.s), @"buf": KBRValue(params.buf)};
   [self.client sendRequestWithMethod:@"keybase.1.streamUi.write" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -3301,26 +3882,74 @@
 
 @implementation KBRTlfRequest
 
-- (void)cryptKeys:(KBRCryptKeysRequestParams *)params completion:(void (^)(NSError *error, KBRTLFCryptKeys *tLFCryptKeys))completion {
-  NSDictionary *rparams = @{@"tlfName": KBRValue(params.tlfName)};
+- (void)cryptKeys:(KBRCryptKeysRequestParams *)params completion:(void (^)(NSError *error, KBRGetTLFCryptKeysRes *getTLFCryptKeysRes))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(params.query)};
   [self.client sendRequestWithMethod:@"keybase.1.tlf.CryptKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRTLFCryptKeys *result = retval ? [MTLJSONAdapter modelOfClass:KBRTLFCryptKeys.class fromJSONDictionary:retval error:&error] : nil;
+    KBRGetTLFCryptKeysRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetTLFCryptKeysRes.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)cryptKeysWithTlfName:(NSString *)tlfName completion:(void (^)(NSError *error, KBRTLFCryptKeys *tLFCryptKeys))completion {
-  NSDictionary *rparams = @{@"tlfName": KBRValue(tlfName)};
+- (void)cryptKeysWithQuery:(KBRTLFQuery *)query completion:(void (^)(NSError *error, KBRGetTLFCryptKeysRes *getTLFCryptKeysRes))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(query)};
   [self.client sendRequestWithMethod:@"keybase.1.tlf.CryptKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRTLFCryptKeys *result = retval ? [MTLJSONAdapter modelOfClass:KBRTLFCryptKeys.class fromJSONDictionary:retval error:&error] : nil;
+    KBRGetTLFCryptKeysRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetTLFCryptKeysRes.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)publicCanonicalTLFNameAndID:(KBRPublicCanonicalTLFNameAndIDRequestParams *)params completion:(void (^)(NSError *error, KBRCanonicalTLFNameAndIDWithBreaks *canonicalTLFNameAndIDWithBreaks))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(params.query)};
+  [self.client sendRequestWithMethod:@"keybase.1.tlf.publicCanonicalTLFNameAndID" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRCanonicalTLFNameAndIDWithBreaks *result = retval ? [MTLJSONAdapter modelOfClass:KBRCanonicalTLFNameAndIDWithBreaks.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)publicCanonicalTLFNameAndIDWithQuery:(KBRTLFQuery *)query completion:(void (^)(NSError *error, KBRCanonicalTLFNameAndIDWithBreaks *canonicalTLFNameAndIDWithBreaks))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(query)};
+  [self.client sendRequestWithMethod:@"keybase.1.tlf.publicCanonicalTLFNameAndID" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRCanonicalTLFNameAndIDWithBreaks *result = retval ? [MTLJSONAdapter modelOfClass:KBRCanonicalTLFNameAndIDWithBreaks.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)completeAndCanonicalizePrivateTlfName:(KBRCompleteAndCanonicalizePrivateTlfNameRequestParams *)params completion:(void (^)(NSError *error, KBRCanonicalTLFNameAndIDWithBreaks *canonicalTLFNameAndIDWithBreaks))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(params.query)};
+  [self.client sendRequestWithMethod:@"keybase.1.tlf.completeAndCanonicalizePrivateTlfName" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRCanonicalTLFNameAndIDWithBreaks *result = retval ? [MTLJSONAdapter modelOfClass:KBRCanonicalTLFNameAndIDWithBreaks.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)completeAndCanonicalizePrivateTlfNameWithQuery:(KBRTLFQuery *)query completion:(void (^)(NSError *error, KBRCanonicalTLFNameAndIDWithBreaks *canonicalTLFNameAndIDWithBreaks))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(query)};
+  [self.client sendRequestWithMethod:@"keybase.1.tlf.completeAndCanonicalizePrivateTlfName" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRCanonicalTLFNameAndIDWithBreaks *result = retval ? [MTLJSONAdapter modelOfClass:KBRCanonicalTLFNameAndIDWithBreaks.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
@@ -3329,26 +3958,50 @@
 
 @implementation KBRTlfKeysRequest
 
-- (void)getTLFCryptKeys:(KBRGetTLFCryptKeysRequestParams *)params completion:(void (^)(NSError *error, KBRTLFCryptKeys *tLFCryptKeys))completion {
-  NSDictionary *rparams = @{@"tlfName": KBRValue(params.tlfName)};
+- (void)getTLFCryptKeys:(KBRGetTLFCryptKeysRequestParams *)params completion:(void (^)(NSError *error, KBRGetTLFCryptKeysRes *getTLFCryptKeysRes))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(params.query)};
   [self.client sendRequestWithMethod:@"keybase.1.tlfKeys.getTLFCryptKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRTLFCryptKeys *result = retval ? [MTLJSONAdapter modelOfClass:KBRTLFCryptKeys.class fromJSONDictionary:retval error:&error] : nil;
+    KBRGetTLFCryptKeysRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetTLFCryptKeysRes.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
 
-- (void)getTLFCryptKeysWithTlfName:(NSString *)tlfName completion:(void (^)(NSError *error, KBRTLFCryptKeys *tLFCryptKeys))completion {
-  NSDictionary *rparams = @{@"tlfName": KBRValue(tlfName)};
+- (void)getTLFCryptKeysWithQuery:(KBRTLFQuery *)query completion:(void (^)(NSError *error, KBRGetTLFCryptKeysRes *getTLFCryptKeysRes))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(query)};
   [self.client sendRequestWithMethod:@"keybase.1.tlfKeys.getTLFCryptKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
       completion(error, nil);
       return;
     }
-    KBRTLFCryptKeys *result = retval ? [MTLJSONAdapter modelOfClass:KBRTLFCryptKeys.class fromJSONDictionary:retval error:&error] : nil;
+    KBRGetTLFCryptKeysRes *result = retval ? [MTLJSONAdapter modelOfClass:KBRGetTLFCryptKeysRes.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)getPublicCanonicalTLFNameAndID:(KBRGetPublicCanonicalTLFNameAndIDRequestParams *)params completion:(void (^)(NSError *error, KBRCanonicalTLFNameAndIDWithBreaks *canonicalTLFNameAndIDWithBreaks))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(params.query)};
+  [self.client sendRequestWithMethod:@"keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRCanonicalTLFNameAndIDWithBreaks *result = retval ? [MTLJSONAdapter modelOfClass:KBRCanonicalTLFNameAndIDWithBreaks.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
+- (void)getPublicCanonicalTLFNameAndIDWithQuery:(KBRTLFQuery *)query completion:(void (^)(NSError *error, KBRCanonicalTLFNameAndIDWithBreaks *canonicalTLFNameAndIDWithBreaks))completion {
+  NSDictionary *rparams = @{@"query": KBRValue(query)};
+  [self.client sendRequestWithMethod:@"keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRCanonicalTLFNameAndIDWithBreaks *result = retval ? [MTLJSONAdapter modelOfClass:KBRCanonicalTLFNameAndIDWithBreaks.class fromJSONDictionary:retval error:&error] : nil;
     completion(error, result);
   }];
 }
@@ -3636,6 +4289,30 @@
   }];
 }
 
+- (void)loadMyPublicKeys:(void (^)(NSError *error, NSArray *items))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.user.loadMyPublicKeys" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    NSArray *results = retval ? [MTLJSONAdapter modelsOfClass:KBRPublicKey.class fromJSONArray:retval error:&error] : nil;
+    completion(error, results);
+  }];
+}
+
+- (void)loadMySettings:(void (^)(NSError *error, KBRUserSettings *userSettings))completion {
+  NSDictionary *rparams = @{};
+  [self.client sendRequestWithMethod:@"keybase.1.user.loadMySettings" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    KBRUserSettings *result = retval ? [MTLJSONAdapter modelOfClass:KBRUserSettings.class fromJSONDictionary:retval error:&error] : nil;
+    completion(error, result);
+  }];
+}
+
 - (void)listTracking:(KBRListTrackingRequestParams *)params completion:(void (^)(NSError *error, NSArray *items))completion {
   NSDictionary *rparams = @{@"filter": KBRValue(params.filter), @"assertion": KBRValue(params.assertion)};
   [self.client sendRequestWithMethod:@"keybase.1.user.listTracking" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
@@ -3757,6 +4434,271 @@
 }
 
 @end
+@implementation KBRDisplayTLFCreateWithInviteRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.folderName = params[0][@"folderName"];
+    self.isPrivate = [params[0][@"isPrivate"] boolValue];
+    self.assertion = params[0][@"assertion"];
+    self.socialAssertion = [MTLJSONAdapter modelOfClass:KBRSocialAssertion.class fromJSONDictionary:params[0][@"socialAssertion"] error:nil];
+    self.inviteLink = params[0][@"inviteLink"];
+    self.throttled = [params[0][@"throttled"] boolValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDisplayTLFCreateWithInviteRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRStartRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
+    self.reason = [MTLJSONAdapter modelOfClass:KBRIdentifyReason.class fromJSONDictionary:params[0][@"reason"] error:nil];
+    self.forceDisplay = [params[0][@"forceDisplay"] boolValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRStartRequestParams *p = [[self alloc] init];
+  // Add default values
+  p.forceDisplay = false;
+  return p;
+}
+@end
+
+@implementation KBRDisplayKeyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.key = [MTLJSONAdapter modelOfClass:KBRIdentifyKey.class fromJSONDictionary:params[0][@"key"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDisplayKeyRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRReportLastTrackRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.track = [MTLJSONAdapter modelOfClass:KBRTrackSummary.class fromJSONDictionary:params[0][@"track"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRReportLastTrackRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRLaunchNetworkChecksRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"identity"] error:nil];
+    self.user = [MTLJSONAdapter modelOfClass:KBRUser.class fromJSONDictionary:params[0][@"user"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRLaunchNetworkChecksRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDisplayTrackStatementRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.stmt = params[0][@"stmt"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDisplayTrackStatementRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFinishWebProofCheckRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.rp = [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:params[0][@"rp"] error:nil];
+    self.lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFinishWebProofCheckRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFinishSocialProofCheckRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.rp = [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:params[0][@"rp"] error:nil];
+    self.lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFinishSocialProofCheckRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDisplayCryptocurrencyRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.c = [MTLJSONAdapter modelOfClass:KBRCryptocurrency.class fromJSONDictionary:params[0][@"c"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDisplayCryptocurrencyRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRReportTrackTokenRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.trackToken = params[0][@"trackToken"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRReportTrackTokenRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDisplayUserCardRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.card = [MTLJSONAdapter modelOfClass:KBRUserCard.class fromJSONDictionary:params[0][@"card"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDisplayUserCardRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRConfirmRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.outcome = [MTLJSONAdapter modelOfClass:KBRIdentifyOutcome.class fromJSONDictionary:params[0][@"outcome"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRConfirmRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRCancelRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRCancelRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFinishRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFinishRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDismissRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
+    self.reason = [MTLJSONAdapter modelOfClass:KBRDismissReason.class fromJSONDictionary:params[0][@"reason"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDismissRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRSaltpackPromptForDecryptRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -3824,6 +4766,39 @@
 
 + (instancetype)params {
   KBRPassphrasePromptRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBREmailChangeRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.emailNew = params[0][@"emailNew"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBREmailChangeRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRHasServerKeysRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRHasServerKeysRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4191,6 +5166,23 @@
 }
 @end
 
+@implementation KBRWaitForClientRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.clientType = [params[0][@"clientType"] integerValue];
+    self.timeout = [params[0][@"timeout"] doubleValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRWaitForClientRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRSignED25519RequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -4204,6 +5196,24 @@
 
 + (instancetype)params {
   KBRSignED25519RequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRSignED25519ForKBFSRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.msg = params[0][@"msg"];
+    self.reason = params[0][@"reason"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRSignED25519ForKBFSRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4261,6 +5271,25 @@
 
 + (instancetype)params {
   KBRUnboxBytes32AnyRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRRegisterAddressRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.address = params[0][@"address"];
+    self.force = [params[0][@"force"] boolValue];
+    self.wantedFamily = params[0][@"wantedFamily"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRRegisterAddressRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4458,6 +5487,24 @@
 
 + (instancetype)params {
   KBRCheckDeviceNameFormatRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRCheckDeviceNameForUserRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.username = params[0][@"username"];
+    self.devicename = params[0][@"devicename"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRCheckDeviceNameForUserRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4683,6 +5730,9 @@
     self.needProofSet = [params[0][@"needProofSet"] boolValue];
     self.allowEmptySelfID = [params[0][@"allowEmptySelfID"] boolValue];
     self.noSkipSelf = [params[0][@"noSkipSelf"] boolValue];
+    self.canSuppressUI = [params[0][@"canSuppressUI"] boolValue];
+    self.chatGUIMode = [params[0][@"chatGUIMode"] boolValue];
+    self.forceDisplay = [params[0][@"forceDisplay"] boolValue];
   }
   return self;
 }
@@ -4697,253 +5747,9 @@
   p.needProofSet = false;
   p.allowEmptySelfID = false;
   p.noSkipSelf = true;
-  return p;
-}
-@end
-
-@implementation KBRDisplayTLFCreateWithInviteRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.folderName = params[0][@"folderName"];
-    self.isPrivate = [params[0][@"isPrivate"] boolValue];
-    self.assertion = params[0][@"assertion"];
-    self.socialAssertion = [MTLJSONAdapter modelOfClass:KBRSocialAssertion.class fromJSONDictionary:params[0][@"socialAssertion"] error:nil];
-    self.inviteLink = params[0][@"inviteLink"];
-    self.throttled = [params[0][@"throttled"] boolValue];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDisplayTLFCreateWithInviteRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRStartRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.username = params[0][@"username"];
-    self.reason = [MTLJSONAdapter modelOfClass:KBRIdentifyReason.class fromJSONDictionary:params[0][@"reason"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRStartRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRDisplayKeyRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.key = [MTLJSONAdapter modelOfClass:KBRIdentifyKey.class fromJSONDictionary:params[0][@"key"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDisplayKeyRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRReportLastTrackRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.track = [MTLJSONAdapter modelOfClass:KBRTrackSummary.class fromJSONDictionary:params[0][@"track"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRReportLastTrackRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRLaunchNetworkChecksRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.identity = [MTLJSONAdapter modelOfClass:KBRIdentity.class fromJSONDictionary:params[0][@"identity"] error:nil];
-    self.user = [MTLJSONAdapter modelOfClass:KBRUser.class fromJSONDictionary:params[0][@"user"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRLaunchNetworkChecksRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRDisplayTrackStatementRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.stmt = params[0][@"stmt"];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDisplayTrackStatementRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRFinishWebProofCheckRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.rp = [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:params[0][@"rp"] error:nil];
-    self.lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRFinishWebProofCheckRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRFinishSocialProofCheckRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.rp = [MTLJSONAdapter modelOfClass:KBRRemoteProof.class fromJSONDictionary:params[0][@"rp"] error:nil];
-    self.lcr = [MTLJSONAdapter modelOfClass:KBRLinkCheckResult.class fromJSONDictionary:params[0][@"lcr"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRFinishSocialProofCheckRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRDisplayCryptocurrencyRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.c = [MTLJSONAdapter modelOfClass:KBRCryptocurrency.class fromJSONDictionary:params[0][@"c"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDisplayCryptocurrencyRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRReportTrackTokenRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.trackToken = params[0][@"trackToken"];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRReportTrackTokenRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRDisplayUserCardRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.card = [MTLJSONAdapter modelOfClass:KBRUserCard.class fromJSONDictionary:params[0][@"card"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDisplayUserCardRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRConfirmRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.outcome = [MTLJSONAdapter modelOfClass:KBRIdentifyOutcome.class fromJSONDictionary:params[0][@"outcome"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRConfirmRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRFinishRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRFinishRequestParams *p = [[self alloc] init];
-  // Add default values
-  return p;
-}
-@end
-
-@implementation KBRDismissRequestParams
-
-- (instancetype)initWithParams:(NSArray *)params {
-  if ((self = [super initWithParams:params])) {
-    self.sessionID = [params[0][@"sessionID"] integerValue];
-    self.username = params[0][@"username"];
-    self.reason = [MTLJSONAdapter modelOfClass:KBRDismissReason.class fromJSONDictionary:params[0][@"reason"] error:nil];
-  }
-  return self;
-}
-
-+ (instancetype)params {
-  KBRDismissRequestParams *p = [[self alloc] init];
-  // Add default values
+  p.canSuppressUI = false;
+  p.chatGUIMode = false;
+  p.forceDisplay = false;
   return p;
 }
 @end
@@ -4959,6 +5765,72 @@
 
 + (instancetype)params {
   KBRFSEventRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSEditListRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.edits = [MTLJSONAdapter modelsOfClass:KBRFSNotification.class fromJSONArray:params[0][@"edits"] error:nil];
+    self.requestID = [params[0][@"requestID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSEditListRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSSyncStatusRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.status = [MTLJSONAdapter modelOfClass:KBRFSSyncStatus.class fromJSONDictionary:params[0][@"status"] error:nil];
+    self.requestID = [params[0][@"requestID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSSyncStatusRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSSyncEventRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.event = [MTLJSONAdapter modelOfClass:KBRFSPathSyncStatus.class fromJSONDictionary:params[0][@"event"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSSyncEventRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRSetCurrentMountDirRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.dir = params[0][@"dir"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRSetCurrentMountDirRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -4995,6 +5867,42 @@
 
 + (instancetype)params {
   KBRDidCounterSignRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRHello2RequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.uid = params[0][@"uid"];
+    self.token = params[0][@"token"];
+    self.csrf = params[0][@"csrf"];
+    self.sigBody = params[0][@"sigBody"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRHello2RequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRDidCounterSign2RequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sig = params[0][@"sig"];
+    self.ppsEncrypted = params[0][@"ppsEncrypted"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRDidCounterSign2RequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -5223,6 +6131,22 @@
 }
 @end
 
+@implementation KBRAccountDeleteRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRAccountDeleteRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRGetEmailOrUsernameRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -5312,6 +6236,8 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.mdBlock = [MTLJSONAdapter modelOfClass:KBRMDBlock.class fromJSONDictionary:params[0][@"mdBlock"] error:nil];
+    self.readerKeyBundle = [MTLJSONAdapter modelOfClass:KBRKeyBundle.class fromJSONDictionary:params[0][@"readerKeyBundle"] error:nil];
+    self.writerKeyBundle = [MTLJSONAdapter modelOfClass:KBRKeyBundle.class fromJSONDictionary:params[0][@"writerKeyBundle"] error:nil];
     self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
@@ -5518,6 +6444,24 @@
 }
 @end
 
+@implementation KBRGetKeyBundlesRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.folderID = params[0][@"folderID"];
+    self.writerBundleID = params[0][@"writerBundleID"];
+    self.readerBundleID = params[0][@"readerBundleID"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRGetKeyBundlesRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRGetMerkleRootRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -5618,6 +6562,22 @@
 }
 @end
 
+@implementation KBRBadgeStateRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.badgeState = [MTLJSONAdapter modelOfClass:KBRBadgeState.class fromJSONDictionary:params[0][@"badgeState"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRBadgeStateRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRSetNotificationsRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -5661,6 +6621,88 @@
 
 + (instancetype)params {
   KBRFSActivityRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSSyncActivityRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.status = [MTLJSONAdapter modelOfClass:KBRFSPathSyncStatus.class fromJSONDictionary:params[0][@"status"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSSyncActivityRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSEditListResponseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.edits = [MTLJSONAdapter modelsOfClass:KBRFSNotification.class fromJSONArray:params[0][@"edits"] error:nil];
+    self.requestID = [params[0][@"requestID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSEditListResponseRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSSyncStatusResponseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.status = [MTLJSONAdapter modelOfClass:KBRFSSyncStatus.class fromJSONDictionary:params[0][@"status"] error:nil];
+    self.requestID = [params[0][@"requestID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSSyncStatusResponseRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSEditListRequestRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.req = [MTLJSONAdapter modelOfClass:KBRFSEditListRequest.class fromJSONDictionary:params[0][@"req"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSEditListRequestRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFSSyncStatusRequestRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.req = [MTLJSONAdapter modelOfClass:KBRFSSyncStatusRequest.class fromJSONDictionary:params[0][@"req"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFSSyncStatusRequestRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -5969,6 +7011,23 @@
 }
 @end
 
+@implementation KBRPgpKeyGenDefaultRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.createUids = [MTLJSONAdapter modelOfClass:KBRPGPCreateUids.class fromJSONDictionary:params[0][@"createUids"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRPgpKeyGenDefaultRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRPgpDeletePrimaryRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -6040,6 +7099,22 @@
 }
 @end
 
+@implementation KBRPgpStorageDismissRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRPgpStorageDismissRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBROutputSignatureSuccessRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -6054,6 +7129,74 @@
 
 + (instancetype)params {
   KBROutputSignatureSuccessRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBROutputSignatureSuccessNonKeybaseRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.keyID = params[0][@"keyID"];
+    self.signedAt = [params[0][@"signedAt"] longValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBROutputSignatureSuccessNonKeybaseRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRKeyGeneratedRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.kid = params[0][@"kid"];
+    self.key = [MTLJSONAdapter modelOfClass:KBRKeyInfo.class fromJSONDictionary:params[0][@"key"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRKeyGeneratedRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRShouldPushPrivateRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRShouldPushPrivateRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRFinishedRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRFinishedRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -6411,6 +7554,22 @@
 }
 @end
 
+@implementation KBRReachabilityChangedRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.reachability = [MTLJSONAdapter modelOfClass:KBRReachability.class fromJSONDictionary:params[0][@"reachability"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRReachabilityChangedRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRShowPendingRekeyStatusRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -6475,6 +7634,41 @@
 }
 @end
 
+@implementation KBRRekeySyncRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.force = [params[0][@"force"] boolValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRRekeySyncRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRGetRevokeWarningRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.session = [params[0][@"session"] integerValue];
+    self.actingDevice = params[0][@"actingDevice"];
+    self.targetDevice = params[0][@"targetDevice"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRGetRevokeWarningRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRRefreshRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -6487,6 +7681,23 @@
 
 + (instancetype)params {
   KBRRefreshRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRRekeySendEventRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.event = [MTLJSONAdapter modelOfClass:KBRRekeyEvent.class fromJSONDictionary:params[0][@"event"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRRekeySendEventRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -6620,6 +7831,28 @@
 }
 @end
 
+@implementation KBRScanProofsRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.infile = params[0][@"infile"];
+    self.indices = params[0][@"indices"];
+    self.sigid = params[0][@"sigid"];
+    self.ratelimit = [params[0][@"ratelimit"] integerValue];
+    self.cachefile = params[0][@"cachefile"];
+    self.ignorefile = params[0][@"ignorefile"];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRScanProofsRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRGetPassphraseRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -6697,6 +7930,7 @@
     self.passphrase = params[0][@"passphrase"];
     self.username = params[0][@"username"];
     self.deviceName = params[0][@"deviceName"];
+    self.deviceType = [params[0][@"deviceType"] integerValue];
     self.storeSecret = [params[0][@"storeSecret"] boolValue];
     self.skipMail = [params[0][@"skipMail"] boolValue];
     self.genPGPBatch = [params[0][@"genPGPBatch"] boolValue];
@@ -6816,6 +8050,23 @@
 }
 @end
 
+@implementation KBRResetRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+    self.s = [MTLJSONAdapter modelOfClass:KBRStream.class fromJSONDictionary:params[0][@"s"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRResetRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRWriteRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -6888,7 +8139,7 @@
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.tlfName = params[0][@"tlfName"];
+    self.query = [MTLJSONAdapter modelOfClass:KBRTLFQuery.class fromJSONDictionary:params[0][@"query"] error:nil];
   }
   return self;
 }
@@ -6900,17 +8151,65 @@
 }
 @end
 
+@implementation KBRPublicCanonicalTLFNameAndIDRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.query = [MTLJSONAdapter modelOfClass:KBRTLFQuery.class fromJSONDictionary:params[0][@"query"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRPublicCanonicalTLFNameAndIDRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRCompleteAndCanonicalizePrivateTlfNameRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.query = [MTLJSONAdapter modelOfClass:KBRTLFQuery.class fromJSONDictionary:params[0][@"query"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRCompleteAndCanonicalizePrivateTlfNameRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRGetTLFCryptKeysRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
-    self.tlfName = params[0][@"tlfName"];
+    self.query = [MTLJSONAdapter modelOfClass:KBRTLFQuery.class fromJSONDictionary:params[0][@"query"] error:nil];
   }
   return self;
 }
 
 + (instancetype)params {
   KBRGetTLFCryptKeysRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRGetPublicCanonicalTLFNameAndIDRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.query = [MTLJSONAdapter modelOfClass:KBRTLFQuery.class fromJSONDictionary:params[0][@"query"] error:nil];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRGetPublicCanonicalTLFNameAndIDRequestParams *p = [[self alloc] init];
   // Add default values
   return p;
 }
@@ -7173,6 +8472,38 @@
 }
 @end
 
+@implementation KBRLoadMyPublicKeysRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRLoadMyPublicKeysRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
+@implementation KBRLoadMySettingsRequestParams
+
+- (instancetype)initWithParams:(NSArray *)params {
+  if ((self = [super initWithParams:params])) {
+    self.sessionID = [params[0][@"sessionID"] integerValue];
+  }
+  return self;
+}
+
++ (instancetype)params {
+  KBRLoadMySettingsRequestParams *p = [[self alloc] init];
+  // Add default values
+  return p;
+}
+@end
+
 @implementation KBRListTrackingRequestParams
 
 - (instancetype)initWithParams:(NSArray *)params {
@@ -7301,6 +8632,14 @@
 + (NSValueTransformer *)revokedDeviceKeysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRRevokedKey.class]; }
 @end
 
+@implementation KBRRemoteTrack
+@end
+
+@implementation KBRUserPlusAllKeys
++ (NSValueTransformer *)pgpKeysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPublicKey.class]; }
++ (NSValueTransformer *)remoteTracksJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRRemoteTrack.class]; }
+@end
+
 @implementation KBRSocialAssertion
 @end
 
@@ -7328,97 +8667,6 @@
 @end
 
 @implementation KBRRemoteProof
-@end
-
-@implementation KBRSaltpackSender
-@end
-
-@implementation KBRAPIRes
-@end
-
-@implementation KBRBlockIdCombo
-@end
-
-@implementation KBRChallengeInfo
-@end
-
-@implementation KBRGetBlockRes
-@end
-
-@implementation KBRBlockReference
-@end
-
-@implementation KBRBlockReferenceCount
-@end
-
-@implementation KBRDowngradeReferenceRes
-+ (NSValueTransformer *)completedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRBlockReferenceCount.class]; }
-@end
-
-@implementation KBRGetCurrentStatusRes
-@end
-
-@implementation KBRSessionStatus
-@end
-
-@implementation KBRClientDetails
-@end
-
-@implementation KBRPlatformInfo
-@end
-
-@implementation KBRExtendedStatus
-+ (NSValueTransformer *)ClientsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRClientDetails.class]; }
-@end
-
-@implementation KBRConfig
-@end
-
-@implementation KBRConfigValue
-@end
-
-@implementation KBROutOfDateInfo
-@end
-
-@implementation KBRED25519SignatureInfo
-@end
-
-@implementation KBRCiphertextBundle
-@end
-
-@implementation KBRUnboxAnyRes
-@end
-
-@implementation KBRFirstStepResult
-@end
-
-@implementation KBRDeviceDetail
-@end
-
-@implementation KBRFolder
-@end
-
-@implementation KBRFavoritesResult
-+ (NSValueTransformer *)favoriteFoldersJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFolder.class]; }
-+ (NSValueTransformer *)ignoredFoldersJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFolder.class]; }
-+ (NSValueTransformer *)foldersNewJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFolder.class]; }
-@end
-
-@implementation KBRFile
-@end
-
-@implementation KBRListResult
-+ (NSValueTransformer *)filesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFile.class]; }
-@end
-
-@implementation KBRGPGKey
-+ (NSValueTransformer *)identitiesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPGPIdentity.class]; }
-@end
-
-@implementation KBRSelectKeyRes
-@end
-
-@implementation KBRIdentify2Res
 @end
 
 @implementation KBRProofResult
@@ -7461,6 +8709,114 @@
 @implementation KBRDismissReason
 @end
 
+@implementation KBRSaltpackSender
+@end
+
+@implementation KBRHasServerKeysRes
+@end
+
+@implementation KBRAPIRes
+@end
+
+@implementation KBRBlockIdCombo
+@end
+
+@implementation KBRChallengeInfo
+@end
+
+@implementation KBRGetBlockRes
+@end
+
+@implementation KBRBlockReference
+@end
+
+@implementation KBRBlockReferenceCount
+@end
+
+@implementation KBRDowngradeReferenceRes
++ (NSValueTransformer *)completedJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRBlockReferenceCount.class]; }
+@end
+
+@implementation KBRGetCurrentStatusRes
+@end
+
+@implementation KBRSessionStatus
+@end
+
+@implementation KBRClientDetails
+@end
+
+@implementation KBRPlatformInfo
+@end
+
+@implementation KBRLoadDeviceErr
+@end
+
+@implementation KBRExtendedStatus
++ (NSValueTransformer *)ClientsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRClientDetails.class]; }
+@end
+
+@implementation KBRConfig
+@end
+
+@implementation KBRConfigValue
+@end
+
+@implementation KBROutOfDateInfo
+@end
+
+@implementation KBRED25519SignatureInfo
+@end
+
+@implementation KBRCiphertextBundle
+@end
+
+@implementation KBRUnboxAnyRes
+@end
+
+@implementation KBRRegisterAddressRes
+@end
+
+@implementation KBRFirstStepResult
+@end
+
+@implementation KBRDeviceDetail
+@end
+
+@implementation KBRFolder
+@end
+
+@implementation KBRFavoritesResult
++ (NSValueTransformer *)favoriteFoldersJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFolder.class]; }
++ (NSValueTransformer *)ignoredFoldersJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFolder.class]; }
++ (NSValueTransformer *)foldersNewJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFolder.class]; }
+@end
+
+@implementation KBRFile
+@end
+
+@implementation KBRListResult
++ (NSValueTransformer *)filesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFile.class]; }
+@end
+
+@implementation KBRGPGKey
++ (NSValueTransformer *)identitiesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRPGPIdentity.class]; }
+@end
+
+@implementation KBRSelectKeyRes
+@end
+
+@implementation KBRIdentifyProofBreak
+@end
+
+@implementation KBRIdentifyTrackBreaks
++ (NSValueTransformer *)keysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRIdentifyKey.class]; }
++ (NSValueTransformer *)proofsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRIdentifyProofBreak.class]; }
+@end
+
+@implementation KBRIdentify2Res
+@end
+
 @implementation KBRServiceStatus
 @end
 
@@ -7491,7 +8847,23 @@
 @implementation KBRFSNotification
 @end
 
+@implementation KBRFSEditListRequest
+@end
+
+@implementation KBRFSSyncStatusRequest
+@end
+
+@implementation KBRFSPathSyncStatus
+@end
+
+@implementation KBRFSSyncStatus
++ (NSValueTransformer *)pathStatusesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRFSPathSyncStatus.class]; }
+@end
+
 @implementation KBRPassphraseStream
+@end
+
+@implementation KBRHello2Res
 @end
 
 @implementation KBRConfiguredAccount
@@ -7503,6 +8875,9 @@
 @implementation KBRMDBlock
 @end
 
+@implementation KBRKeyBundle
+@end
+
 @implementation KBRMetadataResponse
 + (NSValueTransformer *)mdBlocksJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRMDBlock.class]; }
 @end
@@ -7511,6 +8886,16 @@
 @end
 
 @implementation KBRPingResponse
+@end
+
+@implementation KBRKeyBundleResponse
+@end
+
+@implementation KBRBadgeState
++ (NSValueTransformer *)conversationsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRBadgeConversationInfo.class]; }
+@end
+
+@implementation KBRBadgeConversationInfo
 @end
 
 @implementation KBRNotificationChannels
@@ -7575,6 +8960,9 @@
 @implementation KBRVerifySessionRes
 @end
 
+@implementation KBRReachability
+@end
+
 @implementation KBRTLF
 @end
 
@@ -7588,6 +8976,13 @@
 
 @implementation KBRProblemSetDevices
 + (NSValueTransformer *)devicesJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRDevice.class]; }
+@end
+
+@implementation KBRRevokeWarning
++ (NSValueTransformer *)endangeredTLFsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTLF.class]; }
+@end
+
+@implementation KBRRekeyEvent
 @end
 
 @implementation KBRSaltpackEncryptOptions
@@ -7636,8 +9031,21 @@
 @implementation KBRCryptKey
 @end
 
-@implementation KBRTLFCryptKeys
+@implementation KBRTLFBreak
++ (NSValueTransformer *)breaksJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRTLFIdentifyFailure.class]; }
+@end
+
+@implementation KBRTLFIdentifyFailure
+@end
+
+@implementation KBRCanonicalTLFNameAndIDWithBreaks
+@end
+
+@implementation KBRGetTLFCryptKeysRes
 + (NSValueTransformer *)CryptKeysJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBRCryptKey.class]; }
+@end
+
+@implementation KBRTLFQuery
 @end
 
 @implementation KBRTracker
@@ -7656,6 +9064,13 @@
 @end
 
 @implementation KBRUserSummary
+@end
+
+@implementation KBREmail
+@end
+
+@implementation KBRUserSettings
++ (NSValueTransformer *)emailsJSONTransformer { return [MTLJSONAdapter arrayTransformerWithModelClass:KBREmail.class]; }
 @end
 
 @implementation KBRSearchComponent
