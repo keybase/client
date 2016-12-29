@@ -45,6 +45,7 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 		Endpoint:    "user/card",
 		NeedSession: useSession,
 		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
+		NetContext:  g.NetContext,
 	}
 
 	var card card

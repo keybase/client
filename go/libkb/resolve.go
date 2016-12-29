@@ -9,6 +9,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 	"stathat.com/c/ramcache"
 )
 
@@ -71,24 +72,24 @@ func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 	if au, res.err = ParseAssertionURL(r.G().MakeAssertionContext(), input, false); res.err != nil {
 		return res
 	}
-	res = r.resolveURL(au, input, withBody, false)
+	res = r.resolveURL(context.TODO(), au, input, withBody, false)
 	return res
 }
 
 func (r *Resolver) ResolveFullExpression(input string) (res ResolveResult) {
-	return r.resolveFullExpression(input, false, false)
+	return r.resolveFullExpression(context.TODO(), input, false, false)
 }
 
 func (r *Resolver) ResolveFullExpressionNeedUsername(input string) (res ResolveResult) {
-	return r.resolveFullExpression(input, false, true)
+	return r.resolveFullExpression(context.TODO(), input, false, true)
 }
 
-func (r *Resolver) ResolveFullExpressionWithBody(input string) (res ResolveResult) {
-	return r.resolveFullExpression(input, true, false)
+func (r *Resolver) ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult) {
+	return r.resolveFullExpression(ctx, input, true, false)
 }
 
-func (r *Resolver) resolveFullExpression(input string, withBody bool, needUsername bool) (res ResolveResult) {
-	defer r.G().Trace(fmt.Sprintf("Resolving full expression %q", input), func() error { return res.err })()
+func (r *Resolver) resolveFullExpression(ctx context.Context, input string, withBody bool, needUsername bool) (res ResolveResult) {
+	defer r.G().CTrace(ctx, fmt.Sprintf("Resolving full expression %q", input), func() error { return res.err })()
 
 	var expr AssertionExpression
 	expr, res.err = AssertionParseAndOnly(r.G().MakeAssertionContext(), input)
@@ -100,10 +101,10 @@ func (r *Resolver) resolveFullExpression(input string, withBody bool, needUserna
 		res.err = ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
 		return res
 	}
-	return r.resolveURL(u, input, withBody, needUsername)
+	return r.resolveURL(ctx, u, input, withBody, needUsername)
 }
 
-func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, needUsername bool) ResolveResult {
+func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) ResolveResult {
 
 	// A standard keybase UID, so it's already resolved... unless we explicitly
 	// need it!
@@ -119,7 +120,7 @@ func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, need
 		return *p
 	}
 
-	res := r.resolveURLViaServerLookup(au, input, withBody)
+	res := r.resolveURLViaServerLookup(ctx, au, input, withBody)
 
 	// Cache for a shorter period of time if it's not a Keybase identity
 	res.mutable = !au.IsKeybase()
@@ -128,8 +129,8 @@ func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, need
 	return res
 }
 
-func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, withBody bool) (res ResolveResult) {
-	defer r.G().Trace(fmt.Sprintf("resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
+func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
+	defer r.G().CTrace(ctx, fmt.Sprintf("resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	var key, val string
 	var ares *APIRes
@@ -157,19 +158,20 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 		NeedSession:    false,
 		Args:           ha,
 		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
+		NetContext:     ctx,
 	})
 
 	if res.err != nil {
-		r.G().Log.Debug("API user/lookup %q error: %s", input, res.err)
+		r.G().Log.CDebugf(ctx, "API user/lookup %q error: %s", input, res.err)
 		return
 	}
 	switch ares.AppStatus.Code {
 	case SCNotFound:
-		r.G().Log.Debug("API user/lookup %q not found", input)
+		r.G().Log.CDebugf(ctx, "API user/lookup %q not found", input)
 		res.err = NotFoundError{}
 		return
 	case SCDeleted:
-		r.G().Log.Debug("API user/lookup %q deleted", input)
+		r.G().Log.CDebugf(ctx, "API user/lookup %q deleted", input)
 		res.err = DeletedError{Msg: fmt.Sprintf("user %q deleted", input)}
 		return
 	}

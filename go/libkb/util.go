@@ -25,6 +25,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // PrereleaseBuild can be set at compile time for prerelease builds.
@@ -392,6 +393,11 @@ func Trace(log logger.Logger, msg string, f func() error) func() {
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
+func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
+	log.CDebugf(ctx, "+ %s", msg)
+	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
+}
+
 func TraceOK(log logger.Logger, msg string, f func() bool) func() {
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %v", msg, f()) }
@@ -399,6 +405,10 @@ func TraceOK(log logger.Logger, msg string, f func() bool) func() {
 
 func (g *GlobalContext) Trace(msg string, f func() error) func() {
 	return Trace(g.Log, msg, f)
+}
+
+func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
+	return CTrace(ctx, g.Log, msg, f)
 }
 
 func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
