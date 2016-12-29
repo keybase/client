@@ -35,7 +35,7 @@
     "updated-fonts": "yarn run _helper updated-fonts",
     "vendor-install": "node yarn-vendor.js",
     "vendor-update": "node yarn-vendor.js update",
-    "rn-start": "./node_modules/react-native/packager/packager.sh",
+    "rn-start": "BABEL_ENV='react-native' ./node_modules/react-native/packager/packager.sh",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-packager-wipe-cache": "node ./react-native/wipe-cache.js",
