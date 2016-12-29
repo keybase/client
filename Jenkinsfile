@@ -239,6 +239,13 @@ def runNixTest(prefix) {
     tests[prefix+'install'] = {
         sh 'go install github.com/keybase/kbfs/...'
     }
+    tests[prefix+'kbfsblock'] = {
+        dir('kbfsblock') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './kbfsblock.test -test.timeout 30s'
+        }
+    }
     tests[prefix+'kbfscodec'] = {
         dir('kbfscodec') {
             sh 'go test -i'

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -529,17 +530,24 @@ type mdDecryptionKeyGetter interface {
 		kbfscrypto.TLFCryptKey, error)
 }
 
-// KeyManager fetches and constructs the keys needed for KBFS file
-// operations.
-type KeyManager interface {
-	encryptionKeyGetter
-	mdDecryptionKeyGetter
-
+type blockDecryptionKeyGetter interface {
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block
 	// pointed to by the given pointer.
 	GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata,
 		blockPtr BlockPointer) (kbfscrypto.TLFCryptKey, error)
+}
+
+type blockKeyGetter interface {
+	encryptionKeyGetter
+	blockDecryptionKeyGetter
+}
+
+// KeyManager fetches and constructs the keys needed for KBFS file
+// operations.
+type KeyManager interface {
+	blockKeyGetter
+	mdDecryptionKeyGetter
 
 	// GetTLFCryptKeyOfAllGenerations gets the crypt keys of all generations
 	// for current devices. keys contains crypt keys from all generations, in
@@ -652,7 +660,7 @@ type BlockCache interface {
 	// Delete removes the permanent entry for the non-dirty block
 	// associated with the given block ID from the cache.  No
 	// error is returned if no block exists for the given ID.
-	DeletePermanent(id BlockID) error
+	DeletePermanent(id kbfsblock.ID) error
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
@@ -770,21 +778,12 @@ type cryptoPure interface {
 	// MakeTemporaryBlockID generates a temporary block ID using a
 	// CSPRNG. This is used for indirect blocks before they're
 	// committed to the server.
-	MakeTemporaryBlockID() (BlockID, error)
-
-	// MakePermanentBlockID computes the permanent ID of a block
-	// given its encoded and encrypted contents.
-	MakePermanentBlockID(encodedEncryptedData []byte) (BlockID, error)
-
-	// VerifyBlockID verifies that the given block ID is the
-	// permanent block ID for the given encoded and encrypted
-	// data.
-	VerifyBlockID(encodedEncryptedData []byte, id BlockID) error
+	MakeTemporaryBlockID() (kbfsblock.ID, error)
 
 	// MakeRefNonce generates a block reference nonce using a
 	// CSPRNG. This is used for distinguishing different references to
 	// the same BlockID.
-	MakeBlockRefNonce() (BlockRefNonce, error)
+	MakeBlockRefNonce() (kbfsblock.RefNonce, error)
 
 	// MakeRandomTLFEphemeralKeys generates ephemeral keys using a
 	// CSPRNG for a TLF. These keys can then be used to key/rekey
@@ -800,27 +799,11 @@ type cryptoPure interface {
 	// top-level folder crypt key.
 	MakeRandomTLFCryptKeyServerHalf() (
 		kbfscrypto.TLFCryptKeyServerHalf, error)
+
 	// MakeRandomBlockCryptKeyServerHalf generates the server-side of
 	// a block crypt key.
 	MakeRandomBlockCryptKeyServerHalf() (
 		kbfscrypto.BlockCryptKeyServerHalf, error)
-
-	// MaskTLFCryptKey returns the client-side of a top-level folder crypt key.
-	MaskTLFCryptKey(serverHalf kbfscrypto.TLFCryptKeyServerHalf,
-		key kbfscrypto.TLFCryptKey) (
-		kbfscrypto.TLFCryptKeyClientHalf, error)
-	// UnmaskTLFCryptKey returns the top-level folder crypt key.
-	UnmaskTLFCryptKey(serverHalf kbfscrypto.TLFCryptKeyServerHalf,
-		clientHalf kbfscrypto.TLFCryptKeyClientHalf) (
-		kbfscrypto.TLFCryptKey, error)
-	// UnmaskBlockCryptKey returns the block crypt key.
-	UnmaskBlockCryptKey(serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-		tlfCryptKey kbfscrypto.TLFCryptKey) (
-		kbfscrypto.BlockCryptKey, error)
-
-	// Verify verifies that sig matches msg being signed with the
-	// private key that corresponds to verifyingKey.
-	Verify(msg []byte, sigInfo kbfscrypto.SignatureInfo) error
 
 	// EncryptTLFCryptKeyClientHalf encrypts a TLFCryptKeyClientHalf
 	// using both a TLF's ephemeral private key and a device pubkey.
@@ -975,7 +958,7 @@ type MDOps interface {
 	// are still in the local journal.  It also appends the given MD
 	// to the journal.
 	ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID,
-		blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error)
+		blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (MdID, error)
 
 	// GetLatestHandleForTLF returns the server's idea of the latest handle for the TLF,
 	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
@@ -1022,13 +1005,13 @@ type BlockOps interface {
 	// of block puts in parallel for every write. Ready() must
 	// guarantee that plainSize <= readyBlockData.QuotaSize().
 	Ready(ctx context.Context, kmd KeyMetadata, block Block) (
-		id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
+		id kbfsblock.ID, plainSize int, readyBlockData ReadyBlockData, err error)
 
 	// Delete instructs the server to delete the given block references.
 	// It returns the number of not-yet deleted references to
 	// each block reference
 	Delete(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) (
-		liveCounts map[BlockID]int, err error)
+		liveCounts map[kbfsblock.ID]int, err error)
 
 	// Archive instructs the server to mark the given block references
 	// as "archived"; that is, they are not being used in the current
@@ -1177,13 +1160,13 @@ type BlockServer interface {
 	// the block, and fills in the provided block object with its
 	// contents, if the logged-in user has read permission for that
 	// block.
-	Get(ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext) (
+	Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (
 		[]byte, kbfscrypto.BlockCryptKeyServerHalf, error)
-	// Put stores the (encrypted) block data under the given ID and
-	// context on the server, along with the server half of the block
-	// key.  context should contain a BlockRefNonce of zero.  There
-	// will be an initial reference for this block for the given
-	// context.
+	// Put stores the (encrypted) block data under the given ID
+	// and context on the server, along with the server half of
+	// the block key.  context should contain a kbfsblock.RefNonce
+	// of zero.  There will be an initial reference for this block
+	// for the given context.
 	//
 	// Put should be idempotent, although it should also return an
 	// error if, for a given ID, any of the other arguments differ
@@ -1192,15 +1175,16 @@ type BlockServer interface {
 	// If this returns a BServerErrorOverQuota, with Throttled=false,
 	// the caller can treat it as informational and otherwise ignore
 	// the error.
-	Put(ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext,
+	Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 
 	// AddBlockReference adds a new reference to the given block,
-	// defined by the given context (which should contain a non-zero
-	// BlockRefNonce).  (Contexts with a BlockRefNonce of zero should
-	// be used when putting the block for the first time via Put().)
-	// Returns a BServerErrorBlockNonExistent if id is unknown within
-	// this folder.
+	// defined by the given context (which should contain a
+	// non-zero kbfsblock.RefNonce).  (Contexts with a
+	// kbfsblock.RefNonce of zero should be used when putting the
+	// block for the first time via Put().)  Returns a
+	// BServerErrorBlockNonExistent if id is unknown within this
+	// folder.
 	//
 	// AddBlockReference should be idempotent, although it should
 	// also return an error if, for a given ID and refnonce, any
@@ -1210,8 +1194,8 @@ type BlockServer interface {
 	// If this returns a BServerErrorOverQuota, with Throttled=false,
 	// the caller can treat it as informational and otherwise ignore
 	// the error.
-	AddBlockReference(ctx context.Context, tlfID tlf.ID, id BlockID,
-		context BlockContext) error
+	AddBlockReference(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+		context kbfsblock.Context) error
 	// RemoveBlockReferences removes the references to the given block
 	// ID defined by the given contexts.  If no references to the block
 	// remain after this call, the server is allowed to delete the
@@ -1220,7 +1204,7 @@ type BlockServer interface {
 	// It returns the number of remaining not-yet-deleted references after this
 	// reference has been removed
 	RemoveBlockReferences(ctx context.Context, tlfID tlf.ID,
-		contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error)
+		contexts kbfsblock.ContextMap) (liveCounts map[kbfsblock.ID]int, err error)
 
 	// ArchiveBlockReferences marks the given block references as
 	// "archived"; that is, they are not being used in the current
@@ -1232,17 +1216,17 @@ type BlockServer interface {
 	// any of the other fields of the context differ from previous
 	// calls with the same ID/refnonce pair.
 	ArchiveBlockReferences(ctx context.Context, tlfID tlf.ID,
-		contexts map[BlockID][]BlockContext) error
+		contexts kbfsblock.ContextMap) error
 
 	// IsUnflushed returns whether a given block is being queued
 	// locally for later flushing to another block server.
-	IsUnflushed(ctx context.Context, tlfID tlf.ID, id BlockID) (bool, error)
+	IsUnflushed(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (bool, error)
 
 	// Shutdown is called to shutdown a BlockServer connection.
 	Shutdown()
 
 	// GetUserQuotaInfo returns the quota for the user.
-	GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error)
+	GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error)
 }
 
 // blockServerLocal is the interface for BlockServer implementations
@@ -1252,7 +1236,7 @@ type blockServerLocal interface {
 	// getAllRefsForTest returns all the known block references
 	// for the given TLF, and should only be used during testing.
 	getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (
-		map[BlockID]blockRefMap, error)
+		map[kbfsblock.ID]blockRefMap, error)
 }
 
 // BlockSplitter decides when a file or directory block needs to be split

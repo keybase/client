@@ -610,8 +610,7 @@ func checkCryptKeyInfo(t *testing.T, privKey kbfscrypto.CryptPrivateKey,
 		ctx, ePubKey, info.ClientHalf)
 	require.NoError(t, err)
 
-	tlfCryptKey, err := crypto.UnmaskTLFCryptKey(serverHalf, clientHalf)
-	require.NoError(t, err)
+	tlfCryptKey := kbfscrypto.UnmaskTLFCryptKey(serverHalf, clientHalf)
 	require.Equal(t, expectedTLFCryptKey, tlfCryptKey)
 }
 

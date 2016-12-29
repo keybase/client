@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -357,18 +358,18 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 		return err
 	}
 
-	blockRefsByID := make(map[BlockID]blockRefMap)
+	blockRefsByID := make(map[kbfsblock.ID]blockRefMap)
 	for ptr := range expectedLiveBlocks {
 		if _, ok := blockRefsByID[ptr.ID]; !ok {
 			blockRefsByID[ptr.ID] = make(blockRefMap)
 		}
-		blockRefsByID[ptr.ID].put(ptr.BlockContext, liveBlockRef, "")
+		blockRefsByID[ptr.ID].put(ptr.Context, liveBlockRef, "")
 	}
 	for ptr := range archivedBlocks {
 		if _, ok := blockRefsByID[ptr.ID]; !ok {
 			blockRefsByID[ptr.ID] = make(blockRefMap)
 		}
-		blockRefsByID[ptr.ID].put(ptr.BlockContext, archivedBlockRef, "")
+		blockRefsByID[ptr.ID].put(ptr.Context, archivedBlockRef, "")
 	}
 
 	if g, e := bserverKnownBlocks, blockRefsByID; !reflect.DeepEqual(g, e) {

@@ -11,10 +11,11 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/kbfsblock"
 	"golang.org/x/net/context"
 )
 
-func totalBlockRefs(m map[BlockID]blockRefMap) int {
+func totalBlockRefs(m map[kbfsblock.ID]blockRefMap) int {
 	n := 0
 	for _, refs := range m {
 		n += len(refs)

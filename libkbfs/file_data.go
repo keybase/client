@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -477,9 +478,9 @@ func (fd *fileData) createIndirectBlock(
 						ID:      newID,
 						KeyGen:  fd.kmd.LatestKeyGeneration(),
 						DataVer: dver,
-						BlockContext: BlockContext{
+						Context: kbfsblock.Context{
 							Creator:  fd.uid,
-							RefNonce: ZeroBlockRefNonce,
+							RefNonce: kbfsblock.ZeroRefNonce,
 						},
 					},
 					EncodedSize: 0,
@@ -515,9 +516,9 @@ func (fd *fileData) newRightBlock(
 		ID:      newRID,
 		KeyGen:  fd.kmd.LatestKeyGeneration(),
 		DataVer: DefaultNewBlockDataVersion(false),
-		BlockContext: BlockContext{
+		Context: kbfsblock.Context{
 			Creator:  fd.uid,
-			RefNonce: ZeroBlockRefNonce,
+			RefNonce: kbfsblock.ZeroRefNonce,
 		},
 	}
 
@@ -974,8 +975,8 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 			return nil, err
 		}
 
-		newInfo, _, readyBlockData, err :=
-			ReadyBlock(ctx, bcache, bops, fd.crypto, fd.kmd, block, fd.uid)
+		newInfo, _, readyBlockData, err := ReadyBlock(
+			ctx, bcache, bops, fd.crypto, fd.kmd, block, fd.uid)
 		if err != nil {
 			return nil, err
 		}
@@ -1065,9 +1066,9 @@ func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
 			ID:      newID,
 			KeyGen:  fd.kmd.LatestKeyGeneration(),
 			DataVer: dataVer,
-			BlockContext: BlockContext{
+			Context: kbfsblock.Context{
 				Creator:  fd.uid,
-				RefNonce: ZeroBlockRefNonce,
+				RefNonce: kbfsblock.ZeroRefNonce,
 			},
 		}
 	} else {
@@ -1119,7 +1120,7 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 	// TODO: parallelize
 	blockInfos := make([]BlockInfo, len(topBlock.IPtrs))
 	for i, iptr := range topBlock.IPtrs {
-		if iptr.RefNonce == ZeroBlockRefNonce {
+		if iptr.RefNonce == kbfsblock.ZeroRefNonce {
 			// No need to un-dup mid-level indirect blocks.  TODO:
 			// fetch the blocks and add them to the bps (only needed
 			// for multiple levels of indirection).

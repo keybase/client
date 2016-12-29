@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
 
@@ -416,7 +417,7 @@ func (j journalMDOps) PruneBranch(
 
 func (j journalMDOps) ResolveBranch(
 	ctx context.Context, id tlf.ID, bid BranchID,
-	blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
+	blocksToDelete []kbfsblock.ID, rmd *RootMetadata) (MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		mdID, err := tlfJournal.resolveBranch(
 			ctx, bid, blocksToDelete, rmd, rmd.extra)

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsblock
 
 import (
 	"errors"
@@ -281,18 +281,21 @@ func (e BServerErrorThrottle) ToStatus() (s keybase1.Status) {
 	return
 }
 
-type bServerErrorUnwrapper struct{}
+// BServerErrorUnwrapper unwraps errors from a remote block server.
+type BServerErrorUnwrapper struct{}
 
-var _ rpc.ErrorUnwrapper = bServerErrorUnwrapper{}
+var _ rpc.ErrorUnwrapper = BServerErrorUnwrapper{}
 
-func (eu bServerErrorUnwrapper) MakeArg() interface{} {
+// MakeArg implements rpc.ErrorUnwrapper.
+func (eu BServerErrorUnwrapper) MakeArg() interface{} {
 	return &keybase1.Status{}
 }
 
-func (eu bServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+// UnwrapError implements rpc.ErrorUnwrapper.
+func (eu BServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
 	s, ok := arg.(*keybase1.Status)
 	if !ok {
-		return nil, errors.New("Error converting arg to keybase1.Status object in bServerErrorUnwrapper.UnwrapError")
+		return nil, errors.New("Error converting arg to keybase1.Status object in BServerErrorUnwrapper.UnwrapError")
 	}
 
 	if s == nil || s.Code == 0 {
@@ -357,15 +360,4 @@ func (eu bServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, di
 	}
 
 	return appError, nil
-}
-
-func translateToBlockServerError(err error) error {
-	// TODO: Translate blockContextMismatchError, too, if the
-	// actual server returns a similar error.
-	switch err := err.(type) {
-	case blockNonExistentError:
-		return BServerErrorBlockNonExistent{err.Error()}
-	default:
-		return err
-	}
 }

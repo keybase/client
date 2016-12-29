@@ -406,6 +406,19 @@ func MakeBlockCryptKeyServerHalf(data [32]byte) BlockCryptKeyServerHalf {
 	return BlockCryptKeyServerHalf{publicByte32Container{data}}
 }
 
+// MakeRandomBlockCryptKeyServerHalf generates the server-side of a
+// block crypt key.
+func MakeRandomBlockCryptKeyServerHalf() (
+	serverHalf BlockCryptKeyServerHalf, err error) {
+	var data [32]byte
+	err = RandRead(data[:])
+	if err != nil {
+		return BlockCryptKeyServerHalf{}, err
+	}
+	serverHalf = MakeBlockCryptKeyServerHalf(data)
+	return serverHalf, nil
+}
+
 // ParseBlockCryptKeyServerHalf returns a BlockCryptKeyServerHalf
 // containing the given hex-encoded data, or an error.
 func ParseBlockCryptKeyServerHalf(s string) (BlockCryptKeyServerHalf, error) {

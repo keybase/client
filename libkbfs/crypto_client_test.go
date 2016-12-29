@@ -158,7 +158,7 @@ func TestCryptoClientSignAndVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.Verify(msg, sigInfo)
+	err = kbfscrypto.Verify(msg, sigInfo)
 	if err != nil {
 		t.Error(err)
 	}
@@ -204,10 +204,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	var nonce [24]byte
 	err = kbfscrypto.RandRead(nonce[:])
@@ -272,10 +269,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	// See crypto_common_test.go for tests that this actually
 	// performs encryption.
@@ -346,10 +340,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-		if err != nil {
-			t.Fatal(err)
-		}
+		clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 		// See crypto_common_test.go for tests that this actually
 		// performs encryption.
@@ -409,10 +400,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {
@@ -505,10 +493,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {
@@ -597,10 +582,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {

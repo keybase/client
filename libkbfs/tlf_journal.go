@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
@@ -279,8 +280,7 @@ func makeTLFJournal(
 
 	log := config.MakeLogger("TLFJ")
 
-	blockJournal, err := makeBlockJournal(
-		ctx, config.Codec(), config.Crypto(), dir, log)
+	blockJournal, err := makeBlockJournal(ctx, config.Codec(), dir, log)
 	if err != nil {
 		return nil, err
 	}
@@ -1295,7 +1295,7 @@ func (j *tlfJournal) enable() error {
 // mdJournal function under j.journalLock.
 
 func (j *tlfJournal) getBlockDataWithContext(
-	id BlockID, context BlockContext) (
+	id kbfsblock.ID, context kbfsblock.Context) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -1307,7 +1307,7 @@ func (j *tlfJournal) getBlockDataWithContext(
 }
 
 func (j *tlfJournal) putBlockData(
-	ctx context.Context, id BlockID, context BlockContext, buf []byte,
+	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
@@ -1335,7 +1335,7 @@ func (j *tlfJournal) putBlockData(
 }
 
 func (j *tlfJournal) addBlockReference(
-	ctx context.Context, id BlockID, context BlockContext) error {
+	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1353,8 +1353,8 @@ func (j *tlfJournal) addBlockReference(
 }
 
 func (j *tlfJournal) removeBlockReferences(
-	ctx context.Context, contexts map[BlockID][]BlockContext) (
-	liveCounts map[BlockID]int, err error) {
+	ctx context.Context, contexts kbfsblock.ContextMap) (
+	liveCounts map[kbfsblock.ID]int, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1378,7 +1378,7 @@ func (j *tlfJournal) removeBlockReferences(
 }
 
 func (j *tlfJournal) archiveBlockReferences(
-	ctx context.Context, contexts map[BlockID][]BlockContext) error {
+	ctx context.Context, contexts kbfsblock.ContextMap) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1395,7 +1395,7 @@ func (j *tlfJournal) archiveBlockReferences(
 	return nil
 }
 
-func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
+func (j *tlfJournal) isBlockUnflushed(id kbfsblock.ID) (bool, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1558,7 +1558,7 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 }
 
 func (j *tlfJournal) doResolveBranch(ctx context.Context,
-	bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata,
+	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 	extra ExtraMetadata, mdInfo unflushedPathMDInfo,
 	perRevMap unflushedPathsPerRevMap) (mdID MdID, retry bool, err error) {
 	j.journalLock.Lock()
@@ -1610,7 +1610,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 }
 
 func (j *tlfJournal) resolveBranch(ctx context.Context,
-	bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata,
+	bid BranchID, blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 	extra ExtraMetadata) (MdID, error) {
 	var mdID MdID
 	err := j.prepAndAddRMDWithRetry(ctx, rmd,

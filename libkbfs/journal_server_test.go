@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -81,7 +83,6 @@ func TestJournalServerRestart(t *testing.T) {
 
 	blockServer := config.BlockServer()
 	mdOps := config.MDOps()
-	crypto := config.Crypto()
 
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", false)
 	require.NoError(t, err)
@@ -89,11 +90,11 @@ func TestJournalServerRestart(t *testing.T) {
 
 	// Put a block.
 
-	bCtx := BlockContext{uid, "", ZeroBlockRefNonce}
+	bCtx := kbfsblock.MakeFirstContext(uid)
 	data := []byte{1, 2, 3, 4}
-	bID, err := crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
-	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
@@ -153,7 +154,6 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	blockServer := config.BlockServer()
 	mdOps := config.MDOps()
-	crypto := config.Crypto()
 
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", false)
 	require.NoError(t, err)
@@ -161,11 +161,11 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	// Put a block.
 
-	bCtx := BlockContext{uid, "", ZeroBlockRefNonce}
+	bCtx := kbfsblock.MakeFirstContext(uid)
 	data := []byte{1, 2, 3, 4}
-	bID, err := crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
-	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
@@ -188,7 +188,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	// Get the block, which should fail.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	// Get the head, which should be empty.
 
@@ -256,7 +256,6 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	blockServer := config.BlockServer()
 	mdOps := config.MDOps()
-	crypto := config.Crypto()
 
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "test_user1,test_user2", false)
@@ -266,11 +265,11 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Put a block under user 1.
 
-	bCtx1 := BlockContext{uid1, "", ZeroBlockRefNonce}
+	bCtx1 := kbfsblock.MakeFirstContext(uid1)
 	data1 := []byte{1, 2, 3, 4}
-	bID1, err := crypto.MakePermanentBlockID(data1)
+	bID1, err := kbfsblock.MakePermanentID(data1)
 	require.NoError(t, err)
-	serverHalf1, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	serverHalf1, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	err = blockServer.Put(ctx, tlfID, bID1, bCtx1, data1, serverHalf1)
 	require.NoError(t, err)
@@ -304,7 +303,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	// None of user 1's changes should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	head, err := mdOps.GetForTLF(ctx, tlfID)
 	require.NoError(t, err)
@@ -312,11 +311,11 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Put a block under user 2.
 
-	bCtx2 := BlockContext{uid2, "", ZeroBlockRefNonce}
+	bCtx2 := kbfsblock.MakeFirstContext(uid2)
 	data2 := []byte{1, 2, 3, 4, 5}
-	bID2, err := crypto.MakePermanentBlockID(data2)
+	bID2, err := kbfsblock.MakePermanentID(data2)
 	require.NoError(t, err)
-	serverHalf2, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	serverHalf2, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	err = blockServer.Put(ctx, tlfID, bID2, bCtx2, data2, serverHalf2)
 	require.NoError(t, err)
@@ -340,10 +339,10 @@ func TestJournalServerMultiUser(t *testing.T) {
 	// No block or MD should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	head, err = mdOps.GetForTLF(ctx, tlfID)
 	require.NoError(t, err)
@@ -365,7 +364,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.Equal(t, serverHalf1, key)
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	head, err = mdOps.GetForTLF(ctx, tlfID)
 	require.NoError(t, err)
@@ -384,7 +383,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	// Only user 2's block and MD should be visible.
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	buf, key, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
 	require.NoError(t, err)
@@ -410,17 +409,16 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.Len(t, tlfIDs, 0)
 
 	blockServer := config.BlockServer()
-	crypto := config.Crypto()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", false)
 	require.NoError(t, err)
 	uid := h.ResolvedWriters()[0]
 
 	// Access a TLF, which should create a journal automatically.
-	bCtx := BlockContext{uid, "", ZeroBlockRefNonce}
+	bCtx := kbfsblock.MakeFirstContext(uid)
 	data := []byte{1, 2, 3, 4}
-	bID, err := crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
-	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)

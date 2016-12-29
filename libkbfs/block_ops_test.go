@@ -7,410 +7,643 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
-// kmdMatcher implements the gomock.Matcher interface to compare
-// KeyMetadata objects.
-type kmdMatcher struct {
-	kmd KeyMetadata
+// fakeKeyMetadata is an implementation of KeyMetadata that just
+// stores TLFCryptKeys directly. It's meant to be used with
+// fakeBlockKeyGetter.
+type fakeKeyMetadata struct {
+	// Embed a KeyMetadata that's always empty, so that all
+	// methods besides TlfID() panic.
+	KeyMetadata
+	tlfID tlf.ID
+	keys  []kbfscrypto.TLFCryptKey
 }
 
-func (m kmdMatcher) Matches(x interface{}) bool {
-	kmd, ok := x.(KeyMetadata)
-	if !ok {
-		return false
+var _ KeyMetadata = fakeKeyMetadata{}
+
+// makeFakeKeyMetadata returns a fakeKeyMetadata with keys for each
+// KeyGen up to latestKeyGen. The key for KeyGen i is a deterministic
+// function of i, so multiple calls to this function will have the
+// same keys.
+func makeFakeKeyMetadata(tlfID tlf.ID, latestKeyGen KeyGen) fakeKeyMetadata {
+	keys := make([]kbfscrypto.TLFCryptKey, 0,
+		latestKeyGen-FirstValidKeyGen+1)
+	for keyGen := FirstValidKeyGen; keyGen <= latestKeyGen; keyGen++ {
+		keys = append(keys,
+			kbfscrypto.MakeTLFCryptKey([32]byte{byte(keyGen)}))
 	}
-	return (m.kmd.TlfID() == kmd.TlfID()) &&
-		(m.kmd.LatestKeyGeneration() == kmd.LatestKeyGeneration())
+	return fakeKeyMetadata{nil, tlfID, keys}
 }
 
-func (m kmdMatcher) String() string {
-	return fmt.Sprintf("Matches KeyMetadata with TlfID=%s and key generation %d",
-		m.kmd.TlfID(), m.kmd.LatestKeyGeneration())
-}
-
-func expectGetTLFCryptKeyForEncryption(config *ConfigMock, kmd KeyMetadata) {
-	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(gomock.Any(),
-		kmdMatcher{kmd}).Return(kbfscrypto.TLFCryptKey{}, nil)
-}
-
-func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, kmd KeyMetadata) {
-	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
-		kmdMatcher{kmd}, kmdMatcher{kmd}).Return(
-		kbfscrypto.TLFCryptKey{}, nil)
-}
-
-func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
-	kmd KeyMetadata) {
-	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
-		kmdMatcher{kmd}, kmdMatcher{kmd}).MaxTimes(1).Return(
-		kbfscrypto.TLFCryptKey{}, nil)
-}
-
-// TODO: Add test coverage for decryption of blocks with an old key
-// generation.
-
-func expectGetTLFCryptKeyForBlockDecryption(
-	config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer) {
-	config.mockKeyman.EXPECT().GetTLFCryptKeyForBlockDecryption(gomock.Any(),
-		kmdMatcher{kmd}, blockPtr).Return(kbfscrypto.TLFCryptKey{}, nil)
-}
-
-type TestBlock struct {
-	A int
-}
-
-func (TestBlock) DataVersion() DataVer {
-	return FirstValidDataVer
-}
-
-func (tb TestBlock) GetEncodedSize() uint32 {
-	return 0
-}
-
-func (tb TestBlock) SetEncodedSize(size uint32) {
-}
-
-func (tb TestBlock) NewEmpty() Block {
-	return &TestBlock{}
-}
-
-func (tb *TestBlock) Set(other Block, _ kbfscodec.Codec) {
-	otherTb := other.(*TestBlock)
-	tb.A = otherTb.A
-}
-
-func blockOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
-	config *ConfigMock, ctx context.Context) {
-	ctr := NewSafeTestReporter(t)
-	mockCtrl = gomock.NewController(ctr)
-	config = NewConfigMock(mockCtrl, ctr)
-	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
-	config.SetBlockOps(bops)
-	ctx = context.Background()
-	return
-}
-
-func blockOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
-	config.ctr.CheckForFailures()
-	config.BlockOps().Shutdown()
-	mockCtrl.Finish()
-}
-
-func expectBlockEncrypt(config *ConfigMock, kmd KeyMetadata, decData Block, plainSize int, encData []byte, err error) {
-	expectGetTLFCryptKeyForEncryption(config, kmd)
-	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().
-		Return(kbfscrypto.BlockCryptKeyServerHalf{}, nil)
-	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(
-		kbfscrypto.BlockCryptKeyServerHalf{},
-		kbfscrypto.TLFCryptKey{}).Return(
-		kbfscrypto.BlockCryptKey{}, nil)
-	encryptedBlock := EncryptedBlock{
-		encryptedData{
-			EncryptedData: encData,
-		},
-	}
-	config.mockCrypto.EXPECT().EncryptBlock(decData,
-		kbfscrypto.BlockCryptKey{}).
-		Return(plainSize, encryptedBlock, err)
-	if err == nil {
-		config.mockCodec.EXPECT().Encode(encryptedBlock).Return(encData, nil)
-	}
-}
-
-func expectBlockDecrypt(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, encData []byte, block *TestBlock, err error) {
-	config.mockCrypto.EXPECT().VerifyBlockID(encData, blockPtr.ID).Return(nil)
-	expectGetTLFCryptKeyForBlockDecryption(config, kmd, blockPtr)
-	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(gomock.Any(), gomock.Any()).
-		Return(kbfscrypto.BlockCryptKey{}, nil)
-	config.mockCodec.EXPECT().Decode(encData, gomock.Any()).Return(nil)
-	config.mockCrypto.EXPECT().DecryptBlock(
-		gomock.Any(), kbfscrypto.BlockCryptKey{}, gomock.Any()).
-		Do(func(encryptedBlock EncryptedBlock,
-			key kbfscrypto.BlockCryptKey, b Block) {
-			if b != nil {
-				tb := b.(*TestBlock)
-				*tb = *block
-			}
-		}).Return(err)
-}
-
-type emptyKeyMetadata struct {
-	tlfID  tlf.ID
-	keyGen KeyGen
-}
-
-var _ KeyMetadata = emptyKeyMetadata{}
-
-func (kmd emptyKeyMetadata) TlfID() tlf.ID {
+func (kmd fakeKeyMetadata) TlfID() tlf.ID {
 	return kmd.tlfID
 }
 
-// GetTlfHandle just returns nil. This contradicts the requirements
-// for KeyMetadata, but emptyKeyMetadata shouldn't be used in contexts
-// that actually use GetTlfHandle().
-func (kmd emptyKeyMetadata) GetTlfHandle() *TlfHandle {
-	return nil
+type fakeBlockKeyGetter struct{}
+
+func (kg fakeBlockKeyGetter) GetTLFCryptKeyForEncryption(
+	ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
+	fkmd := kmd.(fakeKeyMetadata)
+	if len(fkmd.keys) == 0 {
+		return kbfscrypto.TLFCryptKey{}, errors.New(
+			"no keys for encryption")
+	}
+	return fkmd.keys[len(fkmd.keys)-1], nil
 }
 
-func (kmd emptyKeyMetadata) LatestKeyGeneration() KeyGen {
-	return kmd.keyGen
-}
-
-func (kmd emptyKeyMetadata) HasKeyForUser(
-	keyGen KeyGen, user keybase1.UID) bool {
-	return false
-}
-
-func (kmd emptyKeyMetadata) GetTLFCryptKeyParams(
-	keyGen KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
-	kbfscrypto.TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
-	TLFCryptKeyServerHalfID, bool, error) {
-	return kbfscrypto.TLFEphemeralPublicKey{},
-		EncryptedTLFCryptKeyClientHalf{},
-		TLFCryptKeyServerHalfID{}, false, nil
-}
-
-func (kmd emptyKeyMetadata) StoresHistoricTLFCryptKeys() bool {
-	return false
-}
-
-func (kmd emptyKeyMetadata) GetHistoricTLFCryptKey(
-	crypto cryptoPure, keyGen KeyGen, key kbfscrypto.TLFCryptKey) (
+func (kg fakeBlockKeyGetter) GetTLFCryptKeyForBlockDecryption(
+	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (
 	kbfscrypto.TLFCryptKey, error) {
-	return kbfscrypto.TLFCryptKey{}, nil
-}
-
-func makeKMD() KeyMetadata {
-	return emptyKeyMetadata{tlf.FakeID(0, false), 1}
-}
-
-func TestBlockOpsGetSuccess(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	kmd := makeKMD()
-
-	// expect one call to fetch a block, and one to decrypt it
-	id := fakeBlockID(1)
-	encData := []byte{1, 2, 3, 4}
-	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
-	decData := &TestBlock{42}
-
-	expectBlockDecrypt(config, kmd, blockPtr, encData, decData, nil)
-
-	var gotBlock TestBlock
-	err := config.BlockOps().Get(ctx, kmd, blockPtr, &gotBlock)
-	if err != nil {
-		t.Fatalf("Got error on get: %v", err)
+	fkmd := kmd.(fakeKeyMetadata)
+	i := int(blockPtr.KeyGen - FirstValidKeyGen)
+	if i >= len(fkmd.keys) {
+		return kbfscrypto.TLFCryptKey{}, fmt.Errorf(
+			"no key for block decryption (keygen=%d)",
+			blockPtr.KeyGen)
 	}
-
-	if gotBlock != *decData {
-		t.Errorf("Got back wrong block data on get: %v", gotBlock)
-	}
+	return fkmd.keys[i], nil
 }
 
-func TestBlockOpsGetFailGet(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	kmd := makeKMD()
-	// fail the fetch call
-	id := fakeBlockID(1)
-	err := errors.New("Fake fail")
-	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		nil, kbfscrypto.BlockCryptKeyServerHalf{}, err)
-
-	block := &TestBlock{}
-	if err2 := config.BlockOps().Get(
-		ctx, kmd, blockPtr, block); err2 != err {
-		t.Errorf("Got bad error: %v", err2)
-	}
+type testBlockOpsConfig struct {
+	bserver    BlockServer
+	testCodec  kbfscodec.Codec
+	cryptoPure cryptoPure
 }
 
-func TestBlockOpsGetFailVerify(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	kmd := makeKMD()
-	// fail the fetch call
-	id := fakeBlockID(1)
-	err := errors.New("Fake verification fail")
-	blockPtr := BlockPointer{ID: id}
-	encData := []byte{1, 2, 3}
-	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
-	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
-
-	block := &TestBlock{}
-	if err2 := config.BlockOps().Get(
-		ctx, kmd, blockPtr, block); err2 != err {
-		t.Errorf("Got bad error: %v", err2)
-	}
+func (config testBlockOpsConfig) blockServer() BlockServer {
+	return config.bserver
 }
 
-func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	kmd := makeKMD()
-	// expect one call to fetch a block, then fail to decrypt
-	id := fakeBlockID(1)
-	encData := []byte{1, 2, 3, 4}
-	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
-	err := errors.New("Fake fail")
-
-	block := &TestBlock{}
-	expectBlockDecrypt(config, kmd, blockPtr, encData, block, err)
-
-	if err2 := config.BlockOps().Get(
-		ctx, kmd, blockPtr, block); err2 != err {
-		t.Errorf("Got bad error: %v", err2)
-	}
+func (config testBlockOpsConfig) codec() kbfscodec.Codec {
+	return config.testCodec
 }
 
+func (config testBlockOpsConfig) crypto() cryptoPure {
+	return config.cryptoPure
+}
+
+func (config testBlockOpsConfig) keyGetter() blockKeyGetter {
+	return fakeBlockKeyGetter{}
+}
+
+func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
+	bserver := NewBlockServerMemory(logger.NewTestLogger(t))
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	return testBlockOpsConfig{bserver, codec, crypto}
+}
+
+// TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
+// encrypts its given block properly.
 func TestBlockOpsReadySuccess(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
+	config := makeTestBlockOpsConfig(t)
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
 
-	// expect one call to encrypt a block, one to hash it
-	decData := &TestBlock{42}
-	encData := []byte{1, 2, 3, 4}
-	id := fakeBlockID(1)
+	tlfID := tlf.FakeID(0, false)
+	var latestKeyGen KeyGen = 5
+	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
-	kmd := makeKMD()
+	block := FileBlock{
+		Contents: []byte{1, 2, 3, 4, 5},
+	}
 
-	expectedPlainSize := 4
-	expectBlockEncrypt(config, kmd, decData, expectedPlainSize, encData, nil)
-	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(id, nil)
+	encodedBlock, err := config.testCodec.Encode(block)
+	require.NoError(t, err)
 
-	id2, plainSize, readyBlockData, err :=
-		config.BlockOps().Ready(ctx, kmd, decData)
+	ctx := context.Background()
+	id, plainSize, readyBlockData, err := bops.Ready(ctx, kmd, &block)
+	require.NoError(t, err)
+
+	require.Equal(t, len(encodedBlock), plainSize)
+
+	err = kbfsblock.VerifyID(readyBlockData.buf, id)
+	require.NoError(t, err)
+
+	var encryptedBlock EncryptedBlock
+	err = config.testCodec.Decode(readyBlockData.buf, &encryptedBlock)
+	require.NoError(t, err)
+
+	blockCryptKey := kbfscrypto.UnmaskBlockCryptKey(
+		readyBlockData.serverHalf,
+		kmd.keys[latestKeyGen-FirstValidKeyGen])
+
+	var decryptedBlock FileBlock
+	err = config.cryptoPure.DecryptBlock(
+		encryptedBlock, blockCryptKey, &decryptedBlock)
+	require.NoError(t, err)
+	decryptedBlock.SetEncodedSize(uint32(readyBlockData.GetEncodedSize()))
+	require.Equal(t, block, decryptedBlock)
+}
+
+// TestBlockOpsReadyFailKeyGet checks that BlockOpsStandard.Ready()
+// fails properly if we fail to retrieve the key.
+func TestBlockOpsReadyFailKeyGet(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	kmd := makeFakeKeyMetadata(tlfID, 0)
+
+	ctx := context.Background()
+	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.EqualError(t, err, "no keys for encryption")
+}
+
+type badServerHalfMaker struct {
+	cryptoPure
+}
+
+func (c badServerHalfMaker) MakeRandomBlockCryptKeyServerHalf() (
+	kbfscrypto.BlockCryptKeyServerHalf, error) {
+	return kbfscrypto.BlockCryptKeyServerHalf{}, errors.New(
+		"could not make server half")
+}
+
+// TestBlockOpsReadyFailServerHalfGet checks that BlockOpsStandard.Ready()
+// fails properly if we fail to generate a  server half.
+func TestBlockOpsReadyFailServerHalfGet(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	config.cryptoPure = badServerHalfMaker{config.cryptoPure}
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	kmd := makeFakeKeyMetadata(tlfID, FirstValidKeyGen)
+
+	ctx := context.Background()
+	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.EqualError(t, err, "could not make server half")
+}
+
+type badBlockEncryptor struct {
+	cryptoPure
+}
+
+func (c badBlockEncryptor) EncryptBlock(
+	block Block, key kbfscrypto.BlockCryptKey) (
+	plainSize int, encryptedBlock EncryptedBlock, err error) {
+	return 0, EncryptedBlock{}, errors.New("could not encrypt block")
+}
+
+// TestBlockOpsReadyFailEncryption checks that BlockOpsStandard.Ready()
+// fails properly if we fail to encrypt the block.
+func TestBlockOpsReadyFailEncryption(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	config.cryptoPure = badBlockEncryptor{config.cryptoPure}
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	kmd := makeFakeKeyMetadata(tlfID, FirstValidKeyGen)
+
+	ctx := context.Background()
+	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.EqualError(t, err, "could not encrypt block")
+}
+
+type tooSmallBlockEncryptor struct {
+	CryptoCommon
+}
+
+func (c tooSmallBlockEncryptor) EncryptBlock(
+	block Block, key kbfscrypto.BlockCryptKey) (
+	plainSize int, encryptedBlock EncryptedBlock, err error) {
+	plainSize, encryptedBlock, err = c.CryptoCommon.EncryptBlock(block, key)
 	if err != nil {
-		t.Errorf("Got error on ready: %v", err)
-	} else if id2 != id {
-		t.Errorf("Got back wrong id on ready: %v", id)
-	} else if plainSize != expectedPlainSize {
-		t.Errorf("Expected plainSize %d, got %d", expectedPlainSize, plainSize)
-	} else if string(readyBlockData.buf) != string(encData) {
-		t.Errorf("Got back wrong data on get: %v", readyBlockData.buf)
+		return 0, EncryptedBlock{}, err
 	}
+	encryptedBlock.EncryptedData = nil
+	return plainSize, encryptedBlock, nil
 }
 
-func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	// expect just one call to encrypt a block
-	decData := &TestBlock{42}
-	encData := []byte{1, 2, 3}
-
-	kmd := makeKMD()
-
-	expectBlockEncrypt(config, kmd, decData, 4, encData, nil)
-
-	_, _, _, err := config.BlockOps().Ready(ctx, kmd, decData)
-	if _, ok := err.(TooLowByteCountError); !ok {
-		t.Errorf("Unexpectedly did not get TooLowByteCountError; "+
-			"instead got %v", err)
-	}
+type badEncoder struct {
+	kbfscodec.Codec
 }
 
-func TestBlockOpsReadyFailEncryptBlockData(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
-
-	// expect one call to encrypt a block, one to hash it
-	decData := &TestBlock{42}
-	err := errors.New("Fake fail")
-
-	kmd := makeKMD()
-
-	expectBlockEncrypt(config, kmd, decData, 0, nil, err)
-
-	if _, _, _, err2 := config.BlockOps().Ready(
-		ctx, kmd, decData); err2 != err {
-		t.Errorf("Got bad error on ready: %v", err2)
-	}
+func (c badEncoder) Encode(o interface{}) ([]byte, error) {
+	return nil, errors.New("could not encode")
 }
 
-func TestBlockOpsReadyFailMakePermanentBlockID(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
+// TestBlockOpsReadyFailEncode checks that BlockOpsStandard.Ready()
+// fails properly if we fail to encode the encrypted block.
+func TestBlockOpsReadyFailEncode(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	config.testCodec = badEncoder{config.testCodec}
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
 
-	// expect one call to encrypt a block, one to hash it
-	decData := &TestBlock{42}
-	encData := []byte{1, 2, 3, 4}
-	err := errors.New("Fake fail")
+	tlfID := tlf.FakeID(0, false)
+	kmd := makeFakeKeyMetadata(tlfID, FirstValidKeyGen)
 
-	kmd := makeKMD()
+	ctx := context.Background()
+	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.EqualError(t, err, "could not encode")
+}
 
-	expectBlockEncrypt(config, kmd, decData, 4, encData, nil)
+type tooSmallEncoder struct {
+	kbfscodec.Codec
+}
 
-	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(fakeBlockID(0), err)
+func (c tooSmallEncoder) Encode(o interface{}) ([]byte, error) {
+	return []byte{0x1}, nil
+}
 
-	if _, _, _, err2 := config.BlockOps().Ready(
-		ctx, kmd, decData); err2 != err {
-		t.Errorf("Got bad error on ready: %v", err2)
+// TestBlockOpsReadyTooSmallEncode checks that
+// BlockOpsStandard.Ready() fails properly if the encrypted block
+// encodes to a too-small buffer.
+func TestBlockOpsReadyTooSmallEncode(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	config.testCodec = tooSmallEncoder{config.testCodec}
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	kmd := makeFakeKeyMetadata(tlfID, FirstValidKeyGen)
+
+	ctx := context.Background()
+	_, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.IsType(t, TooLowByteCountError{}, err)
+}
+
+// TestBlockOpsReadySuccess checks that BlockOpsStandard.Get()
+// retrieves a block properly, even if that block was encoded for a
+// previous key generation.
+func TestBlockOpsGetSuccess(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	var keyGen KeyGen = 3
+	kmd1 := makeFakeKeyMetadata(tlfID, keyGen)
+
+	block := FileBlock{
+		Contents: []byte{1, 2, 3, 4, 5},
 	}
+
+	ctx := context.Background()
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd1, &block)
+	require.NoError(t, err)
+
+	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	err = config.bserver.Put(ctx, tlfID, id, bCtx,
+		readyBlockData.buf, readyBlockData.serverHalf)
+	require.NoError(t, err)
+
+	kmd2 := makeFakeKeyMetadata(tlfID, keyGen+3)
+	var decryptedBlock FileBlock
+	err = bops.Get(ctx, kmd2,
+		BlockPointer{ID: id, KeyGen: keyGen, Context: bCtx},
+		&decryptedBlock)
+	require.NoError(t, err)
+	require.Equal(t, block, decryptedBlock)
+}
+
+// TestBlockOpsReadySuccess checks that BlockOpsStandard.Get() fails
+// if it can't retrieve the block from the server.
+func TestBlockOpsGetFailServerGet(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	var latestKeyGen KeyGen = 5
+	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
+
+	ctx := context.Background()
+	id, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.NoError(t, err)
+
+	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	var decryptedBlock FileBlock
+	err = bops.Get(ctx, kmd,
+		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
+		&decryptedBlock)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
+}
+
+type badGetBlockServer struct {
+	BlockServer
+}
+
+func (bserver badGetBlockServer) Get(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	buf, serverHalf, err := bserver.BlockServer.Get(ctx, tlfID, id, context)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, nil
+	}
+
+	return append(buf, 0x1), serverHalf, nil
+}
+
+// TestBlockOpsReadyFailVerify checks that BlockOpsStandard.Get()
+// fails if it can't verify the block retrieved from the server.
+func TestBlockOpsGetFailVerify(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	config.bserver = badGetBlockServer{config.bserver}
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	var latestKeyGen KeyGen = 5
+	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
+
+	ctx := context.Background()
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.NoError(t, err)
+
+	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	err = config.bserver.Put(ctx, tlfID, id, bCtx,
+		readyBlockData.buf, readyBlockData.serverHalf)
+	require.NoError(t, err)
+
+	var decryptedBlock FileBlock
+	err = bops.Get(ctx, kmd,
+		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
+		&decryptedBlock)
+	require.IsType(t, kbfshash.HashMismatchError{}, err)
+}
+
+// TestBlockOpsReadyFailKeyGet checks that BlockOpsStandard.Get()
+// fails if it can't get the decryption key.
+func TestBlockOpsGetFailKeyGet(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	var latestKeyGen KeyGen = 5
+	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
+
+	ctx := context.Background()
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.NoError(t, err)
+
+	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	err = config.bserver.Put(ctx, tlfID, id, bCtx,
+		readyBlockData.buf, readyBlockData.serverHalf)
+	require.NoError(t, err)
+
+	var decryptedBlock FileBlock
+	err = bops.Get(ctx, kmd,
+		BlockPointer{ID: id, KeyGen: latestKeyGen + 1, Context: bCtx},
+		&decryptedBlock)
+	require.EqualError(t, err, fmt.Sprintf(
+		"no key for block decryption (keygen=%d)", latestKeyGen+1))
+}
+
+// badDecoder maintains a map from stringified byte buffers to
+// error. If Decode is called with a buffer that matches anything in
+// the map, the corresponding error is returned.
+//
+// This is necessary because codec functions are used everywhere.
+type badDecoder struct {
+	kbfscodec.Codec
+
+	errorsLock sync.RWMutex
+	errors     map[string]error
+}
+
+func (c *badDecoder) putError(buf []byte, err error) {
+	k := string(buf)
+	c.errorsLock.Lock()
+	c.errorsLock.Unlock()
+	c.errors[k] = err
+}
+
+func (c *badDecoder) Decode(buf []byte, o interface{}) error {
+	k := string(buf)
+	err := func() error {
+		c.errorsLock.RLock()
+		defer c.errorsLock.RUnlock()
+		return c.errors[k]
+	}()
+	if err != nil {
+		return err
+	}
+	return c.Codec.Decode(buf, o)
+}
+
+// TestBlockOpsReadyFailDecode checks that BlockOpsStandard.Get()
+// fails if it can't decode the encrypted block.
+func TestBlockOpsGetFailDecode(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	badDecoder := badDecoder{
+		Codec:  config.testCodec,
+		errors: make(map[string]error),
+	}
+	config.testCodec = &badDecoder
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	var latestKeyGen KeyGen = 5
+	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
+
+	ctx := context.Background()
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.NoError(t, err)
+
+	decodeErr := errors.New("could not decode")
+	badDecoder.putError(readyBlockData.buf, decodeErr)
+
+	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	err = config.bserver.Put(ctx, tlfID, id, bCtx,
+		readyBlockData.buf, readyBlockData.serverHalf)
+	require.NoError(t, err)
+
+	var decryptedBlock FileBlock
+	err = bops.Get(ctx, kmd,
+		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
+		&decryptedBlock)
+	require.Equal(t, decodeErr, err)
+}
+
+type badBlockDecryptor struct {
+	cryptoPure
+}
+
+func (c badBlockDecryptor) DecryptBlock(encryptedBlock EncryptedBlock,
+	key kbfscrypto.BlockCryptKey, block Block) error {
+	return errors.New("could not decrypt block")
+}
+
+// TestBlockOpsReadyFailDecrypt checks that BlockOpsStandard.Get()
+// fails if it can't decrypt the encrypted block.
+func TestBlockOpsGetFailDecrypt(t *testing.T) {
+	config := makeTestBlockOpsConfig(t)
+	config.cryptoPure = badBlockDecryptor{config.cryptoPure}
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	tlfID := tlf.FakeID(0, false)
+	var latestKeyGen KeyGen = 5
+	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
+
+	ctx := context.Background()
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
+	require.NoError(t, err)
+
+	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	err = config.bserver.Put(ctx, tlfID, id, bCtx,
+		readyBlockData.buf, readyBlockData.serverHalf)
+	require.NoError(t, err)
+
+	var decryptedBlock FileBlock
+	err = bops.Get(ctx, kmd,
+		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
+		&decryptedBlock)
+	require.EqualError(t, err, "could not decrypt block")
 }
 
 func TestBlockOpsDeleteSuccess(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
+	ctr := NewSafeTestReporter(t)
+	mockCtrl := gomock.NewController(ctr)
+	defer mockCtrl.Finish()
 
-	// expect one call to delete several blocks
+	bserver := NewMockBlockServer(mockCtrl)
+	config := makeTestBlockOpsConfig(t)
+	config.bserver = bserver
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
 
-	contexts := make(map[BlockID][]BlockContext)
-	b1 := BlockPointer{ID: fakeBlockID(1)}
-	contexts[b1.ID] = []BlockContext{b1.BlockContext}
-	b2 := BlockPointer{ID: fakeBlockID(2)}
-	contexts[b2.ID] = []BlockContext{b2.BlockContext}
-	blockPtrs := []BlockPointer{b1, b2}
-	var liveCounts map[BlockID]int
-	tlfID := tlf.FakeID(1, false)
-	config.mockBserv.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
-		Return(liveCounts, nil)
+	// Expect one call to delete several blocks.
 
-	if _, err := config.BlockOps().Delete(
-		ctx, tlfID, blockPtrs); err != nil {
-		t.Errorf("Got error on delete: %v", err)
+	b1 := BlockPointer{ID: kbfsblock.FakeID(1)}
+	b2 := BlockPointer{ID: kbfsblock.FakeID(2)}
+
+	contexts := kbfsblock.ContextMap{
+		b1.ID: {b1.Context},
+		b2.ID: {b2.Context},
 	}
+
+	expectedLiveCounts := map[kbfsblock.ID]int{
+		b1.ID: 5,
+		b2.ID: 3,
+	}
+
+	ctx := context.Background()
+	tlfID := tlf.FakeID(1, false)
+	bserver.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
+		Return(expectedLiveCounts, nil)
+
+	liveCounts, err := bops.Delete(ctx, tlfID, []BlockPointer{b1, b2})
+	require.NoError(t, err)
+	require.Equal(t, expectedLiveCounts, liveCounts)
 }
 
 func TestBlockOpsDeleteFail(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
+	ctr := NewSafeTestReporter(t)
+	mockCtrl := gomock.NewController(ctr)
+	defer mockCtrl.Finish()
 
-	// fail the delete call
+	bserver := NewMockBlockServer(mockCtrl)
+	config := makeTestBlockOpsConfig(t)
+	config.bserver = bserver
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
 
-	contexts := make(map[BlockID][]BlockContext)
-	b1 := BlockPointer{ID: fakeBlockID(1)}
-	contexts[b1.ID] = []BlockContext{b1.BlockContext}
-	b2 := BlockPointer{ID: fakeBlockID(2)}
-	contexts[b2.ID] = []BlockContext{b2.BlockContext}
-	blockPtrs := []BlockPointer{b1, b2}
-	err := errors.New("Fake fail")
-	var liveCounts map[BlockID]int
-	tlfID := tlf.FakeID(1, false)
-	config.mockBserv.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
-		Return(liveCounts, err)
+	b1 := BlockPointer{ID: kbfsblock.FakeID(1)}
+	b2 := BlockPointer{ID: kbfsblock.FakeID(2)}
 
-	if _, err2 := config.BlockOps().Delete(
-		ctx, tlfID, blockPtrs); err2 != err {
-		t.Errorf("Got bad error on delete: %v", err2)
+	contexts := kbfsblock.ContextMap{
+		b1.ID: {b1.Context},
+		b2.ID: {b2.Context},
 	}
+
+	// Fail the delete call.
+
+	ctx := context.Background()
+	tlfID := tlf.FakeID(1, false)
+	expectedErr := errors.New("Fake fail")
+	bserver.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
+		Return(nil, expectedErr)
+
+	_, err := bops.Delete(ctx, tlfID, []BlockPointer{b1, b2})
+	require.Equal(t, expectedErr, err)
+}
+
+func TestBlockOpsArchiveSuccess(t *testing.T) {
+	ctr := NewSafeTestReporter(t)
+	mockCtrl := gomock.NewController(ctr)
+	defer func() {
+		ctr.CheckForFailures()
+		mockCtrl.Finish()
+	}()
+
+	bserver := NewMockBlockServer(mockCtrl)
+	config := makeTestBlockOpsConfig(t)
+	config.bserver = bserver
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	// Expect one call to archive several blocks.
+
+	b1 := BlockPointer{ID: kbfsblock.FakeID(1)}
+	b2 := BlockPointer{ID: kbfsblock.FakeID(2)}
+
+	contexts := kbfsblock.ContextMap{
+		b1.ID: {b1.Context},
+		b2.ID: {b2.Context},
+	}
+
+	ctx := context.Background()
+	tlfID := tlf.FakeID(1, false)
+	bserver.EXPECT().ArchiveBlockReferences(ctx, tlfID, contexts).
+		Return(nil)
+
+	err := bops.Archive(ctx, tlfID, []BlockPointer{b1, b2})
+	require.NoError(t, err)
+}
+
+func TestBlockOpsArchiveFail(t *testing.T) {
+	ctr := NewSafeTestReporter(t)
+	mockCtrl := gomock.NewController(ctr)
+	defer func() {
+		ctr.CheckForFailures()
+		mockCtrl.Finish()
+	}()
+
+	bserver := NewMockBlockServer(mockCtrl)
+	config := makeTestBlockOpsConfig(t)
+	config.bserver = bserver
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	defer bops.Shutdown()
+
+	b1 := BlockPointer{ID: kbfsblock.FakeID(1)}
+	b2 := BlockPointer{ID: kbfsblock.FakeID(2)}
+
+	contexts := kbfsblock.ContextMap{
+		b1.ID: {b1.Context},
+		b2.ID: {b2.Context},
+	}
+
+	// Fail the archive call.
+
+	ctx := context.Background()
+	tlfID := tlf.FakeID(1, false)
+	expectedErr := errors.New("Fake fail")
+	bserver.EXPECT().ArchiveBlockReferences(ctx, tlfID, contexts).
+		Return(expectedErr)
+
+	err := bops.Archive(ctx, tlfID, []BlockPointer{b1, b2})
+	require.Equal(t, expectedErr, err)
 }

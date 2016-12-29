@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -347,7 +348,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: fakeBlockID(1)}
+	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)

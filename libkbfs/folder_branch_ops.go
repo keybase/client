@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
@@ -1136,8 +1137,8 @@ func ResetRootBlock(ctx context.Context, config Config,
 	Block, BlockInfo, ReadyBlockData, error) {
 	newDblock := NewDirBlock()
 	info, plainSize, readyBlockData, err :=
-		ReadyBlock(ctx, config.BlockCache(), config.BlockOps(), config.Crypto(),
-			rmd.ReadOnly(), newDblock, currentUID)
+		ReadyBlock(ctx, config.BlockCache(), config.BlockOps(),
+			config.Crypto(), rmd.ReadOnly(), newDblock, currentUID)
 	if err != nil {
 		return nil, BlockInfo{}, ReadyBlockData{}, err
 	}
@@ -1754,9 +1755,9 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		ID:      bid,
 		KeyGen:  md.LatestKeyGeneration(),
 		DataVer: fbo.config.DataVersion(),
-		BlockContext: BlockContext{
+		Context: kbfsblock.Context{
 			Creator:  uid,
-			RefNonce: ZeroBlockRefNonce,
+			RefNonce: kbfsblock.ZeroRefNonce,
 		},
 	}
 	file := path{fbo.folderBranch,
@@ -5019,7 +5020,7 @@ func (fbo *folderBranchOps) unblockUnmergedWrites(lState *lockState) {
 
 func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
-	newOps []op, blocksToDelete []BlockID) error {
+	newOps []op, blocksToDelete []kbfsblock.ID) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// Put the blocks into the cache so that, even if we fail below,
@@ -5095,7 +5096,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 // completing conflict resolution.
 func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
-	newOps []op, blocksToDelete []BlockID) error {
+	newOps []op, blocksToDelete []kbfsblock.ID) error {
 	// Take the writer lock.
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)

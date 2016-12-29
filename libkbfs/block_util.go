@@ -6,16 +6,17 @@ package libkbfs
 
 import (
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 
 func isRecoverableBlockError(err error) bool {
-	_, isArchiveError := err.(BServerErrorBlockArchived)
-	_, isDeleteError := err.(BServerErrorBlockDeleted)
-	_, isRefError := err.(BServerErrorBlockNonExistent)
-	_, isMaxExceededError := err.(BServerErrorMaxRefExceeded)
+	_, isArchiveError := err.(kbfsblock.BServerErrorBlockArchived)
+	_, isDeleteError := err.(kbfsblock.BServerErrorBlockDeleted)
+	_, isRefError := err.(kbfsblock.BServerErrorBlockNonExistent)
+	_, isMaxExceededError := err.(kbfsblock.BServerErrorMaxRefExceeded)
 	return isArchiveError || isDeleteError || isRefError || isMaxExceededError
 }
 
@@ -24,14 +25,14 @@ func isRecoverableBlockError(err error) bool {
 func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	var err error
-	if blockPtr.RefNonce == ZeroBlockRefNonce {
-		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.BlockContext,
+	if blockPtr.RefNonce == kbfsblock.ZeroRefNonce {
+		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.Context,
 			readyBlockData.buf, readyBlockData.serverHalf)
 	} else {
 		// non-zero block refnonce means this is a new reference to an
 		// existing block.
 		err = bserv.AddBlockReference(ctx, tlfID, blockPtr.ID,
-			blockPtr.BlockContext)
+			blockPtr.Context)
 	}
 	return err
 }
@@ -43,7 +44,7 @@ func PutBlockCheckQuota(ctx context.Context, bserv BlockServer,
 	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
 	err := putBlockToServer(ctx, bserv, tlfID, blockPtr, readyBlockData)
-	if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
+	if qe, ok := err.(kbfsblock.BServerErrorOverQuota); ok && !qe.Throttled {
 		reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(),
 			WriteMode, OverQuotaWarning{qe.Usage, qe.Limit})
 		return nil

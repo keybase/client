@@ -97,11 +97,7 @@ func splitTLFCryptKey(crypto cryptoPure, uid keybase1.UID,
 		return TLFCryptKeyInfo{}, kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
 
-	var clientHalf kbfscrypto.TLFCryptKeyClientHalf
-	clientHalf, err = crypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
-	if err != nil {
-		return TLFCryptKeyInfo{}, kbfscrypto.TLFCryptKeyServerHalf{}, err
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
 
 	var encryptedClientHalf EncryptedTLFCryptKeyClientHalf
 	encryptedClientHalf, err =

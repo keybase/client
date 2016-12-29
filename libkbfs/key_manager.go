@@ -304,10 +304,7 @@ func (km *KeyManagerStandard) unmaskTLFCryptKey(ctx context.Context, serverHalfI
 	if err != nil {
 		return kbfscrypto.TLFCryptKey{}, err
 	}
-	tlfCryptKey, err := km.config.Crypto().UnmaskTLFCryptKey(serverHalf, clientHalf)
-	if err != nil {
-		return kbfscrypto.TLFCryptKey{}, err
-	}
+	tlfCryptKey := kbfscrypto.UnmaskTLFCryptKey(serverHalf, clientHalf)
 	return tlfCryptKey, nil
 }
 

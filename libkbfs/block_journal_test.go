@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -38,8 +39,8 @@ func makeFakeBlockJournalEntryFuture(t *testing.T) blockJournalEntryFuture {
 	ef := blockJournalEntryFuture{
 		blockJournalEntry{
 			blockPutOp,
-			map[BlockID][]BlockContext{
-				fakeBlockID(1): {
+			kbfsblock.ContextMap{
+				kbfsblock.FakeID(1): {
 					makeFakeBlockContext(t),
 					makeFakeBlockContext(t),
 					makeFakeBlockContext(t),
@@ -66,9 +67,8 @@ func getBlockJournalLength(t *testing.T, j *blockJournal) int {
 
 func setupBlockJournalTest(t *testing.T) (
 	ctx context.Context, cancel context.CancelFunc, tempdir string,
-	crypto cryptoPure, log logger.Logger, j *blockJournal) {
+	log logger.Logger, j *blockJournal) {
 	codec := kbfscodec.NewMsgpack()
-	crypto = MakeCryptoCommon(codec)
 	log = logger.NewTestLogger(t)
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "block_journal")
@@ -93,12 +93,12 @@ func setupBlockJournalTest(t *testing.T) (
 		}
 	}()
 
-	j, err = makeBlockJournal(ctx, codec, crypto, tempdir, log)
+	j, err = makeBlockJournal(ctx, codec, tempdir, log)
 	require.NoError(t, err)
 	require.Equal(t, 0, getBlockJournalLength(t, j))
 
 	setupSucceeded = true
-	return ctx, cancel, tempdir, crypto, log, j
+	return ctx, cancel, tempdir, log, j
 }
 
 func teardownBlockJournalTest(t *testing.T, ctx context.Context,
@@ -114,15 +114,15 @@ func teardownBlockJournalTest(t *testing.T, ctx context.Context,
 
 func putBlockData(
 	ctx context.Context, t *testing.T, j *blockJournal, data []byte) (
-	BlockID, BlockContext, kbfscrypto.BlockCryptKeyServerHalf) {
+	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
 	oldLength := getBlockJournalLength(t, j)
 
-	bID, err := j.crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
 
 	uid1 := keybase1.MakeTestUID(1)
-	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
-	serverHalf, err := j.crypto.MakeRandomBlockCryptKeyServerHalf()
+	bCtx := kbfsblock.MakeFirstContext(uid1)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 
 	err = j.putData(ctx, bID, bCtx, data, serverHalf)
@@ -135,15 +135,15 @@ func putBlockData(
 
 func addBlockRef(
 	ctx context.Context, t *testing.T, j *blockJournal,
-	bID BlockID) BlockContext {
+	bID kbfsblock.ID) kbfsblock.Context {
 	oldLength := getBlockJournalLength(t, j)
 
-	nonce, err := j.crypto.MakeBlockRefNonce()
+	nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
 
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
-	bCtx2 := BlockContext{uid1, uid2, nonce}
+	bCtx2 := kbfsblock.MakeContext(uid1, uid2, nonce)
 	err = j.addReference(ctx, bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, oldLength+1, getBlockJournalLength(t, j))
@@ -151,7 +151,7 @@ func addBlockRef(
 }
 
 func getAndCheckBlockData(ctx context.Context, t *testing.T, j *blockJournal,
-	bID BlockID, bCtx BlockContext, expectedData []byte,
+	bID kbfsblock.ID, bCtx kbfsblock.Context, expectedData []byte,
 	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf) {
 	data, serverHalf, err := j.getDataWithContext(bID, bCtx)
 	require.NoError(t, err)
@@ -160,7 +160,7 @@ func getAndCheckBlockData(ctx context.Context, t *testing.T, j *blockJournal,
 }
 
 func TestBlockJournalBasic(t *testing.T) {
-	ctx, cancel, tempdir, _, _, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	// Put the block.
@@ -179,7 +179,7 @@ func TestBlockJournalBasic(t *testing.T) {
 	// Shutdown and restart.
 	err := j.checkInSyncForTest()
 	require.NoError(t, err)
-	j, err = makeBlockJournal(ctx, j.codec, j.crypto, tempdir, j.log)
+	j, err = makeBlockJournal(ctx, j.codec, tempdir, j.log)
 	require.NoError(t, err)
 
 	require.Equal(t, 2, getBlockJournalLength(t, j))
@@ -191,11 +191,11 @@ func TestBlockJournalBasic(t *testing.T) {
 }
 
 func TestBlockJournalAddReference(t *testing.T) {
-	ctx, cancel, tempdir, _, _, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	data := []byte{1, 2, 3, 4}
-	bID, err := j.crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
 
 	// Add a reference, which should succeed.
@@ -207,7 +207,7 @@ func TestBlockJournalAddReference(t *testing.T) {
 }
 
 func TestBlockJournalArchiveReferences(t *testing.T) {
-	ctx, cancel, tempdir, _, _, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	// Put the block.
@@ -219,7 +219,7 @@ func TestBlockJournalArchiveReferences(t *testing.T) {
 
 	// Archive references.
 	err := j.archiveReferences(
-		ctx, map[BlockID][]BlockContext{bID: {bCtx, bCtx2}})
+		ctx, kbfsblock.ContextMap{bID: {bCtx, bCtx2}})
 	require.NoError(t, err)
 	require.Equal(t, 3, getBlockJournalLength(t, j))
 
@@ -228,25 +228,25 @@ func TestBlockJournalArchiveReferences(t *testing.T) {
 }
 
 func TestBlockJournalArchiveNonExistentReference(t *testing.T) {
-	ctx, cancel, tempdir, _, _, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	uid1 := keybase1.MakeTestUID(1)
 
-	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
+	bCtx := kbfsblock.MakeFirstContext(uid1)
 
 	data := []byte{1, 2, 3, 4}
-	bID, err := j.crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
 
 	// Archive references.
 	err = j.archiveReferences(
-		ctx, map[BlockID][]BlockContext{bID: {bCtx}})
+		ctx, kbfsblock.ContextMap{bID: {bCtx}})
 	require.NoError(t, err)
 }
 
 func TestBlockJournalRemoveReferences(t *testing.T) {
-	ctx, cancel, tempdir, _, _, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	// Put the block.
@@ -258,9 +258,9 @@ func TestBlockJournalRemoveReferences(t *testing.T) {
 
 	// Remove references.
 	liveCounts, err := j.removeReferences(
-		ctx, map[BlockID][]BlockContext{bID: {bCtx, bCtx2}})
+		ctx, kbfsblock.ContextMap{bID: {bCtx, bCtx2}})
 	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
+	require.Equal(t, map[kbfsblock.ID]int{bID: 0}, liveCounts)
 	require.Equal(t, 3, getBlockJournalLength(t, j))
 
 	// Make sure the block data is inaccessible.
@@ -288,7 +288,7 @@ func testBlockJournalGCd(t *testing.T, j *blockJournal) {
 }
 
 func TestBlockJournalFlush(t *testing.T) {
-	ctx, cancel, tempdir, crypto, log, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	// Put a block.
@@ -304,12 +304,12 @@ func TestBlockJournalFlush(t *testing.T) {
 	// Archive one of the references.
 
 	err := j.archiveReferences(
-		ctx, map[BlockID][]BlockContext{
+		ctx, kbfsblock.ContextMap{
 			bID: {bCtx3},
 		})
 	require.NoError(t, err)
 
-	blockServer := NewBlockServerMemory(crypto, log)
+	blockServer := NewBlockServerMemory(log)
 
 	tlfID := tlf.FakeID(1, false)
 
@@ -370,21 +370,21 @@ func TestBlockJournalFlush(t *testing.T) {
 
 	// Now remove all the references.
 	liveCounts, err := j.removeReferences(
-		ctx, map[BlockID][]BlockContext{
+		ctx, kbfsblock.ContextMap{
 			bID: {bCtx, bCtx2, bCtx3},
 		})
 	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
+	require.Equal(t, map[kbfsblock.ID]int{bID: 0}, liveCounts)
 
 	flush()
 
 	// Check they're all gone.
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	length, err := j.length()
 	require.NoError(t, err)
@@ -414,7 +414,7 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 }
 
 func TestBlockJournalFlushInterleaved(t *testing.T) {
-	ctx, cancel, tempdir, crypto, log, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	// Put a block.
@@ -430,7 +430,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	// Flush the block put. (Interleave flushes to test
 	// checkInSync in intermediate states.)
 
-	blockServer := NewBlockServerMemory(crypto, log)
+	blockServer := NewBlockServerMemory(log)
 
 	tlfID := tlf.FakeID(1, false)
 
@@ -452,11 +452,11 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	// Remove some references.
 
 	liveCounts, err := j.removeReferences(
-		ctx, map[BlockID][]BlockContext{
+		ctx, kbfsblock.ContextMap{
 			bID: {bCtx, bCtx2},
 		})
 	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID: 1}, liveCounts)
+	require.Equal(t, map[kbfsblock.ID]int{bID: 1}, liveCounts)
 
 	// Flush the reference adds.
 
@@ -477,7 +477,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	// Archive the rest.
 
 	err = j.archiveReferences(
-		ctx, map[BlockID][]BlockContext{
+		ctx, kbfsblock.ContextMap{
 			bID: {bCtx3},
 		})
 	require.NoError(t, err)
@@ -487,10 +487,10 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	flushOne()
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
 	require.NoError(t, err)
@@ -500,11 +500,11 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	// Remove the archived references.
 
 	liveCounts, err = j.removeReferences(
-		ctx, map[BlockID][]BlockContext{
+		ctx, kbfsblock.ContextMap{
 			bID: {bCtx3},
 		})
 	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
+	require.Equal(t, map[kbfsblock.ID]int{bID: 0}, liveCounts)
 
 	// Flush the reference archival.
 
@@ -520,7 +520,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	flushOne()
 
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
-	require.IsType(t, BServerErrorBlockNonExistent{}, err)
+	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
 	end, err := j.end()
 	require.NoError(t, err)
@@ -534,7 +534,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 }
 
 func TestBlockJournalFlushMDRevMarker(t *testing.T) {
-	ctx, cancel, tempdir, crypto, log, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	// Put a block.
@@ -547,7 +547,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	err := j.markMDRevision(ctx, rev)
 	require.NoError(t, err)
 
-	blockServer := NewBlockServerMemory(crypto, log)
+	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, false)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
@@ -572,7 +572,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 }
 
 func TestBlockJournalIgnoreBlocks(t *testing.T) {
-	ctx, cancel, tempdir, crypto, log, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	// Put a few blocks
@@ -596,10 +596,10 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	err = j.markMDRevision(ctx, rev)
 	require.NoError(t, err)
 
-	err = j.ignoreBlocksAndMDRevMarkers(ctx, []BlockID{bID2, bID3})
+	err = j.ignoreBlocksAndMDRevMarkers(ctx, []kbfsblock.ID{bID2, bID3})
 	require.NoError(t, err)
 
-	blockServer := NewBlockServerMemory(crypto, log)
+	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, false)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
@@ -628,7 +628,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 }
 
 func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
-	ctx, cancel, tempdir, crypto, log, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	// Put a few blocks
@@ -654,9 +654,9 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	err = j.saveBlocksUntilNextMDFlush()
 	require.NoError(t, err)
-	savedBlocks := []BlockID{bID1, bID2, bID3, bID4}
+	savedBlocks := []kbfsblock.ID{bID1, bID2, bID3, bID4}
 
-	blockServer := NewBlockServerMemory(crypto, log)
+	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, false)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
@@ -711,8 +711,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	{
 		// Make sure the saved block journal persists after a restart.
-		jRestarted, err := makeBlockJournal(
-			ctx, j.codec, j.crypto, j.dir, j.log)
+		jRestarted, err := makeBlockJournal(ctx, j.codec, j.dir, j.log)
 		require.NoError(t, err)
 		require.NotNil(t, jRestarted.saveUntilMDFlush)
 	}
@@ -748,7 +747,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 }
 
 func TestBlockJournalUnflushedBytes(t *testing.T) {
-	ctx, cancel, tempdir, crypto, log, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	requireSize := func(expectedSize int) {
@@ -783,29 +782,29 @@ func TestBlockJournalUnflushedBytes(t *testing.T) {
 	requireSize(expectedSize)
 
 	data3 := []byte{1, 2, 3}
-	bID3, err := j.crypto.MakePermanentBlockID(data3)
+	bID3, err := kbfsblock.MakePermanentID(data3)
 	require.NoError(t, err)
 	_ = addBlockRef(ctx, t, j, bID3)
 	require.NoError(t, err)
 
 	err = j.archiveReferences(
-		ctx, map[BlockID][]BlockContext{bID2: {bCtx2}})
+		ctx, kbfsblock.ContextMap{bID2: {bCtx2}})
 	require.NoError(t, err)
 	requireSize(expectedSize)
 
 	liveCounts, err := j.removeReferences(
-		ctx, map[BlockID][]BlockContext{bID1: {bCtx1, bCtx1b}})
+		ctx, kbfsblock.ContextMap{bID1: {bCtx1, bCtx1b}})
 	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID1: 0}, liveCounts)
+	require.Equal(t, map[kbfsblock.ID]int{bID1: 0}, liveCounts)
 	requireSize(expectedSize)
 
 	liveCounts, err = j.removeReferences(
-		ctx, map[BlockID][]BlockContext{bID2: {bCtx2}})
+		ctx, kbfsblock.ContextMap{bID2: {bCtx2}})
 	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID2: 0}, liveCounts)
+	require.Equal(t, map[kbfsblock.ID]int{bID2: 0}, liveCounts)
 	requireSize(expectedSize)
 
-	blockServer := NewBlockServerMemory(crypto, log)
+	blockServer := NewBlockServerMemory(log)
 	tlfID := tlf.FakeID(1, false)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
@@ -831,8 +830,8 @@ func TestBlockJournalUnflushedBytes(t *testing.T) {
 	// first.
 
 	uid1 := keybase1.MakeTestUID(1)
-	bCtx3 := BlockContext{uid1, "", ZeroBlockRefNonce}
-	serverHalf3, err := j.crypto.MakeRandomBlockCryptKeyServerHalf()
+	bCtx3 := kbfsblock.MakeFirstContext(uid1)
+	serverHalf3, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 
 	err = blockServer.Put(
@@ -856,7 +855,7 @@ func TestBlockJournalUnflushedBytes(t *testing.T) {
 }
 
 func TestBlockJournalUnflushedBytesIgnore(t *testing.T) {
-	ctx, cancel, tempdir, _, _, j := setupBlockJournalTest(t)
+	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
 	requireSize := func(expectedSize int) {
@@ -876,7 +875,7 @@ func TestBlockJournalUnflushedBytesIgnore(t *testing.T) {
 
 	requireSize(len(data1) + len(data2))
 
-	err := j.ignoreBlocksAndMDRevMarkers(ctx, []BlockID{bID1})
+	err := j.ignoreBlocksAndMDRevMarkers(ctx, []kbfsblock.ID{bID1})
 	require.NoError(t, err)
 
 	requireSize(len(data2))

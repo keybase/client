@@ -6,12 +6,12 @@ package libkbfs
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
@@ -123,16 +123,47 @@ func newRMDS(t *testing.T, config Config, h *TlfHandle) (
 }
 
 func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
-	verifyErr, hasVerifyingKeyErr error) {
-	if verifyErr != nil {
-		return
-	}
+	hasVerifyingKeyErr error) {
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
+}
 
-	if hasVerifyingKeyErr != nil {
-		return
+// kmdMatcher implements the gomock.Matcher interface to compare
+// KeyMetadata objects.
+type kmdMatcher struct {
+	kmd KeyMetadata
+}
+
+func (m kmdMatcher) Matches(x interface{}) bool {
+	kmd, ok := x.(KeyMetadata)
+	if !ok {
+		return false
 	}
+	return (m.kmd.TlfID() == kmd.TlfID()) &&
+		(m.kmd.LatestKeyGeneration() == kmd.LatestKeyGeneration())
+}
+
+func (m kmdMatcher) String() string {
+	return fmt.Sprintf("Matches KeyMetadata with TlfID=%s and key generation %d",
+		m.kmd.TlfID(), m.kmd.LatestKeyGeneration())
+}
+
+func expectGetTLFCryptKeyForEncryption(config *ConfigMock, kmd KeyMetadata) {
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(gomock.Any(),
+		kmdMatcher{kmd}).Return(kbfscrypto.TLFCryptKey{}, nil)
+}
+
+func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, kmd KeyMetadata) {
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
+		kmdMatcher{kmd}, kmdMatcher{kmd}).Return(
+		kbfscrypto.TLFCryptKey{}, nil)
+}
+
+func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
+	kmd KeyMetadata) {
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
+		kmdMatcher{kmd}, kmdMatcher{kmd}).MaxTimes(1).Return(
+		kbfscrypto.TLFCryptKey{}, nil)
 }
 
 func verifyMDForPrivateHelper(
@@ -157,12 +188,6 @@ func verifyMDForPrivateHelper(
 		config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 	}
-
-	config.mockCrypto.EXPECT().Verify(gomock.Any(), rmds.SigInfo).
-		MinTimes(minTimes).MaxTimes(maxTimes).Return(nil)
-	config.mockCrypto.EXPECT().
-		Verify(gomock.Any(), rmds.GetWriterMetadataSigInfo()).
-		MinTimes(minTimes).MaxTimes(maxTimes).Return(nil)
 }
 
 func verifyMDForPrivate(
@@ -191,7 +216,7 @@ func testMDOpsGetForHandlePublicSuccess(t *testing.T, ver MetadataVer) {
 	h := parseTlfHandleOrBust(t, config, "alice,bob", true)
 	rmds, _ := newRMDS(t, config, h)
 
-	verifyMDForPublic(config, rmds, nil, nil)
+	verifyMDForPublic(config, rmds, nil)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(tlf.NullID, rmds, nil)
 
@@ -245,7 +270,7 @@ func testMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T, ver MetadataVer)
 	rmds, _ := newRMDS(t, config, h)
 
 	// Do this before setting tlfHandle to nil.
-	verifyMDForPublic(config, rmds, nil, nil)
+	verifyMDForPublic(config, rmds, nil)
 
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
 		"alice,bob@twitter", true)
@@ -295,8 +320,8 @@ func testMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T, ver MetadataVe
 	rmds3, _ := newRMDS(t, config, mdHandle3)
 
 	// Do this before setting tlfHandles to nil.
-	verifyMDForPublic(config, rmds2, nil, nil)
-	verifyMDForPublic(config, rmds3, nil, nil)
+	verifyMDForPublic(config, rmds2, nil)
+	verifyMDForPublic(config, rmds3, nil)
 
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "alice,bob,charlie@twitter", true)
@@ -367,7 +392,7 @@ func testMDOpsGetForHandlePublicFailFindKey(t *testing.T, ver MetadataVer) {
 	rmds, _ := newRMDS(t, config, h)
 
 	// Do this before setting tlfHandle to nil.
-	verifyMDForPublic(config, rmds, nil, KeyNotFoundError{})
+	verifyMDForPublic(config, rmds, KeyNotFoundError{})
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(tlf.NullID, rmds, nil)
 
@@ -397,12 +422,9 @@ func testMDOpsGetForHandlePublicFailVerify(t *testing.T, ver MetadataVer) {
 	h := parseTlfHandleOrBust(t, config, "alice,bob", true)
 	rmds, _ := newRMDS(t, config, h)
 
-	// Do this before setting tlfHandle to nil.
-	expectedErr := libkb.VerificationError{}
-	verifyMDForPublic(config, rmds, expectedErr, nil)
-
-	config.SetCrypto(failVerifyCrypto{config.Crypto(), expectedErr})
-
+	// Change something in rmds that affects the computed MdID,
+	// which will then cause an MDMismatchError.
+	rmds.MD.(MutableBareRootMetadata).SetRefBytes(100)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(tlf.NullID, rmds, nil)
 
 	_, _, err := config.MDOps().GetForHandle(ctx, h, Merged)
@@ -748,7 +770,7 @@ func validatePutPublicRMDS(
 	// Verify signature of WriterMetadata.
 	buf, err := rmds.MD.GetSerializedWriterMetadata(config.Codec())
 	require.NoError(t, err)
-	err = config.Crypto().Verify(buf, rmds.GetWriterMetadataSigInfo())
+	err = kbfscrypto.Verify(buf, rmds.GetWriterMetadataSigInfo())
 	require.NoError(t, err)
 
 	// Verify encoded PrivateMetadata.
@@ -759,7 +781,7 @@ func validatePutPublicRMDS(
 	// Verify signature of RootMetadata.
 	buf, err = config.Codec().Encode(rmds.MD)
 	require.NoError(t, err)
-	err = config.Crypto().Verify(buf, rmds.SigInfo)
+	err = kbfscrypto.Verify(buf, rmds.SigInfo)
 	require.NoError(t, err)
 
 	expectedRmd, err := inputRmd.DeepCopy(config.Codec())

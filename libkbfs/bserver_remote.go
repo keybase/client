@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -117,10 +118,10 @@ func (b *blockServerRemoteClientHandler) ShouldRetry(rpcName string, err error) 
 	case "keybase.1.block.archiveReference":
 		return false
 	}
-	if _, ok := err.(BServerErrorThrottle); ok {
+	if _, ok := err.(kbfsblock.BServerErrorThrottle); ok {
 		return true
 	}
-	if quotaErr, ok := err.(BServerErrorOverQuota); ok && quotaErr.Throttled {
+	if quotaErr, ok := err.(kbfsblock.BServerErrorOverQuota); ok && quotaErr.Throttled {
 		return true
 	}
 	return false
@@ -137,8 +138,8 @@ var _ rpc.ConnectionHandler = (*blockServerRemoteClientHandler)(nil)
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(codec kbfscodec.Codec, signer kbfscrypto.Signer,
-	cig currentInfoGetter, log logger.Logger,
-	blkSrvAddr string, ctx Context) *BlockServerRemote {
+	cig currentInfoGetter, log logger.Logger, blkSrvAddr string,
+	rpcLogFactory *libkb.RPCLogFactory) *BlockServerRemote {
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
 		codec:      codec,
@@ -173,17 +174,17 @@ func NewBlockServerRemote(codec kbfscodec.Codec, signer kbfscrypto.Signer,
 
 	putConn := rpc.NewTLSConnection(blkSrvAddr,
 		kbfscrypto.GetRootCerts(blkSrvAddr),
-		bServerErrorUnwrapper{}, putClientHandler,
+		kbfsblock.BServerErrorUnwrapper{}, putClientHandler,
 		false, /* connect only on-demand */
-		ctx.NewRPCLogFactory(), libkb.WrapError, log,
+		rpcLogFactory, libkb.WrapError, log,
 		LogTagsFromContext)
 	bs.putClient = keybase1.BlockClient{Cli: putConn.GetClient()}
 	putClientHandler.client = bs.putClient
 	getConn := rpc.NewTLSConnection(blkSrvAddr,
 		kbfscrypto.GetRootCerts(blkSrvAddr),
-		bServerErrorUnwrapper{}, getClientHandler,
+		kbfsblock.BServerErrorUnwrapper{}, getClientHandler,
 		false, /* connect only on-demand */
-		ctx.NewRPCLogFactory(), libkb.WrapError, log,
+		rpcLogFactory, libkb.WrapError, log,
 		LogTagsFromContext)
 	bs.getClient = keybase1.BlockClient{Cli: getConn.GetClient()}
 	getClientHandler.client = bs.getClient
@@ -267,7 +268,7 @@ func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
 	}
 }
 
-func makeBlockIDCombo(id BlockID, context BlockContext) keybase1.BlockIdCombo {
+func makeBlockIDCombo(id kbfsblock.ID, context kbfsblock.Context) keybase1.BlockIdCombo {
 	// ChargedTo is somewhat confusing when this BlockIdCombo is
 	// used in a BlockReference -- it just refers to the original
 	// creator of the block, i.e. the original user charged for
@@ -280,7 +281,7 @@ func makeBlockIDCombo(id BlockID, context BlockContext) keybase1.BlockIdCombo {
 	}
 }
 
-func makeBlockReference(id BlockID, context BlockContext) keybase1.BlockReference {
+func makeBlockReference(id kbfsblock.ID, context kbfsblock.Context) keybase1.BlockReference {
 	return keybase1.BlockReference{
 		Bid: makeBlockIDCombo(id, context),
 		// The actual writer to modify quota for.
@@ -290,8 +291,8 @@ func makeBlockReference(id BlockID, context BlockContext) keybase1.BlockReferenc
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
-	context BlockContext) (
+func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	size := -1
 	defer func() {
@@ -325,8 +326,8 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
-	context BlockContext, buf []byte,
+func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	size := len(buf)
 	defer func() {
@@ -356,7 +357,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
-	id BlockID, context BlockContext) (err error) {
+	id kbfsblock.ID, context kbfsblock.Context) (err error) {
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(
@@ -379,7 +380,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 // RemoveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap) (liveCounts map[kbfsblock.ID]int, err error) {
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(ctx, "RemoveBlockReferences batch size=%d err=%v", len(contexts), err)
@@ -388,7 +389,7 @@ func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 		}
 	}()
 	doneRefs, err := b.batchDowngradeReferences(ctx, tlfID, contexts, false)
-	liveCounts = make(map[BlockID]int)
+	liveCounts = make(map[kbfsblock.ID]int)
 	for id, nonces := range doneRefs {
 		for _, count := range nonces {
 			if existing, ok := liveCounts[id]; !ok || existing > count {
@@ -403,7 +404,7 @@ func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(ctx, "ArchiveBlockReferences batch size=%d err=%v", len(contexts), err)
@@ -417,16 +418,16 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 
 // IsUnflushed implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) IsUnflushed(
-	_ context.Context, _ tlf.ID, _ BlockID) (
+	_ context.Context, _ tlf.ID, _ kbfsblock.ID) (
 	bool, error) {
 	return false, nil
 }
 
 // batchDowngradeReferences archives or deletes a batch of references
 func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
-	tlfID tlf.ID, contexts map[BlockID][]BlockContext, archive bool) (
-	doneRefs map[BlockID]map[BlockRefNonce]int, finalError error) {
-	doneRefs = make(map[BlockID]map[BlockRefNonce]int)
+	tlfID tlf.ID, contexts kbfsblock.ContextMap, archive bool) (
+	doneRefs map[kbfsblock.ID]map[kbfsblock.RefNonce]int, finalError error) {
+	doneRefs = make(map[kbfsblock.ID]map[kbfsblock.RefNonce]int)
 	notDone := b.getNotDone(contexts, doneRefs)
 
 	throttleErr := backoff.Retry(func() error {
@@ -457,16 +458,16 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 
 		// update the set of completed reference
 		for _, ref := range res.Completed {
-			bid, err := BlockIDFromString(ref.Ref.Bid.BlockHash)
+			bid, err := kbfsblock.IDFromString(ref.Ref.Bid.BlockHash)
 			if err != nil {
 				continue
 			}
 			nonces, ok := doneRefs[bid]
 			if !ok {
-				nonces = make(map[BlockRefNonce]int)
+				nonces = make(map[kbfsblock.RefNonce]int)
 				doneRefs[bid] = nonces
 			}
-			nonces[BlockRefNonce(ref.Ref.Nonce)] = ref.LiveCount
+			nonces[kbfsblock.RefNonce(ref.Ref.Nonce)] = ref.LiveCount
 		}
 		// update the list of references to downgrade
 		notDone = b.getNotDone(contexts, doneRefs)
@@ -482,7 +483,7 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 		// check whether to backoff and retry
 		if err != nil {
 			// if error is of type throttle, retry
-			if _, ok := err.(BServerErrorThrottle); ok {
+			if _, ok := err.(kbfsblock.BServerErrorThrottle); ok {
 				return err
 			}
 			// non-throttle error, do not retry here
@@ -507,7 +508,7 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 }
 
 // getNotDone returns the set of block references in "all" that do not yet appear in "results"
-func (b *BlockServerRemote) getNotDone(all map[BlockID][]BlockContext, doneRefs map[BlockID]map[BlockRefNonce]int) (
+func (b *BlockServerRemote) getNotDone(all kbfsblock.ContextMap, doneRefs map[kbfsblock.ID]map[kbfsblock.RefNonce]int) (
 	notDone []keybase1.BlockReference) {
 	for id, idContexts := range all {
 		for _, context := range idContexts {
@@ -524,12 +525,12 @@ func (b *BlockServerRemote) getNotDone(all map[BlockID][]BlockContext, doneRefs 
 }
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
-func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
+func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
 	res, err := b.getClient.GetUserQuotaInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return UserQuotaInfoDecode(res, b.codec)
+	return kbfsblock.UserQuotaInfoDecode(res, b.codec)
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.

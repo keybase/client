@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
@@ -69,25 +70,22 @@ import (
 // blockDiskStore is not goroutine-safe, so any code that uses it must
 // guarantee that only one goroutine at a time calls its functions.
 type blockDiskStore struct {
-	codec  kbfscodec.Codec
-	crypto cryptoPure
-	dir    string
+	codec kbfscodec.Codec
+	dir   string
 }
 
 // makeBlockDiskStore returns a new blockDiskStore for the given
 // directory.
-func makeBlockDiskStore(codec kbfscodec.Codec, crypto cryptoPure,
-	dir string) *blockDiskStore {
+func makeBlockDiskStore(codec kbfscodec.Codec, dir string) *blockDiskStore {
 	return &blockDiskStore{
-		codec:  codec,
-		crypto: crypto,
-		dir:    dir,
+		codec: codec,
+		dir:   dir,
 	}
 }
 
 // The functions below are for building various paths.
 
-func (s *blockDiskStore) blockPath(id BlockID) string {
+func (s *blockDiskStore) blockPath(id kbfsblock.ID) string {
 	// Truncate to 34 characters, which corresponds to 16 random
 	// bytes (since the first byte is a hash type) or 128 random
 	// bits, which means that the expected number of blocks
@@ -98,33 +96,33 @@ func (s *blockDiskStore) blockPath(id BlockID) string {
 	return filepath.Join(s.dir, idStr[:4], idStr[4:34])
 }
 
-func (s *blockDiskStore) dataPath(id BlockID) string {
+func (s *blockDiskStore) dataPath(id kbfsblock.ID) string {
 	return filepath.Join(s.blockPath(id), "data")
 }
 
 const idFilename = "id"
 
-func (s *blockDiskStore) idPath(id BlockID) string {
+func (s *blockDiskStore) idPath(id kbfsblock.ID) string {
 	return filepath.Join(s.blockPath(id), idFilename)
 }
 
-func (s *blockDiskStore) keyServerHalfPath(id BlockID) string {
+func (s *blockDiskStore) keyServerHalfPath(id kbfsblock.ID) string {
 	return filepath.Join(s.blockPath(id), "ksh")
 }
 
-func (s *blockDiskStore) infoPath(id BlockID) string {
+func (s *blockDiskStore) infoPath(id kbfsblock.ID) string {
 	// TODO: change the file name to "info" the next we change the
 	// journal layout.
 	return filepath.Join(s.blockPath(id), "refs")
 }
 
-func (s *blockDiskStore) flushedPath(id BlockID) string {
+func (s *blockDiskStore) flushedPath(id kbfsblock.ID) string {
 	return filepath.Join(s.blockPath(id), "f")
 }
 
 // makeDir makes the directory for the given block ID and writes the
 // ID file, if necessary.
-func (s *blockDiskStore) makeDir(id BlockID) error {
+func (s *blockDiskStore) makeDir(id kbfsblock.ID) error {
 	err := ioutil.MkdirAll(s.blockPath(id), 0700)
 	if err != nil {
 		return err
@@ -147,7 +145,7 @@ type blockJournalInfo struct {
 // TODO: Add caching for refs
 
 // getRefInfo returns the references for the given ID.
-func (s *blockDiskStore) getInfo(id BlockID) (blockJournalInfo, error) {
+func (s *blockDiskStore) getInfo(id kbfsblock.ID) (blockJournalInfo, error) {
 	var info blockJournalInfo
 	err := kbfscodec.DeserializeFromFile(s.codec, s.infoPath(id), &info)
 	if !ioutil.IsNotExist(err) && err != nil {
@@ -162,13 +160,13 @@ func (s *blockDiskStore) getInfo(id BlockID) (blockJournalInfo, error) {
 }
 
 // putRefInfo stores the given references for the given ID.
-func (s *blockDiskStore) putInfo(id BlockID, info blockJournalInfo) error {
+func (s *blockDiskStore) putInfo(id kbfsblock.ID, info blockJournalInfo) error {
 	return kbfscodec.SerializeToFile(s.codec, info, s.infoPath(id))
 }
 
 // addRefs adds references for the given contexts to the given ID, all
 // with the same status and tag.
-func (s *blockDiskStore) addRefs(id BlockID, contexts []BlockContext,
+func (s *blockDiskStore) addRefs(id kbfsblock.ID, contexts []kbfsblock.Context,
 	status blockRefStatus, tag string) error {
 	info, err := s.getInfo(id)
 	if err != nil {
@@ -197,7 +195,7 @@ func (s *blockDiskStore) addRefs(id BlockID, contexts []BlockContext,
 
 // getData returns the data and server half for the given ID, if
 // present.
-func (s *blockDiskStore) getData(id BlockID) (
+func (s *blockDiskStore) getData(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	data, err := ioutil.ReadFile(s.dataPath(id))
 	if ioutil.IsNotExist(err) {
@@ -218,14 +216,9 @@ func (s *blockDiskStore) getData(id BlockID) (
 
 	// Check integrity.
 
-	dataID, err := s.crypto.MakePermanentBlockID(data)
+	err = kbfsblock.VerifyID(data, id)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-
-	if id != dataID {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, errors.Errorf(
-			"Block ID mismatch: expected %s, got %s", id, dataID)
 	}
 
 	var serverHalf kbfscrypto.BlockCryptKeyServerHalf
@@ -239,7 +232,7 @@ func (s *blockDiskStore) getData(id BlockID) (
 
 // All functions below are public functions.
 
-func (s *blockDiskStore) hasAnyRef(id BlockID) (bool, error) {
+func (s *blockDiskStore) hasAnyRef(id kbfsblock.ID) (bool, error) {
 	info, err := s.getInfo(id)
 	if err != nil {
 		return false, err
@@ -248,7 +241,7 @@ func (s *blockDiskStore) hasAnyRef(id BlockID) (bool, error) {
 	return len(info.Refs) > 0, nil
 }
 
-func (s *blockDiskStore) hasNonArchivedRef(id BlockID) (bool, error) {
+func (s *blockDiskStore) hasNonArchivedRef(id kbfsblock.ID) (bool, error) {
 	info, err := s.getInfo(id)
 	if err != nil {
 		return false, err
@@ -257,7 +250,7 @@ func (s *blockDiskStore) hasNonArchivedRef(id BlockID) (bool, error) {
 	return info.Refs.hasNonArchivedRef(), nil
 }
 
-func (s *blockDiskStore) hasContext(id BlockID, context BlockContext) (
+func (s *blockDiskStore) hasContext(id kbfsblock.ID, context kbfsblock.Context) (
 	bool, error) {
 	info, err := s.getInfo(id)
 	if err != nil {
@@ -267,7 +260,7 @@ func (s *blockDiskStore) hasContext(id BlockID, context BlockContext) (
 	return info.Refs.checkExists(context)
 }
 
-func (s *blockDiskStore) hasData(id BlockID) (bool, error) {
+func (s *blockDiskStore) hasData(id kbfsblock.ID) (bool, error) {
 	_, err := ioutil.Stat(s.dataPath(id))
 	if ioutil.IsNotExist(err) {
 		return false, nil
@@ -277,7 +270,7 @@ func (s *blockDiskStore) hasData(id BlockID) (bool, error) {
 	return true, nil
 }
 
-func (s *blockDiskStore) isUnflushed(id BlockID) (bool, error) {
+func (s *blockDiskStore) isUnflushed(id kbfsblock.ID) (bool, error) {
 	ok, err := s.hasData(id)
 	if err != nil {
 		return false, err
@@ -296,7 +289,7 @@ func (s *blockDiskStore) isUnflushed(id BlockID) (bool, error) {
 	return !info.Flushed, nil
 }
 
-func (s *blockDiskStore) markFlushed(id BlockID) error {
+func (s *blockDiskStore) markFlushed(id kbfsblock.ID) error {
 	info, err := s.getInfo(id)
 	if err != nil {
 		return err
@@ -306,7 +299,7 @@ func (s *blockDiskStore) markFlushed(id BlockID) error {
 	return s.putInfo(id, info)
 }
 
-func (s *blockDiskStore) getDataSize(id BlockID) (int64, error) {
+func (s *blockDiskStore) getDataSize(id kbfsblock.ID) (int64, error) {
 	fi, err := ioutil.Stat(s.dataPath(id))
 	if ioutil.IsNotExist(err) {
 		return 0, nil
@@ -316,7 +309,7 @@ func (s *blockDiskStore) getDataSize(id BlockID) (int64, error) {
 	return fi.Size(), nil
 }
 
-func (s *blockDiskStore) getDataWithContext(id BlockID, context BlockContext) (
+func (s *blockDiskStore) getDataWithContext(id kbfsblock.ID, context kbfsblock.Context) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	hasContext, err := s.hasContext(id, context)
 	if err != nil {
@@ -330,8 +323,8 @@ func (s *blockDiskStore) getDataWithContext(id BlockID, context BlockContext) (
 	return s.getData(id)
 }
 
-func (s *blockDiskStore) getAllRefsForTest() (map[BlockID]blockRefMap, error) {
-	res := make(map[BlockID]blockRefMap)
+func (s *blockDiskStore) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error) {
+	res := make(map[kbfsblock.ID]blockRefMap)
 
 	fileInfos, err := ioutil.ReadDir(s.dir)
 	if ioutil.IsNotExist(err) {
@@ -365,7 +358,7 @@ func (s *blockDiskStore) getAllRefsForTest() (map[BlockID]blockRefMap, error) {
 				return nil, err
 			}
 
-			id, err := BlockIDFromString(string(idBytes))
+			id, err := kbfsblock.IDFromString(string(idBytes))
 			if err != nil {
 				return nil, errors.WithStack(err)
 			}
@@ -392,9 +385,10 @@ func (s *blockDiskStore) getAllRefsForTest() (map[BlockID]blockRefMap, error) {
 
 // put puts the given data for the block, which may already exist, and
 // adds a reference for the given context.
-func (s *blockDiskStore) put(id BlockID, context BlockContext, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf, tag string) error {
-	err := validateBlockPut(s.crypto, id, context, buf)
+func (s *blockDiskStore) put(id kbfsblock.ID, context kbfsblock.Context,
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	tag string) error {
+	err := validateBlockPut(id, context, buf)
 	if err != nil {
 		return err
 	}
@@ -447,7 +441,7 @@ func (s *blockDiskStore) put(id BlockID, context BlockContext, buf []byte,
 		}
 	}
 
-	err = s.addRefs(id, []BlockContext{context}, liveBlockRef, tag)
+	err = s.addRefs(id, []kbfsblock.Context{context}, liveBlockRef, tag)
 	if err != nil {
 		return err
 	}
@@ -456,17 +450,17 @@ func (s *blockDiskStore) put(id BlockID, context BlockContext, buf []byte,
 }
 
 func (s *blockDiskStore) addReference(
-	id BlockID, context BlockContext, tag string) error {
+	id kbfsblock.ID, context kbfsblock.Context, tag string) error {
 	err := s.makeDir(id)
 	if err != nil {
 		return err
 	}
 
-	return s.addRefs(id, []BlockContext{context}, liveBlockRef, tag)
+	return s.addRefs(id, []kbfsblock.Context{context}, liveBlockRef, tag)
 }
 
 func (s *blockDiskStore) archiveReferences(
-	contexts map[BlockID][]BlockContext, tag string) error {
+	contexts kbfsblock.ContextMap, tag string) error {
 	for id, idContexts := range contexts {
 		err := s.makeDir(id)
 		if err != nil {
@@ -487,7 +481,7 @@ func (s *blockDiskStore) archiveReferences(
 // removed only if its most recent tag (passed in to addRefs) matches
 // the given one.
 func (s *blockDiskStore) removeReferences(
-	id BlockID, contexts []BlockContext, tag string) (
+	id kbfsblock.ID, contexts []kbfsblock.Context, tag string) (
 	liveCount int, err error) {
 	info, err := s.getInfo(id)
 	if err != nil {
@@ -517,7 +511,7 @@ func (s *blockDiskStore) removeReferences(
 
 // remove removes any existing data for the given ID, which must not
 // have any references left.
-func (s *blockDiskStore) remove(id BlockID) error {
+func (s *blockDiskStore) remove(id kbfsblock.ID) error {
 	hasAnyRef, err := s.hasAnyRef(id)
 	if err != nil {
 		return err

@@ -802,7 +802,7 @@ func (md *BareRootMetadataV2) IsValidAndSigned(
 		return err
 	}
 
-	err = crypto.Verify(buf, md.WriterMetadataSigInfo)
+	err = kbfscrypto.Verify(buf, md.WriterMetadataSigInfo)
 	if err != nil {
 		return fmt.Errorf("Could not verify writer metadata: %v", err)
 	}

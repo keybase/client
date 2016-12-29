@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/env"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/assert"
@@ -37,20 +38,6 @@ const (
 	TempdirServerAddr = "tempdir"
 )
 
-// RandomBlockID returns a randomly-generated BlockID for testing.
-func RandomBlockID() BlockID {
-	var dh kbfshash.RawDefaultHash
-	err := kbfscrypto.RandRead(dh[:])
-	if err != nil {
-		panic(err)
-	}
-	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
-	if err != nil {
-		panic(err)
-	}
-	return BlockID{h}
-}
-
 func fakeMdID(b byte) MdID {
 	dh := kbfshash.RawDefaultHash{b}
 	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
@@ -67,7 +54,8 @@ func fakeMdID(b byte) MdID {
 func newConfigForTest(loggerFn func(module string) logger.Logger) *ConfigLocal {
 	config := NewConfigLocal(loggerFn)
 
-	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
+	bops := NewBlockOpsStandard(blockOpsConfigAdapter{config},
+		testBlockRetrievalWorkerQueueSize)
 	config.SetBlockOps(bops)
 
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
@@ -75,12 +63,38 @@ func newConfigForTest(loggerFn func(module string) logger.Logger) *ConfigLocal {
 	return config
 }
 
+// MakeTestBlockServerOrBust makes a block server from the given
+// arguments and environment variables.
+func MakeTestBlockServerOrBust(t logger.TestLogBackend, codec kbfscodec.Codec,
+	signer kbfscrypto.Signer, cig currentInfoGetter,
+	rpcLogFactory *libkb.RPCLogFactory, log logger.Logger) BlockServer {
+	// see if a local remote server is specified
+	bserverAddr := os.Getenv(EnvTestBServerAddr)
+	switch {
+	case bserverAddr == TempdirServerAddr:
+		var err error
+		blockServer, err := NewBlockServerTempDir(codec, log)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return blockServer
+
+	case len(bserverAddr) != 0:
+		return NewBlockServerRemote(codec, signer, cig,
+			log, bserverAddr, rpcLogFactory)
+
+	default:
+		return NewBlockServerMemory(log)
+	}
+}
+
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
 func MakeTestConfigOrBust(t logger.TestLogBackend,
 	users ...libkb.NormalizedUsername) *ConfigLocal {
+	log := logger.NewTestLogger(t)
 	config := newConfigForTest(func(m string) logger.Logger {
-		return logger.NewTestLogger(t)
+		return log
 	})
 
 	kbfsOps := NewKBFSOpsStandard(config)
@@ -105,29 +119,9 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	// see if a local remote server is specified
-	bserverAddr := os.Getenv(EnvTestBServerAddr)
-	var blockServer BlockServer
-	switch {
-	case bserverAddr == TempdirServerAddr:
-		log := config.MakeLogger("BSTD")
-		var err error
-		blockServer, err = NewBlockServerTempDir(
-			config.Codec(), config.Crypto(), log)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-	case len(bserverAddr) != 0:
-		bserverLog := config.MakeLogger("BSR")
-		blockServer = NewBlockServerRemote(
-			config.Codec(), config.Crypto(), config.KBPKI(),
-			bserverLog, bserverAddr, env.NewContext())
-
-	default:
-		log := config.MakeLogger("BSM")
-		blockServer = NewBlockServerMemory(config.Crypto(), log)
-	}
+	blockServer := MakeTestBlockServerOrBust(t, config.Codec(),
+		config.Crypto(), config.KBPKI(),
+		env.NewContext().NewRPCLogFactory(), log)
 	config.SetBlockServer(blockServer)
 
 	// see if a local remote server is specified
@@ -164,7 +158,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 		libkb.G.ConfigureLogging()
 
 		// connect to server
-		mdServer = NewMDServerRemote(config, mdServerAddr, env.NewContext())
+		mdServer = NewMDServerRemote(config, mdServerAddr, env.NewContext().NewRPCLogFactory())
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
 
@@ -240,7 +234,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 		bserverLog := config.MakeLogger("BSR")
 		blockServer := NewBlockServerRemote(c.Codec(), c.Crypto(),
 			c.KBPKI(), bserverLog, s.RemoteAddress(),
-			env.NewContext())
+			env.NewContext().NewRPCLogFactory())
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())
@@ -256,7 +250,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	var keyServer KeyServer
 	if s, ok := config.MDServer().(*MDServerRemote); ok {
 		// connect to server
-		mdServer = NewMDServerRemote(c, s.RemoteAddress(), env.NewContext())
+		mdServer = NewMDServerRemote(c, s.RemoteAddress(), env.NewContext().NewRPCLogFactory())
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {

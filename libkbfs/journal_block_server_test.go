@@ -10,6 +10,8 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -88,16 +90,15 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
-	crypto := config.Crypto()
 
 	uid1 := keybase1.MakeTestUID(1)
-	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
+	bCtx := kbfsblock.MakeFirstContext(uid1)
 	data := []byte{1, 2, 3, 4}
-	bID, err := crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
 
 	// Put a block.
-	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
@@ -110,9 +111,9 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 
 	// Add a reference.
 	uid2 := keybase1.MakeTestUID(2)
-	nonce, err := crypto.MakeBlockRefNonce()
+	nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
-	bCtx2 := BlockContext{uid1, uid2, nonce}
+	bCtx2 := kbfsblock.MakeContext(uid1, uid2, nonce)
 	err = blockServer.AddBlockReference(ctx, tlfID, bID, bCtx2)
 	require.NoError(t, err)
 

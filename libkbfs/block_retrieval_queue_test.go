@@ -8,10 +8,26 @@ import (
 	"io"
 	"testing"
 
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
+
+func makeRandomBlockPointer(t *testing.T) BlockPointer {
+	id, err := kbfsblock.MakeTemporaryID()
+	require.NoError(t, err)
+	return BlockPointer{
+		id,
+		5,
+		1,
+		kbfsblock.MakeContext(
+			"fake creator",
+			"fake writer",
+			kbfsblock.RefNonce{0xb},
+		),
+	}
+}
 
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it.")
@@ -19,7 +35,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 	require.NotNil(t, q)
 
 	ctx := context.Background()
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1.")
 	_ = q.Request(ctx, 1, nil, ptr1, block)
@@ -41,8 +57,8 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	require.NotNil(t, q)
 
 	ctx := context.Background()
-	ptr1 := makeFakeBlockPointer(t)
-	ptr2 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
+	ptr2 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 and a higher priority retrieval for ptr2.")
 	_ = q.Request(ctx, 1, nil, ptr1, block)
@@ -69,8 +85,8 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	require.NotNil(t, q)
 
 	ctx := context.Background()
-	ptr1 := makeFakeBlockPointer(t)
-	ptr2 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
+	ptr2 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 and ptr2.")
 	_ = q.Request(ctx, 1, nil, ptr1, block)
@@ -83,7 +99,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	require.Equal(t, 1, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
 
-	ptr3 := makeFakeBlockPointer(t)
+	ptr3 := makeRandomBlockPointer(t)
 	t.Log("Preempt the ptr2 request with the ptr3 request.")
 	_ = q.Request(ctx, 2, nil, ptr3, block)
 
@@ -108,7 +124,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	require.NotNil(t, q)
 
 	ctx := context.Background()
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1 twice.")
 	_ = q.Request(ctx, 1, nil, ptr1, block)
@@ -133,9 +149,9 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	require.NotNil(t, q)
 
 	ctx := context.Background()
-	ptr1 := makeFakeBlockPointer(t)
-	ptr2 := makeFakeBlockPointer(t)
-	ptr3 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
+	ptr2 := makeRandomBlockPointer(t)
+	ptr3 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request 3 block retrievals, each preempting the previous one.")
 	_ = q.Request(ctx, 1, nil, ptr1, block)
@@ -174,7 +190,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	require.NotNil(t, q)
 
 	ctx := context.Background()
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block := &FileBlock{}
 	t.Log("Request a block retrieval for ptr1.")
 	_ = q.Request(ctx, 1, nil, ptr1, block)

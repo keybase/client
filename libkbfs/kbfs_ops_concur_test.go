@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -1108,20 +1109,20 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	errPtrChan := make(chan BlockPointer)
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).
-		Do(func(ctx context.Context, tlfID tlf.ID, id BlockID,
-			context BlockContext, buf []byte,
+		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+			context kbfsblock.Context, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			errPtrChan <- BlockPointer{
-				ID:           id,
-				BlockContext: context,
+				ID:      id,
+				Context: context,
 			}
 		}).After(c).Return(putErr)
 	// let the rest through
 	proceedChan := make(chan struct{})
 	b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().
-		Do(func(ctx context.Context, tlfID tlf.ID, id BlockID,
-			context BlockContext, buf []byte,
+		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+			context kbfsblock.Context, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			<-proceedChan
 		}).After(c).Return(nil)
@@ -1335,14 +1336,18 @@ func TestKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T) {
 	}
 
 	// Sync the initial three data blocks
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 	// start the sync
 	go func() {
 		errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
 	}()
 
 	// Wait for the first block to finish (before the retry)
-	<-onSyncStalledCh
+	select {
+	case <-onSyncStalledCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 
 	// Dirty the last block and extend it, so the one that was sent as
 	// part of the first sync is no longer part of the file.
@@ -1350,16 +1355,32 @@ func TestKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
 	}
-	syncUnstallCh <- struct{}{}
+	select {
+	case syncUnstallCh <- struct{}{}:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 
 	// Wait for the rest of the first set of  block to finish (before the retry)
 	for i := 0; i < 5; i++ {
-		<-onSyncStalledCh
-		syncUnstallCh <- struct{}{}
+		select {
+		case <-onSyncStalledCh:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
+		select {
+		case syncUnstallCh <- struct{}{}:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
 	}
 
 	// Once the first block of the retry comes in, cancel everything.
-	<-onSyncStalledCh
+	select {
+	case <-onSyncStalledCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	cancel2()
 
 	// Unstall the sync.
@@ -1804,7 +1825,7 @@ type blockOpsOverQuota struct {
 
 func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID tlf.ID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	return BServerErrorOverQuota{
+	return kbfsblock.BServerErrorOverQuota{
 		Throttled: true,
 	}
 }
@@ -1887,7 +1908,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	// Both errors should be an OverQuota error
 	syncErr := <-syncErrCh
 	writeErr := <-writeErrCh
-	if _, ok := syncErr.(BServerErrorOverQuota); !ok {
+	if _, ok := syncErr.(kbfsblock.BServerErrorOverQuota); !ok {
 		t.Fatalf("Unexpected sync err: %v", syncErr)
 	}
 	if writeErr != syncErr {

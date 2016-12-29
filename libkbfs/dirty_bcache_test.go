@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
-func testDirtyBcachePut(t *testing.T, id BlockID, dirtyBcache DirtyBlockCache) {
+func testDirtyBcachePut(t *testing.T, id kbfsblock.ID, dirtyBcache DirtyBlockCache) {
 	block := NewFileBlock()
 	ptr := BlockPointer{ID: id}
 	branch := MasterBranch
@@ -37,7 +38,7 @@ func testDirtyBcachePut(t *testing.T, id BlockID, dirtyBcache DirtyBlockCache) {
 	}
 }
 
-func testExpectedMissingDirty(t *testing.T, id BlockID,
+func testExpectedMissingDirty(t *testing.T, id kbfsblock.ID,
 	dirtyBcache DirtyBlockCache) {
 	expectedErr := NoSuchBlockError{id}
 	ptr := BlockPointer{ID: id}
@@ -53,23 +54,23 @@ func TestDirtyBcachePut(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
-	testDirtyBcachePut(t, fakeBlockID(1), dirtyBcache)
+	testDirtyBcachePut(t, kbfsblock.FakeID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
-	id1 := fakeBlockID(1)
+	id1 := kbfsblock.FakeID(1)
 
 	// Dirty a specific reference nonce, and make sure the
 	// original is still not found.
-	newNonce := BlockRefNonce([8]byte{1, 0, 0, 0, 0, 0, 0, 0})
+	newNonce := kbfsblock.RefNonce([8]byte{1, 0, 0, 0, 0, 0, 0, 0})
 	newNonceBlock := NewFileBlock()
 	bp1 := BlockPointer{ID: id1}
 	bp2 := BlockPointer{
-		ID:           id1,
-		BlockContext: BlockContext{RefNonce: newNonce},
+		ID:      id1,
+		Context: kbfsblock.Context{RefNonce: newNonce},
 	}
 	id := tlf.FakeID(1, false)
 	err := dirtyBcache.Put(id, bp2, MasterBranch, newNonceBlock)
@@ -107,7 +108,7 @@ func TestDirtyBcacheDelete(t *testing.T) {
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 
-	id1 := fakeBlockID(1)
+	id1 := kbfsblock.FakeID(1)
 	testDirtyBcachePut(t, id1, dirtyBcache)
 	newBranch := BranchName("dirtyBranch")
 	newBranchBlock := NewFileBlock()

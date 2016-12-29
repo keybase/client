@@ -84,13 +84,6 @@ func (e DisallowedPrefixError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EINVAL)
 }
 
-var _ fuse.ErrorNumber = BServerErrorUnauthorized{}
-
-// Errno implements the fuse.ErrorNumber interface for BServerErrorUnauthorized.
-func (e BServerErrorUnauthorized) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
-}
-
 var _ fuse.ErrorNumber = MDServerErrorUnauthorized{}
 
 // Errno implements the fuse.ErrorNumber interface for MDServerErrorUnauthorized.

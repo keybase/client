@@ -1114,7 +1114,7 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		return err
 	}
 
-	err = crypto.Verify(buf, rmds.SigInfo)
+	err = kbfscrypto.Verify(buf, rmds.SigInfo)
 	if err != nil {
 		return fmt.Errorf("Could not verify root metadata: %v", err)
 	}
@@ -1124,7 +1124,7 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		return err
 	}
 
-	err = crypto.Verify(buf, rmds.WriterSigInfo)
+	err = kbfscrypto.Verify(buf, rmds.WriterSigInfo)
 	if err != nil {
 		return fmt.Errorf("Could not verify writer metadata: %v", err)
 	}

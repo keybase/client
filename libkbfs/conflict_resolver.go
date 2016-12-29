@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
@@ -2942,7 +2943,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
 	unmergedChains, mergedChains *crChains,
 	mostRecentMergedMD ImmutableRootMetadata) (
-	blocksToDelete []BlockID, err error) {
+	blocksToDelete []kbfsblock.ID, err error) {
 	md.SetRefBytes(0)
 	md.SetUnrefBytes(0)
 	md.SetDiskUsage(mostRecentMergedMD.DiskUsage())
@@ -3225,7 +3226,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
 	newFileBlocks fileBlockMap) (
 	updates map[BlockPointer]BlockPointer, bps *blockPutState,
-	blocksToDelete []BlockID, err error) {
+	blocksToDelete []kbfsblock.ID, err error) {
 	err = cr.checkDone(ctx)
 	if err != nil {
 		return nil, nil, nil, err
@@ -3645,7 +3646,7 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 	lState *lockState, md *RootMetadata,
 	unmergedChains, mergedChains *crChains,
 	updates map[BlockPointer]BlockPointer,
-	bps *blockPutState, blocksToDelete []BlockID, writerLocked bool) error {
+	bps *blockPutState, blocksToDelete []kbfsblock.ID, writerLocked bool) error {
 	err := cr.checkDone(ctx)
 	if err != nil {
 		return err
@@ -3741,8 +3742,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 func (cr *ConflictResolver) maybeUnstageAfterFailure(ctx context.Context,
 	lState *lockState, mergedMDs []ImmutableRootMetadata, err error) error {
 	// Make sure the error is related to a missing block.
-	_, isBlockNotFound := err.(BServerErrorBlockNonExistent)
-	_, isBlockDeleted := err.(BServerErrorBlockDeleted)
+	_, isBlockNotFound := err.(kbfsblock.BServerErrorBlockNonExistent)
+	_, isBlockDeleted := err.(kbfsblock.BServerErrorBlockDeleted)
 	if !isBlockNotFound && !isBlockDeleted {
 		return err
 	}

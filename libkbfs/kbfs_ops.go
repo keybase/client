@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 
@@ -634,7 +635,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		if err == nil {
 			limitBytes = quotaInfo.Limit
 			if quotaInfo.Total != nil {
-				usageBytes = quotaInfo.Total.Bytes[UsageWrite]
+				usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
 			} else {
 				usageBytes = 0
 			}

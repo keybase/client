@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -146,11 +147,11 @@ func (c testTLFJournalConfig) MakeLogger(module string) logger.Logger {
 }
 
 func (c testTLFJournalConfig) makeBlock(data []byte) (
-	BlockID, BlockContext, kbfscrypto.BlockCryptKeyServerHalf) {
-	id, err := c.crypto.MakePermanentBlockID(data)
+	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
+	id, err := kbfsblock.MakePermanentID(data)
 	require.NoError(c.t, err)
-	bCtx := BlockContext{c.uid, "", ZeroBlockRefNonce}
-	serverHalf, err := c.crypto.MakeRandomBlockCryptKeyServerHalf()
+	bCtx := kbfsblock.MakeFirstContext(c.uid)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(c.t, err)
 	return id, bCtx, serverHalf
 }
@@ -251,7 +252,7 @@ func setupTLFJournalTest(
 		}
 	}()
 
-	delegateBlockServer := NewBlockServerMemory(config.Crypto(), log)
+	delegateBlockServer := NewBlockServerMemory(log)
 
 	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
 		tempdir, config.tlfID, config, delegateBlockServer,
@@ -381,7 +382,7 @@ type hangingBlockServer struct {
 }
 
 func (bs hangingBlockServer) Put(
-	ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext,
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	close(bs.onPutCh)
 	// Hang until the context is cancelled.
@@ -750,7 +751,7 @@ type orderedBlockServer struct {
 }
 
 func (s *orderedBlockServer) Put(
-	ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext,
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -908,7 +909,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 	config.mdserver = &mdserver
 
 	// Revision 1
-	var bids []BlockID
+	var bids []kbfsblock.ID
 	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
 	for i := 0; i < rev1BlockEnd; i++ {
 		data := []byte{byte(i)}
@@ -941,11 +942,11 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 
 	// Make sure that: before revision 1, all the rev1 blocks were
 	// put; rev2 comes last; some blocks are put between the two.
-	bidsSeen := make(map[BlockID]bool)
+	bidsSeen := make(map[kbfsblock.ID]bool)
 	md1Slot := 0
 	md2Slot := 0
 	for i, put := range puts {
-		if bid, ok := put.(BlockID); ok {
+		if bid, ok := put.(kbfsblock.ID); ok {
 			t.Logf("Saw bid %s at %d", bid, i)
 			bidsSeen[bid] = true
 			continue
@@ -1049,7 +1050,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	var bids []BlockID
+	var bids []kbfsblock.ID
 	for i := 0; i < 3; i++ {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)
@@ -1086,7 +1087,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	// Resolve the branch.
 	resolveMD := config.makeMD(firstRevision, firstPrevRoot)
 	_, err = tlfJournal.resolveBranch(ctx,
-		tlfJournal.mdJournal.getBranchID(), []BlockID{bids[1]}, resolveMD, nil)
+		tlfJournal.mdJournal.getBranchID(), []kbfsblock.ID{bids[1]}, resolveMD, nil)
 	require.NoError(t, err)
 
 	blockEnd, newMDEnd, err := tlfJournal.getJournalEnds(ctx)
