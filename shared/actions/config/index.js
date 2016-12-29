@@ -208,3 +208,4 @@ function getCurrentStatus (): AsyncAction {
     })
   }
 }
+

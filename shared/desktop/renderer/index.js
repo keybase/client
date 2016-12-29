@@ -20,6 +20,8 @@ import {bootstrap} from '../../actions/config'
 import {changedFocus} from '../../actions/window'
 import {devEditAction} from '../../reducers/dev-edit'
 import {disable as disableDragDrop} from '../../util/drag-drop'
+import {getUserImage, loadUserImage} from '../shared/util/pictures'
+import {initAvatarLookup, initAvatarLoad} from '../shared/common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {merge, throttle} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../../local-debug.desktop'
@@ -41,11 +43,17 @@ function setupStore () {
   return _store
 }
 
+function setupAvatar () {
+  initAvatarLookup(getUserImage)
+  initAvatarLoad(loadUserImage)
+}
+
 function setupApp (store) {
   setupSource()
   disableDragDrop()
   makeEngine()
   loadPerf()
+  setupAvatar()
 
   if (devStoreChangingFunctions) {
     window.devEdit = (path, value) => store.dispatch(devEditAction(path, value))
