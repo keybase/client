@@ -35,14 +35,14 @@ func (u *CachedUserLoader) ClearMemory() {
 	u.m = make(map[string]*keybase1.UserPlusAllKeys)
 }
 
-func (u *CachedUserLoader) getCachedUPK(uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusAllKeys, bool) {
+func (u *CachedUserLoader) getCachedUPK(g *GlobalContext, uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusAllKeys, bool) {
 	u.Lock()
 	upk := u.m[uid.String()]
 	u.Unlock()
 
 	// Try loading from persistent storage if we missed memory cache.
 	if upk != nil {
-		u.G().Log.Debug("| hit memory cache")
+		g.GetLog().Debug("| hit memory cache")
 		if info != nil {
 			info.InCache = true
 		}
@@ -50,11 +50,11 @@ func (u *CachedUserLoader) getCachedUPK(uid keybase1.UID, info *CachedUserLoadIn
 		var tmp keybase1.UserPlusAllKeys
 		found, err := u.G().LocalDb.GetInto(&tmp, culDBKey(uid))
 		if err != nil {
-			u.G().Log.Warning("trouble accessing UserPlusAllKeys cache: %s", err)
+			g.GetLog().Warning("trouble accessing UserPlusAllKeys cache: %s", err)
 		} else if !found {
-			u.G().Log.Debug("| missed disk cache")
+			g.GetLog().Debug("| missed disk cache")
 		} else {
-			u.G().Log.Debug("| hit disk cache")
+			g.GetLog().Debug("| hit disk cache")
 			upk = &tmp
 			if info != nil {
 				info.InDiskCache = true
@@ -67,19 +67,19 @@ func (u *CachedUserLoader) getCachedUPK(uid keybase1.UID, info *CachedUserLoadIn
 	}
 
 	if upk == nil {
-		u.G().Log.Debug("| missed cache")
+		g.GetLog().Debug("| missed cache")
 		return nil, true
 	}
 	fresh := false
 	if u.Freshness == time.Duration(0) {
-		u.G().Log.Debug("| cache miss since cache disabled")
+		g.GetLog().Debug("| cache miss since cache disabled")
 	} else {
 		diff := u.G().Clock().Now().Sub(keybase1.FromTime(upk.Base.Uvv.CachedAt))
 		fresh = (diff <= u.Freshness)
 		if fresh {
-			u.G().Log.Debug("| cache hit was fresh (cached %s ago)", diff)
+			g.GetLog().Debug("| cache hit was fresh (cached %s ago)", diff)
 		} else {
-			u.G().Log.Debug("| cache hit was stale (by %s)", u.Freshness-diff)
+			g.GetLog().Debug("| cache hit was stale (by %s)", u.Freshness-diff)
 		}
 	}
 	return upk, fresh
@@ -127,15 +127,15 @@ func (u *CachedUserLoader) extractDeviceKey(upk *keybase1.UserPlusAllKeys, devic
 	return deviceKey, revoked, nil
 }
 
-func (u *CachedUserLoader) putUPKToCache(obj *keybase1.UserPlusAllKeys) error {
+func (u *CachedUserLoader) putUPKToCache(g *GlobalContext, obj *keybase1.UserPlusAllKeys) error {
 	uid := obj.Base.Uid
-	u.G().Log.Debug("| %s: Caching: %+v", culDebug(uid), *obj)
+	g.GetLog().Debug("| %s: Caching: %+v", culDebug(uid), *obj)
 	u.Lock()
 	u.m[uid.String()] = obj
 	u.Unlock()
-	err := u.G().LocalDb.PutObj(culDBKey(uid), nil, *obj)
+	err := g.LocalDb.PutObj(culDBKey(uid), nil, *obj)
 	if err != nil {
-		u.G().Log.Warning("Error in writing UPAK for %s: %s", uid, err)
+		g.GetLog().Warning("Error in writing UPAK for %s: %s", uid, err)
 	}
 	return err
 }
@@ -143,7 +143,7 @@ func (u *CachedUserLoader) putUPKToCache(obj *keybase1.UserPlusAllKeys) error {
 func (u *CachedUserLoader) PutUserToCache(user *User) error {
 	upak := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	upak.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
-	err := u.putUPKToCache(&upak)
+	err := u.putUPKToCache(u.G(), &upak)
 	return err
 }
 
@@ -152,28 +152,29 @@ func (u *CachedUserLoader) PutUserToCache(user *User) error {
 // this method behaves like (and implements) the public CachedUserLoader#Load
 // method below.
 func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
-	defer u.G().Trace(culDebug(arg.UID), func() error { return err })()
+	defer arg.G().Trace(culDebug(arg.UID), func() error { return err })()
 
 	if arg.UID.IsNil() {
 		err = errors.New("need a UID to load UPK from loader")
 		return nil, nil, err
 	}
 
-	lock := u.locktab.AcquireOnName(arg.UID.String())
+	lock := u.locktab.AcquireOnName(arg.G(), arg.UID.String())
 	defer lock.Release()
 
 	var upk *keybase1.UserPlusAllKeys
 	var fresh bool
 
 	if !arg.ForceReload {
-		upk, fresh = u.getCachedUPK(arg.UID, info)
+		upk, fresh = u.getCachedUPK(arg.G(), arg.UID, info)
 	}
 	if arg.ForcePoll {
+		arg.G().Log.Debug("%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.UID), fresh)
 		fresh = false
 	}
 
 	if upk != nil {
-		u.G().Log.Debug("%s: cache-hit; fresh=%v", culDebug(arg.UID), fresh)
+		arg.G().Log.Debug("%s: cache-hit; fresh=%v", culDebug(arg.UID), fresh)
 		if fresh || arg.StaleOK {
 			return upk.DeepCopy(), nil, nil
 		}
@@ -182,13 +183,13 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 
 		var sigHints *SigHints
-		sigHints, err = LoadSigHints(arg.UID, u.G())
+		sigHints, err = LoadSigHints(arg.UID, arg.G())
 		if err != nil {
 			return nil, nil, err
 		}
 
 		var leaf *MerkleUserLeaf
-		leaf, err = lookupMerkleLeaf(u.G(), arg.UID, true, sigHints)
+		leaf, err = lookupMerkleLeaf(arg.G(), arg.UID, true, sigHints)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -196,12 +197,12 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			info.LoadedLeaf = true
 		}
 		if leaf.public != nil && leaf.public.Seqno == Seqno(upk.Base.Uvv.SigChain) {
-			u.G().Log.Debug("%s: cache-hit; fresh after poll", culDebug(arg.UID), fresh)
+			arg.G().Log.Debug("%s: cache-hit; fresh after poll", culDebug(arg.UID))
 
-			upk.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
+			upk.Base.Uvv.CachedAt = keybase1.ToTime(arg.G().Clock().Now())
 			// This is only necessary to update the levelDB representation,
 			// since the previous line updates the in-memory cache satisfactorially.
-			u.putUPKToCache(upk)
+			u.putUPKToCache(arg.G(), upk)
 
 			return upk.DeepCopy(), nil, nil
 		}
@@ -213,7 +214,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		arg.MerkleLeaf = leaf
 	}
 
-	u.G().Log.Debug("%s: LoadUser", culDebug(arg.UID))
+	arg.G().Log.Debug("%s: LoadUser", culDebug(arg.UID))
 	user, err = LoadUser(arg)
 	if info != nil {
 		info.LoadedUser = true
@@ -232,8 +233,8 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	tmp := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	ret = &tmp
-	ret.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
-	err = u.putUPKToCache(ret)
+	ret.Base.Uvv.CachedAt = keybase1.ToTime(arg.G().Clock().Now())
+	err = u.putUPKToCache(arg.G(), ret)
 
 	return ret, user, nil
 }
@@ -292,7 +293,7 @@ func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlus
 
 func (u *CachedUserLoader) Invalidate(uid keybase1.UID) {
 	u.G().Log.Debug("CachedUserLoader#Invalidate(%s)", uid)
-	lock := u.locktab.AcquireOnName(uid.String())
+	lock := u.locktab.AcquireOnName(u.G(), uid.String())
 	defer lock.Release()
 
 	u.Lock()

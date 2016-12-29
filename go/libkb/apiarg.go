@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"golang.org/x/net/context"
 	"net/url"
 	"time"
 )
@@ -17,6 +18,7 @@ type APIArg struct {
 	InitialTimeout  time.Duration // optional
 	RetryMultiplier float64       // optional
 	RetryCount      int           // optional
+	NetContext      context.Context
 }
 
 // NewAPIArg creates a standard APIArg that will result

@@ -81,7 +81,7 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 		return libkb.LoginRequiredError{Context: "to identify without specifying a user assertion"}
 	}
 
-	rres := e.G().Resolver.ResolveFullExpressionWithBody(e.arg.UserAssertion)
+	rres := e.G().Resolver.ResolveFullExpressionWithBody(ctx.GetNetContext(), e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
 		return err
 	}
@@ -100,6 +100,8 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 }
 
 func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
+	e.SetGlobalContext(ctx.CloneGlobalContextWithLogTags(e.G(), "id2"))
+
 	defer libkb.TimeLog(fmt.Sprintf("ResolveThenIdentify2: %+v", e.arg), e.G().Clock().Now(), e.G().Log.Debug)
 	defer e.G().Trace("ResolveThenIdentify2::Run", func() error { return err })()
 

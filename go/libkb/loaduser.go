@@ -398,7 +398,7 @@ func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, localExists bool, sigH
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
-	f, err = g.MerkleClient.LookupUser(q, sigHints)
+	f, err = g.MerkleClient.LookupUser(g.NetContext, q, sigHints)
 	if err == nil && f == nil && localExists {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}

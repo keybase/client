@@ -129,6 +129,7 @@ func (i *identifyUser) isNil() bool {
 }
 
 func loadIdentifyUser(g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
+	arg.SetGlobalContext(g)
 	ret := &identifyUser{arg: arg}
 	err := ret.load(g)
 	if ret.isNil() {
@@ -254,6 +255,9 @@ func (e *Identify2WithUID) resetError(err error) error {
 
 // Run then engine
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
+
+	e.SetGlobalContext(ctx.CloneGlobalContextWithLogTags(e.G(), "id2"))
+
 	defer libkb.TimeLog(fmt.Sprintf("Identify2WithUID.Run(UID=%v, Assertion=%s", e.arg.Uid, e.arg.UserAssertion), e.G().Clock().Now(), e.G().Log.Debug)
 	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
 	e.G().Log.Debug("| Full Arg: %+v", e.arg)
@@ -309,7 +313,7 @@ func (e *Identify2WithUID) hitFastCache() bool {
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
 	e.G().Log.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
-	lock := locktab.AcquireOnName(e.arg.Uid.String())
+	lock := locktab.AcquireOnName(e.G(), e.arg.Uid.String())
 	e.G().Log.Debug("- acquired singleflight lock")
 
 	defer func() {
