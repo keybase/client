@@ -908,13 +908,6 @@ func (g *gregorHandler) chatTlfFinalize(ctx context.Context, m gregor.OutOfBandM
 		return err
 	}
 
-	// Send one for each conversation ID
-	uid := m.UID().String()
-	for _, convID := range update.ConvIDs {
-		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid),
-			convID, update.FinalizeInfo)
-	}
-
 	// Update inbox
 	if err := cstorage.NewInbox(g.G(), m.UID().Bytes(), func() libkb.SecretUI {
 		return chat.DelivererSecretUI{}
@@ -922,6 +915,13 @@ func (g *gregorHandler) chatTlfFinalize(ctx context.Context, m gregor.OutOfBandM
 		if _, ok := (err).(libkb.ChatStorageMissError); !ok {
 			g.G().Log.Error("push handler: tlf finalize: unable to update inbox: %s", err.Error())
 		}
+	}
+
+	// Send notify for each conversation ID
+	uid := m.UID().String()
+	for _, convID := range update.ConvIDs {
+		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid),
+			convID, update.FinalizeInfo)
 	}
 
 	return nil

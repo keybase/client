@@ -182,13 +182,16 @@ func (i *Inbox) NewConversation(vers chat1.InboxVers, conv chat1.ConversationLoc
 		return err
 	}
 
-	// Find any conversations this guy might supersede
+	// Find any conversations this guy might supersede and set supersededBy pointer
 	for index := range ibox.Conversations {
 		iconv := &ibox.Conversations[index]
-		if iconv.Info.FinalizeInfo != nil && iconv.Info.Triple.Tlfid.Eq(conv.Info.Triple.Tlfid) &&
-			iconv.Info.Triple.TopicType == conv.Info.Triple.TopicType {
-			iconv.SupersededBy = append(iconv.SupersededBy, conv.Info.Id)
-			conv.Supersedes = append(conv.Supersedes, iconv.Info.Id)
+		if iconv.Info.FinalizeInfo != nil {
+			continue
+		}
+		for _, super := range conv.Supersedes {
+			if iconv.Info.Id.Eq(super) {
+				iconv.SupersededBy = append(iconv.SupersededBy, conv.Info.Id)
+			}
 		}
 	}
 
