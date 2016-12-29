@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
 import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView} from '../common-adapters/index.native'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
   const icon: IconType = {
@@ -23,7 +23,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   }
 
   return (
-    <ClickableBox onClick={() => showExistingDevicePage(device)} style={{...stylesCommonRow, alignItems: 'center', ...(revoked ? {backgroundColor: globalColors.white_40} : {})}}>
+    <ClickableBox onClick={() => showExistingDevicePage(device)} style={{...stylesCommonRow, alignItems: 'center'}}>
       <Box key={device.name} style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center'}}>
         <Icon type={icon} style={revoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start', flex: 1}}>
@@ -37,7 +37,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
 
 const RevokedDescription = () => (
   <Box style={stylesRevokedDescription}>
-    <Text type='BodySmallSemibold' style={{color: globalColors.black_40, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+    <Text type='BodySmallSemibold' style={{color: globalColors.black_40, textAlign: 'center', paddingTop: globalMargins.tiny, paddingBottom: globalMargins.tiny}}>Revoked devices will no longer be able to access your Keybase account.</Text>
   </Box>
 )
 
@@ -69,7 +69,7 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
             <Icon type={iconType} style={{padding: 5, fontSize: 10, color: globalColors.black_60}} />
           </Box>
         </ClickableBox>
-        <Box style={{backgroundColor: globalColors.lightGrey}}>
+        <Box>
           {this.state.expanded && <RevokedDescription />}
           {this.state.expanded && this.props.revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} />)}
         </Box>
@@ -79,7 +79,7 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
 
 const DeviceHeader = ({onAddNew}) => (
   <ClickableBox onClick={onAddNew}>
-    <Box style={{...stylesCommonRow, alignItems: 'center'}}>
+    <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
       <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 5}} />
       <Text type='HeaderLink' style={{padding: 5}}>Add new...</Text>
     </Box>
@@ -127,7 +127,7 @@ const stylesContainer = {
 }
 
 const stylesCommonCore = {
-  borderBottomColor: globalColors.black_10,
+  borderBottomColor: globalColors.black_05,
   borderBottomWidth: 1,
   alignItems: 'center',
   justifyContent: 'center',
@@ -146,7 +146,6 @@ const stylesRevokedRow = {
   paddingLeft: 8,
   minHeight: 38,
   justifyContent: 'flex-start',
-  backgroundColor: globalColors.lightGrey,
 }
 
 const stylesRevokedDescription = {
@@ -155,7 +154,6 @@ const stylesRevokedDescription = {
   alignItems: 'center',
   paddingLeft: 32,
   paddingRight: 32,
-  backgroundColor: globalColors.lightGrey,
 }
 
 export default DevicesRender
