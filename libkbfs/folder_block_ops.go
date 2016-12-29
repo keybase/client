@@ -246,17 +246,6 @@ func (fbo *folderBlockOps) GetState(lState *lockState) overallBlockState {
 	return dirtyState
 }
 
-func (fbo *folderBlockOps) getBlockFromDirtyOrCleanCache(ptr BlockPointer,
-	branch BranchName) (Block, error) {
-	// Check the dirty cache first.
-	if block, err := fbo.config.DirtyBlockCache().Get(
-		fbo.id(), ptr, branch); err == nil {
-		return block, nil
-	}
-
-	return fbo.config.BlockCache().Get(ptr)
-}
-
 func (fbo *folderBlockOps) checkDataVersion(p path, ptr BlockPointer) error {
 	if ptr.DataVer < FirstValidDataVer {
 		return InvalidDataVersionError{ptr.DataVer}
@@ -290,17 +279,18 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		return nil, InvalidBlockRefError{ptr.Ref()}
 	}
 
-	if block, err := fbo.getBlockFromDirtyOrCleanCache(
-		ptr, branch); err == nil {
+	if block, err := fbo.config.DirtyBlockCache().Get(
+		fbo.id(), ptr, branch); err == nil {
+		return block, nil
+	}
+	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
+		fbo.config.BlockOps().Prefetcher().HandleBlock(block, kmd, defaultOnDemandRequestPriority)
 		return block, nil
 	}
 
 	if err := fbo.checkDataVersion(notifyPath, ptr); err != nil {
 		return nil, err
 	}
-
-	// TODO: add an optimization here that will avoid fetching the
-	// same block twice from over the network
 
 	// fetch the block, and add to cache
 	block := newBlock()
