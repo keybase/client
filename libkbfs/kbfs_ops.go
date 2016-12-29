@@ -328,7 +328,10 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 	}()
 	if fbo != nil {
 		lState := makeFBOLockState()
-		rmd = fbo.getHead(lState)
+		rmd, err = fbo.getMDForReadNeedIdentify(ctx, lState)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 	if rmd != (ImmutableRootMetadata{}) {
 		return rmd, nil
