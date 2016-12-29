@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -18,10 +17,11 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
-func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
-	cr *ConflictResolver) {
+func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
+	mockCtrl *gomock.Controller, config *ConfigMock, cr *ConflictResolver) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
@@ -36,13 +36,33 @@ func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
 	mockDaemon := NewMockKeybaseService(mockCtrl)
 	mockDaemon.EXPECT().LoadUserPlusKeys(gomock.Any(), gomock.Any()).AnyTimes().Return(UserInfo{Name: "mockUser"}, nil)
 	config.SetKeybaseService(mockDaemon)
-	return mockCtrl, config, fbo.cr
+
+	timeoutCtx, cancel := context.WithTimeout(
+		context.Background(), individualTestTimeout)
+	initSuccess := false
+	defer func() {
+		if !initSuccess {
+			cancel()
+		}
+	}()
+
+	ctx, err := NewContextWithCancellationDelayer(NewContextReplayable(
+		timeoutCtx, func(c context.Context) context.Context {
+			return c
+		}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	initSuccess = true
+	return ctx, cancel, mockCtrl, config, fbo.cr
 }
 
-func crTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock,
-	cr *ConflictResolver) {
+func crTestShutdown(ctx context.Context, cancel context.CancelFunc,
+	mockCtrl *gomock.Controller, config *ConfigMock, cr *ConflictResolver) {
+	CleanupCancellationDelayer(ctx)
 	config.ctr.CheckForFailures()
-	cr.fbo.Shutdown()
+	cr.fbo.Shutdown(ctx)
+	cancel()
 	mockCtrl.Finish()
 }
 
@@ -78,10 +98,8 @@ func crMakeFakeRMD(rev MetadataRevision, bid BranchID) ImmutableRootMetadata {
 }
 
 func TestCRInput(t *testing.T) {
-	mockCtrl, config, cr := crTestInit(t)
-	defer crTestShutdown(mockCtrl, config, cr)
-	ctx := BackgroundContextWithCancellationDelayer()
-	defer CleanupCancellationDelayer(ctx)
+	ctx, cancel, mockCtrl, config, cr := crTestInit(t)
+	defer crTestShutdown(ctx, cancel, mockCtrl, config, cr)
 
 	// First try a completely unknown revision
 	cr.Resolve(MetadataRevisionUninitialized, MetadataRevisionUninitialized)
@@ -141,10 +159,8 @@ func TestCRInput(t *testing.T) {
 }
 
 func TestCRInputFracturedRange(t *testing.T) {
-	mockCtrl, config, cr := crTestInit(t)
-	defer crTestShutdown(mockCtrl, config, cr)
-	ctx := BackgroundContextWithCancellationDelayer()
-	defer CleanupCancellationDelayer(ctx)
+	ctx, cancel, mockCtrl, config, cr := crTestInit(t)
+	defer crTestShutdown(ctx, cancel, mockCtrl, config, cr)
 
 	// Next, try resolving a few items
 	branchPoint := MetadataRevision(2)
@@ -358,7 +374,7 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -418,7 +434,7 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -480,7 +496,7 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -577,7 +593,7 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -657,7 +673,7 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -842,7 +858,7 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -928,7 +944,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -996,7 +1012,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -1105,7 +1121,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -1193,7 +1209,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)

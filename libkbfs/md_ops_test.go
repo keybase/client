@@ -782,9 +782,10 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 }
 
 func testMDOpsPutPublicSuccess(t *testing.T, ver MetadataVer) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	config.SetMetadataVersion(ver)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	config.MDServer().Shutdown()
 	var mdServer fakeMDServerPut
@@ -798,7 +799,6 @@ func testMDOpsPutPublicSuccess(t *testing.T, ver MetadataVer) {
 	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
 	rmd.tlfHandle = h
 
-	ctx := context.Background()
 	_, err = config.MDOps().Put(ctx, rmd)
 
 	rmds := mdServer.getLastRmds()

@@ -542,8 +542,9 @@ func (tc *TestClock) Add(d time.Duration) {
 
 // CheckConfigAndShutdown shuts down the given config, but fails the
 // test if there's an error.
-func CheckConfigAndShutdown(t logger.TestLogBackend, config Config) {
-	if err := config.Shutdown(); err != nil {
+func CheckConfigAndShutdown(
+	ctx context.Context, t logger.TestLogBackend, config Config) {
+	if err := config.Shutdown(ctx); err != nil {
 		t.Errorf(err.Error())
 	}
 }

@@ -102,14 +102,14 @@ func (fs *KBFSOpsStandard) markForReIdentifyIfNeeded(
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by KBFSOpsStandard.
-func (fs *KBFSOpsStandard) Shutdown() error {
+func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
 	close(fs.reIdentifyControlChan)
 	var errors []error
 	if err := fs.favs.Shutdown(); err != nil {
 		errors = append(errors, err)
 	}
 	for _, ops := range fs.ops {
-		if err := ops.Shutdown(); err != nil {
+		if err := ops.Shutdown(ctx); err != nil {
 			errors = append(errors, err)
 			// Continue on and try to shut down the other FBOs.
 		}

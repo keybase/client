@@ -221,9 +221,10 @@ func TestMakeRekeyReadError(t *testing.T) {
 }
 
 func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	config.SetMetadataVersion(ver)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
@@ -232,7 +233,7 @@ func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
 
 	rmd.fakeInitialRekey(config.Codec(), config.Crypto())
 
-	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
+	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
 	require.NoError(t, err)
 
 	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen, uid, u)
@@ -254,11 +255,11 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 }
 
 func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, false)
-	ctx := context.Background()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob@twitter",
 		false)
 	require.NoError(t, err)
@@ -329,7 +330,8 @@ func (kc *dummyNoKeyCache) PutTLFCryptKey(_ tlf.ID, _ KeyGen, _ kbfscrypto.TLFCr
 func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
 	config.SetKeyCache(&dummyNoKeyCache{})
-	defer config.Shutdown()
+	ctx := context.Background()
+	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", false)
@@ -390,7 +392,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	_, charlieUID, err := config.KBPKI().Resolve(context.Background(), "charlie")
 	config2 := ConfigAsUser(config, "charlie")
 	config2.SetKeyCache(&dummyNoKeyCache{})
-	defer config2.Shutdown()
+	defer config2.Shutdown(ctx)
 	AddDeviceForLocalUserOrBust(t, config, charlieUID)
 	AddDeviceForLocalUserOrBust(t, config2, charlieUID)
 
@@ -476,8 +478,9 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 
 // Test upconversion from MDv2 to MDv3 for a public folder.
 func TestRootMetadataUpconversionPublic(t *testing.T) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, true)
 	h := parseTlfHandleOrBust(t, config, "alice,bob,charlie@twitter", true)
@@ -528,8 +531,9 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 // The server will be reusing IsLastModifiedBy and we don't want a client
 // to be able to construct an MD that will crash the server.
 func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	_, uid, err := config.KBPKI().Resolve(context.Background(), "alice")
 	tlfID := tlf.FakeID(0, false)
@@ -542,7 +546,7 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 
 	// sign with a mismatched writer
 	config2 := ConfigAsUser(config, "bob")
-	defer config2.Shutdown()
+	defer config2.Shutdown(ctx)
 	rmds, err := SignBareRootMetadata(
 		context.Background(), config.Codec(), config.Crypto(), config2.Crypto(), rmd.bareMd, time.Now())
 	require.NoError(t, err)
@@ -559,9 +563,10 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 
 // Test that a reader can't upconvert a private folder from v2 to v3.
 func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
+	ctx := context.Background()
 	configWriter := MakeTestConfigOrBust(t, "alice", "bob")
 	configWriter.SetKeyCache(&dummyNoKeyCache{})
-	defer configWriter.Shutdown()
+	defer configWriter.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, false)
 	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", false)
@@ -603,7 +608,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	require.NoError(t, err)
 	configReader := ConfigAsUser(configWriter, "bob")
 	configReader.SetKeyCache(&dummyNoKeyCache{})
-	defer configReader.Shutdown()
+	defer configReader.Shutdown(ctx)
 	AddDeviceForLocalUserOrBust(t, configWriter, bobUID)
 	AddDeviceForLocalUserOrBust(t, configReader, bobUID)
 

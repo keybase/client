@@ -386,9 +386,8 @@ func (fbo *folderBranchOps) markForReIdentifyIfNeeded(now time.Time, maxValid ti
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by folderBranchOps.
-func (fbo *folderBranchOps) Shutdown() error {
+func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	if fbo.config.CheckStateOnShutdown() {
-		ctx := context.TODO()
 		lState := makeFBOLockState()
 
 		if fbo.blocks.GetState(lState) == dirtyState {

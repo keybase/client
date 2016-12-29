@@ -717,7 +717,8 @@ func (k *LibKBFS) Shutdown(u User) error {
 	}
 
 	// shutdown
-	if err := config.Shutdown(); err != nil {
+	ctx := context.Background()
+	if err := config.Shutdown(ctx); err != nil {
 		return err
 	}
 

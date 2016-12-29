@@ -802,8 +802,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -832,7 +832,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
@@ -883,7 +883,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 
 	// add a third device for user 2
 	config2Dev3 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2Dev3)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev3)
 	defer config2Dev3.SetKeyCache(NewKeyCacheStandard(5000))
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
@@ -1027,8 +1027,8 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	RevokeDeviceForLocalUserOrBust(t, config1, uid3, 0)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1047,10 +1047,10 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
 	config3 := ConfigAsUser(config1, u3)
-	defer CheckConfigAndShutdown(t, config3)
+	defer CheckConfigAndShutdown(ctx, t, config3)
 
 	// Now give u2 and u3 new devices.  The configs don't share a
 	// Keybase Daemon so we have to do it in all places.
@@ -1118,8 +1118,8 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1144,7 +1144,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	devIndex := AddDeviceForLocalUserOrBust(t, config2, uid2)
 
 	config2Dev2 := ConfigAsUser(config2, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
 
 	t.Log("Check that user 2 device 2 is unable to read the file")
@@ -1201,13 +1201,13 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
-	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
+	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(ctx)
 
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1232,7 +1232,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	devIndex := AddDeviceForLocalUserOrBust(t, config2, uid1)
 
 	config1Dev2 := ConfigAsUser(config2, u1)
-	defer CheckConfigAndShutdown(t, config1Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config1Dev2)
 	SwitchDeviceForLocalUserOrBust(t, config1Dev2, devIndex)
 
 	t.Log("User 2 adds a device")
@@ -1243,7 +1243,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	devIndex = AddDeviceForLocalUserOrBust(t, config2, uid2)
 
 	config2Dev2 := ConfigAsUser(config2, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
 
 	t.Log("Check that user 2 device 2 is unable to read the file")
@@ -1294,8 +1294,8 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1303,7 +1303,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	devIndex := AddDeviceForLocalUserOrBust(t, config2, uid2)
 	config2Dev2 := ConfigAsUser(config2, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
 
 	t.Log("Create a shared folder")
@@ -1326,7 +1326,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
 	devIndex = AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
 	config2Dev3 := ConfigAsUser(config2, u2)
-	defer CheckConfigAndShutdown(t, config2Dev3)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev3)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev3, devIndex)
 
 	// Revoke the original user 2 device
@@ -1392,16 +1392,16 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
 	config3 := ConfigAsUser(config1, u3)
-	defer CheckConfigAndShutdown(t, config3)
-	_, uid3, err := config3.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config3)
+	_, uid3, err := config3.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1422,7 +1422,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	// we don't check the config because this device can't read all of the md blocks.
-	defer config2Dev2.Shutdown()
+	defer config2Dev2.Shutdown(ctx)
 	config2Dev2.MDServer().DisableRekeyUpdatesForTesting()
 
 	// Now give u2 a new device.  The configs don't share a Keybase
@@ -1483,7 +1483,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 
 	config3Dev2 := ConfigAsUser(config1, u3)
 	// we don't check the config because this device can't read all of the md blocks.
-	defer config3Dev2.Shutdown()
+	defer config3Dev2.Shutdown(ctx)
 	config3Dev2.MDServer().DisableRekeyUpdatesForTesting()
 
 	// Now give u3 a new device.
@@ -1564,8 +1564,8 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1584,7 +1584,7 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
 	// give user 2 a new device
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
@@ -1710,8 +1710,8 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1730,7 +1730,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
@@ -1834,8 +1834,8 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1854,7 +1854,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
@@ -1960,8 +1960,8 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	config1.SetMetadataVersion(ver)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1971,7 +1971,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 	config2Dev2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.

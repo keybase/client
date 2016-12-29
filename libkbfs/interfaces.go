@@ -276,7 +276,7 @@ type KBFSOps interface {
 
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
-	Shutdown() error
+	Shutdown(ctx context.Context) error
 	// PushConnectionStatusChange updates the status of a service for
 	// human readable connection status tracking.
 	PushConnectionStatusChange(service string, newStatus error)
@@ -1475,7 +1475,7 @@ type Config interface {
 	// SetTLFValidDuration sets TLFValidDuration.
 	SetTLFValidDuration(time.Duration)
 	// Shutdown is called to free config resources.
-	Shutdown() error
+	Shutdown(context.Context) error
 	// CheckStateOnShutdown tells the caller whether or not it is safe
 	// to check the state of the system on shutdown.
 	CheckStateOnShutdown() bool

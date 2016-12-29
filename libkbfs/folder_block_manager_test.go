@@ -229,7 +229,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	// Initialize the MD using a different config
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	config2.SetClock(clock)
 
 	name := u1.String() + "," + u2.String()
@@ -460,7 +460,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -471,7 +471,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
-	defer CheckConfigAndShutdown(t, config2Dev2)
+	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.

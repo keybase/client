@@ -80,7 +80,7 @@ func TestBasicMDUpdate(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -133,7 +133,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	if unembedChanges {
 		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
@@ -219,7 +219,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	jServer.EnableAuto(ctx)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
@@ -284,7 +284,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 
 	// now re-login u1
 	config1B := ConfigAsUser(config1, userName1)
-	defer CheckConfigAndShutdown(t, config1B)
+	defer CheckConfigAndShutdown(ctx, t, config1B)
 	config1B.EnableJournaling(tempdir, TLFJournalBackgroundWorkEnabled)
 	jServer, err = GetJournalServer(config1B)
 	if err != nil {
@@ -316,7 +316,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -380,9 +380,9 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	// now re-login the users, and make sure 1 can see the changes,
 	// but 2 can't
 	config1B := ConfigAsUser(config1, userName1)
-	defer CheckConfigAndShutdown(t, config1B)
+	defer CheckConfigAndShutdown(ctx, t, config1B)
 	config2B := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2B)
+	defer CheckConfigAndShutdown(ctx, t, config2B)
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
@@ -478,7 +478,7 @@ func TestMultiUserWrite(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -544,7 +544,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	if unembedChanges {
 		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
@@ -706,7 +706,7 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	mdServ, chForMdServer2 := newMDServerLocalRecordingRegisterForUpdate(
 		config2.MDServer().(mdServerLocal))
 	config2.SetMDServer(mdServ)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -810,7 +810,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	clock, now := newTestClockAndTimeNow()
 	config2.SetClock(clock)
@@ -935,7 +935,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	config2.SetClock(newTestClockNow())
 
@@ -1046,7 +1046,7 @@ func TestCRDouble(t *testing.T) {
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -1219,7 +1219,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -1258,7 +1258,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 
 	config2Dev2 := ConfigAsUser(config1, userName2)
 	// we don't check the config because this device can't read all of the md blocks.
-	defer config2Dev2.Shutdown()
+	defer config2Dev2.Shutdown(ctx)
 	config2Dev2.MDServer().DisableRekeyUpdatesForTesting()
 
 	// Now give u2 a new device.  The configs don't share a Keybase
@@ -1411,7 +1411,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -1445,7 +1445,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 
 	config2Dev2 := ConfigAsUser(config1, userName2)
 	// we don't check the config because this device can't read all of the md blocks.
-	defer config2Dev2.Shutdown()
+	defer config2Dev2.Shutdown(ctx)
 	config2Dev2.MDServer().DisableRekeyUpdatesForTesting()
 
 	// Now give u2 a new device.  The configs don't share a Keybase
@@ -1590,7 +1590,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -1738,7 +1738,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -1893,7 +1893,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -2058,7 +2058,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)

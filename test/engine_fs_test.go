@@ -410,7 +410,8 @@ func (e *fsEngine) Shutdown(user User) error {
 		}
 	}
 
-	if err := u.config.Shutdown(); err != nil {
+	ctx := context.Background()
+	if err := u.config.Shutdown(ctx); err != nil {
 		return err
 	}
 

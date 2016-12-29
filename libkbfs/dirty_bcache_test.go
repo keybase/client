@@ -10,7 +10,6 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/tlf"
-
 	"golang.org/x/net/context"
 )
 

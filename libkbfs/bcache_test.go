@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
+	"golang.org/x/net/context"
 )
 
 func blockCacheTestInit(t *testing.T, capacity int,
@@ -52,15 +53,17 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 }
 
 func TestBcachePut(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	testBcachePut(t, fakeBlockID(1), config.BlockCache(), TransientEntry)
 	testBcachePut(t, fakeBlockID(2), config.BlockCache(), PermanentEntry)
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 2, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 	id1 := fakeBlockID(1)
 	testBcachePut(t, id1, bcache, TransientEntry)
@@ -81,8 +84,9 @@ func TestBcachePutPastCapacity(t *testing.T) {
 }
 
 func TestBcacheCheckPtrSuccess(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
@@ -105,8 +109,9 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 }
 
 func TestBcacheCheckPtrPermanent(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
@@ -129,8 +134,9 @@ func TestBcacheCheckPtrPermanent(t *testing.T) {
 }
 
 func TestBcacheCheckPtrNotFound(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
@@ -155,8 +161,9 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 }
 
 func TestBcacheDeleteTransient(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
@@ -184,8 +191,9 @@ func TestBcacheDeleteTransient(t *testing.T) {
 }
 
 func TestBcacheDeletePermanent(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
 	id1 := fakeBlockID(1)
@@ -207,8 +215,9 @@ func TestBcacheDeletePermanent(t *testing.T) {
 }
 
 func TestBcacheEmptyTransient(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 0, 1<<30)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
 
@@ -241,9 +250,10 @@ func TestBcacheEmptyTransient(t *testing.T) {
 }
 
 func TestBcacheEvictOnBytes(t *testing.T) {
+	ctx := context.Background()
 	// Make a cache that can only handle 5 bytes
 	config := blockCacheTestInit(t, 1000, 5)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
 
@@ -275,9 +285,10 @@ func TestBcacheEvictOnBytes(t *testing.T) {
 }
 
 func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
+	ctx := context.Background()
 	// Make a cache that can only handle 5 bytes
 	config := blockCacheTestInit(t, 1000, 5)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
 
@@ -363,8 +374,9 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 }
 
 func TestPutNoHashCalculation(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 	ptr := BlockPointer{ID: fakeBlockID(1)}
 	tlf := tlf.FakeID(1, false)

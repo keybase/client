@@ -519,14 +519,14 @@ func (_mr *_MockKBFSOpsRecorder) GetNodeMetadata(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNodeMetadata", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) Shutdown() error {
-	ret := _m.ctrl.Call(_m, "Shutdown")
+func (_m *MockKBFSOps) Shutdown(ctx context.Context) error {
+	ret := _m.ctrl.Call(_m, "Shutdown", ctx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBFSOpsRecorder) Shutdown() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+func (_mr *_MockKBFSOpsRecorder) Shutdown(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown", arg0)
 }
 
 func (_m *MockKBFSOps) PushConnectionStatusChange(service string, newStatus error) {
@@ -4294,14 +4294,14 @@ func (_mr *_MockConfigRecorder) SetTLFValidDuration(arg0 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetTLFValidDuration", arg0)
 }
 
-func (_m *MockConfig) Shutdown() error {
-	ret := _m.ctrl.Call(_m, "Shutdown")
+func (_m *MockConfig) Shutdown(_param0 context.Context) error {
+	ret := _m.ctrl.Call(_m, "Shutdown", _param0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockConfigRecorder) Shutdown() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+func (_mr *_MockConfigRecorder) Shutdown(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown", arg0)
 }
 
 func (_m *MockConfig) CheckStateOnShutdown() bool {
@@ -4657,16 +4657,16 @@ func (_mr *_MockBareRootMetadataRecorder) DeepCopy(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeepCopy", arg0)
 }
 
-func (_m *MockBareRootMetadata) MakeSuccessorCopy(ctx context.Context, config Config, kmd KeyMetadata, extra ExtraMetadata, isReadableAndWriter bool) (MutableBareRootMetadata, ExtraMetadata, error) {
-	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", ctx, config, kmd, extra, isReadableAndWriter)
+func (_m *MockBareRootMetadata) MakeSuccessorCopy(codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata, latestMDVer MetadataVer, tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error), isReadableAndWriter bool) (MutableBareRootMetadata, ExtraMetadata, error) {
+	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", codec, crypto, extra, latestMDVer, tlfCryptKeyGetter, isReadableAndWriter)
 	ret0, _ := ret[0].(MutableBareRootMetadata)
 	ret1, _ := ret[1].(ExtraMetadata)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockBareRootMetadataRecorder) MakeSuccessorCopy(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0, arg1, arg2, arg3, arg4)
+func (_mr *_MockBareRootMetadataRecorder) MakeSuccessorCopy(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 func (_m *MockBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
@@ -5095,16 +5095,16 @@ func (_mr *_MockMutableBareRootMetadataRecorder) DeepCopy(arg0 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeepCopy", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) MakeSuccessorCopy(ctx context.Context, config Config, kmd KeyMetadata, extra ExtraMetadata, isReadableAndWriter bool) (MutableBareRootMetadata, ExtraMetadata, error) {
-	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", ctx, config, kmd, extra, isReadableAndWriter)
+func (_m *MockMutableBareRootMetadata) MakeSuccessorCopy(codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata, latestMDVer MetadataVer, tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error), isReadableAndWriter bool) (MutableBareRootMetadata, ExtraMetadata, error) {
+	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", codec, crypto, extra, latestMDVer, tlfCryptKeyGetter, isReadableAndWriter)
 	ret0, _ := ret[0].(MutableBareRootMetadata)
 	ret1, _ := ret[1].(ExtraMetadata)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) MakeSuccessorCopy(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0, arg1, arg2, arg3, arg4)
+func (_mr *_MockMutableBareRootMetadataRecorder) MakeSuccessorCopy(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 func (_m *MockMutableBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {

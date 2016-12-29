@@ -73,7 +73,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 
 	// Initialize the MD using a different config
 	c2 := ConfigAsUser(config, "test_user")
-	defer CheckConfigAndShutdown(t, c2)
+	defer CheckConfigAndShutdown(ctx, t, c2)
 	rootNode := GetRootNodeOrBust(ctx, t, c2, "test_user", false)
 
 	n := 10
@@ -1953,7 +1953,7 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	name := userName1.String() + "," + userName2.String()
 

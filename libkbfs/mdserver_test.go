@@ -52,10 +52,10 @@ func signRMDSForTest(
 // This should pass for both local and remote servers.
 func TestMDServerBasics(t *testing.T) {
 	// setup
-	config := MakeTestConfigOrBust(t, "test_user")
-	defer config.Shutdown()
-	mdServer := config.MDServer()
 	ctx := context.Background()
+	config := MakeTestConfigOrBust(t, "test_user")
+	defer config.Shutdown(ctx)
+	mdServer := config.MDServer()
 
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
@@ -164,10 +164,10 @@ func TestMDServerBasics(t *testing.T) {
 // test for https://keybase.atlassian.net/browse/KBFS-467 .
 func TestMDServerRegisterForUpdate(t *testing.T) {
 	// setup
-	config := MakeTestConfigOrBust(t, "test_user")
-	defer config.Shutdown()
-	mdServer := config.MDServer()
 	ctx := context.Background()
+	config := MakeTestConfigOrBust(t, "test_user")
+	defer config.Shutdown(ctx)
+	mdServer := config.MDServer()
 
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
