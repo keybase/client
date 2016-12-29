@@ -239,6 +239,41 @@ def runNixTest(prefix) {
     tests[prefix+'install'] = {
         sh 'go install github.com/keybase/kbfs/...'
     }
+    tests[prefix+'kbfscodec'] = {
+        dir('kbfscodec') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './kbfscodec.test -test.timeout 10m'
+        }
+    }
+    tests[prefix+'kbfscrypto'] = {
+        dir('kbfscrypto') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './kbfscrypto.test -test.timeout 10m'
+        }
+    }
+    tests[prefix+'kbfshash'] = {
+        dir('kbfshash') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './kbfshash.test -test.timeout 10m'
+        }
+    }
+    tests[prefix+'kbfssync'] = {
+        dir('kbfssync') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './kbfssync.test -test.timeout 10m'
+        }
+    }
+    tests[prefix+'tlf'] = {
+        dir('tlf') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './tlf.test -test.timeout 10m'
+        }
+    }
     tests[prefix+'libkbfs'] = {
         dir('libkbfs') {
             sh 'go test -i'
