@@ -42,6 +42,8 @@ type NotifyListener interface {
 	KeyfamilyChanged(uid keybase1.UID)
 	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)
 	ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)
+	ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
+		finalizeInfo chat1.ConversationFinalizeInfo)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -521,6 +523,36 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 		n.listener.ChatIdentifyUpdate(update)
 	}
 	n.G().Log.Debug("- Sent ChatIdentifyUpdate notfication")
+}
+
+func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.Debug("+ Sending ChatTLFFinalize notfication")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).ChatTLFFinalize(context.Background(), chat1.ChatTLFFinalizeArg{
+					Uid:          uid,
+					ConvID:       convID,
+					FinalizeInfo: finalizeInfo,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatTLFFinalize(uid, convID, finalizeInfo)
+	}
+	n.G().Log.Debug("- Sent ChatTLFFinalize notfication")
 }
 
 // HandlePaperKeyCached is called whenever a paper key is cached

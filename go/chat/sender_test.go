@@ -45,6 +45,8 @@ func (n *chatListener) PGPKeyInSecretStoreFile()                                
 func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                          {}
 func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                        {}
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
+func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
+}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()

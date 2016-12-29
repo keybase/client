@@ -233,7 +233,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 		} else {
 			convs := make([]chat1.ConversationLocal, 0, len(convsStorage))
 			for _, cs := range convsStorage {
-				convs = append(convs, storage.ToConversationLocal(cs, []keybase1.TLFIdentifyFailure{}))
+				convs = append(convs, cs)
 			}
 			s.G().Log.Debug("HybridInboxSource: hit local storage: uid: %s convs: %d", uid, len(convs))
 			// TODO: pagination
@@ -253,11 +253,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 
 	// Write out to local storage
 	if saveable {
-		convs := make([]storage.ConversationStorage, 0, len(ib.Convs))
-		for _, c := range ib.Convs {
-			convs = append(convs, storage.FromConversationLocal(c))
-		}
-		if cerr := s.inbox.Replace(ib.Version, convs); cerr != nil {
+		if cerr := s.inbox.Replace(ib.Version, ib.Convs); cerr != nil {
 			return Inbox{}, rl, cerr
 		}
 	}
@@ -371,6 +367,13 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 		return chat1.ConversationLocal{Error: &errMsg}
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
+	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
+	for _, super := range conversationRemote.Supersedes {
+		conversationLocal.Supersedes = append(conversationLocal.Supersedes, super.ConversationID)
+	}
+	for _, super := range conversationRemote.SupersededBy {
+		conversationLocal.SupersededBy = append(conversationLocal.SupersededBy, super.ConversationID)
+	}
 
 	// Set to true later if visible messages are in max messages.
 	conversationLocal.IsEmpty = true

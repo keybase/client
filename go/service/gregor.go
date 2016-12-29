@@ -12,7 +12,6 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
-	istorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
@@ -835,6 +834,8 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
 		return g.newChatActivity(ctx, obm)
+	case "chat.tlffinalize":
+		return g.chatTlfFinalize(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -889,6 +890,40 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 		return err
 	}
 	g.G().NotifyRouter.HandleFavoritesChanged(kbUID)
+	return nil
+}
+
+func (g *gregorHandler) chatTlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) error {
+	if m.Body() == nil {
+		return errors.New("gregor handler for chat.tlffinalize: nil message body")
+	}
+
+	g.G().Log.Debug("push handler: tlf finalize received")
+
+	var update chat1.TLFFinalizeUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err := dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+
+	// Update inbox
+	if err := cstorage.NewInbox(g.G(), m.UID().Bytes(), func() libkb.SecretUI {
+		return chat.DelivererSecretUI{}
+	}).TlfFinalize(update.InboxVers, update.ConvIDs, update.FinalizeInfo); err != nil {
+		if _, ok := (err).(libkb.ChatStorageMissError); !ok {
+			g.G().Log.Error("push handler: tlf finalize: unable to update inbox: %s", err.Error())
+		}
+	}
+
+	// Send notify for each conversation ID
+	uid := m.UID().String()
+	for _, convID := range update.ConvIDs {
+		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid),
+			convID, update.FinalizeInfo)
+	}
+
 	return nil
 }
 
@@ -1039,7 +1074,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
 			return chat.DelivererSecretUI{}
-		}).NewConversation(nm.InboxVers, istorage.FromConversationLocal(inbox.Convs[0])); err != nil {
+		}).NewConversation(nm.InboxVers, inbox.Convs[0]); err != nil {
 			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
 				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 			}

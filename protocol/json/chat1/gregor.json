@@ -158,6 +158,10 @@
             "items": "ConversationID"
           },
           "name": "convIDs"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
         }
       ]
     }

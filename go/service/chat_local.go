@@ -342,8 +342,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 		res.Conv = ib.Convs[0]
 		// Update inbox cache
-		if err = storage.NewInbox(h.G(), uid.ToBytes(),
-			h.getSecretUI).NewConversation(0, storage.FromConversationLocal(res.Conv)); err != nil {
+		if err = storage.NewInbox(h.G(), uid.ToBytes(), h.getSecretUI).NewConversation(0, res.Conv); err != nil {
 			if _, ok := err.(libkb.ChatStorageMissError); !ok {
 				return chat1.NewConversationLocalRes{}, err
 			}
