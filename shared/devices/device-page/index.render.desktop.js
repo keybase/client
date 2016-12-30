@@ -80,7 +80,7 @@ const Render = ({banner, name, type, deviceID, currentDevice,
       </Box>
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
-        <Box style={{...globalStyles.flexBoxRow, width: 180, justifyContent: 'center', alignItems: 'flex-start'}}>
+        <Box style={{...globalStyles.flexBoxRow, width: 240, justifyContent: 'center', alignItems: 'flex-start'}}>
           <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1}} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn}}>
