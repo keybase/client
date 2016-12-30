@@ -94,6 +94,9 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	}
 	tc.G.ConvSource = NewRemoteConversationSource(tc.G, boxer,
 		func() chat1.RemoteInterface { return ri })
+	tc.G.InboxSource = NewRemoteInboxSource(tc.G,
+		func() chat1.RemoteInterface { return ri },
+		func() keybase1.TlfInterface { return tlf })
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())

@@ -99,6 +99,7 @@ type GlobalContext struct {
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 
+	InboxSource      InboxSource        // source of remote inbox entries for chat
 	ConvSource       ConversationSource // source of remote message bodies for chat
 	MessageDeliverer MessageDeliverer   // background message delivery service
 

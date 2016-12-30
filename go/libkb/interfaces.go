@@ -543,6 +543,28 @@ type MessageDeliverer interface {
 	Disconnected()
 }
 
+type ChatLocalizer interface {
+	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
+}
+
+type InboxSource interface {
+	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, query *chat1.GetInboxLocalQuery,
+		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+	ReadRemote(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer,
+		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+
+	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		conv chat1.Conversation) error
+	NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		msg chat1.MessageBoxed) error
+	ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		msgID chat1.MessageID) error
+	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		status chat1.ConversationStatus) error
+	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error
+}
+
 // UserChangedHandler is a generic interface for handling user changed events.
 // If the call returns an error, we'll remove this handler from the list, under the
 // supposition that it's now dead.

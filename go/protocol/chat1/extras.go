@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 // Eq compares two TLFIDs
@@ -268,4 +270,25 @@ func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {
 // which doesn't make much sense in other uses (like chat).
 func (f *ConversationFinalizeInfo) BeforeSummary() string {
 	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
+}
+
+func (p Pagination) Eq(other Pagination) bool {
+	return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
+		bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+}
+
+func (c ConversationLocal) GetMtime() gregor1.Time {
+	return c.ReaderInfo.Mtime
+}
+
+func (c ConversationLocal) GetConvID() ConversationID {
+	return c.Info.Id
+}
+
+func (c Conversation) GetMtime() gregor1.Time {
+	return c.ReaderInfo.Mtime
+}
+
+func (c Conversation) GetConvID() ConversationID {
+	return c.Metadata.ConversationID
 }

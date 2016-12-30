@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -85,7 +86,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	return chat1.GetInboxLocalRes{
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
-		RateLimits:              chat.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 		IdentifyFailures:        breaks,
 	}, nil
 }
@@ -112,15 +113,15 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, h.identNotifier)
-	inboxSource := chat.NewNonblockRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
-		func() keybase1.TlfInterface { return h.tlf }, localizeCb)
 
 	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
-	_, rl, err := inboxSource.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination)
+	localizer := chat.NewNonblockingLocalizer(h.G(), localizeCb,
+		func() keybase1.TlfInterface { return h.tlf })
+	_, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, arg.Query, arg.Pagination)
 	if err != nil {
 		return res, err
 	}
-	res.RateLimits = chat.AggRateLimitsP([]*chat1.RateLimit{rl})
+	res.RateLimits = utils.AggRateLimitsP([]*chat1.RateLimit{rl})
 
 	// Wait for inbox to get sent to us
 	select {
@@ -189,14 +190,12 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 		return chat1.GetInboxAndUnboxLocalRes{}, libkb.LoginRequiredError{}
 	}
 
-	// Create inbox source
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	inbox := chat.NewRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
-		func() keybase1.TlfInterface { return h.tlf })
 
 	// Read inbox from the source
-	ib, rl, err := inbox.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination)
+	localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface { return h.tlf })
+	ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
@@ -204,7 +203,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	res := chat1.GetInboxAndUnboxLocalRes{
 		Conversations:    ib.Convs,
 		Pagination:       ib.Pagination,
-		RateLimits:       chat.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 		IdentifyFailures: identBreaks,
 	}
 
@@ -253,7 +252,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
-		RateLimits:       chat.AggRateLimitsP(rl),
+		RateLimits:       utils.AggRateLimitsP(rl),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -281,7 +280,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 
 	for i := 0; i < 3; i++ {
 		h.G().Log.Debug("NewConversationLocal attempt: %v", i)
-		triple.TopicID, err = chat.NewChatTopicID()
+		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
 		}
@@ -327,12 +326,12 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 
 		// create succeeded; grabbing the conversation and returning
 		uid := h.G().Env.GetUID()
-		inbox := chat.NewRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
-			func() keybase1.TlfInterface { return h.tlf })
-		// Read inbox from the source
-		ib, rl, err := inbox.Read(ctx, uid.ToBytes(), &chat1.GetInboxLocalQuery{
-			ConvID: &convID,
-		}, nil)
+
+		localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface { return h.tlf })
+		ib, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), localizer,
+			&chat1.GetInboxLocalQuery{
+				ConvID: &convID,
+			}, nil)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, err
 		}
@@ -344,15 +343,15 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
 		}
 		res.Conv = ib.Convs[0]
+
 		// Update inbox cache
-		if err = storage.NewInbox(h.G(), uid.ToBytes(), h.getSecretUI).NewConversation(0, res.Conv); err != nil {
-			if _, ok := err.(libkb.ChatStorageMissError); !ok {
-				return chat1.NewConversationLocalRes{}, err
-			}
+		updateConv := ib.ConvsUnverified[0]
+		if err = h.G().InboxSource.NewConversation(ctx, uid.ToBytes(), 0, updateConv); err != nil {
+			return chat1.NewConversationLocalRes{}, err
 		}
 
 		if res.Conv.Error != nil {
-			return chat1.NewConversationLocalRes{}, errors.New(*res.Conv.Error)
+			return chat1.NewConversationLocalRes{}, errors.New(res.Conv.Error.Message)
 		}
 
 		res.IdentifyFailures = identBreaks
@@ -405,14 +404,14 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks, h.identNotifier)
 	var after time.Time
 	if len(arg.After) > 0 {
-		after, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
+		after, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
 		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
 		}
 	}
 	var before time.Time
 	if len(arg.Before) > 0 {
-		before, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
+		before, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
 		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
@@ -453,7 +452,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
 		res.Conversations = gires.Conversations
 
-		more := chat.Collar(
+		more := utils.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
 			arg.UnreadFirstLimit.NumRead,
 			arg.UnreadFirstLimit.AtMost-len(res.Conversations),
@@ -487,7 +486,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		res.Conversations = gires.Conversations
 	}
 
-	res.RateLimits = chat.AggRateLimits(res.RateLimits)
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 
 	return res, nil
 }
@@ -523,7 +522,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 
 	var since time.Time
 	if arg.Since != nil {
-		since, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), *arg.Since)
+		since, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), *arg.Since)
 		if err != nil {
 			return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", *arg.Since, since)
 		}
@@ -567,7 +566,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	return chat1.GetConversationForCLILocalRes{
 		Conversation: convLocal,
 		Messages:     messages,
-		RateLimits:   chat.AggRateLimits(rlimits),
+		RateLimits:   utils.AggRateLimits(rlimits),
 	}, nil
 }
 
@@ -604,7 +603,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 
 	return chat1.GetMessagesLocalRes{
 		Messages:         messages,
-		RateLimits:       chat.AggRateLimits(rlimits),
+		RateLimits:       utils.AggRateLimits(rlimits),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -625,7 +624,7 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 	}
 
 	return chat1.SetConversationStatusLocalRes{
-		RateLimits:       chat.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -666,7 +665,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	h.deleteAssets(ctx, arg.ConversationID, pendingAssetDeletes)
 
 	return chat1.PostLocalRes{
-		RateLimits:       chat.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 		MessageID:        msgID,
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -763,7 +762,7 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	}
 	return chat1.PostLocalNonblockRes{
 		OutboxID:         obid,
-		RateLimits:       chat.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
