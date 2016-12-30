@@ -9,13 +9,14 @@ type withLogTagKey string
 
 func WithLogTag(ctx context.Context, k string) context.Context {
 	addLogTags := true
+	tagKey := withLogTagKey(k)
+
 	if tags, ok := logger.LogTagsFromContext(ctx); ok {
-		if _, found := tags[k]; found {
+		if _, found := tags[tagKey]; found {
 			addLogTags = false
 		}
 	}
 
-	tagKey := withLogTagKey(k)
 	if addLogTags {
 		newTags := make(logger.CtxLogTags)
 		newTags[tagKey] = k
