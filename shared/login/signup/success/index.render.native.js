@@ -87,7 +87,7 @@ const paperKeyContainerStyle = {
 
 const paperkeyStyle = {
   ...getStyle('Header', 'Normal'),
-   ...globalStyles.fontTerminal,
+  ...globalStyles.fontTerminal,
   color: globalColors.darkBlue,
   textAlign: 'center',
 }
