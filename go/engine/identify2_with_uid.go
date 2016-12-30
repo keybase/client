@@ -259,8 +259,8 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
 	e.SetGlobalContext(ctx.CloneGlobalContextWithLogTags(e.G(), "ID2"))
 
-	defer libkb.TimeLog(fmt.Sprintf("Identify2WithUID.Run(UID=%v, Assertion=%s", e.arg.Uid, e.arg.UserAssertion), e.G().Clock().Now(), e.G().Log.Debug)
-	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+	n := fmt.Sprintf("Identify2WithUID#Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+	defer e.G().CTraceTimed(ctx.GetNetContext(), n, func() error { return err })()
 	e.G().Log.Debug("| Full Arg: %+v", e.arg)
 
 	if e.arg.Uid.IsNil() {
@@ -277,9 +277,6 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
 	// Potentially reset the error based on the error and the calling context.
 	err = e.resetError(err)
-
-	e.G().Log.Debug("- Identify2WithUID.Run() -> %v", err)
-
 	return err
 }
 

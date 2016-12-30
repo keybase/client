@@ -169,9 +169,8 @@ func LoadMeByUID(ctx context.Context, g *GlobalContext, uid keybase1.UID) (*User
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	ctx := arg.WithLogTag()
+	defer arg.G().CTraceTimed(ctx, fmt.Sprintf("LoadUser(%+v)", arg), func() error { return err })()
 
-	defer TimeLog(fmt.Sprintf("LoadUser(%+v)", arg), arg.G().Clock().Now(), arg.G().Log.Debug)
-	defer arg.G().CTrace(ctx, fmt.Sprintf("LoadUser(%+v)", arg), func() error { return err })()
 	var refresh bool
 
 	if arg.G().VDL.DumpSiteLoadUser() {
