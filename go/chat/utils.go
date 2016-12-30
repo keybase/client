@@ -175,37 +175,15 @@ type TLFInfo struct {
 
 func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string,
 	visibility chat1.TLFVisibility) (*TLFInfo, error) {
-	query := keybase1.TLFQuery{
-		TlfName: tlfName,
-	}
-	if visibility == chat1.TLFVisibility_PUBLIC {
-		return lookupPublicTLF(ctx, tlfcli, query)
-	}
-	return lookupPrivateTLF(ctx, tlfcli, query)
-}
 
-func lookupPublicTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query keybase1.TLFQuery) (*TLFInfo, error) {
-	resp, err := tlfcli.PublicCanonicalTLFNameAndID(ctx, query)
+	res, err := CtxKeyFinder(ctx).Find(ctx, tlfcli, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
 	if err != nil {
 		return nil, err
 	}
-	info := TLFInfo{
-		ID:            chat1.TLFID(resp.TlfID.ToBytes()),
-		CanonicalName: string(resp.CanonicalName),
-	}
-	return &info, nil
-}
-
-func lookupPrivateTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query keybase1.TLFQuery) (*TLFInfo, error) {
-	resp, err := tlfcli.CompleteAndCanonicalizePrivateTlfName(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	info := TLFInfo{
-		ID:            chat1.TLFID(resp.TlfID.ToBytes()),
-		CanonicalName: string(resp.CanonicalName),
-	}
-	return &info, nil
+	return &TLFInfo{
+		ID:            chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
+		CanonicalName: res.NameIDBreaks.CanonicalName.String(),
+	}, nil
 }
 
 func GetInboxQueryLocalToRemote(ctx context.Context,
