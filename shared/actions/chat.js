@@ -15,7 +15,8 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {switchTo} from './route-tree'
+import {getPath} from '../route-tree'
+import {navigateTo, switchTo} from './route-tree'
 import {updateReachability} from '../constants/gregor'
 import {usernameSelector} from '../constants/selectors'
 import {tmpFile} from '../util/file'
@@ -72,7 +73,17 @@ const {
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord, MetaDataRecord, makeSnippet, serverMessageToMessageBody} = Constants
 
-const _selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
+const _selectedSelector = (state: TypedState) => {
+  const chatPath = getPath(state.routeTree.routeState, [chatTab])
+  if (chatPath.get(0) !== chatTab) {
+    return null
+  }
+  const selected = chatPath.get(1)
+  if (selected === Constants.nothingSelected) {
+    return null
+  }
+  return selected
+}
 
 const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
@@ -118,8 +129,8 @@ function loadInbox (): LoadInbox {
   return {type: Constants.loadInbox, payload: undefined}
 }
 
-function loadMoreMessages (onlyIfUnloaded: boolean): LoadMoreMessages {
-  return {type: Constants.loadMoreMessages, payload: {onlyIfUnloaded}}
+function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
+  return {type: Constants.loadMoreMessages, payload: {conversationIDKey, onlyIfUnloaded}}
 }
 
 function editMessage (message: Message): EditMessage {
@@ -308,10 +319,12 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     }
 
     messages.push(message)
+    const selectedConversation = yield select(_selectedSelector)
     yield put({
       type: Constants.appendMessages,
       payload: {
         conversationIDKey,
+        isSelected: conversationIDKey === selectedConversation,
         messages,
       },
     })
@@ -381,6 +394,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
                 type: Constants.appendMessages,
                 payload: {
                   conversationIDKey,
+                  isSelected: conversationIDKey === selectedConversationIDKey,
                   messages: [timestamp],
                 },
               })
@@ -390,6 +404,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             type: Constants.appendMessages,
             payload: {
               conversationIDKey,
+              isSelected: conversationIDKey === selectedConversationIDKey,
               messages: [message],
             },
           })
@@ -488,12 +503,12 @@ function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
 function * _onUpdateInbox (action: UpdateInbox): SagaGenerator<any, any> {
   const conversationIDKey = yield select(_selectedSelector)
   if (action.payload.conversation.get('conversationIDKey') === conversationIDKey) {
-    yield put(loadMoreMessages(true))
+    yield put(loadMoreMessages(conversationIDKey, true))
   }
 }
 
 function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any> {
-  const conversationIDKey = yield select(_selectedSelector)
+  const conversationIDKey = action.payload.conversationIDKey
 
   if (!conversationIDKey) {
     return
@@ -745,7 +760,8 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
-  yield put(loadMoreMessages(true))
+  yield put(loadMoreMessages(conversationIDKey, true))
+  yield put(navigateTo([conversationIDKey], [chatTab]))
 
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox) {
@@ -916,12 +932,11 @@ function * _updateReachability (action: UpdateReachability): SagaGenerator<any, 
 
 function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> {
   const appFocused = yield select(_focusedSelector)
-  const conversationIDKey = yield select(_selectedSelector)
   const selectedTab = yield select(_routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
   // Only send if you're not looking at it
-  if (conversationIDKey !== action.payload.conversationIDKey || !appFocused || !chatTabSelected) {
+  if (!action.isSelected || !appFocused || !chatTabSelected) {
     const me = yield select(usernameSelector)
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     if (message && message.type === 'Text') {

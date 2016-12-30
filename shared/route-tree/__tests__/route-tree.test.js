@@ -61,6 +61,18 @@ describe('RouteDefNode', () => {
     })
     expect(node.getChild('test')).toBe(emptyRouteDef)
   })
+
+  it('getChild with a children function can create a node if it doesn\'t exist', () => {
+    const node = new RouteDefNode({
+      children: name => {
+        if (name === 'newChild') {
+          return emptyRouteDef
+        }
+      },
+    })
+    expect(node.getChild('newChild')).toBe(emptyRouteDef)
+    expect(node.getChild('notChild')).toBeUndefined()
+  })
 })
 
 describe('RouteStateNode', () => {
