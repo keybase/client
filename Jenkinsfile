@@ -2,9 +2,11 @@
 
 helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
-helpers.rootLinuxNode(env, {
-    helpers.slackOnError("client", env, currentBuild)
-}, {}) {
+// helpers.rootLinuxNode(env, {
+//     helpers.slackOnError("client", env, currentBuild)
+// }, {}) {
+    // TEMP
+helpers.nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
     properties([
             [$class: "BuildDiscarderProperty",
                 strategy: [$class: "LogRotator",
@@ -108,7 +110,7 @@ helpers.rootLinuxNode(env, {
                 parallel (
                     test_linux: {
                         dir("protocol") {
-                            sh "./diff_test.sh"
+                            // TEMP sh "./diff_test.sh"
                         }
                         parallel (
                             test_linux_go: { withEnv([
@@ -116,24 +118,21 @@ helpers.rootLinuxNode(env, {
                                 "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                             ]) {
-                                testNixGo("Linux")
+                                // TEMP testNixGo("Linux")
                             }},
                             test_linux_js: { withEnv([
                                 "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                             ]) {
-                                dir("desktop") {
-                                    sh "yarn"
-                                }
                                 dir("shared") {
-                                    sh "../desktop/node_modules/.bin/flow"
-                                }
-                                sh "desktop/node_modules/.bin/eslint ."
-                                dir("desktop") {
-                                    sh "npm test"
+                                    sh "node --version"
+                                    sh "yarn install --pure-lockfile --verbose --prefer-offline --no-emoji --no-progress"
+                                    sh "yarn run flow"
+                                    sh "yarn run eslint"
+                                    sh "yarn test"
                                 }
                                 // Only run visdiff for PRs
-                                if (env.CHANGE_ID) {
+                                if (false /*TEMP env.CHANGE_ID*/) {
                                     wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
                                     withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                             credentialsId: 'visdiff-aws-creds',
@@ -149,7 +148,7 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("visdiff") {
-                                            sh "yarn"
+                                            sh "yarn install --pure-lockfile"
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
@@ -165,133 +164,134 @@ helpers.rootLinuxNode(env, {
                             }},
                             test_kbfs: {
                                 dir('go') {
-                                    sh "go install github.com/keybase/client/go/keybase"
-                                    sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                    clientImage = docker.build("keybaseprivate/kbclient")
-                                    sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                    archive("kbclient.tar.gz")
-                                    build([
-                                        job: "/kbfs/master",
-                                        parameters: [
-                                            [$class: 'StringParameterValue',
-                                                name: 'clientProjectName',
-                                                value: env.JOB_NAME,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePrivateIP',
-                                                value: kbwebNodePrivateIP,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePublicIP',
-                                                value: kbwebNodePublicIP,
-                                            ],
-                                        ]
-                                    ])
+                                    // TEMP
+                                    // sh "go install github.com/keybase/client/go/keybase"
+                                    // sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                    // clientImage = docker.build("keybaseprivate/kbclient")
+                                    // sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                    // archive("kbclient.tar.gz")
+                                    // build([
+                                        // job: "/kbfs/master",
+                                        // parameters: [
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'clientProjectName',
+                                                // value: env.JOB_NAME,
+                                            // ],
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'kbwebNodePrivateIP',
+                                                // value: kbwebNodePrivateIP,
+                                            // ],
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'kbwebNodePublicIP',
+                                                // value: kbwebNodePublicIP,
+                                            // ],
+                                        // ]
+                                    // ])
                                 }
                             },
                         )
                     },
                     test_windows: {
-                        helpers.nodeWithCleanup('windows', {}, {}) {
-                            def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
-                            def GOPATH="${BASEDIR}\\go"
-                            withEnv([
-                                'GOROOT=C:\\tools\\go',
-                                "GOPATH=\"${GOPATH}\"",
-                                "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                            ]) {
-                            ws("$GOPATH/src/github.com/keybase/client") {
-                                println "Checkout Windows"
-                                retry(3) {
-                                    checkout scm
-                                }
+                        // helpers.nodeWithCleanup('windows', {}, {}) {
+                            // def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
+                            // def GOPATH="${BASEDIR}\\go"
+                            // withEnv([
+                                // 'GOROOT=C:\\tools\\go',
+                                // "GOPATH=\"${GOPATH}\"",
+                                // "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
+                                // "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                // "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                            // ]) {
+                            // ws("$GOPATH/src/github.com/keybase/client") {
+                                // println "Checkout Windows"
+                                // retry(3) {
+                                    // checkout scm
+                                // }
 
-                                println "Test Windows"
-                                parallel (
-                                    test_windows_go: {
-                                        println "Test Windows Go"
-                                        dir("go") {
-                                            dir ("keybase") {
-                                                bat "go build -a 2>&1 || exit /B 1"
-                                                bat "echo %errorlevel%"
-                                            }
-                                            bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
-                                            bat "go get \"github.com/stretchr/testify/require\""
-                                            bat "go get \"github.com/stretchr/testify/assert\""
-                                            helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
-                                            def testlist = readFile('testlist.txt')
-                                            def tests = testlist.tokenize()
-                                            for (test in tests) {
-                                                bat "go test -timeout 10m ${test}"
-                                            }
-                                        }
-                                    },
-                                    test_windows_js: {
-                                    // Only run visdiff for PRs
-                                    // FIXME (MBG): Disabled temporarily due to flaky false positives
-                                    if (false && env.CHANGE_ID) {
-                                    wrap([$class: 'Xvfb']) {
-                                        println "Test Windows JS"
-                                        dir("visdiff") {
-                                            bat "yarn"
-                                        }
-                                        dir("desktop") {
-                                            bat "yarn"
-                                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                    credentialsId: 'visdiff-aws-creds',
-                                                    usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                                    passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                                ],[$class: 'StringBinding',
-                                                    credentialsId: 'visdiff-github-token',
-                                                    variable: 'VISDIFF_GH_TOKEN',
-                                            ]]) {
-                                            withEnv([
-                                                "VISDIFF_PR_ID=${env.CHANGE_ID}",
-                                            ]) {
-                                                bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
-                                            }}
-                                        }
-                                    }}},
-                                )
-                            }}
-                        }
+                                // println "Test Windows"
+                                // parallel (
+                                    // test_windows_go: {
+                                        // println "Test Windows Go"
+                                        // dir("go") {
+                                            // dir ("keybase") {
+                                                // bat "go build -a 2>&1 || exit /B 1"
+                                                // bat "echo %errorlevel%"
+                                            // }
+                                            // bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                            // bat "go get \"github.com/stretchr/testify/require\""
+                                            // bat "go get \"github.com/stretchr/testify/assert\""
+                                            // helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
+                                            // def testlist = readFile('testlist.txt')
+                                            // def tests = testlist.tokenize()
+                                            // for (test in tests) {
+                                                // bat "go test -timeout 10m ${test}"
+                                            // }
+                                        // }
+                                    // },
+                                    // test_windows_js: {
+                                    // // Only run visdiff for PRs
+                                    // // FIXME (MBG): Disabled temporarily due to flaky false positives
+                                    // if (false && env.CHANGE_ID) {
+                                    // wrap([$class: 'Xvfb']) {
+                                        // println "Test Windows JS"
+                                        // dir("visdiff") {
+                                            // bat "yarn install --pure-lockfile"
+                                        // }
+                                        // dir("desktop") {
+                                            // bat "yarn install --pure-lockfile"
+                                            // withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                    // credentialsId: 'visdiff-aws-creds',
+                                                    // usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                    // passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                                // ],[$class: 'StringBinding',
+                                                    // credentialsId: 'visdiff-github-token',
+                                                    // variable: 'VISDIFF_GH_TOKEN',
+                                            // ]]) {
+                                            // withEnv([
+                                                // "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                            // ]) {
+                                                // bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
+                                            // }}
+                                        // }
+                                    // }}},
+                                // )
+                            // }}
+                        // }
                     },
                     test_osx: {
-                        helpers.nodeWithCleanup('osx', {}, {}) {
-                            def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
-                            def GOPATH="${BASEDIR}/go"
-                            withEnv([
-                                "GOPATH=${GOPATH}",
-                                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
-                            ]) {
-                            ws("$GOPATH/src/github.com/keybase/client") {
-                                println "Checkout OS X"
-                                retry(3) {
-                                    checkout scm
-                                }
+                        // helpers.nodeWithCleanup('osx', {}, {}) {
+                            // def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
+                            // def GOPATH="${BASEDIR}/go"
+                            // withEnv([
+                                // "GOPATH=${GOPATH}",
+                                // "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                // "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
+                                // "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
+                                // "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
+                            // ]) {
+                            // ws("$GOPATH/src/github.com/keybase/client") {
+                                // println "Checkout OS X"
+                                // retry(3) {
+                                    // checkout scm
+                                // }
 
-                                parallel (
-                                    //test_react_native: {
-                                    //    println "Test React Native"
-                                    //    dir("react-native") {
-                                    //        sh "npm i"
-                                    //        lock("iossimulator_${env.NODE_NAME}") {
-                                    //            sh "npm run test-ios"
-                                    //        }
-                                    //    }
-                                    //},
-                                    test_osx: {
-                                        println "Test OS X"
-                                        testNixGo("OS X")
-                                    }
-                                )
-                            }}
-                        }
+                                // parallel (
+                                    // //test_react_native: {
+                                    // //    println "Test React Native"
+                                    // //    dir("react-native") {
+                                    // //        sh "npm i"
+                                    // //        lock("iossimulator_${env.NODE_NAME}") {
+                                    // //            sh "npm run test-ios"
+                                    // //        }
+                                    // //    }
+                                    // //},
+                                    // test_osx: {
+                                        // println "Test OS X"
+                                        // testNixGo("OS X")
+                                    // }
+                                // )
+                            // }}
+                        // }
                     },
                 )
             }

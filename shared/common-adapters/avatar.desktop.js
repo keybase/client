@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {globalStyles, globalColors} from '../styles'
 import {isTesting} from '../local-debug'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
+import {resolveImageAsURL} from '../desktop/resolve-root'
 
 import type {Props, AvatarLookup, AvatarLoad} from './avatar'
 
