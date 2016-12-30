@@ -131,6 +131,11 @@ func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
 	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, true)
 }
 
+// Access implements the fs.NodeAccesser interface for *TLF.
+func (tlf *TLF) Access(ctx context.Context, r *fuse.AccessRequest) error {
+	return tlf.folder.access(ctx, r)
+}
+
 // Attr implements the fs.Node interface for TLF.
 func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	dir := tlf.getStoredDir()
@@ -142,10 +147,7 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 		// stale data for too long if we end up loading the
 		// dir.
 		a.Valid = 1 * time.Second
-		a.Mode = os.ModeDir | 000
-		if tlf.isPublic() {
-			a.Mode |= 0555
-		}
+		a.Mode = os.ModeDir | 0500
 		return nil
 	}
 

@@ -31,11 +31,28 @@ type FolderList struct {
 	recentlyRemoved   map[libkbfs.CanonicalTlfName]bool
 }
 
+var _ fs.NodeAccesser = (*FolderList)(nil)
+
+// Access implements fs.NodeAccesser interface for *FolderList.
+func (*FolderList) Access(ctx context.Context, r *fuse.AccessRequest) error {
+	if int(r.Uid) != os.Getuid() {
+		// short path: not accessible by anybody other than the logged in user.
+		// This is in case we enable AllowOther in the future.
+		return fuse.EPERM
+	}
+
+	if r.Mask&02 != 0 {
+		return fuse.EPERM
+	}
+
+	return nil
+}
+
 var _ fs.Node = (*FolderList)(nil)
 
 // Attr implements the fs.Node interface.
 func (*FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeDir | 0555
+	a.Mode = os.ModeDir | 0500
 	return nil
 }
 

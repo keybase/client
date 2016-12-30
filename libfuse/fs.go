@@ -220,11 +220,28 @@ type Root struct {
 	public  *FolderList
 }
 
+var _ fs.NodeAccesser = (*FolderList)(nil)
+
+// Access implements fs.NodeAccesser interface for *Root.
+func (*Root) Access(ctx context.Context, r *fuse.AccessRequest) error {
+	if int(r.Uid) != os.Getuid() {
+		// short path: not accessible by anybody other than the logged in user.
+		// This is in case we enable AllowOther in the future.
+		return fuse.EPERM
+	}
+
+	if r.Mask&02 != 0 {
+		return fuse.EPERM
+	}
+
+	return nil
+}
+
 var _ fs.Node = (*Root)(nil)
 
 // Attr implements the fs.Node interface for Root.
 func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeDir | 0555
+	a.Mode = os.ModeDir | 0500
 	return nil
 }
 
