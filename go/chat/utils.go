@@ -69,23 +69,6 @@ func Collar(lower int, ideal int, upper int) int {
 	return ideal
 }
 
-func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery) (res []chat1.MessageUnboxed) {
-	if query != nil && len(query.MessageTypes) > 0 {
-		typmap := make(map[chat1.MessageType]bool)
-		for _, mt := range query.MessageTypes {
-			typmap[mt] = true
-		}
-		for _, msg := range msgs {
-			if _, ok := typmap[msg.GetMessageType()]; ok {
-				res = append(res, msg)
-			}
-		}
-	} else {
-		res = msgs
-	}
-	return res
-}
-
 // AggRateLimitsP takes a list of rate limit responses and dedups them to the last one received
 // of each category
 func AggRateLimitsP(rlimits []*chat1.RateLimit) (res []chat1.RateLimit) {

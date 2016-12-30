@@ -238,7 +238,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	}
 
 	// Run type filter if it exists
-	thread.Messages = chat.FilterByType(thread.Messages, arg.Query)
+	thread.Messages = storage.FilterByType(thread.Messages, arg.Query)
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
