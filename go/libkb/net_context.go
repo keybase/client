@@ -5,6 +5,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+type withLogTagKey string
+
 func WithLogTag(ctx context.Context, k string) context.Context {
 	addLogTags := true
 	if tags, ok := logger.LogTagsFromContext(ctx); ok {
@@ -12,15 +14,17 @@ func WithLogTag(ctx context.Context, k string) context.Context {
 			addLogTags = false
 		}
 	}
+
+	tagKey := withLogTagKey(k)
 	if addLogTags {
 		newTags := make(logger.CtxLogTags)
-		newTags[k] = k
+		newTags[tagKey] = k
 		ctx = logger.NewContextWithLogTags(ctx, newTags)
 	}
 
-	if _, found := ctx.Value(k).(string); !found {
+	if _, found := ctx.Value(tagKey).(withLogTagKey); !found {
 		tag := RandStringB64(3)
-		ctx = context.WithValue(ctx, k, tag)
+		ctx = context.WithValue(ctx, tagKey, tag)
 	}
 	return ctx
 }
