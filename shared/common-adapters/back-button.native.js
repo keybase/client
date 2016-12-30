@@ -3,7 +3,6 @@
 import React, {Component} from 'react'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import Box from './box'
-import Text from './text'
 import Icon from './icon'
 import {globalStyles} from '../styles'
 import type {Props} from './back-button'
