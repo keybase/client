@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"runtime/debug"
 
 	"golang.org/x/net/context"
 
@@ -78,7 +79,11 @@ func (h *tlfHandler) sendNotifyEvent(update keybase1.CanonicalTLFNameAndIDWithBr
 }
 
 func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keybase1.GetTLFCryptKeysRes, error) {
+	var err error
+	defer h.G().Trace(fmt.Sprintf("tlfHandler.CryptKeys(%s)", arg.TlfName),
+		func() error { return err })()
 
+	debug.PrintStack()
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
@@ -100,6 +105,9 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 }
 
 func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+	var err error
+	defer h.G().Trace(fmt.Sprintf("tlfHandler.PublicCanonicalTLFNameAndID(%s)", arg.TlfName),
+		func() error { return err })()
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err

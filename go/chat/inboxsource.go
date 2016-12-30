@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"strings"
+
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -414,13 +416,16 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 		return chat1.ConversationLocal{Error: &errMsg}
 	}
 
-	info, err := utils.LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TlfName, conversationLocal.Info.Visibility)
-	if err != nil {
-		errMsg := err.Error()
-		return chat1.ConversationLocal{Error: &errMsg}
+	// Only do this check if there is a chance the TLF name might be an SBS name.
+	if strings.Contains(conversationLocal.Info.TlfName, "@") {
+		info, err := utils.LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TlfName, conversationLocal.Info.Visibility)
+		if err != nil {
+			errMsg := err.Error()
+			return chat1.ConversationLocal{Error: &errMsg}
+		}
+		// Not sure about the utility of this TlfName assignment, but the previous code did this:
+		conversationLocal.Info.TlfName = info.CanonicalName
 	}
-	// Not sure about the utility of this TlfName assignment, but the previous code did this:
-	conversationLocal.Info.TlfName = info.CanonicalName
 
 	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
 		ctx,
