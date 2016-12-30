@@ -128,7 +128,7 @@ helpers.rootLinuxNode(env, {
                                     sh "node --version"
                                     sh "yarn install --pure-lockfile --verbose --prefer-offline --no-emoji --no-progress"
                                     sh "yarn run flow"
-                                    sh "yarn run eslint"
+                                    sh "yarn run lint"
                                     sh "yarn test"
                                 }
                                 // Only run visdiff for PRs
