@@ -42,10 +42,10 @@ const packagerOpts = {
     '/tools($|/)',
     '/release($|/)',
     '/node_modules($|/)',
-  ]
+  ],
 }
 
-function main() {
+function main () {
   // Inject app version
   webpackConfig.plugins.push(
     new webpack.DefinePlugin({
