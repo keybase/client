@@ -25,8 +25,8 @@ type LibKBFS struct {
 	refs map[libkbfs.Config]map[libkbfs.Node]bool
 	// channels used to re-enable updates if disabled
 	updateChannels map[libkbfs.Config]map[libkbfs.FolderBranch]chan<- struct{}
-	// test object, mostly for logging
-	t testing.TB
+	// test object, for logging.
+	tb testing.TB
 	// timeout for all KBFS calls
 	opTimeout time.Duration
 	// journal directory
@@ -41,27 +41,18 @@ func (k *LibKBFS) Name() string {
 	return "libkbfs"
 }
 
-// Init implements the Engine interface.
-func (k *LibKBFS) Init() {
-	// Initialize reference holder and channels maps
-	k.refs = make(map[libkbfs.Config]map[libkbfs.Node]bool)
-	k.updateChannels =
-		make(map[libkbfs.Config]map[libkbfs.FolderBranch]chan<- struct{})
-}
-
 // InitTest implements the Engine interface.
-func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
-	bwKBps int, opTimeout time.Duration, users []libkb.NormalizedUsername,
+func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
+	blockSize int64, blockChangeSize int64, bwKBps int,
+	opTimeout time.Duration, users []libkb.NormalizedUsername,
 	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
-	// Start a new log for this test.
-	k.t = t
-	k.t.Log("\n------------------------------------------")
 	userMap := make(map[libkb.NormalizedUsername]User)
 	// create the first user specially
-	config := libkbfs.MakeTestConfigOrBust(t, users...)
+	config := libkbfs.MakeTestConfigOrBust(k.tb, users...)
+	config.SetMetadataVersion(ver)
 
-	setBlockSizes(t, config, blockSize, blockChangeSize)
-	maybeSetBw(t, config, bwKBps)
+	setBlockSizes(k.tb, config, blockSize, blockChangeSize)
+	maybeSetBw(k.tb, config, bwKBps)
 	k.opTimeout = opTimeout
 
 	config.SetClock(clock)
@@ -81,10 +72,10 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 	if journal {
 		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
 		if err != nil {
-			k.t.Fatalf("Couldn't enable journaling: %v", err)
+			k.tb.Fatalf("Couldn't enable journaling: %v", err)
 		}
 		k.journalDir = jdir
-		k.t.Logf("Journal directory: %s", k.journalDir)
+		k.tb.Logf("Journal directory: %s", k.journalDir)
 		for name, c := range userMap {
 			c.(*libkbfs.ConfigLocal).EnableJournaling(
 				filepath.Join(jdir, name.String()),
@@ -730,7 +721,7 @@ func (k *LibKBFS) Shutdown(u User) error {
 		}
 		// Remove the overall journal dir if it's empty.
 		if err := ioutil.Remove(k.journalDir); err != nil {
-			k.t.Logf("Journal dir %s not empty yet", k.journalDir)
+			k.tb.Logf("Journal dir %s not empty yet", k.journalDir)
 		}
 	}
 	return nil

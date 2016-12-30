@@ -5,7 +5,6 @@
 package test
 
 import (
-	"testing"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -26,8 +25,6 @@ type username string
 type Engine interface {
 	// Name returns the name of the engine.
 	Name() string
-	// Init is called by the test harness once prior to using a KBFS interface implementation.
-	Init()
 	// InitTest is called by the test harness to initialize user
 	// instances and set up the configuration of the test.
 	// blockChange indicates the maximum size of each data block.
@@ -39,9 +36,10 @@ type Engine interface {
 	// second; if zero, the engine defaults are used.  opTimeout
 	// specifies a per-operation timeout; if it is more than the
 	// default engine timeout, or if it is zero, it has no effect.
-	InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
-		bwKBps int, opTimeout time.Duration, users []libkb.NormalizedUsername,
-		clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User
+	InitTest(ver libkbfs.MetadataVer, blockSize int64,
+		blockChangeSize int64, bwKBps int, opTimeout time.Duration,
+		users []libkb.NormalizedUsername, clock libkbfs.Clock,
+		journal bool) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
 	// GetFavorites returns the set of all public or private

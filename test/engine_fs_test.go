@@ -27,12 +27,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-type createUserFn func(t testing.TB, ith int, config *libkbfs.ConfigLocal,
+type createUserFn func(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser
 
 type fsEngine struct {
 	name       string
-	t          testing.TB
+	tb         testing.TB
 	createUser createUserFn
 	// journal directory
 	journalDir string
@@ -56,9 +56,6 @@ func (u *fsUser) shutdown() {
 	u.close()
 }
 
-// Perform Init for the engine
-func (*fsEngine) Init() {}
-
 // Name returns the name of the Engine.
 func (e *fsEngine) Name() string {
 	return e.name
@@ -67,9 +64,10 @@ func (e *fsEngine) Name() string {
 // GetUID is called by the test harness to retrieve a user instance's UID.
 func (e *fsEngine) GetUID(user User) keybase1.UID {
 	u := user.(*fsUser)
-	_, uid, err := u.config.KBPKI().GetCurrentUserInfo(context.Background())
+	ctx := context.Background()
+	_, uid, err := u.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		e.t.Fatalf("GetUID: GetCurrentUserInfo failed with %v", err)
+		e.tb.Fatalf("GetUID: GetCurrentUserInfo failed with %v", err)
 	}
 	return uid
 }
@@ -423,7 +421,7 @@ func (e *fsEngine) Shutdown(user User) error {
 		}
 		// Remove the overall journal dir if it's empty.
 		if err := ioutil.Remove(e.journalDir); err != nil {
-			e.t.Logf("Journal dir %s not empty yet", e.journalDir)
+			e.tb.Logf("Journal dir %s not empty yet", e.journalDir)
 		}
 	}
 	return nil
@@ -505,11 +503,10 @@ func fiTypeString(fi os.FileInfo) string {
 	return "OTHER"
 }
 
-func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
-	blockChangeSize int64, bwKBps int, opTimeout time.Duration,
-	users []libkb.NormalizedUsername,
+func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
+	blockSize int64, blockChangeSize int64, bwKBps int,
+	opTimeout time.Duration, users []libkb.NormalizedUsername,
 	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
-	e.t = t
 	res := map[libkb.NormalizedUsername]User{}
 	initSuccess := false
 	defer func() {
@@ -522,37 +519,38 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 
 	if int(opTimeout) > 0 {
 		// TODO: wrap fs calls in our own timeout-able layer?
-		t.Logf("Ignoring op timeout for FS test")
+		e.tb.Log("Ignoring op timeout for FS test")
 	}
 
 	// create the first user specially
-	config0 := libkbfs.MakeTestConfigOrBust(t, users...)
+	config0 := libkbfs.MakeTestConfigOrBust(e.tb, users...)
+	config0.SetMetadataVersion(ver)
 	config0.SetClock(clock)
 
-	setBlockSizes(t, config0, blockSize, blockChangeSize)
-	maybeSetBw(t, config0, bwKBps)
+	setBlockSizes(e.tb, config0, blockSize, blockChangeSize)
+	maybeSetBw(e.tb, config0, bwKBps)
 	uids := make([]keybase1.UID, len(users))
 	cfgs := make([]*libkbfs.ConfigLocal, len(users))
 	cfgs[0] = config0
-	uids[0] = nameToUID(t, config0)
+	uids[0] = nameToUID(e.tb, config0)
 	for i, name := range users[1:] {
 		c := libkbfs.ConfigAsUser(config0, name)
 		c.SetClock(clock)
 		cfgs[i+1] = c
-		uids[i+1] = nameToUID(t, c)
+		uids[i+1] = nameToUID(e.tb, c)
 	}
 
 	for i, name := range users {
-		res[name] = e.createUser(t, i, cfgs[i], opTimeout)
+		res[name] = e.createUser(e.tb, i, cfgs[i], opTimeout)
 	}
 
 	if journal {
 		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
 		if err != nil {
-			t.Fatalf("Couldn't enable journaling: %v", err)
+			e.tb.Fatalf("Couldn't enable journaling: %v", err)
 		}
 		e.journalDir = jdir
-		t.Logf("Journal directory: %s", e.journalDir)
+		e.tb.Logf("Journal directory: %s", e.journalDir)
 		for i, c := range cfgs {
 			c.EnableJournaling(
 				filepath.Join(jdir, users[i].String()),

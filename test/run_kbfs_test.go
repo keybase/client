@@ -6,8 +6,16 @@
 
 package test
 
-import "testing"
+import (
+	"testing"
 
-func createEngine(t testing.TB) Engine {
-	return &LibKBFS{}
+	"github.com/keybase/kbfs/libkbfs"
+)
+
+func createEngine(tb testing.TB) Engine {
+	return &LibKBFS{
+		tb:             tb,
+		refs:           make(map[libkbfs.Config]map[libkbfs.Node]bool),
+		updateChannels: make(map[libkbfs.Config]map[libkbfs.FolderBranch]chan<- struct{}),
+	}
 }

@@ -22,21 +22,21 @@ type dokanEngine struct {
 	fsEngine
 }
 
-func createEngine(t testing.TB) Engine {
+func createEngine(tb testing.TB) Engine {
 	return &dokanEngine{
 		fsEngine: fsEngine{
 			name:       "dokan",
-			t:          t,
+			tb:         tb,
 			createUser: createUserDokan,
 		},
 	}
 }
 
-func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
+func createUserDokan(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser {
 	driveLetter := 'T' + byte(ith)
 	if driveLetter > 'Z' {
-		t.Error("Too many users - out of drive letters")
+		tb.Error("Too many users - out of drive letters")
 	}
 
 	createSuccess := false
@@ -53,7 +53,7 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 
 	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 
 	ctx, cancelFn := context.WithCancel(ctx)
@@ -63,13 +63,13 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
 	ctx = context.WithValue(ctx, CtxUserKey, username)
 
-	fs, err := libdokan.NewFS(ctx, config, logger.NewTestLogger(t))
+	fs, err := libdokan.NewFS(ctx, config, logger.NewTestLogger(tb))
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 
 	if opTimeout > 0 {
-		t.Logf("Ignoring op timeout for Dokan test")
+		tb.Logf("Ignoring op timeout for Dokan test")
 	}
 
 	mnt, err := dokan.Mount(&dokan.Config{
@@ -78,7 +78,7 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 		MountFlags: libdokan.DefaultMountFlags,
 	})
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 
 	createSuccess = true

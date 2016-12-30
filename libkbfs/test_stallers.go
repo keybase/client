@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"math/rand"
 	"sync"
 
 	"github.com/keybase/kbfs/kbfsblock"
@@ -287,11 +288,12 @@ func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
 	return onStalledCh, unstallCh, newCtx
 }
 
-var stallerCounter stallKeyType
-
 func newStallKey() stallKeyType {
-	stallerCounter++
-	return stallerCounter
+	stallKey := stallKeyStallEverything
+	for stallKey == stallKeyStallEverything {
+		stallKey = stallKeyType(rand.Int63())
+	}
+	return stallKey
 }
 
 // staller is a pair of channels. Whenever something is to be

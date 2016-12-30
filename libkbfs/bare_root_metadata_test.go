@@ -24,7 +24,8 @@ var testMetadataVers = []MetadataVer{
 }
 
 // runTestOverMetadataVers runs the given test function over all
-// metadata versions to test. Example use:
+// metadata versions to test. The test is assumed to be parallelizable
+// with other instances of itself. Example use:
 //
 // func TestFoo(t *testing.T) {
 //	runTestOverMetadataVers(t, testFoo)
@@ -40,6 +41,7 @@ func runTestOverMetadataVers(
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		t.Run(ver.String(), func(t *testing.T) {
+			t.Parallel()
 			f(t, ver)
 		})
 	}

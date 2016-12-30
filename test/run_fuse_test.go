@@ -23,20 +23,20 @@ type fuseEngine struct {
 	fsEngine
 }
 
-func createEngine(t testing.TB) Engine {
-	log := logger.NewTestLogger(t)
+func createEngine(tb testing.TB) Engine {
+	log := logger.NewTestLogger(tb)
 	debugLog := log.CloneWithAddedDepth(1)
 	fuse.Debug = libfuse.MakeFuseDebugFn(debugLog, false /* superVerbose */)
 	return &fuseEngine{
 		fsEngine: fsEngine{
 			name:       "fuse",
-			t:          t,
+			tb:         tb,
 			createUser: createUserFuse,
 		},
 	}
 }
 
-func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
+func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser {
 	filesys := libfuse.NewFS(config, nil, false, libfuse.PlatformParams{})
 	fn := func(mnt *fstestutil.Mount) fs.FS {
@@ -44,7 +44,7 @@ func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 		return filesys
 	}
 	options := libfuse.GetPlatformSpecificMountOptionsForTest()
-	mnt, err := fstestutil.MountedFuncT(t, fn, &fs.Config{
+	mnt, err := fstestutil.MountedFuncT(tb, fn, &fs.Config{
 		WithContext: func(ctx context.Context, req fuse.Request) context.Context {
 			if int(opTimeout) > 0 {
 				// Safe to ignore cancel since fuse should clean up the parent
@@ -55,15 +55,15 @@ func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 		},
 	}, options...)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
-	t.Logf("FUSE HasInvalidate=%v", mnt.Conn.Protocol().HasInvalidate())
+	tb.Logf("FUSE HasInvalidate=%v", mnt.Conn.Protocol().HasInvalidate())
 
 	ctx := context.Background()
 
 	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 
 	ctx, cancelFn := context.WithCancel(ctx)
