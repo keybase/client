@@ -5,7 +5,6 @@ package service
 
 import (
 	"fmt"
-	"runtime/debug"
 
 	"golang.org/x/net/context"
 
@@ -84,10 +83,9 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 	if ok {
 		arg.IdentifyBehavior = ident
 	}
-	defer h.G().Trace(fmt.Sprintf("tlfHandler.CryptKeys(tlf=%s,mode=%v)", arg.TlfName,
+	defer h.G().CTrace(ctx, fmt.Sprintf("tlfHandler.CryptKeys(tlf=%s,mode=%v)", arg.TlfName,
 		arg.IdentifyBehavior), func() error { return err })()
 
-	debug.PrintStack()
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
@@ -111,8 +109,8 @@ func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybas
 	if ok {
 		arg.IdentifyBehavior = ident
 	}
-	defer h.G().Trace(fmt.Sprintf("tlfHandler.PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", arg.TlfName,
-		arg.IdentifyBehavior), func() error { return err })()
+	defer h.G().CTrace(ctx, fmt.Sprintf("tlfHandler.PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)",
+		arg.TlfName, arg.IdentifyBehavior), func() error { return err })()
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
