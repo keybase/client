@@ -76,12 +76,12 @@ func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 	return res
 }
 
-func (r *Resolver) ResolveFullExpression(input string) (res ResolveResult) {
-	return r.resolveFullExpression(context.TODO(), input, false, false)
+func (r *Resolver) ResolveFullExpression(ctx context.Context, input string) (res ResolveResult) {
+	return r.resolveFullExpression(ctx, input, false, false)
 }
 
-func (r *Resolver) ResolveFullExpressionNeedUsername(input string) (res ResolveResult) {
-	return r.resolveFullExpression(context.TODO(), input, false, true)
+func (r *Resolver) ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult) {
+	return r.resolveFullExpression(ctx, input, false, true)
 }
 
 func (r *Resolver) ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult) {
