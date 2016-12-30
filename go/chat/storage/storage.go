@@ -419,3 +419,20 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 
 	return res, nil
 }
+
+func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery) (res []chat1.MessageUnboxed) {
+	if query != nil && len(query.MessageTypes) > 0 {
+		typmap := make(map[chat1.MessageType]bool)
+		for _, mt := range query.MessageTypes {
+			typmap[mt] = true
+		}
+		for _, msg := range msgs {
+			if _, ok := typmap[msg.GetMessageType()]; ok {
+				res = append(res, msg)
+			}
+		}
+	} else {
+		res = msgs
+	}
+	return res
+}
