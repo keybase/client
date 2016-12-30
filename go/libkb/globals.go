@@ -119,6 +119,7 @@ func (g *GlobalContext) GetServerURI() string                   { return g.Env.G
 func (g *GlobalContext) GetCachedUserLoader() *CachedUserLoader { return g.CachedUserLoader }
 func (g *GlobalContext) GetUserDeviceCache() *UserDeviceCache   { return g.UserDeviceCache }
 func (g *GlobalContext) GetMerkleClient() *MerkleClient         { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context         { return g.NetContext }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")

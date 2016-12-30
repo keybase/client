@@ -10,6 +10,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 type TypedChainLink interface {
@@ -528,11 +529,11 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 		} else if t, e := proof.AtKey("proof_type").GetInt(); e != nil {
 			l.G().Log.Warning("Bad 'proof_type' in track statement: %s", e)
 		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json"), keybase1.ProofType(t)); e != nil {
-			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e)
+			l.G().Log.Warning("Bad remote_key_proof.check_data_json: %s", e)
 		} else {
 			sb.proofState = keybase1.ProofState(i)
 			if sb.proofState != keybase1.ProofState_OK {
-				G.Log.Debug("Including broken proof at index = %d\n", index)
+				l.G().Log.Debug("Including broken proof at index = %d\n", index)
 			}
 			ret = append(ret, sb)
 		}
@@ -785,7 +786,7 @@ func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error
 func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.insertLink(u)
 	if list, found := tab.tracks[u.whomUsername]; !found {
-		G.Log.Debug("| Useless untrack of %s; no previous tracking statement found",
+		u.G().Log.Debug("| Useless untrack of %s; no previous tracking statement found",
 			u.whomUsername)
 	} else {
 		for _, obj := range list {
@@ -1208,11 +1209,11 @@ type CheckCompletedListener interface {
 	CCLCheckCompleted(lcr *LinkCheckResult)
 }
 
-func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) error {
+func (idt *IdentityTable) Identify(ctx context.Context, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) error {
 	errs := make(chan error, len(is.res.ProofChecks))
 	for _, lcr := range is.res.ProofChecks {
 		go func(l *LinkCheckResult) {
-			errs <- idt.identifyActiveProof(l, is, forceRemoteCheck, ui, ccl)
+			errs <- idt.identifyActiveProof(ctx, l, is, forceRemoteCheck, ui, ccl)
 		}(lcr)
 	}
 
@@ -1235,8 +1236,8 @@ func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui I
 
 //=========================================================================
 
-func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) error {
-	idt.proofRemoteCheck(is.HasPreviousTrack(), forceRemoteCheck, lcr)
+func (idt *IdentityTable) identifyActiveProof(ctx context.Context, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) error {
+	idt.proofRemoteCheck(ctx, is.HasPreviousTrack(), forceRemoteCheck, lcr)
 	if ccl != nil {
 		ccl.CCLCheckCompleted(lcr)
 	}
@@ -1286,10 +1287,10 @@ func (idt *IdentityTable) ComputeRemoteDiff(tracked, trackedTmp, observed keybas
 	return ret
 }
 
-func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult) {
+func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult) {
 	p := res.link
 
-	idt.G().Log.Debug("+ RemoteCheckProof %s", p.ToDebugString())
+	idt.G().Log.CDebugf(ctx, "+ RemoteCheckProof %s", p.ToDebugString())
 	doCache := false
 	sid := p.GetSigID()
 
@@ -1308,13 +1309,13 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		}
 
 		if doCache {
-			idt.G().Log.Debug("| Caching results under key=%s", sid)
+			idt.G().Log.CDebugf(ctx, "| Caching results under key=%s", sid)
 			if cacheErr := idt.G().ProofCache.Put(sid, res.err); cacheErr != nil {
-				idt.G().Log.Warning("proof cache put error: %s", cacheErr)
+				idt.G().Log.CWarningf(ctx, "proof cache put error: %s", cacheErr)
 			}
 		}
 
-		idt.G().Log.Debug("- RemoteCheckProof %s", p.ToDebugString())
+		idt.G().Log.CDebugf(ctx, "- RemoteCheckProof %s", p.ToDebugString())
 	}()
 
 	res.hint = idt.sigHints.Lookup(sid)
@@ -1351,11 +1352,11 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	doCache = true
 
 	if res.err = pc.CheckHint(idt.G(), *res.hint); res.err != nil {
-		idt.G().Log.Debug("| Hint failed with error: %s", res.err.Error())
+		idt.G().Log.CDebugf(ctx, "| Hint failed with error: %s", res.err.Error())
 		return
 	}
 
-	res.err = pc.CheckStatus(idt.G(), *res.hint)
+	res.err = pc.CheckStatus(idt.G().CloneWithNewNetContext(ctx), *res.hint)
 
 	// If no error than all good
 	if res.err == nil {
@@ -1367,7 +1368,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	// not to cache it.
 	if ProofErrorIsSoft(res.err) && res.cached != nil && res.cached.Status == nil &&
 		res.cached.Freshness() != keybase1.CheckResultFreshness_RANCID {
-		idt.G().Log.Debug("| Got soft error (%s) but returning success (last seen at %s)",
+		idt.G().Log.CDebugf(ctx, "| Got soft error (%s) but returning success (last seen at %s)",
 			res.err.Error(), res.cached.Time)
 		res.snoozedErr = res.err
 		res.err = nil
@@ -1375,7 +1376,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		return
 	}
 
-	idt.G().Log.Warning("| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
+	idt.G().Log.CWarningf(ctx, "| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
 
 	return
 }

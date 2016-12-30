@@ -588,7 +588,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	if err = them.IDTable().Identify(e.state, e.forceRemoteCheck(), iui, e); err != nil {
+	if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e); err != nil {
 		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
