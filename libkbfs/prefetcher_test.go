@@ -13,9 +13,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func makeRandomBlockInfo(t *testing.T) BlockInfo {
+	return BlockInfo{
+		makeRandomBlockPointer(t),
+		150,
+	}
+}
+
+func makeRandomDirEntry(t *testing.T, typ EntryType, size uint64, path string) DirEntry {
+	return DirEntry{
+		makeRandomBlockInfo(t),
+		EntryInfo{
+			typ,
+			size,
+			path,
+			101,
+			102,
+		},
+		codec.UnknownFieldSetHandler{},
+	}
+}
 func makeFakeIndirectFilePtr(t *testing.T, off int64) IndirectFilePtr {
 	return IndirectFilePtr{
-		makeFakeBlockInfo(t),
+		makeRandomBlockInfo(t),
 		off,
 		false,
 		codec.UnknownFieldSetHandler{},
@@ -24,23 +44,19 @@ func makeFakeIndirectFilePtr(t *testing.T, off int64) IndirectFilePtr {
 
 func makeFakeIndirectDirPtr(t *testing.T, off string) IndirectDirPtr {
 	return IndirectDirPtr{
-		makeFakeBlockInfo(t),
+		makeRandomBlockInfo(t),
 		off,
 		codec.UnknownFieldSetHandler{},
 	}
 }
 
 func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
-	return &DirBlock{
-		CommonBlock{},
-		map[string]DirEntry{
-			name: makeFakeDirEntry(t, Dir, 100),
-		},
-		nil,
-	}
+	return &DirBlock{Children: map[string]DirEntry{
+		name: makeRandomDirEntry(t, Dir, 100, name),
+	}}
 }
 
-func initPrefetcherTest(t *testing.T) (Prefetcher, *blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, func() BlockCache) {
+func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, func() BlockCache) {
 	cacheFunc := makeBlockCache()
 	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), cacheFunc)
 	require.NotNil(t, q)
@@ -49,11 +65,7 @@ func initPrefetcherTest(t *testing.T) (Prefetcher, *blockRetrievalQueue, *blockR
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 
-	p := newBlockPrefetcher(q)
-	require.NotNil(t, q)
-	q.prefetcher = p
-
-	return p, q, w, bg, cacheFunc
+	return q, w, bg, cacheFunc
 }
 
 func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {
@@ -63,7 +75,7 @@ func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {
 
 func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	t.Log("Test indirect file block prefetching.")
-	p, q, w, bg, cacheFunc := initPrefetcherTest(t)
+	q, w, bg, cacheFunc := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize an indirect file block pointing to 2 file data blocks.")
@@ -71,7 +83,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 		makeFakeIndirectFilePtr(t, 0),
 		makeFakeIndirectFilePtr(t, 150),
 	}
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block1 := &FileBlock{IPtrs: ptrs}
 	block1.IsInd = true
 	block2 := makeFakeFileBlock(t, true)
@@ -91,7 +103,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
 	continueCh2 <- nil
 	continueCh3 <- nil
-	<-p.Shutdown()
+	q.TogglePrefetcher(context.Background(), false)
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cacheFunc().Get(ptr1)
@@ -107,7 +119,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	t.Log("Test indirect dir block prefetching.")
-	p, q, w, bg, cacheFunc := initPrefetcherTest(t)
+	q, w, bg, cacheFunc := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize an indirect dir block pointing to 2 dir data blocks.")
@@ -115,7 +127,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 		makeFakeIndirectDirPtr(t, "a"),
 		makeFakeIndirectDirPtr(t, "b"),
 	}
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block1 := &DirBlock{IPtrs: ptrs, Children: make(map[string]DirEntry)}
 	block1.IsInd = true
 	block2 := makeFakeDirBlock(t, "a")
@@ -135,7 +147,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
 	continueCh2 <- nil
 	continueCh3 <- nil
-	<-p.Shutdown()
+	q.TogglePrefetcher(context.Background(), false)
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cacheFunc().Get(ptr1)
@@ -151,20 +163,20 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 
 func TestPrefetcherDirectDirBlock(t *testing.T) {
 	t.Log("Test direct dir block prefetching.")
-	p, q, w, bg, cacheFunc := initPrefetcherTest(t)
+	q, w, bg, cacheFunc := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize a direct dir block with entries pointing to 3 files.")
 	file1 := makeFakeFileBlock(t, true)
 	file2 := makeFakeFileBlock(t, true)
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	dir1 := &DirBlock{Children: map[string]DirEntry{
-		"a": makeFakeDirEntry(t, File, 100),
-		"b": makeFakeDirEntry(t, Dir, 60),
-		"c": makeFakeDirEntry(t, Exec, 20),
+		"a": makeRandomDirEntry(t, File, 100, "a"),
+		"b": makeRandomDirEntry(t, Dir, 60, "b"),
+		"c": makeRandomDirEntry(t, Exec, 20, "c"),
 	}}
 	dir2 := &DirBlock{Children: map[string]DirEntry{
-		"d": makeFakeDirEntry(t, File, 100),
+		"d": makeRandomDirEntry(t, File, 100, "d"),
 	}}
 	file3 := makeFakeFileBlock(t, true)
 
@@ -186,7 +198,7 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	continueCh3 <- nil
 	continueCh2 <- context.Canceled
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
-	<-p.Shutdown()
+	q.TogglePrefetcher(context.Background(), false)
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cacheFunc().Get(ptr1)
