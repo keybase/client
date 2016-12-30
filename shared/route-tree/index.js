@@ -28,7 +28,7 @@ type RouteDefParams<P> = {
   defaultSelected?: string,
   tags?: LeafTags,
   initialState?: {},
-  children: {} | (name: string) => RouteDefNode,
+  children?: {[key: string]: RouteDefParams<P> | () => RouteDefNode} | (name: string) => RouteDefNode,
 } & (
   // This lengthy type definition was necessary to get all of our component permutations to type check.
   { component?: Component<any, P, any> | $Supertype<Component<any, P, any>> | Class<ConnectedComponent<P, any, any, any>> | Class<TypedConnectedComponent<P>> }
