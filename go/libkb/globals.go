@@ -22,11 +22,12 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"time"
 
-	"github.com/keybase/client/go/logger"
+	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/clockwork"
-	"golang.org/x/net/context"
+	clockwork "github.com/keybase/clockwork"
+	context "golang.org/x/net/context"
 )
 
 type ShutdownHook func() error
@@ -73,22 +74,23 @@ type GlobalContext struct {
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
-	UIRouter         UIRouter                  // How to route UIs
-	Services         ExternalServicesCollector // All known external services
-	ExitCode         keybase1.ExitCode         // Value to return to OS on Exit()
-	RateLimits       *RateLimits               // tracks the last time certain actions were taken
-	clockMu          *sync.Mutex               // protects Clock
-	clock            clockwork.Clock           // RealClock unless we're testing
-	SecretStoreAll   *SecretStoreLocked        // nil except for tests and supported platforms
-	hookMu           *sync.RWMutex             // protects loginHooks, logoutHooks
-	loginHooks       []LoginHook               // call these on login
-	logoutHooks      []LogoutHook              // call these on logout
-	GregorDismisser  GregorDismisser           // for dismissing gregor items that we've handled
-	GregorListener   GregorListener            // for alerting about clients connecting and registering UI protocols
-	oodiMu           *sync.RWMutex             // For manipluating the OutOfDateInfo
-	outOfDateInfo    *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
-	CachedUserLoader *CachedUserLoader         // Load flat users with the ability to hit the cache
-	UserDeviceCache  *UserDeviceCache          // Cache user and device names forever
+	UIRouter           UIRouter                  // How to route UIs
+	Services           ExternalServicesCollector // All known external services
+	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
+	RateLimits         *RateLimits               // tracks the last time certain actions were taken
+	clockMu            *sync.Mutex               // protects Clock
+	clock              clockwork.Clock           // RealClock unless we're testing
+	SecretStoreAll     *SecretStoreLocked        // nil except for tests and supported platforms
+	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
+	loginHooks         []LoginHook               // call these on login
+	logoutHooks        []LogoutHook              // call these on logout
+	GregorDismisser    GregorDismisser           // for dismissing gregor items that we've handled
+	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
+	oodiMu             *sync.RWMutex             // For manipluating the OutOfDateInfo
+	outOfDateInfo      *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
+	lastUpgradeWarning *time.Time                // When the last upgrade was warned for (to reate-limit nagging)
+	CachedUserLoader   *CachedUserLoader         // Load flat users with the ability to hit the cache
+	UserDeviceCache    *UserDeviceCache          // Cache user and device names forever
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
@@ -125,20 +127,21 @@ func (g *GlobalContext) GetNetContext() context.Context         { return g.NetCo
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	return &GlobalContext{
-		Log:             log,
-		VDL:             NewVDebugLog(log),
-		SKBKeyringMu:    new(sync.Mutex),
-		socketWrapperMu: new(sync.RWMutex),
-		shutdownOnce:    new(sync.Once),
-		loginStateMu:    new(sync.RWMutex),
-		clockMu:         new(sync.Mutex),
-		clock:           clockwork.NewRealClock(),
-		hookMu:          new(sync.RWMutex),
-		oodiMu:          new(sync.RWMutex),
-		outOfDateInfo:   &keybase1.OutOfDateInfo{},
-		uchMu:           new(sync.Mutex),
-		NewTriplesec:    NewSecureTriplesec,
-		NetContext:      context.TODO(),
+		Log:                log,
+		VDL:                NewVDebugLog(log),
+		SKBKeyringMu:       new(sync.Mutex),
+		socketWrapperMu:    new(sync.RWMutex),
+		shutdownOnce:       new(sync.Once),
+		loginStateMu:       new(sync.RWMutex),
+		clockMu:            new(sync.Mutex),
+		clock:              clockwork.NewRealClock(),
+		hookMu:             new(sync.RWMutex),
+		oodiMu:             new(sync.RWMutex),
+		outOfDateInfo:      &keybase1.OutOfDateInfo{},
+		lastUpgradeWarning: new(time.Time),
+		uchMu:              new(sync.Mutex),
+		NewTriplesec:       NewSecureTriplesec,
+		NetContext:         context.TODO(),
 	}
 }
 

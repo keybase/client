@@ -406,9 +406,6 @@ func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string) {
 
 func (a *InternalAPIEngine) isExternal() bool { return false }
 
-var lastUpgradeWarningMu sync.RWMutex
-var lastUpgradeWarning *time.Time
-
 func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
 	var ret time.Duration
 	if s == "" {
@@ -469,10 +466,10 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 		g.outOfDateInfo.UpgradeTo = upgradeTo
 		g.outOfDateInfo.UpgradeURI = upgradeURI
 		g.outOfDateInfo.CustomMessage = customMessage
-		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
+		if g.lastUpgradeWarning.IsZero() || now.Sub(*g.lastUpgradeWarning) > 3*time.Minute {
 			// Send the notification after we unlock
 			defer a.G().NotifyRouter.HandleClientOutOfDate(upgradeTo, upgradeURI, customMessage)
-			lastUpgradeWarning = &now
+			*g.lastUpgradeWarning = now
 		}
 		g.oodiMu.Unlock()
 	}
