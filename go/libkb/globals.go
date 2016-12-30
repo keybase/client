@@ -776,7 +776,7 @@ func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
-	arg := NewLoadUserByUIDArg(g, uid)
+	arg := NewLoadUserByUIDArg(nil, g, uid)
 	arg.PublicKeyOptional = true
 	return LoadUser(arg)
 }
@@ -793,7 +793,7 @@ func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, err
 
 func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	if g.CachedUserLoader != nil {
-		g.CachedUserLoader.Invalidate(u)
+		g.CachedUserLoader.Invalidate(g.NetContext, u)
 	}
 }
 

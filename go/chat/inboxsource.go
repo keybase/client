@@ -423,6 +423,7 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationLocal.Info.TlfName = info.CanonicalName
 
 	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
+		ctx,
 		s.G().GetUserDeviceCache(),
 		conversationLocal.Info.TlfName,
 		conversationRemote.Metadata.ActiveList)

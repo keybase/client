@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"golang.org/x/net/context"
 	"sync"
 )
 
@@ -23,17 +24,17 @@ func (l *NamedLock) decref() {
 	l.refs--
 }
 
-func (l *NamedLock) Release() {
-	l.lctx.GetLog().Debug("+ LockTable.Release(%s)", l.name)
+func (l *NamedLock) Release(ctx context.Context) {
+	l.lctx.GetLog().CDebugf(ctx, "+ LockTable.Release(%s)", l.name)
 	l.Unlock()
 	l.parent.Lock()
 	l.decref()
 	if l.refs == 0 {
-		l.lctx.GetLog().Debug("| LockTable.unref(%s)", l.name)
+		l.lctx.GetLog().CDebugf(ctx, "| LockTable.unref(%s)", l.name)
 		delete(l.parent.locks, l.name)
 	}
 	l.parent.Unlock()
-	l.lctx.GetLog().Debug("- LockTable.Unlock(%s)", l.name)
+	l.lctx.GetLog().CDebugf(ctx, "- LockTable.Unlock(%s)", l.name)
 }
 
 type LockTable struct {
@@ -47,8 +48,8 @@ func (t *LockTable) init() {
 	}
 }
 
-func (t *LockTable) AcquireOnName(g LogContext, s string) (ret *NamedLock) {
-	g.GetLog().Debug("+ LockTable.Lock(%s)", s)
+func (t *LockTable) AcquireOnName(ctx context.Context, g LogContext, s string) (ret *NamedLock) {
+	g.GetLog().CDebugf(ctx, "+ LockTable.Lock(%s)", s)
 	t.Lock()
 	t.init()
 	if ret = t.locks[s]; ret == nil {
@@ -58,6 +59,6 @@ func (t *LockTable) AcquireOnName(g LogContext, s string) (ret *NamedLock) {
 	ret.incref()
 	t.Unlock()
 	ret.Lock()
-	g.GetLog().Debug("- LockTable.Lock(%s)", s)
+	g.GetLog().CDebugf(ctx, "- LockTable.Lock(%s)", s)
 	return ret
 }

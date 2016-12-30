@@ -91,8 +91,8 @@ func (h *UserHandler) ListTrackingJSON(_ context.Context, arg keybase1.ListTrack
 	return
 }
 
-func (h *UserHandler) LoadUser(_ context.Context, arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	loadUserArg := libkb.NewLoadUserByUIDArg(h.G(), arg.Uid)
+func (h *UserHandler) LoadUser(ctx context.Context, arg keybase1.LoadUserArg) (user keybase1.User, err error) {
+	loadUserArg := libkb.NewLoadUserByUIDArg(ctx, h.G(), arg.Uid)
 	loadUserArg.PublicKeyOptional = true
 	u, err := libkb.LoadUser(loadUserArg)
 	if err != nil {
@@ -115,8 +115,8 @@ func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByN
 	return
 }
 
-func (h *UserHandler) LoadUserPlusKeys(_ context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
-	return libkb.LoadUserPlusKeys(h.G(), arg.Uid)
+func (h *UserHandler) LoadUserPlusKeys(ctx context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
+	return libkb.LoadUserPlusKeys(ctx, h.G(), arg.Uid)
 }
 
 func (h *UserHandler) Search(_ context.Context, arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {
@@ -165,10 +165,10 @@ func (h *UserHandler) loadPublicKeys(ctx context.Context, larg libkb.LoadUserArg
 	return publicKeys, nil
 }
 
-func (h *UserHandler) LoadAllPublicKeysUnverified(_ context.Context,
+func (h *UserHandler) LoadAllPublicKeysUnverified(ctx context.Context,
 	arg keybase1.LoadAllPublicKeysUnverifiedArg) (keys []keybase1.PublicKey, err error) {
 
-	u, err := libkb.LoadUserFromServer(h.G(), arg.Uid, nil)
+	u, err := libkb.LoadUserFromServer(ctx, h.G(), arg.Uid, nil)
 	if err != nil {
 		return
 	}

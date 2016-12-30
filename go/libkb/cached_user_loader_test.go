@@ -79,20 +79,20 @@ func TestCheckKIDForUID(t *testing.T) {
 	rebeccaUID := keybase1.UID("99337e411d1004050e9e7ee2cf1a6219")
 	rebeccaKIDRevoked := keybase1.KID("0120e177772304cd9ec833ceb88eeb6e32a667151d9e4fb09df433a846d05e6c40350a")
 
-	found, revokedAt, err := tc.G.CachedUserLoader.CheckKIDForUID(georgeUID, georgeKIDSibkey)
+	found, revokedAt, err := tc.G.CachedUserLoader.CheckKIDForUID(nil, georgeUID, georgeKIDSibkey)
 	if !found || (revokedAt != nil) || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
-	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(georgeUID, georgeKIDSubkey)
+	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(nil, georgeUID, georgeKIDSubkey)
 	if !found || (revokedAt != nil) || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
-	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(georgeUID, kbKIDSibkey)
+	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(nil, georgeUID, kbKIDSibkey)
 	if found || (revokedAt != nil) || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
 
-	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(rebeccaUID, rebeccaKIDRevoked)
+	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(nil, rebeccaUID, rebeccaKIDRevoked)
 	if !found || (revokedAt == nil) || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
@@ -141,7 +141,7 @@ func TestLookupUsernameAndDevice(t *testing.T) {
 	test := func() {
 		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 		did := keybase1.DeviceID("e5f7f7ca6b6277de4d2c45f57b767f18")
-		un, name, typ, err := tc.G.CachedUserLoader.LookupUsernameAndDevice(uid, did)
+		un, name, typ, err := tc.G.CachedUserLoader.LookupUsernameAndDevice(nil, uid, did)
 		require.NoError(t, err)
 		require.Equal(t, un.String(), "t_tracy", "tracy was right")
 		require.Equal(t, name, "work", "right device name")
@@ -162,10 +162,10 @@ func TestLookupUsername(t *testing.T) {
 	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
 	defer tc.Cleanup()
 	uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
-	un, err := tc.G.CachedUserLoader.LookupUsername(uid)
+	un, err := tc.G.CachedUserLoader.LookupUsername(nil, uid)
 	require.NoError(t, err)
 	require.Equal(t, un, NewNormalizedUsername("t_tracy"), "tracy came back")
 	badUID := keybase1.UID("eb72f49f2dde6429e5d78003dae0b919")
-	_, err = tc.G.CachedUserLoader.LookupUsername(badUID)
+	_, err = tc.G.CachedUserLoader.LookupUsername(nil, badUID)
 	require.Error(t, err)
 }

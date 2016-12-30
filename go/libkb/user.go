@@ -9,6 +9,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 type UserBasic interface {
@@ -219,15 +220,15 @@ func (u *User) CheckBasicsFreshness(server int64) (current bool, err error) {
 	return
 }
 
-func (u *User) StoreSigChain() error {
+func (u *User) StoreSigChain(ctx context.Context) error {
 	var err error
 	if u.sigChain() != nil {
-		err = u.sigChain().Store()
+		err = u.sigChain().Store(ctx)
 	}
 	return err
 }
 
-func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
+func (u *User) LoadSigChains(ctx context.Context, allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
 	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), u.G().Clock().Now(), u.G().Log.Debug)
 
 	loader := SigChainLoader{
@@ -238,6 +239,7 @@ func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err er
 		chainType:    PublicChain,
 		Contextified: u.Contextified,
 		preload:      u.sigChain(),
+		ctx:          ctx,
 	}
 
 	u.sigChainMem, err = loader.Load()
@@ -246,37 +248,37 @@ func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err er
 	return err
 }
 
-func (u *User) Store() error {
+func (u *User) Store(ctx context.Context) error {
 
-	u.G().Log.Debug("+ Store user %s", u.name)
+	u.G().Log.CDebugf(ctx, "+ Store user %s", u.name)
 
 	// These might be dirty, in which case we can write it back
 	// to local storage. Note, this can be dirty even if the user is clean.
-	if err := u.sigHints.Store(); err != nil {
+	if err := u.sigHints.Store(ctx); err != nil {
 		return err
 	}
 
 	if !u.dirty {
-		u.G().Log.Debug("- Store for %s skipped; user wasn't dirty", u.name)
+		u.G().Log.CDebugf(ctx, "- Store for %s skipped; user wasn't dirty", u.name)
 		return nil
 	}
 
-	if err := u.StoreSigChain(); err != nil {
+	if err := u.StoreSigChain(ctx); err != nil {
 		return err
 	}
 
-	if err := u.StoreTopLevel(); err != nil {
+	if err := u.StoreTopLevel(ctx); err != nil {
 		return err
 	}
 
 	u.dirty = false
-	u.G().Log.Debug("- Store user %s -> OK", u.name)
+	u.G().Log.CDebugf(ctx, "- Store user %s -> OK", u.name)
 
 	return nil
 }
 
-func (u *User) StoreTopLevel() error {
-	u.G().Log.Debug("+ StoreTopLevel")
+func (u *User) StoreTopLevel(ctx context.Context) error {
+	u.G().Log.CDebugf(ctx, "+ StoreTopLevel")
 
 	jw := jsonw.NewDictionary()
 	jw.SetKey("id", UIDWrapper(u.id))
@@ -289,7 +291,7 @@ func (u *User) StoreTopLevel() error {
 		[]DbKey{{Typ: DBLookupUsername, Key: u.name}},
 		jw,
 	)
-	u.G().Log.Debug("- StoreTopLevel -> %s", ErrToOk(err))
+	u.G().Log.CDebugf(ctx, "- StoreTopLevel -> %s", ErrToOk(err))
 	return err
 }
 
@@ -301,9 +303,9 @@ func (u *User) SyncedSecretKey(lctx LoginContext) (ret *SKB, err error) {
 }
 
 func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) {
-	u.G().Log.Debug("+ User.GetSyncedSecretKeyLogin()")
+	u.G().Log.Debug("+ User#GetSyncedSecretKeyLogin()")
 	defer func() {
-		u.G().Log.Debug("- User.GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User#GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
 	}()
 
 	if err = lctx.RunSecretSyncer(u.id); err != nil {
@@ -320,9 +322,9 @@ func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) 
 }
 
 func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
-	u.G().Log.Debug("+ User.GetSyncedSecretKey()")
+	u.G().Log.Debug("+ User#GetSyncedSecretKey()")
 	defer func() {
-		u.G().Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User#GetSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
 	if err = u.SyncSecrets(); err != nil {
@@ -349,9 +351,9 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 // synced to API server.  LoginContext can be nil if this isn't
 // used while logging in, signing up.
 func (u *User) AllSyncedSecretKeys(lctx LoginContext) (keys []*SKB, err error) {
-	u.G().Log.Debug("+ User.AllSyncedSecretKeys()")
+	u.G().Log.Debug("+ User#AllSyncedSecretKeys()")
 	defer func() {
-		u.G().Log.Debug("- User.AllSyncedSecretKey() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User#AllSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
 	if lctx != nil {

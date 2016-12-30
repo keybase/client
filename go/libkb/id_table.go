@@ -1122,7 +1122,7 @@ func (idt *IdentityTable) VerifySelfSig(nun NormalizedUsername, uid keybase1.UID
 			continue
 		}
 		if NewNormalizedUsername(link.GetUsername()).Eq(nun) && link.GetUID().Equal(uid) {
-			G.Log.Debug("| Found self-signature for %s @%s", string(nun),
+			idt.G().Log.Debug("| Found self-signature for %s @%s", string(nun),
 				link.ToDebugString())
 			return true
 		}
