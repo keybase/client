@@ -137,13 +137,13 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, error) {
 	url1.RawQuery = arg.getHTTPArgs().Encode()
 	ruri := url1.String()
-	api.G().Log.Debug("+ API GET request to %s", ruri)
+	api.G().Log.CDebugf(arg.NetContext, "+ API GET request to %s", ruri)
 	return http.NewRequest("GET", ruri, nil)
 }
 
 func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
 	ruri := url1.String()
-	api.G().Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
+	api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("+ API Post request to %s", ruri))
 
 	var body io.Reader
 
@@ -193,7 +193,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	dbg := func(s string) {
-		api.G().Log.Debug(fmt.Sprintf("| doRequestShared(%s) for %s", s, arg.Endpoint))
+		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| doRequestShared(%s) for %s", s, arg.Endpoint))
 	}
 
 	dbg("fixHeaders")
@@ -210,7 +210,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if api.G().Env.GetAPIDump() {
 		jpStr, _ := json.MarshalIndent(arg.JSONPayload, "", "  ")
 		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-		api.G().Log.Debug(fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
+		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
 	}
 
 	timer := api.G().Timers.Start(timerType)
@@ -230,7 +230,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if err != nil {
 		return nil, nil, APINetError{err: err}
 	}
-	api.G().Log.Debug(fmt.Sprintf("| Result is: %s", internalResp.Status))
+	api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| Result is: %s", internalResp.Status))
 
 	// The server sends "client version out of date" messages through the API
 	// headers. If the client is *really* out of date, the request status will
@@ -260,7 +260,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		jw = jsonw.NewWrapper(obj)
 		if api.G().Env.GetAPIDump() {
 			b, _ := json.MarshalIndent(obj, "", "  ")
-			api.G().Log.Debug(fmt.Sprintf("| full reply: %s", b))
+			api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| full reply: %s", b))
 		}
 	}
 
@@ -293,7 +293,7 @@ func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.
 	var lastErr error
 	for i := 0; i < retries; i++ {
 		if i > 0 {
-			g.G().Log.Debug("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
+			g.G().Log.CDebugf(arg.NetContext, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
 		resp, err := doTimeout(cli, req, timeout)
 		if err == nil {
@@ -546,7 +546,7 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 	if !loggedIn {
 		return nil
 	}
-	a.G().Log.Debug("local session -> is logged in, remote -> not logged in.  invalidating local session:")
+	a.G().Log.CDebugf(arg.NetContext, "local session -> is logged in, remote -> not logged in.  invalidating local session:")
 	if arg.SessionR != nil {
 		arg.SessionR.Invalidate()
 	} else {
@@ -675,12 +675,12 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 	// http.AppStatus
 	appStatus, err := a.checkAppStatusFromJSONWrapper(arg, status)
 	if err != nil {
-		a.G().Log.Debug("- API call %s error: %s", arg.Endpoint, err)
+		a.G().Log.CDebugf(arg.NetContext, "- API call %s error: %s", arg.Endpoint, err)
 		return nil, err
 	}
 
 	body := jw
-	a.G().Log.Debug("- API call %s success", arg.Endpoint)
+	a.G().Log.CDebugf(arg.NetContext, "- API call %s success", arg.Endpoint)
 	return &APIRes{status, body, resp.StatusCode, appStatus}, err
 }
 

@@ -454,10 +454,15 @@ type APIContext interface {
 	GetServerURI() string
 }
 
+type NetContext interface {
+	GetNetContext() context.Context
+}
+
 // ProofContext defines features needed by the proof system
 type ProofContext interface {
 	LogContext
 	APIContext
+	NetContext
 }
 
 type AssertionContext interface {

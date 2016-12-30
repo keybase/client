@@ -239,7 +239,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 
 		e.G().Log.Info("i:%v user:%v type:%v sigid:%v", i, rec["username"], rec["proof_type"], rec["sig_id"])
 
-		err := e.ProcessOne(i, rec, cache, ignored, tickers)
+		err := e.ProcessOne(ctx, i, rec, cache, ignored, tickers)
 		nrun++
 		if err == nil {
 			e.G().Log.Info("Ok\n")
@@ -273,7 +273,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanProofsCache, ignored []string, tickers ScanProofsTickers) error {
+func (e *ScanProofsEngine) ProcessOne(ctx *Context, i int, rec map[string]string, cache *ScanProofsCache, ignored []string, tickers ScanProofsTickers) error {
 	serverstate, err := strconv.Atoi(rec["state"])
 	if err != nil {
 		return fmt.Errorf("Could not read server state: %v", err)
@@ -332,7 +332,7 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 	}
 
 	deluserstr := "Error loading user: Deleted"
-	perr1, foundhint1, err := e.CheckOne(rec, false, tickers)
+	perr1, foundhint1, err := e.CheckOne(ctx, rec, false, tickers)
 	if err != nil {
 		if err.Error() == deluserstr {
 			e.G().Log.Info("deleted user")
@@ -341,7 +341,7 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 		return err
 	}
 	// Skip the rate limit on the second check.
-	perr2, foundhint2, err := e.CheckOne(rec, true, nil)
+	perr2, foundhint2, err := e.CheckOne(ctx, rec, true, nil)
 	if err != nil {
 		return err
 	}
@@ -366,12 +366,12 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 
 // CheckOne checks one proof using two checkers (default, pvl).
 // Returns nil or an error, whether a hint was found, and any more serious error
-func (e *ScanProofsEngine) CheckOne(rec map[string]string, forcepvl bool, tickers ScanProofsTickers) (libkb.ProofError, bool, error) {
+func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, forcepvl bool, tickers ScanProofsTickers) (libkb.ProofError, bool, error) {
 	uid := keybase1.UID(rec["uid"])
 	sigid := keybase1.SigID(rec["sig_id"])
 
 	foundhint := false
-	hint, err := e.GetSigHint(uid, sigid)
+	hint, err := e.GetSigHint(ctx, uid, sigid)
 	if err != nil {
 		return nil, foundhint, err
 	}
@@ -380,7 +380,7 @@ func (e *ScanProofsEngine) CheckOne(rec map[string]string, forcepvl bool, ticker
 	}
 	foundhint = true
 
-	link, err := e.GetRemoteProofChainLink(uid, sigid)
+	link, err := e.GetRemoteProofChainLink(ctx, uid, sigid)
 	if err != nil {
 		return nil, foundhint, err
 	}
@@ -417,8 +417,8 @@ func (e *ScanProofsEngine) CheckOne(rec map[string]string, forcepvl bool, ticker
 }
 
 // GetSigHint gets the SigHint. This can return (nil, nil) if nothing goes wrong but there is no hint.
-func (e *ScanProofsEngine) GetSigHint(uid keybase1.UID, sigid keybase1.SigID) (*libkb.SigHint, error) {
-	sighints, err := libkb.LoadAndRefreshSigHints(uid, e.G())
+func (e *ScanProofsEngine) GetSigHint(ctx *Context, uid keybase1.UID, sigid keybase1.SigID) (*libkb.SigHint, error) {
+	sighints, err := libkb.LoadAndRefreshSigHints(ctx.GetNetContext(), uid, e.G())
 	if err != nil {
 		return nil, err
 	}
@@ -430,8 +430,8 @@ func (e *ScanProofsEngine) GetSigHint(uid keybase1.UID, sigid keybase1.SigID) (*
 	return sighint, nil
 }
 
-func (e *ScanProofsEngine) GetRemoteProofChainLink(uid keybase1.UID, sigid keybase1.SigID) (libkb.RemoteProofChainLink, error) {
-	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(e.G(), uid))
+func (e *ScanProofsEngine) GetRemoteProofChainLink(ctx *Context, uid keybase1.UID, sigid keybase1.SigID) (libkb.RemoteProofChainLink, error) {
+	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), uid))
 	if err != nil {
 		return nil, fmt.Errorf("Error loading user: %v", err)
 	}

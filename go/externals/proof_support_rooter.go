@@ -153,7 +153,7 @@ func (rc *RooterChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint)
 	}
 	ctx.GetLog().Debug("| URL after rewriter is: %s", url)
 
-	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArg(url))
+	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), url))
 
 	if err != nil {
 		perr = libkb.XapiError(err, url)
