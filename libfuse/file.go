@@ -5,6 +5,7 @@
 package libfuse
 
 import (
+	"os"
 	"sync"
 
 	"bazil.org/fuse"
@@ -107,6 +108,52 @@ func (f *File) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	}
 
 	return f.fillAttrWithMode(ctx, &de, a)
+}
+
+var _ fs.NodeAccesser = (*File)(nil)
+
+// Access implements the fs.NodeAccesser interface for File. This is necessary
+// for macOS to correctly identify plaintext files as plaintext. If not
+// implemented, bazil-fuse returns a nil error for every call, so when macOS
+// checks for executable bit using Access (instead of Attr!), it gets a
+// success, which makes it think the file is executable, yielding a "Unix
+// executable" UTI.
+func (f *File) Access(ctx context.Context, r *fuse.AccessRequest) error {
+	if int(r.Uid) != os.Getuid() {
+		// short path: not accessible by anybody other than the logged in user.
+		// This is in case we enable AllowOther in the future.
+		return fuse.EPERM
+	}
+
+	if r.Mask&03 == 0 {
+		// Since we only check for w and x bits, we can return nil early here.
+		return nil
+	}
+
+	if r.Mask&01 != 0 {
+		ei, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
+		if err != nil {
+			if isNoSuchNameError(err) {
+				return fuse.ESTALE
+			}
+			return err
+		}
+		if ei.Type != libkbfs.Exec {
+			return fuse.EPERM
+		}
+	}
+
+	if r.Mask&02 != 0 {
+		iw, err := f.folder.isWriter(ctx)
+		if err != nil {
+			return err
+		}
+		if !iw {
+			return fuse.EPERM
+		}
+	}
+
+	return nil
 }
 
 var _ fs.NodeFsyncer = (*File)(nil)

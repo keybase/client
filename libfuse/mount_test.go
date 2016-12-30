@@ -146,7 +146,7 @@ func TestStatRoot(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `dr-xr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `dr-x------`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }
@@ -164,7 +164,7 @@ func TestStatPrivate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `dr-xr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `dr-x------`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }
@@ -182,7 +182,7 @@ func TestStatPublic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `dr-xr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `dr-x------`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }
@@ -335,7 +335,7 @@ func TestStatMyPublic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `drwxr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `drwx------`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }
@@ -2048,7 +2048,7 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	}
 	// TODO figure out right modes, note owner is the person running
 	// fuse, not the person owning the folder
-	if g, e := fi.Mode().String(), `dr-xr-xr-x`; g != e {
+	if g, e := fi.Mode().String(), `dr-x------`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
 	}
 }
