@@ -14,7 +14,7 @@ func TestLoadUserPlusKeys(t *testing.T) {
 
 	// this is kind of pointless as there is no cache anymore
 	for i := 0; i < 10; i++ {
-		u, err := LoadUserPlusKeys(tc.G, "295a7eea607af32040647123732bc819")
+		u, err := LoadUserPlusKeys(nil, tc.G, "295a7eea607af32040647123732bc819")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -27,7 +27,7 @@ func TestLoadUserPlusKeys(t *testing.T) {
 	}
 
 	for _, uid := range []keybase1.UID{"295a7eea607af32040647123732bc819", "afb5eda3154bc13c1df0189ce93ba119", "9d56bd0c02ac2711e142faf484ea9519", "c4c565570e7e87cafd077509abf5f619", "561247eb1cc3b0f5dc9d9bf299da5e19"} {
-		_, err := LoadUserPlusKeys(tc.G, uid)
+		_, err := LoadUserPlusKeys(nil, tc.G, uid)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -39,7 +39,7 @@ func TestLoadUserPlusKeysNoKeys(t *testing.T) {
 	defer tc.Cleanup()
 
 	// t_ellen has no keys.  There should be no error loading her.
-	u, err := LoadUserPlusKeys(tc.G, "561247eb1cc3b0f5dc9d9bf299da5e19")
+	u, err := LoadUserPlusKeys(nil, tc.G, "561247eb1cc3b0f5dc9d9bf299da5e19")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestRevokedKeys(t *testing.T) {
 	tc := SetupTest(t, "revoked keys", 1)
 	defer tc.Cleanup()
 
-	u, err := LoadUserPlusKeys(tc.G, "ff261e3b26543a24ba6c0693820ead19")
+	u, err := LoadUserPlusKeys(nil, tc.G, "ff261e3b26543a24ba6c0693820ead19")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func BenchmarkLoadSigChains(b *testing.B) {
 	u.sigChainMem = nil
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err = u.LoadSigChains(true, &u.leaf, false); err != nil {
+		if err = u.LoadSigChains(nil, true, &u.leaf, false); err != nil {
 			b.Fatal(err)
 		}
 		u.sigChainMem = nil
@@ -103,7 +103,7 @@ func BenchmarkLoadUserPlusKeys(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := LoadUserPlusKeys(tc.G, uid)
+		_, err := LoadUserPlusKeys(nil, tc.G, uid)
 		if err != nil {
 			b.Fatal(err)
 		}

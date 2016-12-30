@@ -55,7 +55,7 @@ func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) li
 }
 
 func (rc *GithubChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
+	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), h.GetAPIURL()))
 
 	if err != nil {
 		return libkb.XapiError(err, h.GetAPIURL())

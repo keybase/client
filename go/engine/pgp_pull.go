@@ -170,7 +170,7 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 	}
 	// with more plumbing, there is likely a more efficient way to get this identified user out
 	// of the identify2 engine, but `pgp pull` is not likely to be called often.
-	arg := libkb.NewLoadUserByUIDArg(e.G(), idRes.Upk.Uid)
+	arg := libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), idRes.Upk.Uid)
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		return err

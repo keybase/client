@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"golang.org/x/net/context"
 )
 
 type ShutdownHook func() error
@@ -42,7 +43,7 @@ type GlobalContext struct {
 	Log               logger.Logger  // Handles all logging
 	VDL               *VDebugLog     // verbose debug log
 	Env               *Env           // Env variables, cmdline args & config
-	SKBKeyringMu      sync.Mutex     // Protects all attempts to mutate the SKBKeyringFile
+	SKBKeyringMu      *sync.Mutex    // Protects all attempts to mutate the SKBKeyringFile
 	Keyrings          *Keyrings      // Gpg Keychains holding keys
 	API               API            // How to make a REST call to the server
 	Resolver          *Resolver      // cache of resolve results
@@ -55,7 +56,7 @@ type GlobalContext struct {
 	GpgClient         *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
 	SocketInfo        Socket         // which socket to bind/connect to
-	socketWrapperMu   sync.RWMutex
+	socketWrapperMu   *sync.RWMutex
 	SocketWrapper     *SocketWrapper     // only need one connection per
 	LoopbackListener  *LoopbackListener  // If we're in loopback mode, we'll connect through here
 	XStreams          *ExportedStreams   // a table of streams we've exported to the daemon (or vice-versa)
@@ -65,8 +66,8 @@ type GlobalContext struct {
 	LinkCache         *LinkCache         // cache of ChainLinks
 	UI                UI                 // Interact with the UI
 	Service           bool               // whether we're in server mode
-	shutdownOnce      sync.Once          // whether we've shut down or not
-	loginStateMu      sync.RWMutex       // protects loginState pointer, which gets destroyed on logout
+	shutdownOnce      *sync.Once         // whether we've shut down or not
+	loginStateMu      *sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState        *LoginState        // What phase of login the user's in
 	ConnectionManager *ConnectionManager // keep tabs on all active client connections
 	NotifyRouter      *NotifyRouter      // How to route notifications
@@ -76,19 +77,19 @@ type GlobalContext struct {
 	Services         ExternalServicesCollector // All known external services
 	ExitCode         keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits       *RateLimits               // tracks the last time certain actions were taken
-	clockMu          sync.Mutex                // protects Clock
+	clockMu          *sync.Mutex               // protects Clock
 	clock            clockwork.Clock           // RealClock unless we're testing
 	SecretStoreAll   *SecretStoreLocked        // nil except for tests and supported platforms
-	hookMu           sync.RWMutex              // protects loginHooks, logoutHooks
+	hookMu           *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks       []LoginHook               // call these on login
 	logoutHooks      []LogoutHook              // call these on logout
 	GregorDismisser  GregorDismisser           // for dismissing gregor items that we've handled
 	GregorListener   GregorListener            // for alerting about clients connecting and registering UI protocols
-	OutOfDateInfo    keybase1.OutOfDateInfo    // Stores out of date messages we got from API server headers.
+	OutOfDateInfo    *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
 	CachedUserLoader *CachedUserLoader         // Load flat users with the ability to hit the cache
 	UserDeviceCache  *UserDeviceCache          // Cache user and device names forever
 
-	uchMu               sync.Mutex           // protects the UserChangedHandler array
+	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 
 	CardCache *UserCardCache // cache of keybase1.UserCard objects
@@ -103,6 +104,8 @@ type GlobalContext struct {
 
 	// Options specified for testing only
 	TestOptions GlobalTestOptions
+
+	NetContext context.Context
 }
 
 type GlobalTestOptions struct {
@@ -116,15 +119,40 @@ func (g *GlobalContext) GetServerURI() string                   { return g.Env.G
 func (g *GlobalContext) GetCachedUserLoader() *CachedUserLoader { return g.CachedUserLoader }
 func (g *GlobalContext) GetUserDeviceCache() *UserDeviceCache   { return g.UserDeviceCache }
 func (g *GlobalContext) GetMerkleClient() *MerkleClient         { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context         { return g.NetContext }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	return &GlobalContext{
-		Log:          log,
-		VDL:          NewVDebugLog(log),
-		clock:        clockwork.NewRealClock(),
-		NewTriplesec: NewSecureTriplesec,
+		Log:             log,
+		VDL:             NewVDebugLog(log),
+		SKBKeyringMu:    new(sync.Mutex),
+		socketWrapperMu: new(sync.RWMutex),
+		shutdownOnce:    new(sync.Once),
+		loginStateMu:    new(sync.RWMutex),
+		clockMu:         new(sync.Mutex),
+		clock:           clockwork.NewRealClock(),
+		hookMu:          new(sync.RWMutex),
+		OutOfDateInfo:   &keybase1.OutOfDateInfo{},
+		uchMu:           new(sync.Mutex),
+		NewTriplesec:    NewSecureTriplesec,
+		NetContext:      context.TODO(),
 	}
+}
+
+func (g *GlobalContext) CloneWithNetContextAndNewLogger(netCtx context.Context) *GlobalContext {
+	tmp := *g
+	// For legacy code that doesn't thread contexts through to logging properly,
+	// change the underlying logger.
+	tmp.Log = logger.NewSingleContextLogger(netCtx, g.Log)
+	tmp.NetContext = netCtx
+	return &tmp
+}
+
+func (g *GlobalContext) CloneWithNetContext(netCtx context.Context) *GlobalContext {
+	tmp := *g
+	tmp.NetContext = netCtx
+	return &tmp
 }
 
 var G *GlobalContext
@@ -753,7 +781,7 @@ func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
-	arg := NewLoadUserByUIDArg(g, uid)
+	arg := NewLoadUserByUIDArg(nil, g, uid)
 	arg.PublicKeyOptional = true
 	return LoadUser(arg)
 }
@@ -761,7 +789,7 @@ func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, error) {
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
-	leaf, err := g.MerkleClient.LookupUser(q, nil)
+	leaf, err := g.MerkleClient.LookupUser(g.NetContext, q, nil)
 	if err != nil {
 		return NormalizedUsername(""), err
 	}
@@ -770,7 +798,7 @@ func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, err
 
 func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	if g.CachedUserLoader != nil {
-		g.CachedUserLoader.Invalidate(u)
+		g.CachedUserLoader.Invalidate(g.NetContext, u)
 	}
 }
 

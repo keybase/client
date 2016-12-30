@@ -67,7 +67,7 @@ export default connect(
           messages: conversationState.messages,
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,
-          validated: selected.validated,
+          validated: selected && selected.validated,
           firstNewMessageID: conversationState.firstNewMessageID,
           selectedConversation,
           emojiPickerOpen: false,

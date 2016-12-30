@@ -9,6 +9,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 type udCacheKey struct {
@@ -62,20 +63,20 @@ func (c *UserDeviceCache) lookup(cKey udCacheKey, filler udFiller) (udCacheValue
 }
 
 // LookupUsernameAndDevice first checks the cache and then falls through to the CachedUserLoader.
-func (c *UserDeviceCache) LookupUsernameAndDevice(uid keybase1.UID, deviceID keybase1.DeviceID) (username string, deviceName string, deviceType string, err error) {
+func (c *UserDeviceCache) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username string, deviceName string, deviceType string, err error) {
 	cKey := udCacheKey{
 		UID:        uid,
 		WithDevice: true,
 		DeviceID:   deviceID,
 	}
-	c.G().Log.Debug("+ UserDeviceCache#LookupUsernameAndDevice(%v, %v)", uid, deviceID)
+	c.G().Log.CDebugf(ctx, "+ UserDeviceCache#LookupUsernameAndDevice(%v, %v)", uid, deviceID)
 	val, err := c.lookup(cKey, func() (udCacheValue, error) {
 		cachedUserLoader := c.G().GetCachedUserLoader()
 		if cachedUserLoader == nil {
 			return udCacheValue{}, fmt.Errorf("no CachedUserLoader available in context")
 		}
 
-		un, deviceName, deviceType, err := cachedUserLoader.LookupUsernameAndDevice(uid, deviceID)
+		un, deviceName, deviceType, err := cachedUserLoader.LookupUsernameAndDevice(ctx, uid, deviceID)
 		if err != nil {
 			return udCacheValue{}, err
 		}
@@ -90,18 +91,18 @@ func (c *UserDeviceCache) LookupUsernameAndDevice(uid keybase1.UID, deviceID key
 }
 
 // LookupUsername first checks the cache and then falls through to the CachedUserLoader.
-func (c *UserDeviceCache) LookupUsername(uid keybase1.UID) (username string, err error) {
+func (c *UserDeviceCache) LookupUsername(ctx context.Context, uid keybase1.UID) (username string, err error) {
 	cKey := udCacheKey{
 		UID:        uid,
 		WithDevice: false,
 	}
-	c.G().Log.Debug("+ UserDeviceCache#LookupUsername(%v)", uid)
+	c.G().Log.CDebugf(ctx, "+ UserDeviceCache#LookupUsername(%v)", uid)
 	val, err := c.lookup(cKey, func() (udCacheValue, error) {
 		cachedUserLoader := c.G().GetCachedUserLoader()
 		if cachedUserLoader == nil {
 			return udCacheValue{}, fmt.Errorf("no CachedUserLoader available in context")
 		}
-		un, err := cachedUserLoader.LookupUsername(uid)
+		un, err := cachedUserLoader.LookupUsername(ctx, uid)
 		if err != nil {
 			return udCacheValue{}, err
 		}

@@ -299,7 +299,7 @@ func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) e
 }
 
 func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybase1.OutOfDateInfo, error) {
-	return h.G().OutOfDateInfo, nil
+	return *h.G().OutOfDateInfo, nil
 }
 
 func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClientArg) (bool, error) {
