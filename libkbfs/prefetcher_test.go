@@ -112,7 +112,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 		makeFakeIndirectDirPtr(t, "b"),
 	}
 	ptr1 := makeFakeBlockPointer(t)
-	block1 := &DirBlock{IPtrs: ptrs}
+	block1 := &DirBlock{IPtrs: ptrs, Children: make(map[string]DirEntry)}
 	block1.IsInd = true
 	block2 := makeFakeDirBlock(t, "a")
 	block3 := makeFakeDirBlock(t, "b")
@@ -121,7 +121,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	_, continueCh2 := bg.setBlockToReturn(ptrs[0].BlockPointer, block2)
 	_, continueCh3 := bg.setBlockToReturn(ptrs[1].BlockPointer, block3)
 
-	var block Block = &DirBlock{}
+	var block Block = NewDirBlock()
 	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, makeKMD(), ptr1, block, TransientEntry)
 	continueCh1 <- nil
 	err := <-ch
