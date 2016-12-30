@@ -119,6 +119,7 @@ func (g *GlobalContext) GetServerURI() string                   { return g.Env.G
 func (g *GlobalContext) GetCachedUserLoader() *CachedUserLoader { return g.CachedUserLoader }
 func (g *GlobalContext) GetUserDeviceCache() *UserDeviceCache   { return g.UserDeviceCache }
 func (g *GlobalContext) GetMerkleClient() *MerkleClient         { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context         { return g.NetContext }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -139,14 +140,18 @@ func NewGlobalContext() *GlobalContext {
 	}
 }
 
-func (g *GlobalContext) CloneWithNewNetContext(netCtx context.Context) *GlobalContext {
+func (g *GlobalContext) CloneWithNetContextAndNewLogger(netCtx context.Context) *GlobalContext {
 	tmp := *g
-
 	// For legacy code that doesn't thread contexts through to logging properly,
 	// change the underlying logger.
 	tmp.Log = logger.NewSingleContextLogger(netCtx, g.Log)
 	tmp.NetContext = netCtx
+	return &tmp
+}
 
+func (g *GlobalContext) CloneWithNetContext(netCtx context.Context) *GlobalContext {
+	tmp := *g
+	tmp.NetContext = netCtx
 	return &tmp
 }
 

@@ -29,6 +29,13 @@ func NewAPIArg(endpoint string) APIArg {
 	}
 }
 
+func NewAPIArgWithNetContext(ctx context.Context, endpoint string) APIArg {
+	return APIArg{
+		NetContext: ctx,
+		Endpoint:   endpoint,
+	}
+}
+
 // NewRetryAPIArg creates an APIArg that will cause the http client
 // to use a much smaller request timeout, but retry the request
 // several times, backing off on the timeout each time.
