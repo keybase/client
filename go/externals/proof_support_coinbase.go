@@ -58,7 +58,7 @@ func (rc *CoinbaseChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) 
 
 func (rc *CoinbaseChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	url := h.GetAPIURL()
-	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
+	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), url))
 	if err != nil {
 		return libkb.XapiError(err, url)
 	}
@@ -121,7 +121,7 @@ func (t CoinbaseServiceType) GetPrompt() string {
 }
 
 func (t CoinbaseServiceType) PreProofCheck(ctx libkb.ProofContext, normalizedUsername string) (*libkb.Markup, error) {
-	_, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(coinbaseUserURL(normalizedUsername)))
+	_, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), coinbaseUserURL(normalizedUsername)))
 	if err != nil {
 		if ae, ok := err.(*libkb.APIError); ok && ae.Code == 404 {
 			err = libkb.NewProfileNotPublicError(fmt.Sprintf("%s isn't public! Change your settings at %s",

@@ -73,7 +73,7 @@ func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHi
 }
 
 func (h *HackerNewsChecker) CheckStatusOld(ctx libkb.ProofContext, hint libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(hint.GetAPIURL()))
+	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), hint.GetAPIURL()))
 
 	if err != nil {
 		return libkb.XapiError(err, hint.GetAPIURL())
@@ -101,7 +101,7 @@ func (h *HackerNewsChecker) CheckStatusOld(ctx libkb.ProofContext, hint libkb.Si
 
 func CheckKarma(ctx libkb.ProofContext, un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArg(u))
+	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), u))
 	if err != nil {
 		return 0, libkb.XapiError(err, u)
 	}
