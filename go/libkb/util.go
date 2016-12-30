@@ -426,7 +426,6 @@ func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool)
 	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
 }
 
-
 func (g *GlobalContext) Trace(msg string, f func() error) func() {
 	return Trace(g.Log, msg, f)
 }

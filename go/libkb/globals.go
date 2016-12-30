@@ -85,7 +85,8 @@ type GlobalContext struct {
 	logoutHooks      []LogoutHook              // call these on logout
 	GregorDismisser  GregorDismisser           // for dismissing gregor items that we've handled
 	GregorListener   GregorListener            // for alerting about clients connecting and registering UI protocols
-	OutOfDateInfo    *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
+	oodiMu           *sync.RWMutex             // For manipluating the OutOfDateInfo
+	outOfDateInfo    *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
 	CachedUserLoader *CachedUserLoader         // Load flat users with the ability to hit the cache
 	UserDeviceCache  *UserDeviceCache          // Cache user and device names forever
 
@@ -133,7 +134,8 @@ func NewGlobalContext() *GlobalContext {
 		clockMu:         new(sync.Mutex),
 		clock:           clockwork.NewRealClock(),
 		hookMu:          new(sync.RWMutex),
-		OutOfDateInfo:   &keybase1.OutOfDateInfo{},
+		oodiMu:          new(sync.RWMutex),
+		outOfDateInfo:   &keybase1.OutOfDateInfo{},
 		uchMu:           new(sync.Mutex),
 		NewTriplesec:    NewSecureTriplesec,
 		NetContext:      context.TODO(),
@@ -806,6 +808,13 @@ func (g *GlobalContext) AddUserChangedHandler(h UserChangedHandler) {
 	g.uchMu.Lock()
 	g.UserChangedHandlers = append(g.UserChangedHandlers, h)
 	g.uchMu.Unlock()
+}
+
+func (g *GlobalContext) GetOutOfDateInfo() keybase1.OutOfDateInfo {
+	g.oodiMu.RLock()
+	ret := *g.outOfDateInfo
+	g.oodiMu.RUnlock()
+	return ret
 }
 
 func (g *GlobalContext) UserChanged(u keybase1.UID) {

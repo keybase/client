@@ -433,15 +433,16 @@ func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
 // to set this every time.
 func (a *InternalAPIEngine) updateCriticalClockSkewWarning(resp *http.Response) {
 
-	lastUpgradeWarningMu.RLock()
+	g := a.G()
+	g.oodiMu.RLock()
 	criticalClockSkew := int64(computeCriticalClockSkew(a.G(), resp.Header.Get("Date")))
-	needUpdate := (criticalClockSkew != a.G().OutOfDateInfo.CriticalClockSkew)
-	lastUpgradeWarningMu.RUnlock()
+	needUpdate := (criticalClockSkew != a.G().outOfDateInfo.CriticalClockSkew)
+	g.oodiMu.RUnlock()
 
 	if needUpdate {
-		lastUpgradeWarningMu.Lock()
-		a.G().OutOfDateInfo.CriticalClockSkew = criticalClockSkew
-		lastUpgradeWarningMu.Unlock()
+		g.oodiMu.Lock()
+		g.outOfDateInfo.CriticalClockSkew = criticalClockSkew
+		g.oodiMu.Unlock()
 	}
 }
 
@@ -463,16 +464,17 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 
 	if len(upgradeTo) > 0 || len(customMessage) > 0 {
 		now := time.Now()
-		lastUpgradeWarningMu.Lock()
-		a.G().OutOfDateInfo.UpgradeTo = upgradeTo
-		a.G().OutOfDateInfo.UpgradeURI = upgradeURI
-		a.G().OutOfDateInfo.CustomMessage = customMessage
+		g := a.G()
+		g.oodiMu.Lock()
+		g.outOfDateInfo.UpgradeTo = upgradeTo
+		g.outOfDateInfo.UpgradeURI = upgradeURI
+		g.outOfDateInfo.CustomMessage = customMessage
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
 			// Send the notification after we unlock
 			defer a.G().NotifyRouter.HandleClientOutOfDate(upgradeTo, upgradeURI, customMessage)
 			lastUpgradeWarning = &now
 		}
-		lastUpgradeWarningMu.Unlock()
+		g.oodiMu.Unlock()
 	}
 	return
 }
