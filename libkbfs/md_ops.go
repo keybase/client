@@ -13,8 +13,11 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 // MDOpsStandard provides plaintext RootMetadata objects to upper
@@ -133,7 +136,7 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 					return err
 				}
 
-				err = md.config.Crypto().Verify(
+				err = kbfscrypto.Verify(
 					buf, rmds.GetWriterMetadataSigInfo())
 				if err != nil {
 					return fmt.Errorf("Could not verify "+
@@ -370,61 +373,43 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 		return nil, nil
 	}
 
-	var wg sync.WaitGroup
-	numWorkers := len(rmdses)
-	if numWorkers > maxMDsAtATime {
-		numWorkers = maxMDsAtATime
-	}
-	wg.Add(numWorkers)
+	eg, groupCtx := errgroup.WithContext(ctx)
 
 	// Parallelize the MD decryption, because it could involve
 	// fetching blocks to get unembedded block changes.
 	rmdsChan := make(chan *RootMetadataSigned, len(rmdses))
 	irmdChan := make(chan ImmutableRootMetadata, len(rmdses))
-	errChan := make(chan error, 1)
 	var getRangeLock sync.Mutex
-	worker := func() {
-		defer wg.Done()
+	worker := func() error {
 		for rmds := range rmdsChan {
-			extra, err := md.getExtraMD(ctx, rmds.MD)
+			extra, err := md.getExtraMD(groupCtx, rmds.MD)
 			if err != nil {
-				select {
-				case errChan <- err:
-				default:
-				}
-				return
+				return err
 			}
 			bareHandle, err := rmds.MD.MakeBareTlfHandle(extra)
 			if err != nil {
-				select {
-				case errChan <- err:
-				default:
-				}
-				return
+				return err
 			}
-			handle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
+			handle, err := MakeTlfHandle(groupCtx, bareHandle, md.config.KBPKI())
 			if err != nil {
-				select {
-				case errChan <- err:
-				default:
-				}
-				return
+				return err
 			}
-			irmd, err := md.processMetadataWithID(ctx, id, bid,
+			irmd, err := md.processMetadataWithID(groupCtx, id, bid,
 				handle, rmds, extra, &getRangeLock)
 			if err != nil {
-				select {
-				case errChan <- err:
-				default:
-				}
-				return
+				return err
 			}
 			irmdChan <- irmd
 		}
+		return nil
 	}
 
+	numWorkers := len(rmdses)
+	if numWorkers > maxMDsAtATime {
+		numWorkers = maxMDsAtATime
+	}
 	for i := 0; i < numWorkers; i++ {
-		go worker()
+		eg.Go(worker)
 	}
 
 	// Do this first, since processMetadataWithID consumes its
@@ -437,15 +422,11 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 	}
 	close(rmdsChan)
 	rmdses = nil
-	go func() {
-		wg.Wait()
-		close(errChan)
-		close(irmdChan)
-	}()
-	err := <-errChan
+	err := eg.Wait()
 	if err != nil {
 		return nil, err
 	}
+	close(irmdChan)
 
 	// Sort into slice based on revision.
 	irmds := make([]ImmutableRootMetadata, rmdsCount)
@@ -596,7 +577,7 @@ func (md *MDOpsStandard) PruneBranch(
 
 // ResolveBranch implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) ResolveBranch(
-	ctx context.Context, id tlf.ID, bid BranchID, _ []BlockID,
+	ctx context.Context, id tlf.ID, bid BranchID, _ []kbfsblock.ID,
 	rmd *RootMetadata) (MdID, error) {
 	// Put the MD first.
 	mdID, err := md.Put(ctx, rmd)
@@ -659,7 +640,7 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 		return nil, err
 	}
 	// Cache the results.
-	kbcache.PutTLFWriterKeyBundle(tlf, wkbID, wkb)
-	kbcache.PutTLFReaderKeyBundle(tlf, rkbID, rkb)
+	kbcache.PutTLFWriterKeyBundle(tlf, wkbID, *wkb)
+	kbcache.PutTLFReaderKeyBundle(tlf, rkbID, *rkb)
 	return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 }

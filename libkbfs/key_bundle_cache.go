@@ -39,8 +39,8 @@ func (k *KeyBundleCacheStandard) GetTLFReaderKeyBundle(
 	tlf tlf.ID, bundleID TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error) {
 	cacheKey := keyBundleCacheKey{tlf, bundleID.String(), false}
 	if entry, ok := k.lru.Get(cacheKey); ok {
-		if rkb, ok := entry.(*TLFReaderKeyBundleV3); ok {
-			return rkb, nil
+		if rkb, ok := entry.(TLFReaderKeyBundleV3); ok {
+			return &rkb, nil
 		}
 		// Shouldn't be possible.
 		return nil, errors.New("Invalid key bundle type")
@@ -53,8 +53,8 @@ func (k *KeyBundleCacheStandard) GetTLFWriterKeyBundle(
 	tlf tlf.ID, bundleID TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error) {
 	cacheKey := keyBundleCacheKey{tlf, bundleID.String(), true}
 	if entry, ok := k.lru.Get(cacheKey); ok {
-		if rkb, ok := entry.(*TLFWriterKeyBundleV3); ok {
-			return rkb, nil
+		if wkb, ok := entry.(TLFWriterKeyBundleV3); ok {
+			return &wkb, nil
 		}
 		// Shouldn't be possible.
 		return nil, errors.New("Invalid key bundle type")
@@ -64,14 +64,14 @@ func (k *KeyBundleCacheStandard) GetTLFWriterKeyBundle(
 
 // PutTLFReaderKeyBundle implements the KeyBundleCache interface for KeyBundleCacheStandard.
 func (k *KeyBundleCacheStandard) PutTLFReaderKeyBundle(
-	tlf tlf.ID, bundleID TLFReaderKeyBundleID, rkb *TLFReaderKeyBundleV3) {
+	tlf tlf.ID, bundleID TLFReaderKeyBundleID, rkb TLFReaderKeyBundleV3) {
 	cacheKey := keyBundleCacheKey{tlf, bundleID.String(), false}
 	k.lru.Add(cacheKey, rkb)
 }
 
 // PutTLFWriterKeyBundle implements the KeyBundleCache interface for KeyBundleCacheStandard.
 func (k *KeyBundleCacheStandard) PutTLFWriterKeyBundle(
-	tlf tlf.ID, bundleID TLFWriterKeyBundleID, wkb *TLFWriterKeyBundleV3) {
+	tlf tlf.ID, bundleID TLFWriterKeyBundleID, wkb TLFWriterKeyBundleV3) {
 	cacheKey := keyBundleCacheKey{tlf, bundleID.String(), true}
 	k.lru.Add(cacheKey, wkb)
 }

@@ -7,8 +7,10 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
+	"golang.org/x/net/context"
 )
 
 func blockCacheTestInit(t *testing.T, capacity int,
@@ -19,7 +21,7 @@ func blockCacheTestInit(t *testing.T, capacity int,
 	return config
 }
 
-func testBcachePutWithBlock(t *testing.T, id BlockID, bcache BlockCache, lifetime BlockCacheLifetime, block Block) {
+func testBcachePutWithBlock(t *testing.T, id kbfsblock.ID, bcache BlockCache, lifetime BlockCacheLifetime, block Block) {
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, false)
 
@@ -36,12 +38,12 @@ func testBcachePutWithBlock(t *testing.T, id BlockID, bcache BlockCache, lifetim
 	}
 }
 
-func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, lifetime BlockCacheLifetime) {
+func testBcachePut(t *testing.T, id kbfsblock.ID, bcache BlockCache, lifetime BlockCacheLifetime) {
 	block := NewFileBlock()
 	testBcachePutWithBlock(t, id, bcache, lifetime, block)
 }
 
-func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
+func testExpectedMissing(t *testing.T, id kbfsblock.ID, bcache BlockCache) {
 	expectedErr := NoSuchBlockError{id}
 	ptr := BlockPointer{ID: id}
 	if _, err := bcache.Get(ptr); err == nil {
@@ -52,21 +54,23 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 }
 
 func TestBcachePut(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
-	testBcachePut(t, fakeBlockID(1), config.BlockCache(), TransientEntry)
-	testBcachePut(t, fakeBlockID(2), config.BlockCache(), PermanentEntry)
+	defer CheckConfigAndShutdown(ctx, t, config)
+	testBcachePut(t, kbfsblock.FakeID(1), config.BlockCache(), TransientEntry)
+	testBcachePut(t, kbfsblock.FakeID(2), config.BlockCache(), PermanentEntry)
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 2, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
-	id1 := fakeBlockID(1)
+	id1 := kbfsblock.FakeID(1)
 	testBcachePut(t, id1, bcache, TransientEntry)
-	id2 := fakeBlockID(2)
+	id2 := kbfsblock.FakeID(2)
 	testBcachePut(t, id2, bcache, TransientEntry)
-	testBcachePut(t, fakeBlockID(3), bcache, TransientEntry)
+	testBcachePut(t, kbfsblock.FakeID(3), bcache, TransientEntry)
 
 	// now block 1 should have been kicked out
 	testExpectedMissing(t, id1, bcache)
@@ -77,17 +81,18 @@ func TestBcachePutPastCapacity(t *testing.T) {
 	}
 
 	// permanent blocks don't count
-	testBcachePut(t, fakeBlockID(4), config.BlockCache(), PermanentEntry)
+	testBcachePut(t, kbfsblock.FakeID(4), config.BlockCache(), PermanentEntry)
 }
 
 func TestBcacheCheckPtrSuccess(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
-	id := fakeBlockID(1)
+	id := kbfsblock.FakeID(1)
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, false)
 
@@ -105,13 +110,14 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 }
 
 func TestBcacheCheckPtrPermanent(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
-	id := fakeBlockID(1)
+	id := kbfsblock.FakeID(1)
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, false)
 
@@ -129,13 +135,14 @@ func TestBcacheCheckPtrPermanent(t *testing.T) {
 }
 
 func TestBcacheCheckPtrNotFound(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
-	id := fakeBlockID(1)
+	id := kbfsblock.FakeID(1)
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, false)
 
@@ -155,13 +162,14 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 }
 
 func TestBcacheDeleteTransient(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
-	id := fakeBlockID(1)
+	id := kbfsblock.FakeID(1)
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, false)
 
@@ -184,14 +192,15 @@ func TestBcacheDeleteTransient(t *testing.T) {
 }
 
 func TestBcacheDeletePermanent(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
-	id1 := fakeBlockID(1)
+	id1 := kbfsblock.FakeID(1)
 	testBcachePut(t, id1, bcache, PermanentEntry)
 
-	id2 := fakeBlockID(2)
+	id2 := kbfsblock.FakeID(2)
 	block2 := NewFileBlock()
 	testBcachePutWithBlock(t, id2, bcache, TransientEntry, block2)
 	testBcachePutWithBlock(t, id2, bcache, PermanentEntry, block2)
@@ -207,13 +216,14 @@ func TestBcacheDeletePermanent(t *testing.T) {
 }
 
 func TestBcacheEmptyTransient(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 0, 1<<30)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
 
 	block := NewFileBlock()
-	id := fakeBlockID(1)
+	id := kbfsblock.FakeID(1)
 	ptr := BlockPointer{ID: id}
 	tlf := tlf.FakeID(1, false)
 
@@ -241,9 +251,10 @@ func TestBcacheEmptyTransient(t *testing.T) {
 }
 
 func TestBcacheEvictOnBytes(t *testing.T) {
+	ctx := context.Background()
 	// Make a cache that can only handle 5 bytes
 	config := blockCacheTestInit(t, 1000, 5)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
 
@@ -252,7 +263,7 @@ func TestBcacheEvictOnBytes(t *testing.T) {
 		block := &FileBlock{
 			Contents: make([]byte, 1),
 		}
-		id := fakeBlockID(i)
+		id := kbfsblock.FakeID(i)
 		ptr := BlockPointer{ID: id}
 
 		if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
@@ -262,12 +273,12 @@ func TestBcacheEvictOnBytes(t *testing.T) {
 
 	// Only blocks 3 through 7 should be left
 	for i := byte(0); i < 3; i++ {
-		id := fakeBlockID(i)
+		id := kbfsblock.FakeID(i)
 		testExpectedMissing(t, id, bcache)
 	}
 
 	for i := byte(3); i < 8; i++ {
-		id := fakeBlockID(i)
+		id := kbfsblock.FakeID(i)
 		if _, err := bcache.Get(BlockPointer{ID: id}); err != nil {
 			t.Errorf("Got unexpected error on get: %v", err)
 		}
@@ -275,14 +286,15 @@ func TestBcacheEvictOnBytes(t *testing.T) {
 }
 
 func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
+	ctx := context.Background()
 	// Make a cache that can only handle 5 bytes
 	config := blockCacheTestInit(t, 1000, 5)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
 
 	tlf := tlf.FakeID(1, false)
-	idPerm := fakeBlockID(0)
+	idPerm := kbfsblock.FakeID(0)
 	ptr := BlockPointer{ID: idPerm}
 	block := &FileBlock{
 		Contents: make([]byte, 2),
@@ -295,7 +307,7 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 		block := &FileBlock{
 			Contents: make([]byte, 1),
 		}
-		id := fakeBlockID(i)
+		id := kbfsblock.FakeID(i)
 		ptr := BlockPointer{ID: id}
 
 		if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
@@ -310,12 +322,12 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 
 	// Only transient blocks 5 through 7 should be left
 	for i := byte(1); i < 5; i++ {
-		id := fakeBlockID(i)
+		id := kbfsblock.FakeID(i)
 		testExpectedMissing(t, id, bcache)
 	}
 
 	for i := byte(5); i < 8; i++ {
-		id := fakeBlockID(i)
+		id := kbfsblock.FakeID(i)
 		if _, err := bcache.Get(BlockPointer{ID: id}); err != nil {
 			t.Errorf("Got unexpected error on get: %v", err)
 		}
@@ -326,7 +338,7 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 		CommonBlock: CommonBlock{IsInd: true},
 	}
 	block.SetEncodedSize(7)
-	id := fakeBlockID(8)
+	id := kbfsblock.FakeID(8)
 	ptr = BlockPointer{ID: id}
 	if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
 		t.Errorf("Got error on Put for block %s: %v", id, err)
@@ -339,13 +351,13 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 
 	// Only transient blocks 5 through 7 should be left
 	for i := byte(1); i < 9; i++ {
-		id := fakeBlockID(i)
+		id := kbfsblock.FakeID(i)
 		testExpectedMissing(t, id, bcache)
 	}
 
 	// Now try putting in a permanent block that exceeds capacity,
 	// which should always succeed.
-	idPerm2 := fakeBlockID(9)
+	idPerm2 := kbfsblock.FakeID(9)
 	ptr2 := BlockPointer{ID: idPerm2}
 	block2 := &FileBlock{
 		Contents: make([]byte, 10),
@@ -363,10 +375,11 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 }
 
 func TestPutNoHashCalculation(t *testing.T) {
+	ctx := context.Background()
 	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
+	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
-	ptr := BlockPointer{ID: fakeBlockID(1)}
+	ptr := BlockPointer{ID: kbfsblock.FakeID(1)}
 	tlf := tlf.FakeID(1, false)
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}

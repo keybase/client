@@ -13,9 +13,6 @@ import (
 	"github.com/keybase/kbfs/kbfshash"
 )
 
-// All section references below are to https://keybase.io/blog/kbfs-crypto
-// (version 1.3).
-
 // TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
 type TLFCryptKeyServerHalfID struct {
 	ID kbfshash.HMAC // Exported for serialization.
@@ -100,11 +97,7 @@ func splitTLFCryptKey(crypto cryptoPure, uid keybase1.UID,
 		return TLFCryptKeyInfo{}, kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
 
-	var clientHalf kbfscrypto.TLFCryptKeyClientHalf
-	clientHalf, err = crypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
-	if err != nil {
-		return TLFCryptKeyInfo{}, kbfscrypto.TLFCryptKeyServerHalf{}, err
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
 
 	var encryptedClientHalf EncryptedTLFCryptKeyClientHalf
 	encryptedClientHalf, err =

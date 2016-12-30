@@ -5,18 +5,18 @@
 package libkbfs
 
 import (
-	"sync"
-
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 func isRecoverableBlockError(err error) bool {
-	_, isArchiveError := err.(BServerErrorBlockArchived)
-	_, isDeleteError := err.(BServerErrorBlockDeleted)
-	_, isRefError := err.(BServerErrorBlockNonExistent)
-	_, isMaxExceededError := err.(BServerErrorMaxRefExceeded)
+	_, isArchiveError := err.(kbfsblock.BServerErrorBlockArchived)
+	_, isDeleteError := err.(kbfsblock.BServerErrorBlockDeleted)
+	_, isRefError := err.(kbfsblock.BServerErrorBlockNonExistent)
+	_, isMaxExceededError := err.(kbfsblock.BServerErrorMaxRefExceeded)
 	return isArchiveError || isDeleteError || isRefError || isMaxExceededError
 }
 
@@ -25,14 +25,14 @@ func isRecoverableBlockError(err error) bool {
 func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	var err error
-	if blockPtr.RefNonce == ZeroBlockRefNonce {
-		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.BlockContext,
+	if blockPtr.RefNonce == kbfsblock.ZeroRefNonce {
+		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.Context,
 			readyBlockData.buf, readyBlockData.serverHalf)
 	} else {
 		// non-zero block refnonce means this is a new reference to an
 		// existing block.
 		err = bserv.AddBlockReference(ctx, tlfID, blockPtr.ID,
-			blockPtr.BlockContext)
+			blockPtr.Context)
 	}
 	return err
 }
@@ -44,7 +44,7 @@ func PutBlockCheckQuota(ctx context.Context, bserv BlockServer,
 	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
 	err := putBlockToServer(ctx, bserv, tlfID, blockPtr, readyBlockData)
-	if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
+	if qe, ok := err.(kbfsblock.BServerErrorOverQuota); ok && !qe.Throttled {
 		reporter.ReportErr(ctx, tlfName, tlfID.IsPublic(),
 			WriteMode, OverQuotaWarning{qe.Usage, qe.Limit})
 		return nil
@@ -54,27 +54,20 @@ func PutBlockCheckQuota(ctx context.Context, bserv BlockServer,
 
 func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 	tlfID tlf.ID, tlfName CanonicalTlfName, blockState blockState,
-	errChan chan error, blocksToRemoveChan chan *FileBlock) {
+	blocksToRemoveChan chan *FileBlock) error {
 	err := PutBlockCheckQuota(ctx, bserv, reporter, tlfID, blockState.blockPtr,
 		blockState.readyBlockData, tlfName)
 	if err == nil && blockState.syncedCb != nil {
 		err = blockState.syncedCb()
 	}
-	if err != nil {
-		if isRecoverableBlockError(err) {
-			fblock, ok := blockState.block.(*FileBlock)
-			if ok && !fblock.IsInd {
-				blocksToRemoveChan <- fblock
-			}
-		}
-
-		// one error causes everything else to cancel
-		select {
-		case errChan <- err:
-		default:
-			return
+	if err != nil && isRecoverableBlockError(err) {
+		fblock, ok := blockState.block.(*FileBlock)
+		if ok && !fblock.IsInd {
+			blocksToRemoveChan <- fblock
 		}
 	}
+
+	return err
 }
 
 // doBlockPuts writes all the pending block puts to the cache and
@@ -87,37 +80,31 @@ func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 	reporter Reporter, log logger.Logger, tlfID tlf.ID, tlfName CanonicalTlfName,
 	bps blockPutState) ([]BlockPointer, error) {
-	errChan := make(chan error, 1)
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	eg, groupCtx := errgroup.WithContext(ctx)
+
 	blocks := make(chan blockState, len(bps.blockStates))
-	var wg sync.WaitGroup
 
 	numWorkers := len(bps.blockStates)
 	if numWorkers > maxParallelBlockPuts {
 		numWorkers = maxParallelBlockPuts
 	}
-	wg.Add(numWorkers)
 	// A channel to list any blocks that have been archived or
 	// deleted.  Any of these will result in an error, so the maximum
 	// we'll get is the same as the number of workers.
 	blocksToRemoveChan := make(chan *FileBlock, numWorkers)
 
-	worker := func() {
-		defer wg.Done()
+	worker := func() error {
 		for blockState := range blocks {
-			doOneBlockPut(ctx, bserv, reporter, tlfID, tlfName,
-				blockState, errChan, blocksToRemoveChan)
-			select {
-			// return early if the context has been canceled
-			case <-ctx.Done():
-				return
-			default:
+			err := doOneBlockPut(groupCtx, bserv, reporter, tlfID,
+				tlfName, blockState, blocksToRemoveChan)
+			if err != nil {
+				return err
 			}
 		}
+		return nil
 	}
 	for i := 0; i < numWorkers; i++ {
-		go worker()
+		eg.Go(worker)
 	}
 
 	for _, blockState := range bps.blockStates {
@@ -125,12 +112,8 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 	}
 	close(blocks)
 
-	go func() {
-		wg.Wait()
-		close(errChan)
-		close(blocksToRemoveChan)
-	}()
-	err := <-errChan
+	err := eg.Wait()
+	close(blocksToRemoveChan)
 	var blocksToRemove []BlockPointer
 	if isRecoverableBlockError(err) {
 		// Wait for all the outstanding puts to finish, to amortize

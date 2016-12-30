@@ -610,8 +610,7 @@ func checkCryptKeyInfo(t *testing.T, privKey kbfscrypto.CryptPrivateKey,
 		ctx, ePubKey, info.ClientHalf)
 	require.NoError(t, err)
 
-	tlfCryptKey, err := crypto.UnmaskTLFCryptKey(serverHalf, clientHalf)
-	require.NoError(t, err)
+	tlfCryptKey := kbfscrypto.UnmaskTLFCryptKey(serverHalf, clientHalf)
 	require.Equal(t, expectedTLFCryptKey, tlfCryptKey)
 }
 
@@ -819,8 +818,11 @@ func TestBareRootMetadataV2UpdateKeyGeneration(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
 
-	pubKey, _, ePubKey1, ePrivKey1, tlfCryptKey, err :=
-		crypto.MakeRandomTLFKeys()
+	ePubKey1, ePrivKey1, err :=
+		crypto.MakeRandomTLFEphemeralKeys()
+	require.NoError(t, err)
+
+	pubKey, _, tlfCryptKey, err := crypto.MakeRandomTLFKeys()
 	require.NoError(t, err)
 
 	// Add and update first key generation.
@@ -877,7 +879,7 @@ func TestBareRootMetadataV2UpdateKeyGeneration(t *testing.T) {
 	privKey3b := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("key3b")
 	rKeys[uid3][privKey3b.GetPublicKey()] = true
 
-	_, _, ePubKey2, ePrivKey2, _, err := crypto.MakeRandomTLFKeys()
+	ePubKey2, ePrivKey2, err := crypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	serverHalves2, err := rmd.UpdateKeyGeneration(crypto, FirstValidKeyGen,
@@ -919,7 +921,7 @@ func TestBareRootMetadataV2UpdateKeyGeneration(t *testing.T) {
 	privKey1c := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("key1c")
 	wKeys[uid1][privKey1c.GetPublicKey()] = true
 
-	_, _, ePubKey3, ePrivKey3, _, err := crypto.MakeRandomTLFKeys()
+	ePubKey3, ePrivKey3, err := crypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	serverHalves3, err := rmd.UpdateKeyGeneration(crypto, FirstValidKeyGen,
@@ -961,7 +963,7 @@ func TestBareRootMetadataV2UpdateKeyGeneration(t *testing.T) {
 	rKeys[uid3][privKey3c.GetPublicKey()] = true
 	rKeys[uid3][privKey3d.GetPublicKey()] = true
 
-	_, _, ePubKey4, ePrivKey4, _, err := crypto.MakeRandomTLFKeys()
+	ePubKey4, ePrivKey4, err := crypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	rKeysReader := UserDevicePublicKeys{

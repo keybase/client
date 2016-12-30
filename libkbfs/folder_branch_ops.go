@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
@@ -386,9 +387,8 @@ func (fbo *folderBranchOps) markForReIdentifyIfNeeded(now time.Time, maxValid ti
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by folderBranchOps.
-func (fbo *folderBranchOps) Shutdown() error {
+func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	if fbo.config.CheckStateOnShutdown() {
-		ctx := context.TODO()
 		lState := makeFBOLockState()
 
 		if fbo.blocks.GetState(lState) == dirtyState {
@@ -488,6 +488,7 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	return favorites.Delete(ctx, h.ToFavorite())
 }
 
+// getHead should not be called outside of folder_branch_ops.go.
 func (fbo *folderBranchOps) getHead(lState *lockState) ImmutableRootMetadata {
 	fbo.headLock.RLock(lState)
 	defer fbo.headLock.RUnlock(lState)
@@ -1040,7 +1041,9 @@ func (fbo *folderBranchOps) getMDForWriteLockedForFilename(
 	// Make a new successor of the current MD to hold the coming
 	// writes.  The caller must pass this into
 	// syncBlockAndCheckEmbedLocked or the changes will be lost.
-	newMd, err := md.MakeSuccessor(ctx, fbo.config, md.mdID, true)
+	newMd, err := md.MakeSuccessor(ctx, fbo.config.MetadataVersion(),
+		fbo.config.Codec(), fbo.config.Crypto(),
+		fbo.config.KeyManager(), md.mdID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -1072,7 +1075,9 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 			NewRekeyPermissionError(md.GetTlfHandle(), username)
 	}
 
-	newMd, err := md.MakeSuccessor(ctx, fbo.config, md.mdID, handle.IsWriter(uid))
+	newMd, err := md.MakeSuccessor(ctx, fbo.config.MetadataVersion(),
+		fbo.config.Codec(), fbo.config.Crypto(),
+		fbo.config.KeyManager(), md.mdID, handle.IsWriter(uid))
 	if err != nil {
 		return nil, kbfscrypto.VerifyingKey{}, false, err
 	}
@@ -1133,8 +1138,8 @@ func ResetRootBlock(ctx context.Context, config Config,
 	Block, BlockInfo, ReadyBlockData, error) {
 	newDblock := NewDirBlock()
 	info, plainSize, readyBlockData, err :=
-		ReadyBlock(ctx, config.BlockCache(), config.BlockOps(), config.Crypto(),
-			rmd.ReadOnly(), newDblock, currentUID)
+		ReadyBlock(ctx, config.BlockCache(), config.BlockOps(),
+			config.Crypto(), rmd.ReadOnly(), newDblock, currentUID)
 	if err != nil {
 		return nil, BlockInfo{}, ReadyBlockData{}, err
 	}
@@ -1753,9 +1758,9 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		ID:      bid,
 		KeyGen:  md.LatestKeyGeneration(),
 		DataVer: fbo.config.DataVersion(),
-		BlockContext: BlockContext{
+		Context: kbfsblock.Context{
 			Creator:  uid,
-			RefNonce: ZeroBlockRefNonce,
+			RefNonce: kbfsblock.ZeroRefNonce,
 		},
 	}
 	file := path{fbo.folderBranch,
@@ -5018,7 +5023,7 @@ func (fbo *folderBranchOps) unblockUnmergedWrites(lState *lockState) {
 
 func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
-	newOps []op, blocksToDelete []BlockID) error {
+	newOps []op, blocksToDelete []kbfsblock.ID) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// Put the blocks into the cache so that, even if we fail below,
@@ -5094,7 +5099,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 // completing conflict resolution.
 func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
-	newOps []op, blocksToDelete []BlockID) error {
+	newOps []op, blocksToDelete []kbfsblock.ID) error {
 	// Take the writer lock.
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)

@@ -26,6 +26,7 @@ The code is organized as follows:
 * [fsrpc](fsrpc/): RPC interfaces that connected clients can call in KBFS,
   to do certain operations, such as listing files.
 * [ioutil](ioutil/): Helper functions for I/O.
+* [kbfsblock](kbfsblock/): Types and functions to work with KBFS blocks.
 * [kbfscodec](kbfscodec/): Interfaces and types used for serialization in KBFS.
 * [kbfscrypto](kbfscrypto/): KBFS-specific cryptographic types and functions.
 * [kbfsdokan](kbfsdokan/): The main executable for running KBFS on

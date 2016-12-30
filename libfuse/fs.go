@@ -224,7 +224,7 @@ var _ fs.Node = (*Root)(nil)
 
 // Attr implements the fs.Node interface for Root.
 func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Mode = os.ModeDir | 0755
+	a.Mode = os.ModeDir | 0555
 	return nil
 }
 

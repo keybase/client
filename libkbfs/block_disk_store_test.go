@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/assert"
@@ -19,12 +20,11 @@ import (
 
 func setupBlockDiskStoreTest(t *testing.T) (tempdir string, s *blockDiskStore) {
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "block_disk_store")
 	require.NoError(t, err)
 
-	s = makeBlockDiskStore(codec, crypto, tempdir)
+	s = makeBlockDiskStore(codec, tempdir)
 	return tempdir, s
 }
 
@@ -35,13 +35,13 @@ func teardownBlockDiskStoreTest(t *testing.T, tempdir string) {
 
 func putBlockDisk(
 	t *testing.T, s *blockDiskStore, data []byte) (
-	BlockID, BlockContext, kbfscrypto.BlockCryptKeyServerHalf) {
-	bID, err := s.crypto.MakePermanentBlockID(data)
+	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
 
 	uid1 := keybase1.MakeTestUID(1)
-	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
-	serverHalf, err := s.crypto.MakeRandomBlockCryptKeyServerHalf()
+	bCtx := kbfsblock.MakeFirstContext(uid1)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 
 	err = s.put(bID, bCtx, data, serverHalf, "")
@@ -51,20 +51,20 @@ func putBlockDisk(
 }
 
 func addBlockDiskRef(
-	t *testing.T, s *blockDiskStore, bID BlockID) BlockContext {
-	nonce, err := s.crypto.MakeBlockRefNonce()
+	t *testing.T, s *blockDiskStore, bID kbfsblock.ID) kbfsblock.Context {
+	nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
 
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
-	bCtx2 := BlockContext{uid1, uid2, nonce}
+	bCtx2 := kbfsblock.MakeContext(uid1, uid2, nonce)
 	err = s.addReference(bID, bCtx2, "")
 	require.NoError(t, err)
 	return bCtx2
 }
 
 func getAndCheckBlockDiskData(t *testing.T, s *blockDiskStore,
-	bID BlockID, bCtx BlockContext, expectedData []byte,
+	bID kbfsblock.ID, bCtx kbfsblock.Context, expectedData []byte,
 	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf) {
 	data, serverHalf, err := s.getDataWithContext(bID, bCtx)
 	require.NoError(t, err)
@@ -90,7 +90,7 @@ func TestBlockDiskStoreBasic(t *testing.T) {
 	getAndCheckBlockDiskData(t, s, bID, bCtx2, data, serverHalf)
 
 	// Shutdown and restart.
-	s = makeBlockDiskStore(s.codec, s.crypto, tempdir)
+	s = makeBlockDiskStore(s.codec, tempdir)
 
 	// Make sure we get the same block for both refs.
 
@@ -103,7 +103,7 @@ func TestBlockDiskStoreAddReference(t *testing.T) {
 	defer teardownBlockDiskStoreTest(t, tempdir)
 
 	data := []byte{1, 2, 3, 4}
-	bID, err := s.crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
 
 	// Add a reference, which should succeed.
@@ -127,7 +127,7 @@ func TestBlockDiskStoreArchiveReferences(t *testing.T) {
 
 	// Archive references.
 	err := s.archiveReferences(
-		map[BlockID][]BlockContext{bID: {bCtx, bCtx2}}, "")
+		kbfsblock.ContextMap{bID: {bCtx, bCtx2}}, "")
 	require.NoError(t, err)
 
 	// Get block should still succeed.
@@ -140,14 +140,14 @@ func TestBlockDiskStoreArchiveNonExistentReference(t *testing.T) {
 
 	uid1 := keybase1.MakeTestUID(1)
 
-	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
+	bCtx := kbfsblock.MakeFirstContext(uid1)
 
 	data := []byte{1, 2, 3, 4}
-	bID, err := s.crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
 
 	// Archive references.
-	err = s.archiveReferences(map[BlockID][]BlockContext{bID: {bCtx}}, "")
+	err = s.archiveReferences(kbfsblock.ContextMap{bID: {bCtx}}, "")
 	require.NoError(t, err)
 }
 
@@ -164,7 +164,7 @@ func TestBlockDiskStoreRemoveReferences(t *testing.T) {
 
 	// Remove references.
 	liveCount, err := s.removeReferences(
-		bID, []BlockContext{bCtx, bCtx2}, "")
+		bID, []kbfsblock.Context{bCtx, bCtx2}, "")
 	require.NoError(t, err)
 	require.Equal(t, 0, liveCount)
 
@@ -192,7 +192,7 @@ func TestBlockDiskStoreRemove(t *testing.T) {
 	require.Error(t, err, "Trying to remove data")
 
 	// Remove reference.
-	liveCount, err := s.removeReferences(bID, []BlockContext{bCtx}, "")
+	liveCount, err := s.removeReferences(bID, []kbfsblock.Context{bCtx}, "")
 	require.NoError(t, err)
 	require.Equal(t, 0, liveCount)
 

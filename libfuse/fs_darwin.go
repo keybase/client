@@ -66,7 +66,7 @@ func (r *Root) platformLookup(ctx context.Context, req *fuse.LookupRequest, resp
 
 	if r.private.fs.platformParams.UseLocal {
 		if mountRootSpecialPaths[req.Name] {
-			cuser, err := libkbfs.GetCurrentUsernameIfPossible(ctx, r.private.fs.config.KBPKI(), false)
+			cuser, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, r.private.fs.config.KBPKI(), false)
 			if err != nil {
 				return nil, err
 			}
@@ -74,7 +74,7 @@ func (r *Root) platformLookup(ctx context.Context, req *fuse.LookupRequest, resp
 		}
 
 		if req.Name == TrashDirName {
-			cuser, err := libkbfs.GetCurrentUsernameIfPossible(ctx, r.private.fs.config.KBPKI(), false)
+			cuser, _, err := libkbfs.GetCurrentUserInfoIfPossible(ctx, r.private.fs.config.KBPKI(), false)
 			if err != nil {
 				return nil, err
 			}

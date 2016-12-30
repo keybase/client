@@ -20,7 +20,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)

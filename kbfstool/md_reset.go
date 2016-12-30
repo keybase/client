@@ -42,7 +42,9 @@ func mdResetOne(
 		}
 	}
 
-	rmdNext, err := irmd.MakeSuccessor(ctx, config, irmd.MdID(), true)
+	rmdNext, err := irmd.MakeSuccessor(ctx, config.MetadataVersion(),
+		config.Codec(), config.Crypto(), config.KeyManager(),
+		irmd.MdID(), true)
 	if err != nil {
 		return err
 	}
@@ -59,7 +61,7 @@ func mdResetOne(
 		"Will put an empty root block for tlfID=%s with blockInfo=%s and bufLen=%d\n",
 		rmdNext.TlfID(), info, readyBlockData.GetEncodedSize())
 	fmt.Print("Will put MD:\n")
-	err = mdDumpOneReadOnly(ctx, config, rmdNext.ReadOnly())
+	err = mdDumpReadOnlyRMD(ctx, config, rmdNext.ReadOnly())
 	if err != nil {
 		return err
 	}

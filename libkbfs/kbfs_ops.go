@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 
@@ -102,14 +103,14 @@ func (fs *KBFSOpsStandard) markForReIdentifyIfNeeded(
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by KBFSOpsStandard.
-func (fs *KBFSOpsStandard) Shutdown() error {
+func (fs *KBFSOpsStandard) Shutdown(ctx context.Context) error {
 	close(fs.reIdentifyControlChan)
 	var errors []error
 	if err := fs.favs.Shutdown(); err != nil {
 		errors = append(errors, err)
 	}
 	for _, ops := range fs.ops {
-		if err := ops.Shutdown(); err != nil {
+		if err := ops.Shutdown(ctx); err != nil {
 			errors = append(errors, err)
 			// Continue on and try to shut down the other FBOs.
 		}
@@ -253,10 +254,20 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
+	fav := handle.ToFavorite()
+	_, ok := fs.opsByFav[fav]
+	if ok {
+		// Already added.
+		return ops
+	}
+
 	// Track under its name, so we can later tell it to remove itself
-	// from the favorites list.  TODO: fix this when unresolved
-	// assertions are allowed and become resolved.
-	fs.opsByFav[handle.ToFavorite()] = ops
+	// from the favorites list.
+	fs.opsByFav[fav] = ops
+	ops.RegisterForChanges(&kbfsOpsFavoriteObserver{
+		kbfsOps: fs,
+		currFav: fav,
+	})
 	return ops
 }
 
@@ -317,7 +328,10 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 	}()
 	if fbo != nil {
 		lState := makeFBOLockState()
-		rmd = fbo.getHead(lState)
+		rmd, err = fbo.getMDForReadNeedIdentify(ctx, lState)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 	if rmd != (ImmutableRootMetadata{}) {
 		return rmd, nil
@@ -624,7 +638,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		if err == nil {
 			limitBytes = quotaInfo.Limit
 			if quotaInfo.Total != nil {
-				usageBytes = quotaInfo.Total.Bytes[UsageWrite]
+				usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
 			} else {
 				usageBytes = 0
 			}
@@ -696,6 +710,20 @@ func (fs *KBFSOpsStandard) GetNodeMetadata(ctx context.Context, node Node) (
 	return ops.GetNodeMetadata(ctx, node)
 }
 
+func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
+	oldFav Favorite, newHandle *TlfHandle) {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	ops, ok := fs.opsByFav[oldFav]
+	if !ok {
+		return
+	}
+	newFav := newHandle.ToFavorite()
+	fs.log.CDebugf(ctx, "Changing handle: %v -> %v", oldFav, newFav)
+	fs.opsByFav[newFav] = ops
+	delete(fs.opsByFav, oldFav)
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 
@@ -730,4 +758,31 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid BranchID,
 	rev MetadataRevision) {
 	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
+}
+
+// kbfsOpsFavoriteObserver deals with a handle change for a particular
+// favorites.  It ignores local and batch changes.
+type kbfsOpsFavoriteObserver struct {
+	kbfsOps *KBFSOpsStandard
+
+	lock    sync.Mutex
+	currFav Favorite
+}
+
+var _ Observer = (*kbfsOpsFavoriteObserver)(nil)
+
+func (kofo *kbfsOpsFavoriteObserver) LocalChange(
+	_ context.Context, _ Node, _ WriteRange) {
+}
+
+func (kofo *kbfsOpsFavoriteObserver) BatchChanges(
+	_ context.Context, _ []NodeChange) {
+}
+
+func (kofo *kbfsOpsFavoriteObserver) TlfHandleChange(
+	ctx context.Context, newHandle *TlfHandle) {
+	kofo.lock.Lock()
+	defer kofo.lock.Unlock()
+	kofo.kbfsOps.changeHandle(ctx, kofo.currFav, newHandle)
+	kofo.currFav = newHandle.ToFavorite()
 }

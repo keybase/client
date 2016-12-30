@@ -66,7 +66,7 @@ type PrivateMetadata struct {
 	// directory entry for the root directory block
 	Dir DirEntry
 
-	// m_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
+	// m_f as described in § 4.1.1 of https://keybase.io/docs/crypto/kbfs.
 	TLFPrivateKey kbfscrypto.TLFPrivateKey
 	// The block changes done as part of the update that created this MD
 	Changes BlockChanges
@@ -81,6 +81,20 @@ type PrivateMetadata struct {
 	// block, we may want to temporarily keep around the old
 	// BlockChanges for easy reference.
 	cachedChanges BlockChanges
+}
+
+// DumpPrivateMetadata returns a detailed dump of the given
+// PrivateMetadata's contents.
+func DumpPrivateMetadata(
+	codec kbfscodec.Codec, pmd PrivateMetadata) (string, error) {
+	serializedPMD, err := codec.Encode(pmd)
+	if err != nil {
+		return "", err
+	}
+
+	s := fmt.Sprintf("Size: %d bytes\n", len(serializedPMD))
+	s += dumpConfig().Sdump(pmd)
+	return s, nil
 }
 
 func (p PrivateMetadata) checkValid() error {
@@ -98,11 +112,36 @@ func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
 	return p.cachedChanges.Info
 }
 
-// ExtraMetadata is a per-version blob of extra metadata which may exist outside of the
-// given metadata block, e.g. key bundles for post-v2 metadata.
+// ExtraMetadata is a per-version blob of extra metadata which may
+// exist outside of the given metadata block, e.g. key bundles for
+// post-v2 metadata.
 type ExtraMetadata interface {
 	MetadataVersion() MetadataVer
 	DeepCopy(kbfscodec.Codec) (ExtraMetadata, error)
+	MakeSuccessorCopy(kbfscodec.Codec) (ExtraMetadata, error)
+}
+
+// DumpExtraMetadata returns a detailed dump of the given
+// ExtraMetadata's contents.
+func DumpExtraMetadata(
+	codec kbfscodec.Codec, extra ExtraMetadata) (string, error) {
+	var s string
+	switch extra := extra.(type) {
+	case *ExtraMetadataV3:
+		serializedWKB, err := codec.Encode(extra.GetWriterKeyBundle())
+		if err != nil {
+			return "", err
+		}
+		serializedRKB, err := codec.Encode(extra.GetReaderKeyBundle())
+		if err != nil {
+			return "", err
+		}
+		s = fmt.Sprintf("WKB size: %d\nRKB size: %d\n",
+			len(serializedWKB), len(serializedRKB))
+	}
+
+	s += dumpConfig().Sdump(extra)
+	return s, nil
 }
 
 // A RootMetadata is a BareRootMetadata but with a deserialized
@@ -223,7 +262,8 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
-	ctx context.Context, config Config, mdID MdID, isWriter bool) (
+	ctx context.Context, latestMDVer MetadataVer, codec kbfscodec.Codec,
+	crypto cryptoPure, keyManager KeyManager, mdID MdID, isWriter bool) (
 	*RootMetadata, error) {
 
 	if mdID == (MdID{}) {
@@ -236,7 +276,10 @@ func (md *RootMetadata) MakeSuccessor(
 	isReadableAndWriter := md.IsReadable() && isWriter
 
 	brmdCopy, extraCopy, err := md.bareMd.MakeSuccessorCopy(
-		ctx, config, md, md.extra, isReadableAndWriter)
+		codec, crypto, md.extra, latestMDVer,
+		func() ([]kbfscrypto.TLFCryptKey, error) {
+			return keyManager.GetTLFCryptKeyOfAllGenerations(ctx, md)
+		}, isReadableAndWriter)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +287,7 @@ func (md *RootMetadata) MakeSuccessor(
 	handleCopy := md.tlfHandle.deepCopy()
 
 	newMd := makeRootMetadata(brmdCopy, extraCopy, handleCopy)
-	if err := kbfscodec.Update(config.Codec(), &newMd.data, md.data); err != nil {
+	if err := kbfscodec.Update(codec, &newMd.data, md.data); err != nil {
 		return nil, err
 	}
 
@@ -1071,7 +1114,7 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		return err
 	}
 
-	err = crypto.Verify(buf, rmds.SigInfo)
+	err = kbfscrypto.Verify(buf, rmds.SigInfo)
 	if err != nil {
 		return fmt.Errorf("Could not verify root metadata: %v", err)
 	}
@@ -1081,7 +1124,7 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		return err
 	}
 
-	err = crypto.Verify(buf, rmds.WriterSigInfo)
+	err = kbfscrypto.Verify(buf, rmds.WriterSigInfo)
 	if err != nil {
 		return fmt.Errorf("Could not verify writer metadata: %v", err)
 	}

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/dokan/winacl"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -150,7 +151,7 @@ func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, e
 	}
 	free := uint64(uqi.Limit)
 	if uqi.Total != nil {
-		free -= uint64(uqi.Total.Bytes[libkbfs.UsageWrite])
+		free -= uint64(uqi.Total.Bytes[kbfsblock.UsageWrite])
 	}
 	return dokan.FreeSpace{
 		TotalNumberOfBytes:     uint64(uqi.Limit),

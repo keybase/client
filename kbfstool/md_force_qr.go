@@ -17,7 +17,9 @@ func mdForceQROne(
 		return err
 	}
 
-	rmdNext, err := irmd.MakeSuccessor(ctx, config, irmd.MdID(), true)
+	rmdNext, err := irmd.MakeSuccessor(ctx, config.MetadataVersion(),
+		config.Codec(), config.Crypto(), config.KeyManager(),
+		irmd.MdID(), true)
 	if err != nil {
 		return err
 	}
@@ -32,7 +34,7 @@ func mdForceQROne(
 
 	fmt.Printf(
 		"Will put a forced QR op up to revision %d:\n", irmd.Revision())
-	err = mdDumpOneReadOnly(ctx, config, rmdNext.ReadOnly())
+	err = mdDumpReadOnlyRMD(ctx, config, rmdNext.ReadOnly())
 	if err != nil {
 		return err
 	}

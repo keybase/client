@@ -185,7 +185,7 @@ func (s *mdServerTlfStorage) putMDLocked(
 		Version:     rmds.MD.Version(),
 	}
 
-	err = kbfscodec.SerializeToFile(s.codec, srmds, s.mdPath(id))
+	err = kbfscodec.SerializeToFileIfNotExist(s.codec, srmds, s.mdPath(id))
 	if err != nil {
 		return MdID{}, err
 	}
@@ -302,7 +302,7 @@ func (s *mdServerTlfStorage) putExtraMetadataLocked(rmds *RootMetadataSigned,
 		if wkbID == (TLFWriterKeyBundleID{}) {
 			panic("writer key bundle ID is empty")
 		}
-		err := kbfscodec.SerializeToFile(
+		err := kbfscodec.SerializeToFileIfNotExist(
 			s.codec, extraV3.wkb, s.writerKeyBundleV3Path(wkbID))
 		if err != nil {
 			return err
@@ -314,7 +314,7 @@ func (s *mdServerTlfStorage) putExtraMetadataLocked(rmds *RootMetadataSigned,
 		if rkbID == (TLFReaderKeyBundleID{}) {
 			panic("reader key bundle ID is empty")
 		}
-		err := kbfscodec.SerializeToFile(
+		err := kbfscodec.SerializeToFileIfNotExist(
 			s.codec, extraV3.rkb, s.readerKeyBundleV3Path(rkbID))
 		if err != nil {
 			return err

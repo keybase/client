@@ -17,8 +17,8 @@ import (
 )
 
 func setupJournalMDOpsTest(t *testing.T) (
-	tempdir string, config *ConfigLocal,
-	oldMDOps MDOps, jServer *JournalServer) {
+	tempdir string, ctx context.Context, cancel context.CancelFunc,
+	config *ConfigLocal, oldMDOps MDOps, jServer *JournalServer) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_md_ops")
 	require.NoError(t, err)
 
@@ -31,12 +31,22 @@ func setupJournalMDOpsTest(t *testing.T) (
 		}
 	}()
 
+	ctx, cancel = context.WithTimeout(
+		context.Background(), individualTestTimeout)
+
+	// Clean up the context if the rest of the setup fails.
+	defer func() {
+		if !setupSucceeded {
+			cancel()
+		}
+	}()
+
 	config = MakeTestConfigOrBust(t, "test_user")
 
 	// Clean up the config if the rest of the setup fails.
 	defer func() {
 		if !setupSucceeded {
-			CheckConfigAndShutdown(t, config)
+			CheckConfigAndShutdown(ctx, t, config)
 		}
 	}()
 
@@ -49,11 +59,13 @@ func setupJournalMDOpsTest(t *testing.T) (
 	require.NoError(t, err)
 
 	setupSucceeded = true
-	return tempdir, config, oldMDOps, jServer
+	return tempdir, ctx, cancel, config, oldMDOps, jServer
 }
 
-func teardownJournalMDOpsTest(t *testing.T, tempdir string, config Config) {
-	CheckConfigAndShutdown(t, config)
+func teardownJournalMDOpsTest(t *testing.T, tempdir string, ctx context.Context,
+	cancel context.CancelFunc, config Config) {
+	CheckConfigAndShutdown(ctx, t, config)
+	cancel()
 	err := ioutil.RemoveAll(tempdir)
 	assert.NoError(t, err)
 }
@@ -74,10 +86,9 @@ func makeMDForJournalMDOpsTest(
 // TODO: Clean up the test below.
 
 func TestJournalMDOpsBasics(t *testing.T) {
-	tempdir, config, oldMDOps, jServer := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, config)
+	tempdir, ctx, cancel, config, oldMDOps, jServer := setupJournalMDOpsTest(t)
+	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
 
-	ctx := context.Background()
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
 
@@ -254,10 +265,9 @@ func TestJournalMDOpsBasics(t *testing.T) {
 // range with the journal.
 
 func TestJournalMDOpsPutUnmerged(t *testing.T) {
-	tempdir, config, _, jServer := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, config)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalMDOpsTest(t)
+	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
 
-	ctx := context.Background()
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
 
@@ -285,10 +295,9 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 }
 
 func TestJournalMDOpsPutUnmergedError(t *testing.T) {
-	tempdir, config, _, jServer := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, config)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalMDOpsTest(t)
+	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
 
-	ctx := context.Background()
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
 
@@ -315,10 +324,9 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 }
 
 func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
-	tempdir, config, _, jServer := setupJournalMDOpsTest(t)
-	defer teardownJournalMDOpsTest(t, tempdir, config)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalMDOpsTest(t)
+	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
 
-	ctx := context.Background()
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
 
@@ -351,7 +359,9 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	mdID := initialMdID
 	// Put several MDs after a local squash
 	for i := 0; i < mdCount; i++ {
-		rmd, err = rmd.MakeSuccessor(ctx, config, mdID, true)
+		rmd, err = rmd.MakeSuccessor(ctx, config.MetadataVersion(),
+			config.Codec(), config.Crypto(), config.KeyManager(),
+			mdID, true)
 		require.NoError(t, err)
 		mdID, err = j.put(ctx, config.Crypto(), config.KeyManager(),
 			config.BlockSplitter(), rmd, false)

@@ -41,7 +41,7 @@ func (s *Symlink) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 		return err
 	}
 
-	fillAttr(&de, a)
+	s.parent.folder.fillAttrWithUIDAndWritePerm(ctx, &de, a)
 	a.Mode = os.ModeSymlink | 0777
 	return nil
 }

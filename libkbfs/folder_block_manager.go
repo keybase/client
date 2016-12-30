@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -389,7 +390,7 @@ func (fbm *folderBlockManager) forceQuotaReclamation() {
 // a list of block IDs that no longer have any references.
 func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	tlfID tlf.ID, ptrs []BlockPointer, archive bool) (
-	[]BlockID, error) {
+	[]kbfsblock.ID, error) {
 	fbm.log.CDebugf(ctx, "Downgrading %d pointers (archive=%t)",
 		len(ptrs), archive)
 	bops := fbm.config.BlockOps()
@@ -410,7 +411,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	defer cancel()
 
 	type workerResult struct {
-		zeroRefCounts []BlockID
+		zeroRefCounts []kbfsblock.ID
 		err           error
 	}
 
@@ -423,7 +424,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 			if archive {
 				res.err = bops.Archive(ctx, tlfID, chunk)
 			} else {
-				var liveCounts map[BlockID]int
+				var liveCounts map[kbfsblock.ID]int
 				liveCounts, res.err = bops.Delete(ctx, tlfID, chunk)
 				if res.err == nil {
 					for id, count := range liveCounts {
@@ -456,7 +457,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	}
 	close(chunks)
 
-	var zeroRefCounts []BlockID
+	var zeroRefCounts []kbfsblock.ID
 	for i := 0; i < numChunks; i++ {
 		result := <-chunkResults
 		if result.err != nil {
@@ -472,7 +473,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 // for the given block pointers.  It returns a list of block IDs that
 // no longer have any references.
 func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
-	tlfID tlf.ID, ptrs []BlockPointer) ([]BlockID, error) {
+	tlfID tlf.ID, ptrs []BlockPointer) ([]kbfsblock.ID, error) {
 	return fbm.doChunkedDowngrades(ctx, tlfID, ptrs, false)
 }
 
@@ -540,9 +541,9 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 
 	_, err := fbm.deleteBlockRefs(ctx, toDelete.md.TlfID(), toDelete.blocks)
 	// Ignore permanent errors
-	_, isPermErr := err.(BServerError)
-	_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
-	_, isBadRequestErr := err.(BServerErrorBadRequest)
+	_, isPermErr := err.(kbfsblock.BServerError)
+	_, isNonceNonExistentErr := err.(kbfsblock.BServerErrorNonceNonExistent)
+	_, isBadRequestErr := err.(kbfsblock.BServerErrorBadRequest)
 	if err != nil {
 		fbm.log.CWarningf(ctx, "Couldn't delete some ref in batch %v: %v",
 			toDelete.blocks, err)
@@ -914,7 +915,7 @@ outer:
 }
 
 func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
-	ptrs []BlockPointer, zeroRefCounts []BlockID,
+	ptrs []BlockPointer, zeroRefCounts []kbfsblock.ID,
 	latestRev MetadataRevision) error {
 	gco := newGCOp(latestRev)
 	for _, id := range zeroRefCounts {

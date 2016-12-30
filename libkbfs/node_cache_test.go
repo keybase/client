@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -16,7 +17,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
 	childPath1 []pathNode, childPath2 []pathNode) {
 	ncs = newNodeCacheStandard(FolderBranch{id, branch})
 
-	parentPtr := BlockPointer{ID: fakeBlockID(0)}
+	parentPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentName := "parent"
 	var err error
 	parentNode, err = ncs.GetOrCreate(parentPtr, parentName, nil)
@@ -28,7 +29,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
 	}
 
 	// now create a child node for that parent
-	childPtr1 := BlockPointer{ID: fakeBlockID(1)}
+	childPtr1 := BlockPointer{ID: kbfsblock.FakeID(1)}
 	childName1 := "child1"
 	childNode1, err = ncs.GetOrCreate(childPtr1, childName1, parentNode)
 	if err != nil {
@@ -43,7 +44,7 @@ func setupNodeCache(t *testing.T, id tlf.ID, branch BranchName, flat bool) (
 		parent2 = parentNode
 	}
 
-	childPtr2 := BlockPointer{ID: fakeBlockID(2)}
+	childPtr2 := BlockPointer{ID: kbfsblock.FakeID(2)}
 	childName2 := "child2"
 	childNode2, err = ncs.GetOrCreate(childPtr2, childName2, parent2)
 	if err != nil {
@@ -160,7 +161,7 @@ func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	ncs := newNodeCacheStandard(FolderBranch{tlf.FakeID(0, false), ""})
 
-	parentPtr := BlockPointer{ID: fakeBlockID(0)}
+	parentPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
@@ -169,7 +170,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	simulateGC(ncs, []Node{})
 
 	// now try to create a child node for that parent
-	childPtr1 := BlockPointer{ID: fakeBlockID(1)}
+	childPtr1 := BlockPointer{ID: kbfsblock.FakeID(1)}
 	_, err = ncs.GetOrCreate(childPtr1, "child", parentNode)
 	expectedErr := ParentNodeNotFoundError{parentPtr.Ref()}
 	if err != expectedErr {
@@ -181,13 +182,13 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 func TestNodeCacheUpdatePointer(t *testing.T) {
 	ncs := newNodeCacheStandard(FolderBranch{tlf.FakeID(0, false), ""})
 
-	parentPtr := BlockPointer{ID: fakeBlockID(0)}
+	parentPtr := BlockPointer{ID: kbfsblock.FakeID(0)}
 	parentNode, err := ncs.GetOrCreate(parentPtr, "parent", nil)
 	if err != nil {
 		t.Errorf("Couldn't create top-level parent node: %v", err)
 	}
 
-	newParentPtr := BlockPointer{ID: fakeBlockID(1)}
+	newParentPtr := BlockPointer{ID: kbfsblock.FakeID(1)}
 	ncs.UpdatePointer(parentPtr.Ref(), newParentPtr)
 
 	if parentNode.(*nodeStandard).core.pathNode.BlockPointer != newParentPtr {
@@ -320,7 +321,7 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	// unlink child2
 	ncs.Unlink(childPtr2.Ref(), ncs.PathFromNode(childNode2))
 	newChildName := "newChildName"
-	newChildPtr2 := BlockPointer{ID: fakeBlockID(22)}
+	newChildPtr2 := BlockPointer{ID: kbfsblock.FakeID(22)}
 	ncs.UpdatePointer(childPtr2.Ref(), newChildPtr2) // NO-OP
 	childNode2B, err := ncs.GetOrCreate(newChildPtr2, newChildName, childNode1)
 	if err != nil {

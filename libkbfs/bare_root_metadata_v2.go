@@ -325,17 +325,19 @@ func (md *BareRootMetadataV2) DeepCopy(
 
 // MakeSuccessorCopy implements the ImmutableBareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) MakeSuccessorCopy(
-	ctx context.Context, config Config, kmd KeyMetadata,
-	extra ExtraMetadata, isReadableAndWriter bool) (
+	codec kbfscodec.Codec, crypto cryptoPure,
+	extra ExtraMetadata, latestMDVer MetadataVer,
+	tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error),
+	isReadableAndWriter bool) (
 	MutableBareRootMetadata, ExtraMetadata, error) {
 
-	if !isReadableAndWriter ||
-		config.MetadataVersion() < SegregatedKeyBundlesVer {
+	if !isReadableAndWriter || (latestMDVer < SegregatedKeyBundlesVer) {
 		// Continue with the current version.  If we're just a reader,
 		// or can't decrypt the MD, we have to continue with v2
 		// because we can't just copy a v2 signature into a v3 MD
 		// blindly.
-		mdCopy, err := md.makeSuccessorCopyV2(config, isReadableAndWriter)
+		mdCopy, err := md.makeSuccessorCopyV2(
+			codec, isReadableAndWriter)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -343,12 +345,13 @@ func (md *BareRootMetadataV2) MakeSuccessorCopy(
 	}
 
 	// Upconvert to the new version.
-	return md.makeSuccessorCopyV3(ctx, config, kmd)
+	return md.makeSuccessorCopyV3(codec, crypto, tlfCryptKeyGetter)
 }
 
-func (md *BareRootMetadataV2) makeSuccessorCopyV2(config Config, isReadableAndWriter bool) (
+func (md *BareRootMetadataV2) makeSuccessorCopyV2(
+	codec kbfscodec.Codec, isReadableAndWriter bool) (
 	*BareRootMetadataV2, error) {
-	mdCopy, err := md.deepCopy(config.Codec())
+	mdCopy, err := md.deepCopy(codec)
 	if err != nil {
 		return nil, err
 	}
@@ -358,7 +361,9 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV2(config Config, isReadableAndWr
 	return mdCopy, nil
 }
 
-func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Config, kmd KeyMetadata) (
+func (md *BareRootMetadataV2) makeSuccessorCopyV3(
+	codec kbfscodec.Codec, crypto cryptoPure,
+	tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error)) (
 	*BareRootMetadataV3, ExtraMetadata, error) {
 	mdV3 := &BareRootMetadataV3{}
 
@@ -371,14 +376,13 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Co
 	if md.LatestKeyGeneration() != PublicKeyGen {
 		// Fill out the writer key bundle.
 		wkbV2, wkbV3, err := md.WKeys.ToTLFWriterKeyBundleV3(
-			ctx, config.Codec(), config.Crypto(),
-			config.KeyManager(), kmd)
+			codec, crypto, tlfCryptKeyGetter)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		mdV3.WriterMetadata.WKeyBundleID, err =
-			config.Crypto().MakeTLFWriterKeyBundleID(wkbV3)
+			crypto.MakeTLFWriterKeyBundleID(wkbV3)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -386,13 +390,12 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Co
 		// Fill out the reader key bundle.  wkbV2 is passed
 		// because in V2 metadata ephemeral public keys for
 		// readers were sometimes in the writer key bundles.
-		rkbV3, err := md.RKeys.ToTLFReaderKeyBundleV3(
-			config.Codec(), wkbV2)
+		rkbV3, err := md.RKeys.ToTLFReaderKeyBundleV3(codec, wkbV2)
 		if err != nil {
 			return nil, nil, err
 		}
 		mdV3.RKeyBundleID, err =
-			config.Crypto().MakeTLFReaderKeyBundleID(rkbV3)
+			crypto.MakeTLFReaderKeyBundleID(rkbV3)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -799,7 +802,7 @@ func (md *BareRootMetadataV2) IsValidAndSigned(
 		return err
 	}
 
-	err = crypto.Verify(buf, md.WriterMetadataSigInfo)
+	err = kbfscrypto.Verify(buf, md.WriterMetadataSigInfo)
 	if err != nil {
 		return fmt.Errorf("Could not verify writer metadata: %v", err)
 	}

@@ -581,7 +581,7 @@ func ParseTlfHandlePreferred(
 	if err != nil && (h == nil || !isTlfNameNotCanonical(err)) {
 		return nil, err
 	}
-	uname, err := GetCurrentUsernameIfPossible(ctx, kbpki, h.IsPublic())
+	uname, _, err := GetCurrentUserInfoIfPossible(ctx, kbpki, h.IsPublic())
 	if err != nil {
 		return nil, err
 	}

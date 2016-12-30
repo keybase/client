@@ -5,14 +5,51 @@
 package libkbfs
 
 import (
+	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
+type blockOpsConfig interface {
+	blockServer() BlockServer
+	codec() kbfscodec.Codec
+	crypto() cryptoPure
+	keyGetter() blockKeyGetter
+	blockCache() BlockCache
+}
+
+type blockOpsConfigAdapter struct {
+	config Config
+}
+
+var _ blockOpsConfig = (*blockOpsConfigAdapter)(nil)
+
+func (config blockOpsConfigAdapter) blockServer() BlockServer {
+	return config.config.BlockServer()
+}
+
+func (config blockOpsConfigAdapter) codec() kbfscodec.Codec {
+	return config.config.Codec()
+}
+
+func (config blockOpsConfigAdapter) crypto() cryptoPure {
+	return config.config.Crypto()
+}
+
+func (config blockOpsConfigAdapter) keyGetter() blockKeyGetter {
+	return config.config.KeyManager()
+}
+
+func (config blockOpsConfigAdapter) blockCache() BlockCache {
+	return config.config.BlockCache()
+}
+
 // BlockOpsStandard implements the BlockOps interface by relaying
 // requests to the block server.
 type BlockOpsStandard struct {
-	config  Config
+	config  blockOpsConfig
 	queue   *blockRetrievalQueue
 	workers []*blockRetrievalWorker
 }
@@ -20,8 +57,9 @@ type BlockOpsStandard struct {
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
 // NewBlockOpsStandard creates a new BlockOpsStandard
-func NewBlockOpsStandard(config Config, queueSize int) *BlockOpsStandard {
-	q := newBlockRetrievalQueue(queueSize, config.Codec(), config.BlockCache)
+func NewBlockOpsStandard(config blockOpsConfig,
+	queueSize int) *BlockOpsStandard {
+	q := newBlockRetrievalQueue(queueSize, config.codec(), config.blockCache)
 	bops := &BlockOpsStandard{
 		config:  config,
 		queue:   q,
@@ -43,19 +81,19 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
-	block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData,
+	block Block) (id kbfsblock.ID, plainSize int, readyBlockData ReadyBlockData,
 	err error) {
 	defer func() {
 		if err != nil {
-			id = BlockID{}
+			id = kbfsblock.ID{}
 			plainSize = 0
 			readyBlockData = ReadyBlockData{}
 		}
 	}()
 
-	crypto := b.config.Crypto()
+	crypto := b.config.crypto()
 
-	tlfCryptKey, err := b.config.KeyManager().
+	tlfCryptKey, err := b.config.keyGetter().
 		GetTLFCryptKeyForEncryption(ctx, kmd)
 	if err != nil {
 		return
@@ -67,17 +105,13 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 		return
 	}
 
-	blockKey, err := crypto.UnmaskBlockCryptKey(serverHalf, tlfCryptKey)
-	if err != nil {
-		return
-	}
-
+	blockKey := kbfscrypto.UnmaskBlockCryptKey(serverHalf, tlfCryptKey)
 	plainSize, encryptedBlock, err := crypto.EncryptBlock(block, blockKey)
 	if err != nil {
 		return
 	}
 
-	buf, err := b.config.Codec().Encode(encryptedBlock)
+	buf, err := b.config.codec().Encode(encryptedBlock)
 	if err != nil {
 		return
 	}
@@ -96,7 +130,7 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 		return
 	}
 
-	id, err = crypto.MakePermanentBlockID(buf)
+	id, err = kbfsblock.MakePermanentID(buf)
 	if err != nil {
 		return
 	}
@@ -109,23 +143,23 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Delete(ctx context.Context, tlfID tlf.ID,
-	ptrs []BlockPointer) (liveCounts map[BlockID]int, err error) {
-	contexts := make(map[BlockID][]BlockContext)
+	ptrs []BlockPointer) (liveCounts map[kbfsblock.ID]int, err error) {
+	contexts := make(kbfsblock.ContextMap)
 	for _, ptr := range ptrs {
-		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.BlockContext)
+		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.Context)
 	}
-	return b.config.BlockServer().RemoveBlockReferences(ctx, tlfID, contexts)
+	return b.config.blockServer().RemoveBlockReferences(ctx, tlfID, contexts)
 }
 
 // Archive implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 	ptrs []BlockPointer) error {
-	contexts := make(map[BlockID][]BlockContext)
+	contexts := make(kbfsblock.ContextMap)
 	for _, ptr := range ptrs {
-		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.BlockContext)
+		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.Context)
 	}
 
-	return b.config.BlockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
+	return b.config.blockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
 }
 
 // TogglePrefetcher implements the BlockOps interface for BlockOpsStandard.

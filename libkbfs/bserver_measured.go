@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	metrics "github.com/rcrowley/go-metrics"
@@ -46,8 +47,8 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 }
 
 // Get implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
-	context BlockContext) (
+func (b BlockServerMeasured) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	b.getTimer.Time(func() {
 		buf, serverHalf, err = b.delegate.Get(ctx, tlfID, id, context)
@@ -56,8 +57,8 @@ func (b BlockServerMeasured) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 }
 
 // Put implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
-	context BlockContext, buf []byte,
+func (b BlockServerMeasured) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	b.putTimer.Time(func() {
 		err = b.delegate.Put(ctx, tlfID, id, context, buf, serverHalf)
@@ -68,7 +69,7 @@ func (b BlockServerMeasured) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 // AddBlockReference implements the BlockServer interface for
 // BlockServerMeasured.
 func (b BlockServerMeasured) AddBlockReference(ctx context.Context, tlfID tlf.ID,
-	id BlockID, context BlockContext) (err error) {
+	id kbfsblock.ID, context kbfsblock.Context) (err error) {
 	b.addBlockReferenceTimer.Time(func() {
 		err = b.delegate.AddBlockReference(ctx, tlfID, id, context)
 	})
@@ -78,8 +79,8 @@ func (b BlockServerMeasured) AddBlockReference(ctx context.Context, tlfID tlf.ID
 // RemoveBlockReferences implements the BlockServer interface for
 // BlockServerMeasured.
 func (b BlockServerMeasured) RemoveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (
-	liveCounts map[BlockID]int, err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap) (
+	liveCounts map[kbfsblock.ID]int, err error) {
 	b.removeBlockReferencesTimer.Time(func() {
 		liveCounts, err = b.delegate.RemoveBlockReferences(
 			ctx, tlfID, contexts)
@@ -90,7 +91,7 @@ func (b BlockServerMeasured) RemoveBlockReferences(ctx context.Context,
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b BlockServerMeasured) ArchiveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
 	b.archiveBlockReferencesTimer.Time(func() {
 		err = b.delegate.ArchiveBlockReferences(ctx, tlfID, contexts)
 	})
@@ -99,7 +100,7 @@ func (b BlockServerMeasured) ArchiveBlockReferences(ctx context.Context,
 
 // IsUnflushed implements the BlockServer interface for BlockServerMeasured.
 func (b BlockServerMeasured) IsUnflushed(ctx context.Context, tlfID tlf.ID,
-	id BlockID) (isUnflushed bool, err error) {
+	id kbfsblock.ID) (isUnflushed bool, err error) {
 	b.isUnflushedTimer.Time(func() {
 		isUnflushed, err = b.delegate.IsUnflushed(ctx, tlfID, id)
 	})
@@ -120,6 +121,6 @@ func (b BlockServerMeasured) RefreshAuthToken(ctx context.Context) {
 }
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerMeasured
-func (b BlockServerMeasured) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
+func (b BlockServerMeasured) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
 	return b.delegate.GetUserQuotaInfo(ctx)
 }

@@ -92,6 +92,21 @@ func SerializeToFile(c Codec, obj interface{}, path string) error {
 	return ioutil.WriteFile(path, buf, 0600)
 }
 
+// SerializeToFileIfNotExist is like SerializeToFile, but does nothing
+// if the file already exists.
+func SerializeToFileIfNotExist(c Codec, obj interface{}, path string) error {
+	_, err := ioutil.Stat(path)
+	if ioutil.IsExist(err) {
+		return nil
+	} else if ioutil.IsNotExist(err) {
+		// Continue.
+	} else if err != nil {
+		return err
+	}
+
+	return SerializeToFile(c, obj, path)
+}
+
 // DeserializeFromFile deserializes the given file into the object
 // pointed to by objPtr. It may return an error for which
 // ioutil.IsNotExist() returns true.

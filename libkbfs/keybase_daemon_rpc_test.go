@@ -382,7 +382,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	name := userName1.String() + "," + userName2.String()
 

@@ -10,6 +10,8 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +19,8 @@ import (
 )
 
 func setupJournalBlockServerTest(t *testing.T) (
-	tempdir string, config *ConfigLocal, jServer *JournalServer) {
+	tempdir string, ctx context.Context, cancel context.CancelFunc,
+	config *ConfigLocal, jServer *JournalServer) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_block_server")
 	require.NoError(t, err)
 
@@ -30,12 +33,22 @@ func setupJournalBlockServerTest(t *testing.T) (
 		}
 	}()
 
+	ctx, cancel = context.WithTimeout(
+		context.Background(), individualTestTimeout)
+
+	// Clean up the context if the rest of the setup fails.
+	defer func() {
+		if !setupSucceeded {
+			cancel()
+		}
+	}()
+
 	config = MakeTestConfigOrBust(t, "test_user")
 
 	// Clean up the config if the rest of the setup fails.
 	defer func() {
 		if !setupSucceeded {
-			CheckConfigAndShutdown(t, config)
+			CheckConfigAndShutdown(ctx, t, config)
 		}
 	}()
 
@@ -48,12 +61,14 @@ func setupJournalBlockServerTest(t *testing.T) (
 	config.SetBlockServer(blockServer)
 
 	setupSucceeded = true
-	return tempdir, config, jServer
+	return tempdir, ctx, cancel, config, jServer
 }
 
 func teardownJournalBlockServerTest(
-	t *testing.T, tempdir string, config Config) {
-	CheckConfigAndShutdown(t, config)
+	t *testing.T, tempdir string, ctx context.Context,
+	cancel context.CancelFunc, config Config) {
+	CheckConfigAndShutdown(ctx, t, config)
+	cancel()
 	err := ioutil.RemoveAll(tempdir)
 	assert.NoError(t, err)
 }
@@ -63,30 +78,27 @@ type shutdownOnlyBlockServer struct{ BlockServer }
 func (shutdownOnlyBlockServer) Shutdown() {}
 
 func TestJournalBlockServerPutGetAddReference(t *testing.T) {
-	tempdir, config, jServer := setupJournalBlockServerTest(t)
-	defer teardownJournalBlockServerTest(t, tempdir, config)
+	tempdir, ctx, cancel, config, jServer := setupJournalBlockServerTest(t)
+	defer teardownJournalBlockServerTest(t, tempdir, ctx, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
 	// journal tries to access it.
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
-
-	ctx := context.Background()
 
 	tlfID := tlf.FakeID(2, false)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
-	crypto := config.Crypto()
 
 	uid1 := keybase1.MakeTestUID(1)
-	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
+	bCtx := kbfsblock.MakeFirstContext(uid1)
 	data := []byte{1, 2, 3, 4}
-	bID, err := crypto.MakePermanentBlockID(data)
+	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
 
 	// Put a block.
-	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
@@ -99,9 +111,9 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 
 	// Add a reference.
 	uid2 := keybase1.MakeTestUID(2)
-	nonce, err := crypto.MakeBlockRefNonce()
+	nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
-	bCtx2 := BlockContext{uid1, uid2, nonce}
+	bCtx2 := kbfsblock.MakeContext(uid1, uid2, nonce)
 	err = blockServer.AddBlockReference(ctx, tlfID, bID, bCtx2)
 	require.NoError(t, err)
 

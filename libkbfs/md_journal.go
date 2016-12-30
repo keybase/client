@@ -290,8 +290,8 @@ func (j mdJournal) putMDInfo(
 // getExtraMetadata gets the extra metadata corresponding to the given
 // IDs, if any, after checking them.
 func (j mdJournal) getExtraMetadata(
-	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-	ExtraMetadata, error) {
+	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID,
+	wkbNew, rkbNew bool) (ExtraMetadata, error) {
 	if (wkbID == TLFWriterKeyBundleID{}) !=
 		(rkbID == TLFReaderKeyBundleID{}) {
 		return nil, errors.Errorf(
@@ -326,12 +326,11 @@ func (j mdJournal) getExtraMetadata(
 		return nil, err
 	}
 
-	// TODO: Store and retrieve the wkbNew/rkbNew parameters.
-	return NewExtraMetadataV3(wkb, rkb, true, true), nil
+	return NewExtraMetadataV3(wkb, rkb, wkbNew, rkbNew), nil
 }
 
-func (j mdJournal) putExtraMetadata(
-	rmd BareRootMetadata, extra ExtraMetadata) error {
+func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
+	wkbNew, rkbNew bool, err error) {
 	wkbID := rmd.GetTLFWriterKeyBundleID()
 	rkbID := rmd.GetTLFReaderKeyBundleID()
 
@@ -342,7 +341,7 @@ func (j mdJournal) putExtraMetadata(
 		if rkbID != (TLFReaderKeyBundleID{}) {
 			panic(errors.Errorf("unexpected non-nil rkbID %s", rkbID))
 		}
-		return nil
+		return false, false, nil
 	}
 
 	if wkbID == (TLFWriterKeyBundleID{}) {
@@ -355,38 +354,36 @@ func (j mdJournal) putExtraMetadata(
 
 	extraV3, ok := extra.(*ExtraMetadataV3)
 	if !ok {
-		return errors.New("Invalid extra metadata")
+		return false, false, errors.New("Invalid extra metadata")
 	}
 
 	// TODO: We lose extraV3.wkbNew and extraV3.rkbNew here. Store
 	// it as part of the mdInfo, so we don't needlessly send it
 	// while flushing.
 
-	err := checkWKBID(j.crypto, wkbID, extraV3.wkb)
+	err = checkWKBID(j.crypto, wkbID, extraV3.wkb)
 	if err != nil {
-		return err
+		return false, false, err
 	}
 
 	err = checkRKBID(j.crypto, rkbID, extraV3.rkb)
 	if err != nil {
-		return err
+		return false, false, err
 	}
 
-	// TODO: Avoid serializing if the file already exists.
-
-	err = kbfscodec.SerializeToFile(
+	err = kbfscodec.SerializeToFileIfNotExist(
 		j.codec, extraV3.wkb, j.writerKeyBundleV3Path(wkbID))
 	if err != nil {
-		return err
+		return false, false, err
 	}
 
-	err = kbfscodec.SerializeToFile(
+	err = kbfscodec.SerializeToFileIfNotExist(
 		j.codec, extraV3.rkb, j.readerKeyBundleV3Path(rkbID))
 	if err != nil {
-		return err
+		return false, false, err
 	}
 
-	return nil
+	return extraV3.wkbNew, extraV3.rkbNew, nil
 }
 
 // getMDAndExtra verifies the MD data, the writer signature (but not
@@ -398,18 +395,18 @@ func (j mdJournal) putExtraMetadata(
 //
 // It returns a MutableBareRootMetadata so that it can be put in a
 // RootMetadataSigned object.
-func (j mdJournal) getMDAndExtra(id MdID, verifyBranchID bool) (
+func (j mdJournal) getMDAndExtra(entry mdIDJournalEntry, verifyBranchID bool) (
 	MutableBareRootMetadata, ExtraMetadata, time.Time, error) {
 	// Read info.
 
-	timestamp, version, err := j.getMDInfo(id)
+	timestamp, version, err := j.getMDInfo(entry.ID)
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}
 
 	// Read data.
 
-	p := j.mdDataPath(id)
+	p := j.mdDataPath(entry.ID)
 	data, err := ioutil.ReadFile(p)
 	if err != nil {
 		return nil, nil, time.Time{}, err
@@ -428,9 +425,10 @@ func (j mdJournal) getMDAndExtra(id MdID, verifyBranchID bool) (
 		return nil, nil, time.Time{}, err
 	}
 
-	if mdID != id {
+	if mdID != entry.ID {
 		return nil, nil, time.Time{}, errors.Errorf(
-			"Metadata ID mismatch: expected %s, got %s", id, mdID)
+			"Metadata ID mismatch: expected %s, got %s",
+			entry.ID, mdID)
 	}
 
 	err = rmd.IsLastModifiedBy(j.uid, j.key)
@@ -439,7 +437,8 @@ func (j mdJournal) getMDAndExtra(id MdID, verifyBranchID bool) (
 	}
 
 	extra, err := j.getExtraMetadata(
-		rmd.GetTLFWriterKeyBundleID(), rmd.GetTLFReaderKeyBundleID())
+		rmd.GetTLFWriterKeyBundleID(), rmd.GetTLFReaderKeyBundleID(),
+		entry.WKBNew, entry.RKBNew)
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}
@@ -475,7 +474,7 @@ func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
 		return MdID{}, err
 	}
 
-	_, _, _, err = j.getMDAndExtra(id, true)
+	_, err = ioutil.Stat(j.mdDataPath(id))
 	if ioutil.IsNotExist(err) {
 		// Continue on.
 	} else if err != nil {
@@ -485,7 +484,8 @@ func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
 		return MdID{}, nil
 	}
 
-	err = kbfscodec.SerializeToFile(j.codec, rmd, j.mdDataPath(id))
+	err = kbfscodec.SerializeToFileIfNotExist(
+		j.codec, rmd, j.mdDataPath(id))
 	if err != nil {
 		return MdID{}, err
 	}
@@ -526,13 +526,12 @@ func (j mdJournal) getEarliestWithExtra(verifyBranchID bool) (
 	if !exists {
 		return MdID{}, nil, nil, time.Time{}, nil
 	}
-	earliestID := entry.ID
 	earliest, extra, timestamp, err :=
-		j.getMDAndExtra(earliestID, verifyBranchID)
+		j.getMDAndExtra(entry, verifyBranchID)
 	if err != nil {
 		return MdID{}, nil, nil, time.Time{}, err
 	}
-	return earliestID, earliest, extra, timestamp, nil
+	return entry.ID, earliest, extra, timestamp, nil
 }
 
 func (j mdJournal) getLatest(verifyBranchID bool) (
@@ -544,14 +543,13 @@ func (j mdJournal) getLatest(verifyBranchID bool) (
 	if !exists {
 		return ImmutableBareRootMetadata{}, nil
 	}
-	latestID := entry.ID
-	latest, extra, timestamp, err := j.getMDAndExtra(
-		latestID, verifyBranchID)
+	latest, extra, timestamp, err :=
+		j.getMDAndExtra(entry, verifyBranchID)
 	if err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
 	return MakeImmutableBareRootMetadata(
-		latest, extra, latestID, timestamp), nil
+		latest, extra, entry.ID, timestamp), nil
 }
 
 func (j mdJournal) checkGetParams() (ImmutableBareRootMetadata, error) {
@@ -643,7 +641,7 @@ func (j *mdJournal) convertToBranch(
 
 	isPendingLocalSquash := bid == PendingLocalSquashBranchID
 	for _, entry := range allEntries {
-		brmd, _, ts, err := j.getMDAndExtra(entry.ID, true)
+		brmd, _, ts, err := j.getMDAndExtra(entry, true)
 		if err != nil {
 			return err
 		}
@@ -943,14 +941,13 @@ func (j mdJournal) getHead(bid BranchID) (ImmutableBareRootMetadata, error) {
 			return ImmutableBareRootMetadata{}, err
 		}
 		if entry.IsLocalSquash {
-			latestID := entry.ID
-			latest, extra, timestamp, err := j.getMDAndExtra(
-				latestID, false)
+			latest, extra, timestamp, err :=
+				j.getMDAndExtra(entry, false)
 			if err != nil {
 				return ImmutableBareRootMetadata{}, err
 			}
 			return MakeImmutableBareRootMetadata(
-				latest, extra, latestID, timestamp), nil
+				latest, extra, entry.ID, timestamp), nil
 		}
 	}
 	return ImmutableBareRootMetadata{}, nil
@@ -988,7 +985,7 @@ func (j mdJournal) getRange(bid BranchID, start, stop MetadataRevision) (
 		}
 
 		expectedRevision := realStart + MetadataRevision(i)
-		brmd, extra, ts, err := j.getMDAndExtra(entry.ID, true)
+		brmd, extra, ts, err := j.getMDAndExtra(entry, true)
 		if err != nil {
 			return nil, err
 		}
@@ -1203,7 +1200,7 @@ func (j *mdJournal) put(
 		return MdID{}, err
 	}
 
-	err = j.putExtraMetadata(rmd.bareMd, rmd.extra)
+	wkbNew, rkbNew, err := j.putExtraMetadata(rmd.bareMd, rmd.extra)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -1211,6 +1208,8 @@ func (j *mdJournal) put(
 	newEntry := mdIDJournalEntry{
 		ID:            id,
 		IsLocalSquash: isLocalSquash,
+		WKBNew:        wkbNew,
+		RKBNew:        rkbNew,
 	}
 	if head != (ImmutableBareRootMetadata{}) &&
 		rmd.Revision() == head.RevisionNumber() {

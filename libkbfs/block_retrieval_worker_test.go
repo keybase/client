@@ -102,7 +102,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	require.NotNil(t, w)
 	defer w.Shutdown()
 
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 
@@ -127,7 +127,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	defer w1.Shutdown()
 	defer w2.Shutdown()
 
-	ptr1, ptr2 := makeFakeBlockPointer(t), makeFakeBlockPointer(t)
+	ptr1, ptr2 := makeRandomBlockPointer(t), makeRandomBlockPointer(t)
 	block1, block2 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
@@ -168,7 +168,7 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	require.NotNil(t, w1)
 	defer w1.Shutdown()
 
-	ptr1, ptr2, ptr3 := makeFakeBlockPointer(t), makeFakeBlockPointer(t), makeFakeBlockPointer(t)
+	ptr1, ptr2, ptr3 := makeRandomBlockPointer(t), makeRandomBlockPointer(t), makeRandomBlockPointer(t)
 	block1, block2, block3 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
 	startCh1, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
@@ -219,7 +219,7 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	require.NotNil(t, w)
 	defer w.Shutdown()
 
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
 	_, _ = bg.setBlockToReturn(ptr1, block1)
 
@@ -241,7 +241,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
 	_, continueCh := bg.setBlockToReturn(ptr1, block1)
 
@@ -276,7 +276,7 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	defer w1.Shutdown()
 
 	t.Log("Setup source blocks")
-	ptr1 := makeFakeBlockPointer(t)
+	ptr1 := makeRandomBlockPointer(t)
 	block1 := makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	testCommonBlock := &CommonBlock{}

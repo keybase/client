@@ -664,7 +664,7 @@ func (md *MDServerMemory) copy(config mdServerLocalConfig) mdServerLocal {
 func (md *MDServerMemory) isShutdown() bool {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
-	return md.handleDb == nil
+	return md.checkShutdownLocked() != nil
 }
 
 // DisableRekeyUpdatesForTesting implements the MDServer interface.

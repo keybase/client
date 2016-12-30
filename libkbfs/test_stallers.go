@@ -5,8 +5,10 @@
 package libkbfs
 
 import (
+	"math/rand"
 	"sync"
 
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 
@@ -286,11 +288,12 @@ func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
 	return onStalledCh, unstallCh, newCtx
 }
 
-var stallerCounter stallKeyType
-
 func newStallKey() stallKeyType {
-	stallerCounter++
-	return stallerCounter
+	stallKey := stallKeyStallEverything
+	for stallKey == stallKeyStallEverything {
+		stallKey = stallKeyType(rand.Int63())
+	}
+	return stallKey
 }
 
 // staller is a pair of channels. Whenever something is to be
@@ -360,8 +363,8 @@ func (f *stallingBlockServer) maybeStall(ctx context.Context, opName StallableBl
 		f.stallKey, f.staller)
 }
 
-func (f *stallingBlockServer) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
-	bctx BlockContext) (
+func (f *stallingBlockServer) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	bctx kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	f.maybeStall(ctx, StallableBlockGet)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
@@ -372,8 +375,8 @@ func (f *stallingBlockServer) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 	return buf, serverHalf, err
 }
 
-func (f *stallingBlockServer) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
-	bctx BlockContext, buf []byte,
+func (f *stallingBlockServer) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	bctx kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	f.maybeStall(ctx, StallableBlockPut)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
@@ -502,7 +505,7 @@ func (m *stallingMDOps) PruneBranch(
 }
 
 func (m *stallingMDOps) ResolveBranch(
-	ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []BlockID,
+	ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []kbfsblock.ID,
 	rmd *RootMetadata) (mdID MdID, err error) {
 	m.maybeStall(ctx, StallableMDResolveBranch)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {

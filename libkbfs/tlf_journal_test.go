@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -146,11 +147,11 @@ func (c testTLFJournalConfig) MakeLogger(module string) logger.Logger {
 }
 
 func (c testTLFJournalConfig) makeBlock(data []byte) (
-	BlockID, BlockContext, kbfscrypto.BlockCryptKeyServerHalf) {
-	id, err := c.crypto.MakePermanentBlockID(data)
+	kbfsblock.ID, kbfsblock.Context, kbfscrypto.BlockCryptKeyServerHalf) {
+	id, err := kbfsblock.MakePermanentID(data)
 	require.NoError(c.t, err)
-	bCtx := BlockContext{c.uid, "", ZeroBlockRefNonce}
-	serverHalf, err := c.crypto.MakeRandomBlockCryptKeyServerHalf()
+	bCtx := kbfsblock.MakeFirstContext(c.uid)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(c.t, err)
 	return id, bCtx, serverHalf
 }
@@ -251,7 +252,7 @@ func setupTLFJournalTest(
 		}
 	}()
 
-	delegateBlockServer := NewBlockServerMemory(config.Crypto(), log)
+	delegateBlockServer := NewBlockServerMemory(log)
 
 	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
 		tempdir, config.tlfID, config, delegateBlockServer,
@@ -315,10 +316,6 @@ func putOneMD(ctx context.Context, config *testTLFJournalConfig,
 // The tests below primarily test the background work thread's
 // behavior.
 
-func TestTLFJournalBasic(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalBasic)
-}
-
 func testTLFJournalBasic(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
@@ -331,10 +328,6 @@ func testTLFJournalBasic(t *testing.T, ver MetadataVer) {
 
 	delegate.requireNextState(ctx, bwBusy)
 	delegate.requireNextState(ctx, bwIdle)
-}
-
-func TestTLFJournalPauseResume(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalPauseResume)
 }
 
 func testTLFJournalPauseResume(t *testing.T, ver MetadataVer) {
@@ -354,10 +347,6 @@ func testTLFJournalPauseResume(t *testing.T, ver MetadataVer) {
 	delegate.requireNextState(ctx, bwIdle)
 	delegate.requireNextState(ctx, bwBusy)
 	delegate.requireNextState(ctx, bwIdle)
-}
-
-func TestTLFJournalPauseShutdown(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalPauseShutdown)
 }
 
 func testTLFJournalPauseShutdown(t *testing.T, ver MetadataVer) {
@@ -381,7 +370,7 @@ type hangingBlockServer struct {
 }
 
 func (bs hangingBlockServer) Put(
-	ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext,
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	close(bs.onPutCh)
 	// Hang until the context is cancelled.
@@ -439,10 +428,6 @@ func testTLFJournalBlockOpBusyPause(t *testing.T, ver MetadataVer) {
 	delegate.requireNextState(ctx, bwPaused)
 }
 
-func TestTLFJournalBlockOpBusyShutdown(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalBlockOpBusyShutdown)
-}
-
 func testTLFJournalBlockOpBusyShutdown(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
@@ -459,10 +444,6 @@ func testTLFJournalBlockOpBusyShutdown(t *testing.T, ver MetadataVer) {
 	delegate.requireNextState(ctx, bwBusy)
 
 	// Should still be able to shut down while busy.
-}
-
-func TestTLFJournalSecondBlockOpWhileBusy(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalSecondBlockOpWhileBusy)
 }
 
 func testTLFJournalSecondBlockOpWhileBusy(t *testing.T, ver MetadataVer) {
@@ -506,10 +487,6 @@ func (md hangingMDServer) waitForPut(ctx context.Context, t *testing.T) {
 	}
 }
 
-func TestTLFJournalMDServerBusyPause(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalMDServerBusyPause)
-}
-
 func testTLFJournalMDServerBusyPause(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
@@ -532,10 +509,6 @@ func testTLFJournalMDServerBusyPause(t *testing.T, ver MetadataVer) {
 	delegate.requireNextState(ctx, bwPaused)
 }
 
-func TestTLFJournalMDServerBusyShutdown(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalMDServerBusyShutdown)
-}
-
 func testTLFJournalMDServerBusyShutdown(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkEnabled)
@@ -553,10 +526,6 @@ func testTLFJournalMDServerBusyShutdown(t *testing.T, ver MetadataVer) {
 	delegate.requireNextState(ctx, bwBusy)
 
 	// Should still be able to shutdown while busy.
-}
-
-func TestTLFJournalBlockOpWhileBusy(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalBlockOpWhileBusy)
 }
 
 func testTLFJournalBlockOpWhileBusy(t *testing.T, ver MetadataVer) {
@@ -630,10 +599,6 @@ func requireJournalEntryCounts(t *testing.T, j *tlfJournal,
 
 // The tests below test tlfJournal's MD flushing behavior.
 
-func TestTLFJournalFlushMDBasic(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalFlushMDBasic)
-}
-
 func testTLFJournalFlushMDBasic(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
@@ -677,10 +642,6 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver MetadataVer) {
 	require.Equal(t, mdCount, len(rmdses))
 	config.checkRange(
 		rmdses, firstRevision, firstPrevRoot, Merged, NullBranchID)
-}
-
-func TestTLFJournalFlushMDConflict(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalFlushMDConflict)
 }
 
 func testTLFJournalFlushMDConflict(t *testing.T, ver MetadataVer) {
@@ -750,7 +711,7 @@ type orderedBlockServer struct {
 }
 
 func (s *orderedBlockServer) Put(
-	ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext,
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -791,9 +752,6 @@ func (s *orderedMDServer) Shutdown() {
 // orderings of blocks and MD ops when flushing, i.e. if a block op
 // was added to the block journal before an MD op was added to the MD
 // journal, then that block op will be flushed before that MD op.
-func TestTLFJournalFlushOrdering(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalFlushOrdering)
-}
 
 func testTLFJournalFlushOrdering(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
@@ -879,9 +837,6 @@ func testTLFJournalFlushOrdering(t *testing.T, ver MetadataVer) {
 // TestTLFJournalFlushInterleaving tests that we interleave block and
 // MD ops while respecting the relative orderings of blocks and MD ops
 // when flushing.
-func TestTLFJournalFlushInterleaving(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalFlushInterleaving)
-}
 
 func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
@@ -908,7 +863,7 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 	config.mdserver = &mdserver
 
 	// Revision 1
-	var bids []BlockID
+	var bids []kbfsblock.ID
 	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
 	for i := 0; i < rev1BlockEnd; i++ {
 		data := []byte{byte(i)}
@@ -941,11 +896,11 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 
 	// Make sure that: before revision 1, all the rev1 blocks were
 	// put; rev2 comes last; some blocks are put between the two.
-	bidsSeen := make(map[BlockID]bool)
+	bidsSeen := make(map[kbfsblock.ID]bool)
 	md1Slot := 0
 	md2Slot := 0
 	for i, put := range puts {
-		if bid, ok := put.(BlockID); ok {
+		if bid, ok := put.(kbfsblock.ID); ok {
 			t.Logf("Saw bid %s at %d", bid, i)
 			bidsSeen[bid] = true
 			continue
@@ -982,10 +937,6 @@ func (t *testImmediateBackOff) NextBackOff() time.Duration {
 
 func (t *testImmediateBackOff) Reset() {
 	close(t.resetCh)
-}
-
-func TestTLFJournalFlushRetry(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalFlushRetry)
 }
 
 func testTLFJournalFlushRetry(t *testing.T, ver MetadataVer) {
@@ -1039,17 +990,13 @@ func testTLFJournalFlushRetry(t *testing.T, ver MetadataVer) {
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 }
 
-func TestTLFJournalResolveBranch(t *testing.T) {
-	runTestOverMetadataVers(t, testTLFJournalResolveBranch)
-}
-
 func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	var bids []BlockID
+	var bids []kbfsblock.ID
 	for i := 0; i < 3; i++ {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)
@@ -1086,7 +1033,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	// Resolve the branch.
 	resolveMD := config.makeMD(firstRevision, firstPrevRoot)
 	_, err = tlfJournal.resolveBranch(ctx,
-		tlfJournal.mdJournal.getBranchID(), []BlockID{bids[1]}, resolveMD, nil)
+		tlfJournal.mdJournal.getBranchID(), []kbfsblock.ID{bids[1]}, resolveMD, nil)
 	require.NoError(t, err)
 
 	blockEnd, newMDEnd, err := tlfJournal.getJournalEnds(ctx)
@@ -1108,4 +1055,24 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	// resolveBranch resumes background work.
 	delegate.requireNextState(ctx, bwIdle)
 	delegate.requireNextState(ctx, bwBusy)
+}
+
+func TestTLFJournal(t *testing.T) {
+	tests := []func(*testing.T, MetadataVer){
+		testTLFJournalBasic,
+		testTLFJournalPauseResume,
+		testTLFJournalPauseShutdown,
+		testTLFJournalBlockOpBusyShutdown,
+		testTLFJournalSecondBlockOpWhileBusy,
+		testTLFJournalMDServerBusyPause,
+		testTLFJournalMDServerBusyShutdown,
+		testTLFJournalBlockOpWhileBusy,
+		testTLFJournalFlushMDBasic,
+		testTLFJournalFlushMDConflict,
+		testTLFJournalFlushOrdering,
+		testTLFJournalFlushInterleaving,
+		testTLFJournalFlushRetry,
+		testTLFJournalResolveBranch,
+	}
+	runTestsOverMetadataVers(t, "testTLFJournal", tests)
 }

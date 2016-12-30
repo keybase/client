@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -104,10 +105,6 @@ func makeFakeTlfHandle(
 
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
 // public TLFs.
-func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
-	runTestOverMetadataVers(t, testRootMetadataGetTlfHandlePublic)
-}
-
 func testRootMetadataGetTlfHandlePublic(t *testing.T, ver MetadataVer) {
 	uw := []keybase1.SocialAssertion{
 		{
@@ -135,10 +132,6 @@ func testRootMetadataGetTlfHandlePublic(t *testing.T, ver MetadataVer) {
 
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
 // non-public TLFs.
-func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
-	runTestOverMetadataVers(t, testRootMetadataGetTlfHandlePrivate)
-}
-
 func testRootMetadataGetTlfHandlePrivate(t *testing.T, ver MetadataVer) {
 	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
@@ -179,10 +172,6 @@ func testRootMetadataGetTlfHandlePrivate(t *testing.T, ver MetadataVer) {
 }
 
 // Test that key generations work as expected for private TLFs.
-func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
-	runTestOverMetadataVers(t, testRootMetadataLatestKeyGenerationPrivate)
-}
-
 func testRootMetadataLatestKeyGenerationPrivate(t *testing.T, ver MetadataVer) {
 	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
@@ -201,10 +190,6 @@ func testRootMetadataLatestKeyGenerationPrivate(t *testing.T, ver MetadataVer) {
 }
 
 // Test that key generations work as expected for public TLFs.
-func TestRootMetadataLatestKeyGenerationPublic(t *testing.T) {
-	runTestOverMetadataVers(t, testRootMetadataLatestKeyGenerationPublic)
-}
-
 func testRootMetadataLatestKeyGenerationPublic(t *testing.T, ver MetadataVer) {
 	tlfID := tlf.FakeID(0, true)
 	h := makeFakeTlfHandle(t, 14, true, nil, nil)
@@ -216,14 +201,11 @@ func testRootMetadataLatestKeyGenerationPublic(t *testing.T, ver MetadataVer) {
 	}
 }
 
-func TestMakeRekeyReadError(t *testing.T) {
-	runTestOverMetadataVers(t, testMakeRekeyReadError)
-}
-
 func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	config.SetMetadataVersion(ver)
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
@@ -232,7 +214,7 @@ func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
 
 	rmd.fakeInitialRekey(config.Codec(), config.Crypto())
 
-	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
+	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
 	require.NoError(t, err)
 
 	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen, uid, u)
@@ -249,16 +231,12 @@ func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
 	}
 }
 
-func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
-	runTestOverMetadataVers(t, testMakeRekeyReadErrorResolvedHandle)
-}
-
 func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, false)
-	ctx := context.Background()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob@twitter",
 		false)
 	require.NoError(t, err)
@@ -284,9 +262,6 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
 }
 
 // Test that MakeSuccessor fails when the final bit is set.
-func TestRootMetadataFinalIsFinal(t *testing.T) {
-	runTestOverMetadataVers(t, testRootMetadataFinalIsFinal)
-}
 
 func testRootMetadataFinalIsFinal(t *testing.T, ver MetadataVer) {
 	tlfID := tlf.FakeID(0, true)
@@ -295,7 +270,8 @@ func testRootMetadataFinalIsFinal(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	rmd.SetFinalBit()
-	_, err = rmd.MakeSuccessor(context.Background(), nil, fakeMdID(1), true)
+	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil,
+		fakeMdID(1), true)
 	_, isFinalError := err.(MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
 }
@@ -328,7 +304,8 @@ func (kc *dummyNoKeyCache) PutTLFCryptKey(_ tlf.ID, _ KeyGen, _ kbfscrypto.TLFCr
 func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
 	config.SetKeyCache(&dummyNoKeyCache{})
-	defer config.Shutdown()
+	ctx := context.Background()
+	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", false)
@@ -344,7 +321,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	rmd.SetRefBytes(refBytes)
 	rmd.SetUnrefBytes(unrefBytes)
 	// Make sure the MD looks readable.
-	rmd.data.Dir.BlockPointer = BlockPointer{ID: fakeBlockID(1)}
+	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
 
 	// key it once
 	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
@@ -389,7 +366,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	_, charlieUID, err := config.KBPKI().Resolve(context.Background(), "charlie")
 	config2 := ConfigAsUser(config, "charlie")
 	config2.SetKeyCache(&dummyNoKeyCache{})
-	defer config2.Shutdown()
+	defer config2.Shutdown(ctx)
 	AddDeviceForLocalUserOrBust(t, config, charlieUID)
 	AddDeviceForLocalUserOrBust(t, config2, charlieUID)
 
@@ -407,7 +384,9 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	config.metadataVersion = SegregatedKeyBundlesVer
 
 	// create an MDv3 successor
-	rmd2, err := rmd.MakeSuccessor(context.Background(), config, fakeMdID(1), true)
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.KeyManager(), fakeMdID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, KeyGen(2), rmd2.LatestKeyGeneration())
 	require.Equal(t, MetadataRevision(2), rmd2.Revision())
@@ -473,8 +452,9 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 
 // Test upconversion from MDv2 to MDv3 for a public folder.
 func TestRootMetadataUpconversionPublic(t *testing.T) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, true)
 	h := parseTlfHandleOrBust(t, config, "alice,bob,charlie@twitter", true)
@@ -494,7 +474,9 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	config.metadataVersion = SegregatedKeyBundlesVer
 
 	// create an MDv3 successor
-	rmd2, err := rmd.MakeSuccessor(context.Background(), config, fakeMdID(1), true)
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.KeyManager(), fakeMdID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, PublicKeyGen, rmd2.LatestKeyGeneration())
 	require.Equal(t, MetadataRevision(2), rmd2.Revision())
@@ -523,8 +505,9 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 // The server will be reusing IsLastModifiedBy and we don't want a client
 // to be able to construct an MD that will crash the server.
 func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
+	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown()
+	defer config.Shutdown(ctx)
 
 	_, uid, err := config.KBPKI().Resolve(context.Background(), "alice")
 	tlfID := tlf.FakeID(0, false)
@@ -537,7 +520,7 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 
 	// sign with a mismatched writer
 	config2 := ConfigAsUser(config, "bob")
-	defer config2.Shutdown()
+	defer config2.Shutdown(ctx)
 	rmds, err := SignBareRootMetadata(
 		context.Background(), config.Codec(), config.Crypto(), config2.Crypto(), rmd.bareMd, time.Now())
 	require.NoError(t, err)
@@ -554,9 +537,10 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 
 // Test that a reader can't upconvert a private folder from v2 to v3.
 func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
+	ctx := context.Background()
 	configWriter := MakeTestConfigOrBust(t, "alice", "bob")
 	configWriter.SetKeyCache(&dummyNoKeyCache{})
-	defer configWriter.Shutdown()
+	defer configWriter.Shutdown(ctx)
 
 	tlfID := tlf.FakeID(1, false)
 	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", false)
@@ -598,7 +582,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	require.NoError(t, err)
 	configReader := ConfigAsUser(configWriter, "bob")
 	configReader.SetKeyCache(&dummyNoKeyCache{})
-	defer configReader.Shutdown()
+	defer configReader.Shutdown(ctx)
 	AddDeviceForLocalUserOrBust(t, configWriter, bobUID)
 	AddDeviceForLocalUserOrBust(t, configReader, bobUID)
 
@@ -606,7 +590,9 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	// reader.  This should keep the version the same, since readers
 	// can't upconvert.
 	configReader.metadataVersion = SegregatedKeyBundlesVer
-	rmd2, err := rmd.MakeSuccessor(context.Background(), configReader,
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		configReader.MetadataVersion(), configReader.Codec(),
+		configReader.Crypto(), configReader.KeyManager(),
 		fakeMdID(1), false)
 	require.NoError(t, err)
 	require.Equal(t, rmd2.LatestKeyGeneration(), KeyGen(1))
@@ -633,4 +619,17 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	err = rmds.IsValidAndSigned(configReader.Codec(), configReader.Crypto(),
 		rmd2.extra)
 	require.NoError(t, err)
+}
+
+func TestRootMetadata(t *testing.T) {
+	tests := []func(*testing.T, MetadataVer){
+		testRootMetadataGetTlfHandlePublic,
+		testRootMetadataGetTlfHandlePrivate,
+		testRootMetadataLatestKeyGenerationPrivate,
+		testRootMetadataLatestKeyGenerationPublic,
+		testMakeRekeyReadError,
+		testMakeRekeyReadErrorResolvedHandle,
+		testRootMetadataFinalIsFinal,
+	}
+	runTestsOverMetadataVers(t, "testRootMetadata", tests)
 }

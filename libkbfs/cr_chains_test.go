@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -70,7 +71,7 @@ func testCRInitPtrs(n int) (currPtr byte, ptrs []BlockPointer,
 	currPtr = byte(42)
 	revPtrs = make(map[BlockPointer]BlockPointer)
 	for i := 0; i < n; i++ {
-		ptr := BlockPointer{ID: fakeBlockID(currPtr)}
+		ptr := BlockPointer{ID: kbfsblock.FakeID(currPtr)}
 		currPtr++
 		ptrs = append(ptrs, ptr)
 		revPtrs[ptr] = ptr
@@ -83,7 +84,7 @@ func testCRFillOpPtrs(currPtr byte,
 	revPtrs map[BlockPointer]BlockPointer,
 	affectedPtrs []BlockPointer, op op) (nextCurrPtr byte) {
 	for _, ptr := range affectedPtrs {
-		newPtr := BlockPointer{ID: fakeBlockID(currPtr)}
+		newPtr := BlockPointer{ID: kbfsblock.FakeID(currPtr)}
 		currPtr++
 		op.AddUpdate(ptr, newPtr)
 		expected[revPtrs[ptr]] = newPtr
@@ -211,7 +212,7 @@ func TestCRChainsRenameOp(t *testing.T) {
 	rootPtrUnref := ptrs[0]
 	dir1Unref := ptrs[1]
 	dir2Unref := ptrs[2]
-	filePtr := BlockPointer{ID: fakeBlockID(currPtr)}
+	filePtr := BlockPointer{ID: kbfsblock.FakeID(currPtr)}
 	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
 	expectedRenames := make(map[BlockPointer]renameInfo)
@@ -263,7 +264,7 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	dir2Unref := ptrs[2]
 	dir3Unref := ptrs[3]
 	file4Unref := ptrs[4]
-	file2Ptr := BlockPointer{ID: fakeBlockID(currPtr)}
+	file2Ptr := BlockPointer{ID: kbfsblock.FakeID(currPtr)}
 	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
 	expectedRenames := make(map[BlockPointer]renameInfo)
@@ -414,9 +415,9 @@ func TestCRChainsCollapse(t *testing.T) {
 	rootPtrUnref := ptrs[0]
 	dir1Unref := ptrs[1]
 	dir2Unref := ptrs[2]
-	file1Ptr := BlockPointer{ID: fakeBlockID(currPtr)}
+	file1Ptr := BlockPointer{ID: kbfsblock.FakeID(currPtr)}
 	currPtr++
-	file4Ptr := BlockPointer{ID: fakeBlockID(currPtr)}
+	file4Ptr := BlockPointer{ID: kbfsblock.FakeID(currPtr)}
 	currPtr++
 	expected := make(map[BlockPointer]BlockPointer)
 	expectedRenames := make(map[BlockPointer]renameInfo)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 )
 
@@ -321,7 +322,7 @@ func (e BlockDecodeError) Error() string {
 
 // BadDataError indicates that KBFS is storing corrupt data for a block.
 type BadDataError struct {
-	ID BlockID
+	ID kbfsblock.ID
 }
 
 // Error implements the error interface for BadDataError
@@ -331,7 +332,7 @@ func (e BadDataError) Error() string {
 
 // NoSuchBlockError indicates that a block for the associated ID doesn't exist.
 type NoSuchBlockError struct {
-	ID BlockID
+	ID kbfsblock.ID
 }
 
 // Error implements the error interface for NoSuchBlockError
@@ -341,7 +342,7 @@ func (e NoSuchBlockError) Error() string {
 
 // BadCryptoError indicates that KBFS performed a bad crypto operation.
 type BadCryptoError struct {
-	ID BlockID
+	ID kbfsblock.ID
 }
 
 // Error implements the error interface for BadCryptoError
@@ -1140,7 +1141,7 @@ func (e MutableBareRootMetadataNoImplError) Error() string {
 // is a generic error, suitable for use by non-server types, whereas
 // BServerErrorBlockNonExistent is used only by servers.
 type blockNonExistentError struct {
-	id BlockID
+	id kbfsblock.ID
 }
 
 func (e blockNonExistentError) Error() string {

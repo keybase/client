@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -73,7 +74,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 
 	// Initialize the MD using a different config
 	c2 := ConfigAsUser(config, "test_user")
-	defer CheckConfigAndShutdown(t, c2)
+	defer CheckConfigAndShutdown(ctx, t, c2)
 	rootNode := GetRootNodeOrBust(ctx, t, c2, "test_user", false)
 
 	n := 10
@@ -968,49 +969,63 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	fc.finishChan = finishChan
 
 	prevNBlocks := fc.numBlocks()
-	ctx, cancel2 := context.WithCancel(ctx)
+	ctx2, cancel2 := context.WithCancel(ctx)
 	go func() {
 		// let the first initialBlocks blocks through.
 		for i := 0; i < initialBlocks; i++ {
-			<-readyChan
+			select {
+			case <-readyChan:
+			case <-ctx.Done():
+				t.Error(ctx.Err())
+			}
 		}
 
 		for i := 0; i < initialBlocks; i++ {
-			goChan <- struct{}{}
+			select {
+			case goChan <- struct{}{}:
+			case <-ctx.Done():
+				t.Error(ctx.Err())
+			}
 		}
 
 		for i := 0; i < initialBlocks; i++ {
-			<-finishChan
+			select {
+			case <-finishChan:
+			case <-ctx.Done():
+				t.Error(ctx.Err())
+			}
 		}
 
 		// Let each parallel block worker block on readyChan.
 		for i := 0; i < maxParallelBlockPuts; i++ {
-			<-readyChan
+			select {
+			case <-readyChan:
+			case <-ctx.Done():
+				t.Error(ctx.Err())
+			}
 		}
 
 		// Make sure all the workers are busy.
 		select {
 		case <-readyChan:
 			t.Error("Worker unexpectedly ready")
+		case <-ctx.Done():
+			t.Error(ctx.Err())
 		default:
 		}
 
+		// Let all the workers go through.
 		cancel2()
 	}()
 
-	err = kbfsOps.Sync(ctx, fileNode)
-	if err != context.Canceled {
+	err = kbfsOps.Sync(ctx2, fileNode)
+	if err != ctx2.Err() {
 		t.Errorf("Sync did not get canceled error: %v", err)
 	}
 	nowNBlocks := fc.numBlocks()
 	if nowNBlocks != prevNBlocks+2 {
 		t.Errorf("Unexpected number of blocks; prev = %d, now = %d",
 			prevNBlocks, nowNBlocks)
-	}
-
-	// Now clean up by letting the rest of the blocks through.
-	for i := 0; i < maxParallelBlockPuts; i++ {
-		<-finishChan
 	}
 
 	// Make sure there are no more workers, i.e. the extra blocks
@@ -1023,11 +1038,14 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 
 	// As a regression for KBFS-635, test that a second sync succeeds,
 	// and that future operations also succeed.
-	fc.readyChan = nil
-	fc.goChan = nil
-	fc.finishChan = nil
-	ctx = BackgroundContextWithCancellationDelayer()
-	defer CleanupCancellationDelayer(ctx)
+	//
+	// Create new objects to avoid racing with goroutines from the
+	// first sync.
+	fc = NewFakeBServerClient(config.Crypto(), log, nil, nil, nil)
+	b = newBlockServerRemoteWithClient(
+		config.Codec(), config.KBPKI(), log, fc)
+	config.BlockServer().Shutdown()
+	config.SetBlockServer(b)
 	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
 		t.Fatalf("Second sync failed: %v", err)
 	}
@@ -1091,20 +1109,20 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	errPtrChan := make(chan BlockPointer)
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).
-		Do(func(ctx context.Context, tlfID tlf.ID, id BlockID,
-			context BlockContext, buf []byte,
+		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+			context kbfsblock.Context, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			errPtrChan <- BlockPointer{
-				ID:           id,
-				BlockContext: context,
+				ID:      id,
+				Context: context,
 			}
 		}).After(c).Return(putErr)
 	// let the rest through
 	proceedChan := make(chan struct{})
 	b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().
-		Do(func(ctx context.Context, tlfID tlf.ID, id BlockID,
-			context BlockContext, buf []byte,
+		Do(func(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+			context kbfsblock.Context, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			<-proceedChan
 		}).After(c).Return(nil)
@@ -1318,14 +1336,18 @@ func TestKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T) {
 	}
 
 	// Sync the initial three data blocks
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 	// start the sync
 	go func() {
 		errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
 	}()
 
 	// Wait for the first block to finish (before the retry)
-	<-onSyncStalledCh
+	select {
+	case <-onSyncStalledCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 
 	// Dirty the last block and extend it, so the one that was sent as
 	// part of the first sync is no longer part of the file.
@@ -1333,16 +1355,32 @@ func TestKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
 	}
-	syncUnstallCh <- struct{}{}
+	select {
+	case syncUnstallCh <- struct{}{}:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 
 	// Wait for the rest of the first set of  block to finish (before the retry)
 	for i := 0; i < 5; i++ {
-		<-onSyncStalledCh
-		syncUnstallCh <- struct{}{}
+		select {
+		case <-onSyncStalledCh:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
+		select {
+		case syncUnstallCh <- struct{}{}:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
 	}
 
 	// Once the first block of the retry comes in, cancel everything.
-	<-onSyncStalledCh
+	select {
+	case <-onSyncStalledCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	cancel2()
 
 	// Unstall the sync.
@@ -1787,7 +1825,7 @@ type blockOpsOverQuota struct {
 
 func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID tlf.ID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	return BServerErrorOverQuota{
+	return kbfsblock.BServerErrorOverQuota{
 		Throttled: true,
 	}
 }
@@ -1870,7 +1908,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	// Both errors should be an OverQuota error
 	syncErr := <-syncErrCh
 	writeErr := <-writeErrCh
-	if _, ok := syncErr.(BServerErrorOverQuota); !ok {
+	if _, ok := syncErr.(kbfsblock.BServerErrorOverQuota); !ok {
 		t.Fatalf("Unexpected sync err: %v", syncErr)
 	}
 	if writeErr != syncErr {
@@ -1936,7 +1974,7 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	config2 := ConfigAsUser(config1, userName2)
-	defer CheckConfigAndShutdown(t, config2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	name := userName1.String() + "," + userName2.String()
 

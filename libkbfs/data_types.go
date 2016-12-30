@@ -13,7 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -65,6 +65,15 @@ const (
 	EncryptionSecretbox EncryptionVer = 1
 )
 
+func (v EncryptionVer) String() string {
+	switch v {
+	case EncryptionSecretbox:
+		return "EncryptionSecretbox"
+	default:
+		return fmt.Sprintf("EncryptionVer(%d)", v)
+	}
+}
+
 // encryptedData is encrypted data with a nonce and a version.
 type encryptedData struct {
 	// Exported only for serialization purposes. Should only be
@@ -74,18 +83,35 @@ type encryptedData struct {
 	Nonce         []byte        `codec:"n"`
 }
 
+func (ed encryptedData) String() string {
+	if reflect.DeepEqual(ed, encryptedData{}) {
+		return "EncryptedData{}"
+	}
+	return fmt.Sprintf("%s{data=%s, nonce=%s}",
+		ed.Version, hex.EncodeToString(ed.EncryptedData),
+		hex.EncodeToString(ed.Nonce))
+}
+
 // EncryptedTLFCryptKeyClientHalf is an encrypted
-// TLFCryptKeyCLientHalf object.
-type EncryptedTLFCryptKeyClientHalf encryptedData
+// TLFCryptKeyClientHalf object.
+type EncryptedTLFCryptKeyClientHalf struct {
+	encryptedData
+}
 
 // EncryptedPrivateMetadata is an encrypted PrivateMetadata object.
-type EncryptedPrivateMetadata encryptedData
+type EncryptedPrivateMetadata struct {
+	encryptedData
+}
 
 // EncryptedBlock is an encrypted Block.
-type EncryptedBlock encryptedData
+type EncryptedBlock struct {
+	encryptedData
+}
 
 // EncryptedTLFCryptKeys is an encrypted TLFCryptKey array.
-type EncryptedTLFCryptKeys encryptedData
+type EncryptedTLFCryptKeys struct {
+	encryptedData
+}
 
 // EncryptedMerkleLeaf is an encrypted Merkle leaf.
 type EncryptedMerkleLeaf struct {
@@ -171,24 +197,11 @@ const (
 	FilesWithHolesDataVer DataVer = 2
 )
 
-// BlockRefNonce is a 64-bit unique sequence of bytes for identifying
-// this reference of a block ID from other references to the same
-// (duplicated) block.
-type BlockRefNonce [8]byte
-
-// ZeroBlockRefNonce is a special BlockRefNonce used for the initial
-// reference to a block.
-var ZeroBlockRefNonce = BlockRefNonce([8]byte{0, 0, 0, 0, 0, 0, 0, 0})
-
-func (nonce BlockRefNonce) String() string {
-	return hex.EncodeToString(nonce[:])
-}
-
 // BlockRef is a block ID/ref nonce pair, which defines a unique
 // reference to a block.
 type BlockRef struct {
-	ID       BlockID
-	RefNonce BlockRefNonce
+	ID       kbfsblock.ID
+	RefNonce kbfsblock.RefNonce
 }
 
 // IsValid returns true exactly when ID.IsValid() does.
@@ -198,80 +211,8 @@ func (r BlockRef) IsValid() bool {
 
 func (r BlockRef) String() string {
 	s := fmt.Sprintf("BlockRef{id: %s", r.ID)
-	if r.RefNonce != ZeroBlockRefNonce {
+	if r.RefNonce != kbfsblock.ZeroRefNonce {
 		s += fmt.Sprintf(", refNonce: %s", r.RefNonce)
-	}
-	s += "}"
-	return s
-}
-
-// BlockContext contains all the information used by the server to
-// identify blocks (other than the ID).
-//
-// NOTE: Don't add or modify anything in this struct without
-// considering how old clients will handle them.
-type BlockContext struct {
-	// Creator is the UID that was first charged for the initial
-	// reference to this block.
-	Creator keybase1.UID `codec:"c"`
-	// Writer is the UID that should be charged for this reference to
-	// the block.  If empty, it defaults to Creator.
-	Writer keybase1.UID `codec:"w,omitempty"`
-	// When RefNonce is all 0s, this is the initial reference to a
-	// particular block.  Using a constant refnonce for the initial
-	// reference allows the server to identify and optimize for the
-	// common case where there is only one reference for a block.  Two
-	// initial references cannot happen simultaneously, because the
-	// encrypted block contents (and thus the block ID) will be
-	// randomized by the server-side block crypt key half.  All
-	// subsequent references to the same block must have a random
-	// RefNonce (it can't be a monotonically increasing number because
-	// that would require coordination among clients).
-	RefNonce BlockRefNonce `codec:"r,omitempty"`
-}
-
-// GetCreator returns the creator of the associated block.
-func (c BlockContext) GetCreator() keybase1.UID {
-	return c.Creator
-}
-
-// GetWriter returns the writer of the associated block.
-func (c BlockContext) GetWriter() keybase1.UID {
-	if !c.Writer.IsNil() {
-		return c.Writer
-	}
-	return c.Creator
-}
-
-// SetWriter sets the Writer field, if necessary.
-func (c *BlockContext) SetWriter(newWriter keybase1.UID) {
-	if c.Creator != newWriter {
-		c.Writer = newWriter
-	} else {
-		// save some bytes by not populating the separate Writer
-		// field if it matches the creator.
-		c.Writer = ""
-	}
-}
-
-// GetRefNonce returns the ref nonce of the associated block.
-func (c BlockContext) GetRefNonce() BlockRefNonce {
-	return c.RefNonce
-}
-
-// IsFirstRef returns whether or not p represents the first reference
-// to the corresponding BlockID.
-func (c BlockContext) IsFirstRef() bool {
-	return c.RefNonce == ZeroBlockRefNonce
-}
-
-func (c BlockContext) String() string {
-	s := fmt.Sprintf("BlockContext{Creator: %s", c.Creator)
-	if len(c.Writer) > 0 {
-		s += fmt.Sprintf(", Writer: %s", c.Writer)
-	}
-	if c.RefNonce != ZeroBlockRefNonce {
-		s += fmt.Sprintf(", RefNonce: %s", c.RefNonce)
 	}
 	s += "}"
 	return s
@@ -282,10 +223,10 @@ func (c BlockContext) String() string {
 // NOTE: Don't add or modify anything in this struct without
 // considering how old clients will handle them.
 type BlockPointer struct {
-	ID      BlockID `codec:"i"`
-	KeyGen  KeyGen  `codec:"k"` // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
-	DataVer DataVer `codec:"d"` // if valid, which version of the KBFS data structures is pointed to
-	BlockContext
+	ID      kbfsblock.ID `codec:"i"`
+	KeyGen  KeyGen       `codec:"k"` // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
+	DataVer DataVer      `codec:"d"` // if valid, which version of the KBFS data structures is pointed to
+	kbfsblock.Context
 }
 
 // IsValid returns whether the block pointer is valid. A zero block
@@ -302,12 +243,15 @@ func (p BlockPointer) IsValid() bool {
 }
 
 func (p BlockPointer) String() string {
-	return fmt.Sprintf("BlockPointer{ID: %s, KeyGen: %d, DataVer: %d, Context: %s}", p.ID, p.KeyGen, p.DataVer, p.BlockContext)
+	if p == (BlockPointer{}) {
+		return "BlockPointer{}"
+	}
+	return fmt.Sprintf("BlockPointer{ID: %s, KeyGen: %d, DataVer: %d, Context: %s}", p.ID, p.KeyGen, p.DataVer, p.Context)
 }
 
 // IsInitialized returns whether or not this BlockPointer has non-nil data.
 func (p BlockPointer) IsInitialized() bool {
-	return p.ID != BlockID{}
+	return p.ID != kbfsblock.ID{}
 }
 
 // Ref returns the BlockRef equivalent of this pointer.
@@ -333,6 +277,9 @@ type BlockInfo struct {
 }
 
 func (bi BlockInfo) String() string {
+	if bi == (BlockInfo{}) {
+		return "BlockInfo{}"
+	}
 	return fmt.Sprintf("BlockInfo{BlockPointer: %s, EncodedSize: %d}",
 		bi.BlockPointer, bi.EncodedSize)
 }
@@ -595,135 +542,6 @@ func (m MergeStatus) String() string {
 	default:
 		return "unknown"
 	}
-}
-
-// UsageType indicates the type of usage that quota manager is keeping stats of
-type UsageType int
-
-const (
-	// UsageWrite indicates a block is written (written blocks include archived blocks)
-	UsageWrite UsageType = iota
-	// UsageArchive indicates an existing block is archived
-	UsageArchive
-	// UsageRead indicates a block is read
-	UsageRead
-	// NumUsage indicates the number of usage types
-	NumUsage
-)
-
-// UsageStat tracks the amount of bytes/blocks used, broken down by usage types
-type UsageStat struct {
-	Bytes  map[UsageType]int64
-	Blocks map[UsageType]int64
-	// Mtime is in unix nanoseconds
-	Mtime int64
-}
-
-// NewUsageStat creates a new UsageStat
-func NewUsageStat() *UsageStat {
-	return &UsageStat{
-		Bytes:  make(map[UsageType]int64),
-		Blocks: make(map[UsageType]int64),
-	}
-}
-
-// NonZero checks whether UsageStat has accumulated any usage info
-func (u *UsageStat) NonZero() bool {
-	for i := UsageType(0); i < NumUsage; i++ {
-		if u.Bytes[i] != 0 {
-			return true
-		}
-	}
-	return false
-}
-
-//AccumOne records the usage of one block, whose size is denoted by change
-//A positive change means the block is newly added, negative means the block
-//is deleted. If archive is true, it means the block is archived.
-func (u *UsageStat) AccumOne(change int, usage UsageType) {
-	if change == 0 {
-		return
-	}
-	if usage < UsageWrite || usage > UsageRead {
-		return
-	}
-	u.Bytes[usage] += int64(change)
-	if change > 0 {
-		u.Blocks[usage]++
-	} else {
-		u.Blocks[usage]--
-	}
-}
-
-// Accum combines changes to the existing UserQuotaInfo object using accumulation function accumF.
-func (u *UsageStat) Accum(another *UsageStat, accumF func(int64, int64) int64) {
-	if another == nil {
-		return
-	}
-	for k, v := range another.Bytes {
-		u.Bytes[k] = accumF(u.Bytes[k], v)
-	}
-	for k, v := range another.Blocks {
-		u.Blocks[k] = accumF(u.Blocks[k], v)
-	}
-}
-
-// UserQuotaInfo contains a user's quota usage information
-type UserQuotaInfo struct {
-	Folders map[string]*UsageStat
-	Total   *UsageStat
-	Limit   int64
-}
-
-// NewUserQuotaInfo returns a newly constructed UserQuotaInfo.
-func NewUserQuotaInfo() *UserQuotaInfo {
-	return &UserQuotaInfo{
-		Folders: make(map[string]*UsageStat),
-		Total:   NewUsageStat(),
-	}
-}
-
-// AccumOne combines one quota charge to the existing UserQuotaInfo
-func (u *UserQuotaInfo) AccumOne(change int, folder string, usage UsageType) {
-	if _, ok := u.Folders[folder]; !ok {
-		u.Folders[folder] = NewUsageStat()
-	}
-	u.Folders[folder].AccumOne(change, usage)
-	u.Total.AccumOne(change, usage)
-}
-
-// Accum combines changes to the existing UserQuotaInfo object using accumulation function accumF.
-func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) int64) {
-	if another == nil {
-		return
-	}
-	if u.Total == nil {
-		u.Total = NewUsageStat()
-	}
-	u.Total.Accum(another.Total, accumF)
-	for f, change := range another.Folders {
-		if _, ok := u.Folders[f]; !ok {
-			u.Folders[f] = NewUsageStat()
-		}
-		u.Folders[f].Accum(change, accumF)
-	}
-}
-
-// ToBytes marshals this UserQuotaInfo
-func (u *UserQuotaInfo) ToBytes(codec kbfscodec.Codec) ([]byte, error) {
-	return codec.Encode(u)
-}
-
-// UserQuotaInfoDecode decodes b into a UserQuotaInfo
-func UserQuotaInfoDecode(b []byte, codec kbfscodec.Codec) (
-	*UserQuotaInfo, error) {
-	var info UserQuotaInfo
-	err := codec.Decode(b, &info)
-	if err != nil {
-		return nil, err
-	}
-
-	return &info, nil
 }
 
 // OpSummary describes the changes performed by a single op, and is

@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -29,7 +30,6 @@ type blockServerDiskTlfStorage struct {
 // storing blocks in a local disk store.
 type BlockServerDisk struct {
 	codec        kbfscodec.Codec
-	crypto       cryptoPure
 	log          logger.Logger
 	dirPath      string
 	shutdownFunc func(logger.Logger)
@@ -44,10 +44,10 @@ var _ blockServerLocal = (*BlockServerDisk)(nil)
 // newBlockServerDisk constructs a new BlockServerDisk that stores
 // its data in the given directory.
 func newBlockServerDisk(
-	codec kbfscodec.Codec, crypto cryptoPure, log logger.Logger,
+	codec kbfscodec.Codec, log logger.Logger,
 	dirPath string, shutdownFunc func(logger.Logger)) *BlockServerDisk {
 	bserv := &BlockServerDisk{
-		codec, crypto, log, dirPath, shutdownFunc, sync.RWMutex{},
+		codec, log, dirPath, shutdownFunc, sync.RWMutex{},
 		make(map[tlf.ID]*blockServerDiskTlfStorage),
 	}
 	return bserv
@@ -55,20 +55,20 @@ func newBlockServerDisk(
 
 // NewBlockServerDir constructs a new BlockServerDisk that stores
 // its data in the given directory.
-func NewBlockServerDir(codec kbfscodec.Codec, crypto cryptoPure,
+func NewBlockServerDir(codec kbfscodec.Codec,
 	log logger.Logger, dirPath string) *BlockServerDisk {
-	return newBlockServerDisk(codec, crypto, log, dirPath, nil)
+	return newBlockServerDisk(codec, log, dirPath, nil)
 }
 
 // NewBlockServerTempDir constructs a new BlockServerDisk that stores its
 // data in a temp directory which is cleaned up on shutdown.
-func NewBlockServerTempDir(codec kbfscodec.Codec, crypto cryptoPure,
+func NewBlockServerTempDir(codec kbfscodec.Codec,
 	log logger.Logger) (*BlockServerDisk, error) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_bserver_tmp")
 	if err != nil {
 		return nil, err
 	}
-	return newBlockServerDisk(codec, crypto, log, tempdir, func(log logger.Logger) {
+	return newBlockServerDisk(codec, log, tempdir, func(log logger.Logger) {
 		err := ioutil.RemoveAll(tempdir)
 		if err != nil {
 			log.Warning("error removing %s: %s", tempdir, err)
@@ -109,7 +109,7 @@ func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 	}
 
 	path := filepath.Join(b.dirPath, tlfID.String())
-	store := makeBlockDiskStore(b.codec, b.crypto, path)
+	store := makeBlockDiskStore(b.codec, path)
 
 	storage = &blockServerDiskTlfStorage{
 		store: store,
@@ -120,8 +120,8 @@ func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 }
 
 // Get implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
-	context BlockContext) (
+func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
@@ -149,8 +149,8 @@ func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 }
 
 // Put implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
-	context BlockContext, buf []byte,
+func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
@@ -158,7 +158,7 @@ func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 	b.log.CDebugf(ctx, "BlockServerDisk.Put id=%s tlfID=%s context=%s size=%d",
 		id, tlfID, context, len(buf))
 
-	if context.GetRefNonce() != ZeroBlockRefNonce {
+	if context.GetRefNonce() != kbfsblock.ZeroRefNonce {
 		return errors.New("can't Put() a block with a non-zero refnonce")
 	}
 
@@ -183,7 +183,7 @@ func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 
 // AddBlockReference implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
-	id BlockID, context BlockContext) error {
+	id kbfsblock.ID, context kbfsblock.Context) error {
 	b.log.CDebugf(ctx, "BlockServerDisk.AddBlockReference id=%s "+
 		"tlfID=%s context=%s", id, tlfID, context)
 	tlfStorage, err := b.getStorage(tlfID)
@@ -202,7 +202,7 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 	if !hasRef {
-		return BServerErrorBlockNonExistent{fmt.Sprintf("Block ID %s "+
+		return kbfsblock.BServerErrorBlockNonExistent{Msg: fmt.Sprintf("Block ID %s "+
 			"doesn't exist and cannot be referenced.", id)}
 	}
 
@@ -211,7 +211,7 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 	if !hasNonArchivedRef {
-		return BServerErrorBlockArchived{fmt.Sprintf("Block ID %s has "+
+		return kbfsblock.BServerErrorBlockArchived{Msg: fmt.Sprintf("Block ID %s has "+
 			"been archived and cannot be referenced.", id)}
 	}
 
@@ -221,8 +221,8 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 // RemoveBlockReferences implements the BlockServer interface for
 // BlockServerDisk.
 func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (
-	liveCounts map[BlockID]int, err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap) (
+	liveCounts map[kbfsblock.ID]int, err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -239,7 +239,7 @@ func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 		return nil, errBlockServerDiskShutdown
 	}
 
-	liveCounts = make(map[BlockID]int)
+	liveCounts = make(map[kbfsblock.ID]int)
 	for id, idContexts := range contexts {
 		liveCount, err := tlfStorage.store.removeReferences(
 			id, idContexts, "")
@@ -262,7 +262,7 @@ func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerDisk.
 func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
-	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (err error) {
+	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -286,8 +286,8 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 				return err
 			}
 			if !hasContext {
-				return BServerErrorBlockNonExistent{
-					fmt.Sprintf(
+				return kbfsblock.BServerErrorBlockNonExistent{
+					Msg: fmt.Sprintf(
 						"Block ID %s (context %s) doesn't "+
 							"exist and cannot be archived.",
 						id, context),
@@ -302,7 +302,7 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 // getAllRefsForTest implements the blockServerLocal interface for
 // BlockServerDisk.
 func (b *BlockServerDisk) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (
-	map[BlockID]blockRefMap, error) {
+	map[kbfsblock.ID]blockRefMap, error) {
 	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return nil, err
@@ -319,7 +319,7 @@ func (b *BlockServerDisk) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (
 
 // IsUnflushed implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) IsUnflushed(ctx context.Context, tlfID tlf.ID,
-	_ BlockID) (bool, error) {
+	_ kbfsblock.ID) (bool, error) {
 	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return false, err
@@ -368,7 +368,7 @@ func (b *BlockServerDisk) Shutdown() {
 func (b *BlockServerDisk) RefreshAuthToken(_ context.Context) {}
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
+func (b *BlockServerDisk) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
 	// Return a dummy value here.
-	return &UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+	return &kbfsblock.UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
 }

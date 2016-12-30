@@ -84,9 +84,11 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 		publicKey := kbfscrypto.MakeTLFEphemeralPublicKey(
 			arg.PeersPublicKey)
 		encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
-			Version:       EncryptionSecretbox,
-			EncryptedData: arg.EncryptedBytes32[:],
-			Nonce:         arg.Nonce[:],
+			encryptedData{
+				Version:       EncryptionSecretbox,
+				EncryptedData: arg.EncryptedBytes32[:],
+				Nonce:         arg.Nonce[:],
+			},
 		}
 		clientHalf, err := fc.Local.DecryptTLFCryptKeyClientHalf(
 			context.Background(), publicKey, encryptedClientHalf)
@@ -107,9 +109,11 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 			ePublicKey := kbfscrypto.MakeTLFEphemeralPublicKey(
 				k.PublicKey)
 			encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
-				Version:       EncryptionSecretbox,
-				EncryptedData: make([]byte, len(k.Ciphertext)),
-				Nonce:         make([]byte, len(k.Nonce)),
+				encryptedData{
+					Version:       EncryptionSecretbox,
+					EncryptedData: make([]byte, len(k.Ciphertext)),
+					Nonce:         make([]byte, len(k.Nonce)),
+				},
 			}
 			copy(encryptedClientHalf.EncryptedData, k.Ciphertext[:])
 			copy(encryptedClientHalf.Nonce, k.Nonce[:])
@@ -154,7 +158,7 @@ func TestCryptoClientSignAndVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = c.Verify(msg, sigInfo)
+	err = kbfscrypto.Verify(msg, sigInfo)
 	if err != nil {
 		t.Error(err)
 	}
@@ -185,7 +189,12 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(codec, log, fc)
 
-	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+	ephPublicKey, ephPrivateKey, err := c.MakeRandomTLFEphemeralKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -195,10 +204,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	var nonce [24]byte
 	err = kbfscrypto.RandRead(nonce[:])
@@ -218,11 +224,13 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 
 	clientHalfData := clientHalf.Data()
 	ephPrivateKeyData := ephPrivateKey.Data()
-	encryptedData := box.Seal(nil, clientHalfData[:], &nonce, (*[32]byte)(&dhKeyPair.Public), &ephPrivateKeyData)
+	encryptedBytes := box.Seal(nil, clientHalfData[:], &nonce, (*[32]byte)(&dhKeyPair.Public), &ephPrivateKeyData)
 	encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
-		Version:       EncryptionSecretbox,
-		Nonce:         nonce[:],
-		EncryptedData: encryptedData,
+		encryptedData{
+			Version:       EncryptionSecretbox,
+			Nonce:         nonce[:],
+			EncryptedData: encryptedBytes,
+		},
 	}
 
 	decryptedClientHalf, err := c.DecryptTLFCryptKeyClientHalf(
@@ -246,7 +254,12 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(codec, log, fc)
 
-	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+	ephPublicKey, ephPrivateKey, err := c.MakeRandomTLFEphemeralKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -256,10 +269,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	// See crypto_common_test.go for tests that this actually
 	// performs encryption.
@@ -314,7 +324,13 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 4)
 	clientHalves := make([]kbfscrypto.TLFCryptKeyClientHalf, 0, 4)
 	for i := 0; i < 4; i++ {
-		_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+		ephPublicKey, ephPrivateKey, err :=
+			c.MakeRandomTLFEphemeralKeys()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_, _, cryptKey, err := c.MakeRandomTLFKeys()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -324,10 +340,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-		if err != nil {
-			t.Fatal(err)
-		}
+		clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 		// See crypto_common_test.go for tests that this actually
 		// performs encryption.
@@ -372,7 +385,12 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(codec, log, fc)
 
-	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+	ephPublicKey, ephPrivateKey, err := c.MakeRandomTLFEphemeralKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -382,10 +400,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {
@@ -463,7 +478,12 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(codec, log, fc)
 
-	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+	ephPublicKey, ephPrivateKey, err := c.MakeRandomTLFEphemeralKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -473,10 +493,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {
@@ -550,7 +567,12 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 	serverConn, conn := rpc.MakeConnectionForTest(t)
 	c := newCryptoClientWithClient(codec, log, conn.GetClient())
 
-	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+	ephPublicKey, ephPrivateKey, err := c.MakeRandomTLFEphemeralKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -560,10 +582,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {

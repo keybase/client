@@ -179,8 +179,8 @@ func (udkimV3 UserDeviceKeyInfoMapV3) fillInUserInfos(
 	return serverHalves, nil
 }
 
-// All section references below are to https://keybase.io/blog/kbfs-crypto
-// (version 1.3).
+// All section references below are to https://keybase.io/docs/crypto/kbfs
+// (version 1.8).
 
 // TLFWriterKeyBundleV3 is a bundle of writer keys and historic
 // symmetric encryption keys for a top-level folder.
@@ -188,15 +188,15 @@ type TLFWriterKeyBundleV3 struct {
 	// Maps from each user to their crypt key bundle for the current generation.
 	Keys UserDeviceKeyInfoMapV3 `codec:"wKeys"`
 
-	// M_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
+	// M_f as described in § 4.1.1.
 	TLFPublicKey kbfscrypto.TLFPublicKey `codec:"pubKey"`
 
-	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
-	// Because devices can be added into the key generation after it
-	// is initially created (so those devices can get access to
-	// existing data), we track multiple ephemeral public keys; the
-	// one used by a particular device is specified by EPubKeyIndex in
-	// its TLFCryptoKeyInfo struct.
+	// M_e as described in § 4.1.1. Because devices can be added
+	// into the key generation after it is initially created (so
+	// those devices can get access to existing data), we track
+	// multiple ephemeral public keys; the one used by a
+	// particular device is specified by EPubKeyIndex in its
+	// TLFCryptoKeyInfo struct.
 	TLFEphemeralPublicKeys kbfscrypto.TLFEphemeralPublicKeys `codec:"ePubKey"`
 
 	// This is a time-ordered encrypted list of historic key generations.
@@ -217,7 +217,7 @@ func DeserializeTLFWriterKeyBundleV3(codec kbfscodec.Codec, path string) (
 	}
 	if len(wkb.Keys) == 0 {
 		return TLFWriterKeyBundleV3{}, errors.New(
-			"Writer key bundle with no keys")
+			"Writer key bundle with no keys (Deserialize)")
 	}
 	return wkb, nil
 }
@@ -226,6 +226,20 @@ func DeserializeTLFWriterKeyBundleV3(codec kbfscodec.Codec, path string) (
 func (wkb TLFWriterKeyBundleV3) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
 	_, ok := wkb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
 	return ok
+}
+
+// DeepCopy creates a deep copy of this key bundle.
+func (wkb TLFWriterKeyBundleV3) DeepCopy(codec kbfscodec.Codec) (
+	TLFWriterKeyBundleV3, error) {
+	if len(wkb.Keys) == 0 {
+		return TLFWriterKeyBundleV3{}, errors.New(
+			"Writer key bundle with no keys (DeepCopy)")
+	}
+	var wkbCopy TLFWriterKeyBundleV3
+	if err := kbfscodec.Update(codec, &wkbCopy, wkb); err != nil {
+		return TLFWriterKeyBundleV3{}, err
+	}
+	return wkbCopy, nil
 }
 
 // TLFWriterKeyBundleID is the hash of a serialized TLFWriterKeyBundle.
@@ -293,14 +307,13 @@ func (h TLFWriterKeyBundleID) IsNil() bool {
 type TLFReaderKeyBundleV3 struct {
 	Keys UserDeviceKeyInfoMapV3 `codec:"rKeys,omitempty"`
 
-	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
-	// Because devices can be added into the key generation after it
-	// is initially created (so those devices can get access to
-	// existing data), we track multiple ephemeral public keys; the
-	// one used by a particular device is specified by EPubKeyIndex in
-	// its TLFCryptoKeyInfo struct.
-	// This list is needed so a reader rekey doesn't modify the writer
-	// metadata.
+	// M_e as described in § 4.1.1. Because devices can be added
+	// into the key generation after it is initially created (so
+	// those devices can get access to existing data), we track
+	// multiple ephemeral public keys; the one used by a
+	// particular device is specified by EPubKeyIndex in its
+	// TLFCryptoKeyInfo struct.  This list is needed so a reader
+	// rekey doesn't modify the writer metadata.
 	TLFEphemeralPublicKeys kbfscrypto.TLFEphemeralPublicKeys `codec:"rEPubKey,omitempty"`
 
 	codec.UnknownFieldSetHandler
@@ -322,9 +335,22 @@ func DeserializeTLFReaderKeyBundleV3(codec kbfscodec.Codec, path string) (
 }
 
 // IsReader returns true if the given user device is in the reader set.
-func (trb TLFReaderKeyBundleV3) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
-	_, ok := trb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
+func (rkb TLFReaderKeyBundleV3) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+	_, ok := rkb.Keys[user][kbfscrypto.MakeCryptPublicKey(deviceKID)]
 	return ok
+}
+
+// DeepCopy creates a deep copy of this key bundle.
+func (rkb TLFReaderKeyBundleV3) DeepCopy(codec kbfscodec.Codec) (
+	TLFReaderKeyBundleV3, error) {
+	var rkbCopy TLFReaderKeyBundleV3
+	if err := kbfscodec.Update(codec, &rkbCopy, rkb); err != nil {
+		return TLFReaderKeyBundleV3{}, err
+	}
+	if len(rkbCopy.Keys) == 0 {
+		rkbCopy.Keys = make(UserDeviceKeyInfoMapV3)
+	}
+	return rkbCopy, nil
 }
 
 // TLFReaderKeyBundleID is the hash of a serialized TLFReaderKeyBundle.

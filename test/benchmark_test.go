@@ -48,7 +48,7 @@ func BenchmarkWrite1mb512k(b *testing.B) {
 func benchmarkWriteSeqN(b *testing.B, n int64, mask int64) {
 	buf := make([]byte, n)
 	b.SetBytes(n)
-	test(silentBenchmark{b},
+	benchmark(b, silentBenchmark{b},
 		users("alice"),
 		as(alice,
 			custom(func(cb func(fileOp) error) error {
@@ -101,7 +101,7 @@ func BenchmarkReadHole1mb512k(b *testing.B) {
 func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 	buf := make([]byte, n)
 	b.SetBytes(n)
-	test(silentBenchmark{b},
+	benchmark(b, silentBenchmark{b},
 		users("alice"),
 		as(alice,
 			custom(func(cb func(fileOp) error) error {
@@ -159,7 +159,7 @@ func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
 	buf := make([]byte, perWriteBytes)
 	b.SetBytes(fileBytes)
 	numWritesPerFile := int(fileBytes / perWriteBytes)
-	test(silentBenchmark{b},
+	benchmark(b, silentBenchmark{b},
 		users("alice"),
 		blockSize(512<<10),
 		bandwidth(writebwKBps),
@@ -231,7 +231,7 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 	}
 	b.SetBytes(totalSize)
 
-	test(silentBenchmark{b},
+	benchmark(b, silentBenchmark{b},
 		users("alice"),
 		blockSize(512<<10),
 		bandwidth(11*1024/8 /* 11 Mbps */),

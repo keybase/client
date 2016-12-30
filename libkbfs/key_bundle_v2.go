@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 type ePubKeyTypeV2 int
@@ -217,8 +216,8 @@ func (udkimV2 UserDeviceKeyInfoMapV2) fillInUserInfos(
 	return serverHalves, nil
 }
 
-// All section references below are to https://keybase.io/blog/kbfs-crypto
-// (version 1.3).
+// All section references below are to https://keybase.io/docs/crypto/kbfs
+// (version 1.8).
 
 // TLFWriterKeyBundleV2 is a bundle of all the writer keys for a top-level
 // folder.
@@ -226,15 +225,15 @@ type TLFWriterKeyBundleV2 struct {
 	// Maps from each writer to their crypt key bundle.
 	WKeys UserDeviceKeyInfoMapV2
 
-	// M_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
+	// M_f as described in § 4.1.1.
 	TLFPublicKey kbfscrypto.TLFPublicKey `codec:"pubKey"`
 
-	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
-	// Because devices can be added into the key generation after it
-	// is initially created (so those devices can get access to
-	// existing data), we track multiple ephemeral public keys; the
-	// one used by a particular device is specified by EPubKeyIndex in
-	// its TLFCryptoKeyInfo struct.
+	// M_e as described in § 4.1.1.  Because devices can be added
+	// into the key generation after it is initially created (so
+	// those devices can get access to existing data), we track
+	// multiple ephemeral public keys; the one used by a
+	// particular device is specified by EPubKeyIndex in its
+	// TLFCryptoKeyInfo struct.
 	TLFEphemeralPublicKeys kbfscrypto.TLFEphemeralPublicKeys `codec:"ePubKey"`
 
 	codec.UnknownFieldSetHandler
@@ -266,11 +265,9 @@ func (wkg TLFWriterKeyGenerationsV2) IsWriter(user keybase1.UID, deviceKID keyba
 }
 
 // ToTLFWriterKeyBundleV3 converts a TLFWriterKeyGenerationsV2 to a TLFWriterKeyBundleV3.
-//
-// TODO: Add a unit test for this.
 func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
-	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
-	keyManager KeyManager, kmd KeyMetadata) (
+	codec kbfscodec.Codec, crypto cryptoPure,
+	tlfCryptKeyGetter func() ([]kbfscrypto.TLFCryptKey, error)) (
 	TLFWriterKeyBundleV2, TLFWriterKeyBundleV3, error) {
 	keyGen := wkg.LatestKeyGeneration()
 	if keyGen < FirstValidKeyGen {
@@ -278,10 +275,23 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 			errors.New("No key generations to convert")
 	}
 
+	// Check for invalid indices into
+	// wkbV2.TLFEphemeralPublicKeys.
+	wkbV2 := wkg[keyGen-FirstValidKeyGen]
+	for u, dkimV2 := range wkbV2.WKeys {
+		for kid, keyInfo := range dkimV2 {
+			index := keyInfo.EPubKeyIndex
+			if index < 0 || index >= len(wkbV2.TLFEphemeralPublicKeys) {
+				return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{},
+					fmt.Errorf("Invalid writer key index %d for user=%s, kid=%s",
+						index, u, kid)
+			}
+		}
+	}
+
 	var wkbV3 TLFWriterKeyBundleV3
 
 	// Copy the latest UserDeviceKeyInfoMap.
-	wkbV2 := wkg[keyGen-FirstValidKeyGen]
 	udkimV3, err := udkimV2ToV3(codec, wkbV2.WKeys)
 	if err != nil {
 		return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{}, err
@@ -298,7 +308,7 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 
 	if keyGen > FirstValidKeyGen {
 		// Fetch all of the TLFCryptKeys.
-		keys, err := keyManager.GetTLFCryptKeyOfAllGenerations(ctx, kmd)
+		keys, err := tlfCryptKeyGetter()
 		if err != nil {
 			return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{}, err
 		}
@@ -326,14 +336,13 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 type TLFReaderKeyBundleV2 struct {
 	RKeys UserDeviceKeyInfoMapV2
 
-	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
-	// Because devices can be added into the key generation after it
-	// is initially created (so those devices can get access to
-	// existing data), we track multiple ephemeral public keys; the
-	// one used by a particular device is specified by EPubKeyIndex in
-	// its TLFCryptoKeyInfo struct.
-	// This list is needed so a reader rekey doesn't modify the writer
-	// metadata.
+	// M_e as described in § 4.1.1. Because devices can be added
+	// into the key generation after it is initially created (so
+	// those devices can get access to existing data), we track
+	// multiple ephemeral public keys; the one used by a
+	// particular device is specified by EPubKeyIndex in its
+	// TLFCryptoKeyInfo struct.  This list is needed so a reader
+	// rekey doesn't modify the writer metadata.
 	TLFReaderEphemeralPublicKeys kbfscrypto.TLFEphemeralPublicKeys `codec:"readerEPubKey,omitempty"`
 
 	codec.UnknownFieldSetHandler

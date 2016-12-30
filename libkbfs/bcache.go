@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -31,7 +32,7 @@ type BlockCacheStandard struct {
 	cleanTransient *lru.Cache
 
 	cleanLock      sync.RWMutex
-	cleanPermanent map[BlockID]Block
+	cleanPermanent map[kbfsblock.ID]Block
 
 	bytesLock       sync.Mutex
 	cleanTotalBytes uint64
@@ -47,7 +48,7 @@ func NewBlockCacheStandard(transientCapacity int,
 	cleanBytesCapacity uint64) *BlockCacheStandard {
 	b := &BlockCacheStandard{
 		cleanBytesCapacity: cleanBytesCapacity,
-		cleanPermanent:     make(map[BlockID]Block),
+		cleanPermanent:     make(map[kbfsblock.ID]Block),
 	}
 
 	if transientCapacity > 0 {
@@ -220,7 +221,7 @@ func (b *BlockCacheStandard) Put(
 
 			key := idCacheKey{tlf, *fBlock.hash}
 			// zero out the refnonce, it doesn't matter
-			ptr.RefNonce = ZeroBlockRefNonce
+			ptr.RefNonce = kbfsblock.ZeroRefNonce
 			b.ids.Add(key, ptr)
 		}
 		if b.cleanTransient == nil {
@@ -253,7 +254,7 @@ func (b *BlockCacheStandard) Put(
 
 // DeletePermanent implements the BlockCache interface for
 // BlockCacheStandard.
-func (b *BlockCacheStandard) DeletePermanent(id BlockID) error {
+func (b *BlockCacheStandard) DeletePermanent(id kbfsblock.ID) error {
 	b.cleanLock.Lock()
 	defer b.cleanLock.Unlock()
 	block, ok := b.cleanPermanent[id]

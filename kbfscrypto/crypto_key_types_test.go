@@ -282,3 +282,29 @@ func (blockCryptKeyType) makeFromData(data [32]byte) interface{} {
 func TestBlockCryptKeyEncodeDecode(t *testing.T) {
 	testByte32ContainerEncodeDecode(t, blockCryptKeyType{})
 }
+
+// Test (very superficially) that MakeRandomBlockCryptKeyServerHalf()
+// returns non-zero values that aren't equal.
+func TestCryptoCommonRandomBlockCryptKeyServerHalf(t *testing.T) {
+	k1, err := MakeRandomBlockCryptKeyServerHalf()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if k1 == (BlockCryptKeyServerHalf{}) {
+		t.Errorf("zero BlockCryptKeyServerHalf k1")
+	}
+
+	k2, err := MakeRandomBlockCryptKeyServerHalf()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if k2 == (BlockCryptKeyServerHalf{}) {
+		t.Errorf("zero BlockCryptKeyServerHalf k2")
+	}
+
+	if k1 == k2 {
+		t.Errorf("k1 == k2")
+	}
+}

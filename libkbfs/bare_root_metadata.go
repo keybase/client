@@ -4,7 +4,13 @@
 
 package libkbfs
 
-import "github.com/keybase/kbfs/tlf"
+import (
+	"fmt"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
+)
 
 // TODO: Wrap errors coming from BareRootMetadata.
 
@@ -28,4 +34,43 @@ func MakeInitialBareRootMetadata(
 	}
 
 	return MakeInitialBareRootMetadataV3(tlfID, h)
+}
+
+func dumpConfig() *spew.ConfigState {
+	c := spew.NewDefaultConfig()
+	c.Indent = "  "
+	c.DisablePointerAddresses = true
+	c.DisableCapacities = true
+	c.SortKeys = true
+	return c
+}
+
+// DumpBareRootMetadata returns a detailed dump of the given
+// BareRootMetadata's contents.
+func DumpBareRootMetadata(
+	codec kbfscodec.Codec, brmd BareRootMetadata) (string, error) {
+	serializedBRMD, err := codec.Encode(brmd)
+	if err != nil {
+		return "", err
+	}
+
+	// Make a copy so we can zero out SerializedPrivateMetadata.
+	brmdCopy, err := brmd.DeepCopy(codec)
+	if err != nil {
+		return "", err
+	}
+
+	switch brmdCopy := brmdCopy.(type) {
+	case *BareRootMetadataV2:
+		brmdCopy.SerializedPrivateMetadata = nil
+	case *BareRootMetadataV3:
+		brmdCopy.WriterMetadata.SerializedPrivateMetadata = nil
+	default:
+		// Do nothing, and let SerializedPrivateMetadata get
+		// spewed, I guess.
+	}
+	s := fmt.Sprintf("MD size: %d bytes\n"+
+		"MD version: %s\n\n", len(serializedBRMD), brmd.Version())
+	s += dumpConfig().Sdump(brmdCopy)
+	return s, nil
 }

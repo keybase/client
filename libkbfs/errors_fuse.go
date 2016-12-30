@@ -44,6 +44,14 @@ func (e WriteAccessError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
 
+var _ fuse.ErrorNumber = MetadataIsFinalError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// MetadataIsFinalError.
+func (e MetadataIsFinalError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}
+
 var _ fuse.ErrorNumber = WriteUnsupportedError{}
 
 // Errno implements the fuse.ErrorNumber interface for
@@ -74,13 +82,6 @@ var _ fuse.ErrorNumber = DisallowedPrefixError{}
 // DisallowedPrefixError.
 func (e DisallowedPrefixError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EINVAL)
-}
-
-var _ fuse.ErrorNumber = BServerErrorUnauthorized{}
-
-// Errno implements the fuse.ErrorNumber interface for BServerErrorUnauthorized.
-func (e BServerErrorUnauthorized) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
 }
 
 var _ fuse.ErrorNumber = MDServerErrorUnauthorized{}

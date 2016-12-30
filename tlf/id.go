@@ -7,7 +7,6 @@ package tlf
 import (
 	"encoding"
 	"encoding/hex"
-	"encoding/json"
 
 	"github.com/keybase/kbfs/kbfscrypto"
 )
@@ -32,8 +31,8 @@ type ID struct {
 var _ encoding.BinaryMarshaler = ID{}
 var _ encoding.BinaryUnmarshaler = (*ID)(nil)
 
-var _ json.Marshaler = ID{}
-var _ json.Unmarshaler = (*ID)(nil)
+var _ encoding.TextMarshaler = ID{}
+var _ encoding.TextUnmarshaler = (*ID)(nil)
 
 // NullID is an empty ID
 var NullID = ID{}
@@ -71,21 +70,15 @@ func (id *ID) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-// MarshalJSON implements the encoding.json.Marshaler interface for
-// ID.
-func (id ID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(id.String())
+// MarshalText implements the encoding.TextMarshaler interface for ID.
+func (id ID) MarshalText() ([]byte, error) {
+	return []byte(id.String()), nil
 }
 
-// UnmarshalJSON implements the encoding.json.Unmarshaler interface
-// for ID.
-func (id *ID) UnmarshalJSON(buf []byte) error {
-	var str string
-	err := json.Unmarshal(buf, &str)
-	if err != nil {
-		return err
-	}
-	newID, err := ParseID(str)
+// UnmarshalText implements the encoding.TextUnmarshaler interface for
+// ID.
+func (id *ID) UnmarshalText(buf []byte) error {
+	newID, err := ParseID(string(buf))
 	if err != nil {
 		return err
 	}

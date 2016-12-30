@@ -36,9 +36,11 @@ func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
 	require.NoError(t, err)
 	cki := TLFCryptKeyInfo{
 		EncryptedTLFCryptKeyClientHalf{
-			EncryptionSecretbox,
-			[]byte("fake encrypted data"),
-			[]byte("fake nonce"),
+			encryptedData{
+				EncryptionSecretbox,
+				[]byte("fake encrypted data"),
+				[]byte("fake nonce"),
+			},
 		},
 		TLFCryptKeyServerHalfID{hmac},
 		5,

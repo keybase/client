@@ -6,6 +6,9 @@ package libkbfs
 
 import (
 	"context"
+	"reflect"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,7 +24,8 @@ var testMetadataVers = []MetadataVer{
 }
 
 // runTestOverMetadataVers runs the given test function over all
-// metadata versions to test. Example use:
+// metadata versions to test. The test is assumed to be parallelizable
+// with other instances of itself. Example use:
 //
 // func TestFoo(t *testing.T) {
 //	runTestOverMetadataVers(t, testFoo)
@@ -37,7 +41,39 @@ func runTestOverMetadataVers(
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		t.Run(ver.String(), func(t *testing.T) {
+			t.Parallel()
 			f(t, ver)
+		})
+	}
+}
+
+// runTestsOverMetadataVers runs the given list of test functions over
+// all metadata versions to test. prefix should be the common prefix
+// for all the test function names, and the names of the subtest will
+// be taken to be the strings after that prefix. Example use:
+//
+// func TestFoo(t *testing.T) {
+// 	tests := []func(*testing.T, MetadataVer){
+//		testFooBar1,
+//		testFooBar2,
+//		testFooBar3,
+//		...
+//	}
+//	runTestsOverMetadataVers(t, "testFoo", tests)
+// }
+func runTestsOverMetadataVers(t *testing.T, prefix string,
+	fs []func(t *testing.T, ver MetadataVer)) {
+	for _, f := range fs {
+		name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+		i := strings.LastIndex(name, prefix)
+		if i >= 0 {
+			i += len(prefix)
+		} else {
+			i = 0
+		}
+		name = name[i:]
+		t.Run(name, func(t *testing.T) {
+			runTestOverMetadataVers(t, f)
 		})
 	}
 }

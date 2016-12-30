@@ -5,31 +5,24 @@
 package libkbfs
 
 import (
-	"crypto/rand"
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfshash"
-	"github.com/stretchr/testify/require"
 )
 
-func makeFakeBlockContext(t *testing.T) BlockContext {
-	return BlockContext{
+func makeFakeBlockContext(t *testing.T) kbfsblock.Context {
+	return kbfsblock.MakeContext(
 		"fake creator",
 		"fake writer",
-		BlockRefNonce{0xb},
-	}
+		kbfsblock.RefNonce{0xb},
+	)
 }
 
 func makeFakeBlockPointer(t *testing.T) BlockPointer {
-	buf := make([]byte, 16)
-	_, err := rand.Read(buf)
-	require.NoError(t, err)
-	h, err := kbfshash.DefaultHash(buf)
-	require.NoError(t, err)
 	return BlockPointer{
-		BlockID{h},
+		kbfsblock.FakeID(1),
 		5,
 		1,
 		makeFakeBlockContext(t),
