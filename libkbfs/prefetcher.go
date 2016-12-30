@@ -1,3 +1,7 @@
+// Copyright 2016 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 package libkbfs
 
 import (
@@ -31,7 +35,6 @@ type blockPrefetcher struct {
 	progressCh chan prefetchRequest
 	shutdownCh chan struct{}
 	doneCh     chan struct{}
-	sg         sync.WaitGroup
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -48,7 +51,11 @@ func newBlockPrefetcher(retriever blockRetriever) *blockPrefetcher {
 }
 
 func (p *blockPrefetcher) run() {
-runloop:
+	var wg sync.WaitGroup
+	defer func() {
+		wg.Wait()
+		close(p.doneCh)
+	}()
 	for {
 		select {
 		case req := <-p.progressCh:
@@ -57,9 +64,9 @@ runloop:
 			}
 			ctx, cancel := context.WithCancel(context.Background())
 			ch := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr, req.block, TransientEntry)
-			p.sg.Add(1)
+			wg.Add(1)
 			go func() {
-				defer p.sg.Done()
+				defer wg.Done()
 				select {
 				case _ = <-ch:
 				case <-p.shutdownCh:
@@ -70,14 +77,15 @@ runloop:
 				}
 			}()
 		case <-p.shutdownCh:
-			break runloop
+			return
 		}
 	}
-	p.sg.Wait()
-	close(p.doneCh)
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block) error {
+	// TODO: plumb through config, and then check the pointer and config data
+	// versions before prefetching anything. Use
+	// folderBlockOps.checkDataVersion as a template.
 	select {
 	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
 		return nil
