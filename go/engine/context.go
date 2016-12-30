@@ -5,11 +5,8 @@ package engine
 
 import (
 	"fmt"
-
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
+	"golang.org/x/net/context"
 )
 
 type Context struct {
@@ -70,24 +67,7 @@ func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libk
 }
 
 func (c *Context) CloneGlobalContextWithLogTags(g *libkb.GlobalContext, k string) *libkb.GlobalContext {
-	netCtx := c.GetNetContext()
-	gen := true
-	if tags, ok := logger.LogTagsFromContext(netCtx); ok {
-		if _, found := tags[k]; found {
-			gen = false
-		}
-	}
-	if gen {
-		newTags := make(logger.CtxLogTags)
-		newTags[k] = k
-		netCtx = logger.NewContextWithLogTags(netCtx, newTags)
-	}
-
-	if _, found := netCtx.Value(k).(string); !found {
-		tag, _ := libkb.RandString("", 5)
-		netCtx = context.WithValue(netCtx, k, tag)
-	}
+	netCtx := libkb.WithLogTag(c.GetNetContext(), k)
 	c.NetContext = netCtx
-
 	return g.CloneWithNewNetContext(netCtx)
 }

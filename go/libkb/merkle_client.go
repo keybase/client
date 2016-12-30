@@ -317,7 +317,7 @@ func (mc *MerkleClient) LookupPath(ctx context.Context, q HTTPArgs, sigHints *Si
 	}
 
 	if sigHints != nil {
-		if err = sigHints.RefreshWith(res.Body.AtKey("sigs")); err != nil {
+		if err = sigHints.RefreshWith(ctx, res.Body.AtKey("sigs")); err != nil {
 			return
 		}
 	}

@@ -101,7 +101,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 	}
 	pt := umwkr.messagePlaintext
 
-	username, deviceName, deviceType, err := b.getSenderInfoLocal(pt.ClientHeader)
+	username, deviceName, deviceType, err := b.getSenderInfoLocal(ctx, pt.ClientHeader)
 	if err != nil {
 		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
 			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
@@ -256,18 +256,18 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 	return thread, nil
 }
 
-func (b *Boxer) getUsernameAndDevice(uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
+func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
 	udc := b.kbCtx.GetUserDeviceCache()
 	if udc == nil {
 		return "", "", "", fmt.Errorf("missing UserDeviceCache")
 	}
-	return udc.LookupUsernameAndDevice(uid, deviceID)
+	return udc.LookupUsernameAndDevice(ctx, uid, deviceID)
 }
 
-func (b *Boxer) getSenderInfoLocal(clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
+func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
 	uid := keybase1.UID(clientHeader.Sender.String())
 	did := keybase1.DeviceID(clientHeader.SenderDevice.String())
-	return b.getUsernameAndDevice(uid, did)
+	return b.getUsernameAndDevice(ctx, uid, did)
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
@@ -555,7 +555,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 		return false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
 
-	found, revokedAt, err := cachedUserLoader.CheckKIDForUID(kbSender, kid)
+	found, revokedAt, err := cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
 	if err != nil {
 		return false, nil, libkb.NewTransientChatUnboxingError(err)
 	}

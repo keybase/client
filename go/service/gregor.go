@@ -792,7 +792,7 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 		h.G().Log.Debug("failed to convert UID from string", err)
 		return err
 	}
-	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(h.G(), uid))
+	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(ctx, h.G(), uid))
 	if err != nil {
 		h.G().Log.Debug("failed to load user from UID", err)
 		return err

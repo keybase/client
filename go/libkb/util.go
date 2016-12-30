@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -386,6 +387,14 @@ func RandString(prefix string, numbytes int) (string, error) {
 		str = strings.Join([]string{prefix, str}, "")
 	}
 	return str, nil
+}
+
+func RandStringB64(numTriads int) string {
+	buf, err := RandBytes(numTriads * 3)
+	if err != nil {
+		return ""
+	}
+	return base64.URLEncoding.EncodeToString(buf)
 }
 
 func Trace(log logger.Logger, msg string, f func() error) func() {
