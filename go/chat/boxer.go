@@ -14,7 +14,6 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -38,10 +37,10 @@ type Boxer struct {
 	tlf    keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
 	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
-	kbCtx  utils.KeybaseContext
+	kbCtx  KeybaseContext
 }
 
-func NewBoxer(kbCtx utils.KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
+func NewBoxer(kbCtx KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
 	return &Boxer{
 		tlf:    tlf,
 		hashV1: hashSha256V1,
@@ -68,10 +67,10 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.Messag
 // Returns (_, err) for non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
 // Permanent errors can be cached and must be treated as a value to deal with.
 // Whereas temporary errors are transient failures.
-func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.MessageBoxed) (chat1.MessageUnboxed, libkb.ChatUnboxingError) {
+func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed) (chat1.MessageUnboxed, libkb.ChatUnboxingError) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
-	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic)
+	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
 		// transient error
 		return chat1.MessageUnboxed{}, libkb.NewTransientChatUnboxingError(err)
@@ -271,9 +270,8 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.Messa
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
-	finder := NewKeyFinder(b.log())
 	for _, msg := range boxed {
-		decmsg, err := b.UnboxMessage(ctx, finder, msg)
+		decmsg, err := b.UnboxMessage(ctx, msg)
 		if err != nil {
 			return unboxed, err
 		}
@@ -308,27 +306,16 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	if len(tlfName) == 0 {
 		return nil, libkb.ChatBoxingError{Msg: "blank TLF name given"}
 	}
+
+	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, msg.ClientHeader.TlfPublic)
+	if err != nil {
+		return nil, libkb.ChatBoxingError{Msg: "KeyFinder.Find: " + err.Error()}
+	}
+	msg.ClientHeader.TlfName = string(cres.NameIDBreaks.CanonicalName)
 	if msg.ClientHeader.TlfPublic {
 		recentKey = &publicCryptKey
-		res, err := b.tlf.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return nil, libkb.ChatBoxingError{Msg: "PublicCanonicalTLFNameAndID: " + err.Error()}
-		}
-		msg.ClientHeader.TlfName = string(res.CanonicalName)
 	} else {
-		keys, err := b.tlf.CryptKeys(ctx, keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return nil, libkb.ChatBoxingError{Msg: "CryptKeys: " + err.Error()}
-		}
-		msg.ClientHeader.TlfName = string(keys.NameIDBreaks.CanonicalName)
-
-		for _, key := range keys.CryptKeys {
+		for _, key := range cres.CryptKeys {
 			if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {
 				recentKey = &key
 			}

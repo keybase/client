@@ -11,7 +11,7 @@ import (
 
 	"sync"
 
-	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -80,18 +80,19 @@ func (h *tlfHandler) sendNotifyEvent(update keybase1.CanonicalTLFNameAndIDWithBr
 
 func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keybase1.GetTLFCryptKeysRes, error) {
 	var err error
-	defer h.G().Trace(fmt.Sprintf("tlfHandler.CryptKeys(%s)", arg.TlfName),
-		func() error { return err })()
+	ident, breaks, ok := chat.IdentifyMode(ctx)
+	if ok {
+		arg.IdentifyBehavior = ident
+	}
+	defer h.G().Trace(fmt.Sprintf("tlfHandler.CryptKeys(tlf=%s,mode=%v)", arg.TlfName,
+		arg.IdentifyBehavior), func() error { return err })()
 
 	debug.PrintStack()
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
-	ident, breaks, ok := utils.IdentifyMode(ctx)
-	if ok {
-		arg.IdentifyBehavior = ident
-	}
+
 	resp, err := tlfClient.GetTLFCryptKeys(ctx, arg)
 	if err != nil {
 		return resp, err
@@ -106,16 +107,17 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 
 func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	var err error
-	defer h.G().Trace(fmt.Sprintf("tlfHandler.PublicCanonicalTLFNameAndID(%s)", arg.TlfName),
-		func() error { return err })()
+	ident, breaks, ok := chat.IdentifyMode(ctx)
+	if ok {
+		arg.IdentifyBehavior = ident
+	}
+	defer h.G().Trace(fmt.Sprintf("tlfHandler.PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", arg.TlfName,
+		arg.IdentifyBehavior), func() error { return err })()
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
-	ident, breaks, ok := utils.IdentifyMode(ctx)
-	if ok {
-		arg.IdentifyBehavior = ident
-	}
+
 	resp, err := tlfClient.GetPublicCanonicalTLFNameAndID(ctx, arg)
 	if err != nil {
 		return resp, err
