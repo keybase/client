@@ -36,9 +36,9 @@ func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
 	}
 }
 
-func initPrefetcherTest(t *testing.T) (Prefetcher, *blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, BlockCacheSimple) {
-	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), cache)
+func initPrefetcherTest(t *testing.T) (Prefetcher, *blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, func() BlockCache) {
+	cacheFunc := makeBlockCache()
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), cacheFunc)
 	require.NotNil(t, q)
 
 	bg := newFakeBlockGetter()
@@ -49,7 +49,7 @@ func initPrefetcherTest(t *testing.T) (Prefetcher, *blockRetrievalQueue, *blockR
 	require.NotNil(t, q)
 	q.prefetcher = p
 
-	return p, q, w, bg, cache
+	return p, q, w, bg, cacheFunc
 }
 
 func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {
@@ -59,7 +59,7 @@ func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {
 
 func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	t.Log("Test indirect file block prefetching.")
-	p, q, w, bg, cache := initPrefetcherTest(t)
+	p, q, w, bg, cacheFunc := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize an indirect file block pointing to 2 file data blocks.")
@@ -90,20 +90,20 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	<-p.Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	block, err = cache.Get(ptr1)
+	block, err = cacheFunc().Get(ptr1)
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
-	block, err = cache.Get(ptrs[0].BlockPointer)
+	block, err = cacheFunc().Get(ptrs[0].BlockPointer)
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
-	block, err = cache.Get(ptrs[1].BlockPointer)
+	block, err = cacheFunc().Get(ptrs[1].BlockPointer)
 	require.NoError(t, err)
 	require.Equal(t, block3, block)
 }
 
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	t.Log("Test indirect dir block prefetching.")
-	p, q, w, bg, cache := initPrefetcherTest(t)
+	p, q, w, bg, cacheFunc := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize an indirect dir block pointing to 2 dir data blocks.")
@@ -134,20 +134,20 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	<-p.Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	block, err = cache.Get(ptr1)
+	block, err = cacheFunc().Get(ptr1)
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
-	block, err = cache.Get(ptrs[0].BlockPointer)
+	block, err = cacheFunc().Get(ptrs[0].BlockPointer)
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
-	block, err = cache.Get(ptrs[1].BlockPointer)
+	block, err = cacheFunc().Get(ptrs[1].BlockPointer)
 	require.NoError(t, err)
 	require.Equal(t, block3, block)
 }
 
 func TestPrefetcherDirectDirBlock(t *testing.T) {
 	t.Log("Test direct dir block prefetching.")
-	p, q, w, bg, cache := initPrefetcherTest(t)
+	p, q, w, bg, cacheFunc := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize a direct dir block with entries pointing to 3 files.")
@@ -185,19 +185,19 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	<-p.Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	block, err = cache.Get(ptr1)
+	block, err = cacheFunc().Get(ptr1)
 	require.NoError(t, err)
 	require.Equal(t, dir1, block)
-	block, err = cache.Get(dir1.Children["c"].BlockPointer)
+	block, err = cacheFunc().Get(dir1.Children["c"].BlockPointer)
 	require.NoError(t, err)
 	require.Equal(t, file2, block)
-	block, err = cache.Get(dir1.Children["b"].BlockPointer)
+	block, err = cacheFunc().Get(dir1.Children["b"].BlockPointer)
 	require.NoError(t, err)
 	require.Equal(t, dir2, block)
 	t.Log("Ensure that the largest block isn't in the cache.")
-	block, err = cache.Get(dir1.Children["a"].BlockPointer)
+	block, err = cacheFunc().Get(dir1.Children["a"].BlockPointer)
 	require.EqualError(t, err, NoSuchBlockError{dir1.Children["a"].BlockPointer.ID}.Error())
 	t.Log("Ensure that the second-level directory didn't cause a prefetch.")
-	block, err = cache.Get(dir2.Children["d"].BlockPointer)
+	block, err = cacheFunc().Get(dir2.Children["d"].BlockPointer)
 	require.EqualError(t, err, NoSuchBlockError{dir2.Children["d"].BlockPointer.ID}.Error())
 }

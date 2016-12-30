@@ -77,7 +77,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		// Attempt to retrieve the block from the cache. This might be a
 		// specific type where the request blocks are CommonBlocks, but that
 		// direction can Set correctly. The cache will never have CommonBlocks.
-		block, err = brw.queue.cache.Get(retrieval.blockPtr)
+		block, err = brw.queue.cacheFunc().Get(retrieval.blockPtr)
 		if err == nil && block != nil {
 			return true
 		}
@@ -90,8 +90,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		return nil
 	}
 
-	err = brw.getBlock(retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block)
-	return err
+	return brw.getBlock(retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block)
 }
 
 // Shutdown shuts down the blockRetrievalWorker once its current work is done.

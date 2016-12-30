@@ -1008,6 +1008,25 @@ type KeyOps interface {
 		serverHalfID TLFCryptKeyServerHalfID) error
 }
 
+// Prefetcher is an interface to a block prefetcher.
+type Prefetcher interface {
+	// PrefetchDirBlock directs the prefetcher to prefetch a directory block.
+	PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
+	// PrefetchFileBlock directs the prefetcher to prefetch a file block.
+	PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
+	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
+	// after a block has been retrieved. Whichever component is responsible for
+	// retrieving blocks will call this method once it's done retrieving a
+	// block.
+	PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int)
+	// Shutdown shuts down the prefetcher idempotently. Future calls to
+	// the various Prefetch* methods will return io.EOF. The returned channel
+	// allows upstream components to block until all pending prefetches are
+	// complete. This feature is mainly used for testing, but also to toggle
+	// the prefetcher on and off.
+	Shutdown() <-chan struct{}
+}
+
 // BlockOps gets and puts data blocks to a BlockServer. It performs
 // the necessary crypto operations on each block.
 type BlockOps interface {
@@ -1015,7 +1034,8 @@ type BlockOps interface {
 	// (which belongs to the TLF with the given key metadata),
 	// decrypts it if necessary, and fills in the provided block
 	// object with its contents, if the logged-in user has read
-	// permission for that block.
+	// permission for that block. cacheLifetime controls the behavior of the
+	// write-through cache once a Get completes.
 	Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
 		block Block, cacheLifetime BlockCacheLifetime) error
 
@@ -1863,18 +1883,4 @@ type KeyBundleCache interface {
 	PutTLFReaderKeyBundle(tlf.ID, TLFReaderKeyBundleID, *TLFReaderKeyBundleV3)
 	// PutTLFWriterKeyBundle stores the given TLFWriterKeyBundleV3.
 	PutTLFWriterKeyBundle(tlf.ID, TLFWriterKeyBundleID, *TLFWriterKeyBundleV3)
-}
-
-// Prefetcher is an interface to a block prefetcher.
-type Prefetcher interface {
-	// PrefetchDirBlock directs the prefetcher to prefetch a directory block.
-	PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
-	// PrefetchFileBlock directs the prefetcher to prefetch a file block.
-	PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
-	// HandleBlock allows the prefetcher to determine how to handle a retrieved
-	// block.
-	HandleBlock(b Block, kmd KeyMetadata, priority int)
-	// Shutdown shuts down the prefetcher idempotently. Future calls to
-	// the various Prefetch will return io.EOF.
-	Shutdown() <-chan struct{}
 }

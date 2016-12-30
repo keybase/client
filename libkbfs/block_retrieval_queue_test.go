@@ -13,9 +13,16 @@ import (
 	"golang.org/x/net/context"
 )
 
+func makeBlockCache() func() BlockCache {
+	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
+	return func() BlockCache {
+		return cache
+	}
+}
+
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()))
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -37,7 +44,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 
 func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	t.Log("Preempt a lower-priority block retrieval request with a higher priority request.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()))
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -65,7 +72,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 
 func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	t.Log("Handle a first request and then preempt another one.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()))
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -104,7 +111,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	t.Log("Request the same block multiple times.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()))
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -129,7 +136,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 
 func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	t.Log("Elevate the priority on an existing request.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()))
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -170,7 +177,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 
 func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Begin processing a request and then add another one for the same block.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()))
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
 	require.NotNil(t, q)
 
 	ctx := context.Background()

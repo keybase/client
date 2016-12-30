@@ -21,7 +21,10 @@ type prefetchRequest struct {
 	block    Block
 }
 
-var _ Prefetcher = (*blockPrefetcher)(nil)
+// blockRetriever specifies a method for retrieving blocks asynchronously
+type blockRetriever interface {
+	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+}
 
 type blockPrefetcher struct {
 	retriever  blockRetriever
@@ -30,6 +33,8 @@ type blockPrefetcher struct {
 	doneCh     chan struct{}
 	sg         sync.WaitGroup
 }
+
+var _ Prefetcher = (*blockPrefetcher)(nil)
 
 func newBlockPrefetcher(retriever blockRetriever) *blockPrefetcher {
 	p := &blockPrefetcher{
@@ -138,8 +143,8 @@ func (p *blockPrefetcher) PrefetchFileBlock(ptr BlockPointer, kmd KeyMetadata, p
 	return p.request(priority, kmd, ptr, &FileBlock{})
 }
 
-// HandleBlock implements the Prefetcher interface for blockPrefetcher.
-func (p *blockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
+// PrefetchAfterBlockRetrieved implements the Prefetcher interface for blockPrefetcher.
+func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int) {
 	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd && priority >= defaultOnDemandRequestPriority {

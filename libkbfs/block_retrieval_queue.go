@@ -11,9 +11,8 @@ import (
 	"reflect"
 	"sync"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/kbfs/kbfscodec"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -69,14 +68,6 @@ type blockPtrLookup struct {
 	t  reflect.Type
 }
 
-// blockRetriever specifies a method for retrieving blocks asynchronously
-type blockRetriever interface {
-	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
-	Prefetcher() Prefetcher
-	SetPrefetcher(Prefetcher)
-	Shutdown()
-}
-
 // blockRetrievalQueue manages block retrieval requests. Higher priority
 // requests are executed first. Requests are executed in FIFO order within a
 // given priority level.
@@ -99,8 +90,10 @@ type blockRetrievalQueue struct {
 
 	// Codec for copying blocks
 	codec kbfscodec.Codec
-	// BlockCacheSimple for retrieving and putting blocks
-	cache BlockCacheSimple
+	// cacheFunc is a BlockCache function pointer for retrieving and putting
+	// blocks. This must be a function pointer because the cache can be reset,
+	// and so might point to a new cache.
+	cacheFunc func() BlockCache
 
 	// protects prefetcher
 	prefetchMtx sync.RWMutex
@@ -113,9 +106,10 @@ var _ blockRetriever = (*blockRetrievalQueue)(nil)
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call WorkOnRequest
 // (more than numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec, cache BlockCacheSimple) *blockRetrievalQueue {
+func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec,
+	cache func() BlockCache) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
-		cache:       cache,
+		cacheFunc:   cache,
 		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
 		workerQueue: make(chan chan *blockRetrieval, numWorkers),
@@ -247,15 +241,15 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	// lock.
 	retrieval.reqMtx.Lock()
 	defer retrieval.reqMtx.Unlock()
-	// Cache the block if there is no error
-	if brq.cache != nil && err == nil {
-		brq.cache.Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
+	// Cache the block if there is no error.
+	if brq.cacheFunc() != nil && err == nil {
+		_ = brq.cacheFunc().Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
 	}
 	go func() {
 		brq.prefetchMtx.RLock()
 		defer brq.prefetchMtx.RUnlock()
 		if brq.prefetcher != nil {
-			brq.prefetcher.HandleBlock(block, retrieval.kmd, retrieval.priority)
+			brq.prefetcher.PrefetchAfterBlockRetrieved(block, retrieval.kmd, retrieval.priority)
 		}
 	}()
 	for _, r := range retrieval.requests {
@@ -281,14 +275,18 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	}
 }
 
-// SetPrefetcher allows us to replace the prefetcher
-func (brq *blockRetrievalQueue) SetPrefetcher(p Prefetcher) {
+// TogglePrefetcher allows upstream components to turn the prefetcher on or off
+func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context, enable bool) error {
 	brq.prefetchMtx.Lock()
 	defer brq.prefetchMtx.Unlock()
-	if brq.prefetcher != nil {
-		brq.prefetcher.Shutdown()
+	select {
+	case <-brq.prefetcher.Shutdown():
+	case <-ctx.Done():
 	}
-	brq.prefetcher = p
+	if enable {
+		brq.prefetcher = newBlockPrefetcher(brq)
+	}
+	return ctx.Err()
 }
 
 // Prefetcher allows us to retrieve the prefetcher
