@@ -1356,7 +1356,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		return
 	}
 
-	res.err = pc.CheckStatus(idt.G().CloneWithNewNetContext(ctx), *res.hint)
+	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint)
 
 	// If no error than all good
 	if res.err == nil {

@@ -92,7 +92,7 @@ func (arg *LoadUserArg) GetNetContext() context.Context {
 func (arg *LoadUserArg) WithLogTag() context.Context {
 	ctx := WithLogTag(arg.GetNetContext(), "LU")
 	arg.NetContext = ctx
-	arg.SetGlobalContext(arg.G().CloneWithNewNetContext(ctx))
+	arg.SetGlobalContext(arg.G().CloneWithNetContextAndNewLogger(ctx))
 	return ctx
 }
 

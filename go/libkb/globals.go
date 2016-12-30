@@ -140,14 +140,18 @@ func NewGlobalContext() *GlobalContext {
 	}
 }
 
-func (g *GlobalContext) CloneWithNewNetContext(netCtx context.Context) *GlobalContext {
+func (g *GlobalContext) CloneWithNetContextAndNewLogger(netCtx context.Context) *GlobalContext {
 	tmp := *g
-
 	// For legacy code that doesn't thread contexts through to logging properly,
 	// change the underlying logger.
 	tmp.Log = logger.NewSingleContextLogger(netCtx, g.Log)
 	tmp.NetContext = netCtx
+	return &tmp
+}
 
+func (g *GlobalContext) CloneWithNetContext(netCtx context.Context) *GlobalContext {
+	tmp := *g
+	tmp.NetContext = netCtx
 	return &tmp
 }
 

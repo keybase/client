@@ -69,5 +69,5 @@ func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libk
 func (c *Context) CloneGlobalContextWithLogTags(g *libkb.GlobalContext, k string) *libkb.GlobalContext {
 	netCtx := libkb.WithLogTag(c.GetNetContext(), k)
 	c.NetContext = netCtx
-	return g.CloneWithNewNetContext(netCtx)
+	return g.CloneWithNetContextAndNewLogger(netCtx)
 }
