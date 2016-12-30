@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -27,6 +28,10 @@ func makeRandomBlockPointer(t *testing.T) BlockPointer {
 			kbfsblock.RefNonce{0xb},
 		),
 	}
+}
+
+func makeKMD() KeyMetadata {
+	return emptyKeyMetadata{tlf.FakeID(0, false), 1}
 }
 
 func makeBlockCache() func() BlockCache {
