@@ -1,6 +1,6 @@
 {
   "transform": {
-    ".+\\.js$": "<rootDir>/../desktop/test/babel-transformer.js"
+    ".+\\.js$": "<rootDir>/desktop/test/babel-transformer.js"
   },
-  "modulePaths": ["<rootDir>/../desktop/node_modules"]
+  "modulePaths": ["<rootDir>/desktop/node_modules"]
 }
