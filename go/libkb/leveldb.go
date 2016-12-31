@@ -212,18 +212,19 @@ func (l *LevelDb) Nuke() (string, error) {
 	defer l.Unlock()
 
 	err := l.closeLocked()
-	if err == nil {
-		fn := l.GetFilename()
-		err = os.RemoveAll(fn)
-		if err != nil {
-			return fn, err
-		}
-		// reset dbOpenerOnce since this is not a explicit close and there might be
-		// more legitimate DB operations coming in
-		l.dbOpenerOnce = new(sync.Once)
+	if err != nil {
+		return "", err
+	}
+
+	fn := l.GetFilename()
+	err = os.RemoveAll(fn)
+	if err != nil {
 		return fn, err
 	}
-	return "", err
+	// reset dbOpenerOnce since this is not a explicit close and there might be
+	// more legitimate DB operations coming in
+	l.dbOpenerOnce = new(sync.Once)
+	return fn, err
 }
 
 func (l *LevelDb) nukeIfCorrupt(err error) bool {
