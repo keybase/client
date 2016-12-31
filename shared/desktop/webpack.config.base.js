@@ -4,7 +4,7 @@ const webpack = require('webpack')
 const path = require('path')
 const getenv = require('getenv')
 
-const babelConfig = JSON.parse(fs.readFileSync('./.babelrc', 'utf8'))
+const babelConfig = JSON.parse(fs.readFileSync('./desktop/.babelrc', 'utf8'))
 
 const defines = {
   '__HOT__': JSON.stringify(getenv.boolish('HOT', false)),
@@ -49,15 +49,7 @@ module.exports = {
     libraryTarget: 'commonjs2',
   },
   resolve: {
-    modulesDirectories: [path.join(__dirname, 'node_modules')],
-    root: [path.join(__dirname)],
     extensions: ['', '.desktop.js', '.js', '.jsx', '.json', '.flow'],
-    packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main'],
-  },
-  resolveLoader: {
-    modulesDirectories: ['web_loaders', 'web_modules', 'node_loaders', 'node_modules', path.join(__dirname, 'node_modules')],
-    extensions: ['', '.webpack-loader.js', '.web-loader.js', '.loader.js', '.js'],
-    packageMains: ['webpackLoader', 'webLoader', 'loader', 'main'],
   },
   plugins: [
     new webpack.DefinePlugin(defines),
@@ -66,9 +58,9 @@ module.exports = {
     __dirname: true,
   },
   entry: {
-    index: ['./renderer/index.js'],
-    main: ['./app/index.js'],
-    launcher: ['./renderer/launcher.js'],
-    'remote-component-loader': ['./renderer/remote-component-loader.js'],
+    index: ['./desktop/renderer/index.js'],
+    main: ['./desktop/app/index.js'],
+    launcher: ['./desktop/renderer/launcher.js'],
+    'remote-component-loader': ['./desktop/renderer/remote-component-loader.js'],
   },
 }

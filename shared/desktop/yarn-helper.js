@@ -1,5 +1,5 @@
 // @flow
-// Helper for cross platform npm run script commands
+// Helper for cross platform yarn run script commands
 import path from 'path'
 import childProcess, {execSync} from 'child_process'
 import fs from 'fs'
@@ -45,22 +45,22 @@ const commands = {
   'help': {
     code: () => {
       const len = Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
-      console.log(Object.keys(commands).map(c => commands[c].help && `npm run ${pad(c + ': ', len)}${commands[c].help || ''}`).filter(c => !!c).join('\n'))
+      console.log(Object.keys(commands).map(c => commands[c].help && `yarn run ${pad(c + ': ', len)}${commands[c].help || ''}`).filter(c => !!c).join('\n'))
     },
   },
   'start': {
-    shell: 'npm run build-dev && npm run start-cold', help: 'Do a simple dev build',
+    shell: 'yarn run build-dev && yarn run start-cold', help: 'Do a simple dev build',
   },
   'start-hot': {
     env: {HOT: 'true'},
     nodeEnv: 'development',
-    shell: `${nodeCmd} client.js`,
-    help: 'Start electron with hot reloading (needs npm run hot-server)',
+    shell: `${nodeCmd} desktop/client.js`,
+    help: 'Start electron with hot reloading (needs yarn run hot-server)',
   },
   'start-hot-debug': {
     env: {HOT: 'true', USE_INSPECTOR: 'true'},
     nodeEnv: 'development',
-    shell: `${nodeCmd} client.js`,
+    shell: `${nodeCmd} desktop/client.js`,
     help: 'Start electron with hot reloading against a debugged main process',
   },
   'debug-main': {
@@ -75,61 +75,61 @@ const commands = {
   },
   'start-cold': {
     nodeEnv: 'development',
-    shell: 'electron ./dist/main.bundle.js',
+    shell: 'electron ./desktop/dist/main.bundle.js',
     help: 'Start electron with no hot reloading',
   },
   'build-dev': {
     env: {NO_SERVER: 'true'},
     nodeEnv: 'production',
     nodePathDesktop: true,
-    shell: `${nodeCmd} server.js`,
+    shell: `${nodeCmd} desktop/server.js`,
     help: 'Make a development build of the js code',
   },
   'build-prod': {
     nodeEnv: 'production',
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.production.js --progress --profile --colors',
+    shell: 'webpack --config desktop/webpack.config.production.js --progress --profile --colors',
     help: 'Make a production build of the js code',
   },
   'build-main-thread': {
     env: {HOT: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.main-thread-only.js --progress --profile --colors',
+    shell: 'webpack --config desktop/webpack.config.main-thread-only.js --progress --profile --colors',
     help: 'Bundle the code that the main node thread uses',
   },
   'build-wpdll': {
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.dll-build.js --progress',
+    shell: 'webpack --config desktop/webpack.config.dll-build.js --progress',
     help: 'Make a production build of the js code',
   },
   'build-profile': {
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.development.js --progress --profile --json > /tmp/stats.json',
+    shell: 'webpack --config desktop/webpack.config.development.js --progress --profile --json > /tmp/stats.json',
     help: 'Make a production build of the js code',
   },
   'package': {
     env: {NO_SOURCE_MAPS: 'true'},
     nodeEnv: 'production',
     nodePathDesktop: true,
-    shell: `${nodeCmd} package.js`,
+    shell: `${nodeCmd} desktop/package.js`,
     help: 'Package up the production js code',
   },
   'hot-server': {
     env: {HOT: 'true', USING_DLL: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} server.js` : `webpack-dashboard -- ${nodeCmd} server.js`,
-    help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',
+    shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} desktop/server.js` : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
+    help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
   },
   'inject-sourcemaps-prod': {
     shell: 'a(){ cp \'$1\'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a',
     help: '[Path to sourcemaps]: Copy sourcemaps into currently installed Keybase app',
   },
   'inject-code-prod': {
-    shell: 'npm run package; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/',
+    shell: 'yarn run package; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/',
     help: 'Copy current code into currently installed Keybase app',
   },
   'start-prod': {
@@ -137,7 +137,7 @@ const commands = {
     help: 'Launch installed Keybase app with console output',
   },
   'postinstall': {
-    help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack. monkeypatch material-ui',
+    help: 'all: install global eslint. dummy modules',
     code: postInstall,
   },
   'render-screenshots': {
@@ -146,7 +146,7 @@ const commands = {
       ELECTRON_ENABLE_LOGGING: 1,
     },
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.visdiff.js && electron ./dist/render-visdiff.bundle.js',
+    shell: 'webpack --config desktop/webpack.config.visdiff.js && electron ./desktop/dist/render-visdiff.bundle.js',
     help: 'Render images of dumb components',
   },
   'local-visdiff': {
@@ -155,7 +155,7 @@ const commands = {
       KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] || path.resolve('../../js-vendor-desktop'),
     },
     nodePathDesktop: true,
-    shell: 'npm install ../visdiff && keybase-visdiff',
+    shell: 'yarn install ../visdiff && keybase-visdiff',
     help: 'Perform a local visdiff',
   },
   'updated-fonts': {
@@ -177,62 +177,27 @@ const commands = {
 }
 
 function postInstall () {
-  if (process.platform === 'win32') {
-    fixupSymlinks()
-  }
-
   // Inject dummy module
-  if (process.platform === 'win32') {
-    exec('if not exist node_modules\\msgpack mkdir node_modules\\msgpack')
-    exec('echo module.exports = null > node_modules\\msgpack\\index.js')
-    exec('echo {"main": "index.js"} > node_modules\\msgpack\\package.json')
-  } else {
-    // Making a shim module. TODO use rn's make-shim instead. This is to make msgpack requires work but allow the fallback to purepack (in node-framemsgpack code)
-    exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
-  }
-
-  const materialPath = 'node_modules/material-ui/package.json'
-  const materialUIJson = JSON.parse(fs.readFileSync(materialPath, 'utf8'))
-  materialUIJson.peerDependencies = {}
-  fs.writeFileSync(materialPath, JSON.stringify(materialUIJson, null, 4), 'utf8')
+  exec('node make-shim net')
+  exec('node make-shim tls')
+  exec('node make-shim msgpack')
 }
 
 function setupDebugMain () {
   let electronVer = null
   try {
     // $FlowIssue we catch this error
-    electronVer = childProcess.execSync('npm list --dev electron', {encoding: 'utf8'}).match(/electron@([0-9.]+)/)[1]
+    electronVer = childProcess.execSync('yarn list --dev electron', {encoding: 'utf8'}).match(/electron@([0-9.]+)/)[1]
     console.log(`Found electron version: ${electronVer}`)
   } catch (err) {
     console.log("Couldn't figure out electron")
     process.exit(1)
   }
 
-  exec('npm install node-inspector')
-  exec('npm install git+https://git@github.com/enlight/node-pre-gyp.git#detect-electron-runtime-in-find')
+  exec('yarn install node-inspector')
+  exec('yarn install git+https://git@github.com/enlight/node-pre-gyp.git#detect-electron-runtime-in-find')
   exec(`node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-debug/ --dist-url=https://atom.io/download/atom-shell reinstall`)
   exec(`node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`)
-}
-
-function fixupSymlinks () {
-  const symlinks = [
-    {srcNode: './shared', srcShell: 'shared', dstShell: '..\\shared'},
-    {srcNode: './renderer/fonts', srcShell: 'renderer\\fonts', dstShell: '..\\shared\\fonts'},
-  ]
-
-  symlinks.forEach(symlink => {
-    let s = fs.lstatSync(symlink.srcNode)
-    if (!s.isSymbolicLink()) {
-      console.log(`Fixing up shared ${symlink.srcNode}`)
-
-      try {
-        exec(`del ${symlink.srcShell}`, null, {cwd: path.join(process.cwd(), '.')})
-      } catch (_) { }
-      try {
-        exec(`mklink /j ${symlink.srcShell} ${symlink.dstShell}`, null, {cwd: path.join(process.cwd(), '.')})
-      } catch (_) { }
-    }
-  })
 }
 
 // Edit this function to filter down the store in the undiff log
@@ -448,14 +413,14 @@ function generateIcoMoon () {
     uid: -1,
   }
 
-  fs.writeFileSync('./shared/images/iconfont/kb-icomoon-project-generated.json', JSON.stringify(write, null, 4), 'utf8')
+  fs.writeFileSync('../images/iconfont/kb-icomoon-project-generated.json', JSON.stringify(write, null, 4), 'utf8')
   console.log('kb-icomoon-project-generated.json is ready for icomoon')
   updatedFonts()
 }
 
 function applyNewFonts () {
   console.log('Moving font to project')
-  fs.writeFileSync('./shared/fonts/kb.ttf', fs.readFileSync('./shared/images/iconfont/kb/fonts/kb.ttf'))
+  fs.writeFileSync('../fonts/kb.ttf', fs.readFileSync('./shared/images/iconfont/kb/fonts/kb.ttf'))
 }
 
 function updatedFonts () {
@@ -463,7 +428,7 @@ function updatedFonts () {
 
   const icons = {}
 
-  fs.readdirSync('../shared/images/icons')
+  fs.readdirSync('../images/icons')
     .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
@@ -490,7 +455,7 @@ function updatedFonts () {
   })
 
   const iconConstants = `// @flow
-// This file is GENERATED by npm run updated-fonts. DON'T hand edit
+// This file is GENERATED by yarn run updated-fonts. DON'T hand edit
 
 type IconMeta = {
   isFont: boolean,
@@ -532,7 +497,7 @@ export type IconType = $Keys<typeof iconMeta_>
 export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 `
 
-  fs.writeFileSync('./shared/common-adapters/icon.constants.js', iconConstants, 'utf8')
+  fs.writeFileSync('../common-adapters/icon.constants.js', iconConstants, 'utf8')
 }
 
 function exec (command, env, options) {
@@ -540,7 +505,6 @@ function exec (command, env, options) {
     env = process.env
   }
 
-  // $FlowIssue
   console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
 }
 
@@ -554,7 +518,7 @@ if (!info) {
 info = inject(info)
 
 if (info.shell) {
-  exec(info.shell, info.env)
+  exec(info.shell, info.env, info.options)
 }
 
 if (info.code) {
