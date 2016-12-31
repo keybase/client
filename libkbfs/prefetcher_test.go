@@ -137,7 +137,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	_, continueCh2 := bg.setBlockToReturn(ptrs[0].BlockPointer, block2)
 	_, continueCh3 := bg.setBlockToReturn(ptrs[1].BlockPointer, block3)
 
-	var block Block = NewDirBlock()
+	block := NewDirBlock()
 	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, makeKMD(), ptr1, block, TransientEntry)
 	continueCh1 <- nil
 	err := <-ch
