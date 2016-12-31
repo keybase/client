@@ -15,3 +15,10 @@ declare export var globalMargins: {
 }
 declare export var statusBarHeight: number
 declare export function backgroundURL (...path: Array<string>): string
+
+declare export var windowStyle: {
+  minWidth: number,
+  minHeight: number,
+  width: number,
+  height: number,
+}
