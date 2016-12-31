@@ -70,7 +70,7 @@ const styleDevicesContainer = {
   height: 162,
   width: 440,
   overflowY: 'scroll',
-  border: '1px solid '+ globalColors.black_05,
+  border: '1px solid ' + globalColors.black_05,
   borderRadius: 4,
   alignSelf: 'center',
   marginTop: globalMargins.small,
