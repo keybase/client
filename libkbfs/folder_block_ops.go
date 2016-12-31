@@ -284,7 +284,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		return block, nil
 	}
 	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
-		fbo.config.BlockOps().Prefetcher().HandleBlock(block, kmd, defaultOnDemandRequestPriority)
+		fbo.config.BlockOps().Prefetcher().PrefetchAfterBlockRetrieved(block, kmd, defaultOnDemandRequestPriority)
 		return block, nil
 	}
 
