@@ -401,7 +401,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	// Advance the clock to make sure local temp track goes away
 	fakeClock.Advance(tc.G.Env.GetLocalTrackMaxAge() + time.Minute)
 
-	if err := eng.i2eng.createIdentifyState(nil); err != nil {
+	if err := eng.i2eng.createIdentifyState(ctx); err != nil {
 		t.Fatal(err)
 	}
 	if eng.i2eng.state.TrackLookup() == nil {
