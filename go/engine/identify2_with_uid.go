@@ -161,16 +161,14 @@ func (i *identifyUser) trackChainLinkFor(ctx context.Context, name string, uid k
 
 		g.Log.CDebugf(ctx, "| Using thin user object")
 
-		var exists bool
-
 		// In the common case, we look at the thin UPAK and get the chain link
 		// ID of the track chain link for tracking the given user. We'll then
 		// go ahead and load that chain link from local level DB, and it's almost
 		// always going to be there, since it was written as a side effect of
 		// fetching the full user. There's a corner case, see just below...
-		ret, exists, err = libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, libkb.NewNormalizedUsername(name), uid, g)
-		if (ret != nil && err == nil) || !exists {
-			g.Log.CDebugf(ctx, "| returning in common case -> (found=%v, exists=%v, err=%v)", (ret != nil), exists, err)
+		ret, err = libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, libkb.NewNormalizedUsername(name), uid, g)
+		if _, inconsistent := err.(libkb.InconsistentCacheStateError); !inconsistent {
+			g.Log.CDebugf(ctx, "| returning in common case -> (found=%v, err=%v)", (ret != nil), err)
 			return ret, err
 		}
 

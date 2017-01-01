@@ -53,45 +53,47 @@ func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revoke
 	return checkKIDKeybase(u, kid)
 }
 
-func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, exists bool, err error) {
+func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
 	defer g.Trace(fmt.Sprintf("UPAK.GetRemoteChainLinkFor(%s,%s,%s)", u.Base.Uid, username, uid), func() error { return err })()
 	g.Log.Debug("| Full user: %+v\n", *u)
 	rtl := u.GetRemoteTrack(username.String())
 	if rtl == nil {
 		g.Log.Debug("| no remote track found")
-		return nil, exists, nil
+		return nil, nil
 	}
-	exists = true
 	if !rtl.Uid.Equal(uid) {
-		return nil, exists, UIDMismatchError{Msg: fmt.Sprintf("didn't match username %q", username.String())}
+		return nil, UIDMismatchError{Msg: fmt.Sprintf("didn't match username %q", username.String())}
 	}
 	var lid LinkID
 	g.Log.Debug("| remote track found with linkID=%s", rtl.LinkID)
 	lid, err = ImportLinkID(rtl.LinkID)
 	if err != nil {
 		g.Log.Debug("| Failed to import link ID")
-		return nil, exists, err
+		return nil, err
 	}
 	var link *ChainLink
 	link, err = ImportLinkFromStorage(lid, u.Base.Uid, g)
 	if err != nil {
 		g.Log.Debug("| failed to import link from storage")
-		return nil, exists, err
+		return nil, err
 	}
 	if link == nil {
 		g.Log.Debug("| no cached chainlink found")
-		return nil, exists, nil
+		// Such a bug is only possible if the DB cache was reset after
+		// this user was originally loaded in; otherwise, all of this
+		// UPAK's chain links should be available on disk.
+		return nil, InconsistentCacheStateError{}
 	}
 	ret, err = ParseTrackChainLink(GenericChainLink{link})
 	g.Log.Debug("| ParseTrackChainLink -> found=%v", (ret != nil))
-	return ret, exists, err
+	return ret, err
 }
 
-func TrackChainLinkFromUserPlusAllKeys(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (*TrackChainLink, bool, error) {
-	tcl, exists, err := GetRemoteChainLinkFor(u, username, uid, g)
-	if tcl == nil || err != nil || !exists {
-		return tcl, exists, err
+func TrackChainLinkFromUserPlusAllKeys(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (*TrackChainLink, error) {
+	tcl, err := GetRemoteChainLinkFor(u, username, uid, g)
+	if _, ok := err.(InconsistentCacheStateError); ok {
+		return nil, err
 	}
 	tcl, err = TrackChainLinkFor(u.Base.Uid, uid, tcl, err, g)
-	return tcl, exists, err
+	return tcl, err
 }
