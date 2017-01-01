@@ -537,7 +537,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
-	cachedUserLoader := b.kbCtx.GetCachedUserLoader()
+	cachedUserLoader := b.kbCtx.GetUPAKLoader()
 	if cachedUserLoader == nil {
 		return false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}

@@ -71,12 +71,12 @@ func (c *UserDeviceCache) LookupUsernameAndDevice(ctx context.Context, uid keyba
 	}
 	c.G().Log.CDebugf(ctx, "+ UserDeviceCache#LookupUsernameAndDevice(%v, %v)", uid, deviceID)
 	val, err := c.lookup(cKey, func() (udCacheValue, error) {
-		cachedUserLoader := c.G().GetCachedUserLoader()
-		if cachedUserLoader == nil {
+		upakLoader := c.G().GetUPAKLoader()
+		if upakLoader == nil {
 			return udCacheValue{}, fmt.Errorf("no CachedUserLoader available in context")
 		}
 
-		un, deviceName, deviceType, err := cachedUserLoader.LookupUsernameAndDevice(ctx, uid, deviceID)
+		un, deviceName, deviceType, err := upakLoader.LookupUsernameAndDevice(ctx, uid, deviceID)
 		if err != nil {
 			return udCacheValue{}, err
 		}
@@ -98,11 +98,11 @@ func (c *UserDeviceCache) LookupUsername(ctx context.Context, uid keybase1.UID) 
 	}
 	c.G().Log.CDebugf(ctx, "+ UserDeviceCache#LookupUsername(%v)", uid)
 	val, err := c.lookup(cKey, func() (udCacheValue, error) {
-		cachedUserLoader := c.G().GetCachedUserLoader()
-		if cachedUserLoader == nil {
+		upakLoader := c.G().GetUPAKLoader()
+		if upakLoader == nil {
 			return udCacheValue{}, fmt.Errorf("no CachedUserLoader available in context")
 		}
-		un, err := cachedUserLoader.LookupUsername(ctx, uid)
+		un, err := upakLoader.LookupUsername(ctx, uid)
 		if err != nil {
 			return udCacheValue{}, err
 		}
