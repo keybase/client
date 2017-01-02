@@ -256,11 +256,11 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 }
 
 func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
-	udc := b.kbCtx.GetUserDeviceCache()
-	if udc == nil {
-		return "", "", "", fmt.Errorf("missing UserDeviceCache")
+	nun, devName, devType, err := b.kbCtx.GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
+	if err != nil {
+		return "", "", "", err
 	}
-	return udc.LookupUsernameAndDevice(ctx, uid, deviceID)
+	return nun.String(), devName, devType, nil
 }
 
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {

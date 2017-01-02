@@ -54,15 +54,14 @@ type GlobalContext struct {
 	XAPI         ExternalAPI   // for contacting Twitter, Github, etc.
 	Output       io.Writer     // where 'Stdout'-style output goes
 
-	cacheMu         *sync.RWMutex    // protects all caches
-	ProofCache      *ProofCache      // where to cache proof results
-	TrackCache      *TrackCache      // cache of IdentifyOutcomes for tracking purposes
-	Identify2Cache  Identify2Cacher  // cache of Identify2 results for fast-pathing identify2 RPCS
-	LinkCache       *LinkCache       // cache of ChainLinks
-	upakLoader      UPAKLoader       // Load flat users with the ability to hit the cache
-	UserDeviceCache *UserDeviceCache // Cache user and device names forever
-	CardCache       *UserCardCache   // cache of keybase1.UserCard objects
-	fullSelfer      FullSelfer       // a loader that gets the full self object
+	cacheMu        *sync.RWMutex   // protects all caches
+	ProofCache     *ProofCache     // where to cache proof results
+	TrackCache     *TrackCache     // cache of IdentifyOutcomes for tracking purposes
+	Identify2Cache Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
+	LinkCache      *LinkCache      // cache of ChainLinks
+	upakLoader     UPAKLoader      // Load flat users with the ability to hit the cache
+	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
+	fullSelfer     FullSelfer      // a loader that gets the full self object
 
 	GpgClient         *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
@@ -116,13 +115,12 @@ type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
 
-func (g *GlobalContext) GetLog() logger.Logger                { return g.Log }
-func (g *GlobalContext) GetAPI() API                          { return g.API }
-func (g *GlobalContext) GetExternalAPI() ExternalAPI          { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string                 { return g.Env.GetServerURI() }
-func (g *GlobalContext) GetUserDeviceCache() *UserDeviceCache { return g.UserDeviceCache }
-func (g *GlobalContext) GetMerkleClient() *MerkleClient       { return g.MerkleClient }
-func (g *GlobalContext) GetNetContext() context.Context       { return g.NetContext }
+func (g *GlobalContext) GetLog() logger.Logger          { return g.Log }
+func (g *GlobalContext) GetAPI() API                    { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI    { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string           { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetMerkleClient() *MerkleClient { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context { return g.NetContext }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -178,7 +176,6 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
-	g.UserDeviceCache = NewUserDeviceCache(g)
 	g.fullSelfer = NewNullFullSelfCache(g)
 	return g
 }
