@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,12 +32,12 @@ func testKidContainerTypeEncodeDecode(t *testing.T, kt kidContainerType) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	assert.Equal(t, len(kidBytes)+overhead, len(encodedK))
+	require.Equal(t, len(kidBytes)+overhead, len(encodedK))
 
 	k2, err := kt.decode(codec, encodedK)
 	require.NoError(t, err)
 
-	assert.Equal(t, k, k2)
+	require.Equal(t, k, k2)
 }
 
 // Make sure the zero value for the kid container type encodes and
@@ -50,12 +49,12 @@ func testKidContainerTypeEncodeDecodeZero(t *testing.T, kt kidContainerType) {
 	require.NoError(t, err)
 
 	expectedEncodedK := []byte{0xc0}
-	assert.Equal(t, expectedEncodedK, encodedK)
+	require.Equal(t, expectedEncodedK, encodedK)
 
 	k, err := kt.decode(codec, encodedK)
 	require.NoError(t, err)
 
-	assert.Equal(t, zeroValue, k)
+	require.Equal(t, zeroValue, k)
 }
 
 type verifyingKeyType struct{}
@@ -101,13 +100,13 @@ func testByte32ContainerEncodeDecode(t *testing.T, bt byte32ContainerType) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	assert.Equal(t, 32+overhead, len(encodedK))
+	require.Equal(t, 32+overhead, len(encodedK))
 
 	k2 := bt.makeZero()
 	err = codec.Decode(encodedK, &k2)
 	require.NoError(t, err)
 
-	assert.Equal(t, k, k2)
+	require.Equal(t, k, k2)
 }
 
 type tlfPrivateKeyType struct{}
@@ -285,26 +284,44 @@ func TestBlockCryptKeyEncodeDecode(t *testing.T) {
 
 // Test (very superficially) that MakeRandomBlockCryptKeyServerHalf()
 // returns non-zero values that aren't equal.
-func TestCryptoCommonRandomBlockCryptKeyServerHalf(t *testing.T) {
+func TestRandomBlockCryptKeyServerHalf(t *testing.T) {
 	k1, err := MakeRandomBlockCryptKeyServerHalf()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if k1 == (BlockCryptKeyServerHalf{}) {
-		t.Errorf("zero BlockCryptKeyServerHalf k1")
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, BlockCryptKeyServerHalf{}, k1)
 
 	k2, err := MakeRandomBlockCryptKeyServerHalf()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, BlockCryptKeyServerHalf{}, k2)
 
-	if k2 == (BlockCryptKeyServerHalf{}) {
-		t.Errorf("zero BlockCryptKeyServerHalf k2")
-	}
+	require.NotEqual(t, k1, k2)
+}
 
-	if k1 == k2 {
-		t.Errorf("k1 == k2")
-	}
+// Test that MaskTLFCryptKey() returns bytes that are different from
+// the server half and the key, and that UnmaskTLFCryptKey() undoes
+// the masking properly.
+func TestMaskUnmaskTLFCryptKey(t *testing.T) {
+	serverHalf, err := MakeRandomTLFCryptKeyServerHalf()
+	require.NoError(t, err)
+	cryptKey, err := MakeRandomTLFCryptKey()
+	require.NoError(t, err)
+
+	clientHalf := MaskTLFCryptKey(serverHalf, cryptKey)
+	require.NotEqual(t, serverHalf.Data(), clientHalf.Data())
+	require.NotEqual(t, cryptKey.Data(), clientHalf.Data())
+
+	cryptKey2 := UnmaskTLFCryptKey(serverHalf, clientHalf)
+	require.Equal(t, cryptKey, cryptKey2)
+}
+
+// Test that UnmaskBlockCryptKey() returns bytes that are different from
+// the server half and the key.
+func TestUnmaskTLFCryptKey(t *testing.T) {
+	serverHalf, err := MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	cryptKey, err := MakeRandomTLFCryptKey()
+	require.NoError(t, err)
+
+	key := UnmaskBlockCryptKey(serverHalf, cryptKey)
+	require.NotEqual(t, serverHalf.Data(), key.Data())
+	require.NotEqual(t, cryptKey.Data(), key.Data())
 }

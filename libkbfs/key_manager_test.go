@@ -417,7 +417,7 @@ func testKeyManagerRekeySuccessPrivate(t *testing.T, ver MetadataVer) {
 	expectRekey(config, h.ToBareHandleOrBust(), 1, false, true, tlfCryptKey)
 
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Errorf("Got error on rekey: %t, %v", done, err)
+		t.Errorf("Got error on rekey: %t, %+v", done, err)
 	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
 		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 	}
@@ -523,7 +523,7 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %v", done, err)
+		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
 	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
@@ -556,7 +556,7 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(3)
 	if done, _, err :=
 		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %v", done, err)
+		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
 	if rmd.LatestKeyGeneration() != oldKeyGen {
@@ -599,7 +599,7 @@ func testKeyManagerPromoteReaderSuccessPrivate(t *testing.T, ver MetadataVer) {
 
 	// Make the first key generation
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %v", done, err)
+		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
 	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
@@ -632,7 +632,7 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver Metad
 
 	// Make the first key generation
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %v", done, err)
+		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
 	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
@@ -668,7 +668,7 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver Metad
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil)
 	if done, _, err :=
 		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %v", done, err)
+		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
 	if rmd.LatestKeyGeneration() != oldKeyGen {
@@ -709,7 +709,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver Met
 
 	// Make the first key generation
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %v", done, err)
+		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
 	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
@@ -737,7 +737,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver Met
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(2)
 	if done, _, err :=
 		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %v", done, err)
+		t.Fatalf("Got error on rekey: %t, %+v", done, err)
 	}
 
 	if rmd.LatestKeyGeneration() != oldKeyGen {
@@ -783,7 +783,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
@@ -793,7 +793,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// user 2 creates a file
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -810,7 +810,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// Set the KBPKI so we can count the identify calls
@@ -826,7 +826,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// now user 1 should rekey
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// Only u2 should be identified as part of the rekey.
@@ -837,13 +837,13 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// u2 syncs after the rekey
 	if err := kbfsOps2.SyncFromServerForTesting(ctx,
 		rootNode2.GetFolderBranch()); err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	// user 2 creates another file
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// add a third device for user 2
@@ -866,18 +866,18 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// able to set the rekey bit (copying the root MD).
 	err = config2Dev3.KBFSOps().Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	// rekey again
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// Only u2 should be identified again as part of the rekey.
@@ -888,7 +888,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// force re-encryption of the root dir
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "d", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// this device should be able to read now
@@ -897,7 +897,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, root2Dev2.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	// device 2 should still work
@@ -933,30 +933,30 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	kbfsOps2Dev3 := config2Dev3.KBFSOps()
 	aNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, "a")
 	if err != nil {
-		t.Fatalf("Device 3 couldn't lookup a: %v", err)
+		t.Fatalf("Device 3 couldn't lookup a: %+v", err)
 	}
 
 	buf := []byte{0}
 	_, err = kbfsOps2Dev3.Read(ctx, aNode, buf, 0)
 	if err != nil {
-		t.Fatalf("Device 3 couldn't read a: %v", err)
+		t.Fatalf("Device 3 couldn't read a: %+v", err)
 	}
 
 	bNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, "b")
 	if err != nil {
-		t.Fatalf("Device 3 couldn't lookup b: %v", err)
+		t.Fatalf("Device 3 couldn't lookup b: %+v", err)
 	}
 
 	_, err = kbfsOps2Dev3.Read(ctx, bNode, buf, 0)
 	if err != nil {
-		t.Fatalf("Device 3 couldn't read b: %v", err)
+		t.Fatalf("Device 3 couldn't read b: %+v", err)
 	}
 
 	// Make sure the server-side keys for the revoked device are gone
 	// for all keygens.
 	rmd, err := config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't get latest md: %v", err)
+		t.Fatalf("Couldn't get latest md: %+v", err)
 	}
 	currKeyGen := rmd.LatestKeyGeneration()
 	// clear the key cache
@@ -983,7 +983,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	// Revoke user 3's device for now, to test the "other" rekey error.
 	_, uid3, err := config1.KBPKI().Resolve(ctx, u3.String())
 	if err != nil {
-		t.Fatalf("Couldn't resolve u3: %v", err)
+		t.Fatalf("Couldn't resolve u3: %+v", err)
 	}
 	RevokeDeviceForLocalUserOrBust(t, config1, uid3, 0)
 
@@ -1004,7 +1004,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -1030,11 +1030,11 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	// created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 	_, err = GetRootNodeForTest(ctx, config3, name, false)
 	if _, ok := err.(NeedOtherRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// Set the KBPKI so we can count the identify calls
@@ -1050,7 +1050,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	// now user 1 should rekey
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// u2 and u3 should be identified as part of the rekey.
@@ -1061,7 +1061,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	// The new devices should be able to read now.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if err != nil {
-		t.Fatalf("Got unexpected error after rekey: %v", err)
+		t.Fatalf("Got unexpected error after rekey: %+v", err)
 	}
 
 	_ = GetRootNodeOrBust(ctx, t, config3, name, false)
@@ -1091,7 +1091,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	t.Log("User 1 creates a file")
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	t.Log("User 2 adds a device")
@@ -1109,7 +1109,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	t.Log("User 2 rekeys from device 1")
@@ -1118,7 +1118,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	kbfsOps2 := config2.KBFSOps()
 	err = kbfsOps2.Rekey(ctx, root2dev1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	t.Log("User 2 device 2 should be able to read now")
@@ -1134,13 +1134,13 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	t.Log("User 2 device 2 creates a file")
 	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2dev2, "b", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	t.Log("User 1 syncs from the server")
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	t.Log("User 1 should be able to read the file that user 2 device 2 created")
@@ -1175,7 +1175,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	t.Log("User 1 creates a file")
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	t.Log("User 1 adds a device")
@@ -1205,7 +1205,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	t.Log("User 2 rekeys from device 1")
@@ -1223,7 +1223,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	t.Log("User 1 device 2 should still be unable to read")
 	_, err = GetRootNodeForTest(ctx, config1Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	t.Log("User 2 device 2 reads user 1's file")
@@ -1265,7 +1265,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	t.Log("User 1 creates a file")
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	t.Log("User 2 adds a device")
@@ -1289,7 +1289,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev3, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	t.Log("User 2 rekeys from device 2")
@@ -1363,7 +1363,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -1383,32 +1383,32 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// now user 2 should set the rekey bit
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// user 1 syncs from server
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	// user 1 should try to rekey
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// user 2 syncs from server
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	// this device should be able to read now
@@ -1417,14 +1417,14 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	// look for the file
 	aNode, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
 	if err != nil {
-		t.Fatalf("Device 2 couldn't lookup a: %v", err)
+		t.Fatalf("Device 2 couldn't lookup a: %+v", err)
 	}
 
 	// read it
 	buf := []byte{0}
 	_, err = kbfsOps2Dev2.Read(ctx, aNode, buf, 0)
 	if err != nil {
-		t.Fatalf("Device 2 couldn't read a: %v", err)
+		t.Fatalf("Device 2 couldn't read a: %+v", err)
 	}
 
 	config3Dev2 := ConfigAsUser(config1, u3)
@@ -1444,32 +1444,32 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	// wasn't registered when the folder was originally created.
 	_, err = GetRootNodeForTest(ctx, config3Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// now user 3 dev 2 should set the rekey bit
 	kbfsOps3Dev2 := config3Dev2.KBFSOps()
 	err = kbfsOps3Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// user 2 dev 2 syncs from server
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	// user 2 dev 2 should try to rekey
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// user 3 dev 2 syncs from server
 	err = kbfsOps3Dev2.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	// this device should be able to read now
@@ -1478,14 +1478,14 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	// look for the file
 	a2Node, _, err := kbfsOps3Dev2.Lookup(ctx, rootNode3Dev2, "a")
 	if err != nil {
-		t.Fatalf("Device 3 couldn't lookup a: %v", err)
+		t.Fatalf("Device 3 couldn't lookup a: %+v", err)
 	}
 
 	// read it
 	buf = []byte{0}
 	_, err = kbfsOps3Dev2.Read(ctx, a2Node, buf, 0)
 	if err != nil {
-		t.Fatalf("Device 3 couldn't read a: %v", err)
+		t.Fatalf("Device 3 couldn't read a: %+v", err)
 	}
 
 	// Explicitly run the checks with config1 before the deferred shutdowns begin.
@@ -1523,7 +1523,7 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -1540,13 +1540,13 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
 	// now user 1 should rekey
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// this device should be able to read now
@@ -1575,7 +1575,7 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	// rekey again but with user 2 device 2
 	err = kbfsOps2Dev2.Rekey(ctx, root2Dev2.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Couldn't rekey: %v", err)
+		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
 	// Make sure user 1's rekey failed.
@@ -1595,19 +1595,19 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, root2Dev2.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	// force re-encryption of the root dir
 	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2Dev2, "b", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// device 1 should still work
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
 	rootNode1 = GetRootNodeOrBust(ctx, t, config1, name, false)
@@ -1665,7 +1665,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -1683,7 +1683,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("First rekey failed %v", err)
+		t.Fatalf("First rekey failed %+v", err)
 	}
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
@@ -1693,7 +1693,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	// own rekey request.  This shouldn't increase the MD version.
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Second rekey failed %v", err)
+		t.Fatalf("Second rekey failed %+v", err)
 	}
 	rev2 := ops.head.Revision()
 
@@ -1745,13 +1745,13 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	// user 2 creates another file to make a new revision
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// device 1 should be able to read the new file
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
+		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 	children, err = kbfsOps1.GetDirChildren(ctx, rootNode1)
 	if _, ok := children["b"]; !ok {
@@ -1785,7 +1785,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	config2Dev2 := ConfigAsUser(config1, u2)
@@ -1806,7 +1806,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("First rekey failed %v", err)
+		t.Fatalf("First rekey failed %+v", err)
 	}
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
@@ -1816,7 +1816,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	// own rekey request.  This shouldn't increase the MD version.
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Second rekey failed %v", err)
+		t.Fatalf("Second rekey failed %+v", err)
 	}
 	rev2 := ops.head.Revision()
 
@@ -1837,7 +1837,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	// will be on a non-nil timer).
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("Third rekey failed %v", err)
+		t.Fatalf("Third rekey failed %+v", err)
 	}
 
 	c := make(chan bool)
@@ -1879,7 +1879,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	// user 2 creates another file to make a new revision
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 }
 
@@ -1916,7 +1916,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
-		t.Fatalf("First rekey failed %v", err)
+		t.Fatalf("First rekey failed %+v", err)
 	}
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
@@ -1971,7 +1971,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 			t.Fatal(ctx.Err())
 		}
 		if _, ok := err.(NeedSelfRekeyError); !ok {
-			t.Fatalf("Got unexpected error when reading with new key: %v", err)
+			t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 		}
 
 		// Let the background rekeyer decrypt.

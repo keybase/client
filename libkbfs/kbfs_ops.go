@@ -449,7 +449,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 
 	// we might not be able to read the metadata if we aren't in the
 	// key group yet.
-	if err := isReadableOrError(ctx, fs.config, md.ReadOnly()); err != nil {
+	if err := isReadableOrError(ctx, fs.config.KBPKI(), md.ReadOnly()); err != nil {
 		fs.opsLock.Lock()
 		defer fs.opsLock.Unlock()
 		// If we already have an FBO for this ID, trigger a rekey

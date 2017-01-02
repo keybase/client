@@ -975,7 +975,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	head, err := fbm.helper.getMostRecentFullyMergedMD(ctx)
 	if err != nil {
 		return err
-	} else if err := isReadableOrError(ctx, fbm.config, head.ReadOnly()); err != nil {
+	} else if err := isReadableOrError(ctx, fbm.config.KBPKI(), head.ReadOnly()); err != nil {
 		return err
 	} else if head.MergedStatus() != Merged {
 		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")

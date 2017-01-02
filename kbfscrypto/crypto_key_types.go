@@ -8,10 +8,10 @@ import (
 	"encoding"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 )
 
 // All section references below are to https://keybase.io/docs/crypto/kbfs
@@ -38,7 +38,7 @@ func (k kidContainer) MarshalBinary() (data []byte, err error) {
 	// TODO: Use the more stringent checks from
 	// KIDFromStringChecked instead.
 	if !k.kid.IsValid() {
-		return nil, InvalidKIDError{k.kid}
+		return nil, errors.WithStack(InvalidKIDError{k.kid})
 	}
 
 	return k.kid.ToBytes(), nil
@@ -56,18 +56,26 @@ func (k *kidContainer) UnmarshalBinary(data []byte) error {
 	if !k.kid.IsValid() {
 		err := InvalidKIDError{k.kid}
 		*k = kidContainer{}
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil
 }
 
 func (k kidContainer) MarshalJSON() ([]byte, error) {
-	return k.kid.MarshalJSON()
+	buf, err := k.kid.MarshalJSON()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return buf, nil
 }
 
 func (k *kidContainer) UnmarshalJSON(s []byte) error {
-	return k.kid.UnmarshalJSON(s)
+	err := k.kid.UnmarshalJSON(s)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
 }
 
 func (k kidContainer) KID() keybase1.KID {
@@ -100,7 +108,7 @@ func (c *publicByte32Container) UnmarshalBinary(data []byte) error {
 	if len(data) != len(c.data) {
 		err := InvalidByte32DataError{data}
 		*c = publicByte32Container{}
-		return err
+		return errors.WithStack(err)
 	}
 
 	copy(c.data[:], data)
@@ -114,7 +122,7 @@ func (c publicByte32Container) MarshalText() ([]byte, error) {
 func (c *publicByte32Container) UnmarshalText(data []byte) error {
 	buf, err := hex.DecodeString(string(data))
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	return c.UnmarshalBinary(buf)
 }
@@ -145,7 +153,7 @@ func (c *privateByte32Container) UnmarshalBinary(data []byte) error {
 	if len(data) != len(c.data) {
 		err := InvalidByte32DataError{data}
 		*c = privateByte32Container{}
-		return err
+		return errors.WithStack(err)
 	}
 
 	copy(c.data[:], data)
@@ -329,6 +337,19 @@ func MakeTLFCryptKeyServerHalf(data [32]byte) TLFCryptKeyServerHalf {
 	return TLFCryptKeyServerHalf{publicByte32Container{data}}
 }
 
+// MakeRandomTLFCryptKeyServerHalf generates the server-side of a
+// top-level folder crypt key.
+func MakeRandomTLFCryptKeyServerHalf() (
+	serverHalf TLFCryptKeyServerHalf, err error) {
+	var data [32]byte
+	err = RandRead(data[:])
+	if err != nil {
+		return TLFCryptKeyServerHalf{}, err
+	}
+	serverHalf = MakeTLFCryptKeyServerHalf(data)
+	return serverHalf, nil
+}
+
 // TLFCryptKeyClientHalf (t_u^{f,k,i} for a user u, a folder f, a key
 // generation k, and a device i) is the masked, client-side half of a
 // TLFCryptKey, which can be recovered only with both halves. (See
@@ -371,6 +392,16 @@ var _ encoding.TextUnmarshaler = (*TLFCryptKey)(nil)
 // MakeTLFCryptKey returns a TLFCryptKey containing the given data.
 func MakeTLFCryptKey(data [32]byte) TLFCryptKey {
 	return TLFCryptKey{privateByte32Container{data}}
+}
+
+// MakeRandomTLFCryptKey returns a random top-level folder crypt key.
+func MakeRandomTLFCryptKey() (TLFCryptKey, error) {
+	var data [32]byte
+	err := RandRead(data[:])
+	if err != nil {
+		return TLFCryptKey{}, err
+	}
+	return MakeTLFCryptKey(data), nil
 }
 
 // PublicTLFCryptKey is the TLFCryptKey used for all public TLFs. That
@@ -424,7 +455,7 @@ func MakeRandomBlockCryptKeyServerHalf() (
 func ParseBlockCryptKeyServerHalf(s string) (BlockCryptKeyServerHalf, error) {
 	buf, err := hex.DecodeString(s)
 	if err != nil {
-		return BlockCryptKeyServerHalf{}, err
+		return BlockCryptKeyServerHalf{}, errors.WithStack(err)
 	}
 	var serverHalf BlockCryptKeyServerHalf
 	err = serverHalf.UnmarshalBinary(buf)

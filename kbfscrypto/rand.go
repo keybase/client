@@ -4,7 +4,11 @@
 
 package kbfscrypto
 
-import "crypto/rand"
+import (
+	"crypto/rand"
+
+	"github.com/pkg/errors"
+)
 
 // UnexpectedShortCryptoRandRead indicates that fewer bytes were read
 // from crypto.rand.Read() than expected.
@@ -21,12 +25,12 @@ func (e UnexpectedShortCryptoRandRead) Error() string {
 func RandRead(buf []byte) error {
 	n, err := rand.Read(buf)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	// This is truly unexpected, as rand.Read() is supposed to
 	// return an error on a short read already!
 	if n != len(buf) {
-		return UnexpectedShortCryptoRandRead{}
+		return errors.WithStack(UnexpectedShortCryptoRandRead{})
 	}
 	return nil
 }

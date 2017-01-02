@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -18,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -71,7 +71,7 @@ func (kg fakeBlockKeyGetter) GetTLFCryptKeyForBlockDecryption(
 	fkmd := kmd.(fakeKeyMetadata)
 	i := int(blockPtr.KeyGen - FirstValidKeyGen)
 	if i >= len(fkmd.keys) {
-		return kbfscrypto.TLFCryptKey{}, fmt.Errorf(
+		return kbfscrypto.TLFCryptKey{}, errors.Errorf(
 			"no key for block decryption (keygen=%d)",
 			blockPtr.KeyGen)
 	}
@@ -379,7 +379,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	err = bops.Get(ctx, kmd,
 		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
 		&decryptedBlock)
-	require.IsType(t, kbfshash.HashMismatchError{}, err)
+	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
 }
 
 // TestBlockOpsReadyFailKeyGet checks that BlockOpsStandard.Get()

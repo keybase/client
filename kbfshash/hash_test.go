@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/stretchr/testify/assert"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,13 +25,13 @@ func TestHashEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	assert.Equal(t, DefaultHashByteLength+overhead, len(encodedH))
+	require.Equal(t, DefaultHashByteLength+overhead, len(encodedH))
 
 	var h2 Hash
 	err = codec.Decode(encodedH, &h2)
 	require.NoError(t, err)
 
-	assert.Equal(t, h, h2)
+	require.Equal(t, h, h2)
 }
 
 // Make sure the zero Hash value encodes and decodes properly.
@@ -41,13 +41,13 @@ func TestHashEncodeDecodeZero(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedEncodedH := []byte{0xc0}
-	assert.Equal(t, expectedEncodedH, encodedH)
+	require.Equal(t, expectedEncodedH, encodedH)
 
 	var h Hash
 	err = codec.Decode(encodedH, &h)
 	require.NoError(t, err)
 
-	assert.Equal(t, Hash{}, h)
+	require.Equal(t, Hash{}, h)
 }
 
 // Make sure that default hash gives a valid hash that verifies.
@@ -56,10 +56,10 @@ func TestDefaultHash(t *testing.T) {
 	h, err := DefaultHash(data)
 	require.NoError(t, err)
 
-	assert.True(t, h.IsValid())
+	require.True(t, h.IsValid())
 
 	err = h.Verify(data)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // hashFromRawNoCheck() is like HashFromRaw() except it doesn't check
@@ -75,23 +75,23 @@ func TestHashIsValid(t *testing.T) {
 	require.NoError(t, err)
 
 	// Zero hash.
-	assert.False(t, (Hash{}).IsValid())
+	require.False(t, (Hash{}).IsValid())
 
 	var smallH Hash
 	smallH.h = validH.h[:MinHashByteLength-1]
-	assert.False(t, smallH.IsValid())
+	require.False(t, smallH.IsValid())
 
 	var largeH Hash
 	padding := make([]byte, MaxHashByteLength-len(validH.h)+1)
 	largeH.h = string(append([]byte(validH.h), padding...))
-	assert.False(t, largeH.IsValid())
+	require.False(t, largeH.IsValid())
 
 	invalidH := hashFromRawNoCheck(InvalidHash, validH.hashData())
-	assert.False(t, invalidH.IsValid())
+	require.False(t, invalidH.IsValid())
 
 	// A hash with an unknown version is still valid.
 	unknownH := hashFromRawNoCheck(validH.hashType()+1, validH.hashData())
-	assert.True(t, unknownH.IsValid())
+	require.True(t, unknownH.IsValid())
 }
 
 // Make sure Hash.Verify() fails properly.
@@ -100,7 +100,7 @@ func TestHashVerify(t *testing.T) {
 
 	// Zero (invalid) hash.
 	err := (Hash{}).Verify(data)
-	assert.Equal(t, InvalidHashError{Hash{}}, err)
+	require.Equal(t, InvalidHashError{Hash{}}, errors.Cause(err))
 
 	validH, err := DefaultHash(data)
 	require.NoError(t, err)
@@ -109,22 +109,22 @@ func TestHashVerify(t *testing.T) {
 	copy(corruptData, data)
 	corruptData[0] ^= 1
 	err = validH.Verify(corruptData)
-	assert.IsType(t, HashMismatchError{}, err)
+	require.IsType(t, HashMismatchError{}, errors.Cause(err))
 
 	invalidH := hashFromRawNoCheck(InvalidHash, validH.hashData())
 	err = invalidH.Verify(data)
-	assert.Equal(t, InvalidHashError{invalidH}, err)
+	require.Equal(t, InvalidHashError{invalidH}, errors.Cause(err))
 
 	unknownType := validH.hashType() + 1
 	unknownH := hashFromRawNoCheck(unknownType, validH.hashData())
 	err = unknownH.Verify(data)
-	assert.Equal(t, UnknownHashTypeError{unknownType}, err)
+	require.Equal(t, UnknownHashTypeError{unknownType}, errors.Cause(err))
 
 	hashData := validH.hashData()
 	hashData[0] ^= 1
 	corruptH := hashFromRawNoCheck(validH.hashType(), hashData)
 	err = corruptH.Verify(data)
-	assert.IsType(t, HashMismatchError{}, err)
+	require.IsType(t, HashMismatchError{}, errors.Cause(err))
 }
 
 // Make sure HMAC encodes and decodes properly with minimal overhead.
@@ -140,13 +140,13 @@ func TestHMACEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	assert.Equal(t, DefaultHashByteLength+overhead, len(encodedHMAC))
+	require.Equal(t, DefaultHashByteLength+overhead, len(encodedHMAC))
 
 	var hmac2 HMAC
 	err = codec.Decode(encodedHMAC, &hmac2)
 	require.NoError(t, err)
 
-	assert.Equal(t, hmac, hmac2)
+	require.Equal(t, hmac, hmac2)
 }
 
 // Make sure the zero Hash value encodes and decodes properly.
@@ -156,13 +156,13 @@ func TestHMACEncodeDecodeZero(t *testing.T) {
 	require.NoError(t, err)
 
 	expectedEncodedHMAC := []byte{0xc0}
-	assert.Equal(t, expectedEncodedHMAC, encodedHMAC)
+	require.Equal(t, expectedEncodedHMAC, encodedHMAC)
 
 	var hmac HMAC
 	err = codec.Decode(encodedHMAC, &hmac)
 	require.NoError(t, err)
 
-	assert.Equal(t, HMAC{}, hmac)
+	require.Equal(t, HMAC{}, hmac)
 }
 
 // Make sure that default HMAC gives a valid HMAC that verifies.
@@ -172,10 +172,10 @@ func TestDefaultHMAC(t *testing.T) {
 	hmac, err := DefaultHMAC(key, data)
 	require.NoError(t, err)
 
-	assert.True(t, hmac.IsValid())
+	require.True(t, hmac.IsValid())
 
 	err = hmac.Verify(key, data)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 // No need to test HMAC.IsValid().
@@ -194,35 +194,35 @@ func TestVerify(t *testing.T) {
 
 	// Zero (invalid) HMAC.
 	err := (HMAC{}).Verify(key, data)
-	assert.Equal(t, InvalidHashError{Hash{}}, err)
+	require.Equal(t, InvalidHashError{Hash{}}, errors.Cause(err))
 
 	validHMAC, err := DefaultHMAC(key, data)
-	require.NoError(t, err)
+	require.NoError(t, errors.Cause(err))
 
 	corruptKey := make([]byte, len(key))
 	copy(corruptKey, key)
 	corruptKey[0] ^= 1
 	err = validHMAC.Verify(corruptKey, data)
-	assert.IsType(t, HashMismatchError{}, err)
+	require.IsType(t, HashMismatchError{}, errors.Cause(err))
 
 	corruptData := make([]byte, len(data))
 	copy(corruptData, data)
 	corruptData[0] ^= 1
 	err = validHMAC.Verify(key, corruptData)
-	assert.IsType(t, HashMismatchError{}, err)
+	require.IsType(t, HashMismatchError{}, errors.Cause(err))
 
 	invalidHMAC := hmacFromRawNoCheck(InvalidHash, validHMAC.hashData())
 	err = invalidHMAC.Verify(key, data)
-	assert.Equal(t, InvalidHashError{invalidHMAC.h}, err)
+	require.Equal(t, InvalidHashError{invalidHMAC.h}, errors.Cause(err))
 
 	unknownType := validHMAC.hashType() + 1
 	unknownHMAC := hmacFromRawNoCheck(unknownType, validHMAC.hashData())
 	err = unknownHMAC.Verify(key, data)
-	assert.Equal(t, UnknownHashTypeError{unknownType}, err)
+	require.Equal(t, UnknownHashTypeError{unknownType}, errors.Cause(err))
 
 	hashData := validHMAC.hashData()
 	hashData[0] ^= 1
 	corruptHMAC := hmacFromRawNoCheck(validHMAC.hashType(), hashData)
 	err = corruptHMAC.Verify(key, data)
-	assert.IsType(t, HashMismatchError{}, err)
+	require.IsType(t, HashMismatchError{}, errors.Cause(err))
 }

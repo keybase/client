@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIDEncodeDecode(t *testing.T) {
@@ -15,26 +16,17 @@ func TestIDEncodeDecode(t *testing.T) {
 	id := FakeID(1, true)
 
 	encodedID, err := codec.Encode(id)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// See
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	if len(encodedID) != idByteLen+overhead {
-		t.Errorf("expected encoded length %d, got %d",
-			idByteLen+overhead, len(encodedID))
-	}
+	require.Equal(t, idByteLen+overhead, len(encodedID))
 
 	var id2 ID
 	err = codec.Decode(encodedID, &id2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if id != id2 {
-		t.Errorf("expected %s, got %s", id, id2)
-	}
+	require.Equal(t, id, id2)
 }

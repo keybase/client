@@ -5,8 +5,9 @@
 package kbfscodec
 
 import (
-	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // TestCodecEncodeMap tests that codec.Encode() isn't affected by map
@@ -22,16 +23,10 @@ func TestCodecEncodeMap(t *testing.T) {
 	codec := NewMsgpack()
 
 	b1, err := codec.Encode(m1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	b2, err := codec.Encode(m2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if !bytes.Equal(b1, b2) {
-		t.Errorf("%v != %v", b1, b2)
-	}
+	require.Equal(t, b1, b2)
 }

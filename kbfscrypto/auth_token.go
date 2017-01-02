@@ -5,7 +5,6 @@
 package kbfscrypto
 
 import (
-	"errors"
 	"fmt"
 	"runtime"
 	"sync"
@@ -14,6 +13,7 @@ import (
 	"github.com/keybase/client/go/auth"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 

@@ -235,13 +235,14 @@ func NewWriteUnsupportedError(filename string) error {
 // other user's devices.
 type NeedSelfRekeyError struct {
 	Tlf CanonicalTlfName
+	Err error
 }
 
 // Error implements the error interface for NeedSelfRekeyError
 func (e NeedSelfRekeyError) Error() string {
 	return fmt.Sprintf("This device does not yet have read access to "+
 		"directory %s, log into Keybase from one of your other "+
-		"devices to grant access", buildCanonicalPathForTlfName(false, e.Tlf))
+		"devices to grant access: %+v", buildCanonicalPathForTlfName(false, e.Tlf), e.Err)
 }
 
 // NeedOtherRekeyError indicates that the folder in question needs to
@@ -249,14 +250,15 @@ func (e NeedSelfRekeyError) Error() string {
 // other users.
 type NeedOtherRekeyError struct {
 	Tlf CanonicalTlfName
+	Err error
 }
 
 // Error implements the error interface for NeedOtherRekeyError
 func (e NeedOtherRekeyError) Error() string {
 	return fmt.Sprintf("This device does not yet have read access to "+
 		"directory %s, ask one of the other directory participants to "+
-		"log into Keybase to grant you access automatically",
-		buildCanonicalPathForTlfName(false, e.Tlf))
+		"log into Keybase to grant you access automatically: %+v",
+		buildCanonicalPathForTlfName(false, e.Tlf), e.Err)
 }
 
 // NotFileBlockError indicates that a file block was expected but a
