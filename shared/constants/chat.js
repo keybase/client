@@ -133,10 +133,12 @@ export type InboxState = Record<{
 
 export type MetaData = Record<{
   fullname: string,
+  brokenTracker: boolean,
 }>
 
 export const MetaDataRecord = Record({
   fullname: 'Unknown',
+  brokenTracker: false,
 })
 
 export const StateRecord = Record({
@@ -173,7 +175,7 @@ export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
 export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
 export const selectConversation = 'chat:selectConversation'
-export const setupNewChatHandler = 'chat:setupNewChatHandler'
+export const setupChatHandlers = 'chat:setupChatHandlers'
 export const startConversation = 'chat:startConversation'
 export const updateBadging = 'chat:updateBadging'
 export const updateLatestMessage = 'chat:updateLatestMessage'
@@ -182,6 +184,7 @@ export const updatedMetadata = 'chat:updatedMetadata'
 export const selectAttachment = 'chat:selectAttachment'
 export const updateInbox = 'chat:updateInbox'
 export const updateInboxComplete = 'chat:updateInboxComplete'
+export const updateBrokenTracker = 'chat:updateBrokenTracker'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
@@ -200,13 +203,14 @@ export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSe
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
-export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
+export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string}>
+export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   bytesComplete: number,
   bytesTotal: number,
@@ -243,6 +247,7 @@ export type Actions = AppendMessages
   | SelectConversation
   | StartConversation
   | UpdateBadging
+  | UpdateBrokenTracker
   | UpdateInbox
   | UpdateInboxComplete
   | UpdateLatestMessage

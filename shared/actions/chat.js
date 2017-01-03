@@ -46,7 +46,7 @@ import type {
   OpenFolder,
   PostMessage,
   SelectConversation,
-  SetupNewChatHandler,
+  SetupChatHandlers,
   StartConversation,
   UnhandledMessage,
   UpdateBadging,
@@ -121,8 +121,8 @@ function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString):
   return {type: Constants.postMessage, payload: {conversationIDKey, text}}
 }
 
-function setupNewChatHandler (): SetupNewChatHandler {
-  return {type: Constants.setupNewChatHandler, payload: undefined}
+function setupChatHandlers (): SetupChatHandlers {
+  return {type: Constants.setupChatHandlers, payload: undefined}
 }
 
 function loadInbox (): LoadInbox {
@@ -420,10 +420,19 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   }
 }
 
-function * _setupNewChatHandler (): SagaGenerator<any, any> {
+function * _setupChatHandlers (): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({uid, activity}) => {
       dispatch({type: Constants.incomingMessage, payload: {activity}})
+    })
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
+      const usernames = update.CanonicalName.split(',')
+      const broken = (update.breaks.breaks || []).map(b => b.user.username)
+      const userToBroken = usernames.reduce((map, name) => {
+        map[name] = !!broken.includes(name)
+        return map
+      }, {})
+      dispatch({type: Constants.updateBrokenTracker, payload: {userToBroken}})
     })
   })
 }
@@ -953,7 +962,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.loadMoreMessages, _loadMoreMessages),
     safeTakeLatest(Constants.selectConversation, _selectConversation),
     safeTakeEvery(Constants.updateBadging, _updateBadging),
-    safeTakeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
+    safeTakeEvery(Constants.setupChatHandlers, _setupChatHandlers),
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
     safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
@@ -984,6 +993,6 @@ export {
   openFolder,
   postMessage,
   selectConversation,
-  setupNewChatHandler,
+  setupChatHandlers,
   startConversation,
 }
