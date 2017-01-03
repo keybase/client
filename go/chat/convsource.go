@@ -104,7 +104,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	var err error
 	continuousUpdate := false
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(s.G().Log), msg)
+	decmsg, err := s.boxer.UnboxMessage(ctx, msg)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}

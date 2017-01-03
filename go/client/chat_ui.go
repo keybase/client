@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -147,7 +147,7 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 		return chat1.ConversationLocal{}, fmt.Errorf("no text message found")
 	}
 
-	rnames, wnames, err := utils.ReorderParticipants(ctx, c.G().UserDeviceCache,
+	rnames, wnames, err := chat.ReorderParticipants(ctx, c.G().GetUPAKLoader(),
 		txtMsg.ClientHeader.TlfName, conv.Metadata.ActiveList)
 	if err != nil {
 		return chat1.ConversationLocal{}, err

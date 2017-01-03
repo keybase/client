@@ -9,9 +9,10 @@ import (
 	"time"
 
 	gregor "github.com/keybase/client/go/gregor"
-	"github.com/keybase/client/go/libkb"
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	context "golang.org/x/net/context"
 )
 
 var locktab libkb.LockTable
@@ -120,7 +121,14 @@ func (i *identifyUser) Equal(i2 *identifyUser) bool {
 }
 
 func (i *identifyUser) load(g *libkb.GlobalContext) (err error) {
-	i.thin, i.full, err = g.CachedUserLoader.Load(i.arg)
+	i.thin, i.full, err = g.GetUPAKLoader().Load(i.arg)
+	return err
+}
+
+func (i *identifyUser) forceFullLoad(g *libkb.GlobalContext) (err error) {
+	arg := i.arg
+	arg.ForceReload = true
+	i.thin, i.full, err = g.CachedUserLoader.Load(arg)
 	return err
 }
 
@@ -141,13 +149,50 @@ func loadIdentifyUser(ctx *Context, g *libkb.GlobalContext, arg libkb.LoadUserAr
 	return ret, err
 }
 
-func (i *identifyUser) trackChainLinkFor(name string, uid keybase1.UID, g *libkb.GlobalContext) (*libkb.TrackChainLink, error) {
+func (i *identifyUser) trackChainLinkFor(ctx context.Context, name string, uid keybase1.UID, g *libkb.GlobalContext) (ret *libkb.TrackChainLink, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("identifyUser#trackChainLinkFor(%s)", name), func() error { return err })()
+
 	if i.full != nil {
+		g.Log.CDebugf(ctx, "| Using full user object")
 		return i.full.TrackChainLinkFor(name, uid)
 	}
+
 	if i.thin != nil {
-		return libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, libkb.NewNormalizedUsername(name), uid, g)
+
+		g.Log.CDebugf(ctx, "| Using thin user object")
+
+		// In the common case, we look at the thin UPAK and get the chain link
+		// ID of the track chain link for tracking the given user. We'll then
+		// go ahead and load that chain link from local level DB, and it's almost
+		// always going to be there, since it was written as a side effect of
+		// fetching the full user. There's a corner case, see just below...
+		ret, err = libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, libkb.NewNormalizedUsername(name), uid, g)
+		if _, inconsistent := err.(libkb.InconsistentCacheStateError); !inconsistent {
+			g.Log.CDebugf(ctx, "| returning in common case -> (found=%v, err=%v)", (ret != nil), err)
+			return ret, err
+		}
+
+		g.Log.CDebugf(ctx, "| fell through to forceFullLoad corner case")
+
+		//
+		// NOTE(max) 2016-12-31
+		//
+		// There's a corner case here -- the track chain link does exist, but
+		// it wasn't found on disk. This is probably because the db cache was nuked.
+		// Thus, in this case we force a full user reload, and we're sure to get
+		// the tracking infomation then.
+		//
+		// See Jira ticket CORE-4310
+		//
+		err = i.forceFullLoad(g)
+		if err != nil {
+			return nil, err
+		}
+		return i.full.TrackChainLinkFor(name, uid)
 	}
+
+	// No user loaded, so no track chain link.
+	g.Log.CDebugf(ctx, "| fell through the empty default case")
 	return nil, nil
 }
 
@@ -350,7 +395,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 	}
 
 	e.G().Log.Debug("| Identify2WithUID.createIdentifyState")
-	if err = e.createIdentifyState(); err != nil {
+	if err = e.createIdentifyState(ctx); err != nil {
 		return err
 	}
 
@@ -635,7 +680,7 @@ func (e *Identify2WithUID) forceRemoteCheck() bool {
 	return e.arg.ForceRemoteCheck || (e.testArgs != nil && e.testArgs.forceRemoteCheck)
 }
 
-func (e *Identify2WithUID) createIdentifyState() (err error) {
+func (e *Identify2WithUID) createIdentifyState(ctx *Context) (err error) {
 	defer e.G().Trace("createIdentifyState", func() error { return err })()
 	var them *libkb.User
 	them, err = e.them.User(e.getCache())
@@ -657,7 +702,7 @@ func (e *Identify2WithUID) createIdentifyState() (err error) {
 		return nil
 	}
 
-	tcl, err := e.me.trackChainLinkFor(them.GetName(), them.GetUID(), e.G())
+	tcl, err := e.me.trackChainLinkFor(ctx.GetNetContext(), them.GetName(), them.GetUID(), e.G())
 	if tcl != nil {
 		e.G().Log.Debug("| using track token %s", tcl.LinkID())
 		e.useTracking = true

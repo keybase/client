@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"strings"
+
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -66,7 +67,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
 	Inbox, *chat1.RateLimit, error) {
 
-	rquery, tlfInfo, err := utils.GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
 		return Inbox{}, nil, err
 	}
@@ -155,7 +156,7 @@ func (s *NonblockRemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
 	Inbox, *chat1.RateLimit, error) {
 
-	rquery, _, err := utils.GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
 		return Inbox{}, nil, err
 	}
@@ -178,12 +179,7 @@ func (s *NonblockRemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	}
 
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
-	var bctx context.Context
-	if ident, breaks, ok := utils.IdentifyMode(ctx); ok {
-		bctx = utils.IdentifyModeCtx(context.Background(), ident, breaks)
-	} else {
-		bctx = context.Background()
-	}
+	bctx := BackgroundContext(ctx)
 	go func() {
 		s.localizer.localizeConversationsPipeline(bctx, uid, ib.Inbox.Full().Conversations,
 			&s.localizeCb)
@@ -265,7 +261,6 @@ func (s *localizer) localizeConversationsPipeline(ctx context.Context, uid grego
 	convs []chat1.Conversation, localizeCb *chan NonblockInboxResult) ([]chat1.ConversationLocal, error) {
 
 	// Fetch conversation local information in parallel
-	ctx, _ = utils.GetUserInfoMapper(ctx, s.G())
 	type jobRes struct {
 		conv  chat1.ConversationLocal
 		index int
@@ -390,7 +385,7 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 			if typ == chat1.MessageType_METADATA {
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
 			}
-			if utils.IsVisibleChatMessageType(typ) {
+			if IsVisibleChatMessageType(typ) {
 				conversationLocal.IsEmpty = false
 			}
 
@@ -414,17 +409,20 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 		return chat1.ConversationLocal{Error: &errMsg}
 	}
 
-	info, err := utils.LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TlfName, conversationLocal.Info.Visibility)
-	if err != nil {
-		errMsg := err.Error()
-		return chat1.ConversationLocal{Error: &errMsg}
+	// Only do this check if there is a chance the TLF name might be an SBS name.
+	if strings.Contains(conversationLocal.Info.TlfName, "@") {
+		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TlfName, conversationLocal.Info.Visibility)
+		if err != nil {
+			errMsg := err.Error()
+			return chat1.ConversationLocal{Error: &errMsg}
+		}
+		// Not sure about the utility of this TlfName assignment, but the previous code did this:
+		conversationLocal.Info.TlfName = info.CanonicalName
 	}
-	// Not sure about the utility of this TlfName assignment, but the previous code did this:
-	conversationLocal.Info.TlfName = info.CanonicalName
 
-	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
+	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = ReorderParticipants(
 		ctx,
-		s.G().GetUserDeviceCache(),
+		s.G().GetUPAKLoader(),
 		conversationLocal.Info.TlfName,
 		conversationRemote.Metadata.ActiveList)
 	if err != nil {
