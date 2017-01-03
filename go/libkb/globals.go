@@ -41,28 +41,19 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log          logger.Logger // Handles all logging
-	VDL          *VDebugLog    // verbose debug log
-	Env          *Env          // Env variables, cmdline args & config
-	SKBKeyringMu *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings     *Keyrings     // Gpg Keychains holding keys
-	API          API           // How to make a REST call to the server
-	Resolver     *Resolver     // cache of resolve results
-	LocalDb      *JSONLocalDb  // Local DB for cache
-	LocalChatDb  *JSONLocalDb  // Local DB for cache
-	MerkleClient *MerkleClient // client for querying server's merkle sig tree
-	XAPI         ExternalAPI   // for contacting Twitter, Github, etc.
-	Output       io.Writer     // where 'Stdout'-style output goes
-
-	cacheMu        *sync.RWMutex   // protects all caches
-	ProofCache     *ProofCache     // where to cache proof results
-	TrackCache     *TrackCache     // cache of IdentifyOutcomes for tracking purposes
-	Identify2Cache Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
-	LinkCache      *LinkCache      // cache of ChainLinks
-	upakLoader     UPAKLoader      // Load flat users with the ability to hit the cache
-	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
-	fullSelfer     FullSelfer      // a loader that gets the full self object
-
+	Log               logger.Logger  // Handles all logging
+	VDL               *VDebugLog     // verbose debug log
+	Env               *Env           // Env variables, cmdline args & config
+	SKBKeyringMu      *sync.Mutex    // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings          *Keyrings      // Gpg Keychains holding keys
+	API               API            // How to make a REST call to the server
+	Resolver          *Resolver      // cache of resolve results
+	LocalDb           *JSONLocalDb   // Local DB for cache
+	LocalChatDb       *JSONLocalDb   // Local DB for cache
+	MerkleClient      *MerkleClient  // client for querying server's merkle sig tree
+	XAPI              ExternalAPI    // for contacting Twitter, Github, etc.
+	Output            io.Writer      // where 'Stdout'-style output goes
+	ProofCache        *ProofCache    // where to cache proof results
 	GpgClient         *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
 	SocketInfo        Socket         // which socket to bind/connect to
@@ -71,6 +62,9 @@ type GlobalContext struct {
 	LoopbackListener  *LoopbackListener  // If we're in loopback mode, we'll connect through here
 	XStreams          *ExportedStreams   // a table of streams we've exported to the daemon (or vice-versa)
 	Timers            *TimerSet          // Which timers are currently configured on
+	TrackCache        *TrackCache        // cache of IdentifyOutcomes for tracking purposes
+	Identify2Cache    Identify2Cacher    // cache of Identify2 results for fast-pathing identify2 RPCS
+	LinkCache         *LinkCache         // cache of ChainLinks
 	UI                UI                 // Interact with the UI
 	Service           bool               // whether we're in server mode
 	shutdownOnce      *sync.Once         // whether we've shut down or not
@@ -95,12 +89,18 @@ type GlobalContext struct {
 	oodiMu             *sync.RWMutex             // For manipluating the OutOfDateInfo
 	outOfDateInfo      *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
 	lastUpgradeWarning *time.Time                // When the last upgrade was warned for (to reate-limit nagging)
+	CachedUserLoader   *CachedUserLoader         // Load flat users with the ability to hit the cache
+	UserDeviceCache    *UserDeviceCache          // Cache user and device names forever
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 
+	CardCache *UserCardCache // cache of keybase1.UserCard objects
+
 	ConvSource       ConversationSource // source of remote message bodies for chat
 	MessageDeliverer MessageDeliverer   // background message delivery service
+
+	FullSelfCacher *FullSelfCacher
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -115,12 +115,14 @@ type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
 
-func (g *GlobalContext) GetLog() logger.Logger          { return g.Log }
-func (g *GlobalContext) GetAPI() API                    { return g.API }
-func (g *GlobalContext) GetExternalAPI() ExternalAPI    { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string           { return g.Env.GetServerURI() }
-func (g *GlobalContext) GetMerkleClient() *MerkleClient { return g.MerkleClient }
-func (g *GlobalContext) GetNetContext() context.Context { return g.NetContext }
+func (g *GlobalContext) GetLog() logger.Logger                  { return g.Log }
+func (g *GlobalContext) GetAPI() API                            { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI            { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string                   { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetCachedUserLoader() *CachedUserLoader { return g.CachedUserLoader }
+func (g *GlobalContext) GetUserDeviceCache() *UserDeviceCache   { return g.UserDeviceCache }
+func (g *GlobalContext) GetMerkleClient() *MerkleClient         { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context         { return g.NetContext }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -128,7 +130,6 @@ func NewGlobalContext() *GlobalContext {
 		Log:                log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
-		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
 		loginStateMu:       new(sync.RWMutex),
@@ -175,8 +176,9 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
-	g.upakLoader = NewUncachedUPAKLoader(g)
-	g.fullSelfer = NewUncachedFullSelf(g)
+	g.CachedUserLoader = NewCachedUserLoader(g, CachedUserTimeout)
+	g.UserDeviceCache = NewUserDeviceCache(g)
+	g.makeFullSelfCacher()
 	return g
 }
 
@@ -241,9 +243,6 @@ func (g *GlobalContext) Logout() error {
 	if g.CardCache != nil {
 		g.CardCache.Shutdown()
 	}
-
-	g.GetFullSelfer().OnLogout()
-
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
@@ -324,6 +323,14 @@ func (g *GlobalContext) ConfigureKeyring() error {
 	return nil
 }
 
+func (g *GlobalContext) makeFullSelfCacher() {
+	fsc := NewFullSelfCacher(g)
+	g.AddLoginHook(fsc)
+	g.AddLogoutHook(fsc)
+	g.AddUserChangedHandler(fsc)
+	g.FullSelfCacher = fsc
+}
+
 func VersionMessage(linefn func(string)) {
 	linefn(fmt.Sprintf("Keybase CLI %s", VersionString()))
 	linefn(fmt.Sprintf("- Built with %s", runtime.Version()))
@@ -345,9 +352,6 @@ func (g *GlobalContext) ConfigureAPI() error {
 }
 
 func (g *GlobalContext) ConfigureCaches() error {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-
 	g.Resolver.EnableCaching()
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
@@ -357,10 +361,6 @@ func (g *GlobalContext) ConfigureCaches() error {
 	g.Log.Debug("Created LinkCache, max size: %d, clean dur: %s", g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created CardCache, max age: %s", g.Env.GetUserCacheMaxAge())
-	g.fullSelfer = NewCachedFullSelf(g)
-	g.Log.Debug("made a new full self cache")
-	g.upakLoader = NewCachedUPAKLoader(g, CachedUserTimeout)
-	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUserTimeout)
 
 	// We consider the local DBs as caches; they're caching our
 	// fetches from the server after all (and also our cryptographic
@@ -374,18 +374,6 @@ func (g *GlobalContext) ConfigureCaches() error {
 func (g *GlobalContext) ConfigureMerkleClient() error {
 	g.MerkleClient = NewMerkleClient(g)
 	return nil
-}
-
-func (g *GlobalContext) GetUPAKLoader() UPAKLoader {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
-	return g.upakLoader
-}
-
-func (g *GlobalContext) GetFullSelfer() FullSelfer {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
-	return g.fullSelfer
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {
@@ -704,10 +692,6 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 }
 
 func (g *GlobalContext) CallLoginHooks() {
-
-	// Do so outside the lock below
-	g.GetFullSelfer().OnLogin()
-
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
@@ -715,7 +699,6 @@ func (g *GlobalContext) CallLoginHooks() {
 			g.Log.Warning("OnLogin hook error: %s", err)
 		}
 	}
-
 }
 
 func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
@@ -819,7 +802,9 @@ func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, err
 }
 
 func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
-	g.GetUPAKLoader().Invalidate(g.NetContext, u)
+	if g.CachedUserLoader != nil {
+		g.CachedUserLoader.Invalidate(g.NetContext, u)
+	}
 }
 
 func (g *GlobalContext) AddUserChangedHandler(h UserChangedHandler) {
@@ -840,7 +825,6 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)
 	}
-	g.GetFullSelfer().HandleUserChanged(u)
 
 	g.uchMu.Lock()
 	list := g.UserChangedHandlers

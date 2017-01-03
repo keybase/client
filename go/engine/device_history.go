@@ -63,7 +63,7 @@ func (e *DeviceHistory) SubConsumers() []libkb.UIConsumer {
 func (e *DeviceHistory) Run(ctx *Context) error {
 
 	arg := e.loadUserArg()
-	err := e.G().GetFullSelfer().WithUser(arg, func(u *libkb.User) error {
+	err := e.G().FullSelfCacher.WithUser(arg, func(u *libkb.User) error {
 		return e.loadDevices(u)
 	})
 	return err

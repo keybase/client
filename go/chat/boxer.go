@@ -256,11 +256,11 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 }
 
 func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
-	nun, devName, devType, err := b.kbCtx.GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
-	if err != nil {
-		return "", "", "", err
+	udc := b.kbCtx.GetUserDeviceCache()
+	if udc == nil {
+		return "", "", "", fmt.Errorf("missing UserDeviceCache")
 	}
-	return nun.String(), devName, devType, nil
+	return udc.LookupUsernameAndDevice(ctx, uid, deviceID)
 }
 
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
@@ -537,7 +537,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
-	cachedUserLoader := b.kbCtx.GetUPAKLoader()
+	cachedUserLoader := b.kbCtx.GetCachedUserLoader()
 	if cachedUserLoader == nil {
 		return false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
