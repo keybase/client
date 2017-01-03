@@ -128,7 +128,7 @@ func (i *identifyUser) load(g *libkb.GlobalContext) (err error) {
 func (i *identifyUser) forceFullLoad(g *libkb.GlobalContext) (err error) {
 	arg := i.arg
 	arg.ForceReload = true
-	i.thin, i.full, err = g.CachedUserLoader.Load(arg)
+	i.thin, i.full, err = g.GetUPAKLoader().Load(arg)
 	return err
 }
 
