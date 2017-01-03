@@ -686,16 +686,6 @@ func (k *LibKBFS) UnflushedPaths(u User, tlfName string, isPublic bool) (
 	return status.Journal.UnflushedPaths, nil
 }
 
-// TogglePrefetch implements the Engine interface.
-func (k *LibKBFS) TogglePrefetch(u User, enable bool) error {
-	config := u.(*libkbfs.ConfigLocal)
-
-	ctx, cancel := k.newContext(u)
-	defer cancel()
-
-	return config.BlockOps().TogglePrefetcher(ctx, enable)
-}
-
 // Shutdown implements the Engine interface.
 func (k *LibKBFS) Shutdown(u User) error {
 	config := u.(*libkbfs.ConfigLocal)

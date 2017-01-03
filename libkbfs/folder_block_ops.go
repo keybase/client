@@ -277,7 +277,7 @@ func (fbo *folderBlockOps) checkDataVersion(p path, ptr BlockPointer) error {
 // This must be called only by get{File,Dir}BlockHelperLocked().
 func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer, branch BranchName,
-	newBlock makeNewBlock, lifetime BlockCacheLifetime, notifyPath path, rtype blockReqType) (
+	newBlock makeNewBlock, doCache bool, notifyPath path, rtype blockReqType) (
 	Block, error) {
 	if rtype != blockReadParallel {
 		fbo.blockLock.AssertAnyLocked(lState)
@@ -326,15 +326,21 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	var err error
 	if rtype != blockReadParallel && rtype != blockLookup {
 		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
-			err = bops.Get(ctx, kmd, ptr, block, lifetime)
+			err = bops.Get(ctx, kmd, ptr, block)
 		})
 	} else {
-		err = bops.Get(ctx, kmd, ptr, block, lifetime)
+		err = bops.Get(ctx, kmd, ptr, block)
 	}
 	if err != nil {
 		return nil, err
 	}
 
+	if doCache {
+		if err := fbo.config.BlockCache().Put(ptr, fbo.id(), block,
+			TransientEntry); err != nil {
+			return nil, err
+		}
+	}
 	return block, nil
 }
 
@@ -362,7 +368,7 @@ func (fbo *folderBlockOps) getFileBlockHelperLocked(ctx context.Context,
 	}
 
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, kmd, ptr, branch, NewFileBlock, TransientEntry, p, rtype)
+		ctx, lState, kmd, ptr, branch, NewFileBlock, true, p, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -389,7 +395,7 @@ func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	return fbo.getBlockHelperLocked(ctx, lState, kmd, ptr, branch,
-		NewCommonBlock, NoCacheEntry, path{}, blockRead)
+		NewCommonBlock, false, path{}, blockRead)
 }
 
 // GetBlocksForReading retrieves the blocks pointed to by ptrs, all of
@@ -419,7 +425,7 @@ func (fbo *folderBlockOps) GetBlocksForReading(ctx context.Context,
 		i, ptr := i, ptr
 		eg.Go(func() error {
 			block, err := fbo.getBlockHelperLocked(groupCtx, nil, kmd, ptr,
-				branch, NewCommonBlock, NoCacheEntry, path{}, blockReadParallel)
+				branch, NewCommonBlock, false, path{}, blockReadParallel)
 			// TODO: we might be able to recover the size of the
 			// top-most block of a removed file using the merged
 			// directory entry, the same way we do in
@@ -471,7 +477,7 @@ func (fbo *folderBlockOps) getDirBlockHelperLocked(ctx context.Context,
 	// Pass in an empty notify path because notifications should only
 	// trigger for file reads.
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, kmd, ptr, branch, NewDirBlock, TransientEntry, path{}, rtype)
+		ctx, lState, kmd, ptr, branch, NewDirBlock, true, path{}, rtype)
 	if err != nil {
 		return nil, err
 	}

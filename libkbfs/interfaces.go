@@ -619,22 +619,27 @@ type KeyCache interface {
 type BlockCacheLifetime int
 
 const (
-	// NoCacheEntry means that the entry will not be cached.
-	NoCacheEntry BlockCacheLifetime = iota
 	// TransientEntry means that the cache entry may be evicted at
 	// any time.
-	TransientEntry
+	TransientEntry BlockCacheLifetime = iota
 	// PermanentEntry means that the cache entry must remain until
 	// explicitly removed from the cache.
 	PermanentEntry
 )
 
-// BlockCacheSimple gets and puts plaintext dir blocks and file blocks into
+// BlockCache gets and puts plaintext dir blocks and file blocks into
 // a cache.  These blocks are immutable and identified by their
 // content hash.
-type BlockCacheSimple interface {
+type BlockCache interface {
 	// Get gets the block associated with the given block ID.
 	Get(ptr BlockPointer) (Block, error)
+	// CheckForKnownPtr sees whether this cache has a transient
+	// entry for the given file block, which must be a direct file
+	// block containing data).  Returns the full BlockPointer
+	// associated with that ID, including key and data versions.
+	// If no ID is known, return an uninitialized BlockPointer and
+	// a nil error.
+	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
 	// Put stores the final (content-addressable) block associated
 	// with the given block ID. If lifetime is TransientEntry,
 	// then it is assumed that the block exists on the server and
@@ -648,19 +653,6 @@ type BlockCacheSimple interface {
 	// fine, since the block should be the same.
 	Put(ptr BlockPointer, tlf tlf.ID, block Block,
 		lifetime BlockCacheLifetime) error
-}
-
-// BlockCache specifies the interface of BlockCacheSimple, and also more
-// advanced and internal methods.
-type BlockCache interface {
-	BlockCacheSimple
-	// CheckForKnownPtr sees whether this cache has a transient
-	// entry for the given file block, which must be a direct file
-	// block containing data).  Returns the full BlockPointer
-	// associated with that ID, including key and data versions.
-	// If no ID is known, return an uninitialized BlockPointer and
-	// a nil error.
-	CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error)
 	// DeleteTransient removes the transient entry for the given
 	// pointer from the cache, as well as any cached IDs so the block
 	// won't be reused.
@@ -996,25 +988,6 @@ type KeyOps interface {
 		serverHalfID TLFCryptKeyServerHalfID) error
 }
 
-// Prefetcher is an interface to a block prefetcher.
-type Prefetcher interface {
-	// PrefetchDirBlock directs the prefetcher to prefetch a directory block.
-	PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
-	// PrefetchFileBlock directs the prefetcher to prefetch a file block.
-	PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
-	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
-	// after a block has been retrieved. Whichever component is responsible for
-	// retrieving blocks will call this method once it's done retrieving a
-	// block.
-	PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int)
-	// Shutdown shuts down the prefetcher idempotently. Future calls to
-	// the various Prefetch* methods will return io.EOF. The returned channel
-	// allows upstream components to block until all pending prefetches are
-	// complete. This feature is mainly used for testing, but also to toggle
-	// the prefetcher on and off.
-	Shutdown() <-chan struct{}
-}
-
 // BlockOps gets and puts data blocks to a BlockServer. It performs
 // the necessary crypto operations on each block.
 type BlockOps interface {
@@ -1022,10 +995,9 @@ type BlockOps interface {
 	// (which belongs to the TLF with the given key metadata),
 	// decrypts it if necessary, and fills in the provided block
 	// object with its contents, if the logged-in user has read
-	// permission for that block. cacheLifetime controls the behavior of the
-	// write-through cache once a Get completes.
+	// permission for that block.
 	Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
-		block Block, cacheLifetime BlockCacheLifetime) error
+		block Block) error
 
 	// Ready turns the given block (which belongs to the TLF with
 	// the given key metadata) into encoded (and encrypted) data,
@@ -1046,12 +1018,6 @@ type BlockOps interface {
 	// view of the folder, and shouldn't be served to anyone other
 	// than folder writers.
 	Archive(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) error
-
-	// TogglePrefetcher activates or deactivates the prefetcher.
-	TogglePrefetcher(ctx context.Context, enable bool) error
-
-	// Prefetcher retrieves this BlockOps' Prefetcher.
-	Prefetcher() Prefetcher
 
 	// Shutdown shuts down all the workers performing Get operations
 	Shutdown()

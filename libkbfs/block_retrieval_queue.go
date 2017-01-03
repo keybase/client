@@ -40,13 +40,11 @@ type blockRetrieval struct {
 	// cancel function for the context
 	cancelFunc context.CancelFunc
 
-	// protects requests and lifetime
+	// protects requests
 	reqMtx sync.RWMutex
 	// the individual requests for this block pointer: they must be notified
 	// once the block is returned
 	requests []*blockRetrievalRequest
-	// the cache lifetime for the retrieval
-	cacheLifetime BlockCacheLifetime
 
 	//// Queueing Metadata
 	// the index of the retrieval in the heap
@@ -87,37 +85,20 @@ type blockRetrievalQueue struct {
 	workerQueue chan chan *blockRetrieval
 	// channel to be closed when we're done accepting requests
 	doneCh chan struct{}
-
-	// Codec for copying blocks
-	codec kbfscodec.Codec
-	// cacheFunc is a BlockCache function pointer for retrieving and putting
-	// blocks. This must be a function pointer because the cache can be reset,
-	// and so might point to a new cache.
-	cacheFunc func() BlockCache
-
-	// protects prefetcher
-	prefetchMtx sync.RWMutex
-	// prefetcher for handling prefetching scenarios
-	prefetcher Prefetcher
+	codec  kbfscodec.Codec
 }
-
-var _ blockRetriever = (*blockRetrievalQueue)(nil)
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call WorkOnRequest
 // (more than numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec,
-	cache func() BlockCache) *blockRetrievalQueue {
-	q := &blockRetrievalQueue{
-		cacheFunc:   cache,
+func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec) *blockRetrievalQueue {
+	return &blockRetrievalQueue{
 		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
 		workerQueue: make(chan chan *blockRetrieval, numWorkers),
 		doneCh:      make(chan struct{}),
 		codec:       codec,
 	}
-	q.prefetcher = newBlockPrefetcher(q)
-	return q
 }
 
 func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
@@ -146,7 +127,7 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 }
 
 // Request submits a block request to the queue.
-func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error {
+func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block) <-chan error {
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
 	select {
@@ -178,7 +159,6 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 				index:          -1,
 				priority:       priority,
 				insertionOrder: brq.insertionCount,
-				cacheLifetime:  lifetime,
 			}
 			br.ctx, br.cancelFunc = NewCoalescingContext(ctx)
 			brq.insertionCount++
@@ -199,9 +179,6 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			block:  block,
 			doneCh: ch,
 		})
-		if lifetime > br.cacheLifetime {
-			br.cacheLifetime = lifetime
-		}
 		br.reqMtx.Unlock()
 		// If the new request priority is higher, elevate the retrieval in the
 		// queue.  Skip this if the request is no longer in the queue (which means
@@ -241,17 +218,6 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	// lock.
 	retrieval.reqMtx.Lock()
 	defer retrieval.reqMtx.Unlock()
-	// Cache the block if there is no error.
-	if brq.cacheFunc() != nil && err == nil {
-		_ = brq.cacheFunc().Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
-	}
-	go func() {
-		brq.prefetchMtx.RLock()
-		defer brq.prefetchMtx.RUnlock()
-		if brq.prefetcher != nil {
-			brq.prefetcher.PrefetchAfterBlockRetrieved(block, retrieval.kmd, retrieval.priority)
-		}
-	}()
 	for _, r := range retrieval.requests {
 		req := r
 		if block != nil {
@@ -268,30 +234,6 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	select {
 	case <-brq.doneCh:
 	default:
-		if brq.prefetcher != nil {
-			brq.prefetcher.Shutdown()
-		}
 		close(brq.doneCh)
 	}
-}
-
-// TogglePrefetcher allows upstream components to turn the prefetcher on or off
-func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context, enable bool) error {
-	brq.prefetchMtx.Lock()
-	defer brq.prefetchMtx.Unlock()
-	select {
-	case <-brq.prefetcher.Shutdown():
-	case <-ctx.Done():
-	}
-	if enable {
-		brq.prefetcher = newBlockPrefetcher(brq)
-	}
-	return ctx.Err()
-}
-
-// Prefetcher allows us to retrieve the prefetcher
-func (brq *blockRetrievalQueue) Prefetcher() Prefetcher {
-	brq.prefetchMtx.RLock()
-	defer brq.prefetchMtx.RUnlock()
-	return brq.prefetcher
 }
