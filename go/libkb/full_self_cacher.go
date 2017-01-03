@@ -13,13 +13,13 @@ type FullSelfer interface {
 	OnLogin() error
 }
 
-type NullFullSelfCache struct {
+type UncachedFullSelf struct {
 	Contextified
 }
 
-var _ FullSelfer = (*NullFullSelfCache)(nil)
+var _ FullSelfer = (*UncachedFullSelf)(nil)
 
-func (n *NullFullSelfCache) WithSelf(f func(u *User) error) error {
+func (n *UncachedFullSelf) WithSelf(f func(u *User) error) error {
 	arg := LoadUserArg{
 		Contextified:      NewContextified(n.G()),
 		PublicKeyOptional: true,
@@ -28,7 +28,7 @@ func (n *NullFullSelfCache) WithSelf(f func(u *User) error) error {
 	return n.WithUser(arg, f)
 }
 
-func (n *NullFullSelfCache) WithUser(arg LoadUserArg, f func(u *User) error) error {
+func (n *UncachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) error {
 	u, err := LoadUser(arg)
 	if err != nil {
 		return err
@@ -36,34 +36,34 @@ func (n *NullFullSelfCache) WithUser(arg LoadUserArg, f func(u *User) error) err
 	return f(u)
 }
 
-func (n *NullFullSelfCache) HandleUserChanged(u keybase1.UID) error { return nil }
-func (n *NullFullSelfCache) OnLogout() error                        { return nil }
-func (n *NullFullSelfCache) OnLogin() error                         { return nil }
+func (n *UncachedFullSelf) HandleUserChanged(u keybase1.UID) error { return nil }
+func (n *UncachedFullSelf) OnLogout() error                        { return nil }
+func (n *UncachedFullSelf) OnLogin() error                         { return nil }
 
-func NewNullFullSelfCache(g *GlobalContext) *NullFullSelfCache {
-	return &NullFullSelfCache{NewContextified(g)}
+func NewUncachedFullSelf(g *GlobalContext) *UncachedFullSelf {
+	return &UncachedFullSelf{NewContextified(g)}
 }
 
-// FullSelfCache caches a full-on *User for the "me" or "self" user.
+// CachedFullSelf caches a full-on *User for the "me" or "self" user.
 // Because it's a full-on *User, it contains many pointers and can't
 // reasonably be deep-copied. So we're going to insist that access to the
 // cached user is protected inside a lock.
-type FullSelfCache struct {
+type CachedFullSelf struct {
 	Contextified
 	sync.Mutex
 	me *User
 }
 
-var _ FullSelfer = (*FullSelfCache)(nil)
+var _ FullSelfer = (*CachedFullSelf)(nil)
 
-// NewFullSelfCache makes a new full self cacher in the given GlobalContext
-func NewFullSelfCache(g *GlobalContext) *FullSelfCache {
-	return &FullSelfCache{
+// NewCachedFullSelf makes a new full self cacher in the given GlobalContext
+func NewCachedFullSelf(g *GlobalContext) *CachedFullSelf {
+	return &CachedFullSelf{
 		Contextified: NewContextified(g),
 	}
 }
 
-func (m *FullSelfCache) isSelfLoad(arg LoadUserArg) bool {
+func (m *CachedFullSelf) isSelfLoad(arg LoadUserArg) bool {
 	if arg.Self {
 		return true
 	}
@@ -80,7 +80,7 @@ func (m *FullSelfCache) isSelfLoad(arg LoadUserArg) bool {
 // It takes a closure, in which the user object is locked and accessible,
 // but we should be sure the user never escapes this closure. If the user
 // is fresh-loaded, then it is stored in memory.
-func (m *FullSelfCache) WithSelf(f func(u *User) error) error {
+func (m *CachedFullSelf) WithSelf(f func(u *User) error) error {
 	arg := LoadUserArg{
 		Contextified:      NewContextified(m.G()),
 		PublicKeyOptional: true,
@@ -93,14 +93,14 @@ func (m *FullSelfCache) WithSelf(f func(u *User) error) error {
 // as in WithSelf. Otherwise, it will just load the user, and throw it out when done.
 // WithUser supports other so that code doesn't need to change if we're doing the
 // operation for the user or someone else.
-func (m *FullSelfCache) WithUser(arg LoadUserArg, f func(u *User) error) (err error) {
+func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err error) {
 	id, _ := RandString("", 10)
 
-	m.G().Log.Debug("+ FullSelfCache#WithUser[%s]: %+v", id, arg)
+	m.G().Log.Debug("+ CachedFullSelf#WithUser[%s]: %+v", id, arg)
 	m.Lock()
 
 	defer func() {
-		m.G().Log.Debug("- FullSelfCache#WithUser[%s]", id)
+		m.G().Log.Debug("- CachedFullSelf#WithUser[%s]", id)
 		m.Unlock()
 	}()
 
@@ -115,13 +115,13 @@ func (m *FullSelfCache) WithUser(arg LoadUserArg, f func(u *User) error) (err er
 		// within the Account/LoginState inner loop. Because m.G().GetMyUID() calls
 		// back into Account, it will deadlock.
 		if arg.Self || u.GetUID().Equal(m.G().GetMyUID()) {
-			m.G().Log.Debug("| FullSelfCache#WithUser[%s]: cache populate", id)
+			m.G().Log.Debug("| CachedFullSelf#WithUser[%s]: cache populate", id)
 			m.me = u
 		} else {
-			m.G().Log.Debug("| FullSelfCache#WithUser[%s]: other user", id)
+			m.G().Log.Debug("| CachedFullSelf#WithUser[%s]: other user", id)
 		}
 	} else {
-		m.G().Log.Debug("| FullSelfCache#WithUser[%s]: cache hit", id)
+		m.G().Log.Debug("| CachedFullSelf#WithUser[%s]: cache hit", id)
 		u = m.me
 		if ldr := m.G().GetUPAKLoader(); ldr != nil {
 			ldr.PutUserToCache(u)
@@ -131,7 +131,7 @@ func (m *FullSelfCache) WithUser(arg LoadUserArg, f func(u *User) error) (err er
 }
 
 // HandleUserChanged clears the cached self user if it's the UID of the self user.
-func (m *FullSelfCache) HandleUserChanged(u keybase1.UID) error {
+func (m *CachedFullSelf) HandleUserChanged(u keybase1.UID) error {
 	m.Lock()
 	defer m.Unlock()
 	if m.me != nil && m.me.GetUID().Equal(u) {
@@ -142,7 +142,7 @@ func (m *FullSelfCache) HandleUserChanged(u keybase1.UID) error {
 }
 
 // OnLogout clears the cached self user.
-func (m *FullSelfCache) OnLogout() error {
+func (m *CachedFullSelf) OnLogout() error {
 	m.Lock()
 	defer m.Unlock()
 	m.me = nil
@@ -150,7 +150,7 @@ func (m *FullSelfCache) OnLogout() error {
 }
 
 // OnLogin clears the cached self user if it differs from what's already cached.
-func (m *FullSelfCache) OnLogin() error {
+func (m *CachedFullSelf) OnLogin() error {
 	m.Lock()
 	defer m.Unlock()
 	if m.me != nil && !m.me.GetUID().Equal(m.G().GetMyUID()) {

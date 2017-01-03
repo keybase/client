@@ -176,7 +176,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
-	g.fullSelfer = NewNullFullSelfCache(g)
+	g.fullSelfer = NewUncachedFullSelf(g)
 	return g
 }
 
@@ -357,7 +357,7 @@ func (g *GlobalContext) ConfigureCaches() error {
 	g.Log.Debug("Created LinkCache, max size: %d, clean dur: %s", g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created CardCache, max age: %s", g.Env.GetUserCacheMaxAge())
-	g.fullSelfer = NewFullSelfCache(g)
+	g.fullSelfer = NewCachedFullSelf(g)
 	g.Log.Debug("made a new full self cache")
 	g.upakLoader = NewCachedUPAKLoader(g, CachedUserTimeout)
 	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUserTimeout)
