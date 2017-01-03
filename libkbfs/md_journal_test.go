@@ -956,6 +956,7 @@ func testMDJournalRestartAfterBranchConversion(t *testing.T, ver MetadataVer) {
 }
 
 func TestMDJournal(t *testing.T) {
+	t.Parallel()
 	tests := []func(*testing.T, MetadataVer){
 		testMDJournalBasic,
 		testMDJournalGetNextEntry,

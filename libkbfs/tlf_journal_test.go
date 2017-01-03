@@ -1058,6 +1058,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 }
 
 func TestTLFJournal(t *testing.T) {
+	t.Parallel()
 	tests := []func(*testing.T, MetadataVer){
 		testTLFJournalBasic,
 		testTLFJournalPauseResume,

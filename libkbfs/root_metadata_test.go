@@ -630,6 +630,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 }
 
 func TestRootMetadata(t *testing.T) {
+	t.Parallel()
 	tests := []func(*testing.T, MetadataVer){
 		testRootMetadataGetTlfHandlePublic,
 		testRootMetadataGetTlfHandlePrivate,

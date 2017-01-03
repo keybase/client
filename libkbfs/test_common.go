@@ -200,6 +200,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *ConfigLocal {
 	c := newConfigForTest(config.loggerFn)
 	c.SetMetadataVersion(config.MetadataVersion())
+	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
 
 	kbfsOps := NewKBFSOpsStandard(c)
 	c.SetKBFSOps(kbfsOps)
@@ -538,7 +539,7 @@ func (tc *TestClock) Add(d time.Duration) {
 func CheckConfigAndShutdown(
 	ctx context.Context, t logger.TestLogBackend, config Config) {
 	if err := config.Shutdown(ctx); err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("err=%+v", err)
 	}
 }
 
