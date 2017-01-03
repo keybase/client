@@ -1,4 +1,4 @@
-package utils
+package chat
 
 import (
 	"fmt"
@@ -69,23 +69,6 @@ func Collar(lower int, ideal int, upper int) int {
 	return ideal
 }
 
-func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery) (res []chat1.MessageUnboxed) {
-	if query != nil && len(query.MessageTypes) > 0 {
-		typmap := make(map[chat1.MessageType]bool)
-		for _, mt := range query.MessageTypes {
-			typmap[mt] = true
-		}
-		for _, msg := range msgs {
-			if _, ok := typmap[msg.GetMessageType()]; ok {
-				res = append(res, msg)
-			}
-		}
-	} else {
-		res = msgs
-	}
-	return res
-}
-
 // AggRateLimitsP takes a list of rate limit responses and dedups them to the last one received
 // of each category
 func AggRateLimitsP(rlimits []*chat1.RateLimit) (res []chat1.RateLimit) {
@@ -115,7 +98,7 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // Reorder participants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(udc *libkb.UserDeviceCache, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
+func ReorderParticipants(ctx context.Context, udc *libkb.UserDeviceCache, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
 	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
 	if err != nil {
 		return writerNames, readerNames, err
@@ -131,7 +114,7 @@ func ReorderParticipants(udc *libkb.UserDeviceCache, tlfname string, activeList 
 	// Fill from the active list first.
 	for _, uid := range activeList {
 		kbUID := keybase1.UID(uid.String())
-		user, err := udc.LookupUsername(kbUID)
+		user, err := udc.LookupUsername(ctx, kbUID)
 		if err != nil {
 			continue
 		}
@@ -175,37 +158,15 @@ type TLFInfo struct {
 
 func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string,
 	visibility chat1.TLFVisibility) (*TLFInfo, error) {
-	query := keybase1.TLFQuery{
-		TlfName: tlfName,
-	}
-	if visibility == chat1.TLFVisibility_PUBLIC {
-		return lookupPublicTLF(ctx, tlfcli, query)
-	}
-	return lookupPrivateTLF(ctx, tlfcli, query)
-}
 
-func lookupPublicTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query keybase1.TLFQuery) (*TLFInfo, error) {
-	resp, err := tlfcli.PublicCanonicalTLFNameAndID(ctx, query)
+	res, err := CtxKeyFinder(ctx).Find(ctx, tlfcli, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
 	if err != nil {
 		return nil, err
 	}
-	info := TLFInfo{
-		ID:            chat1.TLFID(resp.TlfID.ToBytes()),
-		CanonicalName: string(resp.CanonicalName),
-	}
-	return &info, nil
-}
-
-func lookupPrivateTLF(ctx context.Context, tlfcli keybase1.TlfInterface, query keybase1.TLFQuery) (*TLFInfo, error) {
-	resp, err := tlfcli.CompleteAndCanonicalizePrivateTlfName(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	info := TLFInfo{
-		ID:            chat1.TLFID(resp.TlfID.ToBytes()),
-		CanonicalName: string(resp.CanonicalName),
-	}
-	return &info, nil
+	return &TLFInfo{
+		ID:            chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
+		CanonicalName: res.NameIDBreaks.CanonicalName.String(),
+	}, nil
 }
 
 func GetInboxQueryLocalToRemote(ctx context.Context,
@@ -290,27 +251,4 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 		}
 	}
 	return false
-}
-
-type identifyModeKey int
-
-var identModeKey identifyModeKey
-
-type identModeData struct {
-	mode   keybase1.TLFIdentifyBehavior
-	breaks *[]keybase1.TLFIdentifyFailure
-}
-
-func IdentifyModeCtx(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
-	breaks *[]keybase1.TLFIdentifyFailure) context.Context {
-	return context.WithValue(ctx, identModeKey, identModeData{mode: mode, breaks: breaks})
-}
-
-func IdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks *[]keybase1.TLFIdentifyFailure, ok bool) {
-	var imd identModeData
-	val := ctx.Value(identModeKey)
-	if imd, ok = val.(identModeData); ok {
-		return imd.mode, imd.breaks, ok
-	}
-	return keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, false
 }

@@ -785,7 +785,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 	switch fetchMode(ins.Kind) {
 	case fetchModeString:
 		debugWithState(g, state, "fetchurl: %v", from)
-		res, err1 := g.GetExternalAPI().GetText(libkb.NewAPIArg(from))
+		res, err1 := g.GetExternalAPI().GetText(libkb.NewAPIArgWithNetContext(g.GetNetContext(), from))
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -803,7 +803,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"JSON fetch must not specify 'into' register")
 		}
-		res, err1 := g.GetExternalAPI().Get(libkb.NewAPIArg(from))
+		res, err1 := g.GetExternalAPI().Get(libkb.NewAPIArgWithNetContext(g.GetNetContext(), from))
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}
@@ -817,7 +817,7 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 			return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"HTML fetch must not specify 'into' register")
 		}
-		res, err1 := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(from))
+		res, err1 := g.GetExternalAPI().GetHTML(libkb.NewAPIArgWithNetContext(g.GetNetContext(), from))
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
 		}

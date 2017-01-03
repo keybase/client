@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -129,7 +129,7 @@ func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedA
 	return nil
 }
 
-func (c *ChatUI) getUnverifiedConvo(conv chat1.Conversation) (chat1.ConversationLocal, error) {
+func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation) (chat1.ConversationLocal, error) {
 
 	if len(conv.MaxMsgs) == 0 {
 		return chat1.ConversationLocal{}, fmt.Errorf("no max messages")
@@ -147,7 +147,7 @@ func (c *ChatUI) getUnverifiedConvo(conv chat1.Conversation) (chat1.Conversation
 		return chat1.ConversationLocal{}, fmt.Errorf("no text message found")
 	}
 
-	rnames, wnames, err := utils.ReorderParticipants(c.G().UserDeviceCache,
+	rnames, wnames, err := chat.ReorderParticipants(ctx, c.G().UserDeviceCache,
 		txtMsg.ClientHeader.TlfName, conv.Metadata.ActiveList)
 	if err != nil {
 		return chat1.ConversationLocal{}, err
@@ -185,7 +185,7 @@ func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnv
 
 	var convs []chat1.ConversationLocal
 	for _, conv := range arg.Inbox.ConversationsUnverified {
-		convLocal, err := c.getUnverifiedConvo(conv)
+		convLocal, err := c.getUnverifiedConvo(ctx, conv)
 		if err != nil {
 			c.G().Log.Error("unable to convert unverified conv: %s", err.Error())
 			continue

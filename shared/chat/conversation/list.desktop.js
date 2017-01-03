@@ -201,7 +201,7 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup)
   }
 
   _recomputeListDebounced = _.debounce(() => {

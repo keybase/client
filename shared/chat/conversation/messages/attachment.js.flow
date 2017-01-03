@@ -10,6 +10,7 @@ export type Props = {
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onAction: (message: ServerMessage, event: any) => void,
   onOpenInFileUI: (path: string) => void,
+  onOpenInPopup: (message: AttachmentMessage) => void,
   style: Object,
 }
 

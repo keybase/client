@@ -126,7 +126,7 @@ func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) li
 }
 
 func (rc *RedditChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArg(h.GetAPIURL()))
+	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), h.GetAPIURL()))
 	if err != nil {
 		return libkb.XapiError(err, h.GetAPIURL())
 	}

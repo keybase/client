@@ -81,7 +81,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 			return libkb.LoginRequiredError{Context: "you must be logged in to encrypt for yourself"}
 		}
 	} else {
-		me, err := libkb.LoadMeByUID(e.G(), uid)
+		me, err := libkb.LoadMeByUID(ctx.GetNetContext(), e.G(), uid)
 		if err != nil {
 			return err
 		}

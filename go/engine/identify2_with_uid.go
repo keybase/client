@@ -128,7 +128,9 @@ func (i *identifyUser) isNil() bool {
 	return i.thin == nil && i.full == nil
 }
 
-func loadIdentifyUser(g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
+func loadIdentifyUser(ctx *Context, g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
+	arg.SetGlobalContext(g)
+	arg.NetContext = ctx.GetNetContext()
 	ret := &identifyUser{arg: arg}
 	err := ret.load(g)
 	if ret.isNil() {
@@ -254,8 +256,11 @@ func (e *Identify2WithUID) resetError(err error) error {
 
 // Run then engine
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
-	defer libkb.TimeLog(fmt.Sprintf("Identify2WithUID.Run(UID=%v, Assertion=%s", e.arg.Uid, e.arg.UserAssertion), e.G().Clock().Now(), e.G().Log.Debug)
-	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+
+	e.SetGlobalContext(ctx.CloneGlobalContextWithLogTags(e.G(), "ID2"))
+
+	n := fmt.Sprintf("Identify2WithUID#Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+	defer e.G().CTraceTimed(ctx.GetNetContext(), n, func() error { return err })()
 	e.G().Log.Debug("| Full Arg: %+v", e.arg)
 
 	if e.arg.Uid.IsNil() {
@@ -272,9 +277,6 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
 	// Potentially reset the error based on the error and the calling context.
 	err = e.resetError(err)
-
-	e.G().Log.Debug("- Identify2WithUID.Run() -> %v", err)
-
 	return err
 }
 
@@ -309,12 +311,12 @@ func (e *Identify2WithUID) hitFastCache() bool {
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
 	e.G().Log.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
-	lock := locktab.AcquireOnName(e.arg.Uid.String())
+	lock := locktab.AcquireOnName(ctx.GetNetContext(), e.G(), e.arg.Uid.String())
 	e.G().Log.Debug("- acquired singleflight lock")
 
 	defer func() {
 		e.G().Log.Debug("+ Releasing singleflight lock for %s", e.arg.Uid)
-		lock.Release()
+		lock.Release(ctx.GetNetContext())
 		e.G().Log.Debug("- Released singleflight lock")
 	}()
 
@@ -586,7 +588,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	if err = them.IDTable().Identify(e.state, e.forceRemoteCheck(), iui, e); err != nil {
+	if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e); err != nil {
 		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
@@ -703,7 +705,7 @@ func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 	if err != nil || !ok {
 		return err
 	}
-	e.me, err = loadIdentifyUser(e.G(), libkb.NewLoadUserByUIDArg(e.G(), uid), e.getCache())
+	e.me, err = loadIdentifyUser(ctx, e.G(), libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), uid), e.getCache())
 	return err
 }
 
@@ -711,7 +713,7 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg := libkb.NewLoadUserArg(e.G())
 	arg.UID = e.arg.Uid
 	arg.ResolveBody = e.ResolveBody
-	e.them, err = loadIdentifyUser(e.G(), arg, e.getCache())
+	e.them, err = loadIdentifyUser(ctx, e.G(), arg, e.getCache())
 	if err != nil {
 		switch err.(type) {
 		case libkb.NoKeyError:

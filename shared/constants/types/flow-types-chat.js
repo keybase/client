@@ -545,12 +545,15 @@ export type ConversationInfoLocal = {
   visibility: TLFVisibility,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
+  finalizeInfo?: ?ConversationFinalizeInfo,
 }
 
 export type ConversationLocal = {
   error?: ?string,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
+  supersedes?: ?Array<ConversationID>,
+  supersededBy?: ?Array<ConversationID>,
   maxMessages?: ?Array<MessageUnboxed>,
   isEmpty: boolean,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
@@ -933,6 +936,21 @@ export type NotifyChatChatIdentifyUpdateRpcParam = Exact<{
   update: keybase1.CanonicalTLFNameAndIDWithBreaks
 }>
 
+export type NotifyChatChatInboxStaleRpcParam = Exact<{
+  uid: keybase1.UID
+}>
+
+export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
+  uid: keybase1.UID,
+  convID: ConversationID,
+  finalizeInfo: ConversationFinalizeInfo
+}>
+
+export type NotifyChatChatThreadsStaleRpcParam = Exact<{
+  uid: keybase1.UID,
+  convIDs?: ?Array<ConversationID>
+}>
+
 export type NotifyChatNewChatActivityRpcParam = Exact<{
   uid: keybase1.UID,
   activity: ChatActivity
@@ -1046,6 +1064,7 @@ export type SignatureInfo = {
 export type TLFFinalizeUpdate = {
   finalizeInfo: ConversationFinalizeInfo,
   convIDs?: ?Array<ConversationID>,
+  inboxVers: InboxVers,
 }
 
 export type TLFID = bytes
@@ -1461,6 +1480,30 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.ChatIdentifyUpdate'?: (
     params: Exact<{
       update: keybase1.CanonicalTLFNameAndIDWithBreaks
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatTLFFinalize'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convID: ConversationID,
+      finalizeInfo: ConversationFinalizeInfo
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatInboxStale'?: (
+    params: Exact<{
+      uid: keybase1.UID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatThreadsStale'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convIDs?: ?Array<ConversationID>
     }> /* ,
     response: {} // Notify call
     */

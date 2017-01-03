@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -54,7 +54,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 
 	inbox, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			Status:    utils.VisibleChatConversationStatuses(),
+			Status:    chat.VisibleChatConversationStatuses(),
 			TopicType: &topicType,
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
