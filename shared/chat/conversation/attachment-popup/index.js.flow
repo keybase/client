@@ -1,0 +1,11 @@
+// @flow
+import {Component} from 'react'
+
+import type {AttachmentMessage} from '../../../constants/chat'
+
+export type Props = {
+  message: AttachmentMessage,
+  onClose: () => void,
+}
+
+export default class AttachmentPopup extends Component<void, Props, void> {}

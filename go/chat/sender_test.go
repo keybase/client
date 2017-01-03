@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -259,7 +258,7 @@ func TestNonblockTimer(t *testing.T) {
 	typs := []chat1.MessageType{chat1.MessageType_TEXT}
 	tres, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
-	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
+	tres.Messages = storage.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
 	require.NoError(t, outbox.SprinkleIntoThread(res.ConvID, &tres))

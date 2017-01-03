@@ -12,6 +12,11 @@ import type {Tab} from './constants/tabs'
 import type {Props} from './nav'
 
 function Nav (props: Props) {
+  const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
+  if (!visibleScreen) {
+    throw new Error('no route component to render without layerOnTop tag')
+  }
+  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
   return (
     <Box style={stylesTabsContainer}>
       {props.routeSelected !== loginTab &&
@@ -26,7 +31,8 @@ function Nav (props: Props) {
         />
       }
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {props.children}
+        {visibleScreen.component}
+        {layerScreens.map(r => r.leafComponent)}
       </Box>
       <div id='popupContainer' />
       <GlobalError />

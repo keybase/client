@@ -12,7 +12,6 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -975,7 +974,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		uid := m.UID().Bytes()
 
 		var identBreaks []keybase1.TLFIdentifyFailure
-		ctx = utils.IdentifyModeCtx(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks)
+		ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks)
 		decmsg, append, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
@@ -1078,7 +1077,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			func() keybase1.TlfInterface { return tlf })
 
 		var identBreaks []keybase1.TLFIdentifyFailure
-		ctx = utils.IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		ctx = chat.Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 			&identBreaks)
 		if inbox, _, err = inboxSource.Read(ctx, uid, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,

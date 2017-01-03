@@ -26,6 +26,7 @@ export default {
   lightGrey2: '#e6e6e6',
   lightGrey: '#f0f0f0',
   midnightBlue: '#082640',
+  midnightBlue_75: 'rgba(8, 38, 64, 0.75)',
   orange: '#ff6f21',
   red: '#ff4d61',
   red_75: 'rgba(255,0,0,0.75)',

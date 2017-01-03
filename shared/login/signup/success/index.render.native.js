@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'
-import {globalColors, globalStyles} from '../../../styles'
+import {globalColors, globalStyles, globalMargins} from '../../../styles'
 import {getStyle} from '../../../common-adapters/text'
 
 /* types:
@@ -28,12 +28,12 @@ class SuccessRender extends Component<void, Props, State> {
 
   render () {
     return (
-      <Box style={{padding: 32, flex: 1}}>
+      <Box style={{padding: globalMargins.large, flex: 1}}>
         <Text type='Header' style={textCenter}>{this.props.title || "Congratulations, you've just joined Keybase!"}</Text>
-        <Text type='BodySmall' style={{...textCenter, marginTop: 7}}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.</Text>
+        <Text type='Body' style={{...textCenter, marginTop: globalMargins.medium}}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.</Text>
 
         <Box style={paperKeyContainerStyle}>
-          <Text type='Body' style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
+          <Text type='Header' style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
           <Icon type='icon-paper-key-corner' style={paperCornerStyle} />
         </Box>
 
@@ -72,10 +72,13 @@ const textCenter = {
 const paperKeyContainerStyle = {
   position: 'relative',
   alignSelf: 'center',
-  marginTop: 32,
-  marginBottom: 32,
-  padding: 32,
-  borderRadius: 1,
+  marginTop: globalMargins.large,
+  marginBottom: globalMargins.large,
+  paddingTop: globalMargins.small,
+  paddingBottom: globalMargins.small,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.large,
+  borderRadius: 4,
   backgroundColor: globalColors.white,
   borderStyle: 'solid',
   borderWidth: 4,
@@ -83,8 +86,10 @@ const paperKeyContainerStyle = {
 }
 
 const paperkeyStyle = {
-  ...getStyle('Body'),
+  ...getStyle('Header', 'Normal'),
+  ...globalStyles.fontTerminal,
   color: globalColors.darkBlue,
+  textAlign: 'center',
 }
 
 const paperCornerStyle = {

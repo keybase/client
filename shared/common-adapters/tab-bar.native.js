@@ -37,7 +37,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     const content = (
       <Box style={{backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
         {this.props.source.type === 'icon'
-          ? <Icon type={this.props.source.icon} style={{fontSize: 48, width: 48, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
+          ? <Icon type={this.props.source.icon} style={{fontSize: 32, width: 32, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
           : this.props.source.avatar}
         {badgeNumber > 0 &&
           <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>

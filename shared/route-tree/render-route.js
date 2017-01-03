@@ -71,12 +71,14 @@ type _RenderRouteResultParams = {
   path: I.List<string>,
   tags: LeafTags,
   component: React$Element<any>,
+  leafComponent: React$Element<any>,
 }
 
 const _RenderRouteResult: (spec?: _RenderRouteResultParams) => _RenderRouteResultParams & I.Record<_RenderRouteResultParams> = I.Record({
   path: I.List(),
   tags: LeafTags(),
   component: null,
+  leafComponent: null,
 })
 
 export type RouteRenderStack = I.Stack<_RenderRouteResult>
@@ -113,6 +115,7 @@ function _RenderRoute ({routeDef, routeState, setRouteState, path}: _RenderRoute
       stack = stack.map(r => (
         r.update('component', child => (
           <RenderRouteNode
+            key={pathToString(path)}
             isContainer={true}
             routeDef={routeDef}
             routeState={routeState}
@@ -130,17 +133,21 @@ function _RenderRoute ({routeDef, routeState, setRouteState, path}: _RenderRoute
 
   if (routeDef.component) {
     // If this path has a leaf component to render, add it to the stack.
+    const routeComponent = (
+      <RenderRouteNode
+        key={pathToString(path)}
+        isContainer={false}
+        routeDef={routeDef}
+        routeState={routeState}
+        path={path}
+        setRouteState={setRouteState}
+      />
+    )
+
     const result = new _RenderRouteResult({
       path,
-      component: (
-        <RenderRouteNode
-          isContainer={false}
-          routeDef={routeDef}
-          routeState={routeState}
-          path={path}
-          setRouteState={setRouteState}
-        />
-      ),
+      component: routeComponent,
+      leafComponent: routeComponent,
       tags: routeDef.tags,
     })
     stack = stack.unshift(result)

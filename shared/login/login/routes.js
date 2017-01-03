@@ -44,9 +44,9 @@ const recursiveLazyRoutes = I.Seq({
     component: Success,
   },
 })
-  .map(routeData => () => new RouteDefNode({
+  .map(routeData => new RouteDefNode({
     ...routeData,
-    children: recursiveLazyRoutes,
+    children: name => recursiveLazyRoutes.get(name),
   }))
   .toMap()
 
