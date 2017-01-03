@@ -422,7 +422,7 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 
 	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = ReorderParticipants(
 		ctx,
-		s.G().GetUserDeviceCache(),
+		s.G().GetUPAKLoader(),
 		conversationLocal.Info.TlfName,
 		conversationRemote.Metadata.ActiveList)
 	if err != nil {
