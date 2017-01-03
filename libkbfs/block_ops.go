@@ -17,11 +17,14 @@ type blockOpsConfig interface {
 	codec() kbfscodec.Codec
 	crypto() cryptoPure
 	keyGetter() blockKeyGetter
+	blockCache() BlockCache
 }
 
 type blockOpsConfigAdapter struct {
 	config Config
 }
+
+var _ blockOpsConfig = (*blockOpsConfigAdapter)(nil)
 
 func (config blockOpsConfigAdapter) blockServer() BlockServer {
 	return config.config.BlockServer()
@@ -39,6 +42,10 @@ func (config blockOpsConfigAdapter) keyGetter() blockKeyGetter {
 	return config.config.KeyManager()
 }
 
+func (config blockOpsConfigAdapter) blockCache() BlockCache {
+	return config.config.BlockCache()
+}
+
 // BlockOpsStandard implements the BlockOps interface by relaying
 // requests to the block server.
 type BlockOpsStandard struct {
@@ -52,9 +59,10 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 // NewBlockOpsStandard creates a new BlockOpsStandard
 func NewBlockOpsStandard(config blockOpsConfig,
 	queueSize int) *BlockOpsStandard {
+	q := newBlockRetrievalQueue(queueSize, config.codec(), config.blockCache)
 	bops := &BlockOpsStandard{
 		config:  config,
-		queue:   newBlockRetrievalQueue(queueSize, config.codec()),
+		queue:   q,
 		workers: make([]*blockRetrievalWorker, 0, queueSize),
 	}
 	bg := &realBlockGetter{config: config}
@@ -66,8 +74,8 @@ func NewBlockOpsStandard(config blockOpsConfig,
 
 // Get implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
-	blockPtr BlockPointer, block Block) error {
-	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd, blockPtr, block)
+	blockPtr BlockPointer, block Block, lifetime BlockCacheLifetime) error {
+	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd, blockPtr, block, lifetime)
 	return <-errCh
 }
 
@@ -152,6 +160,17 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 	}
 
 	return b.config.blockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
+}
+
+// TogglePrefetcher implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) TogglePrefetcher(ctx context.Context,
+	enable bool) error {
+	return b.queue.TogglePrefetcher(ctx, enable)
+}
+
+// Prefetcher implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) Prefetcher() Prefetcher {
+	return b.queue.Prefetcher()
 }
 
 // Shutdown implements the BlockOps interface for BlockOpsStandard.

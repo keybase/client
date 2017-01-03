@@ -1322,6 +1322,8 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		return errors.Errorf("MD with revision=%d not initialized",
 			md.Revision())
 	}
+	fbo.config.BlockOps().Prefetcher().PrefetchDirBlock(
+		md.data.Dir.BlockPointer, md, dirEntryPrefetchPriority)
 
 	// Return early if the head is already set.  This avoids taking
 	// mdWriterLock for no reason, and it also avoids any side effects

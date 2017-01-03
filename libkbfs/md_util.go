@@ -384,11 +384,7 @@ func getFileBlockForMD(ctx context.Context, bcache BlockCache, bops BlockOps,
 	block, err := bcache.Get(ptr)
 	if err != nil {
 		block = NewFileBlock()
-		if err := bops.Get(ctx, rmdWithKeys, ptr, block); err != nil {
-			return nil, err
-		}
-		if err := bcache.Put(
-			ptr, tlfID, block, TransientEntry); err != nil {
+		if err := bops.Get(ctx, rmdWithKeys, ptr, block, TransientEntry); err != nil {
 			return nil, err
 		}
 	}

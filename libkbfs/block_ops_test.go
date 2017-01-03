@@ -82,7 +82,10 @@ type testBlockOpsConfig struct {
 	bserver    BlockServer
 	testCodec  kbfscodec.Codec
 	cryptoPure cryptoPure
+	cache      BlockCache
 }
+
+var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
 
 func (config testBlockOpsConfig) blockServer() BlockServer {
 	return config.bserver
@@ -100,11 +103,16 @@ func (config testBlockOpsConfig) keyGetter() blockKeyGetter {
 	return fakeBlockKeyGetter{}
 }
 
+func (config testBlockOpsConfig) blockCache() BlockCache {
+	return config.cache
+}
+
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	bserver := NewBlockServerMemory(logger.NewTestLogger(t))
 	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
-	return testBlockOpsConfig{bserver, codec, crypto}
+	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
+	return testBlockOpsConfig{bserver, codec, crypto, cache}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
@@ -310,7 +318,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd2,
 		BlockPointer{ID: id, KeyGen: keyGen, Context: bCtx},
-		&decryptedBlock)
+		&decryptedBlock, NoCacheEntry)
 	require.NoError(t, err)
 	require.Equal(t, block, decryptedBlock)
 }
@@ -334,7 +342,7 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
 		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock)
+		&decryptedBlock, NoCacheEntry)
 	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 }
 
@@ -378,7 +386,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
 		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock)
+		&decryptedBlock, NoCacheEntry)
 	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
 }
 
@@ -405,7 +413,7 @@ func TestBlockOpsGetFailKeyGet(t *testing.T) {
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
 		BlockPointer{ID: id, KeyGen: latestKeyGen + 1, Context: bCtx},
-		&decryptedBlock)
+		&decryptedBlock, NoCacheEntry)
 	require.EqualError(t, err, fmt.Sprintf(
 		"no key for block decryption (keygen=%d)", latestKeyGen+1))
 }
@@ -473,7 +481,7 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
 		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock)
+		&decryptedBlock, NoCacheEntry)
 	require.Equal(t, decodeErr, err)
 }
 
@@ -510,7 +518,7 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
 		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
-		&decryptedBlock)
+		&decryptedBlock, NoCacheEntry)
 	require.EqualError(t, err, "could not decrypt block")
 }
 

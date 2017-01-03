@@ -24,19 +24,23 @@ func (cof dirEntryFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return cof.toCurrent()
 }
 
+func makeFakeDirEntry(t *testing.T, typ EntryType, size uint64) DirEntry {
+	return DirEntry{
+		makeFakeBlockInfo(t),
+		EntryInfo{
+			typ,
+			size,
+			"fake sym path",
+			101,
+			102,
+		},
+		codec.UnknownFieldSetHandler{},
+	}
+}
+
 func makeFakeDirEntryFuture(t *testing.T) dirEntryFuture {
 	cof := dirEntryFuture{
-		DirEntry{
-			makeFakeBlockInfo(t),
-			EntryInfo{
-				Dir,
-				100,
-				"fake sym path",
-				101,
-				102,
-			},
-			codec.UnknownFieldSetHandler{},
-		},
+		makeFakeDirEntry(t, Dir, 100),
 		kbfscodec.MakeExtraOrBust("dirEntry", t),
 	}
 	return cof
