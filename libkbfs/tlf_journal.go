@@ -1357,26 +1357,17 @@ func (j *tlfJournal) addBlockReference(
 func (j *tlfJournal) removeBlockReferences(
 	ctx context.Context, contexts kbfsblock.ContextMap) (
 	liveCounts map[kbfsblock.ID]int, err error) {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	if err := j.checkEnabledLocked(); err != nil {
-		return nil, err
-	}
-
-	// Don't remove the block data if we remove the last
-	// reference; we still need it to flush the initial put
-	// operation.
-	//
-	// TODO: It would be nice if we could detect that case and
-	// avoid having to flush the put.
-	liveCounts, err = j.blockJournal.removeReferences(ctx, contexts)
-	if err != nil {
-		return nil, err
-	}
-
-	j.signalWork()
-
-	return liveCounts, nil
+	// Currently the block journal will still serve block data even if
+	// all journal references to a block have been removed (i.e.,
+	// because they have all been flushed to the remote server).  If
+	// we ever need to support the `BlockServer.RemoveReferences` call
+	// in the journal, we might need to change the journal so that it
+	// marks blocks as flushed-but-still-readable, so that we can
+	// distinguish them from blocks that has had all its references
+	// removed and shouldn't be served anymore.  For now, just fail
+	// this call to make sure no uses of it creep in.
+	return nil, fmt.Errorf(
+		"Removing block references is currently unsupported in the journal")
 }
 
 func (j *tlfJournal) archiveBlockReferences(
