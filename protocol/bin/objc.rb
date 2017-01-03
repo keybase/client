@@ -63,8 +63,8 @@ def objc_for_type(type, enums, aliases, space)
   name, ptr = case type
   when "string" then ["NSString *", true]
   when "int" then ["NSInteger", false]
-  when "int64" then ["long", false]
-  when "long" then ["long", false]
+  when "int64" then ["int64_t", false]
+  when "long" then ["int64_t", false]
   when "float" then ["float", false]
   when "double" then ["double", false]
   when "array" then ["NSArray *", true]
@@ -168,8 +168,8 @@ def value_for_type(type, name, enums, aliases)
 
   case type
   when "int" then "[#{varname} integerValue]"
-  when "int64" then "[#{varname} longValue]"
-  when "long" then "[#{varname} longValue]"
+  when "int64" then "[#{varname} longLongValue]"
+  when "long" then "[#{varname} longLongValue]"
   when "float" then "[#{varname} floatValue]"
   when "double" then "[#{varname} doubleValue]"
   when "boolean" then "[#{varname} boolValue]"

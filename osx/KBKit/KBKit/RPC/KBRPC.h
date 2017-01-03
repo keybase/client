@@ -36,12 +36,12 @@
 @property NSString *deviceID;
 @property NSString *deviceDescription;
 @property NSString *deviceType;
-@property long cTime;
-@property long eTime;
+@property int64_t cTime;
+@property int64_t eTime;
 @end
 
 @interface KBRKeybaseTime : KBRObject
-@property long unix;
+@property int64_t unix;
 @property NSInteger chain;
 @end
 
@@ -60,9 +60,9 @@
 @property NSString *type;
 @property NSString *name;
 @property NSString *deviceID;
-@property long cTime;
-@property long mTime;
-@property long lastUsedTime;
+@property int64_t cTime;
+@property int64_t mTime;
+@property int64_t lastUsedTime;
 @property NSString *encryptKey;
 @property NSString *verifyKey;
 @property NSInteger status;
@@ -96,11 +96,11 @@ typedef NS_ENUM (NSInteger, KBRClientType) {
 };
 
 @interface KBRUserVersionVector : KBRObject
-@property long id;
+@property int64_t id;
 @property NSInteger sigHints;
-@property long sigChain;
-@property long cachedAt;
-@property long lastIdentifiedAt;
+@property int64_t sigChain;
+@property int64_t cachedAt;
+@property int64_t lastIdentifiedAt;
 @end
 
 @interface KBRUserPlusKeys : KBRObject
@@ -229,7 +229,7 @@ typedef NS_ENUM (NSInteger, KBRTrackDiffType) {
 
 @interface KBRTrackSummary : KBRObject
 @property NSString *username;
-@property long time;
+@property int64_t time;
 @property BOOL isRemote;
 @end
 
@@ -298,7 +298,7 @@ typedef NS_ENUM (NSInteger, KBRIdentifyReasonType) {
 @property NSString *value;
 @property NSString *displayMarkup;
 @property NSString *sigID;
-@property long mTime;
+@property int64_t mTime;
 @end
 
 @interface KBRProofResult : KBRObject
@@ -336,7 +336,7 @@ typedef NS_ENUM (NSInteger, KBRIdentifyReasonType) {
 
 @interface KBRIdentity : KBRObject
 @property KBRStatus *status;
-@property long whenLastTracked;
+@property int64_t whenLastTracked;
 @property NSArray *proofs; /*of KBRIdentifyRow*/
 @property NSArray *cryptocurrency; /*of KBRCryptocurrency*/
 @property NSArray *revoked; /*of KBRTrackDiff*/
@@ -359,7 +359,7 @@ typedef NS_ENUM (NSInteger, KBRCheckResultFreshness) {
 
 @interface KBRCheckResult : KBRObject
 @property KBRProofResult *proofResult;
-@property long time;
+@property int64_t time;
 @property KBRCheckResultFreshness freshness;
 @end
 
@@ -368,7 +368,7 @@ typedef NS_ENUM (NSInteger, KBRCheckResultFreshness) {
 @property KBRProofResult *proofResult;
 @property KBRProofResult *snoozedResult;
 @property BOOL torWarning;
-@property long tmpTrackExpireTime;
+@property int64_t tmpTrackExpireTime;
 @property KBRCheckResult *cached;
 @property KBRTrackDiff *diff;
 @property KBRTrackDiff *remoteDiff;
@@ -438,7 +438,7 @@ typedef NS_ENUM (NSInteger, KBRSaltpackSenderType) {
 @end
 
 @interface KBRChallengeInfo : KBRObject
-@property long now;
+@property int64_t now;
 @property NSString *challenge;
 @end
 
@@ -555,7 +555,7 @@ typedef NS_ENUM (NSInteger, KBRForkType) {
 @property NSString *upgradeTo;
 @property NSString *upgradeURI;
 @property NSString *customMessage;
-@property long criticalClockSkew;
+@property int64_t criticalClockSkew;
 @end
 
 typedef NS_ENUM (NSInteger, KBRStatusCode) {
@@ -680,8 +680,8 @@ typedef NS_ENUM (NSInteger, KBRExitCode) {
 @property KBRDevice *device;
 @property BOOL eldest;
 @property KBRDevice *provisioner;
-@property long provisionedAt;
-@property long revokedAt;
+@property int64_t provisionedAt;
+@property int64_t revokedAt;
 @property NSString *revokedBy;
 @property KBRDevice *revokedByDevice;
 @property BOOL currentDevice;
@@ -845,7 +845,7 @@ typedef NS_ENUM (NSInteger, KBRFSErrorType) {
 @property KBRFSNotificationType notificationType;
 @property KBRFSErrorType errorType;
 @property NSString *writerUid;
-@property long localTime;
+@property int64_t localTime;
 @end
 
 @interface KBRFSEditListRequest : KBRObject
@@ -860,14 +860,14 @@ typedef NS_ENUM (NSInteger, KBRFSErrorType) {
 @interface KBRFSPathSyncStatus : KBRObject
 @property BOOL publicTopLevelFolder;
 @property NSString *path;
-@property long syncingBytes;
-@property long syncingOps;
-@property long syncedBytes;
+@property int64_t syncingBytes;
+@property int64_t syncingOps;
+@property int64_t syncedBytes;
 @end
 
 @interface KBRFSSyncStatus : KBRObject
-@property long totalSyncingBytes;
-@property long totalSyncingOps;
+@property int64_t totalSyncingBytes;
+@property int64_t totalSyncingOps;
 @property NSArray *pathStatuses; /*of KBRFSPathSyncStatus*/
 @end
 
@@ -894,7 +894,7 @@ typedef NS_ENUM (NSInteger, KBRFSErrorType) {
 
 @interface KBRMDBlock : KBRObject
 @property NSInteger version;
-@property long timestamp;
+@property int64_t timestamp;
 @property NSData *block;
 @end
 
@@ -914,7 +914,7 @@ typedef NS_ENUM (NSInteger, KBRFSErrorType) {
 @end
 
 @interface KBRPingResponse : KBRObject
-@property long timestamp;
+@property int64_t timestamp;
 @end
 
 @interface KBRKeyBundleResponse : KBRObject
@@ -1244,7 +1244,7 @@ typedef NS_ENUM (NSInteger, KBRRekeyEventType) {
 @property NSString *sigID;
 @property NSString *sigIDDisplay;
 @property NSString *type;
-@property long cTime;
+@property int64_t cTime;
 @property BOOL revoked;
 @property BOOL active;
 @property NSString *key;
@@ -1318,7 +1318,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @interface KBRTracker : KBRObject
 @property NSString *tracker;
 @property NSInteger status;
-@property long mTime;
+@property int64_t mTime;
 @end
 
 @interface KBRTrackProof : KBRObject
@@ -1347,7 +1347,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSString *bio;
 @property KBRProofs *proofs;
 @property NSString *sigIDDisplay;
-@property long trackTime;
+@property int64_t trackTime;
 @end
 
 @interface KBREmail : KBRObject
@@ -1383,7 +1383,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 @interface KBRUserSummary2Set : KBRObject
 @property NSArray *users; /*of KBRUserSummary2*/
-@property long time;
+@property int64_t time;
 @property NSInteger version;
 @end
 @interface KBRDisplayTLFCreateWithInviteRequestParams : KBRRequestParams
@@ -1842,13 +1842,13 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSData *folderHandle;
 @property NSString *branchID;
 @property BOOL unmerged;
-@property long startRevision;
-@property long stopRevision;
+@property int64_t startRevision;
+@property int64_t stopRevision;
 @property NSDictionary *logTags;
 @end
 @interface KBRRegisterForUpdatesRequestParams : KBRRequestParams
 @property NSString *folderID;
-@property long currRevision;
+@property int64_t currRevision;
 @property NSDictionary *logTags;
 @end
 @interface KBRPruneBranchRequestParams : KBRRequestParams
@@ -1895,25 +1895,25 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @end
 @interface KBRGetMerkleRootRequestParams : KBRRequestParams
 @property KBRMerkleTreeID treeID;
-@property long seqNo;
+@property int64_t seqNo;
 @end
 @interface KBRGetMerkleRootLatestRequestParams : KBRRequestParams
 @property KBRMerkleTreeID treeID;
 @end
 @interface KBRGetMerkleRootSinceRequestParams : KBRRequestParams
 @property KBRMerkleTreeID treeID;
-@property long when;
+@property int64_t when;
 @end
 @interface KBRGetMerkleNodeRequestParams : KBRRequestParams
 @property NSString *hash;
 @end
 @interface KBRMetadataUpdateRequestParams : KBRRequestParams
 @property NSString *folderID;
-@property long revision;
+@property int64_t revision;
 @end
 @interface KBRFolderNeedsRekeyRequestParams : KBRRequestParams
 @property NSString *folderID;
-@property long revision;
+@property int64_t revision;
 @end
 @interface KBRBadgeStateRequestParams : KBRRequestParams
 @property KBRBadgeState *badgeState;
@@ -2056,12 +2056,12 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 @property NSInteger sessionID;
 @property NSString *fingerprint;
 @property NSString *username;
-@property long signedAt;
+@property int64_t signedAt;
 @end
 @interface KBROutputSignatureSuccessNonKeybaseRequestParams : KBRRequestParams
 @property NSInteger sessionID;
 @property NSString *keyID;
-@property long signedAt;
+@property int64_t signedAt;
 @end
 @interface KBRKeyGeneratedRequestParams : KBRRequestParams
 @property NSInteger sessionID;
@@ -3110,11 +3110,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getMetadata:(KBRGetMetadataRequestParams *)params completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
 
-- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle branchID:(NSString *)branchID unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
+- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle branchID:(NSString *)branchID unmerged:(BOOL)unmerged startRevision:(int64_t)startRevision stopRevision:(int64_t)stopRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion;
 
 - (void)registerForUpdates:(KBRRegisterForUpdatesRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(long)currRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion;
+- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(int64_t)currRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion;
 
 - (void)pruneBranch:(KBRPruneBranchRequestParams *)params completion:(void (^)(NSError *error))completion;
 
@@ -3162,7 +3162,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getMerkleRoot:(KBRGetMerkleRootRequestParams *)params completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion;
 
-- (void)getMerkleRootWithTreeID:(KBRMerkleTreeID)treeID seqNo:(long)seqNo completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion;
+- (void)getMerkleRootWithTreeID:(KBRMerkleTreeID)treeID seqNo:(int64_t)seqNo completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion;
 
 - (void)getMerkleRootLatest:(KBRGetMerkleRootLatestRequestParams *)params completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion;
 
@@ -3170,7 +3170,7 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)getMerkleRootSince:(KBRGetMerkleRootSinceRequestParams *)params completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion;
 
-- (void)getMerkleRootSinceWithTreeID:(KBRMerkleTreeID)treeID when:(long)when completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion;
+- (void)getMerkleRootSinceWithTreeID:(KBRMerkleTreeID)treeID when:(int64_t)when completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion;
 
 - (void)getMerkleNode:(KBRGetMerkleNodeRequestParams *)params completion:(void (^)(NSError *error, NSData *bytes))completion;
 
@@ -3182,11 +3182,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)metadataUpdate:(KBRMetadataUpdateRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion;
+- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(int64_t)revision completion:(void (^)(NSError *error))completion;
 
 - (void)folderNeedsRekey:(KBRFolderNeedsRekeyRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)folderNeedsRekeyWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion;
+- (void)folderNeedsRekeyWithFolderID:(NSString *)folderID revision:(int64_t)revision completion:(void (^)(NSError *error))completion;
 
 @end
 
@@ -3411,11 +3411,11 @@ typedef NS_ENUM (NSInteger, KBRPromptDefault) {
 
 - (void)outputSignatureSuccess:(KBROutputSignatureSuccessRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)outputSignatureSuccessWithFingerprint:(NSString *)fingerprint username:(NSString *)username signedAt:(long)signedAt completion:(void (^)(NSError *error))completion;
+- (void)outputSignatureSuccessWithFingerprint:(NSString *)fingerprint username:(NSString *)username signedAt:(int64_t)signedAt completion:(void (^)(NSError *error))completion;
 
 - (void)outputSignatureSuccessNonKeybase:(KBROutputSignatureSuccessNonKeybaseRequestParams *)params completion:(void (^)(NSError *error))completion;
 
-- (void)outputSignatureSuccessNonKeybaseWithKeyID:(NSString *)keyID signedAt:(long)signedAt completion:(void (^)(NSError *error))completion;
+- (void)outputSignatureSuccessNonKeybaseWithKeyID:(NSString *)keyID signedAt:(int64_t)signedAt completion:(void (^)(NSError *error))completion;
 
 - (void)keyGenerated:(KBRKeyGeneratedRequestParams *)params completion:(void (^)(NSError *error))completion;
 

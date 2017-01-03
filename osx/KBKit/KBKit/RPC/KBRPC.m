@@ -1901,7 +1901,7 @@
   }];
 }
 
-- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle branchID:(NSString *)branchID unmerged:(BOOL)unmerged startRevision:(long)startRevision stopRevision:(long)stopRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion {
+- (void)getMetadataWithFolderID:(NSString *)folderID folderHandle:(NSData *)folderHandle branchID:(NSString *)branchID unmerged:(BOOL)unmerged startRevision:(int64_t)startRevision stopRevision:(int64_t)stopRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error, KBRMetadataResponse *metadataResponse))completion {
   NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"folderHandle": KBRValue(folderHandle), @"branchID": KBRValue(branchID), @"unmerged": @(unmerged), @"startRevision": @(startRevision), @"stopRevision": @(stopRevision), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.getMetadata" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -1920,7 +1920,7 @@
   }];
 }
 
-- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(long)currRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion {
+- (void)registerForUpdatesWithFolderID:(NSString *)folderID currRevision:(int64_t)currRevision logTags:(NSDictionary *)logTags completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"currRevision": @(currRevision), @"logTags": KBRValue(logTags)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.registerForUpdates" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -2138,7 +2138,7 @@
   }];
 }
 
-- (void)getMerkleRootWithTreeID:(KBRMerkleTreeID)treeID seqNo:(long)seqNo completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion {
+- (void)getMerkleRootWithTreeID:(KBRMerkleTreeID)treeID seqNo:(int64_t)seqNo completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion {
   NSDictionary *rparams = @{@"treeID": @(treeID), @"seqNo": @(seqNo)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.getMerkleRoot" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -2186,7 +2186,7 @@
   }];
 }
 
-- (void)getMerkleRootSinceWithTreeID:(KBRMerkleTreeID)treeID when:(long)when completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion {
+- (void)getMerkleRootSinceWithTreeID:(KBRMerkleTreeID)treeID when:(int64_t)when completion:(void (^)(NSError *error, KBRMerkleRoot *merkleRoot))completion {
   NSDictionary *rparams = @{@"treeID": @(treeID), @"when": @(when)};
   [self.client sendRequestWithMethod:@"keybase.1.metadata.getMerkleRootSince" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     if (error) {
@@ -2233,7 +2233,7 @@
   }];
 }
 
-- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion {
+- (void)metadataUpdateWithFolderID:(NSString *)folderID revision:(int64_t)revision completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"revision": @(revision)};
   [self.client sendRequestWithMethod:@"keybase.1.metadataUpdate.metadataUpdate" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -2247,7 +2247,7 @@
   }];
 }
 
-- (void)folderNeedsRekeyWithFolderID:(NSString *)folderID revision:(long)revision completion:(void (^)(NSError *error))completion {
+- (void)folderNeedsRekeyWithFolderID:(NSString *)folderID revision:(int64_t)revision completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"folderID": KBRValue(folderID), @"revision": @(revision)};
   [self.client sendRequestWithMethod:@"keybase.1.metadataUpdate.folderNeedsRekey" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -2851,7 +2851,7 @@
   }];
 }
 
-- (void)outputSignatureSuccessWithFingerprint:(NSString *)fingerprint username:(NSString *)username signedAt:(long)signedAt completion:(void (^)(NSError *error))completion {
+- (void)outputSignatureSuccessWithFingerprint:(NSString *)fingerprint username:(NSString *)username signedAt:(int64_t)signedAt completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"fingerprint": KBRValue(fingerprint), @"username": KBRValue(username), @"signedAt": @(signedAt)};
   [self.client sendRequestWithMethod:@"keybase.1.pgpUi.outputSignatureSuccess" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -2865,7 +2865,7 @@
   }];
 }
 
-- (void)outputSignatureSuccessNonKeybaseWithKeyID:(NSString *)keyID signedAt:(long)signedAt completion:(void (^)(NSError *error))completion {
+- (void)outputSignatureSuccessNonKeybaseWithKeyID:(NSString *)keyID signedAt:(int64_t)signedAt completion:(void (^)(NSError *error))completion {
   NSDictionary *rparams = @{@"keyID": KBRValue(keyID), @"signedAt": @(signedAt)};
   [self.client sendRequestWithMethod:@"keybase.1.pgpUi.outputSignatureSuccessNonKeybase" params:rparams sessionId:self.sessionId completion:^(NSError *error, id retval) {
     completion(error);
@@ -6258,8 +6258,8 @@
     self.folderHandle = params[0][@"folderHandle"];
     self.branchID = params[0][@"branchID"];
     self.unmerged = [params[0][@"unmerged"] boolValue];
-    self.startRevision = [params[0][@"startRevision"] longValue];
-    self.stopRevision = [params[0][@"stopRevision"] longValue];
+    self.startRevision = [params[0][@"startRevision"] longLongValue];
+    self.stopRevision = [params[0][@"stopRevision"] longLongValue];
     self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
@@ -6277,7 +6277,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.folderID = params[0][@"folderID"];
-    self.currRevision = [params[0][@"currRevision"] longValue];
+    self.currRevision = [params[0][@"currRevision"] longLongValue];
     self.logTags = KBRValidateDictionary(params[0][@"logTags"], NSString.class);
   }
   return self;
@@ -6467,7 +6467,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.treeID = [params[0][@"treeID"] integerValue];
-    self.seqNo = [params[0][@"seqNo"] longValue];
+    self.seqNo = [params[0][@"seqNo"] longLongValue];
   }
   return self;
 }
@@ -6500,7 +6500,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.treeID = [params[0][@"treeID"] integerValue];
-    self.when = [params[0][@"when"] longValue];
+    self.when = [params[0][@"when"] longLongValue];
   }
   return self;
 }
@@ -6533,7 +6533,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.folderID = params[0][@"folderID"];
-    self.revision = [params[0][@"revision"] longValue];
+    self.revision = [params[0][@"revision"] longLongValue];
   }
   return self;
 }
@@ -6550,7 +6550,7 @@
 - (instancetype)initWithParams:(NSArray *)params {
   if ((self = [super initWithParams:params])) {
     self.folderID = params[0][@"folderID"];
-    self.revision = [params[0][@"revision"] longValue];
+    self.revision = [params[0][@"revision"] longLongValue];
   }
   return self;
 }
@@ -7122,7 +7122,7 @@
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.fingerprint = params[0][@"fingerprint"];
     self.username = params[0][@"username"];
-    self.signedAt = [params[0][@"signedAt"] longValue];
+    self.signedAt = [params[0][@"signedAt"] longLongValue];
   }
   return self;
 }
@@ -7140,7 +7140,7 @@
   if ((self = [super initWithParams:params])) {
     self.sessionID = [params[0][@"sessionID"] integerValue];
     self.keyID = params[0][@"keyID"];
-    self.signedAt = [params[0][@"signedAt"] longValue];
+    self.signedAt = [params[0][@"signedAt"] longLongValue];
   }
   return self;
 }
