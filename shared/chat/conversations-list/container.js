@@ -1,18 +1,30 @@
 // @flow
+import React, {Component} from 'react'
 import ConversationList from './index'
 import {connect} from 'react-redux'
-import {selectConversation, newChat} from '../../actions/chat'
+import {loadInbox, selectConversation, newChat} from '../../actions/chat'
 
 import type {ConversationIDKey} from '../../constants/chat'
 import type {TypedState} from '../../constants/reducer'
 
+class ConversationListContainer extends Component {
+  componentWillMount () {
+    this.props.loadInbox()
+  }
+
+  render () {
+    return <ConversationList {...this.props} />
+  }
+}
+
 export default connect(
-  (state: TypedState) => ({
+  (state: TypedState, {routeSelected}) => ({
     inbox: state.chat.get('inbox'),
-    selectedConversation: state.chat.get('selectedConversation'),
+    selectedConversation: routeSelected,
   }),
   (dispatch: Dispatch) => ({
+    loadInbox: () => dispatch(loadInbox()),
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
     onNewChat: () => dispatch(newChat([])),
   })
-)(ConversationList)
+)(ConversationListContainer)

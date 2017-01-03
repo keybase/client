@@ -551,19 +551,22 @@ type UnreadFirstNumLimit struct {
 }
 
 type ConversationInfoLocal struct {
-	Id          ConversationID       `codec:"id" json:"id"`
-	Triple      ConversationIDTriple `codec:"triple" json:"triple"`
-	TlfName     string               `codec:"tlfName" json:"tlfName"`
-	TopicName   string               `codec:"topicName" json:"topicName"`
-	Visibility  TLFVisibility        `codec:"visibility" json:"visibility"`
-	WriterNames []string             `codec:"writerNames" json:"writerNames"`
-	ReaderNames []string             `codec:"readerNames" json:"readerNames"`
+	Id           ConversationID            `codec:"id" json:"id"`
+	Triple       ConversationIDTriple      `codec:"triple" json:"triple"`
+	TlfName      string                    `codec:"tlfName" json:"tlfName"`
+	TopicName    string                    `codec:"topicName" json:"topicName"`
+	Visibility   TLFVisibility             `codec:"visibility" json:"visibility"`
+	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
+	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
+	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 }
 
 type ConversationLocal struct {
 	Error            *string                       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	Supersedes       []ConversationID              `codec:"supersedes" json:"supersedes"`
+	SupersededBy     []ConversationID              `codec:"supersededBy" json:"supersededBy"`
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`

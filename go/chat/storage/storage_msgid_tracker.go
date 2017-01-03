@@ -13,6 +13,12 @@ type msgIDTracker struct {
 	libkb.Contextified
 }
 
+func newMsgIDTracker(g *libkb.GlobalContext) *msgIDTracker {
+	return &msgIDTracker{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
 func (t *msgIDTracker) makeMaxMsgIDKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatBlocks,

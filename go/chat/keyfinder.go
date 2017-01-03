@@ -3,7 +3,6 @@ package chat
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -18,14 +17,12 @@ type KeyFinder interface {
 
 type KeyFinderImpl struct {
 	keys map[string]keybase1.GetTLFCryptKeysRes
-	log  logger.Logger
 }
 
 // newKeyFinder creates a keyFinder.
-func NewKeyFinder(log logger.Logger) KeyFinder {
+func NewKeyFinder() KeyFinder {
 	return &KeyFinderImpl{
 		keys: make(map[string]keybase1.GetTLFCryptKeysRes),
-		log:  log,
 	}
 }
 

@@ -190,6 +190,7 @@ const (
 	DBChatOutbox              = 0xf8
 	DBChatInbox               = 0xf9
 	DBIdentify                = 0xfa
+	DBResolveUsernameToUID    = 0xfb
 )
 
 const (

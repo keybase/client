@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -25,6 +26,8 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
+	"golang.org/x/net/context"
 )
 
 // PrereleaseBuild can be set at compile time for prerelease builds.
@@ -387,9 +390,30 @@ func RandString(prefix string, numbytes int) (string, error) {
 	return str, nil
 }
 
+func RandStringB64(numTriads int) string {
+	buf, err := RandBytes(numTriads * 3)
+	if err != nil {
+		return ""
+	}
+	return base64.URLEncoding.EncodeToString(buf)
+}
+
 func Trace(log logger.Logger, msg string, f func() error) func() {
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
+}
+
+func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
+	log.CDebugf(ctx, "+ %s", msg)
+	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
+}
+
+func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
+	log.CDebugf(ctx, "+ %s", msg)
+	start := cl.Now()
+	return func() {
+		log.CDebugf(ctx, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
+	}
 }
 
 func TraceOK(log logger.Logger, msg string, f func() bool) func() {
@@ -397,12 +421,29 @@ func TraceOK(log logger.Logger, msg string, f func() bool) func() {
 	return func() { log.Debug("- %s -> %v", msg, f()) }
 }
 
+func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool) func() {
+	log.CDebugf(ctx, "+ %s", msg)
+	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
+}
+
 func (g *GlobalContext) Trace(msg string, f func() error) func() {
 	return Trace(g.Log, msg, f)
 }
 
+func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
+	return CTrace(ctx, g.Log, msg, f)
+}
+
+func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
+	return CTraceTimed(ctx, g.Log, msg, f, g.Clock())
+}
+
 func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
 	return TraceOK(g.Log, msg, f)
+}
+
+func (g *GlobalContext) CTraceOK(ctx context.Context, msg string, f func() bool) func() {
+	return CTraceOK(ctx, g.Log, msg, f)
 }
 
 // SplitByRunes splits string by runes
@@ -463,6 +504,12 @@ func Digest(r io.Reader) (string, error) {
 //    defer TimeLog("MyFunc", time.Now(), e.G().Log.Warning)
 func TimeLog(name string, start time.Time, out func(string, ...interface{})) {
 	out("time> %s: %s", name, time.Since(start))
+}
+
+// CTimeLog calls out with the time since start.  Use like this:
+//    defer CTimeLog(ctx, "MyFunc", time.Now(), e.G().Log.Warning)
+func CTimeLog(ctx context.Context, name string, start time.Time, out func(context.Context, string, ...interface{})) {
+	out(ctx, "time> %s: %s", name, time.Since(start))
 }
 
 func WhitespaceNormalize(s string) string {

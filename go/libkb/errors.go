@@ -1385,6 +1385,14 @@ func (e TrackStaleError) Error() string {
 
 //=============================================================================
 
+type InconsistentCacheStateError struct{}
+
+func (e InconsistentCacheStateError) Error() string {
+	return "Inconsistent cache state, likely after a DB reset; need a force reload"
+}
+
+//=============================================================================
+
 type UnknownStreamError struct{}
 
 func (e UnknownStreamError) Error() string {
@@ -1853,3 +1861,5 @@ type LevelDBOpenClosedError struct{}
 func (e LevelDBOpenClosedError) Error() string {
 	return "opening a closed DB"
 }
+
+//=============================================================================

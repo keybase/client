@@ -28,6 +28,7 @@ class Checkbox extends Component<void, Props, State> {
     if (this.props.checked !== nextProps.checked) {
       NativeAnimated.timing(this.state.left, {
         toValue: this._getOffset(nextProps),
+        duration: 100,
         easing: NativeEasing.linear,
       }).start()
     }

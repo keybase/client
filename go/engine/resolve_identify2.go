@@ -4,8 +4,6 @@
 package engine
 
 import (
-	"fmt"
-
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -81,7 +79,7 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 		return libkb.LoginRequiredError{Context: "to identify without specifying a user assertion"}
 	}
 
-	rres := e.G().Resolver.ResolveFullExpressionWithBody(e.arg.UserAssertion)
+	rres := e.G().Resolver.ResolveFullExpressionWithBody(ctx.GetNetContext(), e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
 		return err
 	}
@@ -100,8 +98,9 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 }
 
 func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
-	defer libkb.TimeLog(fmt.Sprintf("ResolveThenIdentify2: %+v", e.arg), e.G().Clock().Now(), e.G().Log.Debug)
-	defer e.G().Trace("ResolveThenIdentify2::Run", func() error { return err })()
+	e.SetGlobalContext(ctx.CloneGlobalContextWithLogTags(e.G(), "ID2"))
+
+	defer e.G().CTraceTimed(ctx.GetNetContext(), "ResolveThenIdentify2#Run", func() error { return err })()
 
 	e.i2eng = NewIdentify2WithUID(e.G(), e.arg)
 	if e.responsibleGregorItem != nil {

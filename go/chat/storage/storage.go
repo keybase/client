@@ -24,6 +24,7 @@ type Storage struct {
 	libkb.Contextified
 	getSecretUI func() libkb.SecretUI
 	engine      storageEngine
+	idtracker   *msgIDTracker
 }
 
 type storageEngine interface {
@@ -33,8 +34,6 @@ type storageEngine interface {
 		msgs []chat1.MessageUnboxed) libkb.ChatStorageError
 	readMessages(ctx context.Context, res resultCollector,
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) libkb.ChatStorageError
-	getMaxMessageID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (
-		chat1.MessageID, libkb.ChatStorageError)
 }
 
 func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
@@ -42,6 +41,7 @@ func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
 		Contextified: libkb.NewContextified(g),
 		getSecretUI:  getSecretUI,
 		engine:       newBlockEngine(g),
+		idtracker:    newMsgIDTracker(g),
 	}
 }
 
@@ -156,6 +156,17 @@ func (s *Storage) MaybeNuke(force bool, err libkb.ChatStorageError, convID chat1
 	return err
 }
 
+func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, error) {
+	s.Lock()
+	defer s.Unlock()
+
+	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
+	if err != nil {
+		return maxMsgID, s.MaybeNuke(false, err, convID, uid)
+	}
+	return maxMsgID, nil
+}
+
 func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
@@ -184,6 +195,13 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	// Update supersededBy pointers
 	if err = s.updateAllSupersededBy(ctx, convID, uid, msgs); err != nil {
 		return s.MaybeNuke(false, err, convID, uid)
+	}
+
+	// Update max msg ID if needed
+	if len(msgs) > 0 {
+		if err := s.idtracker.bumpMaxMessageID(ctx, convID, uid, msgs[0].GetMessageID()); err != nil {
+			return s.MaybeNuke(false, err, convID, uid)
+		}
 	}
 
 	return nil
@@ -347,7 +365,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 	s.Lock()
 	defer s.Unlock()
 
-	maxMsgID, err := s.engine.getMaxMessageID(ctx, convID, uid)
+	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -400,4 +418,21 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	}
 
 	return res, nil
+}
+
+func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery) (res []chat1.MessageUnboxed) {
+	if query != nil && len(query.MessageTypes) > 0 {
+		typmap := make(map[chat1.MessageType]bool)
+		for _, mt := range query.MessageTypes {
+			typmap[mt] = true
+		}
+		for _, msg := range msgs {
+			if _, ok := typmap[msg.GetMessageType()]; ok {
+				res = append(res, msg)
+			}
+		}
+	} else {
+		res = msgs
+	}
+	return res
 }

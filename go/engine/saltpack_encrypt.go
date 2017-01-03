@@ -82,7 +82,7 @@ func (e *SaltpackEncrypt) loadMe(ctx *Context) error {
 	if err != nil || !loggedIn {
 		return err
 	}
-	e.me, err = libkb.LoadMeByUID(e.G(), uid)
+	e.me, err = libkb.LoadMeByUID(ctx.GetNetContext(), e.G(), uid)
 	return err
 }
 

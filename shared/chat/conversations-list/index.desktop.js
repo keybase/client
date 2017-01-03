@@ -115,11 +115,14 @@ const shhStyle = {
 }
 
 const ConversationList = (props: Props) => (
-  <div style={containerStyle}>
-    <AddNewRow {...props} />
-    <div style={scrollableStyle}>
-      {props.inbox.map(conversation => <Row {...props} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
+  <div style={{...globalStyles.flexBoxRow, flex: 1}}>
+    <div style={containerStyle}>
+      <AddNewRow {...props} />
+      <div style={scrollableStyle}>
+        {props.inbox.map(conversation => <Row {...props} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
+      </div>
     </div>
+    {props.children}
   </div>
 )
 

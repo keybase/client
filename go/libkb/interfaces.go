@@ -454,10 +454,15 @@ type APIContext interface {
 	GetServerURI() string
 }
 
+type NetContext interface {
+	GetNetContext() context.Context
+}
+
 // ProofContext defines features needed by the proof system
 type ProofContext interface {
 	LogContext
 	APIContext
+	NetContext
 }
 
 type AssertionContext interface {
@@ -515,7 +520,7 @@ type ExternalServicesCollector interface {
 
 type ConversationSource interface {
 	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msg chat1.MessageBoxed) (chat1.MessageUnboxed, error)
+		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
