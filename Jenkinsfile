@@ -150,8 +150,8 @@ helpers.rootLinuxNode(env, {
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
-                                                dir("desktop") {
-                                                    sh "node ../visdiff/dist/index.js 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
+                                                dir("shared/desktop") {
+                                                    sh "node ../../visdiff/dist/index.js 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
                                                 }
                                             }
                                         } catch (e) {
