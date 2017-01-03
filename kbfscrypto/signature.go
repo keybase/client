@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 
 	"golang.org/x/net/context"
 )
@@ -98,7 +99,7 @@ func (k SigningKey) Sign(data []byte) SignatureInfo {
 func (k SigningKey) SignForKBFS(data []byte) (SignatureInfo, error) {
 	sigInfo, err := k.kp.SignV2(data, libkb.SignaturePrefixKBFS)
 	if err != nil {
-		return SignatureInfo{}, err
+		return SignatureInfo{}, errors.WithStack(err)
 	}
 	return SignatureInfo{
 		Version:      SigVer(sigInfo.Version),
@@ -110,7 +111,10 @@ func (k SigningKey) SignForKBFS(data []byte) (SignatureInfo, error) {
 // SignToString signs the given data and returns a string.
 func (k SigningKey) SignToString(data []byte) (sig string, err error) {
 	sig, _, err = k.kp.SignToString(data)
-	return sig, err
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return sig, nil
 }
 
 // GetVerifyingKey returns the public key half of this signing key.
@@ -153,18 +157,18 @@ func (k VerifyingKey) IsNil() bool {
 // and returns nil if it verifies successfully, or an error otherwise.
 func Verify(msg []byte, sigInfo SignatureInfo) error {
 	if sigInfo.Version < SigED25519 || sigInfo.Version > SigED25519ForKBFS {
-		return UnknownSigVer{sigInfo.Version}
+		return errors.WithStack(UnknownSigVer{sigInfo.Version})
 	}
 
 	publicKey := libkb.KIDToNaclSigningKeyPublic(
 		sigInfo.VerifyingKey.KID().ToBytes())
 	if publicKey == nil {
-		return libkb.KeyCannotVerifyError{}
+		return errors.WithStack(libkb.KeyCannotVerifyError{})
 	}
 
 	var naclSignature libkb.NaclSignature
 	if len(sigInfo.Signature) != len(naclSignature) {
-		return libkb.VerificationError{}
+		return errors.WithStack(libkb.VerificationError{})
 	}
 	copy(naclSignature[:], sigInfo.Signature)
 
@@ -173,7 +177,7 @@ func Verify(msg []byte, sigInfo SignatureInfo) error {
 	}
 
 	if !publicKey.Verify(msg, &naclSignature) {
-		return libkb.VerificationError{}
+		return errors.WithStack(libkb.VerificationError{})
 	}
 
 	return nil

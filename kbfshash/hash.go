@@ -10,6 +10,8 @@ import (
 	"encoding"
 	"encoding/hex"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 // See https://keybase.io/admin-docs/hash-format for the design doc
@@ -113,7 +115,7 @@ func HashFromRaw(hashType HashType, rawHash []byte) (Hash, error) {
 func HashFromBytes(data []byte) (Hash, error) {
 	h := Hash{string(data)}
 	if !h.IsValid() {
-		return Hash{}, InvalidHashError{h}
+		return Hash{}, errors.WithStack(InvalidHashError{h})
 	}
 	return h, nil
 }
@@ -123,7 +125,7 @@ func HashFromBytes(data []byte) (Hash, error) {
 func HashFromString(dataStr string) (Hash, error) {
 	data, err := hex.DecodeString(dataStr)
 	if err != nil {
-		return Hash{}, err
+		return Hash{}, errors.WithStack(err)
 	}
 	return HashFromBytes(data)
 }
@@ -178,7 +180,7 @@ func (h Hash) MarshalBinary() (data []byte, err error) {
 	}
 
 	if !h.IsValid() {
-		return nil, InvalidHashError{h}
+		return nil, errors.WithStack(InvalidHashError{h})
 	}
 
 	return []byte(h.h), nil
@@ -197,7 +199,7 @@ func (h *Hash) UnmarshalBinary(data []byte) error {
 	if !h.IsValid() {
 		err := InvalidHashError{*h}
 		*h = Hash{}
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -207,13 +209,13 @@ func (h *Hash) UnmarshalBinary(data []byte) error {
 // an error otherwise.
 func (h Hash) Verify(buf []byte) error {
 	if !h.IsValid() {
-		return InvalidHashError{h}
+		return errors.WithStack(InvalidHashError{h})
 	}
 
 	// Once we have multiple hash types we'll need to expand this.
 	t := h.hashType()
 	if t != DefaultHashType {
-		return UnknownHashTypeError{t}
+		return errors.WithStack(UnknownHashTypeError{t})
 	}
 
 	expectedH, err := DefaultHash(buf)
@@ -221,7 +223,7 @@ func (h Hash) Verify(buf []byte) error {
 		return err
 	}
 	if h != expectedH {
-		return HashMismatchError{expectedH, h}
+		return errors.WithStack(HashMismatchError{expectedH, h})
 	}
 	return nil
 }
@@ -320,13 +322,13 @@ func (hmac *HMAC) UnmarshalText(data []byte) error {
 // Verify makes sure that the HMAC matches the given data.
 func (hmac HMAC) Verify(key, buf []byte) error {
 	if !hmac.IsValid() {
-		return InvalidHashError{hmac.h}
+		return errors.WithStack(InvalidHashError{hmac.h})
 	}
 
 	// Once we have multiple hash types we'll need to expand this.
 	t := hmac.hashType()
 	if t != DefaultHashType {
-		return UnknownHashTypeError{t}
+		return errors.WithStack(UnknownHashTypeError{t})
 	}
 
 	expectedHMAC, err := DefaultHMAC(key, buf)
@@ -334,7 +336,8 @@ func (hmac HMAC) Verify(key, buf []byte) error {
 		return err
 	}
 	if hmac != expectedHMAC {
-		return HashMismatchError{expectedHMAC.h, hmac.h}
+		return errors.WithStack(
+			HashMismatchError{expectedHMAC.h, hmac.h})
 	}
 	return nil
 }

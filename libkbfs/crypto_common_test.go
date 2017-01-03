@@ -13,36 +13,12 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
-
-// Test (very superficially) that MakeTemporaryBlockID() returns non-zero
-// values that aren't equal.
-func TestCryptoCommonRandomBlockID(t *testing.T) {
-	b1, err := kbfsblock.MakeTemporaryID()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if b1 == (kbfsblock.ID{}) {
-		t.Errorf("zero BlockID (b1)")
-	}
-
-	b2, err := kbfsblock.MakeTemporaryID()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if b2 == (kbfsblock.ID{}) {
-		t.Errorf("zero BlockID (b2)")
-	}
-
-	if b1 == b2 {
-		t.Errorf("b1 == b2")
-	}
-}
 
 // Test (very superficially) that MakeRandomTLFEphemeralKeys() returns
 // non-zero values that aren't equal.
@@ -50,38 +26,17 @@ func TestCryptoCommonRandomTLFEphemeralKeys(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	a1, a2, err := c.MakeRandomTLFEphemeralKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, kbfscrypto.TLFEphemeralPublicKey{}, a1)
+	require.NotEqual(t, kbfscrypto.TLFEphemeralPrivateKey{}, a2)
 
 	b1, b2, err := c.MakeRandomTLFEphemeralKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, kbfscrypto.TLFEphemeralPublicKey{}, b1)
+	require.NotEqual(t, kbfscrypto.TLFEphemeralPrivateKey{}, b2)
 
-	if a1 == (kbfscrypto.TLFEphemeralPublicKey{}) {
-		t.Errorf("zero TLFEphemeralPublicKey (a1)")
-	}
-
-	if a2 == (kbfscrypto.TLFEphemeralPrivateKey{}) {
-		t.Errorf("zero TLFEphemeralPrivateKey (a2)")
-	}
-
-	if b1 == (kbfscrypto.TLFEphemeralPublicKey{}) {
-		t.Errorf("zero TLFEphemeralPublicKey (b1)")
-	}
-
-	if b2 == (kbfscrypto.TLFEphemeralPrivateKey{}) {
-		t.Errorf("zero TLFEphemeralPrivateKey (b2)")
-	}
-
-	if a1 == b1 {
-		t.Errorf("a1 == b1")
-	}
-
-	if a2 == b2 {
-		t.Errorf("a2 == b2")
-	}
+	require.NotEqual(t, a1, b1)
+	require.NotEqual(t, a2, b2)
 }
 
 // Test (very superficially) that MakeRandomTLFKeys() returns non-zero
@@ -90,50 +45,20 @@ func TestCryptoCommonRandomTLFKeys(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	a1, a2, a3, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, kbfscrypto.TLFPublicKey{}, a1)
+	require.NotEqual(t, kbfscrypto.TLFPrivateKey{}, a2)
+	require.NotEqual(t, kbfscrypto.TLFCryptKey{}, a3)
 
 	b1, b2, b3, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, kbfscrypto.TLFPublicKey{}, b1)
+	require.NotEqual(t, kbfscrypto.TLFPrivateKey{}, b2)
+	require.NotEqual(t, kbfscrypto.TLFCryptKey{}, b3)
 
-	if a1 == (kbfscrypto.TLFPublicKey{}) {
-		t.Errorf("zero TLFPublicKey (a1)")
-	}
-
-	if a2 == (kbfscrypto.TLFPrivateKey{}) {
-		t.Errorf("zero TLFPrivateKey (a2)")
-	}
-
-	if a3 == (kbfscrypto.TLFCryptKey{}) {
-		t.Errorf("zero TLFCryptKey (a3)")
-	}
-
-	if b1 == (kbfscrypto.TLFPublicKey{}) {
-		t.Errorf("zero TLFPublicKey (1)")
-	}
-
-	if b2 == (kbfscrypto.TLFPrivateKey{}) {
-		t.Errorf("zero TLFPrivateKey (b2)")
-	}
-
-	if b3 == (kbfscrypto.TLFCryptKey{}) {
-		t.Errorf("zero TLFCryptKey (b3)")
-	}
-
-	if a1 == b1 {
-		t.Errorf("a1 == b1")
-	}
-
-	if a2 == b2 {
-		t.Errorf("a2 == b2")
-	}
-
-	if a3 == b3 {
-		t.Errorf("a3 == b3")
-	}
+	require.NotEqual(t, a1, b1)
+	require.NotEqual(t, a2, b2)
+	require.NotEqual(t, a3, b3)
 }
 
 // Test (very superficially) that MakeRandomTLFCryptKeyServerHalf()
@@ -142,85 +67,14 @@ func TestCryptoCommonRandomTLFCryptKeyServerHalf(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	k1, err := c.MakeRandomTLFCryptKeyServerHalf()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if k1 == (kbfscrypto.TLFCryptKeyServerHalf{}) {
-		t.Errorf("zero TLFCryptKeyServerHalf k1")
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, kbfscrypto.TLFCryptKeyServerHalf{}, k1)
 
 	k2, err := c.MakeRandomTLFCryptKeyServerHalf()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, kbfscrypto.TLFCryptKeyServerHalf{}, k2)
 
-	if k2 == (kbfscrypto.TLFCryptKeyServerHalf{}) {
-		t.Errorf("zero TLFCryptKeyServerHalf k2")
-	}
-
-	if k1 == k2 {
-		t.Errorf("k1 == k2")
-	}
-}
-
-// Test that MaskTLFCryptKey() returns bytes that are different from
-// the server half and the key, and that UnmaskTLFCryptKey() undoes
-// the masking properly.
-func TestCryptoCommonMaskUnmaskTLFCryptKey(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
-
-	serverHalf, err := c.MakeRandomTLFCryptKeyServerHalf()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, _, cryptKey, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
-
-	if clientHalf.Data() == serverHalf.Data() {
-		t.Error("client half == server half")
-	}
-
-	if clientHalf.Data() == cryptKey.Data() {
-		t.Error("client half == key")
-	}
-
-	cryptKey2 := kbfscrypto.UnmaskTLFCryptKey(serverHalf, clientHalf)
-
-	if cryptKey2 != cryptKey {
-		t.Error("cryptKey != cryptKey2")
-	}
-}
-
-// Test that UnmaskBlockCryptKey() returns bytes that are different from
-// the server half and the key.
-func TestCryptoCommonUnmaskTLFCryptKey(t *testing.T) {
-	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
-
-	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, _, cryptKey, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	key := kbfscrypto.UnmaskBlockCryptKey(serverHalf, cryptKey)
-
-	if key.Data() == serverHalf.Data() {
-		t.Error("key == server half")
-	}
-
-	if key.Data() == cryptKey.Data() {
-		t.Error("key == crypt key")
-	}
+	require.NotEqual(t, k1, k2)
 }
 
 type TestBlock struct {
@@ -254,96 +108,12 @@ func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
 	key := kbfscrypto.BlockCryptKey{}
 
 	_, encryptedBlock, err := c.EncryptBlock(&block, key)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var decryptedBlock TestBlock
 	err = c.DecryptBlock(encryptedBlock, key, &decryptedBlock)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if block != decryptedBlock {
-		t.Errorf("Expected block %v got %v", block, decryptedBlock)
-	}
-}
-
-// Test that crypto.Verify() rejects various types of bad signatures.
-func TestCryptoCommonVerifyFailures(t *testing.T) {
-	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
-
-	msg := []byte("message")
-	sigInfo := signingKey.Sign(msg)
-
-	var expectedErr, err error
-
-	// Wrong version.
-
-	sigInfoWrongVersion := sigInfo.DeepCopy()
-	sigInfoWrongVersion.Version = 0
-	expectedErr = kbfscrypto.UnknownSigVer{Ver: sigInfoWrongVersion.Version}
-	err = kbfscrypto.Verify(msg, sigInfoWrongVersion)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
-
-	// Corrupt key.
-
-	sigInfoCorruptKey := sigInfo.DeepCopy()
-	sigInfoCorruptKey.VerifyingKey = kbfscrypto.MakeVerifyingKey("")
-	expectedErr = libkb.KeyCannotVerifyError{}
-	err = kbfscrypto.Verify(msg, sigInfoCorruptKey)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
-
-	// Wrong sizes.
-
-	shortSigInfo := sigInfo.DeepCopy()
-	shortSigInfo.Signature = shortSigInfo.Signature[:len(shortSigInfo.Signature)-1]
-	expectedErr = libkb.VerificationError{}
-	err = kbfscrypto.Verify(msg, shortSigInfo)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
-
-	longSigInfo := sigInfo.DeepCopy()
-	longSigInfo.Signature = append(longSigInfo.Signature, byte(0))
-	expectedErr = libkb.VerificationError{}
-	err = kbfscrypto.Verify(msg, longSigInfo)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
-
-	// Corrupt signature.
-
-	corruptSigInfo := sigInfo.DeepCopy()
-	corruptSigInfo.Signature[0] = ^sigInfo.Signature[0]
-	expectedErr = libkb.VerificationError{}
-	err = kbfscrypto.Verify(msg, corruptSigInfo)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
-
-	// Wrong key.
-
-	sigInfoWrongKey := sigInfo.DeepCopy()
-	sigInfoWrongKey.VerifyingKey = kbfscrypto.MakeFakeVerifyingKeyOrBust("wrong key")
-	expectedErr = libkb.VerificationError{}
-	err = kbfscrypto.Verify(msg, sigInfoWrongKey)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
-
-	// Corrupt message.
-
-	corruptMsg := append(msg, []byte("corruption")...)
-	expectedErr = libkb.VerificationError{}
-	err = kbfscrypto.Verify(corruptMsg, sigInfo)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
+	require.NoError(t, err)
+	require.Equal(t, block, decryptedBlock)
 }
 
 // Test that crypto.EncryptTLFCryptKeyClientHalf() encrypts its
@@ -352,89 +122,57 @@ func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	ephPublicKey, ephPrivateKey, err := c.MakeRandomTLFEphemeralKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	_, _, cryptKey, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	privateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("fake key")
 	publicKey := privateKey.GetPublicKey()
 
 	serverHalf, err := c.MakeRandomTLFCryptKeyServerHalf()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, cryptKey)
 
 	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, publicKey, clientHalf)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if encryptedClientHalf.Version != EncryptionSecretbox {
-		t.Errorf("Expected version %v, got %v", EncryptionSecretbox, encryptedClientHalf.Version)
-	}
+	require.NoError(t, err)
+	require.Equal(t, EncryptionSecretbox, encryptedClientHalf.Version)
 
 	expectedEncryptedLength := len(clientHalf.Data()) + box.Overhead
-	if len(encryptedClientHalf.EncryptedData) != expectedEncryptedLength {
-		t.Errorf("Expected encrypted length %d, got %d", expectedEncryptedLength, len(encryptedClientHalf.EncryptedData))
-	}
-
-	if len(encryptedClientHalf.Nonce) != 24 {
-		t.Fatalf("Expected nonce length 24, got %d", len(encryptedClientHalf.Nonce))
-	}
+	require.Equal(t, expectedEncryptedLength,
+		len(encryptedClientHalf.EncryptedData))
+	require.Equal(t, 24, len(encryptedClientHalf.Nonce))
 
 	var nonce [24]byte
 	copy(nonce[:], encryptedClientHalf.Nonce)
-	if nonce == ([24]byte{}) {
-		t.Error("Empty nonce")
-	}
+	require.NotEqual(t, [24]byte{}, nonce)
 
 	ephPublicKeyData := ephPublicKey.Data()
 	privateKeyData := privateKey.Data()
 	decryptedData, ok := box.Open(
 		nil, encryptedClientHalf.EncryptedData, &nonce,
 		&ephPublicKeyData, &privateKeyData)
-	if !ok {
-		t.Fatal("Decryption failed")
-	}
+	require.True(t, ok)
 
-	if len(decryptedData) != len(clientHalf.Data()) {
-		t.Fatalf("Expected decrypted data length %d, got %d", len(clientHalf.Data()), len(decryptedData))
-	}
+	require.Equal(t, len(clientHalf.Data()), len(decryptedData))
 
 	var clientHalf2Data [32]byte
 	copy(clientHalf2Data[:], decryptedData)
 	clientHalf2 := kbfscrypto.MakeTLFCryptKeyClientHalf(clientHalf2Data)
-	if clientHalf != clientHalf2 {
-		t.Fatal("client half != decrypted client half")
-	}
+	require.Equal(t, clientHalf, clientHalf2)
 }
 
 func checkSecretboxOpen(t *testing.T, encryptedData encryptedData, key [32]byte) (encodedData []byte) {
-	if encryptedData.Version != EncryptionSecretbox {
-		t.Errorf("Expected version %v, got %v", EncryptionSecretbox, encryptedData.Version)
-	}
-
-	if len(encryptedData.Nonce) != 24 {
-		t.Fatalf("Expected nonce length 24, got %d", len(encryptedData.Nonce))
-	}
+	require.Equal(t, EncryptionSecretbox, encryptedData.Version)
+	require.Equal(t, 24, len(encryptedData.Nonce))
 
 	var nonce [24]byte
 	copy(nonce[:], encryptedData.Nonce)
-	if nonce == ([24]byte{}) {
-		t.Error("Empty nonce")
-	}
+	require.NotEqual(t, [24]byte{}, nonce)
 
 	encodedData, ok := secretbox.Open(nil, encryptedData.EncryptedData, &nonce, &key)
-	if !ok {
-		t.Fatal("Decryption failed")
-	}
+	require.True(t, ok)
 
 	return encodedData
 }
@@ -445,35 +183,25 @@ func TestEncryptPrivateMetadata(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	privateMetadata := PrivateMetadata{
 		TLFPrivateKey: tlfPrivateKey,
 	}
 	expectedEncodedPrivateMetadata, err := c.codec.Encode(privateMetadata)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(privateMetadata, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	encodedPrivateMetadata := checkSecretboxOpen(t, encryptedPrivateMetadata.encryptedData, cryptKey.Data())
 
-	if string(encodedPrivateMetadata) != string(expectedEncodedPrivateMetadata) {
-		t.Fatalf("Expected encoded data %v, got %v", expectedEncodedPrivateMetadata, encodedPrivateMetadata)
-	}
+	require.Equal(t, expectedEncodedPrivateMetadata, encodedPrivateMetadata)
 }
 
 func secretboxSeal(t *testing.T, c *CryptoCommon, data interface{}, key [32]byte) encryptedData {
 	encodedData, err := c.codec.Encode(data)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	return secretboxSealEncoded(t, c, encodedData, key)
 }
@@ -481,9 +209,7 @@ func secretboxSeal(t *testing.T, c *CryptoCommon, data interface{}, key [32]byte
 func secretboxSealEncoded(t *testing.T, c *CryptoCommon, encodedData []byte, key [32]byte) encryptedData {
 	var nonce [24]byte
 	err := kbfscrypto.RandRead(nonce[:])
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	sealedPmd := secretbox.Seal(nil, encodedData, &nonce, &key)
 
@@ -501,9 +227,7 @@ func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	privateMetadata := PrivateMetadata{
 		TLFPrivateKey: tlfPrivateKey,
@@ -512,18 +236,8 @@ func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 	encryptedPrivateMetadata := EncryptedPrivateMetadata{secretboxSeal(t, &c, privateMetadata, cryptKey.Data())}
 
 	decryptedPrivateMetadata, err := c.DecryptPrivateMetadata(encryptedPrivateMetadata, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	pmEquals, err := kbfscodec.Equal(
-		c.codec, decryptedPrivateMetadata, privateMetadata)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !pmEquals {
-		t.Errorf("Decrypted private metadata %v doesn't match %v", decryptedPrivateMetadata, privateMetadata)
-	}
+	require.NoError(t, err)
+	require.Equal(t, privateMetadata, decryptedPrivateMetadata)
 }
 
 // Test that crypto.DecryptPrivateMetadata() decrypts a
@@ -533,78 +247,55 @@ func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	privateMetadata := PrivateMetadata{
 		TLFPrivateKey: tlfPrivateKey,
 	}
 
 	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(privateMetadata, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	decryptedPrivateMetadata, err := c.DecryptPrivateMetadata(encryptedPrivateMetadata, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	pmEquals, err := kbfscodec.Equal(
-		c.codec, decryptedPrivateMetadata, privateMetadata)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !pmEquals {
-		t.Errorf("Decrypted private metadata %v doesn't match %v", decryptedPrivateMetadata, privateMetadata)
-	}
+	require.NoError(t, err)
+	require.Equal(t, privateMetadata, decryptedPrivateMetadata)
 }
 
 func checkDecryptionFailures(
 	t *testing.T, encryptedData encryptedData, key interface{},
 	decryptFn func(encryptedData encryptedData, key interface{}) error,
 	corruptKeyFn func(interface{}) interface{}) {
-	var err, expectedErr error
 
 	// Wrong version.
 
 	encryptedDataWrongVersion := encryptedData
 	encryptedDataWrongVersion.Version++
-	expectedErr = UnknownEncryptionVer{encryptedDataWrongVersion.Version}
-	err = decryptFn(encryptedDataWrongVersion, key)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
+	err := decryptFn(encryptedDataWrongVersion, key)
+	assert.Equal(t,
+		UnknownEncryptionVer{encryptedDataWrongVersion.Version},
+		errors.Cause(err))
 
 	// Wrong nonce size.
 
 	encryptedDataWrongNonceSize := encryptedData
 	encryptedDataWrongNonceSize.Nonce = encryptedDataWrongNonceSize.Nonce[:len(encryptedDataWrongNonceSize.Nonce)-1]
-	expectedErr = InvalidNonceError{encryptedDataWrongNonceSize.Nonce}
 	err = decryptFn(encryptedDataWrongNonceSize, key)
-	if err.Error() != expectedErr.Error() {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
+	assert.Equal(t,
+		InvalidNonceError{encryptedDataWrongNonceSize.Nonce},
+		errors.Cause(err))
 
 	// Corrupt key.
 
 	keyCorrupt := corruptKeyFn(key)
-	expectedErr = libkb.DecryptionError{}
 	err = decryptFn(encryptedData, keyCorrupt)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
+	assert.Equal(t, libkb.DecryptionError{}, errors.Cause(err))
 
 	// Corrupt data.
 
 	encryptedDataCorruptData := encryptedData
 	encryptedDataCorruptData.EncryptedData[0] = ^encryptedDataCorruptData.EncryptedData[0]
-	expectedErr = libkb.DecryptionError{}
 	err = decryptFn(encryptedDataCorruptData, key)
-	if err != expectedErr {
-		t.Errorf("Expected %v, got %v", expectedErr, err)
-	}
+	assert.Equal(t, libkb.DecryptionError{}, errors.Cause(err))
 }
 
 // Test various failure cases for crypto.DecryptPrivateMetadata().
@@ -612,18 +303,14 @@ func TestDecryptPrivateMetadataFailures(t *testing.T) {
 	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, tlfPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	privateMetadata := PrivateMetadata{
 		TLFPrivateKey: tlfPrivateKey,
 	}
 
 	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(privateMetadata, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	checkDecryptionFailures(t, encryptedPrivateMetadata.encryptedData, cryptKey,
 		func(encryptedData encryptedData, key interface{}) error {
@@ -646,9 +333,7 @@ func makeFakeBlockCryptKey(t *testing.T) kbfscrypto.BlockCryptKey {
 	var blockCryptKeyData [32]byte
 	err := kbfscrypto.RandRead(blockCryptKeyData[:])
 	blockCryptKey := kbfscrypto.MakeBlockCryptKey(blockCryptKeyData)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	return blockCryptKey
 }
 
@@ -661,28 +346,16 @@ func TestEncryptBlock(t *testing.T) {
 
 	block := TestBlock{50}
 	expectedEncodedBlock, err := c.codec.Encode(block)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	plainSize, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if plainSize != len(expectedEncodedBlock) {
-		t.Errorf("Expected plain size %d, got %d", len(expectedEncodedBlock), plainSize)
-	}
+	require.NoError(t, err)
+	require.Equal(t, len(expectedEncodedBlock), plainSize)
 
 	paddedBlock := checkSecretboxOpen(t, encryptedBlock.encryptedData, cryptKey.Data())
 	encodedBlock, err := c.depadBlock(paddedBlock)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if string(encodedBlock) != string(expectedEncodedBlock) {
-		t.Fatalf("Expected encoded data %v, got %v", expectedEncodedBlock, encodedBlock)
-	}
+	require.NoError(t, err)
+	require.Equal(t, expectedEncodedBlock, encodedBlock)
 }
 
 // Test that crypto.DecryptBlock() decrypts a Block object encrypted
@@ -695,26 +368,17 @@ func TestDecryptBlockSecretboxSeal(t *testing.T) {
 	block := TestBlock{50}
 
 	encodedBlock, err := c.codec.Encode(block)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	paddedBlock, err := c.padBlock(encodedBlock)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	encryptedBlock := EncryptedBlock{secretboxSealEncoded(t, &c, paddedBlock, cryptKey.Data())}
 
 	var decryptedBlock TestBlock
 	err = c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if decryptedBlock != block {
-		t.Errorf("Decrypted block %d doesn't match %d", decryptedBlock, block)
-	}
+	require.NoError(t, err)
+	require.Equal(t, block, decryptedBlock)
 }
 
 // Test that crypto.DecryptBlock() decrypts a Block object encrypted
@@ -727,19 +391,12 @@ func TestDecryptEncryptedBlock(t *testing.T) {
 	block := TestBlock{50}
 
 	_, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var decryptedBlock TestBlock
 	err = c.DecryptBlock(encryptedBlock, cryptKey, &decryptedBlock)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if decryptedBlock != block {
-		t.Errorf("Decrypted block %d doesn't match %d", decryptedBlock, block)
-	}
+	require.NoError(t, err)
+	require.Equal(t, block, decryptedBlock)
 }
 
 // Test various failure cases for crypto.DecryptBlock().
@@ -751,9 +408,7 @@ func TestDecryptBlockFailures(t *testing.T) {
 	block := TestBlock{50}
 
 	_, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	checkDecryptionFailures(t, encryptedBlock.encryptedData, cryptKey,
 		func(encryptedData encryptedData, key interface{}) error {
@@ -796,9 +451,8 @@ func TestBlockPadding(t *testing.T) {
 		return true
 	}
 
-	if err := quick.Check(f, nil); err != nil {
-		t.Error(err)
-	}
+	err := quick.Check(f, nil)
+	require.NoError(t, err)
 }
 
 // Tests padding -> depadding results in same block data.
@@ -821,9 +475,8 @@ func TestBlockDepadding(t *testing.T) {
 		return true
 	}
 
-	if err := quick.Check(f, nil); err != nil {
-		t.Error(err)
-	}
+	err := quick.Check(f, nil)
+	require.NoError(t, err)
 }
 
 // Test padding of blocks results in blocks at least 2^8.
@@ -831,16 +484,11 @@ func TestBlockPadMinimum(t *testing.T) {
 	var c CryptoCommon
 	for i := 0; i < 256; i++ {
 		b := make([]byte, i)
-		if err := kbfscrypto.RandRead(b); err != nil {
-			t.Fatal(err)
-		}
+		err := kbfscrypto.RandRead(b)
+		require.NoError(t, err)
 		padded, err := c.padBlock(b)
-		if err != nil {
-			t.Errorf("padBlock error: %s", err)
-		}
-		if len(padded) != 260 {
-			t.Errorf("padded block len: %d, expected 260", len(padded))
-		}
+		require.NoError(t, err)
+		require.Equal(t, 260, len(padded))
 	}
 }
 
@@ -857,9 +505,8 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 	// index into it. Note that we're intentionally re-using most
 	// of the data between iterations intentionally.
 	randomData := make([]byte, endSize+iterations)
-	if err := kbfscrypto.RandRead(randomData); err != nil {
-		t.Fatal(err)
-	}
+	err := kbfscrypto.RandRead(randomData)
+	require.NoError(t, err)
 
 	cryptKeys := make([]kbfscrypto.BlockCryptKey, iterations)
 	for j := 0; j < iterations; j++ {
@@ -873,8 +520,8 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 			enc := secretboxSealEncoded(t, &c, data, cryptKeys[j].Data())
 			if j == 0 {
 				enclen = len(enc.EncryptedData)
-			} else if len(enc.EncryptedData) != enclen {
-				t.Errorf("encrypted data len: %d, expected %d", len(enc.EncryptedData), enclen)
+			} else {
+				assert.Equal(t, len(enc.EncryptedData), enclen)
 			}
 		}
 	}
@@ -913,26 +560,19 @@ func TestBlockEncryptedLen(t *testing.T) {
 	// index into it. Note that we're intentionally re-using most
 	// of the data between iterations intentionally.
 	randomData := make(testBlockArray, endSize)
-	if err := kbfscrypto.RandRead(randomData); err != nil {
-		t.Fatal(err)
-	}
+	err := kbfscrypto.RandRead(randomData)
+	require.NoError(t, err)
 
 	var expectedLen int
 	for i := 1025; i < 2000; i++ {
 		data := randomData[:i]
 		_, encBlock, err := c.EncryptBlock(&data, cryptKey)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 
 		if expectedLen == 0 {
 			expectedLen = len(encBlock.EncryptedData)
 			continue
 		}
-
-		if len(encBlock.EncryptedData) != expectedLen {
-			t.Errorf("len encrypted data: %d, expected %d (input len: %d)",
-				len(encBlock.EncryptedData), expectedLen, i)
-		}
+		require.Equal(t, expectedLen, len(encBlock.EncryptedData))
 	}
 }

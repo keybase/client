@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -217,17 +218,21 @@ func testMakeRekeyReadError(t *testing.T, ver MetadataVer) {
 	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
 	require.NoError(t, err)
 
-	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen, uid, u)
+	dummyErr := errors.New("dummy")
+	err = makeRekeyReadErrorHelper(dummyErr,
+		rmd.ReadOnly(), h, FirstValidKeyGen, uid, u)
 	require.Equal(t, NewReadAccessError(h, u, "/keybase/private/alice"), err)
 
-	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen, h.FirstResolvedWriter(), "alice")
-	require.Equal(t, NeedSelfRekeyError{"alice"}, err)
+	err = makeRekeyReadErrorHelper(dummyErr,
+		rmd.ReadOnly(), h, FirstValidKeyGen, h.FirstResolvedWriter(), "alice")
+	require.Equal(t, NeedSelfRekeyError{"alice", dummyErr}, err)
 
-	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen+1, h.FirstResolvedWriter(), "alice")
+	err = makeRekeyReadErrorHelper(dummyErr,
+		rmd.ReadOnly(), h, FirstValidKeyGen+1, h.FirstResolvedWriter(), "alice")
 	if ver < SegregatedKeyBundlesVer {
-		require.Equal(t, NeedOtherRekeyError{"alice"}, err)
+		require.Equal(t, NeedOtherRekeyError{"alice", dummyErr}, err)
 	} else {
-		require.Equal(t, NeedSelfRekeyError{"alice"}, err)
+		require.Equal(t, NeedSelfRekeyError{"alice", dummyErr}, err)
 	}
 }
 
@@ -248,7 +253,8 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
 	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
 	require.NoError(t, err)
 
-	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen, uid, u)
+	err = makeRekeyReadErrorHelper(errors.New("dummy"),
+		rmd.ReadOnly(), h, FirstValidKeyGen, uid, u)
 	require.Equal(t, NewReadAccessError(h, u, "/keybase/private/alice,bob@twitter"), err)
 
 	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
@@ -257,8 +263,10 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver MetadataVer) {
 	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())
 	require.NoError(t, err)
 
-	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), resolvedHandle, FirstValidKeyGen, uid, u)
-	require.Equal(t, NeedOtherRekeyError{"alice,bob"}, err)
+	dummyErr := errors.New("dummy")
+	err = makeRekeyReadErrorHelper(dummyErr,
+		rmd.ReadOnly(), resolvedHandle, FirstValidKeyGen, uid, u)
+	require.Equal(t, NeedOtherRekeyError{"alice,bob", dummyErr}, err)
 }
 
 // Test that MakeSuccessor fails when the final bit is set.
@@ -532,7 +540,7 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	require.NoError(t, err)
 
 	err = rmds.IsLastModifiedBy(uid, vk)
-	require.Equal(t, fmt.Errorf("Last writer verifying key %s != %s", vk2.String(), vk.String()), err)
+	require.EqualError(t, err, fmt.Sprintf("Last writer verifying key %s != %s", vk2.String(), vk.String()))
 }
 
 // Test that a reader can't upconvert a private folder from v2 to v3.

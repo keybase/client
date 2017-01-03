@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -14,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 
 	"golang.org/x/net/context"
 )
@@ -24,7 +24,7 @@ type mdRange struct {
 }
 
 func makeRekeyReadErrorHelper(
-	kmd KeyMetadata, resolvedHandle *TlfHandle, keyGen KeyGen,
+	err error, kmd KeyMetadata, resolvedHandle *TlfHandle, keyGen KeyGen,
 	uid keybase1.UID, username libkb.NormalizedUsername) error {
 	if resolvedHandle.IsPublic() {
 		panic("makeRekeyReadError called on public folder")
@@ -38,40 +38,43 @@ func makeRekeyReadErrorHelper(
 	// Otherwise, this folder needs to be rekeyed for this device.
 	tlfName := resolvedHandle.GetCanonicalName()
 	if hasKeys := kmd.HasKeyForUser(keyGen, uid); hasKeys {
-		return NeedSelfRekeyError{tlfName}
+		return NeedSelfRekeyError{tlfName, err}
 	}
-	return NeedOtherRekeyError{tlfName}
+	return NeedOtherRekeyError{tlfName, err}
 }
 
 func makeRekeyReadError(
-	ctx context.Context, config Config, kmd KeyMetadata, keyGen KeyGen,
-	uid keybase1.UID, username libkb.NormalizedUsername) error {
+	ctx context.Context, err error, kbpki KBPKI,
+	kmd KeyMetadata, keyGen KeyGen, uid keybase1.UID,
+	username libkb.NormalizedUsername) error {
 	h := kmd.GetTlfHandle()
-	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())
-	if err != nil {
+	resolvedHandle, resolveErr := h.ResolveAgain(ctx, kbpki)
+	if resolveErr != nil {
 		// Ignore error and pretend h is already fully
 		// resolved.
 		resolvedHandle = h
 	}
 	return makeRekeyReadErrorHelper(
-		kmd, resolvedHandle, keyGen, uid, username)
+		err, kmd, resolvedHandle, keyGen, uid, username)
 }
 
 // Helper which returns nil if the md block is uninitialized or readable by
 // the current user. Otherwise an appropriate read access error is returned.
 func isReadableOrError(
-	ctx context.Context, config Config, md ReadOnlyRootMetadata) error {
+	ctx context.Context, kbpki KBPKI, md ReadOnlyRootMetadata) error {
 	if !md.IsInitialized() || md.IsReadable() {
 		return nil
 	}
 	// this should only be the case if we're a new device not yet
 	// added to the set of reader/writer keys.
-	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	username, uid, err := kbpki.GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
 	}
-	return makeRekeyReadError(
-		ctx, config, md, md.LatestKeyGeneration(), uid, username)
+	err = errors.Errorf("%s is not readable by %s (uid:%s)", md.TlfID(),
+		username, uid)
+	return makeRekeyReadError(ctx, err, kbpki, md,
+		md.LatestKeyGeneration(), uid, username)
 }
 
 func getMDRange(ctx context.Context, config Config, id tlf.ID, bid BranchID,
@@ -218,7 +221,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	// readable until the newer revision, containing the key for this
 	// device, is processed.
 	for i, rmd := range mergedRmds {
-		if err := isReadableOrError(ctx, config, rmd.ReadOnly()); err != nil {
+		if err := isReadableOrError(ctx, config.KBPKI(), rmd.ReadOnly()); err != nil {
 			// The right secret key for the given rmd's
 			// key generation may only be present in the
 			// most recent rmd.

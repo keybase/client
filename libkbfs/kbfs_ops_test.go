@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -21,6 +20,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -230,11 +230,11 @@ func checkBlockCache(t *testing.T, config *ConfigMock, id tlf.ID,
 		_, err := dirtyBcache.Get(id, ptr, branch)
 		if err != nil {
 			t.Errorf("BlockCache missing dirty block %v, branch %s at "+
-				"the end of the test: err %v", ptr, branch, err)
+				"the end of the test: err %+v", ptr, branch, err)
 		}
 		if !dirtyBcache.IsDirty(id, ptr, branch) {
 			t.Errorf("BlockCache has incorrectly clean block %v, branch %s at "+
-				"the end of the test: err %v", ptr, branch, err)
+				"the end of the test: err %+v", ptr, branch, err)
 		}
 	}
 	if len(dirtyBcache.cache) != len(expectedDirtyBlocks) {
@@ -264,7 +264,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
-		t.Errorf("Got error on favorites: %v", err)
+		t.Errorf("Got error on favorites: %+v", err)
 	}
 	if len(handles2) != len(handles)-1 {
 		t.Errorf("Got bad handles back: %v", handles2)
@@ -285,7 +285,7 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, err)
 
 	if _, err2 := config.KBFSOps().GetFavorites(ctx); err2 != err {
-		t.Errorf("Got bad error on favorites: %v", err2)
+		t.Errorf("Got bad error on favorites: %+v", err2)
 	}
 }
 
@@ -707,7 +707,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 
 	children, err := config.KBFSOps().GetDirChildren(ctx, n)
 	if err != nil {
-		t.Errorf("Got error on getdir: %v", err)
+		t.Errorf("Got error on getdir: %+v", err)
 	} else if len(children) != 2 {
 		t.Errorf("Got bad children back: %v", children)
 	}
@@ -739,7 +739,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 	expectBlock(config, rmd, blockPtr, dirBlock, nil)
 
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err != nil {
-		t.Errorf("Got error on getdir: %v", err)
+		t.Errorf("Got error on getdir: %+v", err)
 	}
 }
 
@@ -774,7 +774,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
 	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on root MD: %v", err)
+		t.Errorf("Got unexpected error on root MD: %+v", err)
 	}
 }
 
@@ -801,7 +801,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 	if _, err2 := config.KBFSOps().GetDirChildren(ctx, n); err2 == nil {
 		t.Errorf("Got no expected error on getdir")
 	} else if err2 != err {
-		t.Errorf("Got unexpected error on root MD: %v", err)
+		t.Errorf("Got unexpected error on root MD: %+v", err)
 	}
 }
 
@@ -834,7 +834,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 
 	children, err := config.KBFSOps().GetDirChildren(ctx, n)
 	if err != nil {
-		t.Errorf("Got error on getdir: %v", err)
+		t.Errorf("Got error on getdir: %+v", err)
 	} else if len(children) != 2 {
 		t.Errorf("Got bad children back: %v", children)
 	}
@@ -878,7 +878,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 
 	bn, ei, err := config.KBFSOps().Lookup(ctx, n, "b")
 	if err != nil {
-		t.Errorf("Error on Lookup: %v", err)
+		t.Errorf("Error on Lookup: %+v", err)
 	}
 	bPath := ops.nodeCache.PathFromNode(bn)
 	expectedBNode := pathNode{makeBP(bID, rmd, config, u), "b"}
@@ -921,7 +921,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 
 	bn, ei, err := config.KBFSOps().Lookup(ctx, n, "b")
 	if err != nil {
-		t.Errorf("Error on Lookup: %v", err)
+		t.Errorf("Error on Lookup: %+v", err)
 	}
 	if ei != dirBlock.Children["b"].EntryInfo {
 		t.Errorf("Lookup returned a bad directory entry: %v vs %v",
@@ -963,7 +963,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	if err == nil {
 		t.Error("No error as expected on Lookup")
 	} else if err != expectedErr {
-		t.Errorf("Unexpected error after bad Lookup: %v", err)
+		t.Errorf("Unexpected error after bad Lookup: %+v", err)
 	}
 }
 
@@ -1005,7 +1005,7 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	if err == nil {
 		t.Error("No expected error found on lookup")
 	} else if err.Error() != expectedErr.Error() {
-		t.Errorf("Unexpected error after bad lookup: %v", err)
+		t.Errorf("Unexpected error after bad lookup: %+v", err)
 	}
 }
 
@@ -1039,7 +1039,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 
 	ei, err := config.KBFSOps().Stat(ctx, n)
 	if err != nil {
-		t.Errorf("Error on Stat: %v", err)
+		t.Errorf("Error on Stat: %+v", err)
 	}
 	if ei != dirBlock.Children["b"].EntryInfo {
 		t.Errorf("Stat returned a bad entry info: %v vs %v",
@@ -1199,7 +1199,7 @@ func getBlockFromCache(t *testing.T, config Config, id tlf.ID, ptr BlockPointer,
 	block, err := config.BlockCache().Get(ptr)
 	if err != nil {
 		t.Errorf("Couldn't find block %v, branch %s in the cache after test: "+
-			"%v", ptr, branch, err)
+			"%+v", ptr, branch, err)
 		return nil
 	}
 	return block
@@ -1408,7 +1408,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	newP := ops.nodeCache.PathFromNode(newN)
 
 	if err != nil {
-		t.Errorf("Got error on create: %v", err)
+		t.Errorf("Got error on create: %+v", err)
 	}
 	require.NotNil(t, newRmd)
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd.ReadOnly(), blocks,
@@ -1506,7 +1506,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	if err == nil {
 		t.Errorf("Got no expected error on create")
 	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on create: %v", err)
+		t.Errorf("Got unexpected error on create: %+v", err)
 	}
 }
 
@@ -1547,7 +1547,7 @@ func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 	if err == nil {
 		t.Errorf("Got no expected error on create")
 	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on create: %v", err)
+		t.Errorf("Got unexpected error on create: %+v", err)
 	}
 }
 
@@ -1588,7 +1588,7 @@ func testCreateEntryFailDirTooBig(t *testing.T, isDir bool) {
 	if err == nil {
 		t.Errorf("Got no expected error on create")
 	} else if _, ok := err.(DirTooBigError); !ok {
-		t.Errorf("Got unexpected error on create: %v", err)
+		t.Errorf("Got unexpected error on create: %+v", err)
 	}
 }
 
@@ -1638,7 +1638,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et EntryType) {
 	if err == nil {
 		t.Errorf("Got no expected error on create")
 	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on create: %v", err)
+		t.Errorf("Got unexpected error on create: %+v", err)
 	}
 }
 
@@ -2253,7 +2253,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 
 	err := config.KBFSOps().Rename(ctx, n, "b", n, "c")
 	if err != nil {
-		t.Errorf("Got error on rename: %v", err)
+		t.Errorf("Got error on rename: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 
@@ -2347,7 +2347,7 @@ func TestRenameInDirOverEntrySuccess(t *testing.T) {
 
 	err := config.KBFSOps().Rename(ctx, n, "b", n, "c")
 	if err != nil {
-		t.Errorf("Got error on rename: %v", err)
+		t.Errorf("Got error on rename: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 
@@ -2420,7 +2420,7 @@ func TestRenameInRootSuccess(t *testing.T) {
 
 	err := config.KBFSOps().Rename(ctx, n, "a", n, "b")
 	if err != nil {
-		t.Errorf("Got error on rename: %v", err)
+		t.Errorf("Got error on rename: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 
@@ -2525,7 +2525,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 
 	err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c")
 	if err != nil {
-		t.Errorf("Got error on rename: %v", err)
+		t.Errorf("Got error on rename: %+v", err)
 	}
 	newP1 := ops.nodeCache.PathFromNode(n1)
 	newP2 := ops.nodeCache.PathFromNode(n2)
@@ -2631,7 +2631,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 
 	err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c")
 	if err != nil {
-		t.Errorf("Got error on rename: %v", err)
+		t.Errorf("Got error on rename: %+v", err)
 	}
 	newP1 := ops.nodeCache.PathFromNode(n1)
 	newP2 := ops.nodeCache.PathFromNode(n2)
@@ -2738,7 +2738,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 
 	err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c")
 	if err != nil {
-		t.Errorf("Got error on removal: %v", err)
+		t.Errorf("Got error on removal: %+v", err)
 	}
 	newP1 := ops.nodeCache.PathFromNode(n1)
 	newP2 := ops.nodeCache.PathFromNode(n2)
@@ -2819,7 +2819,7 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	if err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c"); err == nil {
 		t.Errorf("Got no expected error on rename")
 	} else if err.Error() != expectedErr.Error() {
-		t.Errorf("Got unexpected error on rename: %v", err)
+		t.Errorf("Got unexpected error on rename: %+v", err)
 	}
 }
 
@@ -2849,7 +2849,7 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	if err := config.KBFSOps().Rename(ctx, n1, "b", n2, "c"); err == nil {
 		t.Errorf("Got no expected error on rename")
 	} else if err.Error() != expectedErr.Error() {
-		t.Errorf("Got unexpected error on rename: %v", err)
+		t.Errorf("Got unexpected error on rename: %+v", err)
 	}
 }
 
@@ -2874,7 +2874,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil {
-		t.Errorf("Got error on read: %v", err)
+		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
 	} else if !bytes.Equal(dest, fileBlock.Contents) {
@@ -2902,7 +2902,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 
 	dest := make([]byte, 4, 4)
 	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 2); err != nil {
-		t.Errorf("Got error on read: %v", err)
+		t.Errorf("Got error on read: %+v", err)
 	} else if n != 4 {
 		t.Errorf("Read the wrong number of bytes: %d", n)
 	} else if !bytes.Equal(dest, fileBlock.Contents[2:6]) {
@@ -2956,7 +2956,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	fullContents = append(fullContents, block3.Contents...)
 	fullContents = append(fullContents, block4.Contents...)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil {
-		t.Errorf("Got error on read: %v", err)
+		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
 	} else if !bytes.Equal(dest, fullContents) {
@@ -3008,7 +3008,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	contents := append(block1.Contents[3:], block2.Contents...)
 	contents = append(contents, block3.Contents[:3]...)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 3); err != nil {
-		t.Errorf("Got error on read: %v", err)
+		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
 	} else if !bytes.Equal(dest, contents) {
@@ -3036,7 +3036,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 
 	dest := make([]byte, 4, 4)
 	if n, err := config.KBFSOps().Read(ctx, pNode, dest, 10); err != nil {
-		t.Errorf("Got error on read: %v", err)
+		t.Errorf("Got error on read: %+v", err)
 	} else if n != 0 {
 		t.Errorf("Read the wrong number of bytes: %d", n)
 	}
@@ -3065,7 +3065,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	n := len(fileBlock.Contents)
 	dest := make([]byte, n, n)
 	if n2, err := config.KBFSOps().Read(ctx, pNode, dest, 0); err != nil {
-		t.Errorf("Got error on read: %v", err)
+		t.Errorf("Got error on read: %+v", err)
 	} else if n2 != int64(n) {
 		t.Errorf("Read the wrong number of bytes: %d", n2)
 	} else if !bytes.Equal(dest, fileBlock.Contents) {
@@ -3099,7 +3099,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	if _, err2 := config.KBFSOps().Read(ctx, pNode, dest, 0); err2 == nil {
 		t.Errorf("Got no expected error")
 	} else if err2 != err {
-		t.Errorf("Got unexpected error: %v", err2)
+		t.Errorf("Got unexpected error: %+v", err2)
 	}
 }
 
@@ -3179,7 +3179,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		}).Return(int64(len(data)))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 0); err != nil {
-		t.Errorf("Got error on write: %v", err)
+		t.Errorf("Got error on write: %+v", err)
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, id, fileNode.BlockPointer,
@@ -3251,7 +3251,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 		}).Return(int64(len(data)))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 5); err != nil {
-		t.Errorf("Got error on write: %v", err)
+		t.Errorf("Got error on write: %+v", err)
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, id, fileNode.BlockPointer,
@@ -3312,7 +3312,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 		}).Return(int64(len(data)))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 7); err != nil {
-		t.Errorf("Got error on write: %v", err)
+		t.Errorf("Got error on write: %+v", err)
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, id, fileNode.BlockPointer,
@@ -3390,7 +3390,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		}).Return(int64(5))
 
 	if err := config.KBFSOps().Write(ctx, n, newData, 1); err != nil {
-		t.Errorf("Got error on write: %v", err)
+		t.Errorf("Got error on write: %+v", err)
 	}
 	b, _ := config.BlockCache().Get(node.BlockPointer)
 	newRootBlock := b.(*DirBlock)
@@ -3523,7 +3523,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 		}).Return(int64(2))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 2); err != nil {
-		t.Errorf("Got error on write: %v", err)
+		t.Errorf("Got error on write: %+v", err)
 	}
 
 	newBlock1 := getFileBlockFromCache(t, config, id,
@@ -3592,7 +3592,7 @@ func TestKBFSOpsWriteFailTooBig(t *testing.T) {
 	if err == nil {
 		t.Errorf("Got no expected error on Write")
 	} else if _, ok := err.(FileTooBigError); !ok {
-		t.Errorf("Got unexpected error on Write: %v", err)
+		t.Errorf("Got unexpected error on Write: %+v", err)
 	}
 }
 
@@ -3630,7 +3630,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 
 	data := []byte{}
 	if err := config.KBFSOps().Truncate(ctx, n, 0); err != nil {
-		t.Errorf("Got error on truncate: %v", err)
+		t.Errorf("Got error on truncate: %+v", err)
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, id, fileNode.BlockPointer,
@@ -3693,7 +3693,7 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 
 	data := fileBlock.Contents
 	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil {
-		t.Errorf("Got error on truncate: %v", err)
+		t.Errorf("Got error on truncate: %+v", err)
 	} else if config.observer.localChange != nil {
 		t.Errorf("Unexpected local update during truncate: %v",
 			config.observer.localChange)
@@ -3734,7 +3734,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 
 	data := []byte{1, 2, 3, 4, 5}
 	if err := config.KBFSOps().Truncate(ctx, n, 5); err != nil {
-		t.Errorf("Got error on truncate: %v", err)
+		t.Errorf("Got error on truncate: %+v", err)
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, id, fileNode.BlockPointer,
@@ -3802,7 +3802,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 
 	data2 := []byte{10, 9}
 	if err := config.KBFSOps().Truncate(ctx, n, 7); err != nil {
-		t.Errorf("Got error on truncate: %v", err)
+		t.Errorf("Got error on truncate: %+v", err)
 	}
 
 	newPBlock := getFileBlockFromCache(t, config, id, fileNode.BlockPointer,
@@ -3887,7 +3887,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 
 	data := []byte{5, 4, 3, 2}
 	if err := config.KBFSOps().Truncate(ctx, n, 4); err != nil {
-		t.Errorf("Got error on truncate: %v", err)
+		t.Errorf("Got error on truncate: %+v", err)
 	}
 
 	newPBlock := getFileBlockFromCache(t, config, id, fileNode.BlockPointer,
@@ -3961,7 +3961,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 
 	data := []byte{1, 2, 3, 4, 5, 0, 0, 0, 0, 0}
 	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil {
-		t.Errorf("Got error on truncate: %v", err)
+		t.Errorf("Got error on truncate: %+v", err)
 	}
 
 	newFileBlock := getFileBlockFromCache(t, config, id, fileNode.BlockPointer,
@@ -4043,7 +4043,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	// chmod a+x a
 	err := config.KBFSOps().SetEx(ctx, n, ex)
 	if err != nil {
-		t.Errorf("Got unexpected error on setex: %v", err)
+		t.Errorf("Got unexpected error on setex: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	if expectedChanges != len(config.observer.batchChanges) {
@@ -4145,7 +4145,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	if err := config.KBFSOps().SetEx(ctx, n, true); err == nil {
 		t.Errorf("Got no expected error on setex")
 	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on setex: %v", err)
+		t.Errorf("Got unexpected error on setex: %+v", err)
 	}
 }
 
@@ -4184,7 +4184,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 	newMtime := time.Now()
 	err := config.KBFSOps().SetMtime(ctx, n, &newMtime)
 	if err != nil {
-		t.Errorf("Got unexpected error on setmtime: %v", err)
+		t.Errorf("Got unexpected error on setmtime: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	b0 := getDirBlockFromCache(
@@ -4240,7 +4240,7 @@ func TestSetMtimeNull(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	if err := config.KBFSOps().SetMtime(ctx, n, nil); err != nil {
-		t.Errorf("Got unexpected error on null setmtime: %v", err)
+		t.Errorf("Got unexpected error on null setmtime: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	if rootBlock.Children["a"].Mtime != oldMtime {
@@ -4274,7 +4274,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	if err := config.KBFSOps().SetMtime(ctx, n, &newMtime); err == nil {
 		t.Errorf("Got no expected error on setmtime")
 	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on setmtime: %v", err)
+		t.Errorf("Got unexpected error on setmtime: %+v", err)
 	}
 }
 
@@ -4352,7 +4352,7 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 
 	err = config.KBFSOps().Sync(ctx, n)
 	if err != nil {
-		t.Errorf("Got unexpected error on sync: %v", err)
+		t.Errorf("Got unexpected error on sync: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd.ReadOnly(), blocks,
@@ -4403,7 +4403,7 @@ func TestSyncCleanSuccess(t *testing.T) {
 
 	// fsync a
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
-		t.Errorf("Got unexpected error on sync: %v", err)
+		t.Errorf("Got unexpected error on sync: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	if len(newP.path) != len(p.path) {
@@ -4540,7 +4540,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	err = config.KBFSOps().Sync(ctx, n)
 	if err != nil {
-		t.Errorf("Got unexpected error on sync: %v", err)
+		t.Errorf("Got unexpected error on sync: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	if fileBlock.IPtrs[0].EncodedSize != 5 {
@@ -4659,7 +4659,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	// fsync b
 	err = config.KBFSOps().Sync(ctx, n)
 	if err != nil {
-		t.Errorf("Got unexpected error on sync: %v", err)
+		t.Errorf("Got unexpected error on sync: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd.ReadOnly(), blocks,
@@ -4862,7 +4862,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	newID4 := kbfsblock.FakeIDAdd(id4, 100)
 
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
-		t.Errorf("Got unexpected error on sync: %v", err)
+		t.Errorf("Got unexpected error on sync: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	if len(fileBlock.IPtrs) != 5 {
@@ -5061,7 +5061,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	newID4 := kbfsblock.FakeIDAdd(id4, 100)
 
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
-		t.Errorf("Got unexpected error on sync: %v", err)
+		t.Errorf("Got unexpected error on sync: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	if len(fileBlock.IPtrs) != 3 {
@@ -5167,7 +5167,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		}).Return(int64(100 * 1024 * 1024))
 
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
-		t.Errorf("Got unexpected error on sync: %v", err)
+		t.Errorf("Got unexpected error on sync: %+v", err)
 	}
 	newP := ops.nodeCache.PathFromNode(n)
 	if newRmd.data.cachedChanges.Info.ID != changeBlockID {
@@ -5197,7 +5197,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 
 	_, err := config.KBFSOps().Stat(ctx, n)
 	if err != nil {
-		t.Errorf("Error on Stat: %v", err)
+		t.Errorf("Error on Stat: %+v", err)
 	}
 }
 
@@ -5222,12 +5222,12 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 
 	err := config.KBFSOps().SetEx(ctx, n, true)
 	if _, ok := err.(InvalidParentPathError); !ok {
-		t.Errorf("Unexpected error on SetEx: %v", err)
+		t.Errorf("Unexpected error on SetEx: %+v", err)
 	}
 
 	err = config.KBFSOps().SetMtime(ctx, n, &time.Time{})
 	if _, ok := err.(InvalidParentPathError); !ok {
-		t.Errorf("Unexpected error on SetMtime: %v", err)
+		t.Errorf("Unexpected error on SetMtime: %+v", err)
 	}
 
 	// TODO: Sync succeeds, but it should fail. Fix this!
@@ -5294,7 +5294,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 		}).Return(int64(len(data)))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 0); err != nil {
-		t.Errorf("Got error on write: %v", err)
+		t.Errorf("Got error on write: %+v", err)
 	}
 
 	// expect a sync to happen in the background
@@ -5328,7 +5328,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 		&newRmd2, blocks)
 
 	if err := config.KBFSOps().Write(ctx, n, data, 0); err != nil {
-		t.Errorf("Got error on write: %v", err)
+		t.Errorf("Got error on write: %+v", err)
 	}
 	<-c
 }
@@ -5344,20 +5344,20 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// Write to it.
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
-		t.Fatalf("Couldn't write to file: %v", err)
+		t.Fatalf("Couldn't write to file: %+v", err)
 	}
 
 	// Stat it.
 	ei, err := kbfsOps.Stat(ctx, fileNode)
 	if err != nil {
-		t.Fatalf("Couldn't stat file: %v", err)
+		t.Fatalf("Couldn't stat file: %+v", err)
 	}
 	if ei.Size != 1 {
 		t.Errorf("Stat size %d unexpectedly not 1", ei.Size)
@@ -5366,13 +5366,13 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	// Rename it.
 	err = kbfsOps.Rename(ctx, rootNode, "a", rootNode, "b")
 	if err != nil {
-		t.Fatalf("Couldn't rename; %v", err)
+		t.Fatalf("Couldn't rename; %+v", err)
 	}
 
 	// Stat it again.
 	newEi, err := kbfsOps.Stat(ctx, fileNode)
 	if err != nil {
-		t.Fatalf("Couldn't stat file: %v", err)
+		t.Fatalf("Couldn't stat file: %+v", err)
 	}
 	if ei != newEi {
 		t.Errorf("Entry info unexpectedly changed from %+v to %+v", ei, newEi)
@@ -5390,20 +5390,20 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// Write to it.
 	data := []byte{1}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
-		t.Fatalf("Couldn't write to file: %v", err)
+		t.Fatalf("Couldn't write to file: %+v", err)
 	}
 
 	// Stat it.
 	ei, err := kbfsOps.Stat(ctx, fileNode)
 	if err != nil {
-		t.Fatalf("Couldn't stat file: %v", err)
+		t.Fatalf("Couldn't stat file: %+v", err)
 	}
 	if ei.Size != 1 {
 		t.Errorf("Stat size %d unexpectedly not 1", ei.Size)
@@ -5412,13 +5412,13 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	// Rename it.
 	err = kbfsOps.Rename(ctx, rootNode, "a", rootNode, "b")
 	if err != nil {
-		t.Fatalf("Couldn't rename; %v", err)
+		t.Fatalf("Couldn't rename; %+v", err)
 	}
 
 	// Get the stats via GetDirChildren.
 	eis, err := kbfsOps.GetDirChildren(ctx, rootNode)
 	if err != nil {
-		t.Fatalf("Couldn't stat file: %v", err)
+		t.Fatalf("Couldn't stat file: %+v", err)
 	}
 	if ei != eis["b"] {
 		t.Errorf("Entry info unexpectedly changed from %+v to %+v",
@@ -5436,13 +5436,13 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// Remove the file, which will archive the block
 	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
 	if err != nil {
-		t.Fatalf("Couldn't remove file: %v", err)
+		t.Fatalf("Couldn't remove file: %+v", err)
 	}
 
 	// Wait for the archiving to finish
@@ -5456,7 +5456,7 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	// forced to try again.
 	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create second file: %v", err)
+		t.Fatalf("Couldn't create second file: %+v", err)
 	}
 }
 
@@ -5474,31 +5474,31 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// Write a few blocks
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
-		t.Fatalf("Couldn't write file: %v", err)
+		t.Fatalf("Couldn't write file: %+v", err)
 	}
 
 	err = kbfsOps.Sync(ctx, fileNode)
 	if err != nil {
-		t.Fatalf("Couldn't sync file: %v", err)
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	// Now overwrite those blocks to archive them
 	newData := []byte{11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 	err = kbfsOps.Write(ctx, fileNode, newData, 0)
 	if err != nil {
-		t.Fatalf("Couldn't write file: %v", err)
+		t.Fatalf("Couldn't write file: %+v", err)
 	}
 
 	err = kbfsOps.Sync(ctx, fileNode)
 	if err != nil {
-		t.Fatalf("Couldn't sync file: %v", err)
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 
 	// Wait for the archiving to finish
@@ -5511,12 +5511,12 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	// and make sure it works.
 	err = kbfsOps.Write(ctx, fileNode, data[0:blockSize], 0)
 	if err != nil {
-		t.Fatalf("Couldn't write file: %v", err)
+		t.Fatalf("Couldn't write file: %+v", err)
 	}
 
 	err = kbfsOps.Sync(ctx, fileNode)
 	if err != nil {
-		t.Fatalf("Couldn't sync file: %v", err)
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 }
 
@@ -5547,7 +5547,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
+		t.Fatalf("Couldn't create file: %+v", err)
 	}
 
 	// Read using a different "device"
@@ -5560,8 +5560,8 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	// Lookup the file, which should fail on block ID verification
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
-	if _, ok := err.(kbfshash.HashMismatchError); !ok {
-		t.Fatalf("Could unexpectedly lookup the file: %v", err)
+	if _, ok := errors.Cause(err).(kbfshash.HashMismatchError); !ok {
+		t.Fatalf("Could unexpectedly lookup the file: %+v", err)
 	}
 }
 
@@ -5576,7 +5576,7 @@ func TestKBFSOpsEmptyTlfSize(t *testing.T) {
 	status, _, err := config.KBFSOps().FolderStatus(ctx,
 		rootNode.GetFolderBranch())
 	if err != nil {
-		t.Fatalf("Couldn't get folder status: %v", err)
+		t.Fatalf("Couldn't get folder status: %+v", err)
 	}
 	if status.DiskUsage != 313 {
 		t.Fatalf("Disk usage of an empty TLF is no longer 313.  " +

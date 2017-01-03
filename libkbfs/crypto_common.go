@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/binary"
-	"errors"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -18,11 +17,10 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
 )
-
-// TODO: Wrap errors coming from Crypto.
 
 // CryptoCommon contains many of the function implementations need for
 // the Crypto interface, which can be reused by other implementations.
@@ -61,7 +59,7 @@ func (c CryptoCommon) MakeMdID(md BareRootMetadata) (MdID, error) {
 	// Make sure that the serialized metadata is set; otherwise we
 	// won't get the right MdID.
 	if md.GetSerializedPrivateMetadata() == nil {
-		return MdID{}, MDMissingDataError{md.TlfID()}
+		return MdID{}, errors.WithStack(MDMissingDataError{md.TlfID()})
 	}
 
 	buf, err := c.codec.Encode(md)
@@ -146,7 +144,8 @@ func (c CryptoCommon) MakeRandomTLFEphemeralKeys() (
 	keyPair, err := libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		return kbfscrypto.TLFEphemeralPublicKey{},
-			kbfscrypto.TLFEphemeralPrivateKey{}, err
+			kbfscrypto.TLFEphemeralPrivateKey{},
+			errors.WithStack(err)
 	}
 
 	ePubKey := kbfscrypto.MakeTLFEphemeralPublicKey(keyPair.Public)
@@ -161,20 +160,17 @@ func (c CryptoCommon) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey,
 	publicKey, privateKey, err := box.GenerateKey(rand.Reader)
 	if err != nil {
 		return kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
-			kbfscrypto.TLFCryptKey{}, err
+			kbfscrypto.TLFCryptKey{}, errors.WithStack(err)
 	}
 
 	pubKey := kbfscrypto.MakeTLFPublicKey(*publicKey)
 	privKey := kbfscrypto.MakeTLFPrivateKey(*privateKey)
 
-	var data [32]byte
-	err = kbfscrypto.RandRead(data[:])
+	cryptKey, err := kbfscrypto.MakeRandomTLFCryptKey()
 	if err != nil {
 		return kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
 			kbfscrypto.TLFCryptKey{}, err
 	}
-
-	cryptKey := kbfscrypto.MakeTLFCryptKey(data)
 
 	return pubKey, privKey, cryptKey, nil
 }
@@ -183,13 +179,7 @@ func (c CryptoCommon) MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey,
 // CryptoCommon.
 func (c CryptoCommon) MakeRandomTLFCryptKeyServerHalf() (
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
-	var data [32]byte
-	err = kbfscrypto.RandRead(data[:])
-	if err != nil {
-		return kbfscrypto.TLFCryptKeyServerHalf{}, err
-	}
-	serverHalf = kbfscrypto.MakeTLFCryptKeyServerHalf(data)
-	return serverHalf, nil
+	return kbfscrypto.MakeRandomTLFCryptKeyServerHalf()
 }
 
 // EncryptTLFCryptKeyClientHalf implements the Crypto interface for
@@ -202,32 +192,31 @@ func (c CryptoCommon) EncryptTLFCryptKeyClientHalf(
 	var nonce [24]byte
 	err = kbfscrypto.RandRead(nonce[:])
 	if err != nil {
-		return
+		return EncryptedTLFCryptKeyClientHalf{}, err
 	}
 
 	keypair, err := libkb.ImportKeypairFromKID(publicKey.KID())
 	if err != nil {
-		return
+		return EncryptedTLFCryptKeyClientHalf{}, errors.WithStack(err)
 	}
 
 	dhKeyPair, ok := keypair.(libkb.NaclDHKeyPair)
 	if !ok {
-		err = libkb.KeyCannotEncryptError{}
-		return
+		return EncryptedTLFCryptKeyClientHalf{}, errors.WithStack(
+			libkb.KeyCannotEncryptError{})
 	}
 
 	clientHalfData := clientHalf.Data()
 	privateKeyData := privateKey.Data()
 	encryptedBytes := box.Seal(nil, clientHalfData[:], &nonce, (*[32]byte)(&dhKeyPair.Public), &privateKeyData)
 
-	encryptedClientHalf = EncryptedTLFCryptKeyClientHalf{
+	return EncryptedTLFCryptKeyClientHalf{
 		encryptedData{
 			Version:       EncryptionSecretbox,
 			Nonce:         nonce[:],
 			EncryptedData: encryptedBytes,
 		},
-	}
-	return
+	}, nil
 }
 
 func (c CryptoCommon) encryptData(data []byte, key [32]byte) (encryptedData, error) {
@@ -252,32 +241,34 @@ func (c CryptoCommon) EncryptPrivateMetadata(
 	encryptedPmd EncryptedPrivateMetadata, err error) {
 	encodedPmd, err := c.codec.Encode(pmd)
 	if err != nil {
-		return
+		return EncryptedPrivateMetadata{}, err
 	}
 
 	encryptedData, err := c.encryptData(encodedPmd, key.Data())
 	if err != nil {
-		return
+		return EncryptedPrivateMetadata{}, err
 	}
 
-	encryptedPmd = EncryptedPrivateMetadata{encryptedData}
-	return
+	return EncryptedPrivateMetadata{encryptedData}, nil
 }
 
 func (c CryptoCommon) decryptData(encryptedData encryptedData, key [32]byte) ([]byte, error) {
 	if encryptedData.Version != EncryptionSecretbox {
-		return nil, UnknownEncryptionVer{encryptedData.Version}
+		return nil, errors.WithStack(
+			UnknownEncryptionVer{encryptedData.Version})
 	}
 
 	var nonce [24]byte
 	if len(encryptedData.Nonce) != len(nonce) {
-		return nil, InvalidNonceError{encryptedData.Nonce}
+		return nil, errors.WithStack(
+			InvalidNonceError{encryptedData.Nonce})
 	}
 	copy(nonce[:], encryptedData.Nonce)
 
-	decryptedData, ok := secretbox.Open(nil, encryptedData.EncryptedData, &nonce, &key)
+	decryptedData, ok := secretbox.Open(
+		nil, encryptedData.EncryptedData, &nonce, &key)
 	if !ok {
-		return nil, libkb.DecryptionError{}
+		return nil, errors.WithStack(libkb.DecryptionError{})
 	}
 
 	return decryptedData, nil
@@ -337,7 +328,7 @@ func (c CryptoCommon) padBlock(block []byte) ([]byte, error) {
 
 	// first 4 bytes contain the length of the block data
 	if err := binary.Write(buf, binary.LittleEndian, blockLen); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// followed by the actual block data
@@ -346,10 +337,11 @@ func (c CryptoCommon) padBlock(block []byte) ([]byte, error) {
 	// followed by random data
 	n, err := io.CopyN(buf, rand.Reader, padLen)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	if n != padLen {
-		return nil, kbfscrypto.UnexpectedShortCryptoRandRead{}
+		return nil, errors.WithStack(
+			kbfscrypto.UnexpectedShortCryptoRandRead{})
 	}
 
 	return buf.Bytes(), nil
@@ -361,12 +353,13 @@ func (c CryptoCommon) depadBlock(paddedBlock []byte) ([]byte, error) {
 
 	var blockLen uint32
 	if err := binary.Read(buf, binary.LittleEndian, &blockLen); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	blockEndPos := int(blockLen + padPrefixSize)
 
 	if len(paddedBlock) < blockEndPos {
-		return nil, PaddedBlockReadError{ActualLen: len(paddedBlock), ExpectedLen: blockEndPos}
+		return nil, errors.WithStack(
+			PaddedBlockReadError{ActualLen: len(paddedBlock), ExpectedLen: blockEndPos})
 	}
 	return buf.Next(int(blockLen)), nil
 }
@@ -376,29 +369,30 @@ func (c CryptoCommon) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
 	plainSize int, encryptedBlock EncryptedBlock, err error) {
 	encodedBlock, err := c.codec.Encode(block)
 	if err != nil {
-		return
+		return -1, EncryptedBlock{}, err
 	}
 
 	paddedBlock, err := c.padBlock(encodedBlock)
 	if err != nil {
-		return
+		return -1, EncryptedBlock{}, err
 	}
 
 	encryptedData, err := c.encryptData(paddedBlock, key.Data())
 	if err != nil {
-		return
+		return -1, EncryptedBlock{}, err
 	}
 
 	plainSize = len(encodedBlock)
 	encryptedBlock = EncryptedBlock{encryptedData}
-	return
+	return plainSize, encryptedBlock, nil
 }
 
 // DecryptBlock implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) DecryptBlock(
 	encryptedBlock EncryptedBlock, key kbfscrypto.BlockCryptKey,
 	block Block) error {
-	paddedBlock, err := c.decryptData(encryptedBlock.encryptedData, key.Data())
+	paddedBlock, err := c.decryptData(
+		encryptedBlock.encryptedData, key.Data())
 	if err != nil {
 		return err
 	}
@@ -410,7 +404,7 @@ func (c CryptoCommon) DecryptBlock(
 
 	err = c.codec.Decode(encodedBlock, &block)
 	if err != nil {
-		return BlockDecodeError{err}
+		return errors.WithStack(BlockDecodeError{err})
 	}
 	return nil
 }
@@ -461,7 +455,8 @@ func (c CryptoCommon) EncryptMerkleLeaf(leaf MerkleLeaf,
 	// encrypt the encoded leaf
 	pubKeyData := pubKey.Data()
 	privKeyData := ePrivKey.Data()
-	encryptedData := box.Seal(nil, leafBytes[:], nonce, &pubKeyData, &privKeyData)
+	encryptedData := box.Seal(
+		nil, leafBytes[:], nonce, &pubKeyData, &privKeyData)
 	return EncryptedMerkleLeaf{
 		Version:       EncryptionSecretbox,
 		EncryptedData: encryptedData,
@@ -474,13 +469,15 @@ func (c CryptoCommon) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf,
 	privKey kbfscrypto.TLFPrivateKey, nonce *[24]byte,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey) (*MerkleLeaf, error) {
 	if encryptedLeaf.Version != EncryptionSecretbox {
-		return nil, UnknownEncryptionVer{encryptedLeaf.Version}
+		return nil, errors.WithStack(
+			UnknownEncryptionVer{encryptedLeaf.Version})
 	}
 	pubKeyData := ePubKey.Data()
 	privKeyData := privKey.Data()
-	leafBytes, ok := box.Open(nil, encryptedLeaf.EncryptedData[:], nonce, &pubKeyData, &privKeyData)
+	leafBytes, ok := box.Open(
+		nil, encryptedLeaf.EncryptedData[:], nonce, &pubKeyData, &privKeyData)
 	if !ok {
-		return nil, libkb.DecryptionError{}
+		return nil, errors.WithStack(libkb.DecryptionError{})
 	}
 	// decode the leaf
 	var leaf MerkleLeaf
@@ -496,16 +493,15 @@ func (c CryptoCommon) EncryptTLFCryptKeys(
 	encryptedKeys EncryptedTLFCryptKeys, err error) {
 	encodedKeys, err := c.codec.Encode(oldKeys)
 	if err != nil {
-		return
+		return EncryptedTLFCryptKeys{}, err
 	}
 
 	encryptedData, err := c.encryptData(encodedKeys, key.Data())
 	if err != nil {
-		return
+		return EncryptedTLFCryptKeys{}, err
 	}
 
-	encryptedKeys = EncryptedTLFCryptKeys{encryptedData}
-	return
+	return EncryptedTLFCryptKeys{encryptedData}, nil
 }
 
 // DecryptTLFCryptKeys implements the Crypto interface for CryptoCommon.

@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -55,7 +56,7 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	sigInfo kbfscrypto.SignatureInfo, err error) {
 	c.log.CDebugf(ctx, "Signing %d-byte message", len(msg))
 	defer func() {
-		c.deferLog.CDebugf(ctx, "Signed %d-byte message with %s: err=%v", len(msg),
+		c.deferLog.CDebugf(ctx, "Signed %d-byte message with %s: err=%+v", len(msg),
 			sigInfo, err)
 	}()
 
@@ -66,15 +67,14 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 		Reason: "to use kbfs",
 	})
 	if err != nil {
-		return
+		return kbfscrypto.SignatureInfo{}, errors.WithStack(err)
 	}
 
-	sigInfo = kbfscrypto.SignatureInfo{
+	return kbfscrypto.SignatureInfo{
 		Version:      kbfscrypto.SigED25519,
 		Signature:    ed25519SigInfo.Sig[:],
 		VerifyingKey: kbfscrypto.MakeVerifyingKey(libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
-	}
-	return
+	}, nil
 }
 
 // SignForKBFS implements the Crypto interface for CryptoClient.
@@ -82,7 +82,7 @@ func (c *CryptoClient) SignForKBFS(ctx context.Context, msg []byte) (
 	sigInfo kbfscrypto.SignatureInfo, err error) {
 	c.log.CDebugf(ctx, "Signing %d-byte message", len(msg))
 	defer func() {
-		c.deferLog.CDebugf(ctx, "Signed %d-byte message with %s: err=%v", len(msg),
+		c.deferLog.CDebugf(ctx, "Signed %d-byte message with %s: err=%+v", len(msg),
 			sigInfo, err)
 	}()
 
@@ -93,15 +93,14 @@ func (c *CryptoClient) SignForKBFS(ctx context.Context, msg []byte) (
 		Reason: "to use kbfs",
 	})
 	if err != nil {
-		return
+		return kbfscrypto.SignatureInfo{}, errors.WithStack(err)
 	}
 
-	sigInfo = kbfscrypto.SignatureInfo{
+	return kbfscrypto.SignatureInfo{
 		Version:      kbfscrypto.SigED25519ForKBFS,
 		Signature:    ed25519SigInfo.Sig[:],
 		VerifyingKey: kbfscrypto.MakeVerifyingKey(libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
-	}
-	return
+	}, nil
 }
 
 // SignToString implements the Crypto interface for CryptoClient.
@@ -109,7 +108,7 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 	signature string, err error) {
 	c.log.CDebugf(ctx, "Signing %d-byte message to string", len(msg))
 	defer func() {
-		c.deferLog.CDebugf(ctx, "Signed %d-byte message: err=%v", len(msg), err)
+		c.deferLog.CDebugf(ctx, "Signed %d-byte message: err=%+v", len(msg), err)
 	}()
 
 	timer := c.logAboutTooLongUnlessCancelled(ctx, "SignToString")
@@ -118,28 +117,37 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 		Msg:    msg,
 		Reason: "KBFS Authentication",
 	})
-	return
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return signature, nil
 }
 
-func (c *CryptoClient) prepareTLFCryptKeyClientHalf(encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
-	encryptedData keybase1.EncryptedBytes32, nonce keybase1.BoxNonce, err error) {
+func (c *CryptoClient) prepareTLFCryptKeyClientHalf(
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	encryptedData keybase1.EncryptedBytes32, nonce keybase1.BoxNonce,
+	err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
-		err = UnknownEncryptionVer{encryptedClientHalf.Version}
-		return
+		return keybase1.EncryptedBytes32{}, keybase1.BoxNonce{},
+			errors.WithStack(UnknownEncryptionVer{
+				encryptedClientHalf.Version})
 	}
 
 	if len(encryptedClientHalf.EncryptedData) != len(encryptedData) {
-		err = libkb.DecryptionError{}
-		return
+		return keybase1.EncryptedBytes32{}, keybase1.BoxNonce{},
+			errors.Errorf("Expected %d bytes, got %d",
+				len(encryptedData),
+				len(encryptedClientHalf.EncryptedData))
 	}
 	copy(encryptedData[:], encryptedClientHalf.EncryptedData)
 
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
-		err = InvalidNonceError{encryptedClientHalf.Nonce}
-		return
+		return keybase1.EncryptedBytes32{}, keybase1.BoxNonce{},
+			errors.WithStack(InvalidNonceError{
+				encryptedClientHalf.Nonce})
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
-	return encryptedData, nonce, err
+	return encryptedData, nonce, nil
 }
 
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
@@ -150,11 +158,13 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	clientHalf kbfscrypto.TLFCryptKeyClientHalf, err error) {
 	c.log.CDebugf(ctx, "Decrypting TLF client key half")
 	defer func() {
-		c.deferLog.CDebugf(ctx, "Decrypted TLF client key half: %v", err)
+		c.deferLog.CDebugf(ctx, "Decrypted TLF client key half: %+v",
+			err)
 	}()
-	encryptedData, nonce, err := c.prepareTLFCryptKeyClientHalf(encryptedClientHalf)
+	encryptedData, nonce, err := c.prepareTLFCryptKeyClientHalf(
+		encryptedClientHalf)
 	if err != nil {
-		return
+		return kbfscrypto.TLFCryptKeyClientHalf{}, err
 	}
 
 	timer := c.logAboutTooLongUnlessCancelled(ctx, "UnboxBytes32")
@@ -166,11 +176,10 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 		Reason:           "to use kbfs",
 	})
 	if err != nil {
-		return
+		return kbfscrypto.TLFCryptKeyClientHalf{}, errors.WithStack(err)
 	}
 
-	clientHalf = kbfscrypto.MakeTLFCryptKeyClientHalf(decryptedClientHalf)
-	return
+	return kbfscrypto.MakeTLFCryptKeyClientHalf(decryptedClientHalf), nil
 }
 
 // DecryptTLFCryptKeyClientHalfAny implements the Crypto interface for
@@ -180,19 +189,22 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	clientHalf kbfscrypto.TLFCryptKeyClientHalf, index int, err error) {
 	c.log.CDebugf(ctx, "Decrypting TLF client key half with any key")
 	defer func() {
-		c.deferLog.CDebugf(ctx, "Decrypted TLF client key half with any key: %v",
+		c.deferLog.CDebugf(ctx,
+			"Decrypted TLF client key half with any key: %+v",
 			err)
 	}()
 	if len(keys) == 0 {
-		return clientHalf, index, NoKeysError{}
+		return kbfscrypto.TLFCryptKeyClientHalf{}, -1,
+			errors.WithStack(NoKeysError{})
 	}
 	bundles := make([]keybase1.CiphertextBundle, 0, len(keys))
-	errors := make([]error, 0, len(keys))
+	prepErrs := make([]error, 0, len(keys))
 	indexLookup := make([]int, 0, len(keys))
 	for i, k := range keys {
-		encryptedData, nonce, err := c.prepareTLFCryptKeyClientHalf(k.ClientHalf)
+		encryptedData, nonce, prepErr :=
+			c.prepareTLFCryptKeyClientHalf(k.ClientHalf)
 		if err != nil {
-			errors = append(errors, err)
+			prepErrs = append(prepErrs, prepErr)
 		} else {
 			bundles = append(bundles, keybase1.CiphertextBundle{
 				Kid:        k.PubKey.KID(),
@@ -204,8 +216,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		}
 	}
 	if len(bundles) == 0 {
-		err = errors[0]
-		return
+		return kbfscrypto.TLFCryptKeyClientHalf{}, -1, prepErrs[0]
 	}
 	timer := c.logAboutTooLongUnlessCancelled(ctx, "UnboxBytes32Any")
 	defer timer.Stop()
@@ -215,7 +226,8 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		PromptPaper: promptPaper,
 	})
 	if err != nil {
-		return
+		return kbfscrypto.TLFCryptKeyClientHalf{}, -1,
+			errors.WithStack(err)
 	}
 	return kbfscrypto.MakeTLFCryptKeyClientHalf(res.Plaintext),
 		indexLookup[res.Index], nil
