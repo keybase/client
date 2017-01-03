@@ -176,7 +176,30 @@ const commands = {
   },
 }
 
+function fixupSymlinks () {
+  const symlinks = [
+    {srcNode: './desktop/renderer/fonts', srcShell: 'desktop\\renderer\\fonts', dstShell: 'fonts'},
+  ]
+
+  symlinks.forEach(symlink => {
+    let s = fs.lstatSync(symlink.srcNode)
+    if (!s.isSymbolicLink()) {
+      console.log(`Fixing up shared ${symlink.srcNode}`)
+
+      try {
+        exec(`del ${symlink.srcShell}`, null, {cwd: path.join(process.cwd(), '.')})
+      } catch (_) { }
+      try {
+        exec(`mklink /j ${symlink.srcShell} ${symlink.dstShell}`, null, {cwd: path.join(process.cwd(), '.')})
+      } catch (_) { }
+    }
+  })
+}
 function postInstall () {
+  if (process.platform === 'win32') {
+    fixupSymlinks()
+  }
+
   // Inject dummy module
   exec('node make-shim net')
   exec('node make-shim tls')
