@@ -155,7 +155,7 @@ const commands = {
       KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] || path.resolve('../../js-vendor-desktop'),
     },
     nodePathDesktop: true,
-    shell: 'yarn install ../visdiff && keybase-visdiff',
+    shell: 'cd ../visdiff && yarn install --pure-lockfile && cd ../shared && node ../visdiff/dist/index.js',
     help: 'Perform a local visdiff',
   },
   'updated-fonts': {
@@ -501,6 +501,7 @@ export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 }
 
 function exec (command, env, options) {
+  console.log('aaa', command)
   if (!env) {
     env = process.env
   }
