@@ -110,8 +110,7 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 	}, nil
 }
 
-func (r *chatConversationResolver) resolveWithService(ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) (
-	conversations []chat1.ConversationInfoLocal, err error) {
+func (r *chatConversationResolver) resolveWithService(ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
 	arg, err := r.makeGetInboxAndUnboxLocalArg(ctx, req, identifyBehavior)
 	if err != nil {
 		return nil, err
@@ -122,14 +121,10 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 		return nil, err
 	}
 
-	for _, conv := range gilres.Conversations {
-		conversations = append(conversations, conv.Info)
-	}
-
-	return conversations, nil
+	return gilres.Conversations, nil
 }
 
-func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Context, req chatConversationResolvingRequest, conversations []chat1.ConversationInfoLocal) (
+func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Context, req chatConversationResolvingRequest, conversations []chat1.ConversationLocal) (
 	conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
 	switch len(conversations) {
 	case 0:
@@ -152,7 +147,7 @@ func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Con
 				continue
 			}
 		}
-		return &conversations[num-1], true, nil
+		return &conversations[num-1].Info, true, nil
 	}
 }
 
@@ -216,7 +211,11 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 		}
 		return nil, false, errors.New("no conversation found")
 	case 1:
-		if req.TlfName != conversations[0].TlfName {
+		if conversations[0].Error != nil {
+			return nil, false, errors.New(*conversations[0].Error)
+		}
+		info := conversations[0].Info
+		if req.TlfName != info.TlfName {
 			// This must be:
 			//
 			// 1) a special case where user only has one conversation, and user
@@ -226,17 +225,16 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 			//
 			// Either way, we present a visual confirmation so that user knows chich
 			// conversation she's sending into or reading from.
-			if conversations[0].Triple.TopicType == chat1.TopicType_CHAT {
+			if info.Triple.TopicType == chat1.TopicType_CHAT {
 				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation: %s\n",
-					conversations[0].Visibility,
-					conversations[0].Triple.TopicType, conversations[0].TlfName)
+					info.Visibility,
+					info.Triple.TopicType, info.TlfName)
 			} else {
 				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation [%s]: %s\n",
-					conversations[0].Visibility,
-					conversations[0].Triple.TopicType, conversations[0].TopicName, conversations[0].TlfName)
+					info.Visibility, info.Triple.TopicType, info.TopicName, info.TlfName)
 			}
 		}
-		return &conversations[0], false, nil
+		return &info, false, nil
 	default:
 		if behavior.Interactive {
 			return r.resolveWithCliUIInteractively(ctx, req, conversations)
