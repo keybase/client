@@ -15,8 +15,7 @@ type KeybaseContext interface {
 	LoadUserByUID(uid keybase1.UID) (*libkb.User, error)
 	UIDToUsername(uid keybase1.UID) (libkb.NormalizedUsername, error)
 	Clock() clockwork.Clock
-	GetCachedUserLoader() *libkb.CachedUserLoader
-	GetUserDeviceCache() *libkb.UserDeviceCache
+	GetUPAKLoader() libkb.UPAKLoader
 	GetMerkleClient() *libkb.MerkleClient
 }
 

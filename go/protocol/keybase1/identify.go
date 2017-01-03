@@ -63,7 +63,7 @@ type IdentifyInterface interface {
 	Resolve(context.Context, string) (UID, error)
 	// Resolve an assertion to a (UID,username). On failure, returns an error.
 	Resolve2(context.Context, string) (User, error)
-	// DEPRECATED:  use idenitfy2
+	// DEPRECATED:  use identify2
 	//
 	// Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
 	// If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
@@ -162,7 +162,7 @@ func (c IdentifyClient) Resolve2(ctx context.Context, assertion string) (res Use
 	return
 }
 
-// DEPRECATED:  use idenitfy2
+// DEPRECATED:  use identify2
 //
 // Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
 // If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).

@@ -274,6 +274,10 @@
           "name": "visibility"
         },
         {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
           "type": [
             null,
             "ConversationFinalizeInfo"

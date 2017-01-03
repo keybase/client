@@ -53,6 +53,12 @@ type TLFIdentifyFailure struct {
 	Breaks *IdentifyTrackBreaks `codec:"breaks,omitempty" json:"breaks,omitempty"`
 }
 
+type CanonicalTLFNameAndIDWithBreaks struct {
+	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
+	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
+	Breaks        TLFBreak         `codec:"breaks" json:"breaks"`
+}
+
 type GetTLFCryptKeysRes struct {
 	NameIDBreaks CanonicalTLFNameAndIDWithBreaks `codec:"nameIDBreaks" json:"nameIDBreaks"`
 	CryptKeys    []CryptKey                      `codec:"CryptKeys" json:"CryptKeys"`
@@ -61,12 +67,6 @@ type GetTLFCryptKeysRes struct {
 type TLFQuery struct {
 	TlfName          string              `codec:"tlfName" json:"tlfName"`
 	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
-type CanonicalTLFNameAndIDWithBreaks struct {
-	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
-	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
-	Breaks        TLFBreak         `codec:"breaks" json:"breaks"`
 }
 
 type GetTLFCryptKeysArg struct {
