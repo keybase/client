@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
@@ -146,6 +147,7 @@ func makeFakeDirBlockFuture(t *testing.T) dirBlockFuture {
 			CommonBlock{
 				true,
 				codec.UnknownFieldSetHandler{},
+				sync.RWMutex{},
 				0,
 			},
 			nil,
@@ -205,6 +207,7 @@ func makeFakeFileBlockFuture(t *testing.T) fileBlockFuture {
 			CommonBlock{
 				false,
 				codec.UnknownFieldSetHandler{},
+				sync.RWMutex{},
 				0,
 			},
 			[]byte{0xa, 0xb},

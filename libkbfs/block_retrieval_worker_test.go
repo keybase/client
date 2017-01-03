@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -85,8 +84,7 @@ func makeFakeFileBlock(t *testing.T, doHash bool) *FileBlock {
 		Contents: buf,
 	}
 	if doHash {
-		_, hash := kbfshash.DoRawDefaultHash(block.Contents)
-		block.hash = &hash
+		_ = block.UpdateHash()
 	}
 	return block
 }
