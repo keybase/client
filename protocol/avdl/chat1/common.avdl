@@ -105,6 +105,7 @@ protocol common {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
     TLFVisibility visibility;
+    ConversationStatus status;
 
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;

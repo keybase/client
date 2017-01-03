@@ -181,6 +181,8 @@ protocol local {
     string tlfName;
     string topicName;
     TLFVisibility visibility;
+    ConversationStatus status;
+    
     // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;
     array<string> readerNames;

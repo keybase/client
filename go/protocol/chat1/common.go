@@ -173,6 +173,7 @@ type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
 	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
+	Status         ConversationStatus        `codec:"status" json:"status"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
 }
