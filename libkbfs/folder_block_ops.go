@@ -1984,7 +1984,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 			fbo.revertSyncInfoAfterRecoverableError(blocksToRemove, result)
 		}
 		if result.fblock != nil {
-			*result.fblock = *result.savedFblock
+			result.fblock.Set(result.savedFblock, fbo.config.Codec())
 			fbo.fixChildBlocksAfterRecoverableErrorLocked(
 				ctx, lState, file, md,
 				result.redirtyOnRecoverableError)

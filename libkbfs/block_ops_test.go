@@ -126,7 +126,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	var latestKeyGen KeyGen = 5
 	kmd := makeFakeKeyMetadata(tlfID, latestKeyGen)
 
-	block := FileBlock{
+	block := &FileBlock{
 		Contents: []byte{1, 2, 3, 4, 5},
 	}
 
@@ -134,7 +134,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	id, plainSize, readyBlockData, err := bops.Ready(ctx, kmd, &block)
+	id, plainSize, readyBlockData, err := bops.Ready(ctx, kmd, block)
 	require.NoError(t, err)
 
 	require.Equal(t, len(encodedBlock), plainSize)
@@ -150,9 +150,9 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 		readyBlockData.serverHalf,
 		kmd.keys[latestKeyGen-FirstValidKeyGen])
 
-	var decryptedBlock FileBlock
+	decryptedBlock := &FileBlock{}
 	err = config.cryptoPure.DecryptBlock(
-		encryptedBlock, blockCryptKey, &decryptedBlock)
+		encryptedBlock, blockCryptKey, decryptedBlock)
 	require.NoError(t, err)
 	decryptedBlock.SetEncodedSize(uint32(readyBlockData.GetEncodedSize()))
 	require.Equal(t, block, decryptedBlock)
@@ -301,12 +301,12 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	var keyGen KeyGen = 3
 	kmd1 := makeFakeKeyMetadata(tlfID, keyGen)
 
-	block := FileBlock{
+	block := &FileBlock{
 		Contents: []byte{1, 2, 3, 4, 5},
 	}
 
 	ctx := context.Background()
-	id, _, readyBlockData, err := bops.Ready(ctx, kmd1, &block)
+	id, _, readyBlockData, err := bops.Ready(ctx, kmd1, block)
 	require.NoError(t, err)
 
 	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
@@ -315,10 +315,10 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	kmd2 := makeFakeKeyMetadata(tlfID, keyGen+3)
-	var decryptedBlock FileBlock
+	decryptedBlock := &FileBlock{}
 	err = bops.Get(ctx, kmd2,
 		BlockPointer{ID: id, KeyGen: keyGen, Context: bCtx},
-		&decryptedBlock, NoCacheEntry)
+		decryptedBlock, NoCacheEntry)
 	require.NoError(t, err)
 	require.Equal(t, block, decryptedBlock)
 }

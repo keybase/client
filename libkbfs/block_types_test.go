@@ -124,7 +124,7 @@ func (dbf *dirBlockFuture) Set(other Block, codec kbfscodec.Codec) {
 	}
 }
 
-func (dbf dirBlockFuture) toCurrent() dirBlockCurrent {
+func (dbf *dirBlockFuture) toCurrent() dirBlockCurrent {
 	db := dbf.dirBlockCurrent
 	db.Children = make(map[string]DirEntry, len(dbf.Children))
 	for k, v := range dbf.Children {
@@ -137,12 +137,12 @@ func (dbf dirBlockFuture) toCurrent() dirBlockCurrent {
 	return db
 }
 
-func (dbf dirBlockFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
+func (dbf *dirBlockFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return dbf.toCurrent()
 }
 
-func makeFakeDirBlockFuture(t *testing.T) dirBlockFuture {
-	return dirBlockFuture{
+func makeFakeDirBlockFuture(t *testing.T) *dirBlockFuture {
+	return &dirBlockFuture{
 		dirBlockCurrent{
 			CommonBlock{
 				true,
