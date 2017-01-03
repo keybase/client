@@ -1296,8 +1296,14 @@ func (j *tlfJournal) enable() error {
 // All the functions below just do the equivalent blockJournal or
 // mdJournal function under j.journalLock.
 
-func (j *tlfJournal) getBlockDataWithContext(
-	id kbfsblock.ID, context kbfsblock.Context) (
+// getBlockData doesn't take a block context param, unlike the remote
+// block server, since we still want to serve blocks even if all local
+// references have been deleted (for example, a block that's been
+// flushed but is still being and served on disk until the next
+// successful MD flush).  This is safe because the journal doesn't
+// support removing references for anything other than a flush (see
+// the comment in tlfJournal.removeBlockReferences).
+func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -1305,7 +1311,7 @@ func (j *tlfJournal) getBlockDataWithContext(
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
-	return j.blockJournal.getDataWithContext(id, context)
+	return j.blockJournal.getData(id)
 }
 
 func (j *tlfJournal) putBlockData(

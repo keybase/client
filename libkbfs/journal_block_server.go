@@ -27,8 +27,7 @@ func (j journalBlockServer) Get(
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
-		data, serverHalf, err := tlfJournal.getBlockDataWithContext(
-			id, context)
+		data, serverHalf, err := tlfJournal.getBlockData(id)
 		switch errors.Cause(err).(type) {
 		case nil:
 			return data, serverHalf, nil
