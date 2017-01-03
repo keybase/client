@@ -1,5 +1,5 @@
 // @flow
-import DevTools from '../../desktop/renderer/redux-dev-tools'
+import DevTools from '../desktop/renderer/redux-dev-tools'
 import {compose, applyMiddleware} from 'redux'
 import {enableStoreLogging} from '../local-debug'
 
