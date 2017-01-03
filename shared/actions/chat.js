@@ -45,6 +45,7 @@ import type {
   NewChat,
   OpenFolder,
   PostMessage,
+  RetryMessage,
   SelectConversation,
   SetupNewChatHandler,
   StartConversation,
@@ -69,9 +70,10 @@ const {
   localNewConversationLocalRpcPromise,
   localPostFileAttachmentLocalRpcChannelMap,
   localPostLocalNonblockRpcPromise,
+  localRetryPostRpcPromise,
 } = ChatTypes
 
-const {conversationIDToKey, keyToConversationID, InboxStateRecord, MetaDataRecord, makeSnippet, serverMessageToMessageBody} = Constants
+const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody} = Constants
 
 const _selectedSelector = (state: TypedState) => {
   const chatPath = getPath(state.routeTree.routeState, [chatTab])
@@ -119,6 +121,10 @@ function newChat (existingParticipants: Array<string>): NewChat {
 
 function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
   return {type: Constants.postMessage, payload: {conversationIDKey, text}}
+}
+
+function retryMessage (outboxID: string): RetryMessage {
+  return {type: Constants.retryMessage, payload: {outboxID}}
 }
 
 function setupNewChatHandler (): SetupNewChatHandler {
@@ -266,6 +272,16 @@ function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey)
     sender: Buffer.from(uid, 'hex'),
     senderDevice: Buffer.from(deviceID, 'hex'),
   }
+}
+
+function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
+  const {outboxID} = action.payload
+
+  yield call(localRetryPostRpcPromise, {
+    param: {
+      outboxID: keyToOutboxID(outboxID),
+    },
+  })
 }
 
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
@@ -646,7 +662,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
-          const outboxID = payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex')
+          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
           return {
             type: 'Text',
             ...common,
@@ -975,6 +991,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
     safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
+    safeTakeEvery(Constants.retryMessage, _retryMessage),
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
     safeTakeEvery(Constants.appendMessages, _sendNotifications),
@@ -1001,6 +1018,7 @@ export {
   selectAttachment,
   openFolder,
   postMessage,
+  retryMessage,
   selectConversation,
   setupNewChatHandler,
   startConversation,
