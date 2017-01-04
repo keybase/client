@@ -131,9 +131,9 @@ const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
   },
 }
 
-function baseAttachmentPopupMock (followState) {
+function baseAttachmentPopupMock (message) {
   return {
-    message: attachmentMessageMock('sent', followState),
+    message,
     onCloseDetailsPopup: () => console.log('onCloseDetailsPopup'),
     onClose: () => console.log('onClose'),
     onDownload: () => console.log('onDownload'),
@@ -154,22 +154,40 @@ const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
   component: AttachmentPopup,
   mocks: {
     'You': {
-      ...baseAttachmentPopupMock('You'),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
+      detailsPopupShowing: false,
+      isZoomed: false,
+    },
+    'You - Wide Image': {
+      ...baseAttachmentPopupMock({
+        ...attachmentMessageMock('sent', 'You'),
+        title: 'Pacific',
+        downloadedPath: require('../../../images/mock/coast-wide.jpg'),
+      }),
+      detailsPopupShowing: false,
+      isZoomed: false,
+    },
+    'You - Small Image': {
+      ...baseAttachmentPopupMock({
+        ...attachmentMessageMock('sent', 'You'),
+        title: 'Washington',
+        downloadedPath: require('../../../images/mock/washington-small.jpg'),
+      }),
       detailsPopupShowing: false,
       isZoomed: false,
     },
     'You - Zoomed': {
-      ...baseAttachmentPopupMock('You'),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
       detailsPopupShowing: false,
       isZoomed: true,
     },
     'You - Popup Showing': {
-      ...baseAttachmentPopupMock('You'),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
       detailsPopupShowing: true,
       isZoomed: false,
     },
     'Following - Popup Showing': {
-      ...baseAttachmentPopupMock('Following'),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'Following')),
       detailsPopupShowing: true,
       isZoomed: false,
     },
