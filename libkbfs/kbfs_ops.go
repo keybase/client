@@ -328,7 +328,7 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 	}()
 	if fbo != nil {
 		lState := makeFBOLockState()
-		rmd, err = fbo.getMDForReadNeedIdentify(ctx, lState)
+		rmd, err = fbo.getMDForReadNeedIdentifyOnMaybeFirstAccess(ctx, lState)
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
@@ -368,6 +368,9 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 	ctx context.Context, tlfHandle *TlfHandle) (
 	keys []kbfscrypto.TLFCryptKey, id tlf.ID, err error) {
+	fs.log.CDebugf(ctx, "GetTLFCryptKeys(%s)", tlfHandle.GetCanonicalPath())
+	defer func() { fs.deferLog.CDebugf(ctx, "Done: %+v", err) }()
+
 	rmd, err := fs.getMDByHandle(ctx, tlfHandle)
 	if err != nil {
 		return nil, tlf.ID{}, err
@@ -378,7 +381,10 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 
 // GetTLFID implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context,
-	tlfHandle *TlfHandle) (tlf.ID, error) {
+	tlfHandle *TlfHandle) (id tlf.ID, err error) {
+	fs.log.CDebugf(ctx, "GetTLFID(%s)", tlfHandle.GetCanonicalPath())
+	defer func() { fs.deferLog.CDebugf(ctx, "Done: %+v", err) }()
+
 	rmd, err := fs.getMDByHandle(ctx, tlfHandle)
 	if err != nil {
 		return tlf.ID{}, err
