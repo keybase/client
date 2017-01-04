@@ -98,6 +98,10 @@ func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *stor
 	}
 }
 
+func (s *HybridConversationSource) debug(msg string, args ...interface{}) {
+	s.G().Log.Debug("HybridConversationSource: "+msg, args...)
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
 
@@ -153,6 +157,29 @@ func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID c
 	return conv.Inbox.Full().Conversations[0], nil
 }
 
+func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
+
+	for _, msg := range msgs {
+		if msg.IsValid() {
+			s.debug("identifyTLF: identifying from msg ID: %d name: %s convID: %s",
+				msg.GetMessageID(), msg.Valid().ClientHeader.TlfName, convID)
+
+			vis := chat1.TLFVisibility_PRIVATE
+			if msg.Valid().ClientHeader.TlfPublic {
+				vis = chat1.TLFVisibility_PUBLIC
+			}
+			if _, err := LookupTLF(ctx, s.boxer.tlf, msg.Valid().ClientHeader.TlfName, vis); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	s.debug("identifyTLF: no identify performed, no valid messages found")
+	return nil
+}
+
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
 
@@ -165,7 +192,13 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
 		if err == nil {
 			// If found, then return the stuff
-			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
+			s.debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
+
+			// Identify this TLF by running crypt keys
+			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages); ierr != nil {
+				s.debug("Pull: identify failed: %s", ierr.Error())
+				return chat1.ThreadView{}, nil, ierr
+			}
 
 			// Before returning the stuff, update SenderDeviceRevokedAt on each message.
 			updatedMessages, err := s.updateMessages(ctx, localData.Messages)
@@ -190,7 +223,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			return localData, rl, nil
 		}
 	} else {
-		s.G().Log.Debug("Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
+		s.debug("Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
 			err.Error())
 	}
 
@@ -242,7 +275,7 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 		m := message.Valid()
 		if m.HeaderSignature == nil {
 			// Skip revocation check for messages cached before the sig was part of the cache.
-			s.G().Log.Debug("updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
+			s.debug("updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
 			return message, nil
 		}
 
@@ -271,6 +304,13 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
+
+	// Identify this TLF by running crypt keys
+	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages); ierr != nil {
+		s.debug("PullLocalOnly: identify failed: %s", ierr.Error())
+		return chat1.ThreadView{}, ierr
+	}
+
 	return tv, nil
 }
 
@@ -294,6 +334,18 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		return nil, err
 	}
 
+	// Identify this TLF by running crypt keys
+	var fullMsgs []chat1.MessageUnboxed
+	for _, m := range msgs {
+		if m != nil {
+			fullMsgs = append(fullMsgs, *m)
+		}
+	}
+	if ierr := s.identifyTLF(ctx, convID, uid, fullMsgs); ierr != nil {
+		s.debug("GetMessages: identify failed: %s", ierr.Error())
+		return nil, ierr
+	}
+
 	// Make a pass to determine which message IDs we need to grab remotely
 	var remoteMsgs []chat1.MessageID
 	for index, msg := range msgs {
@@ -303,7 +355,8 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	}
 
 	// Grab message from remote
-	s.G().Log.Debug("HybridConversationSource: GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs), len(remoteMsgs))
+	s.debug("GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
+		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
 		rmsgs, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 			ConversationID: convID,
