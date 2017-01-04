@@ -37,6 +37,7 @@ build
 .vscode
 
 npm-debug.log
+yarn-error.log
 shared/coverage
 shared/node_modules
 packaging/desktop/node_modules
