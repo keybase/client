@@ -42,6 +42,7 @@ import type {
   LoadedInbox,
   MaybeTimestamp,
   Message,
+  MessageID,
   NewChat,
   OpenFolder,
   PostMessage,
@@ -329,6 +330,38 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       },
     })
   }
+}
+
+function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
+  const {message} = action.payload
+  let messageID: ?MessageID
+  let conversationIDKey: ConversationIDKey
+  switch (message.type) {
+    case 'Text':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+  }
+
+  if (!messageID) throw new Error('No messageID for message delete')
+  if (!conversationIDKey) throw new Error('No conversation for message delete')
+
+  // TODO: Use deleteMessage rpc when it is available
+  const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
+  clientHeader.supersedes = messageID
+
+  const sent = yield call(localPostLocalNonblockRpcPromise, {
+    param: {
+      conversationID: keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      msg: {
+        clientHeader,
+        messageBody: {
+          messageType: CommonMessageType.delete,
+          messageIDs: [messageID],
+        },
+      },
+    },
+  })
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
@@ -967,6 +1000,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.updateInbox, _onUpdateInbox),
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery(updateReachability, _updateReachability),
+    safeTakeEvery(Constants.deleteMessage, _deleteMessage),
   ]
 }
 
