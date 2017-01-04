@@ -27,7 +27,7 @@ func mdResetOne(
 		if rootPtr.Ref().IsValid() {
 			var dirBlock libkbfs.DirBlock
 			err = config.BlockOps().Get(
-				ctx, irmd, rootPtr, &dirBlock)
+				ctx, irmd, rootPtr, &dirBlock, libkbfs.NoCacheEntry)
 			if err == nil {
 				fmt.Printf("Got no error when getting root block %s; not doing anything\n", rootPtr)
 				return nil

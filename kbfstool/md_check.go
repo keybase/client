@@ -37,7 +37,7 @@ func checkDirBlock(ctx context.Context, config libkbfs.Config,
 	}()
 
 	var dirBlock libkbfs.DirBlock
-	err = config.BlockOps().Get(ctx, kmd, info.BlockPointer, &dirBlock)
+	err = config.BlockOps().Get(ctx, kmd, info.BlockPointer, &dirBlock, libkbfs.NoCacheEntry)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func checkFileBlock(ctx context.Context, config libkbfs.Config,
 	}()
 
 	var fileBlock libkbfs.FileBlock
-	err = config.BlockOps().Get(ctx, kmd, info.BlockPointer, &fileBlock)
+	err = config.BlockOps().Get(ctx, kmd, info.BlockPointer, &fileBlock, libkbfs.NoCacheEntry)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func mdCheckChain(ctx context.Context, config libkbfs.Config,
 				irmd.Revision(), rootPtr.Ref())
 			var dirBlock libkbfs.DirBlock
 			err := config.BlockOps().Get(
-				ctx, irmd, rootPtr, &dirBlock)
+				ctx, irmd, rootPtr, &dirBlock, libkbfs.NoCacheEntry)
 			if err != nil {
 				fmt.Printf("Got error while checking root "+
 					"for rev %d: %v\n",

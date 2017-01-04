@@ -74,12 +74,13 @@ func (cb *CommonBlock) NewEmpty() Block {
 
 // Set implements the Block interface for CommonBlock
 func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
-	otherCb := other.(*CommonBlock)
-	err := kbfscodec.Update(codec, cb, otherCb)
+	// Don't assert type for CommonBlock because we need to be able to Set from
+	// specific block types
+	err := kbfscodec.Update(codec, cb, other)
 	if err != nil {
 		panic("Unable to CommonBlock.Set")
 	}
-	cb.cachedEncodedSize = otherCb.cachedEncodedSize
+	cb.cachedEncodedSize = other.GetEncodedSize()
 }
 
 // NewCommonBlock returns a generic block, unsuitable for caching.
@@ -111,11 +112,11 @@ func (db *DirBlock) NewEmpty() Block {
 // Set implements the Block interface for DirBlock
 func (db *DirBlock) Set(other Block, codec kbfscodec.Codec) {
 	otherDb := other.(*DirBlock)
-	copy, err := otherDb.DeepCopy(codec)
+	dbCopy, err := otherDb.DeepCopy(codec)
 	if err != nil {
 		panic("Unable to DirBlock.Set")
 	}
-	*db = *copy
+	*db = *dbCopy
 }
 
 // DeepCopy makes a complete copy of a DirBlock
@@ -154,7 +155,7 @@ func NewFileBlock() Block {
 
 // NewEmpty implements the Block interface for FileBlock
 func (fb *FileBlock) NewEmpty() Block {
-	return NewFileBlock()
+	return &FileBlock{}
 }
 
 // DataVersion returns data version for this block.
