@@ -33,14 +33,13 @@ func (k *KeyFinderImpl) cacheKey(tlfName string, tlfPublic bool) string {
 // results.
 func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
 
-	k.Lock()
 	ckey := k.cacheKey(tlfName, tlfPublic)
+	k.Lock()
 	existing, ok := k.keys[ckey]
+	k.Unlock()
 	if ok {
-		defer k.Unlock()
 		return existing, nil
 	}
-	k.Unlock()
 
 	query := keybase1.TLFQuery{
 		TlfName: tlfName,
@@ -62,8 +61,8 @@ func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlf
 	}
 
 	k.Lock()
-	defer k.Unlock()
 	k.keys[ckey] = keys
+	k.Unlock()
 
 	return keys, nil
 }
