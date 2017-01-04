@@ -159,7 +159,8 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
 	// Do a bunch of operations.
 	kbfsOps := config.KBFSOps()
-	for i := 0; i < numPointersPerGCThreshold; i++ {
+	testPointersPerGCThreshold := 10
+	for i := 0; i < testPointersPerGCThreshold; i++ {
 		_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 		if err != nil {
 			t.Fatalf("Couldn't create dir: %+v", err)
@@ -176,6 +177,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 
 	// Run it.
 	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
+	ops.fbm.numPointersPerGCThreshold = testPointersPerGCThreshold
 	ops.fbm.forceQuotaReclamation()
 	err := ops.fbm.waitForQuotaReclamations(ctx)
 	if err != nil {

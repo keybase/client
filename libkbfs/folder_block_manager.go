@@ -29,7 +29,7 @@ const (
 	// Once the number of pointers being deleted in a single gc op
 	// passes this threshold, we'll stop garbage collection at the
 	// current revision.
-	numPointersPerGCThreshold = 100
+	numPointersPerGCThresholdDefault = 100
 	// The most revisions to consider for each QR run.
 	numMaxRevisionsPerQR = 100
 
@@ -74,6 +74,8 @@ type folderBlockManager struct {
 	log          logger.Logger
 	shutdownChan chan struct{}
 	id           tlf.ID
+
+	numPointersPerGCThreshold int
 
 	// A queue of MD updates for this folder that need to have their
 	// unref's blocks archived
@@ -124,16 +126,17 @@ func newFolderBlockManager(config Config, fb FolderBranch,
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
 	fbm := &folderBlockManager{
-		config:                  config,
-		log:                     log,
-		shutdownChan:            make(chan struct{}),
-		id:                      fb.Tlf,
-		archiveChan:             make(chan ReadOnlyRootMetadata, 500),
-		archivePauseChan:        make(chan (<-chan struct{})),
-		blocksToDeleteChan:      make(chan blocksToDelete, 25),
-		blocksToDeletePauseChan: make(chan (<-chan struct{})),
-		forceReclamationChan:    make(chan struct{}, 1),
-		helper:                  helper,
+		config:       config,
+		log:          log,
+		shutdownChan: make(chan struct{}),
+		id:           fb.Tlf,
+		numPointersPerGCThreshold: numPointersPerGCThresholdDefault,
+		archiveChan:               make(chan ReadOnlyRootMetadata, 500),
+		archivePauseChan:          make(chan (<-chan struct{})),
+		blocksToDeleteChan:        make(chan blocksToDelete, 25),
+		blocksToDeletePauseChan:   make(chan (<-chan struct{})),
+		forceReclamationChan:      make(chan struct{}, 1),
+		helper:                    helper,
 	}
 	// Pass in the BlockOps here so that the archive goroutine
 	// doesn't do possibly-racy-in-tests access to
@@ -888,12 +891,12 @@ outer:
 	}
 
 	complete = true
-	if len(ptrs) > numPointersPerGCThreshold {
+	if len(ptrs) > fbm.numPointersPerGCThreshold {
 		// Find the earliest revision to clean up that lets us send at
 		// least numPointersPerGCThreshold pointers.  The earliest
 		// pointers are at the end of the list, so subtract the
 		// threshold from the back.
-		threshStart := len(ptrs) - numPointersPerGCThreshold
+		threshStart := len(ptrs) - fbm.numPointersPerGCThreshold
 		origLatestRev := latestRev
 		origPtrsLen := len(ptrs)
 		// TODO: optimize by keeping rev->pos mappings in sorted order.
