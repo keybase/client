@@ -162,14 +162,16 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 
 	for _, msg := range msgs {
 		if msg.IsValid() {
+			tlfName := msg.Valid().ClientHeader.TlfName
 			s.debug("identifyTLF: identifying from msg ID: %d name: %s convID: %s",
-				msg.GetMessageID(), msg.Valid().ClientHeader.TlfName, convID)
+				msg.GetMessageID(), tlfName, convID)
 
 			vis := chat1.TLFVisibility_PRIVATE
 			if msg.Valid().ClientHeader.TlfPublic {
 				vis = chat1.TLFVisibility_PUBLIC
 			}
-			if _, err := LookupTLF(ctx, s.boxer.tlf, msg.Valid().ClientHeader.TlfName, vis); err != nil {
+			if _, err := LookupTLF(ctx, s.boxer.tlf, tlfName, vis); err != nil {
+				s.debug("identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
 			}
 			return nil
@@ -334,18 +336,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		return nil, err
 	}
 
-	// Identify this TLF by running crypt keys
-	var fullMsgs []chat1.MessageUnboxed
-	for _, m := range msgs {
-		if m != nil {
-			fullMsgs = append(fullMsgs, *m)
-		}
-	}
-	if ierr := s.identifyTLF(ctx, convID, uid, fullMsgs); ierr != nil {
-		s.debug("GetMessages: identify failed: %s", ierr.Error())
-		return nil, ierr
-	}
-
 	// Make a pass to determine which message IDs we need to grab remotely
 	var remoteMsgs []chat1.MessageID
 	for index, msg := range msgs {
@@ -391,6 +381,12 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		} else {
 			res = append(res, rmsgsTab[msgIDs[index]])
 		}
+	}
+
+	// Identify this TLF by running crypt keys
+	if ierr := s.identifyTLF(ctx, convID, uid, res); ierr != nil {
+		s.debug("GetMessages: identify failed: %s", ierr.Error())
+		return nil, ierr
 	}
 
 	return res, nil
