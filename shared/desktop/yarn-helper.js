@@ -524,11 +524,11 @@ export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 }
 
 function exec (command, env, options) {
-  console.log('aaa', command)
   if (!env) {
     env = process.env
   }
 
+  // $FlowIssue
   console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
 }
 
