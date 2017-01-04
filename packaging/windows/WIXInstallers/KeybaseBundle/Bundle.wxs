@@ -223,7 +223,8 @@
       <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
                   InstallCondition="NOT VersionNT64 AND NOT nodriver"
                   Compressed="yes"
-                  Visible="no"
+                  Visible="yes"
+                  Permanent="yes"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -234,7 +235,8 @@
       <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
                   InstallCondition="VersionNT64 AND NOT nodriver"
                   Compressed="yes"
-                  Visible="no"
+                  Visible="yes"
+                  Permanent="yes"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
