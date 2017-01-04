@@ -73,12 +73,15 @@ func (fd *fileData) rootBlockPointer() BlockPointer {
 	return fd.file.tailPointer()
 }
 
+// getFileBlockAtOffset returns the leaf block containing the given
+// `off`, along with the set of indirect blocks leading to that leaf
+// (if any).
 func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 	topBlock *FileBlock, off int64, rtype blockReqType) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
 	block *FileBlock, nextBlockStartOff, startOff int64,
 	wasDirty bool, err error) {
-	// find the block matching the offset, if it exists
+	// Find the block matching the offset, if it exists.
 	ptr = fd.rootBlockPointer()
 	block = topBlock
 	nextBlockStartOff = -1
@@ -94,17 +97,18 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 		return ptr, nil, block, nextBlockStartOff, startOff, wasDirty, nil
 	}
 
-	// search until it's not an indirect block
+	// Search until it's not an indirect block.
 	for block.IsInd {
 		nextIndex := len(block.IPtrs) - 1
 		for i, iptr := range block.IPtrs {
 			if iptr.Off == off {
-				// small optimization to avoid iterating past the right ptr
+				// Small optimization to avoid iterating past the correct ptr.
 				nextIndex = i
 				break
 			} else if iptr.Off > off {
-				// i can never be 0, because the first ptr always has
-				// an offset at the beginning of the range
+				// Use the previous block.  i can never be 0, because
+				// the first ptr always has an offset at the beginning
+				// of the range.
 				nextIndex = i - 1
 				break
 			}
@@ -113,8 +117,8 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 		parentBlocks = append(parentBlocks,
 			parentBlockAndChildIndex{block, nextIndex})
 		startOff = nextPtr.Off
-		// there is more to read if we ever took a path through a
-		// ptr that wasn't the final ptr in its respective list
+		// There is more to read if we ever took a path through a
+		// ptr that wasn't the final ptr in its respective list.
 		if nextIndex != len(block.IPtrs)-1 {
 			nextBlockStartOff = block.IPtrs[nextIndex+1].Off
 		}
@@ -126,6 +130,90 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 	}
 
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, wasDirty, nil
+}
+
+// getNextDirtyFileBlockAtOffset returns the next dirty leaf block
+// with a starting offset that is equal or greater than the given
+// `off`.  This assumes that any code that dirties a leaf block also
+// dirties all of its parents, even if those parents haven't yet
+// changed.  It can be used iteratively (by feeding
+// `nextBlockStartOff` back in as `off`) to find all the dirty blocks
+// of the file.  Note that there is no need to parallelize that
+// process, since all the dirty blocks are guaranteed to be local.
+func (fd *fileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
+	topBlock *FileBlock, off int64, rtype blockReqType,
+	dirtyBcache DirtyBlockCache) (
+	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
+	block *FileBlock, nextBlockStartOff, startOff int64,
+	err error) {
+	// Find the block matching the offset, if it exists.
+	ptr = fd.rootBlockPointer()
+	if !dirtyBcache.IsDirty(fd.file.Tlf, ptr, fd.file.Branch) {
+		// The top block isn't dirty, so we know none of the leaves
+		// are dirty.
+		return zeroPtr, nil, nil, 0, 0, nil
+	}
+
+	block = topBlock
+	nextBlockStartOff = -1
+	startOff = 0
+	// Search along paths of dirty blocks until we find a dirty leaf
+	// block with an offset equal or greater than `off`.
+	checkedPrevBlock := false
+	for block.IsInd {
+		index := -1
+		for i, iptr := range block.IPtrs {
+			if iptr.Off < off {
+				continue
+			}
+
+			if iptr.Off == off {
+				// No need to check the previous block if we align
+				// exactly with `off`.
+				checkedPrevBlock = true
+			}
+
+			// If we haven't checked the previous block yet, do so now
+			// since it contains `off`.  We know i can never be 0
+			// here, because the first ptr always has an offset at the
+			// beginning of the range.
+			if !checkedPrevBlock && dirtyBcache.IsDirty(
+				fd.file.Tlf, block.IPtrs[i-1].BlockPointer, fd.file.Branch) {
+				index = i - 1
+				break
+			}
+			checkedPrevBlock = true
+
+			// Now check the current block.
+			if dirtyBcache.IsDirty(
+				fd.file.Tlf, block.IPtrs[i].BlockPointer, fd.file.Branch) {
+				index = i
+				break
+			}
+		}
+
+		if index == -1 {
+			// There's no dirty block at or after `off`.
+			return zeroPtr, nil, nil, 0, 0, nil
+		}
+
+		iptr := block.IPtrs[index]
+		parentBlocks = append(parentBlocks,
+			parentBlockAndChildIndex{block, index})
+		startOff = iptr.Off
+		// There is more to read if we ever took a path through a
+		// ptr that wasn't the final ptr in its respective list.
+		if index != len(block.IPtrs)-1 {
+			nextBlockStartOff = block.IPtrs[index+1].Off
+		}
+		ptr = iptr.BlockPointer
+		block, _, err = fd.getter(ctx, fd.kmd, ptr, fd.file, rtype)
+		if err != nil {
+			return zeroPtr, nil, nil, 0, 0, err
+		}
+	}
+
+	return ptr, parentBlocks, block, nextBlockStartOff, startOff, nil
 }
 
 // getLeafBlocksForOffsetRange fetches all the leaf ("direct") blocks
