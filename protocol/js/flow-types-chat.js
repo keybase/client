@@ -543,6 +543,7 @@ export type ConversationInfoLocal = {
   tlfName: string,
   topicName: string,
   visibility: TLFVisibility,
+  status: ConversationStatus,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -563,6 +564,7 @@ export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
   visibility: TLFVisibility,
+  status: ConversationStatus,
   finalizeInfo?: ?ConversationFinalizeInfo,
   activeList?: ?Array<gregor1.UID>,
 }
