@@ -56,7 +56,7 @@ table {
 /* KB custom font */
 @font-face {
   font-family: 'kb';
-  src: url('fonts/kb.ttf') format('truetype');
+  src: url('../../fonts/kb.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -65,13 +65,13 @@ table {
 @font-face {
     font-family: 'Source Code Pro';
     font-weight: 400;
-    src: url('fonts/SourceCodePro.ttf') format('truetype');
+    src: url('../../fonts/SourceCodePro.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Source Code Pro';
     font-weight: 600;
-    src: url('fonts/SourceCodePro-Semi_bold.ttf') format('truetype');
+    src: url('../../fonts/SourceCodePro-Semi_bold.ttf') format('truetype');
 }
 /* End Source Code Pro */
 
@@ -79,33 +79,33 @@ table {
 @font-face {
     font-family: 'OpenSans';
     font-weight: 400;
-    src: url('fonts/OpenSans.ttf') format('truetype');
+    src: url('../../fonts/OpenSans.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'OpenSans';
     font-weight: 400;
     font-style: italic;
-    src: url('fonts/OpenSans_italic.ttf') format('truetype');
+    src: url('../../fonts/OpenSans_italic.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'OpenSans';
     font-weight: 600;
-    src: url('fonts/OpenSans-Semi_bold.ttf') format('truetype');
+    src: url('../../fonts/OpenSans-Semi_bold.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'OpenSans';
     font-weight: 600;
     font-style: italic;
-    src: url('fonts/OpenSans-Semi_bold_italic.ttf') format('truetype');
+    src: url('../../fonts/OpenSans-Semi_bold_italic.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'OpenSans';
     font-weight: 700;
-    src: url('fonts/OpenSans_bold.ttf') format('truetype');
+    src: url('../../fonts/OpenSans_bold.ttf') format('truetype');
 }
 /* End OpenSans */
 
