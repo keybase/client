@@ -9,9 +9,9 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 
 import type {Message, AttachmentMessage, ServerMessage} from '../../../constants/chat'
 
-const _onRetry = (message: Message) => console.log('todo, hookup attachment onRetry, ', message)
+const _onRetryTodo = (message: Message) => console.log('todo, hookup attachment onRetry, ', message)
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void, onRetryMessage: (outboxID: string) => void) => {
+const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void, onRetry: (outboxID: string) => void) => {
   if (!message) {
     return <Box key={key} style={style} />
   }
@@ -23,7 +23,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         key={key}
         style={style}
         message={message}
-        onRetry={onRetryMessage}
+        onRetry={onRetry}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
@@ -40,7 +40,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         key={key}
         style={style}
         message={message}
-        onRetry={_onRetry}
+        onRetry={_onRetryTodo}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         onLoadAttachment={onLoadAttachment}

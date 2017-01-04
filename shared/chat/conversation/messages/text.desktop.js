@@ -44,9 +44,9 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
   </div>
 )
 
-class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void, onRetryMessage: (event: any) => void}, void> {
+class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void, onRetry: (event: any) => void}, void> {
   render () {
-    const {message, style, includeHeader, isFirstNewMessage, onRetryMessage, onIconClick} = this.props
+    const {message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick} = this.props
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
         <div style={_marginContainerStyle}>
@@ -64,7 +64,7 @@ class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (e
                   <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
                 </div>
               </div>
-              {message.messageState === 'failed' && <Retry onRetry={onRetryMessage} />}
+              {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
             </div>
           </div>
         </div>
@@ -129,7 +129,7 @@ export default compose(
     onIconClick: (props: Props) => event => {
       props.onAction(props.message, event)
     },
-    onRetryMessage: (props: Props) => () => {
+    onRetry: (props: Props) => () => {
       props.message.outboxID && props.onRetry(props.message.outboxID)
     },
   })

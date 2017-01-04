@@ -348,7 +348,6 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
-  console.warn('activityType is ', action.payload.activity.activityType)
   switch (action.payload.activity.activityType) {
     case NotifyChatChatActivityType.failedMessage:
       const failedMessage: ?FailedMessageInfo = action.payload.activity.failedMessage
