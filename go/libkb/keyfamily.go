@@ -366,8 +366,6 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 		return
 	}
 
-	g.Log.Warning("key family: %s", jw.MarshalPretty())
-
 	kf := KeyFamily{
 		Contextified: NewContextified(g),
 		pgp2kid:      make(map[PGPFingerprint]keybase1.KID),
@@ -687,7 +685,7 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
 // account whether the key has been cancelled at time t.
 func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid keybase1.KID, t time.Time) (ret KeyRole) {
 	if info, err := ckf.getCkiIfActiveAtTime(kid, t); err != nil {
-		ckf.G().Log.Warning("GetKeyRoleAtTime %s, %s => err %s", kid, t, err)
+		ckf.G().Log.Debug("GetKeyRoleAtTime %s, %s => err %s", kid, t, err)
 		ret = DLGNone
 	} else if info.Sibkey {
 		ret = DLGSibkey
@@ -831,7 +829,6 @@ func (ckf ComputedKeyFamily) GetDeletedKeys() []GenericKey {
 
 	var keys []GenericKey
 	for kid := range ckf.kf.AllKIDs {
-		ckf.G().Log.Warning("all kids kid: %s", kid)
 		_, ok := ckf.cki.Infos[kid]
 		if ok {
 			// key in cki.Infos, so it is in the current subchain, skip it.

@@ -168,7 +168,6 @@ func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string
 		ID:            chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
 		CanonicalName: res.NameIDBreaks.CanonicalName.String(),
 	}
-	fmt.Printf("******* lookupPrivateTLF info: %+v\n", info)
 	return info, nil
 }
 

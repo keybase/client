@@ -960,9 +960,10 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
 		ret.RevokedDeviceKeys = ckf.ExportRevokedDeviceKeys()
 
-		// XXX temporary
-		deletedDeviceKeys := ckf.ExportDeletedDeviceKeys()
-		u.G().Log.Warning("deleted device keys: %+v", deletedDeviceKeys)
+		// PC WIP
+		// these will be added to UserPlusKeys
+		// deletedDeviceKeys := ckf.ExportDeletedDeviceKeys()
+		// u.G().Log.Warning("deleted device keys: %+v", deletedDeviceKeys)
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)
