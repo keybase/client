@@ -13,7 +13,7 @@ const defines = {
 
 config.entry = {
   'render-visdiff': ['./desktop/test/render-visdiff.js'],
-  visdiff: ['./desktop/test/render-dumb-sheet.js'],
+  visdiff: ['./test/render-dumb-sheet.js'],
 }
 config.plugins.push(
   new webpack.optimize.OccurenceOrderPlugin(),
