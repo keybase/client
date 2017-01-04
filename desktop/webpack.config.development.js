@@ -1,4 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
+const path = require('path')
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
@@ -29,6 +30,12 @@ config.output.publicPath = HOT ? 'http://localhost:4000/dist/' : '../dist/'
 
 // Uncomment below to figure out packaging bugs
 // config.bail = true
+
+config.module.loaders.unshift({
+  test: /\.jpg$/,
+  include: path.resolve(__dirname, '../shared/images/mock'),
+  loader: 'file?name=[name].[ext]',
+})
 
 config.plugins.push(new UnusedFilesWebpackPlugin({
   pattern: '../shared/**/*.js',

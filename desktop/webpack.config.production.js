@@ -1,4 +1,5 @@
 // @flow
+const path = require('path')
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
@@ -17,6 +18,11 @@ console.warn('Injecting production defines: ', defines)
 config.devtool = 'source-map'
 config.output.publicPath = '../dist/'
 config.cache = false // Electron exposes the module as 2 different things depending on the context....
+
+config.module.loaders.unshift({
+  include: path.resolve(__dirname, '../shared/images/mock'),
+  loader: 'null',
+})
 
 config.plugins.push(
   new webpack.DefinePlugin(defines),
