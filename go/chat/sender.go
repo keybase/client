@@ -83,7 +83,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	var prevs []chat1.MessagePreviousPointer
 
-	res, err := s.G().ConvSource.PullLocalOnly(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
+	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil, nil)
 	switch err.(type) {
 	case libkb.ChatStorageMissError:
 		s.G().Log.Debug("No local messages; skipping prev pointers")
@@ -204,24 +204,26 @@ type Deliverer struct {
 	libkb.Contextified
 	sync.Mutex
 
-	sender      Sender
-	outbox      *storage.Outbox
-	storage     *storage.Storage
-	shutdownCh  chan chan struct{}
-	msgSentCh   chan struct{}
-	reconnectCh chan struct{}
-	delivering  bool
-	connected   bool
+	sender        Sender
+	outbox        *storage.Outbox
+	storage       *storage.Storage
+	identNotifier *IdentifyNotifier
+	shutdownCh    chan chan struct{}
+	msgSentCh     chan struct{}
+	reconnectCh   chan struct{}
+	delivering    bool
+	connected     bool
 }
 
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	d := &Deliverer{
-		Contextified: libkb.NewContextified(g),
-		shutdownCh:   make(chan chan struct{}, 1),
-		msgSentCh:    make(chan struct{}, 100),
-		reconnectCh:  make(chan struct{}, 100),
-		sender:       sender,
-		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
+		Contextified:  libkb.NewContextified(g),
+		shutdownCh:    make(chan chan struct{}, 1),
+		msgSentCh:     make(chan struct{}, 100),
+		reconnectCh:   make(chan struct{}, 100),
+		sender:        sender,
+		storage:       storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
+		identNotifier: NewIdentifyNotifier(g),
 	}
 
 	g.PushShutdownHook(func() error {
@@ -356,7 +358,7 @@ func (s *Deliverer) deliverLoop() {
 			}
 
 			// Do the actual send
-			bctx := Context(context.Background(), obr.IdentifyBehavior, &breaks)
+			bctx := Context(context.Background(), obr.IdentifyBehavior, &breaks, s.identNotifier)
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
 			} else {

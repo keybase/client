@@ -8,8 +8,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"sync"
-
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -17,17 +15,14 @@ import (
 )
 
 type tlfHandler struct {
-	sync.RWMutex
 	*BaseHandler
 	libkb.Contextified
-	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
 func newTlfHandler(xp rpc.Transporter, g *libkb.GlobalContext) *tlfHandler {
 	return &tlfHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
-		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
 }
 
@@ -56,27 +51,6 @@ func appendBreaks(l []keybase1.TLFIdentifyFailure, r []keybase1.TLFIdentifyFailu
 	return res
 }
 
-func (h *tlfHandler) sendNotifyEvent(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
-	h.RLock()
-	tlfName := update.CanonicalName.String()
-	if stored, ok := h.identCache[tlfName]; ok {
-		// We have the exact update stored, don't send it again
-		if stored.Eq(update) {
-			defer h.RUnlock()
-			h.G().Log.Debug("sendNotifyEvent: hit cache, not sending notify: %s", tlfName)
-			return
-		}
-	}
-	h.RUnlock()
-
-	h.Lock()
-	defer h.Unlock()
-
-	h.G().Log.Debug("sendNotifyEvent: cache miss, sending notify: %s dat: %v", tlfName, update)
-	h.G().NotifyRouter.HandleChatIdentifyUpdate(context.Background(), update)
-	h.identCache[tlfName] = update
-}
-
 func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keybase1.GetTLFCryptKeysRes, error) {
 	var err error
 	ident, breaks, ok := chat.IdentifyMode(ctx)
@@ -96,7 +70,10 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 		return resp, err
 	}
 
-	h.sendNotifyEvent(resp.NameIDBreaks)
+	in := chat.CtxIdentifyNotifier(ctx)
+	if in != nil {
+		in.Send(resp.NameIDBreaks)
+	}
 	if ok {
 		*breaks = appendBreaks(*breaks, resp.NameIDBreaks.Breaks.Breaks)
 	}
@@ -121,7 +98,10 @@ func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybas
 		return resp, err
 	}
 
-	h.sendNotifyEvent(resp)
+	in := chat.CtxIdentifyNotifier(ctx)
+	if in != nil {
+		in.Send(resp)
+	}
 	if ok {
 		*breaks = appendBreaks(*breaks, resp.Breaks.Breaks)
 	}
