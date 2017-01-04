@@ -845,7 +845,6 @@ func testMDOpsGetRangeFailFinal(t *testing.T, ver MetadataVer) {
 }
 
 func TestMDOps(t *testing.T) {
-	t.Parallel()
 	tests := []func(*testing.T, MetadataVer){
 		testMDOpsGetForHandlePublicSuccess,
 		testMDOpsGetForHandlePrivateSuccess,

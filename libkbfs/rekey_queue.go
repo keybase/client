@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"sync"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
 
@@ -22,7 +21,6 @@ type rekeyQueueEntry struct {
 // RekeyQueueStandard implements the RekeyQueue interface.
 type RekeyQueueStandard struct {
 	config    Config
-	log       logger.Logger
 	queueMu   sync.RWMutex // protects all of the below
 	queue     []rekeyQueueEntry
 	hasWorkCh chan struct{}
@@ -35,20 +33,16 @@ var _ RekeyQueue = (*RekeyQueueStandard)(nil)
 
 // NewRekeyQueueStandard instantiates a new rekey worker.
 func NewRekeyQueueStandard(config Config) *RekeyQueueStandard {
-	log := config.MakeLogger("RQ")
 	rkq := &RekeyQueueStandard{
 		config: config,
-		log:    log,
 	}
 	return rkq
 }
 
 // Enqueue implements the RekeyQueue interface for RekeyQueueStandard.
 func (rkq *RekeyQueueStandard) Enqueue(id tlf.ID) <-chan error {
-	rkq.log.Debug("Enqueueing %s for rekey", id)
 	c := make(chan error, 1)
-	rkq.wg.Add(1)
-	func() {
+	err := func() error {
 		rkq.queueMu.Lock()
 		defer rkq.queueMu.Unlock()
 		if rkq.cancel == nil {
@@ -60,7 +54,14 @@ func (rkq *RekeyQueueStandard) Enqueue(id tlf.ID) <-chan error {
 			go rkq.processRekeys(ctx, rkq.hasWorkCh)
 		}
 		rkq.queue = append(rkq.queue, rekeyQueueEntry{id, c})
+		return nil
 	}()
+	if err != nil {
+		c <- err
+		close(c)
+		return c
+	}
+	rkq.wg.Add(1)
 	// poke the channel
 	select {
 	case rkq.hasWorkCh <- struct{}{}:
@@ -144,7 +145,6 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan
 					// Assign an ID to this rekey operation so we can track it.
 					newCtx := ctxWithRandomIDReplayable(ctx, CtxRekeyIDKey,
 						CtxRekeyOpID, nil)
-					rkq.log.CDebugf(newCtx, "Processing rekey for %s", id)
 					err := rkq.config.KBFSOps().Rekey(newCtx, id)
 					if ch := rkq.dequeue(); ch != nil {
 						ch <- err

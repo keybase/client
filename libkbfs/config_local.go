@@ -613,12 +613,6 @@ func (c *ConfigLocal) RekeyWithPromptWaitTime() time.Duration {
 	return c.rwpWaitTime
 }
 
-// SetRekeyWithPromptWaitTime implements the Config interface for
-// ConfigLocal.
-func (c *ConfigLocal) SetRekeyWithPromptWaitTime(d time.Duration) {
-	c.rwpWaitTime = d
-}
-
 // DelayedCancellationGracePeriod implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DelayedCancellationGracePeriod() time.Duration {
 	return c.delayedCancellationGracePeriod

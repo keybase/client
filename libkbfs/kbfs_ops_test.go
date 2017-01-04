@@ -165,7 +165,6 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock,
 func kbfsOpsInitNoMocks(t *testing.T, users ...libkb.NormalizedUsername) (
 	*ConfigLocal, keybase1.UID, context.Context, context.CancelFunc) {
 	config := MakeTestConfigOrBust(t, users...)
-	config.SetRekeyWithPromptWaitTime(individualTestTimeout)
 
 	timeoutCtx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)

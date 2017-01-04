@@ -1415,7 +1415,6 @@ type Config interface {
 	// RekeyWithPromptWaitTime indicates how long to wait, after
 	// setting the rekey bit, before prompting for a paper key.
 	RekeyWithPromptWaitTime() time.Duration
-	SetRekeyWithPromptWaitTime(time.Duration)
 
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving
