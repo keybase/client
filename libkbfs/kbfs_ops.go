@@ -369,7 +369,7 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 	ctx context.Context, tlfHandle *TlfHandle) (
 	keys []kbfscrypto.TLFCryptKey, id tlf.ID, err error) {
 	fs.log.CDebugf(ctx, "GetTLFCryptKeys(%s)", tlfHandle.GetCanonicalPath())
-	defer func() { fs.deferLog.CDebugf(ctx, "Done: %#v", err) }()
+	defer func() { fs.deferLog.CDebugf(ctx, "Done: %+v", err) }()
 
 	rmd, err := fs.getMDByHandle(ctx, tlfHandle)
 	if err != nil {
@@ -383,7 +383,7 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context,
 	tlfHandle *TlfHandle) (id tlf.ID, err error) {
 	fs.log.CDebugf(ctx, "GetTLFID(%s)", tlfHandle.GetCanonicalPath())
-	defer func() { fs.deferLog.CDebugf(ctx, "Done: %#v", err) }()
+	defer func() { fs.deferLog.CDebugf(ctx, "Done: %+v", err) }()
 
 	rmd, err := fs.getMDByHandle(ctx, tlfHandle)
 	if err != nil {
