@@ -373,7 +373,6 @@ func (*fsEngine) FlushJournal(user User, tlfName string,
 		[]byte("on"), 0644)
 }
 
-// UnflushedPaths implements the Engine interface.
 func (*fsEngine) UnflushedPaths(user User, tlfName string, isPublic bool) (
 	[]string, error) {
 	u := user.(*fsUser)
@@ -390,18 +389,6 @@ func (*fsEngine) UnflushedPaths(user User, tlfName string, isPublic bool) (
 	}
 
 	return bufStatus.Journal.UnflushedPaths, nil
-}
-
-// TogglePrefetch implements the Engine interface.
-func (*fsEngine) TogglePrefetch(user User, enable bool) error {
-	u := user.(*fsUser)
-	filename := libfs.DisableBlockPrefetchingFileName
-	if enable {
-		filename = libfs.EnableBlockPrefetchingFileName
-	}
-	return ioutil.WriteFile(
-		filepath.Join(u.mntDir, filename),
-		[]byte("1"), 0644)
 }
 
 // Shutdown is called by the test harness when it is done with the

@@ -315,16 +315,6 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 			folder: &Folder{fs: f}, // fake Folder for logging, etc.
 			action: libfs.JournalDisableAuto,
 		})
-	case libfs.EnableBlockPrefetchingFileName == ps[0]:
-		return oc.returnFileNoCleanup(&PrefetchFile{
-			fs:     f,
-			enable: true,
-		})
-	case libfs.DisableBlockPrefetchingFileName == ps[0]:
-		return oc.returnFileNoCleanup(&PrefetchFile{
-			fs:     f,
-			enable: false,
-		})
 
 	case ".kbfs_unmount" == ps[0]:
 		os.Exit(0)

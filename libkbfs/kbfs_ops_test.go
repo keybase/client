@@ -470,9 +470,9 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 
 func expectBlock(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, block Block, err error) {
 	config.mockBops.EXPECT().Get(gomock.Any(), kmdMatcher{kmd},
-		ptrMatcher{blockPtr}, gomock.Any(), gomock.Any()).
+		ptrMatcher{blockPtr}, gomock.Any()).
 		Do(func(ctx context.Context, kmd KeyMetadata,
-			blockPtr BlockPointer, getBlock Block, lifetime BlockCacheLifetime) {
+			blockPtr BlockPointer, getBlock Block) {
 			switch v := getBlock.(type) {
 			case *FileBlock:
 				*v = *block.(*FileBlock)
@@ -480,7 +480,6 @@ func expectBlock(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, blo
 			case *DirBlock:
 				*v = *block.(*DirBlock)
 			}
-			config.BlockCache().Put(blockPtr, kmd.TlfID(), getBlock, lifetime)
 		}).Return(err)
 }
 
@@ -592,7 +591,6 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(2))
-	config.mockBops.EXPECT().Prefetcher().Return(newBlockPrefetcher(nil))
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	require.NoError(t, err)
@@ -2098,7 +2096,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et EntryType) {
 	// The operation might be retried several times.
 	config.mockBops.EXPECT().Get(
 		gomock.Any(), gomock.Any(), p.tailPointer(),
-		gomock.Any(), gomock.Any()).Return(kbfsblock.BServerErrorBlockNonExistent{}).MinTimes(1)
+		gomock.Any()).Return(kbfsblock.BServerErrorBlockNonExistent{}).MinTimes(1)
 
 	// sync block
 	var newRmd ImmutableRootMetadata
@@ -2159,7 +2157,7 @@ func TestKBFSOpsRemoveDirMissingBlock(t *testing.T) {
 	// The operation might be retried several times.
 	config.mockBops.EXPECT().Get(
 		gomock.Any(), gomock.Any(), p.tailPointer(),
-		gomock.Any(), gomock.Any()).Return(kbfsblock.BServerErrorBlockNonExistent{}).MinTimes(1)
+		gomock.Any()).Return(kbfsblock.BServerErrorBlockNonExistent{}).MinTimes(1)
 
 	// sync block
 	var newRmd ImmutableRootMetadata

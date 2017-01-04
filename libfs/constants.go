@@ -70,14 +70,6 @@ const EnableAutoJournalsFileName = ".kbfs_enable_auto_journals"
 // TLF.
 const DisableAutoJournalsFileName = ".kbfs_disable_auto_journals"
 
-// EnableBlockPrefetchingFileName is the name of the KBFS-wide
-// prefetching-enabling file.  It's accessible anywhere outside a TLF.
-const EnableBlockPrefetchingFileName = ".kbfs_enable_block_prefetching"
-
-// DisableBlockPrefetchingFileName is the name of the KBFS-wide
-// prefetching-disabling file.  It's accessible anywhere outside a TLF.
-const DisableBlockPrefetchingFileName = ".kbfs_disable_block_prefetching"
-
 // EditHistoryName is the name of the KBFS TLF edit history file --
 // it can be reached anywhere within a top-level folder.
 const EditHistoryName = ".kbfs_edit_history"

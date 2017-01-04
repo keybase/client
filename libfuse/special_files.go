@@ -55,10 +55,6 @@ func handleNonTLFSpecialFile(
 			folder: &Folder{fs: fs}, // fake Folder for logging, etc.
 			action: libfs.JournalDisableAuto,
 		}
-	case libfs.EnableBlockPrefetchingFileName:
-		return &PrefetchFile{fs: fs, enable: true}
-	case libfs.DisableBlockPrefetchingFileName:
-		return &PrefetchFile{fs: fs, enable: false}
 	}
 
 	return nil
