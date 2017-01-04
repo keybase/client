@@ -9,15 +9,13 @@ import type {NoErrorTypedAction} from './types/flux'
 import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, ChatActivity, ConversationInfoLocal, MessageBody} from './types/flow-types-chat'
 
 export type MessageType = 'Text'
-export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
-export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', 'NotFollowing']
+export type FollowingMap = {[key: string]: boolean}
 
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
-export type ParticipantItem = UserListItem
 
 export type MessageID = RPCMessageID
 
@@ -35,7 +33,7 @@ export type TextMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
-  followState: FollowState,
+  you: string,
   messageState: MessageState,
   outboxID?: ?string,
   senderDeviceRevokedAt: ?number,
@@ -63,7 +61,7 @@ export type AttachmentMessage = {
   type: 'Attachment',
   timestamp: number,
   conversationIDKey: ConversationIDKey,
-  followState: FollowState,
+  you: boolean,
   author: string,
   deviceName: string,
   deviceType: string,
@@ -122,7 +120,7 @@ export const InboxStateRecord = Record({
 
 export type InboxState = Record<{
   info: ConversationInfoLocal,
-  participants: List<ParticipantItem>,
+  participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
   time: string,
@@ -136,6 +134,8 @@ export type MetaData = Record<{
   brokenTracker: boolean,
 }>
 
+export type MetaDataMap = Map<string, MetaData>
+
 export const MetaDataRecord = Record({
   fullname: 'Unknown',
   brokenTracker: false,
@@ -145,14 +145,16 @@ export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
   focused: false,
-  metaData: Map(),
+  metaData: Map({
+    chris: new MetaDataRecord({brokenTracker: true}), // TEMP
+  }),
 })
 
 export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   focused: boolean,
-  metaData: Map<string, MetaData>,
+  metaData: MetaDataMap,
 }>
 
 export const howLongBetweenTimestampsMs = 1000 * 60 * 15
@@ -283,8 +285,8 @@ function textSnippet (message: ?string = '', max: number) {
 }
 
 // Filters out myself from most of our views of the list, unless the list is just me
-function participantFilter (participants: List<ParticipantItem>): List<ParticipantItem> {
-  const withoutYou = participants.filter(p => !p.you)
+function participantFilter (participants: List<string>, you: string): List<string> {
+  const withoutYou = participants.filter(p => p !== you)
   if (withoutYou.count() === 0) {
     return participants
   }
@@ -305,10 +307,20 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
   }
 }
 
+function usernamesToUserListItem (usernames: Array<string>, you: string, metaDataMap: MetaDataMap, followingMap: FollowingMap): Array<UserListItem> {
+  return usernames.map(username => ({
+    username,
+    broken: metaDataMap.get(username, Map()).get('brokenTracker', false),
+    you: username === you,
+    following: !!followingMap[username],
+  }))
+}
+
 export {
   conversationIDToKey,
   keyToConversationID,
   makeSnippet,
   participantFilter,
   serverMessageToMessageBody,
+  usernamesToUserListItem,
 }

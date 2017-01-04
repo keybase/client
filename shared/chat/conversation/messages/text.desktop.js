@@ -1,5 +1,4 @@
 // @flow
-import * as Constants from '../../../constants/chat'
 import React, {PureComponent} from 'react'
 import shallowEqual from 'shallowequal'
 import {Avatar, Icon, Text, Markdown} from '../../../common-adapters'
@@ -9,12 +8,17 @@ import {withHandlers, shouldUpdate, compose} from 'recompose'
 import type {Props} from './text'
 import type {TextMessage} from '../../../constants/chat'
 
-const _marginColor = (followState) => ({
-  'You': globalColors.white,
-  'Following': globalColors.green2,
-  'NotFollowing': globalColors.blue,
-  'Broken': globalColors.red,
-}[followState])
+const _marginColor = (user: string, you: string) => {
+  if (user === you) {
+    return globalColors.white
+  } else {
+    return 'purple' // TEMP
+  }
+  // 'You': ,
+  // 'Following': globalColors.green2,
+  // 'NotFollowing': globalColors.blue,
+  // 'Broken': globalColors.red,
+}
 
 const MessageText = ({message, style}: {message: TextMessage, style: Object}) => {
   const text = message.message.stringValue()
@@ -28,11 +32,11 @@ const MessageText = ({message, style}: {message: TextMessage, style: Object}) =>
   }
 }
 
-const colorForAuthor = (followState: Constants.FollowState) => {
-  if (followState === 'You') {
+const colorForAuthor = (user: string, you: string) => {
+  if (user === you) {
     return globalColors.black_75
   } else {
-    return _marginColor(followState)
+    return 'purple' // TEMP _marginColor(followState)
   }
 }
 
@@ -46,17 +50,17 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
 
 class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void}, void> {
   render () {
-    const {message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick} = this.props
+    const {message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, you} = this.props
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
         <div style={_marginContainerStyle}>
-          <div style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
+          <div style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.author, you)}} />
           <div style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
             {includeHeader
               ? <Avatar size={24} username={message.author} style={_avatarStyle} />
               : <div style={_noHeaderStyle} />}
             <div style={_bodyContainerStyle}>
-              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
+              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you), ...(message.author === you ? globalStyles.italic : null)}}>{message.author}</Text>}
               <div style={_textContainerStyle}>
                 <MessageText message={message} style={_messageTextStyle} />
                 <div className='action-button'>

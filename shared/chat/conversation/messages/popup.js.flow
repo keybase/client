@@ -5,6 +5,7 @@ import type {Message} from '../../../constants/chat'
 
 export type Props = {
   message: Message,
+  you: string,
   onDeleteMessage: (message: Message) => void,
   onEditMessage: (message: Message) => void,
   onHidden: () => void,

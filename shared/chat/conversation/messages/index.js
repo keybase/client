@@ -7,11 +7,11 @@ import Timestamp from './timestamp'
 import {Box} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
 
-import type {Message, AttachmentMessage, ServerMessage} from '../../../constants/chat'
+import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMap} from '../../../constants/chat'
 
 const _onRetry = () => console.log('todo, hookup onRetry')
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void) => {
+const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void, you: string, metaDataMap: MetaDataMap, followingMap: FollowingMap) => {
   if (!message) {
     return <Box key={key} style={style} />
   }
@@ -21,6 +21,9 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
     case 'Text':
       return <MessageText
         key={key}
+        you={you}
+        metaDataMap={metaDataMap}
+        followingMap={followingMap}
         style={style}
         message={message}
         onRetry={_onRetry}
@@ -39,6 +42,9 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
       return <AttachmentMessageRender
         key={key}
         style={style}
+        you={you}
+        metaDataMap={metaDataMap}
+        followingMap={followingMap}
         message={message}
         onRetry={_onRetry}
         includeHeader={includeHeader}

@@ -58,6 +58,9 @@ export default connect(
   (state: TypedState, {routePath}) => {
     const selectedConversation = routePath.last()
 
+    const you = state.config.username || ''
+    const followingMap = state.config.following
+
     if (selectedConversation !== nothingSelected) {
       const conversationState = state.chat.get('conversationStates').get(selectedConversation)
       if (conversationState) {
@@ -73,7 +76,9 @@ export default connect(
           firstNewMessageID: conversationState.firstNewMessageID,
           selectedConversation,
           emojiPickerOpen: false,
-          metaData: state.chat.get('metaData'),
+          metaDataMap: state.chat.get('metaData'),
+          you,
+          followingMap,
           bannerMessage: null,
         }
       }
@@ -86,7 +91,9 @@ export default connect(
       isLoading: false,
       validated: false,
       selectedConversation,
-      metaData: Map(),
+      metaDataMap: Map(),
+      you,
+      followingMap,
       bannerMessage: null,
     }
   },

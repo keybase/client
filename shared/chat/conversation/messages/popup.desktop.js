@@ -18,9 +18,9 @@ function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconTyp
   }
 }
 
-const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, followState}, isLast}: {message: TextMessage, isLast: boolean}) => {
+const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, you}, isLast}: {message: TextMessage, isLast: boolean}) => {
   const iconName = iconNameForDeviceType(deviceType, !!senderDeviceRevokedAt)
-  const whoRevoked = followState === 'You' ? 'You' : author
+  const whoRevoked = author === you ? 'You' : author
   return (
     <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={iconName} style={{marginTop: -6}} />
@@ -47,10 +47,10 @@ const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, 
   )
 }
 
-const Popup = ({message, onEditMessage, onDeleteMessage, onHidden, style}: Props) => {
+const Popup = ({message, onEditMessage, onDeleteMessage, onHidden, style, you}: Props) => {
   if (message.type === 'Text') {
     let items = []
-    if (message.followState === 'You') {
+    if (message.author === you) {
       items = [
         {title: 'Edit', onClick: () => onEditMessage(message)},
         {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},

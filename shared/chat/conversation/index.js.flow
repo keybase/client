@@ -1,18 +1,19 @@
 // @flow
 import {Component} from 'react'
-import {List, Map} from 'immutable'
+import {List} from 'immutable'
 
 import type {Props as BannerMessage} from './banner'
-import type {ConversationIDKey, Message, AttachmentMessage, MessageID, MetaData, ParticipantItem} from '../../constants/chat'
+import type {ConversationIDKey, Message, AttachmentMessage, MessageID, MetaDataMap, FollowingMap} from '../../constants/chat'
 
 export type Props = {
   bannerMessage: ?BannerMessage,
   emojiPickerOpen: boolean,
   firstNewMessageID: ?MessageID,
+  followingMap: FollowingMap,
   inputText: string,
   isLoading: boolean,
   messages: List<Message>,
-  metaData: Map<string, MetaData>,
+  metaDataMap: MetaDataMap,
   moreToLoad: boolean,
   onAddParticipant: () => void,
   onAttach: () => void,
@@ -26,11 +27,12 @@ export type Props = {
   onPostMessage: (text: string) => void,
   onShowProfile: (username: string) => void,
   onToggleSidePanel: () => void,
-  participants: List<ParticipantItem>,
+  participants: List<string>,
   selectedConversation: ?ConversationIDKey,
   setInputText: (text: string) => void,
   sidePanelOpen: boolean,
   validated: boolean,
+  you: string,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

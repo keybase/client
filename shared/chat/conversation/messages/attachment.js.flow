@@ -12,6 +12,7 @@ export type Props = {
   onOpenInFileUI: (path: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
   style: Object,
+  you: string,
 }
 
 export default class AttachmentMessageComponent extends Component<void, Props, void> { }

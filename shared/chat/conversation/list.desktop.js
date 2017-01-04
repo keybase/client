@@ -165,9 +165,10 @@ class ConversationList extends Component<void, Props, State> {
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
     const x = clientRect.left - 205
-    let y = clientRect.top - (message.followState === 'You' ? 200 : 116)
+    let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
     const popupComponent = <Popup
+      you={this.props.you}
       message={message}
       onEditMessage={this.props.onEditMessage}
       onDeleteMessage={this.props.onDeleteMessage}
@@ -201,7 +202,7 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.you, this.props.metaDataMap, this.props.followingMap)
   }
 
   _recomputeListDebounced = _.debounce(() => {

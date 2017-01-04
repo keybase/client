@@ -41,6 +41,7 @@ import type {
   LoadMoreMessages,
   LoadedInbox,
   MaybeTimestamp,
+  MetaData,
   Message,
   NewChat,
   OpenFolder,
@@ -154,7 +155,7 @@ function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boo
   return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
 }
 
-function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}): ?InboxState {
+function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): ?InboxState {
   if (!convo || !convo.info || !convo.info.id) {
     return null
   }
@@ -171,7 +172,8 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
 
   const participants = List((convo.info.writerNames || []).map(username => ({
     username,
-    broken: false, // TODO
+    // $FlowIssue
+    broken: metaData.get(username, Map()).get('brokenTracker', false),
     you: author && username === author,
     following: !!following[username],
   })))
@@ -188,7 +190,7 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   })
 }
 
-function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
+function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): List<InboxState> {
   return List((inbox.conversationsUnverified || []).map(convoUnverified => {
     const msgBoxed = convoUnverified.maxMsgs && convoUnverified.maxMsgs.length && convoUnverified.maxMsgs[0]
 
@@ -196,15 +198,7 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
       return null
     }
 
-    const participants = List((parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName)
-      .map(ul => ul.username))
-      .map(username => ({
-        username,
-        broken: false, // TODO
-        you: author && username === author,
-        following: !!following[username],
-      }))
-    )
+    const participants = List(parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName).map(ul => ul.username))
 
     return new InboxStateRecord({
       info: null,
@@ -299,7 +293,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       timestamp: Date.now(),
       messageState: 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
-      followState: 'You',
+      you: author,
       deviceType: '',
       deviceName: '',
       conversationIDKey: action.payload.conversationIDKey,
@@ -430,6 +424,9 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
       const broken = (update.breaks.breaks || []).map(b => b.user.username)
       const userToBroken = usernames.reduce((map, name) => {
         map[name] = !!broken.includes(name)
+        if (name === 'cjb') {
+          map['cjb'] = true // TEMP
+        }
         return map
       }, {})
       dispatch({type: Constants.updateBrokenTracker, payload: {userToBroken}})
@@ -467,10 +464,11 @@ function * _loadInbox (): SagaGenerator<any, any> {
     throw new Error("Can't load inbox")
   }
 
+  const metaData = ((yield select(_metaDataSelector)): any)
   const inbox: GetInboxLocalRes = chatInboxUnverified.params.inbox
   const author = yield select(usernameSelector)
   const following = yield select(followingSelector)
-  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {})
+  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
   yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
   chatInboxUnverified.response.result()
 
@@ -485,7 +483,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {})
+      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
       if (conversation) {
         yield put({type: Constants.updateInbox, payload: {conversation}})
       }
@@ -625,6 +623,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
     if (payload) {
       const common = {
         author: payload.senderUsername,
+        you: yourName,
         deviceName: payload.senderDeviceName,
         deviceType: payload.senderDeviceType,
         timestamp: payload.serverHeader.ctime,
@@ -633,8 +632,6 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
       }
 
-      const isYou = common.author === yourName
-
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
           const outboxID = payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex')
@@ -642,7 +639,6 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             type: 'Text',
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
-            followState: isYou ? 'You' : 'Following', // TODO get this
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
             key: outboxID || common.messageID,
@@ -655,7 +651,6 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
           return {
             type: 'Attachment',
             ...common,
-            followState: isYou ? 'You' : 'Following', // TODO get this
             // $FlowIssue todo fix
             filename: payload.messageBody.attachment.object.filename,
             // $FlowIssue todo fix

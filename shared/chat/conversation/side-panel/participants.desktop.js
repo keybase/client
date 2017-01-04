@@ -7,12 +7,12 @@ import type {Props} from '.'
 
 const Participants = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn}}>
-    {props.participants.filter(p => !p.you).map(p => (
-      <Box key={p.username} style={rowStyle} onClick={() => props.onShowProfile(p.username)}>
+    {props.participants.filter(username => username !== props.you).map(username => (
+      <Box key={username} style={rowStyle} onClick={() => props.onShowProfile(username)}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, marginRight: globalMargins.tiny}}>
-          <Avatar size={32} username={p.username} />
-          <Usernames colorFollowing={true} type='Body' users={[p]} containerStyle={{marginLeft: 12}} />
-          <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>{props.metaData.getIn([p.username, 'fullname'], 'Unknown')}</Text>
+          <Avatar size={32} username={username} />
+          <Usernames colorFollowing={true} type='Body' users={[{username}]} containerStyle={{marginLeft: 12}} />
+          <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>{props.metaDataMap.getIn([username, 'fullname'], 'Unknown')}</Text>
         </Box>
         <Divider style={{marginLeft: 44}} />
       </Box>
