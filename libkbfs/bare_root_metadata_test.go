@@ -41,7 +41,6 @@ func runTestOverMetadataVers(
 	for _, ver := range testMetadataVers {
 		ver := ver // capture range variable.
 		t.Run(ver.String(), func(t *testing.T) {
-			t.Parallel()
 			f(t, ver)
 		})
 	}
