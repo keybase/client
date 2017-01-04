@@ -170,14 +170,7 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
     return false
   })
 
-  const participants = List((convo.info.writerNames || []).map(username => ({
-    username,
-    // $FlowIssue
-    broken: metaData.get(username, Map()).get('brokenTracker', false),
-    you: author && username === author,
-    following: !!following[username],
-  })))
-
+  const participants = List(convo.info.writerNames || [])
   return new InboxStateRecord({
     info: convo.info,
     conversationIDKey,
@@ -766,10 +759,11 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   const {conversationIDKey, fromUser} = action.payload
   yield put(loadMoreMessages(conversationIDKey, true))
   yield put(navigateTo([conversationIDKey], [chatTab]))
+  const you = yield select(usernameSelector)
 
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => !p.you).map(p => p.username).toArray()}})
+    yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => p !== you).toArray()}})
   }
 
   if (inbox && !inbox.get('validated')) {

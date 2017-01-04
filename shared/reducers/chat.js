@@ -232,23 +232,9 @@ function reducer (state: State = initialState, action: Actions) {
         metaData = metaData.update(user, new MetaDataRecord(), old => old.set('brokenTracker', userToBroken[user]))
       })
 
-      const inbox = state.get('inbox').map(i => {
-        return i.set('participants', i.get('participants').map(p => {
-          const isBroken = metaData.get(p.username, Map()).get('brokenTracker', false)
-          if (p.broken === isBroken) {
-            return p
-          }
-          return {
-            ...p,
-            broken: isBroken,
-          }
-        }))
-      })
-
-      return state.set('metaData', metaData).set('inbox', inbox)
+      return state.set('metaData', metaData)
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
-
   }
 
   return state
