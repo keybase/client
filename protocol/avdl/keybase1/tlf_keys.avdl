@@ -33,6 +33,14 @@ protocol tlfKeys {
     union { null, IdentifyTrackBreaks } breaks;
   }
 
+  record CanonicalTLFNameAndIDWithBreaks {
+    TLFID tlfID;
+    @lint("ignore")
+    CanonicalTlfName CanonicalName;
+
+    TLFBreak breaks;
+  }
+
   record GetTLFCryptKeysRes {
     CanonicalTLFNameAndIDWithBreaks nameIDBreaks;
 
@@ -52,14 +60,6 @@ protocol tlfKeys {
    TLF ID should not be cached or stored persistently.
    */
   GetTLFCryptKeysRes getTLFCryptKeys(TLFQuery query);
-
-  record CanonicalTLFNameAndIDWithBreaks {
-    TLFID tlfID;
-    @lint("ignore")
-    CanonicalTlfName CanonicalName;
-
-    TLFBreak breaks;
-  }
 
   /**
    getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.
