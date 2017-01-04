@@ -92,6 +92,15 @@ func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
 	cb.cachedEncodedSize = other.GetEncodedSize()
 }
 
+// Copy copies a CommonBlock without the lock
+func (cb *CommonBlock) Copy() CommonBlock {
+	return CommonBlock{
+		IsInd: cb.IsInd,
+		UnknownFieldSetHandler: cb.UnknownFieldSetHandler,
+		cachedEncodedSize:      cb.cachedEncodedSize,
+	}
+}
+
 // NewCommonBlock returns a generic block, unsuitable for caching.
 func NewCommonBlock() Block {
 	return &CommonBlock{}
