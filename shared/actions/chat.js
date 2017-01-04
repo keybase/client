@@ -344,17 +344,19 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         // Is this message for the currently selected and focused conversation?
         // And is the Chat tab the currently displayed route? If all that is
         // true, mark it as read ASAP to avoid badging it -- we don't need to
-        // badge, the user's looking at it already.
+        // badge, the user's looking at it already.  Also mark as read ASAP if
+        // it was written by the current user.
         const selectedConversationIDKey = yield select(_selectedSelector)
         const appFocused = yield select(_focusedSelector)
         const selectedTab = yield select(_routeSelector)
         const chatTabSelected = (selectedTab === chatTab)
 
-        if (message &&
-            message.messageID &&
-            conversationIDKey === selectedConversationIDKey &&
-            appFocused &&
-            chatTabSelected) {
+        if ((message && message.messageID &&
+             conversationIDKey === selectedConversationIDKey &&
+             appFocused && chatTabSelected) ||
+            (message && message.messageID &&
+             message.type === 'Text' &&
+             message.author === yourName)) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
