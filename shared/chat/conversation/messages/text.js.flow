@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {TextMessage, ServerMessage} from '../../../constants/chat'
+import type {TextMessage, ServerMessage, FollowingMap, MetaDataMap} from '../../../constants/chat'
 
 export type Props = {
   message: TextMessage,
@@ -12,6 +12,8 @@ export type Props = {
   style: Object,
   isSelected: boolean,
   you: string,
+  followingMap: FollowingMap,
+  metaDataMap: MetaDataMap,
 }
 
 export default class MessageText extends Component<void, Props, void> { }

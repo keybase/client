@@ -11,8 +11,8 @@ function usernameText ({type, users, style, inline, redColor, backgroundMode, co
     const userStyle = {
       ...style,
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
-      ...(colorFollowing ? {color: u.following ? globalColors.green2 : globalColors.blue} : null),
-      ...((colorBroken && u.broken) ? {color: redColor || globalColors.red} : null),
+      ...((colorFollowing && !u.you) ? {color: u.following ? globalColors.green2 : globalColors.blue} : null),
+      ...((colorBroken && u.broken && !u.you) ? {color: redColor || globalColors.red} : null),
       ...(inline ? {display: 'inline'} : null),
       ...(u.you ? globalStyles.italic : null),
     }

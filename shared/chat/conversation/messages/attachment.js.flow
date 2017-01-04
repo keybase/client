@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {MessageID, AttachmentMessage, ServerMessage} from '../../../constants/chat'
+import type {MessageID, AttachmentMessage, ServerMessage, FollowingMap, MetaDataMap} from '../../../constants/chat'
 
 export type Props = {
   message: AttachmentMessage,
@@ -13,6 +13,8 @@ export type Props = {
   onOpenInPopup: (message: AttachmentMessage) => void,
   style: Object,
   you: string,
+  followingMap: FollowingMap,
+  metaDataMap: MetaDataMap,
 }
 
 export default class AttachmentMessageComponent extends Component<void, Props, void> { }

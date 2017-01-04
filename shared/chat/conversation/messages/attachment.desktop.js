@@ -2,44 +2,26 @@
 import React, {PureComponent} from 'react'
 import {Avatar, Box, Icon, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {marginColor, colorForAuthor} from './shared'
 import {withHandlers} from 'recompose'
 
 import type {Props} from './attachment'
 
-const _marginColor = (user: string, you: string) => {
-  if (user === you) {
-    return globalColors.white
-  } else {
-    return 'purple'
-  // 'Following': globalColors.green2,
-  // 'NotFollowing': globalColors.blue,
-  // 'Broken': globalColors.red,
-  }
-}
-
-const colorForAuthor = (user: string, you: string) => {
-  if (user === you) {
-    return globalColors.black_75
-  } else {
-    return _marginColor(user, you)
-  }
-}
-
 // TODO abstract this part so it is the same as message text
 class _AttachmentMessage extends PureComponent<void, Props & {onIconClick: (event: any) => void, onOpenInPopup: (event: any) => void}, void> {
   render () {
-    const {message, style, includeHeader, isFirstNewMessage, onLoadAttachment, onOpenInFileUI, onOpenInPopup, onIconClick, you} = this.props
+    const {message, style, includeHeader, isFirstNewMessage, onLoadAttachment, onOpenInFileUI, onOpenInPopup, onIconClick, you, followingMap, metaDataMap} = this.props
     const {downloadedPath} = message
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
         <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-          <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.author, you)}} />
+          <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: marginColor(message.author, you, followingMap, metaDataMap)}} />
           <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
             {includeHeader
               ? <Avatar size={24} username={message.author} style={{marginRight: globalMargins.tiny}} />
               : <Box style={{width: 32}} />}
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you), ...(message.author === you ? globalStyles.italic : null)}}>{message.author}</Text>}
+              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null)}}>{message.author}</Text>}
               <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
                 {!message.downloadedPath &&
                   <Text type='Body' style={{marginTop: globalMargins.xtiny, flex: 1}} onClick={() => onLoadAttachment(message.messageID, message.filename)}>
