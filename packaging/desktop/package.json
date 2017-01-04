@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "appdmg": "^0.3.5"
+    "appdmg": "0.4.5"
   }
 }
