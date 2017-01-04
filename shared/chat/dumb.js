@@ -16,7 +16,7 @@ const now = new Date(2016, 4, 20, 4, 20)
 
 const participants = [
   {
-    username: 'chris',
+    username: 'chrisTEMPTEMPTEMP',
     you: true,
   },
   {
