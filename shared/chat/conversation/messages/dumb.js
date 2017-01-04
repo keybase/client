@@ -153,10 +153,26 @@ function baseAttachmentPopupMock (followState) {
 const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
   component: AttachmentPopup,
   mocks: {
-    'You': {...baseAttachmentPopupMock('You'), detailsPopupShowing: false, isZoomed: false},
-    'You - Zoomed': {...baseAttachmentPopupMock('You'), detailsPopupShowing: false, isZoomed: true},
-    'You - Popup Showing': {...baseAttachmentPopupMock('You'), detailsPopupShowing: true, isZoomed: false},
-    'Following - Popup Showing': {...baseAttachmentPopupMock('Following'), detailsPopupShowing: true, isZoomed: false},
+    'You': {
+      ...baseAttachmentPopupMock('You'),
+      detailsPopupShowing: false,
+      isZoomed: false,
+    },
+    'You - Zoomed': {
+      ...baseAttachmentPopupMock('You'),
+      detailsPopupShowing: false,
+      isZoomed: true,
+    },
+    'You - Popup Showing': {
+      ...baseAttachmentPopupMock('You'),
+      detailsPopupShowing: true,
+      isZoomed: false,
+    },
+    'Following - Popup Showing': {
+      ...baseAttachmentPopupMock('Following'),
+      detailsPopupShowing: true,
+      isZoomed: false,
+    },
   },
 }
 
