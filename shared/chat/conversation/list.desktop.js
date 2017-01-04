@@ -4,7 +4,7 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
 
 import LoadingMore from './messages/loading-more'
-import Popup from './messages/popup'
+import {TextPopupMenu} from './messages/popup'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
@@ -167,7 +167,7 @@ class ConversationList extends Component<void, Props, State> {
     const x = clientRect.left - 205
     let y = clientRect.top - (message.followState === 'You' ? 200 : 116)
     if (y < 10) y = 10
-    const popupComponent = <Popup
+    const popupComponent = <TextPopupMenu
       message={message}
       onEditMessage={this.props.onEditMessage}
       onDeleteMessage={this.props.onDeleteMessage}
