@@ -1407,10 +1407,10 @@ func (e UnknownStreamError) Error() string {
 	return "unknown stream format"
 }
 
-type UnicodeUnsupportedError struct{}
+type UTF16UnsupportedError struct{}
 
-func (e UnicodeUnsupportedError) Error() string {
-	return "unicode not supported"
+func (e UTF16UnsupportedError) Error() string {
+	return "UTF-16 not supported"
 }
 
 type WrongCryptoFormatError struct {

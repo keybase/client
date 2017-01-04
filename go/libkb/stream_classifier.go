@@ -222,7 +222,7 @@ func matchesSaltpackType(messageStart string, typeString string) bool {
 	return match && (err == nil)
 }
 
-func hasUnicodeHeader(b []byte) bool {
+func isUTF16Mark(b []byte) bool {
 	if len(b) < 2 {
 		return false
 	}
@@ -284,8 +284,8 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		// Format etc. set by isSaltpackBinary().
 	case isPGPBinary(buf[:n], &sc):
 		// Format etc. set by isPGPBinary().
-	case hasUnicodeHeader(buf[:n]):
-		err = UnicodeUnsupportedError{}
+	case isUTF16Mark(buf[:n]):
+		err = UTF16UnsupportedError{}
 	default:
 		err = UnknownStreamError{}
 	}
