@@ -7,7 +7,7 @@ echo on
 call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat"
 
 echo on
-pushd  %GOPATH%\src\github.com\keybase\client\desktop
+pushd  %GOPATH%\src\github.com\keybase\client\shared
 echo Calling npm i
 call npm i
 
