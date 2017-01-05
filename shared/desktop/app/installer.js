@@ -16,7 +16,7 @@ export default (callback: (err: any) => void): void => {
     callback(new Error('No bundle path for installer'))
     return
   }
-  let timeout = 10
+  let timeout = 30
   // If the app was opened at login, there might be contention for lots
   // of resources, so let's bump the install timeout to something large.
   if (app.getLoginItemSettings().wasOpenedAtLogin) {

@@ -560,7 +560,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, conversationIDKey)).reverse()
   let newMessages = []
   messages.forEach((message, idx) => {
-    if (idx >= 2) {
+    if (idx > 0) {
       const timestamp = _maybeAddTimestamp(messages[idx], messages[idx - 1])
       if (timestamp !== null) {
         newMessages.push(timestamp)
@@ -600,7 +600,9 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp') {
     return null
   }
-  if (message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) { // ms
+  // messageID 1 is an unhandled placeholder. We want to add a timestamp before
+  // the first message, as well as between any two messages with long duration.
+  if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
       type: 'Timestamp',
       timestamp: message.timestamp,

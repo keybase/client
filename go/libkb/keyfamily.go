@@ -823,6 +823,27 @@ func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
 	return revokedKeys
 }
 
+func (ckf ComputedKeyFamily) GetDeletedKeys() []GenericKey {
+	ckf.G().Log.Debug("+ GetDeletedKeys")
+	defer ckf.G().Log.Debug("- GetDeletedKeys")
+
+	var keys []GenericKey
+	for kid := range ckf.kf.AllKIDs {
+		_, ok := ckf.cki.Infos[kid]
+		if ok {
+			// key in cki.Infos, so it is in the current subchain, skip it.
+			continue
+		}
+		key, err := ckf.FindKeyWithKIDUnsafe(kid)
+		if err != nil {
+			ckf.G().Log.Errorf("No key found for %s in ckf", kid)
+			continue
+		}
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 // UpdateDevices takes the Device object from the given ChainLink
 // and updates keys to reflects any device changes encoded therein.
 func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
