@@ -15,6 +15,7 @@ const commonHeaderStyle = {
   padding: 6,
   justifyContent: 'center',
   alignItems: 'center',
+  flexWrap: 'wrap',
 }
 
 function brokenSeparator (idx, item, arr) {

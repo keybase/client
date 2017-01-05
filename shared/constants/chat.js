@@ -138,16 +138,14 @@ export type MetaDataMap = Map<string, MetaData>
 
 export const MetaDataRecord = Record({
   fullname: 'Unknown',
-  brokenTracker: true,// TEMP false,
+  brokenTracker: false,
 })
 
 export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
   focused: false,
-  metaData: Map({
-    chris: new MetaDataRecord({brokenTracker: true}), // TEMP
-  }),
+  metaData: Map(),
 })
 
 export type State = Record<{

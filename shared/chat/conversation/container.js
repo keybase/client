@@ -9,6 +9,7 @@ import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, selectAttachment, loadAttachment} from '../../actions/chat'
 import {nothingSelected} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
+import {getProfile} from '../../actions/tracker'
 import {navigateAppend} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
@@ -66,9 +67,11 @@ export default connect(
       if (conversationState) {
         const inbox = state.chat.get('inbox')
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
+        const participants = selected && selected.participants || List()
+        const metaDataMap = state.chat.get('metaData')
 
         return {
-          participants: selected && selected.participants || List(),
+          participants,
           messages: conversationState.messages,
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,
@@ -76,7 +79,7 @@ export default connect(
           firstNewMessageID: conversationState.firstNewMessageID,
           selectedConversation,
           emojiPickerOpen: false,
-          metaDataMap: state.chat.get('metaData'),
+          metaDataMap,
           you,
           followingMap,
           bannerMessage: null,
@@ -102,6 +105,7 @@ export default connect(
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
+    onShowTracker: (username: string) => dispatch(getProfile(username, true)),
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
@@ -110,14 +114,26 @@ export default connect(
     onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{selected: 'attachment', props: {message}}])),
     onOpenInFileUI: (path: string) => dispatch(({type: 'fs:openInFileUI', payload: {path}}: OpenInFileUI)),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-    onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
-    onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
-    onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
-    onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
-    onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
-  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const brokenUsers = stateProps.participants.filter(user => stateProps.metaDataMap.get(user, Map()).get('brokenTracker', false)).toArray()
+    const bannerMessage = brokenUsers.length
+      ? {
+        type: 'BrokenTracker',
+        users: brokenUsers,
+        onClick: (user: string) => dispatchProps.onShowTracker(user),
+      }
+      : null
+
+    return {
+      ...stateProps,
+      ...dispatchProps,
+      ...ownProps,
+      bannerMessage,
+      onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
+      onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
+      onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
+      onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
+      onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
+    }
+  },
 )(ConversationContainer)
