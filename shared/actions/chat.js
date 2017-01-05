@@ -123,8 +123,8 @@ function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString):
   return {type: Constants.postMessage, payload: {conversationIDKey, text}}
 }
 
-function retryMessage (outboxID: string): RetryMessage {
-  return {type: Constants.retryMessage, payload: {outboxID}}
+function retryMessage (outboxIDKey: string): RetryMessage {
+  return {type: Constants.retryMessage, payload: {outboxIDKey}}
 }
 
 function setupNewChatHandler (): SetupNewChatHandler {
@@ -275,11 +275,11 @@ function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey)
 }
 
 function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
-  const {outboxID} = action.payload
+  const {outboxIDKey} = action.payload
 
   yield call(localRetryPostRpcPromise, {
     param: {
-      outboxID: keyToOutboxID(outboxID),
+      outboxID: keyToOutboxID(outboxIDKey),
     },
   })
 }
@@ -306,7 +306,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 
   const author = yield select(usernameSelector)
   if (sent && author) {
-    const outboxID = sent.outboxID.toString('hex')
+    const outboxID = outboxIDToKey(sent.outboxID)
     const message: Message = {
       type: 'Text',
       author,
@@ -354,7 +354,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       if (failedMessage && failedMessage.outboxRecords) {
         for (const outboxRecord of failedMessage.outboxRecords) {
           const conversationIDKey = conversationIDToKey(outboxRecord.convID)
-          const outboxID = outboxRecord.outboxID.toString('hex')
+          const outboxID = outboxIDToKey(outboxRecord.outboxID)
           yield put({
             type: Constants.pendingMessageFailed,
             payload: {
