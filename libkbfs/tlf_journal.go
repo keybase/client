@@ -1372,7 +1372,7 @@ func (j *tlfJournal) removeBlockReferences(
 	// distinguish them from blocks that has had all its references
 	// removed and shouldn't be served anymore.  For now, just fail
 	// this call to make sure no uses of it creep in.
-	return nil, fmt.Errorf(
+	return nil, errors.Errorf(
 		"Removing block references is currently unsupported in the journal")
 }
 
