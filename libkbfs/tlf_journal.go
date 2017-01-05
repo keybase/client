@@ -832,10 +832,7 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 	}
 
 	// Remove saved blocks in chunks to avoid starving foreground file
-	// system operations that need the lock for too long.  TODO: If
-	// lock acquires are unfair, this can still result in long
-	// foreground starvation -- maybe we need sleeps or some kind of
-	// explicit runtime scheduling control?
+	// system operations that need the lock for too long.
 	lastToRemove := journalOrdinal(0)
 	for {
 		err := func() error {
@@ -860,6 +857,9 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 		if lastToRemove == 0 {
 			break
 		}
+		// Explicitly allow other goroutines (such as foreground file
+		// system operations) to grab the lock to avoid starvation.
+		// See https://github.com/golang/go/issues/13086.
 		runtime.Gosched()
 	}
 
