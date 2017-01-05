@@ -1352,10 +1352,6 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 		return nil, nil
 	}
 
-	// TODO: Verify that any getFileBlock... calls here
-	// only use the dirty cache and not the network, since
-	// the blocks are dirty.
-
 	// For an indirect file:
 	//   1) check if each dirty block is split at the right place.
 	//   2) if it needs fewer bytes, prepend the extra bytes to the next
@@ -1366,27 +1362,27 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 	//      from the next block and mark it dirty
 	//   4) Then go through once more, and ready and finalize each
 	//      dirty block, updating its ID in the indirect pointer list
-	for i := 0; i < len(topBlock.IPtrs); i++ {
-		ptr := topBlock.IPtrs[i]
-		isDirty := dirtyBcache.IsDirty(id, ptr.BlockPointer, fd.file.Branch)
-		if (ptr.EncodedSize > 0) && isDirty {
-			return unrefs, InconsistentEncodedSizeError{ptr.BlockInfo}
-		}
-		if !isDirty {
-			continue
-		}
-		_, parentBlocks, block, nextBlockOff, _, _, err :=
-			fd.getFileBlockAtOffset(ctx, topBlock, ptr.Off, blockWrite)
+	off := int64(0)
+	for off >= 0 {
+		_, parentBlocks, block, nextBlockOff, startOff, err :=
+			fd.getNextDirtyFileBlockAtOffset(
+				ctx, topBlock, off, blockWrite, dirtyBcache)
 		if err != nil {
 			return unrefs, err
 		}
+
+		if block == nil {
+			// No more dirty blocks.
+			break
+		}
+		off = nextBlockOff // Will be -1 if there are no more blocks.
 
 		splitAt := fd.bsplit.CheckSplit(block)
 		switch {
 		case splitAt == 0:
 			continue
 		case splitAt > 0:
-			endOfBlock := ptr.Off + int64(len(block.Contents))
+			endOfBlock := startOff + int64(len(block.Contents))
 			extraBytes := block.Contents[splitAt:]
 			block.Contents = block.Contents[:splitAt]
 			// put the extra bytes in front of the next block
@@ -1398,7 +1394,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 					return unrefs, err
 				}
 			}
-			rPtr, _, rblock, _, _, _, err :=
+			rPtr, rParentBlocks, rblock, _, _, _, err :=
 				fd.getFileBlockAtOffset(
 					ctx, topBlock, endOfBlock, blockWrite)
 			if err != nil {
@@ -1408,47 +1404,86 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 			if err = fd.cacher(rPtr, rblock); err != nil {
 				return unrefs, err
 			}
-			topBlock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
-			unrefs = append(unrefs, topBlock.IPtrs[i+1].BlockInfo)
-			topBlock.IPtrs[i+1].EncodedSize = 0
+			endOfBlock = startOff + int64(len(block.Contents))
+
+			// Mark the old rblock as unref'd.
+			pb := rParentBlocks[len(rParentBlocks)-1]
+			unrefs = append(unrefs, pb.childIPtr().BlockInfo)
+			pb.pblock.IPtrs[pb.childIndex].EncodedSize = 0
+
+			// Update parent pointer offsets as needed.
+			for i := len(rParentBlocks) - 1; i >= 0; i-- {
+				pb := rParentBlocks[i]
+				pb.pblock.IPtrs[pb.childIndex].Off = endOfBlock
+				// If this isn't the leftmost child at this level,
+				// there's no need to update the parent.
+				if pb.childIndex > 0 {
+					break
+				}
+			}
+
+			_, newUnrefs, err := fd.markParentsDirty(ctx, rParentBlocks)
+			unrefs = append(unrefs, newUnrefs...)
+			if err != nil {
+				return unrefs, err
+			}
+			off = endOfBlock
 		case splitAt < 0:
 			if nextBlockOff < 0 {
-				// end of the line
+				// End of the line.
 				continue
 			}
 
-			endOfBlock := ptr.Off + int64(len(block.Contents))
-			rPtr, _, rblock, _, _, _, err :=
+			endOfBlock := startOff + int64(len(block.Contents))
+			rPtr, rParentBlocks, rblock, _, _, _, err :=
 				fd.getFileBlockAtOffset(
 					ctx, topBlock, endOfBlock, blockWrite)
 			if err != nil {
 				return unrefs, err
 			}
-			// copy some of that block's data into this block
+			// Copy some of that block's data into this block.
 			nCopied := fd.bsplit.CopyUntilSplit(block, false,
 				rblock.Contents, int64(len(block.Contents)))
 			rblock.Contents = rblock.Contents[nCopied:]
+			endOfBlock = startOff + int64(len(block.Contents))
+
+			// Make the old right block as unref'd.
+			pb := rParentBlocks[len(rParentBlocks)-1]
+			unrefs = append(unrefs, pb.childIPtr().BlockInfo)
+			pb.pblock.IPtrs[pb.childIndex].EncodedSize = 0
+
+			// For the right block, adjust offset or delete as needed.
 			if len(rblock.Contents) > 0 {
 				if err = fd.cacher(rPtr, rblock); err != nil {
 					return unrefs, err
 				}
-				topBlock.IPtrs[i+1].Off =
-					ptr.Off + int64(len(block.Contents))
-				unrefs = append(unrefs, topBlock.IPtrs[i+1].BlockInfo)
-				topBlock.IPtrs[i+1].EncodedSize = 0
+
+				// Update parent pointer offsets as needed.
+				for i := len(rParentBlocks) - 1; i >= 0; i-- {
+					pb := rParentBlocks[i]
+					pb.pblock.IPtrs[pb.childIndex].Off = endOfBlock
+					// If this isn't the leftmost child at this level,
+					// there's no need to update the parent.
+					if pb.childIndex > 0 {
+						break
+					}
+				}
 			} else {
-				// TODO: delete the block, and if we're down
-				// to just one indirect block, remove the
-				// layer of indirection
-				//
-				// TODO: When we implement more than one level
-				// of indirection, make sure that the pointer
-				// to the parent block in the grandparent
-				// block has EncodedSize 0.
-				unrefs = append(unrefs, topBlock.IPtrs[i+1].BlockInfo)
-				topBlock.IPtrs =
-					append(topBlock.IPtrs[:i+1], topBlock.IPtrs[i+2:]...)
+				// TODO: If we're down to just one leaf block at this
+				// level, remove the layer of indirection (KBFS-1824).
+				iptrs := pb.pblock.IPtrs
+				pb.pblock.IPtrs =
+					append(iptrs[:pb.childIndex], iptrs[pb.childIndex+1:]...)
 			}
+
+			// Mark all parents as dirty.
+			_, newUnrefs, err := fd.markParentsDirty(ctx, rParentBlocks)
+			unrefs = append(unrefs, newUnrefs...)
+			if err != nil {
+				return unrefs, err
+			}
+
+			off = endOfBlock
 		}
 	}
 	return unrefs, nil
