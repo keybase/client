@@ -117,7 +117,7 @@ class ConversationList extends Component<void, Props, State> {
     this.state.messages.forEach((item, index) => {
       const oldMessage = props.messages.get(index, {})
 
-      if (item.key !== oldMessage.key) {
+      if (item.type === 'Text' && oldMessage.type === 'Text' && item.messageState !== oldMessage.messageState) {
         this._toRemeasure.push(index + 1)
       }
 
@@ -204,7 +204,7 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.onRetryMessage)
   }
 
   _recomputeListDebounced = _.debounce(() => {
