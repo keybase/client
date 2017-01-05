@@ -354,8 +354,9 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         if ((message && message.messageID &&
              conversationIDKey === selectedConversationIDKey &&
              appFocused && chatTabSelected) ||
-            (message && message.messageID &&
-             message.type === 'Text' &&
+            (message &&
+             message.messageID &&
+             (message.type === 'Text' || message.type === 'Attachment') &&
              message.author === yourName)) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
