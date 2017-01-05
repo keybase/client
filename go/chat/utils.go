@@ -164,10 +164,11 @@ func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string
 	if err != nil {
 		return nil, err
 	}
-	return &TLFInfo{
+	info := &TLFInfo{
 		ID:            chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
 		CanonicalName: res.NameIDBreaks.CanonicalName.String(),
-	}, nil
+	}
+	return info, nil
 }
 
 func GetInboxQueryLocalToRemote(ctx context.Context,

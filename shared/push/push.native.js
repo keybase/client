@@ -4,10 +4,7 @@ import {Clipboard, Image, PushNotificationIOS} from 'react-native'
 import {connect} from 'react-redux'
 import {Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-
-// $FlowIssue tell flow about this module
 import * as PushNotifications from 'react-native-push-notification'
-
 import {permissionsPrompt, permissionsRequest, pushNotification, pushToken} from '../actions/push'
 
 import type {Props} from './push'

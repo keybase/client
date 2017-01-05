@@ -1,7 +1,7 @@
 // @flow
 import {ipcRenderer, ipcMain, app} from 'electron'
-import {quit} from '../../desktop/app/ctl'
-import {hideDockIcon} from '../../desktop/app/dock-icon'
+import {quit} from '../desktop/app/ctl'
+import {hideDockIcon} from '../desktop/app/dock-icon'
 
 export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
 export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'

@@ -305,6 +305,13 @@ func (w LinkCheckResultWrapper) GetSnoozedError() error {
 	return libkb.ImportProofError(w.lcr.SnoozedResult)
 }
 
+func (w LinkCheckResultWrapper) GetBreaksTrackingMark() string {
+	if w.lcr.BreaksTracking {
+		return BADX
+	}
+	return CHECK
+}
+
 type SigHintWrapper struct {
 	hint *keybase1.SigHint
 }
@@ -364,17 +371,18 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 		lcrs = trackDiffToColoredString(*diff) + " "
 	}
 	run := s.GetRemoteUsername()
+	mark := lcr.GetBreaksTrackingMark()
 
 	if err := lcr.GetError(); err == nil {
 		color := "green"
 		if lcr.GetSnoozedError() != nil {
 			color = "yellow"
 		}
-		msg += (CHECK + " " + lcrs + `"` +
+		msg += (mark + " " + lcrs + `"` +
 			ColorString(color, run) + `" on ` + s.GetService() +
 			": " + lcr.GetHint().GetHumanURL())
 	} else {
-		msg += (BADX + " " + lcrs +
+		msg += (mark + " " + lcrs +
 			ColorString("red", `"`+run+`" on `+s.GetService()+" "+
 				ColorString("bold", "failed")+": "+
 				err.Error()))
@@ -424,6 +432,8 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 		lcrs = trackDiffToColoredString(*diff) + " "
 	}
 
+	mark := lcr.GetBreaksTrackingMark()
+
 	greatColor := "green"
 	okColor := "yellow"
 
@@ -435,7 +445,7 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 		}
 
 		if s.GetProtocol() == "dns" {
-			msg += (CHECK + " " + lcrs + "admin of " +
+			msg += (mark + " " + lcrs + "admin of " +
 				ColorString(okColor, "DNS") + " zone " +
 				ColorString(okColor, s.GetDomain()) + torWarning +
 				": found TXT entry " + lcr.GetHint().GetCheckText())
@@ -446,13 +456,13 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 			} else {
 				color = okColor
 			}
-			msg += (CHECK + " " + lcrs + "admin of " +
+			msg += (mark + " " + lcrs + "admin of " +
 				ColorString(color, s.GetHostname()) + " via " +
 				ColorString(color, strings.ToUpper(s.GetProtocol())) + torWarning +
 				": " + lcr.GetHint().GetHumanURL())
 		}
 	} else {
-		msg = (BADX + " " + lcrs +
+		msg = (mark + " " + lcrs +
 			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
 				ColorString("bold", "failed")+": "+
 				lcr.GetError().Error()))

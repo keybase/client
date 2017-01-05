@@ -6,7 +6,7 @@ import {CommonMessageType} from './types/flow-types-chat'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction} from './types/flux'
-import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, ChatActivity, ConversationInfoLocal, MessageBody} from './types/flow-types-chat'
+import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ChatActivity, ConversationInfoLocal, MessageBody} from './types/flow-types-chat'
 
 export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
@@ -17,6 +17,10 @@ export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
+
+export type OutboxID = RPCOutboxID
+export type OutboxIDKey = string
+
 export type ParticipantItem = UserListItem
 
 export type MessageID = RPCMessageID
@@ -171,8 +175,10 @@ export const loadingMessages = 'chat:loadingMessages'
 export const newChat = 'chat:newChat'
 export const openFolder = 'chat:openFolder'
 export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
+export const pendingMessageFailed = 'chat:pendingMessageFailed'
 export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
+export const retryMessage = 'chat:retryMessage'
 export const selectConversation = 'chat:selectConversation'
 export const setupNewChatHandler = 'chat:setupNewChatHandler'
 export const startConversation = 'chat:startConversation'
@@ -198,8 +204,10 @@ export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conver
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSent', {newMessage: Message}>
+export type PendingMessageFailed = NoErrorTypedAction<'chat:pendingMessageFailed', {newMessage: Message}>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
+export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {outboxIDKey: string}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
@@ -258,6 +266,14 @@ function keyToConversationID (key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'hex')
 }
 
+function outboxIDToKey (outboxID: OutboxID) {
+  return outboxID.toString('hex')
+}
+
+function keyToOutboxID (key: OutboxIDKey): OutboxID {
+  return Buffer.from(key, 'hex')
+}
+
 function makeSnippet (messageBody: ?MessageBody): ?string {
   if (!messageBody) {
     return null
@@ -304,7 +320,9 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
 export {
   conversationIDToKey,
   keyToConversationID,
+  keyToOutboxID,
   makeSnippet,
+  outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,
 }

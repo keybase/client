@@ -379,8 +379,10 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 	}
 
 	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := ierr.Inner().(libkb.NoKeyError); !ok {
-		t.Fatalf("unexpected error for invalid sender key: %v", ierr)
+	if ierr != nil {
+		if _, ok := ierr.Inner().(libkb.NoKeyError); !ok {
+			t.Fatalf("unexpected error for invalid sender key: %v", ierr)
+		}
 	}
 }
 
@@ -441,8 +443,9 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 	require.IsType(t, libkb.NoKeyError{}, ierr.Inner(), "unexpected error for revoked sender key: %v", ierr)
 
 	// Test key validity
-	validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
+	found, validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 	require.NoError(t, err, "ValidSenderKey")
+	require.True(t, found, "revoked key should be found (v:%v r:%v)", found, revoked)
 	require.False(t, validAtCtime, "revoked key should be invalid (v:%v r:%v)", validAtCtime, revoked)
 	require.NotNil(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
 }
@@ -501,8 +504,9 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 	require.NotNil(t, umwkr.senderDeviceRevokedAt, "message should be noticed as signed by revoked key")
 
 	// Test key validity
-	validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
+	found, validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 	require.NoError(t, err, "ValidSenderKey")
+	require.True(t, found, "revoked key should be found (v:%v r:%v)", found, revoked)
 	require.True(t, validAtCtime, "revoked key should be valid at time (v:%v r:%v)", validAtCtime, revoked)
 	require.NotNil(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
 }

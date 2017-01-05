@@ -167,7 +167,7 @@ function _parse (text: string, tagStack: TagStack, key: number): React$Element<*
         key,
       })
     } else {
-      if (firstChar === '\\') {
+      if (firstChar === '\\' && text.length > 1) {
         parseStack.push({
           text: text.slice(2),
           tagStack: tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + text[1]})),

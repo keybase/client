@@ -23,7 +23,6 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		HideHelp:     true,
 		Subcommands: []cli.Command{
 			newCmdUpdateCheck(cl, g), // Deprecated
-			newCmdUpdateRun(cl, g),   // Deprecated
 			newCmdUpdateCheckInUse(cl, g),
 			newCmdUpdateNotify(cl, g),
 		},
@@ -33,24 +32,19 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 func newCmdUpdateCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "check",
-		Usage: "Trigger an update check",
+		Usage: "Check for update",
 		Action: func(c *cli.Context) {
+			if libkb.IsBrewBuild {
+				g.Log.Errorf("\nTo update, run:\n\n\tbrew upgrade keybase")
+				return
+			}
+
 			updaterPath, err := install.UpdaterBinPath()
 			if err != nil {
 				g.Log.Errorf("Error finding updater path: %s", err)
 				return
 			}
-			g.Log.Errorf("This is no longer supported. Instead you can run:\n\n\t%s check", updaterPath)
-		},
-	}
-}
-
-func newCmdUpdateRun(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
-		Name:  "run",
-		Usage: "Run the updater with custom options",
-		Action: func(c *cli.Context) {
-			g.Log.Error("This is no longer supported. See update check.")
+			g.Log.Errorf("\nTo update, you can run:\n\n\t%s check", updaterPath)
 		},
 	}
 }

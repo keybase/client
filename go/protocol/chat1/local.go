@@ -556,6 +556,7 @@ type ConversationInfoLocal struct {
 	TlfName      string                    `codec:"tlfName" json:"tlfName"`
 	TopicName    string                    `codec:"topicName" json:"topicName"`
 	Visibility   TLFVisibility             `codec:"visibility" json:"visibility"`
+	Status       ConversationStatus        `codec:"status" json:"status"`
 	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
 	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
 	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
