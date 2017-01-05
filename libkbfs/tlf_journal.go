@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
@@ -859,6 +860,7 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 		if lastToRemove == 0 {
 			break
 		}
+		runtime.Gosched()
 	}
 
 	return nil
