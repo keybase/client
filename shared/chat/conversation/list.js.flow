@@ -18,6 +18,7 @@ export type Props = {
   onLoadMoreMessages: () => void,
   onOpenInFileUI: (filename: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
+  onRetryMessage: (outboxID: string) => void,
   onShowProfile: (username: string) => void,
   participants: List<string>,
   selectedConversation: ?ConversationIDKey,

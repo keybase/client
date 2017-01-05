@@ -25,6 +25,7 @@ export type Props = {
   onOpenInFileUI: (filename: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
   onPostMessage: (text: string) => void,
+  onRetryMessage: (outboxID: string) => void,
   onShowProfile: (username: string) => void,
   onToggleSidePanel: () => void,
   participants: List<string>,

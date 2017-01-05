@@ -29,7 +29,7 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
   </div>
 )
 
-class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void}, void> {
+class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void, onRetry: (event: any) => void}, void> {
   render () {
     const {message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, you, followingMap, metaDataMap} = this.props
     return (
@@ -113,6 +113,9 @@ export default compose(
   withHandlers({
     onIconClick: (props: Props) => event => {
       props.onAction(props.message, event)
+    },
+    onRetry: (props: Props) => () => {
+      props.message.outboxID && props.onRetry(props.message.outboxID)
     },
   })
 )(_MessageTextComponent)

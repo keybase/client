@@ -9,9 +9,47 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 
 import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMap} from '../../../constants/chat'
 
-const _onRetry = () => console.log('todo, hookup onRetry')
+const _onRetryTodo = (message: Message) => console.log('todo, hookup attachment onRetry, ', message)
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void, you: string, metaDataMap: MetaDataMap, followingMap: FollowingMap) => {
+type Options = {
+  message: Message,
+  includeHeader: boolean,
+  index: number,
+  key: string,
+  isFirstNewMessage: boolean,
+  style: Object,
+  isScrolling: boolean,
+  onAction: (message: ServerMessage, event: any) => void,
+  isSelected: boolean,
+  onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,
+  onOpenInFileUI: (path: string) => void,
+  onOpenInPopup: (message: AttachmentMessage) => void,
+  onRetry: (outboxID: string) => void,
+  you: string,
+  metaDataMap: MetaDataMap,
+  followingMap: FollowingMap,
+}
+
+const factory = (options: Options) => {
+  const {
+    message,
+    includeHeader,
+    index,
+    key,
+    isFirstNewMessage,
+    style,
+    isScrolling,
+    onAction,
+    isSelected,
+    onLoadAttachment,
+    onOpenInFileUI,
+    onOpenInPopup,
+    onRetry,
+    you,
+    metaDataMap,
+    followingMap,
+  } = options
+
   if (!message) {
     return <Box key={key} style={style} />
   }
@@ -26,7 +64,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         followingMap={followingMap}
         style={style}
         message={message}
-        onRetry={_onRetry}
+        onRetry={onRetry}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
@@ -46,7 +84,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         metaDataMap={metaDataMap}
         followingMap={followingMap}
         message={message}
-        onRetry={_onRetry}
+        onRetry={_onRetryTodo}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         onLoadAttachment={onLoadAttachment}

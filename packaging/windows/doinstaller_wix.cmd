@@ -146,7 +146,7 @@ IF %UpdateChannel% EQU Smoke2 (
 echo %JSON_UPDATE_FILENAME%
 
 :: Run keybase sign to get signature of update
-set KeybaseBin="%APPDATA%\Keybase\keybase.exe"
+set KeybaseBin="%LOCALAPPDATA%\Keybase\keybase.exe"
 set SigFile=sig.txt
 %KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
 IF %ERRORLEVEL% NEQ 0 (

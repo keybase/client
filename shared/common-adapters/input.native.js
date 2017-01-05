@@ -148,7 +148,7 @@ class Input extends Component<void, Props, State> {
       fontSize: _headerTextStyle.fontSize,
       lineHeight: _lineHeight,
       backgroundColor: globalColors.transparent,
-      flex: 1,
+      flexGrow: 1,
       borderWidth: 0,
       ...(this.props.small
       ? {textAlign: 'left'}

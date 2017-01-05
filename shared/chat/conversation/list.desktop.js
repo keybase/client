@@ -114,7 +114,7 @@ class ConversationList extends Component<void, Props, State> {
 
   _invalidateChangedMessages (props: Props) {
     this.state.messages.forEach((item, index) => {
-      if (item.messageID !== props.messages.get(index, {}).messageID) {
+      if (item.messageState !== props.messages.get(index, {}).messageState) {
         this._toRemeasure.push(index + 1)
       }
 
@@ -202,7 +202,26 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.you, this.props.metaDataMap, this.props.followingMap)
+    const options = {
+      followingMap: this.props.followingMap,
+      includeHeader: isFirstMessage || !skipMsgHeader,
+      index,
+      isFirstNewMessage,
+      isScrolling,
+      isSelected,
+      key,
+      message: message,
+      metaDataMap: this.props.metaDataMap,
+      onAction: this._onAction,
+      onLoadAttachment: this.props.onLoadAttachment,
+      onOpenInFileUI: this.props.onOpenInFileUI,
+      onOpenInPopup: this.props.onOpenInPopup,
+      onRetry: this.props.onRetryMessage,
+      style,
+      you: this.props.you,
+    }
+
+    return messageFactory(options)
   }
 
   _recomputeListDebounced = _.debounce(() => {

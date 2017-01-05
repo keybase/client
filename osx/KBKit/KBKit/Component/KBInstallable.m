@@ -11,7 +11,7 @@
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
 // This should be larger than any timeouts a task uses internally
-const NSTimeInterval KBDefaultTaskTimeout = 60.0;
+const NSTimeInterval KBDefaultTaskTimeout = 180.0;
 
 @interface KBInstallable ()
 @property KBEnvConfig *config;
