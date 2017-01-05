@@ -125,6 +125,10 @@
         {
           "type": "bytes",
           "name": "nonce"
+        },
+        {
+          "type": "string",
+          "name": "metadata"
         }
       ]
     },

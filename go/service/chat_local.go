@@ -4,6 +4,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -826,8 +827,10 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	if preview != nil {
 		preview.Title = arg.Title
 		preview.MimeType = pre.PreviewContentType
+		preview.Metadata = pre.PreviewMetadata()
 	}
 	object.MimeType = pre.ContentType
+	object.Metadata = pre.BaseMetadata()
 
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
@@ -1013,10 +1016,39 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 	return h.remoteClient().S3Sign(context.Background(), arg)
 }
 
+type dimension struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+func (d *dimension) Encode() string {
+	enc, err := json.Marshal(d)
+	if err != nil {
+		return ""
+	}
+	return string(enc)
+}
+
 type preprocess struct {
 	ContentType        string
 	Preview            *chat.BufferSource
 	PreviewContentType string
+	BaseDim            *dimension
+	PreviewDim         *dimension
+}
+
+func (p *preprocess) BaseMetadata() string {
+	if p.BaseDim == nil {
+		return ""
+	}
+	return p.BaseDim.Encode()
+}
+
+func (p *preprocess) PreviewMetadata() string {
+	if p.PreviewDim == nil {
+		return ""
+	}
+	return p.PreviewDim.Encode()
 }
 
 func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment, preview assetSource) (*preprocess, error) {
@@ -1040,10 +1072,14 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 
 	if preview == nil {
 		src.Reset()
-		p.Preview, p.PreviewContentType, err = chat.Preview(ctx, src, p.ContentType, attachment.Basename())
+		previewRes, err := chat.Preview(ctx, src, p.ContentType, attachment.Basename())
 		if err != nil {
 			return nil, err
 		}
+		p.Preview = previewRes.Source
+		p.PreviewContentType = previewRes.ContentType
+		p.BaseDim = &dimension{Width: previewRes.BaseWidth, Height: previewRes.BaseHeight}
+		p.PreviewDim = &dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
 	}
 
 	return &p, nil
