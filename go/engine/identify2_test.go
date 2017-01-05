@@ -316,8 +316,9 @@ func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
 	}
 }
 
-func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Identify2Arg) (libkb.TestContext, *Identify2WithUID, *Identify2WithUIDTester, func(), error) {
+func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Identify2Arg) (func(), error) {
 	tc := SetupEngineTest(t, "testIdentify2WithUIDWithBrokenTrack")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	eng := NewIdentify2WithUID(tc.G, arg)
@@ -337,36 +338,33 @@ func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Ident
 	ctx := Context{IdentifyUI: i}
 	waiter := launchWaiter(t, i.finishCh)
 	err := eng.Run(&ctx)
-	return tc, eng, i, waiter, err
+	return waiter, err
 }
 
-func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) (libkb.TestContext, *Identify2WithUIDTester) {
+func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
 	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		CanSuppressUI: suppress,
 	}
-	tc, _, i, waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
+	waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
 
 	if err == nil {
 		t.Fatal("expected an ID2 error since twitter proof failed")
 	}
 	waiter()
-	return tc, i
 }
 
 func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
-	tc, _ := testIdentify2WithUIDWithBrokenTrack(t, false)
-	tc.Cleanup()
+	testIdentify2WithUIDWithBrokenTrack(t, false)
 }
 
 func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
-	tc, _ := testIdentify2WithUIDWithBrokenTrack(t, true)
-	tc.Cleanup()
+	testIdentify2WithUIDWithBrokenTrack(t, true)
 }
 
 func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 
-	tc := SetupEngineTest(t, "testIdentify2WithUIDWithBrokenTrack")
+	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrackFromChatGUI")
 	defer tc.Cleanup()
 	tester := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = tester
