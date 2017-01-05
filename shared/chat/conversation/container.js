@@ -116,7 +116,7 @@ export default connect(
     onOpenInFileUI: (path: string) => dispatch(({type: 'fs:openInFileUI', payload: {path}}: OpenInFileUI)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const brokenUsers = stateProps.participants.filter(user => stateProps.metaDataMap.get(user, Map()).get('brokenTracker', false)).toArray()
+    const brokenUsers = stateProps.participants.filter(user => user !== stateProps.you && stateProps.metaDataMap.get(user, Map()).get('brokenTracker', false)).toArray()
     const bannerMessage = brokenUsers.length
       ? {
         type: 'BrokenTracker',
