@@ -31,7 +31,6 @@ const Conversation = (props: Props) => {
         followingMap={props.followingMap}
         firstNewMessageID={props.firstNewMessageID}
         messages={props.messages}
-        metaDataMap={props.metaDataMap}
         moreToLoad={props.moreToLoad}
         onAddParticipant={props.onAddParticipant}
         onDeleteMessage={props.onDeleteMessage}

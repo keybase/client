@@ -126,6 +126,7 @@ function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString):
 
 function setupChatHandlers (): SetupChatHandlers {
   return {type: Constants.setupChatHandlers, payload: undefined}
+}
 
 function retryMessage (outboxIDKey: string): RetryMessage {
   return {type: Constants.retryMessage, payload: {outboxIDKey}}
@@ -446,8 +447,8 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
     engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
       const usernames = update.CanonicalName.split(',')
-      const broken = (update.breaks.breaks || []).map(b => b.user.username)
-      const userToBroken = usernames.reduce((map, name) => {
+      const broken = usernames // TEMP (update.breaks.breaks || []).map(b => b.user.username)
+      const userToBroken = broken.reduce((map, name) => {
         map[name] = true // TEMP !!broken.includes(name)
         return map
       }, {})

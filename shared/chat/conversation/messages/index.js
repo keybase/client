@@ -34,11 +34,9 @@ const factory = (options: Options) => {
   const {
     message,
     includeHeader,
-    index,
     key,
     isFirstNewMessage,
     style,
-    isScrolling,
     onAction,
     isSelected,
     onLoadAttachment,
