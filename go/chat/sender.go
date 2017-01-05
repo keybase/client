@@ -107,6 +107,42 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 	return updated, nil
 }
 
+func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.MessagePlaintext,
+	convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
+
+	// Make sure this is a valid delete message
+	if msg.ClientHeader.MessageType != chat1.MessageType_DELETE {
+		return msg, nil
+	}
+	if msg.ClientHeader.Supersedes == 0 {
+		return msg, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
+	}
+
+	// Grab all the edits (!)
+	tv, _, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender, &chat1.GetThreadQuery{
+		MarkAsRead:   false,
+		MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT},
+	}, nil)
+	if err != nil {
+		return msg, err
+	}
+
+	// Get all affected edits
+	deletes := []chat1.MessageID{msg.ClientHeader.Supersedes}
+	for _, m := range tv.Messages {
+		if m.IsValid() && m.GetMessageType() == chat1.MessageType_EDIT &&
+			m.Valid().MessageBody.Edit().MessageID == msg.ClientHeader.Supersedes {
+			deletes = append(deletes, m.GetMessageID())
+		}
+	}
+
+	// Modify original delete message
+	msg.ClientHeader.Deletes = deletes
+	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
+
+	return msg, nil
+}
+
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
@@ -116,6 +152,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// convID will be nil in makeFirstMessage, for example
 	if convID != nil {
 		msg, err = s.addPrevPointersToMessage(ctx, msg, *convID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Make sure our delete message gets everything it should
+	if convID != nil {
+		msg, err = s.getAllDeletedEdits(ctx, msg, *convID)
 		if err != nil {
 			return nil, err
 		}
