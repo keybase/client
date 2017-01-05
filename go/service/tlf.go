@@ -70,8 +70,7 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 		return resp, err
 	}
 
-	in := chat.CtxIdentifyNotifier(ctx)
-	if in != nil {
+	if in := chat.CtxIdentifyNotifier(ctx); in != nil {
 		in.Send(resp.NameIDBreaks)
 	}
 	if ok {
@@ -98,8 +97,7 @@ func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybas
 		return resp, err
 	}
 
-	in := chat.CtxIdentifyNotifier(ctx)
-	if in != nil {
+	if in := chat.CtxIdentifyNotifier(ctx); in != nil {
 		in.Send(resp)
 	}
 	if ok {
