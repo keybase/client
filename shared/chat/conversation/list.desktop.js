@@ -31,7 +31,7 @@ class ConversationList extends Component<void, Props, State> {
   _cellMeasurer: any;
   _list: any;
   state: State;
-  _toRemeasure: List;
+  _toRemeasure: Array<number>;
   _lastWidth: ?number;
 
   constructor (props: Props) {
