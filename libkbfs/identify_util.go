@@ -80,11 +80,15 @@ func (ei *extendedIdentify) makeTlfBreaksIfNeeded(
 func (ei *extendedIdentify) getTlfBreakAndClose() keybase1.TLFBreak {
 	ei.lock.Lock()
 	defer ei.lock.Unlock()
-	if ei.userBreaks != nil && ei.tlfBreaks != nil {
+
+	if ei.userBreaks != nil {
 		close(ei.userBreaks)
 		ei.userBreaks = nil
+	}
+	if ei.tlfBreaks != nil {
 		return *ei.tlfBreaks
 	}
+
 	return keybase1.TLFBreak{}
 }
 
