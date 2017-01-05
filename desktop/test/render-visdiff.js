@@ -57,7 +57,9 @@ app.on('ready', () => {
 
   ipcMain.on('display-done', (ev, msg) => {
     const sender = ev.sender
-    sender.getOwnerBrowserWindow().capturePage(msg.rect, img => {
+
+    sender.invalidate()
+    sender.capturePage(msg.rect, img => {
       const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
       const filename = filenameParts.join('-') + '.png'
       fs.writeFile(path.join(outputDir, filename), img.toPng(), err => {
@@ -77,7 +79,7 @@ app.on('ready', () => {
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
       console.log('Creating new worker window', i)
-      const workerWin = new BrowserWindow({show: DEBUG_WINDOWS, width: CANVAS_SIZE, height: CANVAS_SIZE})
+      const workerWin = new BrowserWindow({show: DEBUG_WINDOWS, width: CANVAS_SIZE, height: CANVAS_SIZE, webPreferences: {offscreen: true}})
       console.log('Created new worker window', i)
 
       workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
@@ -88,6 +90,7 @@ app.on('ready', () => {
         }
 
         console.log('Worker window did-finish-load:', i)
+        workerWin.webContents.stopPainting()
         workerWin.webContents.send('load', {
           scripts: [{src: scriptPath}],
           firstDisplay,

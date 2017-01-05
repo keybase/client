@@ -33,6 +33,7 @@ function onDisplay (ev, msg) {
     // to give the renderer time to load.  After trying process.nextTick,
     // requestAnimationFrame, etc., simply putting in a time delay worked best.
     setTimeout(() => {
+      console.log('rendered')
       const renderedEl = document.getElementById('rendered')
       if (!renderedEl) {
         ipcRenderer.send('display-error', {...msg})
@@ -69,6 +70,7 @@ function onDisplay (ev, msg) {
 }
 
 function run (options) {
+  console.log('loaded')
   ipcRenderer.on('display', onDisplay)
   onDisplay(null, options.firstDisplay)
 }
