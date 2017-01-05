@@ -11,7 +11,7 @@ import type {Message, AttachmentMessage, ServerMessage} from '../../../constants
 
 const _onRetryTodo = (message: Message) => console.log('todo, hookup attachment onRetry, ', message)
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void, onRetry: (outboxID: string) => void) => {
+const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onAttachmentLoaded: (messageID: ChatConstants.MessageID) => void, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void, onRetry: (outboxID: string) => void) => {
   if (!message) {
     return <Box key={key} style={style} />
   }
@@ -43,6 +43,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         onRetry={_onRetryTodo}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
+        onAttachmentLoaded={onAttachmentLoaded}
         onLoadAttachment={onLoadAttachment}
         onOpenInFileUI={onOpenInFileUI}
         onOpenInPopup={onOpenInPopup}
