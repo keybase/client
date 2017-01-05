@@ -84,6 +84,8 @@ func (ei *extendedIdentify) getTlfBreakAndClose() keybase1.TLFBreak {
 		close(ei.userBreaks)
 		ei.userBreaks = nil
 		return *ei.tlfBreaks
+	} else if ei.tlfBreaks != nil {
+		return *ei.tlfBreaks
 	}
 	return keybase1.TLFBreak{}
 }
