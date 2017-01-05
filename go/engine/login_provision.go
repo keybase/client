@@ -134,6 +134,20 @@ func (e *loginProvision) Run(ctx *Context) error {
 	return nil
 }
 
+func saveToSecretStore(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libkb.NormalizedUsername, lks *libkb.LKSec) (err error) {
+	defer g.Trace(fmt.Sprintf("saveToSecretStore(%s)", nun), func() error { return err })()
+	var secret libkb.LKSecFullSecret
+	secretStore := libkb.NewSecretStore(g, nun)
+	secret, err = lks.GetSecret(lctx)
+	if err == nil {
+		err = secretStore.StoreSecret(secret)
+	}
+	if err != nil {
+		g.Log.Warning("saveToSecretStore(%s) failed: %s", nun, err)
+	}
+	return err
+}
+
 // deviceWithType provisions this device with an existing device using the
 // kex2 protocol.  provisionerType is the existing device type.
 func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.DeviceType) error {
@@ -200,7 +214,11 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	f := func(lctx libkb.LoginContext) error {
 		// run provisionee
 		ctx.LoginContext = lctx
-		return RunEngine(provisionee, ctx)
+		err := RunEngine(provisionee, ctx)
+		if err == nil {
+			saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
+		}
+		return err
 	}
 	if err := e.G().LoginState().ExternalFunc(f, "loginProvision.device - Run provisionee"); err != nil {
 		return err
@@ -248,6 +266,7 @@ func (e *loginProvision) paper(ctx *Context, device *libkb.Device) error {
 			// not a fatal error, session will stay in memory
 			e.G().Log.Warning("error saving session file: %s", err)
 		}
+		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), e.lks)
 		return nil
 	}
 
