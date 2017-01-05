@@ -66,7 +66,7 @@ function checkout (commit) {
     console.log(`Installing dependencies for package.json:${newPackageHash}...`)
   }
 
-  spawn('yarn', ['install'], {stdio: 'inherit'})
+  spawn('yarn', ['install', '--frozen-lockfile'], {stdio: 'inherit'})
 }
 
 function renderScreenshots (commitRange) {
