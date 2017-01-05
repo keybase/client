@@ -15,8 +15,6 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
-	"encoding/json"
-
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/s3"
@@ -674,9 +672,6 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
 		Prev: arg.ClientPrev,
 	}
-
-	out, _ := json.Marshal(arg)
-	h.G().Log.Debug("ARG: %s", out)
 
 	// Create non block sender
 	var identBreaks []keybase1.TLFIdentifyFailure
