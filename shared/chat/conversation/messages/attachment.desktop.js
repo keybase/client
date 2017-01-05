@@ -23,7 +23,7 @@ const colorForAuthor = (followState: Constants.FollowState) => {
 }
 
 // TODO abstract this part so it is the same as message text
-class _AttachmentMessage extends PureComponent<void, Props & {onIconClick: (event: any) => void, onOpenInPopup: (event: any) => void}, void> {
+class AttachmentMessage extends PureComponent<void, Props & {onIconClick: (event: any) => void, onOpenInPopup: (event: any) => void}, void> {
   render () {
     const {message, style, includeHeader, isFirstNewMessage, onLoadAttachment, onOpenInFileUI, onOpenInPopup, onIconClick} = this.props
     const {downloadedPath} = message
@@ -66,7 +66,7 @@ export default withHandlers({
   onOpenInPopup: (props: Props) => event => {
     props.onOpenInPopup(props.message, event)
   },
-})(_AttachmentMessage)
+})(AttachmentMessage)
 
 const stylesFirstNewMessage = {
   borderTop: `solid 1px ${globalColors.orange}`,
