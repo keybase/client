@@ -80,7 +80,10 @@ func (f *fileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (chat.Rea
 }
 
 func (f *fileSource) Close() error {
-	return f.buf.Close()
+	if f.buf != nil {
+	  return f.buf.Close()
+	}
+	return nil
 }
 
 type fileReadResetter struct {
@@ -122,5 +125,8 @@ func (f *fileReadResetter) Reset() error {
 
 func (f *fileReadResetter) Close() error {
 	f.buf = nil
-	return f.file.Close()
+	if f.file != nil {
+		return f.file.Close()
+	}
+	return nil
 }
