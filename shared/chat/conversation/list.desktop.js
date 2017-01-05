@@ -11,10 +11,11 @@ import SidePanel from './side-panel/index.desktop'
 import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
-import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
+import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
+import type {List} from 'immutable'
 import type {Message, MessageID} from '../../constants/chat'
 import type {Props} from './list'
 
@@ -114,11 +115,13 @@ class ConversationList extends Component<void, Props, State> {
 
   _invalidateChangedMessages (props: Props) {
     this.state.messages.forEach((item, index) => {
-      if (item.messageID !== props.messages.get(index, {}).messageID) {
+      const oldMessage = props.messages.get(index, {})
+
+      if (item.key !== oldMessage.key) {
         this._toRemeasure.push(index + 1)
       }
 
-      if (item.previewPath !== props.messages.get(index, {}).previewPath) {
+      if (item.type === 'Attachment' && oldMessage.type === 'Attachment' && item.previewPath !== oldMessage.previewPath) {
         this._toRemeasure.push(index + 1)
       }
     })
@@ -195,9 +198,9 @@ class ConversationList extends Component<void, Props, State> {
     const message = this.state.messages.get(index - 1)
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
-    const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
-    const isSelected = this.state.selectedMessageID === message.messageID
-    const isFirstNewMessage = this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
+    const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
+    const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
+    const isFirstNewMessage = message.messageID != null && this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
@@ -260,7 +263,7 @@ class ConversationList extends Component<void, Props, State> {
               rowCount={countWithLoading}
               width={width} >
               {({getRowHeight}) => {
-                return <List
+                return <VirtualizedList
                   style={{outline: 'none'}}
                   height={height}
                   ref={r => { this._list = r }}
