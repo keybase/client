@@ -416,10 +416,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
       const usernames = update.CanonicalName.split(',')
       const broken = (update.breaks.breaks || []).map(b => b.user.username)
       const userToBroken = usernames.reduce((map, name) => {
-        map[name] = !!broken.includes(name)
-        if (name === 'cjb') {
-          map['cjb'] = true // TEMP
-        }
+        map[name] = true // TEMP !!broken.includes(name)
         return map
       }, {})
       dispatch({type: Constants.updateBrokenTracker, payload: {userToBroken}})

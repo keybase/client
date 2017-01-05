@@ -138,7 +138,7 @@ export type MetaDataMap = Map<string, MetaData>
 
 export const MetaDataRecord = Record({
   fullname: 'Unknown',
-  brokenTracker: false,
+  brokenTracker: true,// TEMP false,
 })
 
 export const StateRecord = Record({

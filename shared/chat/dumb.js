@@ -14,26 +14,7 @@ import type {ConversationIDKey} from '../constants/chat'
 
 const now = new Date(2016, 4, 20, 4, 20)
 
-const participants = [
-  {
-    username: 'chris',
-    you: true,
-  },
-  {
-    username: 'chrisnojima',
-    you: false,
-  },
-  {
-    username: 'oconnor663',
-    you: false,
-    following: true,
-  },
-  {
-    username: 'cjb',
-    you: false,
-    broken: true,
-  },
-]
+const participants = ['chris', 'chrisnojima', 'oconnor663', 'cjb']
 
 const messages = [
   {
@@ -105,7 +86,9 @@ const commonConvoProps = {
   selectedConversation: 'convo1',
   emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
-  metaData: Map(metaData),
+  metaDataMap: Map(metaData),
+  followingMap: {},
+  you: 'chris',
 }
 
 const emptyConvoProps = {
@@ -283,9 +266,24 @@ const conversationBanner = {
     },
     'Error': {
       type: 'Error',
-      text: 'Some of jzila’s proofs have changed since you last followed them.',
-      textLink: 'Please Review',
+      text: 'Some error',
+      textLink: 'Some link',
       textLinkOnClick: () => { console.log('Clicked the text link') },
+    },
+    'BrokenTracker 1': {
+      type: 'BrokenTracker',
+      users: ['jzila'],
+      onClick: (user: string) => { console.log('Clicked on ', user) },
+    },
+    'BrokenTracker 2': {
+      type: 'BrokenTracker',
+      users: ['jzila', 'cjb'],
+      onClick: (user: string) => { console.log('Clicked on ', user) },
+    },
+    'BrokenTracker 3': {
+      type: 'BrokenTracker',
+      users: ['jzila', 'cjb', 'bob'],
+      onClick: (user: string) => { console.log('Clicked on ', user) },
     },
   },
 }

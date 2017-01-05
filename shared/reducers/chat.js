@@ -229,7 +229,7 @@ function reducer (state: State = initialState, action: Actions) {
       let metaData = state.get('metaData')
 
       Object.keys(userToBroken).forEach(user => {
-        metaData = metaData.update(user, new MetaDataRecord(), old => old.set('brokenTracker', userToBroken[user]))
+        metaData = metaData.update(user, new MetaDataRecord(), old => old.set('brokenTracker', true /*userToBroken[user]*/)) // TEMP
       })
 
       return state.set('metaData', metaData)
