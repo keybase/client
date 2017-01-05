@@ -142,6 +142,10 @@ type S3SignArg struct {
 	Payload []byte `codec:"payload" json:"payload"`
 }
 
+type GetInboxVersionArg struct {
+	Uid gregor1.UID `codec:"uid" json:"uid"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -155,6 +159,7 @@ type RemoteInterface interface {
 	GetUnreadUpdateFull(context.Context, InboxVers) (UnreadUpdateFull, error)
 	GetS3Params(context.Context, ConversationID) (S3Params, error)
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
+	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -353,6 +358,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getInboxVersion": {
+				MakeArg: func() interface{} {
+					ret := make([]GetInboxVersionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetInboxVersionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetInboxVersionArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxVersion(ctx, (*typedArgs)[0].Uid)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -421,5 +442,11 @@ func (c RemoteClient) GetS3Params(ctx context.Context, conversationID Conversati
 
 func (c RemoteClient) S3Sign(ctx context.Context, __arg S3SignArg) (res []byte, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.s3Sign", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) GetInboxVersion(ctx context.Context, uid gregor1.UID) (res InboxVers, err error) {
+	__arg := GetInboxVersionArg{Uid: uid}
+	err = c.Cli.Call(ctx, "chat.1.remote.getInboxVersion", []interface{}{__arg}, &res)
 	return
 }

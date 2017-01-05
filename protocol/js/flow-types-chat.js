@@ -343,6 +343,18 @@ export function remoteGetInboxRemoteRpcPromise (request: $Exact<requestCommon & 
   return new Promise((resolve, reject) => { remoteGetInboxRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteGetInboxVersionRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxVersionResult) => void} & {param: remoteGetInboxVersionRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.getInboxVersion'})
+}
+
+export function remoteGetInboxVersionRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxVersionResult) => void} & {param: remoteGetInboxVersionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetInboxVersionRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteGetInboxVersionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxVersionResult) => void} & {param: remoteGetInboxVersionRpcParam}>): Promise<remoteGetInboxVersionResult> {
+  return new Promise((resolve, reject) => { remoteGetInboxVersionRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteGetMessagesRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.getMessagesRemote'})
 }
@@ -1256,6 +1268,10 @@ export type remoteGetInboxRemoteRpcParam = Exact<{
   pagination?: ?Pagination
 }>
 
+export type remoteGetInboxVersionRpcParam = Exact<{
+  uid: gregor1.UID
+}>
+
 export type remoteGetMessagesRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageIDs?: ?Array<MessageID>
@@ -1345,6 +1361,8 @@ type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
 
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 
+type remoteGetInboxVersionResult = InboxVers
+
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
 
 type remoteGetS3ParamsResult = S3Params
@@ -1385,6 +1403,7 @@ export type rpc =
   | localRetryPostRpc
   | localSetConversationStatusLocalRpc
   | remoteGetInboxRemoteRpc
+  | remoteGetInboxVersionRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetS3ParamsRpc
   | remoteGetThreadRemoteRpc
