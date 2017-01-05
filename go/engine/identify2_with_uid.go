@@ -121,14 +121,14 @@ func (i *identifyUser) Equal(i2 *identifyUser) bool {
 }
 
 func (i *identifyUser) load(g *libkb.GlobalContext) (err error) {
-	i.thin, i.full, err = g.GetUPAKLoader().Load(i.arg)
+	i.thin, i.full, err = g.CachedUserLoader.Load(i.arg)
 	return err
 }
 
 func (i *identifyUser) forceFullLoad(g *libkb.GlobalContext) (err error) {
 	arg := i.arg
 	arg.ForceReload = true
-	i.thin, i.full, err = g.GetUPAKLoader().Load(arg)
+	i.thin, i.full, err = g.CachedUserLoader.Load(arg)
 	return err
 }
 

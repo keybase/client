@@ -364,7 +364,7 @@ func TestIdentifyTrackRaceDetection(t *testing.T) {
 			// We might have used the fact the userchanged notifications are bounced
 			// off of the server, but that might slow down this test, so do the
 			// simple and non-flakey thing.
-			dev2.G.GetUPAKLoader().Invalidate(nil, libkb.UsernameToUID(user.Username))
+			dev2.G.CachedUserLoader.Invalidate(nil, libkb.UsernameToUID(user.Username))
 		}
 		doID(dev2, fui2)
 		trackSucceed(dev1, fui1)

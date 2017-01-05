@@ -433,5 +433,5 @@ func lookupMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, l
 }
 
 func LoadUserPlusKeys(ctx context.Context, g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys, error) {
-	return g.GetUPAKLoader().LoadUserPlusKeys(ctx, uid)
+	return g.CachedUserLoader.LoadUserPlusKeys(ctx, uid)
 }

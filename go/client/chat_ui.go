@@ -147,7 +147,7 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 		return chat1.ConversationLocal{}, fmt.Errorf("no text message found")
 	}
 
-	rnames, wnames, err := chat.ReorderParticipants(ctx, c.G().GetUPAKLoader(),
+	rnames, wnames, err := chat.ReorderParticipants(ctx, c.G().UserDeviceCache,
 		txtMsg.ClientHeader.TlfName, conv.Metadata.ActiveList)
 	if err != nil {
 		return chat1.ConversationLocal{}, err

@@ -396,7 +396,7 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
 	}
 
 	arg := LoadUserArg{LoginContext: a, Contextified: NewContextified(a.G()), Self: true}
-	err = a.G().GetFullSelfer().WithUser(arg, func(user *User) error {
+	err = a.G().FullSelfCacher.WithUser(arg, func(user *User) error {
 		var err error
 		deviceSubkey, err = user.GetDeviceSubkey()
 		if err != nil {
