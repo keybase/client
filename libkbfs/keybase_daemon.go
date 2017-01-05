@@ -20,7 +20,10 @@ type keybaseDaemon struct{}
 func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseService, error) {
 	localUser := libkb.NewNormalizedUsername(params.LocalUser)
 	if len(localUser) == 0 {
-		ctx.ConfigureSocketInfo()
+		err := ctx.ConfigureSocketInfo()
+		if err != nil {
+			return nil, err
+		}
 		return NewKeybaseDaemonRPC(config, ctx, log, params.Debug), nil
 	}
 

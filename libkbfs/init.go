@@ -104,35 +104,6 @@ func defaultMDServer(ctx Context) string {
 	}
 }
 
-// defaultLocalUser returns the default value for the -localuser flag.
-func defaultLocalUser(ctx Context) string {
-	switch ctx.GetRunMode() {
-	case libkb.DevelRunMode:
-		return "strib"
-	case libkb.StagingRunMode:
-		return ""
-	case libkb.ProductionRunMode:
-		return ""
-	default:
-		return ""
-	}
-}
-
-// defaultLocalFavoriteStorage returns the default value for the
-// -local-fav-storage flag.
-func defaultLocalFavoriteStorage(ctx Context) string {
-	switch ctx.GetRunMode() {
-	case libkb.DevelRunMode:
-		return "memory"
-	case libkb.StagingRunMode:
-		return ""
-	case libkb.ProductionRunMode:
-		return ""
-	default:
-		return ""
-	}
-}
-
 // defaultMetadataVersion returns the default metadata version per run mode.
 func defaultMetadataVersion(ctx Context) MetadataVer {
 	switch ctx.GetRunMode() {
@@ -154,13 +125,11 @@ func defaultLogPath(ctx Context) string {
 // DefaultInitParams returns default init params
 func DefaultInitParams(ctx Context) InitParams {
 	return InitParams{
-		Debug:                BoolForString(os.Getenv("KBFS_DEBUG")),
-		BServerAddr:          defaultBServer(ctx),
-		MDServerAddr:         defaultMDServer(ctx),
-		LocalUser:            defaultLocalUser(ctx),
-		LocalFavoriteStorage: defaultLocalFavoriteStorage(ctx),
-		TLFValidDuration:     tlfValidDurationDefault,
-		MetadataVersion:      defaultMetadataVersion(ctx),
+		Debug:            BoolForString(os.Getenv("KBFS_DEBUG")),
+		BServerAddr:      defaultBServer(ctx),
+		MDServerAddr:     defaultMDServer(ctx),
+		TLFValidDuration: tlfValidDurationDefault,
+		MetadataVersion:  defaultMetadataVersion(ctx),
 		LogFileConfig: logger.LogFileConfig{
 			MaxAge:       30 * 24 * time.Hour,
 			MaxSize:      128 * 1024 * 1024,
@@ -228,15 +197,10 @@ func GetDefaultsUsageString(ctx Context) string {
 	runMode := ctx.GetRunMode()
 	defaultBServer := defaultBServer(ctx)
 	defaultMDServer := defaultMDServer(ctx)
-	defaultLocalUser := defaultLocalUser(ctx)
-	defaultLocalFavoriteStorage := defaultLocalFavoriteStorage(ctx)
 	return fmt.Sprintf(`  (KEYBASE_RUN_MODE=%s)
   -bserver=%s
-  -mdserver=%s
-  -localuser=%s
-  -local-fav-storage=%s`,
-		runMode, defaultBServer, defaultMDServer, defaultLocalUser,
-		defaultLocalFavoriteStorage)
+  -mdserver=%s`,
+		runMode, defaultBServer, defaultMDServer)
 }
 
 const memoryAddr = "memory"
