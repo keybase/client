@@ -1,7 +1,7 @@
 // @flow
 // Styles from our designers
 import globalColors from './colors'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
+import {resolveImageAsURL} from '../desktop/resolve-root'
 import path from 'path'
 
 const windowStyle = {
