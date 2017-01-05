@@ -72,12 +72,8 @@ class ConversationList extends Component<void, Props, State> {
   componentWillUpdate (nextProps: Props, nextState: State) {
     // If a message has moved from pending to sent, tell the List to discard
     // heights for it (which will re-render it and everything after it)
-    // TODO this doesn't work for things that take a bit to load (imgs)
     if (this._toRemeasure.length) {
-      this._toRemeasure.forEach(item => {
-        this._cellCache.clearRowHeight(item)
-        this._list && this._list.recomputeRowHeights(item)
-      })
+      this._toRemeasure.forEach(this._recomputeRowHeightAtIndex, this)
       this._toRemeasure = []
     }
   }
@@ -125,6 +121,13 @@ class ConversationList extends Component<void, Props, State> {
         this._toRemeasure.push(index + 1)
       }
     })
+  }
+
+  _onAttachmentLoaded (messageID: MessageID) {
+    const index = this.state.messages.findKey(item => item.messageID && item.messageID === messageID)
+    if (index != null) {
+      this._recomputeRowHeightAtIndex(index + 1)
+    }
   }
 
   _onScrollSettled = _.debounce(() => {
@@ -204,7 +207,12 @@ class ConversationList extends Component<void, Props, State> {
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.onRetryMessage)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, messageID => this._onAttachmentLoaded(messageID), this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.onRetryMessage)
+  }
+
+  _recomputeRowHeightAtIndex (index: number) {
+    this._cellCache.clearRowHeight(index)
+    this._list && this._list.recomputeRowHeights(index)
   }
 
   _recomputeListDebounced = _.debounce(() => {
