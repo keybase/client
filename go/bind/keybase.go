@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -63,6 +64,12 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	if err != nil {
 		return err
 	}
+	logger.SetLogFileConfig(&logger.LogFileConfig{
+		Path:         logFile,
+		MaxSize:      2 * 1024 * 1024,    // max 2mb per log file
+		MaxAge:       7 * 24 * time.Hour, // max one week per log file
+		MaxKeepFiles: 3,                  // Keep max 3 of a log file
+	})
 
 	svc := service.NewService(kbCtx, false)
 	svc.StartLoopbackServer()
