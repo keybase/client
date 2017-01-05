@@ -69,7 +69,7 @@
     "react-addons-shallow-compare": "15.4.1",
     "react-dom": "15.4.1",
     "react-list": "0.8.0",
-    "react-native": "0.39.2",
+    "react-native": "0.36.0",
     "react-native-barcodescanner": "3.1.1",
     "react-native-camera": "git://github.com/lwansbrough/react-native-camera.git#6074ec3c8275ef5eb5fc39489c9a379f6ced923b",
     "react-native-push-notification": "2.2.1",
