@@ -287,6 +287,11 @@ func (j *blockJournal) getDataWithContext(id kbfsblock.ID, context kbfsblock.Con
 	return j.s.getDataWithContext(id, context)
 }
 
+func (j *blockJournal) getData(id kbfsblock.ID) (
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	return j.s.getData(id)
+}
+
 func (j *blockJournal) getUnflushedBytes() int64 {
 	return j.aggregateInfo.UnflushedBytes
 }

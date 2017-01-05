@@ -268,7 +268,7 @@ func TestBlockJournalRemoveReferences(t *testing.T) {
 	require.Equal(t, blockNonExistentError{bID}, err)
 
 	// But the actual data should remain (for flushing).
-	buf, half, err := j.s.getData(bID)
+	buf, half, err := j.getData(bID)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, half)

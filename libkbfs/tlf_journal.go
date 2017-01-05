@@ -1296,8 +1296,14 @@ func (j *tlfJournal) enable() error {
 // All the functions below just do the equivalent blockJournal or
 // mdJournal function under j.journalLock.
 
-func (j *tlfJournal) getBlockDataWithContext(
-	id kbfsblock.ID, context kbfsblock.Context) (
+// getBlockData doesn't take a block context param, unlike the remote
+// block server, since we still want to serve blocks even if all local
+// references have been deleted (for example, a block that's been
+// flushed but is still being and served on disk until the next
+// successful MD flush).  This is safe because the journal doesn't
+// support removing references for anything other than a flush (see
+// the comment in tlfJournal.removeBlockReferences).
+func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -1305,7 +1311,7 @@ func (j *tlfJournal) getBlockDataWithContext(
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
-	return j.blockJournal.getDataWithContext(id, context)
+	return j.blockJournal.getData(id)
 }
 
 func (j *tlfJournal) putBlockData(
@@ -1357,26 +1363,17 @@ func (j *tlfJournal) addBlockReference(
 func (j *tlfJournal) removeBlockReferences(
 	ctx context.Context, contexts kbfsblock.ContextMap) (
 	liveCounts map[kbfsblock.ID]int, err error) {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	if err := j.checkEnabledLocked(); err != nil {
-		return nil, err
-	}
-
-	// Don't remove the block data if we remove the last
-	// reference; we still need it to flush the initial put
-	// operation.
-	//
-	// TODO: It would be nice if we could detect that case and
-	// avoid having to flush the put.
-	liveCounts, err = j.blockJournal.removeReferences(ctx, contexts)
-	if err != nil {
-		return nil, err
-	}
-
-	j.signalWork()
-
-	return liveCounts, nil
+	// Currently the block journal will still serve block data even if
+	// all journal references to a block have been removed (i.e.,
+	// because they have all been flushed to the remote server).  If
+	// we ever need to support the `BlockServer.RemoveReferences` call
+	// in the journal, we might need to change the journal so that it
+	// marks blocks as flushed-but-still-readable, so that we can
+	// distinguish them from blocks that has had all its references
+	// removed and shouldn't be served anymore.  For now, just fail
+	// this call to make sure no uses of it creep in.
+	return nil, fmt.Errorf(
+		"Removing block references is currently unsupported in the journal")
 }
 
 func (j *tlfJournal) archiveBlockReferences(
