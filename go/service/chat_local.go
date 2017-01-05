@@ -1022,6 +1022,9 @@ type dimension struct {
 }
 
 func (d *dimension) Encode() string {
+	if d.Width == 0 && d.Height == 0 {
+		return ""
+	}
 	enc, err := json.Marshal(d)
 	if err != nil {
 		return ""
@@ -1076,10 +1079,17 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 		if err != nil {
 			return nil, err
 		}
+		if previewRes == nil {
+			return &p, nil
+		}
 		p.Preview = previewRes.Source
 		p.PreviewContentType = previewRes.ContentType
-		p.BaseDim = &dimension{Width: previewRes.BaseWidth, Height: previewRes.BaseHeight}
-		p.PreviewDim = &dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
+		if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {
+			p.BaseDim = &dimension{Width: previewRes.BaseWidth, Height: previewRes.BaseHeight}
+		}
+		if previewRes.PreviewWidth > 0 || previewRes.PreviewHeight > 0 {
+			p.PreviewDim = &dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
+		}
 	}
 
 	return &p, nil
