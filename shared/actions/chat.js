@@ -3,23 +3,24 @@ import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
 import engine from '../engine'
+import flags from '../util/feature-flags'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race, cancel} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
+import {getPath} from '../route-tree'
+import {navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {getPath} from '../route-tree'
-import {navigateTo, switchTo} from './route-tree'
+import {tmpFile} from '../util/file'
 import {updateReachability} from '../constants/gregor'
 import {usernameSelector} from '../constants/selectors'
-import {tmpFile} from '../util/file'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
@@ -982,6 +983,10 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
+  if (!flags.tabChatEnabled) {
+    return
+  }
+
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
     safeTakeLatest(Constants.loadedInbox, _loadedInbox),
