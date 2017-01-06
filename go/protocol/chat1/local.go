@@ -45,6 +45,7 @@ type Asset struct {
 	VerifyKey []byte `codec:"verifyKey" json:"verifyKey"`
 	Title     string `codec:"title" json:"title"`
 	Nonce     []byte `codec:"nonce" json:"nonce"`
+	Metadata  string `codec:"metadata" json:"metadata"`
 }
 
 type MessageAttachment struct {
