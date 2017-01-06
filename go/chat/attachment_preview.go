@@ -8,6 +8,7 @@ import (
 	"image/draw"
 	"image/gif"
 	"image/jpeg"
+	"image/png"
 	"io"
 
 	"golang.org/x/net/context"
@@ -19,8 +20,8 @@ import (
 )
 
 const (
-	previewImageWidth  = 320
-	previewImageHeight = 320
+	previewImageWidth  = 640
+	previewImageHeight = 640
 )
 
 type BufferSource struct {
@@ -90,7 +91,7 @@ type PreviewRes struct {
 func Preview(ctx context.Context, src io.Reader, contentType, basename string) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png":
-		return previewImage(ctx, src, basename)
+		return previewImage(ctx, src, basename, contentType)
 	case "image/gif":
 		return previewGIF(ctx, src, basename)
 	}
@@ -98,8 +99,8 @@ func Preview(ctx context.Context, src io.Reader, contentType, basename string) (
 	return nil, nil
 }
 
-// previewImage will resize a single-frame image into a jpeg.
-func previewImage(ctx context.Context, src io.Reader, basename string) (*PreviewRes, error) {
+// previewImage will resize a single-frame image.
+func previewImage(ctx context.Context, src io.Reader, basename, contentType string) (*PreviewRes, error) {
 	// images.Decode in camlistore correctly handles exif orientation information.
 	img, _, err := images.Decode(src, nil)
 	if err != nil {
@@ -109,15 +110,25 @@ func previewImage(ctx context.Context, src io.Reader, basename string) (*Preview
 	width, height := previewDimensions(img.Bounds())
 
 	// nfnt/resize with NearestNeighbor is the fastest I've found.
-	preview := resize.Resize(width, height, img, resize.NearestNeighbor)
+	preview := resize.Resize(width, height, img, resize.Bicubic)
 	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, preview, nil); err != nil {
-		return nil, err
+
+	var encodeContentType string
+	if contentType == "image/png" {
+		encodeContentType = "image/png"
+		if err := png.Encode(&buf, preview); err != nil {
+			return nil, err
+		}
+	} else {
+		encodeContentType = "image/jpeg"
+		if err := jpeg.Encode(&buf, preview, &jpeg.Options{Quality: 90}); err != nil {
+			return nil, err
+		}
 	}
 
 	return &PreviewRes{
 		Source:        newBufferSource(&buf, basename),
-		ContentType:   "image/jpeg",
+		ContentType:   encodeContentType,
 		BaseWidth:     img.Bounds().Dx(),
 		BaseHeight:    img.Bounds().Dy(),
 		PreviewWidth:  int(width),
@@ -147,7 +158,7 @@ func previewGIF(ctx context.Context, src io.Reader, basename string) (*PreviewRe
 	for index, frame := range g.Image {
 		bounds := frame.Bounds()
 		draw.Draw(img, bounds, frame, bounds.Min, draw.Over)
-		g.Image[index] = imageToPaletted(resize.Resize(width, height, img, resize.NearestNeighbor))
+		g.Image[index] = imageToPaletted(resize.Resize(width, height, img, resize.Bicubic))
 	}
 
 	// change the image Config to the new size
