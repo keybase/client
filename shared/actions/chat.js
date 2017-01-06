@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
-import _ from 'lodash'
+import _, {clamp} from 'lodash'
 import engine from '../engine'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
@@ -30,6 +30,7 @@ import type {TypedState} from '../constants/reducer'
 import type {UpdateReachability} from '../constants/gregor'
 import type {
   AppendMessages,
+  AttachmentSize,
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
@@ -645,6 +646,13 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   return null
 }
 
+function _clampAttachmentPreviewSize({width, height}: AttachmentSize) {
+  return {
+    width: clamp(width, Constants.maxAttachmentPreviewSize),
+    height: clamp(height, Constants.maxAttachmentPreviewSize),
+  }
+}
+
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
@@ -685,6 +693,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
               console.warn('Error parsing preview metadata:', err)
             }
           }
+          const previewSize = _clampAttachmentPreviewSize({width: previewMetadata.width, height: previewMetadata.height})
 
           return {
             type: 'Attachment',
@@ -696,7 +705,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             title: payload.messageBody.attachment.object.title,
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
-            previewSize: {width: previewMetadata.width, height: previewMetadata.height},
+            previewSize,
             downloadedPath: null,
             key: common.messageID,
           }

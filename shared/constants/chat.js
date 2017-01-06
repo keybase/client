@@ -63,7 +63,7 @@ export type UnhandledMessage = {
   key: any,
 }
 
-type AttachmentSize = {
+export type AttachmentSize = {
   width: ?number,
   height: ?number,
 }
@@ -162,6 +162,8 @@ export type State = Record<{
   focused: boolean,
   metaData: Map<string, MetaData>,
 }>
+
+export const maxAttachmentPreviewSize = 320
 
 export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
