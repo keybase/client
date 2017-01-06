@@ -87,7 +87,6 @@ type PreviewRes struct {
 
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
-// func Preview(ctx context.Context, src io.Reader, contentType, basename string) (*BufferSource, string, error) {
 func Preview(ctx context.Context, src io.Reader, contentType, basename string) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png":
@@ -100,7 +99,6 @@ func Preview(ctx context.Context, src io.Reader, contentType, basename string) (
 }
 
 // previewImage will resize a single-frame image into a jpeg.
-// func previewImage(ctx context.Context, src io.Reader, basename string) (*BufferSource, string, error) {
 func previewImage(ctx context.Context, src io.Reader, basename string) (*PreviewRes, error) {
 	// images.Decode in camlistore correctly handles exif orientation information.
 	img, _, err := images.Decode(src, nil)
@@ -129,7 +127,6 @@ func previewImage(ctx context.Context, src io.Reader, basename string) (*Preview
 
 // previewGIF handles resizing multiple frames in an animated gif.
 // Based on code in https://github.com/dpup/go-scratch/blob/master/gif-resize/gif-resize.go
-// func previewGIF(ctx context.Context, src io.Reader, basename string) (*BufferSource, string, error) {
 func previewGIF(ctx context.Context, src io.Reader, basename string) (*PreviewRes, error) {
 	g, err := gif.DecodeAll(src)
 	if err != nil {
