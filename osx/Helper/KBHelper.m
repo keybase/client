@@ -128,7 +128,7 @@
     NSURL *directoryURL = [NSURL fileURLWithPath:directory];
     OSStatus status = CSBackupSetItemExcluded((__bridge CFURLRef)directoryURL, YES, YES);
     if (status != noErr) {
-      completion(KBMakeError(status, @"Error trying to exclude from backup"), nil);
+      completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Error trying to exclude from backup: %@", @(status)), nil);
       return;
     }
   }
@@ -236,12 +236,12 @@
   for (NSString *path in removePaths) {
     NSError *error = nil;
     if (![NSFileManager.defaultManager removeItemAtPath:path error:&error]) {
-      [errors addObject:KBMakeError(error.code, @"Failed to remove path: %@", path)];
+      [errors addObject:KBMakeError(MPXPCErrorCodeInvalidRequest, @"Failed to remove path: %@ (%@)", path, @(error.code))];
     }
   }
 
   if ([errors count] > 0) {
-    completion(KBMakeError(-1, @"%@", [errors componentsJoinedByString:@". "]), @{@"paths": removePaths});
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"%@", [errors componentsJoinedByString:@". "]), @{@"paths": removePaths});
   } else {
     completion(nil, @{@"paths": removePaths});
   }
@@ -279,7 +279,7 @@
 
 - (void)sysctl:(NSString *)name value:(id)value completion:(void (^)(NSError *error, id value))completion {
   if (![value isKindOfClass:[NSNumber class]]) {
-    completion(KBMakeError(-1, @"Unsupported value type for sysctl"), nil);
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Unsupported value type for sysctl"), nil);
     return;
   }
 
@@ -288,17 +288,17 @@
   size_t oldValueLen = sizeof(oldValue);
   int retval = sysctlbyname([name UTF8String], &oldValue, &oldValueLen, NULL, 0);
   if (retval != 0) {
-    completion(KBMakeError(retval, @"Sysctl get error"), nil);
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Sysctl get error: %@", @(retval)), nil);
     return;
   }
   if (oldValue == intValue) {
     completion(nil, nil);
     return;
   }
-  size_t valueLen = sizeof(value);
+  size_t valueLen = sizeof(intValue);
   int retvalSet = sysctlbyname([name UTF8String], NULL, 0, &intValue, valueLen);
   if (retvalSet != 0) {
-    completion(KBMakeError(retvalSet, @"Sysctl set error"), nil);
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Sysctl set error: %@", @(retvalSet)), nil);
     return;
   }
   completion(nil, value);

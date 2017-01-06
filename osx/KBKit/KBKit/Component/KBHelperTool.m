@@ -74,6 +74,19 @@
   va_end(args);
 }
 
+- (void)version:(void (^)(NSError *error, KBSemVersion *version, NSNumber *buildNumber))completion {
+  [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
+    if (error) {
+      completion(error, nil, nil);
+      return;
+    }
+    DDLogDebug(@"Helper version: %@", versions);
+    KBSemVersion *version = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:nil];
+    NSNumber *buildNumber = KBIfNull(versions[@"build"], @(0));
+    completion(nil, version, buildNumber);
+  }];
+}
+
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   KBSemVersion *bundleVersion = [self bundleVersion];
