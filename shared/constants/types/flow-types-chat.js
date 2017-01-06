@@ -539,6 +539,7 @@ export type Conversation = {
 export type ConversationFinalizeInfo = {
   resetUser: string,
   resetDate: string,
+  resetFull: string,
   resetTimestamp: gregor1.Time,
 }
 
@@ -1325,7 +1326,8 @@ export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID,
   resetUser: string,
   resetDate: string,
-  resetTimestamp: gregor1.Time
+  resetTimestamp: gregor1.Time,
+  resetFull: string
 }>
 
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes

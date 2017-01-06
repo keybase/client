@@ -407,6 +407,10 @@
         {
           "name": "resetTimestamp",
           "type": "gregor1.Time"
+        },
+        {
+          "name": "resetFull",
+          "type": "string"
         }
       ],
       "response": null
