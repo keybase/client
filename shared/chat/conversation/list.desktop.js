@@ -69,6 +69,13 @@ class ConversationList extends Component<void, Props, State> {
     return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
   }
 
+  componentWillUnmount () {
+    // Stop any throttled/debounced functions
+    this._onScroll.cancel()
+    this._recomputeListDebounced.cancel()
+    this._onScrollSettled.cancel()
+  }
+
   componentWillUpdate (nextProps: Props, nextState: State) {
     // If a message has moved from pending to sent, tell the List to discard
     // heights for it (which will re-render it and everything after it)
