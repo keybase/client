@@ -1501,42 +1501,78 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 	}
 
 	oldPtrs := make(map[BlockInfo]BlockPointer)
-	// TODO: handle multiple levels of indirection.
-	for i := 0; i < len(topBlock.IPtrs); i++ {
-		ptr := topBlock.IPtrs[i]
-		isDirty := dirtyBcache.IsDirty(id, ptr.BlockPointer, fd.file.Branch)
-		if (ptr.EncodedSize > 0) && isDirty {
-			return nil, InconsistentEncodedSizeError{ptr.BlockInfo}
-		}
-		if !isDirty {
-			continue
-		}
+	// This will contain paths to all dirty leaf paths.  The final
+	// entry index in each path will be the leaf node block itself
+	// (with a -1 child index).
+	var dirtyLeafPaths [][]parentBlockAndChildIndex
 
-		// Ready the dirty block.
-		_, _, block, _, _, _, err := fd.getFileBlockAtOffset(
-			ctx, topBlock, ptr.Off, blockWrite)
+	// Gather all the paths to all dirty leaf blocks first.
+	off := int64(0)
+	for off >= 0 {
+		_, parentBlocks, block, nextBlockOff, _, err :=
+			fd.getNextDirtyFileBlockAtOffset(
+				ctx, topBlock, off, blockWrite, dirtyBcache)
 		if err != nil {
 			return nil, err
 		}
 
-		newInfo, _, readyBlockData, err := ReadyBlock(
-			ctx, bcache, bops, fd.crypto, fd.kmd, block, fd.uid)
-		if err != nil {
-			return nil, err
+		if block == nil {
+			// No more dirty blocks.
+			break
 		}
+		off = nextBlockOff // Will be -1 if there are no more blocks.
 
-		err = bcache.Put(newInfo.BlockPointer, id, block, PermanentEntry)
-		if err != nil {
-			return nil, err
+		dirtyLeafPaths = append(dirtyLeafPaths,
+			append(parentBlocks, parentBlockAndChildIndex{block, -1}))
+	}
+
+	// No dirty blocks means nothing to do.
+	if len(dirtyLeafPaths) == 0 {
+		return nil, nil
+	}
+
+	// Now starting from the leaf level, ready each block at each
+	// level, and put the new BlockInfo into the parent block at the
+	// level above.  At each level, only ready each block once. Don't
+	// ready the root block though; the folderBranchOps Sync code will
+	// do that.
+	for level := len(dirtyLeafPaths[0]) - 1; level > 0; level-- {
+		newPtrs := make(map[BlockPointer]bool)
+		for i := 0; i < len(dirtyLeafPaths); i++ {
+			// Ready the dirty block.
+			pb := dirtyLeafPaths[i][level]
+
+			parentPB := dirtyLeafPaths[i][level-1]
+			ptr := parentPB.childIPtr().BlockPointer
+			// If this is already a new pointer, skip it.
+			if newPtrs[ptr] {
+				continue
+			}
+
+			newInfo, _, readyBlockData, err := ReadyBlock(
+				ctx, bcache, bops, fd.crypto, fd.kmd, pb.pblock, fd.uid)
+			if err != nil {
+				return nil, err
+			}
+
+			err = bcache.Put(
+				newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
+			if err != nil {
+				return nil, err
+			}
+
+			// Only the leaf level need to be tracked by the dirty file.
+			var syncFunc func() error
+			if level == len(dirtyLeafPaths[0])-1 {
+				syncFunc = func() error { return df.setBlockSynced(ptr) }
+			}
+
+			bps.addNewBlock(
+				newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
+
+			parentPB.pblock.IPtrs[parentPB.childIndex].BlockInfo = newInfo
+			oldPtrs[newInfo] = ptr
 		}
-
-		bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData,
-			func() error {
-				return df.setBlockSynced(ptr.BlockPointer)
-			})
-
-		topBlock.IPtrs[i].BlockInfo = newInfo
-		oldPtrs[newInfo] = ptr.BlockPointer
 	}
 	return oldPtrs, nil
 }
