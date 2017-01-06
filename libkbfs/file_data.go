@@ -1578,15 +1578,28 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 }
 
 func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
-	topBlock *FileBlock) (
-	[]BlockInfo, error) {
-	// TODO: handle multiple levels of indirection.
+	topBlock *FileBlock) ([]BlockInfo, error) {
 	if !topBlock.IsInd {
 		return nil, nil
 	}
-	blockInfos := make([]BlockInfo, len(topBlock.IPtrs))
-	for i, ptr := range topBlock.IPtrs {
-		blockInfos[i] = ptr.BlockInfo
+
+	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	var blockInfos []BlockInfo
+	infoSeen := make(map[BlockPointer]bool)
+	for _, path := range pfr {
+		for _, pb := range path {
+			for _, iptr := range pb.pblock.IPtrs {
+				if infoSeen[iptr.BlockPointer] {
+					continue
+				}
+				infoSeen[iptr.BlockPointer] = true
+				blockInfos = append(blockInfos, iptr.BlockInfo)
+			}
+		}
 	}
 	return blockInfos, nil
 }
