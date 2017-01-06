@@ -1079,16 +1079,15 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 		if err != nil {
 			return nil, err
 		}
-		if previewRes == nil {
-			return &p, nil
-		}
-		p.Preview = previewRes.Source
-		p.PreviewContentType = previewRes.ContentType
-		if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {
-			p.BaseDim = &dimension{Width: previewRes.BaseWidth, Height: previewRes.BaseHeight}
-		}
-		if previewRes.PreviewWidth > 0 || previewRes.PreviewHeight > 0 {
-			p.PreviewDim = &dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
+		if previewRes != nil {
+			p.Preview = previewRes.Source
+			p.PreviewContentType = previewRes.ContentType
+			if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {
+				p.BaseDim = &dimension{Width: previewRes.BaseWidth, Height: previewRes.BaseHeight}
+			}
+			if previewRes.PreviewWidth > 0 || previewRes.PreviewHeight > 0 {
+				p.PreviewDim = &dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
+			}
 		}
 	}
 
