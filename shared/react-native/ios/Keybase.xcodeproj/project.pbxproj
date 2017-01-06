@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
+		7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
@@ -39,11 +40,17 @@
 		DBDC80101DE7CC8E005387B3 /* OpenSans_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80081DE7CC8E005387B3 /* OpenSans_italic.ttf */; };
 		DBDC80111DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */; };
 		DBDC80121DE7CC8E005387B3 /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */; };
-		DBDC80191DE7D169005387B3 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBDC80181DE7D14D005387B3 /* libRCTCamera.a */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		DB0417D91E200FC0000B4B1F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4107012F1ACB723B00C6AA39;
+			remoteInfo = RCTCamera;
+		};
 		DB2BD1831DE7D81C00BB7989 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
@@ -170,12 +177,54 @@
 			remoteGlobalIDString = 2D2A28881D9B049200D4039D;
 			remoteInfo = "RCTWebSocket-tvOS";
 		};
-		DBDC80171DE7D14D005387B3 /* PBXContainerItemProxy */ = {
+		DB7417A51E1FFF1000CEC6B7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = DBDC80131DE7D14D005387B3 /* RCTCamera.xcodeproj */;
+			containerPortal = DB2BD1A61DE7D97900BB7989 /* RCTPushNotification.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 4107012F1ACB723B00C6AA39;
-			remoteInfo = RCTCamera;
+			remoteGlobalIDString = 3D05745F1DE6004600184BB4;
+			remoteInfo = "RCTPushNotification-tvOS";
+		};
+		DB7417B61E1FFF1000CEC6B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3D3C059A1DE3340900C268FA;
+			remoteInfo = yoga;
+		};
+		DB7417B81E1FFF1000CEC6B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3D3C06751DE3340C00C268FA;
+			remoteInfo = "yoga-tvOS";
+		};
+		DB7417BA1E1FFF1000CEC6B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3D3CD9251DE5FBEC00167DC4;
+			remoteInfo = cxxreact;
+		};
+		DB7417BC1E1FFF1000CEC6B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3D3CD9321DE5FBEE00167DC4;
+			remoteInfo = "cxxreact-tvOS";
+		};
+		DB7417BE1E1FFF1000CEC6B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3D3CD90B1DE5FBD600167DC4;
+			remoteInfo = jschelpers;
+		};
+		DB7417C01E1FFF1000CEC6B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 3D3CD9181DE5FBD800167DC4;
+			remoteInfo = "jschelpers-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -185,8 +234,10 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* KeybaseTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KeybaseTests.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
+		D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTCamera.a; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
 		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
@@ -220,7 +271,6 @@
 		DBDC80081DE7CC8E005387B3 /* OpenSans_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = OpenSans_italic.ttf; sourceTree = "<group>"; };
 		DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semi_bold.ttf"; sourceTree = "<group>"; };
 		DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SourceCodePro.ttf; sourceTree = "<group>"; };
-		DBDC80131DE7D14D005387B3 /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -242,8 +292,8 @@
 				DB2BD1ED1DE7D9A600BB7989 /* libRCTVibration.a in Frameworks */,
 				DB2BD1EE1DE7D9A600BB7989 /* libRCTWebSocket.a in Frameworks */,
 				DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */,
-				DBDC80191DE7D169005387B3 /* libRCTCamera.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
+				7608E936D0B84B4FB1849590 /* libRCTCamera.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,8 +338,8 @@
 				DB2BD1B21DE7D97900BB7989 /* RCTWebSocket.xcodeproj */,
 				DB2BD1911DE7D96200BB7989 /* RCTActionSheet.xcodeproj */,
 				DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */,
-				DBDC80131DE7D14D005387B3 /* RCTCamera.xcodeproj */,
 				DB0846041BA75DC800F54960 /* keybase.framework */,
+				8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -323,11 +373,25 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		DB0417D51E200FC0000B4B1F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB0417DA1E200FC0000B4B1F /* libRCTCamera.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DB2BD17F1DE7D81C00BB7989 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				DB2BD1841DE7D81C00BB7989 /* libReact.a */,
-				DB2BD1861DE7D81C00BB7989 /* libReact-tvOS.a */,
+				DB2BD1861DE7D81C00BB7989 /* libReact.a */,
+				DB7417B71E1FFF1000CEC6B7 /* libyoga.a */,
+				DB7417B91E1FFF1000CEC6B7 /* libyoga.a */,
+				DB7417BB1E1FFF1000CEC6B7 /* libcxxreact.a */,
+				DB7417BD1E1FFF1000CEC6B7 /* libcxxreact.a */,
+				DB7417BF1E1FFF1000CEC6B7 /* libjschelpers.a */,
+				DB7417C11E1FFF1000CEC6B7 /* libjschelpers.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -379,6 +443,7 @@
 			isa = PBXGroup;
 			children = (
 				DB2BD1CF1DE7D97900BB7989 /* libRCTPushNotification.a */,
+				DB7417A61E1FFF1000CEC6B7 /* libRCTPushNotification-tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -432,14 +497,6 @@
 			);
 			name = fonts;
 			path = ../../../fonts;
-			sourceTree = "<group>";
-		};
-		DBDC80141DE7D14D005387B3 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				DBDC80181DE7D14D005387B3 /* libRCTCamera.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		DBDCF3031B8D03DD00BA95D8 /* Keybase */ = {
@@ -517,13 +574,13 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 0800;
+				LastSwiftUpdateCheck = 700;
+				LastUpgradeCheck = 800;
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = 99229SGT5K;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 800;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
@@ -562,8 +619,8 @@
 					ProjectRef = DB2BD1911DE7D96200BB7989 /* RCTActionSheet.xcodeproj */;
 				},
 				{
-					ProductGroup = DBDC80141DE7D14D005387B3 /* Products */;
-					ProjectRef = DBDC80131DE7D14D005387B3 /* RCTCamera.xcodeproj */;
+					ProductGroup = DB0417D51E200FC0000B4B1F /* Products */;
+					ProjectRef = 8A6B0997A42F4CC08AE6F28F /* RCTCamera.xcodeproj */;
 				},
 				{
 					ProductGroup = DB2BD19B1DE7D97900BB7989 /* Products */;
@@ -615,6 +672,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		DB0417DA1E200FC0000B4B1F /* libRCTCamera.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTCamera.a;
+			remoteRef = DB0417D91E200FC0000B4B1F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		DB2BD1841DE7D81C00BB7989 /* libReact.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -622,10 +686,10 @@
 			remoteRef = DB2BD1831DE7D81C00BB7989 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		DB2BD1861DE7D81C00BB7989 /* libReact-tvOS.a */ = {
+		DB2BD1861DE7D81C00BB7989 /* libReact.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = "libReact-tvOS.a";
+			path = libReact.a;
 			remoteRef = DB2BD1851DE7D81C00BB7989 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -741,11 +805,53 @@
 			remoteRef = DB2BD1E31DE7D97900BB7989 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		DBDC80181DE7D14D005387B3 /* libRCTCamera.a */ = {
+		DB7417A61E1FFF1000CEC6B7 /* libRCTPushNotification-tvOS.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libRCTCamera.a;
-			remoteRef = DBDC80171DE7D14D005387B3 /* PBXContainerItemProxy */;
+			path = "libRCTPushNotification-tvOS.a";
+			remoteRef = DB7417A51E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB7417B71E1FFF1000CEC6B7 /* libyoga.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libyoga.a;
+			remoteRef = DB7417B61E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB7417B91E1FFF1000CEC6B7 /* libyoga.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libyoga.a;
+			remoteRef = DB7417B81E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB7417BB1E1FFF1000CEC6B7 /* libcxxreact.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcxxreact.a;
+			remoteRef = DB7417BA1E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB7417BD1E1FFF1000CEC6B7 /* libcxxreact.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcxxreact.a;
+			remoteRef = DB7417BC1E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB7417BF1E1FFF1000CEC6B7 /* libjschelpers.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libjschelpers.a;
+			remoteRef = DB7417BE1E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB7417C11E1FFF1000CEC6B7 /* libjschelpers.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libjschelpers.a;
+			remoteRef = DB7417C01E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -903,10 +1009,15 @@
 					"$(SRCROOT)/../../node_modules/react-native/React/**",
 					"$(SRCROOT)/KeybaseGo",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/PushNotificationIOS",
+					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Keybase\"",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -942,10 +1053,15 @@
 					"$(SRCROOT)/../../node_modules/react-native/React/**",
 					"$(SRCROOT)/KeybaseGo",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/PushNotificationIOS",
+					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Keybase\"",
+				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1000,6 +1116,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../../node_modules/react-native/React/**",
+					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -1044,6 +1161,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../../node_modules/react-native/React/**",
+					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -1069,6 +1187,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../node_modules/react-native/React/**",
 					"$(SRCROOT)/KeybaseGo",
+					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1110,6 +1229,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../node_modules/react-native/React/**",
 					"$(SRCROOT)/KeybaseGo",
+					"$(SRCROOT)/../../node_modules/react-native-camera/ios/**",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
