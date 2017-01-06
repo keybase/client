@@ -688,6 +688,8 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
           let previewSize
           if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
             previewSize = _clampAttachmentPreviewSize(preview.metadata.image)
+          } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
+            previewSize = _clampAttachmentPreviewSize(preview.metadata.video)
           }
 
           return {
