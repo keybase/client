@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../constants/dev'
+// import * as Constants from '../constants/dev'
 import chat from './chat'
 import config from './config'
 import dev from './dev'
@@ -22,7 +22,7 @@ import signup from './signup'
 import tracker from './tracker'
 import type {State} from '../constants/reducer'
 import unlockFolders from './unlock-folders'
-import {List} from 'immutable'
+// import {List} from 'immutable'
 import {combineReducers} from 'redux'
 import {resetStore} from '../constants/common.js'
 
