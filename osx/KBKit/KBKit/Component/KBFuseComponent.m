@@ -159,7 +159,15 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   NSDictionary *params = @{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath};
   DDLogDebug(@"Helper: kextInstall(%@)", params);
   [self.helperTool.helper sendRequest:@"kextInstall" params:@[params] completion:^(NSError *error, id value) {
-    completion(error);
+    if (error) {
+      completion(error);
+      return;
+    }
+
+    NSDictionary *sysctlParams = @{@"name": @"vfs.generic.kbfuse.tunables.admin_group", @"value": @(20)};
+    [self.helperTool.helper sendRequest:@"sysctl" params:@[sysctlParams] completion:^(NSError *error, id value) {
+      completion(error);
+    }];
   }];
 }
 

@@ -11,6 +11,7 @@
 #import "KBKext.h"
 #import "KBLogger.h"
 #import <MPMessagePack/MPXPCProtocol.h>
+#include <sys/sysctl.h>
 
 @implementation KBHelper
 
@@ -94,6 +95,8 @@
     [self addToPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else if ([method isEqualToString:@"removeFromPath"]) {
     [self removeFromPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
+  } else if ([method isEqualToString:@"sysctl"]) {
+    [self sysctl:args[@"name"] value:args[@"value"] completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
@@ -272,6 +275,34 @@
     return;
   }
   completion(nil, @{});
+}
+
+- (void)sysctl:(NSString *)name value:(id)value completion:(void (^)(NSError *error, id value))completion {
+  if (![value isKindOfClass:[NSNumber class]]) {
+    completion(KBMakeError(-1, @"Unsupported value type for sysctl"), nil);
+    return;
+  }
+
+  int intValue = [value intValue];
+  int oldValue = 0;
+  size_t oldValueLen = sizeof(oldValue);
+  int retval = sysctlbyname([name UTF8String], &oldValue, &oldValueLen, NULL, 0);
+  if (retval != 0) {
+    completion(KBMakeError(retval, @"Sysctl get error"), nil);
+    return;
+  }
+  if (oldValue == intValue) {
+    completion(nil, nil);
+    return;
+  }
+  size_t valueLen = sizeof(value);
+  int retvalSet = sysctlbyname([name UTF8String], NULL, 0, &intValue, valueLen);
+  if (retvalSet != 0) {
+    completion(KBMakeError(retvalSet, @"Sysctl set error"), nil);
+    return;
+  }
+  completion(nil, value);
+  return;
 }
 
 @end
