@@ -60,7 +60,7 @@ open ios/Keybase.xcworkspace
 
 Then select the target `Keybase` and run.
 
-#### Android
+### Android
 
 Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
 to install and configure Android.
