@@ -1,8 +1,36 @@
 {
-  "presets": ["babel-preset-react-native"],
+  "presets": [
+    "babel-preset-react-native"
+  ],
   "plugins": [
-    ["babel-plugin-transform-builtin-extend", {
-      "globals": ["Error"]
-    }]
-  ]
+    [
+      "babel-plugin-transform-builtin-extend",
+      {
+        "globals": [
+          "Error"
+        ]
+      }
+    ]
+  ],
+  "env": {
+    "electron": {
+      "presets": [
+        "babel-preset-es2015",
+        "babel-preset-stage-1",
+        "babel-preset-react"
+      ],
+      "plugins": [
+        "babel-plugin-transform-runtime",
+        "react-hot-loader/babel",
+        [
+          "babel-plugin-transform-builtin-extend",
+          {
+            "globals": [
+              "Error"
+            ]
+          }
+        ]
+      ]
+    }
+  }
 }
