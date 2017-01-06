@@ -630,6 +630,24 @@ func (fbo *folderBlockOps) GetIndirectFileBlockInfosWithTopBlock(
 	return fd.getIndirectFileBlockInfosWithTopBlock(ctx, topBlock)
 }
 
+// DeepCopyFile makes a complete copy of the given file, deduping leaf
+// blocks and making new random BlockPointers for all indirect blocks.
+// It returns the new top pointer of the copy, and all the new child
+// pointers in the copy.  It takes a custom DirtyBlockCache, which
+// directs where the resulting block copies are stored.
+func (fbo *folderBlockOps) DeepCopyFile(
+	ctx context.Context, lState *lockState, kmd KeyMetadata, file path,
+	dirtyBcache DirtyBlockCache, dataVer DataVer) (
+	newTopPtr BlockPointer, allChildPtrs []BlockPointer, err error) {
+	// Deep copying doesn't alter any data in use, it only makes copy,
+	// so only a read lock is needed.
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	var uid keybase1.UID // Data reads don't depend on the uid.
+	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
+	return fd.deepCopy(ctx, fbo.config.Codec(), dataVer)
+}
+
 // getDirLocked retrieves the block pointed to by the tail pointer of
 // the given path, which must be valid, either from the cache or from
 // the server. An error is returned if the retrieved block is not a
@@ -1120,6 +1138,26 @@ func (fbo *folderBlockOps) newFileData(lState *lockState,
 		func(ptr BlockPointer, block Block) error {
 			return fbo.cacheBlockIfNotYetDirtyLocked(
 				lState, ptr, file, block)
+		}, fbo.log)
+}
+
+func (fbo *folderBlockOps) newFileDataWithCache(lState *lockState,
+	file path, uid keybase1.UID, kmd KeyMetadata,
+	dirtyBcache DirtyBlockCache) *fileData {
+	fbo.blockLock.AssertAnyLocked(lState)
+	return newFileData(file, uid, fbo.config.Crypto(),
+		fbo.config.BlockSplitter(), kmd,
+		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+			file path, rtype blockReqType) (*FileBlock, bool, error) {
+			lState := lState
+			if rtype == blockReadParallel {
+				lState = nil
+			}
+			return fbo.getFileBlockLocked(
+				ctx, lState, kmd, ptr, file.Branch, file, rtype)
+		},
+		func(ptr BlockPointer, block Block) error {
+			return dirtyBcache.Put(file.Tlf, ptr, file.Branch, block)
 		}, fbo.log)
 }
 

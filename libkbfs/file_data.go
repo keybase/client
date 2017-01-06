@@ -1682,47 +1682,127 @@ func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
 		return zeroPtr, nil, err
 	}
 
-	newTopBlock, err := topBlock.DeepCopy(codec)
-	if err != nil {
-		return zeroPtr, nil, err
-	}
-	newTopPtr = fd.rootBlockPointer()
-	if topBlock.IsInd {
-		newID, err := fd.crypto.MakeTemporaryBlockID()
+	// Handle the single-level case first.
+	if !topBlock.IsInd {
+		newTopBlock, err := topBlock.DeepCopy(codec)
 		if err != nil {
 			return zeroPtr, nil, err
 		}
-		newTopPtr = BlockPointer{
-			ID:      newID,
-			KeyGen:  fd.kmd.LatestKeyGeneration(),
-			DataVer: dataVer,
-			Context: kbfsblock.MakeFirstContext(fd.uid),
-		}
-	} else {
+
+		newTopPtr = fd.rootBlockPointer()
 		newTopPtr.RefNonce, err = fd.crypto.MakeBlockRefNonce()
 		if err != nil {
 			return zeroPtr, nil, err
 		}
 		newTopPtr.SetWriter(fd.uid)
-	}
-	fd.log.CDebugf(ctx, "Deep copying file %s: %v -> %v",
-		fd.file.tailName(), fd.rootBlockPointer(), newTopPtr)
 
-	// Dup all of the leaf blocks.
-	// TODO: deal with multiple levels of indirection.
-	if topBlock.IsInd {
-		for i, iptr := range topBlock.IPtrs {
-			// Generate a new nonce for each one.
-			iptr.RefNonce, err = fd.crypto.MakeBlockRefNonce()
+		if err = fd.cacher(newTopPtr, newTopBlock); err != nil {
+			return zeroPtr, nil, err
+		}
+
+		fd.log.CDebugf(ctx, "Deep copied file %s: %v -> %v",
+			fd.file.tailName(), fd.rootBlockPointer(), newTopPtr)
+
+		return newTopPtr, nil, nil
+	}
+
+	// For indirect files, get all the paths to leaf blocks.
+	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	if err != nil {
+		return zeroPtr, nil, err
+	}
+	if len(pfr) == 0 {
+		return zeroPtr, nil,
+			fmt.Errorf("Indirect file %v had no indirect blocks",
+				fd.rootBlockPointer())
+	}
+
+	// Make a new reference for all leaf blocks first.
+	copiedBlocks := make(map[BlockPointer]*FileBlock)
+	leafLevel := len(pfr[0]) - 1
+	for level := leafLevel; level >= 0; level-- {
+		for _, path := range pfr {
+			// What is the current ptr for this pblock?
+			ptr := fd.rootBlockPointer()
+			if level > 0 {
+				ptr = path[level-1].childIPtr().BlockPointer
+			}
+			if _, ok := copiedBlocks[ptr]; ok {
+				continue
+			}
+
+			// Copy the parent block and save it for later (it will be
+			// cached below).
+			pblock, err := path[level].pblock.DeepCopy(codec)
 			if err != nil {
 				return zeroPtr, nil, err
 			}
-			iptr.SetWriter(fd.uid)
-			newTopBlock.IPtrs[i] = iptr
-			allChildPtrs = append(allChildPtrs, iptr.BlockPointer)
+			copiedBlocks[ptr] = pblock
+
+			for i, iptr := range pblock.IPtrs {
+				if level == leafLevel {
+					// Generate a new nonce for each indirect pointer
+					// to a leaf.
+					iptr.RefNonce, err = fd.crypto.MakeBlockRefNonce()
+					if err != nil {
+						return zeroPtr, nil, err
+					}
+					iptr.SetWriter(fd.uid)
+					pblock.IPtrs[i] = iptr
+					allChildPtrs = append(allChildPtrs, iptr.BlockPointer)
+				} else {
+					// Generate a new random ID for each indirect
+					// pointer to an indirect block.
+					newID, err := fd.crypto.MakeTemporaryBlockID()
+					if err != nil {
+						return zeroPtr, nil, err
+					}
+					newPtr := BlockPointer{
+						ID:      newID,
+						KeyGen:  fd.kmd.LatestKeyGeneration(),
+						DataVer: dataVer,
+						Context: kbfsblock.MakeFirstContext(fd.uid),
+					}
+					pblock.IPtrs[i].BlockPointer = newPtr
+					allChildPtrs = append(allChildPtrs, newPtr)
+					childBlock, ok := copiedBlocks[iptr.BlockPointer]
+					if !ok {
+						return zeroPtr, nil, fmt.Errorf(
+							"No copied child block found for ptr %v",
+							iptr.BlockPointer)
+					}
+					if err = fd.cacher(newPtr, childBlock); err != nil {
+						return zeroPtr, nil, err
+					}
+				}
+			}
 		}
 	}
 
+	// Finally, make a new ID for the top block and cache it.
+	newTopPtr = fd.rootBlockPointer()
+	newID, err := fd.crypto.MakeTemporaryBlockID()
+	if err != nil {
+		return zeroPtr, nil, err
+	}
+	newTopPtr = BlockPointer{
+		ID:      newID,
+		KeyGen:  fd.kmd.LatestKeyGeneration(),
+		DataVer: dataVer,
+		Context: kbfsblock.Context{
+			Creator:  fd.uid,
+			RefNonce: kbfsblock.ZeroRefNonce,
+		},
+	}
+	fd.log.CDebugf(ctx, "Deep copied indirect file %s: %v -> %v",
+		fd.file.tailName(), fd.rootBlockPointer(), newTopPtr)
+
+	newTopBlock, ok := copiedBlocks[fd.rootBlockPointer()]
+	if !ok {
+		return zeroPtr, nil, fmt.Errorf(
+			"No copied root block found for ptr %v",
+			fd.rootBlockPointer())
+	}
 	if err = fd.cacher(newTopPtr, newTopBlock); err != nil {
 		return zeroPtr, nil, err
 	}

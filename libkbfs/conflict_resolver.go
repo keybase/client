@@ -2104,10 +2104,6 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	name string, ptr BlockPointer, blocks fileBlockMap) (
 	BlockPointer, error) {
 	kmd := chains.mostRecentChainMDInfo.kmd
-	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return BlockPointer{}, err
-	}
 
 	file := parentPath.ChildPath(name, ptr)
 	oldInfos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
@@ -2119,10 +2115,8 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	// Simple dirty bcaches don't need to be shut down.
 
-	fd := cr.newFileData(lState, file, uid, kmd, dirtyBcache)
-
-	newPtr, allChildPtrs, err := fd.deepCopy(
-		ctx, cr.config.Codec(), cr.config.DataVersion())
+	newPtr, allChildPtrs, err := cr.fbo.blocks.DeepCopyFile(
+		ctx, lState, kmd, file, dirtyBcache, cr.config.DataVersion())
 	if err != nil {
 		return BlockPointer{}, err
 	}
