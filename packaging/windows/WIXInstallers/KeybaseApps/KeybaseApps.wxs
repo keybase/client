@@ -269,7 +269,6 @@
       <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
         <CreateFolder />
         <RemoveFolder Id="RemoveDokan" On="uninstall" />
-        <RemoveFile Id="RemoveKBFSLog" Name="keybase.kbfs.log" On="uninstall"/>
         <RemoveFile Id="RemoveRoamingKBFSLog" Name="keybase.kbfs.log" Directory="ROAMINGINSTALLFOLDER" On="install"/> <!--Clean up in old location when we install. TODO eventually remove this-->
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
