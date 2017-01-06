@@ -500,6 +500,7 @@ export type Asset = {
   verifyKey: bytes,
   title: string,
   nonce: bytes,
+  metadata: string,
 }
 
 export type BodyPlaintext = 

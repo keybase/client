@@ -677,6 +677,14 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
           // $FlowIssue
           const preview = payload.messageBody.attachment.preview
           const mimeType = preview && preview.mimeType
+          let previewMetadata = {}
+          if (preview && preview.metadata) {
+            try {
+              previewMetadata = JSON.parse(preview.metadata)
+            } catch (err) {
+              console.warn('Error parsing preview metadata:', err)
+            }
+          }
 
           return {
             type: 'Attachment',
@@ -688,6 +696,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             title: payload.messageBody.attachment.object.title,
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
+            previewSize: {width: previewMetadata.width, height: previewMetadata.height},
             downloadedPath: null,
             key: common.messageID,
           }

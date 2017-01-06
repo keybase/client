@@ -63,6 +63,11 @@ export type UnhandledMessage = {
   key: any,
 }
 
+type AttachmentSize = {
+  width: ?number,
+  height: ?number,
+}
+
 export type AttachmentMessage = {
   type: 'Attachment',
   timestamp: number,
@@ -76,6 +81,7 @@ export type AttachmentMessage = {
   title: string,
   previewType: ?('Image' | 'Other'),
   previewPath: ?string,
+  previewSize: AttachmentSize,
   downloadedPath: ?string,
   key: any,
 }
