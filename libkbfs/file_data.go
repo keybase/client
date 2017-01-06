@@ -1617,18 +1617,56 @@ func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 // findIPtrsAndClearSize looks for the given indirect pointer, and
 // returns whether it could be found.  As a side effect, it also
 // clears the encoded size for that indirect pointer.
-func (fd *fileData) findIPtrsAndClearSize(topBlock *FileBlock,
-	ptr BlockPointer) (found bool) {
-	// TODO: handle multiple levels of indirection.  To make that
-	// efficient, we may need to pass in more information about which
-	// internal indirect pointers may have dirty child blocks.
-	for i, iptr := range topBlock.IPtrs {
-		if iptr.BlockPointer == ptr {
-			topBlock.IPtrs[i].EncodedSize = 0
-			return true
+func (fd *fileData) findIPtrsAndClearSize(
+	ctx context.Context, topBlock *FileBlock, ptr BlockPointer) (
+	found bool, err error) {
+	if !topBlock.IsInd {
+		return false, nil
+	}
+
+	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	if err != nil {
+		return false, err
+	}
+
+	// Search all paths for the given block pointer, clear its encoded
+	// size, and dirty all its parents up to the root.
+	infoSeen := make(map[BlockPointer]bool)
+	for _, path := range pfr {
+		parentPtr := fd.rootBlockPointer()
+		for level, pb := range path {
+			if infoSeen[parentPtr] {
+				parentPtr = pb.childIPtr().BlockPointer
+				continue
+			}
+			infoSeen[parentPtr] = true
+
+			for _, iptr := range pb.pblock.IPtrs {
+				if iptr.BlockPointer == ptr {
+					// Mark this pointer, and all parent blocks, as dirty.
+					parentPtr := fd.rootBlockPointer()
+					for i := 0; i <= level; i++ {
+						// Get a writeable copy for each block.
+						pblock, _, err := fd.getter(
+							ctx, fd.kmd, parentPtr, fd.file, blockWrite)
+						if err != nil {
+							return false, err
+						}
+						path[i].pblock = pblock
+						parentPtr = path[i].childIPtr().BlockPointer
+					}
+					_, _, err = fd.markParentsDirty(ctx, path[:level+1])
+					if err != nil {
+						return false, err
+					}
+
+					return true, nil
+				}
+			}
+			parentPtr = pb.childIPtr().BlockPointer
 		}
 	}
-	return false
+	return false, err
 }
 
 // deepCopy makes a complete copy of this file, deduping leaf blocks

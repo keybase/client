@@ -996,7 +996,12 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 	// redirty all the sync'd blocks under their new IDs, so that
 	// future syncs will know they failed.
 	for newPtr, oldPtr := range redirtyOnRecoverableError {
-		found := fd.findIPtrsAndClearSize(fblock, newPtr)
+		found, err := fd.findIPtrsAndClearSize(ctx, fblock, newPtr)
+		if err != nil {
+			fbo.log.CWarningf(
+				ctx, "Couldn't find and clear iptrs during recovery: %v", err)
+			return
+		}
 		if !found {
 			continue
 		}
