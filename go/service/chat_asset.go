@@ -81,7 +81,7 @@ func (f *fileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (chat.Rea
 
 func (f *fileSource) Close() error {
 	if f.buf != nil {
-	  return f.buf.Close()
+		return f.buf.Close()
 	}
 	return nil
 }
