@@ -279,7 +279,10 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(
 			return kbfscrypto.TLFCryptKeyClientHalf{},
 				TLFCryptKeyServerHalfID{},
 				kbfscrypto.CryptPublicKey{},
-				localMakeRekeyReadError(err)
+				localMakeRekeyReadError(errors.Errorf(
+					"could not find params for "+
+						"uid=%s device key=%s",
+					uid, cryptPublicKey))
 		}
 
 		clientHalf, err = crypto.DecryptTLFCryptKeyClientHalf(

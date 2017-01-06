@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -1619,24 +1621,24 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 }
 
 // cryptoLocalTrapAny traps every DecryptTLFCryptKeyClientHalfAny
-// call, and sends on the given channel whether each call had
-// promptPaper set or not.
+// call, and closes the given channel the first time it receives one
+// with promptPaper set to true.
 type cryptoLocalTrapAny struct {
 	Crypto
-	promptCh    chan<- bool
-	cryptoToUse Crypto
+	promptPaperChOnce sync.Once
+	promptPaperCh     chan<- struct{}
+	cryptoToUse       Crypto
 }
 
 func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
 	ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
 	kbfscrypto.TLFCryptKeyClientHalf, int, error) {
-	select {
-	case clta.promptCh <- promptPaper:
-	case <-ctx.Done():
-		return kbfscrypto.TLFCryptKeyClientHalf{}, 0, ctx.Err()
+	if promptPaper {
+		clta.promptPaperChOnce.Do(func() {
+			close(clta.promptPaperCh)
+		})
 	}
-	// Decrypt the key half with the given config object
 	return clta.cryptoToUse.DecryptTLFCryptKeyClientHalfAny(
 		ctx, keys, promptPaper)
 }
@@ -1671,12 +1673,16 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
+	config2Dev2.SetKeyCache(&dummyNoKeyCache{})
+
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
 	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	t.Log("Doing first rekey")
 
 	// The new device should be unable to rekey on its own, and will
 	// just set the rekey bit.
@@ -1688,6 +1694,8 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
 	rev1 := ops.head.Revision()
+
+	t.Log("Doing second rekey")
 
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.  This shouldn't increase the MD version.
@@ -1706,22 +1714,14 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 		t.Fatalf("Couldn't set rekey bit")
 	}
 
-	c := make(chan bool)
+	t.Log("Switching crypto")
+
+	c := make(chan struct{}, 1)
 	// Use our other device as a standin for the paper key.
-	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), c, config2.Crypto()}
+	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2.Crypto()}
 	config2Dev2.SetCrypto(clta)
 
 	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
-	var promptPaper bool
-	select {
-	case promptPaper = <-c:
-	case <-ctx.Done():
-		t.Fatal(ctx.Err())
-	}
-	if !promptPaper {
-		t.Fatalf("Didn't prompt paper")
-	}
-	// called a second time for decrypting the private data
 	select {
 	case <-c:
 	case <-ctx.Done():
@@ -1791,6 +1791,8 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
+	config2Dev2.SetKeyCache(&dummyNoKeyCache{})
+
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
@@ -1800,6 +1802,8 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	// Revoke some previous device
 	clock.Add(1 * time.Minute)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid1, 0)
+
+	t.Log("Doing first rekey")
 
 	// The new device should be unable to rekey on its own, and will
 	// just set the rekey bit.
@@ -1811,6 +1815,8 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
 	rev1 := ops.head.Revision()
+
+	t.Log("Doing second rekey")
 
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.  This shouldn't increase the MD version.
@@ -1833,29 +1839,23 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	ops.rekeyWithPromptTimer.Stop()
 	ops.rekeyWithPromptTimer = nil
 
-	// Try again, which should reset the timer (and so the Reser below
+	t.Log("Doing third rekey")
+
+	// Try again, which should reset the timer (and so the Reset below
 	// will be on a non-nil timer).
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Third rekey failed %+v", err)
 	}
 
-	c := make(chan bool)
+	t.Log("Switching crypto")
+
+	c := make(chan struct{}, 1)
 	// Use our other device as a standin for the paper key.
-	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), c, config2.Crypto()}
+	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2.Crypto()}
 	config2Dev2.SetCrypto(clta)
 
 	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
-	var promptPaper bool
-	select {
-	case promptPaper = <-c:
-	case <-ctx.Done():
-		t.Fatal(ctx.Err())
-	}
-	if !promptPaper {
-		t.Fatalf("Didn't prompt paper")
-	}
-	// called a second time for decrypting the private data
 	select {
 	case <-c:
 	case <-ctx.Done():
@@ -1904,12 +1904,16 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(ctx, t, config2Dev2)
 
+	config2Dev2.SetKeyCache(&dummyNoKeyCache{})
+
 	// Now give u2 a new device.  The configs don't share a Keybase
 	// Daemon so we have to do it in all places.
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
 	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	t.Log("Doing first rekey")
 
 	// The new device should be unable to rekey on its own, and will
 	// just set the rekey bit.
@@ -1926,21 +1930,18 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 		t.Fatalf("Couldn't set rekey bit")
 	}
 
+	t.Log("Switching crypto")
+
 	// Allow the prompt rekey attempt to fail by using dev2's crypto
 	// (which still isn't keyed for)
-	c := make(chan bool)
-	// Use our other device as a standin for the paper key.
-	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), c, config2Dev2.Crypto()}
+	c := make(chan struct{}, 1)
+	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2Dev2.Crypto()}
 	config2Dev2.SetCrypto(clta)
 	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
-	var promptPaper bool
 	select {
-	case promptPaper = <-c:
+	case <-c:
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
-	}
-	if !promptPaper {
-		t.Fatalf("Didn't prompt paper")
 	}
 	// Make sure the rekey attempt is finished by taking the lock.
 	// Keep the lock for a while, to control when the second rekey starts.
@@ -1956,15 +1957,9 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 			select {
 			case errCh <- err:
 			case <-ctx.Done():
-				errCh <- ctx.Err()
+				errCh <- errors.WithStack(ctx.Err())
 			}
 		}()
-		// One failed decryption attempt
-		select {
-		case <-c:
-		case <-ctx.Done():
-			t.Fatal(ctx.Err())
-		}
 		select {
 		case err = <-errCh:
 		case <-ctx.Done():
@@ -1974,19 +1969,16 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 			t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 		}
 
+		t.Log("Switching crypto again")
+
 		// Let the background rekeyer decrypt.
-		clta.cryptoToUse = config2.Crypto()
+		c = make(chan struct{}, 1)
+		clta = &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2.Crypto()}
+		config2Dev2.SetCrypto(clta)
 	}()
 
-	select {
-	case promptPaper = <-c:
-	case <-ctx.Done():
-		t.Fatal(ctx.Err())
-	}
-	if !promptPaper {
-		t.Fatalf("Didn't prompt paper")
-	}
-	// called a second time for decrypting the private data
+	t.Log("Waiting for rekey attempt")
+
 	select {
 	case <-c:
 	case <-ctx.Done():
@@ -1995,6 +1987,8 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	// Make sure the rekey attempt is finished
 	ops.mdWriterLock.Lock(lState)
 	ops.mdWriterLock.Unlock(lState)
+
+	t.Log("Getting the root node, which should now succeed")
 
 	GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 }
