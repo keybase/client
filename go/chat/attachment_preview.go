@@ -77,12 +77,14 @@ func (b *bufReadResetter) Reset() error {
 }
 
 type PreviewRes struct {
-	Source        *BufferSource
-	ContentType   string
-	BaseWidth     int
-	BaseHeight    int
-	PreviewWidth  int
-	PreviewHeight int
+	Source            *BufferSource
+	ContentType       string
+	BaseWidth         int
+	BaseHeight        int
+	BaseDurationMs    int
+	PreviewWidth      int
+	PreviewHeight     int
+	PreviewDurationMs int
 }
 
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
@@ -160,14 +162,21 @@ func previewGIF(ctx context.Context, src io.Reader, basename string) (*PreviewRe
 		return nil, err
 	}
 
-	return &PreviewRes{
+	res := &PreviewRes{
 		Source:        newBufferSource(&buf, basename),
 		ContentType:   "image/gif",
 		BaseWidth:     origBounds.Dx(),
 		BaseHeight:    origBounds.Dy(),
 		PreviewWidth:  int(width),
 		PreviewHeight: int(height),
-	}, nil
+	}
+
+	if len(g.Image) > 1 {
+		res.BaseDurationMs = gifDuration(g)
+		res.PreviewDurationMs = res.BaseDurationMs // currently the same, but in the future maybe preview will be shorter
+	}
+
+	return res, nil
 }
 
 func previewDimensions(origBounds image.Rectangle) (uint, uint) {
@@ -206,4 +215,16 @@ func imageToPaletted(img image.Image) *image.Paletted {
 	pm := image.NewPaletted(b, palette.Plan9)
 	draw.FloydSteinberg.Draw(pm, b, img, image.ZP)
 	return pm
+}
+
+// gifDuration returns the duration of one loop of an animiated gif
+// in milliseconds.
+func gifDuration(g *gif.GIF) int {
+	var total int
+	for _, d := range g.Delay {
+		total += d
+	}
+
+	// total is in 100ths of a second, multiply by 10 to get milliseconds
+	return total * 10
 }

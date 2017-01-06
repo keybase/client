@@ -1021,6 +1021,10 @@ type dimension struct {
 	Height int `json:"height"`
 }
 
+func (d *dimension) Empty() bool {
+	return d.Width == 0 && d.Height == 0
+}
+
 func (d *dimension) Encode() string {
 	if d.Width == 0 && d.Height == 0 {
 		return ""
@@ -1037,21 +1041,29 @@ type preprocess struct {
 	Preview            *chat.BufferSource
 	PreviewContentType string
 	BaseDim            *dimension
+	BaseDurationMs     int
 	PreviewDim         *dimension
+	PreviewDurationMs  int
 }
 
-func (p *preprocess) BaseMetadata() string {
-	if p.BaseDim == nil {
-		return ""
+func (p *preprocess) BaseMetadata() chat1.AssetMetadata {
+	if p.BaseDim == nil || p.BaseDim.Empty() {
+		return chat1.AssetMetadata{}
 	}
-	return p.BaseDim.Encode()
+	if p.BaseDurationMs > 0 {
+		return chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{Width: p.BaseDim.Width, Height: p.BaseDim.Height, DurationMs: p.BaseDurationMs})
+	}
+	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{Width: p.BaseDim.Width, Height: p.BaseDim.Height})
 }
 
-func (p *preprocess) PreviewMetadata() string {
-	if p.PreviewDim == nil {
-		return ""
+func (p *preprocess) PreviewMetadata() chat1.AssetMetadata {
+	if p.PreviewDim == nil || p.PreviewDim.Empty() {
+		return chat1.AssetMetadata{}
 	}
-	return p.PreviewDim.Encode()
+	if p.PreviewDurationMs > 0 {
+		return chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{Width: p.PreviewDim.Width, Height: p.PreviewDim.Height, DurationMs: p.PreviewDurationMs})
+	}
+	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{Width: p.PreviewDim.Width, Height: p.PreviewDim.Height})
 }
 
 func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment, preview assetSource) (*preprocess, error) {
@@ -1088,6 +1100,8 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 			if previewRes.PreviewWidth > 0 || previewRes.PreviewHeight > 0 {
 				p.PreviewDim = &dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
 			}
+			p.BaseDurationMs = previewRes.BaseDurationMs
+			p.PreviewDurationMs = previewRes.PreviewDurationMs
 		}
 	}
 
