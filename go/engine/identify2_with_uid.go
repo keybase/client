@@ -213,7 +213,7 @@ type Identify2WithUID struct {
 	testArgs      *Identify2WithUIDTestArgs
 	trackToken    keybase1.TrackToken
 	confirmResult keybase1.ConfirmResult
-	cachedRes     *keybase1.UserPlusKeys
+	cachedRes     *keybase1.Identify2Res
 
 	// If we just resolved a user, then we can plumb this through to loadUser()
 	ResolveBody *jsonw.Wrapper
@@ -278,6 +278,10 @@ func (e *Identify2WithUID) calledFromChatGUI() bool {
 	return e.arg.ChatGUIMode
 }
 
+func (e *Identify2WithUID) canSucceedWithTrackBreaks() bool {
+	return e.calledFromChatGUI()
+}
+
 func (e *Identify2WithUID) resetError(err error) error {
 
 	if err == nil {
@@ -291,7 +295,7 @@ func (e *Identify2WithUID) resetError(err error) error {
 		return err
 	}
 
-	if e.calledFromChatGUI() {
+	if e.canSucceedWithTrackBreaks() {
 		e.G().Log.Debug("| Reset err from %v -> nil since caller is 'CHAT_GUI'", err)
 		return nil
 	}
@@ -453,19 +457,35 @@ func (e *Identify2WithUID) unblock(isFinal bool, err error) {
 
 func (e *Identify2WithUID) maybeCacheSelf() {
 	if e.getCache() != nil {
-		v := e.toUserPlusKeys()
+		v := e.exportToResult()
 		e.getCache().Insert(&v)
 	}
 }
 
+func (e *Identify2WithUID) exportToResult() keybase1.Identify2Res {
+	return keybase1.Identify2Res{
+		Upk:         e.toUserPlusKeys(),
+		TrackBreaks: e.trackBreaks,
+	}
+}
+
 func (e *Identify2WithUID) maybeCacheResult() {
-	e.G().Log.Debug("+ maybeCacheResult")
-	if e.state.Result().IsOK() && e.getCache() != nil {
-		v := e.toUserPlusKeys()
+
+	isOK := e.state.Result().IsOK()
+	canCacheFailures := e.canSucceedWithTrackBreaks()
+
+	e.G().Log.Debug("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
+
+	if (isOK || canCacheFailures) && e.getCache() != nil {
+		v := e.exportToResult()
 		e.getCache().Insert(&v)
 		e.G().Log.Debug("| insert %+v", v)
-		if err := e.storeSlowCacheToDB(); err != nil {
-			e.G().Log.Debug("| Error in storing slow cache to db: %s", err)
+
+		// Don't write failures to the disk cache
+		if isOK {
+			if err := e.storeSlowCacheToDB(); err != nil {
+				e.G().Log.Debug("| Error in storing slow cache to db: %s", err)
+			}
 		}
 	}
 	e.G().Log.Debug("- maybeCacheResult")
@@ -582,7 +602,7 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 }
 
 func (e *Identify2WithUID) displayUserCardAsync(iui libkb.IdentifyUI) <-chan error {
-	if e.calledFromChatGUI() {
+	if e.canSucceedWithTrackBreaks() {
 		return nil
 	}
 	return displayUserCardAsync(e.G(), iui, e.them.GetUID(), (e.me != nil))
@@ -801,14 +821,21 @@ func (e *Identify2WithUID) loadUsers(ctx *Context) error {
 	return nil
 }
 
-func (e *Identify2WithUID) checkFastCacheHit() bool {
+func (e *Identify2WithUID) checkFastCacheHit() (hit bool) {
+	prfx := fmt.Sprintf("Identify2WithUID#checkFastCacheHit(%s)", e.arg.Uid)
+	defer e.G().TraceOK(prfx, func() bool { return hit })()
 	if e.getCache() == nil {
 		return false
 	}
-	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.CachedAt }
-	u, err := e.getCache().Get(e.arg.Uid, fn, libkb.Identify2CacheShortTimeout)
+
+	fn := func(u keybase1.Identify2Res) keybase1.Time { return u.Upk.Uvv.CachedAt }
+	dfn := func(u keybase1.Identify2Res) time.Duration {
+		return libkb.Identify2CacheShortTimeout
+	}
+	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.canSucceedWithTrackBreaks())
+
 	if err != nil {
-		e.G().Log.Debug("fast cache error for %s: %s", e.arg.Uid, err)
+		e.G().Log.Debug("| fast cache error for %s: %s", e.arg.Uid, err)
 	}
 	if u == nil {
 		return false
@@ -824,7 +851,7 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 	}
 }
 
-func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.UserPlusKeys) {
+func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 	defer e.G().TraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
 	var ktm keybase1.Time
 	key := e.dbKey(e.them.GetUID())
@@ -842,7 +869,8 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.UserPlusKeys) {
 		e.G().Log.Debug("| Object timed out %s ago", time.Now().Sub(tm))
 		return nil
 	}
-	tmp := e.them.ExportToUserPlusKeys(ktm)
+	var tmp keybase1.Identify2Res
+	tmp.Upk = e.them.ExportToUserPlusKeys(ktm)
 	ret = &tmp
 	return ret
 }
@@ -871,39 +899,50 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 		return false
 	}
 
-	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.LastIdentifiedAt }
-	u, _ := e.getCache().Get(e.them.GetUID(), fn, libkb.Identify2CacheLongTimeout)
+	tfn := func(u keybase1.Identify2Res) keybase1.Time { return u.Upk.Uvv.LastIdentifiedAt }
+	dfn := func(u keybase1.Identify2Res) time.Duration {
+		if u.TrackBreaks != nil {
+			return libkb.Identify2CacheBrokenTimeout
+		}
+		return libkb.Identify2CacheLongTimeout
+	}
+	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.canSucceedWithTrackBreaks())
 
-	if u == nil && e.me != nil {
+	trackBrokenError := false
+	if err != nil {
+		e.G().Log.Debug("| slow cache error for %s: %s", e.them.GetUID(), err)
+		if _, ok := err.(libkb.TrackBrokenError); ok {
+			trackBrokenError = true
+		}
+	}
+
+	if u == nil && e.me != nil && !trackBrokenError {
 		u = e.loadSlowCacheFromDB()
 	}
+
 	if u == nil {
-		e.G().Log.Debug("%s: identify missed cache", prfx)
+		e.G().Log.Debug("| %s: identify missed cache", prfx)
 		return false
 	}
-	if !e.them.IsCachedIdentifyFresh(u) {
-		e.G().Log.Debug("%s: cached identify was stale", prfx)
+
+	if !e.them.IsCachedIdentifyFresh(&u.Upk) {
+		e.G().Log.Debug("| %s: cached identify was stale", prfx)
 		return false
 	}
+
 	e.cachedRes = u
 
 	// Update so that it hits the fast cache the next time
-	u.Uvv.CachedAt = keybase1.ToTime(time.Now())
+	u.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
 	return true
 }
 
 func (e *Identify2WithUID) Result() *keybase1.Identify2Res {
-	res := &keybase1.Identify2Res{}
 	if e.cachedRes != nil {
-		res.Upk = *e.cachedRes
-	} else if e.them != nil {
-		res.Upk = e.toUserPlusKeys()
+		return e.cachedRes
 	}
-
-	// This will be a no-op unless we're being called from the chat GUI
-	res.TrackBreaks = e.trackBreaks
-
-	return res
+	tmp := e.exportToResult()
+	return &tmp
 }
 
 func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {

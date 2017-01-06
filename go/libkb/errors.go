@@ -1211,6 +1211,14 @@ func (e IdentifyTimeoutError) Error() string {
 
 //=============================================================================
 
+type TrackBrokenError struct{}
+
+func (e TrackBrokenError) Error() string {
+	return "track of user was broken"
+}
+
+//=============================================================================
+
 type IdentifyDidNotCompleteError struct{}
 
 func (e IdentifyDidNotCompleteError) Error() string {
