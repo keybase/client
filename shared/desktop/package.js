@@ -64,6 +64,7 @@ function main () {
   fs.removeSync(desktopPath('build/images/folders'))
   fs.removeSync(desktopPath('build/images/iconfont'))
   copySync('renderer', 'build/desktop/renderer', filterAllowOnlyTypes('html'))
+  copySync('renderer/renderer-load.js', 'build/desktop/renderer/renderer-load.js')
   fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
 
   fs.writeJsonSync(desktopPath('build/package.json'), {
