@@ -57,6 +57,11 @@ export default connect(
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
     switchTab: (tab: Tab) => {
+      if (tab === chatTab && routeSelected === tab) {
+        // clicking the chat tab when already selected should do nothing.
+        return
+      }
+      // otherwise, back out to the default route of the tab.
       const action = routeSelected === tab ? navigateTo : switchTo
       dispatch(action(routePath.push(tab)))
     },
