@@ -60,7 +60,13 @@ build_script:
   - cd ..
 # Eventually there will be more tests, but let's just start with these for now
 #  - go list ./... | find /V "vendor" > testlist.txt
-  - echo github.com/keybase/kbfs/libkbfs > testlist.txt
+  - echo github.com/keybase/kbfs/kbfsblock > testlist.txt
+  - echo github.com/keybase/kbfs/kbfscodec >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfscrypto >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfshash >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfssync >> testlist.txt
+  - echo github.com/keybase/kbfs/tlf >> testlist.txt
+  - echo github.com/keybase/kbfs/libkbfs >> testlist.txt
   - echo github.com/keybase/kbfs/libdokan >> testlist.txt
   - echo github.com/keybase/kbfs/test >> testlist.txt
 # TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.
