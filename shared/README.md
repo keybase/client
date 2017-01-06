@@ -23,6 +23,31 @@ We are iterating quickly and a lot of the code is changing every day.
 yarn install
 ```
 
+### Desktop
+
+The following `yarn run` commands, to build, run or package the app:
+
+| Command | Description |
+|---------|-------------|
+| start | Build a development bundle and start app |
+| hot-server | Start the hot-reloading server |
+| start-hot | Connect to a hot-reloading server (If you're developing and want to see changes as you make them) |
+| build-dev | Build development bundle |
+| build-prod | Build prod bundle |
+| package | Package app |
+
+
+You can set environment variables for debugging:
+
+| Env     | Description |
+|---------|-------------|
+| KEYBASE_RUN_MODE | Run mode: production, staging, devel |
+| KEYBASE_LOCAL_DEBUG | For debugging |
+| KEYBASE_SHOW_DEVTOOLS | Show devtools |
+| KEYBASE_FEATURES | Feature flags |
+| KEYBASE_RPC_DELAY | Number of ms to delay all RPC calls (requires debug mode) |
+| KEYBASE_RPC_DELAY_RESULT | Number of ms to delay all RPC call callbacks (requires debug mode) |
+
 ### iOS
 
 ```sh
@@ -47,6 +72,8 @@ yarn run rn-gobuild-android
 # Install the app on your device
 react-native run-android
 ```
+
+
 
 ### Troubleshooting
 
