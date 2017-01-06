@@ -4,7 +4,10 @@
 
 package libkbfs
 
-import "runtime"
+import (
+	"fmt"
+	"runtime"
+)
 
 // nodeCore holds info shared among one or more nodeStandard objects.
 type nodeCore struct {
@@ -32,6 +35,13 @@ func (c *nodeCore) ParentID() NodeID {
 		return nil
 	}
 	return c.parent.GetID()
+}
+
+// String is to support printing *nodeCore as a NodeID. If we want to
+// print nodeCores as nodeCores (e.g., for debugging) we might have to
+// implement Formatter.
+func (c *nodeCore) String() string {
+	return fmt.Sprintf("%p", c)
 }
 
 type nodeStandard struct {
