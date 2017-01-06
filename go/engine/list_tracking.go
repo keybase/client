@@ -68,7 +68,7 @@ func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 		arg.Self = true
 	}
 
-	err = e.G().FullSelfCacher.WithUser(arg, func(user *libkb.User) error {
+	err = e.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {
 
 		var trackList TrackList
 		var err error

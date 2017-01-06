@@ -98,7 +98,7 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // Reorder participants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(ctx context.Context, udc *libkb.UserDeviceCache, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
+func ReorderParticipants(ctx context.Context, upakLoader libkb.UPAKLoader, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
 	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
 	if err != nil {
 		return writerNames, readerNames, err
@@ -114,10 +114,11 @@ func ReorderParticipants(ctx context.Context, udc *libkb.UserDeviceCache, tlfnam
 	// Fill from the active list first.
 	for _, uid := range activeList {
 		kbUID := keybase1.UID(uid.String())
-		user, err := udc.LookupUsername(ctx, kbUID)
+		normalizedUsername, err := upakLoader.LookupUsername(ctx, kbUID)
 		if err != nil {
 			continue
 		}
+		user := normalizedUsername.String()
 		user, err = normalizeAssertionOrName(user)
 		if err != nil {
 			continue
@@ -163,10 +164,11 @@ func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string
 	if err != nil {
 		return nil, err
 	}
-	return &TLFInfo{
+	info := &TLFInfo{
 		ID:            chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
 		CanonicalName: res.NameIDBreaks.CanonicalName.String(),
-	}, nil
+	}
+	return info, nil
 }
 
 func GetInboxQueryLocalToRemote(ctx context.Context,

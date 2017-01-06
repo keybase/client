@@ -861,7 +861,7 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	return exportedKeys
 }
 
-// ExportDeviceKeys is used by LoadUserPlusKeys.  The key list
+// ExportDeviceKeys is used by ExportToUserPlusKeys.  The key list
 // only contains device keys.  It also returns the number of PGP
 // keys in the key family.
 func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicKey, pgpKeyCount int) {
@@ -881,6 +881,20 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicK
 	}
 	sort.Sort(PublicKeyList(exportedKeys))
 	return exportedKeys, pgpKeyCount
+}
+
+// ExportDeletedDeviceKeys is used by ExportToUserPlusKeys.  The key list
+// only contains deleted device keys.
+func (ckf ComputedKeyFamily) ExportDeletedDeviceKeys() []keybase1.PublicKey {
+	var keys []keybase1.PublicKey
+	for _, key := range ckf.GetDeletedKeys() {
+		if _, isPGP := key.(*PGPKeyBundle); isPGP {
+			continue
+		}
+		keys = append(keys, ckf.exportPublicKey(key))
+	}
+	sort.Sort(PublicKeyList(keys))
+	return keys
 }
 
 // ExportAllPGPKeys exports all pgp keys.
@@ -945,6 +959,11 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 	if ckf != nil {
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
 		ret.RevokedDeviceKeys = ckf.ExportRevokedDeviceKeys()
+
+		// PC WIP
+		// these will be added to UserPlusKeys
+		// deletedDeviceKeys := ckf.ExportDeletedDeviceKeys()
+		// u.G().Log.Warning("deleted device keys: %+v", deletedDeviceKeys)
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

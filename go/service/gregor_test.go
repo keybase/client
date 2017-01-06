@@ -620,7 +620,11 @@ func TestGregorBadgesIBM(t *testing.T) {
 	t.Logf("client setup complete")
 
 	t.Logf("server message")
-	msg := server.newIbm2(uid, gregor1.Category("tlf"), gregor1.Body([]byte{}))
+	// One with type: created
+	msg := server.newIbm2(uid, gregor1.Category("tlf"), gregor1.Body([]byte(`{"type": "created"}`)))
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+	// One with some other random type.
+	msg = server.newIbm2(uid, gregor1.Category("tlf"), gregor1.Body([]byte(`{"type": "bogusnogus"}`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
 	// Sync from the server

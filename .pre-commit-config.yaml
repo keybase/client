@@ -5,7 +5,7 @@
         entry: sh
         language: system
         files: \.js$
-        args: [-c, 'desktop/node_modules/.bin/eslint .']
+        args: [-c, 'shared/node_modules/.bin/eslint .']
     -   id: flow
         name: flow
         entry: sh

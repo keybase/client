@@ -5,7 +5,7 @@ import shallowEqual from 'shallowequal'
 import {FontIcon} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
+import {resolveImageAsURL} from '../desktop/resolve-root'
 
 import type {Exact} from '../constants/types/more'
 import type {Props} from './icon'

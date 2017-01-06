@@ -256,11 +256,11 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 }
 
 func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
-	udc := b.kbCtx.GetUserDeviceCache()
-	if udc == nil {
-		return "", "", "", fmt.Errorf("missing UserDeviceCache")
+	nun, devName, devType, err := b.kbCtx.GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
+	if err != nil {
+		return "", "", "", err
 	}
-	return udc.LookupUsernameAndDevice(ctx, uid, deviceID)
+	return nun.String(), devName, devType, nil
 }
 
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
@@ -500,9 +500,12 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	}
 
 	// check key validity
-	validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
+	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
 	if ierr != nil {
 		return verifyMessageRes{}, ierr
+	}
+	if !found {
+		return verifyMessageRes{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
 	}
 	if !validAtCtime {
 		return verifyMessageRes{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
@@ -529,32 +532,31 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Signatu
 // ValidSenderKey checks that the key was active for sender at ctime.
 // This trusts the server for ctime, so a colluding server could use a revoked key and this check wouldn't notice.
 // Returns (validAtCtime, revoked, err)
-func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, *gregor1.Time, libkb.ChatUnboxingError) {
+func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr libkb.ChatUnboxingError) {
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
-		return false, nil, libkb.NewPermanentChatUnboxingError(err)
+		return false, false, nil, libkb.NewPermanentChatUnboxingError(err)
 	}
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
-	cachedUserLoader := b.kbCtx.GetCachedUserLoader()
+	cachedUserLoader := b.kbCtx.GetUPAKLoader()
 	if cachedUserLoader == nil {
-		return false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
+		return false, false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
 
 	found, revokedAt, err := cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
 	if err != nil {
-		return false, nil, libkb.NewTransientChatUnboxingError(err)
+		return false, false, nil, libkb.NewTransientChatUnboxingError(err)
 	}
 	if !found {
-		return false, nil, nil
+		return false, false, nil, nil
 	}
 
-	var revoked *gregor1.Time
 	validAtCtime := true
 	if revokedAt != nil {
 		if revokedAt.Unix.IsZero() {
-			return false, nil, libkb.NewPermanentChatUnboxingError(fmt.Errorf("zero clock time on expired key"))
+			return true, false, nil, libkb.NewPermanentChatUnboxingError(fmt.Errorf("zero clock time on expired key"))
 		}
 		t := b.keybase1KeybaseTimeToTime(*revokedAt)
 		revokedTime := gregor1.ToTime(t)
@@ -562,7 +564,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 		validAtCtime = t.After(ctime2)
 	}
 
-	return validAtCtime, revoked, nil
+	return true, validAtCtime, revoked, nil
 }
 
 func (b *Boxer) keybase1KeybaseTimeToTime(t1 keybase1.KeybaseTime) time.Time {

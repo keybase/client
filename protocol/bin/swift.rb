@@ -16,10 +16,22 @@ if ARGV.length == 1 then
   out_dir = ARGV[0]
   puts "Out dir: #{out_dir}"
 else
-  #puts "No output directory specified"
+  puts "No output directory specified"
+  exit 1
 end
 
-paths = Dir["#{script_path}/../json/*.json"]
+paths = Dir["#{script_path}/../json/keybase1/*.json"]
+
+paths_move = ["#{script_path}/../json/keybase1/common.json",
+  "#{script_path}/../json/keybase1/prove_common.json"]
+paths_move.reverse.each do |p|
+  paths.delete(p)
+  paths.unshift(p)
+end
+# Uses external import, TODO: Fixme
+paths.delete("#{script_path}/../json/keybase1/gregor_ui.json")
+paths.delete("#{script_path}/../json/keybase1/gregor.json")
+
 
 @defined_types = []
 @enums = []
@@ -41,12 +53,14 @@ def model_name(type)
 
   case type
   when "int" then "Int"
+  when "int64" then "Int64"
   when "long" then "Int64"
   when "float" then "Float"
   when "double" then "Double"
   when "string" then "String"
   when "bytes" then "NSData"
   when "boolean" then "Bool"
+  when "bool" then "Bool"
   else
     type
   end
@@ -56,13 +70,13 @@ def return_type(type)
   type = @aliases[type] if @aliases[type]
   raise "Unsupported type array" if type == "array"
 
-  return "NSNumber" if @use_nsnumber && ["int", "long", "float", "double", "boolean"].include?(type)
+  return "NSNumber" if @use_nsnumber && ["int", "int64", "long", "float", "double", "boolean"].include?(type)
 
   return model_name(type)
 end
 
 def is_objc_primitive(type)
- ["int", "long", "float", "double", "boolean"].include?(type)
+ ["int", "int64", "long", "float", "double", "boolean"].include?(type)
 end
 
 def swift_for_type(type)
@@ -101,6 +115,11 @@ def validate_name(name, type, source)
   #   raise "Invalid name: #{name} in #{source}. In Swift you can't start a property name with \"\""
   # end
 
+  case name
+  when "where"
+    return "whereValue"
+  end
+
   if name == type
     raise "Invalid name: #{name} in #{source}. In Swift the property name != type name (#{name} == #{type})."
   end
@@ -108,6 +127,8 @@ def validate_name(name, type, source)
   if ["internal", "private", "self"].include?(name)
     raise "Invalid name: #{name} in #{source}. In Swift you can't have a property named \"#{name}\"."
   end
+
+  return name
 end
 
 def json_cast(type, optional=false)
@@ -124,6 +145,7 @@ def json_cast(type, optional=false)
 
   case type
   when "int" then ".intValue"
+  when "int64" then ".int64Value"
   when "long" then ".int64Value"
   when "float" then ".floatValue"
   when "double" then ".doubleValue"
@@ -144,31 +166,31 @@ end
 
 def json_return_statement(rpc_method, cname, type)
   if @enums.include?(type)
-    return "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
-    try checkNull(response)
+    return "let response = try self.sendRequest(method: \"#{rpc_method}\", args: args)
+    try checkNull(response: response)
     return #{cname}(rawValue: JSON(response).intValue)!"
   end
 
-  cast = if @use_nsnumber && ["int", "long", "float", "double", "boolean"].include?(type)
+  cast = if @use_nsnumber && ["int", "int64", "long", "float", "double", "boolean"].include?(type)
     ".numberValue"
   else
     json_cast(type)
   end
 
   if cast
-    returnStatement = "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
-    try checkNull(response)
+    returnStatement = "let response = try self.sendRequest(method: \"#{rpc_method}\", args: args)
+    try checkNull(response: response)
     return JSON(response)#{cast}"
   else
-    returnStatement = "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
-    try checkNull(response)
+    returnStatement = "let response = try self.sendRequest(method: \"#{rpc_method}\", args: args)
+    try checkNull(response: response)
     return #{cname}.fromJSON(JSON(response))"
   end
 end
 
 def json_return_statement_for_array(rpc_method, item_cname)
-  return "let response = try self.sendRequest(\"#{rpc_method}\", args: args)
-  try checkNull(response)
+  return "let response = try self.sendRequest(method: \"#{rpc_method}\", args: args)
+  try checkNull(response: response)
   return #{item_cname}.fromJSONArray(JSON(response).arrayValue)"
 end
 
@@ -212,12 +234,21 @@ def json_init(name, type)
   return "#{name}: #{json_value(name, type)}"
 end
 
-def var(name, type, optional)
+def var(name, type, protocol, optional)
+  name = validate_name(name, type, protocol)
   return "\tpublic let #{name}: #{type}" + (optional ? "?" : "")
 end
 
 def is_any_object(type)
   true
+end
+
+def name_for_response_type(response_type)
+  if is_objc_primitive(response_type)
+    return return_type(response_type)
+  else
+    return swift_for_type(response_type)
+  end
 end
 
 def add_methods(impl, namespace, protocol, method, request_params, response_type)
@@ -231,7 +262,7 @@ def add_methods(impl, namespace, protocol, method, request_params, response_type
     rname = param["name"]
     rtype = param["type"]
     next if (rname == "sessionID")
-    validate_name(rname, rtype, protocol)
+    rname = validate_name(rname, rtype, protocol)
 
     method_params << "#{rname}: #{swift_for_type(rtype)}"
 
@@ -239,9 +270,9 @@ def add_methods(impl, namespace, protocol, method, request_params, response_type
     if @enums.include?(rtype)
       dict_params << "\"#{rname}\": #{rname}.rawValue"
     elsif rtype == "long"
-      dict_params << "\"#{rname}\": NSNumber(longLong: #{rname})"
+      dict_params << "\"#{rname}\": NSNumber(value: #{rname})"
     elsif rtype == "int"
-      dict_params << "\"#{rname}\": NSNumber(integer: #{rname})"
+      dict_params << "\"#{rname}\": NSNumber(value: #{rname})"
     elsif optional
       dict_params << "\"#{rname}\": wrapNull(#{rname})"
     else
@@ -249,35 +280,39 @@ def add_methods(impl, namespace, protocol, method, request_params, response_type
     end
   end
 
-  if response_type == "null" then # No result
+  if response_type == "null" || !response_type then # No result
     returnType = ""
-    returnStatement = "try self.sendRequest(\"#{rpc_method}\", args: args)"
+    returnStatement = "_ = try self.sendRequest(method: \"#{rpc_method}\", args: args)"
   elsif response_type.kind_of?(Hash) # Array result
     raise "Unsupported type: #{response_type["type"]}" if response_type["type"] != "array"
     item_cname = model_name(response_type["items"])
     returnType = " -> [#{item_cname}]"
     returnStatement = json_return_statement_for_array(rpc_method, item_cname)
   else # Dictionary
-
-    if is_objc_primitive(response_type)
-      cname = return_type(response_type)
-    else
-      cname = swift_for_type(response_type)
-    end
-
+    cname = name_for_response_type(response_type)
     returnType = " -> #{cname}"
+
     #returnType += "?" if optional
     returnStatement = json_return_statement(rpc_method, cname, response_type)
   end
 
-  args_str = dict_params.length > 0 ? "[" + dict_params.join(", ") + "]" : "[String: AnyObject]()"
+  args_str = dict_params.length > 0 ? "[" + dict_params.join(", ") + "]" : "[String: Any]()"
 
   impl << <<-EOS
   #{@annotation}public func #{dc_method}(#{method_params.join(", ")}) throws#{returnType} {
-    let args: [String: AnyObject] = #{args_str}
+    let args: [String: Any] = #{args_str}
     #{returnStatement}
   }
 EOS
+end
+
+# @options :lower
+def idiomize_name(name, options=:upper)
+  name = name.camelize(options)
+  name = name.gsub('Ui', 'UI')
+  name = name.gsub('Gui', 'GUI')
+  name = name.gsub('Cli', 'CLI')
+  name
 end
 
 @records = {}
@@ -290,7 +325,8 @@ paths.each do |path|
   protocol = h["protocol"]
   namespace = h["namespace"]
   #puts "\nProtocol: #{protocol}"
-  name = protocol.camelize
+  name = idiomize_name(protocol)
+
   @records[name] ||= []
   @requests[name] ||= []
 
@@ -313,9 +349,9 @@ paths.each do |path|
         raise "Enums must specify value: #{enum_name} #{symbol}" if sym.length == 0
         raise "Enums must specify an integer value: #{enum_name} #{symbol}" if not /\A\d+\z/.match(sym_val)
 
-        case_name = sym.capitalize.camelize
+        case_name = idiomize_name(sym.downcase, :lower)
         # Self is not a valid enum name
-        case_name = "VSelf" if case_name == "Self"
+        case_name = "selfValue" if case_name == "self"
 
         @records[name] << "\tcase #{case_name} = #{sym_val}"
       end
@@ -339,22 +375,22 @@ paths.each do |path|
         fname = "isInternal" if fname == "internal"
         fname = "isPrivate" if fname == "private"
         fname = "kid" if fname == "KID"
-        validate_name(fname, ftype, protocol)
+        fname = validate_name(fname, ftype, protocol)
 
         fnames << fname
         if ftype.kind_of?(Hash)
           subtype = ftype
           if subtype["type"] == "array"
-            @records[name] << var(fname, "[#{model_name(subtype["items"])}]", false)
+            @records[name] << var(fname, "[#{model_name(subtype["items"])}]", false, protocol)
           elsif subtype["type"] == "map"
             # Key type is always String according to AVDL spec
             values_type = model_name(subtype["values"])
-            @records[name] << var(fname, "[String: #{values_type}]", false)
+            @records[name] << var(fname, "[String: #{values_type}]", false, protocol)
           else
             puts "Unhandled subtype: #{subtype}"
           end
         else
-          @records[name] << var(fname, swift_for_type(ftype), false)
+          @records[name] << var(fname, swift_for_type(ftype), false, protocol)
         end
 
         params_str << "#{fname}: #{swift_for_type(ftype)}"
@@ -368,21 +404,23 @@ paths.each do |path|
     #{init_selfs.join("\n\t\t")}
   }
 
-  public class func fromJSON(json: JSON) -> #{cname} {
+  public class func fromJSON(_ json: JSON) -> #{cname} {
     return #{cname}(#{json_init_str.join(", ")})
   }
 
-  public class func fromJSONArray(json: [JSON]) -> [#{cname}] {
+  public class func fromJSONArray(_ json: [JSON]) -> [#{cname}] {
     return json.map { fromJSON($0) }
   }
+
 }
+
 EOS
     else
       puts "Undefined type: #{type["type"]}"
     end
   end
 
-  @requests[name] << "#{@annotation}public class #{model_name(protocol.camelize)}Request: Request {\n"
+  @requests[name] << "#{@annotation}public class #{name}Request: Request {\n"
 
   h["messages"].each do |method, mparam|
     request_params = mparam["request"].dup
@@ -409,7 +447,7 @@ def header(filename) <<-EOS
 //
 //  #{filename}
 //  Keybase
-//  Copyright © 2015 Keybase. All rights reserved.
+//  Copyright © 2016 Keybase. All rights reserved.
 //
 
 import Foundation
@@ -419,6 +457,7 @@ end
 
 if !out_dir.nil? then
   @requests.each do |name, lines|
+    next if lines.length == 0
     filename = "#{name}Request.swift"
     File.open("#{out_dir}/#{filename}", "w") do |f|
       f.write(header(filename))
@@ -430,6 +469,7 @@ if !out_dir.nil? then
   end
 
   @records.each do |name, lines|
+    next if lines.length == 0
     filename = "#{name}.swift"
     File.open("#{out_dir}/#{filename}", "w") do |f|
       f.write(header(filename))

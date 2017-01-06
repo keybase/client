@@ -442,6 +442,15 @@
         }
       ],
       "response": "bytes"
+    },
+    "getInboxVersion": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "InboxVers"
     }
   },
   "namespace": "chat.1"
