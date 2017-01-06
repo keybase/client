@@ -47,7 +47,7 @@ class _AttachmentMessage extends PureComponent<void, Props & {onIconClick: (even
                     Show downloaded file.
                   </Text>}
                 {!!message.previewPath && message.previewType === 'Image' && <Box style={{marginTop: globalMargins.xtiny, flex: 1}} onClick={onOpenInPopup}>
-                  <img src={message.previewPath} style={{width: message.previewSize.width, height: message.previewSize.height}} />
+                  <img src={message.previewPath} style={message.previewSize ? {width: message.previewSize.width, height: message.previewSize.height} : {}} />
                 </Box>}
                 <div className='action-button'>
                   <Icon type='iconfont-ellipsis' style={{marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}} onClick={onIconClick} />

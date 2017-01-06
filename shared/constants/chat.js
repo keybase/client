@@ -64,8 +64,8 @@ export type UnhandledMessage = {
 }
 
 export type AttachmentSize = {
-  width: ?number,
-  height: ?number,
+  width: number,
+  height: number,
 }
 
 export type AttachmentMessage = {
@@ -81,7 +81,7 @@ export type AttachmentMessage = {
   title: string,
   previewType: ?('Image' | 'Other'),
   previewPath: ?string,
-  previewSize: AttachmentSize,
+  previewSize: ?AttachmentSize,
   downloadedPath: ?string,
   key: any,
 }
