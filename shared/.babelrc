@@ -1,4 +1,6 @@
 {
+  // React native doesn't support env so by default we use react-native and in electron we specify it
+  // See: https://github.com/facebook/react-native/issues/8723
   "presets": [
     "babel-preset-react-native"
   ],
@@ -13,6 +15,7 @@
     ]
   ],
   "env": {
+    // Used to build electron app
     "electron": {
       "presets": [
         "babel-preset-es2015",
@@ -31,6 +34,14 @@
           }
         ]
       ]
+    },
+    // Used by node for our own scripts
+    "yarn": {
+      "presets": [
+        "babel-preset-es2015",
+        "babel-preset-stage-1"
+      ],
+      "plugins": []
     }
   }
 }
