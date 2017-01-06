@@ -53,7 +53,7 @@ class ConversationList extends Component<void, Props, State> {
     if (index === 0) {
       // loader
       return 0
-    } else if (index == this.state.messages.count() + 1) {
+    } else if (index === this.state.messages.count() + 1) {
       // footer
       return -1
     } else {
