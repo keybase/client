@@ -258,6 +258,9 @@ class ConversationList extends Component<void, Props, State> {
       visibility: visible;
       opacity: 1;
     }
+    .chat-list .ReactVirtualized__Grid__innerScrollContainer {
+      margin-bottom: 10px;
+    }
     `
 
     return (
@@ -280,6 +283,7 @@ class ConversationList extends Component<void, Props, State> {
               width={width} >
               {({getRowHeight}) => {
                 return <VirtualizedList
+                  className='chat-list'
                   style={{outline: 'none'}}
                   height={height}
                   ref={r => { this._list = r }}
