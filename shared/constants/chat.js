@@ -77,6 +77,7 @@ export type AttachmentMessage = {
   previewType: ?('Image' | 'Other'),
   previewPath: ?string,
   downloadedPath: ?string,
+  senderDeviceRevokedAt: ?number,
   key: any,
 }
 

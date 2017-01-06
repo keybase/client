@@ -32,8 +32,8 @@ module.exports = {
       test: /emoji-datasource.*\.(gif|png)$/,
       loader: 'file?name=[name].[ext]',
     }, {
-      test: /\.(gif|png)$/,
-      exclude: /emoji-datasource/,
+      test: /\.(gif|png|jpg)$/,
+      include: path.resolve(__dirname, '../shared/images/icons'),
       loader: 'null',
     }, {
       test: /\.ttf$/,

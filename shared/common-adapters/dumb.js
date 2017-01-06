@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, ListItem, Markdown, PopupMenu, StandardScreen, TabBar, Text, Terminal, Dropdown} from './index'
+import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, ListItem, Markdown, PopupDialog, PopupMenu, StandardScreen, TabBar, Text, Terminal, Dropdown} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
@@ -834,6 +834,34 @@ const markdownDumbMap: DumbComponentMap<Markdown> = {
   },
 }
 
+const popupDialogMap: DumbComponentMap<PopupDialog> = {
+  component: PopupDialog,
+  mocks: {
+    'Normal': {
+      onClose: () => console.log('PopupDialog: onClose'),
+      children: (
+        <Box style={{
+          ...globalStyles.flexBoxColumn,
+          width: 200,
+          height: 200,
+          justifyContent: 'center',
+          alignItems: 'center',
+          background: globalColors.white,
+        }}>
+          <Text type='Body'>Hello, world!</Text>
+        </Box>
+      ),
+      parentProps: {
+        style: {
+          position: 'relative',
+          width: 300,
+          height: 300,
+        },
+      },
+    },
+  },
+}
+
 export default {
   Avatar: avatarMap,
   Buttons: buttonsMap,
@@ -845,6 +873,7 @@ export default {
   Input: inputMap,
   ListItem: listItemMap,
   Markdown: markdownDumbMap,
+  PopupDialog: popupDialogMap,
   PopupMenu: popupMenuMap,
   StandardScreen: standardScreenMap,
   TabBar: tabBarMap,
