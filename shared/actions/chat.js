@@ -350,14 +350,10 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const appFocused = yield select(_focusedSelector)
         const selectedTab = yield select(_routeSelector)
         const chatTabSelected = (selectedTab === chatTab)
+        const conversationIsFocused = conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
+        const messageIsYours = (message.type === 'Text' || message.type === 'Attachment') && message.author === yourName
 
-        if ((message && message.messageID &&
-             conversationIDKey === selectedConversationIDKey &&
-             appFocused && chatTabSelected) ||
-            (message &&
-             message.messageID &&
-             (message.type === 'Text' || message.type === 'Attachment') &&
-             message.author === yourName)) {
+        if (message && message.messageID && (conversationIsFocused || messageIsYours)) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
