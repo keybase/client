@@ -533,10 +533,13 @@ func (fbo *folderBlockOps) GetDirBlockForReading(ctx context.Context,
 // assumed that some coordinating goroutine is holding the correct
 // locks, and in that case `lState` must be `nil`.
 //
+// file is used only when reporting errors and sending read
+// notifications, and can be empty.
+//
 // This method also returns whether the block was already dirty.
 func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer,
-	file path, rtype blockReqType) (
+	branch BranchName, file path, rtype blockReqType) (
 	fblock *FileBlock, wasDirty bool, err error) {
 	switch rtype {
 	case blockRead:
@@ -556,19 +559,13 @@ func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 		panic(fmt.Sprintf("Unknown block req type: %d", rtype))
 	}
 
-	// Callers should have already done this check, but it doesn't
-	// hurt to do it again.
-	if !file.isValid() {
-		return nil, false, InvalidPathError{file}
-	}
-
 	fblock, err = fbo.getFileBlockHelperLocked(
-		ctx, lState, kmd, ptr, file.Branch, file, rtype)
+		ctx, lState, kmd, ptr, branch, file, rtype)
 	if err != nil {
 		return nil, false, err
 	}
 
-	wasDirty = fbo.config.DirtyBlockCache().IsDirty(fbo.id(), ptr, file.Branch)
+	wasDirty = fbo.config.DirtyBlockCache().IsDirty(fbo.id(), ptr, branch)
 	if rtype == blockWrite {
 		// Copy the block if it's for writing, and either the
 		// block is not yet dirty or the block is currently
@@ -589,8 +586,13 @@ func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 func (fbo *folderBlockOps) getFileLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, file path,
 	rtype blockReqType) (*FileBlock, error) {
+	// Callers should have already done this check, but it doesn't
+	// hurt to do it again.
+	if !file.isValid() {
+		return nil, InvalidPathError{file}
+	}
 	fblock, _, err := fbo.getFileBlockLocked(
-		ctx, lState, kmd, file.tailPointer(), file, rtype)
+		ctx, lState, kmd, file.tailPointer(), file.Branch, file, rtype)
 	return fblock, err
 }
 
@@ -608,6 +610,24 @@ func (fbo *folderBlockOps) GetIndirectFileBlockInfos(ctx context.Context,
 	var uid keybase1.UID // Data reads don't depend on the uid.
 	fd := fbo.newFileData(lState, file, uid, kmd)
 	return fd.getIndirectFileBlockInfos(ctx)
+}
+
+// GetIndirectFileBlockInfosWithTopBlock returns a list of BlockInfos
+// for all indirect blocks of the given file, starting from the given
+// top-most block. If the returned error is a recoverable one (as
+// determined by isRecoverableBlockErrorForRemoval), the returned list
+// may still be non-empty, and holds all the BlockInfos for all found
+// indirect blocks. (This will be relevant when we handle multiple
+// levels of indirection.)
+func (fbo *folderBlockOps) GetIndirectFileBlockInfosWithTopBlock(
+	ctx context.Context, lState *lockState, kmd KeyMetadata, file path,
+	topBlock *FileBlock) (
+	[]BlockInfo, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	var uid keybase1.UID // Data reads don't depend on the uid.
+	fd := fbo.newFileData(lState, file, uid, kmd)
+	return fd.getIndirectFileBlockInfosWithTopBlock(ctx, topBlock)
 }
 
 // getDirLocked retrieves the block pointed to by the tail pointer of
@@ -1090,7 +1110,7 @@ func (fbo *folderBlockOps) newFileData(lState *lockState,
 				lState = nil
 			}
 			return fbo.getFileBlockLocked(
-				ctx, lState, kmd, ptr, file, rtype)
+				ctx, lState, kmd, ptr, file.Branch, file, rtype)
 		},
 		func(ptr BlockPointer, block Block) error {
 			return fbo.cacheBlockIfNotYetDirtyLocked(

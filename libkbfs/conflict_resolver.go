@@ -2109,15 +2109,17 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		return BlockPointer{}, err
 	}
 
-	dirtyBcache := simpleDirtyBlockCacheStandard()
-	// Simple dirty bcaches don't need to be shut down.
-
 	file := parentPath.ChildPath(name, ptr)
-	fd := cr.newFileData(lState, file, uid, kmd, dirtyBcache)
-	oldInfos, err := fd.getIndirectFileBlockInfos(ctx)
+	oldInfos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
+		ctx, lState, kmd, file)
 	if err != nil {
 		return BlockPointer{}, err
 	}
+
+	dirtyBcache := simpleDirtyBlockCacheStandard()
+	// Simple dirty bcaches don't need to be shut down.
+
+	fd := cr.newFileData(lState, file, uid, kmd, dirtyBcache)
 
 	newPtr, allChildPtrs, err := fd.deepCopy(
 		ctx, cr.config.Codec(), cr.config.DataVersion())
@@ -2873,8 +2875,9 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 					return nil, err
 				}
 			} else {
-				infos, err = fd.getIndirectFileBlockInfosWithTopBlock(
-					ctx, fblock)
+				infos, err = cr.fbo.blocks.
+					GetIndirectFileBlockInfosWithTopBlock(
+						ctx, lState, newMD.ReadOnly(), node.mergedPath, fblock)
 				if err != nil {
 					return nil, err
 				}
