@@ -24,7 +24,7 @@ import {tmpFile} from '../util/file'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
 import type {ChangedFocus} from '../constants/window'
-import type {IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {UpdateReachability} from '../constants/gregor'
@@ -45,6 +45,7 @@ import type {
   NewChat,
   OpenFolder,
   PostMessage,
+  RetryMessage,
   SelectConversation,
   SetupNewChatHandler,
   StartConversation,
@@ -69,9 +70,10 @@ const {
   localNewConversationLocalRpcPromise,
   localPostFileAttachmentLocalRpcChannelMap,
   localPostLocalNonblockRpcPromise,
+  localRetryPostRpcPromise,
 } = ChatTypes
 
-const {conversationIDToKey, keyToConversationID, InboxStateRecord, MetaDataRecord, makeSnippet, serverMessageToMessageBody} = Constants
+const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody} = Constants
 
 const _selectedSelector = (state: TypedState) => {
   const chatPath = getPath(state.routeTree.routeState, [chatTab])
@@ -119,6 +121,10 @@ function newChat (existingParticipants: Array<string>): NewChat {
 
 function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
   return {type: Constants.postMessage, payload: {conversationIDKey, text}}
+}
+
+function retryMessage (outboxIDKey: string): RetryMessage {
+  return {type: Constants.retryMessage, payload: {outboxIDKey}}
 }
 
 function setupNewChatHandler (): SetupNewChatHandler {
@@ -268,6 +274,16 @@ function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey)
   }
 }
 
+function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
+  const {outboxIDKey} = action.payload
+
+  yield call(localRetryPostRpcPromise, {
+    param: {
+      outboxID: keyToOutboxID(outboxIDKey),
+    },
+  })
+}
+
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
@@ -290,7 +306,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 
   const author = yield select(usernameSelector)
   if (sent && author) {
-    const outboxID = sent.outboxID.toString('hex')
+    const outboxID = outboxIDToKey(sent.outboxID)
     const message: Message = {
       type: 'Text',
       author,
@@ -333,6 +349,23 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
+    case NotifyChatChatActivityType.failedMessage:
+      const failedMessage: ?FailedMessageInfo = action.payload.activity.failedMessage
+      if (failedMessage && failedMessage.outboxRecords) {
+        for (const outboxRecord of failedMessage.outboxRecords) {
+          const conversationIDKey = conversationIDToKey(outboxRecord.convID)
+          const outboxID = outboxIDToKey(outboxRecord.outboxID)
+          yield put({
+            type: Constants.pendingMessageFailed,
+            payload: {
+              conversationIDKey,
+              outboxID,
+              messageState: 'failed',
+            },
+          })
+        }
+      }
+      return
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
       if (incomingMessage) {
@@ -560,7 +593,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, conversationIDKey)).reverse()
   let newMessages = []
   messages.forEach((message, idx) => {
-    if (idx >= 2) {
+    if (idx > 0) {
       const timestamp = _maybeAddTimestamp(messages[idx], messages[idx - 1])
       if (timestamp !== null) {
         newMessages.push(timestamp)
@@ -600,7 +633,9 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp') {
     return null
   }
-  if (message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) { // ms
+  // messageID 1 is an unhandled placeholder. We want to add a timestamp before
+  // the first message, as well as between any two messages with long duration.
+  if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
       type: 'Timestamp',
       timestamp: message.timestamp,
@@ -628,7 +663,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
-          const outboxID = payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex')
+          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
           return {
             type: 'Text',
             ...common,
@@ -957,6 +992,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
     safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
+    safeTakeEvery(Constants.retryMessage, _retryMessage),
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
     safeTakeEvery(Constants.appendMessages, _sendNotifications),
@@ -983,6 +1019,7 @@ export {
   selectAttachment,
   openFolder,
   postMessage,
+  retryMessage,
   selectConversation,
   setupNewChatHandler,
   startConversation,

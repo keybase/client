@@ -7,8 +7,8 @@ echo on
 call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat"
 
 echo on
-pushd  %GOPATH%\src\github.com\keybase\client\desktop
-echo Calling npm i
-call npm i
+pushd  %GOPATH%\src\github.com\keybase\client\shared
+echo Calling yarn install
+call yarn install
 
-npm run package -- --arch ia32 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico
+yarn run package -- --arch ia32 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico

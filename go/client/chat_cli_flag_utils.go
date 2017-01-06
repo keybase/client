@@ -74,8 +74,8 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "nonblock",
 		Usage: `Send message without success confirmation`,
 	},
-	"all": cli.BoolFlag{
-		Name:  "all",
+	"include-hidden": cli.BoolFlag{
+		Name:  "include-hidden",
 		Usage: `Include hidden conversations`,
 	},
 	"block": cli.BoolFlag{
@@ -116,7 +116,7 @@ func getInboxFetcherUnreadFirstFlags() []cli.Flag {
 }
 
 func getInboxFetcherActivitySortedFlags() []cli.Flag {
-	return append(mustGetChatFlags("number", "since", "all", "async"), getConversationResolverFlags()...)
+	return append(mustGetChatFlags("number", "since", "include-hidden", "async"), getConversationResolverFlags()...)
 }
 
 func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, err error) {
@@ -193,7 +193,7 @@ func makeChatCLIInboxFetcherActivitySorted(ctx *cli.Context) (fetcher chatCLIInb
 		fetcher.query.Visibility = chat1.TLFVisibility_ANY
 	}
 
-	if !ctx.Bool("all") {
+	if !ctx.Bool("include-hidden") {
 		fetcher.query.Status = chat.VisibleChatConversationStatuses()
 	}
 
@@ -223,7 +223,7 @@ func makeChatCLIInboxFetcherUnreadFirst(ctx *cli.Context) (fetcher chatCLIInboxF
 		fetcher.query.Visibility = chat1.TLFVisibility_ANY
 	}
 
-	if !ctx.Bool("all") {
+	if !ctx.Bool("include-hidden") {
 		fetcher.query.Status = chat.VisibleChatConversationStatuses()
 	}
 

@@ -41,10 +41,13 @@ type cacheStats struct {
 	timeout int
 	miss    int
 	notime  int
+	breaks  int
 }
 
-func (c cacheStats) eq(h, t, m, n int) bool {
-	return h == c.hit && t == c.timeout && m == c.miss && n == c.notime
+type identify2testCache map[keybase1.UID](*keybase1.Identify2Res)
+
+func (c cacheStats) eq(h, t, m, n, b int) bool {
+	return h == c.hit && t == c.timeout && m == c.miss && n == c.notime && b == c.breaks
 }
 
 type Identify2WithUIDTester struct {
@@ -53,7 +56,7 @@ type Identify2WithUIDTester struct {
 	finishCh        chan struct{}
 	startCh         chan struct{}
 	checkStatusHook func(libkb.SigHint) libkb.ProofError
-	cache           map[keybase1.UID](*keybase1.UserPlusKeys)
+	cache           identify2testCache
 	slowStats       cacheStats
 	fastStats       cacheStats
 	now             time.Time
@@ -65,7 +68,7 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 		Contextified: libkb.NewContextified(g),
 		finishCh:     make(chan struct{}),
 		startCh:      make(chan struct{}, 1),
-		cache:        make(map[keybase1.UID](*keybase1.UserPlusKeys)),
+		cache:        make(identify2testCache),
 		now:          time.Now(),
 		userLoads:    make(map[keybase1.UID]int),
 	}
@@ -166,12 +169,16 @@ func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason, bool) er
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, timeout time.Duration) (*keybase1.UserPlusKeys, error) {
+func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, gcdf libkb.GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2Res, error) {
 	res := i.cache[uid]
 	stats := &i.slowStats
-	if timeout == libkb.Identify2CacheShortTimeout {
+
+	// Please execuse this horrible hack, but use the `GetCacheDurationFunc` to see if we're dealing
+	// with a fast cache duration
+	if gcdf(keybase1.Identify2Res{}) == libkb.Identify2CacheShortTimeout {
 		stats = &i.fastStats
 	}
+
 	if res == nil {
 		stats.miss++
 		return nil, nil
@@ -182,7 +189,11 @@ func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFu
 			stats.notime++
 			return nil, libkb.TimeoutError{}
 		}
-
+		if res.TrackBreaks != nil && !breaksOK {
+			stats.breaks++
+			return nil, libkb.TrackBrokenError{}
+		}
+		timeout := gcdf(*res)
 		thenTime := keybase1.FromTime(then)
 		if i.now.Sub(thenTime) > timeout {
 			stats.timeout++
@@ -193,11 +204,11 @@ func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFu
 	return res, nil
 }
 
-func (i *Identify2WithUIDTester) Insert(up *keybase1.UserPlusKeys) error {
+func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2Res) error {
 	tmp := *up
 	copy := &tmp
-	copy.Uvv.CachedAt = keybase1.ToTime(i.now)
-	i.cache[up.Uid] = copy
+	copy.Upk.Uvv.CachedAt = keybase1.ToTime(i.now)
+	i.cache[up.Upk.Uid] = copy
 	return nil
 }
 func (i *Identify2WithUIDTester) DidFullUserLoad(uid keybase1.UID) {
@@ -305,7 +316,7 @@ func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
 	}
 }
 
-func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Identify2Arg) (*Identify2WithUID, libkb.IdentifyUI, func(), error) {
+func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Identify2Arg) (func(), error) {
 	tc := SetupEngineTest(t, "testIdentify2WithUIDWithBrokenTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
@@ -313,8 +324,9 @@ func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Ident
 	eng := NewIdentify2WithUID(tc.G, arg)
 
 	eng.testArgs = &Identify2WithUIDTestArgs{
-		noMe: true,
-		tcl:  importTrackingLink(t, tc.G),
+		noMe:  true,
+		cache: i,
+		tcl:   importTrackingLink(t, tc.G),
 	}
 	i.checkStatusHook = func(l libkb.SigHint) libkb.ProofError {
 		if strings.Contains(l.GetHumanURL(), "twitter") {
@@ -326,7 +338,7 @@ func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Ident
 	ctx := Context{IdentifyUI: i}
 	waiter := launchWaiter(t, i.finishCh)
 	err := eng.Run(&ctx)
-	return eng, i, waiter, err
+	return waiter, err
 }
 
 func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
@@ -334,7 +346,7 @@ func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
 		Uid:           tracyUID,
 		CanSuppressUI: suppress,
 	}
-	_, _, waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
+	waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
 
 	if err == nil {
 		t.Fatal("expected an ID2 error since twitter proof failed")
@@ -351,40 +363,125 @@ func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
 }
 
 func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
-	arg := &keybase1.Identify2Arg{
-		Uid:         tracyUID,
-		ChatGUIMode: true,
+
+	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrackFromChatGUI")
+	defer tc.Cleanup()
+	tester := newIdentify2WithUIDTester(tc.G)
+	tc.G.Services = tester
+	tester.checkStatusHook = func(l libkb.SigHint) libkb.ProofError {
+		if strings.Contains(l.GetHumanURL(), "twitter") {
+			tc.G.Log.Debug("failing twitter proof %s", l.GetHumanURL())
+			return libkb.NewProofError(keybase1.ProofStatus_DELETED, "gone!")
+		}
+		return nil
 	}
 
-	eng, origUI, waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
+	var origUI libkb.IdentifyUI = tester
 
-	if err != nil {
-		t.Fatalf("expected no ID2 error; got %v\n", err)
+	checkBrokenRes := func(res *keybase1.Identify2Res) {
+		if !res.Upk.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
+			t.Fatal("bad UID for t_tracy")
+		}
+		if res.Upk.Username != "t_tracy" {
+			t.Fatal("bad username for t_tracy")
+		}
+		if len(res.Upk.DeviceKeys) != 4 {
+			t.Fatal("wrong # of device keys for tracy")
+		}
+		if len(res.TrackBreaks.Proofs) != 1 {
+			t.Fatal("Expected to get back 1 broken proof")
+		}
+		if res.TrackBreaks.Proofs[0].RemoteProof.Key != "twitter" {
+			t.Fatal("Expected a twitter proof type")
+		}
+		if res.TrackBreaks.Proofs[0].Lcr.RemoteDiff.Type != keybase1.TrackDiffType_REMOTE_FAIL {
+			t.Fatal("wrong remote failure type")
+		}
 	}
 
-	// Since we threw away the test UI, we have to manually complete the UI here,
-	// otherwise the waiter() will block indefinitely.
-	origUI.Finish()
-	waiter()
+	runChatGUI := func() {
+		// Now run the engine again, but in normal mode, and check that we don't hit
+		// the cached broken gy.
+		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, ChatGUIMode: true})
 
-	res := eng.Result()
-	if !res.Upk.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatal("bad UID for t_tracy")
+		eng.testArgs = &Identify2WithUIDTestArgs{
+			noMe:  true,
+			cache: tester,
+			tcl:   importTrackingLink(t, tc.G),
+		}
+
+		ctx := Context{IdentifyUI: tester}
+
+		waiter := launchWaiter(t, tester.finishCh)
+		err := eng.Run(&ctx)
+		// Since we threw away the test UI, we have to manually complete the UI here,
+		// otherwise the waiter() will block indefinitely.
+		origUI.Finish()
+		waiter()
+		res := eng.Result()
+		if err != nil {
+			t.Fatalf("expected no ID2 error; got %v\n", err)
+		}
+		checkBrokenRes(res)
 	}
-	if res.Upk.Username != "t_tracy" {
-		t.Fatal("bad username for t_tracy")
+
+	runStandard := func() {
+		// Now run the engine again, but in normal mode, and check that we don't hit
+		// the cached broken gy.
+		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID})
+
+		eng.testArgs = &Identify2WithUIDTestArgs{
+			noMe:  true,
+			cache: tester,
+			tcl:   importTrackingLink(t, tc.G),
+		}
+
+		ctx := Context{IdentifyUI: tester}
+
+		waiter := launchWaiter(t, tester.finishCh)
+		err := eng.Run(&ctx)
+		waiter()
+		if err == nil {
+			t.Fatalf("Expected a break with running ID2 in standard mode")
+		}
 	}
-	if len(res.Upk.DeviceKeys) != 4 {
-		t.Fatal("wrong # of device keys for tracy")
+
+	runChatGUI()
+
+	// First time through, we should miss both caches
+	if !tester.fastStats.eq(0, 0, 1, 0, 0) || !tester.slowStats.eq(0, 0, 1, 0, 0) {
+		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
-	if len(res.TrackBreaks.Proofs) != 1 {
-		t.Fatal("Expected to get back 1 broken proof")
+
+	runStandard()
+
+	// If we run without the chat GUI, we should hit the cache, but have it be
+	// disqualified because the cached copy has broken tracker statements.
+	if !tester.fastStats.eq(0, 0, 1, 0, 1) || !tester.slowStats.eq(0, 0, 1, 0, 1) {
+		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
-	if res.TrackBreaks.Proofs[0].RemoteProof.Key != "twitter" {
-		t.Fatal("Expected a twitter proof type")
+
+	runChatGUI()
+
+	// The next time we run with the chat GUI, we should hit the fast cache.
+	if !tester.fastStats.eq(1, 0, 1, 0, 1) || !tester.slowStats.eq(0, 0, 1, 0, 1) {
+		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
-	if res.TrackBreaks.Proofs[0].Lcr.RemoteDiff.Type != keybase1.TrackDiffType_REMOTE_FAIL {
-		t.Fatal("wrong remote failure type")
+
+	tester.incNow(time.Second + libkb.Identify2CacheShortTimeout)
+	runChatGUI()
+
+	// A fast cache timeout and a slow cache hit!
+	if !tester.fastStats.eq(1, 1, 1, 0, 1) || !tester.slowStats.eq(1, 0, 1, 0, 1) {
+		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
+	}
+
+	tester.incNow(time.Second + libkb.Identify2CacheBrokenTimeout)
+	runChatGUI()
+
+	// After the broken timeout passes, we should get timeouts on both caches
+	if !tester.fastStats.eq(1, 2, 1, 0, 1) || !tester.slowStats.eq(1, 1, 1, 0, 1) {
+		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
 }
 
@@ -607,7 +704,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	<-i.startCh
 	<-i.finishCh
 
-	if !i.fastStats.eq(0, 0, 1, 0) || !i.slowStats.eq(0, 0, 1, 0) {
+	if !i.fastStats.eq(0, 0, 1, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 
@@ -615,7 +712,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	run()
 
 	// A new fast-path hit
-	if !i.fastStats.eq(1, 0, 1, 0) || !i.slowStats.eq(0, 0, 1, 0) {
+	if !i.fastStats.eq(1, 0, 1, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 
@@ -623,7 +720,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	run()
 
 	// A new fast-path timeout and a new slow-path hit
-	if !i.fastStats.eq(1, 1, 1, 0) || !i.slowStats.eq(1, 0, 1, 0) {
+	if !i.fastStats.eq(1, 1, 1, 0, 0) || !i.slowStats.eq(1, 0, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 
@@ -633,14 +730,14 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	<-i.finishCh
 
 	// A new slow-path timeout and a new slow-path timeout
-	if !i.fastStats.eq(1, 2, 1, 0) || !i.slowStats.eq(1, 1, 1, 0) {
+	if !i.fastStats.eq(1, 2, 1, 0, 0) || !i.slowStats.eq(1, 1, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 
 	i.incNow(time.Second)
 	run()
 	// A new fast-path hit
-	if !i.fastStats.eq(2, 2, 1, 0) || !i.slowStats.eq(1, 1, 1, 0) {
+	if !i.fastStats.eq(2, 2, 1, 0, 0) || !i.slowStats.eq(1, 1, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 
@@ -648,7 +745,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit; we have to use the slow path with assertions
-	if !i.fastStats.eq(2, 2, 1, 0) || !i.slowStats.eq(2, 1, 1, 0) {
+	if !i.fastStats.eq(2, 2, 1, 0, 0) || !i.slowStats.eq(2, 1, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 }
@@ -691,14 +788,14 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	<-i.finishCh
 
 	// Don't attempt to hit fast cache, since we're using local assertions.
-	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(0, 0, 1, 0) {
+	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(0, 0, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit
-	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(1, 0, 1, 0) {
+	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(1, 0, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 	if n := numTracyLoads(); n != 1 {
@@ -708,7 +805,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit
-	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(2, 0, 1, 0) {
+	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(2, 0, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 	if n := numTracyLoads(); n != 2 {
@@ -720,14 +817,14 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	<-i.startCh
 	<-i.finishCh
 	// A new slow-path timeout
-	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(2, 1, 1, 0) {
+	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(2, 1, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit
-	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(3, 1, 1, 0) {
+	if !i.fastStats.eq(0, 0, 0, 0, 0) || !i.slowStats.eq(3, 1, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
 }

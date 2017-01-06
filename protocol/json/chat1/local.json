@@ -125,6 +125,10 @@
         {
           "type": "bytes",
           "name": "nonce"
+        },
+        {
+          "type": "string",
+          "name": "metadata"
         }
       ]
     },
@@ -544,6 +548,10 @@
         {
           "type": "TLFVisibility",
           "name": "visibility"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
         },
         {
           "type": {

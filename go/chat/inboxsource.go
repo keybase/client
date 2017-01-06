@@ -379,8 +379,9 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 			body := mm.Valid().MessageBody
 			typ, err := body.MessageType()
 			if err != nil {
-				errMsg := "unable to get message type"
-				return chat1.ConversationLocal{Error: &errMsg}
+				s.G().Log.Debug("localizeConversation: skipping max message: %d, no message type",
+					mm.GetMessageID())
+				continue
 			}
 			if typ == chat1.MessageType_METADATA {
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
