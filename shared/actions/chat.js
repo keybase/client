@@ -646,7 +646,7 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   return null
 }
 
-function _clampAttachmentPreviewSize({width, height}: AttachmentSize) {
+function _clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
   const maxSize = Math.max(width, height)
   return {
     width: Constants.maxAttachmentPreviewSize * (width / maxSize),
