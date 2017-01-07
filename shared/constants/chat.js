@@ -64,7 +64,7 @@ export type AttachmentMessage = {
   type: 'Attachment',
   timestamp: number,
   conversationIDKey: ConversationIDKey,
-  you: boolean,
+  you: string,
   author: string,
   deviceName: string,
   deviceType: string,

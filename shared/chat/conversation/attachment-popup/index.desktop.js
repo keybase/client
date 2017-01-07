@@ -6,9 +6,10 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
 
-const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetailsPopup, onClose, onDownload, onDeleteMessage, onOpenDetailsPopup, onToggleZoom}: Props) => (
+const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetailsPopup, onClose, onDownload, onDeleteMessage, onOpenDetailsPopup, onToggleZoom, you}: Props) => (
   <PopupDialog onClose={onClose} fill={true}>
     {detailsPopupShowing && <AttachmentPopupMenu
+      you={you}
       message={message}
       onDeleteMessage={onDeleteMessage}
       onDownloadAttachment={onDownload}
