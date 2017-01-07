@@ -110,6 +110,8 @@ type gregorHandler struct {
 	skipRetryConnect bool
 	freshReplay      bool
 
+	identNotifier *chat.IdentifyNotifier
+
 	transportForTesting *connTransport
 
 	// Function for determining if a new BroadcastMessage should trigger
@@ -149,6 +151,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 		freshReplay:     true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
+		identNotifier:   chat.NewIdentifyNotifier(g),
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -974,7 +977,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		uid := m.UID().Bytes()
 
 		var identBreaks []keybase1.TLFIdentifyFailure
-		ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks)
+		ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, g.identNotifier)
 		decmsg, append, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
@@ -1078,7 +1081,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		var identBreaks []keybase1.TLFIdentifyFailure
 		ctx = chat.Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
-			&identBreaks)
+			&identBreaks, g.identNotifier)
 		if inbox, _, err = inboxSource.Read(ctx, uid, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
 		}, nil); err != nil {

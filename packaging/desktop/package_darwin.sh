@@ -6,6 +6,8 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
 client_dir="$dir/../.."
+shared_dir="$client_dir/shared"
+desktop_dir="$client_dir/shared/desktop"
 build_dir=${BUILD_DIR:-"/tmp/package_darwin/build"}
 save_dir=${SAVE_DIR:-}
 tmp_dir="/tmp/package_darwin/tmp"
@@ -145,11 +147,13 @@ get_deps() {(
 
 # Build Keybase.app
 package_electron() {(
-  cd "$client_dir/desktop"
+  cd "$shared_dir"
 
   yarn install --pure-lockfile
   yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
-  rsync -av release/darwin-x64/Keybase-darwin-x64 "$build_dir"
+
+  cd "$desktop_dir"
+  rsync -av "release/darwin-x64/Keybase-darwin-x64" "$build_dir"
 
   # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
   cd "$out_dir/$app_name.app/Contents/MacOS"
@@ -222,8 +226,8 @@ package_dmg() {(
 
 create_sourcemap_zip() {(
   cd "$out_dir"
-  echo "Creating $sourcemap_name from $client_dir/desktop/dist"
-  zip -j "$sourcemap_name" "$client_dir/desktop/dist"/*.map
+  echo "Creating $sourcemap_name from $desktop_dir/dist"
+  zip -j "$sourcemap_name" "$desktop_dir/dist"/*.map
 )}
 
 create_zip() {(
@@ -244,7 +248,7 @@ update_json() {(
   if [ -n "$s3host" ]; then
     echo "Generating $update_json_name"
     "$release_bin" update-json --version="$app_version" --src="$zip_name" \
-      --uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" --description="$client_dir/desktop/CHANGELOG.txt" > "$update_json_name"
+      --uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" --description="$desktop_dir/CHANGELOG.txt" > "$update_json_name"
   fi
 )}
 

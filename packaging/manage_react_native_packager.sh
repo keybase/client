@@ -1,10 +1,12 @@
+#!/usr/bin/env bash
+
 set -e -u -o pipefail # Fail on error
 
-: ${RN_DIR:?"Need to set RN_DIR"}
+gopath=${GOPATH:-}
 
-cd $RN_DIR
+cd "$gopath/src/github.com/keybase/client/shared"
 
-yarn run start &
+yarn run rn-start &
 npm_cmd_pid=$!
 
 while [[ -z "$(pgrep -P $npm_cmd_pid)" ]]

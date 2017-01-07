@@ -76,6 +76,90 @@
     },
     {
       "type": "record",
+      "name": "AssetMetadataImage",
+      "fields": [
+        {
+          "type": "int",
+          "name": "width"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetMetadataVideo",
+      "fields": [
+        {
+          "type": "int",
+          "name": "width"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "durationMs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssetMetadataAudio",
+      "fields": [
+        {
+          "type": "int",
+          "name": "durationMs"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AssetMetadataType",
+      "symbols": [
+        "NONE_0",
+        "IMAGE_1",
+        "VIDEO_2",
+        "AUDIO_3"
+      ],
+      "go": "nostring"
+    },
+    {
+      "type": "variant",
+      "name": "AssetMetadata",
+      "switch": {
+        "type": "AssetMetadataType",
+        "name": "assetType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "IMAGE",
+            "def": false
+          },
+          "body": "AssetMetadataImage"
+        },
+        {
+          "label": {
+            "name": "VIDEO",
+            "def": false
+          },
+          "body": "AssetMetadataVideo"
+        },
+        {
+          "label": {
+            "name": "AUDIO",
+            "def": false
+          },
+          "body": "AssetMetadataAudio"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Asset",
       "fields": [
         {
@@ -125,6 +209,10 @@
         {
           "type": "bytes",
           "name": "nonce"
+        },
+        {
+          "type": "AssetMetadata",
+          "name": "metadata"
         }
       ]
     },

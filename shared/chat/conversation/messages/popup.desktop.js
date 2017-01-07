@@ -4,10 +4,10 @@ import {Icon, PopupMenu, Text} from '../../../common-adapters'
 import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
-import type {TextMessage} from '../../../constants/chat'
+import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
 
-import type {Props} from './popup'
+import type {TextProps, AttachmentProps} from './popup'
 
 function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconType {
   switch (deviceType) {
@@ -18,7 +18,7 @@ function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconTyp
   }
 }
 
-const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, you}, isLast}: {message: TextMessage, isLast: boolean}) => {
+const MessagePopupHeader = ({message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, you}, isLast}: {message: (TextMessage | AttachmentMessage), isLast?: boolean}) => {
   const iconName = iconNameForDeviceType(deviceType, !!senderDeviceRevokedAt)
   const whoRevoked = author === you ? 'You' : author
   return (
@@ -47,35 +47,40 @@ const TextMessagePopup = ({message: {author, deviceName, deviceType, timestamp, 
   )
 }
 
-const Popup = ({message, onEditMessage, onDeleteMessage, onHidden, style, you}: Props) => {
-  if (message.type === 'Text') {
-    let items = []
-    if (message.author === you) {
-      items = [
-        {title: 'Edit', onClick: () => onEditMessage(message)},
-        {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},
-      ]
-      if (!message.senderDeviceRevokedAt) {
-        items.unshift('Divider')
-      }
-    }
-
-    const headerView = <TextMessagePopup message={message} isLast={!items.length} />
-    const header = {
-      title: 'header',
-      view: headerView,
-    }
-
-    return (
-      <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
-    )
-  }
-  return null
-}
-
 const stylePopup = {
   overflow: 'visible',
   width: 196,
 }
 
-export default Popup
+export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden, style, you}: TextProps) => {
+  let items = []
+  if (message.author === you) {
+    items = [
+      {title: 'Edit', onClick: () => onEditMessage(message)},
+      {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},
+    ]
+    if (!message.senderDeviceRevokedAt) {
+      items.unshift('Divider')
+    }
+  }
+  const header = {
+    title: 'header',
+    view: <MessagePopupHeader message={message} isLast={!items.length} />,
+  }
+  return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
+}
+
+export const AttachmentPopupMenu = ({message, onDeleteMessage, onDownloadAttachment, onHidden, style, you}: AttachmentProps) => {
+  const items = [
+    'Divider',
+    {title: 'Download', onClick: () => onDownloadAttachment(message)},
+  ]
+  if (message.author === you) {
+    items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)})
+  }
+  const header = {
+    title: 'header',
+    view: <MessagePopupHeader message={message} />,
+  }
+  return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
+}

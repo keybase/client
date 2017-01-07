@@ -229,22 +229,33 @@ func TestProvisionDesktop(t *testing.T) {
 	// after provisioning, the device keys should be cached
 	assertDeviceKeysCached(tcY)
 
-	// make sure that the provisioned device can use
-	// the passphrase stream cache (use an empty secret ui)
-	arg := &TrackEngineArg{
-		UserAssertion: "t_alice",
-		Options:       keybase1.TrackOptions{BypassConfirm: true},
-	}
-	ctx = &Context{
-		LogUI:      tcY.G.UI.GetLogUI(),
-		IdentifyUI: &FakeIdentifyUI{},
-		SecretUI:   &libkb.TestSecretUI{},
+	testTrack := func(whom string) {
+
+		// make sure that the provisioned device can use
+		// the passphrase stream cache (use an empty secret ui)
+		arg := &TrackEngineArg{
+			UserAssertion: whom,
+			Options:       keybase1.TrackOptions{BypassConfirm: true},
+		}
+		ctx = &Context{
+			LogUI:      tcY.G.UI.GetLogUI(),
+			IdentifyUI: &FakeIdentifyUI{},
+			SecretUI:   &libkb.TestSecretUI{},
+		}
+
+		teng := NewTrackEngine(arg, tcY.G)
+		if err := RunEngine(teng, ctx); err != nil {
+			t.Fatal(err)
+		}
 	}
 
-	teng := NewTrackEngine(arg, tcY.G)
-	if err := RunEngine(teng, ctx); err != nil {
-		t.Fatal(err)
-	}
+	testTrack("t_alice")
+
+	// Make sure that we can still track without a passphrase
+	// after a similated service restart.  In other words, that
+	// the full LKSec secret was written to the secret store.
+	simulateServiceRestart(t, tcY, userX)
+	testTrack("t_bob")
 }
 
 func TestProvisionMobile(t *testing.T) {
@@ -644,38 +655,78 @@ func TestProvisionPaperOnly(t *testing.T) {
 		t.Errorf("Got a non-null paper encryption key after timeout")
 	}
 
-	// should be able to sign something with new device keys without
-	// entering a passphrase
-	var sink bytes.Buffer
+	testSign := func() {
 
-	sarg := &SaltpackSignArg{
-		Sink:   libkb.NopWriteCloser{W: &sink},
-		Source: ioutil.NopCloser(bytes.NewBufferString("hello")),
+		// should be able to sign something with new device keys without
+		// entering a passphrase
+		var sink bytes.Buffer
+
+		sarg := &SaltpackSignArg{
+			Sink:   libkb.NopWriteCloser{W: &sink},
+			Source: ioutil.NopCloser(bytes.NewBufferString("hello")),
+		}
+
+		signEng := NewSaltpackSign(sarg, tc2.G)
+		ctx := &Context{
+			IdentifyUI: &FakeIdentifyUI{},
+			SecretUI:   &libkb.TestSecretUI{}, // empty
+		}
+
+		if err := RunEngine(signEng, ctx); err != nil {
+			t.Fatal(err)
+		}
 	}
 
-	signEng := NewSaltpackSign(sarg, tc2.G)
-	ctx = &Context{
-		IdentifyUI: &FakeIdentifyUI{},
-		SecretUI:   &libkb.TestSecretUI{}, // empty
+	testSign()
+
+	testTrack := func(whom string) {
+
+		// should be able to track someone (no passphrase prompt)
+		targ := &TrackEngineArg{
+			UserAssertion: whom,
+			Options:       keybase1.TrackOptions{BypassConfirm: true},
+		}
+		ctx := &Context{
+			LogUI:      tc2.G.UI.GetLogUI(),
+			IdentifyUI: &FakeIdentifyUI{},
+			SecretUI:   &libkb.TestSecretUI{},
+		}
+
+		teng := NewTrackEngine(targ, tc2.G)
+		if err := RunEngine(teng, ctx); err != nil {
+			t.Fatal(err)
+		}
 	}
 
-	if err := RunEngine(signEng, ctx); err != nil {
-		t.Fatal(err)
-	}
+	testTrack("t_alice")
 
-	// should be able to track someone (no passphrase prompt)
-	targ := &TrackEngineArg{
-		UserAssertion: "t_alice",
-		Options:       keybase1.TrackOptions{BypassConfirm: true},
-	}
-	ctx = &Context{
-		LogUI:      tc2.G.UI.GetLogUI(),
-		IdentifyUI: &FakeIdentifyUI{},
-		SecretUI:   &libkb.TestSecretUI{},
-	}
+	simulateServiceRestart(t, tc2, fu)
 
-	teng := NewTrackEngine(targ, tc2.G)
-	if err := RunEngine(teng, ctx); err != nil {
+	// should be able to sign and to track someone (no passphrase prompt)
+	testSign()
+	testTrack("t_bob")
+}
+
+func simulateServiceRestart(t *testing.T, tc libkb.TestContext, fu *FakeUser) {
+
+	// Simulate restarting the service by wiping out the
+	// passphrase stream cache and cached secret keys
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
+	}, "account - clear")
+
+	// now assert we can login without a passphrase
+	ctx := &Context{
+		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+		ProvisionUI: newTestProvisionUI(),
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err != nil {
 		t.Fatal(err)
 	}
 }

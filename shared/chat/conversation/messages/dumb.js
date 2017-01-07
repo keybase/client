@@ -1,19 +1,20 @@
 // @flow
+import AttachmentPopup from '../attachment-popup'
 import HiddenString from '../../../util/hidden-string'
 import Popup from './popup'
 import React from 'react'
 import Text from './text'
 import {Box} from '../../../common-adapters'
 import {Map} from 'immutable'
+import {TextPopupMenu} from './popup'
 import {messageStates} from '../../../constants/chat'
 
-import type {MessageState, TextMessage} from '../../../constants/chat'
+import type {MessageState, TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {DumbComponentMap} from '../../../constants/types/more'
 
 let mockKey = 1
 function messageMock (messageState: MessageState, you: string, text?: ?string, senderDeviceRevokedAt?: number): TextMessage {
   return {
-    type: 'Text',
     author: 'cecileb',
     message: new HiddenString(text || 'hello world'),
     you,
@@ -22,8 +23,28 @@ function messageMock (messageState: MessageState, you: string, text?: ?string, s
     deviceType: 'desktop',
     timestamp: 1479764890000,
     conversationIDKey: 'cid1',
+    messageID: 1,
     key: mockKey++,
     senderDeviceRevokedAt,
+  }
+}
+
+function textMessageMock (messageState: MessageState, followState: FollowState, text?: ?string, senderDeviceRevokedAt?: number): TextMessage {
+  return {
+    type: 'Text',
+    ...messageMock(messageState, followState, text, senderDeviceRevokedAt),
+  }
+}
+
+function attachmentMessageMock (messageState: MessageState, followState: FollowState, text?: ?string, senderDeviceRevokedAt?: number): AttachmentMessage {
+  return {
+    type: 'Attachment',
+    ...messageMock(messageState, followState, text, senderDeviceRevokedAt),
+    filename: 'yosemite.jpg',
+    title: 'Yosemite!',
+    previewType: 'Image',
+    previewPath: require('../../../images/mock/yosemite-preview.jpg'),
+    downloadedPath: require('../../../images/mock/yosemite.jpg'),
   }
 }
 
@@ -50,13 +71,13 @@ const mocks = followStates.reduce((outerAcc) => (
     ...outerAcc,
     ...messageStates.reduce((acc, messageState) => (
       // (followState === 'You')
-      /* ? */ {...acc, [`${messageState} - ${followState}`]: {...baseMock, message: messageMock(messageState, you), you, followingMap, metaDataMap}}
+      /* ? */ {...acc, [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, you), you, followingMap, metaDataMap}}
         // : {...acc, [`sent - ${followState}`]: {...baseMock, message: messageMock(messageState, you)}}
     ), outerAcc),
   }
 ), {})
 
-mocks['from revoked device'] = {...baseMock, message: messageMock('sent', '', null, 123456), you, followingMap, metaDataMap}
+mocks['from revoked device'] = {...baseMock, message: textMessageMock('sent', '', null, 123456), you, followingMap, metaDataMap}
 
 const StackedMessages = ({mock1, mock2}: any) => (
   <Box>
@@ -74,25 +95,26 @@ const stackedMessagesMap = {
   component: StackedMessages,
   mocks: {
     'Stacked - two messages': {
-      mock1: {...baseMock, message: messageMock('sent', 'You'), includeHeader: true, visiblePopupMenu: true, you, followingMap, metaDataMap},
-      mock2: {...baseMock, message: messageMock('sent', 'You'), includeHeader: false, you, followingMap, metaDataMap},
+<<<<<<< HEAD
+      mock1: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: true, visiblePopupMenu: true, you, followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: false, you, followingMap, metaDataMap},
     },
     'Stacked - one sent, one pending': {
-      mock1: {...baseMock, message: messageMock('sent', 'You'), includeHeader: true, you, followingMap, metaDataMap},
-      mock2: {...baseMock, message: messageMock('pending', 'You'), includeHeader: false, you, followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: true, you, followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('pending', 'You'), includeHeader: false, you, followingMap, metaDataMap},
     },
     'Stacked - one sent, one failed': {
-      mock1: {...baseMock, message: messageMock('sent', 'You', 'Thanks!'), includeHeader: true, you, followingMap, metaDataMap},
-      mock2: {...baseMock, message: messageMock('failed', 'You', 'Sorry my network connection is super bad…'), includeHeader: false, you, followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'You', 'Thanks!'), includeHeader: true, you, followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('failed', 'You', 'Sorry my network connection is super bad…'), includeHeader: false, you, followingMap, metaDataMap},
     },
     'Stacked - someone else. two sent': {
-      mock1: {...baseMock, message: messageMock('sent', 'Following'), includeHeader: true, you, followingMap, metaDataMap},
-      mock2: {...baseMock, message: messageMock('sent', 'Following'), includeHeader: false, you, followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'Following'), includeHeader: true, you, followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('sent', 'Following'), includeHeader: false, you, followingMap, metaDataMap},
     },
   },
 }
 
-const basePopupMock = {
+const baseTextPopupMenuMock = {
   onEditMessage: () => console.log('onEditMessage'),
   onDeleteMessage: () => console.log('onDeleteMessage'),
   onHidden: () => console.log('onHidden'),
@@ -106,18 +128,76 @@ const basePopupMock = {
   },
 }
 
-const popupMap: DumbComponentMap<Popup> = {
-  component: Popup,
+const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
+  component: TextPopupMenu,
   mocks: {
-    'Following - Valid': {...basePopupMock, message: messageMock('sent', ''), you, followingMap, metaDataMap},
-    'Following - Revoked': {...basePopupMock, message: messageMock('sent', '', null, 123456), you, followingMap, metaDataMap},
-    'You - Valid': {...basePopupMock, message: messageMock('sent', ''), you, followingMap, metaDataMap},
-    'You - Revoked': {...basePopupMock, message: messageMock('sent', '', null, 123456), you, followingMap, metaDataMap},
+    'Following - Valid': {...basePopupMock, message: textMessageMock('sent', ''), you, followingMap, metaDataMap},
+    'Following - Revoked': {...basePopupMock, message: textMessageMock('sent', '', null, 123456), you, followingMap, metaDataMap},
+    'You - Valid': {...basePopupMock, message: textMessageMock('sent', ''), you, followingMap, metaDataMap},
+    'You - Revoked': {...basePopupMock, message: textMessageMock('sent', '', null, 123456), you, followingMap, metaDataMap},
+  },
+}
+
+function baseAttachmentPopupMock (message) {
+  return {
+    message,
+    detailsPopupShowing: false,
+    isZoomed: false,
+    onCloseDetailsPopup: () => console.log('onCloseDetailsPopup'),
+    onClose: () => console.log('onClose'),
+    onDownload: () => console.log('onDownload'),
+    onDeleteMessage: () => console.log('onDeleteMessage'),
+    onOpenDetailsPopup: () => console.log('onOpenDetailsPopup'),
+    onToggleZoom: () => console.log('onToggleZoom'),
+    parentProps: {
+      style: {
+        position: 'relative',
+        height: 578,
+        width: 800,
+      },
+    },
+  }
+}
+
+const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
+  component: AttachmentPopup,
+  mocks: {
+    'You': {
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
+    },
+    'You - Wide Image': {
+      ...baseAttachmentPopupMock({
+        ...attachmentMessageMock('sent', 'You'),
+        title: 'Pacific',
+        downloadedPath: require('../../../images/mock/coast-wide.jpg'),
+      }),
+    },
+    'You - Small Image': {
+      ...baseAttachmentPopupMock({
+        ...attachmentMessageMock('sent', 'You'),
+        title: 'Washington',
+        downloadedPath: require('../../../images/mock/washington-small.jpg'),
+      }),
+    },
+    'You - Zoomed': {
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
+      isZoomed: true,
+    },
+    'You - Popup Showing': {
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
+      detailsPopupShowing: true,
+    },
+    'Following - Popup Showing': {
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'Following')),
+      detailsPopupShowing: true,
+    },
+>>>>>>> origin/master
   },
 }
 
 export default {
   'Text Message': textMap,
   'Stacked Text Message': stackedMessagesMap,
-  'Popup': popupMap,
+  'Popup': textPopupMenuMap,
+  'Attachment Popup': attachmentPopupMap,
 }

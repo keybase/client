@@ -9,7 +9,6 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"io"
-	"log"
 
 	"golang.org/x/net/context"
 
@@ -77,9 +76,20 @@ func (b *bufReadResetter) Reset() error {
 	return nil
 }
 
+type PreviewRes struct {
+	Source            *BufferSource
+	ContentType       string
+	BaseWidth         int
+	BaseHeight        int
+	BaseDurationMs    int
+	PreviewWidth      int
+	PreviewHeight     int
+	PreviewDurationMs int
+}
+
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
-func Preview(ctx context.Context, src io.Reader, contentType, basename string) (*BufferSource, string, error) {
+func Preview(ctx context.Context, src io.Reader, contentType, basename string) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png":
 		return previewImage(ctx, src, basename)
@@ -87,15 +97,15 @@ func Preview(ctx context.Context, src io.Reader, contentType, basename string) (
 		return previewGIF(ctx, src, basename)
 	}
 
-	return nil, "", nil
+	return nil, nil
 }
 
 // previewImage will resize a single-frame image into a jpeg.
-func previewImage(ctx context.Context, src io.Reader, basename string) (*BufferSource, string, error) {
+func previewImage(ctx context.Context, src io.Reader, basename string) (*PreviewRes, error) {
 	// images.Decode in camlistore correctly handles exif orientation information.
 	img, _, err := images.Decode(src, nil)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	width, height := previewDimensions(img.Bounds())
@@ -104,22 +114,29 @@ func previewImage(ctx context.Context, src io.Reader, basename string) (*BufferS
 	preview := resize.Resize(width, height, img, resize.NearestNeighbor)
 	var buf bytes.Buffer
 	if err := jpeg.Encode(&buf, preview, nil); err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	return newBufferSource(&buf, basename), "image/jpeg", nil
+	return &PreviewRes{
+		Source:        newBufferSource(&buf, basename),
+		ContentType:   "image/jpeg",
+		BaseWidth:     img.Bounds().Dx(),
+		BaseHeight:    img.Bounds().Dy(),
+		PreviewWidth:  int(width),
+		PreviewHeight: int(height),
+	}, nil
 }
 
 // previewGIF handles resizing multiple frames in an animated gif.
 // Based on code in https://github.com/dpup/go-scratch/blob/master/gif-resize/gif-resize.go
-func previewGIF(ctx context.Context, src io.Reader, basename string) (*BufferSource, string, error) {
+func previewGIF(ctx context.Context, src io.Reader, basename string) (*PreviewRes, error) {
 	g, err := gif.DecodeAll(src)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if len(g.Image) == 0 {
-		return nil, "", errors.New("no image frames in GIF")
+		return nil, errors.New("no image frames in GIF")
 	}
 
 	// create a new image based on the first frame to draw
@@ -142,10 +159,24 @@ func previewGIF(ctx context.Context, src io.Reader, basename string) (*BufferSou
 	// encode all the frames into buf
 	var buf bytes.Buffer
 	if err := gif.EncodeAll(&buf, g); err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	return newBufferSource(&buf, basename), "image/gif", nil
+	res := &PreviewRes{
+		Source:        newBufferSource(&buf, basename),
+		ContentType:   "image/gif",
+		BaseWidth:     origBounds.Dx(),
+		BaseHeight:    origBounds.Dy(),
+		PreviewWidth:  int(width),
+		PreviewHeight: int(height),
+	}
+
+	if len(g.Image) > 1 {
+		res.BaseDurationMs = gifDuration(g)
+		res.PreviewDurationMs = res.BaseDurationMs // currently the same, but in the future maybe preview will be shorter
+	}
+
+	return res, nil
 }
 
 func previewDimensions(origBounds image.Rectangle) (uint, uint) {
@@ -184,4 +215,16 @@ func imageToPaletted(img image.Image) *image.Paletted {
 	pm := image.NewPaletted(b, palette.Plan9)
 	draw.FloydSteinberg.Draw(pm, b, img, image.ZP)
 	return pm
+}
+
+// gifDuration returns the duration of one loop of an animiated gif
+// in milliseconds.
+func gifDuration(g *gif.GIF) int {
+	var total int
+	for _, d := range g.Delay {
+		total += d
+	}
+
+	// total is in 100ths of a second, multiply by 10 to get milliseconds
+	return total * 10
 }
