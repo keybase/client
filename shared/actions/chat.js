@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
-import _, {clamp} from 'lodash'
+import _ from 'lodash'
 import engine from '../engine'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
@@ -647,9 +647,10 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
 }
 
 function _clampAttachmentPreviewSize({width, height}: AttachmentSize) {
+  const maxSize = Math.max(width, height)
   return {
-    width: clamp(width, Constants.maxAttachmentPreviewSize),
-    height: clamp(height, Constants.maxAttachmentPreviewSize),
+    width: Constants.maxAttachmentPreviewSize * (width / maxSize),
+    height: Constants.maxAttachmentPreviewSize * (height / maxSize),
   }
 }
 
