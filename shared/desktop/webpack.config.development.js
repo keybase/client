@@ -33,7 +33,7 @@ config.output.publicPath = HOT ? 'http://localhost:4000/dist/' : '../dist/'
 
 config.module.loaders.unshift({
   test: /\.jpg$/,
-  include: path.resolve(__dirname, '../shared/images/mock'),
+  include: path.resolve(__dirname, '../images/mock'),
   loader: 'file?name=[name].[ext]',
 })
 

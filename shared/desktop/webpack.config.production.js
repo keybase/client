@@ -20,7 +20,7 @@ config.output.publicPath = '../dist/'
 config.cache = false // Electron exposes the module as 2 different things depending on the context....
 
 config.module.loaders.unshift({
-  include: path.resolve(__dirname, '../shared/images/mock'),
+  include: path.resolve(__dirname, '../images/mock'),
   loader: 'null',
 })
 

@@ -18,7 +18,7 @@ config.entry = {
 }
 config.module.loaders.unshift({
   test: /\.jpg$/,
-  include: path.resolve(__dirname, '../shared/images/mock'),
+  include: path.resolve(__dirname, '../images/mock'),
   loader: 'file?name=[name].[ext]',
 })
 config.plugins.push(
