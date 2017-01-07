@@ -33,7 +33,7 @@ module.exports = {
       loader: 'file?name=[name].[ext]',
     }, {
       test: /\.(gif|png|jpg)$/,
-      include: path.resolve(__dirname, '../shared/images/icons'),
+      include: path.resolve(__dirname, '../images/icons'),
       loader: 'null',
     }, {
       test: /\.ttf$/,
