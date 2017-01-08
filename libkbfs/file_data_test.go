@@ -252,7 +252,7 @@ func testFileDataCheckWrite(t *testing.T, fd *fileData,
 	// Go through each expected level and make sure we have the right
 	// set of dirty pointers and children.
 	expectedDirtyPtrs := expectedTopLevel.check(
-		t, fd, fd.file.tailPointer(), 0, dirtyBcache)
+		t, fd, fd.rootBlockPointer(), 0, dirtyBcache)
 	dirtyPtrsMap := make(map[BlockPointer]bool)
 	for _, ptr := range dirtyPtrs {
 		dirtyPtrsMap[ptr] = true
@@ -410,6 +410,8 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 		prevChildren = level
 		numLevels++
 	}
+	cleanBcache.Put(
+		fd.rootBlockPointer(), fd.file.Tlf, prevChildren[0], TransientEntry)
 	return prevChildren[0], numLevels
 }
 
@@ -600,7 +602,7 @@ func testFileDataCheckTruncateExtend(t *testing.T, fd *fileData,
 	// Go through each expected level and make sure we have the right
 	// set of dirty pointers and children.
 	expectedDirtyPtrs := expectedTopLevel.check(
-		t, fd, fd.file.tailPointer(), 0, dirtyBcache)
+		t, fd, fd.rootBlockPointer(), 0, dirtyBcache)
 	dirtyPtrsMap := make(map[BlockPointer]bool)
 	for _, ptr := range dirtyPtrs {
 		dirtyPtrsMap[ptr] = true
@@ -676,7 +678,7 @@ func testFileDataCheckTruncateShrink(t *testing.T, fd *fileData,
 	// Go through each expected level and make sure we have the right
 	// set of dirty pointers and children.
 	expectedDirtyPtrs := expectedTopLevel.check(
-		t, fd, fd.file.tailPointer(), 0, dirtyBcache)
+		t, fd, fd.rootBlockPointer(), 0, dirtyBcache)
 	dirtyPtrsMap := make(map[BlockPointer]bool)
 	for _, ptr := range dirtyPtrs {
 		dirtyPtrsMap[ptr] = true

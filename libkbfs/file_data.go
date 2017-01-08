@@ -707,7 +707,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 	}
 
 	// Swap left as needed.
-	for true {
+	for {
 		var leftOff int64
 		var newParents []parentBlockAndChildIndex
 		if currIndex > 0 {
@@ -814,9 +814,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 		currIndex = newCurrIndex
 		parents = newParents
 	}
-
-	return nil, fmt.Errorf("Couldn't find where to move the hole for offset %d",
-		newHoleStartOff)
+	// The loop above must exit via one of the returns.
 }
 
 // markParentsDirty caches all the blocks in `parentBlocks` as dirty,
@@ -1080,7 +1078,7 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 
 // truncateShrink shrinks the file to the given size. Return params:
 // * newDe: a new directory entry with the EncodedSize cleared if the file
-//   was extended.
+//   shrunk.
 // * dirtyPtrs: a slice of the BlockPointers that have been dirtied during
 //   the truncate.  This includes any interior indirect blocks that may not
 //   have been changed yet, but which will need to change as part of the
@@ -1140,15 +1138,19 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 			return DirEntry{}, nil, nil, 0, err
 		}
 
-		cachedPtrs := make(map[BlockPointer][]IndirectFilePtr)
+		// A map from a pointer of an indirect block to that block's
+		// original set of block pointers, before they are truncated
+		// in the loop below.  It also tracks which pointed-to blocks
+		// have already been processed.
+		savedChildPtrs := make(map[BlockPointer][]IndirectFilePtr)
 		for _, path := range pfr {
-			// Fake an indirect pointer for the top block.
-			iptr := IndirectFilePtr{BlockInfo: BlockInfo{
-				BlockPointer: fd.rootBlockPointer(),
-			}}
+			// parentInfo points to pb.pblock in the loop below.  The
+			// initial case is the top block, for which we need to
+			// fake a block info using just the root block pointer.
+			parentInfo := BlockInfo{BlockPointer: fd.rootBlockPointer()}
 			leftMost := true
 			for i, pb := range path {
-				ptrs := cachedPtrs[iptr.BlockPointer]
+				ptrs := savedChildPtrs[parentInfo.BlockPointer]
 				if ptrs == nil {
 					// Process each block exactly once, removing all
 					// now-unnecessary indirect pointers (but caching
@@ -1156,14 +1158,11 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 					// next iterations).
 					pblock := pb.pblock
 					ptrs = pblock.IPtrs
-					cachedPtrs[iptr.BlockPointer] = ptrs
+					savedChildPtrs[parentInfo.BlockPointer] = ptrs
 
 					// Remove the first child iptr and everything
 					// following it if all the child indices below
-					// this level are 0. If we remove iptr 0, this
-					// block can be unreferenced (unless it's on the
-					// left-most edge of the tree, in which case we
-					// keep it around for now -- see above TODO).
+					// this level are 0.
 					removeStartingFromIndex := pb.childIndex
 					for j := i + 1; j < len(path); j++ {
 						if path[j].childIndex > 0 {
@@ -1172,26 +1171,39 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 						}
 					}
 
+					// If we remove iptr 0, this block can be
+					// unreferenced (unless it's on the left-most edge
+					// of the tree, in which case we keep it around
+					// for now -- see above TODO).
 					if pb.childIndex == 0 && !leftMost {
-						if iptr.EncodedSize != 0 {
-							unrefs = append(unrefs, iptr.BlockInfo)
+						if parentInfo.EncodedSize != 0 {
+							unrefs = append(unrefs, parentInfo)
 						}
 					} else if removeStartingFromIndex < len(pblock.IPtrs) {
-						pblock.IPtrs = pblock.IPtrs[:removeStartingFromIndex]
-						err := fd.cacher(iptr.BlockPointer, pblock)
+						// Make sure we're modifying a copy of the
+						// block by fetching it again with blockWrite.
+						pblock, _, err = fd.getter(
+							ctx, fd.kmd, parentInfo.BlockPointer, fd.file,
+							blockWrite)
 						if err != nil {
 							return DirEntry{}, nil, nil,
 								newlyDirtiedChildBytes, err
 						}
-						dirtyMap[iptr.BlockPointer] = true
+						pblock.IPtrs = pblock.IPtrs[:removeStartingFromIndex]
+						err = fd.cacher(parentInfo.BlockPointer, pblock)
+						if err != nil {
+							return DirEntry{}, nil, nil,
+								newlyDirtiedChildBytes, err
+						}
+						dirtyMap[parentInfo.BlockPointer] = true
 					}
 				}
 
 				// Down to the next level.  If we've hit the leaf
 				// level, unreference the block.
-				iptr = ptrs[pb.childIndex]
-				if i == len(path)-1 && iptr.EncodedSize != 0 {
-					unrefs = append(unrefs, iptr.BlockInfo)
+				parentInfo = ptrs[pb.childIndex].BlockInfo
+				if i == len(path)-1 && parentInfo.EncodedSize != 0 {
+					unrefs = append(unrefs, parentInfo)
 				} else if pb.childIndex > 0 {
 					leftMost = false
 				}
