@@ -6,7 +6,7 @@ import Text from './text'
 import {Box} from '../../../common-adapters'
 import {Map} from 'immutable'
 import {TextPopupMenu} from './popup'
-import {messageStates, MetaDataRecord} from '../../../constants/chat'
+import {messageStates, MetaDataRecord, clampAttachmentPreviewSize} from '../../../constants/chat'
 
 import type {MessageState, TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {DumbComponentMap} from '../../../constants/types/more'
@@ -44,6 +44,7 @@ function attachmentMessageMock (messageState: MessageState, you: string, text?: 
     previewType: 'Image',
     previewPath: require('../../../images/mock/yosemite-preview.jpg'),
     downloadedPath: require('../../../images/mock/yosemite.jpg'),
+    previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
   }
 }
 

@@ -1141,6 +1141,9 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 		token = s.GetToken()
 		uid = s.GetUID()
 	}, "gregor handler - login session")
+	if token == "" {
+		return errors.New("blank session token would have been sent to gregor")
+	}
 	if aerr != nil {
 		g.skipRetryConnect = true
 		return aerr

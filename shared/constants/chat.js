@@ -60,6 +60,11 @@ export type UnhandledMessage = {
   key: any,
 }
 
+export type AttachmentSize = {
+  width: number,
+  height: number,
+}
+
 export type AttachmentMessage = {
   type: 'Attachment',
   timestamp: number,
@@ -73,6 +78,7 @@ export type AttachmentMessage = {
   title: string,
   previewType: ?('Image' | 'Other'),
   previewPath: ?string,
+  previewSize: ?AttachmentSize,
   downloadedPath: ?string,
   senderDeviceRevokedAt: ?number,
   key: any,
@@ -158,6 +164,8 @@ export type State = Record<{
   focused: boolean,
   metaData: MetaDataMap,
 }>
+
+export const maxAttachmentPreviewSize = 320
 
 export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
@@ -334,6 +342,14 @@ function getBrokenUsers (participants: Array<string>, you: string, metaDataMap: 
   return participants.filter(user => user !== you && metaDataMap.get(user, Map()).get('brokenTracker', false))
 }
 
+function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
+  const maxSize = Math.max(width, height)
+  return {
+    width: maxAttachmentPreviewSize * (width / maxSize),
+    height: maxAttachmentPreviewSize * (height / maxSize),
+  }
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -344,4 +360,5 @@ export {
   participantFilter,
   serverMessageToMessageBody,
   usernamesToUserListItem,
+  clampAttachmentPreviewSize,
 }

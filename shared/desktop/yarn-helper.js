@@ -20,10 +20,6 @@ const inject = info => {
     temp.env.NODE_ENV = info.nodeEnv
   }
 
-  if (info.nodePathDesktop) {
-    temp.env.NODE_PATH = path.join(process.cwd(), 'node_modules')
-  }
-
   if (rest.length && temp.shell) {
     temp.shell = temp.shell + ' ' + rest.join(' ')
   }
@@ -52,7 +48,7 @@ const commands = {
     shell: 'yarn run build-dev && yarn run start-cold', help: 'Do a simple dev build',
   },
   'start-hot': {
-    env: {HOT: 'true'},
+    env: {HOT: 'true', BABEL_ENV: 'electron'},
     nodeEnv: 'development',
     shell: `${nodeCmd} desktop/client.js`,
     help: 'Start electron with hot reloading (needs yarn run hot-server)',
@@ -79,48 +75,43 @@ const commands = {
     help: 'Start electron with no hot reloading',
   },
   'build-dev': {
-    env: {NO_SERVER: 'true'},
+    env: {NO_SERVER: 'true', BABEL_ENV: 'electron'},
     nodeEnv: 'production',
-    nodePathDesktop: true,
     shell: `${nodeCmd} desktop/server.js`,
     help: 'Make a development build of the js code',
   },
   'build-prod': {
+    env: {BABEL_ENV: 'electron'},
     nodeEnv: 'production',
-    nodePathDesktop: true,
     shell: 'webpack --config desktop/webpack.config.production.js --progress --profile --colors',
     help: 'Make a production build of the js code',
   },
   'build-main-thread': {
-    env: {HOT: 'true'},
+    env: {HOT: 'true', BABEL_ENV: 'electron'},
     nodeEnv: 'development',
-    nodePathDesktop: true,
     shell: 'webpack --config desktop/webpack.config.main-thread-only.js --progress --profile --colors',
     help: 'Bundle the code that the main node thread uses',
   },
   'build-wpdll': {
+    env: {BABEL_ENV: 'electron'},
     nodeEnv: 'development',
-    nodePathDesktop: true,
     shell: 'webpack --config desktop/webpack.config.dll-build.js --progress',
     help: 'Make a production build of the js code',
   },
   'build-profile': {
     nodeEnv: 'development',
-    nodePathDesktop: true,
     shell: 'webpack --config desktop/webpack.config.development.js --progress --profile --json > /tmp/stats.json',
     help: 'Make a production build of the js code',
   },
   'package': {
-    env: {NO_SOURCE_MAPS: 'true'},
+    env: {NO_SOURCE_MAPS: 'true', BABEL_ENV: 'electron'},
     nodeEnv: 'production',
-    nodePathDesktop: true,
     shell: `${nodeCmd} desktop/package.js`,
     help: 'Package up the production js code',
   },
   'hot-server': {
-    env: {HOT: 'true', USING_DLL: 'true'},
+    env: {HOT: 'true', USING_DLL: 'true', BABEL_ENV: 'electron'},
     nodeEnv: 'development',
-    nodePathDesktop: true,
     shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} desktop/server.js` : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
   },
@@ -145,7 +136,6 @@ const commands = {
       KEYBASE_NO_ENGINE: 1,
       ELECTRON_ENABLE_LOGGING: 1,
     },
-    nodePathDesktop: true,
     shell: 'webpack --config desktop/webpack.config.visdiff.js && electron ./desktop/dist/render-visdiff.bundle.js',
     help: 'Render images of dumb components',
   },
@@ -154,7 +144,6 @@ const commands = {
       VISDIFF_DRY_RUN: 1,
       KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] || path.resolve('../../js-vendor-desktop'),
     },
-    nodePathDesktop: true,
     shell: 'cd ../visdiff && yarn install --pure-lockfile && cd ../shared && node ../visdiff/dist/index.js',
     help: 'Perform a local visdiff',
   },

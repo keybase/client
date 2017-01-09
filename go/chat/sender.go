@@ -386,14 +386,14 @@ func (s *Deliverer) deliverLoop() {
 		}
 
 		// Send messages
-		pops := 0
 		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
 
 			// Check type
 			state, err := obr.State.State()
 			if err != nil {
-				s.G().Log.Error("strange entry in the outbox, invalid type: %s", err.Error())
+				s.G().Log.Error("skipping strange entry in the outbox, invalid type: %s", err.Error())
+				continue
 			}
 			if state != chat1.OutboxStateType_SENDING {
 				s.debug("skipping error state record: id: %s convID: %s uid: %s",
@@ -408,7 +408,16 @@ func (s *Deliverer) deliverLoop() {
 			} else {
 				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
 			}
-			if err != nil {
+			if err == nil {
+				// Send succeeded
+				s.debug("clearing message from outbox: %s uid: %s", obr.OutboxID, s.outbox.GetUID())
+				err = s.outbox.RemoveMessage(obr.OutboxID)
+				if err != nil {
+					s.G().Log.Error("error clearing message from outbox after successful send: uid:%s %s",
+						s.outbox.GetUID(), err)
+				}
+			} else {
+				// Send failed
 				s.G().Log.Error("Deliverer: failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
@@ -436,17 +445,6 @@ func (s *Deliverer) deliverLoop() {
 
 				break
 			}
-			pops++
-		}
-
-		// Clear out outbox
-		if pops > 0 {
-			s.debug("clearing %d message from outbox: uid: %s", pops, s.outbox.GetUID())
-			if err = s.outbox.PopNOldestMessages(pops); err != nil {
-				s.G().Log.Error("failed to clear messages from outbox: uid: %s err: %s",
-					s.outbox.GetUID(), err.Error())
-			}
-			s.debug("messages cleared")
 		}
 	}
 }
