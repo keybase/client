@@ -127,6 +127,7 @@ type TlfFinalizeArg struct {
 	ResetUser      string       `codec:"resetUser" json:"resetUser"`
 	ResetDate      string       `codec:"resetDate" json:"resetDate"`
 	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
+	ResetFull      string       `codec:"resetFull" json:"resetFull"`
 }
 
 type GetUnreadUpdateFullArg struct {

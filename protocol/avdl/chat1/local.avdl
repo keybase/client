@@ -26,6 +26,35 @@ protocol local {
     string headline;
   }
 
+  record AssetMetadataImage {
+    int width;
+    int height;
+  }
+
+  record AssetMetadataVideo {
+    int width;
+    int height;
+    int durationMs;
+  }
+  
+  record AssetMetadataAudio {
+    int durationMs;
+  }
+
+  @go("nostring")
+  enum AssetMetadataType {
+    NONE_0,
+    IMAGE_1,
+    VIDEO_2,
+    AUDIO_3
+  }
+
+  variant AssetMetadata switch (AssetMetadataType assetType) {
+    case IMAGE: AssetMetadataImage;
+    case VIDEO: AssetMetadataVideo;
+    case AUDIO: AssetMetadataAudio;
+  }
+
   record Asset {
     string filename;           // original filename of the object
     string region;             // storage region name
@@ -39,7 +68,7 @@ protocol local {
     bytes verifyKey;           // signature verification key
     string title;              // title of the asset (defaults to filename if not provided)
     bytes nonce;               // encryption nonce
-    string metadata;           // json-encoded metadata
+    AssetMetadata metadata;    // type-specific metadata
   }
 
   record MessageAttachment {

@@ -87,6 +87,13 @@ export const CommonTopicType = {
   dev: 2,
 }
 
+export const LocalAssetMetadataType = {
+  none: 0,
+  image: 1,
+  video: 2,
+  audio: 3,
+}
+
 export const LocalBodyPlaintextVersion = {
   v1: 1,
 }
@@ -500,7 +507,33 @@ export type Asset = {
   verifyKey: bytes,
   title: string,
   nonce: bytes,
-  metadata: string,
+  metadata: AssetMetadata,
+}
+
+export type AssetMetadata = 
+    { assetType : 1, image : ?AssetMetadataImage }
+  | { assetType : 2, video : ?AssetMetadataVideo }
+  | { assetType : 3, audio : ?AssetMetadataAudio }
+
+export type AssetMetadataAudio = {
+  durationMs: int,
+}
+
+export type AssetMetadataImage = {
+  width: int,
+  height: int,
+}
+
+export type AssetMetadataType = 
+    0 // NONE_0
+  | 1 // IMAGE_1
+  | 2 // VIDEO_2
+  | 3 // AUDIO_3
+
+export type AssetMetadataVideo = {
+  width: int,
+  height: int,
+  durationMs: int,
 }
 
 export type BodyPlaintext = 
@@ -539,6 +572,7 @@ export type Conversation = {
 export type ConversationFinalizeInfo = {
   resetUser: string,
   resetDate: string,
+  resetFull: string,
   resetTimestamp: gregor1.Time,
 }
 
@@ -1325,7 +1359,8 @@ export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID,
   resetUser: string,
   resetDate: string,
-  resetTimestamp: gregor1.Time
+  resetTimestamp: gregor1.Time,
+  resetFull: string
 }>
 
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes

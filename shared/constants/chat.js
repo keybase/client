@@ -63,6 +63,11 @@ export type UnhandledMessage = {
   key: any,
 }
 
+export type AttachmentSize = {
+  width: number,
+  height: number,
+}
+
 export type AttachmentMessage = {
   type: 'Attachment',
   timestamp: number,
@@ -76,7 +81,9 @@ export type AttachmentMessage = {
   title: string,
   previewType: ?('Image' | 'Other'),
   previewPath: ?string,
+  previewSize: ?AttachmentSize,
   downloadedPath: ?string,
+  senderDeviceRevokedAt: ?number,
   key: any,
 }
 
@@ -156,6 +163,8 @@ export type State = Record<{
   focused: boolean,
   metaData: Map<string, MetaData>,
 }>
+
+export const maxAttachmentPreviewSize = 320
 
 export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50

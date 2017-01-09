@@ -1,10 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-const fs = require('fs')
 const webpack = require('webpack')
 const path = require('path')
 const getenv = require('getenv')
-
-const babelConfig = JSON.parse(fs.readFileSync('./desktop/.babelrc', 'utf8'))
 
 const defines = {
   '__HOT__': JSON.stringify(getenv.boolish('HOT', false)),
@@ -24,7 +21,7 @@ module.exports = {
       test: /\.jsx?$/,
       loader: 'babel',
       exclude: /(node_modules|\/dist\/)/,
-      query: Object.assign({cacheDirectory: true}, babelConfig),
+      query: Object.assign({cacheDirectory: true}),
     }, {
       test: /\.json?$/,
       loader: 'json',
@@ -32,8 +29,8 @@ module.exports = {
       test: /emoji-datasource.*\.(gif|png)$/,
       loader: 'file?name=[name].[ext]',
     }, {
-      test: /\.(gif|png)$/,
-      exclude: /emoji-datasource/,
+      test: /\.(gif|png|jpg)$/,
+      include: path.resolve(__dirname, '../images/icons'),
       loader: 'null',
     }, {
       test: /\.ttf$/,

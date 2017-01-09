@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../constants/dev'
+// import * as Constants from '../constants/dev'
 import chat from './chat'
 import config from './config'
 import dev from './dev'
@@ -22,27 +22,28 @@ import signup from './signup'
 import tracker from './tracker'
 import type {State} from '../constants/reducer'
 import unlockFolders from './unlock-folders'
-import {List} from 'immutable'
+// import {List} from 'immutable'
 import {combineReducers} from 'redux'
 import {resetStore} from '../constants/common.js'
 
-let history = List()
-let index = 0
+// Disabling this for now. Causes us to leak all actions in a session
+// let history = List()
+// let index = 0
 
-function timeTravel (state: State, action: any): State {
-  if (action.type !== Constants.timeTravel) {
-    history = history.slice(0, index + 1).push(state)
-    index = history.size - 1
-    return state
-  } else {
-    const {direction} = action.payload
+// function timeTravel (state: State, action: any): State {
+  // if (action.type !== Constants.timeTravel) {
+    // history = history.slice(0, index + 1).push(state)
+    // index = history.size - 1
+    // return state
+  // } else {
+    // const {direction} = action.payload
 
-    if (direction === Constants.timeTravelBack) {
-      return history.get(--index, state)
-    }
-    return history.get(++index, state)
-  }
-}
+    // if (direction === Constants.timeTravelBack) {
+      // return history.get(--index, state)
+    // }
+    // return history.get(++index, state)
+  // }
+// }
 
 const combinedReducer = combineReducers({
   chat,
@@ -72,9 +73,9 @@ if (__DEV__) {
     return (
       devEdit(
         serialize(
-          timeTravel(
+          // timeTravel(
             combinedReducer(state, action),
-            action),
+            // action),
           action),
         action)
     )

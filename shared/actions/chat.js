@@ -3,33 +3,35 @@ import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
 import engine from '../engine'
+import flags from '../util/feature-flags'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race, cancel} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
+import {getPath} from '../route-tree'
+import {navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {getPath} from '../route-tree'
-import {navigateTo, switchTo} from './route-tree'
+import {tmpFile} from '../util/file'
 import {updateReachability} from '../constants/gregor'
 import {usernameSelector} from '../constants/selectors'
-import {tmpFile} from '../util/file'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
 import type {ChangedFocus} from '../constants/window'
-import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {UpdateReachability} from '../constants/gregor'
 import type {
   AppendMessages,
+  AttachmentSize,
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
@@ -377,17 +379,16 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         // Is this message for the currently selected and focused conversation?
         // And is the Chat tab the currently displayed route? If all that is
         // true, mark it as read ASAP to avoid badging it -- we don't need to
-        // badge, the user's looking at it already.
+        // badge, the user's looking at it already.  Also mark as read ASAP if
+        // it was written by the current user.
         const selectedConversationIDKey = yield select(_selectedSelector)
         const appFocused = yield select(_focusedSelector)
         const selectedTab = yield select(_routeSelector)
         const chatTabSelected = (selectedTab === chatTab)
+        const conversationIsFocused = conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
+        const messageIsYours = (message.type === 'Text' || message.type === 'Attachment') && message.author === yourName
 
-        if (message &&
-            message.messageID &&
-            conversationIDKey === selectedConversationIDKey &&
-            appFocused &&
-            chatTabSelected) {
+        if (message && message.messageID && (conversationIsFocused || messageIsYours)) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
@@ -645,6 +646,14 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   return null
 }
 
+function _clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
+  const maxSize = Math.max(width, height)
+  return {
+    width: Constants.maxAttachmentPreviewSize * (width / maxSize),
+    height: Constants.maxAttachmentPreviewSize * (height / maxSize),
+  }
+}
+
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
@@ -675,8 +684,14 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
           }
         case CommonMessageType.attachment:
           // $FlowIssue
-          const preview = payload.messageBody.attachment.preview
+          const preview: Asset = payload.messageBody.attachment.preview
           const mimeType = preview && preview.mimeType
+          let previewSize
+          if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
+            previewSize = _clampAttachmentPreviewSize(preview.metadata.image)
+          } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
+            previewSize = _clampAttachmentPreviewSize(preview.metadata.video)
+          }
 
           return {
             type: 'Attachment',
@@ -688,6 +703,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             title: payload.messageBody.attachment.object.title,
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
+            previewSize,
             downloadedPath: null,
             key: common.messageID,
           }
@@ -982,6 +998,10 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
+  if (!flags.tabChatEnabled) {
+    return
+  }
+
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
     safeTakeLatest(Constants.loadedInbox, _loadedInbox),

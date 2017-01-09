@@ -1,34 +1,15 @@
 package io.keybase.ossifrage;
 
-import android.annotation.TargetApi;
 import android.app.Application;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.provider.Settings;
-import android.util.Log;
-import android.view.KeyEvent;
-
-import com.eguma.barcodescanner.BarcodeScannerPackage;
 import com.facebook.react.ReactApplication;
-
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
-
 import com.facebook.react.shell.MainReactPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 
 import java.io.File;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.List;
-
-import go.keybase.Keybase;
 
 public class MainApplication extends Application implements ReactApplication {
   private File logFile;
@@ -51,7 +32,6 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
               new MainReactPackage(),
-              new BarcodeScannerPackage(),
               new KBReactPackage(logFile.getAbsolutePath()),
               new ReactNativePushNotificationPackage()
       );

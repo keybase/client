@@ -4,7 +4,7 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
 
 import LoadingMore from './messages/loading-more'
-import Popup from './messages/popup'
+import {TextPopupMenu} from './messages/popup'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
@@ -12,7 +12,7 @@ import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {ProgressIndicator} from '../../common-adapters'
+import {Box, ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {List} from 'immutable'
@@ -50,9 +50,12 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _indexToID = index => {
-    // loader message
     if (index === 0) {
+      // loader
       return 0
+    } else if (index === this.state.messages.count() + 1) {
+      // footer
+      return -1
     } else {
       // minus one because loader message is there
       const messageIndex = index - 1
@@ -67,6 +70,13 @@ class ConversationList extends Component<void, Props, State> {
 
   shouldComponentUpdate (nextProps: Props, nextState: State) {
     return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
+  }
+
+  componentWillUnmount () {
+    // Stop any throttled/debounced functions
+    this._onScroll.cancel()
+    this._recomputeListDebounced.cancel()
+    this._onScrollSettled.cancel()
   }
 
   componentWillUpdate (nextProps: Props, nextState: State) {
@@ -147,7 +157,8 @@ class ConversationList extends Component<void, Props, State> {
       this.props.onLoadMoreMessages()
     }
 
-    const isLockedToBottom = scrollTop + clientHeight === scrollHeight
+    // Lock to bottom if we are close to the bottom
+    const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - 20
     this.setState({
       isLockedToBottom,
       isScrolling: true,
@@ -170,7 +181,7 @@ class ConversationList extends Component<void, Props, State> {
     const x = clientRect.left - 205
     let y = clientRect.top - (message.followState === 'You' ? 200 : 116)
     if (y < 10) y = 10
-    const popupComponent = <Popup
+    const popupComponent = <TextPopupMenu
       message={message}
       onEditMessage={this.props.onEditMessage}
       onDeleteMessage={this.props.onDeleteMessage}
@@ -193,6 +204,9 @@ class ConversationList extends Component<void, Props, State> {
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
+    }
+    if (index === this.state.messages.count() + 1) {
+      return <Box key={'footer'} style={{height: 20}} />
     }
 
     const message = this.state.messages.get(index - 1)
@@ -224,9 +238,8 @@ class ConversationList extends Component<void, Props, State> {
         </div>
       )
     }
-    const messageCount = this.state.messages.count()
-    const countWithLoading = messageCount + 1 // Loading row on top always
-    let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
+    const rowCount = this.state.messages.count() + 2 // Loading row on top always and footer row
+    let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
     // We need to use both visibility and opacity css properties for the
@@ -269,7 +282,7 @@ class ConversationList extends Component<void, Props, State> {
               columnCount={1}
               ref={r => { this._cellMeasurer = r }}
               cellSizeCache={this._cellCache}
-              rowCount={countWithLoading}
+              rowCount={rowCount}
               width={width} >
               {({getRowHeight}) => {
                 return <VirtualizedList
@@ -280,7 +293,7 @@ class ConversationList extends Component<void, Props, State> {
                   onScroll={this._onScroll}
                   scrollTop={scrollTop}
                   scrollToIndex={scrollToIndex}
-                  rowCount={countWithLoading}
+                  rowCount={rowCount}
                   rowHeight={getRowHeight}
                   columnWidth={width}
                   rowRenderer={this._rowRenderer} />
