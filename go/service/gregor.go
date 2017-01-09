@@ -104,6 +104,7 @@ type gregorHandler struct {
 	// This mutex protects the con object
 	connMutex sync.Mutex
 	conn      *rpc.Connection
+	uri       *rpc.FMPURI
 
 	cli              rpc.GenericClient
 	sessionID        gregor1.SessionID
@@ -223,15 +224,15 @@ func (g *gregorHandler) getRPCCli() rpc.GenericClient {
 }
 
 func (g *gregorHandler) Debug(s string, args ...interface{}) {
-	g.G().Log.Debug("push handler: "+s, args...)
+	g.G().Log.Debug("PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) Warning(s string, args ...interface{}) {
-	g.G().Log.Warning("push handler: "+s, args...)
+	g.G().Log.Warning("PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) Errorf(s string, args ...interface{}) {
-	g.G().Log.Errorf("push handler: "+s, args...)
+	g.G().Log.Errorf("PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) SetPushStateFilter(f func(m gregor.Message) bool) {
@@ -252,10 +253,11 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 	// set up this channel.
 	g.shutdownCh = make(chan struct{})
 
+	g.uri = uri
 	if uri.UseTLS() {
-		err = g.connectTLS(uri)
+		err = g.connectTLS()
 	} else {
-		err = g.connectNoTLS(uri)
+		err = g.connectNoTLS()
 	}
 
 	return err
@@ -1169,21 +1171,46 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 }
 
 func (g *gregorHandler) pingLoop() {
+
+	duration := g.G().Env.GetGregorPingInterval()
+	timeout := g.G().Env.GetGregorPingTimeout()
+	g.Debug("ping loop: starting up: duration: %v timeout: %v", duration, timeout)
+	defer g.Debug("ping loop: terminating")
+
 	for {
 		select {
-		case <-g.G().Clock().After(g.G().Env.GetGregorPingInterval()):
-			_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
-			if err != nil {
-				g.Warning("error in ping loop: %s", err)
+		case <-g.G().Clock().After(duration):
+
+			if !g.IsConnected() {
+				g.Debug("ping loop: skipping ping since not connected")
+				continue
 			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(ctx)
+			if err != nil {
+				if err == ErrGregorTimeout {
+					cancel()
+					g.Debug("ping loop: timeout: terminating connection")
+					g.Shutdown()
+
+					if err := g.Connect(g.uri); err != nil {
+						g.Debug("ping loop: error connecting: %s", err.Error())
+					}
+
+					return
+				}
+			}
+
 		case <-g.shutdownCh:
 			return
 		}
 	}
+
 }
 
-func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
-
+func (g *gregorHandler) connectTLS() error {
+	uri := g.uri
 	g.Debug("connecting to gregord via TLS at %s", uri)
 	rawCA := g.G().Env.GetBundledCA(uri.Host)
 	if len(rawCA) == 0 {
@@ -1209,8 +1236,8 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 	return nil
 }
 
-func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
-
+func (g *gregorHandler) connectNoTLS() error {
+	uri := g.uri
 	g.Debug("connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
@@ -1391,9 +1418,12 @@ type timeoutClient struct {
 var _ rpc.GenericClient = (*timeoutClient)(nil)
 
 func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
-	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, t.timeout)
-	defer timeoutCancel()
-	err := t.inner.Call(timeoutCtx, method, arg, res)
+	var timeoutCancel context.CancelFunc
+	if _, ok := ctx.Deadline(); !ok {
+		ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
+		defer timeoutCancel()
+	}
+	err := t.inner.Call(ctx, method, arg, res)
 	if err == context.DeadlineExceeded {
 		return t.timeoutErr
 	}
@@ -1401,9 +1431,12 @@ func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}
 }
 
 func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface{}) error {
-	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, t.timeout)
-	defer timeoutCancel()
-	err := t.inner.Notify(timeoutCtx, method, arg)
+	var timeoutCancel context.CancelFunc
+	if _, ok := ctx.Deadline(); !ok {
+		ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
+		defer timeoutCancel()
+	}
+	err := t.inner.Notify(ctx, method, arg)
 	if err == context.DeadlineExceeded {
 		return t.timeoutErr
 	}
