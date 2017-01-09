@@ -1419,10 +1419,8 @@ var _ rpc.GenericClient = (*timeoutClient)(nil)
 
 func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
 	var timeoutCancel context.CancelFunc
-	if _, ok := ctx.Deadline(); !ok {
-		ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
-		defer timeoutCancel()
-	}
+	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
+	defer timeoutCancel()
 	err := t.inner.Call(ctx, method, arg, res)
 	if err == context.DeadlineExceeded {
 		return t.timeoutErr
@@ -1432,10 +1430,8 @@ func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}
 
 func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface{}) error {
 	var timeoutCancel context.CancelFunc
-	if _, ok := ctx.Deadline(); !ok {
-		ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
-		defer timeoutCancel()
-	}
+	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
+	defer timeoutCancel()
 	err := t.inner.Notify(ctx, method, arg)
 	if err == context.DeadlineExceeded {
 		return t.timeoutErr
