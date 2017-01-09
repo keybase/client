@@ -150,10 +150,7 @@ package_electron() {(
   cd "$shared_dir"
 
   yarn install --pure-lockfile
-  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
-
-  cd "$desktop_dir"
-  rsync -av "release/darwin-x64/Keybase-darwin-x64" "$build_dir"
+  yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --outDir="$build_dir"
 
   # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
   cd "$out_dir/$app_name.app/Contents/MacOS"
