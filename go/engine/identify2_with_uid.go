@@ -458,12 +458,15 @@ func (e *Identify2WithUID) unblock(isFinal bool, err error) {
 func (e *Identify2WithUID) maybeCacheSelf() {
 	if e.getCache() != nil {
 		v := e.exportToResult()
-		e.getCache().Insert(&v)
+		e.getCache().Insert(v)
 	}
 }
 
-func (e *Identify2WithUID) exportToResult() keybase1.Identify2Res {
-	return keybase1.Identify2Res{
+func (e *Identify2WithUID) exportToResult() *keybase1.Identify2Res {
+	if e.them == nil {
+		return nil
+	}
+	return &keybase1.Identify2Res{
 		Upk:         e.toUserPlusKeys(),
 		TrackBreaks: e.trackBreaks,
 	}
@@ -478,7 +481,11 @@ func (e *Identify2WithUID) maybeCacheResult() {
 
 	if (isOK || canCacheFailures) && e.getCache() != nil {
 		v := e.exportToResult()
-		e.getCache().Insert(&v)
+		if v == nil {
+			e.G().Log.Debug("| not caching; nil result")
+			return
+		}
+		e.getCache().Insert(v)
 		e.G().Log.Debug("| insert %+v", v)
 
 		// Don't write failures to the disk cache
@@ -941,8 +948,7 @@ func (e *Identify2WithUID) Result() *keybase1.Identify2Res {
 	if e.cachedRes != nil {
 		return e.cachedRes
 	}
-	tmp := e.exportToResult()
-	return &tmp
+	return e.exportToResult()
 }
 
 func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {
