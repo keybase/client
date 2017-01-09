@@ -116,13 +116,33 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (string, error) {
 	a.log.Debug("s3 putMultiPipeline (size = %d)", size)
 
+	var multi s3.MultiInt
+
 	if previous != nil {
-		a.log.Debug("put multi, changing object key to %s", previous.ObjectKey)
+		a.log.Debug("put multi, previous exists. Changing object key from %q to %q", task.S3Params.ObjectKey, previous.ObjectKey)
 		task.S3Params.ObjectKey = previous.ObjectKey
+
+		// for some unknown reason, this seems to be getting an access denied error sometimes.
+		var err error
+		multi, err = b.Multi(ctx, previous.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
+		if err != nil {
+			a.log.Debug("putMultiPipeline b.Multi after using previous.ObjectKey error: %s", err)
+			a.log.Debug("putMultiPipeline trying b.Multi with new ObjectKey")
+			multi, err = b.Multi(ctx, task.S3Params.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
+			if err != nil {
+				a.log.Debug("putMultiPipeline b.Multi retry with new ObjectKey error: %s", err)
+				return "", fmt.Errorf("s3 Multi retry error: %s", err)
+			}
+		} else {
+			a.log.Debug("putMultiPipeline b.Multi success using previous.ObjectKey")
+			task.S3Params.ObjectKey = previous.ObjectKey
+		}
 	}
 
 	multi, err := b.Multi(ctx, task.S3Params.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
 	if err != nil {
+		a.log.Debug("putMultiPipeline b.Multi error: %s", err)
+		a.log.Debug("putMultiPipeline object key: %q, acl: %+v", task.S3Params.ObjectKey, task.S3Params.Acl)
 		return "", fmt.Errorf("s3 Multi error: %s", err)
 	}
 
@@ -341,4 +361,8 @@ func (a *AttachmentStore) putRetry(ctx context.Context, multi s3.MultiInt, partN
 		lastErr = putErr
 	}
 	return s3.Part{}, fmt.Errorf("failed to put part %d (last error: %s)", partNumber, lastErr)
+}
+
+func (a *AttachmentStore) logS3Error(prefix string, err error) {
+	work(here)
 }
