@@ -1188,9 +1188,9 @@ func (g *gregorHandler) pingLoop() {
 
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(ctx)
+			cancel()
 			if err != nil {
 				if err == ErrGregorTimeout {
-					cancel()
 					g.Debug("ping loop: timeout: terminating connection")
 					g.Shutdown()
 
