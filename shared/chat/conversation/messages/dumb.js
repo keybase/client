@@ -44,6 +44,7 @@ function attachmentMessageMock (messageState: MessageState, followState: FollowS
     previewType: 'Image',
     previewPath: require('../../../images/mock/yosemite-preview.jpg'),
     downloadedPath: require('../../../images/mock/yosemite.jpg'),
+    previewSize: {width: 200, height: 200},
   }
 }
 
