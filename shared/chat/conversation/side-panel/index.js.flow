@@ -2,13 +2,14 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-import type {MetaDataMap} from '../../../constants/chat'
+import type {MetaDataMap, FollowingMap} from '../../../constants/chat'
 
 export type Props = {
   onAddParticipant: () => void,
   participants: List<string>,
   onShowProfile: (username: string) => void,
   metaDataMap: MetaDataMap,
+  followingMap: FollowingMap,
   you: string,
 }
 

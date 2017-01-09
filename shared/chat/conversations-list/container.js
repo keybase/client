@@ -21,6 +21,7 @@ export default connect(
   (state: TypedState, {routeSelected}) => ({
     inbox: state.chat.get('inbox'),
     selectedConversation: routeSelected,
+    you: state.config.username || '',
   }),
   (dispatch: Dispatch) => ({
     loadInbox: () => dispatch(loadInbox()),

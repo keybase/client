@@ -6,7 +6,7 @@ import Text from './text'
 import {Box} from '../../../common-adapters'
 import {Map} from 'immutable'
 import {TextPopupMenu} from './popup'
-import {messageStates} from '../../../constants/chat'
+import {messageStates, MetaDataRecord} from '../../../constants/chat'
 
 import type {MessageState, TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {DumbComponentMap} from '../../../constants/types/more'
@@ -60,19 +60,48 @@ const baseMock = {
   style: {},
 }
 
-const followStates = [] // TEMP generate this
+const followStates = ['You', 'Following', 'Broken', 'NotFollowing']
 const you = '' // TEMP
-const followState = '' // TEMP
-const followingMap = {} // TEMP
-const metaDataMap = Map({}) // TEMP
-const mocks = followStates.reduce((outerAcc) => (
+const followingMap = {
+  cecileb: true,
+}
+const metaDataMap = Map({
+  cecileb: new MetaDataRecord({fullname: 'Cecile Bee', brokenTracker: false}),
+})
+
+const mocks = followStates.reduce((outerAcc, followState) => (
   {
     ...outerAcc,
-    ...messageStates.reduce((acc, messageState) => (
-      // (followState === 'You')
-      /* ? */ {...acc, [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, you), you, followingMap, metaDataMap}}
-        // : {...acc, [`sent - ${followState}`]: {...baseMock, message: messageMock(messageState, you)}}
-    ), outerAcc),
+    ...messageStates.reduce((acc, messageState) => {
+      switch (followState) {
+        case 'You':
+          return {
+            ...acc,
+            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'cecileb'), you: 'cecileb', followingMap: {}, metaDataMap},
+          }
+        case 'Following':
+          return {
+            ...acc,
+            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'other'), you: 'other', followingMap, metaDataMap},
+          }
+        case 'Broken':
+          return {
+            ...acc,
+            [`${messageState} - ${followState}`]: {
+              ...baseMock,
+              message: textMessageMock(messageState, 'other'),
+              you: 'other',
+              followingMap,
+              metaDataMap: Map({cecileb: new MetaDataRecord({fullname: 'Cecile Bee', brokenTracker: true})}),
+            },
+          }
+        case 'NotFollowing':
+          return {
+            ...acc,
+            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'other'), you: 'other', followingMap: {}, metaDataMap},
+          }
+      }
+    }, outerAcc),
   }
 ), {})
 
@@ -94,20 +123,20 @@ const stackedMessagesMap = {
   component: StackedMessages,
   mocks: {
     'Stacked - two messages': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: true, visiblePopupMenu: true, you, followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: false, you, followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: true, visiblePopupMenu: true, you: 'cecileb', followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
     },
     'Stacked - one sent, one pending': {
       mock1: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: true, you, followingMap, metaDataMap},
       mock2: {...baseMock, message: textMessageMock('pending', 'You'), includeHeader: false, you, followingMap, metaDataMap},
     },
     'Stacked - one sent, one failed': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'You', 'Thanks!'), includeHeader: true, you, followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('failed', 'You', 'Sorry my network connection is super bad…'), includeHeader: false, you, followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'You', 'Thanks!'), includeHeader: true, you: 'cecileb', followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('failed', 'You', 'Sorry my network connection is super bad…'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
     },
     'Stacked - someone else. two sent': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'Following'), includeHeader: true, you, followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('sent', 'Following'), includeHeader: false, you, followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'Following'), includeHeader: true, you, followingMap: {}, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('sent', 'Following'), includeHeader: false, you, followingMap: {}, metaDataMap},
     },
   },
 }
@@ -131,15 +160,15 @@ const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
   mocks: {
     'Following - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', ''), you, followingMap, metaDataMap},
     'Following - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', '', null, 123456), you, followingMap, metaDataMap},
-    'You - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', ''), you, followingMap, metaDataMap},
-    'You - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', '', null, 123456), you, followingMap, metaDataMap},
+    'You - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', ''), you: 'cecileb', followingMap, metaDataMap},
+    'You - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', '', null, 123456), you: 'cecileb', followingMap, metaDataMap},
   },
 }
 
 function baseAttachmentPopupMock (message) {
   return {
     message,
-    you,
+    you: message.you,
     detailsPopupShowing: false,
     isZoomed: false,
     onCloseDetailsPopup: () => console.log('onCloseDetailsPopup'),
@@ -162,32 +191,32 @@ const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
   component: AttachmentPopup,
   mocks: {
     'You': {
-      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb')),
     },
     'You - Wide Image': {
       ...baseAttachmentPopupMock({
-        ...attachmentMessageMock('sent', 'You'),
+        ...attachmentMessageMock('sent', 'cecileb'),
         title: 'Pacific',
         downloadedPath: require('../../../images/mock/coast-wide.jpg'),
       }),
     },
     'You - Small Image': {
       ...baseAttachmentPopupMock({
-        ...attachmentMessageMock('sent', 'You'),
+        ...attachmentMessageMock('sent', 'cecileb'),
         title: 'Washington',
         downloadedPath: require('../../../images/mock/washington-small.jpg'),
       }),
     },
     'You - Zoomed': {
-      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb')),
       isZoomed: true,
     },
     'You - Popup Showing': {
-      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'You')),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb')),
       detailsPopupShowing: true,
     },
     'Following - Popup Showing': {
-      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'Following')),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'oconnor663')),
       detailsPopupShowing: true,
     },
   },

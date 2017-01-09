@@ -70,10 +70,14 @@ const messages = [
 ]
 
 const metaData = {
-  'cjb': MetaDataRecord({fullname: 'Chris Ball'}),
+  'cjb': MetaDataRecord({fullname: 'Chris Ball', brokenTracker: true}),
   'chris': MetaDataRecord({fullname: 'Chris Coyne'}),
   'chrisnojima': MetaDataRecord({fullname: 'Chris Nojima'}),
   'oconnor663': MetaDataRecord({fullname: `Jack O'Connor`}),
+}
+
+const followingMap = {
+  oconnor663: true,
 }
 
 const commonConvoProps = {
@@ -87,7 +91,7 @@ const commonConvoProps = {
   emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
   metaDataMap: Map(metaData),
-  followingMap: {},
+  followingMap,
   you: 'chris',
 }
 
@@ -150,6 +154,7 @@ const commonConversationsProps = {
   onSelectConversation: (key: ConversationIDKey) => console.log('selected', key),
   selectedConversation: null,
   onNewChat: () => console.log('new chat'),
+  you: 'chris',
 }
 
 const emptyConversationsProps = {
@@ -191,7 +196,7 @@ const input = {
 const listParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
-    width: 300,
+    minWidth: 300,
     height: 300,
   },
 }
