@@ -447,9 +447,9 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     })
     engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
       const usernames = update.CanonicalName.split(',')
-      const broken = usernames // TEMP (update.breaks.breaks || []).map(b => b.user.username)
-      const userToBroken = broken.reduce((map, name) => {
-        map[name] = true // TEMP !!broken.includes(name)
+      const broken = (update.breaks.breaks || []).map(b => b.user.username)
+      const userToBroken = usernames.reduce((map, name) => {
+        map[name] = !!broken.includes(name)
         return map
       }, {})
       dispatch({type: Constants.updateBrokenTracker, payload: {userToBroken}})

@@ -105,7 +105,7 @@ export default connect(
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
-    onShowTracker: (username: string) => dispatch(getProfile(username, true)),
+    onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
