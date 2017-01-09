@@ -98,6 +98,7 @@ protocol common {
   record ConversationFinalizeInfo {
     string resetUser;
     string resetDate;
+    string resetFull;
     gregor1.Time resetTimestamp;
   }
 

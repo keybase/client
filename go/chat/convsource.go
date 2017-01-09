@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 
@@ -36,6 +37,10 @@ func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.Conver
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
+
+	if convID.IsNil() {
+		return chat1.ThreadView{}, []*chat1.RateLimit{}, errors.New("RemoteConversationSource.Pull called with empty convID")
+	}
 
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: convID,
@@ -188,6 +193,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	var err error
 	var rl []*chat1.RateLimit
 
+	if convID.IsNil() {
+		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
+	}
+
 	// Get conversation metadata
 	if conv, err := s.getConvMetadata(ctx, convID, &rl); err == nil {
 		// Try locally first
@@ -284,9 +293,12 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 		sender := m.ClientHeader.Sender
 		key := m.HeaderSignature.K
 		ctime := m.ServerHeader.Ctime
-		validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
+		found, validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
 		if err != nil {
 			return chat1.MessageUnboxed{}, err
+		}
+		if !found {
+			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
 		}
 		if !validAtCtime {
 			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})

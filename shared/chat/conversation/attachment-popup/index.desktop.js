@@ -1,29 +1,65 @@
 // @flow
 import React from 'react'
-import {Box, Text} from '../../../common-adapters/index'
-import {globalColors, globalStyles} from '../../../styles'
+import {Box, Icon, Text, PopupDialog} from '../../../common-adapters/index'
+import {AttachmentPopupMenu} from '../messages/popup'
+import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
 
-const AttachmentPopup = ({message, onClose}: Props) => (
-  <Box style={stylesCover} onClick={onClose}>
-    <Box style={globalStyles.flexBoxColumn}>
-      <Text type='BodySemibold' style={{color: globalColors.white}}>Hello, world!</Text>
-      <Text type='Body' style={{color: globalColors.white}}>Path: {message.previewPath}</Text>
+const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetailsPopup, onClose, onDownload, onDeleteMessage, onOpenDetailsPopup, onToggleZoom}: Props) => (
+  <PopupDialog onClose={onClose} fill={true}>
+    {detailsPopupShowing && <AttachmentPopupMenu
+      message={message}
+      onDeleteMessage={onDeleteMessage}
+      onDownloadAttachment={onDownload}
+      onHidden={onCloseDetailsPopup}
+      style={{position: 'absolute', top: 28, right: globalMargins.xtiny}}
+    />}
+    <Box style={styleHeaderFooter}>
+      <Text type='BodySemibold' style={{color: globalColors.black_75, flex: 1}}>{message.title}</Text>
+      <Icon type='iconfont-ellipsis' style={{color: globalColors.black_40, cursor: 'pointer'}} onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup} />
     </Box>
-  </Box>
+    <Box style={isZoomed ? styleContentsZoom : styleContentsFit} onClick={onToggleZoom}>
+      <img src={message.downloadedPath} style={isZoomed ? styleImageZoom : styleImageFit} />
+    </Box>
+    <Box style={styleHeaderFooter}>
+      <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={onDownload}>Download</Text>
+    </Box>
+  </PopupDialog>
 )
 
-const stylesCover = {
-  ...globalStyles.flexBoxColumn,
-  background: globalColors.midnightBlue_75,
-  justifyContent: 'center',
+const styleHeaderFooter = {
+  ...globalStyles.flexBoxRow,
+  height: 32,
   alignItems: 'center',
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
+  marginLeft: globalMargins.tiny,
+  marginRight: globalMargins.tiny,
+  flexShrink: 0,
+}
+
+const styleContentsFit = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+}
+
+const styleContentsZoom = {
+  display: 'block',
+  overflow: 'auto',
+  flex: 1,
+}
+
+const styleImageFit = {
+  display: 'block',
+  cursor: 'zoom-in',
+  objectFit: 'scale-down',
+  width: '100%',
+}
+
+const styleImageZoom = {
+  display: 'block',
+  cursor: 'zoom-out',
+  minWidth: '100%',
+  minHeight: '100%',
 }
 
 export default AttachmentPopup

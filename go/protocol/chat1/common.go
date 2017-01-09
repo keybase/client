@@ -166,6 +166,7 @@ type ConversationIDTriple struct {
 type ConversationFinalizeInfo struct {
 	ResetUser      string       `codec:"resetUser" json:"resetUser"`
 	ResetDate      string       `codec:"resetDate" json:"resetDate"`
+	ResetFull      string       `codec:"resetFull" json:"resetFull"`
 	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
 }
 

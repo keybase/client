@@ -62,6 +62,10 @@ func (e *Kex2Provisionee) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
+func (e *Kex2Provisionee) GetLKSec() *libkb.LKSec {
+	return e.lks
+}
+
 // RequiredUIs returns the required UIs.
 func (e *Kex2Provisionee) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
