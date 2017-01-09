@@ -18,16 +18,20 @@ import (
 	"golang.org/x/net/context"
 )
 
+type dataVersioner interface {
+	// DataVersion returns the data version for this block
+	DataVersion() DataVer
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
+	dataVersioner
 	// GetEncodedSize returns the encoded size of this block, but only
 	// if it has been previously set; otherwise it returns 0.
 	GetEncodedSize() uint32
 	// SetEncodedSize sets the encoded size of this block, locally
 	// caching it.  The encoded size is not serialized.
 	SetEncodedSize(size uint32)
-	// DataVersion returns the data version for this block
-	DataVersion() DataVer
 	// NewEmpty returns a new block of the same type as this block
 	NewEmpty() Block
 	// Set sets this block to the same value as the passed-in block
@@ -1382,6 +1386,7 @@ type ConflictRenamer interface {
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
 type Config interface {
+	dataVersioner
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -1428,7 +1433,6 @@ type Config interface {
 	SetConflictRenamer(ConflictRenamer)
 	MetadataVersion() MetadataVer
 	SetMetadataVersion(MetadataVer)
-	DataVersion() DataVer
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations

@@ -23,12 +23,13 @@ const (
 )
 
 type blockRetrievalConfig interface {
+	dataVersioner
 	// Codec for copying blocks
 	codec() kbfscodec.Codec
 	// BlockCache for writethrough caching
 	blockCache() BlockCache
 	// Logger for logging
-	makeLogger(string) logger.Logger
+	MakeLogger(string) logger.Logger
 }
 
 // blockRetrievalRequest represents one consumer's request for a block.

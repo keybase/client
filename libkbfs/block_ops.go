@@ -14,42 +14,39 @@ import (
 )
 
 type blockOpsConfig interface {
+	dataVersioner
 	blockServer() BlockServer
 	codec() kbfscodec.Codec
 	crypto() cryptoPure
 	keyGetter() blockKeyGetter
 	blockCache() BlockCache
-	makeLogger(string) logger.Logger
+	MakeLogger(string) logger.Logger
 }
 
 type blockOpsConfigAdapter struct {
-	config Config
+	Config
 }
 
 var _ blockOpsConfig = (*blockOpsConfigAdapter)(nil)
 
 func (config blockOpsConfigAdapter) blockServer() BlockServer {
-	return config.config.BlockServer()
+	return config.Config.BlockServer()
 }
 
 func (config blockOpsConfigAdapter) codec() kbfscodec.Codec {
-	return config.config.Codec()
+	return config.Config.Codec()
 }
 
 func (config blockOpsConfigAdapter) crypto() cryptoPure {
-	return config.config.Crypto()
+	return config.Config.Crypto()
 }
 
 func (config blockOpsConfigAdapter) keyGetter() blockKeyGetter {
-	return config.config.KeyManager()
+	return config.Config.KeyManager()
 }
 
 func (config blockOpsConfigAdapter) blockCache() BlockCache {
-	return config.config.BlockCache()
-}
-
-func (config blockOpsConfigAdapter) makeLogger(module string) logger.Logger {
-	return config.config.MakeLogger(module)
+	return config.Config.BlockCache()
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying

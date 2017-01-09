@@ -36,8 +36,12 @@ func (c *testBlockRetrievalConfig) blockCache() BlockCache {
 	return c.testCache
 }
 
-func (c testBlockRetrievalConfig) makeLogger(_ string) logger.Logger {
+func (c testBlockRetrievalConfig) MakeLogger(_ string) logger.Logger {
 	return logger.NewNull()
+}
+
+func (c testBlockRetrievalConfig) DataVersion() DataVer {
+	return FilesWithHolesDataVer
 }
 
 func makeRandomBlockPointer(t *testing.T) BlockPointer {

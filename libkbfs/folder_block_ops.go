@@ -246,16 +246,6 @@ func (fbo *folderBlockOps) GetState(lState *lockState) overallBlockState {
 	return dirtyState
 }
 
-func (fbo *folderBlockOps) checkDataVersion(p path, ptr BlockPointer) error {
-	if ptr.DataVer < FirstValidDataVer {
-		return InvalidDataVersionError{ptr.DataVer}
-	}
-	if ptr.DataVer > fbo.config.DataVersion() {
-		return NewDataVersionError{p, ptr.DataVer}
-	}
-	return nil
-}
-
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
 // must be valid, either from the cache or from the server. If
 // notifyPath is valid and the block isn't cached, trigger a read
@@ -288,7 +278,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		return block, nil
 	}
 
-	if err := fbo.checkDataVersion(notifyPath, ptr); err != nil {
+	if err := checkDataVersion(fbo.config, notifyPath, ptr); err != nil {
 		return nil, err
 	}
 
@@ -858,7 +848,7 @@ func (fbo *folderBlockOps) Lookup(
 		return nil, de, nil
 	}
 
-	err = fbo.checkDataVersion(childPath, de.BlockPointer)
+	err = checkDataVersion(fbo.config, childPath, de.BlockPointer)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}

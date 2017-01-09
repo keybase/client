@@ -125,3 +125,15 @@ func LogTagsFromContext(ctx context.Context) (map[interface{}]string, bool) {
 	tags, ok := logger.LogTagsFromContext(ctx)
 	return map[interface{}]string(tags), ok
 }
+
+// checkDataVersion validates that the data version for a
+// block pointer is valid for the given version validator
+func checkDataVersion(versioner dataVersioner, p path, ptr BlockPointer) error {
+	if ptr.DataVer < FirstValidDataVer {
+		return InvalidDataVersionError{ptr.DataVer}
+	}
+	if ptr.DataVer > versioner.DataVersion() {
+		return NewDataVersionError{p, ptr.DataVer}
+	}
+	return nil
+}

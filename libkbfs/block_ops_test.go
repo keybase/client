@@ -107,8 +107,12 @@ func (config testBlockOpsConfig) blockCache() BlockCache {
 	return config.cache
 }
 
-func (config testBlockOpsConfig) makeLogger(module string) logger.Logger {
+func (config testBlockOpsConfig) MakeLogger(module string) logger.Logger {
 	return logger.NewNull()
+}
+
+func (config testBlockOpsConfig) DataVersion() DataVer {
+	return FilesWithHolesDataVer
 }
 
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
