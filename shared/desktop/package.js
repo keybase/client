@@ -27,6 +27,7 @@ const shouldBuildAll = argv.all || false
 const shouldBuildAnArch = argv.arch || false
 const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment || ''
+const outDir = argv.outDir || ''
 
 const packagerOpts = {
   'app-bundle-id': 'keybase.Electron',
@@ -88,13 +89,13 @@ function main () {
         try {
           // $FlowIssue
           packagerOpts.version = stdout.match(/electron@([0-9.]+)/)[1]
-          console.log('Found electron version: ', packagerOpts.version)
+          console.log('Found electron version:', packagerOpts.version)
         } catch (err) {
-          console.log("Couldn't parse yarn list to find electron: ", err)
+          console.log("Couldn't parse yarn list to find electron:", err)
           process.exit(1)
         }
       } else {
-        console.log("Couldn't list yarn to find electron: ", err)
+        console.log("Couldn't list yarn to find electron:", err)
         process.exit(1)
       }
 
@@ -146,12 +147,16 @@ function pack (plat, arch, cb) {
   // there is no darwin ia32 electron
   if (plat === 'darwin' && arch === 'ia32') return
 
+  let packageOutDir = outDir
+  if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
+  console.log('Packaging to', packageOutDir)
+
   let opts = {
     ...packagerOpts,
     platform: plat,
     arch: arch,
     prune: true,
-    out: desktopPath(`release/${plat}-${arch}`),
+    out: packageOutDir,
   }
 
   if (plat === 'win32') {

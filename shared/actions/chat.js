@@ -25,7 +25,7 @@ import {usernameSelector} from '../constants/selectors'
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
 import type {ChangedFocus} from '../constants/window'
-import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {UpdateReachability} from '../constants/gregor'
@@ -685,8 +685,14 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
           }
         case CommonMessageType.attachment:
           // $FlowIssue
-          const preview = payload.messageBody.attachment.preview
+          const preview: Asset = payload.messageBody.attachment.preview
           const mimeType = preview && preview.mimeType
+          let previewSize
+          if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
+            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.image)
+          } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
+            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.video)
+          }
 
           return {
             type: 'Attachment',
@@ -697,6 +703,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             title: payload.messageBody.attachment.object.title,
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
+            previewSize,
             downloadedPath: null,
             key: common.messageID,
           }
