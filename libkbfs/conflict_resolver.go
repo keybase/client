@@ -3445,17 +3445,21 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		// which updates we want to keep.  We should only keep those
 		// that correspond to uploaded blocks, or ones that are the
 		// most recent block on a chain and haven't yet been involved
-		// in an update during this resolution.
+		// in an update during this resolution.  Unreference any
+		// blocks that aren't the most recent blocks on their chains.
 		for _, unmergedResOp := range unmergedChains.resOps {
 			// Updates go in the first one.
 			for _, update := range unmergedResOp.allUpdates() {
-				_, isMostRecent := unmergedChains.byMostRecent[update.Ref]
-				_, alreadyUpdated := updates[update.Unref]
+				chain, isMostRecent := unmergedChains.byMostRecent[update.Ref]
+				alreadyUpdated := false
+				if isMostRecent {
+					_, alreadyUpdated = updates[chain.original]
+				}
 				if newBlocks[update.Ref] || (isMostRecent && !alreadyUpdated) {
 					cr.log.CDebugf(ctx, "Including update from old resOp: "+
 						"%v -> %v", update.Unref, update.Ref)
 					resOp.AddUpdate(update.Unref, update.Ref)
-				} else {
+				} else if !isMostRecent {
 					cr.log.CDebugf(ctx, "Unrefing an update from old resOp: "+
 						"%v and %v", update.Unref, update.Ref)
 					newOps = addUnrefToFinalResOp(newOps, update.Unref)
