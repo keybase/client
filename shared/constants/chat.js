@@ -330,7 +330,12 @@ function usernamesToUserListItem (usernames: Array<string>, you: string, metaDat
   }))
 }
 
+function getBrokenUsers (participants: Array<string>, you: string, metaDataMap: MetaDataMap): Array<string> {
+  return participants.filter(user => user !== you && metaDataMap.get(user, Map()).get('brokenTracker', false)).toArray()
+}
+
 export {
+  getBrokenUsers,
   conversationIDToKey,
   keyToConversationID,
   keyToOutboxID,

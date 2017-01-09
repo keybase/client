@@ -7,7 +7,7 @@ import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment} from '../../actions/chat'
-import {nothingSelected} from '../../constants/chat'
+import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
 import {navigateAppend} from '../../actions/route-tree'
@@ -116,7 +116,7 @@ export default connect(
     onOpenInFileUI: (path: string) => dispatch(({type: 'fs:openInFileUI', payload: {path}}: OpenInFileUI)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const brokenUsers = stateProps.participants.filter(user => user !== stateProps.you && stateProps.metaDataMap.get(user, Map()).get('brokenTracker', false)).toArray()
+    const brokenUsers = getBrokenUsers(stateProps.participants, stateProps.you, stateProps.metaDataMap)
     const bannerMessage = brokenUsers.length
       ? {
         type: 'BrokenTracker',

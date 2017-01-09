@@ -75,7 +75,7 @@ const {
   localRetryPostRpcPromise,
 } = ChatTypes
 
-const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody} = Constants
+const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers} = Constants
 
 const _selectedSelector = (state: TypedState) => {
   const chatPath = getPath(state.routeTree.routeState, [chatTab])
@@ -272,6 +272,21 @@ function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
   })
 }
 
+// If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
+function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
+  const metaData = ((yield select(_metaDataSelector)): any)
+  const inbox = yield select(_selectedInboxSelector, conversationIDKey)
+  const you = yield select(usernameSelector)
+
+  if (inbox && you) {
+    const brokenUsers = getBrokenUsers(inbox.get('participants'), you, metaData)
+    return brokenUsers.length ? TlfKeysTLFIdentifyBehavior.chatGui : TlfKeysTLFIdentifyBehavior.chatGuiStrict
+  }
+
+  // Shouldn't happen but fallback to strict mode
+  return TlfKeysTLFIdentifyBehavior.chatGuiStrict
+}
+
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
@@ -279,7 +294,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: keyToConversationID(conversationIDKey),
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      identifyBehavior: yield call(_getPostingIdentifyBehavior, conversationIDKey),
       msg: {
         clientHeader,
         messageBody: {
@@ -864,7 +879,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title}}: C
     attachment,
     title,
     metadata: null,
-    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    identifyBehavior: yield call(_getPostingIdentifyBehavior, conversationIDKey),
   }
 
   const channelConfig = singleFixedChannelConfig([
