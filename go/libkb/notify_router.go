@@ -474,7 +474,18 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 
 	var wg sync.WaitGroup
 
-	n.G().Log.Debug("+ Sending NewChatActivity notfication")
+	typName := "unknown"
+	typ, err := activity.ActivityType()
+	if err == nil {
+		typName = chat1.ChatActivityTypeRevMap[typ]
+	}
+
+	switch typ {
+	case chat1.ChatActivityType_FAILED_MESSAGE:
+		n.G().Log.Debug("+ Sending NewChatActivity notification: %+v (%v)", typName, len(activity.FailedMessage().OutboxRecords))
+	default:
+		n.G().Log.Debug("+ Sending NewChatActivity notification: %+v", typName)
+	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Chat` notification type
