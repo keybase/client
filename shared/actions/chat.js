@@ -31,7 +31,6 @@ import type {TypedState} from '../constants/reducer'
 import type {UpdateReachability} from '../constants/gregor'
 import type {
   AppendMessages,
-  AttachmentSize,
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
@@ -646,14 +645,6 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   return null
 }
 
-function _clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
-  const maxSize = Math.max(width, height)
-  return {
-    width: Constants.maxAttachmentPreviewSize * (width / maxSize),
-    height: Constants.maxAttachmentPreviewSize * (height / maxSize),
-  }
-}
-
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
@@ -688,9 +679,9 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
           const mimeType = preview && preview.mimeType
           let previewSize
           if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
-            previewSize = _clampAttachmentPreviewSize(preview.metadata.image)
+            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.image)
           } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
-            previewSize = _clampAttachmentPreviewSize(preview.metadata.video)
+            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.video)
           }
 
           return {
