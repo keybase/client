@@ -107,6 +107,10 @@ func (config testBlockOpsConfig) blockCache() BlockCache {
 	return config.cache
 }
 
+func (config testBlockOpsConfig) makeLogger(module string) logger.Logger {
+	return logger.NewNull()
+}
+
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	bserver := NewBlockServerMemory(logger.NewTestLogger(t))
 	codec := kbfscodec.NewMsgpack()

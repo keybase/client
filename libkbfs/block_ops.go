@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -18,6 +19,7 @@ type blockOpsConfig interface {
 	crypto() cryptoPure
 	keyGetter() blockKeyGetter
 	blockCache() BlockCache
+	makeLogger(string) logger.Logger
 }
 
 type blockOpsConfigAdapter struct {
@@ -46,6 +48,10 @@ func (config blockOpsConfigAdapter) blockCache() BlockCache {
 	return config.config.BlockCache()
 }
 
+func (config blockOpsConfigAdapter) makeLogger(module string) logger.Logger {
+	return config.config.MakeLogger(module)
+}
+
 // BlockOpsStandard implements the BlockOps interface by relaying
 // requests to the block server.
 type BlockOpsStandard struct {
@@ -59,7 +65,7 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 // NewBlockOpsStandard creates a new BlockOpsStandard
 func NewBlockOpsStandard(config blockOpsConfig,
 	queueSize int) *BlockOpsStandard {
-	q := newBlockRetrievalQueue(queueSize, config.codec(), config.blockCache)
+	q := newBlockRetrievalQueue(queueSize, config)
 	bops := &BlockOpsStandard{
 		config:  config,
 		queue:   q,

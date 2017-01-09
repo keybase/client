@@ -9,6 +9,8 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/pkg/errors"
+
 	"golang.org/x/net/context"
 )
 
@@ -32,10 +34,14 @@ type blockRetriever interface {
 }
 
 type blockPrefetcher struct {
-	retriever  blockRetriever
+	retriever blockRetriever
+	// channel to synchronize prefetch requests with the prefetcher shutdown
 	progressCh chan prefetchRequest
+	// channel that is idempotently closed when a shutdown occurs
 	shutdownCh chan struct{}
-	doneCh     chan struct{}
+	// channel that is closed when a shutdown completes and all pending
+	// prefetch requests are complete
+	doneCh chan struct{}
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -68,17 +74,18 @@ func (p *blockPrefetcher) run() {
 		select {
 		case req := <-p.progressCh:
 			ctx, cancel := context.WithCancel(context.Background())
-			ch := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr, req.block, TransientEntry)
+			errCh := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr, req.block, TransientEntry)
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
+				defer cancel()
 				select {
-				case _ = <-ch:
+				case _ = <-errCh:
 				case <-p.shutdownCh:
 					// Cancel but still wait so p.doneCh accurately represents
 					// whether we still have requests pending.
 					cancel()
-					<-ch
+					<-errCh
 				}
 			}()
 		case <-p.shutdownCh:
@@ -88,14 +95,15 @@ func (p *blockPrefetcher) run() {
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block) error {
-	// TODO: plumb through config, and then check the pointer and config data
+	// TODO: plumb through config.DataVersion(), or factor out a data version
+	// checker and plumb that through. Then check the pointer and config data
 	// versions before prefetching anything. Use
 	// folderBlockOps.checkDataVersion as a template.
 	select {
 	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
 		return nil
 	case <-p.shutdownCh:
-		return io.EOF
+		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since the prefetcher is shutdown.", ptr.ID)
 	}
 }
 
