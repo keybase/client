@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/libkb"
@@ -71,12 +72,14 @@ func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor
 }
 
 func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
 	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 		ConversationID: convID,
 		MessageIDs:     msgIDs,
 	})
+
+	rres.Msgs = AppendTLFResetSuffix(rres.Msgs, finalizeInfo)
 
 	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs)
 	if err != nil {
@@ -168,11 +171,16 @@ func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID c
 }
 
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) error {
 
 	for _, msg := range msgs {
 		if msg.IsValid() {
 			tlfName := msg.Valid().ClientHeader.TlfName
+
+			// XXX strings.Contains space hack to see if name already has tlf reset suffix
+			if finalizeInfo != nil && !strings.Contains(tlfName, " ") {
+				tlfName += " " + finalizeInfo.ResetFull
+			}
 			s.debug("identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, convID)
 
@@ -203,7 +211,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	if conv, err := s.getConvMetadata(ctx, convID, &rl); err == nil {
+	conv, err := s.getConvMetadata(ctx, convID, &rl)
+	if err == nil {
 		// Try locally first
 		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
 		if err == nil {
@@ -211,7 +220,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			s.debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
 
 			// Identify this TLF by running crypt keys
-			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages); ierr != nil {
+			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
 				s.debug("Pull: identify failed: %s", ierr.Error())
 				return chat1.ThreadView{}, nil, ierr
 			}
@@ -254,6 +263,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
+
+	boxed.Thread.Messages = AppendTLFResetSuffix(boxed.Thread.Messages, conv.Metadata.FinalizeInfo)
 
 	// Unbox
 	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
@@ -325,7 +336,8 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	}
 
 	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages); ierr != nil {
+	// XXX might need finalize info
+	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages, nil); ierr != nil {
 		s.debug("PullLocalOnly: identify failed: %s", ierr.Error())
 		return chat1.ThreadView{}, ierr
 	}
@@ -344,7 +356,7 @@ func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
 	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
 
@@ -373,6 +385,8 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 			return nil, err
 		}
 
+		rmsgs.Msgs = AppendTLFResetSuffix(rmsgs.Msgs, finalizeInfo)
+
 		// Unbox all the remote messages
 		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs)
 		if err != nil {
@@ -393,15 +407,32 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	// Form final result
 	var res []chat1.MessageUnboxed
 	for index, msg := range msgs {
+		var m chat1.MessageUnboxed
 		if msg != nil {
-			res = append(res, *msg)
+			m = *msg
 		} else {
-			res = append(res, rmsgsTab[msgIDs[index]])
+			m = rmsgsTab[msgIDs[index]]
 		}
+
+		// XXX can skip this now that finalizeInfo passed to identifyTLF?
+		// XXX or is it good to have the new tlf name put in here?
+
+		// XXX strings.Contains space hack to see if name already has tlf reset suffix
+		if finalizeInfo != nil && !strings.Contains(m.Valid().ClientHeader.TlfName, " ") {
+			v := m.Valid()
+			v.ClientHeader.TlfName += " " + finalizeInfo.ResetFull
+			m = chat1.NewMessageUnboxedWithValid(v)
+		}
+		res = append(res, m)
+	}
+
+	// XXX debug
+	for i, m := range res {
+		s.G().Log.Warning("Message %d: tlf = %q", i, m.Valid().ClientHeader.TlfName)
 	}
 
 	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res); ierr != nil {
+	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
 		s.debug("GetMessages: identify failed: %s", ierr.Error())
 		return nil, ierr
 	}

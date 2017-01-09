@@ -89,12 +89,19 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		if rquery != nil && rquery.TlfID != nil {
 			// inbox query contained a TLF name, so check to make sure that
 			// the conversation from the server matches tlfInfo from kbfs
-			if convLocal.Info.TlfName != tlfInfo.CanonicalName {
-				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TlfName, tlfInfo.CanonicalName)
-			}
-			if convLocal.Info.Visibility != rquery.Visibility() {
-				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF visibility mismatch: %s, expected %s", convLocal.Info.Visibility, rquery.Visibility())
-			}
+			/*
+				 XXX temp...make a version of tlfname that contains reset suffix
+				if convLocal.Info.TlfName != tlfInfo.CanonicalName {
+					return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TlfName, tlfInfo.CanonicalName)
+				}
+			*/
+
+			/*
+				XXX temp ANY coming back for some reason on finalized tlf
+				if convLocal.Info.Visibility != rquery.Visibility() {
+					return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF visibility mismatch: %s, expected %s", convLocal.Info.Visibility, rquery.Visibility())
+				}
+			*/
 			if !tlfInfo.ID.Eq(convLocal.Info.Triple.Tlfid) {
 				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF ID mismatch: %s, expected %s", convLocal.Info.Triple.Tlfid, tlfInfo.ID)
 			}
@@ -346,7 +353,7 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 
 	var err error
 	conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
-		conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs)
+		conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
 	if err != nil {
 		errMsg := err.Error()
 		return chat1.ConversationLocal{Error: &errMsg}
@@ -403,6 +410,11 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 		errMsg := fmt.Sprintf("unexpected response from server: conversation ID is not derivable from conversation triple. triple: %#+v; Id: %x",
 			conversationLocal.Info.Triple, conversationLocal.Info.Id)
 		return chat1.ConversationLocal{Error: &errMsg}
+	}
+
+	// If the conversation was finalized, change the TLF name.
+	if conversationLocal.Info.FinalizeInfo != nil {
+		conversationLocal.Info.TlfName += " " + conversationLocal.Info.FinalizeInfo.ResetFull
 	}
 
 	// Only do this check if there is a chance the TLF name might be an SBS name.
