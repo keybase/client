@@ -191,32 +191,32 @@ const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
   component: AttachmentPopup,
   mocks: {
     'You': {
-      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb')),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb', 'cecileb')),
     },
     'You - Wide Image': {
       ...baseAttachmentPopupMock({
-        ...attachmentMessageMock('sent', 'cecileb'),
+        ...attachmentMessageMock('sent', 'cecileb', 'cecileb'),
         title: 'Pacific',
         downloadedPath: require('../../../images/mock/coast-wide.jpg'),
       }),
     },
     'You - Small Image': {
       ...baseAttachmentPopupMock({
-        ...attachmentMessageMock('sent', 'cecileb'),
+        ...attachmentMessageMock('sent', 'cecileb', 'cecileb'),
         title: 'Washington',
         downloadedPath: require('../../../images/mock/washington-small.jpg'),
       }),
     },
     'You - Zoomed': {
-      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb')),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb', 'cecileb')),
       isZoomed: true,
     },
     'You - Popup Showing': {
-      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb')),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'cecileb', 'cecileb')),
       detailsPopupShowing: true,
     },
     'Following - Popup Showing': {
-      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'oconnor663')),
+      ...baseAttachmentPopupMock(attachmentMessageMock('sent', 'oconnor663', 'cecileb')),
       detailsPopupShowing: true,
     },
   },
