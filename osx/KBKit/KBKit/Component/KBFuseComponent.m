@@ -168,14 +168,14 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   }];
 }
 
-// Set admin group to 12 (everyone), so non-admin users can use KBFS.
+// Set admin group to 20 (staff) so non-admin users can use KBFS.
 // See https://github.com/osxfuse/osxfuse/wiki/Mount-options#allow_root
 // sysctl is only available for helper tool build >= 3, otherwise we'll skip it
 - (void)setFuseAdminGroup:(KBCompletion)completion {
   [self.helperTool version:^(NSError *error, KBSemVersion *version, NSNumber *buildNumber) {
     DDLogDebug(@"Checking helper tool build number: %@", buildNumber);
     if ([buildNumber integerValue] >= 3) {
-      NSNumber *adminGroup = @(12); // everyone
+      NSNumber *adminGroup = @(20); // staff
       DDLogDebug(@"Setting kbfuse admin group: %@", adminGroup);
       NSDictionary *sysctlParams = @{@"name": @"vfs.generic.kbfuse.tunables.admin_group", @"value": adminGroup};
       [self.helperTool.helper sendRequest:@"sysctl" params:@[sysctlParams] completion:^(NSError *error, id value) {
