@@ -105,7 +105,7 @@ const mocks = followStates.reduce((outerAcc, followState) => (
   }
 ), {})
 
-mocks['from revoked device'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'other', null, 123456), you: 'other', followingMap, metaDataMap}
+mocks['from revoked device'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'other', null, 123456), you: 'other', followingMap: {cecileb: true}, metaDataMap}
 
 const StackedMessages = ({mock1, mock2}: any) => (
   <Box>
@@ -158,10 +158,10 @@ const baseTextPopupMenuMock = {
 const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
   component: TextPopupMenu,
   mocks: {
-    'Following - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'ceceilb', 'other'), you: 'other', followingMap, metaDataMap},
-    'Following - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'ceceilb', 'other', null, 123456), you: 'other', followingMap, metaDataMap},
+    'Following - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'cecileb', 'other'), you: 'other', followingMap, metaDataMap},
+    'Following - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'cecileb', 'other', null, 123456), you: 'other', followingMap, metaDataMap},
     'You - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), you: 'cecileb', followingMap, metaDataMap},
-    'You - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'ceceilb', 'ceceilb', null, 123456), you: 'cecileb', followingMap, metaDataMap},
+    'You - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'cecileb', 'cecileb', null, 123456), you: 'cecileb', followingMap, metaDataMap},
   },
 }
 
