@@ -105,7 +105,7 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 		progWriter = newProgressWriter(progress, int(size))
 		tee = io.TeeReader(sr, progWriter)
 	}
-	return fmt.Errorf("failed putSingle (last error: %s)", lastErr)
+	return NewErrorWrapper("failed putSingle, last error", lastErr)
 }
 
 // putMultiPipeline uploads data in r to S3 using the Multi API.  It uses a
@@ -116,14 +116,17 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (string, error) {
 	a.log.Debug("s3 putMultiPipeline (size = %d)", size)
 
+	var multi s3.MultiInt
+
 	if previous != nil {
-		a.log.Debug("put multi, changing object key to %s", previous.ObjectKey)
+		a.log.Debug("put multi, previous exists. Changing object key from %q to %q", task.S3Params.ObjectKey, previous.ObjectKey)
 		task.S3Params.ObjectKey = previous.ObjectKey
 	}
 
 	multi, err := b.Multi(ctx, task.S3Params.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
 	if err != nil {
-		return "", fmt.Errorf("s3 Multi error: %s", err)
+		a.log.Debug("putMultiPipeline b.Multi error: %s", err)
+		return "", NewErrorWrapper("s3 Multi error", err)
 	}
 
 	var previousParts map[int]s3.Part
@@ -183,7 +186,7 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 
 	a.log.Debug("s3 putMulti all parts uploaded, completing request")
 
-	if err = multi.Complete(ctx, parts); err != nil {
+	if err := multi.Complete(ctx, parts); err != nil {
 		a.log.Debug("multi.Complete error: %s", err)
 		return "", err
 	}
@@ -340,5 +343,27 @@ func (a *AttachmentStore) putRetry(ctx context.Context, multi s3.MultiInt, partN
 		a.log.Debug("error in attempt %d to upload part %d: %s", i+1, putErr)
 		lastErr = putErr
 	}
-	return s3.Part{}, fmt.Errorf("failed to put part %d (last error: %s)", partNumber, lastErr)
+	return s3.Part{}, NewErrorWrapper(fmt.Sprintf("failed to put part %d", partNumber), lastErr)
+}
+
+type ErrorWrapper struct {
+	prefix string
+	err    error
+}
+
+func NewErrorWrapper(prefix string, err error) *ErrorWrapper {
+	return &ErrorWrapper{prefix: prefix, err: err}
+}
+
+func (e *ErrorWrapper) Error() string {
+	return fmt.Sprintf("%s: %s (%T)", e.prefix, e.err, e.err)
+}
+
+func (e *ErrorWrapper) Details() string {
+	switch err := e.err.(type) {
+	case *s3.Error:
+		return fmt.Sprintf("%s: error %q, status code: %d, code: %s, message: %s, bucket: %s", e.prefix, e.err, err.StatusCode, err.Code, err.Message, err.BucketName)
+	default:
+		return fmt.Sprintf("%s: error %q, no details for type %T", e.prefix, e.err, e.err)
+	}
 }

@@ -67,7 +67,7 @@ function registerReachability () {
         // TODO: We should be able to recover from connection problems
         // without re-bootstrapping. Originally we used to do this on HTML5
         // 'online' event, but reachability is more precise.
-        dispatch(bootstrap())
+        dispatch(bootstrap({isReconnect: true}))
       }
     })
 

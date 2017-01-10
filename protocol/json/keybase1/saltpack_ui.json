@@ -16,7 +16,9 @@
         "ANONYMOUS_2",
         "TRACKING_BROKE_3",
         "TRACKING_OK_4",
-        "SELF_5"
+        "SELF_5",
+        "REVOKED_6",
+        "EXPIRED_7"
       ]
     },
     {
@@ -57,6 +59,23 @@
       "response": null
     },
     "saltpackVerifySuccess": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "signingKID",
+          "type": "KID"
+        },
+        {
+          "name": "sender",
+          "type": "SaltpackSender"
+        }
+      ],
+      "response": null
+    },
+    "saltpackVerifyBadSender": {
       "request": [
         {
           "name": "sessionID",
