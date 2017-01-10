@@ -512,11 +512,16 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				needShutdown = true
 			}
 
-			errCh = nil
 			// Cancel the worker goroutine as we exit this
 			// state.
 			bwCancel()
 			bwCancel = nil
+
+			// Ensure the worker finishes after being canceled, so it
+			// doesn't pick up any new work.
+			<-errCh
+			errCh = nil
+
 			if needShutdown {
 				return
 			}
@@ -563,6 +568,7 @@ func (j *tlfJournal) doBackgroundWork(ctx context.Context) <-chan error {
 	go func() {
 		defer j.wg.Done()
 		errCh <- j.flush(ctx)
+		close(errCh)
 	}()
 	return errCh
 }
