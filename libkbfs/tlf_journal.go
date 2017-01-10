@@ -177,6 +177,11 @@ type tlfJournal struct {
 	needResumeCh   chan struct{}
 	needShutdownCh chan struct{}
 
+	// Is background work paused until the next explicit external
+	// resume signal?
+	pausedLock        sync.Mutex
+	pausedUntilSignal bool
+
 	// This channel is closed when background work shuts down.
 	backgroundShutdownCh chan struct{}
 
@@ -314,6 +319,21 @@ func makeTLFJournal(
 		bwDelegate:           bwDelegate,
 	}
 
+	isConflict, err := j.isOnConflictBranch()
+	if err != nil {
+		return nil, err
+	}
+	if isConflict {
+		// Conflict branches must start off paused until the first
+		// resolution.
+		j.log.CDebugf(ctx, "Journal for %s has a conflict, so starting off "+
+			"paused (requested status %s)", tlfID, bws)
+		bws = TLFJournalBackgroundWorkPaused
+	}
+	if bws == TLFJournalBackgroundWorkPaused {
+		j.wg.Pause()
+	}
+
 	go j.doBackgroundWorkLoop(bws, backoff.NewExponentialBackOff())
 
 	// Signal work to pick up any existing journal entries.
@@ -345,6 +365,13 @@ const (
 // CtxJournalOpID is the display name for the unique operation
 // enqueued journal ID tag.
 const CtxJournalOpID = "JID"
+
+func (j *tlfJournal) pauseFromSignal() {
+	j.pausedLock.Lock()
+	defer j.pausedLock.Unlock()
+	j.pausedUntilSignal = true
+	j.wg.Pause()
+}
 
 // doBackgroundWorkLoop is the main function for the background
 // goroutine. It spawns off a worker goroutine to call
@@ -436,6 +463,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				j.log.CDebugf(ctx,
 					"Got pause signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkPaused
+				j.pauseFromSignal()
 
 			case <-j.needShutdownCh:
 				j.log.CDebugf(ctx,
@@ -476,6 +504,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				j.log.CDebugf(ctx,
 					"Got pause signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkPaused
+				j.pauseFromSignal()
 
 			case <-j.needShutdownCh:
 				j.log.CDebugf(ctx,
@@ -494,7 +523,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 
 		case bws == TLFJournalBackgroundWorkPaused:
 			// 3) Paused
-			j.wg.Pause()
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwPaused)
 			}
@@ -506,6 +534,9 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				j.log.CDebugf(ctx,
 					"Got resume signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkEnabled
+				j.pausedLock.Lock()
+				j.pausedUntilSignal = false
+				j.pausedLock.Unlock()
 
 			case <-j.needShutdownCh:
 				j.log.CDebugf(ctx,
@@ -557,6 +588,14 @@ func (j *tlfJournal) resumeBackgroundWork() {
 		// even before the background goroutine picks up this signal.
 		j.wg.Resume()
 	default:
+	}
+}
+
+func (j *tlfJournal) resumeBackgroundWorkIfNotWaitingForSignal() {
+	j.pausedLock.Lock()
+	defer j.pausedLock.Unlock()
+	if !j.pausedUntilSignal {
+		j.resumeBackgroundWork()
 	}
 }
 
@@ -774,6 +813,11 @@ func (j *tlfJournal) convertMDsToBranchLocked(
 	if err != nil {
 		return err
 	}
+
+	// Pause while on a conflict branch.  Pausing due to a branch
+	// doesn't set pausedUntilSignal, since we want to be unpausable
+	// by a branch resolution, not just an explicit signal.
+	j.wg.Pause()
 
 	if j.onBranchChange != nil {
 		j.onBranchChange.onTLFBranchChange(j.tlfID, bid)
@@ -1552,7 +1596,7 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 		return err
 	}
 
-	j.resumeBackgroundWork()
+	j.resumeBackgroundWorkIfNotWaitingForSignal()
 	return nil
 }
 
@@ -1599,7 +1643,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 		return MdID{}, false, err
 	}
 
-	j.resumeBackgroundWork()
+	j.resumeBackgroundWorkIfNotWaitingForSignal()
 	j.signalWork()
 
 	// TODO: kick off a background goroutine that deletes ignored

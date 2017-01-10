@@ -283,8 +283,18 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	}
 
 	// now re-login u1
+	timeoutCtx, cancel := context.WithTimeout(
+		context.Background(), individualTestTimeout)
+	ctx2, err := NewContextWithCancellationDelayer(NewContextReplayable(
+		timeoutCtx, func(c context.Context) context.Context {
+			return c
+		}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	config1B := ConfigAsUser(config1, userName1)
-	defer CheckConfigAndShutdown(ctx, t, config1B)
+	defer CheckConfigAndShutdown(ctx2, t, config1B)
 	config1B.EnableJournaling(tempdir, TLFJournalBackgroundWorkEnabled)
 	jServer, err = GetJournalServer(config1B)
 	if err != nil {
@@ -295,15 +305,17 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
-	tlfHandle, err := ParseTlfHandle(ctx, config1B.KBPKI(), name, false)
+	tlfHandle, err := ParseTlfHandle(ctx2, config1B.KBPKI(), name, false)
 	if err != nil {
 		t.Fatalf("error making tlfHandle: %s", err)
 	}
 
-	_, _, err = config1B.KBFSOps().GetTLFCryptKeys(ctx, tlfHandle)
+	_, _, err = config1B.KBFSOps().GetTLFCryptKeys(ctx2, tlfHandle)
 	if err != nil {
 		t.Fatalf("error in GetTLFCryptKeys on unmerged TLF after restart: %s", err)
 	}
+
+	RestartCRForTesting(ctx2, config1B, rootNode1.GetFolderBranch())
 }
 
 // Tests that, in the face of a conflict, a user will commit its
