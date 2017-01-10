@@ -1026,3 +1026,35 @@ func (ckf *ComputedKeyFamily) HasActiveDevice() bool {
 	}
 	return false
 }
+
+// Returns (&senderType, err). A non-nil error indicates some unexpected
+// condition (like the key doesn't exist at all), which should be propagated.
+// If the sender type is nil, the key is active, and the caller should proceed
+// with an identify. Otherwise the key is no longer active, and the sender type
+// indicates why.
+func (ckf ComputedKeyFamily) GetSaltpackSenderTypeIfInactive(kid keybase1.KID) (*keybase1.SaltpackSenderType, error) {
+	info := ckf.cki.Infos[kid]
+	if info == nil {
+		// This shouldn't happen without a server bug/attack or a very unlikely
+		// race condition (e.g. a user account reset between the API server
+		// telling us they own a key, and the loaduser confirming it.)
+		return nil, fmt.Errorf("Key %s not found in key infos", kid.String())
+	}
+	if info.Status == KeyRevoked {
+		ret := keybase1.SaltpackSenderType_REVOKED
+		return &ret, nil
+	}
+	if info.Status == KeyUncancelled {
+		// TODO: Get rid of the whole concept of expiration?
+		if info.GetETime().Before(time.Now()) && !info.GetETime().IsZero() {
+			ret := keybase1.SaltpackSenderType_EXPIRED
+			return &ret, nil
+		}
+		// An active key. The caller needs to do an identify to determine the
+		// final sender type (UNTRACKED, TRACKING_BROKE, etc.).
+		return nil, nil
+	}
+	// This also shouldn't happen without a server bug or a very unlikely race
+	// condition.
+	return nil, fmt.Errorf("Key %s neither active nor revoked (%d)", kid.String(), info.Status)
+}

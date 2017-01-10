@@ -4,9 +4,11 @@
 package engine
 
 import (
-	"golang.org/x/net/context"
+	"fmt"
 	"strings"
 	"testing"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -27,6 +29,10 @@ func (s *fakeSaltpackUI2) SaltpackPromptForDecrypt(_ context.Context, arg keybas
 
 func (s *fakeSaltpackUI2) SaltpackVerifySuccess(_ context.Context, arg keybase1.SaltpackVerifySuccessArg) error {
 	return nil
+}
+
+func (s *fakeSaltpackUI2) SaltpackVerifyBadSender(_ context.Context, arg keybase1.SaltpackVerifyBadSenderArg) error {
+	return fmt.Errorf("fakeSaltpackUI2 SaltpackVerifyBadSender error: %s", arg.Sender.SenderType.String())
 }
 
 func TestSaltpackEncrypt(t *testing.T) {
