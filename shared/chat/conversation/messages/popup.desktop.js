@@ -5,11 +5,10 @@ import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import {fileUIName} from '../../../constants/platform'
-import * as Constants from '../../../constants/chat'
-
+import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
-import type {DeviceType} from '../../../constants/types/more'
-import type {Props} from './popup'
+
+import type {TextProps, AttachmentProps} from './popup'
 
 function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconType {
   switch (deviceType) {
@@ -20,16 +19,7 @@ function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconTyp
   }
 }
 
-type MetaData = {
-  author: string,
-  deviceName: string,
-  deviceType: DeviceType,
-  timestamp: number,
-  senderDeviceRevokedAt: ?number,
-  followState: Constants.FollowState,
-}
-
-const MetaDataInfo = ({messageMetaData: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, followState}, isLast}: {messageMetaData: MetaData, isLast: boolean}) => {
+const MessagePopupHeader = ({message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, followState}, isLast}: {message: (TextMessage | AttachmentMessage), isLast?: boolean}) => {
   const iconName = iconNameForDeviceType(deviceType, !!senderDeviceRevokedAt)
   const whoRevoked = followState === 'You' ? 'You' : author
   return (
@@ -58,57 +48,43 @@ const MetaDataInfo = ({messageMetaData: {author, deviceName, deviceType, timesta
   )
 }
 
-const Popup = ({message, onEditMessage, onDeleteMessage, onLoadAttachment, onOpenInFileUI, onHidden, style}: Props) => {
-  if (message.type === 'Text') {
-    let items = []
-    if (message.followState === 'You') {
-      items = [
-        {title: 'Edit', onClick: () => onEditMessage(message)},
-        {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},
-      ]
-      if (!message.senderDeviceRevokedAt) {
-        items.unshift('Divider')
-      }
-    }
-
-    const headerView = <MetaDataInfo messageMetaData={message} isLast={!items.length} />
-    const header = {
-      title: 'header',
-      view: headerView,
-    }
-
-    return (
-      <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
-    )
-  } else if (message.type === 'Attachment' && message.messageID) {
-    const {downloadedPath, messageID, filename} = message
-    let items = [
-      'Divider',
-      downloadedPath
-        ? {title: `Show in ${fileUIName}`, onClick: () => onOpenInFileUI(downloadedPath)}
-        : {title: 'Download', onClick: () => onLoadAttachment(messageID, filename)},
-    ]
-
-    if (message.followState === 'You') {
-      items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)})
-    }
-
-    const headerView = <MetaDataInfo messageMetaData={message} isLast={!items.length} />
-    const header = {
-      title: 'header',
-      view: headerView,
-    }
-
-    return (
-      <PopupMenu header={header} items={items} onHidden={onHidden} style={style} />
-    )
-  }
-  return null
-}
-
 const stylePopup = {
   overflow: 'visible',
   width: 196,
 }
 
-export default Popup
+export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden, style}: TextProps) => {
+  let items = []
+  if (message.followState === 'You') {
+    items = [
+      {title: 'Edit', onClick: () => onEditMessage(message)},
+      {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},
+    ]
+    if (!message.senderDeviceRevokedAt) {
+      items.unshift('Divider')
+    }
+  }
+  const header = {
+    title: 'header',
+    view: <MessagePopupHeader message={message} isLast={!items.length} />,
+  }
+  return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
+}
+
+export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style}: AttachmentProps) => {
+  const items = [
+    'Divider',
+    {title: 'Download', onClick: onDownloadAttachment},
+    message.downloadedPath
+      ? {title: `Show in ${fileUIName}`, onClick: onOpenInFileUI}
+      : {title: 'Download', onClick: onDownloadAttachment},
+  ]
+  if (message.followState === 'You') {
+    items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: onDeleteMessage})
+  }
+  const header = {
+    title: 'header',
+    view: <MessagePopupHeader message={message} />,
+  }
+  return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
+}

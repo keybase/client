@@ -1,20 +1,14 @@
 // @flow
 import {Component} from 'react'
+import HiddenString from '../../util/hidden-string'
 
 export type Props = {
-  onChangeNewPassphrase: (newPassphrase: string) => void,
-  onChangeNewPassphraseConfirm: (newPassphraseConfirm: string) => void,
-  onChangeShowPassphrase: (showPassphrase: boolean) => void,
-  newPassphrase: string,
-  newPassphraseConfirm: string,
-  showTyping: boolean,
   error?: ?Error,
   newPassphraseError: ?string,
   newPassphraseConfirmError: ?string,
   hasPGPKeyOnServer: boolean,
-  canSave: boolean,
   onBack: () => void,
-  onSave: () => void,
+  onSave: (passphrase: HiddenString, passphraseConfirm: HiddenString) => void,
   waitingForResponse: boolean,
   onUpdatePGPSettings: () => void,
 }

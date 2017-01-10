@@ -132,7 +132,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		res.Clients = h.G().ConnectionManager.ListAllLabeledConnections()
 	}
 
-	err = h.G().FullSelfCacher.WithSelf(func(me *libkb.User) error {
+	err = h.G().GetFullSelfer().WithSelf(func(me *libkb.User) error {
 		device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
 		if err != nil {
 			h.G().Log.Debug("| GetCurrentDevice failed: %s", err)
@@ -299,7 +299,7 @@ func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) e
 }
 
 func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybase1.OutOfDateInfo, error) {
-	return h.G().OutOfDateInfo, nil
+	return h.G().GetOutOfDateInfo(), nil
 }
 
 func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClientArg) (bool, error) {

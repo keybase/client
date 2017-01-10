@@ -2,18 +2,10 @@
 import React from 'react'
 import SettingsNav from './nav'
 import {Box} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles} from '../styles'
 import SettingsHelp from './help.desktop'
 
-import type {BannerType, Props} from './render'
-
-function Banner ({element, type}: {element: React$Element<*>, type: BannerType}) {
-  return (
-    <Box style={{...commonBannerStyle, ...variantBannerStyle[type]}}>
-      {element}
-    </Box>
-  )
-}
+import type {Props} from './render'
 
 function SettingsRender (props: Props) {
   if (props.showComingSoon) {
@@ -22,7 +14,6 @@ function SettingsRender (props: Props) {
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      {!!props.bannerElement && <Banner element={props.bannerElement} type={props.bannerType || 'green'} />}
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         {!props.isModal && <SettingsNav badgeNumbers={props.badgeNumbers} selectedTab={props.selectedTab} onTabChange={props.onTabChange} />}
         <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>
@@ -31,16 +22,6 @@ function SettingsRender (props: Props) {
       </Box>
     </Box>
   )
-}
-
-const commonBannerStyle = {
-  ...globalStyles.flexBoxRow,
-  minHeight: 40,
-}
-
-const variantBannerStyle = {
-  'red': {backgroundColor: globalColors.red},
-  'green': {backgroundColor: globalColors.green},
 }
 
 export default SettingsRender

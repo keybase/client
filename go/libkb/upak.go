@@ -4,6 +4,7 @@ package libkb
 
 import (
 	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -77,6 +78,13 @@ func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsern
 		g.Log.Debug("| failed to import link from storage")
 		return nil, err
 	}
+	if link == nil {
+		g.Log.Debug("| no cached chainlink found")
+		// Such a bug is only possible if the DB cache was reset after
+		// this user was originally loaded in; otherwise, all of this
+		// UPAK's chain links should be available on disk.
+		return nil, InconsistentCacheStateError{}
+	}
 	ret, err = ParseTrackChainLink(GenericChainLink{link})
 	g.Log.Debug("| ParseTrackChainLink -> found=%v", (ret != nil))
 	return ret, err
@@ -84,5 +92,9 @@ func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsern
 
 func TrackChainLinkFromUserPlusAllKeys(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (*TrackChainLink, error) {
 	tcl, err := GetRemoteChainLinkFor(u, username, uid, g)
-	return TrackChainLinkFor(u.Base.Uid, uid, tcl, err, g)
+	if _, ok := err.(InconsistentCacheStateError); ok {
+		return nil, err
+	}
+	tcl, err = TrackChainLinkFor(u.Base.Uid, uid, tcl, err, g)
+	return tcl, err
 }

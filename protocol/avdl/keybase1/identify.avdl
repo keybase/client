@@ -19,7 +19,7 @@ protocol identify {
   User Resolve2(string assertion);
 
   /**
-    DEPRECATED:  use idenitfy2
+    DEPRECATED:  use identify2
 
     Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
     If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).

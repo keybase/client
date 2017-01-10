@@ -99,7 +99,7 @@ func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) 
 func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	desktopURL := makeDesktopURL(h.GetAPIURL())
 
-	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(desktopURL))
+	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), desktopURL))
 	if err != nil {
 		return libkb.XapiError(err, desktopURL)
 	}

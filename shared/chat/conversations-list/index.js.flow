@@ -10,6 +10,7 @@ export type Props = {
   onSelectConversation: (key: ConversationIDKey) => void,
   selectedConversation: ConversationIDKey,
   onNewChat: () => void,
+  children?: React$Element<*>,
 }
 
 export default class ConversationList extends Component<void, Props, void> { }

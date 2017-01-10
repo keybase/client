@@ -100,7 +100,7 @@ func (rc *TwitterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) l
 
 func (rc *TwitterChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	url := h.GetAPIURL()
-	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
+	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), url))
 	if err != nil {
 		return libkb.XapiError(err, url)
 	}

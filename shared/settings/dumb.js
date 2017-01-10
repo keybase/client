@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react'
-import {Box, Text} from '../common-adapters'
+import {Box} from '../common-adapters'
 
 import UpdateEmail from './email'
 import UpdatePassphrase from './passphrase'
@@ -18,6 +18,7 @@ import Help from './help'
 import {landingTab} from '../constants/settings'
 
 import type {DumbComponentMap} from '../constants/types/more'
+import type {PendingInvite} from '../settings/invites/index'
 
 const updateEmailBase = {
   email: 'party@mypla.ce',
@@ -27,7 +28,6 @@ const updateEmailBase = {
   onChangeNewEmail: () => console.log('onChangeNewEmail'),
   onSave: () => console.log('onSave'),
   onBack: () => console.log('onBack'),
-  onResendConfirmationCode: null,
 }
 
 const updateEmailMap: DumbComponentMap<UpdateEmail> = {
@@ -234,26 +234,10 @@ const settingsNavBase = {
   showComingSoon: false,
 }
 
-const bannerTextStyle = {
-  alignSelf: 'center',
-  textAlign: 'center',
-  flex: 1,
-}
-
 const settingsContainerMap: DumbComponentMap<SettingsContainer> = {
   component: SettingsContainer,
   mocks: {
     'Normal': settingsNavBase,
-    'Normal - Good Banner': {
-      ...settingsNavBase,
-      bannerElement: <Text type='BodySemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
-      bannerType: 'green',
-    },
-    'Normal - Bad Banner': {
-      ...settingsNavBase,
-      bannerElement: <Text type='BodySemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
-      bannerType: 'red',
-    },
   },
 }
 
@@ -340,6 +324,7 @@ const notificationsMap: DumbComponentMap<Notifications> = {
 
 const commonInvite = {
   link: 'keybase.io/inv/9999999999',
+  email: '',
   parentProps: {
     style: {
       height: 500,
@@ -358,7 +343,6 @@ const inviteGeneratedMap: DumbComponentMap<InviteGenerated> = {
     },
     'No email': {
       ...commonInvite,
-      email: null,
     },
   },
 }
@@ -414,19 +398,18 @@ const invitesBase = {
   inviteEmail: 'tcook@apple.com',
   inviteMessage: 'Hey Tim! I heard you like end-to-end encryption...',
   showMessageField: true,
-  emailError: false,
   pendingInvites: [
     {
-      type: 'pending-email',
       id: '123456',
       created: 1469565223,
+      url: 'keybase.io/inv/9999999999',
       email: 'tcook@apple.com',
     },
     {
-      type: 'pending-url',
       id: '123457',
       created: 1469566223,
       url: 'keybase.io/inv/9999999999',
+      email: '',
     },
   ],
   acceptedInvites: [
@@ -458,11 +441,11 @@ const invitesBase = {
       trackerState: 'error',
     },
   ],
-  onChangeInviteEmail: inviteEmail => console.log('onChangeInviteEmail', inviteEmail),
-  onChangeInviteMessage: inviteMessage => console.log('onChangeInviteMessage', inviteMessage),
-  onClickUser: username => console.log('onClickUser', username),
+  onSelectUser: username => console.log('onSelectUser', username),
   onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
   onGenerateInvitation: () => console.log('onGenerateInvitation'),
+  onSelectPendingInvite: (invite: PendingInvite) => console.log('onSelectPendingInvite'),
+  onClearError: () => {},
   waitingForResponse: false,
   parentProps: {
     style: {
@@ -470,6 +453,7 @@ const invitesBase = {
     },
   },
   onRefresh: () => console.log('onRefresh'),
+  error: null,
 }
 
 const invitesMap: DumbComponentMap<Invites> = {
@@ -490,7 +474,7 @@ const invitesMap: DumbComponentMap<Invites> = {
     'Normal': invitesBase,
     'Normal - Email Error': {
       ...invitesBase,
-      emailError: true,
+      error: new Error('Oops, you entered an invalid email address'),
     },
   },
 }

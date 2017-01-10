@@ -4,18 +4,19 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
 
 import LoadingMore from './messages/loading-more'
-import Popup from './messages/popup'
+import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
 import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
-import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {ProgressIndicator} from '../../common-adapters'
+import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
+import {Box, ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
-import type {Message, MessageID} from '../../constants/chat'
+import type {List} from 'immutable'
+import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
 import type {Props} from './list'
 
 type State = {
@@ -31,7 +32,7 @@ class ConversationList extends Component<void, Props, State> {
   _cellMeasurer: any;
   _list: any;
   state: State;
-  _toRemeasure: List;
+  _toRemeasure: Array<number>;
   _lastWidth: ?number;
 
   constructor (props: Props) {
@@ -49,9 +50,12 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _indexToID = index => {
-    // loader message
     if (index === 0) {
+      // loader
       return 0
+    } else if (index === this.state.messages.count() + 1) {
+      // footer
+      return -1
     } else {
       // minus one because loader message is there
       const messageIndex = index - 1
@@ -66,6 +70,13 @@ class ConversationList extends Component<void, Props, State> {
 
   shouldComponentUpdate (nextProps: Props, nextState: State) {
     return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
+  }
+
+  componentWillUnmount () {
+    // Stop any throttled/debounced functions
+    this._onScroll.cancel()
+    this._recomputeListDebounced.cancel()
+    this._onScrollSettled.cancel()
   }
 
   componentWillUpdate (nextProps: Props, nextState: State) {
@@ -114,11 +125,13 @@ class ConversationList extends Component<void, Props, State> {
 
   _invalidateChangedMessages (props: Props) {
     this.state.messages.forEach((item, index) => {
-      if (item.messageID !== props.messages.get(index, {}).messageID) {
+      const oldMessage = props.messages.get(index, {})
+
+      if (item.type === 'Text' && oldMessage.type === 'Text' && item.messageState !== oldMessage.messageState) {
         this._toRemeasure.push(index + 1)
       }
 
-      if (item.previewPath !== props.messages.get(index, {}).previewPath) {
+      if (item.type === 'Attachment' && oldMessage.type === 'Attachment' && item.previewPath !== oldMessage.previewPath) {
         this._toRemeasure.push(index + 1)
       }
     })
@@ -144,7 +157,8 @@ class ConversationList extends Component<void, Props, State> {
       this.props.onLoadMoreMessages()
     }
 
-    const isLockedToBottom = scrollTop + clientHeight === scrollHeight
+    // Lock to bottom if we are close to the bottom
+    const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - 20
     this.setState({
       isLockedToBottom,
       isScrolling: true,
@@ -155,55 +169,87 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled()
   }, 100)
 
-  _showPopup (message: Message, event: any) {
-    if (message.type !== 'Text' && message.type !== 'Attachment') return
-    this.setState({
-      selectedMessageID: message.messageID,
-    })
+  _renderPopup (message: Message, style: Object): ?React$Element<any> {
+    switch (message.type) {
+      case 'Text':
+        return (
+          <TextPopupMenu
+            message={message}
+            onEditMessage={this.props.onEditMessage}
+            onDeleteMessage={this.props.onDeleteMessage}
+            onLoadAttachment={this.props.onLoadAttachment}
+            onOpenInFileUI={this.props.onOpenInFileUI}
+            onHidden={() => {
+              ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+              this.setState({
+                selectedMessageID: undefined,
+              })
+            }}
+            style={style}
+          />
+        )
+      case 'Attachment':
+        const {downloadedPath, filename, messageID} = message
+        return (
+          <AttachmentPopupMenu
+            message={message}
+            onDeleteMessage={() => this.props.onDeleteMessage(message)}
+            onDownloadAttachment={() => { messageID && this.props.onLoadAttachment(messageID, filename) }}
+            onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
+            onHidden={() => {
+              ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+              this.setState({
+                selectedMessageID: undefined,
+              })
+            }}
+            style={style}
+          />
+        )
+    }
+  }
 
+  _showPopup (message: TextMessage | AttachmentMessage, event: any) {
     const clientRect = event.target.getBoundingClientRect()
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
     const x = clientRect.left - 205
     let y = clientRect.top - (message.followState === 'You' ? 200 : 116)
     if (y < 10) y = 10
-    const popupComponent = <Popup
-      message={message}
-      onEditMessage={this.props.onEditMessage}
-      onDeleteMessage={this.props.onDeleteMessage}
-      onLoadAttachment={this.props.onLoadAttachment}
-      onOpenInFileUI={this.props.onOpenInFileUI}
-      onHidden={() => {
-        ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-        this.setState({
-          selectedMessageID: undefined,
-        })
-      }}
-      style={{position: 'absolute', top: y, left: x}}
-      />
+
+    const popupComponent = this._renderPopup(message, {position: 'absolute', top: y, left: x})
+    if (!popupComponent) return
+
+    this.setState({
+      selectedMessageID: message.messageID,
+    })
     const container = document.getElementById('popupContainer')
     ReactDOM.render(popupComponent, container)
   }
 
   _onAction = (message, event) => {
-    this._showPopup(message, event)
+    if (message.type === 'Text' || message.type === 'Attachment') {
+      this._showPopup(message, event)
+    }
   }
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
     }
+    if (index === this.state.messages.count() + 1) {
+      return <Box key={'footer'} style={{height: 20}} />
+    }
 
     const message = this.state.messages.get(index - 1)
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
-    const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
-    const isSelected = this.state.selectedMessageID === message.messageID
-    const isFirstNewMessage = this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
+    const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
+    const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
+    const isFirstNewMessage = message.messageID != null && this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.onRetryMessage)
   }
 
   _recomputeListDebounced = _.debounce(() => {
@@ -223,22 +269,30 @@ class ConversationList extends Component<void, Props, State> {
         </div>
       )
     }
-    const messageCount = this.state.messages.count()
-    const countWithLoading = messageCount + 1 // Loading row on top always
-    let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
+    const rowCount = this.state.messages.count() + 2 // Loading row on top always and footer row
+    let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
+    // We need to use both visibility and opacity css properties for the
+    // action button hide/show on hover.
+    // We use opacity because it shows/hides the button immediately on
+    // hover, while visibility has slight lag.
+    // We use visibility so that the action button content isn't copied
+    // during copy/paste actions since user-select isn't working in
+    // Chrome.
     const realCSS = `
     .message {
       background-color: transparent;
     }
     .message .action-button {
+      visibility: hidden;
       opacity: 0;
     }
     .message:hover {
       background-color: ${globalColors.black_05};
     }
     .message:hover .action-button {
+      visibility: visible;
       opacity: 1;
     }
     `
@@ -259,10 +313,10 @@ class ConversationList extends Component<void, Props, State> {
               columnCount={1}
               ref={r => { this._cellMeasurer = r }}
               cellSizeCache={this._cellCache}
-              rowCount={countWithLoading}
+              rowCount={rowCount}
               width={width} >
               {({getRowHeight}) => {
-                return <List
+                return <VirtualizedList
                   style={{outline: 'none'}}
                   height={height}
                   ref={r => { this._list = r }}
@@ -270,7 +324,7 @@ class ConversationList extends Component<void, Props, State> {
                   onScroll={this._onScroll}
                   scrollTop={scrollTop}
                   scrollToIndex={scrollToIndex}
-                  rowCount={countWithLoading}
+                  rowCount={rowCount}
                   rowHeight={getRowHeight}
                   columnWidth={width}
                   rowRenderer={this._rowRenderer} />

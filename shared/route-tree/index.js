@@ -7,11 +7,13 @@ import type {ConnectedComponent as TypedConnectedComponent} from '../util/typed-
 
 type LeafTagsParams = {
   modal: boolean,
+  layerOnTop: boolean,
   underStatusBar: boolean,
 }
 
 export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<LeafTagsParams> = I.Record({
   modal: false,
+  layerOnTop: false,
   underStatusBar: false,
 })
 
@@ -28,7 +30,7 @@ type RouteDefParams<P> = {
   defaultSelected?: string,
   tags?: LeafTags,
   initialState?: {},
-  children: {},
+  children?: {[key: string]: RouteDefParams<P> | () => RouteDefNode} | (name: string) => RouteDefNode,
 } & (
   // This lengthy type definition was necessary to get all of our component permutations to type check.
   { component?: Component<any, P, any> | $Supertype<Component<any, P, any>> | Class<ConnectedComponent<P, any, any, any>> | Class<TypedConnectedComponent<P>> }
@@ -45,19 +47,20 @@ export class RouteDefNode extends _RouteDefNode {
       initialState: I.Map(initialState),
       props: I.Map(),
       state: I.Map(),
-      children: I.Seq(children)
+      children: typeof children === 'function' ? children : I.Seq(children)
         .map(params => params instanceof RouteDefNode || typeof params === 'function' ? params : new RouteDefNode(params))
         .toMap(),
     })
   }
 
   getChild (name: string): ?RouteDefNode {
-    const childDef = this.children.get(name)
-    if (!childDef) {
-      return
+    if (typeof this.children === 'function') {
+      return this.children(name)
     }
-    if (typeof childDef === 'function') {
-      return childDef()
+
+    const childDef = this.children.get(name)
+    if (childDef && typeof childDef === 'function') {
+      return childDef(name)
     }
     return childDef
   }

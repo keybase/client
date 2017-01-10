@@ -7,8 +7,6 @@ import {forwardLogs} from '../local-debug'
 import {ipcMain, ipcRenderer} from 'electron'
 import {logFileName, isWindows} from '../constants/platform.desktop'
 
-let fileWritable = null
-
 function fileDoesNotExist (err) {
   if (isWindows && err.errno === -4058) { return true }
   if (err.errno === -2) { return true }
@@ -21,9 +19,10 @@ function setupFileWritable () {
   const logLimit = 5e6
 
   if (!logFile) {
-    console.log('No log file')
-    return
+    console.warn('No log file')
+    return null
   }
+
   // Ensure log directory exists
   mkdirp.sync(path.dirname(logFile))
 
@@ -33,33 +32,31 @@ function setupFileWritable () {
   } catch (e) {
     if (!fileDoesNotExist(e)) {
       console.error('Unable to write to log file:', e)
-      return
+      return null
     }
   }
 
-  let stat = null
   try {
-    stat = fs.statSync(logFile)
+    const stat = fs.statSync(logFile)
+    if (stat.size > logLimit) {
+      const logFileOld = logFile + '.1'
+      console.log('Log file over size limit, moving to', logFileOld)
+      if (fs.existsSync(logFileOld)) {
+        fs.unlinkSync(logFileOld) // Remove old wrapped file
+      }
+      fs.renameSync(logFile, logFileOld)
+      return fs.createWriteStream(logFile)
+    }
   } catch (e) {
     if (!fileDoesNotExist(e)) {
-      console.error('Error getting status for log file:', e)
+      console.error('Error checking log file size:', e)
     }
-    fileWritable = fs.createWriteStream(logFile)
-    return
-  }
-
-  // If the file is too big, let's reset the log
-  if (stat.size > logLimit) {
-    console.log('File too big, resetting')
-    fileWritable = fs.createWriteStream(logFile)
-    return
+    return fs.createWriteStream(logFile)
   }
 
   // Append to existing log
-  fileWritable = fs.createWriteStream(logFile, {flags: 'a'})
+  return fs.createWriteStream(logFile, {flags: 'a'})
 }
-
-setupFileWritable()
 
 type Log = (...args: Array<any>) => void
 
@@ -78,6 +75,8 @@ function setupTarget () {
   if (!forwardLogs) {
     return
   }
+
+  const fileWritable = setupFileWritable()
 
   const stdOutWriter = t => { !isWindows && process.stdout.write(t) }
   const stdErrWriter = t => { !isWindows && process.stderr.write(t) }

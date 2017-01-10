@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-type conversationInfoListView []chat1.ConversationInfoLocal
+type conversationInfoListView []chat1.ConversationLocal
 
 func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	if len(v) == 0 {
@@ -26,9 +26,12 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 
 	table := &flexibletable.Table{}
 	for i, conv := range v {
-		participants := strings.Split(conv.TlfName, ",")
+		if conv.Error != nil {
+			continue
+		}
+		participants := strings.Split(conv.Info.TlfName, ",")
 		vis := "private"
-		if conv.Visibility == chat1.TLFVisibility_PUBLIC {
+		if conv.Info.Visibility == chat1.TLFVisibility_PUBLIC {
 			vis = "public"
 		}
 		table.Insert(flexibletable.Row{

@@ -12,8 +12,6 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
-	istorage "github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -112,6 +110,8 @@ type gregorHandler struct {
 	skipRetryConnect bool
 	freshReplay      bool
 
+	identNotifier *chat.IdentifyNotifier
+
 	transportForTesting *connTransport
 
 	// Function for determining if a new BroadcastMessage should trigger
@@ -151,6 +151,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 		freshReplay:     true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
+		identNotifier:   chat.NewIdentifyNotifier(g),
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -793,7 +794,7 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 		h.G().Log.Debug("failed to convert UID from string", err)
 		return err
 	}
-	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(h.G(), uid))
+	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(ctx, h.G(), uid))
 	if err != nil {
 		h.G().Log.Debug("failed to load user from UID", err)
 		return err
@@ -817,6 +818,15 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 	return nil
 }
 
+func (g *gregorHandler) sendChatStaleNotifications() {
+
+	// Alert Electron that all chat information could be out of date. Empty conversation ID
+	// list means everything needs to be refreshed
+	uid := keybase1.UID(g.gregorCli.User.String())
+	g.G().NotifyRouter.HandleChatInboxStale(context.Background(), uid)
+	g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), uid, []chat1.ConversationID{})
+}
+
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
 	g.Debug("handleOutOfBand: %+v", obm)
 
@@ -835,8 +845,11 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
 		return g.newChatActivity(ctx, obm)
+	case "chat.tlffinalize":
+		return g.chatTlfFinalize(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
+		g.sendChatStaleNotifications()
 		return nil
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())
@@ -892,6 +905,40 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 	return nil
 }
 
+func (g *gregorHandler) chatTlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) error {
+	if m.Body() == nil {
+		return errors.New("gregor handler for chat.tlffinalize: nil message body")
+	}
+
+	g.G().Log.Debug("push handler: tlf finalize received")
+
+	var update chat1.TLFFinalizeUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err := dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+
+	// Update inbox
+	if err := cstorage.NewInbox(g.G(), m.UID().Bytes(), func() libkb.SecretUI {
+		return chat.DelivererSecretUI{}
+	}).TlfFinalize(update.InboxVers, update.ConvIDs, update.FinalizeInfo); err != nil {
+		if _, ok := (err).(libkb.ChatStorageMissError); !ok {
+			g.G().Log.Error("push handler: tlf finalize: unable to update inbox: %s", err.Error())
+		}
+	}
+
+	// Send notify for each conversation ID
+	uid := m.UID().String()
+	for _, convID := range update.ConvIDs {
+		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid),
+			convID, update.FinalizeInfo)
+	}
+
+	return nil
+}
+
 func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandMessage) error {
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.activity: nil message body")
@@ -927,12 +974,11 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		} else {
 			g.G().Log.Debug("push handler: chat activity: newMessage: outboxID is empty")
 		}
-
 		uid := m.UID().Bytes()
 
 		var identBreaks []keybase1.TLFIdentifyFailure
-		ctx = utils.IdentifyModeCtx(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks)
-		decmsg, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
+		ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, g.identNotifier)
+		decmsg, append, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
 		}
@@ -948,6 +994,16 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			Message: decmsg,
 			ConvID:  nm.ConvID,
 		})
+
+		// If this message was not "appended", meaning there is a hole between what we have in cache,
+		// and this message, then we send out a notification that this thread should be considered
+		// stale
+		if !append {
+			g.G().Log.Debug("push handler: chat activity: newMessage: non-append message, alerting")
+			kuid := keybase1.UID(m.UID().String())
+			g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid,
+				[]chat1.ConversationID{nm.ConvID})
+		}
 
 		if g.badger != nil && nm.UnreadUpdate != nil {
 			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
@@ -1024,8 +1080,8 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			func() keybase1.TlfInterface { return tlf })
 
 		var identBreaks []keybase1.TLFIdentifyFailure
-		ctx = utils.IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
-			&identBreaks)
+		ctx = chat.Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+			&identBreaks, g.identNotifier)
 		if inbox, _, err = inboxSource.Read(ctx, uid, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
 		}, nil); err != nil {
@@ -1039,7 +1095,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
 			return chat.DelivererSecretUI{}
-		}).NewConversation(nm.InboxVers, istorage.FromConversationLocal(inbox.Convs[0])); err != nil {
+		}).NewConversation(nm.InboxVers, inbox.Convs[0]); err != nil {
 			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
 				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 			}
@@ -1085,6 +1141,9 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 		token = s.GetToken()
 		uid = s.GetUID()
 	}, "gregor handler - login session")
+	if token == "" {
+		return errors.New("blank session token would have been sent to gregor")
+	}
 	if aerr != nil {
 		g.skipRetryConnect = true
 		return aerr

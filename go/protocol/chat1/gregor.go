@@ -50,6 +50,7 @@ type UnreadUpdate struct {
 type TLFFinalizeUpdate struct {
 	FinalizeInfo ConversationFinalizeInfo `codec:"finalizeInfo" json:"finalizeInfo"`
 	ConvIDs      []ConversationID         `codec:"convIDs" json:"convIDs"`
+	InboxVers    InboxVers                `codec:"inboxVers" json:"inboxVers"`
 }
 
 type GregorInterface interface {

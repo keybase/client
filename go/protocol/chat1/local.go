@@ -32,19 +32,137 @@ type MessageHeadline struct {
 	Headline string `codec:"headline" json:"headline"`
 }
 
+type AssetMetadataImage struct {
+	Width  int `codec:"width" json:"width"`
+	Height int `codec:"height" json:"height"`
+}
+
+type AssetMetadataVideo struct {
+	Width      int `codec:"width" json:"width"`
+	Height     int `codec:"height" json:"height"`
+	DurationMs int `codec:"durationMs" json:"durationMs"`
+}
+
+type AssetMetadataAudio struct {
+	DurationMs int `codec:"durationMs" json:"durationMs"`
+}
+
+type AssetMetadataType int
+
+const (
+	AssetMetadataType_NONE  AssetMetadataType = 0
+	AssetMetadataType_IMAGE AssetMetadataType = 1
+	AssetMetadataType_VIDEO AssetMetadataType = 2
+	AssetMetadataType_AUDIO AssetMetadataType = 3
+)
+
+var AssetMetadataTypeMap = map[string]AssetMetadataType{
+	"NONE":  0,
+	"IMAGE": 1,
+	"VIDEO": 2,
+	"AUDIO": 3,
+}
+
+var AssetMetadataTypeRevMap = map[AssetMetadataType]string{
+	0: "NONE",
+	1: "IMAGE",
+	2: "VIDEO",
+	3: "AUDIO",
+}
+
+type AssetMetadata struct {
+	AssetType__ AssetMetadataType   `codec:"assetType" json:"assetType"`
+	Image__     *AssetMetadataImage `codec:"image,omitempty" json:"image,omitempty"`
+	Video__     *AssetMetadataVideo `codec:"video,omitempty" json:"video,omitempty"`
+	Audio__     *AssetMetadataAudio `codec:"audio,omitempty" json:"audio,omitempty"`
+}
+
+func (o *AssetMetadata) AssetType() (ret AssetMetadataType, err error) {
+	switch o.AssetType__ {
+	case AssetMetadataType_IMAGE:
+		if o.Image__ == nil {
+			err = errors.New("unexpected nil value for Image__")
+			return ret, err
+		}
+	case AssetMetadataType_VIDEO:
+		if o.Video__ == nil {
+			err = errors.New("unexpected nil value for Video__")
+			return ret, err
+		}
+	case AssetMetadataType_AUDIO:
+		if o.Audio__ == nil {
+			err = errors.New("unexpected nil value for Audio__")
+			return ret, err
+		}
+	}
+	return o.AssetType__, nil
+}
+
+func (o AssetMetadata) Image() AssetMetadataImage {
+	if o.AssetType__ != AssetMetadataType_IMAGE {
+		panic("wrong case accessed")
+	}
+	if o.Image__ == nil {
+		return AssetMetadataImage{}
+	}
+	return *o.Image__
+}
+
+func (o AssetMetadata) Video() AssetMetadataVideo {
+	if o.AssetType__ != AssetMetadataType_VIDEO {
+		panic("wrong case accessed")
+	}
+	if o.Video__ == nil {
+		return AssetMetadataVideo{}
+	}
+	return *o.Video__
+}
+
+func (o AssetMetadata) Audio() AssetMetadataAudio {
+	if o.AssetType__ != AssetMetadataType_AUDIO {
+		panic("wrong case accessed")
+	}
+	if o.Audio__ == nil {
+		return AssetMetadataAudio{}
+	}
+	return *o.Audio__
+}
+
+func NewAssetMetadataWithImage(v AssetMetadataImage) AssetMetadata {
+	return AssetMetadata{
+		AssetType__: AssetMetadataType_IMAGE,
+		Image__:     &v,
+	}
+}
+
+func NewAssetMetadataWithVideo(v AssetMetadataVideo) AssetMetadata {
+	return AssetMetadata{
+		AssetType__: AssetMetadataType_VIDEO,
+		Video__:     &v,
+	}
+}
+
+func NewAssetMetadataWithAudio(v AssetMetadataAudio) AssetMetadata {
+	return AssetMetadata{
+		AssetType__: AssetMetadataType_AUDIO,
+		Audio__:     &v,
+	}
+}
+
 type Asset struct {
-	Filename  string `codec:"filename" json:"filename"`
-	Region    string `codec:"region" json:"region"`
-	Endpoint  string `codec:"endpoint" json:"endpoint"`
-	Bucket    string `codec:"bucket" json:"bucket"`
-	Path      string `codec:"path" json:"path"`
-	Size      int    `codec:"size" json:"size"`
-	MimeType  string `codec:"mimeType" json:"mimeType"`
-	EncHash   Hash   `codec:"encHash" json:"encHash"`
-	Key       []byte `codec:"key" json:"key"`
-	VerifyKey []byte `codec:"verifyKey" json:"verifyKey"`
-	Title     string `codec:"title" json:"title"`
-	Nonce     []byte `codec:"nonce" json:"nonce"`
+	Filename  string        `codec:"filename" json:"filename"`
+	Region    string        `codec:"region" json:"region"`
+	Endpoint  string        `codec:"endpoint" json:"endpoint"`
+	Bucket    string        `codec:"bucket" json:"bucket"`
+	Path      string        `codec:"path" json:"path"`
+	Size      int           `codec:"size" json:"size"`
+	MimeType  string        `codec:"mimeType" json:"mimeType"`
+	EncHash   Hash          `codec:"encHash" json:"encHash"`
+	Key       []byte        `codec:"key" json:"key"`
+	VerifyKey []byte        `codec:"verifyKey" json:"verifyKey"`
+	Title     string        `codec:"title" json:"title"`
+	Nonce     []byte        `codec:"nonce" json:"nonce"`
+	Metadata  AssetMetadata `codec:"metadata" json:"metadata"`
 }
 
 type MessageAttachment struct {
@@ -551,19 +669,23 @@ type UnreadFirstNumLimit struct {
 }
 
 type ConversationInfoLocal struct {
-	Id          ConversationID       `codec:"id" json:"id"`
-	Triple      ConversationIDTriple `codec:"triple" json:"triple"`
-	TlfName     string               `codec:"tlfName" json:"tlfName"`
-	TopicName   string               `codec:"topicName" json:"topicName"`
-	Visibility  TLFVisibility        `codec:"visibility" json:"visibility"`
-	WriterNames []string             `codec:"writerNames" json:"writerNames"`
-	ReaderNames []string             `codec:"readerNames" json:"readerNames"`
+	Id           ConversationID            `codec:"id" json:"id"`
+	Triple       ConversationIDTriple      `codec:"triple" json:"triple"`
+	TlfName      string                    `codec:"tlfName" json:"tlfName"`
+	TopicName    string                    `codec:"topicName" json:"topicName"`
+	Visibility   TLFVisibility             `codec:"visibility" json:"visibility"`
+	Status       ConversationStatus        `codec:"status" json:"status"`
+	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
+	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
+	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 }
 
 type ConversationLocal struct {
 	Error            *string                       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	Supersedes       []ConversationID              `codec:"supersedes" json:"supersedes"`
+	SupersededBy     []ConversationID              `codec:"supersededBy" json:"supersededBy"`
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`

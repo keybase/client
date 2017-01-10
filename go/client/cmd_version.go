@@ -47,7 +47,7 @@ func NewCmdVersion(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdVersionRunner(g), "verison", c)
+			cl.ChooseCommand(NewCmdVersionRunner(g), "version", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 		},

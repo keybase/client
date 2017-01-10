@@ -3,13 +3,20 @@
 import React from 'react'
 import {Emoji} from 'emoji-mart'
 
+// Just the single set we use
+import emojiSet from 'emoji-datasource/sheet_apple_64.png'
+
 import type {Props} from 'emoji-mart'
 
-// $FlowIssue with require
-const backgroundImageFn = (set: string, sheetSize: string) => require(`emoji-datasource/sheet_${set}_${sheetSize}.png`)
+const backgroundImageFn = (set: string, sheetSize: string) => emojiSet
 
 const EmojiWrapper = (props: Props) => {
-  return <Emoji {...props} emoji={[':', ...props.children, ':'].join('')} backgroundImageFn={backgroundImageFn} />
+  const emojiText = `:${props.children}:`
+  return (
+    <Emoji {...props} emoji={emojiText} backgroundImageFn={backgroundImageFn}>
+      <Emoji emoji={emojiText} size={props.size} native={true} />
+    </Emoji>
+  )
 }
 
 export {backgroundImageFn}

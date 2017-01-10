@@ -406,6 +406,10 @@ func (m *ChatRemoteMock) GetUnreadUpdateFull(ctx context.Context, inboxVers chat
 	return chat1.UnreadUpdateFull{}, errors.New("not implemented")
 }
 
+func (m *ChatRemoteMock) GetInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
+	return 1, nil
+}
+
 type convByNewlyUpdated struct {
 	mock *ChatRemoteMock
 }

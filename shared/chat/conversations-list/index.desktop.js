@@ -44,11 +44,11 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
   const hasUnread = !!conversation.get('unreadCount')
-  // $FlowIssue
   const avatarProps = participants.slice(0, 2).map((p, idx) => ({
     backgroundColor: globalColors.darkBlue4,
     username: p.username,
     borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
+    size: 24,
   })).toArray().reverse()
   const snippet = conversation.get('snippet')
   const subColor = (isSelected || hasUnread) ? globalColors.white : globalColors.blue3_40
@@ -115,11 +115,14 @@ const shhStyle = {
 }
 
 const ConversationList = (props: Props) => (
-  <div style={containerStyle}>
-    <AddNewRow {...props} />
-    <div style={scrollableStyle}>
-      {props.inbox.map(conversation => <Row {...props} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
+  <div style={{...globalStyles.flexBoxRow, flex: 1}}>
+    <div style={containerStyle}>
+      <AddNewRow {...props} />
+      <div style={scrollableStyle}>
+        {props.inbox.map(conversation => <Row {...props} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
+      </div>
     </div>
+    {props.children}
   </div>
 )
 

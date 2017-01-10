@@ -1,6 +1,7 @@
 // @flow
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
 import type {Email} from './types/flow-types'
+import type {AcceptedInvite, PendingInvite} from '../settings/invites/index'
 import HiddenString from '../util/hidden-string'
 
 export const invitesReclaim = 'settings:invitesReclaim'
@@ -21,7 +22,7 @@ export type InvitesSend = NoErrorTypedAction<'settings:invitesSend', {
 }>
 
 export const invitesSent = 'settings:invitesSent'
-export type InvitesSent = TypedAction<'settings:invitesSent', {email: string}, {errorText: string}>
+export type InvitesSent = TypedAction<'settings:invitesSent', {email: string}, {error: Error}>
 
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRefresh', void>
@@ -106,8 +107,9 @@ export type Invitation = {
 }
 
 export type InvitesState = {
-  pendingInvites: Array<Invitation>,
-  acceptedInvites: Array<Invitation>,
+  pendingInvites: Array<PendingInvite>,
+  acceptedInvites: Array<AcceptedInvite>,
+  error: ?Error,
 }
 
 export type NotificationsState = {
@@ -124,12 +126,10 @@ export type NotificationsState = {
 export type PassphraseState = {
   newPassphrase: HiddenString,
   newPassphraseConfirm: HiddenString,
-  showTyping: boolean,
   error: ?Error,
   newPassphraseError: ?HiddenString,
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
-  canSave: boolean,
 }
 
 export type EmailState = {

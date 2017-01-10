@@ -166,6 +166,7 @@ type ConversationIDTriple struct {
 type ConversationFinalizeInfo struct {
 	ResetUser      string       `codec:"resetUser" json:"resetUser"`
 	ResetDate      string       `codec:"resetDate" json:"resetDate"`
+	ResetFull      string       `codec:"resetFull" json:"resetFull"`
 	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
 }
 
@@ -173,6 +174,7 @@ type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
 	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
+	Status         ConversationStatus        `codec:"status" json:"status"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
 }

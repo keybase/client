@@ -18,7 +18,9 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -76,6 +78,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage,
 		func() chat1.RemoteInterface { return mockRemote })
 	h.setTestRemoteClient(mockRemote)
+	h.gh, _ = newGregorHandler(tc.G)
 
 	tuc := &chatTestUserContext{
 		h: h,
@@ -728,4 +731,81 @@ func TestGetOutbox(t *testing.T) {
 	routbox = extractOutbox(t, thread.Thread.Messages)
 	require.Equal(t, 0, len(routbox), "non empty outbox")
 
+}
+
+func TestChatGap(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetOutbox", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	var err error
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	res, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "Sometimes you eat the bar"}))
+	require.NoError(t, err)
+
+	u := users[0]
+	h := ctc.as(t, users[0]).h
+	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
+	msgID := res.MessageID
+	mres, err := h.remoteClient().GetMessagesRemote(context.TODO(), chat1.GetMessagesRemoteArg{
+		ConversationID: created.Id,
+		MessageIDs:     []chat1.MessageID{msgID},
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(mres.Msgs), "no msg returned")
+
+	ooMsg := mres.Msgs[0]
+	ooMsg.ServerHeader.MessageID = 4
+
+	payload := chat1.NewMessagePayload{
+		Action:  "newMessage",
+		ConvID:  created.Id,
+		Message: ooMsg,
+	}
+
+	listener := newNlistener(t)
+	tc.G.SetService()
+	tc.G.NotifyRouter.SetListener(listener)
+
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	require.NoError(t, enc.Encode(payload))
+	h.gh.BroadcastMessage(context.TODO(), gregor1.Message{
+		Oobm_: &gregor1.OutOfBandMessage{
+			Uid_:    u.User.GetUID().ToBytes(),
+			System_: "chat.activity",
+			Body_:   data,
+		},
+	})
+
+	select {
+	case cids := <-listener.threadStale:
+		require.Equal(t, []chat1.ConversationID{created.Id}, cids, "wrong cids")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to receive stale event")
+	}
+
+	ooMsg.ServerHeader.MessageID = 5
+	payload = chat1.NewMessagePayload{
+		Action:  "newMessage",
+		ConvID:  created.Id,
+		Message: ooMsg,
+	}
+	enc = codec.NewEncoderBytes(&data, &mh)
+	require.NoError(t, enc.Encode(payload))
+	h.gh.BroadcastMessage(context.TODO(), gregor1.Message{
+		Oobm_: &gregor1.OutOfBandMessage{
+			Uid_:    u.User.GetUID().ToBytes(),
+			System_: "chat.activity",
+			Body_:   data,
+		},
+	})
+
+	select {
+	case <-listener.threadStale:
+		require.Fail(t, "should not get stale event here")
+	default:
+	}
 }
