@@ -20,7 +20,7 @@ function AttachmentTitle ({messageState, title}: {messageState: Constants.Attach
   return <Text type='BodySemibold' style={style}>{title}</Text>
 }
 
-function PreviewImage ({message: {previewPath, previewType, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: () => void}) {
+function PreviewImage ({message: {previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: () => void}) {
   if (!!previewPath && previewType === 'Image') {
     let style = {
       ...globalStyles.flexBoxRow,
@@ -29,7 +29,7 @@ function PreviewImage ({message: {previewPath, previewType, messageState}, onOpe
       position: 'relative',
       alignItems: 'flex-end',
     }
-    const imgStyle = {...globalStyles.rounded, ...(message.previewSize ? {width: message.previewSize.width, height: message.previewSize.height} : {})}
+    const imgStyle = {...globalStyles.rounded, ...(previewSize ? {width: previewSize.width, height: previewSize.height} : {})}
 
     switch (messageState) {
       case 'uploading':
@@ -138,7 +138,7 @@ function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMess
   return <Icon type={iconType} style={style} />
 }
 
-function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Message, onOpenInFileUI: () => void}) {
+function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void}) {
   const {downloadedPath, messageState} = message
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.tiny}}>
@@ -160,7 +160,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Message,
   )
 }
 
-function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}: {message: Message, onOpenInFileUI: () => void, onOpenInPopup: () => void}) {
+function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onOpenInPopup: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <AttachmentTitle {...message} />
@@ -175,7 +175,8 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
   }
 
   _onOpenInFileUI () {
-    this.props.onOpenInFileUI(this.props.message)
+    const {downloadedPath} = this.props.message
+    downloadedPath && this.props.onOpenInFileUI(downloadedPath)
   }
 
   render () {

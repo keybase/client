@@ -16,7 +16,7 @@ import {Box, ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {List} from 'immutable'
-import type {Message, MessageID} from '../../constants/chat'
+import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
 import type {Props} from './list'
 
 type State = {
@@ -169,7 +169,7 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled()
   }, 100)
 
-  _renderPopup (message: Message, style: Object) {
+  _renderPopup (message: Message, style: Object): ?React$Element<any> {
     switch (message.type) {
       case 'Text':
         return (
@@ -195,7 +195,7 @@ class ConversationList extends Component<void, Props, State> {
             message={message}
             onDeleteMessage={() => this.props.onDeleteMessage(message)}
             onDownloadAttachment={() => this.props.onLoadAttachment(messageID, filename)}
-            onOpenInFileUI={() => downloadedPath && this.props.onOpenInFileUI(downloadedPath)}
+            onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
             onHidden={() => {
               ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
               this.setState({
@@ -208,7 +208,7 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _showPopup (message: Message, event: any) {
+  _showPopup (message: TextMessage | AttachmentMessage, event: any) {
     const clientRect = event.target.getBoundingClientRect()
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
@@ -217,7 +217,6 @@ class ConversationList extends Component<void, Props, State> {
     if (y < 10) y = 10
 
     const popupComponent = this._renderPopup(message, {position: 'absolute', top: y, left: x})
-
     if (!popupComponent) return
 
     this.setState({
@@ -228,7 +227,9 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _onAction = (message, event) => {
-    this._showPopup(message, event)
+    if (message.type === 'Text' || message.type === 'Attachment') {
+      this._showPopup(message, event)
+    }
   }
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {

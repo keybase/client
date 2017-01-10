@@ -3,7 +3,7 @@
 import React from 'react'
 import Text from './text'
 import {TextPopupMenu, AttachmentPopupMenu} from './popup'
-import AttachmentMessage from './attachment'
+import AttachmentMessageComponent from './attachment'
 import AttachmentPopup from '../attachment-popup'
 import {Box} from '../../../common-adapters'
 import HiddenString from '../../../util/hidden-string'
@@ -104,7 +104,7 @@ const attachmentBaseMessage = {
   messageState: 'sent',
   key: 'foo',
   senderDeviceRevokedAt: null,
-  previewSize: null,
+  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
 }
 
 const attachmentMessageWithImg = {
@@ -119,14 +119,12 @@ const attachmentMessageWithImg = {
   filename: '/tmp/Yosemite.jpg',
   title: 'Half Dome, Merced River, Winter',
   previewType: 'Image',
-  // $FlowIssue
-  previewPath: require('file-loader?emitFile=false!../../../images/yosemite preview.jpg'), // eslint-disable-line
-  // $FlowIssue
-  downloadedPath: require('file-loader?emitFile=false!../../../images/yosemite.jpg'), // eslint-disable-line
+  previewPath: require('../../../images/mock/yosemite-preview.jpg'),
+  downloadedPath: require('../../../images/mock/yosemite-preview.jpg'),
   messageState: 'sent',
   key: 'foo',
   senderDeviceRevokedAt: null,
-  previewSize: null,
+  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
 }
 
 const attachmentMessageGeneric = {
@@ -146,7 +144,7 @@ const attachmentMessageGeneric = {
   messageState: 'sent',
   key: 'foo',
   senderDeviceRevokedAt: null,
-  previewSize: null,
+  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
 }
 
 const attachmentBaseMock = {
@@ -157,11 +155,12 @@ const attachmentBaseMock = {
   onAction: () => console.log('onAction'),
   onRetry: () => console.log('onRetry'),
   onOpenInFileUI: (path: string) => console.log('on open in file ui'),
+  onOpenInPopup: (message: AttachmentMessage) => console.log('on open in popup'),
   style: {},
 }
 
-const attachmentMap: DumbComponentMap<AttachmentMessage> = {
-  component: AttachmentMessage,
+const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
+  component: AttachmentMessageComponent,
   mocks: {
     'Basic - Not loaded': attachmentBaseMock,
     'Basic - Preview Image. Failed': {
@@ -286,9 +285,9 @@ const baseTextPopupMenuMock = {
 
 const baseAttachmentPopupMenuMock = {
   ...basePopupMock,
-  onLoadAttachment: (messageID, filename) => console.log('message id', messageID, 'filename', filename),
+  onDownloadAttachment: (messageID, filename) => console.log('message id', messageID, 'filename', filename),
   onDeleteMessage: (m: any) => console.log('onDeleteMessage', m),
-  onOpenInFileUI: (path: string) => console.log('path', path),
+  onOpenInFileUI: (m: any) => console.log('on open in file ui'),
 }
 
 const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
@@ -332,6 +331,7 @@ function baseAttachmentPopupMock (message) {
     onDownload: () => console.log('onDownload'),
     onDeleteMessage: () => console.log('onDeleteMessage'),
     onOpenDetailsPopup: () => console.log('onOpenDetailsPopup'),
+    onOpenInFileUI: () => console.log('onOpenInFileUI'),
     onToggleZoom: () => console.log('onToggleZoom'),
     parentProps: {
       style: {
