@@ -31,9 +31,9 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
 
 class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void, onRetry: (event: any) => void}, void> {
   render () {
-    const {message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, you, followingMap, metaDataMap} = this.props
+    const {message, style, includeHeader, isFirstNewMessage, isSelected, onRetry, onIconClick} = this.props
     return (
-      <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
+      <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}} className='message'>
         <div style={_marginContainerStyle}>
           <div style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: marginColor(message.author, you, followingMap, metaDataMap)}} />
           <div style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
@@ -97,8 +97,12 @@ const _avatarStyle = {
   marginRight: globalMargins.tiny,
 }
 
-const stylesFirstNewMessage = {
+const _stylesFirstNewMessage = {
   borderTop: `solid 1px ${globalColors.orange}`,
+}
+
+const _stylesSelected = {
+  backgroundColor: `${globalColors.black_05}`,
 }
 
 export default compose(

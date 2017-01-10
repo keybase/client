@@ -1,7 +1,7 @@
 // @flow
 import {mapValues, forEach} from 'lodash'
-import {buffers, channel, takeEvery, takeLatest} from 'redux-saga'
-import {take, call, put} from 'redux-saga/effects'
+import {buffers, channel} from 'redux-saga'
+import {take, call, put, takeEvery, takeLatest} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 

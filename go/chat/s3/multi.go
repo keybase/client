@@ -107,6 +107,7 @@ func (b *Bucket) Multi(ctx context.Context, key, contType string, perm ACL) (Mul
 			return m, nil
 		}
 	}
+
 	return b.InitMulti(ctx, key, contType, perm)
 }
 
