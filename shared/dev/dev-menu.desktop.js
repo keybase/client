@@ -13,6 +13,7 @@ function DevMenu (props) {
     {name: 'Dumb components', hasChildren: true, onClick: props.onDumbSheet},
     {name: 'Reset engine', onClick: props.onReset},
     {name: 'Sign Out', onClick: props.onSignOut},
+    {name: 'Test Chat', onClick: props.testChat},
   ]
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
@@ -30,4 +31,5 @@ export default connect(
     onSignOut: () => dispatch(logout()),
     onBack: () => dispatch(navigateUp()),
     onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
+    testChat: () => dispatch({type: 'chat:testLoad'}),
   }))(DevMenu)
