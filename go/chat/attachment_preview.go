@@ -152,8 +152,11 @@ func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename 
 		return nil, errors.New("no image frames in GIF")
 	}
 
+	log.Debug("previewGIF: number of frames = %d", frames)
+
 	var baseDuration int
 	if frames > 40 {
+		log.Debug("previewGif: too many frames in gif for preview: %d, just using frame 0", frames)
 		baseDuration = gifDuration(g)
 		g.Image = g.Image[:1]
 		g.Delay = g.Delay[:1]
@@ -165,10 +168,9 @@ func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename 
 	origBounds := g.Image[0].Bounds()
 	img := image.NewRGBA(origBounds)
 
-	log.Debug("previewGIF: number of frames = %d", len(g.Image))
-
 	// draw each frame, then resize it, replacing the existing frames.
 	width, height := previewDimensions(origBounds)
+	log.Debug("previewGif: resizing to %d x %d", width, height)
 	for index, frame := range g.Image {
 		bounds := frame.Bounds()
 		draw.Draw(img, bounds, frame, bounds.Min, draw.Over)
