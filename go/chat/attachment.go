@@ -168,6 +168,10 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 			// erase information about previous upload attempt
 			a.finishUpload(ctx, task)
 		}
+		ew, ok := err.(*ErrorWrapper)
+		if ok {
+			a.log.Debug("PutS3 error details: %s", ew.Details())
+		}
 		return chat1.Asset{}, err
 	}
 	a.log.Debug("chat attachment upload: %+v", upRes)

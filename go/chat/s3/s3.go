@@ -31,7 +31,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const debug = false
+const debug = true
 
 type Signer interface {
 	Sign(payload []byte) ([]byte, error)

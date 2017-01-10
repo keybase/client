@@ -107,7 +107,7 @@ func (s *S3) sign(method, canonicalPath string, params, headers map[string][]str
 		if s3ParamsToSign[k] {
 			for _, vi := range v {
 				if vi == "" {
-					sarray = append(sarray, keySortableTuple{k, k})
+					sarray = append(sarray, keySortableTuple{"", k})
 				} else {
 					// "When signing you do not encode these values."
 					sarray = append(sarray, keySortableTuple{k, k + "=" + vi})
