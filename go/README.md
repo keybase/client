@@ -49,13 +49,12 @@ see what version you have.)
 # building Go programs, so if you've done this already, skip on ahead.
 # See also https://golang.org/doc/install.
 mkdir ~/gopath
-cd ~/gopath
 export GOPATH="$HOME/gopath"     # Consider putting this in your ~/.bashrc.
 export PATH="$PATH:$GOPATH/bin"  # Ditto.
 
 # Now for the actual clone and build.
-GO15VENDOREXPERIMENT=1 go get github.com/keybase/client/go/keybase
-GO15VENDOREXPERIMENT=1 go install -tags production github.com/keybase/client/go/keybase
+go get github.com/keybase/client/go/keybase
+go install -tags production github.com/keybase/client/go/keybase
 
 # If you did the PATH bit above, this should just work.
 keybase
@@ -72,6 +71,9 @@ Or specify a custom home directory (and use -d for debug):
 ```bash
 keybase -H ~/Projects/Keybase/dev -d service
 ```
+
+Note that many commands will start the service in the background
+automatically if it's not already running. See also `keybase ctl --help`.
 
 ### Run the client
 
@@ -90,10 +92,8 @@ keybase --standalone id max
 ### Run tests
 
 ```bash
-# Skip tests in vendored projects. (This runs non-vendor tests in the
-# current directory and below. So at the project root it will run
-# everything.)
-go test $(go list ./... | grep -v /vendor/)
+cd $GOPATH/src/github.com/keybase/client/go/test
+./run_tests.sh
 ```
 
 ### License
