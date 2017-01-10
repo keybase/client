@@ -419,6 +419,75 @@ func TestJournalCoalescingBasicCreates(t *testing.T) {
 	)
 }
 
+// bob creates a bunch of files in a journal and the operations get
+// coalesced together, multiple times.  Then alice writes something
+// non-conflicting, forcing CR to happen on top of the unmerged local
+// squashes.  This is a regression for KBFS-1838.
+func TestJournalCoalescingCreatesPlusCR(t *testing.T) {
+	var busyWork []fileOp
+	var reads []fileOp
+	listing := m{"^a$": "DIR", "^b$": "DIR"}
+	iters := libkbfs.ForcedBranchSquashThreshold + 1
+	unflushedPaths := []string{"alice,bob"}
+	for i := 0; i < iters; i++ {
+		name := fmt.Sprintf("a%d", i)
+		contents := fmt.Sprintf("hello%d", i)
+		busyWork = append(busyWork, mkfile(name, contents))
+		listing["^"+name+"$"] = "FILE"
+		unflushedPaths = append(unflushedPaths, "alice,bob/"+name)
+	}
+
+	busyWork2 := []fileOp{}
+	for i := 0; i < iters; i++ {
+		name := fmt.Sprintf("a%d", i)
+		contents := fmt.Sprintf("hello%d", i+iters)
+		busyWork2 = append(busyWork2, write(name, contents))
+		reads = append(reads, read(name, contents))
+	}
+
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+		),
+		as(bob, busyWork...),
+		as(bob,
+			checkUnflushedPaths(unflushedPaths),
+			// Coalescing, round 1.
+			flushJournal(),
+		),
+		as(bob, busyWork2...),
+		as(bob,
+			checkUnflushedPaths(unflushedPaths),
+			// Coalescing, round 2.
+			flushJournal(),
+		),
+		as(alice,
+			// Non-conflict write to force CR on top of the local
+			// squashes.
+			mkdir("b"),
+		),
+		as(bob,
+			// This should try to flush the coalescing, but will hit a
+			// conflict.  It will get resolved at the next sync.
+			resumeJournal(),
+		),
+		as(bob,
+			lsdir("", listing),
+			checkUnflushedPaths(nil),
+		),
+		as(bob, reads...),
+		as(alice,
+			lsdir("", listing),
+		),
+		as(alice, reads...),
+	)
+}
+
 // bob creates and appends to a file in a journal and the operations
 // get coalesced together.
 func TestJournalCoalescingWrites(t *testing.T) {
