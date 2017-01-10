@@ -14,7 +14,7 @@ import shallowEqual from 'shallowequal'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Box, ProgressIndicator} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
-
+import {clipboard} from 'electron'
 import type {List} from 'immutable'
 import type {Message, MessageID} from '../../constants/chat'
 import type {Props} from './list'
@@ -265,7 +265,11 @@ class ConversationList extends Component<void, Props, State> {
     `
 
     return (
-      <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+      <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}} onCopyCapture={(e) => {
+        // Copy text only, not HTML/styling.
+        e.preventDefault()
+        clipboard.writeText(window.getSelection().toString())
+      }}>
         <style>{realCSS}</style>
         <AutoSizer
           onResize={({width}) => {
