@@ -31,7 +31,7 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
 
 class _MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void, onRetry: (event: any) => void}, void> {
   render () {
-    const {message, style, includeHeader, isFirstNewMessage, isSelected, onRetry, onIconClick} = this.props
+    const {message, style, includeHeader, isFirstNewMessage, isSelected, onRetry, onIconClick, you, followingMap, metaDataMap} = this.props
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}} className='message'>
         <div style={_marginContainerStyle}>
