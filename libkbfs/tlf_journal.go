@@ -105,6 +105,13 @@ const (
 	TLFJournalBackgroundWorkEnabled
 )
 
+type tlfJournalPauseType int
+
+const (
+	journalPausedFromConflict tlfJournalPauseType = 1 << iota
+	journalPausedFromSignal
+)
+
 func (bws TLFJournalBackgroundWorkStatus) String() string {
 	switch bws {
 	case TLFJournalBackgroundWorkEnabled:
@@ -177,10 +184,11 @@ type tlfJournal struct {
 	needResumeCh   chan struct{}
 	needShutdownCh chan struct{}
 
-	// Is background work paused until the next explicit external
-	// resume signal?
-	pausedLock        sync.Mutex
-	pausedUntilSignal bool
+	// Track the ways in which the journal is paused.  We don't allow
+	// work to resume unless a resume has come in corresponding to
+	// each type of paused that's happened.
+	pausedLock sync.Mutex
+	pausedType tlfJournalPauseType
 
 	// This channel is closed when background work shuts down.
 	backgroundShutdownCh chan struct{}
@@ -319,6 +327,10 @@ func makeTLFJournal(
 		bwDelegate:           bwDelegate,
 	}
 
+	if bws == TLFJournalBackgroundWorkPaused {
+		j.pausedType |= journalPausedFromSignal
+	}
+
 	isConflict, err := j.isOnConflictBranch()
 	if err != nil {
 		return nil, err
@@ -329,6 +341,7 @@ func makeTLFJournal(
 		j.log.CDebugf(ctx, "Journal for %s has a conflict, so starting off "+
 			"paused (requested status %s)", tlfID, bws)
 		bws = TLFJournalBackgroundWorkPaused
+		j.pausedType |= journalPausedFromConflict
 	}
 	if bws == TLFJournalBackgroundWorkPaused {
 		j.wg.Pause()
@@ -366,10 +379,10 @@ const (
 // enqueued journal ID tag.
 const CtxJournalOpID = "JID"
 
-func (j *tlfJournal) pauseFromSignal() {
+func (j *tlfJournal) pause(pauseType tlfJournalPauseType) {
 	j.pausedLock.Lock()
 	defer j.pausedLock.Unlock()
-	j.pausedUntilSignal = true
+	j.pausedType |= pauseType
 	j.wg.Pause()
 }
 
@@ -463,7 +476,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				j.log.CDebugf(ctx,
 					"Got pause signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkPaused
-				j.pauseFromSignal()
+				j.pause(journalPausedFromSignal)
 
 			case <-j.needShutdownCh:
 				j.log.CDebugf(ctx,
@@ -504,7 +517,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				j.log.CDebugf(ctx,
 					"Got pause signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkPaused
-				j.pauseFromSignal()
+				j.pause(journalPausedFromSignal)
 
 			case <-j.needShutdownCh:
 				j.log.CDebugf(ctx,
@@ -539,9 +552,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				j.log.CDebugf(ctx,
 					"Got resume signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkEnabled
-				j.pausedLock.Lock()
-				j.pausedUntilSignal = false
-				j.pausedLock.Unlock()
 
 			case <-j.needShutdownCh:
 				j.log.CDebugf(ctx,
@@ -587,7 +597,11 @@ func (j *tlfJournal) pauseBackgroundWork() {
 	}
 }
 
-func (j *tlfJournal) resumeBackgroundWork() {
+func (j *tlfJournal) doResumeBackgroundWork() {
+	if j.pausedType != 0 {
+		return
+	}
+
 	select {
 	case j.needResumeCh <- struct{}{}:
 		// Resume the wait group right away, so future callers will block
@@ -597,12 +611,18 @@ func (j *tlfJournal) resumeBackgroundWork() {
 	}
 }
 
-func (j *tlfJournal) resumeBackgroundWorkIfNotWaitingForSignal() {
+func (j *tlfJournal) resumeBackgroundWork() {
 	j.pausedLock.Lock()
 	defer j.pausedLock.Unlock()
-	if !j.pausedUntilSignal {
-		j.resumeBackgroundWork()
-	}
+	j.pausedType &= ^journalPausedFromSignal
+	j.doResumeBackgroundWork()
+}
+
+func (j *tlfJournal) resumeBackgroundWorkFromConflict() {
+	j.pausedLock.Lock()
+	defer j.pausedLock.Unlock()
+	j.pausedType &= ^journalPausedFromConflict
+	j.doResumeBackgroundWork()
 }
 
 func (j *tlfJournal) checkEnabledLocked() error {
@@ -823,7 +843,7 @@ func (j *tlfJournal) convertMDsToBranchLocked(
 	// Pause while on a conflict branch.  Pausing due to a branch
 	// doesn't set pausedUntilSignal, since we want to be unpausable
 	// by a branch resolution, not just an explicit signal.
-	j.wg.Pause()
+	j.pause(journalPausedFromConflict)
 
 	if j.onBranchChange != nil {
 		j.onBranchChange.onTLFBranchChange(j.tlfID, bid)
@@ -1602,7 +1622,7 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 		return err
 	}
 
-	j.resumeBackgroundWorkIfNotWaitingForSignal()
+	j.resumeBackgroundWorkFromConflict()
 	return nil
 }
 
@@ -1649,7 +1669,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 		return MdID{}, false, err
 	}
 
-	j.resumeBackgroundWorkIfNotWaitingForSignal()
+	j.resumeBackgroundWorkFromConflict()
 	j.signalWork()
 
 	// TODO: kick off a background goroutine that deletes ignored

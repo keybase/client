@@ -1052,7 +1052,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	require.Equal(t, bids[0], blocks.puts.blockStates[0].blockPtr.ID)
 	require.Equal(t, bids[2], blocks.puts.blockStates[1].blockPtr.ID)
 
-	// resolveBranch resumes background work.
+	tlfJournal.resumeBackgroundWork()
 	delegate.requireNextState(ctx, bwIdle)
 	delegate.requireNextState(ctx, bwBusy)
 }
