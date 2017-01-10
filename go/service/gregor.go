@@ -1218,7 +1218,10 @@ func (g *gregorHandler) connectTLS() error {
 	g.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
 
 	g.connMutex.Lock()
-	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), libkb.WrapError, g.G().Log, nil)
+	opts := rpc.ConnectionOpts{
+		WrapErrorFunc: libkb.WrapError,
+	}
+	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G()), g.G().Log, opts)
 	g.connMutex.Unlock()
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
@@ -1241,7 +1244,10 @@ func (g *gregorHandler) connectNoTLS() error {
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
 	g.connMutex.Lock()
-	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, true, libkb.WrapError, g.G().Log, nil)
+	opts := rpc.ConnectionOpts{
+		WrapErrorFunc: libkb.WrapError,
+	}
+	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
 	g.connMutex.Unlock()
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
 
