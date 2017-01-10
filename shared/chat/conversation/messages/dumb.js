@@ -7,7 +7,7 @@ import AttachmentMessage from './attachment'
 import AttachmentPopup from '../attachment-popup'
 import {Box} from '../../../common-adapters'
 import HiddenString from '../../../util/hidden-string'
-import {messageStates, followStates} from '../../../constants/chat'
+import {messageStates, followStates, clampAttachmentPreviewSize} from '../../../constants/chat'
 
 import type {FollowState, MessageState, TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {DumbComponentMap} from '../../../constants/types/more'
@@ -45,6 +45,7 @@ function attachmentMessageMock (messageState: MessageState, followState: FollowS
     previewType: 'Image',
     previewPath: require('../../../images/mock/yosemite-preview.jpg'),
     downloadedPath: require('../../../images/mock/yosemite.jpg'),
+    previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
   }
 }
 
