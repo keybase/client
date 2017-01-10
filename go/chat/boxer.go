@@ -14,7 +14,6 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -38,10 +37,10 @@ type Boxer struct {
 	tlf    keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
 	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
-	kbCtx  utils.KeybaseContext
+	kbCtx  KeybaseContext
 }
 
-func NewBoxer(kbCtx utils.KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
+func NewBoxer(kbCtx KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
 	return &Boxer{
 		tlf:    tlf,
 		hashV1: hashSha256V1,
@@ -68,10 +67,10 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.Messag
 // Returns (_, err) for non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
 // Permanent errors can be cached and must be treated as a value to deal with.
 // Whereas temporary errors are transient failures.
-func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.MessageBoxed) (chat1.MessageUnboxed, libkb.ChatUnboxingError) {
+func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed) (chat1.MessageUnboxed, libkb.ChatUnboxingError) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
-	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic)
+	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
 		// transient error
 		return chat1.MessageUnboxed{}, libkb.NewTransientChatUnboxingError(err)
@@ -101,7 +100,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 	}
 	pt := umwkr.messagePlaintext
 
-	username, deviceName, deviceType, err := b.getSenderInfoLocal(pt.ClientHeader)
+	username, deviceName, deviceType, err := b.getSenderInfoLocal(ctx, pt.ClientHeader)
 	if err != nil {
 		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
 			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
@@ -256,24 +255,23 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 	return thread, nil
 }
 
-func (b *Boxer) getUsernameAndDevice(uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
-	udc := b.kbCtx.GetUserDeviceCache()
-	if udc == nil {
-		return "", "", "", fmt.Errorf("missing UserDeviceCache")
+func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
+	nun, devName, devType, err := b.kbCtx.GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
+	if err != nil {
+		return "", "", "", err
 	}
-	return udc.LookupUsernameAndDevice(uid, deviceID)
+	return nun.String(), devName, devType, nil
 }
 
-func (b *Boxer) getSenderInfoLocal(clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
+func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
 	uid := keybase1.UID(clientHeader.Sender.String())
 	did := keybase1.DeviceID(clientHeader.SenderDevice.String())
-	return b.getUsernameAndDevice(uid, did)
+	return b.getUsernameAndDevice(ctx, uid, did)
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
-	finder := NewKeyFinder(b.log())
 	for _, msg := range boxed {
-		decmsg, err := b.UnboxMessage(ctx, finder, msg)
+		decmsg, err := b.UnboxMessage(ctx, msg)
 		if err != nil {
 			return unboxed, err
 		}
@@ -308,27 +306,16 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	if len(tlfName) == 0 {
 		return nil, libkb.ChatBoxingError{Msg: "blank TLF name given"}
 	}
+
+	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, msg.ClientHeader.TlfPublic)
+	if err != nil {
+		return nil, libkb.ChatBoxingError{Msg: "KeyFinder.Find: " + err.Error()}
+	}
+	msg.ClientHeader.TlfName = string(cres.NameIDBreaks.CanonicalName)
 	if msg.ClientHeader.TlfPublic {
 		recentKey = &publicCryptKey
-		res, err := b.tlf.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return nil, libkb.ChatBoxingError{Msg: "PublicCanonicalTLFNameAndID: " + err.Error()}
-		}
-		msg.ClientHeader.TlfName = string(res.CanonicalName)
 	} else {
-		keys, err := b.tlf.CryptKeys(ctx, keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-		if err != nil {
-			return nil, libkb.ChatBoxingError{Msg: "CryptKeys: " + err.Error()}
-		}
-		msg.ClientHeader.TlfName = string(keys.NameIDBreaks.CanonicalName)
-
-		for _, key := range keys.CryptKeys {
+		for _, key := range cres.CryptKeys {
 			if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {
 				recentKey = &key
 			}
@@ -513,9 +500,12 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	}
 
 	// check key validity
-	validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
+	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
 	if ierr != nil {
 		return verifyMessageRes{}, ierr
+	}
+	if !found {
+		return verifyMessageRes{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
 	}
 	if !validAtCtime {
 		return verifyMessageRes{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
@@ -542,32 +532,31 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Signatu
 // ValidSenderKey checks that the key was active for sender at ctime.
 // This trusts the server for ctime, so a colluding server could use a revoked key and this check wouldn't notice.
 // Returns (validAtCtime, revoked, err)
-func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, *gregor1.Time, libkb.ChatUnboxingError) {
+func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr libkb.ChatUnboxingError) {
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
-		return false, nil, libkb.NewPermanentChatUnboxingError(err)
+		return false, false, nil, libkb.NewPermanentChatUnboxingError(err)
 	}
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
-	cachedUserLoader := b.kbCtx.GetCachedUserLoader()
+	cachedUserLoader := b.kbCtx.GetUPAKLoader()
 	if cachedUserLoader == nil {
-		return false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
+		return false, false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
 
-	found, revokedAt, err := cachedUserLoader.CheckKIDForUID(kbSender, kid)
+	found, revokedAt, err := cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
 	if err != nil {
-		return false, nil, libkb.NewTransientChatUnboxingError(err)
+		return false, false, nil, libkb.NewTransientChatUnboxingError(err)
 	}
 	if !found {
-		return false, nil, nil
+		return false, false, nil, nil
 	}
 
-	var revoked *gregor1.Time
 	validAtCtime := true
 	if revokedAt != nil {
 		if revokedAt.Unix.IsZero() {
-			return false, nil, libkb.NewPermanentChatUnboxingError(fmt.Errorf("zero clock time on expired key"))
+			return true, false, nil, libkb.NewPermanentChatUnboxingError(fmt.Errorf("zero clock time on expired key"))
 		}
 		t := b.keybase1KeybaseTimeToTime(*revokedAt)
 		revokedTime := gregor1.ToTime(t)
@@ -575,7 +564,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 		validAtCtime = t.After(ctime2)
 	}
 
-	return validAtCtime, revoked, nil
+	return true, validAtCtime, revoked, nil
 }
 
 func (b *Boxer) keybase1KeybaseTimeToTime(t1 keybase1.KeybaseTime) time.Time {

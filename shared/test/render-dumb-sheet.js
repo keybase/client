@@ -7,7 +7,7 @@ import materialTheme from '../styles/material-theme.desktop'
 import dumbComponentMap from '../dev/dumb-sheet/component-map.desktop'
 import DumbSheetItem from '../dev/dumb-sheet/item'
 
-import '../../desktop/renderer/style.css'
+import '../desktop/renderer/style.css'
 
 const PADDING = 25
 

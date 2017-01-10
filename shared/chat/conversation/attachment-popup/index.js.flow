@@ -1,0 +1,18 @@
+// @flow
+import {Component} from 'react'
+
+import type {AttachmentMessage} from '../../../constants/chat'
+
+export type Props = {
+  message: AttachmentMessage,
+  detailsPopupShowing: boolean,
+  isZoomed: boolean,
+  onCloseDetailsPopup: () => void,
+  onClose: () => void,
+  onDownload: () => void,
+  onDeleteMessage: () => void,
+  onOpenDetailsPopup: () => void,
+  onToggleZoom: () => void,
+}
+
+export default class AttachmentPopup extends Component<void, Props, void> {}

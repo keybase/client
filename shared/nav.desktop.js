@@ -12,6 +12,11 @@ import type {Tab} from './constants/tabs'
 import type {Props} from './nav'
 
 function Nav (props: Props) {
+  const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
+  if (!visibleScreen) {
+    throw new Error('no route component to render without layerOnTop tag')
+  }
+  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
   return (
     <Box style={stylesTabsContainer}>
       {props.routeSelected !== loginTab &&
@@ -26,7 +31,8 @@ function Nav (props: Props) {
         />
       }
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {props.children}
+        {visibleScreen.component}
+        {layerScreens.map(r => r.leafComponent)}
       </Box>
       <div id='popupContainer' />
       <GlobalError />
@@ -51,6 +57,11 @@ export default connect(
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
     switchTab: (tab: Tab) => {
+      if (tab === chatTab && routeSelected === tab) {
+        // clicking the chat tab when already selected should do nothing.
+        return
+      }
+      // otherwise, back out to the default route of the tab.
       const action = routeSelected === tab ? navigateTo : switchTo
       dispatch(action(routePath.push(tab)))
     },

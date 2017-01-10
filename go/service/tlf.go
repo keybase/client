@@ -8,26 +8,21 @@ import (
 
 	"golang.org/x/net/context"
 
-	"sync"
-
-	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type tlfHandler struct {
-	sync.RWMutex
 	*BaseHandler
 	libkb.Contextified
-	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
 func newTlfHandler(xp rpc.Transporter, g *libkb.GlobalContext) *tlfHandler {
 	return &tlfHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
-		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
 }
 
@@ -56,43 +51,28 @@ func appendBreaks(l []keybase1.TLFIdentifyFailure, r []keybase1.TLFIdentifyFailu
 	return res
 }
 
-func (h *tlfHandler) sendNotifyEvent(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
-	h.RLock()
-	tlfName := update.CanonicalName.String()
-	if stored, ok := h.identCache[tlfName]; ok {
-		// We have the exact update stored, don't send it again
-		if stored.Eq(update) {
-			defer h.RUnlock()
-			h.G().Log.Debug("sendNotifyEvent: hit cache, not sending notify: %s", tlfName)
-			return
-		}
-	}
-	h.RUnlock()
-
-	h.Lock()
-	defer h.Unlock()
-
-	h.G().Log.Debug("sendNotifyEvent: cache miss, sending notify: %s dat: %v", tlfName, update)
-	h.G().NotifyRouter.HandleChatIdentifyUpdate(context.Background(), update)
-	h.identCache[tlfName] = update
-}
-
 func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keybase1.GetTLFCryptKeysRes, error) {
+	var err error
+	ident, breaks, ok := chat.IdentifyMode(ctx)
+	if ok {
+		arg.IdentifyBehavior = ident
+	}
+	defer h.G().CTrace(ctx, fmt.Sprintf("tlfHandler.CryptKeys(tlf=%s,mode=%v)", arg.TlfName,
+		arg.IdentifyBehavior), func() error { return err })()
 
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
-	ident, breaks, ok := utils.IdentifyMode(ctx)
-	if ok {
-		arg.IdentifyBehavior = ident
-	}
+
 	resp, err := tlfClient.GetTLFCryptKeys(ctx, arg)
 	if err != nil {
 		return resp, err
 	}
 
-	h.sendNotifyEvent(resp.NameIDBreaks)
+	if in := chat.CtxIdentifyNotifier(ctx); in != nil {
+		in.Send(resp.NameIDBreaks)
+	}
 	if ok {
 		*breaks = appendBreaks(*breaks, resp.NameIDBreaks.Breaks.Breaks)
 	}
@@ -100,20 +80,26 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 }
 
 func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+	var err error
+	ident, breaks, ok := chat.IdentifyMode(ctx)
+	if ok {
+		arg.IdentifyBehavior = ident
+	}
+	defer h.G().CTrace(ctx, fmt.Sprintf("tlfHandler.PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)",
+		arg.TlfName, arg.IdentifyBehavior), func() error { return err })()
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
-	ident, breaks, ok := utils.IdentifyMode(ctx)
-	if ok {
-		arg.IdentifyBehavior = ident
-	}
+
 	resp, err := tlfClient.GetPublicCanonicalTLFNameAndID(ctx, arg)
 	if err != nil {
 		return resp, err
 	}
 
-	h.sendNotifyEvent(resp)
+	if in := chat.CtxIdentifyNotifier(ctx); in != nil {
+		in.Send(resp)
+	}
 	if ok {
 		*breaks = appendBreaks(*breaks, resp.Breaks.Breaks)
 	}

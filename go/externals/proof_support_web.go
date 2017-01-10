@@ -73,7 +73,7 @@ func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb
 }
 
 func (rc *WebChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
+	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), h.GetAPIURL()))
 
 	if err != nil {
 		return libkb.XapiError(err, h.GetAPIURL())

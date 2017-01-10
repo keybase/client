@@ -11,6 +11,7 @@ const initialState: State = {
   invites: {
     pendingInvites: [],
     acceptedInvites: [],
+    error: null,
   },
   notifications: {
     settings: null,
@@ -26,12 +27,10 @@ const initialState: State = {
   passphrase: {
     newPassphrase: new HiddenString(''),
     newPassphraseConfirm: new HiddenString(''),
-    showTyping: false,
     error: null,
     newPassphraseError: null,
     newPassphraseConfirmError: null,
     hasPGPKeyOnServer: null,
-    canSave: false,
   },
   push: {
     permissionsPrompt: false,
@@ -116,7 +115,24 @@ function reducer (state: State = initialState, action: Actions): State {
       return {
         ...state,
         invites: {
+          ...state.invites,
           ...action.payload,
+        },
+      }
+    case Constants.invitesSent:
+      return {
+        ...state,
+        invites: {
+          ...state.invites,
+          error: action.payload.error,
+        },
+      }
+    case 'invites:clearError':
+      return {
+        ...state,
+        invites: {
+          ...state.invites,
+          error: null,
         },
       }
     case Constants.loadedSettings: {
@@ -133,7 +149,6 @@ function reducer (state: State = initialState, action: Actions): State {
         passphrase: {
           ...state.passphrase,
           newPassphrase: action.payload.passphrase,
-          canSave: _canSave(action.payload.passphrase, state.passphrase.newPassphraseConfirm, state.passphrase.hasPGPKeyOnServer !== null),
           error: null,
         },
       }
@@ -143,7 +158,6 @@ function reducer (state: State = initialState, action: Actions): State {
         passphrase: {
           ...state.passphrase,
           newPassphraseConfirm: action.payload.passphrase,
-          canSave: _canSave(state.passphrase.newPassphrase, action.payload.passphrase, state.passphrase.hasPGPKeyOnServer !== null),
           error: null,
         },
       }
@@ -161,14 +175,6 @@ function reducer (state: State = initialState, action: Actions): State {
         passphrase: {
           ...state.passphrase,
           error: action.payload.error,
-        },
-      }
-    case Constants.onChangeShowPassphrase:
-      return {
-        ...state,
-        passphrase: {
-          ...state.passphrase,
-          showTyping: !state.passphrase.showTyping,
         },
       }
     case Constants.onChangeNewEmail:
@@ -196,10 +202,6 @@ function reducer (state: State = initialState, action: Actions): State {
 
   }
   return state
-}
-
-function _canSave (one: HiddenString, two: HiddenString, downloadedPGPState: boolean): boolean {
-  return downloadedPGPState && one.stringValue() === two.stringValue() && one.stringValue().length >= 12
 }
 
 export default reducer

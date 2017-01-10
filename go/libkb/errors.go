@@ -1211,6 +1211,14 @@ func (e IdentifyTimeoutError) Error() string {
 
 //=============================================================================
 
+type TrackBrokenError struct{}
+
+func (e TrackBrokenError) Error() string {
+	return "track of user was broken"
+}
+
+//=============================================================================
+
 type IdentifyDidNotCompleteError struct{}
 
 func (e IdentifyDidNotCompleteError) Error() string {
@@ -1381,6 +1389,14 @@ type TrackStaleError struct {
 
 func (e TrackStaleError) Error() string {
 	return "Following statement was stale"
+}
+
+//=============================================================================
+
+type InconsistentCacheStateError struct{}
+
+func (e InconsistentCacheStateError) Error() string {
+	return "Inconsistent cache state, likely after a DB reset; need a force reload"
 }
 
 //=============================================================================
@@ -1853,3 +1869,5 @@ type LevelDBOpenClosedError struct{}
 func (e LevelDBOpenClosedError) Error() string {
 	return "opening a closed DB"
 }
+
+//=============================================================================

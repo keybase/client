@@ -42,14 +42,17 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 	}
 }
 
-func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
-	defer h.G().Trace("IdentifyHandler.Identify2", func() error { return err })()
+func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
+	netCtx = libkb.WithLogTag(netCtx, "ID2")
+	defer h.G().CTrace(netCtx, "IdentifyHandler#Identify2", func() error { return err })()
+
 	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
 	logui := h.getLogUI(arg.SessionID)
 	ctx := engine.Context{
 		LogUI:      logui,
 		IdentifyUI: iui,
 		SessionID:  arg.SessionID,
+		NetContext: netCtx,
 	}
 	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
 	err = engine.RunEngine(eng, &ctx)
@@ -60,15 +63,17 @@ func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg
 	return res, err
 }
 
-func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (uid keybase1.UID, err error) {
-	defer h.G().Trace(fmt.Sprintf("IdentifyHandler.Resolve(%s)", arg), func() error { return err })()
-	rres := h.G().Resolver.ResolveFullExpression(arg)
+func (h *IdentifyHandler) Resolve(ctx context.Context, arg string) (uid keybase1.UID, err error) {
+	ctx = libkb.WithLogTag(ctx, "RSLV")
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve(%s)", arg), func() error { return err })()
+	rres := h.G().Resolver.ResolveFullExpression(ctx, arg)
 	return rres.GetUID(), rres.GetError()
 }
 
-func (h *IdentifyHandler) Resolve2(_ context.Context, arg string) (u keybase1.User, err error) {
-	defer h.G().Trace(fmt.Sprintf("IdentifyHandler.Resolve2(%s)", arg), func() error { return err })()
-	rres := h.G().Resolver.ResolveFullExpressionNeedUsername(arg)
+func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.User, err error) {
+	ctx = libkb.WithLogTag(ctx, "RSLV")
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve2(%s)", arg), func() error { return err })()
+	rres := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
 	err = rres.GetError()
 	if err == nil {
 		u.Uid, u.Username = rres.GetUID(), rres.GetNormalizedUsername().String()

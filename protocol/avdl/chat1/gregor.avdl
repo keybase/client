@@ -52,6 +52,7 @@ protocol gregor {
     record TLFFinalizeUpdate {
         ConversationFinalizeInfo finalizeInfo;
         array<ConversationID> convIDs;
+        InboxVers inboxVers;
     }
 
 }

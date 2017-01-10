@@ -14,6 +14,7 @@ import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 type Seqno int64
@@ -165,8 +166,8 @@ func NewMerkleClient(g *GlobalContext) *MerkleClient {
 	}
 }
 
-func (mc *MerkleClient) Init() error {
-	return mc.LoadRoot()
+func (mc *MerkleClient) init(ctx context.Context) error {
+	return mc.loadRoot(ctx)
 }
 
 func merkleHeadKey() DbKey {
@@ -176,14 +177,14 @@ func merkleHeadKey() DbKey {
 	}
 }
 
-func (mc *MerkleClient) LoadRoot() error {
-	mc.G().Log.Debug("+ MerkleClient.LoadRoot()")
+func (mc *MerkleClient) loadRoot(ctx context.Context) error {
+	mc.G().Log.CDebugf(ctx, "+ MerkleClient#loadRoot()")
 	curr, err := mc.G().LocalDb.Lookup(merkleHeadKey())
 	if err != nil {
 		return err
 	}
 	if curr == nil {
-		mc.G().Log.Debug("- MerkleClient.LoadRoot() -> nil")
+		mc.G().Log.CDebugf(ctx, "- MerkleClient#loadRoot() -> nil")
 		return nil
 	}
 	mr, err := NewMerkleRootFromJSON(curr, mc.G())
@@ -192,7 +193,7 @@ func (mc *MerkleClient) LoadRoot() error {
 	}
 	mc.Lock()
 	mc.lastRoot = mr
-	mc.G().Log.Debug("- MerkleClient.LoadRoot() -> %v", mc.lastRoot)
+	mc.G().Log.CDebugf(ctx, "- MerkleClient#loadRoot() -> %v", mc.lastRoot)
 	mc.Unlock()
 	return nil
 }
@@ -285,7 +286,7 @@ func importPathFromJSON(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 	return
 }
 
-func (mc *MerkleClient) LookupPath(q HTTPArgs, sigHints *SigHints) (vp *VerificationPath, err error) {
+func (mc *MerkleClient) LookupPath(ctx context.Context, q HTTPArgs, sigHints *SigHints) (vp *VerificationPath, err error) {
 
 	// Poll for 10s and ask for a race-free state.
 	q.Add("poll", I{10})
@@ -300,6 +301,7 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs, sigHints *SigHints) (vp *Verifica
 		NeedSession:    false,
 		Args:           q,
 		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
+		NetContext:     ctx,
 	})
 
 	if err != nil {
@@ -315,7 +317,7 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs, sigHints *SigHints) (vp *Verifica
 	}
 
 	if sigHints != nil {
-		if err = sigHints.RefreshWith(res.Body.AtKey("sigs")); err != nil {
+		if err = sigHints.RefreshWith(ctx, res.Body.AtKey("sigs")); err != nil {
 			return
 		}
 	}
@@ -410,7 +412,7 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 	return nilKID, "", MerkleClientError{"no known verifying key"}
 }
 
-func (mc *MerkleClient) VerifyRoot(root *MerkleRoot, seqnoWhenCalled Seqno) error {
+func (mc *MerkleClient) verifyRoot(ctx context.Context, root *MerkleRoot, seqnoWhenCalled Seqno) error {
 
 	// First make sure it's not a rollback
 	if seqnoWhenCalled >= 0 && seqnoWhenCalled > root.seqno {
@@ -418,7 +420,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot, seqnoWhenCalled Seqno) erro
 			seqnoWhenCalled, root.seqno)
 	}
 
-	mc.G().Log.Debug("| Merkle root: got back %d, >= cached %d", int(root.seqno), int(seqnoWhenCalled))
+	mc.G().Log.CDebugf(ctx, "| Merkle root: got back %d, >= cached %d", int(root.seqno), int(seqnoWhenCalled))
 
 	mc.Lock()
 	defer mc.Unlock()
@@ -433,14 +435,14 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot, seqnoWhenCalled Seqno) erro
 	if err != nil {
 		return err
 	}
-	mc.G().Log.Debug("+ Merkle: using KID=%s for verifying server sig", kid)
+	mc.G().Log.CDebugf(ctx, "+ Merkle: using KID=%s for verifying server sig", kid)
 
 	key, err := mc.keyring.Load(kid)
 	if err != nil {
 		return err
 	}
 
-	mc.G().Log.Debug("- Merkle: server sig verified")
+	mc.G().Log.CDebugf(ctx, "- Merkle: server sig verified")
 
 	if key == nil {
 		return MerkleClientError{"no known verifying key"}
@@ -544,11 +546,11 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 	return &user, nil
 }
 
-func parseMerkleUserLeaf(jw *jsonw.Wrapper, g *GlobalContext) (user *MerkleUserLeaf, err error) {
-	g.Log.Debug("+ ParsingMerkleUserLeaf")
+func parseMerkleUserLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContext) (user *MerkleUserLeaf, err error) {
+	g.Log.CDebugf(ctx, "+ ParsingMerkleUserLeaf")
 
 	if jw == nil {
-		g.Log.Debug("| empty leaf found; user wasn't in tree")
+		g.Log.CDebugf(ctx, "| empty leaf found; user wasn't in tree")
 		user = &MerkleUserLeaf{}
 		return
 	}
@@ -582,23 +584,23 @@ func parseMerkleUserLeaf(jw *jsonw.Wrapper, g *GlobalContext) (user *MerkleUserL
 		err = fmt.Errorf("Unexpected version: %d", v)
 	}
 
-	g.Log.Debug("- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
+	g.Log.CDebugf(ctx, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
 	return
 }
 
-func (vp *VerificationPath) VerifyUsername() (username string, err error) {
+func (vp *VerificationPath) verifyUsername(ctx context.Context) (username string, err error) {
 	if CheckUIDAgainstUsername(vp.uid, vp.username) == nil {
-		vp.G().Log.Debug("| Username %s mapped to %s via direct hash", vp.username, vp.uid)
+		vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via direct hash", vp.username, vp.uid)
 		username = vp.username
 		return
 	}
 
-	vp.G().Log.Debug("| Failed to map Username %s -> UID %s via direct hash", vp.username, vp.uid)
+	vp.G().Log.CDebugf(ctx, "| Failed to map Username %s -> UID %s via direct hash", vp.username, vp.uid)
 
 	if vp.usernameCased != vp.username && strings.ToLower(vp.usernameCased) == vp.username {
-		vp.G().Log.Debug("| Checking cased username difference: %s v %s", vp.username, vp.usernameCased)
+		vp.G().Log.CDebugf(ctx, "| Checking cased username difference: %s v %s", vp.username, vp.usernameCased)
 		if CheckUIDAgainstCasedUsername(vp.uid, vp.usernameCased) == nil {
-			vp.G().Log.Debug("| Username %s mapped to %s via direct hash (w/ username casing)", vp.usernameCased, vp.uid)
+			vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via direct hash (w/ username casing)", vp.usernameCased, vp.uid)
 			username = vp.username
 			return
 		}
@@ -626,13 +628,13 @@ func (vp *VerificationPath) VerifyUsername() (username string, err error) {
 		return
 	}
 
-	vp.G().Log.Debug("| Username %s mapped to %s via Merkle lookup", vp.username, vp.uid)
+	vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via Merkle lookup", vp.username, vp.uid)
 	username = vp.username
 
 	return
 }
 
-func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
+func (vp *VerificationPath) verifyUser(ctx context.Context) (user *MerkleUserLeaf, err error) {
 	curr := vp.root.rootHash
 
 	var leaf *jsonw.Wrapper
@@ -648,12 +650,12 @@ func (vp *VerificationPath) VerifyUser() (user *MerkleUserLeaf, err error) {
 	if err == nil {
 		// noop
 	} else if _, ok := err.(MerkleNotFoundError); ok {
-		vp.G().Log.Debug(fmt.Sprintf("In checking Merkle tree: %s", err))
+		vp.G().Log.CDebugf(ctx, fmt.Sprintf("In checking Merkle tree: %s", err))
 	} else {
 		return
 	}
 
-	user, err = parseMerkleUserLeaf(leaf, vp.G())
+	user, err = parseMerkleUserLeaf(ctx, leaf, vp.G())
 	if user != nil {
 		user.uid = vp.uid
 	}
@@ -713,13 +715,13 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 	return
 }
 
-func (mc *MerkleClient) LookupUser(q HTTPArgs, sigHints *SigHints) (u *MerkleUserLeaf, err error) {
+func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *SigHints) (u *MerkleUserLeaf, err error) {
 
-	mc.G().Log.Debug("+ MerkleClient.LookupUser(%v)", q)
+	mc.G().Log.CDebugf(ctx, "+ MerkleClient.LookupUser(%v)", q)
 
 	var path *VerificationPath
 
-	if err = mc.Init(); err != nil {
+	if err = mc.init(ctx); err != nil {
 		return
 	}
 
@@ -730,29 +732,29 @@ func (mc *MerkleClient) LookupUser(q HTTPArgs, sigHints *SigHints) (u *MerkleUse
 	// was a change on the server side. See CORE-4064.
 	seqnoBeforeCall := mc.LastSeqno()
 
-	mc.G().Log.Debug("| LookupPath")
-	if path, err = mc.LookupPath(q, sigHints); err != nil {
+	mc.G().Log.CDebugf(ctx, "| LookupPath")
+	if path, err = mc.LookupPath(ctx, q, sigHints); err != nil {
 		return
 	}
 
-	mc.G().Log.Debug("| VerifyRoot")
-	if err = mc.VerifyRoot(path.root, seqnoBeforeCall); err != nil {
+	mc.G().Log.CDebugf(ctx, "| VerifyRoot")
+	if err = mc.verifyRoot(ctx, path.root, seqnoBeforeCall); err != nil {
 		return
 	}
 
-	mc.G().Log.Debug("| VerifyUser")
-	if u, err = path.VerifyUser(); err != nil {
+	mc.G().Log.CDebugf(ctx, "| VerifyUser")
+	if u, err = path.verifyUser(ctx); err != nil {
 		return
 	}
 
-	mc.G().Log.Debug("| VerifyUsername")
-	if u.username, err = path.VerifyUsername(); err != nil {
+	mc.G().Log.CDebugf(ctx, "| VerifyUsername")
+	if u.username, err = path.verifyUsername(ctx); err != nil {
 		return
 	}
 
 	u.idVersion = path.idVersion
 
-	mc.G().Log.Debug("- MerkleClient.LookupUser(%v) -> OK", q)
+	mc.G().Log.CDebugf(ctx, "- MerkleClient.LookupUser(%v) -> OK", q)
 	return
 }
 
@@ -775,7 +777,7 @@ func (mr *MerkleRoot) ToInfo() chat1.MerkleRoot {
 
 func (mc *MerkleClient) LastRootToSigJSON() (ret *jsonw.Wrapper, err error) {
 	// Lazy-init, only when needed.
-	if err = mc.Init(); err == nil {
+	if err = mc.init(context.TODO()); err == nil {
 		mc.RLock()
 		if mc.lastRoot != nil {
 			ret = mc.lastRoot.ToSigJSON()
@@ -788,7 +790,7 @@ func (mc *MerkleClient) LastRootToSigJSON() (ret *jsonw.Wrapper, err error) {
 // Can return (nil, nil) if no root is known.
 func (mc *MerkleClient) LastRootInfo() (*chat1.MerkleRoot, error) {
 	// Lazy-init, only when needed.
-	err := mc.Init()
+	err := mc.init(context.TODO())
 	if err != nil {
 		return nil, err
 	}

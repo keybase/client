@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import {List, Map} from 'immutable'
 
-import type {ConversationIDKey, Message, MessageID, MetaData, ParticipantItem} from '../../constants/chat'
+import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaData, ParticipantItem} from '../../constants/chat'
 
 export type Props = {
   firstNewMessageID: ?MessageID,
@@ -15,6 +15,8 @@ export type Props = {
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
   onOpenInFileUI: (filename: string) => void,
+  onOpenInPopup: (message: AttachmentMessage) => void,
+  onRetryMessage: (outboxID: string) => void,
   onShowProfile: (username: string) => void,
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,

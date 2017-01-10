@@ -1,12 +1,16 @@
 // @flow
-import * as shared from './avatar.shared'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import type {Props} from './avatar'
 import {globalStyles, globalColors} from '../styles'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
+import {isTesting} from '../local-debug'
+import {resolveImageAsURL} from '../desktop/resolve-root'
+
+import type {Props, AvatarLookup, AvatarLoad} from './avatar'
 
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
+// To convert usernames/uids to avatarurls
+let _urlLookup
+let _urlLoad
 
 type State = {
   avatarLoaded: boolean,
@@ -15,27 +19,64 @@ type State = {
 }
 
 // Holds the loaded or errored state. undefined if we don't know. So we can skip trying this on repeat images
-const _avatarCache: {[key: string]: ?boolean} = {
-}
+const _avatarCache: {[key: string]: ?boolean} = { }
 
 class Avatar extends Component<void, Props, State> {
   state: State;
+  _onURLLoaded: ?(username: string, url: ?string) => void;
 
   constructor (props: Props) {
     super(props)
 
-    const url = shared.createAvatarUrl(props)
-
+    const urlState = this._getURLState(props)
     this.state = {
-      ...this._getLoadedErrorState(url),
+      ...this._getLoadedErrorState(urlState.url),
+      ...urlState,
     }
+  }
+
+  componentDidMount () {
+    this._onURLLoaded = (username: string, url: ?string) => {
+      if (this.props.username === username) {
+        this.setState({url})
+      }
+    }
+  }
+
+  componentWillUnmount () {
+    this._onURLLoaded = null
+  }
+
+  _getURLState (props) {
+    if (__SCREENSHOT__ || isTesting) {
+      return {url: null}
+    }
+
+    if (props.url) {
+      return {url: props.url}
+    }
+
+    if (props.username && _urlLookup) {
+      const resolvedUrl = _urlLookup(props.username)
+
+      if (resolvedUrl) {
+        return {url: resolvedUrl}
+      }
+
+      if (_urlLoad && props.username) {
+        _urlLoad(props.username, (username: string, url: ?string) => {
+          this._onURLLoaded && this._onURLLoaded(username, url)
+        })
+      }
+    }
+
+    return {url: null}
   }
 
   _getLoadedErrorState (url: ?string) {
     return {
       avatarLoaded: !!url && _avatarCache.hasOwnProperty(url) && !!_avatarCache[url],
       errored: !!url && _avatarCache.hasOwnProperty(url) && !_avatarCache[url],
-      url,
     }
   }
 
@@ -44,11 +85,16 @@ class Avatar extends Component<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    const url = shared.createAvatarUrl(this.props)
-    const nextUrl = shared.createAvatarUrl(nextProps)
+    const url = this.props.url || this.props.username
+    const nextUrl = nextProps.url || nextProps.username
 
     if (url !== nextUrl) {
-      const nextState = this._getLoadedErrorState(nextUrl)
+      const urlState = this._getURLState(nextProps)
+      const nextState = {
+        ...this._getLoadedErrorState(urlState.url),
+        ...urlState,
+      }
+
       this.setState(nextState)
       // if it's errored out we won't even try and load it so make sure we call teh onAvatarLoaded callback
       if (this.props.onAvatarLoaded && nextState.errored) {
@@ -79,13 +125,13 @@ class Avatar extends Component<void, Props, State> {
     const {size} = this.props
     const width = size
     const height = size
-    const url = this.state.url || noAvatar
+    const resolvedURL = this.state.url || noAvatar
     const avatarStyle = {width, height, position: 'absolute'}
     const borderStyle = this.props.borderColor ? {borderRadius: '50%', borderWidth: 2, borderStyle: 'solid', borderColor: this.props.borderColor} : {borderRadius: '50%'}
 
     const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
-    const alreadyGood = _avatarCache.hasOwnProperty(url) && _avatarCache[url]
-    const alreadyBad = _avatarCache.hasOwnProperty(url) && !_avatarCache[url]
+    const alreadyGood = _avatarCache.hasOwnProperty(resolvedURL) && _avatarCache[resolvedURL]
+    const alreadyBad = _avatarCache.hasOwnProperty(resolvedURL) && !_avatarCache[resolvedURL]
     const showNoAvatar = alreadyBad || (!showLoadingColor && ((!alreadyGood && !this.state.avatarLoaded) || this.state.errored))
 
     return (
@@ -102,7 +148,7 @@ class Avatar extends Component<void, Props, State> {
         {showLoadingColor && <div style={{...avatarStyle, ...borderStyle, backgroundColor: this.props.loadingColor}} />}
         {!alreadyBad &&
         <img
-          src={url}
+          src={resolvedURL}
           style={{
             ...avatarStyle,
             ...borderStyle,
@@ -162,4 +208,16 @@ const followInner = (size, color) => {
   }
 }
 
+const initLookup = (lookup: AvatarLookup) => {
+  _urlLookup = lookup
+}
+
+const initLoad = (load: AvatarLoad) => {
+  _urlLoad = load
+}
+
 export default Avatar
+export {
+  initLookup,
+  initLoad,
+}

@@ -19,7 +19,7 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	up, err := libkb.LoadUserPlusKeys(tc.G, me.GetUID())
+	up, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	up, err := libkb.LoadUserPlusKeys(tc.G, me.GetUID())
+	up, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	}
 	fakeClock.Advance(libkb.CachedUserTimeout + 2*time.Second)
 
-	up2, err := libkb.LoadUserPlusKeys(tc.G, me.GetUID())
+	up2, err := libkb.LoadUserPlusKeys(nil, tc.G, me.GetUID())
 	if err != nil {
 		t.Fatal(err)
 	}

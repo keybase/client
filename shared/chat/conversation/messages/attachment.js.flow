@@ -11,6 +11,7 @@ export type Props = {
   onAction: (message: ServerMessage, event: any) => void,
   onRetry: () => void,
   onOpenInFileUI: (path: string) => void,
+  onOpenInPopup: (message: AttachmentMessage) => void,
   style: Object,
 }
 

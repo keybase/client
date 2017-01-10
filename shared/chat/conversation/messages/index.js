@@ -1,17 +1,17 @@
 // @flow
 import * as ChatConstants from '../../../constants/chat'
-import AttachmentMessage from './attachment'
+import AttachmentMessageRender from './attachment'
 import MessageText from './text'
 import React from 'react'
 import Timestamp from './timestamp'
 import {Box} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
 
-import type {Message, ServerMessage} from '../../../constants/chat'
+import type {Message, AttachmentMessage, ServerMessage} from '../../../constants/chat'
 
-const _onRetry = () => console.log('todo, hookup onRetry')
+const _onRetryTodo = (message: Message) => console.log('todo, hookup attachment onRetry, ', message)
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void) => {
+const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void, onRetry: (outboxID: string) => void) => {
   if (!message) {
     return <Box key={key} style={style} />
   }
@@ -23,7 +23,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         key={key}
         style={style}
         message={message}
-        onRetry={_onRetry}
+        onRetry={onRetry}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
@@ -36,15 +36,16 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         style={style}
         />
     case 'Attachment':
-      return <AttachmentMessage
+      return <AttachmentMessageRender
         key={key}
         style={style}
         message={message}
-        onRetry={_onRetry}
+        onRetry={_onRetryTodo}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         onLoadAttachment={onLoadAttachment}
         onOpenInFileUI={onOpenInFileUI}
+        onOpenInPopup={onOpenInPopup}
         messageID={message.messageID}
         onAction={onAction}
         />

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -54,7 +54,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 
 	inbox, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			Status:    utils.VisibleChatConversationStatuses(),
+			Status:    chat.VisibleChatConversationStatuses(),
 			TopicType: &topicType,
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -228,48 +228,20 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
-	client, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return c.errReply(err)
-	}
+
 	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
 
-	// Fetch any edits that exist for this message.
-	// TODO: This is a big and inefficient fetch that scans all edits in the
-	// entire conversation. We should have this in a local index instead.
-	readArg := chat1.GetThreadLocalArg{
-		ConversationID: convID,
-		Query: &chat1.GetThreadQuery{
-			MarkAsRead:   false,
-			MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT},
-		},
-	}
-	threadView, err := client.GetThreadLocal(ctx, readArg)
-	messageAndEdits := []chat1.MessageID{opts.MessageID}
-	for _, m := range threadView.Thread.Messages {
-		st, err := m.State()
-		if err != nil {
-			return c.errReply(fmt.Errorf("invalid message: unknown state (%s)", err))
-		}
-		if st == chat1.MessageUnboxedState_ERROR {
-			c.G().Log.Warning("Failed to unbox edit %d: %s", m.Error().MessageID, m.Error().ErrMsg)
-			continue
-		}
-		if m.Valid().MessageBody.Edit().MessageID == opts.MessageID {
-			messageAndEdits = append(messageAndEdits, m.Valid().ServerHeader.MessageID)
-		}
-	}
-
+	messages := []chat1.MessageID{opts.MessageID}
 	arg := sendArgV1{
 		conversationID: convID,
 		channel:        opts.Channel,
-		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messageAndEdits}),
+		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messages}),
 		mtype:          chat1.MessageType_DELETE,
 		supersedes:     opts.MessageID,
-		deletes:        messageAndEdits,
+		deletes:        messages,
 		response:       "message deleted",
 	}
 	return c.sendV1(ctx, arg)

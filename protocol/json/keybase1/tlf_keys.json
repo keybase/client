@@ -76,6 +76,25 @@
     },
     {
       "type": "record",
+      "name": "CanonicalTLFNameAndIDWithBreaks",
+      "fields": [
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        },
+        {
+          "type": "CanonicalTlfName",
+          "name": "CanonicalName",
+          "lint": "ignore"
+        },
+        {
+          "type": "TLFBreak",
+          "name": "breaks"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetTLFCryptKeysRes",
       "fields": [
         {
@@ -103,25 +122,6 @@
         {
           "type": "TLFIdentifyBehavior",
           "name": "identifyBehavior"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "CanonicalTLFNameAndIDWithBreaks",
-      "fields": [
-        {
-          "type": "TLFID",
-          "name": "tlfID"
-        },
-        {
-          "type": "CanonicalTlfName",
-          "name": "CanonicalName",
-          "lint": "ignore"
-        },
-        {
-          "type": "TLFBreak",
-          "name": "breaks"
         }
       ]
     }

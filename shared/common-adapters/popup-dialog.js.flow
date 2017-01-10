@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  onClose: () => void,
+  fill?: boolean,
+  children?: React$Element<*>,
+}
+
+export default class PopupDialog extends Component<void, Props, void> {}

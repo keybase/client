@@ -4,13 +4,11 @@ import {Component} from 'react'
 export type Props = {
   email: ?string,
   isVerified: boolean,
-  edited: boolean,
   error?: ?Error,
   onBack: () => void,
-  onChangeNewEmail: (nextEmail: string) => void,
-  onSave: () => void,
+  onSave: (email: string) => void,
   waitingForResponse: boolean,
-  onResendConfirmationCode: ?(() => void),
+  onResendConfirmationCode?: () => void,
 }
 
 export default class UpdateEmail extends Component<void, Props, void> { }

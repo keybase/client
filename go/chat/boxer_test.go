@@ -225,8 +225,6 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	ctx := context.Background()
-
 	origHashFn := boxer.hashV1
 	boxer.hashV1 = func(data []byte) chat1.Hash {
 		data = append(data, []byte{1, 2, 3}...)
@@ -234,6 +232,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 		return sum[:]
 	}
 
+	ctx := context.Background()
 	boxed, err := boxer.BoxMessage(ctx, msg, signKP)
 	if err != nil {
 		t.Fatal(err)
@@ -248,7 +247,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 	boxer.hashV1 = origHashFn
 
 	// This should produce a permanent error. So err will be nil, but the decmsg will be state=error.
-	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(tc.G.Log), *boxed)
+	decmsg, err := boxer.UnboxMessage(ctx, *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,7 +279,6 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
 	ctx := context.Background()
-
 	boxed, err := boxer.BoxMessage(ctx, msg, signKP)
 	if err != nil {
 		t.Fatal(err)
@@ -292,7 +290,8 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 	}
 
 	// This should produce a non-permanent error. So err will be set.
-	decmsg, ierr := boxer.UnboxMessage(ctx, NewKeyFinderMock(), *boxed)
+	bctx := context.WithValue(ctx, kfKey, NewKeyFinderMock())
+	decmsg, ierr := boxer.UnboxMessage(bctx, *boxed)
 	if !strings.Contains(ierr.Error(), "no key found") {
 		t.Fatalf("error should contain 'no key found': %v", ierr)
 	}
@@ -380,8 +379,10 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 	}
 
 	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := ierr.Inner().(libkb.NoKeyError); !ok {
-		t.Fatalf("unexpected error for invalid sender key: %v", ierr)
+	if ierr != nil {
+		if _, ok := ierr.Inner().(libkb.NoKeyError); !ok {
+			t.Fatalf("unexpected error for invalid sender key: %v", ierr)
+		}
 	}
 }
 
@@ -442,8 +443,9 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 	require.IsType(t, libkb.NoKeyError{}, ierr.Inner(), "unexpected error for revoked sender key: %v", ierr)
 
 	// Test key validity
-	validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
+	found, validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 	require.NoError(t, err, "ValidSenderKey")
+	require.True(t, found, "revoked key should be found (v:%v r:%v)", found, revoked)
 	require.False(t, validAtCtime, "revoked key should be invalid (v:%v r:%v)", validAtCtime, revoked)
 	require.NotNil(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
 }
@@ -502,8 +504,9 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 	require.NotNil(t, umwkr.senderDeviceRevokedAt, "message should be noticed as signed by revoked key")
 
 	// Test key validity
-	validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
+	found, validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
 	require.NoError(t, err, "ValidSenderKey")
+	require.True(t, found, "revoked key should be found (v:%v r:%v)", found, revoked)
 	require.True(t, validAtCtime, "revoked key should be valid at time (v:%v r:%v)", validAtCtime, revoked)
 	require.NotNil(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
 }
@@ -544,7 +547,7 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(tc.G.Log), *boxed)
+	decmsg, err := boxer.UnboxMessage(ctx, *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}

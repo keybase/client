@@ -6,12 +6,14 @@ import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, selectAttachment, loadAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment} from '../../actions/chat'
+import {nothingSelected} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
+import {navigateAppend} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {Message} from '../../constants/chat'
+import type {ConversationIDKey, Message, AttachmentMessage} from '../../constants/chat'
 import type {Props} from '.'
 
 type OwnProps = {}
@@ -53,10 +55,10 @@ class ConversationContainer extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state: TypedState) => {
-    const selectedConversation = state.chat.get('selectedConversation')
+  (state: TypedState, {routePath}) => {
+    const selectedConversation = routePath.last()
 
-    if (selectedConversation) {
+    if (selectedConversation !== nothingSelected) {
       const conversationState = state.chat.get('conversationStates').get(selectedConversation)
       if (conversationState) {
         const inbox = state.chat.get('inbox')
@@ -67,7 +69,7 @@ export default connect(
           messages: conversationState.messages,
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,
-          validated: selected.validated,
+          validated: selected && selected.validated,
           firstNewMessageID: conversationState.firstNewMessageID,
           selectedConversation,
           emojiPickerOpen: false,
@@ -91,13 +93,15 @@ export default connect(
   (dispatch: Dispatch) => ({
     onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onLoadMoreMessages: () => dispatch(loadMoreMessages(false)),
+    onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
+    onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, filename, title) => dispatch(selectAttachment(selectedConversation, filename, title)),
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, downloadFilePath(filename))),
+    onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{selected: 'attachment', props: {message}}])),
     onOpenInFileUI: (path: string) => dispatch(({type: 'fs:openInFileUI', payload: {path}}: OpenInFileUI)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
@@ -106,6 +110,7 @@ export default connect(
     ...ownProps,
     onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
     onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
+    onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
     onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
     onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
   }),

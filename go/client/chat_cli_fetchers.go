@@ -47,6 +47,10 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 	}
 	f.query.ConversationId = conversationInfo.Id
 
+	if conversationInfo.Id == nil || len(conversationInfo.Id) == 0 {
+		return chat1.ConversationLocal{}, nil, fmt.Errorf("empty conversationInfo.Id: %+v", conversationInfo)
+	}
+
 	gcfclres, err := chatClient.GetConversationForCLILocal(ctx, f.query)
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("GetConversationForCLILocal error: %s", err)

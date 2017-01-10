@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -84,7 +83,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	var prevs []chat1.MessagePreviousPointer
 
-	res, err := s.G().ConvSource.PullLocalOnly(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
+	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil, nil)
 	switch err.(type) {
 	case libkb.ChatStorageMissError:
 		s.G().Log.Debug("No local messages; skipping prev pointers")
@@ -108,6 +107,42 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 	return updated, nil
 }
 
+func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.MessagePlaintext,
+	convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
+
+	// Make sure this is a valid delete message
+	if msg.ClientHeader.MessageType != chat1.MessageType_DELETE {
+		return msg, nil
+	}
+	if msg.ClientHeader.Supersedes == 0 {
+		return msg, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
+	}
+
+	// Grab all the edits (!)
+	tv, _, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender, &chat1.GetThreadQuery{
+		MarkAsRead:   false,
+		MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT},
+	}, nil)
+	if err != nil {
+		return msg, err
+	}
+
+	// Get all affected edits
+	deletes := []chat1.MessageID{msg.ClientHeader.Supersedes}
+	for _, m := range tv.Messages {
+		if m.IsValid() && m.GetMessageType() == chat1.MessageType_EDIT &&
+			m.Valid().MessageBody.Edit().MessageID == msg.ClientHeader.Supersedes {
+			deletes = append(deletes, m.GetMessageID())
+		}
+	}
+
+	// Modify original delete message
+	msg.ClientHeader.Deletes = deletes
+	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
+
+	return msg, nil
+}
+
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
@@ -117,6 +152,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// convID will be nil in makeFirstMessage, for example
 	if convID != nil {
 		msg, err = s.addPrevPointersToMessage(ctx, msg, *convID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Make sure our delete message gets everything it should
+	if convID != nil {
+		msg, err = s.getAllDeletedEdits(ctx, msg, *convID)
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +220,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
-	if _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
+	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
 	// TODO: make this cache write work
@@ -205,24 +248,26 @@ type Deliverer struct {
 	libkb.Contextified
 	sync.Mutex
 
-	sender      Sender
-	outbox      *storage.Outbox
-	storage     *storage.Storage
-	shutdownCh  chan chan struct{}
-	msgSentCh   chan struct{}
-	reconnectCh chan struct{}
-	delivering  bool
-	connected   bool
+	sender        Sender
+	outbox        *storage.Outbox
+	storage       *storage.Storage
+	identNotifier *IdentifyNotifier
+	shutdownCh    chan chan struct{}
+	msgSentCh     chan struct{}
+	reconnectCh   chan struct{}
+	delivering    bool
+	connected     bool
 }
 
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	d := &Deliverer{
-		Contextified: libkb.NewContextified(g),
-		shutdownCh:   make(chan chan struct{}, 1),
-		msgSentCh:    make(chan struct{}, 100),
-		reconnectCh:  make(chan struct{}, 100),
-		sender:       sender,
-		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
+		Contextified:  libkb.NewContextified(g),
+		shutdownCh:    make(chan chan struct{}, 1),
+		msgSentCh:     make(chan struct{}, 100),
+		reconnectCh:   make(chan struct{}, 100),
+		sender:        sender,
+		storage:       storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
+		identNotifier: NewIdentifyNotifier(g),
 	}
 
 	g.PushShutdownHook(func() error {
@@ -357,7 +402,7 @@ func (s *Deliverer) deliverLoop() {
 			}
 
 			// Do the actual send
-			bctx := utils.IdentifyModeCtx(context.Background(), obr.IdentifyBehavior, &breaks)
+			bctx := Context(context.Background(), obr.IdentifyBehavior, &breaks, s.identNotifier)
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
 			} else {
@@ -431,7 +476,7 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
 
-	identifyBehavior, _, _ := utils.IdentifyMode(ctx)
+	identifyBehavior, _, _ := IdentifyMode(ctx)
 	oid, err := s.G().MessageDeliverer.Queue(convID, msg, identifyBehavior)
 	return oid, 0, &chat1.RateLimit{}, err
 }

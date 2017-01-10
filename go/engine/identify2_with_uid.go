@@ -9,9 +9,10 @@ import (
 	"time"
 
 	gregor "github.com/keybase/client/go/gregor"
-	"github.com/keybase/client/go/libkb"
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	context "golang.org/x/net/context"
 )
 
 var locktab libkb.LockTable
@@ -120,7 +121,14 @@ func (i *identifyUser) Equal(i2 *identifyUser) bool {
 }
 
 func (i *identifyUser) load(g *libkb.GlobalContext) (err error) {
-	i.thin, i.full, err = g.CachedUserLoader.Load(i.arg)
+	i.thin, i.full, err = g.GetUPAKLoader().Load(i.arg)
+	return err
+}
+
+func (i *identifyUser) forceFullLoad(g *libkb.GlobalContext) (err error) {
+	arg := i.arg
+	arg.ForceReload = true
+	i.thin, i.full, err = g.GetUPAKLoader().Load(arg)
 	return err
 }
 
@@ -128,7 +136,9 @@ func (i *identifyUser) isNil() bool {
 	return i.thin == nil && i.full == nil
 }
 
-func loadIdentifyUser(g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
+func loadIdentifyUser(ctx *Context, g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
+	arg.SetGlobalContext(g)
+	arg.NetContext = ctx.GetNetContext()
 	ret := &identifyUser{arg: arg}
 	err := ret.load(g)
 	if ret.isNil() {
@@ -139,13 +149,50 @@ func loadIdentifyUser(g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb
 	return ret, err
 }
 
-func (i *identifyUser) trackChainLinkFor(name string, uid keybase1.UID, g *libkb.GlobalContext) (*libkb.TrackChainLink, error) {
+func (i *identifyUser) trackChainLinkFor(ctx context.Context, name string, uid keybase1.UID, g *libkb.GlobalContext) (ret *libkb.TrackChainLink, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("identifyUser#trackChainLinkFor(%s)", name), func() error { return err })()
+
 	if i.full != nil {
+		g.Log.CDebugf(ctx, "| Using full user object")
 		return i.full.TrackChainLinkFor(name, uid)
 	}
+
 	if i.thin != nil {
-		return libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, libkb.NewNormalizedUsername(name), uid, g)
+
+		g.Log.CDebugf(ctx, "| Using thin user object")
+
+		// In the common case, we look at the thin UPAK and get the chain link
+		// ID of the track chain link for tracking the given user. We'll then
+		// go ahead and load that chain link from local level DB, and it's almost
+		// always going to be there, since it was written as a side effect of
+		// fetching the full user. There's a corner case, see just below...
+		ret, err = libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, libkb.NewNormalizedUsername(name), uid, g)
+		if _, inconsistent := err.(libkb.InconsistentCacheStateError); !inconsistent {
+			g.Log.CDebugf(ctx, "| returning in common case -> (found=%v, err=%v)", (ret != nil), err)
+			return ret, err
+		}
+
+		g.Log.CDebugf(ctx, "| fell through to forceFullLoad corner case")
+
+		//
+		// NOTE(max) 2016-12-31
+		//
+		// There's a corner case here -- the track chain link does exist, but
+		// it wasn't found on disk. This is probably because the db cache was nuked.
+		// Thus, in this case we force a full user reload, and we're sure to get
+		// the tracking infomation then.
+		//
+		// See Jira ticket CORE-4310
+		//
+		err = i.forceFullLoad(g)
+		if err != nil {
+			return nil, err
+		}
+		return i.full.TrackChainLinkFor(name, uid)
 	}
+
+	// No user loaded, so no track chain link.
+	g.Log.CDebugf(ctx, "| fell through the empty default case")
 	return nil, nil
 }
 
@@ -166,7 +213,7 @@ type Identify2WithUID struct {
 	testArgs      *Identify2WithUIDTestArgs
 	trackToken    keybase1.TrackToken
 	confirmResult keybase1.ConfirmResult
-	cachedRes     *keybase1.UserPlusKeys
+	cachedRes     *keybase1.Identify2Res
 
 	// If we just resolved a user, then we can plumb this through to loadUser()
 	ResolveBody *jsonw.Wrapper
@@ -231,6 +278,10 @@ func (e *Identify2WithUID) calledFromChatGUI() bool {
 	return e.arg.ChatGUIMode
 }
 
+func (e *Identify2WithUID) canSucceedWithTrackBreaks() bool {
+	return e.calledFromChatGUI()
+}
+
 func (e *Identify2WithUID) resetError(err error) error {
 
 	if err == nil {
@@ -244,7 +295,7 @@ func (e *Identify2WithUID) resetError(err error) error {
 		return err
 	}
 
-	if e.calledFromChatGUI() {
+	if e.canSucceedWithTrackBreaks() {
 		e.G().Log.Debug("| Reset err from %v -> nil since caller is 'CHAT_GUI'", err)
 		return nil
 	}
@@ -254,8 +305,11 @@ func (e *Identify2WithUID) resetError(err error) error {
 
 // Run then engine
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
-	defer libkb.TimeLog(fmt.Sprintf("Identify2WithUID.Run(UID=%v, Assertion=%s", e.arg.Uid, e.arg.UserAssertion), e.G().Clock().Now(), e.G().Log.Debug)
-	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+
+	e.SetGlobalContext(ctx.CloneGlobalContextWithLogTags(e.G(), "ID2"))
+
+	n := fmt.Sprintf("Identify2WithUID#Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+	defer e.G().CTraceTimed(ctx.GetNetContext(), n, func() error { return err })()
 	e.G().Log.Debug("| Full Arg: %+v", e.arg)
 
 	if e.arg.Uid.IsNil() {
@@ -272,9 +326,6 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 
 	// Potentially reset the error based on the error and the calling context.
 	err = e.resetError(err)
-
-	e.G().Log.Debug("- Identify2WithUID.Run() -> %v", err)
-
 	return err
 }
 
@@ -309,12 +360,12 @@ func (e *Identify2WithUID) hitFastCache() bool {
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
 	e.G().Log.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
-	lock := locktab.AcquireOnName(e.arg.Uid.String())
+	lock := locktab.AcquireOnName(ctx.GetNetContext(), e.G(), e.arg.Uid.String())
 	e.G().Log.Debug("- acquired singleflight lock")
 
 	defer func() {
 		e.G().Log.Debug("+ Releasing singleflight lock for %s", e.arg.Uid)
-		lock.Release()
+		lock.Release(ctx.GetNetContext())
 		e.G().Log.Debug("- Released singleflight lock")
 	}()
 
@@ -348,7 +399,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 	}
 
 	e.G().Log.Debug("| Identify2WithUID.createIdentifyState")
-	if err = e.createIdentifyState(); err != nil {
+	if err = e.createIdentifyState(ctx); err != nil {
 		return err
 	}
 
@@ -406,19 +457,42 @@ func (e *Identify2WithUID) unblock(isFinal bool, err error) {
 
 func (e *Identify2WithUID) maybeCacheSelf() {
 	if e.getCache() != nil {
-		v := e.toUserPlusKeys()
-		e.getCache().Insert(&v)
+		v := e.exportToResult()
+		e.getCache().Insert(v)
+	}
+}
+
+func (e *Identify2WithUID) exportToResult() *keybase1.Identify2Res {
+	if e.them == nil {
+		return nil
+	}
+	return &keybase1.Identify2Res{
+		Upk:         e.toUserPlusKeys(),
+		TrackBreaks: e.trackBreaks,
 	}
 }
 
 func (e *Identify2WithUID) maybeCacheResult() {
-	e.G().Log.Debug("+ maybeCacheResult")
-	if e.state.Result().IsOK() && e.getCache() != nil {
-		v := e.toUserPlusKeys()
-		e.getCache().Insert(&v)
+
+	isOK := e.state.Result().IsOK()
+	canCacheFailures := e.canSucceedWithTrackBreaks()
+
+	e.G().Log.Debug("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
+
+	if (isOK || canCacheFailures) && e.getCache() != nil {
+		v := e.exportToResult()
+		if v == nil {
+			e.G().Log.Debug("| not caching; nil result")
+			return
+		}
+		e.getCache().Insert(v)
 		e.G().Log.Debug("| insert %+v", v)
-		if err := e.storeSlowCacheToDB(); err != nil {
-			e.G().Log.Debug("| Error in storing slow cache to db: %s", err)
+
+		// Don't write failures to the disk cache
+		if isOK {
+			if err := e.storeSlowCacheToDB(); err != nil {
+				e.G().Log.Debug("| Error in storing slow cache to db: %s", err)
+			}
 		}
 	}
 	e.G().Log.Debug("- maybeCacheResult")
@@ -535,7 +609,7 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 }
 
 func (e *Identify2WithUID) displayUserCardAsync(iui libkb.IdentifyUI) <-chan error {
-	if e.calledFromChatGUI() {
+	if e.canSucceedWithTrackBreaks() {
 		return nil
 	}
 	return displayUserCardAsync(e.G(), iui, e.them.GetUID(), (e.me != nil))
@@ -586,7 +660,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	if err = them.IDTable().Identify(e.state, e.forceRemoteCheck(), iui, e); err != nil {
+	if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e); err != nil {
 		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
@@ -633,7 +707,7 @@ func (e *Identify2WithUID) forceRemoteCheck() bool {
 	return e.arg.ForceRemoteCheck || (e.testArgs != nil && e.testArgs.forceRemoteCheck)
 }
 
-func (e *Identify2WithUID) createIdentifyState() (err error) {
+func (e *Identify2WithUID) createIdentifyState(ctx *Context) (err error) {
 	defer e.G().Trace("createIdentifyState", func() error { return err })()
 	var them *libkb.User
 	them, err = e.them.User(e.getCache())
@@ -655,7 +729,7 @@ func (e *Identify2WithUID) createIdentifyState() (err error) {
 		return nil
 	}
 
-	tcl, err := e.me.trackChainLinkFor(them.GetName(), them.GetUID(), e.G())
+	tcl, err := e.me.trackChainLinkFor(ctx.GetNetContext(), them.GetName(), them.GetUID(), e.G())
 	if tcl != nil {
 		e.G().Log.Debug("| using track token %s", tcl.LinkID())
 		e.useTracking = true
@@ -703,7 +777,7 @@ func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 	if err != nil || !ok {
 		return err
 	}
-	e.me, err = loadIdentifyUser(e.G(), libkb.NewLoadUserByUIDArg(e.G(), uid), e.getCache())
+	e.me, err = loadIdentifyUser(ctx, e.G(), libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), uid), e.getCache())
 	return err
 }
 
@@ -711,7 +785,7 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg := libkb.NewLoadUserArg(e.G())
 	arg.UID = e.arg.Uid
 	arg.ResolveBody = e.ResolveBody
-	e.them, err = loadIdentifyUser(e.G(), arg, e.getCache())
+	e.them, err = loadIdentifyUser(ctx, e.G(), arg, e.getCache())
 	if err != nil {
 		switch err.(type) {
 		case libkb.NoKeyError:
@@ -754,14 +828,21 @@ func (e *Identify2WithUID) loadUsers(ctx *Context) error {
 	return nil
 }
 
-func (e *Identify2WithUID) checkFastCacheHit() bool {
+func (e *Identify2WithUID) checkFastCacheHit() (hit bool) {
+	prfx := fmt.Sprintf("Identify2WithUID#checkFastCacheHit(%s)", e.arg.Uid)
+	defer e.G().TraceOK(prfx, func() bool { return hit })()
 	if e.getCache() == nil {
 		return false
 	}
-	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.CachedAt }
-	u, err := e.getCache().Get(e.arg.Uid, fn, libkb.Identify2CacheShortTimeout)
+
+	fn := func(u keybase1.Identify2Res) keybase1.Time { return u.Upk.Uvv.CachedAt }
+	dfn := func(u keybase1.Identify2Res) time.Duration {
+		return libkb.Identify2CacheShortTimeout
+	}
+	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.canSucceedWithTrackBreaks())
+
 	if err != nil {
-		e.G().Log.Debug("fast cache error for %s: %s", e.arg.Uid, err)
+		e.G().Log.Debug("| fast cache error for %s: %s", e.arg.Uid, err)
 	}
 	if u == nil {
 		return false
@@ -777,7 +858,7 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 	}
 }
 
-func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.UserPlusKeys) {
+func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 	defer e.G().TraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
 	var ktm keybase1.Time
 	key := e.dbKey(e.them.GetUID())
@@ -795,7 +876,8 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.UserPlusKeys) {
 		e.G().Log.Debug("| Object timed out %s ago", time.Now().Sub(tm))
 		return nil
 	}
-	tmp := e.them.ExportToUserPlusKeys(ktm)
+	var tmp keybase1.Identify2Res
+	tmp.Upk = e.them.ExportToUserPlusKeys(ktm)
 	ret = &tmp
 	return ret
 }
@@ -824,39 +906,49 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 		return false
 	}
 
-	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.LastIdentifiedAt }
-	u, _ := e.getCache().Get(e.them.GetUID(), fn, libkb.Identify2CacheLongTimeout)
+	tfn := func(u keybase1.Identify2Res) keybase1.Time { return u.Upk.Uvv.LastIdentifiedAt }
+	dfn := func(u keybase1.Identify2Res) time.Duration {
+		if u.TrackBreaks != nil {
+			return libkb.Identify2CacheBrokenTimeout
+		}
+		return libkb.Identify2CacheLongTimeout
+	}
+	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.canSucceedWithTrackBreaks())
 
-	if u == nil && e.me != nil {
+	trackBrokenError := false
+	if err != nil {
+		e.G().Log.Debug("| slow cache error for %s: %s", e.them.GetUID(), err)
+		if _, ok := err.(libkb.TrackBrokenError); ok {
+			trackBrokenError = true
+		}
+	}
+
+	if u == nil && e.me != nil && !trackBrokenError {
 		u = e.loadSlowCacheFromDB()
 	}
+
 	if u == nil {
-		e.G().Log.Debug("%s: identify missed cache", prfx)
+		e.G().Log.Debug("| %s: identify missed cache", prfx)
 		return false
 	}
-	if !e.them.IsCachedIdentifyFresh(u) {
-		e.G().Log.Debug("%s: cached identify was stale", prfx)
+
+	if !e.them.IsCachedIdentifyFresh(&u.Upk) {
+		e.G().Log.Debug("| %s: cached identify was stale", prfx)
 		return false
 	}
+
 	e.cachedRes = u
 
 	// Update so that it hits the fast cache the next time
-	u.Uvv.CachedAt = keybase1.ToTime(time.Now())
+	u.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
 	return true
 }
 
 func (e *Identify2WithUID) Result() *keybase1.Identify2Res {
-	res := &keybase1.Identify2Res{}
 	if e.cachedRes != nil {
-		res.Upk = *e.cachedRes
-	} else if e.them != nil {
-		res.Upk = e.toUserPlusKeys()
+		return e.cachedRes
 	}
-
-	// This will be a no-op unless we're being called from the chat GUI
-	res.TrackBreaks = e.trackBreaks
-
-	return res
+	return e.exportToResult()
 }
 
 func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {

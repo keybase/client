@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -45,6 +44,10 @@ func (n *chatListener) PGPKeyInSecretStoreFile()                                
 func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                          {}
 func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                        {}
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
+func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
+}
+func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
+func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
@@ -255,7 +258,7 @@ func TestNonblockTimer(t *testing.T) {
 	typs := []chat1.MessageType{chat1.MessageType_TEXT}
 	tres, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
-	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
+	tres.Messages = storage.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
 	require.NoError(t, outbox.SprinkleIntoThread(res.ConvID, &tres))
