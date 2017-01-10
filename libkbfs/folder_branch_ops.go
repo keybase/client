@@ -830,19 +830,7 @@ func (fbo *folderBranchOps) setHeadConflictResolvedLocked(ctx context.Context,
 		return errors.New("Unexpected unmerged update in setHeadConflictResolvedLocked")
 	}
 
-	err := fbo.setHeadLocked(ctx, lState, md)
-	if err != nil {
-		return err
-	}
-
-	// Since the CR head goes directly to the server, we can safely
-	// set the latest merged revision here.  (Normally self-commits
-	// don't update the latest merged revision since all non-CR
-	// updates go through the journal.)
-	if TLFJournalEnabled(fbo.config, fbo.id()) {
-		fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision(), false)
-	}
-	return nil
+	return fbo.setHeadLocked(ctx, lState, md)
 }
 
 func (fbo *folderBranchOps) identifyOnce(
