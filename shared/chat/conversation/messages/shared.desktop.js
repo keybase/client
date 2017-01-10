@@ -65,7 +65,7 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
             <div style={_bodyContainerStyle}>
               {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
               <div style={_textContainerStyle}>
-                <div style={{flex: 1}}>
+                <div style={_childrenWrapStyle}>
                   {children}
                 </div>
                 <div className='action-button'>
@@ -80,6 +80,11 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
       </div>
     )
   }
+}
+
+const _childrenWrapStyle = {
+  flex: 1,
+  ...globalStyles.flexBoxColumn,
 }
 
 const _stylesFirstNewMessage = {
