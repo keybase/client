@@ -6,6 +6,7 @@
 /desktop/build/**
 /desktop/dist/**
 /desktop/release/**
+/desktop/renderer/renderer-load.js
 /flow-typed/**
 /libs/flow-interface.js
 /libs/immutable-interface.js

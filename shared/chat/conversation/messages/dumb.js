@@ -12,9 +12,9 @@ import type {MessageState, TextMessage, AttachmentMessage} from '../../../consta
 import type {DumbComponentMap} from '../../../constants/types/more'
 
 let mockKey = 1
-function messageMock (messageState: MessageState, you: string, text?: ?string, senderDeviceRevokedAt?: number) {
+function messageMock (messageState: MessageState, author: string, you: string, text?: ?string, senderDeviceRevokedAt?: number) {
   return {
-    author: 'cecileb',
+    author,
     message: new HiddenString(text || 'hello world'),
     you,
     messageState,
@@ -28,17 +28,17 @@ function messageMock (messageState: MessageState, you: string, text?: ?string, s
   }
 }
 
-function textMessageMock (messageState: MessageState, you: string, text?: ?string, senderDeviceRevokedAt?: number): TextMessage {
+function textMessageMock (messageState: MessageState, author: string, you: string, text?: ?string, senderDeviceRevokedAt?: number): TextMessage {
   return {
     type: 'Text',
-    ...messageMock(messageState, you, text, senderDeviceRevokedAt),
+    ...messageMock(messageState, author, you, text, senderDeviceRevokedAt),
   }
 }
 
-function attachmentMessageMock (messageState: MessageState, you: string, text?: ?string, senderDeviceRevokedAt?: number): AttachmentMessage {
+function attachmentMessageMock (messageState: MessageState, author: string, you: string, text?: ?string, senderDeviceRevokedAt?: number): AttachmentMessage {
   return {
     type: 'Attachment',
-    ...messageMock(messageState, you, text, senderDeviceRevokedAt),
+    ...messageMock(messageState, author, you, text, senderDeviceRevokedAt),
     filename: 'yosemite.jpg',
     title: 'Yosemite!',
     previewType: 'Image',
@@ -62,9 +62,8 @@ const baseMock = {
 }
 
 const followStates = ['You', 'Following', 'Broken', 'NotFollowing']
-const you = '' // TEMP
 const followingMap = {
-  cecileb: true,
+  other: true,
 }
 const metaDataMap = Map({
   cecileb: new MetaDataRecord({fullname: 'Cecile Bee', brokenTracker: false}),
@@ -78,35 +77,35 @@ const mocks = followStates.reduce((outerAcc, followState) => (
         case 'You':
           return {
             ...acc,
-            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'cecileb'), you: 'cecileb', followingMap: {}, metaDataMap},
+            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'cecileb', 'cecileb'), you: 'cecileb', followingMap: {}, metaDataMap},
           }
         case 'Following':
           return {
             ...acc,
-            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'other'), you: 'other', followingMap, metaDataMap},
+            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'other', 'cecileb'), you: 'cecileb', followingMap, metaDataMap},
           }
         case 'Broken':
           return {
             ...acc,
             [`${messageState} - ${followState}`]: {
               ...baseMock,
-              message: textMessageMock(messageState, 'other'),
-              you: 'other',
+              message: textMessageMock(messageState, 'other', 'cecileb'),
+              you: 'cecileb',
               followingMap,
-              metaDataMap: Map({cecileb: new MetaDataRecord({fullname: 'Cecile Bee', brokenTracker: true})}),
+              metaDataMap: Map({other: new MetaDataRecord({fullname: 'other person', brokenTracker: true})}),
             },
           }
         case 'NotFollowing':
           return {
             ...acc,
-            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'other'), you: 'other', followingMap: {}, metaDataMap},
+            [`${messageState} - ${followState}`]: {...baseMock, message: textMessageMock(messageState, 'other', 'cecileb'), you: 'cecileb', followingMap: {}, metaDataMap},
           }
       }
     }, outerAcc),
   }
 ), {})
 
-mocks['from revoked device'] = {...baseMock, message: textMessageMock('sent', '', null, 123456), you, followingMap, metaDataMap}
+mocks['from revoked device'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'other', null, 123456), you: 'other', followingMap, metaDataMap}
 
 const StackedMessages = ({mock1, mock2}: any) => (
   <Box>
@@ -124,20 +123,20 @@ const stackedMessagesMap = {
   component: StackedMessages,
   mocks: {
     'Stacked - two messages': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: true, visiblePopupMenu: true, you: 'cecileb', followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), includeHeader: true, visiblePopupMenu: true, you: 'cecileb', followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
     },
     'Stacked - one sent, one pending': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'You'), includeHeader: true, you, followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('pending', 'You'), includeHeader: false, you, followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), includeHeader: true, you: 'cecileb', followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('pending', 'cecileb', 'cecileb'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
     },
     'Stacked - one sent, one failed': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'You', 'Thanks!'), includeHeader: true, you: 'cecileb', followingMap, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('failed', 'You', 'Sorry my network connection is super bad…'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb', 'Thanks!'), includeHeader: true, you: 'cecileb', followingMap, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('failed', 'cecileb', 'cecileb', 'Sorry my network connection is super bad…'), includeHeader: false, you: 'cecileb', followingMap, metaDataMap},
     },
     'Stacked - someone else. two sent': {
-      mock1: {...baseMock, message: textMessageMock('sent', 'Following'), includeHeader: true, you, followingMap: {}, metaDataMap},
-      mock2: {...baseMock, message: textMessageMock('sent', 'Following'), includeHeader: false, you, followingMap: {}, metaDataMap},
+      mock1: {...baseMock, message: textMessageMock('sent', 'cecileb', 'other'), includeHeader: true, you: 'other', followingMap: {cecileb: true}, metaDataMap},
+      mock2: {...baseMock, message: textMessageMock('sent', 'cecileb', 'other'), includeHeader: false, you: 'other', followingMap: {cecileb: true}, metaDataMap},
     },
   },
 }
@@ -159,10 +158,10 @@ const baseTextPopupMenuMock = {
 const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
   component: TextPopupMenu,
   mocks: {
-    'Following - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', ''), you, followingMap, metaDataMap},
-    'Following - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', '', null, 123456), you, followingMap, metaDataMap},
-    'You - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', ''), you: 'cecileb', followingMap, metaDataMap},
-    'You - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', '', null, 123456), you: 'cecileb', followingMap, metaDataMap},
+    'Following - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'ceceilb', 'other'), you: 'other', followingMap, metaDataMap},
+    'Following - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'ceceilb', 'other', null, 123456), you: 'other', followingMap, metaDataMap},
+    'You - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), you: 'cecileb', followingMap, metaDataMap},
+    'You - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'ceceilb', 'ceceilb', null, 123456), you: 'cecileb', followingMap, metaDataMap},
   },
 }
 

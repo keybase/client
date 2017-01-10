@@ -42,6 +42,7 @@ type configGetter interface {
 	GetGregorDisabled() (bool, bool)
 	GetBGIdentifierDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
+	GetGregorPingTimeout() (time.Duration, bool)
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorURI() string
 	GetHome() string
