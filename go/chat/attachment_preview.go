@@ -147,8 +147,17 @@ func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename 
 		return nil, err
 	}
 
-	if len(g.Image) == 0 {
+	frames := len(g.Image)
+	if frames == 0 {
 		return nil, errors.New("no image frames in GIF")
+	}
+
+	var baseDuration int
+	if frames > 40 {
+		baseDuration = gifDuration(g)
+		g.Image = g.Image[:1]
+		g.Delay = g.Delay[:1]
+		g.Disposal = g.Disposal[:1]
 	}
 
 	// create a new image based on the first frame to draw
@@ -178,17 +187,17 @@ func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename 
 	}
 
 	res := &PreviewRes{
-		Source:        newBufferSource(&buf, basename),
-		ContentType:   "image/gif",
-		BaseWidth:     origBounds.Dx(),
-		BaseHeight:    origBounds.Dy(),
-		PreviewWidth:  int(width),
-		PreviewHeight: int(height),
+		Source:         newBufferSource(&buf, basename),
+		ContentType:    "image/gif",
+		BaseWidth:      origBounds.Dx(),
+		BaseHeight:     origBounds.Dy(),
+		PreviewWidth:   int(width),
+		PreviewHeight:  int(height),
+		BaseDurationMs: baseDuration,
 	}
 
 	if len(g.Image) > 1 {
-		res.BaseDurationMs = gifDuration(g)
-		res.PreviewDurationMs = res.BaseDurationMs // currently the same, but in the future maybe preview will be shorter
+		res.PreviewDurationMs = gifDuration(g)
 	}
 
 	return res, nil
