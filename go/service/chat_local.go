@@ -4,6 +4,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -30,10 +31,11 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gh    *gregorHandler
-	tlf   keybase1.TlfInterface
-	boxer *chat.Boxer
-	store *chat.AttachmentStore
+	gh            *gregorHandler
+	tlf           keybase1.TlfInterface
+	boxer         *chat.Boxer
+	store         *chat.AttachmentStore
+	identNotifier *chat.IdentifyNotifier
 
 	// Only for testing
 	rc         chat1.RemoteInterface
@@ -44,12 +46,13 @@ type chatLocalHandler struct {
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	tlf := newTlfHandler(nil, g)
 	h := &chatLocalHandler{
-		BaseHandler:  NewBaseHandler(xp),
-		Contextified: libkb.NewContextified(g),
-		gh:           gh,
-		tlf:          tlf,
-		boxer:        chat.NewBoxer(g, tlf),
-		store:        chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
+		BaseHandler:   NewBaseHandler(xp),
+		Contextified:  libkb.NewContextified(g),
+		gh:            gh,
+		tlf:           tlf,
+		boxer:         chat.NewBoxer(g, tlf),
+		store:         chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
+		identNotifier: chat.NewIdentifyNotifier(g),
 	}
 
 	return h
@@ -66,7 +69,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	}
 
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, h.identNotifier)
 	rquery, _, err := chat.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
@@ -108,7 +111,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	localizeCb := make(chan chat.NonblockInboxResult, 1)
 
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, h.identNotifier)
 	inboxSource := chat.NewNonblockRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
 		func() keybase1.TlfInterface { return h.tlf }, localizeCb)
 
@@ -188,7 +191,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 
 	// Create inbox source
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	inbox := chat.NewRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
 		func() keybase1.TlfInterface { return h.tlf })
 
@@ -221,7 +224,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		return chat1.GetThreadLocalRes{}, libkb.LoginRequiredError{}
 	}
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	thread, rl, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
 		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
 	if err != nil {
@@ -264,7 +267,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	info, err := chat.LookupTLF(ctx, h.tlf, arg.TlfName, arg.TlfVisibility)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
@@ -399,7 +402,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks)
+	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks, h.identNotifier)
 	var after time.Time
 	if len(arg.After) > 0 {
 		after, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
@@ -495,7 +498,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks)
+	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks, h.identNotifier)
 
 	var rlimits []chat1.RateLimit
 
@@ -575,7 +578,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		return deflt, err
 	}
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 
 	rarg := chat1.GetMessagesRemoteArg{
 		ConversationID: arg.ConversationID,
@@ -609,7 +612,7 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	scsres, err := h.remoteClient().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
 		ConversationID: arg.ConversationID,
 		Status:         arg.Status,
@@ -631,7 +634,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	err := msgchecker.CheckMessagePlaintext(arg.Msg)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
@@ -667,15 +670,34 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 }
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.PostLocalNonblockRes{}, err
+	}
+	uid := h.G().Env.GetUID()
 
 	// Add outbox information
+	var prevMsgID chat1.MessageID
+	if arg.ClientPrev == 0 {
+		h.G().Log.Debug("PostLocalNonblock: ClientPrev not specified using local storage")
+		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid.ToBytes(), nil,
+			&chat1.Pagination{Num: 1})
+		if err != nil || len(thread.Messages) == 0 {
+			h.G().Log.Debug("PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
+			prevMsgID = 1
+		} else {
+			prevMsgID = thread.Messages[0].GetMessageID()
+		}
+	} else {
+		prevMsgID = arg.ClientPrev
+	}
+	h.G().Log.Debug("PostLocalNonblock: using prevMsgID: %d", prevMsgID)
 	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
-		Prev: arg.ClientPrev,
+		Prev: prevMsgID,
 	}
 
 	// Create non block sender
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
 
@@ -793,6 +815,9 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		var err error
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
+		if err != nil {
+			h.G().Log.Debug("error uploading primary asset to s3: %s", err)
+		}
 		return err
 	})
 
@@ -809,6 +834,8 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
+			} else {
+				h.G().Log.Debug("error uploading preview asset to s3: %s", err)
 			}
 			return err
 		})
@@ -824,8 +851,10 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	if preview != nil {
 		preview.Title = arg.Title
 		preview.MimeType = pre.PreviewContentType
+		preview.Metadata = pre.PreviewMetadata()
 	}
 	object.MimeType = pre.ContentType
+	object.Metadata = pre.BaseMetadata()
 
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
@@ -841,7 +870,16 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	return h.PostLocal(ctx, postArg)
+
+	h.G().Log.Debug("attachment assets uploaded, posting attachment message")
+	plres, err := h.PostLocal(ctx, postArg)
+	if err != nil {
+		h.G().Log.Debug("error posting attachment message: %s", err)
+	} else {
+		h.G().Log.Debug("posted attachment message successfully")
+	}
+
+	return plres, err
 }
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
@@ -857,7 +895,7 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	return h.downloadAttachmentLocal(ctx, darg)
 }
 
@@ -891,7 +929,7 @@ type downloadAttachmentArg struct {
 func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks)
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int) {
 		parg := chat1.ChatAttachmentDownloadProgressArg{
@@ -1011,10 +1049,54 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 	return h.remoteClient().S3Sign(context.Background(), arg)
 }
 
+type dimension struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+func (d *dimension) Empty() bool {
+	return d.Width == 0 && d.Height == 0
+}
+
+func (d *dimension) Encode() string {
+	if d.Width == 0 && d.Height == 0 {
+		return ""
+	}
+	enc, err := json.Marshal(d)
+	if err != nil {
+		return ""
+	}
+	return string(enc)
+}
+
 type preprocess struct {
 	ContentType        string
 	Preview            *chat.BufferSource
 	PreviewContentType string
+	BaseDim            *dimension
+	BaseDurationMs     int
+	PreviewDim         *dimension
+	PreviewDurationMs  int
+}
+
+func (p *preprocess) BaseMetadata() chat1.AssetMetadata {
+	if p.BaseDim == nil || p.BaseDim.Empty() {
+		return chat1.AssetMetadata{}
+	}
+	if p.BaseDurationMs > 0 {
+		return chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{Width: p.BaseDim.Width, Height: p.BaseDim.Height, DurationMs: p.BaseDurationMs})
+	}
+	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{Width: p.BaseDim.Width, Height: p.BaseDim.Height})
+}
+
+func (p *preprocess) PreviewMetadata() chat1.AssetMetadata {
+	if p.PreviewDim == nil || p.PreviewDim.Empty() {
+		return chat1.AssetMetadata{}
+	}
+	if p.PreviewDurationMs > 0 {
+		return chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{Width: p.PreviewDim.Width, Height: p.PreviewDim.Height, DurationMs: p.PreviewDurationMs})
+	}
+	return chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{Width: p.PreviewDim.Width, Height: p.PreviewDim.Height})
 }
 
 func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, attachment, preview assetSource) (*preprocess, error) {
@@ -1036,11 +1118,28 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 		ContentType: http.DetectContentType(head),
 	}
 
+	h.G().Log.Debug("detected attachment content type %s", p.ContentType)
+
 	if preview == nil {
+		h.G().Log.Debug("no attachment preview included by client, seeing if possible to generate")
 		src.Reset()
-		p.Preview, p.PreviewContentType, err = chat.Preview(ctx, src, p.ContentType, attachment.Basename())
+		previewRes, err := chat.Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename())
 		if err != nil {
+			h.G().Log.Debug("error making preview: %s", err)
 			return nil, err
+		}
+		if previewRes != nil {
+			h.G().Log.Debug("made preview for attachment asset")
+			p.Preview = previewRes.Source
+			p.PreviewContentType = previewRes.ContentType
+			if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {
+				p.BaseDim = &dimension{Width: previewRes.BaseWidth, Height: previewRes.BaseHeight}
+			}
+			if previewRes.PreviewWidth > 0 || previewRes.PreviewHeight > 0 {
+				p.PreviewDim = &dimension{Width: previewRes.PreviewWidth, Height: previewRes.PreviewHeight}
+			}
+			p.BaseDurationMs = previewRes.BaseDurationMs
+			p.PreviewDurationMs = previewRes.PreviewDurationMs
 		}
 	}
 

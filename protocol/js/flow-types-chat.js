@@ -87,6 +87,13 @@ export const CommonTopicType = {
   dev: 2,
 }
 
+export const LocalAssetMetadataType = {
+  none: 0,
+  image: 1,
+  video: 2,
+  audio: 3,
+}
+
 export const LocalBodyPlaintextVersion = {
   v1: 1,
 }
@@ -343,6 +350,18 @@ export function remoteGetInboxRemoteRpcPromise (request: $Exact<requestCommon & 
   return new Promise((resolve, reject) => { remoteGetInboxRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteGetInboxVersionRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxVersionResult) => void} & {param: remoteGetInboxVersionRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.getInboxVersion'})
+}
+
+export function remoteGetInboxVersionRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxVersionResult) => void} & {param: remoteGetInboxVersionRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetInboxVersionRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteGetInboxVersionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxVersionResult) => void} & {param: remoteGetInboxVersionRpcParam}>): Promise<remoteGetInboxVersionResult> {
+  return new Promise((resolve, reject) => { remoteGetInboxVersionRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteGetMessagesRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.getMessagesRemote'})
 }
@@ -488,6 +507,33 @@ export type Asset = {
   verifyKey: bytes,
   title: string,
   nonce: bytes,
+  metadata: AssetMetadata,
+}
+
+export type AssetMetadata = 
+    { assetType : 1, image : ?AssetMetadataImage }
+  | { assetType : 2, video : ?AssetMetadataVideo }
+  | { assetType : 3, audio : ?AssetMetadataAudio }
+
+export type AssetMetadataAudio = {
+  durationMs: int,
+}
+
+export type AssetMetadataImage = {
+  width: int,
+  height: int,
+}
+
+export type AssetMetadataType = 
+    0 // NONE_0
+  | 1 // IMAGE_1
+  | 2 // VIDEO_2
+  | 3 // AUDIO_3
+
+export type AssetMetadataVideo = {
+  width: int,
+  height: int,
+  durationMs: int,
 }
 
 export type BodyPlaintext = 
@@ -526,6 +572,7 @@ export type Conversation = {
 export type ConversationFinalizeInfo = {
   resetUser: string,
   resetDate: string,
+  resetFull: string,
   resetTimestamp: gregor1.Time,
 }
 
@@ -1256,6 +1303,10 @@ export type remoteGetInboxRemoteRpcParam = Exact<{
   pagination?: ?Pagination
 }>
 
+export type remoteGetInboxVersionRpcParam = Exact<{
+  uid: gregor1.UID
+}>
+
 export type remoteGetMessagesRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageIDs?: ?Array<MessageID>
@@ -1308,7 +1359,8 @@ export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID,
   resetUser: string,
   resetDate: string,
-  resetTimestamp: gregor1.Time
+  resetTimestamp: gregor1.Time,
+  resetFull: string
 }>
 
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
@@ -1344,6 +1396,8 @@ type localPostLocalResult = PostLocalRes
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
 
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
+
+type remoteGetInboxVersionResult = InboxVers
 
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
 
@@ -1385,6 +1439,7 @@ export type rpc =
   | localRetryPostRpc
   | localSetConversationStatusLocalRpc
   | remoteGetInboxRemoteRpc
+  | remoteGetInboxVersionRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetS3ParamsRpc
   | remoteGetThreadRemoteRpc

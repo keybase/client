@@ -407,6 +407,10 @@
         {
           "name": "resetTimestamp",
           "type": "gregor1.Time"
+        },
+        {
+          "name": "resetFull",
+          "type": "string"
         }
       ],
       "response": null
@@ -442,6 +446,15 @@
         }
       ],
       "response": "bytes"
+    },
+    "getInboxVersion": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "InboxVers"
     }
   },
   "namespace": "chat.1"

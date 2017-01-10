@@ -252,6 +252,10 @@
           "name": "resetDate"
         },
         {
+          "type": "string",
+          "name": "resetFull"
+        },
+        {
           "type": "gregor1.Time",
           "name": "resetTimestamp"
         }

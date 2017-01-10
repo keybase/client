@@ -300,6 +300,7 @@ func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID,
 
 	var info CachedUserLoadInfo
 	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
+	larg.PublicKeyOptional = true
 	upk, _, err := u.loadWithInfo(larg, &info)
 
 	if err != nil {

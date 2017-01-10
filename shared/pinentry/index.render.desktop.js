@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {autoResize} from '../../desktop/renderer/remote-component-helper'
+import {autoResize} from '../desktop/renderer/remote-component-helper'
 import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
 import {PassphraseCommonPassphraseType} from '../constants/types/flow-types'
 import type {Props, DefaultProps} from './index.render'

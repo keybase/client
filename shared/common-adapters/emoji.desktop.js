@@ -11,7 +11,12 @@ import type {Props} from 'emoji-mart'
 const backgroundImageFn = (set: string, sheetSize: string) => emojiSet
 
 const EmojiWrapper = (props: Props) => {
-  return <Emoji {...props} emoji={[':', ...props.children, ':'].join('')} backgroundImageFn={backgroundImageFn} />
+  const emojiText = `:${props.children}:`
+  return (
+    <Emoji {...props} emoji={emojiText} backgroundImageFn={backgroundImageFn}>
+      <Emoji emoji={emojiText} size={props.size} native={true} />
+    </Emoji>
+  )
 }
 
 export {backgroundImageFn}

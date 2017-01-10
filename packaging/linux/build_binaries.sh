@@ -60,7 +60,7 @@ if should_build_kbfs ; then
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
   export KEYBASE_SKIP_DEV_TOOLS=1
-  (cd "$this_repo/desktop" && yarn)
+  (cd "$this_repo/shared" && yarn)
   unset KEYBASE_SKIP_DEV_TOOLS
   export NODE_ENV=production
 fi
@@ -105,9 +105,9 @@ build_one_architecture() {
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
   (
-    cd "$this_repo/desktop"
+    cd "$this_repo/shared"
     yarn run package -- --platform linux --arch "$electron_arch" --appVersion "$version"
-    rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
+    rsync -a "desktop/release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
   )
 

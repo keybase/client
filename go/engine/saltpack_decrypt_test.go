@@ -6,6 +6,7 @@ package engine
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
@@ -24,6 +25,18 @@ func (s fakeSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1
 
 func (s fakeSaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.SaltpackVerifySuccessArg) error {
 	return nil
+}
+
+type FakeBadSenderError struct {
+	senderType keybase1.SaltpackSenderType
+}
+
+func (e *FakeBadSenderError) Error() string {
+	return fmt.Sprintf("fakeSaltpackUI bad sender error: %s", e.senderType.String())
+}
+
+func (s fakeSaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.SaltpackVerifyBadSenderArg) error {
+	return &FakeBadSenderError{arg.Sender.SenderType}
 }
 
 func TestSaltpackDecrypt(t *testing.T) {
