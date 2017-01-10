@@ -39,6 +39,11 @@ func (r *RemoteSaltpackUI) SaltpackVerifySuccess(ctx context.Context, arg keybas
 	return r.cli.SaltpackVerifySuccess(ctx, arg)
 }
 
+func (r *RemoteSaltpackUI) SaltpackVerifyBadSender(ctx context.Context, arg keybase1.SaltpackVerifyBadSenderArg) (err error) {
+	arg.SessionID = r.sessionID
+	return r.cli.SaltpackVerifyBadSender(ctx, arg)
+}
+
 func NewSaltpackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltpackHandler {
 	return &SaltpackHandler{
 		BaseHandler:  NewBaseHandler(xp),

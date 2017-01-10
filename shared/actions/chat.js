@@ -31,7 +31,6 @@ import type {TypedState} from '../constants/reducer'
 import type {UpdateReachability} from '../constants/gregor'
 import type {
   AppendMessages,
-  AttachmentSize,
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
@@ -96,6 +95,7 @@ const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
 const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
 const _focusedSelector = (state: TypedState) => state.chat.get('focused')
+const _conversationStateSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: Constants.updateBadging, payload: {conversationIDKey}}
@@ -289,11 +289,20 @@ function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
+  const conversationState = yield select(_conversationStateSelector, conversationIDKey)
+  let lastMessageID
+  if (conversationState) {
+    const message = conversationState.messages.findLast(m => !!m.messageID)
+    if (message) {
+      lastMessageID = message.messageID
+    }
+  }
 
   const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: keyToConversationID(conversationIDKey),
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      clientPrev: lastMessageID,
       msg: {
         clientHeader,
         messageBody: {
@@ -325,8 +334,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     }
 
     // Time to decide: should we add a timestamp before our new message?
-    const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-    const conversationState = yield select(conversationStateSelector)
+    const conversationState = yield select(_conversationStateSelector, conversationIDKey)
     let messages = []
     if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
       const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
@@ -404,8 +412,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           yield put(loadInbox())
         }
 
-        const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-        const conversationState = yield select(conversationStateSelector)
+        const conversationState = yield select(_conversationStateSelector, conversationIDKey)
 
         if (message.outboxID && message.type === 'Text' && yourName === message.author) {
           // If the message has an outboxID, then we sent it and have already
@@ -549,14 +556,13 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   }
 
   const conversationID = keyToConversationID(conversationIDKey)
-  const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
   const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
   if (inboxConvo && !inboxConvo.validated) {
     __DEV__ && console.log('Bailing on not yet validated conversation')
     return
   }
 
-  const oldConversationState = yield select(conversationStateSelector)
+  const oldConversationState = yield select(_conversationStateSelector, conversationIDKey)
 
   let next
   if (oldConversationState) {
@@ -646,14 +652,6 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   return null
 }
 
-function _clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
-  const maxSize = Math.max(width, height)
-  return {
-    width: Constants.maxAttachmentPreviewSize * (width / maxSize),
-    height: Constants.maxAttachmentPreviewSize * (height / maxSize),
-  }
-}
-
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
@@ -688,9 +686,9 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
           const mimeType = preview && preview.mimeType
           let previewSize
           if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
-            previewSize = _clampAttachmentPreviewSize(preview.metadata.image)
+            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.image)
           } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
-            previewSize = _clampAttachmentPreviewSize(preview.metadata.video)
+            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.video)
           }
 
           return {
@@ -832,8 +830,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
   // Update gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
-  const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-  const conversationState = yield select(conversationStateSelector)
+  const conversationState = yield select(_conversationStateSelector, conversationIDKey)
   if (conversationState && conversationState.firstNewMessageID && conversationState.messages !== null && conversationState.messages.size > 0) {
     const conversationID = keyToConversationID(conversationIDKey)
     const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID

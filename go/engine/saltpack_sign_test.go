@@ -321,3 +321,84 @@ func TestSaltpackSignVerifyNotSelf(t *testing.T) {
 		t.Errorf("verify w/ SignedBy unknown didn't fail")
 	}
 }
+
+func TestSaltpackVerifyRevoked(t *testing.T) {
+	tc := SetupEngineTest(t, "sign")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "sign")
+
+	var sink bytes.Buffer
+
+	sarg := &SaltpackSignArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: ioutil.NopCloser(bytes.NewBufferString("test input wooo")),
+	}
+
+	eng := NewSaltpackSign(sarg, tc.G)
+	ctx := &Context{
+		LogUI:      tc.G.UI.GetLogUI(),
+		LoginUI:    &libkb.TestLoginUI{},
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   fu.NewSecretUI(),
+	}
+
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// Get the current device
+	devices, _ := getActiveDevicesAndKeys(tc, fu)
+	if len(devices) != 1 {
+		t.Fatalf("Expected a single device, but found %d", len(devices))
+	}
+	currentDevice := devices[0]
+
+	// Delegate a new paper key so that we have something active after we
+	// revoke the current device.
+	paperEng := NewPaperKey(tc.G)
+	if err := RunEngine(paperEng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// Revoke the current device.
+	err := doRevokeDevice(tc, fu, currentDevice.ID, false)
+	if err == nil {
+		tc.T.Fatal("Expected revoking the current device to fail.")
+	}
+	// force=true is required for the current device
+	err = doRevokeDevice(tc, fu, currentDevice.ID, true)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	// Finally verify the sig. This should be an error, because the signing
+	// device is revoked. The revoked status will get passed to our
+	// fakeSaltpackUI's SaltpackVerifyBadSender method, made into an error, and
+	// propagated all the way back here. Unfortunately we can't really test the
+	// force option here, because that's implemented in the real client
+	// SaltpackUI.
+	sig := sink.String()
+	if len(sig) == 0 {
+		t.Fatal("empty sig")
+	}
+	varg := &SaltpackVerifyArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: strings.NewReader(sig),
+	}
+	veng := NewSaltpackVerify(varg, tc.G)
+	ctx.SaltpackUI = fakeSaltpackUI{}
+	err = RunEngine(veng, ctx)
+	if err == nil {
+		t.Fatal("expected error during verify")
+	}
+	badSenderError, ok := err.(*FakeBadSenderError)
+	if !ok {
+		t.Fatal("expected FakeBadSenderError during verify")
+	}
+	if badSenderError.senderType != keybase1.SaltpackSenderType_REVOKED {
+		t.Fatalf("expected keybase1.SaltpackSenderType_REVOKED, got %s", badSenderError.senderType.String())
+	}
+
+	//
+}

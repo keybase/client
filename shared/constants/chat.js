@@ -325,6 +325,14 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
   }
 }
 
+function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
+  const maxSize = Math.max(width, height)
+  return {
+    width: maxAttachmentPreviewSize * (width / maxSize),
+    height: maxAttachmentPreviewSize * (height / maxSize),
+  }
+}
+
 export {
   conversationIDToKey,
   keyToConversationID,
@@ -333,4 +341,5 @@ export {
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,
+  clampAttachmentPreviewSize,
 }
