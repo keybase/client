@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import {Box, Text, Icon, HOCTimers} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../styles'
 import {ReachabilityReachable} from '../constants/types/flow-types'
+import {ignoreDisconnectOverlay} from '../local-debug.desktop.js'
 
 import type {Props} from './index'
 
@@ -81,6 +82,10 @@ class GlobalError extends Component<void, Props, State> {
   }
 
   renderReachability () {
+    if (ignoreDisconnectOverlay) {
+      console.warn('Ignoring disconnect overlay')
+      return null
+    }
     return (
       <Box style={{...containerOverlayStyle}}>
         <Box style={{...overlayRowStyle}}>

@@ -17,6 +17,8 @@ const (
 	SaltpackSenderType_TRACKING_BROKE SaltpackSenderType = 3
 	SaltpackSenderType_TRACKING_OK    SaltpackSenderType = 4
 	SaltpackSenderType_SELF           SaltpackSenderType = 5
+	SaltpackSenderType_REVOKED        SaltpackSenderType = 6
+	SaltpackSenderType_EXPIRED        SaltpackSenderType = 7
 )
 
 var SaltpackSenderTypeMap = map[string]SaltpackSenderType{
@@ -26,6 +28,8 @@ var SaltpackSenderTypeMap = map[string]SaltpackSenderType{
 	"TRACKING_BROKE": 3,
 	"TRACKING_OK":    4,
 	"SELF":           5,
+	"REVOKED":        6,
+	"EXPIRED":        7,
 }
 
 var SaltpackSenderTypeRevMap = map[SaltpackSenderType]string{
@@ -35,6 +39,8 @@ var SaltpackSenderTypeRevMap = map[SaltpackSenderType]string{
 	3: "TRACKING_BROKE",
 	4: "TRACKING_OK",
 	5: "SELF",
+	6: "REVOKED",
+	7: "EXPIRED",
 }
 
 func (e SaltpackSenderType) String() string {
@@ -62,9 +68,16 @@ type SaltpackVerifySuccessArg struct {
 	Sender     SaltpackSender `codec:"sender" json:"sender"`
 }
 
+type SaltpackVerifyBadSenderArg struct {
+	SessionID  int            `codec:"sessionID" json:"sessionID"`
+	SigningKID KID            `codec:"signingKID" json:"signingKID"`
+	Sender     SaltpackSender `codec:"sender" json:"sender"`
+}
+
 type SaltpackUiInterface interface {
 	SaltpackPromptForDecrypt(context.Context, SaltpackPromptForDecryptArg) error
 	SaltpackVerifySuccess(context.Context, SaltpackVerifySuccessArg) error
+	SaltpackVerifyBadSender(context.Context, SaltpackVerifyBadSenderArg) error
 }
 
 func SaltpackUiProtocol(i SaltpackUiInterface) rpc.Protocol {
@@ -103,6 +116,22 @@ func SaltpackUiProtocol(i SaltpackUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"saltpackVerifyBadSender": {
+				MakeArg: func() interface{} {
+					ret := make([]SaltpackVerifyBadSenderArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SaltpackVerifyBadSenderArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SaltpackVerifyBadSenderArg)(nil), args)
+						return
+					}
+					err = i.SaltpackVerifyBadSender(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -118,5 +147,10 @@ func (c SaltpackUiClient) SaltpackPromptForDecrypt(ctx context.Context, __arg Sa
 
 func (c SaltpackUiClient) SaltpackVerifySuccess(ctx context.Context, __arg SaltpackVerifySuccessArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifySuccess", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SaltpackUiClient) SaltpackVerifyBadSender(ctx context.Context, __arg SaltpackVerifyBadSenderArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpackUi.saltpackVerifyBadSender", []interface{}{__arg}, nil)
 	return
 }

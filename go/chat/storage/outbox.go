@@ -350,6 +350,12 @@ func (o *Outbox) insertMessage(thread *chat1.ThreadView, obr chat1.OutboxRecord)
 		res = append(res, msg)
 	}
 
+	// If we didn't insert this guy, then put it at the front just so the user can see it
+	if !inserted {
+		res = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
+			res...)
+	}
+
 	thread.Messages = res
 	return nil
 }
