@@ -73,6 +73,7 @@ func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)      { re
 func (n NullConfiguration) GetGregorURI() string                            { return "" }
 func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)    { return 0, false }
+func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)     { return 0, false }
 func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool) { return 0, false }
 func (n NullConfiguration) IsAdmin() (bool, bool)                           { return false, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)                 { return false, false }
@@ -597,6 +598,14 @@ func (e *Env) GetGregorPingInterval() time.Duration {
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_PING_INTERVAL") },
 		func() (time.Duration, bool) { return e.config.GetGregorPingInterval() },
 		func() (time.Duration, bool) { return e.cmd.GetGregorPingInterval() },
+	)
+}
+
+func (e *Env) GetGregorPingTimeout() time.Duration {
+	return e.GetDuration(5*time.Second,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_PING_TIMEOUT") },
+		func() (time.Duration, bool) { return e.config.GetGregorPingTimeout() },
+		func() (time.Duration, bool) { return e.cmd.GetGregorPingTimeout() },
 	)
 }
 

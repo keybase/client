@@ -136,6 +136,13 @@ func (p CommandLine) GetGregorPingInterval() (time.Duration, bool) {
 	}
 	return ret, true
 }
+func (p CommandLine) GetGregorPingTimeout() (time.Duration, bool) {
+	ret, err := p.GetGDuration("push-ping-timeout")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
+}
 
 func (p CommandLine) GetChatDelivererInterval() (time.Duration, bool) {
 	ret, err := p.GetGDuration("chat-deliverer-interval")
