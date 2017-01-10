@@ -86,6 +86,11 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 	return msgs, nil
 }
 
+func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
+	return s.boxer.UnboxMessages(ctx, msgs)
+}
+
 type HybridConversationSource struct {
 	libkb.Contextified
 	ri      func() chat1.RemoteInterface
@@ -398,6 +403,57 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	// Identify this TLF by running crypt keys
 	if ierr := s.identifyTLF(ctx, convID, uid, res); ierr != nil {
 		s.debug("GetMessages: identify failed: %s", ierr.Error())
+		return nil, ierr
+	}
+
+	return res, nil
+}
+
+func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
+
+	var res []chat1.MessageUnboxed
+	var msgIDs []chat1.MessageID
+	for _, msg := range msgs {
+		msgIDs = append(msgIDs, msg.GetMessageID())
+	}
+
+	lmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
+
+	lmsgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, lmsg := range lmsgs {
+		if lmsg != nil {
+			lmsgsTab[lmsg.GetMessageID()] = *lmsg
+		}
+	}
+
+	s.debug("GetMessagesWithRemotes: convID: %s uid: %s total msgs: %d hits: %d", convID, uid,
+		len(msgs), len(lmsgsTab))
+	var merges []chat1.MessageUnboxed
+	for _, msg := range msgs {
+		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
+			res = append(res, lmsg)
+		} else {
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg)
+			if err != nil {
+				return res, err
+			}
+			merges = append(merges, unboxed)
+			res = append(res, unboxed)
+		}
+	}
+	if len(merges) > 0 {
+		if err = s.storage.Merge(ctx, convID, uid, merges); err != nil {
+			return res, err
+		}
+	}
+
+	// Identify this TLF by running crypt keys
+	if ierr := s.identifyTLF(ctx, convID, uid, res); ierr != nil {
+		s.debug("GetMessagesWithRemotes: identify failed: %s", ierr.Error())
 		return nil, ierr
 	}
 

@@ -344,14 +344,9 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 		return chat1.ConversationLocal{Error: &errMsg}
 	}
 
-	var msgIDs []chat1.MessageID
-	for _, m := range conversationRemote.MaxMsgs {
-		msgIDs = append(msgIDs, m.GetMessageID())
-	}
-
 	var err error
-	conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessages(ctx,
-		conversationRemote.Metadata.ConversationID, uid, msgIDs)
+	conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
+		conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs)
 	if err != nil {
 		errMsg := err.Error()
 		return chat1.ConversationLocal{Error: &errMsg}
