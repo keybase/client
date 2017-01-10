@@ -1,5 +1,4 @@
 // @flow
-// TEMP
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
