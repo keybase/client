@@ -670,10 +670,29 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 }
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.PostLocalNonblockRes{}, err
+	}
+	uid := h.G().Env.GetUID()
 
 	// Add outbox information
+	var prevMsgID chat1.MessageID
+	if arg.ClientPrev == 0 {
+		h.G().Log.Debug("PostLocalNonblock: ClientPrev not specified using local storage")
+		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid.ToBytes(), nil,
+			&chat1.Pagination{Num: 1})
+		if err != nil || len(thread.Messages) == 0 {
+			h.G().Log.Debug("PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
+			prevMsgID = 1
+		} else {
+			prevMsgID = thread.Messages[0].GetMessageID()
+		}
+	} else {
+		prevMsgID = arg.ClientPrev
+	}
+	h.G().Log.Debug("PostLocalNonblock: using prevMsgID: %d", prevMsgID)
 	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
-		Prev: arg.ClientPrev,
+		Prev: prevMsgID,
 	}
 
 	// Create non block sender
@@ -796,6 +815,9 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		var err error
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
+		if err != nil {
+			h.G().Log.Debug("error uploading primary asset to s3: %s", err)
+		}
 		return err
 	})
 
@@ -812,6 +834,8 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
+			} else {
+				h.G().Log.Debug("error uploading preview asset to s3: %s", err)
 			}
 			return err
 		})
@@ -846,7 +870,16 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	return h.PostLocal(ctx, postArg)
+
+	h.G().Log.Debug("attachment assets uploaded, posting attachment message")
+	plres, err := h.PostLocal(ctx, postArg)
+	if err != nil {
+		h.G().Log.Debug("error posting attachment message: %s", err)
+	} else {
+		h.G().Log.Debug("posted attachment message successfully")
+	}
+
+	return plres, err
 }
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
@@ -1085,13 +1118,18 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 		ContentType: http.DetectContentType(head),
 	}
 
+	h.G().Log.Debug("detected attachment content type %s", p.ContentType)
+
 	if preview == nil {
+		h.G().Log.Debug("no attachment preview included by client, seeing if possible to generate")
 		src.Reset()
-		previewRes, err := chat.Preview(ctx, src, p.ContentType, attachment.Basename())
+		previewRes, err := chat.Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename())
 		if err != nil {
+			h.G().Log.Debug("error making preview: %s", err)
 			return nil, err
 		}
 		if previewRes != nil {
+			h.G().Log.Debug("made preview for attachment asset")
 			p.Preview = previewRes.Source
 			p.PreviewContentType = previewRes.ContentType
 			if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {

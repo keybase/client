@@ -246,8 +246,6 @@ class ConversationList extends Component<void, Props, State> {
     const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
     const isFirstNewMessage = message.messageID != null && this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
-    // TODO: We need to update the message component selected status
-    // when showing popup, which isn't currently working.
 
     return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.onRetryMessage)
   }

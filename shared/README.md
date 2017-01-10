@@ -56,7 +56,7 @@ You can set environment variables for debugging:
 yarn run rn-gobuild-ios
 
 # Open workspace (not xcodeproj)
-open ios/Keybase.xcworkspace
+open react-native/ios/Keybase.xcworkspace
 ```
 
 Then select the target `Keybase` and run.

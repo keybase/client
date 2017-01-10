@@ -53,9 +53,9 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
   }
 
   render () {
-    const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick} = this.props
+    const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, isSelected} = this.props
     return (
-      <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
+      <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}} className='message'>
         <div style={_marginContainerStyle}>
           <div style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
           <div style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
@@ -65,7 +65,7 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
             <div style={_bodyContainerStyle}>
               {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
               <div style={_textContainerStyle}>
-                <div style={{flex: 1}}>
+                <div style={_childrenWrapStyle}>
                   {children}
                 </div>
                 <div className='action-button'>
@@ -82,8 +82,17 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
   }
 }
 
-const stylesFirstNewMessage = {
+const _childrenWrapStyle = {
+  flex: 1,
+  ...globalStyles.flexBoxColumn,
+}
+
+const _stylesFirstNewMessage = {
   borderTop: `solid 1px ${globalColors.orange}`,
+}
+
+const _stylesSelected = {
+  backgroundColor: `${globalColors.black_05}`,
 }
 
 const _infoStyle = {
@@ -123,5 +132,8 @@ const _avatarStyle = {
 export default withHandlers({
   onIconClick: (props: Props) => event => {
     props.onAction(props.message, event)
+  },
+  onRetry: (props: Props) => () => {
+    props.message.outboxID && props.onRetry(props.message.outboxID)
   },
 })(_MessageComponent)

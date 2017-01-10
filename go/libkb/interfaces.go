@@ -42,6 +42,7 @@ type configGetter interface {
 	GetGregorDisabled() (bool, bool)
 	GetBGIdentifierDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
+	GetGregorPingTimeout() (time.Duration, bool)
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorURI() string
 	GetHome() string
@@ -306,6 +307,7 @@ type SecretUI interface {
 type SaltpackUI interface {
 	SaltpackPromptForDecrypt(context.Context, keybase1.SaltpackPromptForDecryptArg, bool) error
 	SaltpackVerifySuccess(context.Context, keybase1.SaltpackVerifySuccessArg) error
+	SaltpackVerifyBadSender(context.Context, keybase1.SaltpackVerifyBadSenderArg) error
 }
 
 type LogUI interface {

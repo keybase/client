@@ -423,6 +423,8 @@ export const SaltpackUiSaltpackSenderType = {
   trackingBroke: 3,
   trackingOk: 4,
   self: 5,
+  revoked: 6,
+  expired: 7,
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
@@ -3749,6 +3751,8 @@ export type SaltpackSenderType =
   | 3 // TRACKING_BROKE_3
   | 4 // TRACKING_OK_4
   | 5 // SELF_5
+  | 6 // REVOKED_6
+  | 7 // EXPIRED_7
 
 export type SaltpackSignOptions = {
   detached: boolean,
@@ -4941,6 +4945,11 @@ export type saltpackUiSaltpackPromptForDecryptRpcParam = Exact<{
   usedDelegateUI: boolean
 }>
 
+export type saltpackUiSaltpackVerifyBadSenderRpcParam = Exact<{
+  signingKID: KID,
+  sender: SaltpackSender
+}>
+
 export type saltpackUiSaltpackVerifySuccessRpcParam = Exact<{
   signingKID: KID,
   sender: SaltpackSender
@@ -6119,6 +6128,14 @@ export type incomingCallMapType = Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (
+    params: Exact<{
+      sessionID: int,
+      signingKID: KID,
+      sender: SaltpackSender
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (
     params: Exact<{
       sessionID: int,
       signingKID: KID,

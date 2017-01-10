@@ -97,11 +97,26 @@ func (e *SaltpackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 		return err
 	}
 
-	arg := keybase1.SaltpackVerifySuccessArg{
+	if senderTypeIsSuccessful(spsiEng.Result().SenderType) {
+		arg := keybase1.SaltpackVerifySuccessArg{
+			Sender:     spsiEng.Result(),
+			SigningKID: kid,
+		}
+		return ctx.SaltpackUI.SaltpackVerifySuccess(context.TODO(), arg)
+	}
+
+	arg := keybase1.SaltpackVerifyBadSenderArg{
 		Sender:     spsiEng.Result(),
 		SigningKID: kid,
 	}
-	ctx.SaltpackUI.SaltpackVerifySuccess(context.TODO(), arg)
+	// This will return an error if --force is not given.
+	return ctx.SaltpackUI.SaltpackVerifyBadSender(context.TODO(), arg)
+}
 
-	return nil
+func senderTypeIsSuccessful(senderType keybase1.SaltpackSenderType) bool {
+	return (senderType == keybase1.SaltpackSenderType_NOT_TRACKED ||
+		senderType == keybase1.SaltpackSenderType_UNKNOWN ||
+		senderType == keybase1.SaltpackSenderType_ANONYMOUS ||
+		senderType == keybase1.SaltpackSenderType_TRACKING_OK ||
+		senderType == keybase1.SaltpackSenderType_SELF)
 }

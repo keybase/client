@@ -42,6 +42,7 @@ func TestRPCs(t *testing.T) {
 	testLoadAllPublicKeysUnverified(t, tc2.G)
 	testLoadUserWithNoKeys(t, tc2.G)
 	testCheckDevicesForUser(t, tc2.G)
+	testIdentify2(t, tc2.G)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -184,5 +185,29 @@ func testCheckDevicesForUser(t *testing.T, g *libkb.GlobalContext) {
 	})
 	if _, ok := err.(libkb.DeviceNameInUseError); !ok {
 		t.Fatalf("wanted a name in use error; got %v", err)
+	}
+}
+
+func testIdentify2(t *testing.T, g *libkb.GlobalContext) {
+
+	cli, err := client.GetIdentifyClient(g)
+	if err != nil {
+		t.Fatalf("failed to get new identifyclient: %v", err)
+	}
+
+	_, err = cli.Identify2(context.TODO(), keybase1.Identify2Arg{
+		UserAssertion: "t_alice",
+		ChatGUIMode:   true,
+	})
+	if err != nil {
+		t.Fatalf("Identify2 failed: %v\n", err)
+	}
+
+	_, err = cli.Identify2(context.TODO(), keybase1.Identify2Arg{
+		UserAssertion: "t_weriojweroi",
+		ChatGUIMode:   true,
+	})
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Fatalf("Expected a not-found error, but got: %v (%T)", err, err)
 	}
 }

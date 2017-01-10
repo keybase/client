@@ -13,6 +13,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/nfnt/resize"
 
@@ -90,19 +91,19 @@ type PreviewRes struct {
 
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
-func Preview(ctx context.Context, src io.Reader, contentType, basename string) (*PreviewRes, error) {
+func Preview(ctx context.Context, log logger.Logger, src io.Reader, contentType, basename string) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png":
-		return previewImage(ctx, src, basename, contentType)
+		return previewImage(ctx, log, src, basename, contentType)
 	case "image/gif":
-		return previewGIF(ctx, src, basename)
+		return previewGIF(ctx, log, src, basename)
 	}
 
 	return nil, nil
 }
 
 // previewImage will resize a single-frame image.
-func previewImage(ctx context.Context, src io.Reader, basename, contentType string) (*PreviewRes, error) {
+func previewImage(ctx context.Context, log logger.Logger, src io.Reader, basename, contentType string) (*PreviewRes, error) {
 	// images.Decode in camlistore correctly handles exif orientation information.
 	img, _, err := images.Decode(src, nil)
 	if err != nil {
@@ -140,7 +141,7 @@ func previewImage(ctx context.Context, src io.Reader, basename, contentType stri
 
 // previewGIF handles resizing multiple frames in an animated gif.
 // Based on code in https://github.com/dpup/go-scratch/blob/master/gif-resize/gif-resize.go
-func previewGIF(ctx context.Context, src io.Reader, basename string) (*PreviewRes, error) {
+func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename string) (*PreviewRes, error) {
 	g, err := gif.DecodeAll(src)
 	if err != nil {
 		return nil, err
@@ -155,12 +156,15 @@ func previewGIF(ctx context.Context, src io.Reader, basename string) (*PreviewRe
 	origBounds := g.Image[0].Bounds()
 	img := image.NewRGBA(origBounds)
 
+	log.Debug("previewGIF: number of frames = %d", len(g.Image))
+
 	// draw each frame, then resize it, replacing the existing frames.
 	width, height := previewDimensions(origBounds)
 	for index, frame := range g.Image {
 		bounds := frame.Bounds()
 		draw.Draw(img, bounds, frame, bounds.Min, draw.Over)
 		g.Image[index] = imageToPaletted(resize.Resize(width, height, img, resize.Bicubic))
+		log.Debug("previewGIF: resized frame %d", index)
 	}
 
 	// change the image Config to the new size

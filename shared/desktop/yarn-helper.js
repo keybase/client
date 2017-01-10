@@ -135,6 +135,7 @@ const commands = {
     env: {
       KEYBASE_NO_ENGINE: 1,
       ELECTRON_ENABLE_LOGGING: 1,
+      BABEL_ENV: 'electron',
     },
     shell: 'webpack --config desktop/webpack.config.visdiff.js && electron ./desktop/dist/render-visdiff.bundle.js',
     help: 'Render images of dumb components',
