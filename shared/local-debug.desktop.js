@@ -30,6 +30,7 @@ let config: {[key: string]: any} = {
   actionStatFrequency: 0,
   isTesting: false,
   resetEngineOnHMR: false,
+  ignoreDisconnectOverlay: false,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -70,6 +71,7 @@ export const {
   enableStoreLogging,
   forceMainWindowPosition,
   forwardLogs,
+  ignoreDisconnectOverlay,
   isTesting,
   logStatFrequency,
   overrideLoggedInTab,
@@ -79,10 +81,10 @@ export const {
   reactPerf,
   reduxDevToolsEnable,
   reduxDevToolsSelect,
+  resetEngineOnHMR,
   showAllTrackers,
   showDevTools,
   skipSecondaryDevtools,
-  resetEngineOnHMR,
 } = config
 
 export function initTabbedRouterState () {
