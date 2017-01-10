@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -15,12 +14,12 @@ import (
 
 type blockOpsConfig interface {
 	dataVersioner
+	logMaker
 	blockServer() BlockServer
 	codec() kbfscodec.Codec
 	crypto() cryptoPure
 	keyGetter() blockKeyGetter
 	blockCache() BlockCache
-	MakeLogger(string) logger.Logger
 }
 
 type blockOpsConfigAdapter struct {

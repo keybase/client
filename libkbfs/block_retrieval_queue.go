@@ -11,7 +11,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
@@ -24,12 +23,11 @@ const (
 
 type blockRetrievalConfig interface {
 	dataVersioner
+	logMaker
 	// Codec for copying blocks
 	codec() kbfscodec.Codec
 	// BlockCache for writethrough caching
 	blockCache() BlockCache
-	// Logger for logging
-	MakeLogger(string) logger.Logger
 }
 
 // blockRetrievalRequest represents one consumer's request for a block.
@@ -119,7 +117,7 @@ func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockR
 		workerQueue: make(chan chan *blockRetrieval, numWorkers),
 		doneCh:      make(chan struct{}),
 	}
-	q.prefetcher = newBlockPrefetcher(q)
+	q.prefetcher = newBlockPrefetcher(q, config)
 	return q
 }
 
@@ -297,7 +295,7 @@ func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context, enable boo
 		err = ctx.Err()
 	}
 	if enable {
-		brq.prefetcher = newBlockPrefetcher(brq)
+		brq.prefetcher = newBlockPrefetcher(brq, brq.config)
 	}
 	return err
 }

@@ -23,6 +23,10 @@ type dataVersioner interface {
 	DataVersion() DataVer
 }
 
+type logMaker interface {
+	MakeLogger(module string) logger.Logger
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -1387,6 +1391,7 @@ type ConflictRenamer interface {
 // do not require comments.
 type Config interface {
 	dataVersioner
+	logMaker
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -1488,7 +1493,6 @@ type Config interface {
 	// ResetCaches clears and re-initializes all data and key caches.
 	ResetCaches()
 
-	MakeLogger(module string) logger.Logger
 	// MetricsRegistry may be nil, which should be interpreted as
 	// not using metrics at all. (i.e., as if UseNilMetrics were
 	// set). This differs from how go-metrics treats nil Registry

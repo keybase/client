@@ -132,7 +132,7 @@ func checkDataVersion(versioner dataVersioner, p path, ptr BlockPointer) error {
 	if ptr.DataVer < FirstValidDataVer {
 		return InvalidDataVersionError{ptr.DataVer}
 	}
-	if ptr.DataVer > versioner.DataVersion() {
+	if versioner != nil && ptr.DataVer > versioner.DataVersion() {
 		return NewDataVersionError{p, ptr.DataVer}
 	}
 	return nil

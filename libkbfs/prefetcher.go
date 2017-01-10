@@ -9,6 +9,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 
 	"golang.org/x/net/context"
@@ -20,6 +21,11 @@ const (
 	dirEntryPrefetchPriority            int = -200
 	updatePointerPrefetchPriority       int = 0
 )
+
+type prefetcherConfig interface {
+	dataVersioner
+	logMaker
+}
 
 type prefetchRequest struct {
 	priority int
@@ -34,6 +40,9 @@ type blockRetriever interface {
 }
 
 type blockPrefetcher struct {
+	config prefetcherConfig
+	log    logger.Logger
+	// blockRetriever to retrieve blocks from the server
 	retriever blockRetriever
 	// channel to synchronize prefetch requests with the prefetcher shutdown
 	progressCh chan prefetchRequest
@@ -46,12 +55,18 @@ type blockPrefetcher struct {
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
 
-func newBlockPrefetcher(retriever blockRetriever) *blockPrefetcher {
+func newBlockPrefetcher(retriever blockRetriever, config prefetcherConfig) *blockPrefetcher {
 	p := &blockPrefetcher{
+		config:     config,
 		retriever:  retriever,
 		progressCh: make(chan prefetchRequest),
 		shutdownCh: make(chan struct{}),
 		doneCh:     make(chan struct{}),
+	}
+	if config != nil {
+		p.log = config.MakeLogger("PRE")
+	} else {
+		p.log = logger.NewNull()
 	}
 	if retriever == nil {
 		// If we pass in a nil retriever, this prefetcher shouldn't do
@@ -79,8 +94,10 @@ func (p *blockPrefetcher) run() {
 			go func() {
 				defer wg.Done()
 				defer cancel()
+				p.log.CDebugf(ctx, "Begin prefetch for block %s.", req.ptr.ID)
 				select {
-				case _ = <-errCh:
+				case err := <-errCh:
+					p.log.CDebugf(ctx, "Done prefetch for block %s. Error: %v", req.ptr.ID, err)
 				case <-p.shutdownCh:
 					// Cancel but still wait so p.doneCh accurately represents
 					// whether we still have requests pending.
@@ -95,10 +112,9 @@ func (p *blockPrefetcher) run() {
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block) error {
-	// TODO: plumb through config.DataVersion(), or factor out a data version
-	// checker and plumb that through. Then check the pointer and config data
-	// versions before prefetching anything. Use
-	// folderBlockOps.checkDataVersion as a template.
+	if err := checkDataVersion(p.config, path{}, ptr); err != nil {
+		return err
+	}
 	select {
 	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
 		return nil
@@ -148,6 +164,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 		case Exec:
 			block = &FileBlock{}
 		default:
+			p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T.", entry)
 			continue
 		}
 		p.request(priority, kmd, entry.BlockPointer, block)
@@ -185,6 +202,7 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, 
 			}
 		}
 	default:
+		p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T.", b)
 	}
 }
 
