@@ -193,6 +193,10 @@ func (o OutboxID) Eq(r OutboxID) bool {
 	return bytes.Equal(o, r)
 }
 
+func (o OutboxID) String() string {
+	return hex.EncodeToString(o)
+}
+
 func (t TLFVisibility) Eq(r TLFVisibility) bool {
 	return int(t) == int(r)
 }

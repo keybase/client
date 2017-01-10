@@ -670,10 +670,29 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 }
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.PostLocalNonblockRes{}, err
+	}
+	uid := h.G().Env.GetUID()
 
 	// Add outbox information
+	var prevMsgID chat1.MessageID
+	if arg.ClientPrev == 0 {
+		h.G().Log.Debug("PostLocalNonblock: ClientPrev not specified using local storage")
+		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid.ToBytes(), nil,
+			&chat1.Pagination{Num: 1})
+		if err != nil || len(thread.Messages) == 0 {
+			h.G().Log.Debug("PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
+			prevMsgID = 1
+		} else {
+			prevMsgID = thread.Messages[0].GetMessageID()
+		}
+	} else {
+		prevMsgID = arg.ClientPrev
+	}
+	h.G().Log.Debug("PostLocalNonblock: using prevMsgID: %d", prevMsgID)
 	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
-		Prev: arg.ClientPrev,
+		Prev: prevMsgID,
 	}
 
 	// Create non block sender
