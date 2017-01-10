@@ -148,7 +148,8 @@ export function retryBootstrap (): AsyncAction {
 }
 
 let bootstrapSetup = false
-export function bootstrap (): AsyncAction {
+type BootstrapOptions = {isReconnect?: boolean}
+export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
   return (dispatch, getState) => {
     if (!bootstrapSetup) {
       bootstrapSetup = true
@@ -167,8 +168,10 @@ export function bootstrap (): AsyncAction {
           }
           dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(listenForKBFSNotifications())
-          dispatch(navBasedOnLoginState())
-          dispatch((resetSignup(): Action))
+          if (!opts.isReconnect) {
+            dispatch(navBasedOnLoginState())
+            dispatch((resetSignup(): Action))
+          }
           dispatch(registerListeners())
         }).catch(error => {
           console.warn('[bootstrap] error bootstrapping: ', error)
