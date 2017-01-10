@@ -102,9 +102,10 @@ type gregorHandler struct {
 	badger           *Badger
 
 	// This mutex protects the con object
-	connMutex sync.Mutex
-	conn      *rpc.Connection
-	uri       *rpc.FMPURI
+	connMutex     sync.Mutex
+	conn          *rpc.Connection
+	uri           *rpc.FMPURI
+	startPingLoop sync.Once
 
 	cli              rpc.GenericClient
 	sessionID        gregor1.SessionID
@@ -1197,8 +1198,6 @@ func (g *gregorHandler) pingLoop() {
 					if err := g.Connect(g.uri); err != nil {
 						g.Debug("ping loop: error connecting: %s", err.Error())
 					}
-
-					return
 				}
 			}
 
@@ -1231,7 +1230,7 @@ func (g *gregorHandler) connectTLS() error {
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
-	go g.pingLoop()
+	g.startPingLoop.Do(func() { go g.pingLoop() })
 
 	return nil
 }
@@ -1248,7 +1247,7 @@ func (g *gregorHandler) connectNoTLS() error {
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
-	go g.pingLoop()
+	g.startPingLoop.Do(func() { go g.pingLoop() })
 
 	return nil
 }
