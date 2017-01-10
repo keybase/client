@@ -225,7 +225,13 @@ function reducer (state: State = initialState, action: Actions) {
     case Constants.updatedMetadata:
       return state.set('metaData', state.get('metaData').merge(action.payload))
     case Constants.loadedInbox:
-      return state.set('inbox', action.payload.inbox)
+      // Don't overwrite existing verified inbox data
+      const existingRows = state.get('inbox')
+      return state.set('inbox', action.payload.inbox.map(newRow => {
+        const id = newRow.get('conversationIDKey')
+        const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
+        return existingRow || newRow
+      }))
     case Constants.updateInboxComplete:
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
     case Constants.updateInbox:
