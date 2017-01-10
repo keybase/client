@@ -123,10 +123,10 @@ func (s *SaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.Sal
 		message = fmt.Sprintf("Signed by %s, but their tracking statement is broken.", ColorString("bold", arg.Sender.Username))
 		errorReason = "tracking statement broken"
 	case keybase1.SaltpackSenderType_REVOKED:
-		message = fmt.Sprintf("Signed by %s, but the key they used (%s) is revoked.", ColorString("bold", arg.Sender.Username), arg.SigningKID.String())
+		message = fmt.Sprintf("Signed by %s, but the key they used is revoked:\n    %s", ColorString("bold", arg.Sender.Username), arg.SigningKID.String())
 		errorReason = "sender key revoked"
 	case keybase1.SaltpackSenderType_EXPIRED:
-		message = fmt.Sprintf("Signed by %s, but the key they used (%s) is expired.", ColorString("bold", arg.Sender.Username), arg.SigningKID.String())
+		message = fmt.Sprintf("Signed by %s, but the key they used is expired:\n    %s", ColorString("bold", arg.Sender.Username), arg.SigningKID.String())
 		errorReason = "sender key expired"
 	default:
 		return fmt.Errorf("Unexpected bad sender type: %s", arg.Sender.SenderType)
@@ -137,5 +137,6 @@ func (s *SaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.Sal
 	if s.force {
 		return nil
 	}
+	fmt.Fprintf(w, ColorString("red", "Use --force to see the message anyway.\n"))
 	return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: errorReason}
 }
