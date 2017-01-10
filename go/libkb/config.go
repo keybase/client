@@ -500,6 +500,10 @@ func (f JSONConfigFile) GetGregorPingInterval() (time.Duration, bool) {
 	return f.GetDurationAtPath("push.ping_interval")
 }
 
+func (f JSONConfigFile) GetGregorPingTimeout() (time.Duration, bool) {
+	return f.GetDurationAtPath("push.ping_timeout")
+}
+
 func (f JSONConfigFile) GetChatDelivererInterval() (time.Duration, bool) {
 	return f.GetDurationAtPath("chat.deliverer_interval")
 }
