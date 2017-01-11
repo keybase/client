@@ -278,12 +278,21 @@
 }
 
 - (void)sysctl:(NSString *)name value:(id)value completion:(void (^)(NSError *error, id value))completion {
-  if (![value isKindOfClass:[NSNumber class]]) {
-    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Unsupported value type for sysctl"), nil);
+  if ([value isKindOfClass:[NSNumber class]]) {
+    [self sysctl:name numberValue:value completion:completion];
     return;
   }
 
-  int intValue = [value intValue];
+  if ([value isKindOfClass:[NSString class]]) {
+    [self sysctl:name stringValue:value completion:completion];
+    return;
+  }
+
+  completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Unsupported value type for sysctl"), nil);
+}
+
+- (void)sysctl:(NSString *)name numberValue:(NSNumber *)numberValue completion:(void (^)(NSError *error, id value))completion {
+  int intValue = [numberValue intValue];
   int oldValue = 0;
   size_t oldValueLen = sizeof(oldValue);
   int retval = sysctlbyname([name UTF8String], &oldValue, &oldValueLen, NULL, 0);
@@ -298,10 +307,22 @@
   size_t valueLen = sizeof(intValue);
   int retvalSet = sysctlbyname([name UTF8String], NULL, 0, &intValue, valueLen);
   if (retvalSet != 0) {
-    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Sysctl set error: %@", @(retvalSet)), nil);
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Sysctl set (int) error: %@", @(retvalSet)), nil);
     return;
   }
-  completion(nil, value);
+  completion(nil, numberValue);
+  return;
+}
+
+- (void)sysctl:(NSString *)name stringValue:(NSString *)stringValue completion:(void (^)(NSError *error, id value))completion {
+  const char *value = [name UTF8String];
+  size_t valueLen = sizeof(value);
+  int retvalSet = sysctlbyname([name UTF8String], NULL, 0, &value, valueLen);
+  if (retvalSet != 0) {
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Sysctl set (string) error: %@", @(retvalSet)), nil);
+    return;
+  }
+  completion(nil, stringValue);
   return;
 }
 
