@@ -5,7 +5,6 @@ package service
 
 import (
 	"fmt"
-	"runtime/debug"
 
 	"golang.org/x/net/context"
 
@@ -65,8 +64,6 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 	if err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
-
-	debug.PrintStack()
 
 	resp, err := tlfClient.GetTLFCryptKeys(ctx, arg)
 	if err != nil {
