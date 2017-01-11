@@ -32,24 +32,29 @@ func checkKIDPGP(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool) {
 	return false
 }
 
-func checkKIDKeybase(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime) {
+func checkKIDKeybase(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
 	for _, key := range u.Base.DeviceKeys {
 		if key.KID.Equal(kid) {
-			return true, nil
+			return true, nil, false
 		}
 	}
 	for _, key := range u.Base.RevokedDeviceKeys {
 		if key.Key.KID.Equal(kid) {
-			return true, &key.Time
+			return true, &key.Time, false
 		}
 	}
-	return false, nil
+	for _, key := range u.Base.DeletedDeviceKeys {
+		if key.KID.Equal(kid) {
+			return true, nil, true
+		}
+	}
+	return false, nil, false
 }
 
-func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime) {
+func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
 	if IsPGPAlgo(AlgoType(kid.GetKeyType())) {
 		found = checkKIDPGP(u, kid)
-		return found, nil
+		return found, nil, false
 	}
 	return checkKIDKeybase(u, kid)
 }

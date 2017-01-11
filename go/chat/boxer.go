@@ -416,6 +416,7 @@ func (b *Boxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.Encrypted
 		E: sealed,
 		N: nonce[:],
 	}
+
 	return enc, nil
 }
 
@@ -545,12 +546,18 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 		return false, false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
 
-	found, revokedAt, err := cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
+	found, revokedAt, deleted, err := cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
 	if err != nil {
 		return false, false, nil, libkb.NewTransientChatUnboxingError(err)
 	}
 	if !found {
 		return false, false, nil, nil
+	}
+
+	if deleted {
+		// XXX something else to flag as a deleted key?
+		b.log().Warning("sender %s key %s was deleted", kbSender, kid)
+		return true, true, nil, nil
 	}
 
 	validAtCtime := true

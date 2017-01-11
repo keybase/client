@@ -254,3 +254,20 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	}
 	return false
 }
+
+func AppendTLFResetSuffix(msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) []chat1.MessageBoxed {
+	if finalizeInfo == nil {
+		return msgs
+	}
+
+	if len(finalizeInfo.ResetFull) == 0 {
+		return msgs
+	}
+
+	mod := make([]chat1.MessageBoxed, len(msgs))
+	for i, m := range msgs {
+		m.ClientHeader.TlfName = m.ClientHeader.TLFNameExpanded(finalizeInfo)
+		mod[i] = m
+	}
+	return mod
+}

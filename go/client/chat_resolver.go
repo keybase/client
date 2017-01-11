@@ -228,10 +228,10 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 			if info.Triple.TopicType == chat1.TopicType_CHAT {
 				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation: %s\n",
 					info.Visibility,
-					info.Triple.TopicType, info.TlfName)
+					info.Triple.TopicType, info.TLFNameExpandedSummary())
 			} else {
 				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation [%s]: %s\n",
-					info.Visibility, info.Triple.TopicType, info.TopicName, info.TlfName)
+					info.Visibility, info.Triple.TopicType, info.TopicName, info.TLFNameExpandedSummary())
 			}
 		}
 		return &info, false, nil
