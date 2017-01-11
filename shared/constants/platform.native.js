@@ -9,8 +9,10 @@ const isDarwin = false
 const isElectron = false
 const isLinux = false
 const isWindows = false
+const fileUIName = 'File Explorer'
 
 export {
+  fileUIName,
   isAndroid,
   isDarwin,
   isElectron,

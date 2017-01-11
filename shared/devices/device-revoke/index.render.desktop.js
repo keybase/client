@@ -28,7 +28,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endang
       {endangeredTLFs.length > 0 &&
         <Box>
           <Box>
-            <Text type='BodySmallSemibold'>You may lose access to these folders forever:</Text>
+            <Text type='Body'>You may lose access to these folders forever:</Text>
           </Box>
 
           <Box style={styleDevicesContainer}>
@@ -54,8 +54,7 @@ const styleHeader = {
 }
 
 const styleTLF = {
-  marginTop: globalMargins.tiny,
-  marginBottom: globalMargins.small,
+  marginBottom: globalMargins.xtiny,
 }
 
 const styleName = {
@@ -71,7 +70,8 @@ const styleDevicesContainer = {
   height: 162,
   width: 440,
   overflowY: 'scroll',
-  backgroundColor: globalColors.lightGrey,
+  border: '1px solid ' + globalColors.black_05,
+  borderRadius: 4,
   alignSelf: 'center',
   marginTop: globalMargins.small,
   marginBottom: globalMargins.small,

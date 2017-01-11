@@ -1,6 +1,7 @@
 // @flow
 import {BrowserWindow, app, globalShortcut} from 'electron'
 import {showDevTools} from '../../local-debug.desktop'
+import flags from '../../util/feature-flags'
 
 function setupDevToolsExtensions () {
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -15,14 +16,18 @@ function setupDevToolsExtensions () {
 function setupOpenDevtools () {
   let devToolsState = showDevTools
 
-  globalShortcut.register('CommandOrControl+Alt+k+b', () => {
-    devToolsState = !devToolsState
-    BrowserWindow.getAllWindows().map(bw => devToolsState ? bw.webContents.openDevTools('detach') : bw.webContents.closeDevTools())
-  })
+  if (flags.admin) {
+    globalShortcut.register('CommandOrControl+Alt+k+b', () => {
+      devToolsState = !devToolsState
+      BrowserWindow.getAllWindows().map(bw => devToolsState ? bw.webContents.openDevTools('detach') : bw.webContents.closeDevTools())
+    })
+  }
 }
 
 function cleanupOpenDevtools () {
-  globalShortcut.unregister('CommandOrControl+Alt+k+b')
+  if (flags.admin) {
+    globalShortcut.unregister('CommandOrControl+Alt+k+b')
+  }
 }
 
 export default function () {

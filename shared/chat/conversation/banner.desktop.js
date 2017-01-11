@@ -20,7 +20,7 @@ const ErrorBanner = (props: ErrorVariant) => {
 const InviteBanner = (props: InviteVariant) => {
   return (
     <CommonHeader windowDragging={false} style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.blue}} type='Strong'>
-      <Text type='Header' backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}>Your messages to malg@twitter will unlock when they join Keybase. You can give them this invite link:</Text>
+      <Text type='Header' backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}>Your messages to {props.username} will unlock when they join Keybase. You can give them this invite link:</Text>
       <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'flex-end'}}>
         <Icon onClick={props.onClickInviteLink} type='iconfont-link' style={{fontSize: 16, color: globalColors.white_40, marginRight: globalMargins.tiny}} />
         <Text type='HeaderLink' backgroundMode='Announcements' onClick={props.onClickInviteLink}>
