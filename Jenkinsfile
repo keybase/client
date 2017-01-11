@@ -144,13 +144,13 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("visdiff") {
-                                            sh "yarn install --pure-lockfile"
+                                            sh "./test.sh visdiff-install"
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
                                                 dir("shared") {
                                                     stage("js visdiff") {
-                                                        sh "node ../visdiff/dist/index.js 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
+                                                        sh "./test.sh visdiff 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
                                                     }
                                                 }
                                             }
