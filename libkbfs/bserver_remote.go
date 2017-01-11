@@ -179,7 +179,7 @@ func NewBlockServerRemote(codec kbfscodec.Codec, signer kbfscrypto.Signer,
 		// This constant backoff is safe to share between multiple connections,
 		// because it has no internal state. But beware: an exponential backoff
 		// shouldn't be shared.
-		ReconnectBackoff: backoff.NewConstantBackOff(RpcReconnectInterval),
+		ReconnectBackoff: backoff.NewConstantBackOff(RPCReconnectInterval),
 	}
 	putConn := rpc.NewTLSConnection(blkSrvAddr,
 		kbfscrypto.GetRootCerts(blkSrvAddr),

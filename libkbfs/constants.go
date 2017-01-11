@@ -6,4 +6,5 @@ package libkbfs
 
 import "time"
 
-const RpcReconnectInterval = 2 * time.Second
+// RPCReconnectInterval specifies the between reconnect attempts for RPC Connections.
+const RPCReconnectInterval = 2 * time.Second

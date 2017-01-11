@@ -21,7 +21,7 @@ func NewSharedKeybaseConnection(kbCtx Context, config Config,
 	opts := rpc.ConnectionOpts{
 		WrapErrorFunc:    libkb.WrapError,
 		TagsFunc:         LogTagsFromContext,
-		ReconnectBackoff: backoff.NewConstantBackOff(RpcReconnectInterval),
+		ReconnectBackoff: backoff.NewConstantBackOff(RPCReconnectInterval),
 	}
 	return rpc.NewConnectionWithTransport(handler, transport,
 		libkb.ErrorUnwrapper{}, config.MakeLogger(""), opts)

@@ -88,7 +88,7 @@ func NewMDServerRemote(config Config, srvAddr string,
 	opts := rpc.ConnectionOpts{
 		WrapErrorFunc:    libkb.WrapError,
 		TagsFunc:         LogTagsFromContext,
-		ReconnectBackoff: backoff.NewConstantBackOff(RpcReconnectInterval),
+		ReconnectBackoff: backoff.NewConstantBackOff(RPCReconnectInterval),
 	}
 	conn := rpc.NewTLSConnection(srvAddr, kbfscrypto.GetRootCerts(srvAddr),
 		MDServerErrorUnwrapper{}, mdServer, rpcLogFactory, config.MakeLogger(""), opts)
