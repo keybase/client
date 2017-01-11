@@ -3225,7 +3225,7 @@ func (fbo *folderBranchOps) Read(
 		len(dest), off)
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "Read %s %d %d done: %+v",
-			getNodeIDStr(file), len(dest), err)
+			getNodeIDStr(file), len(dest), off, err)
 	}()
 
 	err = fbo.checkNode(file)
@@ -3289,7 +3289,7 @@ func (fbo *folderBranchOps) Write(
 		len(data), off)
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "Write %s %d %d done: %+v",
-			getNodeIDStr(file), len(data), err)
+			getNodeIDStr(file), len(data), off, err)
 	}()
 
 	err = fbo.checkNode(file)
