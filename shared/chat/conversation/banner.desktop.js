@@ -23,7 +23,7 @@ function brokenSeparator (idx, item, arr) {
   if (idx === arr.length) {
     return null
   } else if (idx === arr.length - 1) {
-    return <BannerText key={idx} style={brokenStyle}>,&nbsp;and&nbsp;</BannerText>
+    return <BannerText key={idx} style={brokenStyle}>{arr.length === 1 ? '' : ','}&nbsp;and&nbsp;</BannerText>
   } else {
     return <BannerText key={idx} style={brokenStyle}>,&nbsp;</BannerText>
   }
