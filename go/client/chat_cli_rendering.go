@@ -76,6 +76,11 @@ func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.Conver
 	if len(conv.Info.ReaderNames) > 0 {
 		name += "#" + strings.Join(conv.Info.ReaderNames, ",")
 	}
+
+	if conv.Info.FinalizeInfo != nil {
+		name += " " + conv.Info.FinalizeInfo.BeforeSummary()
+	}
+
 	return name
 }
 
