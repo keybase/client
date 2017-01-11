@@ -161,30 +161,31 @@ helpers.rootLinuxNode(env, {
                                 }
                             }},
                             test_kbfs: {
-                                dir('go') {
-                                    sh "go install github.com/keybase/client/go/keybase"
-                                    sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                    clientImage = docker.build("keybaseprivate/kbclient")
-                                    sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                    archive("kbclient.tar.gz")
-                                    build([
-                                        job: "/kbfs/master",
-                                        parameters: [
-                                            [$class: 'StringParameterValue',
-                                                name: 'clientProjectName',
-                                                value: env.JOB_NAME,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePrivateIP',
-                                                value: kbwebNodePrivateIP,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePublicIP',
-                                                value: kbwebNodePublicIP,
-                                            ],
-                                        ]
-                                    ])
-                                }
+                                // TEMP
+                                // dir('go') {
+                                    // sh "go install github.com/keybase/client/go/keybase"
+                                    // sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                    // clientImage = docker.build("keybaseprivate/kbclient")
+                                    // sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                    // archive("kbclient.tar.gz")
+                                    // build([
+                                        // job: "/kbfs/master",
+                                        // parameters: [
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'clientProjectName',
+                                                // value: env.JOB_NAME,
+                                            // ],
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'kbwebNodePrivateIP',
+                                                // value: kbwebNodePrivateIP,
+                                            // ],
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'kbwebNodePublicIP',
+                                                // value: kbwebNodePublicIP,
+                                            // ],
+                                        // ]
+                                    // ])
+                                // }
                             },
                         )
                     },
