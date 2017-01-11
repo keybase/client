@@ -213,7 +213,7 @@ func (b *BlockCacheStandard) Put(
 		// If it's the right type of block, store the hash -> ID mapping.
 		if fBlock, isFileBlock := block.(*FileBlock); b.ids != nil && isFileBlock && !fBlock.IsInd {
 
-			key := idCacheKey{tlf, fBlock.UpdateHashIfNil()}
+			key := idCacheKey{tlf, fBlock.GetHash()}
 			// zero out the refnonce, it doesn't matter
 			ptr.RefNonce = kbfsblock.ZeroRefNonce
 			b.ids.Add(key, ptr)

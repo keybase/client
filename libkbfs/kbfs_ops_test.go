@@ -1138,7 +1138,6 @@ func expectSyncBlockHelper(
 		config.mockBserv.EXPECT().Put(gomock.Any(), kmd.TlfID(), newID,
 			gomock.Any(), readyBlockData.buf, readyBlockData.serverHalf).
 			Return(nil)
-		//config.mockBcache.EXPECT().Get(gomock.Any()).Return(nil, NoSuchBlockError{})
 	}
 	if skipSync == 0 {
 		// sign the MD and put it
@@ -4802,9 +4801,9 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		ptrMatcher{fileNode.BlockPointer}, p.Branch).
 		AnyTimes().Return(fileBlock, nil)
 	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}).
-		Times(1).Return(rootBlock, nil)
+		Return(rootBlock, nil)
 	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}).
-		Times(1).Return(fileBlock, nil)
+		Return(fileBlock, nil)
 
 	// no matching pointers
 	config.mockBcache.EXPECT().CheckForKnownPtr(gomock.Any(), gomock.Any()).

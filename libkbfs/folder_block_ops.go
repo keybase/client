@@ -2577,15 +2577,12 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 		return
 	}
 
-	fbo.config.
-		BlockOps().
-		Prefetcher().
-		PrefetchBlock(
-			block.NewEmpty(),
-			newPtr,
-			kmd,
-			updatePointerPrefetchPriority,
-		)
+	fbo.config.BlockOps().Prefetcher().PrefetchBlock(
+		block.NewEmpty(),
+		newPtr,
+		kmd,
+		updatePointerPrefetchPriority,
+	)
 }
 
 // UpdatePointers updates all the pointers in the node cache

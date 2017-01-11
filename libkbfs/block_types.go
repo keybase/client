@@ -134,20 +134,18 @@ func (db *DirBlock) Set(other Block, codec kbfscodec.Codec) {
 	if err != nil {
 		panic("Unable to DirBlock.Set")
 	}
-	db.cacheMtx.Lock()
-	defer db.cacheMtx.Unlock()
 	db.IsInd = dbCopy.IsInd
 	db.UnknownFieldSetHandler = dbCopy.UnknownFieldSetHandler
-	db.cachedEncodedSize = dbCopy.cachedEncodedSize
 	db.Children = dbCopy.Children
 	db.IPtrs = dbCopy.IPtrs
+	db.cacheMtx.Lock()
+	defer db.cacheMtx.Unlock()
+	db.cachedEncodedSize = dbCopy.cachedEncodedSize
 }
 
 // DeepCopy makes a complete copy of a DirBlock
 func (db *DirBlock) DeepCopy(codec kbfscodec.Codec) (*DirBlock, error) {
 	var dirBlockCopy DirBlock
-	db.cacheMtx.RLock()
-	defer db.cacheMtx.RUnlock()
 	err := kbfscodec.Update(codec, &dirBlockCopy, db)
 	if err != nil {
 		return nil, err
@@ -155,6 +153,8 @@ func (db *DirBlock) DeepCopy(codec kbfscodec.Codec) (*DirBlock, error) {
 	if dirBlockCopy.Children == nil {
 		dirBlockCopy.Children = make(map[string]DirEntry)
 	}
+	db.cacheMtx.RLock()
+	defer db.cacheMtx.RUnlock()
 	dirBlockCopy.cachedEncodedSize = db.cachedEncodedSize
 	return &dirBlockCopy, nil
 }
@@ -201,21 +201,21 @@ func (fb *FileBlock) Set(other Block, codec kbfscodec.Codec) {
 	if err != nil {
 		panic("Unable to DirBlock.Set")
 	}
-	fb.cacheMtx.Lock()
-	defer fb.cacheMtx.Unlock()
 	fb.IsInd = copy.IsInd
 	fb.UnknownFieldSetHandler = copy.UnknownFieldSetHandler
-	fb.cachedEncodedSize = copy.cachedEncodedSize
 	fb.Contents = copy.Contents
 	fb.IPtrs = copy.IPtrs
+	fb.cacheMtx.Lock()
+	defer fb.cacheMtx.Unlock()
+	fb.cachedEncodedSize = copy.cachedEncodedSize
 	fb.hash = copy.hash
 }
 
 // DeepCopy makes a complete copy of a FileBlock
 func (fb *FileBlock) DeepCopy(codec kbfscodec.Codec) (*FileBlock, error) {
+	var fileBlockCopy FileBlock
 	fb.cacheMtx.RLock()
 	defer fb.cacheMtx.RUnlock()
-	var fileBlockCopy FileBlock
 	err := kbfscodec.Update(codec, &fileBlockCopy, fb)
 	if err != nil {
 		return nil, err
@@ -234,15 +234,21 @@ func (fb *FileBlock) UpdateHash() kbfshash.RawDefaultHash {
 	return hash
 }
 
-// UpdateHashIfNil updates the hash of this FileBlock only if
-// the hash is currently nil
-func (fb *FileBlock) UpdateHashIfNil() kbfshash.RawDefaultHash {
+// GetHash returns the hash of this FileBlock. If the hash is nil, it first
+// calculates it.
+func (fb *FileBlock) GetHash() kbfshash.RawDefaultHash {
+	h := func() *kbfshash.RawDefaultHash {
+		fb.cacheMtx.RLock()
+		defer fb.cacheMtx.RUnlock()
+		return fb.hash
+	}()
+	if h != nil {
+		return *h
+	}
+	_, hash := kbfshash.DoRawDefaultHash(fb.Contents)
 	fb.cacheMtx.Lock()
 	defer fb.cacheMtx.Unlock()
-	if fb.hash == nil {
-		_, hash := kbfshash.DoRawDefaultHash(fb.Contents)
-		fb.hash = &hash
-	}
+	fb.hash = &hash
 	return *fb.hash
 }
 
