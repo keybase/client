@@ -8,16 +8,18 @@ import type {Props} from '.'
 
 const Participants = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn}}>
-    {props.participants.filter(username => username !== props.you).map(username => {
+    {props.participants.map(username => {
       const you = username === props.you
       const following = !!props.followingMap[username]
-      const broken = props.metaDataMap.get(username, Map({})).get('brokenTracker', false)
+      const meta = props.metaDataMap.get(username, Map({}))
+      const fullname = meta.get('fullname', 'Unknown')
+      const broken = meta.get('brokenTracker', false)
       return (
         <Box key={username} style={rowStyle} onClick={() => props.onShowProfile(username)}>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, marginRight: globalMargins.tiny}}>
             <Avatar size={32} username={username} />
             <Usernames colorFollowing={true} type='Body' users={[{username, you, following, broken}]} containerStyle={{marginLeft: 12}} />
-            <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>{props.metaDataMap.getIn([username, 'fullname'], 'Unknown')}</Text>
+            <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>{fullname}</Text>
           </Box>
           <Divider style={{marginLeft: 44}} />
         </Box>

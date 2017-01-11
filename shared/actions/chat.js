@@ -793,8 +793,8 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   // Don't send sharing before signup values
   const metaData = yield select(_metaDataSelector)
-  const usernames = action.payload.users.filter(name => !metaData.getIn([name, 'fullname']) && name.indexOf('@') === -1).join(',')
-  if (!usernames) {
+  const usernames = action.payload.users.filter(name => !metaData.getIn([name, 'fullname']) && name.indexOf('@') === -1)
+  if (!usernames.length) {
     return
   }
 
@@ -802,7 +802,7 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
     param: {
       endpoint: 'user/lookup',
       args: [
-        {key: 'usernames', value: usernames},
+        {key: 'usernames', value: usernames.join(',')},
         {key: 'fields', value: 'profile'},
       ],
     },
@@ -810,7 +810,7 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 
   const parsed = JSON.parse(results.body)
   const payload = {}
-  action.payload.users.forEach((username, idx) => {
+  usernames.forEach((username, idx) => {
     const record = parsed.them[idx]
     const fullname = (record && record.profile && record.profile.full_name) || ''
     payload[username] = new MetaDataRecord({fullname})
@@ -826,11 +826,10 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   const {conversationIDKey, fromUser} = action.payload
   yield put(loadMoreMessages(conversationIDKey, true))
   yield put(navigateTo([conversationIDKey], [chatTab]))
-  const you = yield select(usernameSelector)
 
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => p !== you).toArray()}})
+    yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').toArray()}})
   }
 
   if (inbox && !inbox.get('validated')) {
