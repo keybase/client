@@ -158,7 +158,6 @@ func (i *Inbox) mergeConvs(l []chat1.Conversation, r []chat1.Conversation) (res 
 			res = append(res, conv)
 		}
 	}
-	sort.Sort(ByDatabaseOrder(res))
 	return res
 }
 
@@ -177,13 +176,16 @@ func (i *Inbox) hashQuery(query *chat1.GetInboxQuery) (queryHash, libkb.ChatStor
 	return hasher.Sum(nil), nil
 }
 
-func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation,
+func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1.Conversation,
 	query *chat1.GetInboxQuery, p *chat1.Pagination) (err libkb.ChatStorageError) {
 	i.Lock()
 	defer i.Unlock()
 	defer i.maybeNukeFn(func() libkb.ChatStorageError { return err }, i.dbKey())
 
 	i.Debug(ctx, "Merge: vers: %d", vers)
+
+	convs := make([]chat1.Conversation, len(convsIn))
+	copy(convs, convsIn)
 
 	// Read inbox off disk to determine if we can merge, or need to full replace
 	ibox, err := i.readDiskInbox()
@@ -221,6 +223,9 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convs []chat1.C
 		}
 	}
 
+	// Make sure that the inbox is in the write order before writing out
+	sort.Sort(ByDatabaseOrder(data.Conversations))
+
 	// Write out new inbox
 	if err := i.writeDiskInbox(data); err != nil {
 		return err
@@ -228,22 +233,22 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convs []chat1.C
 	return nil
 }
 
-func (i *Inbox) applyQuery(query *chat1.GetInboxQuery, convs []chat1.Conversation) []chat1.Conversation {
+func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, convs []chat1.Conversation) []chat1.Conversation {
 	if query == nil {
-		return convs
+		query = &chat1.GetInboxQuery{}
 	}
 	var res []chat1.Conversation
+	filtered := 0
 	for _, conv := range convs {
 		ok := true
-
 		// Basic checks
 		if query.ConvID != nil && !query.ConvID.Eq(conv.Metadata.ConversationID) {
 			ok = false
 		}
-		if query.After != nil && !query.After.After(conv.ReaderInfo.Mtime) {
+		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
 			ok = false
 		}
-		if query.Before != nil && !query.Before.Before(conv.ReaderInfo.Mtime) {
+		if query.Before != nil && !conv.ReaderInfo.Mtime.Before(*query.Before) {
 			ok = false
 		}
 		if query.TopicType != nil && *query.TopicType != conv.Metadata.IdTriple.TopicType {
@@ -286,8 +291,12 @@ func (i *Inbox) applyQuery(query *chat1.GetInboxQuery, convs []chat1.Conversatio
 
 		if ok {
 			res = append(res, conv)
+		} else {
+			filtered++
 		}
 	}
+
+	i.Debug(ctx, "applyQuery: res size: %d filtered: %d", len(res), filtered)
 	return res
 }
 
@@ -313,27 +322,41 @@ func (i *Inbox) applyPagination(ctx context.Context, convs []chat1.Conversation,
 		if err := decode(p.Previous, &pprev); err != nil {
 			return nil, nil, libkb.ChatStorageRemoteError{Msg: "applyPagination: failed to decode pager: " + err.Error()}
 		}
-		i.Debug(ctx, "applyPagination: using prev pinter: mtime: %v", pprev.Mtime)
+		i.Debug(ctx, "applyPagination: using prev pointer: mtime: %v", pprev.Mtime)
 	} else {
 		i.Debug(ctx, "applyPagination: no next or prev pointers, just using num limit")
 	}
 
-	// TODO: fix me
-	for _, conv := range convs {
-		if len(res) >= num {
-			i.Debug(ctx, "applyPagination: reached num results (%d), stopping", num)
-			break
+	if hasnext {
+		i.Debug(ctx, "applyPagination: using hasnext collection path")
+		for _, conv := range convs {
+			if len(res) >= num {
+				i.Debug(ctx, "applyPagination: reached num results (%d), stopping", num)
+				break
+			}
+			if dbConvLess(pnext, conv) {
+				res = append(res, conv)
+			}
 		}
-
-		if hasnext {
-			if dbConvLess(conv, pnext) {
-				res = append(res, conv)
+	} else if hasprev {
+		i.Debug(ctx, "applyPagination: using hasprev collection path")
+		for index := len(convs) - 1; index >= 0; index-- {
+			if len(res) >= num {
+				i.Debug(ctx, "applyPagination: reached num results (%d), stopping", num)
+				break
 			}
-		} else if hasprev {
-			if dbConvLess(pprev, conv) {
-				res = append(res, conv)
+			if dbConvLess(convs[index], pprev) {
+				res = append(res, convs[index])
 			}
-		} else {
+		}
+		sort.Sort(ByDatabaseOrder(res))
+	} else {
+		i.Debug(ctx, "applyPagination: using null collection path")
+		for _, conv := range convs {
+			if len(res) >= num {
+				i.Debug(ctx, "applyPagination: reached num results (%d), stopping", num)
+				break
+			}
 			res = append(res, conv)
 		}
 	}
@@ -389,8 +412,8 @@ func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.P
 	}
 
 	// Apply query and pagination
-	res = i.applyQuery(query, ibox.Conversations)
-	res, pagination, err = i.applyPagination(ctx, ibox.Conversations, p)
+	res = i.applyQuery(ctx, query, ibox.Conversations)
+	res, pagination, err = i.applyPagination(ctx, res, p)
 	if err != nil {
 		return 0, nil, nil, err
 	}
@@ -453,11 +476,13 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 	// Find any conversations this guy might supersede and set supersededBy pointer
 	for index := range ibox.Conversations {
 		iconv := &ibox.Conversations[index]
-		if iconv.Metadata.FinalizeInfo != nil {
+		if iconv.Metadata.FinalizeInfo == nil {
 			continue
 		}
 		for _, super := range conv.Supersedes {
 			if iconv.GetConvID().Eq(super.ConversationID) {
+				i.Debug(ctx, "NewConversation: setting supersededBy: target: %s superseder: %s",
+					iconv.GetConvID(), conv.GetConvID())
 				iconv.SupersededBy = append(iconv.SupersededBy, conv.Metadata)
 			}
 		}
@@ -494,14 +519,16 @@ func (i *Inbox) getConv(convID chat1.ConversationID, convs []chat1.Conversation)
 }
 
 func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers []gregor1.UID) []gregor1.UID {
+	res := make([]gregor1.UID, len(writers))
+	copy(res, writers)
 	for index, w := range writers {
 		if bytes.Equal(w.Bytes(), sender.Bytes()) {
-			writers = append(writers[:index], writers[index+1:]...)
-			writers = append([]gregor1.UID{sender}, writers...)
-			return writers
+			res = append(res[:index], res[index+1:]...)
+			res = append([]gregor1.UID{sender}, res...)
+			return res
 		}
 	}
-	return writers
+	return res
 }
 
 func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -528,7 +555,6 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 		i.Debug(ctx, "NewMessage: no conversation found: convID: %s, clearing", convID)
 		return i.clear()
 	}
-	mconv := *conv
 
 	// Update conversation
 	found := false
@@ -543,16 +569,21 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	if !found {
 		conv.MaxMsgs = append(conv.MaxMsgs, msg)
 	}
-	// If we are all up to date on the thread, mark this message as read too
-	if conv.ReaderInfo.ReadMsgid == conv.ReaderInfo.MaxMsgid {
+
+	// If we are all up to date on the thread (and the sender is the current user),
+	// mark this message as read too
+	if conv.ReaderInfo.ReadMsgid == conv.ReaderInfo.MaxMsgid &&
+		bytes.Equal(msg.ClientHeader.Sender.Bytes(), i.uid) {
 		conv.ReaderInfo.ReadMsgid = msg.GetMessageID()
 	}
 	conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
 	conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
+
 	conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
 		conv.Metadata.ActiveList)
 
 	// Slot in at the top
+	mconv := *conv
 	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
 		len(ibox.Conversations))
 	ibox.Conversations = append(ibox.Conversations[:index], ibox.Conversations[index+1:]...)

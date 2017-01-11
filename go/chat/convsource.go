@@ -230,13 +230,18 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
 			if query != nil && query.MarkAsRead && len(localData.Messages) > 0 {
+				readMsgID := localData.Messages[0].GetMessageID()
 				res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
 					ConversationID: convID,
-					MsgID:          localData.Messages[0].GetMessageID(),
+					MsgID:          readMsgID,
 				})
 				if err != nil {
 					return chat1.ThreadView{}, nil, err
 				}
+				if err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
+					return chat1.ThreadView{}, nil, err
+				}
+
 				rl = append(rl, res.RateLimit)
 			}
 

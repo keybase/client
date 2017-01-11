@@ -50,6 +50,10 @@ func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	return res, nil
 }
 
+func (b *BlockingLocalizer) Name() string {
+	return "blocking"
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
@@ -91,6 +95,10 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	return nil, nil
 }
 
+func (b *NonblockingLocalizer) Name() string {
+	return "nonblocking"
+}
+
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
 	query *chat1.GetInboxLocalQuery, tlfInfo *TLFInfo) (res []chat1.ConversationLocal, err error) {
 
@@ -130,6 +138,7 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 
 type RemoteInboxSource struct {
 	libkb.Contextified
+	utils.DebugLabeler
 
 	getTlfInterface  func() keybase1.TlfInterface
 	getChatInterface func() chat1.RemoteInterface
@@ -139,6 +148,7 @@ func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterfac
 	tlf func() keybase1.TlfInterface) *RemoteInboxSource {
 	return &RemoteInboxSource{
 		Contextified:     libkb.NewContextified(g),
+		DebugLabeler:     utils.NewDebugLabeler(g, "RemoteInboxSource"),
 		getTlfInterface:  tlf,
 		getChatInterface: ri,
 	}
@@ -154,6 +164,11 @@ func (s *RemoteInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer libkb.ChatLocalizer,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
 	chat1.Inbox, *chat1.RateLimit, error) {
+
+	if localizer == nil {
+		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+	}
+	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
 	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
@@ -286,6 +301,11 @@ func (s *HybridInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
 
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer libkb.ChatLocalizer,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+
+	if localizer == nil {
+		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+	}
+	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
 	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {

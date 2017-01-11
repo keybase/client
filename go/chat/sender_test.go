@@ -92,11 +92,11 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 		incoming: make(chan int),
 		failing:  make(chan []chat1.OutboxID),
 	}
-	tc.G.ConvSource = NewRemoteConversationSource(tc.G, boxer,
+	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, f),
 		func() chat1.RemoteInterface { return ri })
-	tc.G.InboxSource = NewRemoteInboxSource(tc.G,
-		func() chat1.RemoteInterface { return ri },
-		func() keybase1.TlfInterface { return tlf })
+	tc.G.InboxSource = NewHybridInboxSource(tc.G,
+		func() keybase1.TlfInterface { return tlf },
+		func() chat1.RemoteInterface { return ri }, f)
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())

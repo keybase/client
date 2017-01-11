@@ -292,3 +292,12 @@ func (c Conversation) GetMtime() gregor1.Time {
 func (c Conversation) GetConvID() ConversationID {
 	return c.Metadata.ConversationID
 }
+
+func (c Conversation) GetMaxMessage(typ MessageType) (MessageBoxed, error) {
+	for _, msg := range c.MaxMsgs {
+		if msg.GetMessageType() == typ {
+			return msg, nil
+		}
+	}
+	return MessageBoxed{}, fmt.Errorf("max message not found: %v", typ)
+}

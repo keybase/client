@@ -545,6 +545,7 @@ type MessageDeliverer interface {
 
 type ChatLocalizer interface {
 	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
+	Name() string
 }
 
 type InboxSource interface {

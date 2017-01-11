@@ -327,8 +327,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		// create succeeded; grabbing the conversation and returning
 		uid := h.G().Env.GetUID()
 
-		localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface { return h.tlf })
-		ib, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), localizer,
+		ib, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), nil,
 			&chat1.GetInboxLocalQuery{
 				ConvID: &convID,
 			}, nil)
