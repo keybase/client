@@ -79,7 +79,7 @@ export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, o
       : {title: 'Download', onClick: onDownloadAttachment},
   ]
   if (message.followState === 'You') {
-    items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: onDeleteMessage})
+    items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)})
   }
   const header = {
     title: 'header',
