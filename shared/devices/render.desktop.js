@@ -14,7 +14,7 @@ function RevokedHeader (props: RevokedHeaderProps) {
     <Box>
       <Box style={stylesRevokedRow} onClick={props.onToggleExpanded}>
         <Text type='BodySmallSemibold' style={{color: globalColors.black_60}}>Revoked devices</Text>
-        <Icon type={iconType} style={{padding: 5}} />
+        <Icon type={iconType} style={{padding: globalMargins.xtiny}} />
       </Box>
       {props.expanded && props.children}
     </Box>
@@ -23,9 +23,9 @@ function RevokedHeader (props: RevokedHeaderProps) {
 
 const DeviceRow = ({device, revoked, showExistingDevicePage}) => {
   const icon: IconType = {
-    'mobile': 'icon-phone-48',
-    'desktop': 'icon-computer-48',
-    'backup': 'icon-paper-key-48',
+    'mobile': 'icon-phone-32',
+    'desktop': 'icon-computer-32',
+    'backup': 'icon-paper-key-32',
   }[device.type]
 
   let textStyle = {fontStyle: 'italic'}
@@ -42,7 +42,7 @@ const DeviceRow = ({device, revoked, showExistingDevicePage}) => {
       className='existing-device-container'
       key={device.name}
       onClick={() => showExistingDevicePage(device)}
-      style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.white_40 : globalColors.white}}>
+      style={{...stylesCommonRow, borderBottom: '1px solid rgba(0,0,0,.05)'}}>
       <Box style={revoked ? {opacity: 0.2} : {}}>
         <Icon type={icon} />
       </Box>
@@ -72,9 +72,9 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage, showingRevoked,
 )
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
-  <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: globalMargins.xlarge}} onClick={addNewDevice}>
-    <Icon type='icon-devices-add-64-x-48' />
-    <Text type='BodyPrimaryLink' onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>Add new...</Text>
+  <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: 48}} onClick={addNewDevice}>
+    <Icon type='iconfont-new' style={{color: globalColors.blue}} />
+    <Text type='BodyBigLink' onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>Add new...</Text>
     {showingMenu && <PopupMenu style={stylesPopup} items={menuItems} onHidden={onHidden} />}
   </Box>
 )
@@ -95,8 +95,8 @@ class DevicesRender extends Component<void, Props, State> {
   _items () {
     return [
       ...(flags.mobileAppsExist ? [{title: 'New Phone', onClick: () => this.props.addNewPhone()}] : []),
-      {title: 'New Computer', onClick: () => this.props.addNewComputer()},
-      {title: 'New Paper Key', onClick: () => this.props.addNewPaperKey()},
+      {title: 'New computer', onClick: () => this.props.addNewComputer()},
+      {title: 'New paper key', onClick: () => this.props.addNewPaperKey()},
     ]
   }
 
@@ -119,7 +119,6 @@ class DevicesRender extends Component<void, Props, State> {
 
 const stylesContainer = {
   ...globalStyles.scrollable,
-  backgroundColor: globalColors.lightGrey,
   flexGrow: 1,
 }
 
@@ -127,22 +126,20 @@ const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   alignItems: 'center',
-  borderTop: 'solid 1px rgba(0, 0, 0, .1)',
-  height: 60,
+  height: 48,
   justifyContent: 'center',
   padding: 8,
 }
 
 const stylesRevokedRow = {
   ...stylesCommonRow,
-  height: 30,
+  height: 24,
   justifyContent: 'flex-start',
-  backgroundColor: globalColors.lightGrey,
 }
 
 const stylesRevokedDescription = {
   ...stylesCommonRow,
-  backgroundColor: globalColors.lightGrey,
+  height: 24,
 }
 
 const stylesPopup = {
