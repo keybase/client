@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -85,8 +86,9 @@ func NewMDServerRemote(config Config, srvAddr string,
 		MdServerTokenServer, MdServerTokenExpireIn,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
 	opts := rpc.ConnectionOpts{
-		WrapErrorFunc: libkb.WrapError,
-		TagsFunc:      LogTagsFromContext,
+		WrapErrorFunc:    libkb.WrapError,
+		TagsFunc:         LogTagsFromContext,
+		ReconnectBackoff: backoff.NewConstantBackOff(RpcReconnectInterval),
 	}
 	conn := rpc.NewTLSConnection(srvAddr, kbfscrypto.GetRootCerts(srvAddr),
 		MDServerErrorUnwrapper{}, mdServer, rpcLogFactory, config.MakeLogger(""), opts)

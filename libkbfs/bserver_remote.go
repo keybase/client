@@ -176,6 +176,10 @@ func NewBlockServerRemote(codec kbfscodec.Codec, signer kbfscrypto.Signer,
 		DontConnectNow: true, // connect only on-demand
 		WrapErrorFunc:  libkb.WrapError,
 		TagsFunc:       LogTagsFromContext,
+		// This constant backoff is safe to share between multiple connections,
+		// because it has no internal state. But beware: an exponential backoff
+		// shouldn't be shared.
+		ReconnectBackoff: backoff.NewConstantBackOff(RpcReconnectInterval),
 	}
 	putConn := rpc.NewTLSConnection(blkSrvAddr,
 		kbfscrypto.GetRootCerts(blkSrvAddr),

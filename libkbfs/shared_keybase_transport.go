@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"sync"
 
+	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -18,8 +19,9 @@ func NewSharedKeybaseConnection(kbCtx Context, config Config,
 	handler rpc.ConnectionHandler) *rpc.Connection {
 	transport := &SharedKeybaseTransport{kbCtx: kbCtx}
 	opts := rpc.ConnectionOpts{
-		WrapErrorFunc: libkb.WrapError,
-		TagsFunc:      LogTagsFromContext,
+		WrapErrorFunc:    libkb.WrapError,
+		TagsFunc:         LogTagsFromContext,
+		ReconnectBackoff: backoff.NewConstantBackOff(RpcReconnectInterval),
 	}
 	return rpc.NewConnectionWithTransport(handler, transport,
 		libkb.ErrorUnwrapper{}, config.MakeLogger(""), opts)
