@@ -9,6 +9,7 @@ import type {Props, ErrorVariant, InviteVariant, BrokenTrackerVariant} from './b
 const brokenStyle = {
   display: 'inline-block',
 }
+
 const commonHeaderStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.red,
@@ -22,7 +23,7 @@ function brokenSeparator (idx, item, arr) {
   if (idx === arr.length) {
     return null
   } else if (idx === arr.length - 1) {
-    return <BannerText key={idx} style={brokenStyle}>&nbsp;and&nbsp;</BannerText>
+    return <BannerText key={idx} style={brokenStyle}>,&nbsp;and&nbsp;</BannerText>
   } else {
     return <BannerText key={idx} style={brokenStyle}>,&nbsp;</BannerText>
   }
@@ -42,7 +43,7 @@ const BrokenTrackerBanner = (props: BrokenTrackerVariant) => {
     return (
       <Header style={globalStyles.flexBoxRow}>
         <BannerText style={brokenStyle}>Some of&nbsp;</BannerText>
-        <BannerText type='BodySemiboldLink' style={brokenStyle} onClick={() => props.onClick(user)} >{user}</BannerText>
+        <BannerText type='BodySemiboldLink' style={brokenStyle} onClick={() => props.onClick(user)}>{user}</BannerText>
         <BannerText style={brokenStyle}>'s proofs have changed since you last followed them.</BannerText>
       </Header>
     )
@@ -72,7 +73,7 @@ const ErrorBanner = (props: ErrorVariant) => {
 const InviteBanner = (props: InviteVariant) => {
   return (
     <Header style={{backgroundColor: globalColors.blue}}>
-      <BannerText backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter}}>Your messages to malg@twitter will unlock when they join Keybase.</BannerText>
+      <BannerText backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter}}>Your messages to {props.username} will unlock when they join Keybase.</BannerText>
       <BannerText backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter}}>You can give them this invite link:</BannerText>
       <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'flex-end'}}>
         <Icon onClick={props.onClickInviteLink} type='iconfont-link' style={{fontSize: 14, color: globalColors.white_40, marginRight: globalMargins.xtiny}} />

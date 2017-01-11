@@ -287,6 +287,9 @@ function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
   }
 
   // Shouldn't happen but fallback to strict mode
+  if (__DEV__) {
+    console.warn('Missing inbox or you when posting')
+  }
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
