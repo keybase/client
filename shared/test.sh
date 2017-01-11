@@ -1,5 +1,7 @@
 #!/bin/bash
 
+test_type = "$1"
+
 check_rc() {
   # exit if passed in value is not = 0
   # $1 = check return code
@@ -17,8 +19,8 @@ has_js_files() {
     git fetch
     check_rc $? 'echo git fetch problem' 1
     echo 'git diff'
-    merge_base=`git merge-base origin/master HEAD`
-    diff_files=`git diff --name-only ${merge_base} | grep '^shared/'`
+    echo "merge target is $2"
+    diff_files=`git diff --name-only ${2}...HEAD | grep '^shared/'`
     check_rc $? 'no files js cares about' 0
     echo "continuing due to changes in ${diff_files}"
 }
@@ -52,9 +54,9 @@ visdiff_install() {
     check_rc $? 'visdiff fail' 1
 }
 
-if [ "$1" == 'visdiff' ]; then
+if [ $test_type == 'visdiff' ]; then
     visdiff
-elif [ "$1" == 'visdiff-install' ]; then
+elif [ $test_type == 'visdiff-install' ]; then
     visdiff_install
 else
     js_tests

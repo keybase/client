@@ -124,7 +124,7 @@ helpers.rootLinuxNode(env, {
                             ]) {
                                 dir("shared") {
                                     stage("JS tests") {
-                                        sh "./test.sh"
+                                        sh "./test.sh js ${ghprbTargetBranch}"
                                     }
                                 }
                                 // Only run visdiff for PRs
