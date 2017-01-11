@@ -669,6 +669,58 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	}, nil
 }
 
+func (h *chatLocalHandler) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNonblockArg) (chat1.PostLocalNonblockRes, error) {
+
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.Conv = arg.Conv
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_DELETE
+	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
+func (h *chatLocalHandler) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (chat1.PostLocalNonblockRes, error) {
+
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.Conv = arg.Conv
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
+	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+		MessageID: arg.Supersedes,
+		Body:      arg.Body,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
+func (h *chatLocalHandler) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (chat1.PostLocalNonblockRes, error) {
+
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.Conv = arg.Conv
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_TEXT
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: arg.Body,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+
+}
+
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalNonblockRes{}, err
@@ -815,6 +867,9 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		var err error
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
+		if err != nil {
+			h.G().Log.Debug("error uploading primary asset to s3: %s", err)
+		}
 		return err
 	})
 
@@ -831,6 +886,8 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
+			} else {
+				h.G().Log.Debug("error uploading preview asset to s3: %s", err)
 			}
 			return err
 		})
@@ -865,7 +922,16 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	return h.PostLocal(ctx, postArg)
+
+	h.G().Log.Debug("attachment assets uploaded, posting attachment message")
+	plres, err := h.PostLocal(ctx, postArg)
+	if err != nil {
+		h.G().Log.Debug("error posting attachment message: %s", err)
+	} else {
+		h.G().Log.Debug("posted attachment message successfully")
+	}
+
+	return plres, err
 }
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
@@ -1104,13 +1170,18 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 		ContentType: http.DetectContentType(head),
 	}
 
+	h.G().Log.Debug("detected attachment content type %s", p.ContentType)
+
 	if preview == nil {
+		h.G().Log.Debug("no attachment preview included by client, seeing if possible to generate")
 		src.Reset()
-		previewRes, err := chat.Preview(ctx, src, p.ContentType, attachment.Basename())
+		previewRes, err := chat.Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename())
 		if err != nil {
+			h.G().Log.Debug("error making preview: %s", err)
 			return nil, err
 		}
 		if previewRes != nil {
+			h.G().Log.Debug("made preview for attachment asset")
 			p.Preview = previewRes.Source
 			p.PreviewContentType = previewRes.ContentType
 			if previewRes.BaseWidth > 0 || previewRes.BaseHeight > 0 {
