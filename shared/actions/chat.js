@@ -371,7 +371,7 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
   if (!messageID) throw new Error('No messageID for message delete')
   if (!conversationIDKey) throw new Error('No conversation for message delete')
 
-  // TODO: Use deleteMessage rpc when it is available
+  // TODO: Use delete message RPC call when it is available
   const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
   clientHeader.supersedes = messageID
 
@@ -381,10 +381,6 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       msg: {
         clientHeader,
-        messageBody: {
-          messageType: CommonMessageType.delete,
-          messageIDs: [messageID],
-        },
       },
     },
   })
@@ -670,7 +666,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp') {
+  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted') {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
@@ -737,6 +733,14 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             previewSize,
             downloadedPath: null,
             key: common.messageID,
+          }
+        case CommonMessageType.delete:
+          return {
+            type: 'Deleted',
+            timestamp: payload.serverHeader.ctime,
+            messageID: payload.serverHeader.messageID,
+            key: payload.serverHeader.messageID,
+            deletedIDs: payload.messageBody.delete && payload.messageBody.delete.messageIDs || [],
           }
         default:
           const unhandled: UnhandledMessage = {

@@ -10,10 +10,10 @@ const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessage
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
-function _dedupeMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List()): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
+function _dedupeMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
   const filteredAppend = append.filter(m => !seenMessages.has(m.key))
-  const nextMessages = filteredPrepend.concat(messages, filteredAppend)
+  const nextMessages = filteredPrepend.concat(messages, filteredAppend).filter(m => !deletedIDs.has(m.messageID))
 
   const nextSeenMessages = nextMessages.reduce((acc, m) => acc.add(m.key), Set())
 
@@ -21,6 +21,19 @@ function _dedupeMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
     nextMessages,
     nextSeenMessages,
   }
+}
+
+function _filterTypes (inMessages: Array<ServerMessage>): {messages: Array<ServerMessage>, deletedIDs: Array<any>} {
+  const messages = []
+  const deletedIDs = []
+  inMessages.forEach((message, idx) => {
+    if (message.type === 'Deleted') {
+      deletedIDs.push(...message.deletedIDs)
+    } else {
+      messages.push(message)
+    }
+  })
+  return {messages, deletedIDs}
 }
 
 type ConversationsStates = Map<Constants.ConversationIDKey, ConversationState>
@@ -58,18 +71,21 @@ function reducer (state: State = initialState, action: Actions) {
       return initialState
     case Constants.prependMessages: {
       const {messages: prependMessages, moreToLoad, paginationNext, conversationIDKey} = action.payload
+      const {messages, deletedIDs} = _filterTypes(prependMessages)
 
       const newConversationStates = state.get('conversationStates').update(
         conversationIDKey,
         initialConversation,
         conversation => {
-          const {nextMessages, nextSeenMessages} = _dedupeMessages(conversation.seenMessages, conversation.messages, List(prependMessages), List())
+          const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
+          const {nextMessages, nextSeenMessages} = _dedupeMessages(conversation.seenMessages, conversation.messages, List(messages), List(), nextDeletedIDs)
 
           return conversation
             .set('messages', nextMessages)
             .set('seenMessages', nextSeenMessages)
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
+            .set('deletedIDs', nextDeletedIDs)
             .set('isRequesting', false)
         })
 
@@ -87,11 +103,14 @@ function reducer (state: State = initialState, action: Actions) {
       const message: ServerMessage = appendMessages[appendMessages.length - 1]
       const conversationIDKey = appendAction.payload.conversationIDKey
 
+      const {messages, deletedIDs} = _filterTypes(appendMessages)
+
       const newConversationStates = state.get('conversationStates').update(
         conversationIDKey,
         initialConversation,
         conversation => {
-          const {nextMessages, nextSeenMessages} = _dedupeMessages(conversation.seenMessages, conversation.messages, List(), List(appendMessages))
+          const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
+          const {nextMessages, nextSeenMessages} = _dedupeMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs)
 
           const firstMessage = appendMessages[0]
           const inConversationFocused = (isSelected && state.get('focused'))
@@ -108,6 +127,7 @@ function reducer (state: State = initialState, action: Actions) {
           return conversation
             .set('messages', nextMessages)
             .set('seenMessages', nextSeenMessages)
+            .set('deletedIDs', nextDeletedIDs)
         })
 
       const snippet = makeSnippet(serverMessageToMessageBody(message))
@@ -247,4 +267,3 @@ function reducer (state: State = initialState, action: Actions) {
 }
 
 export default reducer
-
