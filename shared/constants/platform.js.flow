@@ -9,3 +9,4 @@ export const isElectron: boolean = false
 export const isDarwin: boolean = false
 export const isWindows: boolean = false
 export const isLinux: boolean = false
+declare export var fileUIName: string

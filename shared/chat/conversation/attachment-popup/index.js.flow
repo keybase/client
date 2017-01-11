@@ -11,6 +11,7 @@ export type Props = {
   onCloseDetailsPopup: () => void,
   onClose: () => void,
   onDownload: () => void,
+  onOpenInFileUI: () => void,
   onDeleteMessage: () => void,
   onOpenDetailsPopup: () => void,
   onToggleZoom: () => void,

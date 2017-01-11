@@ -1,11 +1,12 @@
 // @flow
+import AttachmentMessageComponent from './attachment'
 import AttachmentPopup from '../attachment-popup'
 import HiddenString from '../../../util/hidden-string'
 import React from 'react'
 import Text from './text'
 import {Box} from '../../../common-adapters'
 import {Map} from 'immutable'
-import {TextPopupMenu} from './popup'
+import {TextPopupMenu, AttachmentPopupMenu} from './popup'
 import {messageStates, MetaDataRecord, clampAttachmentPreviewSize} from '../../../constants/chat'
 
 import type {MessageState, TextMessage, AttachmentMessage} from '../../../constants/chat'
@@ -119,6 +120,165 @@ const textMap: DumbComponentMap<Text> = {
   mocks,
 }
 
+const attachmentBaseMessage = {
+  type: 'Attachment',
+  timestamp: 1479764890000,
+  conversationIDKey: 'cid1',
+  author: 'marcopolo',
+  deviceName: 'MKB',
+  deviceType: 'desktop',
+  messageID: 0,
+  filename: '/tmp/Yosemite.jpg',
+  title: 'Half Dome, Merced River, Winter',
+  previewType: 'Image',
+  previewPath: null,
+  downloadedPath: null,
+  messageState: 'sent',
+  key: 'foo',
+  you: 'cecileb',
+  senderDeviceRevokedAt: null,
+  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
+}
+
+const attachmentMessageWithImg = {
+  type: 'Attachment',
+  timestamp: 1479764890000,
+  conversationIDKey: 'cid1',
+  author: 'marcopolo',
+  deviceName: 'MKB',
+  deviceType: 'desktop',
+  messageID: 0,
+  filename: '/tmp/Yosemite.jpg',
+  title: 'Half Dome, Merced River, Winter',
+  previewType: 'Image',
+  previewPath: require('../../../images/mock/yosemite-preview.jpg'),
+  downloadedPath: require('../../../images/mock/yosemite-preview.jpg'),
+  messageState: 'sent',
+  key: 'foo',
+  you: 'cecileb',
+  senderDeviceRevokedAt: null,
+  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
+}
+
+const attachmentMessageGeneric = {
+  type: 'Attachment',
+  timestamp: 1479764890000,
+  conversationIDKey: 'cid1',
+  author: 'marcopolo',
+  deviceName: 'MKB',
+  deviceType: 'desktop',
+  messageID: 0,
+  filename: '/tmp/The Nose - Topo.pdf',
+  title: 'seattle-map.pdf',
+  previewType: 'Other',
+  downloadedPath: '/tmp/somewhere', // eslint-disable-line
+  previewPath: null,
+  messageState: 'sent',
+  key: 'foo',
+  you: 'cecileb',
+  senderDeviceRevokedAt: null,
+  previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
+}
+
+const attachmentBaseMock = {
+  message: attachmentBaseMessage,
+  includeHeader: true,
+  isFirstNewMessage: false,
+  onLoadAttachment: () => console.log('onLoadAttachment'),
+  onAction: () => console.log('onAction'),
+  onRetry: () => console.log('onRetry'),
+  onOpenInFileUI: (path: string) => console.log('on open in file ui'),
+  onOpenInPopup: (message: AttachmentMessage) => console.log('on open in popup'),
+  style: {},
+  you: 'cecileb',
+  followingMap,
+  metaDataMap,
+}
+
+const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
+  component: AttachmentMessageComponent,
+  mocks: {
+    'Basic - Not loaded': attachmentBaseMock,
+    'Basic - Preview Image. Failed': {
+      ...attachmentBaseMock,
+      message: {...attachmentMessageWithImg, downloadedPath: null, messageState: 'failed'},
+    },
+    'Basic - Preview Image. Pending': {
+      ...attachmentBaseMock,
+      message: {...attachmentMessageWithImg, downloadedPath: null, messageState: 'pending'},
+    },
+    'Basic - Preview Image. Not Downloaded': {
+      ...attachmentBaseMock,
+      message: {...attachmentMessageWithImg, downloadedPath: null},
+    },
+    'Basic - Uploading': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageWithImg,
+        messageState: 'uploading',
+        downloadedPath: null,
+        progress: 0.3,
+      },
+    },
+    'Basic - Downloading': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageWithImg,
+        messageState: 'downloading',
+        downloadedPath: null,
+        progress: 0.3,
+      },
+    },
+    'Basic - Preview Image. Downloaded': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageWithImg,
+        messageState: 'downloaded',
+      },
+    },
+    'Basic - Generic File. Uploading': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        downloadedPath: null,
+        messageState: 'uploading',
+        progress: 0.3,
+      },
+    },
+    'Basic - Generic File. Failed': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        messageState: 'failed',
+        downloadedPath: null,
+      },
+    },
+    'Basic - Generic File. sent': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        messageState: 'sent',
+      },
+    },
+    'Basic - Generic File. Downloading': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        messageState: 'downloading',
+        downloadedPath: null,
+        progress: 0.3,
+      },
+    },
+    'Basic - Generic File. Downloaded': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageGeneric,
+        messageState: 'downloaded',
+      },
+    },
+  },
+}
+
 const stackedMessagesMap = {
   component: StackedMessages,
   mocks: {
@@ -141,9 +301,7 @@ const stackedMessagesMap = {
   },
 }
 
-const baseTextPopupMenuMock = {
-  onEditMessage: () => console.log('onEditMessage'),
-  onDeleteMessage: () => console.log('onDeleteMessage'),
+const basePopupMock = {
   onHidden: () => console.log('onHidden'),
   parentProps: {
     style: {
@@ -153,6 +311,22 @@ const baseTextPopupMenuMock = {
       width: 196,
     },
   },
+  you: 'cecileb',
+  followingMap,
+  metaDataMap,
+}
+
+const baseTextPopupMenuMock = {
+  ...basePopupMock,
+  onEditMessage: (m: any) => console.log('onEditMessage', m),
+  onDeleteMessage: (m: any) => console.log('onDeleteMessage', m),
+}
+
+const baseAttachmentPopupMenuMock = {
+  ...basePopupMock,
+  onDownloadAttachment: (messageID, filename) => console.log('message id', messageID, 'filename', filename),
+  onDeleteMessage: (m: any) => console.log('onDeleteMessage', m),
+  onOpenInFileUI: (m: any) => console.log('on open in file ui'),
 }
 
 const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
@@ -162,6 +336,27 @@ const textPopupMenuMap: DumbComponentMap<TextPopupMenu> = {
     'Following - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'cecileb', 'other', null, 123456), you: 'other', followingMap, metaDataMap},
     'You - Valid': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), you: 'cecileb', followingMap, metaDataMap},
     'You - Revoked': {...baseTextPopupMenuMock, message: textMessageMock('sent', 'cecileb', 'cecileb', null, 123456), you: 'cecileb', followingMap, metaDataMap},
+  },
+}
+
+const attachmentPopupMenuMap: DumbComponentMap<AttachmentPopupMenu> = {
+  component: AttachmentPopupMenu,
+  mocks: {
+    'Popup - Attachment Message': {
+      ...baseAttachmentPopupMenuMock,
+      message: {
+        ...attachmentMessageWithImg,
+        downloadedPath: null,
+      },
+    },
+    'Popup - Attachment Downloaded': {
+      ...baseAttachmentPopupMenuMock,
+      message: {
+        ...attachmentMessageWithImg,
+        messageState: 'downloaded',
+        downloadedPath: '/tmp/foo',
+      },
+    },
   },
 }
 
@@ -176,6 +371,7 @@ function baseAttachmentPopupMock (message) {
     onDownload: () => console.log('onDownload'),
     onDeleteMessage: () => console.log('onDeleteMessage'),
     onOpenDetailsPopup: () => console.log('onOpenDetailsPopup'),
+    onOpenInFileUI: () => console.log('onOpenInFileUI'),
     onToggleZoom: () => console.log('onToggleZoom'),
     parentProps: {
       style: {
@@ -226,5 +422,7 @@ export default {
   'Text Message': textMap,
   'Stacked Text Message': stackedMessagesMap,
   'Popup': textPopupMenuMap,
+  'Popup - Attachment': attachmentPopupMenuMap,
   'Attachment Popup': attachmentPopupMap,
+  'Attachment Message': attachmentMap,
 }

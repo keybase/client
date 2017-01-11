@@ -4,7 +4,6 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
 
 import LoadingMore from './messages/loading-more'
-import {TextPopupMenu} from './messages/popup'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
@@ -13,10 +12,12 @@ import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Box, ProgressIndicator} from '../../common-adapters'
-import {globalColors, globalStyles} from '../../styles'
+import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import {clipboard} from 'electron'
+import {globalColors, globalStyles} from '../../styles'
+
 import type {List} from 'immutable'
-import type {Message, MessageID} from '../../constants/chat'
+import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
 import type {Props} from './list'
 
 type State = {
@@ -169,37 +170,67 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled()
   }, 100)
 
-  _showPopup (message: Message, event: any) {
-    if (message.type !== 'Text') return
+  _hidePopup () {
+    ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
     this.setState({
-      selectedMessageID: message.messageID,
+      selectedMessageID: undefined,
     })
+  }
 
+  _renderPopup (message: Message, style: Object): ?React$Element<any> {
+    switch (message.type) {
+      case 'Text':
+        return (
+          <TextPopupMenu
+            you={this.props.you}
+            message={message}
+            onEditMessage={this.props.onEditMessage}
+            onDeleteMessage={this.props.onDeleteMessage}
+            onLoadAttachment={this.props.onLoadAttachment}
+            onOpenInFileUI={this.props.onOpenInFileUI}
+            onHidden={() => this._hidePopup()}
+            style={style}
+          />
+        )
+      case 'Attachment':
+        const {downloadedPath, filename, messageID} = message
+        return (
+          <AttachmentPopupMenu
+            you={this.props.you}
+            message={message}
+            onDeleteMessage={this.props.onDeleteMessage}
+            onDownloadAttachment={() => { messageID && this.props.onLoadAttachment(messageID, filename) }}
+            onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
+            onHidden={() => this._hidePopup()}
+            style={style}
+          />
+        )
+    }
+  }
+
+  _showPopup (message: TextMessage | AttachmentMessage, event: any) {
     const clientRect = event.target.getBoundingClientRect()
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
     const x = clientRect.left - 205
     let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
-    const popupComponent = <TextPopupMenu
-      you={this.props.you}
-      message={message}
-      onEditMessage={this.props.onEditMessage}
-      onDeleteMessage={this.props.onDeleteMessage}
-      onHidden={() => {
-        ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-        this.setState({
-          selectedMessageID: undefined,
-        })
-      }}
-      style={{position: 'absolute', top: y, left: x}}
-      />
+
+    const popupComponent = this._renderPopup(message, {position: 'absolute', top: y, left: x})
+    if (!popupComponent) return
+
+    this.setState({
+      selectedMessageID: message.messageID,
+    })
+
     const container = document.getElementById('popupContainer')
     ReactDOM.render(popupComponent, container)
   }
 
   _onAction = (message, event) => {
-    this._showPopup(message, event)
+    if (message.type === 'Text' || message.type === 'Attachment') {
+      this._showPopup(message, event)
+    }
   }
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {

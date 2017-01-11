@@ -4,6 +4,7 @@ import {Icon, PopupMenu, Text} from '../../../common-adapters'
 import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
+import {fileUIName} from '../../../constants/platform'
 import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
 
@@ -70,10 +71,13 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
   return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
 }
 
-export const AttachmentPopupMenu = ({message, onDeleteMessage, onDownloadAttachment, onHidden, style, you}: AttachmentProps) => {
+export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style, you}: AttachmentProps) => {
   const items = [
     'Divider',
     {title: 'Download', onClick: () => onDownloadAttachment(message)},
+    message.downloadedPath
+      ? {title: `Show in ${fileUIName}`, onClick: () => onOpenInFileUI(message)}
+      : {title: 'Download', onClick: () => onDownloadAttachment(message)},
   ]
   if (message.author === you) {
     items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)})
