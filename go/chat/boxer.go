@@ -400,9 +400,6 @@ func (b *Boxer) boxMessageWithKeysV1(msg chat1.MessagePlaintext, key *keybase1.C
 
 // seal encrypts data into chat1.EncryptedData.
 func (b *Boxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.EncryptedData, error) {
-
-	b.log().Warning("Boxer.seal key: %+v", key)
-
 	s, err := b.marshal(data)
 	if err != nil {
 		return nil, err
@@ -419,17 +416,12 @@ func (b *Boxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.Encrypted
 		E: sealed,
 		N: nonce[:],
 	}
-	b.log().Warning("Boxer.seal data: %+v", enc)
 
 	return enc, nil
 }
 
 // open decrypts chat1.EncryptedData.
 func (b *Boxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]byte, error) {
-
-	b.log().Warning("Boxer.open data: %+v", data)
-	b.log().Warning("Boxer.open key:  %+v", key)
-
 	if len(data.N) != libkb.NaclDHNonceSize {
 		return nil, libkb.DecryptBadNonceError{}
 	}
