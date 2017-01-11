@@ -34,6 +34,10 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		if conv.Info.Visibility == chat1.TLFVisibility_PUBLIC {
 			vis = "public"
 		}
+		var reset string
+		if conv.Info.FinalizeInfo != nil {
+			reset = conv.Info.FinalizeInfo.BeforeSummary()
+		}
 		table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
@@ -48,10 +52,14 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 				Alignment: flexibletable.Left,
 				Content:   flexibletable.MultiCell{Sep: ",", Items: participants},
 			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: reset},
+			},
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, 8, flexibletable.ExpandableWrappable,
+		5, 8, flexibletable.ExpandableWrappable, flexibletable.ExpandableWrappable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}
