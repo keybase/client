@@ -124,10 +124,18 @@ helpers.rootLinuxNode(env, {
                             ]) {
                                 dir("shared") {
                                     sh "node --version"
-                                    sh "yarn install --pure-lockfile --verbose --prefer-offline --no-emoji --no-progress"
-                                    sh "yarn run flow"
-                                    sh "yarn run lint"
-                                    sh "yarn test"
+                                    stage("yarn install") {
+                                        sh "yarn install --pure-lockfile --verbose --prefer-offline --no-emoji --no-progress"
+                                    }
+                                    stage("flow test") {
+                                        sh "yarn run flow"
+                                    }
+                                    stage("lint") {
+                                        sh "yarn run lint"
+                                    }
+                                    stage("js test") {
+                                        sh "yarn test"
+                                    }
                                 }
                                 // Only run visdiff for PRs
                                 if (env.CHANGE_ID) {
@@ -151,7 +159,9 @@ helpers.rootLinuxNode(env, {
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
                                                 dir("shared") {
-                                                    sh "node ../visdiff/dist/index.js 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
+                                                    stage("js visdiff") {
+                                                        sh "node ../visdiff/dist/index.js 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
+                                                    }
                                                 }
                                             }
                                         } catch (e) {
