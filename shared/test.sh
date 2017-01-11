@@ -1,6 +1,7 @@
 #!/bin/bash
 
 test_type = "$1"
+commit_hash = "$2"
 
 check_rc() {
   # exit if passed in value is not = 0
@@ -20,7 +21,7 @@ has_js_files() {
     check_rc $? 'echo git fetch problem' 1
     echo 'git diff'
     echo "merge target is $2"
-    diff_files=`git diff --name-only ${2}...HEAD | grep '^shared/'`
+    diff_files=`git diff --name-only ${2}...${commit_hash} | grep '^shared/'`
     check_rc $? 'no files js cares about' 0
     echo "continuing due to changes in ${diff_files}"
 }

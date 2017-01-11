@@ -126,9 +126,19 @@ helpers.rootLinuxNode(env, {
                                     stage("JS tests") {
                                         sh "echo 1"
                                         sh "set"
+                                        sh "echo 'ghprbActualCommit: ' $ghprbActualCommit"
+                                        sh "echo 'ghprbActualCommitAuthor: ' $ghprbActualCommitAuthor"
+                                        sh "echo 'ghprbActualCommitAuthorEmail: ' $ghprbActualCommitAuthorEmail"
+                                        sh "echo 'ghprbPullDescription: ' $ghprbPullDescription"
+                                        sh "echo 'ghprbPullId: ' $ghprbPullId"
+                                        sh "echo 'ghprbPullLink: ' $ghprbPullLink"
+                                        sh "echo 'ghprbPullTitle: ' $ghprbPullTitle"
+                                        sh "echo 'ghprbSourceBranch: ' $ghprbSourceBranch"
+                                        sh "echo 'ghprbTargetBranch: ' $ghprbTargetBranch"
+                                        sh "echo 'sha1: ' $sha1"
                                         sh "echo 2"
                                         sh "echo ${ghprbTargetBranch}"
-                                        sh "./test.sh js ${ghprbTargetBranch}"
+                                        sh "./test.sh js ${env.COMMIT_HASH} ${ghprbTargetBranch}"
                                         sh "echo 3"
                                     }
                                 }
@@ -149,7 +159,7 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("visdiff") {
-                                            sh "./test.sh visdiff-install"
+                                            sh "./test.sh visdiff-install ${env.COMMIT_HASH}"
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
