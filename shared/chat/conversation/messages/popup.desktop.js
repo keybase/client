@@ -74,7 +74,6 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
 export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style}: AttachmentProps) => {
   const items = [
     'Divider',
-    {title: 'Download', onClick: onDownloadAttachment},
     message.downloadedPath
       ? {title: `Show in ${fileUIName}`, onClick: onOpenInFileUI}
       : {title: 'Download', onClick: onDownloadAttachment},
