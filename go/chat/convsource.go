@@ -90,7 +90,8 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
+	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 	return s.boxer.UnboxMessages(ctx, msgs)
 }
 
@@ -441,7 +442,8 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
+	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
+	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
 	var res []chat1.MessageUnboxed
 	var msgIDs []chat1.MessageID
@@ -483,7 +485,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	}
 
 	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res); ierr != nil {
+	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
 		s.debug("GetMessagesWithRemotes: identify failed: %s", ierr.Error())
 		return nil, ierr
 	}
