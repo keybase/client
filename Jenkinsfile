@@ -123,18 +123,8 @@ helpers.rootLinuxNode(env, {
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                             ]) {
                                 dir("shared") {
-                                    sh "node --version"
-                                    stage("yarn install") {
-                                        sh "yarn install --pure-lockfile --verbose --prefer-offline --no-emoji --no-progress"
-                                    }
-                                    stage("flow test") {
-                                        sh "yarn run flow"
-                                    }
-                                    stage("lint") {
-                                        sh "yarn run lint"
-                                    }
-                                    stage("js test") {
-                                        sh "yarn test"
+                                    stage("JS tests") {
+                                        sh "./test.sh"
                                     }
                                 }
                                 // Only run visdiff for PRs
