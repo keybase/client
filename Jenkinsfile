@@ -221,7 +221,8 @@ helpers.rootLinuxNode(env, {
                                             def testlist = readFile('testlist.txt')
                                             def tests = testlist.tokenize()
                                             for (test in tests) {
-                                                bat "go test -timeout 10m ${test}"
+                                                // TEMP
+                                                // bat "go test -timeout 10m ${test}"
                                             }
                                         }
                                     },
@@ -308,7 +309,8 @@ helpers.rootLinuxNode(env, {
 
 def testNixGo(prefix) {
     dir('go') {
-        helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        sh './test/run_tests.sh'
+        // TEMP
+        // helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
+        // sh './test/run_tests.sh'
     }
 }
