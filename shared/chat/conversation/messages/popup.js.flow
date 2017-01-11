@@ -18,7 +18,7 @@ export class TextPopupMenu extends Component<void, TextProps, void> { }
 
 export type AttachmentProps = BaseProps & {
   message: AttachmentMessage,
-  onDeleteMessage: () => void,
+  onDeleteMessage: (message: AttachmentMessage) => void,
   onDownloadAttachment: () => void,
   onOpenInFileUI: () => void,
 }

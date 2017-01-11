@@ -10,6 +10,7 @@ export type ErrorVariant = {
 
 export type InviteVariant = {
   type: 'Invite',
+  username: string,
   inviteLink: string,
   onClickInviteLink: () => void,
 }

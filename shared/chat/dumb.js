@@ -278,6 +278,7 @@ const conversationBanner = {
     },
     'Invite': {
       type: 'Invite',
+      username: 'malg@twitter',
       inviteLink: 'keybase.io/inv/9999999999',
       onClickInviteLink: () => { console.log('Clicked the invite link') },
     },

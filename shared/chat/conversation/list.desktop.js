@@ -169,6 +169,13 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled()
   }, 100)
 
+  _hidePopup () {
+    ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+    this.setState({
+      selectedMessageID: undefined,
+    })
+  }
+
   _renderPopup (message: Message, style: Object): ?React$Element<any> {
     switch (message.type) {
       case 'Text':
@@ -179,12 +186,7 @@ class ConversationList extends Component<void, Props, State> {
             onDeleteMessage={this.props.onDeleteMessage}
             onLoadAttachment={this.props.onLoadAttachment}
             onOpenInFileUI={this.props.onOpenInFileUI}
-            onHidden={() => {
-              ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-              this.setState({
-                selectedMessageID: undefined,
-              })
-            }}
+            onHidden={() => this._hidePopup()}
             style={style}
           />
         )
@@ -193,15 +195,10 @@ class ConversationList extends Component<void, Props, State> {
         return (
           <AttachmentPopupMenu
             message={message}
-            onDeleteMessage={() => this.props.onDeleteMessage(message)}
+            onDeleteMessage={this.props.onDeleteMessage}
             onDownloadAttachment={() => { messageID && this.props.onLoadAttachment(messageID, filename) }}
             onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
-            onHidden={() => {
-              ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
-              this.setState({
-                selectedMessageID: undefined,
-              })
-            }}
+            onHidden={() => this._hidePopup()}
             style={style}
           />
         )

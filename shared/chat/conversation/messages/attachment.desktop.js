@@ -41,7 +41,7 @@ function PreviewImage ({message: {previewPath, previewType, previewSize, message
 
     return (
       <Box style={style} onClick={onOpenInPopup}>
-        <img style={{imgStyle}} src={previewPath} />
+        <img style={imgStyle} src={previewPath} />
         {(messageState === 'downloading' || messageState === 'downloaded') &&
           <ImageIcon
             style={{position: 'relative', right: 19, top: 3}}
@@ -90,7 +90,7 @@ function ImageIcon ({type, style}: {type: 'Downloaded' | 'Downloading', style: O
 
   return (
     <Box style={{...wrapperStyle, ...style}}>
-      <Icon type={'iconfont-import'} style={iconStyle} />
+      <Icon type='iconfont-import' style={iconStyle} />
     </Box>
   )
 }
@@ -187,10 +187,10 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
     let attachment
     switch (message.previewType) {
       case 'Image':
-        attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={this._onOpenInPopup} onOpenInFileUI={this._onOpenInFileUI} />
+        attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={() => this._onOpenInPopup()} onOpenInFileUI={() => this._onOpenInFileUI()} />
         break
       default:
-        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} />
+        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={() => this._onOpenInFileUI()} />
     }
 
     return (
