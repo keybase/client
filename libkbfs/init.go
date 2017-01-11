@@ -398,6 +398,8 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	if err != nil {
 		return nil, err
 	}
+	// Turn off multiple levels of indirection in production for now.
+	bsplitter.maxPtrsPerBlock = int((^uint(0)) >> 1)
 	config.SetBlockSplitter(bsplitter)
 
 	if registry := config.MetricsRegistry(); registry != nil {

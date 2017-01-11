@@ -75,13 +75,8 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	}
 
 	return &BlockSplitterSimple{
-		maxSize: maxSize,
-		// Currently set the max number of pointers per level of
-		// indirection to the maximum integer, as a way of turning off
-		// multiple levels of indirection in production.  TODO: remove
-		// this.
-		maxPtrsPerBlock: int((^uint(0)) >> 1),
-		//maxPtrsPerBlock:         int(maxSize / int64(bpSize)),
+		maxSize:                 maxSize,
+		maxPtrsPerBlock:         int(maxSize / int64(bpSize)),
 		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
 	}, nil
 }
