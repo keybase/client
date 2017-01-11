@@ -6,11 +6,12 @@
 package libkb
 
 import (
+	"testing"
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestCachedUserLoad(t *testing.T) {
@@ -79,21 +80,21 @@ func TestCheckKIDForUID(t *testing.T) {
 	rebeccaUID := keybase1.UID("99337e411d1004050e9e7ee2cf1a6219")
 	rebeccaKIDRevoked := keybase1.KID("0120e177772304cd9ec833ceb88eeb6e32a667151d9e4fb09df433a846d05e6c40350a")
 
-	found, revokedAt, err := tc.G.GetUPAKLoader().CheckKIDForUID(nil, georgeUID, georgeKIDSibkey)
-	if !found || (revokedAt != nil) || (err != nil) {
+	found, revokedAt, deleted, err := tc.G.GetUPAKLoader().CheckKIDForUID(nil, georgeUID, georgeKIDSibkey)
+	if !found || (revokedAt != nil) || deleted || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
-	found, revokedAt, err = tc.G.GetUPAKLoader().CheckKIDForUID(nil, georgeUID, georgeKIDSubkey)
-	if !found || (revokedAt != nil) || (err != nil) {
+	found, revokedAt, deleted, err = tc.G.GetUPAKLoader().CheckKIDForUID(nil, georgeUID, georgeKIDSubkey)
+	if !found || (revokedAt != nil) || deleted || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
-	found, revokedAt, err = tc.G.GetUPAKLoader().CheckKIDForUID(nil, georgeUID, kbKIDSibkey)
-	if found || (revokedAt != nil) || (err != nil) {
+	found, revokedAt, deleted, err = tc.G.GetUPAKLoader().CheckKIDForUID(nil, georgeUID, kbKIDSibkey)
+	if found || (revokedAt != nil) || deleted || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
 
-	found, revokedAt, err = tc.G.GetUPAKLoader().CheckKIDForUID(nil, rebeccaUID, rebeccaKIDRevoked)
-	if !found || (revokedAt == nil) || (err != nil) {
+	found, revokedAt, deleted, err = tc.G.GetUPAKLoader().CheckKIDForUID(nil, rebeccaUID, rebeccaKIDRevoked)
+	if !found || (revokedAt == nil) || deleted || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
 }
