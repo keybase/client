@@ -379,13 +379,6 @@ const (
 // enqueued journal ID tag.
 const CtxJournalOpID = "JID"
 
-func (j *tlfJournal) pause(pauseType tlfJournalPauseType) {
-	j.pausedLock.Lock()
-	defer j.pausedLock.Unlock()
-	j.pausedType |= pauseType
-	j.wg.Pause()
-}
-
 // doBackgroundWorkLoop is the main function for the background
 // goroutine. It spawns off a worker goroutine to call
 // doBackgroundWork whenever there is work, and can be paused and
@@ -440,20 +433,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			j.log)
 		switch {
 		case bws == TLFJournalBackgroundWorkEnabled && errCh == nil:
-			// If we're now on a branch, pause.  This will pause
-			// until PruneBranch or ResolveBranch is called.
-			isConflict, err := j.isOnConflictBranch()
-			if err != nil {
-				j.log.CDebugf(ctx, "Couldn't get conflict status: %v", err)
-				return
-			}
-			if isConflict {
-				j.log.CDebugf(ctx,
-					"Pausing work while on conflict branch for %s", j.tlfID)
-				bws = TLFJournalBackgroundWorkPaused
-				break
-			}
-
 			// 1) Idle.
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwIdle)
@@ -476,7 +455,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				j.log.CDebugf(ctx,
 					"Got pause signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkPaused
-				j.pause(journalPauseCommand)
 
 			case <-j.needShutdownCh:
 				j.log.CDebugf(ctx,
@@ -517,7 +495,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				j.log.CDebugf(ctx,
 					"Got pause signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkPaused
-				j.pause(journalPauseCommand)
 
 			case <-j.needShutdownCh:
 				j.log.CDebugf(ctx,
@@ -586,18 +563,32 @@ func (j *tlfJournal) doBackgroundWork(ctx context.Context) <-chan error {
 	return errCh
 }
 
-// We don't guarantee that pause/resume requests will be processed in
-// strict FIFO order. In particular, multiple pause requests are
-// collapsed into one (also multiple resume requests), so it's
-// possible that a pause-resume-pause sequence will be processed as
-// pause-resume. But that's okay, since these are just for infrequent
-// ad-hoc testing.
+// We don't guarantee that background pause/resume requests will be
+// processed in strict FIFO order. In particular, multiple pause
+// requests are collapsed into one (also multiple resume requests), so
+// it's possible that a pause-resume-pause sequence will be processed
+// as pause-resume. But that's okay, since these are just for
+// infrequent ad-hoc testing.
 
-func (j *tlfJournal) pauseBackgroundWork() {
+func (j *tlfJournal) pause(pauseType tlfJournalPauseType) {
+	j.pausedLock.Lock()
+	defer j.pausedLock.Unlock()
+	j.pausedType |= pauseType
+
+	if j.pausedType > pauseType {
+		// No signal is needed since someone already called pause.
+		return
+	}
+
+	j.wg.Pause()
 	select {
 	case j.needPauseCh <- struct{}{}:
 	default:
 	}
+}
+
+func (j *tlfJournal) pauseBackgroundWork() {
+	j.pause(journalPauseCommand)
 }
 
 func (j *tlfJournal) resume(pauseType tlfJournalPauseType) {
@@ -1289,8 +1280,6 @@ func (j *tlfJournal) shutdown() {
 
 	<-j.backgroundShutdownCh
 
-	// This may happen before the background goroutine finishes,
-	// but that's ok.
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
