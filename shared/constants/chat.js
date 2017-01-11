@@ -6,7 +6,8 @@ import {CommonMessageType} from './types/flow-types-chat'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction} from './types/flux'
-import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ChatActivity, ConversationInfoLocal, MessageBody} from './types/flow-types-chat'
+import type {ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {DeviceType} from './types/more'
 
 export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
@@ -14,6 +15,8 @@ export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', '
 
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
+
+export type AttachmentMessageState = MessageState | 'downloading' | 'uploading' | 'downloaded'
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
@@ -35,7 +38,7 @@ export type TextMessage = {
   message: HiddenString,
   author: string,
   deviceName: string,
-  deviceType: string,
+  deviceType: DeviceType,
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
@@ -75,7 +78,7 @@ export type AttachmentMessage = {
   followState: FollowState,
   author: string,
   deviceName: string,
-  deviceType: string,
+  deviceType: DeviceType,
   messageID: MessageID,
   filename: string,
   title: string,
@@ -83,6 +86,9 @@ export type AttachmentMessage = {
   previewPath: ?string,
   previewSize: ?AttachmentSize,
   downloadedPath: ?string,
+  tempID?: number,
+  progress?: number, /* between 0 - 1 */
+  messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
   key: any,
 }
