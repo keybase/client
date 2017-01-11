@@ -121,6 +121,10 @@ class ConversationList extends Component<void, Props, State> {
         messages: nextProps.messages,
       })
     }
+
+    if (nextProps.listScrollDownState !== this.props.listScrollDownState) {
+      this.setState({isLockedToBottom: true})
+    }
   }
 
   _invalidateChangedMessages (props: Props) {
