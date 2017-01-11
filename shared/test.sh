@@ -28,7 +28,7 @@ js_tests() {
     node --version
     has_js_files
 
-    yarn install --pure-lockfile --verbose --prefer-offline --no-emoji --no-progress
+    yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress
     check_rc $? 'yarn install fail' 1
     yarn run flow
     check_rc $? 'yarn run flow' 1
