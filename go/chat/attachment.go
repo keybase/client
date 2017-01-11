@@ -136,7 +136,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 	var err error
 	var encReader io.Reader
 	if previous != nil {
-		a.log.Debug("found previous upload for %s in conv %x", task.Filename, task.ConversationID)
+		a.log.Debug("found previous upload for %s in conv %s", task.Filename, task.ConversationID)
 		encReader, err = enc.EncryptResume(task.Plaintext, task.Nonce(), previous.EncKey, previous.SignKey, previous.VerifyKey)
 		if err != nil {
 			return chat1.Asset{}, err
@@ -167,6 +167,10 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 		if err == ErrAbortOnPartMismatch && previous != nil {
 			// erase information about previous upload attempt
 			a.finishUpload(ctx, task)
+		}
+		ew, ok := err.(*ErrorWrapper)
+		if ok {
+			a.log.Debug("PutS3 error details: %s", ew.Details())
 		}
 		return chat1.Asset{}, err
 	}

@@ -265,6 +265,41 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-settings-64.png'),
   },
+  'icon-file-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-24.png'),
+  },
+  'icon-file-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-32.png'),
+  },
+  'icon-file-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-48.png'),
+  },
+  'icon-file-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-64.png'),
+  },
+  'icon-file-downloaded-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-downloaded-24.png'),
+  },
+  'icon-file-downloading-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-downloading-24.png'),
+  },
+  'icon-file-dropping-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-dropping-48.png'),
+  },
   'icon-file-private-32': {
     isFont: false,
     extension: 'png',

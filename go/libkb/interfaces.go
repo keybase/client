@@ -528,6 +528,8 @@ type ConversationSource interface {
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error)
+	GetMessagesWithRemotes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 }
 
