@@ -1489,6 +1489,67 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 	return unrefs, nil
 }
 
+// readyHelper takes a set of paths from a root down to a child block,
+// and readies all the blocks represented in those paths.  If the
+// caller wants leaf blocks readied, then the last element of each
+// slice in `pathsFromRoot` should contain a leaf block, with a child
+// index of -1.  It's assumed that all slices in `pathsFromRoot` have
+// the same size. This function returns a map pointing from the new
+// block info from any readied block to its corresponding old block
+// pointer.
+func (fd *fileData) readyHelper(ctx context.Context, id tlf.ID,
+	bcache BlockCache, bops BlockOps, bps *blockPutState,
+	pathsFromRoot [][]parentBlockAndChildIndex,
+	df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
+	oldPtrs := make(map[BlockInfo]BlockPointer)
+	newPtrs := make(map[BlockPointer]bool)
+
+	// Starting from the leaf level, ready each block at each
+	// level, and put the new BlockInfo into the parent block at the
+	// level above.  At each level, only ready each block once. Don't
+	// ready the root block though; the folderBranchOps Sync code will
+	// do that.
+	for level := len(pathsFromRoot[0]) - 1; level > 0; level-- {
+		for i := 0; i < len(pathsFromRoot); i++ {
+			// Ready the dirty block.
+			pb := pathsFromRoot[i][level]
+
+			parentPB := pathsFromRoot[i][level-1]
+			ptr := parentPB.childIPtr().BlockPointer
+			// If this is already a new pointer, skip it.
+			if newPtrs[ptr] {
+				continue
+			}
+
+			newInfo, _, readyBlockData, err := ReadyBlock(
+				ctx, bcache, bops, fd.crypto, fd.kmd, pb.pblock, fd.uid)
+			if err != nil {
+				return nil, err
+			}
+
+			err = bcache.Put(
+				newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
+			if err != nil {
+				return nil, err
+			}
+
+			// Only the leaf level need to be tracked by the dirty file.
+			var syncFunc func() error
+			if level == len(pathsFromRoot[0])-1 && df != nil {
+				syncFunc = func() error { return df.setBlockSynced(ptr) }
+			}
+
+			bps.addNewBlock(
+				newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
+
+			parentPB.pblock.IPtrs[parentPB.childIndex].BlockInfo = newInfo
+			oldPtrs[newInfo] = ptr
+			newPtrs[newInfo.BlockPointer] = true
+		}
+	}
+	return oldPtrs, nil
+}
+
 // ready, if given an indirect top-block, readies all the dirty child
 // blocks, and updates their block IDs in their parent block's list of
 // indirect pointers.  It returns a map pointing from the new block
@@ -1500,7 +1561,6 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 		return nil, nil
 	}
 
-	oldPtrs := make(map[BlockInfo]BlockPointer)
 	// This will contain paths to all dirty leaf paths.  The final
 	// entry index in each path will be the leaf node block itself
 	// (with a -1 child index).
@@ -1531,50 +1591,7 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 		return nil, nil
 	}
 
-	// Now starting from the leaf level, ready each block at each
-	// level, and put the new BlockInfo into the parent block at the
-	// level above.  At each level, only ready each block once. Don't
-	// ready the root block though; the folderBranchOps Sync code will
-	// do that.
-	for level := len(dirtyLeafPaths[0]) - 1; level > 0; level-- {
-		newPtrs := make(map[BlockPointer]bool)
-		for i := 0; i < len(dirtyLeafPaths); i++ {
-			// Ready the dirty block.
-			pb := dirtyLeafPaths[i][level]
-
-			parentPB := dirtyLeafPaths[i][level-1]
-			ptr := parentPB.childIPtr().BlockPointer
-			// If this is already a new pointer, skip it.
-			if newPtrs[ptr] {
-				continue
-			}
-
-			newInfo, _, readyBlockData, err := ReadyBlock(
-				ctx, bcache, bops, fd.crypto, fd.kmd, pb.pblock, fd.uid)
-			if err != nil {
-				return nil, err
-			}
-
-			err = bcache.Put(
-				newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
-			if err != nil {
-				return nil, err
-			}
-
-			// Only the leaf level need to be tracked by the dirty file.
-			var syncFunc func() error
-			if level == len(dirtyLeafPaths[0])-1 {
-				syncFunc = func() error { return df.setBlockSynced(ptr) }
-			}
-
-			bps.addNewBlock(
-				newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
-
-			parentPB.pblock.IPtrs[parentPB.childIndex].BlockInfo = newInfo
-			oldPtrs[newInfo] = ptr
-		}
-	}
-	return oldPtrs, nil
+	return fd.readyHelper(ctx, id, bcache, bops, bps, dirtyLeafPaths, df)
 }
 
 func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
@@ -1823,27 +1840,39 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 		return nil, nil
 	}
 
-	// TODO: support multiple levels of indirection.
-	// TODO: parallelize
-	blockInfos := make([]BlockInfo, len(topBlock.IPtrs))
-	for i, iptr := range topBlock.IPtrs {
-		if iptr.RefNonce == kbfsblock.ZeroRefNonce {
-			// No need to un-dup mid-level indirect blocks.  TODO:
-			// fetch the blocks and add them to the bps (only needed
-			// for multiple levels of indirection).
-			blockInfos = append(blockInfos, iptr.BlockInfo)
-			continue
-		}
-		childBlock, _, err := fd.getter(ctx, fd.kmd, iptr.BlockPointer,
-			fd.file, blockRead)
+	// For indirect files, get all the paths to leaf blocks.  Note
+	// that because topBlock is a deepCopy, all of the blocks are also
+	// deepCopys and thus are modifiable.
+	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	if err != nil {
+		return nil, err
+	}
+	if len(pfr) == 0 {
+		return nil, fmt.Errorf(
+			"Indirect file %v had no indirect blocks", fd.rootBlockPointer())
+	}
+
+	// Append the leaf block to each path, since readyHelper expects
+	// it.
+	for i, path := range pfr {
+		leafPtr := path[len(path)-1].childIPtr().BlockPointer
+		leafBlock, _, err := fd.getter(
+			ctx, fd.kmd, leafPtr, fd.file, blockWrite)
 		if err != nil {
 			return nil, err
 		}
 
-		newInfo, _, readyBlockData, err :=
-			ReadyBlock(ctx, bcache, bops, fd.crypto, fd.kmd, childBlock, fd.uid)
-		topBlock.IPtrs[i].BlockInfo = newInfo
-		bps.addNewBlock(newInfo.BlockPointer, childBlock, readyBlockData, nil)
+		pfr[i] = append(pfr[i], parentBlockAndChildIndex{leafBlock, -1})
+	}
+
+	newInfos, err := fd.readyHelper(
+		ctx, fd.file.Tlf, bcache, bops, bps, pfr, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	blockInfos := make([]BlockInfo, 0, len(newInfos))
+	for newInfo := range newInfos {
 		blockInfos = append(blockInfos, newInfo)
 	}
 	return blockInfos, nil
