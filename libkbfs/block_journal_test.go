@@ -190,6 +190,39 @@ func TestBlockJournalBasic(t *testing.T) {
 	getAndCheckBlockData(ctx, t, j, bID, bCtx2, data, serverHalf)
 }
 
+func TestBlockJournalDuplicatePut(t *testing.T) {
+	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+
+	data := []byte{1, 2, 3, 4}
+
+	oldLength := getBlockJournalLength(t, j)
+
+	bID, err := kbfsblock.MakePermanentID(data)
+	require.NoError(t, err)
+
+	uid1 := keybase1.MakeTestUID(1)
+	bCtx := kbfsblock.MakeFirstContext(uid1)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+
+	err = j.putData(ctx, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
+	require.Equal(t, int64(len(data)), j.getStoredBytes())
+	require.Equal(t, int64(len(data)), j.getUnflushedBytes())
+
+	// Put a second time.
+	err = j.putData(ctx, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
+	require.Equal(t, oldLength+2, getBlockJournalLength(t, j))
+
+	// Shouldn't count the block twice.
+	require.Equal(t, int64(len(data)), j.getStoredBytes())
+	require.Equal(t, int64(len(data)), j.getUnflushedBytes())
+}
+
 func TestBlockJournalAddReference(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
@@ -272,6 +305,42 @@ func TestBlockJournalRemoveReferences(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, half)
+}
+
+func TestBlockJournalDuplicateRemove(t *testing.T) {
+	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+
+	// Put the block.
+	data := []byte{1, 2, 3, 4}
+	bID, bCtx, _ := putBlockData(ctx, t, j, data)
+
+	require.Equal(t, int64(len(data)), j.getStoredBytes())
+	require.Equal(t, int64(len(data)), j.getUnflushedBytes())
+
+	// Remove the only reference to the block, then remove the
+	// block.
+	liveCounts, err := j.removeReferences(
+		ctx, kbfsblock.ContextMap{bID: {bCtx}})
+	require.NoError(t, err)
+	require.Equal(t, map[kbfsblock.ID]int{bID: 0}, liveCounts)
+	err = j.remove(bID)
+	require.NoError(t, err)
+
+	// This violates the invariant that UnflushedBytes <=
+	// StoredBytes, but that's because we're manually removing the
+	// block -- normally, the block would be flushed first, then
+	// removed.
+	require.Equal(t, int64(0), j.getStoredBytes())
+	require.Equal(t, int64(len(data)), j.getUnflushedBytes())
+
+	// Remove the block again.
+	err = j.remove(bID)
+	require.NoError(t, err)
+
+	// Shouldn't account for the block again.
+	require.Equal(t, int64(0), j.getStoredBytes())
+	require.Equal(t, int64(len(data)), j.getUnflushedBytes())
 }
 
 func testBlockJournalGCd(t *testing.T, j *blockJournal) {
@@ -750,7 +819,10 @@ func TestBlockJournalUnflushedBytes(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
+	// In this test, stored bytes and unflushed bytes should
+	// change identically.
 	requireSize := func(expectedSize int) {
+		require.Equal(t, int64(expectedSize), j.getStoredBytes())
 		require.Equal(t, int64(expectedSize), j.getUnflushedBytes())
 		var info aggregateInfo
 		err := kbfscodec.DeserializeFromFile(
@@ -758,6 +830,7 @@ func TestBlockJournalUnflushedBytes(t *testing.T) {
 		if !ioutil.IsNotExist(err) {
 			require.NoError(t, err)
 		}
+		require.Equal(t, int64(expectedSize), info.StoredBytes)
 		require.Equal(t, int64(expectedSize), info.UnflushedBytes)
 	}
 
@@ -858,25 +931,27 @@ func TestBlockJournalUnflushedBytesIgnore(t *testing.T) {
 	ctx, cancel, tempdir, _, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
 
-	requireSize := func(expectedSize int) {
-		require.Equal(t, int64(expectedSize), j.getUnflushedBytes())
+	requireSize := func(expectedStoredSize, expectedUnflushedSize int) {
+		require.Equal(t, int64(expectedStoredSize), j.getStoredBytes())
+		require.Equal(t, int64(expectedUnflushedSize),
+			j.getUnflushedBytes())
 	}
 
 	// Prime the cache.
-	requireSize(0)
+	requireSize(0, 0)
 
 	data1 := []byte{1, 2, 3, 4}
 	bID1, _, _ := putBlockData(ctx, t, j, data1)
 
-	requireSize(len(data1))
+	requireSize(len(data1), len(data1))
 
 	data2 := []byte{1, 2, 3, 4, 5}
 	_, _, _ = putBlockData(ctx, t, j, data2)
 
-	requireSize(len(data1) + len(data2))
+	requireSize(len(data1)+len(data2), len(data1)+len(data2))
 
 	err := j.ignoreBlocksAndMDRevMarkers(ctx, []kbfsblock.ID{bID1})
 	require.NoError(t, err)
 
-	requireSize(len(data2))
+	requireSize(len(data1)+len(data2), len(data2))
 }

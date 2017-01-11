@@ -116,10 +116,6 @@ func (s *blockDiskStore) infoPath(id kbfsblock.ID) string {
 	return filepath.Join(s.blockPath(id), "refs")
 }
 
-func (s *blockDiskStore) flushedPath(id kbfsblock.ID) string {
-	return filepath.Join(s.blockPath(id), "f")
-}
-
 // makeDir makes the directory for the given block ID and writes the
 // ID file, if necessary.
 func (s *blockDiskStore) makeDir(id kbfsblock.ID) error {
@@ -384,13 +380,16 @@ func (s *blockDiskStore) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, erro
 }
 
 // put puts the given data for the block, which may already exist, and
-// adds a reference for the given context.
+// adds a reference for the given context. If err is nil, putData
+// indicates whether the data didn't already exist and was put; if
+// false, it means that the data already exists, but this might have
+// added a new ref.
 func (s *blockDiskStore) put(id kbfsblock.ID, context kbfsblock.Context,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	tag string) error {
-	err := validateBlockPut(id, context, buf)
+	tag string) (putData bool, err error) {
+	err = validateBlockPut(id, context, buf)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Check the data and retrieve the server half, if they exist.
@@ -402,7 +401,7 @@ func (s *blockDiskStore) put(id kbfsblock.ID, context kbfsblock.Context,
 	case nil:
 		exists = true
 	default:
-		return err
+		return false, err
 	}
 
 	if exists {
@@ -414,39 +413,39 @@ func (s *blockDiskStore) put(id kbfsblock.ID, context kbfsblock.Context,
 		// to id, so no need to check that they're both equal.
 
 		if existingServerHalf != serverHalf {
-			return errors.Errorf(
+			return false, errors.Errorf(
 				"key server half mismatch: expected %s, got %s",
 				existingServerHalf, serverHalf)
 		}
 	} else {
 		err = s.makeDir(id)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		err = ioutil.WriteFile(s.dataPath(id), buf, 0600)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		// TODO: Add integrity-checking for key server half?
 
 		data, err := serverHalf.MarshalBinary()
 		if err != nil {
-			return err
+			return false, err
 		}
 		err = ioutil.WriteFile(s.keyServerHalfPath(id), data, 0600)
 		if err != nil {
-			return err
+			return false, err
 		}
 	}
 
 	err = s.addRefs(id, []kbfsblock.Context{context}, liveBlockRef, tag)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return !exists, nil
 }
 
 func (s *blockDiskStore) addReference(

@@ -39,7 +39,7 @@ import (
 // dir/saved_block_journal/...
 //
 // block_aggregate_info holds aggregate info about the block journal;
-// currently it just holds the count of unflushed bytes.
+// currently it just holds the count of stored and unflushed bytes.
 //
 // Each entry in the journal in dir/block_journal contains the
 // mutating operation and arguments for a single operation, except for
@@ -205,6 +205,13 @@ func makeBlockJournal(
 // Ideally, this would be a JSON file, but we'd need a JSON
 // encoder/decoder that supports unknown fields.
 type aggregateInfo struct {
+	// StoredBytes counts the number of bytes of block data stored
+	// on disk.
+	StoredBytes int64
+	// UnflushedBytes counts the number of bytes of block data
+	// that is intended to be flushed to the server, but hasn't
+	// been yet. This should be always less than or equal to
+	// StoredBytes.
 	UnflushedBytes int64
 
 	codec.UnknownFieldSetHandler
@@ -214,10 +221,33 @@ func aggregateInfoPath(dir string) string {
 	return filepath.Join(dir, "block_aggregate_info")
 }
 
-func (j *blockJournal) adjustUnflushedBytes(delta int64) error {
-	j.aggregateInfo.UnflushedBytes += delta
+func (j *blockJournal) changeBytes(
+	deltaStoredBytes, deltaUnflushedBytes int64) error {
+	j.aggregateInfo.StoredBytes += deltaStoredBytes
+	j.aggregateInfo.UnflushedBytes += deltaUnflushedBytes
 	return kbfscodec.SerializeToFile(
 		j.codec, j.aggregateInfo, aggregateInfoPath(j.dir))
+}
+
+func (j *blockJournal) accumulateBytes(n int64) error {
+	if n < 0 {
+		panic("n unexpectedly negative")
+	}
+	return j.changeBytes(n, n)
+}
+
+func (j *blockJournal) flushBytes(n int64) error {
+	if n < 0 {
+		panic("n unexpectedly negative")
+	}
+	return j.changeBytes(0, -n)
+}
+
+func (j *blockJournal) unstoreBytes(n int64) error {
+	if n < 0 {
+		panic("n unexpectedly negative")
+	}
+	return j.changeBytes(-n, 0)
 }
 
 // The functions below are for reading and writing journal entries.
@@ -275,9 +305,19 @@ func (j *blockJournal) isUnflushed(id kbfsblock.ID) (bool, error) {
 }
 
 func (j *blockJournal) remove(id kbfsblock.ID) error {
+	bytesToRemove, err := j.s.getDataSize(id)
+	if err != nil {
+		return err
+	}
+
 	// TODO: we'll eventually need a sweeper to clean up entries
 	// left behind if we crash here.
-	return j.s.remove(id)
+	err = j.s.remove(id)
+	if err != nil {
+		return err
+	}
+
+	return j.unstoreBytes(bytesToRemove)
 }
 
 // All functions below are public functions.
@@ -290,6 +330,10 @@ func (j *blockJournal) getDataWithContext(id kbfsblock.ID, context kbfsblock.Con
 func (j *blockJournal) getData(id kbfsblock.ID) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	return j.s.getData(id)
+}
+
+func (j *blockJournal) getStoredBytes() int64 {
+	return j.aggregateInfo.StoredBytes
 }
 
 func (j *blockJournal) getUnflushedBytes() int64 {
@@ -314,16 +358,16 @@ func (j *blockJournal) putData(
 		return err
 	}
 
-	err = j.s.put(id, context, buf, serverHalf, next.String())
+	putData, err := j.s.put(id, context, buf, serverHalf, next.String())
 	if err != nil {
 		return err
 	}
 
-	// Decremented when the put journal entry is ignored or
-	// flushed.
-	err = j.adjustUnflushedBytes(int64(len(buf)))
-	if err != nil {
-		return err
+	if putData {
+		err = j.accumulateBytes(int64(len(buf)))
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
@@ -714,7 +758,7 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 			return 0, err
 		}
 
-		err = j.adjustUnflushedBytes(-flushedBytes)
+		err = j.flushBytes(flushedBytes)
 		if err != nil {
 			return 0, err
 		}
@@ -816,7 +860,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 					return err
 				}
 
-				err = j.adjustUnflushedBytes(-ignoredBytes)
+				err = j.flushBytes(ignoredBytes)
 				if err != nil {
 					return err
 				}
