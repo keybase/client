@@ -263,6 +263,9 @@ func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {
 	return name + " " + finalizeInfo.ResetFull
 }
 
+// BeforeSummary returns a summary of the finalize without "files" in it.
+// The canonical name for a TLF after reset has a "(files before ... account reset...)" suffix
+// which doesn't make much sense in other uses (like chat).
 func (f *ConversationFinalizeInfo) BeforeSummary() string {
 	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
 }

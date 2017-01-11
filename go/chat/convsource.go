@@ -410,19 +410,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 			m = rmsgsTab[msgIDs[index]]
 		}
 
-		// XXX can skip this now that finalizeInfo passed to identifyTLF?
-		// XXX or is it good to have the new tlf name put in here?
-		if finalizeInfo != nil {
-			v := m.Valid()
-			v.ClientHeader.TlfName = v.ClientHeader.TLFNameExpanded(finalizeInfo)
-			m = chat1.NewMessageUnboxedWithValid(v)
-		}
 		res = append(res, m)
-	}
-
-	// XXX debug
-	for i, m := range res {
-		s.G().Log.Warning("Message %d: tlf = %q", i, m.Valid().ClientHeader.TlfName)
 	}
 
 	// Identify this TLF by running crypt keys
