@@ -187,8 +187,8 @@ type tlfJournal struct {
 	// Track the ways in which the journal is paused.  We don't allow
 	// work to resume unless a resume has come in corresponding to
 	// each type of paused that's happened.
-	pausedLock sync.Mutex
-	pausedType tlfJournalPauseType
+	pauseLock sync.Mutex
+	pauseType tlfJournalPauseType
 
 	// This channel is closed when background work shuts down.
 	backgroundShutdownCh chan struct{}
@@ -328,7 +328,7 @@ func makeTLFJournal(
 	}
 
 	if bws == TLFJournalBackgroundWorkPaused {
-		j.pausedType |= journalPauseCommand
+		j.pauseType |= journalPauseCommand
 	}
 
 	isConflict, err := j.isOnConflictBranch()
@@ -341,7 +341,7 @@ func makeTLFJournal(
 		j.log.CDebugf(ctx, "Journal for %s has a conflict, so starting off "+
 			"paused (requested status %s)", tlfID, bws)
 		bws = TLFJournalBackgroundWorkPaused
-		j.pausedType |= journalPauseConflict
+		j.pauseType |= journalPauseConflict
 	}
 	if bws == TLFJournalBackgroundWorkPaused {
 		j.wg.Pause()
@@ -571,11 +571,12 @@ func (j *tlfJournal) doBackgroundWork(ctx context.Context) <-chan error {
 // infrequent ad-hoc testing.
 
 func (j *tlfJournal) pause(pauseType tlfJournalPauseType) {
-	j.pausedLock.Lock()
-	defer j.pausedLock.Unlock()
-	j.pausedType |= pauseType
+	j.pauseLock.Lock()
+	defer j.pauseLock.Unlock()
+	oldPauseType := j.pauseType
+	j.pauseType |= pauseType
 
-	if j.pausedType > pauseType {
+	if oldPauseType > 0 {
 		// No signal is needed since someone already called pause.
 		return
 	}
@@ -592,11 +593,11 @@ func (j *tlfJournal) pauseBackgroundWork() {
 }
 
 func (j *tlfJournal) resume(pauseType tlfJournalPauseType) {
-	j.pausedLock.Lock()
-	defer j.pausedLock.Unlock()
-	j.pausedType &= ^pauseType
+	j.pauseLock.Lock()
+	defer j.pauseLock.Unlock()
+	j.pauseType &= ^pauseType
 
-	if j.pausedType != 0 {
+	if j.pauseType != 0 {
 		return
 	}
 
