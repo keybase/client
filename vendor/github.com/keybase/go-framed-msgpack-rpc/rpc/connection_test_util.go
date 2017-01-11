@@ -146,8 +146,11 @@ func MakeConnectionForTest(t TestLogger) (net.Conn, *Connection) {
 	logFactory := NewSimpleLogFactory(logOutput, nil)
 	transporter := NewTransport(clientConn, logFactory, testWrapError)
 	st := singleTransport{transporter}
+	opts := ConnectionOpts{
+		WrapErrorFunc: testWrapError,
+		TagsFunc:      testLogTags,
+	}
 	conn := NewConnectionWithTransport(testConnectionHandler{}, st,
-		testErrorUnwrapper{}, true, testWrapError,
-		logOutput, testLogTags)
+		testErrorUnwrapper{}, logOutput, opts)
 	return serverConn, conn
 }

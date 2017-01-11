@@ -17,9 +17,12 @@ import (
 func NewSharedKeybaseConnection(kbCtx Context, config Config,
 	handler rpc.ConnectionHandler) *rpc.Connection {
 	transport := &SharedKeybaseTransport{kbCtx: kbCtx}
+	opts := rpc.ConnectionOpts{
+		WrapErrorFunc: libkb.WrapError,
+		TagsFunc:      LogTagsFromContext,
+	}
 	return rpc.NewConnectionWithTransport(handler, transport,
-		libkb.ErrorUnwrapper{}, true, libkb.WrapError,
-		config.MakeLogger(""), LogTagsFromContext)
+		libkb.ErrorUnwrapper{}, config.MakeLogger(""), opts)
 }
 
 // SharedKeybaseTransport is a ConnectionTransport implementation that

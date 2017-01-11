@@ -84,10 +84,12 @@ func NewMDServerRemote(config Config, srvAddr string,
 	mdServer.authToken = kbfscrypto.NewAuthToken(config.Crypto(),
 		MdServerTokenServer, MdServerTokenExpireIn,
 		"libkbfs_mdserver_remote", VersionString(), mdServer)
+	opts := rpc.ConnectionOpts{
+		WrapErrorFunc: libkb.WrapError,
+		TagsFunc:      LogTagsFromContext,
+	}
 	conn := rpc.NewTLSConnection(srvAddr, kbfscrypto.GetRootCerts(srvAddr),
-		MDServerErrorUnwrapper{}, mdServer, true,
-		rpcLogFactory, libkb.WrapError,
-		config.MakeLogger(""), LogTagsFromContext)
+		MDServerErrorUnwrapper{}, mdServer, rpcLogFactory, config.MakeLogger(""), opts)
 	mdServer.conn = conn
 	mdServer.client = keybase1.MetadataClient{Cli: conn.GetClient()}
 
