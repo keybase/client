@@ -403,14 +403,11 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	// Form final result
 	var res []chat1.MessageUnboxed
 	for index, msg := range msgs {
-		var m chat1.MessageUnboxed
 		if msg != nil {
-			m = *msg
+			res = append(res, *msg)
 		} else {
-			m = rmsgsTab[msgIDs[index]]
+			res = append(res, rmsgsTab[msgIDs[index]])
 		}
-
-		res = append(res, m)
 	}
 
 	// Identify this TLF by running crypt keys
