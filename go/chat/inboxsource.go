@@ -89,19 +89,12 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		if rquery != nil && rquery.TlfID != nil {
 			// inbox query contained a TLF name, so check to make sure that
 			// the conversation from the server matches tlfInfo from kbfs
-			/*
-				 XXX temp...make a version of tlfname that contains reset suffix
-				if convLocal.Info.TlfName != tlfInfo.CanonicalName {
-					return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TlfName, tlfInfo.CanonicalName)
-				}
-			*/
-
-			/*
-				XXX temp ANY coming back for some reason on finalized tlf
-				if convLocal.Info.Visibility != rquery.Visibility() {
-					return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF visibility mismatch: %s, expected %s", convLocal.Info.Visibility, rquery.Visibility())
-				}
-			*/
+			if convLocal.Info.TLFNameExpanded() != tlfInfo.CanonicalName {
+				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TLFNameExpanded(), tlfInfo.CanonicalName)
+			}
+			if convLocal.Info.Visibility != rquery.Visibility() {
+				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF visibility mismatch: %s, expected %s", convLocal.Info.Visibility, rquery.Visibility())
+			}
 			if !tlfInfo.ID.Eq(convLocal.Info.Triple.Tlfid) {
 				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF ID mismatch: %s, expected %s", convLocal.Info.Triple.Tlfid, tlfInfo.ID)
 			}
