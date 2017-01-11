@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
@@ -29,6 +30,8 @@ import (
 const GregorRequestTimeout time.Duration = 30 * time.Second
 
 var ErrGregorTimeout = errors.New("Network request timed out.")
+
+const GregorConnectionRetryInterval time.Duration = 2 * time.Second
 
 type IdentifyUIHandler struct {
 	libkb.Contextified
@@ -1219,7 +1222,8 @@ func (g *gregorHandler) connectTLS() error {
 
 	g.connMutex.Lock()
 	opts := rpc.ConnectionOpts{
-		WrapErrorFunc: libkb.WrapError,
+		WrapErrorFunc:    libkb.WrapError,
+		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
 	}
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G()), g.G().Log, opts)
 	g.connMutex.Unlock()
@@ -1245,7 +1249,8 @@ func (g *gregorHandler) connectNoTLS() error {
 	g.transportForTesting = t
 	g.connMutex.Lock()
 	opts := rpc.ConnectionOpts{
-		WrapErrorFunc: libkb.WrapError,
+		WrapErrorFunc:    libkb.WrapError,
+		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
 	}
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
 	g.connMutex.Unlock()
