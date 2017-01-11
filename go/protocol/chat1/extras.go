@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // Eq compares two TLFIDs
@@ -223,4 +224,21 @@ func (q *GetInboxQuery) Visibility() TLFVisibility {
 		visibility = TLFVisibility_PUBLIC
 	}
 	return visibility
+}
+
+func (c ConversationInfoLocal) TLFNameExpanded() string {
+	return ExpandTLFName(c.TlfName, c.FinalizeInfo)
+}
+
+func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {
+	if finalizeInfo == nil {
+		return name
+	}
+	if len(finalizeInfo.ResetFull) == 0 {
+		return name
+	}
+	if strings.Contains(name, " account reset ") {
+		return name
+	}
+	return name + " " + finalizeInfo.ResetFull
 }

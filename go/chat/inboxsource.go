@@ -413,13 +413,15 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 	}
 
 	// If the conversation was finalized, change the TLF name.
-	if conversationLocal.Info.FinalizeInfo != nil {
-		conversationLocal.Info.TlfName += " " + conversationLocal.Info.FinalizeInfo.ResetFull
-	}
+	/*
+		if conversationLocal.Info.FinalizeInfo != nil {
+			conversationLocal.Info.TlfName += " " + conversationLocal.Info.FinalizeInfo.ResetFull
+		}
+	*/
 
 	// Only do this check if there is a chance the TLF name might be an SBS name.
 	if strings.Contains(conversationLocal.Info.TlfName, "@") {
-		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TlfName, conversationLocal.Info.Visibility)
+		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TLFNameExpanded(), conversationLocal.Info.Visibility)
 		if err != nil {
 			errMsg := err.Error()
 			return chat1.ConversationLocal{Error: &errMsg}

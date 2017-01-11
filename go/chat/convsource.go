@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/libkb"
@@ -176,12 +175,8 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 
 	for _, msg := range msgs {
 		if msg.IsValid() {
-			tlfName := msg.Valid().ClientHeader.TlfName
+			tlfName := chat1.ExpandTLFName(msg.Valid().ClientHeader.TlfName, finalizeInfo)
 
-			// XXX strings.Contains space hack to see if name already has tlf reset suffix
-			if finalizeInfo != nil && !strings.Contains(tlfName, " ") {
-				tlfName += " " + finalizeInfo.ResetFull
-			}
 			s.debug("identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, convID)
 
@@ -417,11 +412,9 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 
 		// XXX can skip this now that finalizeInfo passed to identifyTLF?
 		// XXX or is it good to have the new tlf name put in here?
-
-		// XXX strings.Contains space hack to see if name already has tlf reset suffix
-		if finalizeInfo != nil && !strings.Contains(m.Valid().ClientHeader.TlfName, " ") {
+		if finalizeInfo != nil {
 			v := m.Valid()
-			v.ClientHeader.TlfName += " " + finalizeInfo.ResetFull
+			v.ClientHeader.TlfName = chat1.ExpandTLFName(v.ClientHeader.TlfName, finalizeInfo)
 			m = chat1.NewMessageUnboxedWithValid(v)
 		}
 		res = append(res, m)

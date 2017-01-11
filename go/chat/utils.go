@@ -266,7 +266,7 @@ func AppendTLFResetSuffix(msgs []chat1.MessageBoxed, finalizeInfo *chat1.Convers
 
 	mod := make([]chat1.MessageBoxed, len(msgs))
 	for i, m := range msgs {
-		m.ClientHeader.TlfName += " " + finalizeInfo.ResetFull
+		m.ClientHeader.TlfName = chat1.ExpandTLFName(m.ClientHeader.TlfName, finalizeInfo)
 		mod[i] = m
 	}
 	return mod
