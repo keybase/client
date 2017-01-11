@@ -52,9 +52,9 @@ visdiff_install() {
     check_rc $? 'visdiff fail' 1
 }
 
-if [ $1 == 'visdiff' ]; then
+if [ "$1" == 'visdiff' ]; then
     visdiff
-elif [ $1 == 'visdiff-install' ]; then
+elif [ "$1" == 'visdiff-install' ]; then
     visdiff_install
 else
     js_tests
