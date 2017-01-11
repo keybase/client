@@ -320,6 +320,11 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes, string body, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+
   @lint("ignore")
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);
   record SetConversationStatusLocalRes {
