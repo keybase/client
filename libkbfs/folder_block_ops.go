@@ -601,8 +601,7 @@ func (fbo *folderBlockOps) getFileLocked(ctx context.Context,
 // recoverable one (as determined by
 // isRecoverableBlockErrorForRemoval), the returned list may still be
 // non-empty, and holds all the BlockInfos for all found indirect
-// blocks. (This will be relevant when we handle multiple levels of
-// indirection.)
+// blocks.
 func (fbo *folderBlockOps) GetIndirectFileBlockInfos(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, file path) ([]BlockInfo, error) {
 	fbo.blockLock.RLock(lState)
