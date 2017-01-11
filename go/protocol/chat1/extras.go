@@ -230,6 +230,10 @@ func (c ConversationInfoLocal) TLFNameExpanded() string {
 	return ExpandTLFName(c.TlfName, c.FinalizeInfo)
 }
 
+func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+	return ExpandTLFName(h.TlfName, finalizeInfo)
+}
+
 func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {
 	if finalizeInfo == nil {
 		return name

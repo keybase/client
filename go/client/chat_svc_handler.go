@@ -78,7 +78,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		maxID := chat1.MessageID(0)
 		for _, msg := range conv.MaxMsgs {
 			if msg.ServerHeader.MessageID > maxID {
-				tlf := msg.ClientHeader.TlfName
+				tlf := msg.ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
 				pub := msg.ClientHeader.TlfPublic
 				cl.Conversations[i] = ConvSummary{
 					ID: conv.Metadata.ConversationID.String(),

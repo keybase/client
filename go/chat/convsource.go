@@ -175,7 +175,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 
 	for _, msg := range msgs {
 		if msg.IsValid() {
-			tlfName := chat1.ExpandTLFName(msg.Valid().ClientHeader.TlfName, finalizeInfo)
+			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(finalizeInfo)
 
 			s.debug("identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, convID)
@@ -414,7 +414,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		// XXX or is it good to have the new tlf name put in here?
 		if finalizeInfo != nil {
 			v := m.Valid()
-			v.ClientHeader.TlfName = chat1.ExpandTLFName(v.ClientHeader.TlfName, finalizeInfo)
+			v.ClientHeader.TlfName = v.ClientHeader.TLFNameExpanded(finalizeInfo)
 			m = chat1.NewMessageUnboxedWithValid(v)
 		}
 		res = append(res, m)
