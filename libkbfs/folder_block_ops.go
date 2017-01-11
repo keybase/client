@@ -647,6 +647,28 @@ func (fbo *folderBlockOps) DeepCopyFile(
 	return fd.deepCopy(ctx, fbo.config.Codec(), dataVer)
 }
 
+func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
+	lState *lockState, kmd KeyMetadata, file path, bps *blockPutState,
+	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	var uid keybase1.UID // Data reads don't depend on the uid.
+	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
+	return fd.undupChildrenInCopy(ctx, fbo.config.BlockCache(),
+		fbo.config.BlockOps(), bps, topBlock)
+}
+
+func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
+	lState *lockState, kmd KeyMetadata, file path, bps *blockPutState,
+	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	var uid keybase1.UID // Data reads don't depend on the uid.
+	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
+	return fd.readyNonLeafBlocksInCopy(ctx, fbo.config.BlockCache(),
+		fbo.config.BlockOps(), bps, topBlock)
+}
+
 // getDirLocked retrieves the block pointed to by the tail pointer of
 // the given path, which must be valid, either from the cache or from
 // the server. An error is returned if the retrieved block is not a

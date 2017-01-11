@@ -1830,9 +1830,8 @@ func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
 // undupChildrenInCopy takes a top block that's been copied via
 // deepCopy(), and un-deduplicates all leaf children of the block.  It
 // adds all child blocks to the provided `bps`, including both the
-// ones that were deduplicated and the ones that weren't (TODO).  It
-// returns the BlockInfos for all children, including ones that
-// weren't de-duplicated.
+// ones that were deduplicated and the ones that weren't.  It returns
+// the BlockInfos for all children.
 func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 	bcache BlockCache, bops BlockOps, bps *blockPutState,
 	topBlock *FileBlock) ([]BlockInfo, error) {
@@ -1863,6 +1862,42 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 		}
 
 		pfr[i] = append(pfr[i], parentBlockAndChildIndex{leafBlock, -1})
+	}
+
+	newInfos, err := fd.readyHelper(
+		ctx, fd.file.Tlf, bcache, bops, bps, pfr, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	blockInfos := make([]BlockInfo, 0, len(newInfos))
+	for newInfo := range newInfos {
+		blockInfos = append(blockInfos, newInfo)
+	}
+	return blockInfos, nil
+}
+
+// readyNonLeafBlocksInCopy takes a top block that's been copied via
+// deepCopy(), and readies all the non-leaf children of the top block.
+// It adds all readied blocks to the provided `bps`.  It returns the
+// BlockInfos for all non-leaf children.
+func (fd *fileData) readyNonLeafBlocksInCopy(ctx context.Context,
+	bcache BlockCache, bops BlockOps, bps *blockPutState,
+	topBlock *FileBlock) ([]BlockInfo, error) {
+	if !topBlock.IsInd {
+		return nil, nil
+	}
+
+	// For indirect files, get all the paths to leaf blocks.  Note
+	// that because topBlock is a deepCopy, all of the blocks are also
+	// deepCopys and thus are modifiable.
+	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	if err != nil {
+		return nil, err
+	}
+	if len(pfr) == 0 {
+		return nil, fmt.Errorf(
+			"Indirect file %v had no indirect blocks", fd.rootBlockPointer())
 	}
 
 	newInfos, err := fd.readyHelper(
