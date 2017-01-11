@@ -375,7 +375,7 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
   const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
   clientHeader.supersedes = messageID
 
-  const sent = yield call(localPostLocalNonblockRpcPromise, {
+  yield call(localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: keyToConversationID(conversationIDKey),
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
