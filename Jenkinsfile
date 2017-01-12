@@ -124,7 +124,11 @@ helpers.rootLinuxNode(env, {
                             ]) {
                                 dir("shared") {
                                     stage("JS tests") {
-                                        sh "./test.sh"
+                                        sh "echo 1"
+                                        sh "echo ${env.CHANGE_TARGET}"
+                                        sh "echo 2"
+                                        // sh "./test.sh js ${env.COMMIT_HASH} ${ghprbTargetBranch}"
+                                        // sh "echo 3"
                                     }
                                 }
                                 // Only run visdiff for PRs
@@ -144,7 +148,7 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("visdiff") {
-                                            sh "./test.sh visdiff-install"
+                                            sh "./test.sh visdiff-install ${env.COMMIT_HASH}"
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
@@ -161,30 +165,31 @@ helpers.rootLinuxNode(env, {
                                 }
                             }},
                             test_kbfs: {
-                                dir('go') {
-                                    sh "go install github.com/keybase/client/go/keybase"
-                                    sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                    clientImage = docker.build("keybaseprivate/kbclient")
-                                    sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                    archive("kbclient.tar.gz")
-                                    build([
-                                        job: "/kbfs/master",
-                                        parameters: [
-                                            [$class: 'StringParameterValue',
-                                                name: 'clientProjectName',
-                                                value: env.JOB_NAME,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePrivateIP',
-                                                value: kbwebNodePrivateIP,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePublicIP',
-                                                value: kbwebNodePublicIP,
-                                            ],
-                                        ]
-                                    ])
-                                }
+                                // TEMP
+                                // dir('go') {
+                                    // sh "go install github.com/keybase/client/go/keybase"
+                                    // sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                    // clientImage = docker.build("keybaseprivate/kbclient")
+                                    // sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                    // archive("kbclient.tar.gz")
+                                    // build([
+                                        // job: "/kbfs/master",
+                                        // parameters: [
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'clientProjectName',
+                                                // value: env.JOB_NAME,
+                                            // ],
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'kbwebNodePrivateIP',
+                                                // value: kbwebNodePrivateIP,
+                                            // ],
+                                            // [$class: 'StringParameterValue',
+                                                // name: 'kbwebNodePublicIP',
+                                                // value: kbwebNodePublicIP,
+                                            // ],
+                                        // ]
+                                    // ])
+                                // }
                             },
                         )
                     },
@@ -221,7 +226,8 @@ helpers.rootLinuxNode(env, {
                                             def testlist = readFile('testlist.txt')
                                             def tests = testlist.tokenize()
                                             for (test in tests) {
-                                                bat "go test -timeout 10m ${test}"
+                                                // TEMP
+                                                // bat "go test -timeout 10m ${test}"
                                             }
                                         }
                                     },
@@ -308,7 +314,8 @@ helpers.rootLinuxNode(env, {
 
 def testNixGo(prefix) {
     dir('go') {
-        helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        sh './test/run_tests.sh'
+        // TEMP
+        // helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
+        // sh './test/run_tests.sh'
     }
 }
