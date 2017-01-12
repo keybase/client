@@ -32,8 +32,11 @@ type JournalServerStatus struct {
 	CurrentVerifyingKey kbfscrypto.VerifyingKey
 	EnableAuto          bool
 	JournalCount        int
-	UnflushedBytes      int64 // (signed because os.FileInfo.Size() is signed)
-	UnflushedPaths      []string
+	// The byte counters below are signed because
+	// os.FileInfo.Size() is signed.
+	StoredBytes    int64
+	UnflushedBytes int64
+	UnflushedPaths []string
 }
 
 // branchChangeListener describes a caller that will get updates via
@@ -551,15 +554,16 @@ func (j *JournalServer) Status(
 	ctx context.Context) (JournalServerStatus, []tlf.ID) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
-	var totalUnflushedBytes int64
+	var totalStoredBytes, totalUnflushedBytes int64
 	tlfIDs := make([]tlf.ID, 0, len(j.tlfJournals))
 	for _, tlfJournal := range j.tlfJournals {
-		unflushedBytes, err := tlfJournal.getUnflushedBytes()
+		storedBytes, unflushedBytes, err := tlfJournal.getByteCounts()
 		if err != nil {
 			j.log.CWarningf(ctx,
-				"Couldn't calculate unflushed bytes for %s: %+v",
+				"Couldn't calculate stored/unflushed bytes for %s: %+v",
 				tlfJournal.tlfID, err)
 		}
+		totalStoredBytes += storedBytes
 		totalUnflushedBytes += unflushedBytes
 		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
 	}
@@ -570,6 +574,7 @@ func (j *JournalServer) Status(
 		CurrentVerifyingKey: j.currentVerifyingKey,
 		EnableAuto:          j.serverConfig.EnableAuto,
 		JournalCount:        len(tlfIDs),
+		StoredBytes:         totalStoredBytes,
 		UnflushedBytes:      totalUnflushedBytes,
 	}, tlfIDs
 }

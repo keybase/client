@@ -58,6 +58,7 @@ func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 	eg, groupCtx := errgroup.WithContext(ctx)
 	statusesToFetch := make(chan tlf.ID, len(tlfIDs))
 	unflushedPaths := make(chan []string, len(tlfIDs))
+	storedBytes := make(chan int64, len(tlfIDs))
 	unflushedBytes := make(chan int64, len(tlfIDs))
 	errIncomplete := errors.New("Incomplete status")
 	statusFn := func() error {
@@ -84,6 +85,7 @@ func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 				// enough to return now.
 				return errIncomplete
 			}
+			storedBytes <- status.Journal.StoredBytes
 			unflushedBytes <- status.Journal.UnflushedBytes
 		}
 		return nil
@@ -105,6 +107,7 @@ func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 		return err
 	}
 	close(unflushedPaths)
+	close(storedBytes)
 	close(unflushedBytes)
 
 	// Aggregate all the paths together, but only allow one incomplete
@@ -123,8 +126,15 @@ func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 		jStatus.UnflushedPaths = append(jStatus.UnflushedPaths,
 			incompleteUnflushedPathsMarker)
 	} else {
-		// Replace the existing unflushed byte count with one that's
-		// guaranteed consistent with the unflushed paths.
+		// Replace the existing unflushed byte count with one
+		// that's guaranteed consistent with the unflushed
+		// paths, and also replace the existing stored byte
+		// count with one that's guaranteed consistent with
+		// the new unflushed byte count.
+		jStatus.StoredBytes = 0
+		for sb := range storedBytes {
+			jStatus.StoredBytes += sb
+		}
 		jStatus.UnflushedBytes = 0
 		for ub := range unflushedBytes {
 			jStatus.UnflushedBytes += ub
