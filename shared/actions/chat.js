@@ -523,6 +523,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
       dispatch({type: Constants.incomingMessage, payload: {activity}})
     })
+
     engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
       const usernames = update.CanonicalName.split(',')
       const broken = (update.breaks.breaks || []).map(b => b.user.username)
