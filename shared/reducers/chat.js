@@ -17,7 +17,8 @@ function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
 
   const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
 
-  const nextMessages = filteredPrepend.concat(messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m), filteredAppend)
+  const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
+  const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend)
   const nextSeenMessages = Set(nextMessages.map(m => m.key))
 
   return {
