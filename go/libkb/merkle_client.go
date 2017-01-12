@@ -726,6 +726,7 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 	for i := 0; i < len(ss)-1; i++ {
 		j := i + 1
 		a, b := ss[i].seqno(), ss[j].seqno()
+		mc.G().Log.CDebugf(ctx, "| Checking skip %d->%d", a, b)
 		if a <= b {
 			return MerkleClientError{fmt.Sprintf("Sequence error: %d <= %d", a, b)}
 		}
@@ -734,9 +735,9 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 			return MerkleClientError{fmt.Sprintf("Skip missing at %d->%d", a, b)}
 		}
 		if !hashEq(hash, ss[j].shortHash()) {
+			mc.G().Log.CDebugf(ctx, "| Failure in hashes: %s != %s", hash.String(), ss[j].shortHash().String())
 			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", a, b)}
 		}
-		mc.G().Log.CDebugf(ctx, "| Checked skip %d->%d", a, b)
 	}
 
 	return nil
