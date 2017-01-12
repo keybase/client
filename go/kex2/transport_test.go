@@ -463,7 +463,7 @@ func TestErrAgain(t *testing.T) {
 func TestPollLoopSuccess(t *testing.T) {
 
 	wait := time.Duration(100) * time.Millisecond
-	r := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, wait/32)
+	r := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, wait/128)
 	s := genSecret(t)
 	d1 := genDeviceID(t)
 	d2 := genDeviceID(t)
@@ -473,7 +473,7 @@ func TestPollLoopSuccess(t *testing.T) {
 	text := "poll for this, will you?"
 
 	go func() {
-		time.Sleep(wait / 20)
+		time.Sleep(wait / 32)
 		c1.Write([]byte(text))
 	}()
 	buf := make([]byte, 100)
