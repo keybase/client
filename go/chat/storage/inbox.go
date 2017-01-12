@@ -99,13 +99,6 @@ func (i *Inbox) dbKey() libkb.DbKey {
 	}
 }
 
-func (i *Inbox) dbKeyQueries() libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBChatInbox,
-		Key: fmt.Sprintf("ibq:%s", i.uid),
-	}
-}
-
 func (i *Inbox) readDiskInbox() (inboxDiskData, libkb.ChatStorageError) {
 	var ibox inboxDiskData
 	found, err := i.readDiskBox(i.dbKey(), &ibox)
@@ -423,15 +416,6 @@ func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.P
 
 	i.Debug(ctx, "Read: hit: version: %d", ibox.InboxVersion)
 	return ibox.InboxVersion, res, pagination, nil
-}
-
-func (i *Inbox) clear() libkb.ChatStorageError {
-	err := i.G().LocalChatDb.Delete(i.dbKey())
-	if err != nil {
-		return libkb.NewChatStorageInternalError(i.G(), "error clearing inbox: uid: %s err: %s", i.uid,
-			err.Error())
-	}
-	return nil
 }
 
 func (i *Inbox) handleVersion(ctx context.Context, ourvers chat1.InboxVers, updatevers chat1.InboxVers) (chat1.InboxVers, bool, libkb.ChatStorageError) {
