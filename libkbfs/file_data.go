@@ -83,6 +83,17 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 	block = topBlock
 	nextBlockStartOff = -1
 	startOff = 0
+
+	if !topBlock.IsInd {
+		// If it's not an indirect block, we just need to figure out
+		// if it's dirty.
+		_, wasDirty, err = fd.getter(ctx, fd.kmd, ptr, fd.file, rtype)
+		if err != nil {
+			return zeroPtr, nil, nil, 0, 0, false, err
+		}
+		return ptr, nil, block, nextBlockStartOff, startOff, wasDirty, nil
+	}
+
 	// search until it's not an indirect block
 	for block.IsInd {
 		nextIndex := len(block.IPtrs) - 1
