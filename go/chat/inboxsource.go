@@ -21,7 +21,7 @@ type localizerPipeline struct {
 	getTlfInterface func() keybase1.TlfInterface
 }
 
-func newLocalizerPipline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *localizerPipeline {
+func newLocalizerPipeline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified:    libkb.NewContextified(g),
 		getTlfInterface: getTlfInterface,
@@ -36,7 +36,7 @@ type BlockingLocalizer struct {
 func NewBlockingLocalizer(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *BlockingLocalizer {
 	return &BlockingLocalizer{
 		Contextified: libkb.NewContextified(g),
-		pipeline:     newLocalizerPipline(g, getTlfInterface),
+		pipeline:     newLocalizerPipeline(g, getTlfInterface),
 	}
 }
 
@@ -71,7 +71,7 @@ func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInb
 	getTlfInterface func() keybase1.TlfInterface) *NonblockingLocalizer {
 	return &NonblockingLocalizer{
 		Contextified: libkb.NewContextified(g),
-		pipeline:     newLocalizerPipline(g, getTlfInterface),
+		pipeline:     newLocalizerPipeline(g, getTlfInterface),
 		localizeCb:   localizeCb,
 	}
 }
