@@ -312,7 +312,7 @@ function svgToGridMap () {
 function generateIcoMoon () {
   const svgPaths = {}
   // Need to get the svg info from iconmoon. Couldn't figure out how to derive exactly what they need from the files themselves
-  JSON.parse(fs.readFileSync('../shared/images/iconfont/kb-icomoon-project-app.json', 'utf8')).icons.forEach(icon => {
+  JSON.parse(fs.readFileSync(path.join(__dirname, '../images/iconfont/kb-icomoon-project-app.json'), 'utf8')).icons.forEach(icon => {
     svgPaths[icon.tags[0]] = icon.paths
   })
 
@@ -403,14 +403,14 @@ function generateIcoMoon () {
     uid: -1,
   }
 
-  fs.writeFileSync('../images/iconfont/kb-icomoon-project-generated.json', JSON.stringify(write, null, 4), 'utf8')
+  fs.writeFileSync(path.join(__dirname, '../images/iconfont/kb-icomoon-project-generated.json'), JSON.stringify(write, null, 4), 'utf8')
   console.log('kb-icomoon-project-generated.json is ready for icomoon')
   updatedFonts()
 }
 
 function applyNewFonts () {
   console.log('Moving font to project')
-  fs.writeFileSync('../fonts/kb.ttf', fs.readFileSync('./shared/images/iconfont/kb/fonts/kb.ttf'))
+  fs.writeFileSync(path.join(__dirname, '../fonts/kb.ttf'), fs.readFileSync(path.join(__dirname, '../images/iconfont/kb/fonts/kb.ttf')))
 }
 
 function updatedFonts () {
@@ -418,7 +418,7 @@ function updatedFonts () {
 
   const icons = {}
 
-  fs.readdirSync('../images/icons')
+  fs.readdirSync(path.join(__dirname, '../images/icons'))
     .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
@@ -487,7 +487,7 @@ export type IconType = $Keys<typeof iconMeta_>
 export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 `
 
-  fs.writeFileSync('../common-adapters/icon.constants.js', iconConstants, 'utf8')
+  fs.writeFileSync(path.join(__dirname, '../common-adapters/icon.constants.js'), iconConstants, 'utf8')
 }
 
 function exec (command, env, options) {
