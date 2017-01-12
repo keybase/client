@@ -55,8 +55,8 @@ function safeTakeEvery (pattern: string | Array<any> | Function, worker: Functio
       // Convert to global error so we don't kill the takeEvery loop
       yield put((dispatch) => {
         dispatch({
-          type: globalError,
           payload: convertToError(error),
+          type: globalError,
         })
       })
     }
@@ -73,8 +73,8 @@ function safeTakeLatest (pattern: string | Array<any> | Function, worker: Functi
       // Convert to global error so we don't kill the takeLatest loop
       yield put((dispatch) => {
         dispatch({
-          type: globalError,
           payload: convertToError(error),
+          type: globalError,
         })
       })
     }
