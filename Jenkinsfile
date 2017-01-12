@@ -124,11 +124,7 @@ helpers.rootLinuxNode(env, {
                             ]) {
                                 dir("shared") {
                                     stage("JS tests") {
-                                        sh "echo 1"
-                                        sh "echo ${env.CHANGE_TARGET}"
-                                        sh "echo 2"
-                                        // sh "./test.sh js ${env.COMMIT_HASH} ${ghprbTargetBranch}"
-                                        // sh "echo 3"
+                                        sh "./test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                     }
                                 }
                                 // Only run visdiff for PRs
@@ -148,13 +144,13 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("visdiff") {
-                                            sh "./test.sh visdiff-install ${env.COMMIT_HASH}"
+                                            sh "./test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
                                                 dir("shared") {
                                                     stage("js visdiff") {
-                                                        sh "./test.sh visdiff 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
+                                                        sh "./test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                                     }
                                                 }
                                             }
