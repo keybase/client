@@ -1,16 +1,16 @@
 @namespace("chat.1")
 
 protocol chatUi {
-  void chatAttachmentUploadStart(int sessionID);	
-  void chatAttachmentUploadProgress(int sessionID, int bytesComplete, int bytesTotal);     
-  void chatAttachmentUploadDone(int sessionID);	
+  void chatAttachmentUploadStart(int sessionID) oneway;	
+  void chatAttachmentUploadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
+  void chatAttachmentUploadDone(int sessionID) oneway;	
 
-  void chatAttachmentPreviewUploadStart(int sessionID);	
-  void chatAttachmentPreviewUploadDone(int sessionID);	
+  void chatAttachmentPreviewUploadStart(int sessionID) oneway;	
+  void chatAttachmentPreviewUploadDone(int sessionID) oneway;	
 
-  void chatAttachmentDownloadStart(int sessionID);	
-  void chatAttachmentDownloadProgress(int sessionID, int bytesComplete, int bytesTotal);     
-  void chatAttachmentDownloadDone(int sessionID);	
+  void chatAttachmentDownloadStart(int sessionID) oneway;	
+  void chatAttachmentDownloadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
+  void chatAttachmentDownloadDone(int sessionID) oneway;	
 
   void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
   void chatInboxConversation(int sessionID, ConversationLocal conv);
