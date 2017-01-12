@@ -79,7 +79,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 		MessageIDs:     msgIDs,
 	})
 
-	rres.Msgs = AppendTLFResetSuffix(rres.Msgs, finalizeInfo)
+	rres.Msgs = utils.AppendTLFResetSuffix(rres.Msgs, finalizeInfo)
 
 	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs)
 	if err != nil {
@@ -264,7 +264,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, rl, err
 	}
 
-	boxed.Thread.Messages = AppendTLFResetSuffix(boxed.Thread.Messages, conv.Metadata.FinalizeInfo)
+	boxed.Thread.Messages = utils.AppendTLFResetSuffix(boxed.Thread.Messages, conv.Metadata.FinalizeInfo)
 
 	// Unbox
 	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
@@ -385,7 +385,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 			return nil, err
 		}
 
-		rmsgs.Msgs = AppendTLFResetSuffix(rmsgs.Msgs, finalizeInfo)
+		rmsgs.Msgs = utils.AppendTLFResetSuffix(rmsgs.Msgs, finalizeInfo)
 
 		// Unbox all the remote messages
 		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs)

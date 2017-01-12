@@ -275,6 +275,11 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 func (s *HybridInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
 	localizer libkb.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
+	if localizer == nil {
+		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+	}
+	s.Debug(ctx, "ReadRemote: using localizer: %s", localizer.Name())
+
 	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
 		return chat1.Inbox{}, nil, err
