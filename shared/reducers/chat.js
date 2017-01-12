@@ -12,13 +12,13 @@ const initialConversation: ConversationState = new ConversationStateRecord()
 
 // _filterMessages dedupes and removed deleted messages
 function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
-  const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key) && (!m.messageID || !deletedIDs.has(m.messageID)))
-  const filteredAppend = append.filter(m => !seenMessages.has(m.key) && (!m.messageID || !deletedIDs.has(m.messageID)))
+  const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
+  const filteredAppend = append.filter(m => !seenMessages.has(m.key))
 
   const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
-
   const updatedMessages = messages.filter(m => !deletedIDs.has(m.messageID)).map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
-  const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend)
+  // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
+  const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
   const nextSeenMessages = Set(nextMessages.map(m => m.key))
 
   return {

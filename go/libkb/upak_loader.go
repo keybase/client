@@ -331,7 +331,7 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 	arg.NetContext = ctx
 
 	// We need to force a reload to make KBFS tests pass
-	arg.ForcePoll = true
+	arg.ForcePoll = (u.G().Env.GetRunMode() == DevelRunMode)
 
 	upak, _, err := u.Load(arg)
 	if err != nil {
