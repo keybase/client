@@ -866,27 +866,8 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	ctx := Context{IdentifyUI: i}
 
 	err := eng.Run(&ctx)
-	if err == nil {
-		t.Fatal("identify2 ran successfully on user with no sigchain")
-	}
-	serr, ok := err.(libkb.NoSigChainError)
-	if !ok {
-		t.Fatalf("error: %T, expected libkb.NoSigChainError", err)
-	}
-
-	// make sure exported:
-	s := serr.ToStatus()
-	if s.Code != libkb.SCKeyNoEldest {
-		t.Errorf("status code: %v, expected %v", s.Code, libkb.SCKeyNoEldest)
-	}
-
-	// and importable:
-	ierr := libkb.ImportStatusAsError(&s)
-	if ierr == nil {
-		t.Fatal("import of SCKeyNoEldest returned nil")
-	}
-	if _, ok := ierr.(libkb.NoSigChainError); !ok {
-		t.Errorf("imported status error: %T, expected libkb.NoSigChainError", ierr)
+	if err != nil {
+		t.Fatalf("identify2 failed on user with no keys: %s", err)
 	}
 
 	// kbfs would like to have some info about the user

@@ -6,6 +6,7 @@ import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaData,
 
 export type Props = {
   firstNewMessageID: ?MessageID,
+  listScrollDownState: number,
   messages: List<Message>,
   metaData: Map<string, MetaData>,
   moreToLoad: boolean,

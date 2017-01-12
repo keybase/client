@@ -660,7 +660,9 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e); err != nil {
+	if them.IDTable() == nil {
+		e.G().Log.Debug("| No IDTable for user")
+	} else if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e); err != nil {
 		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
@@ -785,6 +787,7 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg := libkb.NewLoadUserArg(e.G())
 	arg.UID = e.arg.Uid
 	arg.ResolveBody = e.ResolveBody
+	arg.PublicKeyOptional = true
 	e.them, err = loadIdentifyUser(ctx, e.G(), arg, e.getCache())
 	if err != nil {
 		switch err.(type) {
