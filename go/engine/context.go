@@ -52,7 +52,7 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 
 func (c *Context) GetNetContext() context.Context {
 	if c.NetContext == nil {
-		return context.TODO()
+		return context.Background()
 	}
 	return c.NetContext
 }
