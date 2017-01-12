@@ -83,6 +83,7 @@ type testBlockOpsConfig struct {
 	testCodec  kbfscodec.Codec
 	cryptoPure cryptoPure
 	cache      BlockCache
+	t          *testing.T
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -108,7 +109,7 @@ func (config testBlockOpsConfig) blockCache() BlockCache {
 }
 
 func (config testBlockOpsConfig) MakeLogger(module string) logger.Logger {
-	return logger.NewNull()
+	return logger.NewTestLogger(config.t)
 }
 
 func (config testBlockOpsConfig) DataVersion() DataVer {
@@ -120,7 +121,7 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
 	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
-	return testBlockOpsConfig{bserver, codec, crypto, cache}
+	return testBlockOpsConfig{bserver, codec, crypto, cache, t}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()

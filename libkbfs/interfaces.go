@@ -1006,10 +1006,6 @@ type KeyOps interface {
 
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
-	// PrefetchDirBlock directs the prefetcher to prefetch a directory block.
-	PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
-	// PrefetchFileBlock directs the prefetcher to prefetch a file block.
-	PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
 	// PrefetchBlock directs the prefetcher to prefetch a block.
 	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches

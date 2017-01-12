@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
-
 	"golang.org/x/net/context"
 )
 
@@ -34,7 +33,7 @@ type prefetchRequest struct {
 	block    Block
 }
 
-// blockRetriever specifies a method for retrieving blocks asynchronously
+// blockRetriever specifies a method for retrieving blocks asynchronously.
 type blockRetriever interface {
 	Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
 }
@@ -94,10 +93,10 @@ func (p *blockPrefetcher) run() {
 			go func() {
 				defer wg.Done()
 				defer cancel()
-				p.log.CDebugf(ctx, "Begin prefetch for block %s.", req.ptr.ID)
+				p.log.CDebugf(ctx, "Begin prefetch for block %s", req.ptr.ID)
 				select {
 				case err := <-errCh:
-					p.log.CDebugf(ctx, "Done prefetch for block %s. Error: %v", req.ptr.ID, err)
+					p.log.CDebugf(ctx, "Done prefetch for block %s. Error: %+v", req.ptr.ID, err)
 				case <-p.shutdownCh:
 					// Cancel but still wait so p.doneCh accurately represents
 					// whether we still have requests pending.
@@ -111,7 +110,7 @@ func (p *blockPrefetcher) run() {
 	}
 }
 
-func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block) error {
+func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block, entryName string) error {
 	if err := checkDataVersion(p.config, path{}, ptr); err != nil {
 		return err
 	}
@@ -119,7 +118,7 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointe
 	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
 		return nil
 	case <-p.shutdownCh:
-		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since the prefetcher is shutdown.", ptr.ID)
+		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since the prefetcher is shutdown", ptr.ID)
 	}
 }
 
@@ -132,7 +131,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadat
 	}
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, b.NewEmpty())
+			ptr.BlockPointer, b.NewEmpty(), "")
 	}
 }
 
@@ -144,12 +143,12 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata,
 	}
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, b.NewEmpty())
+			ptr.BlockPointer, b.NewEmpty(), "")
 	}
 }
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, priority int) {
-	// Prefetch all DirEntry root blocks
+	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
 	for i, entry := range dirEntries.dirEntries {
@@ -167,23 +166,13 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 			p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T.", entry)
 			continue
 		}
-		p.request(priority, kmd, entry.BlockPointer, block)
+		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName)
 	}
 }
 
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
 func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
-	return p.request(priority, kmd, ptr, block)
-}
-
-// PrefetchDirBlock implements the Prefetcher interface for blockPrefetcher.
-func (p *blockPrefetcher) PrefetchDirBlock(ptr BlockPointer, kmd KeyMetadata, priority int) error {
-	return p.request(priority, kmd, ptr, &DirBlock{})
-}
-
-// PrefetchFileBlock implements the Prefetcher interface for blockPrefetcher.
-func (p *blockPrefetcher) PrefetchFileBlock(ptr BlockPointer, kmd KeyMetadata, priority int) error {
-	return p.request(priority, kmd, ptr, &FileBlock{})
+	return p.request(priority, kmd, ptr, block, "")
 }
 
 // PrefetchAfterBlockRetrieved implements the Prefetcher interface for blockPrefetcher.

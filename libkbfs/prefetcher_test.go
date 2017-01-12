@@ -56,7 +56,7 @@ func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
 }
 
 func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, func() BlockCache) {
-	config := newTestBlockRetrievalConfig()
+	config := newTestBlockRetrievalConfig(t)
 	q := newBlockRetrievalQueue(1, config)
 	require.NotNil(t, q)
 

@@ -74,12 +74,12 @@ func (cb *CommonBlock) DataVersion() DataVer {
 	return FirstValidDataVer
 }
 
-// NewEmpty implements the Block interface for CommonBlock
+// NewEmpty implements the Block interface for CommonBlock.
 func (cb *CommonBlock) NewEmpty() Block {
 	return NewCommonBlock()
 }
 
-// Set implements the Block interface for CommonBlock
+// Set implements the Block interface for CommonBlock.
 func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
 	// Don't assert type for CommonBlock because we need to be able to Set from
 	// specific block types
@@ -92,8 +92,10 @@ func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
 	cb.cachedEncodedSize = other.GetEncodedSize()
 }
 
-// Copy copies a CommonBlock without the lock
+// Copy copies a CommonBlock without the lock.
 func (cb *CommonBlock) Copy() CommonBlock {
+	cb.cacheMtx.RLock()
+	defer cb.cacheMtx.RUnlock()
 	return CommonBlock{
 		IsInd: cb.IsInd,
 		UnknownFieldSetHandler: cb.UnknownFieldSetHandler,

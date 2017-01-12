@@ -56,7 +56,6 @@ var individualTestTimeout = 10 * time.Second
 
 func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config *ConfigMock, ctx context.Context, cancel context.CancelFunc) {
-	t.Log("Init KBFSOps")
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)

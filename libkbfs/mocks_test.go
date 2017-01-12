@@ -17,6 +17,68 @@ import (
 	time "time"
 )
 
+// Mock of dataVersioner interface
+type MockdataVersioner struct {
+	ctrl     *gomock.Controller
+	recorder *_MockdataVersionerRecorder
+}
+
+// Recorder for MockdataVersioner (not exported)
+type _MockdataVersionerRecorder struct {
+	mock *MockdataVersioner
+}
+
+func NewMockdataVersioner(ctrl *gomock.Controller) *MockdataVersioner {
+	mock := &MockdataVersioner{ctrl: ctrl}
+	mock.recorder = &_MockdataVersionerRecorder{mock}
+	return mock
+}
+
+func (_m *MockdataVersioner) EXPECT() *_MockdataVersionerRecorder {
+	return _m.recorder
+}
+
+func (_m *MockdataVersioner) DataVersion() DataVer {
+	ret := _m.ctrl.Call(_m, "DataVersion")
+	ret0, _ := ret[0].(DataVer)
+	return ret0
+}
+
+func (_mr *_MockdataVersionerRecorder) DataVersion() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
+}
+
+// Mock of logMaker interface
+type MocklogMaker struct {
+	ctrl     *gomock.Controller
+	recorder *_MocklogMakerRecorder
+}
+
+// Recorder for MocklogMaker (not exported)
+type _MocklogMakerRecorder struct {
+	mock *MocklogMaker
+}
+
+func NewMocklogMaker(ctrl *gomock.Controller) *MocklogMaker {
+	mock := &MocklogMaker{ctrl: ctrl}
+	mock.recorder = &_MocklogMakerRecorder{mock}
+	return mock
+}
+
+func (_m *MocklogMaker) EXPECT() *_MocklogMakerRecorder {
+	return _m.recorder
+}
+
+func (_m *MocklogMaker) MakeLogger(module string) logger.Logger {
+	ret := _m.ctrl.Call(_m, "MakeLogger", module)
+	ret0, _ := ret[0].(logger.Logger)
+	return ret0
+}
+
+func (_mr *_MocklogMakerRecorder) MakeLogger(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeLogger", arg0)
+}
+
 // Mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -38,6 +100,16 @@ func (_m *MockBlock) EXPECT() *_MockBlockRecorder {
 	return _m.recorder
 }
 
+func (_m *MockBlock) DataVersion() DataVer {
+	ret := _m.ctrl.Call(_m, "DataVersion")
+	ret0, _ := ret[0].(DataVer)
+	return ret0
+}
+
+func (_mr *_MockBlockRecorder) DataVersion() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
+}
+
 func (_m *MockBlock) GetEncodedSize() uint32 {
 	ret := _m.ctrl.Call(_m, "GetEncodedSize")
 	ret0, _ := ret[0].(uint32)
@@ -54,16 +126,6 @@ func (_m *MockBlock) SetEncodedSize(size uint32) {
 
 func (_mr *_MockBlockRecorder) SetEncodedSize(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetEncodedSize", arg0)
-}
-
-func (_m *MockBlock) DataVersion() DataVer {
-	ret := _m.ctrl.Call(_m, "DataVersion")
-	ret0, _ := ret[0].(DataVer)
-	return ret0
-}
-
-func (_mr *_MockBlockRecorder) DataVersion() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
 }
 
 func (_m *MockBlock) NewEmpty() Block {
@@ -2641,6 +2703,55 @@ func (_mr *_MockKeyOpsRecorder) DeleteTLFCryptKeyServerHalf(arg0, arg1, arg2, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteTLFCryptKeyServerHalf", arg0, arg1, arg2, arg3)
 }
 
+// Mock of Prefetcher interface
+type MockPrefetcher struct {
+	ctrl     *gomock.Controller
+	recorder *_MockPrefetcherRecorder
+}
+
+// Recorder for MockPrefetcher (not exported)
+type _MockPrefetcherRecorder struct {
+	mock *MockPrefetcher
+}
+
+func NewMockPrefetcher(ctrl *gomock.Controller) *MockPrefetcher {
+	mock := &MockPrefetcher{ctrl: ctrl}
+	mock.recorder = &_MockPrefetcherRecorder{mock}
+	return mock
+}
+
+func (_m *MockPrefetcher) EXPECT() *_MockPrefetcherRecorder {
+	return _m.recorder
+}
+
+func (_m *MockPrefetcher) PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error {
+	ret := _m.ctrl.Call(_m, "PrefetchBlock", block, blockPtr, kmd, priority)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockPrefetcherRecorder) PrefetchBlock(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchBlock", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int) {
+	_m.ctrl.Call(_m, "PrefetchAfterBlockRetrieved", b, kmd, priority)
+}
+
+func (_mr *_MockPrefetcherRecorder) PrefetchAfterBlockRetrieved(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchAfterBlockRetrieved", arg0, arg1, arg2)
+}
+
+func (_m *MockPrefetcher) Shutdown() <-chan struct{} {
+	ret := _m.ctrl.Call(_m, "Shutdown")
+	ret0, _ := ret[0].(<-chan struct{})
+	return ret0
+}
+
+func (_mr *_MockPrefetcherRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
 // Mock of BlockOps interface
 type MockBlockOps struct {
 	ctrl     *gomock.Controller
@@ -3692,6 +3803,26 @@ func (_m *MockConfig) EXPECT() *_MockConfigRecorder {
 	return _m.recorder
 }
 
+func (_m *MockConfig) DataVersion() DataVer {
+	ret := _m.ctrl.Call(_m, "DataVersion")
+	ret0, _ := ret[0].(DataVer)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) DataVersion() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
+}
+
+func (_m *MockConfig) MakeLogger(module string) logger.Logger {
+	ret := _m.ctrl.Call(_m, "MakeLogger", module)
+	ret0, _ := ret[0].(logger.Logger)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) MakeLogger(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeLogger", arg0)
+}
+
 func (_m *MockConfig) KBFSOps() KBFSOps {
 	ret := _m.ctrl.Call(_m, "KBFSOps")
 	ret0, _ := ret[0].(KBFSOps)
@@ -4106,16 +4237,6 @@ func (_mr *_MockConfigRecorder) SetMetadataVersion(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMetadataVersion", arg0)
 }
 
-func (_m *MockConfig) DataVersion() DataVer {
-	ret := _m.ctrl.Call(_m, "DataVersion")
-	ret0, _ := ret[0].(DataVer)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) DataVersion() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
-}
-
 func (_m *MockConfig) RekeyQueue() RekeyQueue {
 	ret := _m.ctrl.Call(_m, "RekeyQueue")
 	ret0, _ := ret[0].(RekeyQueue)
@@ -4202,6 +4323,14 @@ func (_mr *_MockConfigRecorder) RekeyWithPromptWaitTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyWithPromptWaitTime")
 }
 
+func (_m *MockConfig) SetRekeyWithPromptWaitTime(_param0 time.Duration) {
+	_m.ctrl.Call(_m, "SetRekeyWithPromptWaitTime", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetRekeyWithPromptWaitTime(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRekeyWithPromptWaitTime", arg0)
+}
+
 func (_m *MockConfig) DelayedCancellationGracePeriod() time.Duration {
 	ret := _m.ctrl.Call(_m, "DelayedCancellationGracePeriod")
 	ret0, _ := ret[0].(time.Duration)
@@ -4256,16 +4385,6 @@ func (_m *MockConfig) ResetCaches() {
 
 func (_mr *_MockConfigRecorder) ResetCaches() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResetCaches")
-}
-
-func (_m *MockConfig) MakeLogger(module string) logger.Logger {
-	ret := _m.ctrl.Call(_m, "MakeLogger", module)
-	ret0, _ := ret[0].(logger.Logger)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) MakeLogger(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeLogger", arg0)
 }
 
 func (_m *MockConfig) MetricsRegistry() go_metrics.Registry {
@@ -5752,73 +5871,4 @@ func (_m *MockKeyBundleCache) PutTLFWriterKeyBundle(_param0 tlf.ID, _param1 TLFW
 
 func (_mr *_MockKeyBundleCacheRecorder) PutTLFWriterKeyBundle(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFWriterKeyBundle", arg0, arg1, arg2)
-}
-
-// Mock of Prefetcher interface
-type MockPrefetcher struct {
-	ctrl     *gomock.Controller
-	recorder *_MockPrefetcherRecorder
-}
-
-// Recorder for MockPrefetcher (not exported)
-type _MockPrefetcherRecorder struct {
-	mock *MockPrefetcher
-}
-
-func NewMockPrefetcher(ctrl *gomock.Controller) *MockPrefetcher {
-	mock := &MockPrefetcher{ctrl: ctrl}
-	mock.recorder = &_MockPrefetcherRecorder{mock}
-	return mock
-}
-
-func (_m *MockPrefetcher) EXPECT() *_MockPrefetcherRecorder {
-	return _m.recorder
-}
-
-func (_m *MockPrefetcher) PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error {
-	ret := _m.ctrl.Call(_m, "PrefetchDirBlock", blockPtr, kmd, priority)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockPrefetcherRecorder) PrefetchDirBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchDirBlock", arg0, arg1, arg2)
-}
-
-func (_m *MockPrefetcher) PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error {
-	ret := _m.ctrl.Call(_m, "PrefetchFileBlock", blockPtr, kmd, priority)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockPrefetcherRecorder) PrefetchFileBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchFileBlock", arg0, arg1, arg2)
-}
-
-func (_m *MockPrefetcher) PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error {
-	ret := _m.ctrl.Call(_m, "PrefetchBlock", block, blockPtr, kmd, priority)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockPrefetcherRecorder) PrefetchBlock(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchBlock", arg0, arg1, arg2, arg3)
-}
-
-func (_m *MockPrefetcher) HandleBlock(b Block, kmd KeyMetadata, priority int) {
-	_m.ctrl.Call(_m, "HandleBlock", b, kmd, priority)
-}
-
-func (_mr *_MockPrefetcherRecorder) HandleBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "HandleBlock", arg0, arg1, arg2)
-}
-
-func (_m *MockPrefetcher) Shutdown() <-chan struct{} {
-	ret := _m.ctrl.Call(_m, "Shutdown")
-	ret0, _ := ret[0].(<-chan struct{})
-	return ret0
-}
-
-func (_mr *_MockPrefetcherRecorder) Shutdown() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }

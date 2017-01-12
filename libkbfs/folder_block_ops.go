@@ -274,7 +274,11 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		return block, nil
 	}
 	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
-		fbo.config.BlockOps().Prefetcher().PrefetchAfterBlockRetrieved(block, kmd, defaultOnDemandRequestPriority)
+		// If the block was cached in the past, we need to handle it as if it's
+		// an on-demand request so that its downstream prefetches are triggered
+		// correctly according to the new on-demand fetch priority.
+		fbo.config.BlockOps().Prefetcher().PrefetchAfterBlockRetrieved(
+			block, kmd, defaultOnDemandRequestPriority)
 		return block, nil
 	}
 
@@ -2571,7 +2575,11 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 		return
 	}
 	// Prefetch the new reference, but only if it already exists in the block
-	// cache.
+	// cache. Ideally we'd always prefetch it, but we need the type of the
+	// block so that we can call `NewEmpty`.
+	// TODO KBFS-1850: Eventually we should use the codec library's ability to
+	// decode into a nil interface to no longer need to pre-initialize the
+	// correct type.
 	block, err := fbo.config.BlockCache().Get(oldPtr)
 	if err != nil {
 		return

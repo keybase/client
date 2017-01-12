@@ -241,12 +241,12 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 		if brq.config.blockCache() != nil {
 			_ = brq.config.blockCache().Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
 		}
-		func() {
+		// We have to trigger prefetches in a goroutine because otherwise we
+		// can deadlock with `TogglePrefetcher`.
+		go func() {
 			brq.prefetchMtx.RLock()
 			defer brq.prefetchMtx.RUnlock()
-			if brq.prefetcher != nil {
-				brq.prefetcher.PrefetchAfterBlockRetrieved(block, retrieval.kmd, retrieval.priority)
-			}
+			brq.prefetcher.PrefetchAfterBlockRetrieved(block, retrieval.kmd, retrieval.priority)
 		}()
 	}
 
@@ -267,7 +267,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	}
 }
 
-// Shutdown is called when we are no longer accepting requests
+// Shutdown is called when we are no longer accepting requests.
 func (brq *blockRetrievalQueue) Shutdown() {
 	select {
 	case <-brq.doneCh:
@@ -281,26 +281,27 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	}
 }
 
-// TogglePrefetcher allows upstream components to turn the prefetcher on or off
+// TogglePrefetcher allows upstream components to turn the prefetcher on or
+// off. If an error is returned due to a context cancelation, the prefetcher is
+// never re-enabled.
 func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context, enable bool) (err error) {
-	var shutdownCh <-chan struct{}
-	func() {
-		brq.prefetchMtx.Lock()
-		defer brq.prefetchMtx.Unlock()
-		shutdownCh = brq.prefetcher.Shutdown()
-	}()
+	// We must hold this lock for the whole function so that multiple calls to
+	// this function doesn't leak prefetchers.
+	brq.prefetchMtx.Lock()
+	defer brq.prefetchMtx.Unlock()
+	shutdownCh := brq.prefetcher.Shutdown()
 	select {
 	case <-shutdownCh:
 	case <-ctx.Done():
-		err = ctx.Err()
+		return ctx.Err()
 	}
 	if enable {
 		brq.prefetcher = newBlockPrefetcher(brq, brq.config)
 	}
-	return err
+	return nil
 }
 
-// Prefetcher allows us to retrieve the prefetcher
+// Prefetcher allows us to retrieve the prefetcher.
 func (brq *blockRetrievalQueue) Prefetcher() Prefetcher {
 	brq.prefetchMtx.RLock()
 	defer brq.prefetchMtx.RUnlock()
