@@ -71,3 +71,8 @@ func (c *Context) CloneGlobalContextWithLogTags(g *libkb.GlobalContext, k string
 	c.NetContext = netCtx
 	return g.CloneWithNetContextAndNewLogger(netCtx)
 }
+
+func (c *Context) ShallowCopy() *Context {
+	tmp := *c
+	return &tmp
+}
