@@ -1,7 +1,7 @@
 // @flow
 import {mapValues, forEach} from 'lodash'
 import {buffers, channel} from 'redux-saga'
-import {take, call, put, takeEvery, takeLatest} from 'redux-saga/effects'
+import {take, call, put, takeEvery, takeLatest, fork} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
@@ -83,6 +83,20 @@ function safeTakeLatest (pattern: string | Array<any> | Function, worker: Functi
   return takeLatest(pattern, wrappedWorker, ...args)
 }
 
+// take on pattern. If pattern happens while the original one is running just ignore it
+function* safeTakeLatestIgnoreMultiple (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>): any {
+  const task = yield fork(function* () {
+    let lastTask
+    while (true) {
+      const action = yield take(pattern)
+      if (!lastTask || !lastTask.isRunning()) {
+        lastTask = yield fork(worker, ...args.concat(action))
+      }
+    }
+  })
+  return task
+}
+
 export {
   closeChannelMap,
   createChannelMap,
@@ -90,6 +104,7 @@ export {
   putOnChannelMap,
   safeTakeEvery,
   safeTakeLatest,
+  safeTakeLatestIgnoreMultiple,
   singleFixedChannelConfig,
   takeFromChannelMap,
 }

@@ -16,7 +16,7 @@ import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
-import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
+import {safeTakeEvery, safeTakeLatest, safeTakeLatestIgnoreMultiple, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
 import {tmpFile} from '../util/file'
 import {updateReachability} from '../constants/gregor'
@@ -1015,7 +1015,7 @@ function * chatSaga (): SagaGenerator<any, any> {
   }
 
   yield [
-    safeTakeLatest(Constants.loadInbox, _loadInbox),
+    safeTakeLatestIgnoreMultiple(Constants.loadInbox, _loadInbox),
     safeTakeLatest(Constants.loadedInbox, _loadedInbox),
     safeTakeEvery(Constants.loadMoreMessages, _loadMoreMessages),
     safeTakeLatest(Constants.selectConversation, _selectConversation),
