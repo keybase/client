@@ -410,7 +410,8 @@ func (s *Deliverer) deliverLoop() {
 			}
 			if err == nil {
 				// Send succeeded
-				s.debug("clearing message from outbox: %s uid: %s", obr.OutboxID, s.outbox.GetUID())
+				s.debug("clearing message from outbox: %s uid: %s",
+					hex.EncodeToString(obr.OutboxID), s.outbox.GetUID())
 				err = s.outbox.RemoveMessage(obr.OutboxID)
 				if err != nil {
 					s.G().Log.Error("error clearing message from outbox after successful send: uid:%s %s",
