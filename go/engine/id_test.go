@@ -137,10 +137,8 @@ func TestIdEllen(t *testing.T) {
 	tc := SetupEngineTest(t, "id")
 	defer tc.Cleanup()
 	idUI, _, err := runIdentify(&tc, "t_ellen")
-	if err == nil {
-		t.Fatal("Expected no sigchain error.")
-	} else if _, ok := err.(libkb.NoSigChainError); !ok {
-		t.Fatalf("error: %T, expected NoSigChainError", err)
+	if err != nil {
+		t.Fatal(err)
 	}
 	checkDisplayKeys(t, idUI, 0, 0)
 }

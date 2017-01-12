@@ -4152,6 +4152,7 @@ export type UserPlusKeys = {
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,
   uvv: UserVersionVector,
+  deletedDeviceKeys?: ?Array<PublicKey>,
 }
 
 export type UserResolution = {

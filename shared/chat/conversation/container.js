@@ -19,6 +19,7 @@ import type {Props} from '.'
 
 type OwnProps = {}
 type State = {
+  listScrollDownCounter: number, // count goes up when this mutates, causing the list to scroll down
   sidePanelOpen: boolean,
 }
 
@@ -27,7 +28,10 @@ class ConversationContainer extends Component<void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    this.state = {sidePanelOpen: false}
+    this.state = {
+      listScrollDownCounter: 0,
+      sidePanelOpen: false,
+    }
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -42,6 +46,10 @@ class ConversationContainer extends Component<void, Props, State> {
     this.setState({sidePanelOpen: !this.state.sidePanelOpen})
   }
 
+  _onTriggerScrollDown = () => {
+    this.setState({listScrollDownCounter: this.state.listScrollDownCounter + 1})
+  }
+
   render () {
     if (!this.props.selectedConversation) {
       return <Box style={{flex: 1}} />
@@ -51,6 +59,11 @@ class ConversationContainer extends Component<void, Props, State> {
       {...this.props}
       sidePanelOpen={this.state.sidePanelOpen}
       onToggleSidePanel={this._onToggleSidePanel}
+      onPostMessage={(...args) => {
+        this._onTriggerScrollDown()
+        this.props.onPostMessage(...args)
+      }}
+      listScrollDownState={this.state.listScrollDownCounter}
     />
   }
 }
@@ -71,57 +84,57 @@ export default connect(
         const metaDataMap = state.chat.get('metaData')
 
         return {
-          participants,
-          messages: conversationState.messages,
-          moreToLoad: conversationState.moreToLoad,
-          isLoading: conversationState.isLoading,
-          validated: selected && selected.validated,
-          firstNewMessageID: conversationState.firstNewMessageID,
-          selectedConversation,
-          emojiPickerOpen: false,
-          metaDataMap,
-          you,
-          followingMap,
           bannerMessage: null,
+          emojiPickerOpen: false,
+          firstNewMessageID: conversationState.firstNewMessageID,
+          followingMap,
+          isLoading: conversationState.isLoading,
+          messages: conversationState.messages,
+          metaDataMap,
+          moreToLoad: conversationState.moreToLoad,
+          participants,
+          selectedConversation,
+          validated: selected && selected.validated,
+          you,
         }
       }
     }
 
     return {
-      participants: List(),
-      messages: List(),
-      moreToLoad: false,
-      isLoading: false,
-      validated: false,
-      selectedConversation,
-      metaDataMap: Map(),
-      you,
-      followingMap,
       bannerMessage: null,
+      followingMap,
+      isLoading: false,
+      messages: List(),
+      metaDataMap: Map(),
+      moreToLoad: false,
+      participants: List(),
+      selectedConversation,
+      validated: false,
+      you,
     }
   },
   (dispatch: Dispatch) => ({
-    onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
-    onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
-    onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
-    onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
-    onOpenFolder: () => dispatch(openFolder()),
-    onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
-    onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, filename, title) => dispatch(selectAttachment(selectedConversation, filename, title)),
+    onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
+    onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, downloadFilePath(filename))),
-    onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{selected: 'attachment', props: {message}}])),
-    onOpenInFileUI: (path: string) => dispatch(({type: 'fs:openInFileUI', payload: {path}}: OpenInFileUI)),
+    onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
+    onOpenFolder: () => dispatch(openFolder()),
+    onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
+    onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{props: {message}, selected: 'attachment'}])),
+    onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
+    onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
+    onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
+    onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const brokenUsers = getBrokenUsers(stateProps.participants, stateProps.you, stateProps.metaDataMap)
     const bannerMessage = brokenUsers.length
       ? {
+        onClick: (user: string) => dispatchProps.onShowTracker(user),
         type: 'BrokenTracker',
         users: brokenUsers,
-        onClick: (user: string) => dispatchProps.onShowTracker(user),
       }
       : null
 
@@ -130,11 +143,11 @@ export default connect(
       ...dispatchProps,
       ...ownProps,
       bannerMessage,
-      onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
-      onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
-      onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
-      onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
       onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
+      onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
+      onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
+      onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
+      onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
     }
   },
 )(ConversationContainer)

@@ -154,6 +154,10 @@ protocol Common {
       int pgpKeyCount;
 
       UserVersionVector uvv;
+      
+      // deletedDeviceKeys is a list of deleted device keys.
+      // (i.e. keys that were used before an account reset)
+      array<PublicKey> deletedDeviceKeys;
   }
 
   record RemoteTrack {

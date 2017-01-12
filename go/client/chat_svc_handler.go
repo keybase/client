@@ -78,7 +78,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		maxID := chat1.MessageID(0)
 		for _, msg := range conv.MaxMsgs {
 			if msg.ServerHeader.MessageID > maxID {
-				tlf := msg.ClientHeader.TlfName
+				tlf := msg.ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
 				pub := msg.ClientHeader.TlfPublic
 				cl.Conversations[i] = ConvSummary{
 					ID: conv.Metadata.ConversationID.String(),
@@ -87,9 +87,10 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 						Public:    pub,
 						TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
 					},
-					Unread:     convUnread,
-					ActiveAt:   convMtime.UnixSeconds(),
-					ActiveAtMs: convMtime.UnixMilliseconds(),
+					Unread:       convUnread,
+					ActiveAt:     convMtime.UnixSeconds(),
+					ActiveAtMs:   convMtime.UnixMilliseconds(),
+					FinalizeInfo: conv.Metadata.FinalizeInfo,
 				}
 				maxID = msg.ServerHeader.MessageID
 			}
@@ -938,11 +939,12 @@ type Thread struct {
 
 // ConvSummary is used for JSON output of a conversation in the inbox.
 type ConvSummary struct {
-	ID         string      `json:"id"`
-	Channel    ChatChannel `json:"channel"`
-	Unread     bool        `json:"unread"`
-	ActiveAt   int64       `json:"active_at"`
-	ActiveAtMs int64       `json:"active_at_ms"`
+	ID           string                          `json:"id"`
+	Channel      ChatChannel                     `json:"channel"`
+	Unread       bool                            `json:"unread"`
+	ActiveAt     int64                           `json:"active_at"`
+	ActiveAtMs   int64                           `json:"active_at_ms"`
+	FinalizeInfo *chat1.ConversationFinalizeInfo `json:"finalize_info,omitempty"`
 }
 
 // ChatList is a list of conversations in the inbox.

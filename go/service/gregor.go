@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
@@ -29,6 +30,8 @@ import (
 const GregorRequestTimeout time.Duration = 30 * time.Second
 
 var ErrGregorTimeout = errors.New("Network request timed out.")
+
+const GregorConnectionRetryInterval time.Duration = 2 * time.Second
 
 type IdentifyUIHandler struct {
 	libkb.Contextified
@@ -1218,7 +1221,11 @@ func (g *gregorHandler) connectTLS() error {
 	g.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
 
 	g.connMutex.Lock()
-	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), libkb.WrapError, g.G().Log, nil)
+	opts := rpc.ConnectionOpts{
+		WrapErrorFunc:    libkb.WrapError,
+		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
+	}
+	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G()), g.G().Log, opts)
 	g.connMutex.Unlock()
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
@@ -1241,7 +1248,11 @@ func (g *gregorHandler) connectNoTLS() error {
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
 	g.connMutex.Lock()
-	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, true, libkb.WrapError, g.G().Log, nil)
+	opts := rpc.ConnectionOpts{
+		WrapErrorFunc:    libkb.WrapError,
+		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
+	}
+	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
 	g.connMutex.Unlock()
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
 

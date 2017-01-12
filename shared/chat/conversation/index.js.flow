@@ -12,6 +12,7 @@ export type Props = {
   followingMap: FollowingMap,
   inputText: string,
   isLoading: boolean,
+  listScrollDownState: number,
   messages: List<Message>,
   metaDataMap: MetaDataMap,
   moreToLoad: boolean,
@@ -32,6 +33,7 @@ export type Props = {
   selectedConversation: ?ConversationIDKey,
   setInputText: (text: string) => void,
   sidePanelOpen: boolean,
+  triggerListScrollDown: () => void,
   validated: boolean,
   you: string,
 }

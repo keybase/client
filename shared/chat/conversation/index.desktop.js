@@ -30,6 +30,7 @@ const Conversation = (props: Props) => {
         metaDataMap={props.metaDataMap}
         followingMap={props.followingMap}
         firstNewMessageID={props.firstNewMessageID}
+        listScrollDownState={props.listScrollDownState}
         messages={props.messages}
         moreToLoad={props.moreToLoad}
         onAddParticipant={props.onAddParticipant}

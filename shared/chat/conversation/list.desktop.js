@@ -28,6 +28,8 @@ type State = {
   selectedMessageID?: MessageID,
 }
 
+const scrollbarWidth = 20
+
 class ConversationList extends Component<void, Props, State> {
   _cellCache: any;
   _cellMeasurer: any;
@@ -121,6 +123,10 @@ class ConversationList extends Component<void, Props, State> {
       this.setState({
         messages: nextProps.messages,
       })
+    }
+
+    if (nextProps.listScrollDownState !== this.props.listScrollDownState) {
+      this.setState({isLockedToBottom: true})
     }
   }
 
@@ -216,7 +222,7 @@ class ConversationList extends Component<void, Props, State> {
     let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
 
-    const popupComponent = this._renderPopup(message, {position: 'absolute', top: y, left: x})
+    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y})
     if (!popupComponent) return
 
     this.setState({
@@ -270,7 +276,7 @@ class ConversationList extends Component<void, Props, State> {
     return messageFactory(options)
   }
 
-  _recomputeListDebounced = _.debounce(() => {
+  _recomputeListDebounced = _.throttle(() => {
     this._recomputeList()
   }, 300)
 
@@ -282,7 +288,7 @@ class ConversationList extends Component<void, Props, State> {
   render () {
     if (!this.props.validated) {
       return (
-        <div style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
           <ProgressIndicator style={{width: 20}} />
         </div>
       )
@@ -330,13 +336,14 @@ class ConversationList extends Component<void, Props, State> {
             }
           }} >
           {({height, width}) => {
+            // width is adjusted to assume scrollbars, see https://github.com/bvaughn/react-virtualized/issues/401
             return <CellMeasurer
               cellRenderer={({rowIndex, ...rest}) => this._rowRenderer({index: rowIndex, ...rest})}
               columnCount={1}
               ref={r => { this._cellMeasurer = r }}
               cellSizeCache={this._cellCache}
               rowCount={rowCount}
-              width={width} >
+              width={width - scrollbarWidth} >
               {({getRowHeight}) => {
                 return <VirtualizedList
                   style={{outline: 'none'}}
@@ -354,7 +361,7 @@ class ConversationList extends Component<void, Props, State> {
             </CellMeasurer>
           }}
         </AutoSizer>
-        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, position: 'absolute', right: 0, top: 0, bottom: 0, width: 320}}>
+        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 0, width: 320}}>
           <SidePanel {...this.props} />
         </div>}
       </div>

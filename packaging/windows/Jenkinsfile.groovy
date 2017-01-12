@@ -55,7 +55,7 @@ def doBuild() {
     }
     // Make sure any previous desktop build is deleted
     bat '''
-        if EXIST src\\github.com\\keybase\\client\\desktop\\release rmdir /q /s src\\github.com\\keybase\\client\\desktop\\release
+        if EXIST src\\github.com\\keybase\\client\\shared\\desktop\\release rmdir /q /s src\\github.com\\keybase\\client\\shared\\desktop\\release
         path
     '''                
     stage('Build Client') {
