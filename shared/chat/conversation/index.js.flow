@@ -11,6 +11,7 @@ export type Props = {
   firstNewMessageID: ?MessageID,
   inputText: string,
   isLoading: boolean,
+  listScrollDownState: number,
   messages: List<Message>,
   metaData: Map<string, MetaData>,
   moreToLoad: boolean,
@@ -31,6 +32,7 @@ export type Props = {
   selectedConversation: ?ConversationIDKey,
   setInputText: (text: string) => void,
   sidePanelOpen: boolean,
+  triggerListScrollDown: () => void,
   validated: boolean,
 }
 

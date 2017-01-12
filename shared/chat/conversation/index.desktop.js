@@ -24,6 +24,7 @@ const Conversation = (props: Props) => {
       />
       <List
         firstNewMessageID={props.firstNewMessageID}
+        listScrollDownState={props.listScrollDownState}
         messages={props.messages}
         metaData={props.metaData}
         moreToLoad={props.moreToLoad}
