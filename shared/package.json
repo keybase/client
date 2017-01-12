@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "_helper": "yarn run _node -- desktop/yarn-helper.js",
-    "_node": "BABEL_ENV=yarn babel-node",
+    "_node": "cross-env BABEL_ENV=yarn babel-node",
     "apply-new-fonts": "yarn run _helper apply-new-fonts",
     "build-dev": "yarn run _helper build-dev",
     "build-main-thread": "yarn run _helper build-main-thread",
@@ -48,6 +48,7 @@
   "dependencies": {
     "buffer": "5.0.2",
     "core-js": "2.4.1",
+    "cross-env": "3.1.4",
     "deep-diff": "0.3.4",
     "deep-equal": "1.0.1",
     "emoji-datasource": "2.4.4",
