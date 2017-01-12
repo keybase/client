@@ -274,9 +274,7 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	default:
 		brq.prefetchMtx.Lock()
 		defer brq.prefetchMtx.Unlock()
-		if brq.prefetcher != nil {
-			brq.prefetcher.Shutdown()
-		}
+		brq.prefetcher.Shutdown()
 		close(brq.doneCh)
 	}
 }

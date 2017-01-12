@@ -163,7 +163,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 		case Exec:
 			block = &FileBlock{}
 		default:
-			p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T.", entry)
+			p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T", entry)
 			continue
 		}
 		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName)
@@ -191,7 +191,7 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, 
 			}
 		}
 	default:
-		p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T.", b)
+		p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T", b)
 	}
 }
 
