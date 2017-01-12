@@ -525,6 +525,18 @@ export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & req
   return new Promise((resolve, reject) => { remoteTlfFinalizeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteTlfResolveRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfResolveRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.tlfResolve'})
+}
+
+export function remoteTlfResolveRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteTlfResolveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteTlfResolveRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteTlfResolveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteTlfResolveRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { remoteTlfResolveRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export type Asset = {
   filename: string,
   region: string,
@@ -1452,6 +1464,12 @@ export type remoteTlfFinalizeRpcParam = Exact<{
   resetFull: string
 }>
 
+export type remoteTlfResolveRpcParam = Exact<{
+  tlfID: TLFID,
+  resolvedWriters?: ?Array<gregor1.UID>,
+  resolvedReaders?: ?Array<gregor1.UID>
+}>
+
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
@@ -1546,6 +1564,7 @@ export type rpc =
   | remoteS3SignRpc
   | remoteSetConversationStatusRpc
   | remoteTlfFinalizeRpc
+  | remoteTlfResolveRpc
 export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{

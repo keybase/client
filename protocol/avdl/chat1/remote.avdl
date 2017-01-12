@@ -2,7 +2,7 @@
 protocol remote {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  
+
   record MessageBoxed {
     // Only set when returned from the server; on the way up to the
     // server, they are null.
@@ -82,11 +82,6 @@ protocol remote {
   @lint("ignore")
   SetConversationStatusRes SetConversationStatus(ConversationID conversationID, ConversationStatus status);
 
-  // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
-  // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
-  // conversation per TLF ID on GetInboxRemote.
-  void tlfFinalize(TLFID tlfID, string resetUser, string resetDate, gregor1.Time resetTimestamp, string resetFull);
-
   @lint("ignore")
   UnreadUpdateFull GetUnreadUpdateFull(InboxVers inboxVers);
   // The full set of updates of all convs in a single user's inbox
@@ -117,4 +112,11 @@ protocol remote {
 
   // Get the inbox version for a user
   InboxVers getInboxVersion(gregor1.UID uid); 
+
+  // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
+  // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
+  // conversation per TLF ID on GetInboxRemote.
+  void tlfFinalize(TLFID tlfID, string resetUser, string resetDate, gregor1.Time resetTimestamp, string resetFull);
+
+  void tlfResolve(TLFID tlfID, array<gregor1.UID> resolvedWriters, array<gregor1.UID> resolvedReaders);
 }
