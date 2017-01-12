@@ -222,6 +222,13 @@ func matchesSaltpackType(messageStart string, typeString string) bool {
 	return match && (err == nil)
 }
 
+func isUTF16Mark(b []byte) bool {
+	if len(b) < 2 {
+		return false
+	}
+	return ((b[0] == 0xFE && b[1] == 0xFF) || (b[0] == 0xFF && b[1] == 0xFE))
+}
+
 var encryptionArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)
 var signedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeAttachedSignature, KeybaseSaltpackBrand)
 var detachedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeDetachedSignature, KeybaseSaltpackBrand)
@@ -277,6 +284,8 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		// Format etc. set by isSaltpackBinary().
 	case isPGPBinary(buf[:n], &sc):
 		// Format etc. set by isPGPBinary().
+	case isUTF16Mark(buf[:n]):
+		err = UTF16UnsupportedError{}
 	default:
 		err = UnknownStreamError{}
 	}
