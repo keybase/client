@@ -15,18 +15,10 @@ function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key) && !deletedIDs.has(m.messageID))
   const filteredAppend = append.filter(m => !seenMessages.has(m.key) && !deletedIDs.has(m.messageID))
 
-  let messagesToUpdate = Map().asMutable()
-  if (filteredPrepend.count() !== prepend.count()) {
-    prepend.forEach(m => { seenMessages.has(m.key) && messagesToUpdate.set(m.key, m) })
-  }
-  if (filteredAppend.count() !== append.count()) {
-    append.forEach(m => { seenMessages.has(m.key) && messagesToUpdate.set(m.key, m) })
-  }
+  const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
 
-  messagesToUpdate = messagesToUpdate.asImmutable()
-
-  const nextMessages = filteredPrepend.concat(nextMessages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m), filteredAppend)
-  const nextSeenMessages = nextMessages.reduce((acc, m) => acc.add(m.key), Set())
+  const nextMessages = filteredPrepend.concat(messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m), filteredAppend)
+  const nextSeenMessages = Set(nextMessages.map(m => m.key))
 
   return {
     nextMessages,
