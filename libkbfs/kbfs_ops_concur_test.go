@@ -661,18 +661,17 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
 		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
-	var wg sync.WaitGroup
-
 	// Start the sync and wait for it to stall (on getting the dir
 	// block).
-	wg.Add(1)
-	var syncErr error
+	syncErrCh := make(chan error, 1)
 	go func() {
-		defer wg.Done()
-
-		syncErr = kbfsOps.Sync(ctxStallSync, fileNode)
+		syncErrCh <- kbfsOps.Sync(ctxStallSync, fileNode)
 	}()
-	<-onSyncStalledCh
+	select {
+	case <-onSyncStalledCh:
+	case <-ctx.Done():
+		t.Fatalf("Timeout waiting for sync to stall: %v", ctx.Err())
+	}
 
 	err = kbfsOps.Truncate(ctx, fileNode, 0)
 	if err != nil {
@@ -688,13 +687,16 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	// Unstall the sync.
 	close(syncUnstallCh)
 
-	wg.Wait()
-
 	// Do this in the main goroutine since it isn't goroutine safe,
 	// and do this after wg.Wait() since we only know it's set
 	// after the goroutine exits.
-	if syncErr != nil {
-		t.Errorf("Couldn't sync: %v", syncErr)
+	select {
+	case syncErr := <-syncErrCh:
+		if syncErr != nil {
+			t.Errorf("Couldn't sync: %v", syncErr)
+		}
+	case <-ctx.Done():
+		t.Fatalf("Timeout waiting for sync: %v", ctx.Err())
 	}
 
 	md, err := fbo.getMDLocked(ctx, lState, mdReadNeedIdentify)
@@ -810,18 +812,17 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
 		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
-	var wg sync.WaitGroup
-
 	// Start the sync and wait for it to stall (on getting the dir
 	// block).
-	wg.Add(1)
-	var syncErr error
+	syncErrCh := make(chan error, 1)
 	go func() {
-		defer wg.Done()
-
-		syncErr = kbfsOps.Sync(ctxStallSync, fileNode2)
+		syncErrCh <- kbfsOps.Sync(ctxStallSync, fileNode2)
 	}()
-	<-onSyncStalledCh
+	select {
+	case <-onSyncStalledCh:
+	case <-ctx.Done():
+		t.Fatalf("Timeout waiting for sync to stall: %v", ctx.Err())
+	}
 
 	err = kbfsOps.Write(ctx, fileNode2, data[1:4], 0)
 	if err != nil {
@@ -834,27 +835,33 @@ func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
 	}
 
 	// The last write blocks because the dirty buffer is now full.
-	wg.Add(1)
-	var writeErr error
+	writeErrCh := make(chan error, 1)
 	go func() {
-		defer wg.Done()
-		writeErr = kbfsOps.Write(ctx, fileNode2, data[7:10], 0)
+		writeErrCh <- kbfsOps.Write(ctx, fileNode2, data[7:10], 0)
 	}()
 
 	// Unstall the sync.
 	close(syncUnstallCh)
 
-	wg.Wait()
-
 	// Do this in the main goroutine since it isn't goroutine safe,
 	// and do this after wg.Wait() since we only know it's set
 	// after the goroutine exits.
-	if syncErr != nil {
-		t.Errorf("Couldn't sync: %v", syncErr)
+	select {
+	case syncErr := <-syncErrCh:
+		if syncErr != nil {
+			t.Errorf("Couldn't sync: %v", syncErr)
+		}
+	case <-ctx.Done():
+		t.Fatalf("Timeout waiting for sync: %v", ctx.Err())
 	}
 
-	if writeErr != nil {
-		t.Fatalf("Couldn't write file: %+v", err)
+	select {
+	case writeErr := <-writeErrCh:
+		if writeErr != nil {
+			t.Errorf("Couldn't write file: %v", writeErr)
+		}
+	case <-ctx.Done():
+		t.Fatalf("Timeout waiting for write: %v", ctx.Err())
 	}
 
 	err = kbfsOps.Sync(ctx, fileNode2)
