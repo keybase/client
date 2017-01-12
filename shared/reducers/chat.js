@@ -12,8 +12,8 @@ const initialConversation: ConversationState = new ConversationStateRecord()
 
 // _filterMessages dedupes and removed deleted messages
 function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
-  const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
-  const filteredAppend = append.filter(m => !seenMessages.has(m.key))
+  const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key) && !deletedIDs.has(m.messageID))
+  const filteredAppend = append.filter(m => !seenMessages.has(m.key) && !deletedIDs.has(m.messageID))
 
   let messagesToUpdate = Map().asMutable()
   if (filteredPrepend.count() !== prepend.count()) {
@@ -25,20 +25,11 @@ function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
 
   messagesToUpdate = messagesToUpdate.asImmutable()
 
-  const nextMessages = List().asMutable()
-  filteredPrepend.forEach(m => !deletedIDs.has(m.messageID) && nextMessages.push(m))
-  messages.forEach(m => {
-    if (!deletedIDs.has(m.messageID)) {
-      nextMessages.push(messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
-    }
-  })
-  filteredAppend.forEach(m => !deletedIDs.has(m.messageID) && nextMessages.push(m))
-
-  // TODO consolidate this to the above forEach to avoid an extra loop
+  const nextMessages = filteredPrepend.concat(nextMessages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m), filteredAppend)
   const nextSeenMessages = nextMessages.reduce((acc, m) => acc.add(m.key), Set())
 
   return {
-    nextMessages: nextMessages.asImmutable(),
+    nextMessages,
     nextSeenMessages,
   }
 }
