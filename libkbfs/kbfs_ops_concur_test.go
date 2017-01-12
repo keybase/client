@@ -690,7 +690,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	wg.Wait()
 
-	// Do this in the main goroutine since t isn't goroutine safe,
+	// Do this in the main goroutine since it isn't goroutine safe,
 	// and do this after wg.Wait() since we only know it's set
 	// after the goroutine exits.
 	if syncErr != nil {
@@ -706,6 +706,160 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	if md.ReadOnlyRootMetadata != lastKMD {
 		t.Error("Last MD seen by key manager != head")
+	}
+}
+
+// Tests that a file that has been truncate-extended and overwritten
+// to several times can sync, and then take several deferred
+// overwrites, plus one write that blocks until the dirty bcache has
+// room.  This is a repro for KBFS-1846.
+func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+
+	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
+		config.Codec())
+	if err != nil {
+		t.Fatal(err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
+	// create a file.
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
+
+	kbfsOps := config.KBFSOps()
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %+v", err)
+	}
+
+	err = kbfsOps.Truncate(ctx, fileNode, 131072)
+	if err != nil {
+		t.Fatalf("Couldn't truncate file: %+v", err)
+	}
+
+	// Write a few blocks
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	err = kbfsOps.Write(ctx, fileNode, data[0:3], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	err = kbfsOps.Write(ctx, fileNode, data[3:6], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	err = kbfsOps.Write(ctx, fileNode, data[6:9], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
+
+	// Now overwrite those blocks to archive them
+	newData := []byte{11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
+	err = kbfsOps.Write(ctx, fileNode, newData, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
+	}
+
+	// Wait for the archiving to finish
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server")
+	}
+
+	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %+v", err)
+	}
+
+	err = kbfsOps.Truncate(ctx, fileNode2, 131072)
+	if err != nil {
+		t.Fatalf("Couldn't truncate file: %+v", err)
+	}
+
+	// Now write the original first block, which has been archived,
+	// and make sure it works.
+	err = kbfsOps.Write(ctx, fileNode2, data[0:3], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	err = kbfsOps.Write(ctx, fileNode2, data[3:6], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	err = kbfsOps.Write(ctx, fileNode2, data[6:9], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	oldBServer := config.BlockServer()
+	defer config.SetBlockServer(oldBServer)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
+		StallBlockOp(ctx, config, StallableBlockPut, 1)
+
+	var wg sync.WaitGroup
+
+	// Start the sync and wait for it to stall (on getting the dir
+	// block).
+	wg.Add(1)
+	var syncErr error
+	go func() {
+		defer wg.Done()
+
+		syncErr = kbfsOps.Sync(ctxStallSync, fileNode2)
+	}()
+	<-onSyncStalledCh
+
+	err = kbfsOps.Write(ctx, fileNode2, data[1:4], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	err = kbfsOps.Write(ctx, fileNode2, data[4:7], 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	// The last write blocks because the dirty buffer is now full.
+	wg.Add(1)
+	var writeErr error
+	go func() {
+		defer wg.Done()
+		writeErr = kbfsOps.Write(ctx, fileNode2, data[7:10], 0)
+	}()
+
+	// Unstall the sync.
+	close(syncUnstallCh)
+
+	wg.Wait()
+
+	// Do this in the main goroutine since it isn't goroutine safe,
+	// and do this after wg.Wait() since we only know it's set
+	// after the goroutine exits.
+	if syncErr != nil {
+		t.Errorf("Couldn't sync: %v", syncErr)
+	}
+
+	if writeErr != nil {
+		t.Fatalf("Couldn't write file: %+v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %+v", err)
 	}
 }
 
