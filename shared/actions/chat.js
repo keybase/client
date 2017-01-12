@@ -916,7 +916,6 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
     filename,
   }
 
-  // TODO use service's outboxID
   const outboxID = Math.ceil(Math.random() * 1e9) + ''
   const username = yield select(usernameSelector)
 
