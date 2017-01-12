@@ -1,10 +1,10 @@
 // @flow
-import React, {PureComponent} from 'react'
 import * as Constants from '../../../constants/chat'
-import {Box, Icon, Text} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import MessageComponent from './shared.desktop'
+import React, {PureComponent} from 'react'
+import {Box, Icon, Text} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
+import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
 import type {Props} from './attachment'
 

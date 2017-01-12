@@ -39,14 +39,14 @@ const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: bo
 
 type RowProps = Props & {conversation: InboxState}
 
-const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation}: RowProps) => {
-  const participants = participantFilter(conversation.get('participants'))
+const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, you}: RowProps) => {
+  const participants = participantFilter(conversation.get('participants'), you)
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
   const hasUnread = !!conversation.get('unreadCount')
-  const avatarProps = participants.slice(0, 2).map((p, idx) => ({
+  const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor: globalColors.darkBlue4,
-    username: p.username,
+    username,
     borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
     size: 24,
   })).toArray().reverse()
@@ -71,8 +71,8 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
               type='BodySemibold'
               style={{...boldOverride, color: isMuted ? globalColors.blue3_40 : globalColors.white}}
               containerStyle={{color: isMuted ? globalColors.blue3_40 : globalColors.white, paddingRight: 7}}
-              users={participants.toArray()}
-              title={participants.map(p => p.username).join(', ')} />
+              users={participants.map(p => ({username: p})).toArray()}
+              title={participants.join(', ')} />
             {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Text>}
           </div>
         </div>

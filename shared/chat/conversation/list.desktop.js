@@ -4,7 +4,6 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
 
 import LoadingMore from './messages/loading-more'
-import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
@@ -13,8 +12,10 @@ import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Box, ProgressIndicator} from '../../common-adapters'
-import {globalColors, globalStyles} from '../../styles'
+import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import {clipboard} from 'electron'
+import {globalColors, globalStyles} from '../../styles'
+
 import type {List} from 'immutable'
 import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
 import type {Props} from './list'
@@ -187,6 +188,7 @@ class ConversationList extends Component<void, Props, State> {
       case 'Text':
         return (
           <TextPopupMenu
+            you={this.props.you}
             message={message}
             onEditMessage={this.props.onEditMessage}
             onDeleteMessage={this.props.onDeleteMessage}
@@ -200,6 +202,7 @@ class ConversationList extends Component<void, Props, State> {
         const {downloadedPath, filename, messageID} = message
         return (
           <AttachmentPopupMenu
+            you={this.props.you}
             message={message}
             onDeleteMessage={this.props.onDeleteMessage}
             onDownloadAttachment={() => { messageID && this.props.onLoadAttachment(messageID, filename) }}
@@ -216,7 +219,7 @@ class ConversationList extends Component<void, Props, State> {
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
     const x = clientRect.left - 205
-    let y = clientRect.top - (message.followState === 'You' ? 200 : 116)
+    let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
 
     const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y})
@@ -225,6 +228,7 @@ class ConversationList extends Component<void, Props, State> {
     this.setState({
       selectedMessageID: message.messageID,
     })
+
     const container = document.getElementById('popupContainer')
     ReactDOM.render(popupComponent, container)
   }
@@ -250,7 +254,26 @@ class ConversationList extends Component<void, Props, State> {
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
     const isFirstNewMessage = message.messageID != null && this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.onRetryMessage)
+    const options = {
+      followingMap: this.props.followingMap,
+      includeHeader: isFirstMessage || !skipMsgHeader,
+      index,
+      isFirstNewMessage,
+      isScrolling,
+      isSelected,
+      key,
+      message: message,
+      metaDataMap: this.props.metaDataMap,
+      onAction: this._onAction,
+      onLoadAttachment: this.props.onLoadAttachment,
+      onOpenInFileUI: this.props.onOpenInFileUI,
+      onOpenInPopup: this.props.onOpenInPopup,
+      onRetry: this.props.onRetryMessage,
+      style,
+      you: this.props.you,
+    }
+
+    return messageFactory(options)
   }
 
   _recomputeListDebounced = _.throttle(() => {

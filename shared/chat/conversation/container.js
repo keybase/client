@@ -7,8 +7,9 @@ import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment} from '../../actions/chat'
-import {nothingSelected} from '../../constants/chat'
+import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
+import {getProfile} from '../../actions/tracker'
 import {navigateAppend} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
@@ -71,36 +72,45 @@ export default connect(
   (state: TypedState, {routePath}) => {
     const selectedConversation = routePath.last()
 
+    const you = state.config.username || ''
+    const followingMap = state.config.following
+
     if (selectedConversation !== nothingSelected) {
       const conversationState = state.chat.get('conversationStates').get(selectedConversation)
       if (conversationState) {
         const inbox = state.chat.get('inbox')
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
+        const participants = selected && selected.participants || List()
+        const metaDataMap = state.chat.get('metaData')
 
         return {
           bannerMessage: null,
           emojiPickerOpen: false,
           firstNewMessageID: conversationState.firstNewMessageID,
+          followingMap,
           isLoading: conversationState.isLoading,
           messages: conversationState.messages,
-          metaData: state.chat.get('metaData'),
+          metaDataMap,
           moreToLoad: conversationState.moreToLoad,
-          participants: selected && selected.participants || List(),
+          participants,
           selectedConversation,
           validated: selected && selected.validated,
+          you,
         }
       }
     }
 
     return {
       bannerMessage: null,
+      followingMap,
       isLoading: false,
       messages: List(),
-      metaData: Map(),
+      metaDataMap: Map(),
       moreToLoad: false,
       participants: List(),
       selectedConversation,
       validated: false,
+      you,
     }
   },
   (dispatch: Dispatch) => ({
@@ -116,15 +126,28 @@ export default connect(
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
+    onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-    onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
-    onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
-    onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
-    onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
-    onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
-  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const brokenUsers = getBrokenUsers(stateProps.participants, stateProps.you, stateProps.metaDataMap)
+    const bannerMessage = brokenUsers.length
+      ? {
+        onClick: (user: string) => dispatchProps.onShowTracker(user),
+        type: 'BrokenTracker',
+        users: brokenUsers,
+      }
+      : null
+
+    return {
+      ...stateProps,
+      ...dispatchProps,
+      ...ownProps,
+      bannerMessage,
+      onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
+      onAttach: (filename: string, title: string) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title),
+      onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
+      onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
+      onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
+    }
+  },
 )(ConversationContainer)

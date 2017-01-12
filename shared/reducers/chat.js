@@ -2,11 +2,11 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
-import {Set, List} from 'immutable'
+import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody} = Constants
+const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -26,7 +26,6 @@ function _dedupeMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
 type ConversationsStates = Map<Constants.ConversationIDKey, ConversationState>
 type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
 function updateConversation (conversationStates: ConversationsStates, conversationIDKey: Constants.ConversationIDKey, conversationUpdateFn: ConversationUpdateFn): ConversationsStates {
-  // $FlowIssue
   return conversationStates.update(
     conversationIDKey,
     initialConversation,
@@ -244,9 +243,17 @@ function reducer (state: State = initialState, action: Actions) {
           return i
         }
       }))
+    case Constants.updateBrokenTracker:
+      const userToBroken = action.payload.userToBroken
+      let metaData = state.get('metaData')
+
+      Object.keys(userToBroken).forEach(user => {
+        metaData = metaData.update(user, new MetaDataRecord(), old => old.set('brokenTracker', userToBroken[user]))
+      })
+
+      return state.set('metaData', metaData)
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
-
   }
 
   return state
