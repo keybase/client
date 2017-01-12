@@ -26,7 +26,7 @@ export type OutboxIDKey = string
 export type MessageID = RPCMessageID
 
 export type ClientMessage = TimestampMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | UnhandledMessage
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage
 
 export type Message = ClientMessage | ServerMessage
 
@@ -96,6 +96,14 @@ export type TimestampMessage = {
   key: any,
 }
 
+export type DeletedMessage = {
+  type: 'Deleted',
+  timestamp: number,
+  key: any,
+  messageID: MessageID,
+  deletedIDs: Array<MessageID>,
+}
+
 export type MaybeTimestamp = TimestampMessage | null
 
 export const ConversationStateRecord = Record({
@@ -106,6 +114,7 @@ export const ConversationStateRecord = Record({
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
+  deletedIDs: Set(),
 })
 
 export type ConversationState = Record<{
@@ -116,6 +125,7 @@ export type ConversationState = Record<{
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
+  deletedIDs: Set<MessageID>,
 }>
 
 export type ConversationBadgeStateRecord = Record<{
