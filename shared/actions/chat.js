@@ -371,7 +371,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             type: 'chat:updateTempMessage',
             payload: {
               conversationIDKey,
-              outboxID: outboxID,
+              outboxID,
               message: {
                 messageState: 'failed',
               },
