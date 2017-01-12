@@ -219,6 +219,7 @@ export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversa
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
+export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>

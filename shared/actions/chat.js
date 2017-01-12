@@ -6,7 +6,7 @@ import engine from '../engine'
 import flags from '../util/feature-flags'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
@@ -19,7 +19,6 @@ import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './
 import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
 import {tmpFile} from '../util/file'
-import {updateReachability} from '../constants/gregor'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
@@ -30,7 +29,6 @@ import type {ChangedFocus} from '../constants/window'
 import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
-import type {UpdateReachability} from '../constants/gregor'
 import type {
   AppendMessages,
   BadgeAppForChat,
@@ -532,6 +530,10 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
         return map
       }, {})
       dispatch({type: Constants.updateBrokenTracker, payload: {userToBroken}})
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
+      dispatch({type: 'chat:inboxStale', payload: undefined})
     })
   })
 }
@@ -1118,15 +1120,6 @@ function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview
   yield put(action)
 }
 
-function * _updateReachability (action: UpdateReachability): SagaGenerator<any, any> {
-  if (!action.error) {
-    const {reachability} = action.payload
-    if (reachability && reachability.reachable === ReachabilityReachable.yes) {
-      yield put(loadInbox())
-    }
-  }
-}
-
 function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> {
   const appFocused = yield select(_focusedSelector)
   const selectedTab = yield select(_routeSelector)
@@ -1150,6 +1143,7 @@ function * chatSaga (): SagaGenerator<any, any> {
 
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
+    safeTakeLatest('chat:inboxStale', _loadInbox),
     safeTakeLatest(Constants.loadedInbox, _loadedInbox),
     safeTakeEvery(Constants.loadMoreMessages, _loadMoreMessages),
     safeTakeLatest(Constants.selectConversation, _selectConversation),
@@ -1168,7 +1162,6 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
     safeTakeLatest(Constants.updateInbox, _onUpdateInbox),
     safeTakeEvery(changedFocus, _changedFocus),
-    safeTakeEvery(updateReachability, _updateReachability),
     safeTakeEvery(Constants.deleteMessage, _deleteMessage),
   ]
 }
