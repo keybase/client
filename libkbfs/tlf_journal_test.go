@@ -1030,6 +1030,12 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 	require.False(t, flushed)
 
+	// The background worker was already paused, so we won't get a
+	// paused signal here.  But resume the background work now so that
+	// later when the conflict resolves, it will be able to send a
+	// resume signal.
+	tlfJournal.resumeBackgroundWork()
+
 	// Resolve the branch.
 	resolveMD := config.makeMD(firstRevision, firstPrevRoot)
 	_, err = tlfJournal.resolveBranch(ctx,
