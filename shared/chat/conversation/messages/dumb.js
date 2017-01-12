@@ -190,7 +190,7 @@ const attachmentBaseMock = {
   onOpenInFileUI: (path: string) => console.log('on open in file ui'),
   onOpenInPopup: (message: AttachmentMessage) => console.log('on open in popup'),
   style: {},
-  you: 'cecileb',
+  you: 'marcopolo',
   followingMap,
   metaDataMap,
 }
@@ -324,6 +324,7 @@ const baseTextPopupMenuMock = {
 
 const baseAttachmentPopupMenuMock = {
   ...basePopupMock,
+  you: 'marcopolo',
   onDownloadAttachment: (messageID, filename) => console.log('message id', messageID, 'filename', filename),
   onDeleteMessage: (m: any) => console.log('onDeleteMessage', m),
   onOpenInFileUI: (m: any) => console.log('on open in file ui'),
