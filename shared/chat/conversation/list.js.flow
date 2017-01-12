@@ -1,13 +1,16 @@
 // @flow
 import {Component} from 'react'
-import {List, Map} from 'immutable'
+import {List} from 'immutable'
 
-import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaData, ParticipantItem} from '../../constants/chat'
+import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaDataMap, FollowingMap} from '../../constants/chat'
 
 export type Props = {
   firstNewMessageID: ?MessageID,
+  listScrollDownState: number,
   messages: List<Message>,
-  metaData: Map<string, MetaData>,
+  metaDataMap: MetaDataMap,
+  you: string,
+  followingMap: FollowingMap,
   moreToLoad: boolean,
   onAddParticipant: () => void,
   onDeleteMessage: (message: Message) => void,
@@ -18,7 +21,7 @@ export type Props = {
   onOpenInPopup: (message: AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
   onShowProfile: (username: string) => void,
-  participants: List<ParticipantItem>,
+  participants: List<string>,
   selectedConversation: ?ConversationIDKey,
   sidePanelOpen: boolean,
   validated: boolean,

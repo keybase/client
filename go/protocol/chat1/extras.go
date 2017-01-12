@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // Eq compares two TLFIDs
@@ -223,4 +224,48 @@ func (q *GetInboxQuery) Visibility() TLFVisibility {
 		visibility = TLFVisibility_PUBLIC
 	}
 	return visibility
+}
+
+// TLFNameExpanded returns a TLF name with a reset suffix if it exists.
+// This version can be used in requests to lookup the TLF.
+func (c ConversationInfoLocal) TLFNameExpanded() string {
+	return ExpandTLFName(c.TlfName, c.FinalizeInfo)
+}
+
+// TLFNameExpandedSummary returns a TLF name with a summary of the
+// account reset if there was one.
+// This version is for display purposes only and connot be used to lookup the TLF.
+func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
+	if c.FinalizeInfo == nil {
+		return c.TlfName
+	}
+	return c.TlfName + " " + c.FinalizeInfo.BeforeSummary()
+}
+
+// TLFNameExpanded returns a TLF name with a reset suffix if it exists.
+// This version can be used in requests to lookup the TLF.
+func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+	return ExpandTLFName(h.TlfName, finalizeInfo)
+}
+
+// ExpandTLFName returns a TLF name with a reset suffix if it exists.
+// This version can be used in requests to lookup the TLF.
+func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {
+	if finalizeInfo == nil {
+		return name
+	}
+	if len(finalizeInfo.ResetFull) == 0 {
+		return name
+	}
+	if strings.Contains(name, " account reset ") {
+		return name
+	}
+	return name + " " + finalizeInfo.ResetFull
+}
+
+// BeforeSummary returns a summary of the finalize without "files" in it.
+// The canonical name for a TLF after reset has a "(files before ... account reset...)" suffix
+// which doesn't make much sense in other uses (like chat).
+func (f *ConversationFinalizeInfo) BeforeSummary() string {
+	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
 }

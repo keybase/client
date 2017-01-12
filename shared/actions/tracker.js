@@ -66,7 +66,7 @@ function setupUserChangedHandler (): TrackerActionCreator {
   }
 }
 
-function getProfile (username: string, ignoreCache?: boolean): TrackerActionCreator {
+function getProfile (username: string, ignoreCache: boolean = false, forceDisplay: boolean = false): TrackerActionCreator {
   return (dispatch, getState) => {
     const tracker = getState().tracker
 
@@ -85,7 +85,7 @@ function getProfile (username: string, ignoreCache?: boolean): TrackerActionCrea
     }
 
     dispatch({type: Constants.updateUsername, payload: {username}})
-    dispatch(triggerIdentify('', username, _serverCallMap(dispatch, getState, true)))
+    dispatch(triggerIdentify('', username, _serverCallMap(dispatch, getState, true), forceDisplay))
     dispatch(_fillFolders(username))
   }
 }
@@ -100,7 +100,7 @@ function getMyProfile (ignoreCache?: boolean): TrackerActionCreator {
   }
 }
 
-function triggerIdentify (uid: string = '', userAssertion: string = '', incomingCallMap: Object = {}): TrackerActionCreator {
+function triggerIdentify (uid: string = '', userAssertion: string = '', incomingCallMap: Object = {}, forceDisplay: boolean = false): TrackerActionCreator {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     dispatch({type: Constants.identifyStarted, payload: null})
     identifyIdentify2Rpc({
@@ -110,6 +110,7 @@ function triggerIdentify (uid: string = '', userAssertion: string = '', incoming
         alwaysBlock: false,
         noErrorOnTrackFailure: true,
         forceRemoteCheck: false,
+        forceDisplay,
         useDelegateUI: false,
         needProofSet: true,
         reason: {
@@ -422,7 +423,7 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
   }
 
   return {
-    'keybase.1.identifyUi.start': ({username: currentUsername, sessionID, reason}, response) => {
+    'keybase.1.identifyUi.start': ({username: currentUsername, sessionID, reason, forceDisplay}, response) => {
       response.result()
       username = currentUsername
       sessionIDToUsername[sessionID] = username
@@ -466,6 +467,10 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
           type: Constants.reportLastTrack,
           payload: {username},
         })
+
+        if (forceDisplay) {
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
       })
     },
 

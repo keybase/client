@@ -21,11 +21,17 @@ const Conversation = (props: Props) => {
         onToggleSidePanel={props.onToggleSidePanel}
         participants={props.participants}
         sidePanelOpen={props.sidePanelOpen}
+        you={props.you}
+        metaDataMap={props.metaDataMap}
+        followingMap={props.followingMap}
       />
       <List
+        you={props.you}
+        metaDataMap={props.metaDataMap}
+        followingMap={props.followingMap}
         firstNewMessageID={props.firstNewMessageID}
+        listScrollDownState={props.listScrollDownState}
         messages={props.messages}
-        metaData={props.metaData}
         moreToLoad={props.moreToLoad}
         onAddParticipant={props.onAddParticipant}
         onDeleteMessage={props.onDeleteMessage}

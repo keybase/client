@@ -59,7 +59,7 @@ export default function () {
   ipcMain.on('showTray', (event, type, count) => {
     iconType = type
     updateIcon(false)
-    if (app.dock.isVisible()) {
+    if (app.dock && app.dock.isVisible()) {
       app.setBadgeCount(count)
     }
   })

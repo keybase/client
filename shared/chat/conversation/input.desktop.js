@@ -77,6 +77,7 @@ class Conversation extends Component<void, Props, State> {
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
           <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
+            autoFocus={true}
             small={true}
             style={styleInput}
             ref={this._setRef}

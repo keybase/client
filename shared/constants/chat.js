@@ -10,8 +10,7 @@ import type {ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCM
 import type {DeviceType} from './types/more'
 
 export type MessageType = 'Text'
-export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
-export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', 'NotFollowing']
+export type FollowingMap = {[key: string]: boolean}
 
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
@@ -24,8 +23,6 @@ export type ConversationIDKey = string
 
 export type OutboxID = RPCOutboxID
 export type OutboxIDKey = string
-
-export type ParticipantItem = UserListItem
 
 export type MessageID = RPCMessageID
 
@@ -43,7 +40,7 @@ export type TextMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
-  followState: FollowState,
+  you: string,
   messageState: MessageState,
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
@@ -76,7 +73,7 @@ export type AttachmentMessage = {
   type: 'Attachment',
   timestamp: number,
   conversationIDKey: ConversationIDKey,
-  followState: FollowState,
+  you: string,
   author: string,
   deviceName: string,
   deviceType: DeviceType,
@@ -140,7 +137,7 @@ export const InboxStateRecord = Record({
 
 export type InboxState = Record<{
   info: ConversationInfoLocal,
-  participants: List<ParticipantItem>,
+  participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
   time: string,
@@ -151,10 +148,14 @@ export type InboxState = Record<{
 
 export type MetaData = Record<{
   fullname: string,
+  brokenTracker: boolean,
 }>
+
+export type MetaDataMap = Map<string, MetaData>
 
 export const MetaDataRecord = Record({
   fullname: 'Unknown',
+  brokenTracker: false,
 })
 
 export const StateRecord = Record({
@@ -168,7 +169,7 @@ export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   focused: boolean,
-  metaData: Map<string, MetaData>,
+  metaData: MetaDataMap,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -193,7 +194,7 @@ export const postMessage = 'chat:postMessage'
 export const prependMessages = 'chat:prependMessages'
 export const retryMessage = 'chat:retryMessage'
 export const selectConversation = 'chat:selectConversation'
-export const setupNewChatHandler = 'chat:setupNewChatHandler'
+export const setupChatHandlers = 'chat:setupChatHandlers'
 export const startConversation = 'chat:startConversation'
 export const updateBadging = 'chat:updateBadging'
 export const updateLatestMessage = 'chat:updateLatestMessage'
@@ -202,6 +203,7 @@ export const updatedMetadata = 'chat:updatedMetadata'
 export const selectAttachment = 'chat:selectAttachment'
 export const updateInbox = 'chat:updateInbox'
 export const updateInboxComplete = 'chat:updateInboxComplete'
+export const updateBrokenTracker = 'chat:updateBrokenTracker'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
@@ -220,13 +222,14 @@ export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationID
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {outboxIDKey: OutboxIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
-export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
+export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType}>
+export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   outboxID: OutboxIDKey,
   bytesComplete: number,
@@ -278,6 +281,7 @@ export type Actions = AppendMessages
   | SelectConversation
   | StartConversation
   | UpdateBadging
+  | UpdateBrokenTracker
   | UpdateInbox
   | UpdateInboxComplete
   | UpdateLatestMessage
@@ -324,8 +328,8 @@ function textSnippet (message: ?string = '', max: number) {
 }
 
 // Filters out myself from most of our views of the list, unless the list is just me
-function participantFilter (participants: List<ParticipantItem>): List<ParticipantItem> {
-  const withoutYou = participants.filter(p => !p.you)
+function participantFilter (participants: List<string>, you: string): List<string> {
+  const withoutYou = participants.filter(p => p !== you)
   if (withoutYou.count() === 0) {
     return participants
   }
@@ -346,6 +350,19 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
   }
 }
 
+function usernamesToUserListItem (usernames: Array<string>, you: string, metaDataMap: MetaDataMap, followingMap: FollowingMap): Array<UserListItem> {
+  return usernames.map(username => ({
+    username,
+    broken: metaDataMap.get(username, Map()).get('brokenTracker', false),
+    you: username === you,
+    following: !!followingMap[username],
+  }))
+}
+
+function getBrokenUsers (participants: Array<string>, you: string, metaDataMap: MetaDataMap): Array<string> {
+  return participants.filter(user => user !== you && metaDataMap.get(user, Map()).get('brokenTracker', false))
+}
+
 function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
   const maxSize = Math.max(width, height)
   return {
@@ -355,6 +372,7 @@ function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
 }
 
 export {
+  getBrokenUsers,
   conversationIDToKey,
   keyToConversationID,
   keyToOutboxID,
@@ -362,5 +380,6 @@ export {
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,
+  usernamesToUserListItem,
   clampAttachmentPreviewSize,
 }

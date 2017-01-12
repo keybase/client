@@ -8,7 +8,7 @@ import {log} from '../native/log/logui'
 import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {setupKBFSChangedHandler} from './favorite'
-import {setupNewChatHandler} from './chat'
+import {setupChatHandlers} from './chat'
 
 import type {LogAction, NotificationKeys, ListenForNotifications, ListenForKBFSNotifications, BadgeAppAction} from '../constants/notifications'
 import type {SagaGenerator} from '../constants/types/saga'
@@ -70,7 +70,7 @@ function * _listenSaga (): SagaGenerator<any, any> {
 
 function * _listenKBFSSaga (): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
-  yield put(setupNewChatHandler())
+  yield put(setupChatHandlers())
 }
 
 function badgeApp (key: NotificationKeys, on: boolean, count: number = 0): BadgeAppAction {

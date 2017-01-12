@@ -589,6 +589,9 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		return deflt, err
 	}
 
+	// XXX if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
+	// needs to be adjusted.
+
 	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs)
 	if err != nil {
 		return deflt, err
@@ -667,6 +670,58 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 		MessageID:        msgID,
 		IdentifyFailures: identBreaks,
 	}, nil
+}
+
+func (h *chatLocalHandler) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNonblockArg) (chat1.PostLocalNonblockRes, error) {
+
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.Conv = arg.Conv
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_DELETE
+	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
+func (h *chatLocalHandler) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (chat1.PostLocalNonblockRes, error) {
+
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.Conv = arg.Conv
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
+	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+		MessageID: arg.Supersedes,
+		Body:      arg.Body,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
+func (h *chatLocalHandler) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (chat1.PostLocalNonblockRes, error) {
+
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.Conv = arg.Conv
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_TEXT
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: arg.Body,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+
 }
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {

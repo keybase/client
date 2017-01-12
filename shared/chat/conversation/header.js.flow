@@ -2,10 +2,13 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-import type {ParticipantItem} from '../../constants/chat'
+import type {MetaDataMap, FollowingMap} from '../../constants/chat'
 
 export type Props = {
-  participants: List<ParticipantItem>,
+  participants: List<string>,
+  metaDataMap: MetaDataMap,
+  followingMap: FollowingMap,
+  you: string,
   onOpenFolder: () => void,
   onToggleSidePanel: () => void,
   sidePanelOpen: boolean,

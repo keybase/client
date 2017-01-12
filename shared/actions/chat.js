@@ -44,13 +44,14 @@ import type {
   LoadMoreMessages,
   LoadedInbox,
   MaybeTimestamp,
+  MetaData,
   Message,
   NewChat,
   OpenFolder,
   PostMessage,
   RetryMessage,
   SelectConversation,
-  SetupNewChatHandler,
+  SetupChatHandlers,
   StartConversation,
   UnhandledMessage,
   UpdateBadging,
@@ -76,7 +77,7 @@ const {
   localRetryPostRpcPromise,
 } = ChatTypes
 
-const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody} = Constants
+const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers} = Constants
 
 const _selectedSelector = (state: TypedState) => {
   const chatPath = getPath(state.routeTree.routeState, [chatTab])
@@ -127,12 +128,12 @@ function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString):
   return {type: Constants.postMessage, payload: {conversationIDKey, text}}
 }
 
-function retryMessage (outboxIDKey: string): RetryMessage {
-  return {type: Constants.retryMessage, payload: {outboxIDKey}}
+function setupChatHandlers (): SetupChatHandlers {
+  return {type: Constants.setupChatHandlers, payload: undefined}
 }
 
-function setupNewChatHandler (): SetupNewChatHandler {
-  return {type: Constants.setupNewChatHandler, payload: undefined}
+function retryMessage (outboxIDKey: string): RetryMessage {
+  return {type: Constants.retryMessage, payload: {outboxIDKey}}
 }
 
 function loadInbox (): LoadInbox {
@@ -164,7 +165,7 @@ function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boo
   return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
 }
 
-function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}): ?InboxState {
+function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): ?InboxState {
   if (!convo || !convo.info || !convo.info.id) {
     return null
   }
@@ -179,13 +180,7 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
     return false
   })
 
-  const participants = List((convo.info.writerNames || []).map(username => ({
-    username,
-    broken: false, // TODO
-    you: author && username === author,
-    following: !!following[username],
-  })))
-
+  const participants = List(convo.info.writerNames || [])
   return new InboxStateRecord({
     info: convo.info,
     conversationIDKey,
@@ -198,7 +193,7 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   })
 }
 
-function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
+function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): List<InboxState> {
   return List((inbox.conversationsUnverified || []).map(convoUnverified => {
     const msgBoxed = convoUnverified.maxMsgs && convoUnverified.maxMsgs.length && convoUnverified.maxMsgs[0]
 
@@ -206,15 +201,7 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
       return null
     }
 
-    const participants = List((parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName)
-      .map(ul => ul.username))
-      .map(username => ({
-        username,
-        broken: false, // TODO
-        you: author && username === author,
-        following: !!following[username],
-      }))
-    )
+    const participants = List(parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName).map(ul => ul.username))
 
     return new InboxStateRecord({
       info: null,
@@ -288,6 +275,24 @@ function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
   })
 }
 
+// If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
+function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
+  const metaData = ((yield select(_metaDataSelector)): any)
+  const inbox = yield select(_selectedInboxSelector, conversationIDKey)
+  const you = yield select(usernameSelector)
+
+  if (inbox && you) {
+    const brokenUsers = getBrokenUsers(inbox.get('participants'), you, metaData)
+    return brokenUsers.length ? TlfKeysTLFIdentifyBehavior.chatGui : TlfKeysTLFIdentifyBehavior.chatGuiStrict
+  }
+
+  // Shouldn't happen but fallback to strict mode
+  if (__DEV__) {
+    console.warn('Missing inbox or you when posting')
+  }
+  return TlfKeysTLFIdentifyBehavior.chatGuiStrict
+}
+
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
@@ -303,7 +308,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: keyToConversationID(conversationIDKey),
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      identifyBehavior: yield call(_getPostingIdentifyBehavior, conversationIDKey),
       clientPrev: lastMessageID,
       msg: {
         clientHeader,
@@ -328,7 +333,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       timestamp: Date.now(),
       messageState: 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
-      followState: 'You',
+      you: author,
       deviceType: isMobile ? 'mobile' : 'desktop',
       deviceName: '',
       conversationIDKey: action.payload.conversationIDKey,
@@ -479,10 +484,19 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   }
 }
 
-function * _setupNewChatHandler (): SagaGenerator<any, any> {
+function * _setupChatHandlers (): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({uid, activity}) => {
       dispatch({type: Constants.incomingMessage, payload: {activity}})
+    })
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
+      const usernames = update.CanonicalName.split(',')
+      const broken = (update.breaks.breaks || []).map(b => b.user.username)
+      const userToBroken = usernames.reduce((map, name) => {
+        map[name] = !!broken.includes(name)
+        return map
+      }, {})
+      dispatch({type: Constants.updateBrokenTracker, payload: {userToBroken}})
     })
   })
 }
@@ -517,10 +531,11 @@ function * _loadInbox (): SagaGenerator<any, any> {
     throw new Error("Can't load inbox")
   }
 
+  const metaData = ((yield select(_metaDataSelector)): any)
   const inbox: GetInboxLocalRes = chatInboxUnverified.params.inbox
   const author = yield select(usernameSelector)
   const following = yield select(followingSelector)
-  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {})
+  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
   yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
   chatInboxUnverified.response.result()
 
@@ -535,7 +550,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {})
+      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
       if (conversation) {
         yield put({type: Constants.updateInbox, payload: {conversation}})
       }
@@ -656,7 +671,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp') {
+  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Unhandled') {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
@@ -697,6 +712,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
     if (payload) {
       const common = {
         author: payload.senderUsername,
+        you: yourName,
         deviceName: payload.senderDeviceName,
         deviceType: toDeviceType(payload.senderDeviceType),
         timestamp: payload.serverHeader.ctime,
@@ -705,8 +721,6 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
       }
 
-      const isYou = common.author === yourName
-
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
           const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
@@ -714,7 +728,6 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             type: 'Text',
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
-            followState: isYou ? 'You' : 'Following', // TODO get this
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
             key: outboxID || common.messageID,
@@ -733,7 +746,6 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
           return {
             type: 'Attachment',
             ...common,
-            followState: isYou ? 'You' : 'Following', // TODO get this
             // $FlowIssue todo fix
             filename: payload.messageBody.attachment.object.filename,
             // $FlowIssue todo fix
@@ -818,8 +830,8 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   // Don't send sharing before signup values
   const metaData = yield select(_metaDataSelector)
-  const usernames = action.payload.users.filter(name => !metaData.getIn([name, 'fullname']) && name.indexOf('@') === -1).join(',')
-  if (!usernames) {
+  const usernames = action.payload.users.filter(name => !metaData.getIn([name, 'fullname']) && name.indexOf('@') === -1)
+  if (!usernames.length) {
     return
   }
 
@@ -827,7 +839,7 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
     param: {
       endpoint: 'user/lookup',
       args: [
-        {key: 'usernames', value: usernames},
+        {key: 'usernames', value: usernames.join(',')},
         {key: 'fields', value: 'profile'},
       ],
     },
@@ -835,7 +847,7 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 
   const parsed = JSON.parse(results.body)
   const payload = {}
-  action.payload.users.forEach((username, idx) => {
+  usernames.forEach((username, idx) => {
     const record = parsed.them[idx]
     const fullname = (record && record.profile && record.profile.full_name) || ''
     payload[username] = new MetaDataRecord({fullname})
@@ -854,7 +866,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => !p.you).map(p => p.username).toArray()}})
+    yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').toArray()}})
   }
 
   if (inbox && !inbox.get('validated')) {
@@ -940,7 +952,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
     attachment,
     title,
     metadata: null,
-    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    identifyBehavior: yield call(_getPostingIdentifyBehavior, conversationIDKey),
   }
 
   const channelConfig = singleFixedChannelConfig([
@@ -1099,7 +1111,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.loadMoreMessages, _loadMoreMessages),
     safeTakeLatest(Constants.selectConversation, _selectConversation),
     safeTakeEvery(Constants.updateBadging, _updateBadging),
-    safeTakeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
+    safeTakeEvery(Constants.setupChatHandlers, _setupChatHandlers),
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
     safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
@@ -1132,6 +1144,6 @@ export {
   postMessage,
   retryMessage,
   selectConversation,
-  setupNewChatHandler,
+  setupChatHandlers,
   startConversation,
 }

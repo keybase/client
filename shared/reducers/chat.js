@@ -6,7 +6,7 @@ import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody} = Constants
+const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -290,9 +290,17 @@ function reducer (state: State = initialState, action: Actions) {
           return i
         }
       }))
+    case Constants.updateBrokenTracker:
+      const userToBroken = action.payload.userToBroken
+      let metaData = state.get('metaData')
+
+      Object.keys(userToBroken).forEach(user => {
+        metaData = metaData.update(user, new MetaDataRecord(), old => old.set('brokenTracker', userToBroken[user]))
+      })
+
+      return state.set('metaData', metaData)
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
-
   }
 
   return state

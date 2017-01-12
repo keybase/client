@@ -1,6 +1,12 @@
 // @flow
 import {Component} from 'react'
 
+export type BrokenTrackerVariant = {
+  type: 'BrokenTracker',
+  users: Array<string>,
+  onClick: (user: string) => void,
+}
+
 export type ErrorVariant = {
   type: 'Error',
   text: string,
@@ -20,6 +26,6 @@ export type InfoVariant = {
   text: string,
 }
 
-export type Props = InfoVariant | ErrorVariant | InviteVariant
+export type Props = InfoVariant | ErrorVariant | InviteVariant | BrokenTrackerVariant
 
 export default class Banner extends Component<void, Props, void> { }

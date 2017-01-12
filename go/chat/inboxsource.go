@@ -89,8 +89,8 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		if rquery != nil && rquery.TlfID != nil {
 			// inbox query contained a TLF name, so check to make sure that
 			// the conversation from the server matches tlfInfo from kbfs
-			if convLocal.Info.TlfName != tlfInfo.CanonicalName {
-				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TlfName, tlfInfo.CanonicalName)
+			if convLocal.Info.TLFNameExpanded() != tlfInfo.CanonicalName {
+				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TLFNameExpanded(), tlfInfo.CanonicalName)
 			}
 			if convLocal.Info.Visibility != rquery.Visibility() {
 				return Inbox{}, ib.RateLimit, fmt.Errorf("server conversation TLF visibility mismatch: %s, expected %s", convLocal.Info.Visibility, rquery.Visibility())
@@ -346,7 +346,7 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 
 	var err error
 	conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
-		conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs)
+		conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
 	if err != nil {
 		errMsg := err.Error()
 		return chat1.ConversationLocal{Error: &errMsg}
@@ -407,7 +407,7 @@ func (s *localizer) localizeConversation(ctx context.Context, uid gregor1.UID,
 
 	// Only do this check if there is a chance the TLF name might be an SBS name.
 	if strings.Contains(conversationLocal.Info.TlfName, "@") {
-		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TlfName, conversationLocal.Info.Visibility)
+		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TLFNameExpanded(), conversationLocal.Info.Visibility)
 		if err != nil {
 			errMsg := err.Error()
 			return chat1.ConversationLocal{Error: &errMsg}
