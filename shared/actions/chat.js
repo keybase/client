@@ -46,6 +46,7 @@ import type {
   MaybeTimestamp,
   MetaData,
   Message,
+  MessageID,
   NewChat,
   OpenFolder,
   PostMessage,
@@ -364,6 +365,39 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   }
 }
 
+function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
+  const {message} = action.payload
+  let messageID: ?MessageID
+  let conversationIDKey: ConversationIDKey
+  switch (message.type) {
+    case 'Text':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+      break
+    case 'Attachment':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+      break
+  }
+
+  if (!messageID) throw new Error('No messageID for message delete')
+  if (!conversationIDKey) throw new Error('No conversation for message delete')
+
+  // TODO: Use delete message RPC call when it is available
+  const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
+  clientHeader.supersedes = messageID
+
+  yield call(localPostLocalNonblockRpcPromise, {
+    param: {
+      conversationID: keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      msg: {
+        clientHeader,
+      },
+    },
+  })
+}
+
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case NotifyChatChatActivityType.failedMessage:
@@ -671,7 +705,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Unhandled') {
+  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
@@ -756,6 +790,14 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             previewSize,
             downloadedPath: null,
             key: common.messageID,
+          }
+        case CommonMessageType.delete:
+          return {
+            type: 'Deleted',
+            timestamp: payload.serverHeader.ctime,
+            messageID: payload.serverHeader.messageID,
+            key: payload.serverHeader.messageID,
+            deletedIDs: payload.messageBody.delete && payload.messageBody.delete.messageIDs || [],
           }
         default:
           const unhandled: UnhandledMessage = {
@@ -1126,6 +1168,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.updateInbox, _onUpdateInbox),
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery(updateReachability, _updateReachability),
+    safeTakeEvery(Constants.deleteMessage, _deleteMessage),
   ]
 }
 
