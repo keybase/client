@@ -267,9 +267,11 @@ func testFileDataCheckWrite(t *testing.T, fd *fileData,
 
 func testFileDataWriteExtendEmptyFile(t *testing.T, maxBlockSize int64,
 	maxPtrsPerBlock int, fullDataLen int64) {
-	fd, _, dirtyBcache, df := setupFileDataTest(
+	fd, cleanBcache, dirtyBcache, df := setupFileDataTest(
 		t, maxBlockSize, maxPtrsPerBlock)
 	topBlock := NewFileBlock().(*FileBlock)
+	cleanBcache.Put(
+		fd.rootBlockPointer(), fd.file.Tlf, topBlock, TransientEntry)
 	de := DirEntry{}
 	data := make([]byte, fullDataLen)
 	for i := 0; i < int(fullDataLen); i++ {
