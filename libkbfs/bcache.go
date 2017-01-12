@@ -128,9 +128,7 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (
 		return BlockPointer{}, nil
 	}
 
-	_, hash := kbfshash.DoRawDefaultHash(block.Contents)
-	block.hash = &hash
-	key := idCacheKey{tlf, *block.hash}
+	key := idCacheKey{tlf, block.UpdateHash()}
 	tmp, ok := b.ids.Get(key)
 	if !ok {
 		return BlockPointer{}, nil
@@ -214,12 +212,8 @@ func (b *BlockCacheStandard) Put(
 	case TransientEntry:
 		// If it's the right type of block, store the hash -> ID mapping.
 		if fBlock, isFileBlock := block.(*FileBlock); b.ids != nil && isFileBlock && !fBlock.IsInd {
-			if fBlock.hash == nil {
-				_, hash := kbfshash.DoRawDefaultHash(fBlock.Contents)
-				fBlock.hash = &hash
-			}
 
-			key := idCacheKey{tlf, *fBlock.hash}
+			key := idCacheKey{tlf, fBlock.GetHash()}
 			// zero out the refnonce, it doesn't matter
 			ptr.RefNonce = kbfsblock.ZeroRefNonce
 			b.ids.Add(key, ptr)

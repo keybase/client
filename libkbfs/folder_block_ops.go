@@ -246,27 +246,6 @@ func (fbo *folderBlockOps) GetState(lState *lockState) overallBlockState {
 	return dirtyState
 }
 
-func (fbo *folderBlockOps) getBlockFromDirtyOrCleanCache(ptr BlockPointer,
-	branch BranchName) (Block, error) {
-	// Check the dirty cache first.
-	if block, err := fbo.config.DirtyBlockCache().Get(
-		fbo.id(), ptr, branch); err == nil {
-		return block, nil
-	}
-
-	return fbo.config.BlockCache().Get(ptr)
-}
-
-func (fbo *folderBlockOps) checkDataVersion(p path, ptr BlockPointer) error {
-	if ptr.DataVer < FirstValidDataVer {
-		return InvalidDataVersionError{ptr.DataVer}
-	}
-	if ptr.DataVer > fbo.config.DataVersion() {
-		return NewDataVersionError{p, ptr.DataVer}
-	}
-	return nil
-}
-
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
 // must be valid, either from the cache or from the server. If
 // notifyPath is valid and the block isn't cached, trigger a read
@@ -290,17 +269,22 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		return nil, InvalidBlockRefError{ptr.Ref()}
 	}
 
-	if block, err := fbo.getBlockFromDirtyOrCleanCache(
-		ptr, branch); err == nil {
+	if block, err := fbo.config.DirtyBlockCache().Get(
+		fbo.id(), ptr, branch); err == nil {
+		return block, nil
+	}
+	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
+		// If the block was cached in the past, we need to handle it as if it's
+		// an on-demand request so that its downstream prefetches are triggered
+		// correctly according to the new on-demand fetch priority.
+		fbo.config.BlockOps().Prefetcher().PrefetchAfterBlockRetrieved(
+			block, kmd, defaultOnDemandRequestPriority)
 		return block, nil
 	}
 
-	if err := fbo.checkDataVersion(notifyPath, ptr); err != nil {
+	if err := checkDataVersion(fbo.config, notifyPath, ptr); err != nil {
 		return nil, err
 	}
-
-	// TODO: add an optimization here that will avoid fetching the
-	// same block twice from over the network
 
 	// fetch the block, and add to cache
 	block := newBlock()
@@ -868,7 +852,7 @@ func (fbo *folderBlockOps) Lookup(
 		return nil, de, nil
 	}
 
-	err = fbo.checkDataVersion(childPath, de.BlockPointer)
+	err = checkDataVersion(fbo.config, childPath, de.BlockPointer)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -1994,7 +1978,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 			fbo.revertSyncInfoAfterRecoverableError(blocksToRemove, result)
 		}
 		if result.fblock != nil {
-			*result.fblock = *result.savedFblock
+			result.fblock.Set(result.savedFblock, fbo.config.Codec())
 			fbo.fixChildBlocksAfterRecoverableErrorLocked(
 				ctx, lState, file, md,
 				result.redirtyOnRecoverableError)
@@ -2585,14 +2569,37 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 	return len(fbo.deferredWrites)
 }
 
+func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer) {
+	updated := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
+	if !updated {
+		return
+	}
+	// Prefetch the new reference, but only if it already exists in the block
+	// cache. Ideally we'd always prefetch it, but we need the type of the
+	// block so that we can call `NewEmpty`.
+	// TODO KBFS-1850: Eventually we should use the codec library's ability to
+	// decode into a nil interface to no longer need to pre-initialize the
+	// correct type.
+	block, err := fbo.config.BlockCache().Get(oldPtr)
+	if err != nil {
+		return
+	}
+
+	fbo.config.BlockOps().Prefetcher().PrefetchBlock(
+		block.NewEmpty(),
+		newPtr,
+		kmd,
+		updatePointerPrefetchPriority,
+	)
+}
+
 // UpdatePointers updates all the pointers in the node cache
 // atomically.
-func (fbo *folderBlockOps) UpdatePointers(lState *lockState, op op) {
+func (fbo *folderBlockOps) UpdatePointers(kmd KeyMetadata, lState *lockState, op op) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	for _, update := range op.allUpdates() {
-		oldRef := update.Unref.Ref()
-		fbo.nodeCache.UpdatePointer(oldRef, update.Ref)
+		fbo.updatePointer(kmd, update.Unref, update.Ref)
 	}
 }
 
@@ -2632,7 +2639,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 
 		fbo.log.CDebugf(ctx, "Fast-forwarding %v -> %v",
 			child.BlockPointer, entry.BlockPointer)
-		fbo.nodeCache.UpdatePointer(child.BlockPointer.Ref(),
+		fbo.updatePointer(kmd, child.BlockPointer,
 			entry.BlockPointer)
 		node := fbo.nodeCache.Get(entry.BlockPointer.Ref())
 		newPath := fbo.nodeCache.PathFromNode(node)
@@ -2710,7 +2717,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding root %v -> %v",
 		rootPath.path[0].BlockPointer, md.data.Dir.BlockPointer)
-	fbo.nodeCache.UpdatePointer(rootPath.path[0].BlockPointer.Ref(),
+	fbo.updatePointer(md, rootPath.path[0].BlockPointer,
 		md.data.Dir.BlockPointer)
 	rootPath.path[0].BlockPointer = md.data.Dir.BlockPointer
 	rootNode := fbo.nodeCache.Get(md.data.Dir.BlockPointer.Ref())

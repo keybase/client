@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
@@ -123,8 +124,10 @@ func (dbf *dirBlockFuture) Set(other Block, codec kbfscodec.Codec) {
 	}
 }
 
-func (dbf dirBlockFuture) toCurrent() dirBlockCurrent {
-	db := dbf.dirBlockCurrent
+func (dbf *dirBlockFuture) toCurrent() *dirBlockCurrent {
+	db := &dirBlockCurrent{
+		CommonBlock: dbf.CommonBlock.Copy(),
+	}
 	db.Children = make(map[string]DirEntry, len(dbf.Children))
 	for k, v := range dbf.Children {
 		db.Children[k] = DirEntry(v.toCurrent())
@@ -136,16 +139,17 @@ func (dbf dirBlockFuture) toCurrent() dirBlockCurrent {
 	return db
 }
 
-func (dbf dirBlockFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
+func (dbf *dirBlockFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return dbf.toCurrent()
 }
 
-func makeFakeDirBlockFuture(t *testing.T) dirBlockFuture {
-	return dirBlockFuture{
+func makeFakeDirBlockFuture(t *testing.T) *dirBlockFuture {
+	return &dirBlockFuture{
 		dirBlockCurrent{
 			CommonBlock{
 				true,
 				codec.UnknownFieldSetHandler{},
+				sync.RWMutex{},
 				0,
 			},
 			nil,
@@ -186,25 +190,33 @@ func (fbf *fileBlockFuture) Set(other Block, codec kbfscodec.Codec) {
 	}
 }
 
-func (fbf fileBlockFuture) toCurrent() fileBlockCurrent {
-	fb := fbf.fileBlockCurrent
+func (fbf *fileBlockFuture) toCurrent() *fileBlockCurrent {
+	fb := &fileBlockCurrent{
+		CommonBlock: fbf.CommonBlock.Copy(),
+		hash:        fbf.hash,
+	}
 	fb.IPtrs = make([]IndirectFilePtr, len(fbf.IPtrs))
 	for i, v := range fbf.IPtrs {
 		fb.IPtrs[i] = IndirectFilePtr(v.toCurrent())
 	}
+	if fbf.Contents != nil {
+		fb.Contents = make([]byte, len(fbf.Contents))
+		copy(fb.Contents, fbf.Contents)
+	}
 	return fb
 }
 
-func (fbf fileBlockFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
+func (fbf *fileBlockFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return fbf.toCurrent()
 }
 
-func makeFakeFileBlockFuture(t *testing.T) fileBlockFuture {
-	return fileBlockFuture{
+func makeFakeFileBlockFuture(t *testing.T) *fileBlockFuture {
+	return &fileBlockFuture{
 		fileBlockCurrent{
 			CommonBlock{
 				false,
 				codec.UnknownFieldSetHandler{},
+				sync.RWMutex{},
 				0,
 			},
 			[]byte{0xa, 0xb},

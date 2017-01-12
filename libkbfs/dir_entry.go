@@ -19,7 +19,12 @@ func (de *DirEntry) IsInitialized() bool {
 	return de.BlockPointer.IsInitialized()
 }
 
-type dirEntries []DirEntry
+type dirEntryWithName struct {
+	DirEntry
+	entryName string
+}
+
+type dirEntries []dirEntryWithName
 type dirEntriesBySizeAsc struct{ dirEntries }
 type dirEntriesBySizeDesc struct{ dirEntries }
 
@@ -30,8 +35,8 @@ func (d dirEntriesBySizeDesc) Less(i, j int) bool { return d.dirEntries[i].Size 
 
 func dirEntryMapToDirEntries(entryMap map[string]DirEntry) dirEntries {
 	dirEntries := make(dirEntries, 0, len(entryMap))
-	for _, entry := range entryMap {
-		dirEntries = append(dirEntries, entry)
+	for name, entry := range entryMap {
+		dirEntries = append(dirEntries, dirEntryWithName{entry, name})
 	}
 	return dirEntries
 }

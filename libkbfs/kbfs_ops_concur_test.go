@@ -2111,13 +2111,13 @@ type stallingNodeCache struct {
 }
 
 func (snc *stallingNodeCache) UpdatePointer(
-	oldRef BlockRef, newPtr BlockPointer) {
+	oldRef BlockRef, newPtr BlockPointer) bool {
 	select {
 	case <-snc.doStallUpdate:
 		<-snc.unstallUpdate
 	default:
 	}
-	snc.NodeCache.UpdatePointer(oldRef, newPtr)
+	return snc.NodeCache.UpdatePointer(oldRef, newPtr)
 }
 
 func (snc *stallingNodeCache) PathFromNode(node Node) path {

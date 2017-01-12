@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,15 +56,15 @@ func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
 }
 
 func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, func() BlockCache) {
-	cacheFunc := makeBlockCache()
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), cacheFunc)
+	config := newTestBlockRetrievalConfig(t)
+	q := newBlockRetrievalQueue(1, config)
 	require.NotNil(t, q)
 
 	bg := newFakeBlockGetter()
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 
-	return q, w, bg, cacheFunc
+	return q, w, bg, config.blockCache
 }
 
 func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {

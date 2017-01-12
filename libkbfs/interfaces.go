@@ -18,16 +18,24 @@ import (
 	"golang.org/x/net/context"
 )
 
+type dataVersioner interface {
+	// DataVersion returns the data version for this block
+	DataVersion() DataVer
+}
+
+type logMaker interface {
+	MakeLogger(module string) logger.Logger
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
+	dataVersioner
 	// GetEncodedSize returns the encoded size of this block, but only
 	// if it has been previously set; otherwise it returns 0.
 	GetEncodedSize() uint32
 	// SetEncodedSize sets the encoded size of this block, locally
 	// caching it.  The encoded size is not serialized.
 	SetEncodedSize(size uint32)
-	// DataVersion returns the data version for this block
-	DataVersion() DataVer
 	// NewEmpty returns a new block of the same type as this block
 	NewEmpty() Block
 	// Set sets this block to the same value as the passed-in block
@@ -998,10 +1006,8 @@ type KeyOps interface {
 
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
-	// PrefetchDirBlock directs the prefetcher to prefetch a directory block.
-	PrefetchDirBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
-	// PrefetchFileBlock directs the prefetcher to prefetch a file block.
-	PrefetchFileBlock(blockPtr BlockPointer, kmd KeyMetadata, priority int) error
+	// PrefetchBlock directs the prefetcher to prefetch a block.
+	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
@@ -1380,6 +1386,8 @@ type ConflictRenamer interface {
 // run KBFS in one place.  The methods below are self-explanatory and
 // do not require comments.
 type Config interface {
+	dataVersioner
+	logMaker
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -1426,7 +1434,6 @@ type Config interface {
 	SetConflictRenamer(ConflictRenamer)
 	MetadataVersion() MetadataVer
 	SetMetadataVersion(MetadataVer)
-	DataVersion() DataVer
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations
@@ -1482,7 +1489,6 @@ type Config interface {
 	// ResetCaches clears and re-initializes all data and key caches.
 	ResetCaches()
 
-	MakeLogger(module string) logger.Logger
 	// MetricsRegistry may be nil, which should be interpreted as
 	// not using metrics at all. (i.e., as if UseNilMetrics were
 	// set). This differs from how go-metrics treats nil Registry
@@ -1516,8 +1522,8 @@ type NodeCache interface {
 	Get(ref BlockRef) Node
 	// UpdatePointer updates the BlockPointer for the corresponding
 	// Node.  NodeCache ignores this call when oldRef is not cached in
-	// any Node.
-	UpdatePointer(oldRef BlockRef, newPtr BlockPointer)
+	// any Node. Returns whether the pointer was updated.
+	UpdatePointer(oldRef BlockRef, newPtr BlockPointer) bool
 	// Move swaps the parent node for the corresponding Node, and
 	// updates the node's name.  NodeCache ignores the call when ptr
 	// is not cached.  Returns an error if newParent cannot be found.

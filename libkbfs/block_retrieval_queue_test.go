@@ -8,12 +8,43 @@ import (
 	"io"
 	"testing"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
+
+type testBlockRetrievalConfig struct {
+	testCodec kbfscodec.Codec
+	testCache BlockCache
+	t         *testing.T
+}
+
+func newTestBlockRetrievalConfig(t *testing.T) *testBlockRetrievalConfig {
+	return &testBlockRetrievalConfig{
+		kbfscodec.NewMsgpack(),
+		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()),
+		t,
+	}
+}
+
+func (c *testBlockRetrievalConfig) codec() kbfscodec.Codec {
+	return c.testCodec
+}
+
+func (c *testBlockRetrievalConfig) blockCache() BlockCache {
+	return c.testCache
+}
+
+func (c *testBlockRetrievalConfig) MakeLogger(_ string) logger.Logger {
+	return logger.NewTestLogger(c.t)
+}
+
+func (c testBlockRetrievalConfig) DataVersion() DataVer {
+	return FilesWithHolesDataVer
+}
 
 func makeRandomBlockPointer(t *testing.T) BlockPointer {
 	id, err := kbfsblock.MakeTemporaryID()
@@ -43,7 +74,7 @@ func makeBlockCache() func() BlockCache {
 
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -65,7 +96,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 
 func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	t.Log("Preempt a lower-priority block retrieval request with a higher priority request.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -93,7 +124,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 
 func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	t.Log("Handle a first request and then preempt another one.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -132,7 +163,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	t.Log("Request the same block multiple times.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -157,7 +188,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 
 func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	t.Log("Elevate the priority on an existing request.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -198,7 +229,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 
 func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Begin processing a request and then add another one for the same block.")
-	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack(), makeBlockCache())
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
 	require.NotNil(t, q)
 
 	ctx := context.Background()

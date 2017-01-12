@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"sync"
+
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfshash"
@@ -47,18 +49,23 @@ type CommonBlock struct {
 
 	codec.UnknownFieldSetHandler
 
+	cacheMtx sync.RWMutex
 	// cachedEncodedSize is the locally-cached (non-serialized)
 	// encoded size for this block.
 	cachedEncodedSize uint32
 }
 
 // GetEncodedSize implements the Block interface for CommonBlock
-func (cb CommonBlock) GetEncodedSize() uint32 {
+func (cb *CommonBlock) GetEncodedSize() uint32 {
+	cb.cacheMtx.RLock()
+	defer cb.cacheMtx.RUnlock()
 	return cb.cachedEncodedSize
 }
 
 // SetEncodedSize implements the Block interface for CommonBlock
 func (cb *CommonBlock) SetEncodedSize(size uint32) {
+	cb.cacheMtx.Lock()
+	defer cb.cacheMtx.Unlock()
 	cb.cachedEncodedSize = size
 }
 
@@ -67,12 +74,12 @@ func (cb *CommonBlock) DataVersion() DataVer {
 	return FirstValidDataVer
 }
 
-// NewEmpty implements the Block interface for CommonBlock
+// NewEmpty implements the Block interface for CommonBlock.
 func (cb *CommonBlock) NewEmpty() Block {
 	return NewCommonBlock()
 }
 
-// Set implements the Block interface for CommonBlock
+// Set implements the Block interface for CommonBlock.
 func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
 	// Don't assert type for CommonBlock because we need to be able to Set from
 	// specific block types
@@ -80,7 +87,20 @@ func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
 	if err != nil {
 		panic("Unable to CommonBlock.Set")
 	}
+	cb.cacheMtx.Lock()
+	defer cb.cacheMtx.Unlock()
 	cb.cachedEncodedSize = other.GetEncodedSize()
+}
+
+// Copy copies a CommonBlock without the lock.
+func (cb *CommonBlock) Copy() CommonBlock {
+	cb.cacheMtx.RLock()
+	defer cb.cacheMtx.RUnlock()
+	return CommonBlock{
+		IsInd: cb.IsInd,
+		UnknownFieldSetHandler: cb.UnknownFieldSetHandler,
+		cachedEncodedSize:      cb.cachedEncodedSize,
+	}
 }
 
 // NewCommonBlock returns a generic block, unsuitable for caching.
@@ -116,11 +136,17 @@ func (db *DirBlock) Set(other Block, codec kbfscodec.Codec) {
 	if err != nil {
 		panic("Unable to DirBlock.Set")
 	}
-	*db = *dbCopy
+	db.IsInd = dbCopy.IsInd
+	db.UnknownFieldSetHandler = dbCopy.UnknownFieldSetHandler
+	db.Children = dbCopy.Children
+	db.IPtrs = dbCopy.IPtrs
+	db.cacheMtx.Lock()
+	defer db.cacheMtx.Unlock()
+	db.cachedEncodedSize = dbCopy.cachedEncodedSize
 }
 
 // DeepCopy makes a complete copy of a DirBlock
-func (db DirBlock) DeepCopy(codec kbfscodec.Codec) (*DirBlock, error) {
+func (db *DirBlock) DeepCopy(codec kbfscodec.Codec) (*DirBlock, error) {
 	var dirBlockCopy DirBlock
 	err := kbfscodec.Update(codec, &dirBlockCopy, db)
 	if err != nil {
@@ -129,6 +155,8 @@ func (db DirBlock) DeepCopy(codec kbfscodec.Codec) (*DirBlock, error) {
 	if dirBlockCopy.Children == nil {
 		dirBlockCopy.Children = make(map[string]DirEntry)
 	}
+	db.cacheMtx.RLock()
+	defer db.cacheMtx.RUnlock()
 	dirBlockCopy.cachedEncodedSize = db.cachedEncodedSize
 	return &dirBlockCopy, nil
 }
@@ -175,12 +203,21 @@ func (fb *FileBlock) Set(other Block, codec kbfscodec.Codec) {
 	if err != nil {
 		panic("Unable to DirBlock.Set")
 	}
-	*fb = *copy
+	fb.IsInd = copy.IsInd
+	fb.UnknownFieldSetHandler = copy.UnknownFieldSetHandler
+	fb.Contents = copy.Contents
+	fb.IPtrs = copy.IPtrs
+	fb.cacheMtx.Lock()
+	defer fb.cacheMtx.Unlock()
+	fb.cachedEncodedSize = copy.cachedEncodedSize
+	fb.hash = copy.hash
 }
 
 // DeepCopy makes a complete copy of a FileBlock
-func (fb FileBlock) DeepCopy(codec kbfscodec.Codec) (*FileBlock, error) {
+func (fb *FileBlock) DeepCopy(codec kbfscodec.Codec) (*FileBlock, error) {
 	var fileBlockCopy FileBlock
+	fb.cacheMtx.RLock()
+	defer fb.cacheMtx.RUnlock()
 	err := kbfscodec.Update(codec, &fileBlockCopy, fb)
 	if err != nil {
 		return nil, err
@@ -188,6 +225,33 @@ func (fb FileBlock) DeepCopy(codec kbfscodec.Codec) (*FileBlock, error) {
 	fileBlockCopy.hash = fb.hash.Copy()
 	fileBlockCopy.cachedEncodedSize = fb.cachedEncodedSize
 	return &fileBlockCopy, nil
+}
+
+// UpdateHash updates the hash of this FileBlock
+func (fb *FileBlock) UpdateHash() kbfshash.RawDefaultHash {
+	fb.cacheMtx.Lock()
+	defer fb.cacheMtx.Unlock()
+	_, hash := kbfshash.DoRawDefaultHash(fb.Contents)
+	fb.hash = &hash
+	return hash
+}
+
+// GetHash returns the hash of this FileBlock. If the hash is nil, it first
+// calculates it.
+func (fb *FileBlock) GetHash() kbfshash.RawDefaultHash {
+	h := func() *kbfshash.RawDefaultHash {
+		fb.cacheMtx.RLock()
+		defer fb.cacheMtx.RUnlock()
+		return fb.hash
+	}()
+	if h != nil {
+		return *h
+	}
+	_, hash := kbfshash.DoRawDefaultHash(fb.Contents)
+	fb.cacheMtx.Lock()
+	defer fb.cacheMtx.Unlock()
+	fb.hash = &hash
+	return *fb.hash
 }
 
 // DefaultNewBlockDataVersion returns the default data version for new blocks.
