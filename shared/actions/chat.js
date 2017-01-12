@@ -520,7 +520,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
 
 function * _setupChatHandlers (): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
-    engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({uid, activity}) => {
+    engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
       dispatch({type: Constants.incomingMessage, payload: {activity}})
     })
     engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
