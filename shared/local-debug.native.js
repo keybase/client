@@ -11,13 +11,11 @@ const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
-  allowStartupFailure: false,
   devStoreChangingFunctions: false,
   dumbSheetOnly: false,
   enableActionLogging: true,
   enableStoreLogging: false,
   forwardLogs: true,
-  initialTabState: {},
   isTesting: nativeBridge.test === '1',
   logStatFrequency: 0,
   overrideLoggedInTab: null,
@@ -30,16 +28,11 @@ let config: {[key: string]: any} = {
 }
 
 if (__DEV__ && true) {
-  config.allowStartupFailure = true
   config.devStoreChangingFunctions = true
   config.dumbSheetOnly = false
   config.enableActionLogging = false
   config.enableStoreLogging = true
   config.forwardLogs = true
-  config.initialTabState = {
-    [Tabs.loginTab]: [],
-    [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
-  }
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
   config.printRPC = true
@@ -51,7 +44,6 @@ if (__DEV__ && true) {
 
 export const {
   actionStatFrequency,
-  allowStartupFailure,
   devStoreChangingFunctions,
   dumbSheetOnly,
   enableActionLogging,
@@ -68,14 +60,6 @@ export const {
   showAllTrackers,
   showDevTools,
 } = config
-
-export function initTabbedRouterState () {
-  if (!__DEV__) {
-    return []
-  }
-
-  return config.initialTabState
-}
 
 export function setup (store: any) {
   const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))

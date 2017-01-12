@@ -8,7 +8,6 @@ import {updateConfig} from './command-line.desktop.js'
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
-  allowStartupFailure: false,
   closureStoreCheck: false,
   devStoreChangingFunctions: false,
   enableActionLogging: true,
@@ -34,27 +33,17 @@ let config: {[key: string]: any} = {
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-  config.allowStartupFailure = true
+  config.actionStatFrequency = 0.8
   config.devStoreChangingFunctions = true
   config.enableActionLogging = false
   config.enableStoreLogging = true
   config.forwardLogs = false
-  config.initialTabState = {
-    [Tabs.loginTab]: [],
-    [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
-  }
-  config.actionStatFrequency = 0.8
   config.logStatFrequency = 0.8
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true
-  config.reactPerf = false
   config.redirectOnLogout = false
-  config.reduxDevToolsEnable = false
-  config.reduxDevToolsSelect = state => state.tracker
-  config.showAllTrackers = false
-  config.showDevTools = false
 
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
@@ -62,9 +51,22 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
 
 config = updateConfig(config)
 
+if (__DEV__ && process.env.KEYBASE_PERF) {
+  config.actionStatFrequency = 0
+  config.devStoreChangingFunctions = false
+  config.enableActionLogging = false
+  config.enableStoreLogging = false
+  config.forwardLogs = false
+  config.logStatFrequency = 0
+  config.overrideLoggedInTab = Tabs.settingsTab
+  config.printOutstandingRPCs = false
+  config.printRPC = false
+  config.printRoutes = false
+  config.redirectOnLogout = false
+}
+
 export const {
   actionStatFrequency,
-  allowStartupFailure,
   closureStoreCheck,
   devStoreChangingFunctions,
   enableActionLogging,
@@ -86,14 +88,6 @@ export const {
   showDevTools,
   skipSecondaryDevtools,
 } = config
-
-export function initTabbedRouterState () {
-  if (!__DEV__ || !process.env.KEYBASE_LOCAL_DEBUG) {
-    return []
-  }
-
-  return config.initialTabState
-}
 
 export function envVarDebugJson () {
   if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
