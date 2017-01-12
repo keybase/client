@@ -14,7 +14,8 @@ const initialConversation: ConversationState = new ConversationStateRecord()
 function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
   const filteredAppend = append.filter(m => !seenMessages.has(m.key))
-  const nextMessages = filteredPrepend.concat(messages, filteredAppend).filter(m => !deletedIDs.has(m.messageID))
+  // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
+  const nextMessages = filteredPrepend.concat(messages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
 
   const nextSeenMessages = nextMessages.reduce((acc, m) => acc.add(m.key), Set())
 
