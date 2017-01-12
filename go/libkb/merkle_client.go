@@ -497,7 +497,7 @@ func importPathFromJSON(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 	return
 }
 
-func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, err error) {
+func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, res *APIRes, err error) {
 	defer mc.G().CTrace(ctx, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
 	// Poll for 10s and ask for a race-free state.
@@ -515,7 +515,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArg
 		q.Add("last", I{int(lastSeqno)})
 	}
 
-	res, err := mc.G().API.Get(APIArg{
+	res, err = mc.G().API.Get(APIArg{
 		Endpoint:       "merkle/path",
 		NeedSession:    false,
 		Args:           q,
@@ -524,33 +524,33 @@ func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArg
 	})
 
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	switch res.AppStatus.Code {
 	case SCNotFound:
 		err = NotFoundError{}
-		return nil, nil, err
+		return nil, nil, nil, err
 	case SCDeleted:
 		err = DeletedError{}
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	if sigHints != nil {
 		if err = sigHints.RefreshWith(ctx, res.Body.AtKey("sigs")); err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 
 	var ret *VerificationPath
 	ret, err = mc.readPathFromAPIRes(ctx, res)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	ss, err = mc.readSkipSequenceFromAPIRes(ctx, res, ret.root, lastRoot)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return ret, ss, err
+	return ret, ss, res, err
 }
 
 func (mc *MerkleClient) readSkipSequenceFromAPIRes(ctx context.Context, res *APIRes, thisRoot *MerkleRoot, lastRoot *MerkleRoot) (ret SkipSequence, err error) {
@@ -1056,9 +1056,10 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 
 	var path *VerificationPath
 	var ss SkipSequence
+	var apiRes *APIRes
 
 	if err = mc.init(ctx); err != nil {
-		return
+		return nil, err
 	}
 
 	// Grab the cached seqno before the call to get the next one is made.
@@ -1068,35 +1069,36 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 	// was a change on the server side. See CORE-4064.
 	rootBeforeCall := mc.LastRoot()
 
-	if path, ss, err = mc.lookupPathAndSkipSequence(ctx, q, sigHints, rootBeforeCall); err != nil {
-		return
+	if path, ss, apiRes, err = mc.lookupPathAndSkipSequence(ctx, q, sigHints, rootBeforeCall); err != nil {
+		return nil, err
 	}
 
 	// It's important to check the merkle skip sequence before verifying the root.
 	mc.G().Log.CDebugf(ctx, "| VerifySkipSequence")
 	if err = mc.verifySkipSequence(ctx, ss, path.root, rootBeforeCall); err != nil {
-		return
+		mc.G().Log.CDebugf(ctx, "| Full APIRes was: %s", apiRes.Body.MarshalToDebug())
+		return nil, err
 	}
 
 	mc.G().Log.CDebugf(ctx, "| VerifyRoot")
 	if err = mc.verifyAndStoreRoot(ctx, path.root, rootBeforeCall.Seqno()); err != nil {
-		return
+		return nil, err
 	}
 
 	mc.G().Log.CDebugf(ctx, "| VerifyUser")
 	if u, err = path.verifyUser(ctx); err != nil {
-		return
+		return nil, err
 	}
 
 	mc.G().Log.CDebugf(ctx, "| VerifyUsername")
 	if u.username, err = path.verifyUsername(ctx); err != nil {
-		return
+		return nil, err
 	}
 
 	u.idVersion = path.idVersion
 
 	mc.G().Log.CDebugf(ctx, "- MerkleClient.LookupUser(%v) -> OK", q)
-	return
+	return u, nil
 }
 
 func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
