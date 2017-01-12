@@ -68,6 +68,7 @@ const {
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
   localDownloadFileAttachmentLocalRpcChannelMap,
+  localGetInboxAndUnboxLocalRpcPromise,
   localGetInboxNonblockLocalRpcChannelMap,
   localGetThreadLocalRpcPromise,
   localMarkAsReadLocalRpcPromise,
@@ -565,6 +566,36 @@ function * _onUpdateInbox (action: UpdateInbox): SagaGenerator<any, any> {
   }
 }
 
+function * _testLoad (): SagaGenerator<any, any> {
+  const result = yield call(localGetInboxAndUnboxLocalRpcPromise, {
+      param: {
+        query: {
+          status: Object.keys(CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => CommonConversationStatus[k]),
+          computeActiveList: true,
+          tlfVisibility: CommonTLFVisibility.private,
+          topicType: CommonTopicType.chat,
+          unreadOnly: false,
+          readOnly: false,
+        },
+      }
+    })
+  console.log('Results', result)
+
+  const conversationID = result.conversations[0].info.id
+  const next = null
+  const thread = yield call(localGetThreadLocalRpcPromise, {param: {
+    conversationID,
+    query: {},
+    pagination: {
+      next,
+      num: 10,
+    },
+    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+  }})
+
+  console.log('Thread', thread)
+}
+
 function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
 
@@ -1035,6 +1066,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.updateInbox, _onUpdateInbox),
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery(updateReachability, _updateReachability),
+    safeTakeEvery('chat:testLoad', _testLoad),
   ]
 }
 
