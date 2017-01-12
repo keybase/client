@@ -125,21 +125,10 @@ helpers.rootLinuxNode(env, {
                                 dir("shared") {
                                     stage("JS tests") {
                                         sh "echo 1"
-                                        sh "set"
-                                        sh "echo 'ghprbActualCommit: ' $ghprbActualCommit"
-                                        sh "echo 'ghprbActualCommitAuthor: ' $ghprbActualCommitAuthor"
-                                        sh "echo 'ghprbActualCommitAuthorEmail: ' $ghprbActualCommitAuthorEmail"
-                                        sh "echo 'ghprbPullDescription: ' $ghprbPullDescription"
-                                        sh "echo 'ghprbPullId: ' $ghprbPullId"
-                                        sh "echo 'ghprbPullLink: ' $ghprbPullLink"
-                                        sh "echo 'ghprbPullTitle: ' $ghprbPullTitle"
-                                        sh "echo 'ghprbSourceBranch: ' $ghprbSourceBranch"
-                                        sh "echo 'ghprbTargetBranch: ' $ghprbTargetBranch"
-                                        sh "echo 'sha1: ' $sha1"
+                                        sh "echo ${env.CHANGE_TARGET}"
                                         sh "echo 2"
-                                        sh "echo ${ghprbTargetBranch}"
-                                        sh "./test.sh js ${env.COMMIT_HASH} ${ghprbTargetBranch}"
-                                        sh "echo 3"
+                                        // sh "./test.sh js ${env.COMMIT_HASH} ${ghprbTargetBranch}"
+                                        // sh "echo 3"
                                     }
                                 }
                                 // Only run visdiff for PRs
