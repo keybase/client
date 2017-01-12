@@ -368,9 +368,11 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
     case 'Text':
       conversationIDKey = message.conversationIDKey
       messageID = message.messageID
+      break
     case 'Attachment':
       conversationIDKey = message.conversationIDKey
       messageID = message.messageID
+      break
   }
 
   if (!messageID) throw new Error('No messageID for message delete')
