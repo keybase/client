@@ -8,7 +8,7 @@ import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {call, put, select, race, cancel} from 'redux-saga/effects'
+import {call, put, select, race, cancel, fork} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {getPath} from '../route-tree'
 import {navigateTo, switchTo} from './route-tree'
@@ -153,8 +153,8 @@ function deleteMessage (message: Message): DeleteMessage {
   return {type: Constants.deleteMessage, payload: {message}}
 }
 
-function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string): Constants.SelectAttachment {
-  return {type: Constants.selectAttachment, payload: {conversationIDKey, filename, title}}
+function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string, type: Constants.AttachmentType): Constants.SelectAttachment {
+  return {type: Constants.selectAttachment, payload: {conversationIDKey, filename, title, type}}
 }
 
 function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, filename: string): Constants.LoadAttachment {
@@ -406,14 +406,16 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         for (const outboxRecord of failedMessage.outboxRecords) {
           const conversationIDKey = conversationIDToKey(outboxRecord.convID)
           const outboxID = outboxIDToKey(outboxRecord.outboxID)
-          yield put({
-            type: Constants.pendingMessageFailed,
+          yield put(({
+            type: 'chat:updateTempMessage',
             payload: {
               conversationIDKey,
               outboxID,
-              messageState: 'failed',
+              message: {
+                messageState: 'failed',
+              },
             },
-          })
+          }: Constants.UpdateTempMessage))
         }
       }
       return
@@ -455,17 +457,31 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
 
         const conversationState = yield select(_conversationStateSelector, conversationIDKey)
 
-        if (message.outboxID && message.type === 'Text' && yourName === message.author) {
+        if (message.type === 'Text' && message.outboxID && yourName === message.author) {
           // If the message has an outboxID, then we sent it and have already
           // rendered it in the message list; we just need to mark it as sent.
-          yield put({
-            type: Constants.pendingMessageWasSent,
+          yield put(({
+            type: 'chat:updateTempMessage',
             payload: {
               conversationIDKey,
-              message,
-              messageState: 'sent',
+              outboxID: message.outboxID,
+              message: {
+                ...message,
+                messageState: 'sent',
+              },
             },
-          })
+          }: Constants.UpdateTempMessage))
+
+          const messageID = message.messageID
+          if (messageID) {
+            yield put(({
+              type: 'chat:markSeenMessage',
+              payload: {
+                conversationIDKey,
+                messageID,
+              },
+            }: Constants.MarkSeenMessage))
+          }
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null) {
@@ -491,7 +507,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             },
           })
 
-          if (message.type === 'Attachment' && !message.previewPath) {
+          if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
             yield put(loadAttachment(conversationIDKey, message.messageID, true, tmpFile(message.filename)))
           }
         }
@@ -673,7 +689,8 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   })
 
   // Load previews for attachments
-  const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' ? acc.push(m) : acc, new List())
+  const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
+  // $FlowIssue we check for messageID existance above
   yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, tmpFile(filename)))).toArray()
 }
 
@@ -702,6 +719,26 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   }
   return null
 }
+
+const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, username: string, title: string, filename: string, outboxID: Constants.OutboxIDKey, previewType: $PropertyType<Constants.AttachmentMessage, 'previewType'>) => ({
+  type: 'Attachment',
+  timestamp: Date.now(),
+  conversationIDKey: convID,
+  followState: 'You',
+  author: username,
+  // TODO we should be able to fill this in
+  deviceName: '',
+  deviceType: isMobile ? 'mobile' : 'desktop',
+  filename,
+  title,
+  previewType,
+  previewPath: filename,
+  downloadedPath: null,
+  outboxID,
+  progress: 0, /* between 0 - 1 */
+  messageState: 'uploading',
+  key: `temp-${outboxID}`,
+})
 
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
@@ -927,11 +964,29 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
-function * _selectAttachment ({payload: {conversationIDKey, filename, title}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+function * _selectAttachment ({payload: {conversationIDKey, filename, title, type}}: Constants.SelectAttachment): SagaGenerator<any, any> {
   const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
   const attachment = {
     filename,
   }
+
+  const outboxID = Math.ceil(Math.random() * 1e9) + ''
+  const username = yield select(usernameSelector)
+
+  yield put({
+    type: Constants.appendMessages,
+    payload: {
+      conversationIDKey,
+      messages: [_temporaryAttachmentMessageForUpload(
+        conversationIDKey,
+        username,
+        title,
+        filename,
+        outboxID,
+        type,
+      )],
+    },
+  })
 
   const param = {
     conversationID: keyToConversationID(conversationIDKey),
@@ -948,34 +1003,70 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title}}: C
     'chat.1.chatUi.chatAttachmentUploadProgress',
     'chat.1.chatUi.chatAttachmentUploadDone',
     'chat.1.chatUi.chatAttachmentPreviewUploadDone',
+    'finished',
   ])
 
-  const channelMap = ((yield call(localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
+  try {
+    const channelMap = ((yield call(localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
 
-  const progressTask = yield effectOnChannelMap(c => safeTakeEvery(c, function * ({response}) {
-    const {bytesComplete, bytesTotal} = response.param
-    const action: Constants.UploadProgress = {
-      type: 'chat:uploadProgress',
-      payload: {bytesTotal, bytesComplete, conversationIDKey},
-    }
-    yield put(action)
-    response.result()
-  }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
+    const progressTask = yield effectOnChannelMap(c => safeTakeEvery(c, function * ({response}) {
+      const {bytesComplete, bytesTotal} = response.param
+      const action: Constants.UploadProgress = {
+        type: 'chat:uploadProgress',
+        payload: {bytesTotal, bytesComplete, conversationIDKey, outboxID},
+      }
+      yield put(action)
+      response.result()
+    }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
 
-  const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
-  uploadStart.response.result()
+    const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
+    uploadStart.response.result()
 
-  const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
-  previewUploadStart.response.result()
+    const previewTask = yield fork(function * () {
+      const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
+      previewUploadStart.response.result()
 
-  const uploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
-  uploadDone.response.result()
+      const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
+      previewUploadDone.response.result()
+    })
 
-  const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
-  previewUploadDone.response.result()
+    const uploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
+    uploadDone.response.result()
 
-  yield cancel(progressTask)
-  closeChannelMap(channelMap)
+    const finished = yield takeFromChannelMap(channelMap, 'finished')
+    const {params: {messageID}} = finished
+
+    yield put(({
+      type: 'chat:updateTempMessage',
+      payload: {
+        conversationIDKey,
+        outboxID,
+        message: {type: 'Attachment', messageState: 'sent', messageID, key: messageID},
+      },
+    }: Constants.UpdateTempMessage))
+
+    yield put(({
+      type: 'chat:markSeenMessage',
+      payload: {
+        conversationIDKey,
+        messageID: messageID,
+      },
+    }: Constants.MarkSeenMessage))
+
+    yield cancel(progressTask)
+    yield cancel(previewTask)
+    closeChannelMap(channelMap)
+  } catch (e) {
+    yield put(({
+      type: 'chat:updateTempMessage',
+      error: true,
+      payload: {
+        conversationIDKey,
+        outboxID,
+        error: e,
+      },
+    }: Constants.UpdateTempMessage))
+  }
 }
 
 // TODO load previews too
