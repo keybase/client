@@ -156,6 +156,12 @@ func (h *tlfHandler) HandleUserChanged(uid keybase1.UID) (err error) {
 	notifier := chat.NewIdentifyNotifier(h.G())
 	ctx := chat.Context(context.Background(), ident, &breaks, notifier)
 
+	// Take this guy out of the cache, we want this to run fresh
+	if err = h.G().Identify2Cache.Delete(uid); err != nil {
+		h.G().Log.Debug("tlfHandler: HandleUserChanged(): unable to delete cache entry: uid: %s: err: %s", uid, err.Error())
+		return err
+	}
+
 	// Run against CryptKeys to generate notifications if necessary
 	_, err = h.CryptKeys(ctx, keybase1.TLFQuery{
 		TlfName:          tlfName,
