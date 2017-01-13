@@ -866,7 +866,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	var g errgroup.Group
 
 	g.Go(func() error {
-		chatUI.ChatAttachmentUploadStart(ctx)
+		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata())
 		var err error
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
@@ -878,7 +878,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 
 	if arg.Preview != nil {
 		g.Go(func() error {
-			chatUI.ChatAttachmentPreviewUploadStart(ctx)
+			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
 			// copy the params so as not to mess with the main params above
 			previewParams := params
 
