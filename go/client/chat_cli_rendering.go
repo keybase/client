@@ -134,7 +134,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				},
 				flexibletable.Cell{
 					Alignment: flexibletable.Left,
-					Content:   flexibletable.SingleCell{Item: *conv.Error},
+					Content:   flexibletable.SingleCell{Item: conv.Error.Message},
 				},
 			})
 			continue

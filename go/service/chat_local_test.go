@@ -77,6 +77,10 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	storage := storage.New(tc.G, f)
 	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage,
 		func() chat1.RemoteInterface { return mockRemote })
+	tc.G.InboxSource = chat.NewHybridInboxSource(tc.G,
+		func() keybase1.TlfInterface { return h.tlf },
+		func() chat1.RemoteInterface { return mockRemote },
+		f)
 	h.setTestRemoteClient(mockRemote)
 	h.gh, _ = newGregorHandler(tc.G)
 

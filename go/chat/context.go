@@ -3,21 +3,8 @@ package chat
 import (
 	"context"
 
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/clockwork"
 )
-
-// KeybaseContext defines what chat needs from Keybase
-type KeybaseContext interface {
-	GetLog() logger.Logger
-	LoadUserByUID(uid keybase1.UID) (*libkb.User, error)
-	UIDToUsername(uid keybase1.UID) (libkb.NormalizedUsername, error)
-	Clock() clockwork.Clock
-	GetUPAKLoader() libkb.UPAKLoader
-	GetMerkleClient() *libkb.MerkleClient
-}
 
 type identifyModeKey int
 type keyfinderKey int

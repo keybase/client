@@ -1850,6 +1850,29 @@ func (e ChatStorageMiscError) Message() string {
 	return e.Msg
 }
 
+type ChatStorageVersionMismatchError struct {
+	old, new chat1.InboxVers
+}
+
+func NewChatStorageVersionMismatchError(oldVers chat1.InboxVers, newVers chat1.InboxVers) ChatStorageVersionMismatchError {
+	return ChatStorageVersionMismatchError{
+		old: oldVers,
+		new: newVers,
+	}
+}
+
+func (e ChatStorageVersionMismatchError) Error() string {
+	return fmt.Sprintf("version mismatch error: old %d new: %d", e.old, e.new)
+}
+
+func (e ChatStorageVersionMismatchError) ShouldClear() bool {
+	return true
+}
+
+func (e ChatStorageVersionMismatchError) Message() string {
+	return e.Error()
+}
+
 //=============================================================================
 
 type InvalidAddressError struct {
