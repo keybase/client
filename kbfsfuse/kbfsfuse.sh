@@ -23,7 +23,7 @@ if [ -f client_revision ]; then
     echo "Client revision $(cat client_revision)"
 fi
 
-keybase service &
+keybase -debug service &
 SERVICE=$!
 KEYBASE_DEBUG=1 kbfsfuse -debug -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR -localuser= -md-version $KBFS_METADATA_VERSION -log-to-file /keybase &
 KBFS=$!
