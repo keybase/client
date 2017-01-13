@@ -82,7 +82,7 @@ class Conversation extends Component<void, Props, State> {
 
   render () {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}} onClick={this._focusInput}>
+      <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
           <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
@@ -118,7 +118,7 @@ class Conversation extends Component<void, Props, State> {
           <Icon onClick={this._onClickEmoji} style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={this._openFilePicker} style={styleIcon} type='iconfont-attachment' />
         </Box>
-        <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
+        <Text type='BodySmall' style={styleFooter} onClick={this._focusInput}>*bold*, _italics_, `code`, >quote</Text>
       </Box>
     )
   }
@@ -140,6 +140,7 @@ const styleIcon = {
 const styleFooter = {
   flex: 1,
   color: globalColors.black_20,
+  cursor: 'text',
   textAlign: 'right',
   marginTop: 0,
   marginBottom: globalMargins.xtiny,
