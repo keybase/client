@@ -31,7 +31,7 @@ class Conversation extends Component<void, Props, State> {
 
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.selectedConversation !== this.props.selectedConversation) {
-      this._input && this._input.focus()
+      this._focusInput()
       _cachedInput[this.props.selectedConversation] = this.state.text
       this.setState({text: _cachedInput[nextProps.selectedConversation] || ''})
     }
@@ -39,7 +39,7 @@ class Conversation extends Component<void, Props, State> {
 
   componentDidUpdate (prevProps: Props) {
     if (!this.props.isLoading && prevProps.isLoading) {
-      this._input && this._input.focus()
+      this._focusInput()
     }
   }
 
@@ -49,7 +49,7 @@ class Conversation extends Component<void, Props, State> {
       const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
       const nextText = [text.substring(0, selectionStart), emojiColons, text.substring(selectionEnd)].join('')
       this.setState({text: nextText})
-      this._input.focus()
+      this._focusInput()
     }
   }
 
@@ -71,9 +71,13 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
+  _focusInput = () => {
+    this._input && this._input.focus()
+  }
+
   render () {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
+      <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}} onClick={this._focusInput}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
           <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
