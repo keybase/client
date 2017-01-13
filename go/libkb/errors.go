@@ -1549,10 +1549,22 @@ func (e UnexpectedChatDataFromServer) Error() string {
 
 type ChatBoxingError struct {
 	Msg string
+	Err error
+}
+
+func NewChatBoxingError(msg string, err error) ChatBoxingError {
+	return ChatBoxingError{
+		Msg: msg,
+		Err: err,
+	}
 }
 
 func (e ChatBoxingError) Error() string {
 	return fmt.Sprintf("error boxing chat message: %s", e.Msg)
+}
+
+func (e ChatBoxingError) Inner() error {
+	return e.Err
 }
 
 //=============================================================================

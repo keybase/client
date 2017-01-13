@@ -14,6 +14,7 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -34,6 +35,8 @@ func init() {
 }
 
 type Boxer struct {
+	utils.DebugLabeler
+
 	tlf    keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
 	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
@@ -42,6 +45,7 @@ type Boxer struct {
 
 func NewBoxer(g *libkb.GlobalContext, tlf keybase1.TlfInterface) *Boxer {
 	return &Boxer{
+		DebugLabeler: utils.NewDebugLabeler(g, "Boxer"),
 		tlf:          tlf,
 		hashV1:       hashSha256V1,
 		sign:         sign,
@@ -304,12 +308,13 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	var recentKey *keybase1.CryptKey
 
 	if len(tlfName) == 0 {
-		return nil, libkb.ChatBoxingError{Msg: "blank TLF name given"}
+		err := errors.New("blank TLF name given")
+		return nil, libkb.NewChatBoxingError(err.Error(), err)
 	}
 
 	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, msg.ClientHeader.TlfPublic)
 	if err != nil {
-		return nil, libkb.ChatBoxingError{Msg: "KeyFinder.Find: " + err.Error()}
+		return nil, libkb.NewChatBoxingError("KeyFinder.Find: "+err.Error(), err)
 	}
 	msg.ClientHeader.TlfName = string(cres.NameIDBreaks.CanonicalName)
 	if msg.ClientHeader.TlfPublic {
@@ -324,21 +329,23 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 
 	merkleRoot, err := b.latestMerkleRoot()
 	if err != nil {
-		return nil, libkb.ChatBoxingError{Msg: err.Error()}
+		return nil, libkb.NewChatBoxingError(err.Error(), err)
 	}
 	msg.ClientHeader.MerkleRoot = merkleRoot
 
 	if len(msg.ClientHeader.TlfName) == 0 {
-		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName, msg.ClientHeader.TlfName)}
+		err := fmt.Errorf("blank TLF name received: original: %s canonical: %s", tlfName, msg.ClientHeader.TlfName)
+		return nil, libkb.NewChatBoxingError(err.Error(), err)
 	}
 
 	if recentKey == nil {
-		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)}
+		err := fmt.Errorf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)
+		return nil, libkb.NewChatBoxingError(err.Error(), err)
 	}
 
 	boxed, err := b.boxMessageWithKeysV1(msg, recentKey, signingKeyPair)
 	if err != nil {
-		return nil, libkb.ChatBoxingError{Msg: err.Error()}
+		return nil, libkb.NewChatBoxingError(err.Error(), err)
 	}
 
 	return boxed, nil

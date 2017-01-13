@@ -13,6 +13,12 @@ protocol NotifyChat {
     FAILED_MESSAGE_5
   }
 
+  enum FailedMessageError {
+    MISC_0,
+    OFFLINE_1,
+    IDENTIFY_2
+  }
+
   record IncomingMessage {
     MessageUnboxed message;
     ConversationID convID;
@@ -40,6 +46,7 @@ protocol NotifyChat {
 
   record FailedMessageInfo {
     array<OutboxRecord> outboxRecords;
+    FailedMessageError lastError;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {

@@ -122,6 +122,12 @@ export const NotifyChatChatActivityType = {
   failedMessage: 5,
 }
 
+export const NotifyChatFailedMessageError = {
+  misc: 0,
+  offline: 1,
+  identify: 2,
+}
+
 export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.CancelPost'})
 }
@@ -681,8 +687,14 @@ export type EncryptedData = {
   n: bytes,
 }
 
+export type FailedMessageError = 
+    0 // MISC_0
+  | 1 // OFFLINE_1
+  | 2 // IDENTIFY_2
+
 export type FailedMessageInfo = {
   outboxRecords?: ?Array<OutboxRecord>,
+  lastError: FailedMessageError,
 }
 
 export type GenericPayload = {

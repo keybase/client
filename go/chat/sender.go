@@ -8,6 +8,8 @@ import (
 
 	"encoding/hex"
 
+	"reflect"
+
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -350,6 +352,34 @@ func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintex
 	return oid, nil
 }
 
+func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.FailedMessageError, bool) {
+
+	if !s.connected {
+		return chat1.FailedMessageError_OFFLINE, true
+	}
+
+	// Check for an identify error
+	s.debug("err type: %s", reflect.TypeOf(err))
+	if uerr, ok := err.(libkb.TransientChatUnboxingError); ok {
+		if _, ok = uerr.Inner().(libkb.IdentifySummaryError); ok {
+			return chat1.FailedMessageError_IDENTIFY, true
+		}
+	}
+	if berr, ok := err.(libkb.ChatBoxingError); ok {
+		s.debug("err type: %s", reflect.TypeOf(berr.Inner()))
+		if _, ok = berr.Inner().(libkb.IdentifySummaryError); ok {
+			return chat1.FailedMessageError_IDENTIFY, true
+		}
+	}
+
+	// Check attempts otherwise
+	if obr.State.Sending() > deliverMaxAttempts {
+		return chat1.FailedMessageError_MISC, true
+	}
+
+	return 0, false
+}
+
 func (s *Deliverer) deliverLoop() {
 	s.debug("starting non blocking sender deliver loop: uid: %s duration: %v", s.outbox.GetUID(),
 		s.G().Env.GetChatDelivererInterval())
@@ -416,9 +446,8 @@ func (s *Deliverer) deliverLoop() {
 				s.G().Log.Error("Deliverer: failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
-				// Process failure. If we have gone over the limit of failure, or we are
-				// disconnected from the chat server, mark everything as failed.
-				if obr.State.Sending() > deliverMaxAttempts || !s.connected {
+				// Process failure. If we determine that the message is unrecoverable, then bail out.
+				if errTyp, ok := s.doNotRetryFailure(obr, err); ok {
 					// Mark the entire outbox as an error if we can't send
 					s.debug("max failure attempts reached, marking all as errors and notifying")
 					deadObrs, err := s.outbox.MarkAllAsError()
@@ -428,6 +457,7 @@ func (s *Deliverer) deliverLoop() {
 					}
 					act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 						OutboxRecords: deadObrs,
+						LastError:     errTyp,
 					})
 					s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
 						keybase1.UID(s.outbox.GetUID().String()), &act)
