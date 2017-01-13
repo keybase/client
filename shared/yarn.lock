@@ -5142,9 +5142,19 @@ pbkdf2-compat@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/pbkdf2-compat/-/pbkdf2-compat-2.0.1.tgz#b6e0c8fa99494d94e0511575802a59a5c142f288"
 
+pegjs-loader@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/pegjs-loader/-/pegjs-loader-0.5.0.tgz#8b03693696d3ab848e7e03aafb5eb769212ea09e"
+  dependencies:
+    loader-utils "^0.2.5"
+
 pegjs@0.9.0:
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/pegjs/-/pegjs-0.9.0.tgz#f6aefa2e3ce56169208e52179dfe41f89141a369"
+
+pegjs@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/pegjs/-/pegjs-0.10.0.tgz#cf8bafae6eddff4b5a7efb185269eaaf4610ddbd"
 
 pend@~1.2.0:
   version "1.2.0"

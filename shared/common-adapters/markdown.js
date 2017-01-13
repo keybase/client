@@ -5,7 +5,7 @@ import {emojiIndex} from 'emoji-mart'
 import Emoji from './emoji'
 import React, {PureComponent} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import parser from '../markdown/parser'
+import parser from '../markdown/parser.pegjs'
 
 import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
