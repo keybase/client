@@ -30,6 +30,7 @@ type State = {
 
 const scrollbarWidth = 20
 const lockedToBottomSlop = 20
+const listBottomMargin = 10
 
 class ConversationList extends Component<void, Props, State> {
   _cellCache: any;
@@ -366,7 +367,7 @@ class ConversationList extends Component<void, Props, State> {
 const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
-  paddingBottom: 10,
+  paddingBottom: listBottomMargin,
 }
 
 class CellSizeCache extends defaultCellMeasurerCellSizeCache {
