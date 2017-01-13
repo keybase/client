@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/logger"
-	rogReverse "github.com/rogpeppe/rog-go/reverse"
+	rogReverse "github.com/keybase/rog-go/reverse"
 )
 
 // Logs is the struct to specify the path of log files
@@ -136,6 +136,7 @@ func tailLines(log logger.Logger, filename string, numLines int) []string {
 		log.Errorf("error opening log %q: %s", filename, err)
 		return []string{}
 	}
+	defer f.Close()
 	b := rogReverse.NewScanner(f)
 	b.Split(bufio.ScanLines)
 
@@ -145,6 +146,10 @@ func tailLines(log logger.Logger, filename string, numLines int) []string {
 		if len(lines) == numLines {
 			break
 		}
+	}
+
+	if b.Err() != nil {
+		log.Warning("error occurred during reverse scan: %s", b.Err())
 	}
 
 	return lines
