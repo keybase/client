@@ -175,7 +175,7 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 	defer b.G().Trace(fn, func() error { return err })()
 
 	// Mark all identifies with background identifier tag / context.
-	ctx.NetContext = libkb.WithLogTag(ctx.GetNetContext(), "BG")
+	netContext := libkb.WithLogTag(ctx.GetNetContext(), "BG")
 
 	if !b.settings.Enabled {
 		b.G().Log.Debug("%s: Bailing out since BackgroundIdentifier isn't enabled", fn)
@@ -198,6 +198,10 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 			continue
 		case <-b.G().Clock().AfterTime(waitUntil):
 			b.G().Log.Debug("| running next after wait")
+
+			// Reset the netContext everytime through the loop, so we don't
+			// endlessly accumulate WithValues
+			ctx.NetContext = netContext
 			b.runNext(ctx)
 		}
 	}
@@ -316,7 +320,7 @@ func (b *BackgroundIdentifier) runOne(ctx *Context, u keybase1.UID) (err error) 
 	if b.testArgs != nil {
 		eng.testArgs = b.testArgs.identify2TestArgs
 	}
-	err = RunEngine(eng, ctx.ShallowCopy())
+	err = RunEngine(eng, ctx)
 	if err == nil {
 		err = trackBreaksToError(eng.Result().TrackBreaks)
 	}
