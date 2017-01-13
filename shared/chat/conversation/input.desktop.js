@@ -65,8 +65,8 @@ class Conversation extends Component<void, Props, State> {
 
   _pickFile () {
     if (this._fileInput && this._fileInput.files && this._fileInput.files[0]) {
-      const {path, name} = this._fileInput.files[0]
-      this.props.onAttach(path, name)
+      const {path, name, type} = this._fileInput.files[0]
+      this.props.onAttach(path, name, type.indexOf('image') >= 0 ? 'Image' : 'Other')
       this._fileInput.value = null
     }
   }
