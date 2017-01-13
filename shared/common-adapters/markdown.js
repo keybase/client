@@ -86,18 +86,22 @@ function process (ast) {
       const childrenComponents = top.children.reduce((acc, child, i) => {
         const last = acc[acc.length - 1]
         const isLast = i === top.children.length - 1
-        if (Array.isArray(last) && typeof child === 'string') {
-          last.push(child)
-          if (isLast) {
+        if (Array.isArray(last)) {
+          if (typeof child === 'string') {
+            last.push(child)
+            if (isLast) {
+              acc[acc.length - 1] = last.join('')
+            }
+          } else {
             acc[acc.length - 1] = last.join('')
+            acc.push(child.component)
           }
-        } else if (Array.isArray(last)) {
-          acc[acc.length - 1] = last.join('')
-          acc.push(child.component)
-        } else if (typeof child === 'string') {
-          acc.push([child])
         } else {
-          acc.push(child.component)
+          if (typeof child === 'string') {
+            acc.push([child])
+          } else {
+            acc.push(child.component)
+          }
         }
 
         return acc
