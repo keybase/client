@@ -75,6 +75,11 @@ class Conversation extends Component<void, Props, State> {
     this._input && this._input.focus()
   }
 
+  _pickerOnClick = (emoji) => {
+    this._insertEmoji(emoji.colons)
+    this._onClickEmoji()
+  }
+
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}} onClick={this._focusInput}>
@@ -105,7 +110,7 @@ class Conversation extends Component<void, Props, State> {
               <Box style={{position: 'absolute', right: 0, bottom: 0, top: 0, left: 0}} onClick={() => this.setState({emojiPickerOpen: false})} />
               <Box style={{position: 'relative'}}>
                 <Box style={{position: 'absolute', right: 0, bottom: 0}}>
-                  <Picker onClick={emoji => this._insertEmoji(emoji.colons)} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
+                  <Picker onClick={this._pickerOnClick} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
                 </Box>
               </Box>
             </Box>
