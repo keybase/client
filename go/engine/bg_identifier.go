@@ -84,7 +84,7 @@ type BackgroundIdentifierSettings struct {
 	WaitClean       time.Duration // = 4 * time.Hour
 	WaitHardFailure time.Duration // = 90 * time.Minute
 	WaitSoftFailure time.Duration // = 10 * time.Minute
-	DelaySlot       time.Duration // = 5 * time.Second
+	DelaySlot       time.Duration // = 30 * time.Second
 }
 
 var BackgroundIdentifierDefaultSettings = BackgroundIdentifierSettings{
@@ -174,6 +174,9 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 	fn := "BackgroundIdentifier#Run"
 	defer b.G().Trace(fn, func() error { return err })()
 
+	// Mark all identifies with background identifier tag / context.
+	netContext := libkb.WithLogTag(ctx.GetNetContext(), "BG")
+
 	if !b.settings.Enabled {
 		b.G().Log.Debug("%s: Bailing out since BackgroundIdentifier isn't enabled", fn)
 		return nil
@@ -195,6 +198,10 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 			continue
 		case <-b.G().Clock().AfterTime(waitUntil):
 			b.G().Log.Debug("| running next after wait")
+
+			// Reset the netContext everytime through the loop, so we don't
+			// endlessly accumulate WithValues
+			ctx.NetContext = netContext
 			b.runNext(ctx)
 		}
 	}
