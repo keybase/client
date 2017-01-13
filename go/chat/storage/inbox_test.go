@@ -308,17 +308,23 @@ func TestInboxNewConversation(t *testing.T) {
 	convs = append([]chat1.Conversation{newConv}, convs...)
 	convListCompare(t, convs, res, "newconv")
 
+	t.Logf("repeat conv")
+	require.NoError(t, inbox.NewConversation(context.TODO(), 3, newConv))
+	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	convListCompare(t, convs, res, "repeatconv")
+
 	t.Logf("supersede newconv")
 	newConv = makeConvo(gregor1.Time(12), 1, 1)
 	newConv.Supersedes = append(newConv.Supersedes, convs[6].Metadata)
-	require.NoError(t, inbox.NewConversation(context.TODO(), 3, newConv))
+	require.NoError(t, inbox.NewConversation(context.TODO(), 4, newConv))
 	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	convs = append([]chat1.Conversation{newConv}, convs...)
 	convListCompare(t, append(convs[:7], convs[8:]...), res, "newconv finalized")
 
 	validateBadUpdate(t, inbox, func() error {
-		return inbox.NewConversation(context.TODO(), 5, newConv)
+		return inbox.NewConversation(context.TODO(), 10, newConv)
 	})
 }
 

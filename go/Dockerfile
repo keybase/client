@@ -13,7 +13,7 @@ RUN apk add --update fuse jq bash openssl && \
 USER keybase
 WORKDIR /home/keybase
 
-ENV KEYBASE_DEBUG=1 \
+ENV KEYBASE_DEBUG=0 \
     KEYBASE_RUN_MODE=devel \
     KEYBASE_SERVER_URI="http://kbweb.local:3000" \
     PATH=/home/keybase:$PATH

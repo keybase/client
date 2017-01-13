@@ -469,23 +469,36 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 		return err
 	}
 
-	// Find any conversations this guy might supersede and set supersededBy pointer
-	for index := range ibox.Conversations {
-		iconv := &ibox.Conversations[index]
-		if iconv.Metadata.FinalizeInfo == nil {
-			continue
-		}
-		for _, super := range conv.Supersedes {
-			if iconv.GetConvID().Eq(super.ConversationID) {
-				i.Debug(ctx, "NewConversation: setting supersededBy: target: %s superseder: %s",
-					iconv.GetConvID(), conv.GetConvID())
-				iconv.SupersededBy = append(iconv.SupersededBy, conv.Metadata)
-			}
+	// Do a pass to make sure we don't already know about this convo
+	known := false
+	for _, iconv := range ibox.Conversations {
+		if iconv.GetConvID().Eq(conv.GetConvID()) {
+			known = true
+			break
 		}
 	}
 
-	// Add the convo
-	ibox.Conversations = append([]chat1.Conversation{conv}, ibox.Conversations...)
+	if !known {
+		// Find any conversations this guy might supersede and set supersededBy pointer
+		for index := range ibox.Conversations {
+			iconv := &ibox.Conversations[index]
+			if iconv.Metadata.FinalizeInfo == nil {
+				continue
+			}
+			for _, super := range conv.Supersedes {
+				if iconv.GetConvID().Eq(super.ConversationID) {
+					i.Debug(ctx, "NewConversation: setting supersededBy: target: %s superseder: %s",
+						iconv.GetConvID(), conv.GetConvID())
+					iconv.SupersededBy = append(iconv.SupersededBy, conv.Metadata)
+				}
+			}
+		}
+
+		// Add the convo
+		ibox.Conversations = append([]chat1.Conversation{conv}, ibox.Conversations...)
+	} else {
+		i.Debug(ctx, "NewConversation: skipping update, conversation exists in inbox")
+	}
 
 	// Write out to disk
 	ibox.InboxVersion = vers
