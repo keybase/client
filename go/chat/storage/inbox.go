@@ -418,6 +418,15 @@ func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.P
 	return ibox.InboxVersion, res, pagination, nil
 }
 
+func (i *Inbox) clear() libkb.ChatStorageError {
+	err := i.G().LocalChatDb.Delete(i.dbKey())
+	if err != nil {
+		return libkb.NewChatStorageInternalError(i.G(), "error clearing inbox: uid: %s err: %s", i.uid,
+			err.Error())
+	}
+	return nil
+}
+
 func (i *Inbox) handleVersion(ctx context.Context, ourvers chat1.InboxVers, updatevers chat1.InboxVers) (chat1.InboxVers, bool, libkb.ChatStorageError) {
 	// Our version is at least as new as this update, let's not continue
 	if updatevers == 0 {
