@@ -1865,6 +1865,15 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 		dirtyDe = &de
 	}
 
+	// Leave a copy of the syncOp in `unrefCache`, since it may be
+	// modified by future writes while the syncOp in `md` and
+	// `syncState` should remain immutable.
+	err = kbfscodec.Update(
+		fbo.config.Codec(), &fbo.unrefCache[fileRef].op, si.op)
+	if err != nil {
+		return nil, nil, syncState, nil, err
+	}
+
 	// TODO: Returning si.bps in this way is racy, since si is a
 	// member of unrefCache.
 	return fblock, si.bps, syncState, dirtyDe, nil
