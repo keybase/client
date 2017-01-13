@@ -421,7 +421,7 @@ func TestInboxReadMessage(t *testing.T) {
 
 func TestInboxSetStatus(t *testing.T) {
 
-	_, inbox, _ := setupInboxTest(t, "basic")
+	_, inbox, uid := setupInboxTest(t, "basic")
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -443,6 +443,14 @@ func TestInboxSetStatus(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res), "length")
 	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "id")
+
+	t.Logf("sending new message to wake up conv")
+	msg := makeInboxMsg(3, chat1.MessageType_TEXT)
+	msg.ClientHeader.Sender = uid
+	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg))
+	_, res, _, err = inbox.Read(context.TODO(), &q, nil)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(res), "ignore not unset")
 
 	validateBadUpdate(t, inbox, func() error {
 		return inbox.SetStatus(context.TODO(), 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)

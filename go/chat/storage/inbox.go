@@ -591,6 +591,12 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
 		conv.Metadata.ActiveList)
 
+	// If we are the sender, and the conv is ignored, set it back to unfiled
+	if bytes.Equal(msg.ClientHeader.Sender.Bytes(), i.uid) &&
+		conv.Metadata.Status == chat1.ConversationStatus_IGNORED {
+		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
+	}
+
 	// Slot in at the top
 	mconv := *conv
 	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
