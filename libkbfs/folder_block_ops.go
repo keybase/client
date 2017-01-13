@@ -1768,6 +1768,12 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 			fmt.Errorf("No syncOp found for file ref %v", fileRef)
 	}
 
+	// If this function returns a success, we need to make sure the op
+	// in `md` is not the same variable as the op in `unrefCache`,
+	// because the latter could get updated still by local writes
+	// before `md` is flushed to the server.  We don't copy it here
+	// because code below still needs to modify it (and by extension,
+	// the one stored in `syncState.si`).
 	md.AddOp(si.op)
 
 	// Fill in syncState.
@@ -1864,6 +1870,16 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	if de, ok := fbo.deCache[fileRef]; ok {
 		dirtyDe = &de
 	}
+
+	// Leave a copy of the syncOp in `unrefCache`, since it may be
+	// modified by future local writes while the syncOp in `md` should
+	// only be modified by the rest of this sync process.
+	var syncOpCopy *syncOp
+	err = kbfscodec.Update(fbo.config.Codec(), &syncOpCopy, si.op)
+	if err != nil {
+		return nil, nil, syncState, nil, err
+	}
+	fbo.unrefCache[fileRef].op = syncOpCopy
 
 	// TODO: Returning si.bps in this way is racy, since si is a
 	// member of unrefCache.
