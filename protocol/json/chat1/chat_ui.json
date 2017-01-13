@@ -10,7 +10,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatAttachmentUploadProgress": {
       "request": [
@@ -27,7 +28,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatAttachmentUploadDone": {
       "request": [
@@ -36,7 +38,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatAttachmentPreviewUploadStart": {
       "request": [
@@ -45,7 +48,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatAttachmentPreviewUploadDone": {
       "request": [
@@ -54,7 +58,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatAttachmentDownloadStart": {
       "request": [
@@ -63,7 +68,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatAttachmentDownloadProgress": {
       "request": [
@@ -80,7 +86,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatAttachmentDownloadDone": {
       "request": [
@@ -89,7 +96,8 @@
           "type": "int"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatInboxUnverified": {
       "request": [
