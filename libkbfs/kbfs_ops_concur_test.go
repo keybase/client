@@ -716,6 +716,8 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 // overwrites, plus one write that blocks until the dirty bcache has
 // room.  This is a repro for KBFS-1846.
 func TestKBFSOpsTruncateAndOverwriteDeferredWithArchivedBlock(t *testing.T) {
+	t.Skip("Pending KBFS-1852")
+
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
