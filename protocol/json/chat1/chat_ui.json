@@ -8,6 +8,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "metadata",
+          "type": "AssetMetadata"
         }
       ],
       "response": null,
@@ -46,6 +50,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "metadata",
+          "type": "AssetMetadata"
         }
       ],
       "response": null,

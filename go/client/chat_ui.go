@@ -20,7 +20,7 @@ type ChatUI struct {
 	lastPercentReported int
 }
 
-func (c *ChatUI) ChatAttachmentUploadStart(context.Context, int) error {
+func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.ChatAttachmentUploadStartArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -51,7 +51,7 @@ func (c *ChatUI) ChatAttachmentUploadDone(context.Context, int) error {
 	return nil
 }
 
-func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, int) error {
+func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, chat1.ChatAttachmentPreviewUploadStartArg) error {
 	if c.noOutput {
 		return nil
 	}

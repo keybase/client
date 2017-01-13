@@ -1200,9 +1200,17 @@ export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
   bytesTotal: int
 }>
 
+export type chatUiChatAttachmentPreviewUploadStartRpcParam = Exact<{
+  metadata: AssetMetadata
+}>
+
 export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
   bytesComplete: int,
   bytesTotal: int
+}>
+
+export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
+  metadata: AssetMetadata
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
@@ -1530,7 +1538,8 @@ export type rpc =
 export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
-      sessionID: int
+      sessionID: int,
+      metadata: AssetMetadata
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -1550,7 +1559,8 @@ export type incomingCallMapType = Exact<{
   ) => void,
   'keybase.1.chatUi.chatAttachmentPreviewUploadStart'?: (
     params: Exact<{
-      sessionID: int
+      sessionID: int,
+      metadata: AssetMetadata
     }>,
     response: CommonResponseHandler
   ) => void,

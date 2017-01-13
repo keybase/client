@@ -1,11 +1,11 @@
 @namespace("chat.1")
 
 protocol chatUi {
-  void chatAttachmentUploadStart(int sessionID) oneway;	
+  void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata) oneway;	
   void chatAttachmentUploadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
   void chatAttachmentUploadDone(int sessionID) oneway;	
 
-  void chatAttachmentPreviewUploadStart(int sessionID) oneway;	
+  void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;	
   void chatAttachmentPreviewUploadDone(int sessionID) oneway;	
 
   void chatAttachmentDownloadStart(int sessionID) oneway;	
