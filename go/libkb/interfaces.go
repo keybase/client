@@ -334,10 +334,10 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
-	ChatAttachmentUploadStart(context.Context) error
+	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata) error
 	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
 	ChatAttachmentUploadDone(context.Context) error
-	ChatAttachmentPreviewUploadStart(context.Context) error
+	ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error
 	ChatAttachmentPreviewUploadDone(context.Context) error
 	ChatAttachmentDownloadStart(context.Context) error
 	ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error
@@ -541,6 +541,29 @@ type MessageDeliverer interface {
 	ForceDeliverLoop()
 	Connected()
 	Disconnected()
+}
+
+type ChatLocalizer interface {
+	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
+	Name() string
+}
+
+type InboxSource interface {
+	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, query *chat1.GetInboxLocalQuery,
+		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+	ReadRemote(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer,
+		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+
+	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		conv chat1.Conversation) error
+	NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		msg chat1.MessageBoxed) error
+	ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		msgID chat1.MessageID) error
+	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		status chat1.ConversationStatus) error
+	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

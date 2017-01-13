@@ -605,6 +605,12 @@ export type Conversation = {
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
+export type ConversationErrorLocal = {
+  message: string,
+  remoteConv: Conversation,
+  permanent: boolean,
+}
+
 export type ConversationFinalizeInfo = {
   resetUser: string,
   resetDate: string,
@@ -633,7 +639,7 @@ export type ConversationInfoLocal = {
 }
 
 export type ConversationLocal = {
-  error?: ?string,
+  error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
   supersedes?: ?Array<ConversationID>,
@@ -826,6 +832,13 @@ export type HeaderPlaintextV1 = {
 
 export type HeaderPlaintextVersion = 
     1 // V1_1
+
+export type Inbox = {
+  version: InboxVers,
+  convsUnverified?: ?Array<Conversation>,
+  convs?: ?Array<ConversationLocal>,
+  pagination?: ?Pagination,
+}
 
 export type InboxResType = 
     0 // VERSIONHIT_0
@@ -1200,9 +1213,17 @@ export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
   bytesTotal: int
 }>
 
+export type chatUiChatAttachmentPreviewUploadStartRpcParam = Exact<{
+  metadata: AssetMetadata
+}>
+
 export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
   bytesComplete: int,
   bytesTotal: int
+}>
+
+export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
+  metadata: AssetMetadata
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
@@ -1530,7 +1551,8 @@ export type rpc =
 export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
-      sessionID: int
+      sessionID: int,
+      metadata: AssetMetadata
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -1550,7 +1572,8 @@ export type incomingCallMapType = Exact<{
   ) => void,
   'keybase.1.chatUi.chatAttachmentPreviewUploadStart'?: (
     params: Exact<{
-      sessionID: int
+      sessionID: int,
+      metadata: AssetMetadata
     }>,
     response: CommonResponseHandler
   ) => void,

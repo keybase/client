@@ -38,131 +38,132 @@ function pad (s, num) {
 const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
 
 const commands = {
+  'apply-new-fonts': {
+    code: applyNewFonts,
+    help: 'Copy font output into the right folders',
+  },
+  'build-dev': {
+    env: {BABEL_ENV: 'electron', NO_SERVER: 'true'},
+    help: 'Make a development build of the js code',
+    nodeEnv: 'production',
+    shell: `${nodeCmd} desktop/server.js`,
+  },
+  'build-main-thread': {
+    env: {BABEL_ENV: 'electron', HOT: 'true'},
+    help: 'Bundle the code that the main node thread uses',
+    nodeEnv: 'development',
+    shell: 'webpack --config desktop/webpack.config.main-thread-only.js --progress --profile --colors',
+  },
+  'build-prod': {
+    env: {BABEL_ENV: 'electron'},
+    help: 'Make a production build of the js code',
+    nodeEnv: 'production',
+    shell: 'webpack --config desktop/webpack.config.production.js --progress --profile --colors',
+  },
+  'build-profile': {
+    help: 'Make a production build of the js code',
+    nodeEnv: 'development',
+    shell: 'webpack --config desktop/webpack.config.development.js --progress --profile --json > /tmp/stats.json',
+  },
+  'build-wpdll': {
+    env: {BABEL_ENV: 'electron'},
+    help: 'Make a production build of the js code',
+    nodeEnv: 'development',
+    shell: 'webpack --config desktop/webpack.config.dll-build.js --progress',
+  },
+  'debug-main': {
+    env: {ELECTRON_RUN_AS_NODE: 'true'},
+    help: 'Debug the main process with node-inspector',
+    nodeEnv: 'development',
+    shell: './node_modules/.bin/electron node_modules/node-inspector/bin/inspector.js --no-preload',
+  },
+  'generate-font-project': {
+    code: generateIcoMoon,
+    help: 'Generate the icomoon project file',
+  },
   'help': {
     code: () => {
       const len = Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
       console.log(Object.keys(commands).map(c => commands[c].help && `yarn run ${pad(c + ': ', len)}${commands[c].help || ''}`).filter(c => !!c).join('\n'))
     },
   },
-  'start': {
-    shell: 'yarn run build-dev && yarn run start-cold', help: 'Do a simple dev build',
-  },
-  'start-hot': {
-    env: {HOT: 'true', BABEL_ENV: 'electron'},
-    nodeEnv: 'development',
-    shell: `${nodeCmd} desktop/client.js`,
-    help: 'Start electron with hot reloading (needs yarn run hot-server)',
-  },
-  'start-hot-debug': {
-    env: {HOT: 'true', USE_INSPECTOR: 'true'},
-    nodeEnv: 'development',
-    shell: `${nodeCmd} desktop/client.js`,
-    help: 'Start electron with hot reloading against a debugged main process',
-  },
-  'debug-main': {
-    env: {ELECTRON_RUN_AS_NODE: 'true'},
-    nodeEnv: 'development',
-    shell: './node_modules/.bin/electron node_modules/node-inspector/bin/inspector.js --no-preload',
-    help: 'Debug the main process with node-inspector',
-  },
-  'setup-debug-main': {
-    help: 'Setup node-inspector to work with electron (run once per electron prebuilt upgrade)',
-    code: setupDebugMain,
-  },
-  'start-cold': {
-    nodeEnv: 'development',
-    shell: 'electron ./desktop/dist/main.bundle.js',
-    help: 'Start electron with no hot reloading',
-  },
-  'build-dev': {
-    env: {NO_SERVER: 'true', BABEL_ENV: 'electron'},
-    nodeEnv: 'production',
-    shell: `${nodeCmd} desktop/server.js`,
-    help: 'Make a development build of the js code',
-  },
-  'build-prod': {
-    env: {BABEL_ENV: 'electron'},
-    nodeEnv: 'production',
-    shell: 'webpack --config desktop/webpack.config.production.js --progress --profile --colors',
-    help: 'Make a production build of the js code',
-  },
-  'build-main-thread': {
-    env: {HOT: 'true', BABEL_ENV: 'electron'},
-    nodeEnv: 'development',
-    shell: 'webpack --config desktop/webpack.config.main-thread-only.js --progress --profile --colors',
-    help: 'Bundle the code that the main node thread uses',
-  },
-  'build-wpdll': {
-    env: {BABEL_ENV: 'electron'},
-    nodeEnv: 'development',
-    shell: 'webpack --config desktop/webpack.config.dll-build.js --progress',
-    help: 'Make a production build of the js code',
-  },
-  'build-profile': {
-    nodeEnv: 'development',
-    shell: 'webpack --config desktop/webpack.config.development.js --progress --profile --json > /tmp/stats.json',
-    help: 'Make a production build of the js code',
-  },
-  'package': {
-    env: {NO_SOURCE_MAPS: 'true', BABEL_ENV: 'electron'},
-    nodeEnv: 'production',
-    shell: `${nodeCmd} desktop/package.js`,
-    help: 'Package up the production js code',
-  },
   'hot-server': {
-    env: {HOT: 'true', USING_DLL: 'true', BABEL_ENV: 'electron'},
+    env: {BABEL_ENV: 'electron', HOT: 'true', USING_DLL: 'true'},
+    help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
     nodeEnv: 'development',
     shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} desktop/server.js` : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
-    help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
-  },
-  'inject-sourcemaps-prod': {
-    shell: 'a(){ cp \'$1\'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a',
-    help: '[Path to sourcemaps]: Copy sourcemaps into currently installed Keybase app',
   },
   'inject-code-prod': {
-    shell: 'yarn run package; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/',
     help: 'Copy current code into currently installed Keybase app',
+    shell: 'yarn run package; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/',
   },
-  'start-prod': {
-    shell: '/Applications/Keybase.app/Contents/MacOS/Electron',
-    help: 'Launch installed Keybase app with console output',
-  },
-  'postinstall': {
-    help: 'all: install global eslint. dummy modules',
-    code: postInstall,
-  },
-  'render-screenshots': {
-    env: {
-      KEYBASE_NO_ENGINE: 1,
-      ELECTRON_ENABLE_LOGGING: 1,
-      BABEL_ENV: 'electron',
-    },
-    shell: 'webpack --config desktop/webpack.config.visdiff.js && electron ./desktop/dist/render-visdiff.bundle.js',
-    help: 'Render images of dumb components',
+  'inject-sourcemaps-prod': {
+    help: '[Path to sourcemaps]: Copy sourcemaps into currently installed Keybase app',
+    shell: 'a(){ cp \'$1\'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a',
   },
   'local-visdiff': {
     env: {
-      VISDIFF_DRY_RUN: 1,
       KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] || path.resolve('../../js-vendor-desktop'),
+      VISDIFF_DRY_RUN: 1,
     },
-    shell: 'cd ../visdiff && yarn install --pure-lockfile && cd ../shared && node ../visdiff/dist/index.js',
     help: 'Perform a local visdiff',
+    shell: 'cd ../visdiff && yarn install --pure-lockfile && cd ../shared && node ../visdiff/dist/index.js',
   },
-  'updated-fonts': {
-    help: 'Update our font sizes automatically',
-    code: updatedFonts,
+  'package': {
+    env: {BABEL_ENV: 'electron', NO_SOURCE_MAPS: 'true'},
+    help: 'Package up the production js code',
+    nodeEnv: 'production',
+    shell: `${nodeCmd} desktop/package.js`,
+  },
+  'postinstall': {
+    code: postInstall,
+    help: 'all: install global eslint. dummy modules',
+  },
+  'render-screenshots': {
+    env: {
+      BABEL_ENV: 'electron',
+      ELECTRON_ENABLE_LOGGING: 1,
+      KEYBASE_NO_ENGINE: 1,
+    },
+    help: 'Render images of dumb components',
+    shell: 'webpack --config desktop/webpack.config.visdiff.js && electron ./desktop/dist/render-visdiff.bundle.js',
+  },
+  'setup-debug-main': {
+    code: setupDebugMain,
+    help: 'Setup node-inspector to work with electron (run once per electron prebuilt upgrade)',
+  },
+  'start': {
+    help: 'Do a simple dev build',
+    shell: 'yarn run build-dev && yarn run start-cold',
+  },
+  'start-cold': {
+    help: 'Start electron with no hot reloading',
+    nodeEnv: 'development',
+    shell: 'electron ./desktop/dist/main.bundle.js',
+  },
+  'start-hot': {
+    env: {BABEL_ENV: 'electron', HOT: 'true'},
+    help: 'Start electron with hot reloading (needs yarn run hot-server)',
+    nodeEnv: 'development',
+    shell: `${nodeCmd} desktop/client.js`,
+  },
+  'start-hot-debug': {
+    env: {HOT: 'true', USE_INSPECTOR: 'true'},
+    help: 'Start electron with hot reloading against a debugged main process',
+    nodeEnv: 'development',
+    shell: `${nodeCmd} desktop/client.js`,
+  },
+  'start-prod': {
+    help: 'Launch installed Keybase app with console output',
+    shell: '/Applications/Keybase.app/Contents/MacOS/Electron',
   },
   'undiff-log': {
-    help: 'Undiff log send',
     code: undiff,
+    help: 'Undiff log send',
   },
-  'generate-font-project': {
-    help: 'Generate the icomoon project file',
-    code: generateIcoMoon,
-  },
-  'apply-new-fonts': {
-    help: 'Copy font output into the right folders',
-    code: applyNewFonts,
+  'updated-fonts': {
+    code: updatedFonts,
+    help: 'Update our font sizes automatically',
   },
 }
 
@@ -303,7 +304,7 @@ function svgToGridMap () {
         grids[gridSize] = {}
       }
 
-      grids[gridSize][name] = {name, gridSize, path: p}
+      grids[gridSize][name] = {gridSize, name, path: p}
     }
   })
 
@@ -312,7 +313,7 @@ function svgToGridMap () {
 function generateIcoMoon () {
   const svgPaths = {}
   // Need to get the svg info from iconmoon. Couldn't figure out how to derive exactly what they need from the files themselves
-  JSON.parse(fs.readFileSync('../shared/images/iconfont/kb-icomoon-project-app.json', 'utf8')).icons.forEach(icon => {
+  JSON.parse(fs.readFileSync(path.join(__dirname, '../images/iconfont/kb-icomoon-project-app.json'), 'utf8')).icons.forEach(icon => {
     svgPaths[icon.tags[0]] = icon.paths
   })
 
@@ -322,95 +323,95 @@ function generateIcoMoon () {
   let selectionID = 1
 
   const iconSets = Object.keys(grids).map((size, idx) => ({
-    id: idx,
-    metadata: {
-      name: `Grid ${size}`,
-    },
-    selection: Object.keys(grids[size]).map((name, idx) => ({
-      order: selectionOrder++,
-      id: selectionID++,
-      prevSize: size,
-      name,
-    })),
+    colorThemes: [],
+    height: 1024,
     icons: Object.keys(grids[size]).map((name, idx) => {
       const paths = svgPaths[`kb-iconfont-${name}-${size}`]
       if (!paths) {
         throw new Error(`Can't find path for ${name}. Did you run the svgs through icomoon and update kb-icomoon-project-app.json?`)
       }
       return {
-        id: idx,
-        paths,
         attrs: [],
-        isMulticolor: false,
         grid: size,
+        id: idx,
+        isMulticolor: false,
+        paths,
         selection: [],
         tags: [name],
       }
     }),
-    height: 1024,
+    id: idx,
+    metadata: {
+      name: `Grid ${size}`,
+    },
     prevSize: 12,
-    colorThemes: [],
+    selection: Object.keys(grids[size]).map((name, idx) => ({
+      id: selectionID++,
+      name,
+      order: selectionOrder++,
+      prevSize: size,
+    })),
   }))
 
   const write = {
-    metadata: {
-      name: 'KB icon fonts',
-      lastOpened: 1478124176910,
-      created: 1478124107835,
-    },
     iconSets,
+    metadata: {
+      created: 1478124107835,
+      lastOpened: 1478124176910,
+      name: 'KB icon fonts',
+    },
     preferences: {
-      showGlyphs: true,
-      showCodes: false,
-      showQuickUse: true,
-      showQuickUse2: true,
-      showSVGs: true,
       fontPref: {
-        prefix: 'icon-kb-iconfont-',
+        embed: false,
+        ie7: false,
         metadata: {
           fontFamily: 'kb',
           majorVersion: 1,
           minorVersion: 0,
         },
         metrics: {
-          emSize: 1024,
           baseline: 6.25,
+          emSize: 1024,
           whitespace: 50,
         },
-        embed: false,
         noie8: true,
-        ie7: false,
-        showSelector: true,
+        prefix: 'icon-kb-iconfont-',
         showMetadata: true,
         showMetrics: true,
+        showSelector: true,
       },
+      gridSize: 16,
+      historySize: 100,
       imagePref: {
-        prefix: 'icon-',
-        png: false,
-        useClassSelector: false,
-        color: 0,
         bgColor: 16777215,
         classSelector: '.icon',
-        height: 32,
+        color: 0,
         columns: 16,
+        height: 32,
         margin: 16,
+        png: false,
+        prefix: 'icon-',
+        useClassSelector: false,
       },
-      historySize: 100,
-      gridSize: 16,
+      showCodes: false,
+      showGlyphs: true,
       showGrid: true,
       showLiga: false,
+      showQuickUse: true,
+      showQuickUse2: true,
+      showSVGs: true,
     },
     uid: -1,
   }
 
-  fs.writeFileSync('../images/iconfont/kb-icomoon-project-generated.json', JSON.stringify(write, null, 4), 'utf8')
+  fs.writeFileSync(path.join(__dirname, '../images/iconfont/kb-icomoon-project-generated.json'), JSON.stringify(write, null, 4), 'utf8')
   console.log('kb-icomoon-project-generated.json is ready for icomoon')
   updatedFonts()
 }
 
 function applyNewFonts () {
   console.log('Moving font to project')
-  fs.writeFileSync('../fonts/kb.ttf', fs.readFileSync('./shared/images/iconfont/kb/fonts/kb.ttf'))
+  fs.writeFileSync(path.join(__dirname, '../fonts/kb.ttf'), fs.readFileSync(path.join(__dirname, '../images/iconfont/kb/fonts/kb.ttf')))
 }
 
 function updatedFonts () {
@@ -418,13 +419,13 @@ function updatedFonts () {
 
   const icons = {}
 
-  fs.readdirSync('../images/icons')
+  fs.readdirSync(path.join(__dirname, '../images/icons'))
     .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
       icons[shortName] = {
-        isFont: false,
         extension: i.slice(-3),
+        isFont: false,
         require: `'../images/icons/${i}'`,
       }
     })
@@ -436,9 +437,9 @@ function updatedFonts () {
     Object.keys(grids[gridSize]).forEach(name => {
       const info = grids[gridSize][name]
       icons[`iconfont-${info.name}`] = {
-        isFont: true,
-        gridSize: info.gridSize,
         charCode,
+        gridSize: info.gridSize,
+        isFont: true,
       }
       charCode++
     })
@@ -487,7 +488,7 @@ export type IconType = $Keys<typeof iconMeta_>
 export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 `
 
-  fs.writeFileSync('../common-adapters/icon.constants.js', iconConstants, 'utf8')
+  fs.writeFileSync(path.join(__dirname, '../common-adapters/icon.constants.js'), iconConstants, 'utf8')
 }
 
 function exec (command, env, options) {

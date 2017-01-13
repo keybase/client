@@ -74,10 +74,9 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
 export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style, you}: AttachmentProps) => {
   const items = [
     'Divider',
-    {title: 'Download', onClick: () => onDownloadAttachment(message)},
     message.downloadedPath
-      ? {title: `Show in ${fileUIName}`, onClick: () => onOpenInFileUI(message)}
-      : {title: 'Download', onClick: () => onDownloadAttachment(message)},
+      ? {title: `Show in ${fileUIName}`, onClick: onOpenInFileUI}
+      : {title: 'Download', onClick: onDownloadAttachment},
   ]
   if (message.author === you) {
     items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)})

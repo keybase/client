@@ -2,13 +2,16 @@
 
 ## Phase 1: Get svg paths
 - Go to https://icomoon.io
-- Create a new empty project and import all our svg files using menu -> Manage projects -> New Project
-- Save the project as kb-icomoon-project-app.json
+- Create a new empty project [Main Menu -> Manage projects -> New Project]
+- Import all the svgs [Import icons]
+- Download JSON [Right hamburger menu => Download JSON] and save as kb-icomoon-project-app.json
+
 ## Phase 2: Generate fonts
-- run `npm run generate-font-project` (this updates our Icon constants for you)
-- In webapp Import project file kb-icomoon-project-generated.json, using menu -> Projects -> Import Project
-- Copy kb.zip to this folder as `kb`
-- run `npm run apply-new-fonts`
+- run `yarn run generate-font-project` (this updates our Icon constants for you)
+- On icomoon.io import the generated project [menu -> Projects -> Import Project -> kb-icomoon-project-generated.json]
+- Generate font and download
+- Unzip kb.zip into this folder
+- run `yarn run apply-new-fonts`
 - Delete `./kb/`
 
 ## Fixing Vertical Metrics
@@ -30,5 +33,5 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 
 ## Update the flowtype and fonts on both apps
 
-1. Go to /desktop
-1. Run ```npm run updated-fonts```
+1. Go to /shared
+1. Run ```yarn run updated-fonts```

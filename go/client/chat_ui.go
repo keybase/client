@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -20,7 +20,7 @@ type ChatUI struct {
 	lastPercentReported int
 }
 
-func (c *ChatUI) ChatAttachmentUploadStart(context.Context, int) error {
+func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.ChatAttachmentUploadStartArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -51,7 +51,7 @@ func (c *ChatUI) ChatAttachmentUploadDone(context.Context, int) error {
 	return nil
 }
 
-func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, int) error {
+func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, chat1.ChatAttachmentPreviewUploadStartArg) error {
 	if c.noOutput {
 		return nil
 	}
@@ -109,7 +109,15 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 	snippet := "<blank>"
 	tlf := arg.Conv.Info.TlfName + " (unverified)"
 	for _, msg := range arg.Conv.MaxMessages {
-		if msg.IsValid() && msg.GetMessageType() == chat1.MessageType_TEXT {
+		if msg.IsValid() {
+			body := msg.Valid().MessageBody
+			typ, err := (&body).MessageType()
+			if err != nil {
+				continue
+			}
+			if typ != chat1.MessageType_TEXT {
+				continue
+			}
 			sender = msg.Valid().SenderUsername
 			snippet = msg.Valid().MessageBody.Text().Body
 			tlf = msg.Valid().ClientHeader.TlfName
@@ -147,7 +155,7 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 		return chat1.ConversationLocal{}, fmt.Errorf("no text message found")
 	}
 
-	rnames, wnames, err := chat.ReorderParticipants(ctx, c.G().GetUPAKLoader(),
+	rnames, wnames, err := utils.ReorderParticipants(ctx, c.G().GetUPAKLoader(),
 		txtMsg.ClientHeader.TlfName, conv.Metadata.ActiveList)
 	if err != nil {
 		return chat1.ConversationLocal{}, err

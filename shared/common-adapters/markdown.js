@@ -10,35 +10,46 @@ import parser from '../markdown/parser.pegjs'
 import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
 
+const wrapStyle = {
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+}
+
 const codeSnippetStyle = {
   ...globalStyles.fontTerminal,
   ...globalStyles.rounded,
+  ...wrapStyle,
+  backgroundColor: globalColors.beige,
+  color: globalColors.blue,
   fontSize: 12,
   paddingLeft: globalMargins.xtiny,
   paddingRight: globalMargins.xtiny,
-  backgroundColor: globalColors.beige,
-  color: globalColors.blue,
 }
 
 const codeSnippetBlockStyle = {
   ...codeSnippetStyle,
-  display: 'block',
-  color: globalColors.black_75,
+  ...wrapStyle,
   backgroundColor: globalColors.beige,
-  marginTop: globalMargins.xtiny,
+  color: globalColors.black_75,
+  display: 'block',
   marginBottom: globalMargins.xtiny,
-  paddingTop: globalMargins.xtiny,
+  marginTop: globalMargins.xtiny,
   paddingBottom: globalMargins.xtiny,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
-  whiteSpace: 'pre-wrap',
+  paddingTop: globalMargins.xtiny,
 }
+
+const neutralStyle = {...wrapStyle, color: undefined, fontWeight: undefined}
+const boldStyle = {...wrapStyle, color: undefined}
+const italicStyle = {...wrapStyle, color: undefined, fontStyle: 'italic', fontWeight: undefined}
+const strikeStyle = {...wrapStyle, color: undefined, fontWeight: undefined, textDecoration: 'line-through'}
 
 class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
   render () {
     const emoji = (this.props.children && this.props.children.join('')) || ''
     const exists = emojiIndex.emojis.hasOwnProperty(emoji.split('::')[0])
-    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={{color: undefined, fontWeight: undefined}}>:{emoji}:</Text>
+    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={neutralStyle}>:{emoji}:</Text>
   }
 }
 
@@ -49,13 +60,13 @@ function createComponent (type, key, children) {
     case 'code-block':
       return <Text type='Body' key={key} style={codeSnippetBlockStyle}>{children}</Text>
     case 'text':
-      return <Text type='Body' key={key} style={{color: undefined, fontWeight: undefined}}>{children}</Text>
+      return <Text type='Body' key={key} style={neutralStyle}>{children}</Text>
     case 'bold':
-      return <Text type='BodySemibold' key={key} style={{color: undefined}}>{children}</Text>
+      return <Text type='BodySemibold' key={key} style={boldStyle}>{children}</Text>
     case 'italic':
-      return <Text type='Body' key={key} style={{color: undefined, fontStyle: 'italic', fontWeight: undefined}}>{children}</Text>
+      return <Text type='Body' key={key} style={italicStyle}>{children}</Text>
     case 'strike':
-      return <Text type='Body' key={key} style={{color: undefined, fontWeight: undefined, textDecoration: 'line-through'}}>{children}</Text>
+      return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
     case 'emoji':
       return <EmojiIfExists size={16} key={key}>{children}</EmojiIfExists>
     // TODO
@@ -71,7 +82,27 @@ function process (ast) {
   while (stack.length > 0) {
     const top = stack[0]
     if (top.type && top.seen) {
-      top.component = createComponent(top.type, index++, top.children.map(c => c.component ? c.component : c))
+      // Needed to collect characters into strings
+      const childrenComponents = top.children.reduce((acc, child, i) => {
+        const last = acc[acc.length - 1]
+        const isLast = i === top.children.length - 1
+        if (Array.isArray(last) && typeof child === 'string') {
+          last.push(child)
+          if (isLast) {
+            acc[acc.length - 1] = last.join('')
+          }
+        } else if (Array.isArray(last)) {
+          acc[acc.length - 1] = last.join('')
+          acc.push(child.component)
+        } else if (typeof child === 'string') {
+          acc.push([child])
+        } else {
+          acc.push(child.component)
+        }
+
+        return acc
+      }, [])
+      top.component = createComponent(top.type, index++, childrenComponents)
       stack.shift()
     } else if (top.type && !top.seen) {
       top.seen = true
