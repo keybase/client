@@ -1,10 +1,13 @@
 // @flow
-import React, {PureComponent} from 'react'
-import {Avatar, Icon, Text} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import * as Constants from '../../../constants/chat'
-import {withHandlers} from 'recompose'
+import React, {PureComponent} from 'react'
 import shallowEqual from 'shallowequal'
+import {Avatar, Icon, Text} from '../../../common-adapters'
+import {Map} from 'immutable'
+import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {withHandlers} from 'recompose'
+
+import type {FollowingMap, MetaDataMap} from '../../../constants/chat'
 
 type Props = {
   includeHeader: boolean,
@@ -15,20 +18,27 @@ type Props = {
   isSelected: boolean,
   children: React$Element<*>,
   message: Constants.TextMessage | Constants.AttachmentMessage,
+  you: string,
+  followingMap: FollowingMap,
+  metaDataMap: MetaDataMap,
 }
 
-const _marginColor = (followState) => ({
-  'You': globalColors.white,
-  'Following': globalColors.green2,
-  'NotFollowing': globalColors.blue,
-  'Broken': globalColors.red,
-}[followState])
+const marginColor = (user: string, you: string, followingMap: FollowingMap, metaDataMap: MetaDataMap) => {
+  if (user === you) {
+    return globalColors.white
+  } else {
+    if (metaDataMap.get(user, Map()).get('brokenTracker', false)) {
+      return globalColors.red
+    }
+    return followingMap[user] ? globalColors.green2 : globalColors.blue
+  }
+}
 
-const colorForAuthor = (followState: Constants.FollowState) => {
-  if (followState === 'You') {
+const colorForAuthor = (user: string, you: string, followingMap: FollowingMap, metaDataMap: MetaDataMap) => {
+  if (user === you) {
     return globalColors.black_75
   } else {
-    return _marginColor(followState)
+    return marginColor(user, you, followingMap, metaDataMap)
   }
 }
 
@@ -53,17 +63,17 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
   }
 
   render () {
-    const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, isSelected} = this.props
+    const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, isSelected, you, followingMap, metaDataMap} = this.props
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}} className='message'>
         <div style={_marginContainerStyle}>
-          <div style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
+          <div style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: marginColor(message.author, you, followingMap, metaDataMap)}} />
           <div style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
             {includeHeader
               ? <Avatar size={24} username={message.author} style={_avatarStyle} />
               : <div style={_noHeaderStyle} />}
             <div style={_bodyContainerStyle}>
-              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
+              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null)}}>{message.author}</Text>}
               <div style={_textContainerStyle}>
                 <div style={_childrenWrapStyle}>
                   {children}

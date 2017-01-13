@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import {Map} from 'immutable'
 import {Box, Avatar, Text, Usernames, Divider, Icon} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
@@ -7,16 +8,23 @@ import type {Props} from '.'
 
 const Participants = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn}}>
-    {props.participants.filter(p => !p.you).map(p => (
-      <Box key={p.username} style={rowStyle} onClick={() => props.onShowProfile(p.username)}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, marginRight: globalMargins.tiny}}>
-          <Avatar size={32} username={p.username} />
-          <Usernames colorFollowing={true} type='Body' users={[p]} containerStyle={{marginLeft: 12}} />
-          <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>{props.metaData.getIn([p.username, 'fullname'], 'Unknown')}</Text>
+    {props.participants.map(username => {
+      const you = username === props.you
+      const following = !!props.followingMap[username]
+      const meta = props.metaDataMap.get(username, Map({}))
+      const fullname = meta.get('fullname', 'Unknown')
+      const broken = meta.get('brokenTracker', false)
+      return (
+        <Box key={username} style={rowStyle} onClick={() => props.onShowProfile(username)}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, marginRight: globalMargins.tiny}}>
+            <Avatar size={32} username={username} />
+            <Usernames colorFollowing={true} type='Body' users={[{username, you, following, broken}]} containerStyle={{marginLeft: 12}} />
+            <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>{fullname}</Text>
+          </Box>
+          <Divider style={{marginLeft: 44}} />
         </Box>
-        <Divider style={{marginLeft: 44}} />
-      </Box>
-    ))}
+      )
+    })}
     <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => props.onAddParticipant()}>
       <Icon type='icon-user-add-32' style={{marginRight: 12}} />
       <Text type='BodyPrimaryLink' onClick={() => {}}>Add another participant</Text>

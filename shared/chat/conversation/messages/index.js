@@ -7,11 +7,47 @@ import Timestamp from './timestamp'
 import {Box} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
 
-import type {Message, AttachmentMessage, ServerMessage} from '../../../constants/chat'
+import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMap} from '../../../constants/chat'
 
 const _onRetryTodo = (message: Message) => console.log('todo, hookup attachment onRetry, ', message)
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstNewMessage: boolean, style: Object, isScrolling: boolean, onAction: (message: ServerMessage, event: any) => void, isSelected: boolean, onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void, onOpenInFileUI: (path: string) => void, onOpenInPopup: (message: AttachmentMessage) => void, onRetry: (outboxID: string) => void) => {
+type Options = {
+  message: Message,
+  includeHeader: boolean,
+  index: number,
+  key: string,
+  isFirstNewMessage: boolean,
+  style: Object,
+  isScrolling: boolean,
+  onAction: (message: ServerMessage, event: any) => void,
+  isSelected: boolean,
+  onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,
+  onOpenInFileUI: (path: string) => void,
+  onOpenInPopup: (message: AttachmentMessage) => void,
+  onRetry: (outboxID: string) => void,
+  you: string,
+  metaDataMap: MetaDataMap,
+  followingMap: FollowingMap,
+}
+
+const factory = (options: Options) => {
+  const {
+    message,
+    includeHeader,
+    key,
+    isFirstNewMessage,
+    style,
+    onAction,
+    isSelected,
+    onLoadAttachment,
+    onOpenInFileUI,
+    onOpenInPopup,
+    onRetry,
+    you,
+    metaDataMap,
+    followingMap,
+  } = options
+
   if (!message) {
     return <Box key={key} style={style} />
   }
@@ -21,6 +57,9 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
     case 'Text':
       return <MessageText
         key={key}
+        you={you}
+        metaDataMap={metaDataMap}
+        followingMap={followingMap}
         style={style}
         message={message}
         onRetry={onRetry}
@@ -39,6 +78,9 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
       return <AttachmentMessageRender
         key={key}
         style={style}
+        you={you}
+        metaDataMap={metaDataMap}
+        followingMap={followingMap}
         message={message}
         onRetry={_onRetryTodo}
         includeHeader={includeHeader}

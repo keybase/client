@@ -15,7 +15,7 @@ import (
 type UPAKLoader interface {
 	ClearMemory()
 	Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
-	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, err error)
+	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (keybase1.UserPlusKeys, error)
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upk *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
@@ -296,7 +296,7 @@ func (u *CachedUPAKLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys,
 	return u.loadWithInfo(arg, nil)
 }
 
-func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, err error) {
+func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
 
 	var info CachedUserLoadInfo
 	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
@@ -304,19 +304,19 @@ func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID,
 	upk, _, err := u.loadWithInfo(larg, &info)
 
 	if err != nil {
-		return false, nil, err
+		return false, nil, false, err
 	}
-	found, revokedAt = CheckKID(upk, kid)
+	found, revokedAt, deleted = CheckKID(upk, kid)
 	if found || info.LoadedLeaf || info.LoadedUser {
-		return found, revokedAt, nil
+		return found, revokedAt, deleted, nil
 	}
 	larg.ForceReload = true
 	upk, _, err = u.loadWithInfo(larg, nil)
 	if err != nil {
-		return false, nil, err
+		return false, nil, false, err
 	}
-	found, revokedAt = CheckKID(upk, kid)
-	return found, revokedAt, nil
+	found, revokedAt, deleted = CheckKID(upk, kid)
+	return found, revokedAt, deleted, nil
 }
 
 func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (keybase1.UserPlusKeys, error) {
@@ -331,7 +331,7 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 	arg.NetContext = ctx
 
 	// We need to force a reload to make KBFS tests pass
-	arg.ForcePoll = true
+	arg.ForcePoll = (u.G().Env.GetRunMode() == DevelRunMode)
 
 	upak, _, err := u.Load(arg)
 	if err != nil {

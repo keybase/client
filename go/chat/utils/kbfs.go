@@ -3,7 +3,7 @@
 
 // This is all stuff copied from libkbfs.
 
-package chat
+package utils
 
 import (
 	"fmt"

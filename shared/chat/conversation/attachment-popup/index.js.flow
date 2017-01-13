@@ -4,6 +4,7 @@ import {Component} from 'react'
 import type {AttachmentMessage} from '../../../constants/chat'
 
 export type Props = {
+  you: string,
   message: AttachmentMessage,
   detailsPopupShowing: boolean,
   isZoomed: boolean,

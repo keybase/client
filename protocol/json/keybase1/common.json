@@ -378,6 +378,13 @@
         {
           "type": "UserVersionVector",
           "name": "uvv"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "deletedDeviceKeys"
         }
       ]
     },

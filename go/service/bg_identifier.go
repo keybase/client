@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 	"sync"
 )
 
@@ -57,7 +58,7 @@ func newBackgroundIdentifier(g *libkb.GlobalContext, u keybase1.UID) (*Backgroun
 	}
 
 	go func() {
-		err := engine.RunEngine(eng, &engine.Context{})
+		err := engine.RunEngine(eng, &engine.Context{NetContext: context.Background()})
 		if err != nil {
 			g.Log.Warning("Background identifier failed: %s\n", err)
 		}

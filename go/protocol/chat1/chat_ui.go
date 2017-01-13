@@ -9,7 +9,8 @@ import (
 )
 
 type ChatAttachmentUploadStartArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	Metadata  AssetMetadata `codec:"metadata" json:"metadata"`
 }
 
 type ChatAttachmentUploadProgressArg struct {
@@ -23,7 +24,8 @@ type ChatAttachmentUploadDoneArg struct {
 }
 
 type ChatAttachmentPreviewUploadStartArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	Metadata  AssetMetadata `codec:"metadata" json:"metadata"`
 }
 
 type ChatAttachmentPreviewUploadDoneArg struct {
@@ -61,10 +63,10 @@ type ChatInboxFailedArg struct {
 }
 
 type ChatUiInterface interface {
-	ChatAttachmentUploadStart(context.Context, int) error
+	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
 	ChatAttachmentUploadDone(context.Context, int) error
-	ChatAttachmentPreviewUploadStart(context.Context, int) error
+	ChatAttachmentPreviewUploadStart(context.Context, ChatAttachmentPreviewUploadStartArg) error
 	ChatAttachmentPreviewUploadDone(context.Context, int) error
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -89,10 +91,10 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ChatAttachmentUploadStartArg)(nil), args)
 						return
 					}
-					err = i.ChatAttachmentUploadStart(ctx, (*typedArgs)[0].SessionID)
+					err = i.ChatAttachmentUploadStart(ctx, (*typedArgs)[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"chatAttachmentUploadProgress": {
 				MakeArg: func() interface{} {
@@ -108,7 +110,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentUploadProgress(ctx, (*typedArgs)[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"chatAttachmentUploadDone": {
 				MakeArg: func() interface{} {
@@ -124,7 +126,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentUploadDone(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"chatAttachmentPreviewUploadStart": {
 				MakeArg: func() interface{} {
@@ -137,10 +139,10 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ChatAttachmentPreviewUploadStartArg)(nil), args)
 						return
 					}
-					err = i.ChatAttachmentPreviewUploadStart(ctx, (*typedArgs)[0].SessionID)
+					err = i.ChatAttachmentPreviewUploadStart(ctx, (*typedArgs)[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"chatAttachmentPreviewUploadDone": {
 				MakeArg: func() interface{} {
@@ -156,7 +158,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentPreviewUploadDone(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"chatAttachmentDownloadStart": {
 				MakeArg: func() interface{} {
@@ -172,7 +174,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentDownloadStart(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"chatAttachmentDownloadProgress": {
 				MakeArg: func() interface{} {
@@ -188,7 +190,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentDownloadProgress(ctx, (*typedArgs)[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"chatAttachmentDownloadDone": {
 				MakeArg: func() interface{} {
@@ -204,7 +206,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					err = i.ChatAttachmentDownloadDone(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"chatInboxUnverified": {
 				MakeArg: func() interface{} {
@@ -262,49 +264,47 @@ type ChatUiClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c ChatUiClient) ChatAttachmentUploadStart(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatAttachmentUploadStartArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentUploadStart", []interface{}{__arg}, nil)
+func (c ChatUiClient) ChatAttachmentUploadStart(ctx context.Context, __arg ChatAttachmentUploadStartArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentUploadStart", []interface{}{__arg})
 	return
 }
 
 func (c ChatUiClient) ChatAttachmentUploadProgress(ctx context.Context, __arg ChatAttachmentUploadProgressArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentUploadProgress", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentUploadProgress", []interface{}{__arg})
 	return
 }
 
 func (c ChatUiClient) ChatAttachmentUploadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentUploadDoneArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentUploadDone", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentUploadDone", []interface{}{__arg})
 	return
 }
 
-func (c ChatUiClient) ChatAttachmentPreviewUploadStart(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatAttachmentPreviewUploadStartArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentPreviewUploadStart", []interface{}{__arg}, nil)
+func (c ChatUiClient) ChatAttachmentPreviewUploadStart(ctx context.Context, __arg ChatAttachmentPreviewUploadStartArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentPreviewUploadStart", []interface{}{__arg})
 	return
 }
 
 func (c ChatUiClient) ChatAttachmentPreviewUploadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentPreviewUploadDoneArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentPreviewUploadDone", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentPreviewUploadDone", []interface{}{__arg})
 	return
 }
 
 func (c ChatUiClient) ChatAttachmentDownloadStart(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentDownloadStartArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadStart", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentDownloadStart", []interface{}{__arg})
 	return
 }
 
 func (c ChatUiClient) ChatAttachmentDownloadProgress(ctx context.Context, __arg ChatAttachmentDownloadProgressArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadProgress", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentDownloadProgress", []interface{}{__arg})
 	return
 }
 
 func (c ChatUiClient) ChatAttachmentDownloadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentDownloadDoneArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadDone", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentDownloadDone", []interface{}{__arg})
 	return
 }
 
