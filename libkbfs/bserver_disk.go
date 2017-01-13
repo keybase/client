@@ -123,6 +123,12 @@ func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	select {
+	case <-ctx.Done():
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, ctx.Err()
+	default:
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -152,6 +158,12 @@ func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID
 func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -184,6 +196,12 @@ func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID
 // AddBlockReference implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	b.log.CDebugf(ctx, "BlockServerDisk.AddBlockReference id=%s "+
 		"tlfID=%s context=%s", id, tlfID, context)
 	tlfStorage, err := b.getStorage(tlfID)
@@ -223,6 +241,12 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (
 	liveCounts map[kbfsblock.ID]int, err error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -263,6 +287,12 @@ func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 // BlockServerDisk.
 func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -320,6 +350,12 @@ func (b *BlockServerDisk) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (
 // IsUnflushed implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 	_ kbfsblock.ID) (bool, error) {
+	select {
+	case <-ctx.Done():
+		return false, ctx.Err()
+	default:
+	}
+
 	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return false, err
@@ -369,6 +405,12 @@ func (b *BlockServerDisk) RefreshAuthToken(_ context.Context) {}
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	// Return a dummy value here.
 	return &kbfsblock.UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
 }

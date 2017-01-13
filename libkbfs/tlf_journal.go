@@ -671,6 +671,13 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	// block ops. See KBFS-1502.
 
 	for {
+		select {
+		case <-ctx.Done():
+			j.log.CDebugf(ctx, "Flush canceled: %+v", ctx.Err())
+			return nil
+		default:
+		}
+
 		isConflict, err := j.isOnConflictBranch()
 		if err != nil {
 			return err
