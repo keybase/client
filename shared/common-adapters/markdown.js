@@ -4,13 +4,11 @@ import Text from './text'
 import {emojiIndex} from 'emoji-mart'
 import Emoji from './emoji'
 import React, {PureComponent} from 'react'
-import {List} from 'immutable'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import parser from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
-import type {PropsOf} from '../constants/types/more'
 
 const codeSnippetStyle = {
   ...globalStyles.fontTerminal,
@@ -36,6 +34,14 @@ const codeSnippetBlockStyle = {
   whiteSpace: 'pre-wrap',
 }
 
+class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
+  render () {
+    const emoji = (this.props.children && this.props.children.join('')) || ''
+    const exists = emojiIndex.emojis.hasOwnProperty(emoji.split('::')[0])
+    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={{color: undefined, fontWeight: undefined}}>:{emoji}:</Text>
+  }
+}
+
 function createComponent (type, key, children) {
   switch (type) {
     case 'inline-code':
@@ -50,6 +56,9 @@ function createComponent (type, key, children) {
       return <Text type='Body' key={key} style={{color: undefined, fontStyle: 'italic', fontWeight: undefined}}>{children}</Text>
     case 'strike':
       return <Text type='Body' key={key} style={{color: undefined, fontWeight: undefined, textDecoration: 'line-through'}}>{children}</Text>
+    case 'emoji':
+      return <EmojiIfExists size={16} key={key}>{children}</EmojiIfExists>
+    // TODO
     case 'quote-block':
       return <Text type='Body' key={key} style={{}}>{children}</Text>
   }
@@ -75,14 +84,9 @@ function process (ast) {
   return ast.component
 }
 
-// It's a lot easier to parse emojis if we change :santa::skin-tone-3: to :santa\:\:skin-tone-3:
-function preprocessEmojiColors (text: string): string {
-  return text.replace(/:([\w-]*)::(skin-tone-\d):/g, ':$1\\:\\:$2:')
-}
-
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    return <Text type='Body' style={this.props.style}>{process(parser.parse(preprocessEmojiColors(this.props.children || '')))}</Text>
+    return <Text type='Body' style={this.props.style}>{process(parser.parse(this.props.children || ''))}</Text>
   }
 }
 

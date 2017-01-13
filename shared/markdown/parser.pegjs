@@ -7,7 +7,7 @@ Content =
 	StyledText / Text
 
 StyledText
- = QuoteBlock / Italic / Bold / Strike
+ = QuoteBlock / Italic / Bold / Strike / Emoji
 
 // Define what our markers look like
 Ticks1 = "`" ! '`'
@@ -16,6 +16,7 @@ Ticks3 = __? "```" __? ! '```'
 StrikeMarker = "~" ! "~"
 BoldMarker = "*" ! "*"
 ItalicMarker = "_" ! "_"
+EmojiMarker = ":" ! ":"
 QuoteBlockMarker = ">"
 
 // Define what we can go to when we are inside a style. e.g. Bold -> Bold doesn't make sense, but Bold -> Strike does
@@ -50,6 +51,10 @@ InsideInlineCode
 InsideQuoteBlock
  = ((! LineTerminatorSequence) .) { return text(); }
 
+// Here we use the literal ":" because we want to not match the :foo in ::foo
+InsideEmojiMarker
+ = (! ":" .) { return text(); }
+
 // Define the rules for styles. Usually a start marker, children, and an end marker.
 QuoteBlock
  = QuoteBlockMarker _? children:FromQuote* LineTerminatorSequence { return {type: 'quote-block', children: children}; }
@@ -68,6 +73,9 @@ CodeBlock
 
 InlineCode
  = Ticks1 children:InsideInlineCode* Ticks1 { return {type: 'inline-code', children}; }
+
+Emoji
+ = EmojiMarker children:(InsideEmojiMarker / "::")* EmojiMarker { return {type: 'emoji', children: [children.join('')]}; }
 
 Text "text"
  = _? NonBlank+ _? { return text() }
