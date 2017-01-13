@@ -1,11 +1,12 @@
 // @flow
 import {mapValues, forEach} from 'lodash'
 import {buffers, channel} from 'redux-saga'
-import {take, call, put, takeEvery, takeLatest} from 'redux-saga/effects'
+import {take, call, put, race, takeEvery, takeLatest} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
-import type {ChannelConfig, ChannelMap} from '../constants/types/saga'
+import type {Action} from '../constants/types/flux'
+import type {ChannelConfig, ChannelMap, SagaGenerator} from '../constants/types/saga'
 
 function createChannelMap<T> (channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, v => {
@@ -83,7 +84,19 @@ function safeTakeLatest (pattern: string | Array<any> | Function, worker: Functi
   return takeLatest(pattern, wrappedWorker, ...args)
 }
 
+function cancelWhen (predicate: (action: Action, nextAction: Action) => boolean, worker: Function) {
+  const wrappedWorker = function * (action: Action): SagaGenerator<any, any> {
+    yield race({
+      result: call(worker, action),
+      cancel: take((nextAction: Action) => predicate(action, nextAction)),
+    })
+  }
+
+  return wrappedWorker
+}
+
 export {
+  cancelWhen,
   closeChannelMap,
   createChannelMap,
   effectOnChannelMap,

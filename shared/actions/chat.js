@@ -16,7 +16,7 @@ import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
-import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
+import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
 import {tmpFile} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
@@ -25,6 +25,7 @@ import {toDeviceType} from '../constants/types/more'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
+import type {Action} from '../constants/types/flux'
 import type {ChangedFocus} from '../constants/window'
 import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
@@ -1150,6 +1151,10 @@ function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any>
   yield put(loadMoreMessages(selectedConversation, false))
 }
 
+function _threadIsCleared (action: Action, nextAction: Action): boolean {
+  return action.type === 'chat:loadMoreMessages' && nextAction.type === 'chat:clearMessages' && action.conversationIDKey === nextAction.conversationIDKey
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   if (!flags.tabChatEnabled) {
     return
@@ -1159,7 +1164,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.loadInbox, _loadInbox),
     safeTakeLatest('chat:inboxStale', _loadInbox),
     safeTakeLatest(Constants.loadedInbox, _loadedInbox),
-    safeTakeEvery(Constants.loadMoreMessages, _loadMoreMessages),
+    safeTakeEvery(Constants.loadMoreMessages, cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest(Constants.selectConversation, _selectConversation),
     safeTakeEvery(Constants.updateBadging, _updateBadging),
     safeTakeEvery(Constants.setupChatHandlers, _setupChatHandlers),
