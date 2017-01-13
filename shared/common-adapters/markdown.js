@@ -13,9 +13,15 @@ import type {PropsOf} from '../constants/types/more'
 
 type TagInfo<C> = {Component: Class<C>, props: PropsOf<C>}
 
+const wrapStyle = {
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+}
+
 const codeSnippetStyle = {
   ...globalStyles.fontTerminal,
   ...globalStyles.rounded,
+  ...wrapStyle,
   fontSize: 12,
   paddingLeft: globalMargins.xtiny,
   paddingRight: globalMargins.xtiny,
@@ -25,6 +31,7 @@ const codeSnippetStyle = {
 
 const codeSnippetBlockStyle = {
   ...codeSnippetStyle,
+  ...wrapStyle,
   display: 'block',
   color: globalColors.black_75,
   backgroundColor: globalColors.beige,
@@ -34,7 +41,6 @@ const codeSnippetBlockStyle = {
   paddingBottom: globalMargins.xtiny,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
-  whiteSpace: 'pre-wrap',
 }
 
 // Order matters, since we want to match the longer ticks first
@@ -57,7 +63,12 @@ const markToRegex = {
   ':': ':',
 }
 
-const plainStringTag = {Component: Text, props: {type: 'Body', style: {color: undefined}}}
+const plainStringStyle = {
+  ...wrapStyle,
+  color: undefined,
+}
+
+const plainStringTag = {Component: Text, props: {type: 'Body', style: plainStringStyle}}
 
 class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
   render () {
@@ -70,9 +81,9 @@ class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
 const initialOpenToTag = {
   '`': {Component: Text, props: {type: 'Body', style: codeSnippetStyle}},
   '```': {Component: Text, props: {type: 'Body', style: codeSnippetBlockStyle}},
-  '*': {Component: Text, props: {type: 'BodySemibold', style: {color: undefined}}},
-  '_': {Component: Text, props: {type: 'Body', style: {fontStyle: 'italic', fontWeight: undefined, color: undefined}}},
-  '~': {Component: Text, props: {type: 'Body', style: {textDecoration: 'line-through', fontWeight: undefined, color: undefined}}},
+  '*': {Component: Text, props: {type: 'BodySemibold', style: {...wrapStyle, color: undefined}}},
+  '_': {Component: Text, props: {type: 'Body', style: {...wrapStyle, fontStyle: 'italic', fontWeight: undefined, color: undefined}}},
+  '~': {Component: Text, props: {type: 'Body', style: {...wrapStyle, textDecoration: 'line-through', fontWeight: undefined, color: undefined}}},
   ':': {Component: EmojiIfExists, props: {size: 16}},
 }
 
