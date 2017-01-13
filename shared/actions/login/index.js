@@ -44,7 +44,7 @@ function waitingForResponse (waiting: boolean) : TypedAction<'login:waitingForRe
 
 export function navBasedOnLoginState (): AsyncAction {
   return (dispatch, getState) => {
-    const {config: {status, extendedConfig}, login: {justDeletedSelf}} = getState()
+    const {config: {status, extendedConfig}, login: {justDeletedSelf}, routeTree: {routeState: {selected: selectedTab}}} = getState()
 
     // No status?
     if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
@@ -56,7 +56,9 @@ export function navBasedOnLoginState (): AsyncAction {
           console.log('Loading overridden logged in tab')
           dispatch(navigateTo([overrideLoggedInTab]))
         } else {
-          dispatch(navigateTo([devicesTab]))
+          if (selectedTab === loginTab) {
+            dispatch(navigateTo([devicesTab]))
+          }
         }
       } else if (status.registered) { // relogging in
         dispatch(getAccounts())
