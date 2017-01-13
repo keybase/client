@@ -24,10 +24,9 @@ const (
 type blockRetrievalConfig interface {
 	dataVersioner
 	logMaker
+	blockCacher
 	// Codec for copying blocks
 	codec() kbfscodec.Codec
-	// BlockCache for writethrough caching
-	blockCache() BlockCache
 }
 
 // blockRetrievalRequest represents one consumer's request for a block.
@@ -238,8 +237,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 
 	// Cache the block and trigger prefetches if there is no error.
 	if err == nil {
-		if brq.config.blockCache() != nil {
-			_ = brq.config.blockCache().Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
+		if brq.config.BlockCache() != nil {
+			_ = brq.config.BlockCache().Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
 		}
 		// We have to trigger prefetches in a goroutine because otherwise we
 		// can deadlock with `TogglePrefetcher`.

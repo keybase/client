@@ -27,6 +27,10 @@ type logMaker interface {
 	MakeLogger(module string) logger.Logger
 }
 
+type blockCacher interface {
+	BlockCache() BlockCache
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -1388,6 +1392,7 @@ type ConflictRenamer interface {
 type Config interface {
 	dataVersioner
 	logMaker
+	blockCacher
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -1402,7 +1407,6 @@ type Config interface {
 	SetKeyBundleCache(KeyBundleCache)
 	KeyBundleCache() KeyBundleCache
 	SetKeyCache(KeyCache)
-	BlockCache() BlockCache
 	SetBlockCache(BlockCache)
 	DirtyBlockCache() DirtyBlockCache
 	SetDirtyBlockCache(DirtyBlockCache)

@@ -15,11 +15,11 @@ import (
 type blockOpsConfig interface {
 	dataVersioner
 	logMaker
+	blockCacher
 	blockServer() BlockServer
 	codec() kbfscodec.Codec
 	crypto() cryptoPure
 	keyGetter() blockKeyGetter
-	blockCache() BlockCache
 }
 
 type blockOpsConfigAdapter struct {
@@ -42,10 +42,6 @@ func (config blockOpsConfigAdapter) crypto() cryptoPure {
 
 func (config blockOpsConfigAdapter) keyGetter() blockKeyGetter {
 	return config.Config.KeyManager()
-}
-
-func (config blockOpsConfigAdapter) blockCache() BlockCache {
-	return config.Config.BlockCache()
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying

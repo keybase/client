@@ -24,6 +24,7 @@ const (
 type prefetcherConfig interface {
 	dataVersioner
 	logMaker
+	blockCacher
 }
 
 type prefetchRequest struct {
@@ -93,10 +94,11 @@ func (p *blockPrefetcher) run() {
 			go func() {
 				defer wg.Done()
 				defer cancel()
-				p.log.CDebugf(ctx, "Begin prefetch for block %s", req.ptr.ID)
 				select {
 				case err := <-errCh:
-					p.log.CDebugf(ctx, "Done prefetch for block %s. Error: %+v", req.ptr.ID, err)
+					if err != nil {
+						p.log.CDebugf(ctx, "Done prefetch for block %s. Error: %+v", req.ptr.ID, err)
+					}
 				case <-p.shutdownCh:
 					// Cancel but still wait so p.doneCh accurately represents
 					// whether we still have requests pending.
@@ -111,6 +113,9 @@ func (p *blockPrefetcher) run() {
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block, entryName string) error {
+	if _, err := p.config.BlockCache().Get(ptr); err == nil {
+		return nil
+	}
 	if err := checkDataVersion(p.config, path{}, ptr); err != nil {
 		return err
 	}
@@ -129,6 +134,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadat
 	if numIPtrs > defaultIndirectPointerPrefetchCount {
 		numIPtrs = defaultIndirectPointerPrefetchCount
 	}
+	p.log.CDebugf(context.Background(), "Prefetching pointers for indirect file block. Num pointers to prefetch: %d", numIPtrs)
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		p.request(fileIndirectBlockPrefetchPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), "")
@@ -141,6 +147,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata,
 	if numIPtrs > defaultIndirectPointerPrefetchCount {
 		numIPtrs = defaultIndirectPointerPrefetchCount
 	}
+	p.log.CDebugf(context.Background(), "Prefetching pointers for indirect dir block. Num pointers to prefetch: %d", numIPtrs)
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), "")
@@ -148,6 +155,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata,
 }
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, priority int) {
+	p.log.CDebugf(context.Background(), "Prefetching entries for directory block. Num entries: %d", len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
@@ -163,7 +171,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 		case Exec:
 			block = &FileBlock{}
 		default:
-			p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T", entry)
+			p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T", entry.DirEntry)
 			continue
 		}
 		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName)
@@ -172,6 +180,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, p
 
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
 func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
+	p.log.CDebugf(context.Background(), "Prefetching block by request from upstream component. Priority: %d", priority)
 	return p.request(priority, kmd, ptr, block, "")
 }
 
