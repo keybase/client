@@ -684,6 +684,10 @@ type BlockCache interface {
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
+	// GetWithPrefetch retrieves a block from the cache, along with whether or
+	// not it has been marked for prefetching.
+	//GetWithPrefetch(ptr BlockPointer) (
+	//	block Block, hasPrefetched bool, err error)
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.
