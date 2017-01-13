@@ -5,9 +5,10 @@ import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import {fileUIName} from '../../../constants/platform'
+import flags from '../../../util/feature-flags'
+
 import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
-
 import type {TextProps, AttachmentProps} from './popup'
 
 function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconType {
@@ -60,6 +61,12 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
       {title: 'Edit', onClick: () => onEditMessage(message)},
       {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},
     ]
+
+    if (!flags.chatAdminOnly) {
+      // remote edit
+      items.shift()
+    }
+
     if (!message.senderDeviceRevokedAt) {
       items.unshift('Divider')
     }

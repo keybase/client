@@ -10,6 +10,7 @@ const ff: FeatureFlags = {
   tabProfileEnabled: __DEV__,
   tabChatEnabled: __DEV__,
   plansEnabled: __DEV__,
+  chatAdminOnly: __DEV__,
 }
 
 if (__DEV__) {

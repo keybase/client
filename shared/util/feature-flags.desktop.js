@@ -21,6 +21,7 @@ const ff: FeatureFlags = {
   tabProfileEnabled: true,
   recentFilesEnabled: featureOn('recentFilesEnabled'),
   plansEnabled: featureOn('plansEnabled'),
+  chatAdminOnly: featureOn('chatAdminOnly', true),
 }
 
 if (__DEV__) {

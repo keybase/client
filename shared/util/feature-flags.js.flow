@@ -8,6 +8,7 @@ export type FeatureKeys = 'admin'
  | 'tabProfileEnabled'
  | 'tabSettingsEnabled'
  | 'plansEnabled'
+ | 'chatAdminOnly'
 
 export type FeatureFlags = {[key: FeatureKeys]: boolean}
 
