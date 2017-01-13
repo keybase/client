@@ -6,12 +6,11 @@ import Emoji from './emoji'
 import React, {PureComponent} from 'react'
 import {List} from 'immutable'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+import parser from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
 import type {PropsOf} from '../constants/types/more'
-
-type TagInfo<C> = {Component: Class<C>, props: PropsOf<C>}
 
 const codeSnippetStyle = {
   ...globalStyles.fontTerminal,
@@ -37,153 +36,43 @@ const codeSnippetBlockStyle = {
   whiteSpace: 'pre-wrap',
 }
 
-// Order matters, since we want to match the longer ticks first
-const openToClosePair = {
-  '```': '```',
-  '`': '`',
-  '*': '*',
-  '_': '_',
-  '~': '~',
-  ':': ':',
-}
-
-// We have to escape certain marks when turning them into a regex
-const markToRegex = {
-  '```': '```',
-  '`': '`',
-  '*': '\\*',
-  '_': '_',
-  '~': '~',
-  ':': ':',
-}
-
-const plainStringTag = {Component: Text, props: {type: 'Body', style: {color: undefined}}}
-
-class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
-  render () {
-    const emoji = this.props.children && this.props.children.join('')
-    const exists = emojiIndex.emojis.hasOwnProperty(emoji)
-    return exists ? <Emoji {...this.props} /> : <Text {...plainStringTag.props}>:{emoji}:</Text>
+function createComponent (type, key, children) {
+  switch (type) {
+    case 'inline-code':
+      return <Text type='Body' key={key} style={codeSnippetStyle}>{children}</Text>
+    case 'code-block':
+      return <Text type='Body' key={key} style={codeSnippetBlockStyle}>{children}</Text>
+    case 'text':
+      return <Text type='Body' key={key} style={{color: undefined, fontWeight: undefined}}>{children}</Text>
+    case 'bold':
+      return <Text type='BodySemibold' key={key} style={{color: undefined}}>{children}</Text>
+    case 'italic':
+      return <Text type='Body' key={key} style={{color: undefined, fontStyle: 'italic', fontWeight: undefined}}>{children}</Text>
+    case 'strike':
+      return <Text type='Body' key={key} style={{color: undefined, fontWeight: undefined, textDecoration: 'line-through'}}>{children}</Text>
+    case 'quote-block':
+      return <Text type='Body' key={key} style={{}}>{children}</Text>
   }
 }
 
-const initialOpenToTag = {
-  '`': {Component: Text, props: {type: 'Body', style: codeSnippetStyle}},
-  '```': {Component: Text, props: {type: 'Body', style: codeSnippetBlockStyle}},
-  '*': {Component: Text, props: {type: 'BodySemibold', style: {color: undefined}}},
-  '_': {Component: Text, props: {type: 'Body', style: {fontStyle: 'italic', fontWeight: undefined, color: undefined}}},
-  '~': {Component: Text, props: {type: 'Body', style: {textDecoration: 'line-through', fontWeight: undefined, color: undefined}}},
-  ':': {Component: EmojiIfExists, props: {size: 16}},
-}
+function process (ast) {
+  const stack = [ast]
 
-const openToNextOpenToTag = {
-  '`': {},
-  '```': {},
-  '*': initialOpenToTag,
-  '_': initialOpenToTag,
-  '~': initialOpenToTag,
-  ':': {},
-}
-
-type TagMeta = {
-  componentInfo: {Component: ReactClass<*>, props: Object},
-  textSoFar: string,
-  elementsSoFar: List<React$Element<*> | string>,
-  openToTag: {[key: string]: TagInfo<Text> | TagInfo<EmojiIfExists>},
-  closingTag: ?string,
-}
-
-const initalTagMeta: TagMeta = {
-  componentInfo: plainStringTag,
-  textSoFar: '',
-  elementsSoFar: new List(),
-  openToTag: initialOpenToTag,
-  closingTag: null,
-}
-
-type TagStack = List<TagMeta>
-
-const marksRegex = new RegExp(Object.keys(openToClosePair).map(s => '^' + markToRegex[s]).join('|'))
-function matchWithMark (text: string): ?{matchingMark: string, restText: string} {
-  const m = text.match(marksRegex)
-  if (m && m[0]) {
-    const matchingMark = m[0]
-    return {matchingMark, restText: text.slice(matchingMark.length)}
-  }
-  return null
-}
-
-function hasClosingMark (text: string, openingMark): boolean {
-  const closingMark = openToClosePair[openingMark]
-  return text.indexOf(closingMark, openingMark.length) !== -1
-}
-
-function tagMetaToElement (m: TagMeta, key) {
-  const {textSoFar, elementsSoFar, componentInfo: {Component, props}} = m
-  return <Component key={key} {...props}>{elementsSoFar.push(textSoFar).toArray()}</Component>
-}
-
-function _parse (text: string, tagStack: TagStack, key: number): React$Element<*> {
-  // Don't recurse, use a stack
-  const parseStack = [{text, tagStack, key}]
-  while (parseStack.length) {
-    const {text, tagStack, key} = parseStack.pop()
-
-    if (text.length === 0 && tagStack.count() < 1) {
-      throw new Error('Messed up parsing markdown text')
-    }
-
-    if (text.length === 0 && tagStack.count() === 1) {
-      return tagMetaToElement(tagStack.last(), key)
-    }
-
-    const topTag = tagStack.last()
-
-    const {openToTag, closingTag} = topTag
-    const firstChar = text[0]
-    const match = matchWithMark(text)
-    const restText = match ? match.restText : text.slice(1)
-    const matchingMark: ?string = match && match.matchingMark
-
-    if (text.length === 0 || closingTag && closingTag === matchingMark) {
-      const newElement = tagMetaToElement(topTag, key)
-      parseStack.push({
-        text: restText,
-        tagStack: tagStack.pop().update(-1, m => ({...m, elementsSoFar: m.elementsSoFar.push(newElement)})),
-        key: key + 1,
-      })
-    } else if (matchingMark && openToTag[matchingMark] && hasClosingMark(text, matchingMark)) {
-      parseStack.push({
-        text: restText,
-        tagStack: tagStack
-          .update(-1, m => ({...m, textSoFar: '', elementsSoFar: m.elementsSoFar.push(m.textSoFar)}))
-          .push({
-            componentInfo: openToTag[matchingMark],
-            closingTag: openToClosePair[matchingMark],
-            textSoFar: '',
-            elementsSoFar: new List(),
-            openToTag: openToNextOpenToTag[matchingMark] || {},
-          }),
-        key,
-      })
+  let index = 0
+  while (stack.length > 0) {
+    const top = stack[0]
+    if (top.type && top.seen) {
+      top.component = createComponent(top.type, index++, top.children.map(c => c.component ? c.component : c))
+      stack.shift()
+    } else if (top.type && !top.seen) {
+      top.seen = true
+      stack.unshift(...top.children)
     } else {
-      if (firstChar === '\\' && text.length > 1) {
-        parseStack.push({
-          text: text.slice(2),
-          tagStack: tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + text[1]})),
-          key,
-        })
-      } else {
-        parseStack.push({
-          text: restText,
-          tagStack: tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + firstChar})),
-          key,
-        })
-      }
+      stack.shift()
     }
   }
 
-  throw new Error('Messed up parsing markdown text')
+  return ast.component
 }
 
 // It's a lot easier to parse emojis if we change :santa::skin-tone-3: to :santa\:\:skin-tone-3:
@@ -191,11 +80,9 @@ function preprocessEmojiColors (text: string): string {
   return text.replace(/:([\w-]*)::(skin-tone-\d):/g, ':$1\\:\\:$2:')
 }
 
-const initialTagStack = new List([initalTagMeta])
-
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    return <Text type='Body' style={this.props.style}>{_parse(preprocessEmojiColors(this.props.children || ''), initialTagStack, 0)}</Text>
+    return <Text type='Body' style={this.props.style}>{process(parser.parse(preprocessEmojiColors(this.props.children || '')))}</Text>
   }
 }
 
