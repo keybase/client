@@ -143,7 +143,7 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
-                                        dir("visdiff") {
+                                        dir("shared") {
                                             sh "./test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                         }
                                         try {

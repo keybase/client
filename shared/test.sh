@@ -58,7 +58,9 @@ visdiff() {
 visdiff_install() {
     echo 'visdiff-install'
     has_js_files
+    cd ../visdiff
     yarn install --pure-lockfile
+    cd ../shared
     check_rc $? 'visdiff fail' 1
 }
 
