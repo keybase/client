@@ -112,6 +112,7 @@ export const ConversationStateRecord = Record({
   seenMessages: Set(),
   moreToLoad: true,
   isRequesting: false,
+  isStale: false,
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
@@ -123,6 +124,7 @@ export type ConversationState = Record<{
   seenMessages: Set<MessageID>,
   moreToLoad: boolean,
   isRequesting: boolean,
+  isStale: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
@@ -217,6 +219,7 @@ export const updateBrokenTracker = 'chat:updateBrokenTracker'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
+export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {ConversationIDKey: ConversationIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
@@ -227,6 +230,7 @@ export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: 
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
+export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>

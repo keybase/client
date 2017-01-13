@@ -41,6 +41,7 @@ import type {
   LoadInbox,
   LoadMoreMessages,
   LoadedInbox,
+  MarkThreadsStale,
   MaybeTimestamp,
   MetaData,
   Message,
@@ -535,6 +536,10 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
     engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
       dispatch({type: 'chat:inboxStale', payload: undefined})
     })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
+      dispatch({type: 'chat:markThreadsStale', payload: {convIDs}})
+    })
   })
 }
 
@@ -636,22 +641,26 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   let next
   if (oldConversationState) {
-    if (action.payload.onlyIfUnloaded && oldConversationState.get('paginationNext')) {
-      __DEV__ && console.log('Bailing on chat load more due to already has initial load')
-      return
-    }
+    if (oldConversationState.get('isStale')) {
+      yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
+    } else {
+      if (action.payload.onlyIfUnloaded && oldConversationState.get('paginationNext')) {
+        __DEV__ && console.log('Bailing on chat load more due to already has initial load')
+        return
+      }
 
-    if (oldConversationState.get('isRequesting')) {
-      __DEV__ && console.log('Bailing on chat load more due to isRequesting already')
-      return
-    }
+      if (oldConversationState.get('isRequesting')) {
+        __DEV__ && console.log('Bailing on chat load more due to isRequesting already')
+        return
+      }
 
-    if (!oldConversationState.get('moreToLoad')) {
-      __DEV__ && console.log('Bailing on chat load more due to no more to load')
-      return
-    }
+      if (!oldConversationState.get('moreToLoad')) {
+        __DEV__ && console.log('Bailing on chat load more due to no more to load')
+        return
+      }
 
-    next = oldConversationState.get('paginationNext', undefined)
+      next = oldConversationState.get('paginationNext', undefined)
+    }
   }
 
   yield put({type: Constants.loadingMessages, payload: {conversationIDKey}})
@@ -1136,6 +1145,11 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
   }
 }
 
+function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
+  const selectedConversation = yield select(_selectedSelector)
+  yield put(loadMoreMessages(selectedConversation, false))
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   if (!flags.tabChatEnabled) {
     return
@@ -1150,6 +1164,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.updateBadging, _updateBadging),
     safeTakeEvery(Constants.setupChatHandlers, _setupChatHandlers),
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
+    safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
     safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
     safeTakeEvery(Constants.retryMessage, _retryMessage),
