@@ -129,3 +129,41 @@ func (h *tlfHandler) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, 
 
 	return resp.NameIDBreaks, nil
 }
+
+func (h *tlfHandler) HandleUserChanged(uid keybase1.UID) (err error) {
+	defer h.G().Trace(fmt.Sprintf("tlfHandler.HandleUserChanged(uid=%s)", uid),
+		func() error { return err })()
+
+	// If this is about us we don't care
+	me := h.G().Env.GetUID()
+	if me.Equal(uid) {
+		return nil
+	}
+
+	// Form TLF name of ourselves plus the user that changed
+	us := h.G().Env.GetUsername()
+	them, err := h.G().GetUPAKLoader().LookupUsername(context.Background(), uid)
+	if err != nil {
+		h.G().Log.Debug("tlfHandler: HandleUserChanged(): unable to get username: uid: %s err: %s",
+			uid, err.Error())
+		return err
+	}
+	tlfName := fmt.Sprintf("%s,%s", us, them)
+
+	// Make a new chat context
+	var breaks []keybase1.TLFIdentifyFailure
+	ident := keybase1.TLFIdentifyBehavior_CHAT_GUI
+	notifier := chat.NewIdentifyNotifier(h.G())
+	ctx := chat.Context(context.Background(), ident, &breaks, notifier)
+
+	// Run against CryptKeys to generate notifications if necessary
+	_, err = h.CryptKeys(ctx, keybase1.TLFQuery{
+		TlfName:          tlfName,
+		IdentifyBehavior: ident,
+	})
+	if err != nil {
+		h.G().Log.Debug("tlfHandler: HandleUserChanged(): failed to run CryptKeys: %s", err.Error())
+	}
+
+	return nil
+}
