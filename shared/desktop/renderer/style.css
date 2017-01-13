@@ -166,3 +166,8 @@ body {
     opacity: 0;
     transition: opacity 250ms ease-in-out;
 }
+
+.emoji-mart-emoji {
+	display: inline;
+	font-size: medium;
+}

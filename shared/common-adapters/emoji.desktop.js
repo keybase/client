@@ -13,8 +13,10 @@ const backgroundImageFn = (set: string, sheetSize: string) => emojiSet
 const EmojiWrapper = (props: Props) => {
   const emojiText = `:${props.children}:`
   return (
-    <Emoji {...props} emoji={emojiText} backgroundImageFn={backgroundImageFn}>
-      <Emoji emoji={emojiText} size={props.size} native={true} />
+    <Emoji {...props} emoji={emojiText} size={props.size} backgroundImageFn={backgroundImageFn}>
+      <span style={{opacity: 0}}>
+        <Emoji emoji={emojiText} size={props.size} native={true} />
+      </span>
     </Emoji>
   )
 }
