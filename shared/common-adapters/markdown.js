@@ -35,6 +35,7 @@ const codeSnippetBlockStyle = {
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
   whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
 }
 
 // Order matters, since we want to match the longer ticks first

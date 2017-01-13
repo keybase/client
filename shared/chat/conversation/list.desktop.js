@@ -346,7 +346,7 @@ class ConversationList extends Component<void, Props, State> {
               width={width - scrollbarWidth} >
               {({getRowHeight}) => {
                 return <VirtualizedList
-                  style={{outline: 'none'}}
+                  style={listStyle}
                   height={height}
                   ref={r => { this._list = r }}
                   width={width}
@@ -367,6 +367,11 @@ class ConversationList extends Component<void, Props, State> {
       </div>
     )
   }
+}
+
+const listStyle = {
+  outline: 'none',
+  overflowX: 'hidden',
 }
 
 class CellSizeCache extends defaultCellMeasurerCellSizeCache {
