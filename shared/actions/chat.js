@@ -642,26 +642,22 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   let next
   if (oldConversationState) {
-    if (oldConversationState.get('isStale')) {
-      yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
-    } else {
-      if (action.payload.onlyIfUnloaded && oldConversationState.get('paginationNext')) {
-        __DEV__ && console.log('Bailing on chat load more due to already has initial load')
-        return
-      }
-
-      if (oldConversationState.get('isRequesting')) {
-        __DEV__ && console.log('Bailing on chat load more due to isRequesting already')
-        return
-      }
-
-      if (!oldConversationState.get('moreToLoad')) {
-        __DEV__ && console.log('Bailing on chat load more due to no more to load')
-        return
-      }
-
-      next = oldConversationState.get('paginationNext', undefined)
+    if (action.payload.onlyIfUnloaded && oldConversationState.get('paginationNext')) {
+      __DEV__ && console.log('Bailing on chat load more due to already has initial load')
+      return
     }
+
+    if (oldConversationState.get('isRequesting')) {
+      __DEV__ && console.log('Bailing on chat load more due to isRequesting already')
+      return
+    }
+
+    if (!oldConversationState.get('moreToLoad')) {
+      __DEV__ && console.log('Bailing on chat load more due to no more to load')
+      return
+    }
+
+    next = oldConversationState.get('paginationNext', undefined)
   }
 
   yield put({type: Constants.loadingMessages, payload: {conversationIDKey}})
@@ -916,6 +912,10 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
+  const oldConversationState = yield select(_conversationStateSelector, conversationIDKey)
+  if (oldConversationState && oldConversationState.get('isStale')) {
+    yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
+  }
   yield put(loadMoreMessages(conversationIDKey, true))
   yield put(navigateTo([conversationIDKey], [chatTab]))
 
@@ -1148,6 +1148,7 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
   const selectedConversation = yield select(_selectedSelector)
+  yield put({type: 'chat:clearMessages', payload: {conversationIDKey: selectedConversation}})
   yield put(loadMoreMessages(selectedConversation, false))
 }
 
