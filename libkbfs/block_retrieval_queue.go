@@ -245,7 +245,7 @@ func (brq *blockRetrievalQueue) triggerPrefetchAfterBlockRetrieved(
 	go func() {
 		brq.prefetchMtx.RLock()
 		defer brq.prefetchMtx.RUnlock()
-		brq.prefetcher.PrefetchAfterBlockRetrieved(block, kmd, priority)
+		brq.prefetcher.PrefetchAfterBlockRetrieved(block, kmd, priority, false)
 	}()
 }
 

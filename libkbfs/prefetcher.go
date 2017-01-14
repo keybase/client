@@ -185,9 +185,10 @@ func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer, kmd KeyMe
 	return p.request(priority, kmd, ptr, block, "")
 }
 
-// PrefetchAfterBlockRetrieved implements the Prefetcher interface for blockPrefetcher.
-func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int) {
-	if priority < defaultOnDemandRequestPriority {
+// PrefetchAfterBlockRetrieved implements the Prefetcher interface for
+// blockPrefetcher.
+func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int, hasPrefetched bool) {
+	if hasPrefetched || priority < defaultOnDemandRequestPriority {
 		// Only on-demand or higher priority requests can trigger prefetches.
 		return
 	}

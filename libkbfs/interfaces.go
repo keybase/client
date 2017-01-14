@@ -1019,12 +1019,14 @@ type KeyOps interface {
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
 	// PrefetchBlock directs the prefetcher to prefetch a block.
-	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error
+	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata,
+		priority int) error
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
 	// block.
-	PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int)
+	PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int,
+		hasPrefetched bool)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
