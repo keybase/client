@@ -126,6 +126,19 @@ function setupApp (store) {
   store.dispatch(bootstrap())
 }
 
+const FontLoader = () => (
+  <div style={{height: 0, overflow: 'hidden', width: 0}}>
+    <p style={{fontFamily: 'kb'}}>kb</p>
+    <p style={{fontFamily: 'Source Code Pro', fontWeight: 400}}>source code pro 400</p>
+    <p style={{fontFamily: 'Source Code Pro', fontWeight: 600}}>source code pro 600</p>
+    <p style={{fontFamily: 'OpenSans', fontWeight: 400}}>open sans 400</p>
+    <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 400}}>open sans 400 i</p>
+    <p style={{fontFamily: 'OpenSans', fontWeight: 600}}>open sans 600</p>
+    <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 600}}>open sans 600 i</p>
+    <p style={{fontFamily: 'OpenSans', fontWeight: 700}}>open sans 700</p>
+  </div>
+)
+
 function render (store, MainComponent) {
   let dt
   if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
@@ -138,6 +151,7 @@ function render (store, MainComponent) {
       <Root store={store}>
         <div style={{display: 'flex', flex: 1}}>
           <RemoteManager />
+          <FontLoader />
           <MainComponent />
           {dt}
         </div>

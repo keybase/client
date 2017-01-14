@@ -15,9 +15,6 @@
  <xsl:template match="wix:Directory[@Name='resources']/@Id">
   <xsl:attribute name="Id">GuiResourcesDir</xsl:attribute>
  </xsl:template>
- <xsl:template match="wix:Directory[@Name='shared']/@Id">
-  <xsl:attribute name="Id">GuiSharedDir</xsl:attribute>
- </xsl:template>
  
   <xsl:template match="wix:Component">
     <xsl:copy>

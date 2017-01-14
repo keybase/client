@@ -964,6 +964,7 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 		// these will be added to UserPlusKeys
 		// deletedDeviceKeys := ckf.ExportDeletedDeviceKeys()
 		// u.G().Log.Warning("deleted device keys: %+v", deletedDeviceKeys)
+		ret.DeletedDeviceKeys = ckf.ExportDeletedDeviceKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

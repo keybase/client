@@ -44,15 +44,6 @@ func (o *Outbox) dbKey() libkb.DbKey {
 	}
 }
 
-func (o *Outbox) maybeNuke(err libkb.ChatStorageError) libkb.ChatStorageError {
-	if err.ShouldClear() {
-		if err := o.G().LocalChatDb.Delete(o.dbKey()); err != nil {
-			o.G().Log.Error("unable to clear inbox on error! err: %s", err.Error())
-		}
-	}
-	return err
-}
-
 func (o *Outbox) readDiskOutbox() (diskOutbox, libkb.ChatStorageError) {
 	var obox diskOutbox
 	found, err := o.readDiskBox(o.dbKey(), &obox)
@@ -79,7 +70,7 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 	obox, err := o.readDiskOutbox()
 	if err != nil {
 		if _, ok := err.(libkb.ChatStorageMissError); !ok {
-			return nil, o.maybeNuke(err)
+			return nil, o.maybeNuke(err, o.dbKey())
 		}
 		obox = diskOutbox{
 			Version: outboxVersion,
@@ -91,7 +82,7 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 	rbs, ierr := libkb.RandBytes(8)
 	if ierr != nil {
 		return nil, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error getting outboxID: err: %s", ierr.Error()))
+			"error getting outboxID: err: %s", ierr.Error()), o.dbKey())
 	}
 
 	// Append record
@@ -109,7 +100,7 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 	obox.Version = outboxVersion
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return nil, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error writing outbox: err: %s", err.Error()))
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
 	return outboxID, nil
@@ -122,7 +113,7 @@ func (o *Outbox) PullAllConversations() ([]chat1.OutboxRecord, error) {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return nil, o.maybeNuke(err)
+		return nil, o.maybeNuke(err, o.dbKey())
 	}
 
 	return obox.Records, nil
@@ -135,7 +126,7 @@ func (o *Outbox) PullConversation(convID chat1.ConversationID) ([]chat1.OutboxRe
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return nil, o.maybeNuke(err)
+		return nil, o.maybeNuke(err, o.dbKey())
 	}
 
 	var res []chat1.OutboxRecord
@@ -154,7 +145,7 @@ func (o *Outbox) PopNOldestMessages(n int) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(err)
+		return o.maybeNuke(err, o.dbKey())
 	}
 
 	// Pop N off front
@@ -164,7 +155,7 @@ func (o *Outbox) PopNOldestMessages(n int) error {
 	obox.Version = outboxVersion
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error writing outbox: err: %s", err.Error()))
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
 	return nil
@@ -177,7 +168,7 @@ func (o *Outbox) RecordFailedAttempt(obid chat1.OutboxID) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(err)
+		return o.maybeNuke(err, o.dbKey())
 	}
 
 	// Loop through and find record
@@ -200,7 +191,7 @@ func (o *Outbox) RecordFailedAttempt(obid chat1.OutboxID) error {
 	obox.Records = recs
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error writing outbox: err: %s", err.Error()))
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
 	return nil
@@ -213,7 +204,7 @@ func (o *Outbox) RetryMessage(obid chat1.OutboxID) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(err)
+		return o.maybeNuke(err, o.dbKey())
 	}
 
 	// Loop through and find record
@@ -229,7 +220,7 @@ func (o *Outbox) RetryMessage(obid chat1.OutboxID) error {
 	obox.Records = recs
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error writing outbox: err: %s", err.Error()))
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
 	return nil
@@ -242,7 +233,7 @@ func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return nil, o.maybeNuke(err)
+		return nil, o.maybeNuke(err, o.dbKey())
 	}
 
 	// Loop through and find record
@@ -256,7 +247,7 @@ func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
 	obox.Records = recs
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return recs, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error writing outbox: err: %s", err.Error()))
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
 	return recs, nil
@@ -269,7 +260,7 @@ func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(err)
+		return o.maybeNuke(err, o.dbKey())
 	}
 
 	// Loop through and find record
@@ -285,7 +276,7 @@ func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {
 	obox.Records = recs
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error writing outbox: err: %s", err.Error()))
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
 	return nil
@@ -298,7 +289,7 @@ func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(err)
+		return o.maybeNuke(err, o.dbKey())
 	}
 
 	// Scan to find the message and don't include it
@@ -313,7 +304,7 @@ func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
 	// Write out box
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error writing outbox: err: %s", err.Error()))
+			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
 	return nil
@@ -367,7 +358,7 @@ func (o *Outbox) SprinkleIntoThread(convID chat1.ConversationID, thread *chat1.T
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(err)
+		return o.maybeNuke(err, o.dbKey())
 	}
 
 	// Sprinkle each outbox message in

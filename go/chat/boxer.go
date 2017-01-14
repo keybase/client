@@ -37,20 +37,20 @@ type Boxer struct {
 	tlf    keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
 	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
-	kbCtx  KeybaseContext
+	libkb.Contextified
 }
 
-func NewBoxer(kbCtx KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
+func NewBoxer(g *libkb.GlobalContext, tlf keybase1.TlfInterface) *Boxer {
 	return &Boxer{
-		tlf:    tlf,
-		hashV1: hashSha256V1,
-		sign:   sign,
-		kbCtx:  kbCtx,
+		tlf:          tlf,
+		hashV1:       hashSha256V1,
+		sign:         sign,
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
 func (b *Boxer) log() logger.Logger {
-	return b.kbCtx.GetLog()
+	return b.G().GetLog()
 }
 
 func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageUnboxed {
@@ -256,7 +256,7 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 }
 
 func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
-	nun, devName, devType, err := b.kbCtx.GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
+	nun, devName, devType, err := b.G().GetUPAKLoader().LookupUsernameAndDevice(ctx, uid, deviceID)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -283,7 +283,7 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (
 
 // Can return (nil, nil) if there is no saved merkle root.
 func (b *Boxer) latestMerkleRoot() (*chat1.MerkleRoot, error) {
-	merkleClient := b.kbCtx.GetMerkleClient()
+	merkleClient := b.G().GetMerkleClient()
 	if merkleClient == nil {
 		return nil, fmt.Errorf("no MerkleClient available")
 	}
@@ -416,6 +416,7 @@ func (b *Boxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.Encrypted
 		E: sealed,
 		N: nonce[:],
 	}
+
 	return enc, nil
 }
 
@@ -540,17 +541,23 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	kid := keybase1.KIDFromSlice(key)
 	ctime2 := gregor1.FromTime(ctime)
 
-	cachedUserLoader := b.kbCtx.GetUPAKLoader()
+	cachedUserLoader := b.G().GetUPAKLoader()
 	if cachedUserLoader == nil {
 		return false, false, nil, libkb.NewTransientChatUnboxingError(fmt.Errorf("no CachedUserLoader available in context"))
 	}
 
-	found, revokedAt, err := cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
+	found, revokedAt, deleted, err := cachedUserLoader.CheckKIDForUID(ctx, kbSender, kid)
 	if err != nil {
 		return false, false, nil, libkb.NewTransientChatUnboxingError(err)
 	}
 	if !found {
 		return false, false, nil, nil
+	}
+
+	if deleted {
+		// XXX something else to flag as a deleted key?
+		b.log().Warning("sender %s key %s was deleted", kbSender, kid)
+		return true, true, nil, nil
 	}
 
 	validAtCtime := true

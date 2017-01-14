@@ -278,6 +278,30 @@ export function localPostAttachmentLocalRpcPromise (request: $Exact<requestCommo
   return new Promise((resolve, reject) => { localPostAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localPostDeleteNonblockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostDeleteNonblockResult) => void} & {param: localPostDeleteNonblockRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.postDeleteNonblock'})
+}
+
+export function localPostDeleteNonblockRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostDeleteNonblockResult) => void} & {param: localPostDeleteNonblockRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localPostDeleteNonblockRpc({...request, incomingCallMap, callback}))
+}
+
+export function localPostDeleteNonblockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostDeleteNonblockResult) => void} & {param: localPostDeleteNonblockRpcParam}>): Promise<localPostDeleteNonblockResult> {
+  return new Promise((resolve, reject) => { localPostDeleteNonblockRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function localPostEditNonblockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostEditNonblockResult) => void} & {param: localPostEditNonblockRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.postEditNonblock'})
+}
+
+export function localPostEditNonblockRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostEditNonblockResult) => void} & {param: localPostEditNonblockRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localPostEditNonblockRpc({...request, incomingCallMap, callback}))
+}
+
+export function localPostEditNonblockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostEditNonblockResult) => void} & {param: localPostEditNonblockRpcParam}>): Promise<localPostEditNonblockResult> {
+  return new Promise((resolve, reject) => { localPostEditNonblockRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localPostFileAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostFileAttachmentLocalResult) => void} & {param: localPostFileAttachmentLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.postFileAttachmentLocal'})
 }
@@ -312,6 +336,18 @@ export function localPostLocalRpcChannelMap (channelConfig: ChannelConfig<*>, re
 
 export function localPostLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>): Promise<localPostLocalResult> {
   return new Promise((resolve, reject) => { localPostLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function localPostTextNonblockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostTextNonblockResult) => void} & {param: localPostTextNonblockRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.postTextNonblock'})
+}
+
+export function localPostTextNonblockRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostTextNonblockResult) => void} & {param: localPostTextNonblockRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localPostTextNonblockRpc({...request, incomingCallMap, callback}))
+}
+
+export function localPostTextNonblockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostTextNonblockResult) => void} & {param: localPostTextNonblockRpcParam}>): Promise<localPostTextNonblockResult> {
+  return new Promise((resolve, reject) => { localPostTextNonblockRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localRetryPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localRetryPostRpcParam}>) {
@@ -569,6 +605,12 @@ export type Conversation = {
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
+export type ConversationErrorLocal = {
+  message: string,
+  remoteConv: Conversation,
+  permanent: boolean,
+}
+
 export type ConversationFinalizeInfo = {
   resetUser: string,
   resetDate: string,
@@ -597,7 +639,7 @@ export type ConversationInfoLocal = {
 }
 
 export type ConversationLocal = {
-  error?: ?string,
+  error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
   supersedes?: ?Array<ConversationID>,
@@ -790,6 +832,13 @@ export type HeaderPlaintextV1 = {
 
 export type HeaderPlaintextVersion = 
     1 // V1_1
+
+export type Inbox = {
+  version: InboxVers,
+  convsUnverified?: ?Array<Conversation>,
+  convs?: ?Array<ConversationLocal>,
+  pagination?: ?Pagination,
+}
 
 export type InboxResType = 
     0 // VERSIONHIT_0
@@ -1164,9 +1213,17 @@ export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
   bytesTotal: int
 }>
 
+export type chatUiChatAttachmentPreviewUploadStartRpcParam = Exact<{
+  metadata: AssetMetadata
+}>
+
 export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
   bytesComplete: int,
   bytesTotal: int
+}>
+
+export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
+  metadata: AssetMetadata
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
@@ -1264,6 +1321,27 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localPostDeleteNonblockRpcParam = Exact<{
+  conversationID: ConversationID,
+  conv: ConversationIDTriple,
+  tlfName: string,
+  tlfPublic: boolean,
+  supersedes: MessageID,
+  clientPrev: MessageID,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
+export type localPostEditNonblockRpcParam = Exact<{
+  conversationID: ConversationID,
+  conv: ConversationIDTriple,
+  tlfName: string,
+  tlfPublic: boolean,
+  supersedes: MessageID,
+  body: string,
+  clientPrev: MessageID,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
 export type localPostFileAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
@@ -1284,6 +1362,16 @@ export type localPostLocalNonblockRpcParam = Exact<{
 export type localPostLocalRpcParam = Exact<{
   conversationID: ConversationID,
   msg: MessagePlaintext,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
+export type localPostTextNonblockRpcParam = Exact<{
+  conversationID: ConversationID,
+  conv: ConversationIDTriple,
+  tlfName: string,
+  tlfPublic: boolean,
+  body: string,
+  clientPrev: MessageID,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -1387,11 +1475,17 @@ type localNewConversationLocalResult = NewConversationLocalRes
 
 type localPostAttachmentLocalResult = PostLocalRes
 
+type localPostDeleteNonblockResult = PostLocalNonblockRes
+
+type localPostEditNonblockResult = PostLocalNonblockRes
+
 type localPostFileAttachmentLocalResult = PostLocalRes
 
 type localPostLocalNonblockResult = PostLocalNonblockRes
 
 type localPostLocalResult = PostLocalRes
+
+type localPostTextNonblockResult = PostLocalNonblockRes
 
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
 
@@ -1433,9 +1527,12 @@ export type rpc =
   | localMarkAsReadLocalRpc
   | localNewConversationLocalRpc
   | localPostAttachmentLocalRpc
+  | localPostDeleteNonblockRpc
+  | localPostEditNonblockRpc
   | localPostFileAttachmentLocalRpc
   | localPostLocalNonblockRpc
   | localPostLocalRpc
+  | localPostTextNonblockRpc
   | localRetryPostRpc
   | localSetConversationStatusLocalRpc
   | remoteGetInboxRemoteRpc
@@ -1454,7 +1551,8 @@ export type rpc =
 export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
-      sessionID: int
+      sessionID: int,
+      metadata: AssetMetadata
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -1474,7 +1572,8 @@ export type incomingCallMapType = Exact<{
   ) => void,
   'keybase.1.chatUi.chatAttachmentPreviewUploadStart'?: (
     params: Exact<{
-      sessionID: int
+      sessionID: int,
+      metadata: AssetMetadata
     }>,
     response: CommonResponseHandler
   ) => void,

@@ -19,9 +19,9 @@ function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconTyp
   }
 }
 
-const MessagePopupHeader = ({message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, followState}, isLast}: {message: (TextMessage | AttachmentMessage), isLast?: boolean}) => {
+const MessagePopupHeader = ({message: {author, deviceName, deviceType, timestamp, senderDeviceRevokedAt, you}, isLast}: {message: (TextMessage | AttachmentMessage), isLast?: boolean}) => {
   const iconName = iconNameForDeviceType(deviceType, !!senderDeviceRevokedAt)
-  const whoRevoked = followState === 'You' ? 'You' : author
+  const whoRevoked = author === you ? 'You' : author
   return (
     <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={iconName} style={{marginTop: -6}} />
@@ -53,9 +53,9 @@ const stylePopup = {
   width: 196,
 }
 
-export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden, style}: TextProps) => {
+export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden, style, you}: TextProps) => {
   let items = []
-  if (message.followState === 'You') {
+  if (message.author === you) {
     items = [
       {title: 'Edit', onClick: () => onEditMessage(message)},
       {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},
@@ -71,15 +71,14 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
   return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
 }
 
-export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style}: AttachmentProps) => {
+export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style, you}: AttachmentProps) => {
   const items = [
     'Divider',
-    {title: 'Download', onClick: () => onDownloadAttachment(message)},
     message.downloadedPath
-      ? {title: `Show in ${fileUIName}`, onClick: () => onOpenInFileUI(message)}
-      : {title: 'Download', onClick: () => onDownloadAttachment(message)},
+      ? {title: `Show in ${fileUIName}`, onClick: onOpenInFileUI}
+      : {title: 'Download', onClick: onDownloadAttachment},
   ]
-  if (message.followState === 'You') {
+  if (message.author === you) {
     items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)})
   }
   const header = {

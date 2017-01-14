@@ -1,8 +1,6 @@
 package pager
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-codec/codec"
@@ -12,6 +10,14 @@ import (
 type InboxPagerFields struct {
 	Mtime  gregor1.Time         `codec:"M"`
 	ConvID chat1.ConversationID `codec:"C"`
+}
+
+func (i InboxPagerFields) GetMtime() gregor1.Time {
+	return i.Mtime
+}
+
+func (i InboxPagerFields) GetConvID() chat1.ConversationID {
+	return i.ConvID
 }
 
 // pager provides the getPage and makePage functions for implementing
@@ -92,24 +98,25 @@ type InboxPager struct {
 	Pager
 }
 
+type InboxEntry interface {
+	GetMtime() gregor1.Time
+	GetConvID() chat1.ConversationID
+}
+
 func NewInboxPager() InboxPager {
 	return InboxPager{Pager: NewPager()}
 }
 
-func (p InboxPager) MakePage(res []chat1.Conversation, reqed int) (*chat1.Pagination, error) {
+func (p InboxPager) MakePage(res []InboxEntry, reqed int) (*chat1.Pagination, error) {
 	if len(res) == 0 {
 		return &chat1.Pagination{Num: 0, Last: true}, nil
 	}
 
-	if res[0].ReaderInfo == nil || res[len(res)-1].ReaderInfo == nil {
-		return nil, errors.New("need reader info to page conversations")
-	}
-
 	// Get first and last message IDs to encode in the result
-	prevPF := InboxPagerFields{Mtime: res[0].ReaderInfo.Mtime, ConvID: res[0].Metadata.ConversationID}
+	prevPF := InboxPagerFields{Mtime: res[0].GetMtime(), ConvID: res[0].GetConvID()}
 	nextPF := InboxPagerFields{
-		Mtime:  res[len(res)-1].ReaderInfo.Mtime,
-		ConvID: res[len(res)-1].Metadata.ConversationID,
+		Mtime:  res[len(res)-1].GetMtime(),
+		ConvID: res[len(res)-1].GetConvID(),
 	}
 
 	return p.Pager.MakePage(len(res), reqed, nextPF, prevPF)

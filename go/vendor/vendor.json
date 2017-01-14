@@ -233,10 +233,10 @@
 			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
-			"checksumSHA1": "SC+9sm//Kzu5V1lUcFa/GyhtZas=",
+			"checksumSHA1": "dL7Tcu8TAzoc40pk74eWfKZzdoY=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "f08dee4c9e838e5a6c499ad4ed2e9a4ab6433361",
-			"revisionTime": "2016-10-03T19:37:48Z"
+			"revision": "8ef73e843df090005cb21ab5cc66c7acc8446fdc",
+			"revisionTime": "2017-01-11T17:52:48Z"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -310,6 +310,12 @@
 			"revision": ""
 		},
 		{
+			"checksumSHA1": "fyXuOuqF3c4LqHm5ZRt20aFjjfw=",
+			"path": "github.com/keybase/rog-go/reverse",
+			"revision": "e1b59e173f7b826b3f812e22a0b6dea0650663f7",
+			"revisionTime": "2017-01-13T17:06:45Z"
+		},
+		{
 			"path": "github.com/keybase/saltpack",
 			"revision": "4804ac34f11533bfd1b08c2e5385ef66c6dba9aa",
 			"revisionTime": "2016-03-23T19:53:58-05:00"
@@ -351,11 +357,6 @@
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
 			"revisionTime": "2016-01-10T10:55:54Z"
-		},
-		{
-			"path": "github.com/rogpeppe/rog-go/reverse",
-			"revision": "f57ad5e24ab7813942c045f86eda1066eb969e98",
-			"revisionTime": "2015-01-10T16:24:53Z"
 		},
 		{
 			"checksumSHA1": "Q68FxXX04PtPDIG7C1RlSDhx/ko=",

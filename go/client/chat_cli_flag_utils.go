@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -194,7 +194,7 @@ func makeChatCLIInboxFetcherActivitySorted(ctx *cli.Context) (fetcher chatCLIInb
 	}
 
 	if !ctx.Bool("include-hidden") {
-		fetcher.query.Status = chat.VisibleChatConversationStatuses()
+		fetcher.query.Status = utils.VisibleChatConversationStatuses()
 	}
 
 	fetcher.async = ctx.Bool("async")
@@ -224,7 +224,7 @@ func makeChatCLIInboxFetcherUnreadFirst(ctx *cli.Context) (fetcher chatCLIInboxF
 	}
 
 	if !ctx.Bool("include-hidden") {
-		fetcher.query.Status = chat.VisibleChatConversationStatuses()
+		fetcher.query.Status = utils.VisibleChatConversationStatuses()
 	}
 
 	return fetcher, err

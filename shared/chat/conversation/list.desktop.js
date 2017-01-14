@@ -4,7 +4,6 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
 
 import LoadingMore from './messages/loading-more'
-import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
@@ -12,9 +11,11 @@ import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {Box, ProgressIndicator} from '../../common-adapters'
-import {globalColors, globalStyles} from '../../styles'
+import {ProgressIndicator} from '../../common-adapters'
+import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import {clipboard} from 'electron'
+import {globalColors, globalStyles} from '../../styles'
+
 import type {List} from 'immutable'
 import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
 import type {Props} from './list'
@@ -26,6 +27,10 @@ type State = {
   scrollTop: number,
   selectedMessageID?: MessageID,
 }
+
+const scrollbarWidth = 20
+const lockedToBottomSlop = 20
+const listBottomMargin = 10
 
 class ConversationList extends Component<void, Props, State> {
   _cellCache: any;
@@ -51,11 +56,7 @@ class ConversationList extends Component<void, Props, State> {
 
   _indexToID = index => {
     if (index === 0) {
-      // loader
-      return 0
-    } else if (index === this.state.messages.count() + 1) {
-      // footer
-      return -1
+      return 'loader'
     } else {
       // minus one because loader message is there
       const messageIndex = index - 1
@@ -121,6 +122,10 @@ class ConversationList extends Component<void, Props, State> {
         messages: nextProps.messages,
       })
     }
+
+    if (nextProps.listScrollDownState !== this.props.listScrollDownState) {
+      this.setState({isLockedToBottom: true})
+    }
   }
 
   _invalidateChangedMessages (props: Props) {
@@ -158,7 +163,7 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     // Lock to bottom if we are close to the bottom
-    const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - 20
+    const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
     this.setState({
       isLockedToBottom,
       isScrolling: true,
@@ -167,7 +172,7 @@ class ConversationList extends Component<void, Props, State> {
 
     // This is debounced so it resets the call
     this._onScrollSettled()
-  }, 100)
+  }, 200)
 
   _hidePopup () {
     ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
@@ -181,6 +186,7 @@ class ConversationList extends Component<void, Props, State> {
       case 'Text':
         return (
           <TextPopupMenu
+            you={this.props.you}
             message={message}
             onEditMessage={this.props.onEditMessage}
             onDeleteMessage={this.props.onDeleteMessage}
@@ -194,6 +200,7 @@ class ConversationList extends Component<void, Props, State> {
         const {downloadedPath, filename, messageID} = message
         return (
           <AttachmentPopupMenu
+            you={this.props.you}
             message={message}
             onDeleteMessage={this.props.onDeleteMessage}
             onDownloadAttachment={() => { messageID && this.props.onLoadAttachment(messageID, filename) }}
@@ -210,15 +217,16 @@ class ConversationList extends Component<void, Props, State> {
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
     const x = clientRect.left - 205
-    let y = clientRect.top - (message.followState === 'You' ? 200 : 116)
+    let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
 
-    const popupComponent = this._renderPopup(message, {position: 'absolute', top: y, left: x})
+    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y})
     if (!popupComponent) return
 
     this.setState({
       selectedMessageID: message.messageID,
     })
+
     const container = document.getElementById('popupContainer')
     ReactDOM.render(popupComponent, container)
   }
@@ -233,9 +241,6 @@ class ConversationList extends Component<void, Props, State> {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
     }
-    if (index === this.state.messages.count() + 1) {
-      return <Box key={'footer'} style={{height: 20}} />
-    }
 
     const message = this.state.messages.get(index - 1)
     const prevMessage = this.state.messages.get(index - 2)
@@ -244,10 +249,29 @@ class ConversationList extends Component<void, Props, State> {
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
     const isFirstNewMessage = message.messageID != null && this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, this._onAction, isSelected, this.props.onLoadAttachment, this.props.onOpenInFileUI, this.props.onOpenInPopup, this.props.onRetryMessage)
+    const options = {
+      followingMap: this.props.followingMap,
+      includeHeader: isFirstMessage || !skipMsgHeader,
+      index,
+      isFirstNewMessage,
+      isScrolling,
+      isSelected,
+      key,
+      message: message,
+      metaDataMap: this.props.metaDataMap,
+      onAction: this._onAction,
+      onLoadAttachment: this.props.onLoadAttachment,
+      onOpenInFileUI: this.props.onOpenInFileUI,
+      onOpenInPopup: this.props.onOpenInPopup,
+      onRetry: this.props.onRetryMessage,
+      style,
+      you: this.props.you,
+    }
+
+    return messageFactory(options)
   }
 
-  _recomputeListDebounced = _.debounce(() => {
+  _recomputeListDebounced = _.throttle(() => {
     this._recomputeList()
   }, 300)
 
@@ -259,12 +283,12 @@ class ConversationList extends Component<void, Props, State> {
   render () {
     if (!this.props.validated) {
       return (
-        <div style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
           <ProgressIndicator style={{width: 20}} />
         </div>
       )
     }
-    const rowCount = this.state.messages.count() + 2 // Loading row on top always and footer row
+    const rowCount = this.state.messages.count() + 1 // Loading row
     let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
@@ -307,16 +331,17 @@ class ConversationList extends Component<void, Props, State> {
             }
           }} >
           {({height, width}) => {
+            // width is adjusted to assume scrollbars, see https://github.com/bvaughn/react-virtualized/issues/401
             return <CellMeasurer
               cellRenderer={({rowIndex, ...rest}) => this._rowRenderer({index: rowIndex, ...rest})}
               columnCount={1}
               ref={r => { this._cellMeasurer = r }}
               cellSizeCache={this._cellCache}
               rowCount={rowCount}
-              width={width} >
+              width={width - scrollbarWidth} >
               {({getRowHeight}) => {
                 return <VirtualizedList
-                  style={{outline: 'none'}}
+                  style={listStyle}
                   height={height}
                   ref={r => { this._list = r }}
                   width={width}
@@ -331,7 +356,7 @@ class ConversationList extends Component<void, Props, State> {
             </CellMeasurer>
           }}
         </AutoSizer>
-        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, position: 'absolute', right: 0, top: 0, bottom: 0, width: 320}}>
+        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 0, width: 320}}>
           <SidePanel {...this.props} />
         </div>}
       </div>
@@ -339,8 +364,14 @@ class ConversationList extends Component<void, Props, State> {
   }
 }
 
+const listStyle = {
+  outline: 'none',
+  overflowX: 'hidden',
+  paddingBottom: listBottomMargin,
+}
+
 class CellSizeCache extends defaultCellMeasurerCellSizeCache {
-  _indexToID: (index: number) => ?number;
+  _indexToID: (index: number) => any;
 
   constructor (indexToID) {
     super({uniformColumnWidth: true, uniformRowHeight: false})
@@ -373,3 +404,14 @@ class CellSizeCache extends defaultCellMeasurerCellSizeCache {
 }
 
 export default ConversationList
+
+if (__DEV__) {
+  window.showReactVirtualListMeasurer = () => {
+    const holder = window.document.body.lastChild
+    holder.style.zIndex = 9999
+    holder.style.backgroundColor = 'red'
+    holder.style.visibility = 'visible'
+    holder.style.left = '320px'
+    holder.style.top = '320px'
+  }
+}

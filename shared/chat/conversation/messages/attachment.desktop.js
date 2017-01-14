@@ -1,10 +1,10 @@
 // @flow
-import React, {PureComponent} from 'react'
 import * as Constants from '../../../constants/chat'
-import {Box, Icon, Text} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import MessageComponent from './shared.desktop'
+import React, {PureComponent} from 'react'
+import {Box, Icon, Text} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
+import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
 import type {Props} from './attachment'
 
@@ -29,7 +29,7 @@ function PreviewImage ({message: {previewPath, previewType, previewSize, message
       position: 'relative',
       alignItems: 'flex-end',
     }
-    const imgStyle = {...globalStyles.rounded, ...(previewSize ? {width: previewSize.width, height: previewSize.height} : {})}
+    const imgStyle = {...globalStyles.rounded, ...(previewSize ? {width: previewSize.width, height: previewSize.height} : {maxHeight: 320, maxWidth: 320})}
 
     switch (messageState) {
       case 'uploading':
@@ -69,7 +69,7 @@ function ProgressBar ({text, progress, style}, {text: string, progress: number, 
     <Box style={containerStyle}>
       <Text type={'BodySmall'} style={{marginRight: globalMargins.xtiny}}>{text}</Text>
       <Box style={{...basicStyle, marginTop: 2, marginLeft: globalMargins.xtiny, backgroundColor: globalColors.black_05}}>
-        <Box style={{...basicStyle, width: Math.ceil(64 * progress), backgroundColor: globalColors.blue}} />
+        <Box style={{...basicStyle, width: 64 * progress, backgroundColor: globalColors.blue}} />
       </Box>
     </Box>
   )
@@ -107,6 +107,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
       <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
       <Box style={{marginTop: globalMargins.xtiny}}>
         {!!message.progress &&
+          (messageState === 'uploading' || messageState === 'downloading') &&
           <ProgressBar
             style={progressBarStyle}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
@@ -148,6 +149,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Constant
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
         <AttachmentTitle {...message} />
         {!!message.progress &&
+          (messageState === 'uploading' || messageState === 'downloading') &&
           <ProgressBar
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}

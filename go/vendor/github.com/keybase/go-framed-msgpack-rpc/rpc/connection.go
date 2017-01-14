@@ -228,8 +228,8 @@ type Connection struct {
 	handler          ConnectionHandler
 	transport        ConnectionTransport
 	errorUnwrapper   ErrorUnwrapper
-	reconnectBackoff *backoff.ExponentialBackOff
-	doCommandBackoff *backoff.ExponentialBackOff
+	reconnectBackoff backoff.BackOff
+	doCommandBackoff backoff.BackOff
 	wef              WrapErrorFunc
 	tagsFunc         LogTagsFromContext
 	log              connectionLog
@@ -245,20 +245,36 @@ type Connection struct {
 	reconnectedBefore bool
 }
 
+// This struct contains all the connection parameters that are optional. The
+// mandatory parameters are given as positional arguments to the different
+// wrapper functions, along with this struct.
+type ConnectionOpts struct {
+	TagsFunc         LogTagsFromContext
+	Protocols        []Protocol
+	DontConnectNow   bool
+	WrapErrorFunc    WrapErrorFunc
+	ReconnectBackoff backoff.BackOff
+	CommandBackoff   backoff.BackOff
+}
+
 // NewTLSConnection returns a connection that tries to connect to the
 // given server address with TLS.
-func NewTLSConnection(srvAddr string, rootCerts []byte,
-	errorUnwrapper ErrorUnwrapper, handler ConnectionHandler,
-	connectNow bool, l LogFactory, wef WrapErrorFunc, log LogOutput,
-	tagsFunc LogTagsFromContext) *Connection {
+func NewTLSConnection(
+	srvAddr string,
+	rootCerts []byte,
+	errorUnwrapper ErrorUnwrapper,
+	handler ConnectionHandler,
+	logFactory LogFactory,
+	logOutput LogOutput,
+	opts ConnectionOpts,
+) *Connection {
 	transport := &ConnectionTransportTLS{
 		rootCerts:  rootCerts,
 		srvAddr:    srvAddr,
-		logFactory: l,
-		wef:        wef,
+		logFactory: logFactory,
+		wef:        opts.WrapErrorFunc,
 	}
-	return NewConnectionWithTransport(handler, transport, errorUnwrapper,
-		connectNow, wef, log, tagsFunc)
+	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
 
 func copyTLSConfig(c *tls.Config) *tls.Config {
@@ -271,54 +287,54 @@ func copyTLSConfig(c *tls.Config) *tls.Config {
 
 // NewTLSConnectionWithTLSConfig allows you to specify a RootCA pool and also
 // a serverName (if wanted) via the full Go TLS config object.
-func NewTLSConnectionWithTLSConfig(srvAddr string, tlsConfig *tls.Config,
-	errorUnwrapper ErrorUnwrapper, handler ConnectionHandler,
-	connectNow bool, l LogFactory, wef WrapErrorFunc, log LogOutput,
-	tagsFunc LogTagsFromContext) *Connection {
+func NewTLSConnectionWithTLSConfig(
+	srvAddr string,
+	tlsConfig *tls.Config,
+	errorUnwrapper ErrorUnwrapper,
+	handler ConnectionHandler,
+	logFactory LogFactory,
+	logOutput LogOutput,
+	opts ConnectionOpts,
+) *Connection {
 	transport := &ConnectionTransportTLS{
 		srvAddr:    srvAddr,
 		tlsConfig:  copyTLSConfig(tlsConfig),
-		logFactory: l,
-		wef:        wef,
+		logFactory: logFactory,
+		wef:        opts.WrapErrorFunc,
 	}
-	return NewConnectionWithTransport(handler, transport, errorUnwrapper,
-		connectNow, wef, log, tagsFunc)
-}
-
-// NewTLSConnectionWithProtocols returns a connection that tries to connect to
-// the given server address with TLS and registers custom protocols.
-func NewTLSConnectionWithProtocols(srvAddr string, rootCerts []byte,
-	errorUnwrapper ErrorUnwrapper, handler ConnectionHandler,
-	connectNow bool, l LogFactory, wef WrapErrorFunc, log LogOutput,
-	tagsFunc LogTagsFromContext, protocols []Protocol) *Connection {
-	transport := &ConnectionTransportTLS{
-		rootCerts:  rootCerts,
-		srvAddr:    srvAddr,
-		logFactory: l,
-		wef:        wef,
-	}
-	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper,
-		connectNow, wef, log, tagsFunc, protocols)
+	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
 
 // NewConnectionWithTransport allows for connections with a custom
 // transport.
-func NewConnectionWithTransport(handler ConnectionHandler,
-	transport ConnectionTransport, errorUnwrapper ErrorUnwrapper,
-	connectNow bool, wef WrapErrorFunc, log LogOutput,
-	tagsFunc LogTagsFromContext) *Connection {
-	return newConnectionWithTransportAndProtocols(handler, transport,
-		errorUnwrapper, connectNow, wef, log, tagsFunc, nil)
+func NewConnectionWithTransport(
+	handler ConnectionHandler,
+	transport ConnectionTransport,
+	errorUnwrapper ErrorUnwrapper,
+	logOutput LogOutput,
+	opts ConnectionOpts,
+) *Connection {
+	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
 
 func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 	transport ConnectionTransport, errorUnwrapper ErrorUnwrapper,
-	connectNow bool, wef WrapErrorFunc, log LogOutput,
-	tagsFunc LogTagsFromContext, protocols []Protocol) *Connection {
-	// retry w/exponential backoff
-	reconnectBackoff := backoff.NewExponentialBackOff()
-	// never give up reconnecting
-	reconnectBackoff.MaxElapsedTime = 0
+	log LogOutput, opts ConnectionOpts) *Connection {
+	// use exponential backoffs by default which never give up on reconnecting
+	defaultBackoff := func() backoff.BackOff {
+		b := backoff.NewExponentialBackOff()
+		b.MaxElapsedTime = 0
+		b.MaxInterval = 10 * time.Second
+		return b
+	}
+	reconnectBackoff := opts.ReconnectBackoff
+	if reconnectBackoff == nil {
+		reconnectBackoff = defaultBackoff()
+	}
+	commandBackoff := opts.CommandBackoff
+	if commandBackoff == nil {
+		commandBackoff = defaultBackoff()
+	}
 	randBytes := make([]byte, 4)
 	rand.Read(randBytes)
 	connectionPrefix := fmt.Sprintf("CONN %s %x", handler.HandlerName(),
@@ -328,16 +344,16 @@ func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 		transport:        transport,
 		errorUnwrapper:   errorUnwrapper,
 		reconnectBackoff: reconnectBackoff,
-		doCommandBackoff: backoff.NewExponentialBackOff(),
-		wef:              wef,
-		tagsFunc:         tagsFunc,
+		doCommandBackoff: commandBackoff,
+		wef:              opts.WrapErrorFunc,
+		tagsFunc:         opts.TagsFunc,
 		log: connectionLog{
 			LogOutput: log,
 			logPrefix: connectionPrefix,
 		},
-		protocols: protocols,
+		protocols: opts.Protocols,
 	}
-	if connectNow {
+	if !opts.DontConnectNow {
 		// start connecting now
 		connection.getReconnectChan()
 	}

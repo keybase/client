@@ -923,6 +923,13 @@ func (e *Env) GetConvSourceType() string {
 	)
 }
 
+func (e *Env) GetInboxSourceType() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_INBOX_SOURCE_TYPE") },
+		func() string { return "hybrid" },
+	)
+}
+
 func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }

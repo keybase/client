@@ -77,8 +77,18 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	storage := storage.New(tc.G, f)
 	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage,
 		func() chat1.RemoteInterface { return mockRemote })
+	tc.G.InboxSource = chat.NewHybridInboxSource(tc.G,
+		func() keybase1.TlfInterface { return h.tlf },
+		func() chat1.RemoteInterface { return mockRemote },
+		f)
 	h.setTestRemoteClient(mockRemote)
 	h.gh, _ = newGregorHandler(tc.G)
+
+	baseSender := chat.NewBlockingSender(tc.G, h.boxer,
+		func() chat1.RemoteInterface { return mockRemote }, f)
+	tc.G.MessageDeliverer = chat.NewDeliverer(tc.G, baseSender)
+	tc.G.MessageDeliverer.Start(user.User.GetUID().ToBytes())
+	tc.G.MessageDeliverer.Connected()
 
 	tuc := &chatTestUserContext{
 		h: h,
@@ -89,6 +99,12 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 }
 
 func (c *chatTestContext) cleanup() {
+	for _, u := range c.users() {
+		deliverer := c.world.Tcs[u.Username].G.MessageDeliverer
+		if deliverer != nil {
+			deliverer.Stop()
+		}
+	}
 	c.world.Cleanup()
 }
 
@@ -807,5 +823,117 @@ func TestChatGap(t *testing.T) {
 	case <-listener.threadStale:
 		require.Fail(t, "should not get stale event here")
 	default:
+	}
+}
+
+type chatListener struct {
+	newMessage chan chat1.MessageUnboxed
+}
+
+func (n *chatListener) Logout()                                                            {}
+func (n *chatListener) Login(username string)                                              {}
+func (n *chatListener) ClientOutOfDate(to, uri, msg string)                                {}
+func (n *chatListener) UserChanged(uid keybase1.UID)                                       {}
+func (n *chatListener) TrackingChanged(uid keybase1.UID, username string)                  {}
+func (n *chatListener) FSActivity(activity keybase1.FSNotification)                        {}
+func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                      {}
+func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                   {}
+func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                  {}
+func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                          {}
+func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)       {}
+func (n *chatListener) FavoritesChanged(uid keybase1.UID)                                  {}
+func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                                  {}
+func (n *chatListener) PGPKeyInSecretStoreFile()                                           {}
+func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                          {}
+func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                        {}
+func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
+func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
+}
+func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
+func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
+func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
+	typ, _ := activity.ActivityType()
+	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
+		n.newMessage <- activity.IncomingMessage().Message
+	}
+}
+
+func TestPostLocalNonblock(t *testing.T) {
+	ctc := makeChatTestContext(t, "PostLocalNonblock", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	var err error
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	listener := chatListener{
+		newMessage: make(chan chat1.MessageUnboxed),
+	}
+	ctc.as(t, users[0]).h.G().SetService()
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(&listener)
+
+	t.Logf("send a text message")
+	arg := chat1.PostTextNonblockArg{
+		ConversationID:   created.Id,
+		Conv:             created.Triple,
+		TlfName:          created.TlfName,
+		TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+		Body:             "hi",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+	res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(context.TODO(), arg)
+	require.NoError(t, err)
+	var unboxed chat1.MessageUnboxed
+	select {
+	case unboxed = <-listener.newMessage:
+		require.True(t, unboxed.IsValid(), "invalid message")
+		require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
+		require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+		require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no event received")
+	}
+
+	t.Logf("edit the message")
+	earg := chat1.PostEditNonblockArg{
+		ConversationID:   created.Id,
+		Conv:             created.Triple,
+		TlfName:          created.TlfName,
+		TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+		Supersedes:       unboxed.GetMessageID(),
+		Body:             "hi2",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+	res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(context.TODO(), earg)
+	require.NoError(t, err)
+	select {
+	case unboxed = <-listener.newMessage:
+		require.True(t, unboxed.IsValid(), "invalid message")
+		require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
+		require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+		require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no event received")
+	}
+
+	t.Logf("delete the message")
+	darg := chat1.PostDeleteNonblockArg{
+		ConversationID:   created.Id,
+		Conv:             created.Triple,
+		TlfName:          created.TlfName,
+		TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+		Supersedes:       unboxed.GetMessageID(),
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+	res, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(context.TODO(), darg)
+	require.NoError(t, err)
+	select {
+	case unboxed = <-listener.newMessage:
+		require.True(t, unboxed.IsValid(), "invalid message")
+		require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
+		require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+		require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no event received")
 	}
 }
