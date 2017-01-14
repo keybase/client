@@ -6,7 +6,7 @@ import engine from '../engine'
 import flags from '../util/feature-flags'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpcPromise, ReachabilityReachable, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
@@ -16,21 +16,20 @@ import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
-import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
+import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
 import {tmpFile} from '../util/file'
-import {updateReachability} from '../constants/gregor'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
+import type {Action} from '../constants/types/flux'
 import type {ChangedFocus} from '../constants/window'
 import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
-import type {UpdateReachability} from '../constants/gregor'
 import type {
   AppendMessages,
   BadgeAppForChat,
@@ -43,6 +42,7 @@ import type {
   LoadInbox,
   LoadMoreMessages,
   LoadedInbox,
+  MarkThreadsStale,
   MaybeTimestamp,
   MetaData,
   Message,
@@ -520,9 +520,10 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
 
 function * _setupChatHandlers (): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
-    engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({uid, activity}) => {
+    engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
       dispatch({type: Constants.incomingMessage, payload: {activity}})
     })
+
     engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
       const usernames = update.CanonicalName.split(',')
       const broken = (update.breaks.breaks || []).map(b => b.user.username)
@@ -531,6 +532,14 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
         return map
       }, {})
       dispatch({type: Constants.updateBrokenTracker, payload: {userToBroken}})
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
+      dispatch({type: 'chat:inboxStale', payload: undefined})
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
+      dispatch({type: 'chat:markThreadsStale', payload: {convIDKeys: convIDs.map(conversationIDToKey)}})
     })
   })
 }
@@ -903,6 +912,10 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
+  const oldConversationState = yield select(_conversationStateSelector, conversationIDKey)
+  if (oldConversationState && oldConversationState.get('isStale')) {
+    yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
+  }
   yield put(loadMoreMessages(conversationIDKey, true))
   yield put(navigateTo([conversationIDKey], [chatTab]))
 
@@ -1117,15 +1130,6 @@ function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview
   yield put(action)
 }
 
-function * _updateReachability (action: UpdateReachability): SagaGenerator<any, any> {
-  if (!action.error) {
-    const {reachability} = action.payload
-    if (reachability && reachability.reachable === ReachabilityReachable.yes) {
-      yield put(loadInbox())
-    }
-  }
-}
-
 function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> {
   const appFocused = yield select(_focusedSelector)
   const selectedTab = yield select(_routeSelector)
@@ -1142,6 +1146,16 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
   }
 }
 
+function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
+  const selectedConversation = yield select(_selectedSelector)
+  yield put({type: 'chat:clearMessages', payload: {conversationIDKey: selectedConversation}})
+  yield put(loadMoreMessages(selectedConversation, false))
+}
+
+function _threadIsCleared (originalAction: Action, checkAction: Action): boolean {
+  return originalAction.type === 'chat:loadMoreMessages' && checkAction.type === 'chat:clearMessages' && originalAction.conversationIDKey === checkAction.conversationIDKey
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   if (!flags.tabChatEnabled) {
     return
@@ -1149,12 +1163,14 @@ function * chatSaga (): SagaGenerator<any, any> {
 
   yield [
     safeTakeLatest(Constants.loadInbox, _loadInbox),
+    safeTakeLatest('chat:inboxStale', _loadInbox),
     safeTakeLatest(Constants.loadedInbox, _loadedInbox),
-    safeTakeEvery(Constants.loadMoreMessages, _loadMoreMessages),
+    safeTakeEvery(Constants.loadMoreMessages, cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest(Constants.selectConversation, _selectConversation),
     safeTakeEvery(Constants.updateBadging, _updateBadging),
     safeTakeEvery(Constants.setupChatHandlers, _setupChatHandlers),
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
+    safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
     safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
     safeTakeEvery(Constants.retryMessage, _retryMessage),
@@ -1167,7 +1183,6 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.badgeAppForChat, _badgeAppForChat),
     safeTakeLatest(Constants.updateInbox, _onUpdateInbox),
     safeTakeEvery(changedFocus, _changedFocus),
-    safeTakeEvery(updateReachability, _updateReachability),
     safeTakeEvery(Constants.deleteMessage, _deleteMessage),
   ]
 }

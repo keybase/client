@@ -73,6 +73,19 @@ function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return initialState
+    case 'chat:clearMessages': {
+      const {conversationIDKey} = action.payload
+      const origConversationState = state.get('conversationStates').get(conversationIDKey)
+      if (!origConversationState) {
+        console.warn('Attempted to clear conversation state that doesn\'t exist')
+        return
+      }
+      const clearedConversationState = initialConversation.set('firstNewMessageID', origConversationState.get('firstNewMessageID'))
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.set(conversationIDKey, clearedConversationState)
+      )
+    }
     case Constants.prependMessages: {
       const {messages: prependMessages, moreToLoad, paginationNext, conversationIDKey} = action.payload
       const {messages, deletedIDs} = _filterTypes(prependMessages)
@@ -251,6 +264,18 @@ function reducer (state: State = initialState, action: Actions) {
           progress,
         })
       ))
+    }
+    case 'chat:markThreadsStale': {
+      const {convIDKeys} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.map((conversationState, conversationIDKey) => {
+          if (convIDKeys.length === 0 || convIDKeys.includes(conversationIDKey)) {
+            return conversationState.set('isStale', true)
+          }
+          return conversationState
+        })
+      )
     }
     case Constants.updateLatestMessage:
       // Clear new messages id of conversation
