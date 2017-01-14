@@ -15,6 +15,11 @@ import (
 	"github.com/keybase/kbfs/tlf"
 )
 
+type blockContainer struct {
+	block         Block
+	hasPrefetched bool
+}
+
 type idCacheKey struct {
 	tlf           tlf.ID
 	plaintextHash kbfshash.RawDefaultHash
@@ -71,11 +76,11 @@ func NewBlockCacheStandard(transientCapacity int,
 func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (Block, bool, error) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
-			block, ok := tmp.(Block)
+			bc, ok := tmp.(blockContainer)
 			if !ok {
 				return nil, false, BadDataError{ptr.ID}
 			}
-			return block, true, nil
+			return bc.block, bc.hasPrefetched, nil
 		}
 	}
 
@@ -113,10 +118,11 @@ func getCachedBlockSize(block Block) uint32 {
 }
 
 func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
-	block, ok := value.(Block)
+	bc, ok := value.(blockContainer)
 	if !ok {
 		return
 	}
+	block := bc.block
 
 	b.bytesLock.Lock()
 	defer b.bytesLock.Unlock()
@@ -231,7 +237,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		// Cache it later, once we know there's room
 		defer func() {
 			if madeRoom {
-				b.cleanTransient.Add(ptr.ID, block)
+				b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
 			}
 		}()
 
@@ -286,10 +292,11 @@ func (b *BlockCacheStandard) DeleteTransient(
 	// If the block is cached and a file block, delete the known
 	// pointer as well.
 	if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
-		block, ok := tmp.(Block)
+		bc, ok := tmp.(blockContainer)
 		if !ok {
 			return BadDataError{ptr.ID}
 		}
+		block := bc.block
 
 		// Remove the key if it exists
 		if fBlock, ok := block.(*FileBlock); b.ids != nil && ok &&
