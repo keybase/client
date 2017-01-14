@@ -46,33 +46,6 @@ func (e ChatActivityType) String() string {
 	return ""
 }
 
-type FailedMessageError int
-
-const (
-	FailedMessageError_MISC     FailedMessageError = 0
-	FailedMessageError_OFFLINE  FailedMessageError = 1
-	FailedMessageError_IDENTIFY FailedMessageError = 2
-)
-
-var FailedMessageErrorMap = map[string]FailedMessageError{
-	"MISC":     0,
-	"OFFLINE":  1,
-	"IDENTIFY": 2,
-}
-
-var FailedMessageErrorRevMap = map[FailedMessageError]string{
-	0: "MISC",
-	1: "OFFLINE",
-	2: "IDENTIFY",
-}
-
-func (e FailedMessageError) String() string {
-	if v, ok := FailedMessageErrorRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
 type IncomingMessage struct {
 	Message MessageUnboxed `codec:"message" json:"message"`
 	ConvID  ConversationID `codec:"convID" json:"convID"`
@@ -99,8 +72,7 @@ type SetStatusInfo struct {
 }
 
 type FailedMessageInfo struct {
-	OutboxRecords []OutboxRecord     `codec:"outboxRecords" json:"outboxRecords"`
-	LastError     FailedMessageError `codec:"lastError" json:"lastError"`
+	OutboxRecords []OutboxRecord `codec:"outboxRecords" json:"outboxRecords"`
 }
 
 type ChatActivity struct {

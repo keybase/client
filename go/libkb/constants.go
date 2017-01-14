@@ -216,6 +216,7 @@ const (
 	SCChatTLFFinalized       = int(keybase1.StatusCode_SCChatTLFFinalized)
 	SCChatCollision          = int(keybase1.StatusCode_SCChatCollision)
 	SCBadEmail               = int(keybase1.StatusCode_SCBadEmail)
+	SCIdentifySummaryError   = int(keybase1.StatusCode_SCIdentifySummaryError)
 )
 
 const (

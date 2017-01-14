@@ -8,9 +8,8 @@ import (
 
 	"encoding/hex"
 
-	"reflect"
-
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -26,6 +25,7 @@ type Sender interface {
 
 type BlockingSender struct {
 	libkb.Contextified
+	utils.DebugLabeler
 
 	boxer       *Boxer
 	getSecretUI func() libkb.SecretUI
@@ -36,6 +36,7 @@ func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, getRi func() chat1.
 	getSecretUI func() libkb.SecretUI) *BlockingSender {
 	return &BlockingSender{
 		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender"),
 		getRi:        getRi,
 		getSecretUI:  getSecretUI,
 		boxer:        boxer,
@@ -88,7 +89,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil, nil)
 	switch err.(type) {
 	case libkb.ChatStorageMissError:
-		s.G().Log.Debug("No local messages; skipping prev pointers")
+		s.Debug(ctx, "No local messages; skipping prev pointers")
 	case nil:
 		prevs, err = CheckPrevPointersAndGetUnpreved(&res)
 		if err != nil {
@@ -244,6 +245,7 @@ const deliverMaxAttempts = 5
 type Deliverer struct {
 	libkb.Contextified
 	sync.Mutex
+	utils.DebugLabeler
 
 	sender        Sender
 	outbox        *storage.Outbox
@@ -259,6 +261,7 @@ type Deliverer struct {
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified:  libkb.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer"),
 		shutdownCh:    make(chan chan struct{}, 1),
 		msgSentCh:     make(chan struct{}, 100),
 		reconnectCh:   make(chan struct{}, 100),
@@ -273,10 +276,6 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	})
 
 	return d
-}
-
-func (s *Deliverer) debug(msg string, args ...interface{}) {
-	s.G().Log.Debug("Deliverer: "+msg, args...)
 }
 
 func (s *Deliverer) Start(uid gregor1.UID) {
@@ -302,7 +301,7 @@ func (s *Deliverer) Stop() chan struct{} {
 func (s *Deliverer) doStop() chan struct{} {
 	cb := make(chan struct{})
 	if s.delivering {
-		s.debug("stopping")
+		s.Debug(context.Background(), "stopping")
 		s.shutdownCh <- cb
 		s.delivering = false
 		return cb
@@ -313,7 +312,7 @@ func (s *Deliverer) doStop() chan struct{} {
 }
 
 func (s *Deliverer) ForceDeliverLoop() {
-	s.debug("force deliver loop invoked")
+	s.Debug(context.Background(), "force deliver loop invoked")
 	s.msgSentCh <- struct{}{}
 }
 
@@ -325,19 +324,19 @@ func (s *Deliverer) Connected() {
 	s.connected = true
 
 	// Wake up deliver loop on reconnect
-	s.debug("reconnected: forcing deliver loop run")
+	s.Debug(context.Background(), "reconnected: forcing deliver loop run")
 	s.reconnectCh <- struct{}{}
 }
 
 func (s *Deliverer) Disconnected() {
-	s.debug("disconnected: all errors from now on will be permanent")
+	s.Debug(context.Background(), "disconnected: all errors from now on will be permanent")
 	s.connected = false
 }
 
-func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext,
+func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, error) {
 
-	s.debug("queued new message: convID: %s uid: %s ident: %v", convID, s.outbox.GetUID(),
+	s.Debug(ctx, "queued new message: convID: %s uid: %s ident: %v", convID, s.outbox.GetUID(),
 		identifyBehavior)
 
 	// Push onto outbox and immediatley return
@@ -352,48 +351,47 @@ func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintex
 	return oid, nil
 }
 
-func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.FailedMessageError, bool) {
+func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, bool) {
 
 	if !s.connected {
-		return chat1.FailedMessageError_OFFLINE, true
+		return chat1.OutboxErrorType_OFFLINE, true
 	}
 
 	// Check for an identify error
-	s.debug("err type: %s", reflect.TypeOf(err))
 	if uerr, ok := err.(libkb.TransientChatUnboxingError); ok {
 		if _, ok = uerr.Inner().(libkb.IdentifySummaryError); ok {
-			return chat1.FailedMessageError_IDENTIFY, true
+			return chat1.OutboxErrorType_IDENTIFY, true
 		}
 	}
 	if berr, ok := err.(libkb.ChatBoxingError); ok {
-		s.debug("err type: %s", reflect.TypeOf(berr.Inner()))
 		if _, ok = berr.Inner().(libkb.IdentifySummaryError); ok {
-			return chat1.FailedMessageError_IDENTIFY, true
+			return chat1.OutboxErrorType_IDENTIFY, true
 		}
 	}
 
 	// Check attempts otherwise
 	if obr.State.Sending() > deliverMaxAttempts {
-		return chat1.FailedMessageError_MISC, true
+		return chat1.OutboxErrorType_MISC, true
 	}
 
 	return 0, false
 }
 
 func (s *Deliverer) deliverLoop() {
-	s.debug("starting non blocking sender deliver loop: uid: %s duration: %v", s.outbox.GetUID(),
-		s.G().Env.GetChatDelivererInterval())
+	bgctx := context.Background()
+	s.Debug(bgctx, "starting non blocking sender deliver loop: uid: %s duration: %v",
+		s.outbox.GetUID(), s.G().Env.GetChatDelivererInterval())
 	for {
 		// Wait for the signal to take action
 		select {
 		case cb := <-s.shutdownCh:
-			s.debug("shuttting down outbox deliver loop: uid: %s", s.outbox.GetUID())
+			s.Debug(bgctx, "shuttting down outbox deliver loop: uid: %s", s.outbox.GetUID())
 			defer close(cb)
 			return
 		case <-s.reconnectCh:
-			s.debug("flushing outbox on reconnect: uid: %s", s.outbox.GetUID())
+			s.Debug(bgctx, "flushing outbox on reconnect: uid: %s", s.outbox.GetUID())
 		case <-s.msgSentCh:
-			s.debug("flushing outbox on new message: uid: %s", s.outbox.GetUID())
+			s.Debug(bgctx, "flushing outbox on new message: uid: %s", s.outbox.GetUID())
 		case <-s.G().Clock().After(s.G().Env.GetChatDelivererInterval()):
 		}
 
@@ -401,13 +399,13 @@ func (s *Deliverer) deliverLoop() {
 		obrs, err := s.outbox.PullAllConversations()
 		if err != nil {
 			if _, ok := err.(libkb.ChatStorageMissError); !ok {
-				s.G().Log.Error("unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
+				s.Debug(bgctx, "unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
 					err.Error())
 			}
 			continue
 		}
 		if len(obrs) > 0 {
-			s.debug("flushing %d items from the outbox: uid: %s", len(obrs), s.outbox.GetUID())
+			s.Debug(bgctx, "flushing %d items from the outbox: uid: %s", len(obrs), s.outbox.GetUID())
 		}
 
 		// Send messages
@@ -417,11 +415,11 @@ func (s *Deliverer) deliverLoop() {
 			// Check type
 			state, err := obr.State.State()
 			if err != nil {
-				s.G().Log.Error("skipping strange entry in the outbox, invalid type: %s", err.Error())
+				s.Debug(bgctx, "skipping strange entry in the outbox, invalid type: %s", err.Error())
 				continue
 			}
 			if state != chat1.OutboxStateType_SENDING {
-				s.debug("skipping error state record: id: %s convID: %s uid: %s",
+				s.Debug(bgctx, "skipping error state record: id: %s convID: %s uid: %s",
 					hex.EncodeToString(obr.OutboxID), obr.ConvID, s.outbox.GetUID())
 				continue
 			}
@@ -435,35 +433,37 @@ func (s *Deliverer) deliverLoop() {
 			}
 			if err == nil {
 				// Send succeeded
-				s.debug("clearing message from outbox: %s uid: %s", obr.OutboxID, s.outbox.GetUID())
+				s.Debug(bgctx, "clearing message from outbox: %s uid: %s", obr.OutboxID,
+					s.outbox.GetUID())
 				err = s.outbox.RemoveMessage(obr.OutboxID)
 				if err != nil {
-					s.G().Log.Error("error clearing message from outbox after successful send: uid:%s %s",
-						s.outbox.GetUID(), err)
+					s.Debug(bgctx, "error clearing message from outbox after successful send: uid:%s %s", s.outbox.GetUID(), err)
 				}
 			} else {
 				// Send failed
-				s.G().Log.Error("Deliverer: failed to send msg: uid: %s convID: %s err: %s attempts: %d",
+				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
 				// Process failure. If we determine that the message is unrecoverable, then bail out.
 				if errTyp, ok := s.doNotRetryFailure(obr, err); ok {
 					// Mark the entire outbox as an error if we can't send
-					s.debug("max failure attempts reached, marking all as errors and notifying")
-					deadObrs, err := s.outbox.MarkAllAsError()
+					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
+					deadObrs, err := s.outbox.MarkAllAsError(chat1.OutboxStateError{
+						Message: err.Error(),
+						Typ:     errTyp,
+					})
 					if err != nil {
-						s.G().Log.Error("unable to mark as error on outbox: uid: %s err: %s",
+						s.Debug(bgctx, "unable to mark as error on outbox: uid: %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}
 					act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 						OutboxRecords: deadObrs,
-						LastError:     errTyp,
 					})
 					s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
 						keybase1.UID(s.outbox.GetUID().String()), &act)
 				} else {
 					if err = s.outbox.RecordFailedAttempt(obr.OutboxID); err != nil {
-						s.G().Log.Error("unable to record failed attempt on outbox: uid %s err: %s",
+						s.Debug(bgctx, "unable to record failed attempt on outbox: uid %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}
 				}
@@ -500,6 +500,6 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 	}
 
 	identifyBehavior, _, _ := IdentifyMode(ctx)
-	oid, err := s.G().MessageDeliverer.Queue(convID, msg, identifyBehavior)
+	oid, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
 	return oid, 0, &chat1.RateLimit{}, err
 }

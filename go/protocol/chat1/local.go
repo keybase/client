@@ -343,10 +343,42 @@ func (e OutboxStateType) String() string {
 	return ""
 }
 
+type OutboxErrorType int
+
+const (
+	OutboxErrorType_MISC     OutboxErrorType = 0
+	OutboxErrorType_OFFLINE  OutboxErrorType = 1
+	OutboxErrorType_IDENTIFY OutboxErrorType = 2
+)
+
+var OutboxErrorTypeMap = map[string]OutboxErrorType{
+	"MISC":     0,
+	"OFFLINE":  1,
+	"IDENTIFY": 2,
+}
+
+var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
+	0: "MISC",
+	1: "OFFLINE",
+	2: "IDENTIFY",
+}
+
+func (e OutboxErrorType) String() string {
+	if v, ok := OutboxErrorTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type OutboxStateError struct {
+	Message string          `codec:"message" json:"message"`
+	Typ     OutboxErrorType `codec:"typ" json:"typ"`
+}
+
 type OutboxState struct {
-	State__   OutboxStateType `codec:"state" json:"state"`
-	Sending__ *int            `codec:"sending,omitempty" json:"sending,omitempty"`
-	Error__   *string         `codec:"error,omitempty" json:"error,omitempty"`
+	State__   OutboxStateType   `codec:"state" json:"state"`
+	Sending__ *int              `codec:"sending,omitempty" json:"sending,omitempty"`
+	Error__   *OutboxStateError `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o *OutboxState) State() (ret OutboxStateType, err error) {
@@ -375,12 +407,12 @@ func (o OutboxState) Sending() int {
 	return *o.Sending__
 }
 
-func (o OutboxState) Error() string {
+func (o OutboxState) Error() OutboxStateError {
 	if o.State__ != OutboxStateType_ERROR {
 		panic("wrong case accessed")
 	}
 	if o.Error__ == nil {
-		return ""
+		return OutboxStateError{}
 	}
 	return *o.Error__
 }
@@ -392,7 +424,7 @@ func NewOutboxStateWithSending(v int) OutboxState {
 	}
 }
 
-func NewOutboxStateWithError(v string) OutboxState {
+func NewOutboxStateWithError(v OutboxStateError) OutboxState {
 	return OutboxState{
 		State__: OutboxStateType_ERROR,
 		Error__: &v,

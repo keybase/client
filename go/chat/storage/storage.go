@@ -45,7 +45,7 @@ func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
 		getSecretUI:  getSecretUI,
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "chatstorage"),
+		DebugLabeler: utils.NewDebugLabeler(g, "Storage"),
 	}
 }
 

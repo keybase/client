@@ -18,7 +18,7 @@ type Outbox struct {
 	uid gregor1.UID
 }
 
-const outboxVersion = 1
+const outboxVersion = 2
 
 type diskOutbox struct {
 	Version int                  `codec:"V"`
@@ -226,7 +226,7 @@ func (o *Outbox) RetryMessage(obid chat1.OutboxID) error {
 	return nil
 }
 
-func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
+func (o *Outbox) MarkAllAsError(errRec chat1.OutboxStateError) ([]chat1.OutboxRecord, error) {
 	o.Lock()
 	defer o.Unlock()
 
@@ -239,7 +239,10 @@ func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
 	// Loop through and find record
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
-		obr.State = chat1.NewOutboxStateWithError("failed to send")
+		state, err := obr.State.State()
+		if err != nil || state == chat1.OutboxStateType_SENDING {
+			obr.State = chat1.NewOutboxStateWithError(errRec)
+		}
 		recs = append(recs, obr)
 	}
 
@@ -253,7 +256,7 @@ func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
 	return recs, nil
 }
 
-func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {
+func (o *Outbox) MarkAsError(obid chat1.OutboxID, errRec chat1.OutboxStateError) error {
 	o.Lock()
 	defer o.Unlock()
 
@@ -267,7 +270,7 @@ func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {
 	var recs []chat1.OutboxRecord
 	for _, obr := range obox.Records {
 		if obr.OutboxID.Eq(obid) {
-			obr.State = chat1.NewOutboxStateWithError("failed to send")
+			obr.State = chat1.NewOutboxStateWithError(errRec)
 		}
 		recs = append(recs, obr)
 	}

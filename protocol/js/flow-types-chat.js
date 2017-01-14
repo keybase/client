@@ -108,6 +108,12 @@ export const LocalMessageUnboxedState = {
   outbox: 3,
 }
 
+export const LocalOutboxErrorType = {
+  misc: 0,
+  offline: 1,
+  identify: 2,
+}
+
 export const LocalOutboxStateType = {
   sending: 0,
   error: 1,
@@ -120,12 +126,6 @@ export const NotifyChatChatActivityType = {
   newConversation: 3,
   setStatus: 4,
   failedMessage: 5,
-}
-
-export const NotifyChatFailedMessageError = {
-  misc: 0,
-  offline: 1,
-  identify: 2,
 }
 
 export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
@@ -687,14 +687,8 @@ export type EncryptedData = {
   n: bytes,
 }
 
-export type FailedMessageError = 
-    0 // MISC_0
-  | 1 // OFFLINE_1
-  | 2 // IDENTIFY_2
-
 export type FailedMessageInfo = {
   outboxRecords?: ?Array<OutboxRecord>,
-  lastError: FailedMessageError,
 }
 
 export type GenericPayload = {
@@ -1066,6 +1060,11 @@ export type NotifyChatNewChatActivityRpcParam = Exact<{
   activity: ChatActivity
 }>
 
+export type OutboxErrorType = 
+    0 // MISC_0
+  | 1 // OFFLINE_1
+  | 2 // IDENTIFY_2
+
 export type OutboxID = bytes
 
 export type OutboxInfo = {
@@ -1083,7 +1082,12 @@ export type OutboxRecord = {
 
 export type OutboxState = 
     { state : 0, sending : ?int }
-  | { state : 1, error : ?string }
+  | { state : 1, error : ?OutboxStateError }
+
+export type OutboxStateError = {
+  message: string,
+  typ: OutboxErrorType,
+}
 
 export type OutboxStateType = 
     0 // SENDING_0

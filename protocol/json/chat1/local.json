@@ -298,6 +298,29 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "OutboxErrorType",
+      "symbols": [
+        "MISC_0",
+        "OFFLINE_1",
+        "IDENTIFY_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutboxStateError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "OutboxErrorType",
+          "name": "typ"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "OutboxState",
       "switch": {
@@ -317,7 +340,7 @@
             "name": "ERROR",
             "def": false
           },
-          "body": "string"
+          "body": "OutboxStateError"
         }
       ]
     },

@@ -21,15 +21,6 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "FailedMessageError",
-      "symbols": [
-        "MISC_0",
-        "OFFLINE_1",
-        "IDENTIFY_2"
-      ]
-    },
-    {
       "type": "record",
       "name": "IncomingMessage",
       "fields": [
@@ -109,10 +100,6 @@
             "items": "OutboxRecord"
           },
           "name": "outboxRecords"
-        },
-        {
-          "type": "FailedMessageError",
-          "name": "lastError"
         }
       ]
     },
