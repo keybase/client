@@ -84,11 +84,11 @@ function safeTakeLatest (pattern: string | Array<any> | Function, worker: Functi
   return takeLatest(pattern, wrappedWorker, ...args)
 }
 
-function cancelWhen (predicate: (action: Action, nextAction: Action) => boolean, worker: Function) {
+function cancelWhen (predicate: (originalAction: Action, checkAction: Action) => boolean, worker: Function) {
   const wrappedWorker = function * (action: Action): SagaGenerator<any, any> {
     yield race({
       result: call(worker, action),
-      cancel: take((nextAction: Action) => predicate(action, nextAction)),
+      cancel: take((checkAction: Action) => predicate(action, checkAction)),
     })
   }
 

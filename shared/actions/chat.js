@@ -1152,8 +1152,8 @@ function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any>
   yield put(loadMoreMessages(selectedConversation, false))
 }
 
-function _threadIsCleared (action: Action, nextAction: Action): boolean {
-  return action.type === 'chat:loadMoreMessages' && nextAction.type === 'chat:clearMessages' && action.conversationIDKey === nextAction.conversationIDKey
+function _threadIsCleared (originalAction: Action, checkAction: Action): boolean {
+  return originalAction.type === 'chat:loadMoreMessages' && checkAction.type === 'chat:clearMessages' && originalAction.conversationIDKey === checkAction.conversationIDKey
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
