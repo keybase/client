@@ -38,9 +38,6 @@ module.exports = {
     }, {
       test: /\.css$/,
       loader: 'style!css',
-    }, {
-      test: /\.pegjs$/,
-      loader: 'pegjs-loader',
     }],
   },
   output: {
