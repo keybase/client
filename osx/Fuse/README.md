@@ -4,11 +4,15 @@ KBFuse is OSXFuse "branded" for Keybase. This is so we can maintain, install and
 conflicting with existing OSXFuse installs. It also allows us to sign the kext with our certificate instead
 of relying on 3rd party binaries from other developers.
 
+### Switch to (older) Xcode 7
+
+You'll need to build using Xcode 7 (which includes the 10.10 SDK), and move any other Xcode
+out of the way (out of /Applications), otherwise the osxfuse scripts will try to compile
+using a newer SDK instead.
+
 ### Building KBFuse from OSXFuse
 
-    VERSION=3.5.2 ./build.sh
-
-You should build from a 10.10 macOS.
+    VERSION=3.5.4 ./build.sh
 
 ### Manual Install
 
@@ -42,3 +46,9 @@ View kext status:
 
 The Fuse bundle is included in the KeybaseInstaller.app.
 Building a new installer will automatically pick up the kbfuse.bundle checked in here.
+
+### Differences from Fuse for macOS
+
+KBFuse is the same as Fuse for macOS (or osxfuse), except for the default admin group,
+which we change from "admin" to "staff". This allows us to specify allow_root and still
+work properly for users that aren't administrators.
