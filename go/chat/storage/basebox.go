@@ -100,7 +100,7 @@ func (i *baseBox) writeDiskBox(key libkb.DbKey, data interface{}) error {
 	return nil
 }
 
-func (i *baseBox) maybeNuke(err libkb.ChatStorageError, key libkb.DbKey) libkb.ChatStorageError {
+func (i *baseBox) maybeNuke(err ChatStorageError, key libkb.DbKey) ChatStorageError {
 	if err != nil && err.ShouldClear() {
 		if err := i.G().LocalChatDb.Delete(key); err != nil {
 			i.G().Log.Error("unable to clear box on error! err: %s", err.Error())
@@ -109,6 +109,6 @@ func (i *baseBox) maybeNuke(err libkb.ChatStorageError, key libkb.DbKey) libkb.C
 	return err
 }
 
-func (i *baseBox) maybeNukeFn(ef func() libkb.ChatStorageError, key libkb.DbKey) libkb.ChatStorageError {
+func (i *baseBox) maybeNukeFn(ef func() ChatStorageError, key libkb.DbKey) ChatStorageError {
 	return i.maybeNuke(ef(), key)
 }

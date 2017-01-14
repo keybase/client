@@ -89,7 +89,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil, nil)
 	switch err.(type) {
-	case libkb.ChatStorageMissError:
+	case storage.ChatStorageMissError:
 		s.Debug(ctx, "No local messages; skipping prev pointers")
 	case nil:
 		prevs, err = CheckPrevPointersAndGetUnpreved(&res)
@@ -249,6 +249,10 @@ func (d DelivererSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal
 
 const deliverMaxAttempts = 5
 
+type DelivererInfoError interface {
+	IsImmediateFail() (chat1.OutboxErrorType, bool)
+}
+
 type Deliverer struct {
 	libkb.Contextified
 	sync.Mutex
@@ -365,9 +369,9 @@ func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.
 	}
 
 	// Check for an identify error
-	if berr, ok := err.(libkb.ChatBoxingError); ok {
-		if _, ok = berr.Inner().(libkb.IdentifySummaryError); ok {
-			return chat1.OutboxErrorType_IDENTIFY, true
+	if berr, ok := err.(DelivererInfoError); ok {
+		if typ, ok := berr.IsImmediateFail(); ok {
+			return typ, true
 		}
 	}
 
@@ -400,7 +404,7 @@ func (s *Deliverer) deliverLoop() {
 		// Fetch outbox
 		obrs, err := s.outbox.PullAllConversations()
 		if err != nil {
-			if _, ok := err.(libkb.ChatStorageMissError); !ok {
+			if _, ok := err.(storage.ChatStorageMissError); !ok {
 				s.Debug(bgctx, "unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
 					err.Error())
 			}
