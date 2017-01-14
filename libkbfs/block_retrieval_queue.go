@@ -266,9 +266,9 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	// Cache the block and trigger prefetches if there is no error.
 	if err == nil {
 		if brq.config.BlockCache() != nil {
-			_ = brq.config.BlockCache().Put(
+			_ = brq.config.BlockCache().PutWithPrefetch(
 				retrieval.blockPtr, retrieval.kmd.TlfID(), block,
-				retrieval.cacheLifetime)
+				retrieval.cacheLifetime, true)
 		}
 		// We treat this request as not having been prefetched, because the
 		// only way to get here is if the request wasn't already cached.
