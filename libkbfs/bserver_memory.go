@@ -49,6 +49,10 @@ var errBlockServerMemoryShutdown = errors.New("BlockServerMemory is shutdown")
 func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -105,6 +109,10 @@ func validateBlockPut(
 func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -164,6 +172,10 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
 // AddBlockReference implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) (err error) {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -238,6 +250,10 @@ func (b *BlockServerMemory) removeBlockReference(
 func (b *BlockServerMemory) RemoveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (
 	liveCounts map[kbfsblock.ID]int, err error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -293,6 +309,10 @@ func (b *BlockServerMemory) archiveBlockReference(
 // BlockServerMemory.
 func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -365,6 +385,10 @@ func (b *BlockServerMemory) RefreshAuthToken(_ context.Context) {}
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
 	// Return a dummy value here.
 	return &kbfsblock.UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
 }

@@ -164,6 +164,10 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 // GetForHandle implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetForHandle(ctx context.Context, handle tlf.Handle,
 	mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
+	if err := checkContext(ctx); err != nil {
+		return tlf.NullID, nil, err
+	}
+
 	id, created, err := md.getHandleID(ctx, handle, mStatus)
 	if err != nil {
 		return tlf.NullID, nil, err
@@ -227,6 +231,10 @@ func (md *MDServerMemory) checkGetParams(
 // GetForTLF implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetForTLF(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
 	bid, err := md.checkGetParams(ctx, id, bid, mStatus)
 	if err != nil {
 		return nil, err
@@ -304,6 +312,10 @@ func (md *MDServerMemory) getCurrentDeviceKID(ctx context.Context) (keybase1.KID
 func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
 	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
 	bid, err := md.checkGetParams(ctx, id, bid, mStatus)
 	if err != nil {
@@ -366,6 +378,9 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	extra ExtraMetadata) error {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
 
 	currentUID, currentVerifyingKey, err :=
 		getCurrentUIDAndVerifyingKey(ctx, md.config.currentInfoGetter())
@@ -519,6 +534,10 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 // PruneBranch implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	if bid == NullBranchID {
 		return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
@@ -571,6 +590,10 @@ func (md *MDServerMemory) getBranchID(ctx context.Context, id tlf.ID) (BranchID,
 // RegisterForUpdate implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	currHead MetadataRevision) (<-chan error, error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
 	// are we already past this revision?  If so, fire observer
 	// immediately
 	currMergedHeadRev, err := md.getCurrentMergedHeadRevision(ctx, id)
@@ -599,6 +622,10 @@ func (md *MDServerMemory) getCurrentDeviceKIDBytes(ctx context.Context) (
 // TruncateLock implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) TruncateLock(ctx context.Context, id tlf.ID) (
 	bool, error) {
+	if err := checkContext(ctx); err != nil {
+		return false, err
+	}
+
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	err := md.checkShutdownLocked()
@@ -617,6 +644,10 @@ func (md *MDServerMemory) TruncateLock(ctx context.Context, id tlf.ID) (
 // TruncateUnlock implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) TruncateUnlock(ctx context.Context, id tlf.ID) (
 	bool, error) {
+	if err := checkContext(ctx); err != nil {
+		return false, err
+	}
+
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	err := md.checkShutdownLocked()
@@ -726,8 +757,12 @@ func (md *MDServerMemory) getCurrentMergedHeadRevision(
 }
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) GetLatestHandleForTLF(_ context.Context, id tlf.ID) (
-	tlf.Handle, error) {
+func (md *MDServerMemory) GetLatestHandleForTLF(
+	ctx context.Context, id tlf.ID) (tlf.Handle, error) {
+	if err := checkContext(ctx); err != nil {
+		return tlf.Handle{}, err
+	}
+
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 	err := md.checkShutdownLocked()
@@ -826,6 +861,10 @@ func (md *MDServerMemory) getKeyBundles(tlfID tlf.ID,
 func (md *MDServerMemory) GetKeyBundles(ctx context.Context,
 	tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, nil, err
+	}
+
 	wkb, rkb, err := md.getKeyBundles(tlfID, wkbID, rkbID)
 	if err != nil {
 		return nil, nil, MDServerError{err}

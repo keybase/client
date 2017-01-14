@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -136,4 +137,13 @@ func checkDataVersion(versioner dataVersioner, p path, ptr BlockPointer) error {
 		return NewDataVersionError{p, ptr.DataVer}
 	}
 	return nil
+}
+
+func checkContext(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return errors.WithStack(ctx.Err())
+	default:
+		return nil
+	}
 }

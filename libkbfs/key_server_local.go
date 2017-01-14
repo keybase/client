@@ -87,6 +87,10 @@ func NewKeyServerTempDir(config Config) (*KeyServerLocal, error) {
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 	serverHalfID TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
+	if err := checkContext(ctx); err != nil {
+		return kbfscrypto.TLFCryptKeyServerHalf{}, err
+	}
+
 	ks.shutdownLock.RLock()
 	defer ks.shutdownLock.RUnlock()
 	if *ks.shutdown {
@@ -120,6 +124,10 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 // PutTLFCryptKeyServerHalves implements the KeyOps interface for KeyServerLocal.
 func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 	keyServerHalves UserDeviceKeyServerHalves) error {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	ks.shutdownLock.RLock()
 	defer ks.shutdownLock.RUnlock()
 	if *ks.shutdown {
@@ -150,6 +158,10 @@ func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
 func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	_ keybase1.UID, _ keybase1.KID,
 	serverHalfID TLFCryptKeyServerHalfID) error {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	ks.shutdownLock.RLock()
 	defer ks.shutdownLock.RUnlock()
 	if *ks.shutdown {
