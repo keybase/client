@@ -1,11 +1,12 @@
 // @flow
 import {mapValues, forEach} from 'lodash'
 import {buffers, channel} from 'redux-saga'
-import {take, call, put, takeEvery, takeLatest, fork} from 'redux-saga/effects'
+import {take, call, put, race, takeEvery, takeLatest, fork} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
-import type {ChannelConfig, ChannelMap} from '../constants/types/saga'
+import type {Action} from '../constants/types/flux'
+import type {ChannelConfig, ChannelMap, SagaGenerator} from '../constants/types/saga'
 
 function createChannelMap<T> (channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, v => {
@@ -83,6 +84,7 @@ function safeTakeLatest (pattern: string | Array<any> | Function, worker: Functi
   return takeLatest(pattern, wrappedWorker, ...args)
 }
 
+<<<<<<< HEAD
 // take on pattern. If pattern happens while the original one is running just ignore it
 function* safeTakeSerially (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>): any {
   const wrappedWorker = function * (...args) {
@@ -111,7 +113,19 @@ function* safeTakeSerially (pattern: string | Array<any> | Function, worker: Fun
   return task
 }
 
+function cancelWhen (predicate: (originalAction: Action, checkAction: Action) => boolean, worker: Function) {
+  const wrappedWorker = function * (action: Action): SagaGenerator<any, any> {
+    yield race({
+      result: call(worker, action),
+      cancel: take((checkAction: Action) => predicate(action, checkAction)),
+    })
+  }
+
+  return wrappedWorker
+}
+
 export {
+  cancelWhen,
   closeChannelMap,
   createChannelMap,
   effectOnChannelMap,

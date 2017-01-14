@@ -349,6 +349,37 @@
       ]
     },
     {
+      "type": "record",
+      "name": "Inbox",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "version"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "convsUnverified"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "convs"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "HeaderPlaintextVersion",
       "symbols": [
@@ -662,12 +693,30 @@
     },
     {
       "type": "record",
+      "name": "ConversationErrorLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "Conversation",
+          "name": "remoteConv"
+        },
+        {
+          "type": "boolean",
+          "name": "permanent"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationLocal",
       "fields": [
         {
           "type": [
             null,
-            "string"
+            "ConversationErrorLocal"
           ],
           "name": "error"
         },

@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -22,6 +23,8 @@ type resultCollector interface {
 type Storage struct {
 	sync.Mutex
 	libkb.Contextified
+	utils.DebugLabeler
+
 	getSecretUI func() libkb.SecretUI
 	engine      storageEngine
 	idtracker   *msgIDTracker
@@ -42,6 +45,7 @@ func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
 		getSecretUI:  getSecretUI,
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "chatstorage"),
 	}
 }
 
@@ -138,10 +142,6 @@ func (t *typedResultCollector) String() string {
 	return fmt.Sprintf("[ typed: t: %d c: %d (%d types) ]", t.target, t.cur, len(t.typmap))
 }
 
-func (s *Storage) debug(format string, args ...interface{}) {
-	s.G().Log.Debug("+ chatstorage: "+format, args...)
-}
-
 func (s *Storage) MaybeNuke(force bool, err libkb.ChatStorageError, convID chat1.ConversationID, uid gregor1.UID) libkb.ChatStorageError {
 	// Clear index
 	if force || err.ShouldClear() {
@@ -174,7 +174,7 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	defer s.Unlock()
 
 	var err libkb.ChatStorageError
-	s.debug("Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
+	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
@@ -229,13 +229,13 @@ func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, li
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
 
-	s.debug("updateSupersededBy: num msgs: %d", len(msgs))
+	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	for _, msg := range msgs {
 
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			s.debug("updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
+			s.Debug(ctx, "updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
 			continue
 		}
 
@@ -243,11 +243,11 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		if err != nil {
 			continue
 		}
-		s.debug("updateSupersededBy: supersedes: %v", superIDs)
+		s.Debug(ctx, "updateSupersededBy: supersedes: %v", superIDs)
 
 		// Set all supersedes targets
 		for _, superID := range superIDs {
-			s.debug("updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
+			s.Debug(ctx, "updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
 			// Read super msg
 			var superMsgs []chat1.MessageUnboxed
 			rc := newSimpleResultCollector(1)
@@ -267,7 +267,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			// Update supersededBy on the target message if we have it
 			superMsg := superMsgs[0]
 			if superMsg.IsValid() {
-				s.debug("updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
+				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
 				mvalid := superMsg.Valid()
 				mvalid.ServerHeader.SupersededBy = msgid
 				superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
@@ -275,7 +275,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 					return err
 				}
 			} else {
-				s.debug("updateSupersededBy: skipping id: %d, it is stored as an error",
+				s.Debug(ctx, "updateSupersededBy: skipping id: %d, it is stored as an error",
 					superMsg.GetMessageID())
 			}
 		}
@@ -325,7 +325,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 			maxID = chat1.MessageID(int(pid) + num)
 		}
 	}
-	s.debug("Fetch: maxID: %d num: %d", maxID, num)
+	s.Debug(ctx, "Fetch: maxID: %d num: %d", maxID, num)
 
 	// Figure out how to determine we are done seeking
 	var rc resultCollector
@@ -334,7 +334,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	} else {
 		rc = newSimpleResultCollector(num)
 	}
-	s.debug("Fetch: using result collector: %s", rc)
+	s.Debug(ctx, "Fetch: using result collector: %s", rc)
 
 	// Run seek looking for all the messages
 	var res []chat1.MessageUnboxed
@@ -354,7 +354,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	}
 	tres.Messages = res
 
-	s.debug("Fetch: cache hit: num: %d", len(res))
+	s.Debug(ctx, "Fetch: cache hit: num: %d", len(res))
 	return tres, nil
 }
 

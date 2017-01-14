@@ -407,6 +407,13 @@ type OutboxRecord struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type Inbox struct {
+	Version         InboxVers           `codec:"version" json:"version"`
+	ConvsUnverified []Conversation      `codec:"convsUnverified" json:"convsUnverified"`
+	Convs           []ConversationLocal `codec:"convs" json:"convs"`
+	Pagination      *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
 type HeaderPlaintextVersion int
 
 const (
@@ -680,8 +687,14 @@ type ConversationInfoLocal struct {
 	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 }
 
+type ConversationErrorLocal struct {
+	Message    string       `codec:"message" json:"message"`
+	RemoteConv Conversation `codec:"remoteConv" json:"remoteConv"`
+	Permanent  bool         `codec:"permanent" json:"permanent"`
+}
+
 type ConversationLocal struct {
-	Error            *string                       `codec:"error,omitempty" json:"error,omitempty"`
+	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
 	Supersedes       []ConversationID              `codec:"supersedes" json:"supersedes"`

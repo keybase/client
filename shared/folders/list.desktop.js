@@ -96,6 +96,7 @@ class ListRender extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.scrollable,
+  willChange: 'transform',
   overflowX: 'hidden',
 }
 

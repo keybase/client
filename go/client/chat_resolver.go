@@ -212,7 +212,7 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 		return nil, false, errors.New("no conversation found")
 	case 1:
 		if conversations[0].Error != nil {
-			return nil, false, errors.New(*conversations[0].Error)
+			return nil, false, errors.New(conversations[0].Error.Message)
 		}
 		info := conversations[0].Info
 		if req.TlfName != info.TlfName {

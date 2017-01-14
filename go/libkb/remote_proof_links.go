@@ -139,7 +139,7 @@ func AddToProofSetNoChecks(r RemoteProofChainLink, ps *ProofSet) {
 
 func (r *RemoteProofLinks) active() []ProofLinkWithState {
 	var links []ProofLinkWithState
-	seen := make(map[string]struct{})
+	seen := make(map[string]bool)
 
 	// Loop over all types of services
 	for _, list := range r.links {
@@ -149,15 +149,16 @@ func (r *RemoteProofLinks) active() []ProofLinkWithState {
 		for i := len(list) - 1; i >= 0; i-- {
 			both := list[i]
 			link := both.link
-			if !link.IsRevoked() {
-				id := CanonicalProofName(link)
-				// We only want to use the last proof in the list
-				// if we have several (like for dns://chriscoyne.com)
-				if _, ok := seen[id]; !ok {
-					links = append(links, both)
-					seen[id] = struct{}{}
-				}
+			id := CanonicalProofName(link)
+
+			if !link.IsRevoked() && !seen[id] {
+				links = append(links, both)
 			}
+
+			// We only want to use the last proof in the list
+			// if we have several (like for dns://chriscoyne.com)
+			seen[id] = true
+
 			// Things like Twitter, Github, etc, are last-writer wins.
 			// Things like dns/https can have multiples
 			if link.LastWriterWins() {

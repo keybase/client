@@ -233,7 +233,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
 	d.hourlyChecks()
-	d.createConvSource()
+	d.createChatSources()
 	d.createMessageDeliverer()
 	d.startupGregor()
 	d.startMessageDeliverer()
@@ -260,12 +260,17 @@ func (d *Service) startMessageDeliverer() {
 	}
 }
 
-func (d *Service) createConvSource() {
+func (d *Service) createChatSources() {
 	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	tlf := newTlfHandler(nil, d.G())
+	boxer := chat.NewBoxer(d.G(), tlf)
+
+	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(),
+		ri, si, func() keybase1.TlfInterface { return tlf })
+
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
-		chat.NewBoxer(d.G(), tlf), storage.New(d.G(), si), ri)
+		boxer, storage.New(d.G(), si), ri)
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {

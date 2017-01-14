@@ -136,6 +136,7 @@ const containerStyle = {
 const scrollableStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
+  willChange: 'transform',
   overflowY: 'auto',
 }
 

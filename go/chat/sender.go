@@ -223,14 +223,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
-	// TODO: make this cache write work
-	/*if err = storage.NewInbox(s.G(), boxed.ClientHeader.Sender, func() libkb.SecretUI {
-		return DelivererSecretUI{}
-	}).NewMessage(0, convID, unboxed); err != nil {
-		if _, ok := err.(libkb.ChatStorageMissError); !ok {
-			return chat1.OutboxID{}, nil, err
-		}
-	}*/
+	if err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
+		return chat1.OutboxID{}, 0, nil, err
+	}
 
 	return []byte{}, plres.MsgHeader.MessageID, plres.RateLimit, nil
 }
