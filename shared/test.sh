@@ -1,8 +1,8 @@
 #!/bin/bash
 
-test_type = "$1"
-commit_hash = "$2"
-change_target = "$3"
+test_type="$1"
+commit_hash="$2"
+change_target="$3"
 
 echo "shared/test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target}"
 
