@@ -164,10 +164,8 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 // GetForHandle implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetForHandle(ctx context.Context, handle tlf.Handle,
 	mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
-	select {
-	case <-ctx.Done():
-		return tlf.NullID, nil, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return tlf.NullID, nil, err
 	}
 
 	id, created, err := md.getHandleID(ctx, handle, mStatus)
@@ -233,10 +231,8 @@ func (md *MDServerMemory) checkGetParams(
 // GetForTLF implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetForTLF(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return nil, err
 	}
 
 	bid, err := md.checkGetParams(ctx, id, bid, mStatus)
@@ -316,10 +312,8 @@ func (md *MDServerMemory) getCurrentDeviceKID(ctx context.Context) (keybase1.KID
 func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return nil, err
 	}
 
 	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
@@ -384,10 +378,8 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	extra ExtraMetadata) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return err
 	}
 
 	currentUID, currentVerifyingKey, err :=
@@ -542,10 +534,8 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 
 // PruneBranch implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return err
 	}
 
 	if bid == NullBranchID {
@@ -600,10 +590,8 @@ func (md *MDServerMemory) getBranchID(ctx context.Context, id tlf.ID) (BranchID,
 // RegisterForUpdate implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	currHead MetadataRevision) (<-chan error, error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return nil, err
 	}
 
 	// are we already past this revision?  If so, fire observer
@@ -634,10 +622,8 @@ func (md *MDServerMemory) getCurrentDeviceKIDBytes(ctx context.Context) (
 // TruncateLock implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) TruncateLock(ctx context.Context, id tlf.ID) (
 	bool, error) {
-	select {
-	case <-ctx.Done():
-		return false, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return false, err
 	}
 
 	md.lock.Lock()
@@ -658,10 +644,8 @@ func (md *MDServerMemory) TruncateLock(ctx context.Context, id tlf.ID) (
 // TruncateUnlock implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) TruncateUnlock(ctx context.Context, id tlf.ID) (
 	bool, error) {
-	select {
-	case <-ctx.Done():
-		return false, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return false, err
 	}
 
 	md.lock.Lock()
@@ -775,10 +759,8 @@ func (md *MDServerMemory) getCurrentMergedHeadRevision(
 // GetLatestHandleForTLF implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetLatestHandleForTLF(
 	ctx context.Context, id tlf.ID) (tlf.Handle, error) {
-	select {
-	case <-ctx.Done():
-		return tlf.Handle{}, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return tlf.Handle{}, err
 	}
 
 	md.lock.RLock()
@@ -879,10 +861,8 @@ func (md *MDServerMemory) getKeyBundles(tlfID tlf.ID,
 func (md *MDServerMemory) GetKeyBundles(ctx context.Context,
 	tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	select {
-	case <-ctx.Done():
-		return nil, nil, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return nil, nil, err
 	}
 
 	wkb, rkb, err := md.getKeyBundles(tlfID, wkbID, rkbID)

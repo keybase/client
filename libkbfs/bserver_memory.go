@@ -49,10 +49,8 @@ var errBlockServerMemoryShutdown = errors.New("BlockServerMemory is shutdown")
 func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
-	select {
-	case <-ctx.Done():
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	defer func() {
@@ -111,10 +109,8 @@ func validateBlockPut(
 func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return err
 	}
 
 	defer func() {
@@ -176,10 +172,8 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
 // AddBlockReference implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) (err error) {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return err
 	}
 
 	defer func() {
@@ -256,10 +250,8 @@ func (b *BlockServerMemory) removeBlockReference(
 func (b *BlockServerMemory) RemoveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (
 	liveCounts map[kbfsblock.ID]int, err error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return nil, err
 	}
 
 	defer func() {
@@ -317,10 +309,8 @@ func (b *BlockServerMemory) archiveBlockReference(
 // BlockServerMemory.
 func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return err
 	}
 
 	defer func() {
@@ -395,10 +385,8 @@ func (b *BlockServerMemory) RefreshAuthToken(_ context.Context) {}
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
+	if err := checkContext(ctx); err != nil {
+		return nil, err
 	}
 
 	// Return a dummy value here.

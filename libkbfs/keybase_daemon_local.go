@@ -185,6 +185,10 @@ func (k *KeybaseDaemonLocal) assertionToUIDLocked(ctx context.Context,
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 	libkb.NormalizedUsername, keybase1.UID, error) {
+	if err := checkContext(ctx); err != nil {
+		return libkb.NormalizedUsername(""), keybase1.UID(""), err
+	}
+
 	k.lock.Lock()
 	defer k.lock.Unlock()
 
@@ -199,6 +203,10 @@ func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {
+	if err := checkContext(ctx); err != nil {
+		return UserInfo{}, err
+	}
+
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	uid, err := k.assertionToUIDLocked(ctx, assertion)
@@ -220,6 +228,10 @@ func (k *KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason str
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error) {
+	if err := checkContext(ctx); err != nil {
+		return UserInfo{}, err
+	}
+
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	u, err := k.localUsers.getLocalUser(uid)
@@ -237,6 +249,10 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.
 // LoadUnverifiedKeys implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
 	[]keybase1.PublicKey, error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	u, err := k.localUsers.getLocalUser(uid)
@@ -249,6 +265,10 @@ func (k *KeybaseDaemonLocal) LoadUnverifiedKeys(ctx context.Context, uid keybase
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {
+	if err := checkContext(ctx); err != nil {
+		return SessionInfo{}, err
+	}
+
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	u, err := k.localUsers.getLocalUser(k.currentUID)
@@ -400,6 +420,10 @@ func (k *KeybaseDaemonLocal) switchDeviceForTesting(uid keybase1.UID,
 // FavoriteAdd implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteAdd(
 	ctx context.Context, folder keybase1.Folder) error {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	return k.favoriteStore.FavoriteAdd(k.currentUID, folder)
@@ -408,6 +432,10 @@ func (k *KeybaseDaemonLocal) FavoriteAdd(
 // FavoriteDelete implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteDelete(
 	ctx context.Context, folder keybase1.Folder) error {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	return k.favoriteStore.FavoriteDelete(k.currentUID, folder)
@@ -416,6 +444,10 @@ func (k *KeybaseDaemonLocal) FavoriteDelete(
 // FavoriteList implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteList(
 	ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	return k.favoriteStore.FavoriteList(k.currentUID)
@@ -423,12 +455,20 @@ func (k *KeybaseDaemonLocal) FavoriteList(
 
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // NotifySyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
 	_ *keybase1.FSPathSyncStatus) error {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }
 
