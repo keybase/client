@@ -8,6 +8,7 @@ import (
 
 	"encoding/hex"
 
+	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
@@ -147,6 +148,12 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 }
 
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
+
+	// Make sure it is a proper length
+	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
+		return nil, err
+	}
+
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
 		return nil, err
@@ -358,11 +365,6 @@ func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.
 	}
 
 	// Check for an identify error
-	if uerr, ok := err.(libkb.TransientChatUnboxingError); ok {
-		if _, ok = uerr.Inner().(libkb.IdentifySummaryError); ok {
-			return chat1.OutboxErrorType_IDENTIFY, true
-		}
-	}
 	if berr, ok := err.(libkb.ChatBoxingError); ok {
 		if _, ok = berr.Inner().(libkb.IdentifySummaryError); ok {
 			return chat1.OutboxErrorType_IDENTIFY, true

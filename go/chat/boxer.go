@@ -314,7 +314,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 
 	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, msg.ClientHeader.TlfPublic)
 	if err != nil {
-		return nil, libkb.NewChatBoxingError("KeyFinder.Find: "+err.Error(), err)
+		return nil, libkb.NewChatBoxingError(err.Error(), err)
 	}
 	msg.ClientHeader.TlfName = string(cres.NameIDBreaks.CanonicalName)
 	if msg.ClientHeader.TlfPublic {

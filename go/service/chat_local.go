@@ -17,7 +17,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat"
-	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -650,10 +649,6 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	err = msgchecker.CheckMessagePlaintext(arg.Msg)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
 
 	// Make sure sender is set
 	db := make([]byte, 16)
