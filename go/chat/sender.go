@@ -89,7 +89,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil, nil)
 	switch err.(type) {
-	case storage.ChatStorageMissError:
+	case storage.MissError:
 		s.Debug(ctx, "No local messages; skipping prev pointers")
 	case nil:
 		prevs, err = CheckPrevPointersAndGetUnpreved(&res)
@@ -404,7 +404,7 @@ func (s *Deliverer) deliverLoop() {
 		// Fetch outbox
 		obrs, err := s.outbox.PullAllConversations()
 		if err != nil {
-			if _, ok := err.(storage.ChatStorageMissError); !ok {
+			if _, ok := err.(storage.MissError); !ok {
 				s.Debug(bgctx, "unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
 					err.Error())
 			}

@@ -324,7 +324,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 
 	vers, convs, pagination, cerr := inboxStore.Read(ctx, rquery, p)
 	if cerr != nil {
-		if _, ok := cerr.(storage.ChatStorageMissError); !ok {
+		if _, ok := cerr.(storage.MissError); !ok {
 			s.Debug(ctx, "Read: error fetching inbox: %s", cerr.Error())
 		} else {
 			s.Debug(ctx, "Read: storage miss")
@@ -363,11 +363,11 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 	return inbox, rl, nil
 }
 
-func (s *HybridInboxSource) handleInboxError(err storage.ChatStorageError, uid gregor1.UID) error {
-	if _, ok := err.(storage.ChatStorageMissError); ok {
+func (s *HybridInboxSource) handleInboxError(err storage.Error, uid gregor1.UID) error {
+	if _, ok := err.(storage.MissError); ok {
 		return nil
 	}
-	if _, ok := err.(storage.ChatStorageVersionMismatchError); ok {
+	if _, ok := err.(storage.VersionMismatchError); ok {
 		s.syncer.SendChatStaleNotifications(uid)
 		return nil
 	}

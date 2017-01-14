@@ -30,7 +30,7 @@ func (t *msgIDTracker) makeMaxMsgIDKey(convID chat1.ConversationID, uid gregor1.
 }
 
 func (t *msgIDTracker) bumpMaxMessageID(
-	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) ChatStorageError {
+	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) Error {
 
 	// No need to use transaction here since the Storage class takes lock.
 
@@ -38,12 +38,12 @@ func (t *msgIDTracker) bumpMaxMessageID(
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)
 	if err != nil {
-		return NewChatStorageInternalError(t.DebugLabeler, "GetRaw error: %s", err.Error())
+		return NewInternalError(t.DebugLabeler, "GetRaw error: %s", err.Error())
 	}
 	if found {
 		var maxMsgID chat1.MessageID
 		if err = decode(raw, &maxMsgID); err != nil {
-			return NewChatStorageInternalError(t.DebugLabeler, "decode error: %s", err.Error())
+			return NewInternalError(t.DebugLabeler, "decode error: %s", err.Error())
 		}
 		if maxMsgID >= msgID {
 			return nil
@@ -52,31 +52,31 @@ func (t *msgIDTracker) bumpMaxMessageID(
 
 	dat, err := encode(msgID)
 	if err != nil {
-		return NewChatStorageInternalError(t.DebugLabeler, "encode error: %s", err.Error())
+		return NewInternalError(t.DebugLabeler, "encode error: %s", err.Error())
 	}
 	if err = t.G().LocalChatDb.PutRaw(maxMsgIDKey, dat); err != nil {
-		return NewChatStorageInternalError(t.DebugLabeler, "PutRaw error: %s", err.Error())
+		return NewInternalError(t.DebugLabeler, "PutRaw error: %s", err.Error())
 	}
 
 	return nil
 }
 
 func (t *msgIDTracker) getMaxMessageID(
-	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, ChatStorageError) {
+	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, Error) {
 
 	maxMsgIDKey := t.makeMaxMsgIDKey(convID, uid)
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)
 	if err != nil {
-		return 0, NewChatStorageInternalError(t.DebugLabeler, "GetRaw error: %s", err.Error())
+		return 0, NewInternalError(t.DebugLabeler, "GetRaw error: %s", err.Error())
 	}
 	if !found {
-		return 0, ChatStorageMissError{}
+		return 0, MissError{}
 	}
 
 	var maxMsgID chat1.MessageID
 	if err = decode(raw, &maxMsgID); err != nil {
-		return 0, NewChatStorageInternalError(t.DebugLabeler, "decode error: %s", err.Error())
+		return 0, NewInternalError(t.DebugLabeler, "decode error: %s", err.Error())
 	}
 
 	return maxMsgID, nil

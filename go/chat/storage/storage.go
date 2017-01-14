@@ -32,11 +32,11 @@ type Storage struct {
 
 type storageEngine interface {
 	init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
-		uid gregor1.UID) (context.Context, ChatStorageError)
+		uid gregor1.UID) (context.Context, Error)
 	writeMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msgs []chat1.MessageUnboxed) ChatStorageError
+		msgs []chat1.MessageUnboxed) Error
 	readMessages(ctx context.Context, res resultCollector,
-		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) ChatStorageError
+		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
 }
 
 func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
@@ -142,7 +142,7 @@ func (t *typedResultCollector) String() string {
 	return fmt.Sprintf("[ typed: t: %d c: %d (%d types) ]", t.target, t.cur, len(t.typmap))
 }
 
-func (s *Storage) MaybeNuke(force bool, err ChatStorageError, convID chat1.ConversationID, uid gregor1.UID) ChatStorageError {
+func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, uid gregor1.UID) Error {
 	// Clear index
 	if force || err.ShouldClear() {
 		s.G().Log.Warning("chat local storage corrupted: clearing")
@@ -167,19 +167,19 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 	return maxMsgID, nil
 }
 
-func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) ChatStorageError {
+func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
 	defer s.Unlock()
 
-	var err ChatStorageError
+	var err Error
 	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
-		return ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	ctx, err = s.engine.init(ctx, key, convID, uid)
@@ -208,11 +208,11 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 }
 
 // getSupersedes must be called with a valid msg
-func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, ChatStorageError) {
+func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, Error) {
 	body := msg.Valid().MessageBody
 	typ, err := (&body).MessageType()
 	if err != nil {
-		return nil, NewChatStorageInternalError(s.DebugLabeler, "invalid msg: %s", err.Error())
+		return nil, NewInternalError(s.DebugLabeler, "invalid msg: %s", err.Error())
 	}
 
 	// We use the message ID in the body over the field in the client header to avoid server trust.
@@ -227,7 +227,7 @@ func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, Ch
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) ChatStorageError {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
 
 	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
@@ -254,7 +254,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			err = s.engine.readMessages(ctx, rc, convID, uid, superID)
 			if err != nil {
 				// If we don't have the message, just keep going
-				if _, ok := err.(ChatStorageMissError); ok {
+				if _, ok := err.(MissError); ok {
 					continue
 				}
 				return err
@@ -285,16 +285,16 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 }
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, ChatStorageError) {
+	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
 		return chat1.ThreadView{},
-			ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}
+			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	// Init storage engine first
-	var err ChatStorageError
+	var err Error
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
 		return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
@@ -313,13 +313,13 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 			maxID = msgID
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
-				err = ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
+				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
 				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = pid - 1
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
-				err = ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
+				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
 				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
@@ -350,7 +350,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 		pmsgs = append(pmsgs, m)
 	}
 	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num); ierr != nil {
-		return chat1.ThreadView{}, NewChatStorageInternalError(s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
+		return chat1.ThreadView{}, NewInternalError(s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
 	tres.Messages = res
 
@@ -359,7 +359,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 }
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -374,7 +374,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -389,11 +389,11 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
-		return nil, ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	// Init storage engine first
-	var err ChatStorageError
+	var err Error
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
 		return nil, s.MaybeNuke(false, err, convID, uid)
@@ -405,7 +405,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 		rc := newSimpleResultCollector(1)
 		var sres []chat1.MessageUnboxed
 		if err = s.engine.readMessages(ctx, rc, convID, uid, msgID); err != nil {
-			if _, ok := err.(ChatStorageMissError); ok {
+			if _, ok := err.(MissError); ok {
 				res = append(res, nil)
 				continue
 			} else {

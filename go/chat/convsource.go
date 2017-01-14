@@ -64,7 +64,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
-	return chat1.ThreadView{}, storage.ChatStorageMissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
+	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
 func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
@@ -138,7 +138,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	// Check to see if we are "appending" this message to the current record.
 	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
 	switch err.(type) {
-	case storage.ChatStorageMissError:
+	case storage.MissError:
 		continuousUpdate = true
 	case nil:
 		continuousUpdate = maxMsgID >= decmsg.GetMessageID()-1
@@ -162,10 +162,10 @@ func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID c
 	})
 	*rl = append(*rl, conv.RateLimit)
 	if err != nil {
-		return chat1.Conversation{}, storage.ChatStorageRemoteError{Msg: err.Error()}
+		return chat1.Conversation{}, storage.RemoteError{Msg: err.Error()}
 	}
 	if len(conv.Inbox.Full().Conversations) == 0 {
-		return chat1.Conversation{}, storage.ChatStorageRemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
+		return chat1.Conversation{}, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
 	}
 	return conv.Inbox.Full().Conversations[0], nil
 }

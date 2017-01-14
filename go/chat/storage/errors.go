@@ -8,103 +8,103 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-type ChatStorageError interface {
+type Error interface {
 	error
 	ShouldClear() bool
 	Message() string
 }
 
-type ChatStorageInternalError struct {
+type InternalError struct {
 	Msg string
 }
 
-func (e ChatStorageInternalError) ShouldClear() bool {
+func (e InternalError) ShouldClear() bool {
 	return true
 }
 
-func (e ChatStorageInternalError) Error() string {
+func (e InternalError) Error() string {
 	return fmt.Sprintf("internal chat storage error: %s", e.Msg)
 }
 
-func (e ChatStorageInternalError) Message() string {
+func (e InternalError) Message() string {
 	return e.Msg
 }
 
-func NewChatStorageInternalError(d utils.DebugLabeler, msg string, args ...interface{}) ChatStorageInternalError {
+func NewInternalError(d utils.DebugLabeler, msg string, args ...interface{}) InternalError {
 	d.Debug(context.Background(), "internal chat storage error: "+msg, args...)
-	return ChatStorageInternalError{Msg: fmt.Sprintf(msg, args...)}
+	return InternalError{Msg: fmt.Sprintf(msg, args...)}
 }
 
-type ChatStorageMissError struct {
+type MissError struct {
 	Msg string
 }
 
-func (e ChatStorageMissError) Error() string {
+func (e MissError) Error() string {
 	if len(e.Msg) > 0 {
 		return "chat cache miss: " + e.Msg
 	}
 	return "chat cache miss"
 }
 
-func (e ChatStorageMissError) ShouldClear() bool {
+func (e MissError) ShouldClear() bool {
 	return false
 }
 
-func (e ChatStorageMissError) Message() string {
+func (e MissError) Message() string {
 	return e.Error()
 }
 
-type ChatStorageRemoteError struct {
+type RemoteError struct {
 	Msg string
 }
 
-func (e ChatStorageRemoteError) Error() string {
+func (e RemoteError) Error() string {
 	return fmt.Sprintf("chat remote error: %s", e.Msg)
 }
 
-func (e ChatStorageRemoteError) ShouldClear() bool {
+func (e RemoteError) ShouldClear() bool {
 	return false
 }
 
-func (e ChatStorageRemoteError) Message() string {
+func (e RemoteError) Message() string {
 	return e.Msg
 }
 
-type ChatStorageMiscError struct {
+type MiscError struct {
 	Msg string
 }
 
-func (e ChatStorageMiscError) Error() string {
+func (e MiscError) Error() string {
 	return e.Msg
 }
 
-func (e ChatStorageMiscError) ShouldClear() bool {
+func (e MiscError) ShouldClear() bool {
 	return false
 }
 
-func (e ChatStorageMiscError) Message() string {
+func (e MiscError) Message() string {
 	return e.Msg
 }
 
-type ChatStorageVersionMismatchError struct {
+type VersionMismatchError struct {
 	old, new chat1.InboxVers
 }
 
-func NewChatStorageVersionMismatchError(oldVers chat1.InboxVers, newVers chat1.InboxVers) ChatStorageVersionMismatchError {
-	return ChatStorageVersionMismatchError{
+func NewVersionMismatchError(oldVers chat1.InboxVers, newVers chat1.InboxVers) VersionMismatchError {
+	return VersionMismatchError{
 		old: oldVers,
 		new: newVers,
 	}
 }
 
-func (e ChatStorageVersionMismatchError) Error() string {
+func (e VersionMismatchError) Error() string {
 	return fmt.Sprintf("version mismatch error: old %d new: %d", e.old, e.new)
 }
 
-func (e ChatStorageVersionMismatchError) ShouldClear() bool {
+func (e VersionMismatchError) ShouldClear() bool {
 	return true
 }
 
-func (e ChatStorageVersionMismatchError) Message() string {
+func (e VersionMismatchError) Message() string {
 	return e.Error()
 }
