@@ -67,15 +67,15 @@ func NewBlockCacheStandard(transientCapacity int,
 	return b
 }
 
-// Get implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
+// GetWithPrefetch implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (Block, bool, error) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
 			block, ok := tmp.(Block)
 			if !ok {
-				return nil, BadDataError{ptr.ID}
+				return nil, false, BadDataError{ptr.ID}
 			}
-			return block, nil
+			return block, true, nil
 		}
 	}
 
@@ -85,10 +85,16 @@ func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
 		return b.cleanPermanent[ptr.ID]
 	}()
 	if block != nil {
-		return block, nil
+		return block, true, nil
 	}
 
-	return nil, NoSuchBlockError{ptr.ID}
+	return nil, false, NoSuchBlockError{ptr.ID}
+}
+
+// Get implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
+	block, _, err := b.GetWithPrefetch(ptr)
+	return block, err
 }
 
 func getCachedBlockSize(block Block) uint32 {
@@ -199,9 +205,10 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 	return true
 }
 
-// Put implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Put(
-	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
+// PutWithPrefetch implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) PutWithPrefetch(
+	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
+	hasPrefetched bool) error {
 
 	madeRoom := false
 
@@ -244,6 +251,14 @@ func (b *BlockCacheStandard) Put(
 	madeRoom = b.makeRoomForSize(size)
 
 	return nil
+}
+
+// Put implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) Put(
+	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
+	// Default should be to assume that a prefetch has happened, and thus it
+	// won't trigger prefetches in the future.
+	return b.PutWithPrefetch(ptr, tlf, block, lifetime, true)
 }
 
 // DeletePermanent implements the BlockCache interface for

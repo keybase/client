@@ -685,9 +685,13 @@ type BlockCache interface {
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
 	// GetWithPrefetch retrieves a block from the cache, along with whether or
-	// not it has been marked for prefetching.
-	//GetWithPrefetch(ptr BlockPointer) (
-	//	block Block, hasPrefetched bool, err error)
+	// not it has triggered a prefetch.
+	GetWithPrefetch(ptr BlockPointer) (
+		block Block, hasPrefetched bool, err error)
+	// PutWithPrefetch puts a block into the cache, along with whether or not
+	// it has triggered a prefetch.
+	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
+		lifetime BlockCacheLifetime, hasPrefetched bool) error
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.

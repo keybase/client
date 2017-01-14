@@ -19,6 +19,7 @@ const (
 	fileIndirectBlockPrefetchPriority   int = -100
 	dirEntryPrefetchPriority            int = -200
 	updatePointerPrefetchPriority       int = 0
+	defaultPrefetchPriority             int = -1024
 )
 
 type prefetcherConfig interface {
@@ -127,7 +128,7 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointe
 	}
 }
 
-func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadata, priority int) {
+func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadata) {
 	// Prefetch the first <n> indirect block pointers.
 	// TODO: do something smart with subsequent blocks.
 	numIPtrs := len(b.IPtrs)
@@ -141,7 +142,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadat
 	}
 }
 
-func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata, priority int) {
+func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata) {
 	// Prefetch the first <n> indirect block pointers.
 	numIPtrs := len(b.IPtrs)
 	if numIPtrs > defaultIndirectPointerPrefetchCount {
@@ -154,7 +155,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata,
 	}
 }
 
-func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata, priority int) {
+func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
 	p.log.CDebugf(context.Background(), "Prefetching entries for directory block. Num entries: %d", len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
@@ -186,18 +187,20 @@ func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer, kmd KeyMe
 
 // PrefetchAfterBlockRetrieved implements the Prefetcher interface for blockPrefetcher.
 func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int) {
+	if priority < defaultOnDemandRequestPriority {
+		// Only on-demand or higher priority requests can trigger prefetches.
+		return
+	}
 	switch b := b.(type) {
 	case *FileBlock:
-		if b.IsInd && priority >= defaultOnDemandRequestPriority {
-			p.prefetchIndirectFileBlock(b, kmd, priority)
+		if b.IsInd {
+			p.prefetchIndirectFileBlock(b, kmd)
 		}
 	case *DirBlock:
-		if priority >= defaultOnDemandRequestPriority {
-			if b.IsInd {
-				p.prefetchIndirectDirBlock(b, kmd, priority)
-			} else {
-				p.prefetchDirectDirBlock(b, kmd, priority)
-			}
+		if b.IsInd {
+			p.prefetchIndirectDirBlock(b, kmd)
+		} else {
+			p.prefetchDirectDirBlock(b, kmd)
 		}
 	default:
 		p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T", b)

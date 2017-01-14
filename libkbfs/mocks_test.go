@@ -79,6 +79,37 @@ func (_mr *_MocklogMakerRecorder) MakeLogger(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeLogger", arg0)
 }
 
+// Mock of blockCacher interface
+type MockblockCacher struct {
+	ctrl     *gomock.Controller
+	recorder *_MockblockCacherRecorder
+}
+
+// Recorder for MockblockCacher (not exported)
+type _MockblockCacherRecorder struct {
+	mock *MockblockCacher
+}
+
+func NewMockblockCacher(ctrl *gomock.Controller) *MockblockCacher {
+	mock := &MockblockCacher{ctrl: ctrl}
+	mock.recorder = &_MockblockCacherRecorder{mock}
+	return mock
+}
+
+func (_m *MockblockCacher) EXPECT() *_MockblockCacherRecorder {
+	return _m.recorder
+}
+
+func (_m *MockblockCacher) BlockCache() BlockCache {
+	ret := _m.ctrl.Call(_m, "BlockCache")
+	ret0, _ := ret[0].(BlockCache)
+	return ret0
+}
+
+func (_mr *_MockblockCacherRecorder) BlockCache() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockCache")
+}
+
 // Mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -1749,6 +1780,28 @@ func (_m *MockBlockCache) DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error {
 
 func (_mr *_MockBlockCacheRecorder) DeleteKnownPtr(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteKnownPtr", arg0, arg1)
+}
+
+func (_m *MockBlockCache) GetWithPrefetch(ptr BlockPointer) (Block, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetWithPrefetch", ptr)
+	ret0, _ := ret[0].(Block)
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockBlockCacheRecorder) GetWithPrefetch(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWithPrefetch", arg0)
+}
+
+func (_m *MockBlockCache) PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime, hasPrefetched bool) error {
+	ret := _m.ctrl.Call(_m, "PutWithPrefetch", ptr, tlf, block, lifetime, hasPrefetched)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheRecorder) PutWithPrefetch(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutWithPrefetch", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockBlockCache) SetCleanBytesCapacity(capacity uint64) {
@@ -3823,6 +3876,16 @@ func (_mr *_MockConfigRecorder) MakeLogger(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeLogger", arg0)
 }
 
+func (_m *MockConfig) BlockCache() BlockCache {
+	ret := _m.ctrl.Call(_m, "BlockCache")
+	ret0, _ := ret[0].(BlockCache)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) BlockCache() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockCache")
+}
+
 func (_m *MockConfig) KBFSOps() KBFSOps {
 	ret := _m.ctrl.Call(_m, "KBFSOps")
 	ret0, _ := ret[0].(KBFSOps)
@@ -3947,16 +4010,6 @@ func (_m *MockConfig) SetKeyCache(_param0 KeyCache) {
 
 func (_mr *_MockConfigRecorder) SetKeyCache(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetKeyCache", arg0)
-}
-
-func (_m *MockConfig) BlockCache() BlockCache {
-	ret := _m.ctrl.Call(_m, "BlockCache")
-	ret0, _ := ret[0].(BlockCache)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) BlockCache() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockCache")
 }
 
 func (_m *MockConfig) SetBlockCache(_param0 BlockCache) {
