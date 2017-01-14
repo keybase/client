@@ -1010,10 +1010,6 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 			df.setBlockOrphaned(oldPtr, false)
 		}
 	}
-	if df == nil || !df.isBlockDirty(file.tailPointer()) ||
-		!df.isBlockSyncing(file.tailPointer()) {
-		return
-	}
 
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	topBlock, err := dirtyBcache.Get(fbo.id(), file.tailPointer(), fbo.branch())
@@ -1170,6 +1166,10 @@ func (fbo *folderBlockOps) newFileDataWithCache(lState *lockState,
 		fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
 			file path, rtype blockReqType) (*FileBlock, bool, error) {
+			block, err := dirtyBcache.Get(file.Tlf, ptr, file.Branch)
+			if fblock, ok := block.(*FileBlock); ok && err == nil {
+				return fblock, true, nil
+			}
 			lState := lState
 			if rtype == blockReadParallel {
 				lState = nil
@@ -1749,8 +1749,7 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 	var ptr BlockPointer
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
 		// first see if we are duplicating any known blocks in this folder
-		ptr, err = bcache.CheckForKnownPtr(
-			kmd.TlfID(), fBlock)
+		ptr, err = bcache.CheckForKnownPtr(kmd.TlfID(), fBlock)
 		if err != nil {
 			return
 		}
@@ -2113,7 +2112,6 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		fbo.deferredDirtyDeletes = nil
 		fbo.deferredWrites = nil
 		fbo.deferredWaitBytes = 0
-
 	}
 
 	// The sync is over, due to an error, so reset the map so that we

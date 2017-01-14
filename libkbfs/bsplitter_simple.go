@@ -74,9 +74,14 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 			"desired size of %d", desiredBlockSize)
 	}
 
+	maxPtrs := int(maxSize / int64(bpSize))
+	if maxPtrs < 2 {
+		maxPtrs = 2
+	}
+
 	return &BlockSplitterSimple{
 		maxSize:                 maxSize,
-		maxPtrsPerBlock:         int(maxSize / int64(bpSize)),
+		maxPtrsPerBlock:         maxPtrs,
 		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
 	}, nil
 }

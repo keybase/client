@@ -159,25 +159,23 @@ func (fd *fileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
 	startOff = 0
 	// Search along paths of dirty blocks until we find a dirty leaf
 	// block with an offset equal or greater than `off`.
-	checkedPrevBlock := false
 	for block.IsInd {
 		index := -1
+		checkedPrevBlock := false
 		for i, iptr := range block.IPtrs {
-			if iptr.Off < off {
+			if iptr.Off < off && i != len(block.IPtrs)-1 {
 				continue
 			}
 
-			if iptr.Off == off {
-				// No need to check the previous block if we align
-				// exactly with `off`.
+			// No need to check the previous block if we align exactly
+			// with `off`, or this is the right-most leaf block.
+			if iptr.Off <= off {
 				checkedPrevBlock = true
 			}
 
 			// If we haven't checked the previous block yet, do so now
-			// since it contains `off`.  We know i can never be 0
-			// here, because the first ptr always has an offset at the
-			// beginning of the range.
-			if !checkedPrevBlock && dirtyBcache.IsDirty(
+			// since it contains `off`.
+			if !checkedPrevBlock && i > 0 && dirtyBcache.IsDirty(
 				fd.file.Tlf, block.IPtrs[i-1].BlockPointer, fd.file.Branch) {
 				index = i - 1
 				break
@@ -211,6 +209,13 @@ func (fd *fileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
 		if err != nil {
 			return zeroPtr, nil, nil, 0, 0, err
 		}
+	}
+
+	// The leaf block doesn't cover this index.  (If the contents
+	// length is 0, then this is the start or end of a hole, and it
+	// should still count as dirty.)
+	if len(block.Contents) > 0 && off >= startOff+int64(len(block.Contents)) {
+		return zeroPtr, nil, nil, -1, 0, nil
 	}
 
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, nil
@@ -708,7 +713,7 @@ func (fd *fileData) newRightBlock(
 			Context: kbfsblock.MakeFirstContext(fd.uid),
 		}
 
-		fd.log.CDebugf(ctx, "New right block for file %d, level %d, ptr %v",
+		fd.log.CDebugf(ctx, "New right block for file %v, level %d, ptr %v",
 			fd.rootBlockPointer(), i, newPtr)
 
 		pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{

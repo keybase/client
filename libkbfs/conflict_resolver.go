@@ -2071,30 +2071,6 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	return dblock, nil
 }
 
-func (cr *ConflictResolver) newFileData(lState *lockState,
-	file path, uid keybase1.UID, kmd KeyMetadata,
-	dirtyBcache DirtyBlockCache) *fileData {
-	return newFileData(file, uid, cr.config.Crypto(),
-		cr.config.BlockSplitter(), kmd,
-		// We shouldn't ever be fetching dirty blocks during a successful
-		// conflict resolution.
-		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
-			file path, rtype blockReqType) (*FileBlock, bool, error) {
-			// Use an invalid path because a) we don't know the full
-			// path here, and b) we don't need read notifications sent
-			// for these files.
-			block, err := cr.fbo.blocks.GetFileBlockForReading(
-				ctx, lState, kmd, ptr, file.Branch, path{})
-			if err != nil {
-				return nil, false, err
-			}
-			return block, false, nil
-		},
-		func(ptr BlockPointer, block Block) error {
-			return dirtyBcache.Put(cr.fbo.id(), ptr, cr.fbo.branch(), block)
-		}, cr.log)
-}
-
 // fileBlockMap maps latest merged block pointer to a map of final
 // merged name -> file block.
 type fileBlockMap map[BlockPointer]map[string]*FileBlock
@@ -2873,8 +2849,12 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 				}
 
 				for _, info := range infos {
-					childBps.addNewBlock(info.BlockPointer, nil,
-						ReadyBlockData{}, nil)
+					// The indirect blocks were already added to
+					// childBps, so only add the dedup'd leaf blocks.
+					if info.RefNonce != kbfsblock.ZeroRefNonce {
+						childBps.addNewBlock(info.BlockPointer,
+							nil, ReadyBlockData{}, nil)
+					}
 				}
 			}
 			for _, info := range infos {

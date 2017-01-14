@@ -158,6 +158,21 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	}
 }
 
+func testCalcNumFileBlocks(dataLen int, bsplitter *BlockSplitterSimple) int {
+	nChildBlocks := 1 + dataLen/int(bsplitter.maxSize)
+	nFileBlocks := nChildBlocks
+	for nChildBlocks > 1 {
+		parentBlocks := 0
+		// Add parent blocks for each level of the tree.
+		for i := 0; i < nChildBlocks; i += bsplitter.MaxPtrsPerBlock() {
+			parentBlocks++
+		}
+		nFileBlocks += parentBlocks
+		nChildBlocks = parentBlocks
+	}
+	return nFileBlocks
+}
+
 // Test that writes can happen concurrently with a sync
 func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	initialWriteBytes int, nOneByteWrites int) {
@@ -249,10 +264,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	// applicable).
 	bcs := config.BlockCache().(*BlockCacheStandard)
 	numCleanBlocks := bcs.cleanTransient.Len()
-	nFileBlocks := 1 + len(data)/int(bsplitter.maxSize)
-	if nFileBlocks > 1 {
-		nFileBlocks++ // top indirect block
-	}
+	nFileBlocks := testCalcNumFileBlocks(len(data), bsplitter)
 	if g, e := numCleanBlocks, 4+nFileBlocks; g != e {
 		t.Errorf("Unexpected number of cached clean blocks: %d vs %d (%d vs %d)\n", g, e, totalSize, bsplitter.maxSize)
 	}
@@ -1315,7 +1327,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// leave ourselves in a dirty state.
 }
 
-// Test that writes that happen on a multi-block file concurrently
+// Test that writes that happens on a multi-block file concurrently
 // with a sync, which has to retry due to an archived block, works
 // correctly.  Regression test for KBFS-700.
 func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
@@ -1522,8 +1534,10 @@ func TestKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	// Wait for the rest of the first set of  block to finish (before the retry)
-	for i := 0; i < 5; i++ {
+	nFileBlocks := testCalcNumFileBlocks(40, bsplitter)
+
+	// Wait for the rest of the first set of blocks to finish (before the retry)
+	for i := 0; i < nFileBlocks-1; i++ {
 		select {
 		case <-onSyncStalledCh:
 		case <-ctx.Done():
