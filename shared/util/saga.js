@@ -84,13 +84,27 @@ function safeTakeLatest (pattern: string | Array<any> | Function, worker: Functi
 }
 
 // take on pattern. If pattern happens while the original one is running just ignore it
-function* safeTakeLatestIgnoreMultiple (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>): any {
+function* safeTakeSerially (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>): any {
+  const wrappedWorker = function * (...args) {
+    try {
+      yield call(worker, ...args)
+    } catch (error) {
+      // Convert to global error so we don't kill the takeSerially while loop
+      yield put((dispatch) => {
+        dispatch({
+          payload: convertToError(error),
+          type: globalError,
+        })
+      })
+    }
+  }
+
   const task = yield fork(function* () {
     let lastTask
     while (true) {
       const action = yield take(pattern)
       if (!lastTask || !lastTask.isRunning()) {
-        lastTask = yield fork(worker, ...args.concat(action))
+        lastTask = yield fork(wrappedWorker, ...args.concat(action))
       }
     }
   })
@@ -104,7 +118,7 @@ export {
   putOnChannelMap,
   safeTakeEvery,
   safeTakeLatest,
-  safeTakeLatestIgnoreMultiple,
+  safeTakeSerially,
   singleFixedChannelConfig,
   takeFromChannelMap,
 }
