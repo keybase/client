@@ -129,7 +129,7 @@ export default connect(
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const brokenUsers = getBrokenUsers(stateProps.participants, stateProps.you, stateProps.metaDataMap)
+    const brokenUsers = getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
     const bannerMessage = brokenUsers.length
       ? {
         onClick: (user: string) => dispatchProps.onShowTracker(user),
