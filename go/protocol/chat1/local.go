@@ -349,18 +349,21 @@ const (
 	OutboxErrorType_MISC     OutboxErrorType = 0
 	OutboxErrorType_OFFLINE  OutboxErrorType = 1
 	OutboxErrorType_IDENTIFY OutboxErrorType = 2
+	OutboxErrorType_TOOLONG  OutboxErrorType = 3
 )
 
 var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"MISC":     0,
 	"OFFLINE":  1,
 	"IDENTIFY": 2,
+	"TOOLONG":  3,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	0: "MISC",
 	1: "OFFLINE",
 	2: "IDENTIFY",
+	3: "TOOLONG",
 }
 
 func (e OutboxErrorType) String() string {

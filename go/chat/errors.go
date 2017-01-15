@@ -132,32 +132,31 @@ func (e BoxingCryptKeysError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 }
 
 //=============================================================================
-//=============================================================================
 
-type ChatBodyHashInvalid struct{}
+type BodyHashInvalid struct{}
 
-func (e ChatBodyHashInvalid) Error() string {
+func (e BodyHashInvalid) Error() string {
 	return "chat body hash invalid"
 }
 
-type ChatVersionError struct {
+type VersionError struct {
 	Kind    string
 	Version int
 }
 
-func (e ChatVersionError) Error() string {
+func (e VersionError) Error() string {
 	return fmt.Sprintf("chat version error: unhandled %s version %d", e.Kind, e.Version)
 }
 
-func NewChatHeaderVersionError(version chat1.HeaderPlaintextVersion) ChatVersionError {
-	return ChatVersionError{
+func NewHeaderVersionError(version chat1.HeaderPlaintextVersion) VersionError {
+	return VersionError{
 		Kind:    "header",
 		Version: int(version),
 	}
 }
 
-func NewChatBodyVersionError(version chat1.BodyPlaintextVersion) ChatVersionError {
-	return ChatVersionError{
+func NewBodyVersionError(version chat1.BodyPlaintextVersion) VersionError {
+	return VersionError{
 		Kind:    "body",
 		Version: int(version),
 	}

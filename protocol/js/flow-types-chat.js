@@ -112,6 +112,7 @@ export const LocalOutboxErrorType = {
   misc: 0,
   offline: 1,
   identify: 2,
+  toolong: 3,
 }
 
 export const LocalOutboxStateType = {
@@ -1064,6 +1065,7 @@ export type OutboxErrorType =
     0 // MISC_0
   | 1 // OFFLINE_1
   | 2 // IDENTIFY_2
+  | 3 // TOOLONG_3
 
 export type OutboxID = bytes
 

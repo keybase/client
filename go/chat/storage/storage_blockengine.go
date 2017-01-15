@@ -22,7 +22,7 @@ type blockEngine struct {
 func newBlockEngine(g *libkb.GlobalContext) *blockEngine {
 	return &blockEngine{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "BlockEngine"),
+		DebugLabeler: utils.NewDebugLabeler(g, "BlockEngine", true),
 	}
 }
 

@@ -45,7 +45,7 @@ type Boxer struct {
 
 func NewBoxer(g *libkb.GlobalContext, tlf keybase1.TlfInterface) *Boxer {
 	return &Boxer{
-		DebugLabeler: utils.NewDebugLabeler(g, "Boxer"),
+		DebugLabeler: utils.NewDebugLabeler(g, "Boxer", false),
 		tlf:          tlf,
 		hashV1:       hashSha256V1,
 		sign:         sign,
@@ -189,7 +189,7 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	case chat1.HeaderPlaintextVersion_V1:
 		headerSignature = header.V1().HeaderSignature
 	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewChatHeaderVersionError(headerVersion))
+		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
 	}
 
 	switch headerVersion {
@@ -207,7 +207,7 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			OutboxID:     hp.OutboxID,
 		}
 	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewChatHeaderVersionError(headerVersion))
+		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
 	}
 
 	if skipBodyVerification {
@@ -221,7 +221,7 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 				senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 			}, nil
 		default:
-			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewChatHeaderVersionError(headerVersion))
+			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
 		}
 	}
 
@@ -242,7 +242,7 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 		}, nil
 	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewChatBodyVersionError(bodyVersion))
+		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewBodyVersionError(bodyVersion))
 	}
 }
 
@@ -482,7 +482,7 @@ func (b *Boxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext,
 	case chat1.HeaderPlaintextVersion_V1:
 		return b.verifyMessageHeaderV1(ctx, header.V1(), msg, skipBodyVerification)
 	default:
-		return verifyMessageRes{}, NewPermanentUnboxingError(NewChatHeaderVersionError(headerVersion))
+		return verifyMessageRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
 	}
 }
 
@@ -492,7 +492,7 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 		// check body hash
 		bh := b.hashV1(msg.BodyCiphertext.E)
 		if !libkb.SecureByteArrayEq(bh[:], header.BodyHash) {
-			return verifyMessageRes{}, NewPermanentUnboxingError(ChatBodyHashInvalid{})
+			return verifyMessageRes{}, NewPermanentUnboxingError(BodyHashInvalid{})
 		}
 	}
 

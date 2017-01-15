@@ -37,7 +37,7 @@ func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, getRi func() chat1.
 	getSecretUI func() libkb.SecretUI) *BlockingSender {
 	return &BlockingSender{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender"),
+		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender", false),
 		getRi:        getRi,
 		getSecretUI:  getSecretUI,
 		boxer:        boxer,
@@ -272,7 +272,7 @@ type Deliverer struct {
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified:  libkb.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer"),
+		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer", false),
 		shutdownCh:    make(chan chan struct{}, 1),
 		msgSentCh:     make(chan struct{}, 100),
 		reconnectCh:   make(chan struct{}, 100),

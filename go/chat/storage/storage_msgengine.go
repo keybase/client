@@ -35,7 +35,7 @@ func (b boxedLocalMessage) GetMessageType() chat1.MessageType {
 func newMsgEngine(g *libkb.GlobalContext) *msgEngine {
 	return &msgEngine{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "MessageEngine"),
+		DebugLabeler: utils.NewDebugLabeler(g, "MessageEngine", true),
 	}
 }
 

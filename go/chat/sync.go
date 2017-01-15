@@ -19,7 +19,7 @@ type Syncer struct {
 func NewSyncer(g *libkb.GlobalContext) *Syncer {
 	return &Syncer{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Syncer"),
+		DebugLabeler: utils.NewDebugLabeler(g, "Syncer", false),
 	}
 }
 

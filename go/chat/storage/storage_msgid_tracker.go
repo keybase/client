@@ -18,7 +18,7 @@ type msgIDTracker struct {
 func newMsgIDTracker(g *libkb.GlobalContext) *msgIDTracker {
 	return &msgIDTracker{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "MsgIDTracker"),
+		DebugLabeler: utils.NewDebugLabeler(g, "MsgIDTracker", true),
 	}
 }
 

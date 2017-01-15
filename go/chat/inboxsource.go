@@ -148,7 +148,7 @@ func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterfac
 	tlf func() keybase1.TlfInterface) *RemoteInboxSource {
 	return &RemoteInboxSource{
 		Contextified:     libkb.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "RemoteInboxSource"),
+		DebugLabeler:     utils.NewDebugLabeler(g, "RemoteInboxSource", false),
 		getTlfInterface:  tlf,
 		getChatInterface: ri,
 	}
@@ -246,7 +246,7 @@ func NewHybridInboxSource(g *libkb.GlobalContext,
 ) *HybridInboxSource {
 	return &HybridInboxSource{
 		Contextified:     libkb.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "HybridInboxSource"),
+		DebugLabeler:     utils.NewDebugLabeler(g, "HybridInboxSource", false),
 		getSecretUI:      getSecretUI,
 		getTlfInterface:  getTlfInterface,
 		getChatInterface: getChatInterface,

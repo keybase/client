@@ -108,7 +108,7 @@ func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *stor
 	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "HybridConversationSource"),
+		DebugLabeler: utils.NewDebugLabeler(g, "HybridConversationSource", false),
 		ri:           ri,
 		boxer:        b,
 		storage:      storage,

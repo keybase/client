@@ -86,7 +86,7 @@ type Inbox struct {
 func NewInbox(g *libkb.GlobalContext, uid gregor1.UID, getSecretUI func() libkb.SecretUI) *Inbox {
 	return &Inbox{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Inbox"),
+		DebugLabeler: utils.NewDebugLabeler(g, "Inbox", false),
 		baseBox:      newBaseBox(g, getSecretUI),
 		uid:          uid,
 	}

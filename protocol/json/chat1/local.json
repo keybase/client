@@ -303,7 +303,8 @@
       "symbols": [
         "MISC_0",
         "OFFLINE_1",
-        "IDENTIFY_2"
+        "IDENTIFY_2",
+        "TOOLONG_3"
       ]
     },
     {

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -30,7 +31,7 @@ type diskOutbox struct {
 func NewOutbox(g *libkb.GlobalContext, uid gregor1.UID, getSecretUI func() libkb.SecretUI) *Outbox {
 	return &Outbox{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Outbox"),
+		DebugLabeler: utils.NewDebugLabeler(g, "Outbox", false),
 		baseBox:      newBaseBox(g, getSecretUI),
 		uid:          uid,
 	}
@@ -330,7 +331,7 @@ func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) (chat1.MessageID, error
 	}
 }
 
-func (o *Outbox) insertMessage(thread *chat1.ThreadView, obr chat1.OutboxRecord) error {
+func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, obr chat1.OutboxRecord) error {
 	prev := obr.Msg.ClientHeader.OutboxInfo.Prev
 	inserted := false
 	var res []chat1.MessageUnboxed
@@ -341,7 +342,7 @@ func (o *Outbox) insertMessage(thread *chat1.ThreadView, obr chat1.OutboxRecord)
 		}
 		if !inserted && prev >= ord {
 			res = append(res, chat1.NewMessageUnboxedWithOutbox(obr))
-			o.G().Log.Debug("inserting at: %d msgID: %d", index, msg.GetMessageID())
+			o.Debug(ctx, "inserting at: %d msgID: %d", index, msg.GetMessageID())
 			inserted = true
 		}
 		res = append(res, msg)
@@ -357,7 +358,8 @@ func (o *Outbox) insertMessage(thread *chat1.ThreadView, obr chat1.OutboxRecord)
 	return nil
 }
 
-func (o *Outbox) SprinkleIntoThread(convID chat1.ConversationID, thread *chat1.ThreadView) error {
+func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.ConversationID,
+	thread *chat1.ThreadView) error {
 	o.Lock()
 	defer o.Unlock()
 
@@ -372,7 +374,7 @@ func (o *Outbox) SprinkleIntoThread(convID chat1.ConversationID, thread *chat1.T
 		if !obr.ConvID.Eq(convID) {
 			continue
 		}
-		if err := o.insertMessage(thread, obr); err != nil {
+		if err := o.insertMessage(ctx, thread, obr); err != nil {
 			return err
 		}
 	}

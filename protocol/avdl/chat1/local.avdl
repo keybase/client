@@ -94,7 +94,8 @@ protocol local {
   enum OutboxErrorType {
     MISC_0,
     OFFLINE_1,
-    IDENTIFY_2
+    IDENTIFY_2,
+    TOOLONG_3
   }
 
   record OutboxStateError {
