@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Text, MultiAvatar, Icon, Usernames} from '../../common-adapters'
+import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalStyles, globalColors} from '../../styles'
 import {participantFilter} from '../../constants/chat'
@@ -73,7 +73,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
               containerStyle={{color: isMuted ? globalColors.blue3_40 : globalColors.white, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')} />
-            {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Text>}
+            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Markdown>}
           </div>
         </div>
         <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>

@@ -41,6 +41,7 @@ const codeSnippetBlockStyle = {
 }
 
 const neutralStyle = {...wrapStyle, color: undefined, fontWeight: undefined}
+const neutralPreviewStyle = {color: undefined, fontWeight: undefined}
 const boldStyle = {...wrapStyle, color: undefined}
 const italicStyle = {...wrapStyle, color: undefined, fontStyle: 'italic', fontWeight: undefined}
 const strikeStyle = {...wrapStyle, color: undefined, fontWeight: undefined, textDecoration: 'line-through'}
@@ -49,11 +50,20 @@ class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
   render () {
     const emoji = (this.props.children && this.props.children.join('')) || ''
     const exists = emojiIndex.emojis.hasOwnProperty(emoji.split('::')[0])
-    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={neutralStyle}>:{emoji}:</Text>
+    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={this.props.preview ? neutralPreviewStyle : neutralStyle}>:{emoji}:</Text>
   }
 }
 
-function createComponent (type, key, children) {
+function previewCreateComponent (type, key, children) {
+  switch (type) {
+    case 'emoji':
+      return <EmojiIfExists preview={true} size={13} key={key}>{children}</EmojiIfExists>
+    default:
+      return <Text type='BodySmall' key={key} style={neutralPreviewStyle}>{children}</Text>
+  }
+}
+
+function messageCreateComponent (type, key, children) {
   switch (type) {
     case 'inline-code':
       return <Text type='Body' key={key} style={codeSnippetStyle}>{children}</Text>
@@ -75,7 +85,7 @@ function createComponent (type, key, children) {
   }
 }
 
-function process (ast) {
+function process (ast, createComponent) {
   const stack = [ast]
 
   let index = 0
@@ -121,7 +131,7 @@ function process (ast) {
 
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    return <Text type='Body' style={this.props.style}>{process(parser.parse(this.props.children || ''))}</Text>
+    return <Text type='Body' style={this.props.style}>{process(parser.parse(this.props.children || ''), this.props.preview ? previewCreateComponent : messageCreateComponent)}</Text>
   }
 }
 
