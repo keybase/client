@@ -24,6 +24,7 @@ const Conversation = (props: Props) => {
         you={props.you}
         metaDataMap={props.metaDataMap}
         followingMap={props.followingMap}
+        onShowProfile={props.onShowProfile}
       />
       <List
         you={props.you}

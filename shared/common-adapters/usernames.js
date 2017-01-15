@@ -6,7 +6,7 @@ import {isMobile} from '../constants/platform'
 
 import type {Props} from './usernames'
 
-function usernameText ({type, users, style, inline, redColor, backgroundMode, colorFollowing, colorBroken = true}: Props) {
+function usernameText ({type, users, style, inline, redColor, backgroundMode, colorFollowing, colorBroken = true, onUsernameClicked}: Props) {
   return users.map((u, i) => {
     const userStyle = {
       ...style,
@@ -22,6 +22,7 @@ function usernameText ({type, users, style, inline, redColor, backgroundMode, co
         key={u.username}
         type={type}
         backgroundMode={backgroundMode}
+        onClick={() => { onUsernameClicked && onUsernameClicked(u.username) }}
         style={userStyle}>{u.username}
         {
           (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,
