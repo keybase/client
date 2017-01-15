@@ -23,10 +23,10 @@ has_js_files() {
     git fetch
     check_rc $? 'echo git fetch problem' 1
     echo 'git diff'
-    echo "merge target is $2"
-    diff_files=`git diff --name-only ${change_target}...${commit_hash} | grep '^shared/'`
+    git diff --name-only "$change_target...$commit_hash"
+    diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/'`
     check_rc $? 'no files js cares about' 0
-    echo "continuing due to changes in ${diff_files}"
+    echo "continuing due to changes in $diff_files"
 }
 
 js_tests() {
