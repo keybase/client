@@ -22,6 +22,11 @@ has_js_files() {
     echo 'git fetch'
     git fetch
     check_rc $? 'echo git fetch problem' 1
+    echo 'git log temp'
+    git log -1 "$change_target"
+    git log -1 "$commit_hash"
+    echo 'git log temp end'
+
     echo 'git diff'
     git diff --name-only "$change_target...$commit_hash"
     diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/'`
