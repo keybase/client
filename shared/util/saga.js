@@ -84,7 +84,6 @@ function safeTakeLatest (pattern: string | Array<any> | Function, worker: Functi
   return takeLatest(pattern, wrappedWorker, ...args)
 }
 
-<<<<<<< HEAD
 // take on pattern. If pattern happens while the original one is running just ignore it
 function* safeTakeSerially (pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>): any {
   const wrappedWorker = function * (...args) {
