@@ -1069,7 +1069,7 @@ func (h *chatLocalHandler) RetryPost(ctx context.Context, outboxID chat1.OutboxI
 	}
 
 	// Force the send loop to try again
-	h.G().MessageDeliverer.ForceDeliverLoop()
+	h.G().MessageDeliverer.ForceDeliverLoop(ctx)
 
 	return nil
 }

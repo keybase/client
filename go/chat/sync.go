@@ -56,7 +56,7 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	}
 
 	// Let the Deliverer know that we are back online
-	s.G().MessageDeliverer.Connected()
+	s.G().MessageDeliverer.Connected(ctx)
 
 	return nil
 }
@@ -65,5 +65,5 @@ func (s *Syncer) Disconnected(ctx context.Context) {
 	s.Debug(ctx, "Disconnected: running")
 
 	// Let the Deliverer know we are offline
-	s.G().MessageDeliverer.Disconnected()
+	s.G().MessageDeliverer.Disconnected(ctx)
 }

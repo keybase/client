@@ -282,18 +282,18 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	}
 
 	g.PushShutdownHook(func() error {
-		d.Stop()
+		d.Stop(context.Background())
 		return nil
 	})
 
 	return d
 }
 
-func (s *Deliverer) Start(uid gregor1.UID) {
+func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 	s.Lock()
 	defer s.Unlock()
 
-	s.doStop()
+	s.doStop(ctx)
 
 	s.outbox = storage.NewOutbox(s.G(), uid, func() libkb.SecretUI {
 		return DelivererSecretUI{}
@@ -303,16 +303,16 @@ func (s *Deliverer) Start(uid gregor1.UID) {
 	go s.deliverLoop()
 }
 
-func (s *Deliverer) Stop() chan struct{} {
+func (s *Deliverer) Stop(ctx context.Context) chan struct{} {
 	s.Lock()
 	defer s.Unlock()
-	return s.doStop()
+	return s.doStop(ctx)
 }
 
-func (s *Deliverer) doStop() chan struct{} {
+func (s *Deliverer) doStop(ctx context.Context) chan struct{} {
 	cb := make(chan struct{})
 	if s.delivering {
-		s.Debug(context.Background(), "stopping")
+		s.Debug(ctx, "stopping")
 		s.shutdownCh <- cb
 		s.delivering = false
 		return cb
@@ -322,8 +322,8 @@ func (s *Deliverer) doStop() chan struct{} {
 	return cb
 }
 
-func (s *Deliverer) ForceDeliverLoop() {
-	s.Debug(context.Background(), "force deliver loop invoked")
+func (s *Deliverer) ForceDeliverLoop(ctx context.Context) {
+	s.Debug(ctx, "force deliver loop invoked")
 	s.msgSentCh <- struct{}{}
 }
 
@@ -331,16 +331,16 @@ func (s *Deliverer) SetSender(sender Sender) {
 	s.sender = sender
 }
 
-func (s *Deliverer) Connected() {
+func (s *Deliverer) Connected(ctx context.Context) {
 	s.connected = true
 
 	// Wake up deliver loop on reconnect
-	s.Debug(context.Background(), "reconnected: forcing deliver loop run")
+	s.Debug(ctx, "reconnected: forcing deliver loop run")
 	s.reconnectCh <- struct{}{}
 }
 
-func (s *Deliverer) Disconnected() {
-	s.Debug(context.Background(), "disconnected: all errors from now on will be permanent")
+func (s *Deliverer) Disconnected(ctx context.Context) {
+	s.Debug(ctx, "disconnected: all errors from now on will be permanent")
 	s.connected = false
 }
 
