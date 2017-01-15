@@ -164,7 +164,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Constant
 
 function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onOpenInPopup: () => void}) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.clickable, flex: 1}}>
       <AttachmentTitle {...message} />
       <PreviewImageWithInfo message={message} onOpenInFileUI={onOpenInFileUI} onOpenInPopup={onOpenInPopup} />
     </Box>
@@ -172,11 +172,11 @@ function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}
 }
 
 export default class AttachmentMessage extends PureComponent<void, Props, void> {
-  _onOpenInPopup () {
+  _onOpenInPopup = () => {
     this.props.onOpenInPopup(this.props.message)
   }
 
-  _onOpenInFileUI () {
+  _onOpenInFileUI = () => {
     const {downloadedPath} = this.props.message
     downloadedPath && this.props.onOpenInFileUI(downloadedPath)
   }
@@ -187,10 +187,10 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
     let attachment
     switch (message.previewType) {
       case 'Image':
-        attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={() => this._onOpenInPopup()} onOpenInFileUI={() => this._onOpenInFileUI()} />
+        attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={this._onOpenInPopup} onOpenInFileUI={() => this._onOpenInFileUI()} />
         break
       default:
-        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={() => this._onOpenInFileUI()} />
+        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} />
     }
 
     return (
