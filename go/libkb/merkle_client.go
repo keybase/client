@@ -570,8 +570,10 @@ func (mc *MerkleClient) readSkipSequenceFromAPIRes(ctx context.Context, res *API
 		return nil, err
 	}
 
+	// Create the skip sequence by bookending the list the server replies with
+	// with: (1) the most recent root, sent back in this reply; and (2) our last
+	// root, which we read out of cache (in memory or on disk)
 	ret = SkipSequence{thisRoot.payload}
-
 	for _, s := range v {
 		var p MerkleRootPayload
 		if p, err = NewMerkleRootPayloadFromJSONString(s); err != nil {
@@ -580,6 +582,7 @@ func (mc *MerkleClient) readSkipSequenceFromAPIRes(ctx context.Context, res *API
 		ret = append(ret, p)
 	}
 	ret = append(ret, lastRoot.payload)
+
 	return ret, nil
 }
 
