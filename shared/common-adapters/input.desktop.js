@@ -153,6 +153,8 @@ class Input extends Component<void, Props, State> {
     }
   }
 
+
+
   render () {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
@@ -160,25 +162,32 @@ class Input extends Component<void, Props, State> {
 
     const commonInputStyle = {
       ...globalStyles.fontSemibold,
-      fontSize: _headerTextStyle.fontSize,
-      lineHeight: `${_lineHeight}px`,
       backgroundColor: globalColors.transparent,
       color: globalColors.black_75,
       flex: 1,
       border: 'none',
       outlineWidth: 0,
       ...(this.props.small
-      ? {textAlign: 'left'}
+      ? {
+        textAlign: 'left',
+        fontSize: _bodyTextStyle.fontSize,
+        fontWeight: _bodyTextStyle.fontWeight,
+        lineHeight: _bodyTextStyle.lineHeight,
+        height: 18,
+      }
       : {
         textAlign: 'center',
+        fontSize: _headerTextStyle.fontSize,
+        fontWeight: _headerTextStyle.fontWeight,
+        lineHeight: _headerTextStyle.lineHeight,
         minWidth: 333,
         borderBottom: `1px solid ${underlineColor}`,
+        height: 28,
       }),
     }
 
     const inputStyle = {
       ...commonInputStyle,
-      height: 28,
     }
 
     const textareaStyle = {
@@ -192,6 +201,7 @@ class Input extends Component<void, Props, State> {
       ...(this.props.rowsMax
         ? {maxHeight: this._rowsToHeight(this.props.rowsMax)}
         : {overflowY: 'hidden'}),
+      
     }
 
     const floatingHintText = !!this.state.value.length &&
@@ -225,7 +235,7 @@ class Input extends Component<void, Props, State> {
 
     const smallLabelStyle = {
       ...globalStyles.fontSemibold,
-      fontSize: _headerTextStyle.fontSize,
+      fontSize: _bodySmallTextStyle.fontSize,
       lineHeight: `${_lineHeight}px`,
       marginRight: 8,
       color: globalColors.blue,
@@ -250,6 +260,7 @@ class Input extends Component<void, Props, State> {
 
 const _lineHeight = 20
 const _headerTextStyle = getTextStyle('Header')
+const _bodyTextStyle = getTextStyle('Body')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
 
 const _errorStyle = {
