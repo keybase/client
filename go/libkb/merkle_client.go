@@ -547,6 +547,10 @@ func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArg
 	return ret, ss, res, err
 }
 
+// readSkipSequenceFromAPIRes returns a SkipSequence. We construct the sequence by starting with the
+// most recent merkle root, adding the "skip" pointers returned by the server, and finally bookending
+// with the merkle root we last fetched from the DB. In verifySkipSequence, we walk over this Sequence
+// to make sure that it obeys proper construction.
 func (mc *MerkleClient) readSkipSequenceFromAPIRes(ctx context.Context, res *APIRes, thisRoot *MerkleRoot, lastRoot *MerkleRoot) (ret SkipSequence, err error) {
 	defer mc.G().CTrace(ctx, "MerkleClient#readSkipSequenceFromAPIRes", func() error { return err })()
 	if lastRoot == nil {
@@ -727,14 +731,15 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 		panic(msg)
 	}
 
-	return verifySkipSequence(ctx, mc.G(), ss)
+	return ss.verify(ctx, mc.G())
 }
 
-// verifySkipSequence verifies the raw "Skip Sequence" ss. ss contains a list of MerkleRootPayloads beginning
+// verify verifies the raw "Skip Sequence" ss. ss contains a list of MerkleRootPayloads beginning
 // with the most // recently returned root, and ending with the last root that we fetched. So for instance,
 // it might contain: [ 100, 84, 82, 81 ] in that case that we last fetched Seqno=81 and the server is
 // currently at Seqno=100.
-func verifySkipSequence(ctx context.Context, g *GlobalContext, ss SkipSequence) error {
+func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext) (err error) {
+	defer g.CTrace(ctx, "SkipSequence#verify", func() error { return err })()
 
 	for index := 0; index < len(ss)-1; index++ {
 		nextIndex := index + 1
