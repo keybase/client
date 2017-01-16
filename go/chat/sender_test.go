@@ -216,7 +216,7 @@ func TestNonblockTimer(t *testing.T) {
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
-		obid, err := outbox.PushMessage(res.ConvID, chat1.MessagePlaintext{
+		obid, err := outbox.PushMessage(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
@@ -432,7 +432,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	}
 	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
 	for _, obid := range obids {
-		require.NoError(t, outbox.RetryMessage(obid))
+		require.NoError(t, outbox.RetryMessage(context.TODO(), obid))
 	}
 	tc.G.MessageDeliverer.Connected(context.TODO())
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
