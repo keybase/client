@@ -1964,6 +1964,12 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	}
 	fbo.unrefCache[fileRef].op = syncOpCopy
 
+	// If there are any deferred bytes, it must be because this is
+	// a retried sync and some blocks snuck in between sync. Those
+	// blocks will get transferred now, but they are also on the
+	// deferred list and will be retried on the next sync as well.
+	df.assimilateDeferredNewBytes()
+
 	// TODO: Returning si.bps in this way is racy, since si is a
 	// member of unrefCache.
 	return fblock, si.bps, syncState, dirtyDe, nil
@@ -2071,10 +2077,6 @@ func (fbo *folderBlockOps) CleanupSyncState(
 			mdToCleanIfUnused{md, result.si.bps.DeepCopy()})
 	}
 	if isRecoverableBlockError(err) {
-		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
-			df.assimilateDeferredNewBytes()
-		}
-
 		if result.si != nil {
 			fbo.revertSyncInfoAfterRecoverableError(blocksToRemove, result)
 		}
