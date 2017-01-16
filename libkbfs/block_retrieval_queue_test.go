@@ -34,7 +34,7 @@ func (c *testBlockRetrievalConfig) codec() kbfscodec.Codec {
 	return c.testCodec
 }
 
-func (c *testBlockRetrievalConfig) blockCache() BlockCache {
+func (c *testBlockRetrievalConfig) BlockCache() BlockCache {
 	return c.testCache
 }
 

@@ -15,6 +15,11 @@ import (
 	"github.com/keybase/kbfs/tlf"
 )
 
+type blockContainer struct {
+	block         Block
+	hasPrefetched bool
+}
+
 type idCacheKey struct {
 	tlf           tlf.ID
 	plaintextHash kbfshash.RawDefaultHash
@@ -67,15 +72,15 @@ func NewBlockCacheStandard(transientCapacity int,
 	return b
 }
 
-// Get implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
+// GetWithPrefetch implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (Block, bool, error) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
-			block, ok := tmp.(Block)
+			bc, ok := tmp.(blockContainer)
 			if !ok {
-				return nil, BadDataError{ptr.ID}
+				return nil, false, BadDataError{ptr.ID}
 			}
-			return block, nil
+			return bc.block, bc.hasPrefetched, nil
 		}
 	}
 
@@ -85,10 +90,16 @@ func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
 		return b.cleanPermanent[ptr.ID]
 	}()
 	if block != nil {
-		return block, nil
+		return block, true, nil
 	}
 
-	return nil, NoSuchBlockError{ptr.ID}
+	return nil, false, NoSuchBlockError{ptr.ID}
+}
+
+// Get implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
+	block, _, err := b.GetWithPrefetch(ptr)
+	return block, err
 }
 
 func getCachedBlockSize(block Block) uint32 {
@@ -107,10 +118,11 @@ func getCachedBlockSize(block Block) uint32 {
 }
 
 func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
-	block, ok := value.(Block)
+	bc, ok := value.(blockContainer)
 	if !ok {
 		return
 	}
+	block := bc.block
 
 	b.bytesLock.Lock()
 	defer b.bytesLock.Unlock()
@@ -199,9 +211,10 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 	return true
 }
 
-// Put implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Put(
-	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
+// PutWithPrefetch implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) PutWithPrefetch(
+	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
+	hasPrefetched bool) error {
 
 	madeRoom := false
 
@@ -224,7 +237,7 @@ func (b *BlockCacheStandard) Put(
 		// Cache it later, once we know there's room
 		defer func() {
 			if madeRoom {
-				b.cleanTransient.Add(ptr.ID, block)
+				b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
 			}
 		}()
 
@@ -244,6 +257,14 @@ func (b *BlockCacheStandard) Put(
 	madeRoom = b.makeRoomForSize(size)
 
 	return nil
+}
+
+// Put implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) Put(
+	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
+	// Default should be to assume that a prefetch has happened, and thus it
+	// won't trigger prefetches in the future.
+	return b.PutWithPrefetch(ptr, tlf, block, lifetime, true)
 }
 
 // DeletePermanent implements the BlockCache interface for
@@ -271,10 +292,11 @@ func (b *BlockCacheStandard) DeleteTransient(
 	// If the block is cached and a file block, delete the known
 	// pointer as well.
 	if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
-		block, ok := tmp.(Block)
+		bc, ok := tmp.(blockContainer)
 		if !ok {
 			return BadDataError{ptr.ID}
 		}
+		block := bc.block
 
 		// Remove the key if it exists
 		if fBlock, ok := block.(*FileBlock); b.ids != nil && ok &&

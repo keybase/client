@@ -27,6 +27,10 @@ type logMaker interface {
 	MakeLogger(module string) logger.Logger
 }
 
+type blockCacher interface {
+	BlockCache() BlockCache
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -680,6 +684,14 @@ type BlockCache interface {
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
+	// GetWithPrefetch retrieves a block from the cache, along with whether or
+	// not it has triggered a prefetch.
+	GetWithPrefetch(ptr BlockPointer) (
+		block Block, hasPrefetched bool, err error)
+	// PutWithPrefetch puts a block into the cache, along with whether or not
+	// it has triggered a prefetch.
+	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
+		lifetime BlockCacheLifetime, hasPrefetched bool) error
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.
@@ -1007,12 +1019,14 @@ type KeyOps interface {
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
 	// PrefetchBlock directs the prefetcher to prefetch a block.
-	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error
+	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata,
+		priority int) error
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
 	// block.
-	PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int)
+	PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int,
+		hasPrefetched bool)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -1388,6 +1402,7 @@ type ConflictRenamer interface {
 type Config interface {
 	dataVersioner
 	logMaker
+	blockCacher
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -1402,7 +1417,6 @@ type Config interface {
 	SetKeyBundleCache(KeyBundleCache)
 	KeyBundleCache() KeyBundleCache
 	SetKeyCache(KeyCache)
-	BlockCache() BlockCache
 	SetBlockCache(BlockCache)
 	DirtyBlockCache() DirtyBlockCache
 	SetDirtyBlockCache(DirtyBlockCache)

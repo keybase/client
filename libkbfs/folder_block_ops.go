@@ -273,14 +273,12 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		fbo.id(), ptr, branch); err == nil {
 		return block, nil
 	}
-	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
+	if block, hasPrefetched, err := fbo.config.BlockCache().GetWithPrefetch(ptr); err == nil {
 		// If the block was cached in the past, we need to handle it as if it's
 		// an on-demand request so that its downstream prefetches are triggered
 		// correctly according to the new on-demand fetch priority.
-		// FIXME: This is triggering explosive prefetching since it triggers
-		// directory prefetches at every node of the path, on every fs op.
-		//fbo.config.BlockOps().Prefetcher().PrefetchAfterBlockRetrieved(
-		//	block, kmd, defaultOnDemandRequestPriority)
+		fbo.config.BlockOps().Prefetcher().PrefetchAfterBlockRetrieved(
+			block, kmd, defaultOnDemandRequestPriority, hasPrefetched)
 		return block, nil
 	}
 
@@ -2588,6 +2586,7 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 }
 
 func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer) {
+	fbo.log.CDebugf(context.Background(), "Updating reference for pointer %s to %s", oldPtr.ID, newPtr.ID)
 	updated := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
 	if !updated {
 		return

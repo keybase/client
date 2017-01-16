@@ -106,7 +106,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
 	// Ignore Prefetcher calls
-	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(newBlockPrefetcher(nil, nil))
+	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(newBlockPrefetcher(nil, &testBlockRetrievalConfig{nil, config.BlockCache(), t}))
 
 	// Ignore key bundle ID creation calls for now
 	config.mockCrypto.EXPECT().MakeTLFWriterKeyBundleID(gomock.Any()).
@@ -4783,8 +4783,8 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockDirtyBcache.EXPECT().Get(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[2].BlockPointer}, p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[2].BlockPointer.ID})
-	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[2].BlockPointer}).
-		Return(block3, nil)
+	config.mockBcache.EXPECT().GetWithPrefetch(ptrMatcher{fileBlock.IPtrs[2].BlockPointer}).
+		Return(block3, true, nil)
 	config.mockDirtyBcache.EXPECT().IsDirty(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
 		p.Branch).AnyTimes().Return(false)
@@ -4800,9 +4800,9 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		ptrMatcher{fileNode.BlockPointer}, p.Branch).
 		AnyTimes().Return(fileBlock, nil)
 	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}).
-		Return(rootBlock, nil)
+		AnyTimes().Return(rootBlock, nil)
 	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}).
-		Return(fileBlock, nil)
+		AnyTimes().Return(fileBlock, nil)
 
 	// no matching pointers
 	config.mockBcache.EXPECT().CheckForKnownPtr(gomock.Any(), gomock.Any()).
@@ -4993,16 +4993,16 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockDirtyBcache.EXPECT().Get(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[1].BlockPointer}, p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[1].BlockPointer.ID})
-	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[1].BlockPointer}).
-		Return(block2, nil)
+	config.mockBcache.EXPECT().GetWithPrefetch(ptrMatcher{fileBlock.IPtrs[1].BlockPointer}).
+		Return(block2, true, nil)
 	config.mockDirtyBcache.EXPECT().IsDirty(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
 		p.Branch).AnyTimes().Return(false)
 	config.mockDirtyBcache.EXPECT().Get(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer}, p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[3].BlockPointer.ID})
-	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[3].BlockPointer}).
-		Return(block4, nil)
+	config.mockBcache.EXPECT().GetWithPrefetch(ptrMatcher{fileBlock.IPtrs[3].BlockPointer}).
+		Return(block4, true, nil)
 	config.mockDirtyBcache.EXPECT().IsDirty(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
 		p.Branch).Return(false)

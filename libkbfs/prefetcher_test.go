@@ -64,7 +64,7 @@ func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue, *blockRetrievalWork
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 
-	return q, w, bg, config.blockCache
+	return q, w, bg, config.BlockCache
 }
 
 func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {

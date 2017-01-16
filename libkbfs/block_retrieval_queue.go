@@ -24,10 +24,9 @@ const (
 type blockRetrievalConfig interface {
 	dataVersioner
 	logMaker
+	blockCacher
 	// Codec for copying blocks
 	codec() kbfscodec.Codec
-	// BlockCache for writethrough caching
-	blockCache() BlockCache
 }
 
 // blockRetrievalRequest represents one consumer's request for a block.
@@ -172,6 +171,19 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 	for {
 		br, exists := brq.ptrs[bpLookup]
 		if !exists {
+			// Attempt to retrieve the block from the cache. This might be a
+			// specific type where the request blocks are CommonBlocks, but
+			// that direction can Set correctly. The cache will never have
+			// CommonBlocks.
+			cachedBlock, hasPrefetched, err :=
+				brq.config.BlockCache().GetWithPrefetch(ptr)
+			if err == nil && cachedBlock != nil {
+				block.Set(cachedBlock, brq.config.codec())
+				brq.triggerPrefetchAfterBlockRetrieved(
+					cachedBlock, kmd, priority, hasPrefetched)
+				ch <- nil
+				return ch
+			}
 			// Add to the heap
 			br = &blockRetrieval{
 				blockPtr:       ptr,
@@ -223,11 +235,26 @@ func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
 	return ch
 }
 
+func (brq *blockRetrievalQueue) triggerPrefetchAfterBlockRetrieved(
+	block Block, kmd KeyMetadata, priority int, hasPrefetched bool) {
+	if hasPrefetched {
+		return
+	}
+	// We have to trigger prefetches in a goroutine because otherwise we
+	// can deadlock with `TogglePrefetcher`.
+	go func() {
+		brq.prefetchMtx.RLock()
+		defer brq.prefetchMtx.RUnlock()
+		brq.prefetcher.PrefetchAfterBlockRetrieved(block, kmd, priority, false)
+	}()
+}
+
 // FinalizeRequest is the last step of a retrieval request once a block has
 // been obtained. It removes the request from the blockRetrievalQueue,
 // preventing more requests from mutating the retrieval, then notifies all
 // subscribed requests.
-func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block Block, err error) {
+func (brq *blockRetrievalQueue) FinalizeRequest(
+	retrieval *blockRetrieval, block Block, err error) {
 	brq.mtx.Lock()
 	// This might have already been removed if the context has been canceled.
 	// That's okay, because this will then be a no-op.
@@ -238,16 +265,15 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 
 	// Cache the block and trigger prefetches if there is no error.
 	if err == nil {
-		if brq.config.blockCache() != nil {
-			_ = brq.config.blockCache().Put(retrieval.blockPtr, retrieval.kmd.TlfID(), block, retrieval.cacheLifetime)
+		if brq.config.BlockCache() != nil {
+			_ = brq.config.BlockCache().PutWithPrefetch(
+				retrieval.blockPtr, retrieval.kmd.TlfID(), block,
+				retrieval.cacheLifetime, true)
 		}
-		// We have to trigger prefetches in a goroutine because otherwise we
-		// can deadlock with `TogglePrefetcher`.
-		go func() {
-			brq.prefetchMtx.RLock()
-			defer brq.prefetchMtx.RUnlock()
-			brq.prefetcher.PrefetchAfterBlockRetrieved(block, retrieval.kmd, retrieval.priority)
-		}()
+		// We treat this request as not having been prefetched, because the
+		// only way to get here is if the request wasn't already cached.
+		brq.triggerPrefetchAfterBlockRetrieved(
+			block, retrieval.kmd, retrieval.priority, false)
 	}
 
 	// This is a symbolic lock, since there shouldn't be any other goroutines

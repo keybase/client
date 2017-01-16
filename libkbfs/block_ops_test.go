@@ -104,7 +104,7 @@ func (config testBlockOpsConfig) keyGetter() blockKeyGetter {
 	return fakeBlockKeyGetter{}
 }
 
-func (config testBlockOpsConfig) blockCache() BlockCache {
+func (config testBlockOpsConfig) BlockCache() BlockCache {
 	return config.cache
 }
 
