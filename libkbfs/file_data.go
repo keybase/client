@@ -221,27 +221,28 @@ func (fd *fileData) getNextDirtyFileBlockAtOffset(ctx context.Context,
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, nil
 }
 
-// getLeafBlocksForOffsetRange fetches all the leaf ("direct") blocks
-// that encompass the given offset range (half-inclusive) in the file.
-// If `endOff` is -1, it returns blocks until reaching the end of the
-// file.  Note the range could be made up of holes, meaning that the
-// last byte of a direct block doesn't immediately precede the first
-// byte of the subsequent block.  If `prefixOk` is true, the function
-// will ignore context deadline errors and return whatever prefix of
-// the data it could fetch within the deadine.  Return params:
+// getBlocksForOffsetRange fetches all the blocks making up paths down
+// the file tree to leaf ("direct") blocks that encompass the given
+// offset range (half-inclusive) in the file.  If `endOff` is -1, it
+// returns blocks until reaching the end of the file.  Note the range
+// could be made up of holes, meaning that the last byte of a direct
+// block doesn't immediately precede the first byte of the subsequent
+// block.  If `prefixOk` is true, the function will ignore context
+// deadline errors and return whatever prefix of the data it could
+// fetch within the deadine.  Return params:
 //
 //   * pathsFromRoot is a slice, ordered by file offset, of paths from
 //     the root to each block that makes up the range.  If the path is
 //     empty, it indicates that pblock is a direct block and has no
 //     children.
 //   * blocks: a map from block pointer to a data-containing leaf node
-//     in the given range of offsets.
+//     in the given range of offsets, if `getDirect` is true.
 //   * nextBlockOff is the offset of the block that follows the last
 //     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
 //     the last block among the children, nextBlockOff is -1.
-func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
+func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 	ptr BlockPointer, pblock *FileBlock, startOff, endOff int64,
-	prefixOk bool) (pathsFromRoot [][]parentBlockAndChildIndex,
+	prefixOk bool, getDirect bool) (pathsFromRoot [][]parentBlockAndChildIndex,
 	blocks map[BlockPointer]*FileBlock, nextBlockOffset int64, err error) {
 	if !pblock.IsInd {
 		// Return a single empty path and a child map with only this
@@ -290,16 +291,29 @@ func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 		respCh := make(chan resp, 1)
 		respChans = append(respChans, respCh)
 		eg.Go(func() error {
-			block, _, err := fd.getter(
-				groupCtx, fd.kmd, ptr, fd.file, blockReadParallel)
-			if err != nil {
-				return err
-			}
-			// Recurse down to the level of the child.
-			pfr, blocks, nextBlockOffset, err := fd.getLeafBlocksForOffsetRange(
-				groupCtx, ptr, block, startOff, endOff, prefixOk)
-			if err != nil {
-				return err
+			var pfr [][]parentBlockAndChildIndex
+			var blocks map[BlockPointer]*FileBlock
+			var nextBlockOffset int64
+			// We only need to fetch direct blocks if we've been asked
+			// to do so.
+			if getDirect || !ptr.IsDirect {
+				block, _, err := fd.getter(
+					groupCtx, fd.kmd, ptr, fd.file, blockReadParallel)
+				if err != nil {
+					return err
+				}
+
+				// Recurse down to the level of the child.
+				pfr, blocks, nextBlockOffset, err = fd.getBlocksForOffsetRange(
+					groupCtx, ptr, block, startOff, endOff, prefixOk, getDirect)
+				if err != nil {
+					return err
+				}
+			} else {
+				// We don't care about direct blocks, so leave the
+				// `blocks` map `nil`.
+				pfr = [][]parentBlockAndChildIndex{nil}
+				nextBlockOffset = -1
 			}
 
 			// Append self to the front of every path.
@@ -372,13 +386,22 @@ outer:
 	return pathsFromRoot, blocks, nextBlockOffset, nil
 }
 
+func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
+	ptr BlockPointer, pblock *FileBlock, startOff, endOff int64,
+	prefixOk bool) (pathsFromRoot [][]parentBlockAndChildIndex,
+	blocks map[BlockPointer]*FileBlock, nextBlockOffset int64, err error) {
+	return fd.getBlocksForOffsetRange(
+		ctx, ptr, pblock, startOff, endOff, prefixOk, true)
+}
+
 func (fd *fileData) getIndirectBlocksForOffsetRange(ctx context.Context,
 	pblock *FileBlock, startOff, endOff int64) (
 	pathsFromRoot [][]parentBlockAndChildIndex, err error) {
-	// TODO: once we have an IsDirect flag, we can avoid fetching the
-	// leaf blocks.
-	pfr, _, _, err := fd.getLeafBlocksForOffsetRange(
-		ctx, fd.rootBlockPointer(), pblock, startOff, endOff, false)
+	// Fetch the paths of indirect blocks, without getting the direct
+	// blocks.
+	pfr, _, _, err := fd.getBlocksForOffsetRange(
+		ctx, fd.rootBlockPointer(), pblock, startOff, endOff, false,
+		false /* no direct blocks */)
 	if err != nil {
 		return nil, err
 	}
@@ -1628,6 +1651,10 @@ func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
 
 func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 	[]BlockInfo, error) {
+	if fd.rootBlockPointer().IsDirect {
+		return nil, nil
+	}
+
 	topBlock, _, err := fd.getter(
 		ctx, fd.kmd, fd.rootBlockPointer(), fd.file, blockRead)
 	if err != nil {
