@@ -100,8 +100,7 @@ services:
     # This query operates on the newly extractaparsed comment, not the original page load
     # This is the selector for the post attachment links, which contains the
     # proof text. It's the second <a> tag inside the div that's the immediate
-    # *sibling* of the 'userContet' div. The second of these three <a> tags
-    # contains the proof text, the others are blank. We check only the second.
+    # *sibling* of the 'userContet' div. That <a> tags contains the proof text.
     { selector_css: {
       , selectors: ["div.userContent+div a", 1]
       , into: "link_text"
