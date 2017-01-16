@@ -1,6 +1,8 @@
 :: Build keybase.exe with prerelease options
-set GOARCH=386
 set GO15VENDOREXPERIMENT=1
+
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+echo DOKAN_PATH %DOKAN_PATH%
 
 if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
 echo DOKAN_PATH %DOKAN_PATH%
@@ -58,12 +60,12 @@ popd
 
 :: dokanclean
 pushd %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean
-go build
+go build -a
 popd
 
 :: release
 pushd %GOPATH%\src\github.com\keybase\release
-go build
+go build -a
 popd
 
 
