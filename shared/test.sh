@@ -22,9 +22,12 @@ has_js_files() {
     echo 'git fetch'
     git fetch
     check_rc $? 'echo git fetch problem' 1
-    echo 'git log temp'
+    echo 'git log temp 1'
     git log -1 "$change_target"
+    echo 'git log temp 2'
     git log -1 "$commit_hash"
+    echo 'git log temp 3'
+    git log -1 "origin/$change_target"
     echo 'git log temp end'
 
     echo 'git diff'
