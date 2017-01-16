@@ -112,6 +112,7 @@ protocol local {
     OutboxState state;
     OutboxID outboxID;
     ConversationID convID;
+    gregor1.Time ctime;
     @lint("ignore")
     MessagePlaintext Msg;
     keybase1.TLFIdentifyBehavior identifyBehavior;

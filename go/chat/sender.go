@@ -351,7 +351,7 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 		identifyBehavior)
 
 	// Push onto outbox and immediatley return
-	oid, err := s.outbox.PushMessage(convID, msg, identifyBehavior)
+	oid, err := s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
 	if err != nil {
 		return oid, err
 	}
@@ -402,7 +402,7 @@ func (s *Deliverer) deliverLoop() {
 		}
 
 		// Fetch outbox
-		obrs, err := s.outbox.PullAllConversations()
+		obrs, err := s.outbox.PullAllConversations(bgctx)
 		if err != nil {
 			if _, ok := err.(storage.MissError); !ok {
 				s.Debug(bgctx, "unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
@@ -441,7 +441,7 @@ func (s *Deliverer) deliverLoop() {
 				// Send succeeded
 				s.Debug(bgctx, "clearing message from outbox: %s uid: %s", obr.OutboxID,
 					s.outbox.GetUID())
-				err = s.outbox.RemoveMessage(obr.OutboxID)
+				err = s.outbox.RemoveMessage(bgctx, obr.OutboxID)
 				if err != nil {
 					s.Debug(bgctx, "error clearing message from outbox after successful send: uid:%s %s", s.outbox.GetUID(), err)
 				}
@@ -454,7 +454,7 @@ func (s *Deliverer) deliverLoop() {
 				if errTyp, ok := s.doNotRetryFailure(obr, err); ok {
 					// Mark the entire outbox as an error if we can't send
 					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
-					deadObrs, err := s.outbox.MarkAllAsError(chat1.OutboxStateError{
+					deadObrs, err := s.outbox.MarkAllAsError(bgctx, chat1.OutboxStateError{
 						Message: err.Error(),
 						Typ:     errTyp,
 					})
@@ -468,7 +468,7 @@ func (s *Deliverer) deliverLoop() {
 					s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
 						keybase1.UID(s.outbox.GetUID().String()), &act)
 				} else {
-					if err = s.outbox.RecordFailedAttempt(obr.OutboxID); err != nil {
+					if err = s.outbox.RecordFailedAttempt(bgctx, obr.OutboxID); err != nil {
 						s.Debug(bgctx, "unable to record failed attempt on outbox: uid %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}

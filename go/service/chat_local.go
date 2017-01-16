@@ -1048,7 +1048,7 @@ func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.Outbox
 
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	if err = outbox.RemoveMessage(outboxID); err != nil {
+	if err = outbox.RemoveMessage(ctx, outboxID); err != nil {
 		return err
 	}
 
@@ -1064,7 +1064,7 @@ func (h *chatLocalHandler) RetryPost(ctx context.Context, outboxID chat1.OutboxI
 	// Mark as retry in the outbox
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	if err = outbox.RetryMessage(outboxID); err != nil {
+	if err = outbox.RetryMessage(ctx, outboxID); err != nil {
 		return err
 	}
 

@@ -250,8 +250,8 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 
 	table := &flexibletable.Table{}
 	visualIndex := 0
-	sortedMessages := messageSorter{Messages: v.messages}.ascending()
-	for _, m := range sortedMessages {
+	for i := len(v.messages) - 1; i >= 0; i-- {
+		m := v.messages[i]
 		mv, err := newMessageView(g, v.conversation.Info.Id, m)
 		if err != nil {
 			g.Log.Error("Message render error: %s", err)
@@ -354,22 +354,7 @@ type messageView struct {
 	messageType chat1.MessageType
 }
 
-// newMessageView extracts from a message the parts for display
-// It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
-func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (messageView, error) {
-
-	mv := messageView{}
-	st, err := m.State()
-	if err != nil {
-		return mv, fmt.Errorf("unexpected empty message")
-	}
-	if st == chat1.MessageUnboxedState_ERROR {
-		return mv, fmt.Errorf("<%s>", m.Error().ErrMsg)
-	}
-	// TODO handle messages in outbox properly
-	if st == chat1.MessageUnboxedState_OUTBOX {
-		return mv, fmt.Errorf("<message waiting to be sent>")
-	}
+func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
 
 	mv.MessageID = m.GetMessageID()
 	mv.FromRevokedDevice = m.Valid().SenderDeviceRevokedAt != nil
@@ -478,6 +463,79 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 		m.Valid().SenderUsername, possiblyRevokedMark, m.Valid().SenderDeviceName, shortDurationFromNow(t))
 
 	return mv, nil
+}
+
+func outboxStateView(state chat1.OutboxState, body string) string {
+	var ststr string
+	st, err := state.State()
+	if err != nil {
+		return "<unknown state>"
+	}
+	switch st {
+	case chat1.OutboxStateType_SENDING:
+		ststr = "<sending>"
+	case chat1.OutboxStateType_ERROR:
+		ststr = "<error>"
+	}
+
+	return fmt.Sprintf("[outbox message: state: %s contents: %s]", ststr, body)
+}
+
+func newMessageViewOutbox(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
+
+	body := m.Outbox().Msg.MessageBody
+	typ, err := body.MessageType()
+	mv.messageType = typ
+	if err != nil {
+		return mv, err
+	}
+	switch typ {
+	case chat1.MessageType_TEXT:
+		mv.Body = m.Outbox().Msg.MessageBody.Text().Body
+		mv.Renderable = true
+	case chat1.MessageType_ATTACHMENT:
+		// TODO: fix me?
+		mv.Body = "<attachment>"
+		mv.Renderable = true
+	case chat1.MessageType_EDIT:
+		mv.Body = fmt.Sprintf("<edit message: %s>", m.Outbox().Msg.MessageBody.Edit().Body)
+		mv.Renderable = true
+	case chat1.MessageType_DELETE:
+		mv.Body = "<delete message>"
+		mv.Renderable = true
+	default:
+		mv.Body = "<unknown message type>"
+		mv.Renderable = true
+	}
+	mv.Body = outboxStateView(m.Outbox().State, mv.Body)
+
+	t := gregor1.FromTime(m.Outbox().Ctime)
+	username := g.Env.GetUsername().String()
+	mv.FromRevokedDevice = false
+	mv.MessageID = m.Outbox().Msg.ClientHeader.OutboxInfo.Prev
+	mv.AuthorAndTime = fmt.Sprintf("%s %s", username, shortDurationFromNow(t))
+	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s <current> %s", username, shortDurationFromNow(t))
+
+	return mv, nil
+}
+
+// newMessageView extracts from a message the parts for display
+// It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
+func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
+
+	st, err := m.State()
+	if err != nil {
+		return mv, fmt.Errorf("unexpected empty message")
+	}
+	if st == chat1.MessageUnboxedState_ERROR {
+		return mv, fmt.Errorf("<%s>", m.Error().ErrMsg)
+	}
+
+	if st == chat1.MessageUnboxedState_OUTBOX {
+		return newMessageViewOutbox(g, conversationID, m)
+	}
+
+	return newMessageViewValid(g, conversationID, m)
 }
 
 func shortDurationFromNow(t time.Time) string {
