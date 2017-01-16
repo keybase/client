@@ -857,7 +857,7 @@ func (e *Identify2WithUID) checkFastCacheHit() (hit bool) {
 func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBIdentify,
-		Key: fmt.Sprintf("%s:%s", e.me.GetUID(), them),
+		Key: fmt.Sprintf("%s-%s", e.me.GetUID(), them),
 	}
 }
 
