@@ -215,6 +215,11 @@ func (i *Identify2WithUIDTester) DidFullUserLoad(uid keybase1.UID) {
 	i.userLoads[uid]++
 }
 
+func (i *Identify2WithUIDTester) Delete(uid keybase1.UID) error {
+	delete(i.cache, uid)
+	return nil
+}
+
 func (i *Identify2WithUIDTester) Shutdown() {}
 
 var _ libkb.Identify2Cacher = (*Identify2WithUIDTester)(nil)
