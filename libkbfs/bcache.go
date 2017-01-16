@@ -90,6 +90,10 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (Block, bool, err
 		return b.cleanPermanent[ptr.ID]
 	}()
 	if block != nil {
+		// A permanent entry can only be created if this client is performing a
+		// write. Since the client is writing, it knows what goes into it,
+		// including any potential directory entries or indirect blocks.
+		// Thus, it is treated as already prefetched.
 		return block, true, nil
 	}
 

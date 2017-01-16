@@ -2588,7 +2588,9 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 }
 
 func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer) {
-	fbo.log.CDebugf(context.Background(), "Updating reference for pointer %s to %s", oldPtr.ID, newPtr.ID)
+	// TODO: Remove this comment when we're done debugging because it'll be
+	// everywhere.
+	fbo.log.CDebugf(context.TODO(), "Updating reference for pointer %s to %s", oldPtr.ID, newPtr.ID)
 	updated := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
 	if !updated {
 		return
