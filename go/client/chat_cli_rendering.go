@@ -354,14 +354,14 @@ type messageView struct {
 	messageType chat1.MessageType
 }
 
-func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
+func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxedValid) (mv messageView, err error) {
 
-	mv.MessageID = m.GetMessageID()
-	mv.FromRevokedDevice = m.Valid().SenderDeviceRevokedAt != nil
+	mv.MessageID = m.ServerHeader.MessageID
+	mv.FromRevokedDevice = m.SenderDeviceRevokedAt != nil
 
 	// Check what message supersedes this one.
 	var mvsup *messageView
-	supersededBy := m.Valid().ServerHeader.SupersededBy
+	supersededBy := m.ServerHeader.SupersededBy
 	if supersededBy != 0 {
 		msup, err := fetchOneMessage(g, conversationID, supersededBy)
 		if err != nil {
@@ -374,7 +374,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		mvsup = &mvsupInner
 	}
 
-	body := m.Valid().MessageBody
+	body := m.MessageBody
 	typ, err := body.MessageType()
 	mv.messageType = typ
 	if err != nil {
@@ -419,7 +419,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		if title == "" {
 			title = filepath.Base(att.Object.Filename)
 		}
-		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.GetMessageID())
+		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.ServerHeader.MessageID)
 		if att.Preview != nil {
 			mv.Body += " [preview available]"
 		}
@@ -456,11 +456,11 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	if mv.FromRevokedDevice {
 		possiblyRevokedMark = "(!)"
 	}
-	t := gregor1.FromTime(m.Valid().ServerHeader.Ctime)
+	t := gregor1.FromTime(m.ServerHeader.Ctime)
 	mv.AuthorAndTime = fmt.Sprintf("%s%s %s",
-		m.Valid().SenderUsername, possiblyRevokedMark, shortDurationFromNow(t))
+		m.SenderUsername, possiblyRevokedMark, shortDurationFromNow(t))
 	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s%s <%s> %s",
-		m.Valid().SenderUsername, possiblyRevokedMark, m.Valid().SenderDeviceName, shortDurationFromNow(t))
+		m.SenderUsername, possiblyRevokedMark, m.SenderDeviceName, shortDurationFromNow(t))
 
 	return mv, nil
 }
@@ -481,9 +481,9 @@ func outboxStateView(state chat1.OutboxState, body string) string {
 	return fmt.Sprintf("[outbox message: state: %s contents: %s]", ststr, body)
 }
 
-func newMessageViewOutbox(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
+func newMessageViewOutbox(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.OutboxRecord) (mv messageView, err error) {
 
-	body := m.Outbox().Msg.MessageBody
+	body := m.Msg.MessageBody
 	typ, err := body.MessageType()
 	mv.messageType = typ
 	if err != nil {
@@ -491,14 +491,14 @@ func newMessageViewOutbox(g *libkb.GlobalContext, conversationID chat1.Conversat
 	}
 	switch typ {
 	case chat1.MessageType_TEXT:
-		mv.Body = m.Outbox().Msg.MessageBody.Text().Body
+		mv.Body = m.Msg.MessageBody.Text().Body
 		mv.Renderable = true
 	case chat1.MessageType_ATTACHMENT:
 		// TODO: fix me?
 		mv.Body = "<attachment>"
 		mv.Renderable = true
 	case chat1.MessageType_EDIT:
-		mv.Body = fmt.Sprintf("<edit message: %s>", m.Outbox().Msg.MessageBody.Edit().Body)
+		mv.Body = fmt.Sprintf("<edit message: %s>", m.Msg.MessageBody.Edit().Body)
 		mv.Renderable = true
 	case chat1.MessageType_DELETE:
 		mv.Body = "<delete message>"
@@ -507,12 +507,12 @@ func newMessageViewOutbox(g *libkb.GlobalContext, conversationID chat1.Conversat
 		mv.Body = "<unknown message type>"
 		mv.Renderable = true
 	}
-	mv.Body = outboxStateView(m.Outbox().State, mv.Body)
+	mv.Body = outboxStateView(m.State, mv.Body)
 
-	t := gregor1.FromTime(m.Outbox().Ctime)
+	t := gregor1.FromTime(m.Ctime)
 	username := g.Env.GetUsername().String()
 	mv.FromRevokedDevice = false
-	mv.MessageID = m.Outbox().Msg.ClientHeader.OutboxInfo.Prev
+	mv.MessageID = m.Msg.ClientHeader.OutboxInfo.Prev
 	mv.AuthorAndTime = fmt.Sprintf("%s %s", username, shortDurationFromNow(t))
 	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s <current> %s", username, shortDurationFromNow(t))
 
@@ -532,10 +532,10 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 	}
 
 	if st == chat1.MessageUnboxedState_OUTBOX {
-		return newMessageViewOutbox(g, conversationID, m)
+		return newMessageViewOutbox(g, conversationID, m.Outbox())
 	}
 
-	return newMessageViewValid(g, conversationID, m)
+	return newMessageViewValid(g, conversationID, m.Valid())
 }
 
 func shortDurationFromNow(t time.Time) string {
