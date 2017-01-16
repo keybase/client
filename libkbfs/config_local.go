@@ -22,9 +22,6 @@ import (
 )
 
 const (
-	// Max supported plaintext size of a file in KBFS.  TODO: increase
-	// this once we support multiple levels of indirection.
-	maxFileBytesDefault = 2 * 1024 * 1024 * 1024
 	// Max supported size of a directory entry name.
 	maxNameBytesDefault = 255
 	// Maximum supported plaintext size of a directory in KBFS. TODO:
@@ -77,7 +74,6 @@ type ConfigLocal struct {
 	noBGFlush   bool // logic opposite so the default value is the common setting
 	rwpWaitTime time.Duration
 
-	maxFileBytes uint64
 	maxNameBytes uint32
 	maxDirBytes  uint64
 	rekeyQueue   RekeyQueue
@@ -244,7 +240,6 @@ func NewConfigLocal(loggerFn func(module string) logger.Logger) *ConfigLocal {
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 
-	config.maxFileBytes = maxFileBytesDefault
 	config.maxNameBytes = maxNameBytesDefault
 	config.maxDirBytes = maxDirBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
@@ -666,11 +661,6 @@ func (c *ConfigLocal) QuotaReclamationMinHeadAge() time.Duration {
 // ReqsBufSize implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ReqsBufSize() int {
 	return 20
-}
-
-// MaxFileBytes implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) MaxFileBytes() uint64 {
-	return c.maxFileBytes
 }
 
 // MaxNameBytes implements the Config interface for ConfigLocal.

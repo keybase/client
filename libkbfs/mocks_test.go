@@ -4474,16 +4474,6 @@ func (_mr *_MockConfigRecorder) ReqsBufSize() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReqsBufSize")
 }
 
-func (_m *MockConfig) MaxFileBytes() uint64 {
-	ret := _m.ctrl.Call(_m, "MaxFileBytes")
-	ret0, _ := ret[0].(uint64)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) MaxFileBytes() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxFileBytes")
-}
-
 func (_m *MockConfig) MaxNameBytes() uint32 {
 	ret := _m.ctrl.Call(_m, "MaxNameBytes")
 	ret0, _ := ret[0].(uint32)

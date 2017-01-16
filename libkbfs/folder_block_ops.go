@@ -1446,10 +1446,6 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadata,
 	file path, size uint64, parentBlocks []parentBlockAndChildIndex) (
 	WriteRange, []BlockPointer, error) {
-	if size > fbo.config.MaxFileBytes() {
-		return WriteRange{}, nil, FileTooBigError{file, int64(size), fbo.config.MaxFileBytes()}
-	}
-
 	fblock, uid, err := fbo.writeGetFileLocked(ctx, lState, kmd, file)
 	if err != nil {
 		return WriteRange{}, nil, err
