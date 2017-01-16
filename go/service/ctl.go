@@ -89,7 +89,7 @@ func (c *CtlHandler) DbDelete(_ context.Context, arg keybase1.DbDeleteArg) (err 
 	}
 
 	c.G().Log.Debug("Clearing memory caches after DbDelete")
-	c.G().ConfigureCaches()
+	c.G().ConfigureMemCaches()
 
 	return nil
 }
@@ -134,7 +134,7 @@ func (c *CtlHandler) DbPut(_ context.Context, arg keybase1.DbPutArg) (err error)
 	}
 
 	c.G().Log.Debug("Clearing memory caches after DbPut")
-	c.G().ConfigureCaches()
+	c.G().ConfigureMemCaches()
 
 	return nil
 }
