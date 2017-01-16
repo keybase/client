@@ -91,9 +91,21 @@ protocol local {
     ERROR_1
   }
 
+  enum OutboxErrorType {
+    MISC_0,
+    OFFLINE_1,
+    IDENTIFY_2,
+    TOOLONG_3
+  }
+
+  record OutboxStateError {
+    string message;
+    OutboxErrorType typ;
+  }
+
   variant OutboxState switch (OutboxStateType state) {
     case SENDING: int; // # of attempts
-    case ERROR: string; // err msg
+    case ERROR: OutboxStateError; // error
   }
 
   record OutboxRecord {

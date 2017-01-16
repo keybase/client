@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -12,6 +13,7 @@ import (
 
 type msgEngine struct {
 	libkb.Contextified
+	utils.DebugLabeler
 }
 
 type boxedLocalMessage struct {
@@ -33,14 +35,15 @@ func (b boxedLocalMessage) GetMessageType() chat1.MessageType {
 func newMsgEngine(g *libkb.GlobalContext) *msgEngine {
 	return &msgEngine{
 		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "MessageEngine", true),
 	}
 }
 
-func (ms *msgEngine) fetchSecretKey(ctx context.Context) (key [32]byte, err libkb.ChatStorageError) {
+func (ms *msgEngine) fetchSecretKey(ctx context.Context) (key [32]byte, err Error) {
 	var ok bool
 	val := ctx.Value(beskkey)
 	if key, ok = val.([32]byte); !ok {
-		return key, libkb.ChatStorageMiscError{Msg: "secret key not in context"}
+		return key, MiscError{Msg: "secret key not in context"}
 	}
 	return key, nil
 }
@@ -53,7 +56,7 @@ func (ms *msgEngine) makeMsgKey(convID chat1.ConversationID, uid gregor1.UID, ms
 }
 
 func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
+	msgs []chat1.MessageUnboxed) Error {
 
 	// Sanity check
 	if len(msgs) == 0 {
@@ -66,7 +69,7 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 		// Encode message
 		dat, err := encode(msg)
 		if err != nil {
-			return libkb.NewChatStorageInternalError(ms.G(), "writeMessages: failed to encode: %s",
+			return NewInternalError(ms.DebugLabeler, "writeMessages: failed to encode: %s",
 				err.Error())
 		}
 
@@ -78,7 +81,7 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 		var nonce []byte
 		nonce, err = libkb.RandBytes(24)
 		if err != nil {
-			return libkb.ChatStorageMiscError{Msg: fmt.Sprintf("writeMessages: failure to generate nonce: %s", err.Error())}
+			return MiscError{Msg: fmt.Sprintf("writeMessages: failure to generate nonce: %s", err.Error())}
 		}
 		var fnonce [24]byte
 		copy(fnonce[:], nonce)
@@ -94,14 +97,13 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 		}
 		dat, err = encode(payload)
 		if err != nil {
-			return libkb.NewChatStorageInternalError(ms.G(), "writeMessages: failed to encode: %s",
+			return NewInternalError(ms.DebugLabeler, "writeMessages: failed to encode: %s",
 				err.Error())
 		}
 
 		// Store
 		if err = ms.G().LocalChatDb.PutRaw(ms.makeMsgKey(convID, uid, msg.GetMessageID()), dat); err != nil {
-			return libkb.NewChatStorageInternalError(ms.G(), "writeMessages: failed to write msg: %s",
-				err.Error())
+			return NewInternalError(ms.DebugLabeler, "writeMessages: failed to write msg: %s", err.Error())
 		}
 	}
 
@@ -109,28 +111,28 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 }
 
 func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
-	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) libkb.ChatStorageError {
+	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error {
 
 	// Read all msgs in reverse order
 	for msgID := maxID; !rc.done() && msgID > 0; msgID-- {
 		raw, found, err := ms.G().LocalChatDb.GetRaw(ms.makeMsgKey(convID, uid, msgID))
 		if err != nil {
-			return libkb.NewChatStorageInternalError(ms.G(), "readMessages: failed to read msg: %s", err.Error())
+			return NewInternalError(ms.DebugLabeler, "readMessages: failed to read msg: %s", err.Error())
 		}
 		if !found {
-			return libkb.ChatStorageMissError{}
+			return MissError{}
 		}
 
 		// Decode and check to see if this is a cache hit
 		var bmsg boxedLocalMessage
 		if err = decode(raw, &bmsg); err != nil {
-			return libkb.NewChatStorageInternalError(ms.G(), "readMessages: failed to decode msg: %s", err.Error())
+			return NewInternalError(ms.DebugLabeler, "readMessages: failed to decode msg: %s", err.Error())
 		}
 		if bmsg.GetMessageID() == 0 {
-			return libkb.ChatStorageMissError{}
+			return MissError{}
 		}
 		if bmsg.V > cryptoVersion {
-			return libkb.NewChatStorageInternalError(ms.G(), "readMessages: bad crypto version: %d current: %d id: %d", bmsg.V, cryptoVersion, bmsg.GetMessageID())
+			return NewInternalError(ms.DebugLabeler, "readMessages: bad crypto version: %d current: %d id: %d", bmsg.V, cryptoVersion, bmsg.GetMessageID())
 		}
 
 		// Decrypt
@@ -140,13 +142,13 @@ func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
 		}
 		pt, ok := secretbox.Open(nil, bmsg.E, &bmsg.N, &fkey)
 		if !ok {
-			return libkb.NewChatStorageInternalError(ms.G(), "readMessages: failed to decrypt msg: %d err: %s", bmsg.GetMessageID(), err.Error())
+			return NewInternalError(ms.DebugLabeler, "readMessages: failed to decrypt msg: %d err: %s", bmsg.GetMessageID(), err.Error())
 		}
 
 		// Decode payload
 		var msg chat1.MessageUnboxed
 		if err = decode(pt, &msg); err != nil {
-			return libkb.NewChatStorageInternalError(ms.G(), "readMessages: failed to decode: %s", err.Error())
+			return NewInternalError(ms.DebugLabeler, "readMessages: failed to decode: %s", err.Error())
 		}
 
 		rc.push(msg)
@@ -156,6 +158,6 @@ func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
 }
 
 func (ms *msgEngine) init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
-	uid gregor1.UID) (context.Context, libkb.ChatStorageError) {
+	uid gregor1.UID) (context.Context, Error) {
 	return context.WithValue(ctx, beskkey, key), nil
 }

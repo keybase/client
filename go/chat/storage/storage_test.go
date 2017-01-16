@@ -282,7 +282,7 @@ func TestStorageMiss(t *testing.T) {
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil)
 	require.Error(t, err, "expected error")
-	require.IsType(t, libkb.ChatStorageMissError{}, err, "wrong error type")
+	require.IsType(t, MissError{}, err, "wrong error type")
 }
 
 func TestStoragePagination(t *testing.T) {
@@ -387,7 +387,7 @@ func TestStorageLocalMax(t *testing.T) {
 
 	_, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil)
 	require.Error(t, err)
-	require.IsType(t, libkb.ChatStorageMissError{}, err, "wrong error type")
+	require.IsType(t, MissError{}, err, "wrong error type")
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	tv, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil)

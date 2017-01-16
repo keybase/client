@@ -198,7 +198,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	boxer.hashV1 = origHashFn
 
 	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := ierr.Inner().(libkb.ChatBodyHashInvalid); !ok {
+	if _, ok := ierr.Inner().(BodyHashInvalid); !ok {
 		t.Fatalf("unexpected error for invalid body hash: %s", ierr)
 	}
 }

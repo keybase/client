@@ -3,7 +3,6 @@ package chat
 import (
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -13,7 +12,7 @@ type dummyMessage struct {
 	prevs []chat1.MessagePreviousPointer
 }
 
-func expectCode(t *testing.T, err libkb.ChatThreadConsistencyError, code libkb.ConsistencyErrorCode) {
+func expectCode(t *testing.T, err ChatThreadConsistencyError, code ConsistencyErrorCode) {
 	if err == nil {
 		t.Fatalf("Expected an error. Got nil.")
 	}
@@ -88,7 +87,7 @@ func TestPrevDuplicateID(t *testing.T) {
 	})
 
 	_, err := CheckPrevPointersAndGetUnpreved(&thread)
-	expectCode(t, err, libkb.DuplicateID)
+	expectCode(t, err, DuplicateID)
 }
 
 func TestPrevInconsistentHash(t *testing.T) {
@@ -119,7 +118,7 @@ func TestPrevInconsistentHash(t *testing.T) {
 	})
 
 	_, err := CheckPrevPointersAndGetUnpreved(&thread)
-	expectCode(t, err, libkb.InconsistentHash)
+	expectCode(t, err, InconsistentHash)
 }
 
 func TestPrevOutOfOrder(t *testing.T) {
@@ -142,7 +141,7 @@ func TestPrevOutOfOrder(t *testing.T) {
 	})
 
 	_, err := CheckPrevPointersAndGetUnpreved(&thread)
-	expectCode(t, err, libkb.OutOfOrderID)
+	expectCode(t, err, OutOfOrderID)
 }
 
 func TestPrevIncorrectHash(t *testing.T) {
@@ -164,5 +163,5 @@ func TestPrevIncorrectHash(t *testing.T) {
 	})
 
 	_, err := CheckPrevPointersAndGetUnpreved(&thread)
-	expectCode(t, err, libkb.IncorrectHash)
+	expectCode(t, err, IncorrectHash)
 }

@@ -223,21 +223,42 @@ func AppendTLFResetSuffix(msgs []chat1.MessageBoxed, finalizeInfo *chat1.Convers
 
 type DebugLabeler struct {
 	libkb.Contextified
-	label string
+	label   string
+	verbose bool
 }
 
-func NewDebugLabeler(g *libkb.GlobalContext, label string) DebugLabeler {
+func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
 		Contextified: libkb.NewContextified(g),
 		label:        label,
+		verbose:      verbose,
 	}
 }
 
+func (d DebugLabeler) showVerbose() bool {
+	return false
+}
+
+func (d DebugLabeler) showLog() bool {
+	if d.verbose {
+		return d.showVerbose()
+	}
+	return true
+}
+
 func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
-	d.G().Log.CDebugf(ctx, "++Chat: "+d.label+": "+msg, args...)
+	if d.showLog() {
+		d.G().Log.CDebugf(ctx, "++Chat: "+d.label+": "+msg, args...)
+	}
 }
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) func() {
-	d.G().Log.CDebugf(ctx, "++Chat: %s: + %s", d.label, msg)
-	return func() { d.G().Log.CDebugf(ctx, "++Chat: %s: - %s -> %s", d.label, msg, libkb.ErrToOk(f())) }
+	if d.showLog() {
+		d.G().Log.CDebugf(ctx, "++Chat: %s: + %s", d.label, msg)
+		return func() {
+			d.G().Log.CDebugf(ctx, "++Chat: %s: - %s -> %s", d.label, msg,
+				libkb.ErrToOk(f()))
+		}
+	}
+	return func() {}
 }

@@ -148,7 +148,7 @@ func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterfac
 	tlf func() keybase1.TlfInterface) *RemoteInboxSource {
 	return &RemoteInboxSource{
 		Contextified:     libkb.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "RemoteInboxSource"),
+		DebugLabeler:     utils.NewDebugLabeler(g, "RemoteInboxSource", false),
 		getTlfInterface:  tlf,
 		getChatInterface: ri,
 	}
@@ -246,7 +246,7 @@ func NewHybridInboxSource(g *libkb.GlobalContext,
 ) *HybridInboxSource {
 	return &HybridInboxSource{
 		Contextified:     libkb.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "HybridInboxSource"),
+		DebugLabeler:     utils.NewDebugLabeler(g, "HybridInboxSource", false),
 		getSecretUI:      getSecretUI,
 		getTlfInterface:  getTlfInterface,
 		getChatInterface: getChatInterface,
@@ -324,7 +324,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 
 	vers, convs, pagination, cerr := inboxStore.Read(ctx, rquery, p)
 	if cerr != nil {
-		if _, ok := cerr.(libkb.ChatStorageMissError); !ok {
+		if _, ok := cerr.(storage.MissError); !ok {
 			s.Debug(ctx, "Read: error fetching inbox: %s", cerr.Error())
 		} else {
 			s.Debug(ctx, "Read: storage miss")
@@ -363,11 +363,11 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 	return inbox, rl, nil
 }
 
-func (s *HybridInboxSource) handleInboxError(err libkb.ChatStorageError, uid gregor1.UID) error {
-	if _, ok := err.(libkb.ChatStorageMissError); ok {
+func (s *HybridInboxSource) handleInboxError(err storage.Error, uid gregor1.UID) error {
+	if _, ok := err.(storage.MissError); ok {
 		return nil
 	}
-	if _, ok := err.(libkb.ChatStorageVersionMismatchError); ok {
+	if _, ok := err.(storage.VersionMismatchError); ok {
 		s.syncer.SendChatStaleNotifications(uid)
 		return nil
 	}
@@ -502,7 +502,7 @@ func (s *localizerPipeline) needsCanonicalize(name string) bool {
 }
 
 func (s *localizerPipeline) isErrPermanent(err error) bool {
-	if uberr, ok := err.(libkb.ChatUnboxingError); ok {
+	if uberr, ok := err.(UnboxingError); ok {
 		return uberr.IsPermanent()
 	}
 	return false

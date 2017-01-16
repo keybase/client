@@ -17,7 +17,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat"
-	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -51,7 +50,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	h := &chatLocalHandler{
 		BaseHandler:   NewBaseHandler(xp),
 		Contextified:  libkb.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "ChatLocalHandler"),
+		DebugLabeler:  utils.NewDebugLabeler(g, "ChatLocalHandler", false),
 		gh:            gh,
 		tlf:           tlf,
 		boxer:         chat.NewBoxer(g, tlf),
@@ -253,8 +252,8 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	if err = outbox.SprinkleIntoThread(arg.ConversationID, &thread); err != nil {
-		if _, ok := err.(libkb.ChatStorageMissError); !ok {
+	if err = outbox.SprinkleIntoThread(ctx, arg.ConversationID, &thread); err != nil {
+		if _, ok := err.(storage.MissError); !ok {
 			return chat1.GetThreadLocalRes{}, err
 		}
 	}
@@ -650,10 +649,6 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	err = msgchecker.CheckMessagePlaintext(arg.Msg)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
 
 	// Make sure sender is set
 	db := make([]byte, 16)
@@ -1074,7 +1069,7 @@ func (h *chatLocalHandler) RetryPost(ctx context.Context, outboxID chat1.OutboxI
 	}
 
 	// Force the send loop to try again
-	h.G().MessageDeliverer.ForceDeliverLoop()
+	h.G().MessageDeliverer.ForceDeliverLoop(ctx)
 
 	return nil
 }

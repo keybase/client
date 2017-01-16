@@ -11,7 +11,7 @@ protocol NotifyChat {
     NEW_CONVERSATION_3,
     SET_STATUS_4,
     FAILED_MESSAGE_5
-  }
+  } 
 
   record IncomingMessage {
     MessageUnboxed message;

@@ -83,7 +83,8 @@ protocol constants {
     SCChatAlreadySuperseded_2507,
     SCChatAlreadyDeleted_2508,
     SCChatTLFFinalized_2509,
-    SCChatCollision_2510
+    SCChatCollision_2510,
+    SCIdentifySummaryError_2511
   }
 
 }

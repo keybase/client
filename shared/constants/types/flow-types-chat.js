@@ -108,6 +108,13 @@ export const LocalMessageUnboxedState = {
   outbox: 3,
 }
 
+export const LocalOutboxErrorType = {
+  misc: 0,
+  offline: 1,
+  identify: 2,
+  toolong: 3,
+}
+
 export const LocalOutboxStateType = {
   sending: 0,
   error: 1,
@@ -1054,6 +1061,12 @@ export type NotifyChatNewChatActivityRpcParam = Exact<{
   activity: ChatActivity
 }>
 
+export type OutboxErrorType = 
+    0 // MISC_0
+  | 1 // OFFLINE_1
+  | 2 // IDENTIFY_2
+  | 3 // TOOLONG_3
+
 export type OutboxID = bytes
 
 export type OutboxInfo = {
@@ -1071,7 +1084,12 @@ export type OutboxRecord = {
 
 export type OutboxState = 
     { state : 0, sending : ?int }
-  | { state : 1, error : ?string }
+  | { state : 1, error : ?OutboxStateError }
+
+export type OutboxStateError = {
+  message: string,
+  typ: OutboxErrorType,
+}
 
 export type OutboxStateType = 
     0 // SENDING_0

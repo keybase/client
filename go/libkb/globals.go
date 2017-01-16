@@ -451,7 +451,7 @@ func (g *GlobalContext) Shutdown() error {
 			g.Resolver.Shutdown()
 		}
 		if g.MessageDeliverer != nil {
-			g.MessageDeliverer.Stop()
+			g.MessageDeliverer.Stop(context.Background())
 		}
 
 		for _, hook := range g.ShutdownHooks {

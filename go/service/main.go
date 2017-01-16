@@ -260,7 +260,7 @@ func (d *Service) createMessageDeliverer() {
 func (d *Service) startMessageDeliverer() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
-		d.G().MessageDeliverer.Start(d.G().Env.GetUID().ToBytes())
+		d.G().MessageDeliverer.Start(context.Background(), d.G().Env.GetUID().ToBytes())
 	}
 }
 
@@ -443,7 +443,7 @@ func (d *Service) OnLogin() error {
 	}
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
-		d.G().MessageDeliverer.Start(d.G().Env.GetUID().ToBytes())
+		d.G().MessageDeliverer.Start(context.Background(), d.G().Env.GetUID().ToBytes())
 		d.runBackgroundIdentifierWithUID(uid)
 	}
 	return nil
@@ -463,7 +463,7 @@ func (d *Service) OnLogout() (err error) {
 
 	log("shutting down message deliverer")
 	if d.messageDeliverer != nil {
-		d.messageDeliverer.Stop()
+		d.messageDeliverer.Stop(context.Background())
 	}
 
 	log("shutting down rekeyMaster")
