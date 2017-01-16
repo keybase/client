@@ -410,6 +410,15 @@ func (r ReminderSet) Reminders() []gregor.Reminder {
 
 func (r ReminderSet) MoreRemindersReady() bool { return r.MoreRemindersReady_ }
 
+func UIDListContains(list []UID, x UID) bool {
+	for _, y := range list {
+		if x.String() == y.String() {
+			return true
+		}
+	}
+	return false
+}
+
 var _ gregor.UID = UID{}
 var _ gregor.MsgID = MsgID{}
 var _ gregor.DeviceID = DeviceID{}
