@@ -102,7 +102,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
 	continueCh2 <- nil
 	continueCh3 <- nil
-	q.TogglePrefetcher(context.Background(), false)
+	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cacheFunc().Get(ptr1)
@@ -146,7 +146,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
 	continueCh2 <- nil
 	continueCh3 <- nil
-	q.TogglePrefetcher(context.Background(), false)
+	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cacheFunc().Get(ptr1)
@@ -197,7 +197,7 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	continueCh3 <- nil
 	continueCh2 <- context.Canceled
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
-	q.TogglePrefetcher(context.Background(), false)
+	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	block, err = cacheFunc().Get(ptr1)

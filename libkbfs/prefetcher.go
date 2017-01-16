@@ -180,17 +180,27 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
 }
 
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
-func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
+func (p *blockPrefetcher) PrefetchBlock(
+	block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
 	p.log.CDebugf(context.Background(), "Prefetching block by request from upstream component. Priority: %d", priority)
 	return p.request(priority, kmd, ptr, block, "")
 }
 
 // PrefetchAfterBlockRetrieved implements the Prefetcher interface for
 // blockPrefetcher.
-func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int, hasPrefetched bool) {
-	if hasPrefetched || priority < defaultOnDemandRequestPriority {
+func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
+	b Block, ptr BlockPointer, kmd KeyMetadata, priority int,
+	lifetime BlockCacheLifetime, hasPrefetched bool) (didPrefetch bool) {
+	defer func() {
+		p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
+			lifetime, didPrefetch)
+	}()
+	if hasPrefetched {
+		return true
+	}
+	if priority < defaultOnDemandRequestPriority {
 		// Only on-demand or higher priority requests can trigger prefetches.
-		return
+		return false
 	}
 	switch b := b.(type) {
 	case *FileBlock:
@@ -206,6 +216,7 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, 
 	default:
 		p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T", b)
 	}
+	return true
 }
 
 // Shutdown implements the Prefetcher interface for blockPrefetcher.

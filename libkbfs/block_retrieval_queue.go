@@ -179,8 +179,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 				brq.config.BlockCache().GetWithPrefetch(ptr)
 			if err == nil && cachedBlock != nil {
 				block.Set(cachedBlock, brq.config.codec())
-				brq.triggerPrefetchAfterBlockRetrieved(
-					cachedBlock, kmd, priority, hasPrefetched)
+				brq.Prefetcher().PrefetchAfterBlockRetrieved(
+					cachedBlock, ptr, kmd, priority, lifetime, hasPrefetched)
 				ch <- nil
 				return ch
 			}
@@ -235,20 +235,6 @@ func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
 	return ch
 }
 
-func (brq *blockRetrievalQueue) triggerPrefetchAfterBlockRetrieved(
-	block Block, kmd KeyMetadata, priority int, hasPrefetched bool) {
-	if hasPrefetched {
-		return
-	}
-	// We have to trigger prefetches in a goroutine because otherwise we
-	// can deadlock with `TogglePrefetcher`.
-	go func() {
-		brq.prefetchMtx.RLock()
-		defer brq.prefetchMtx.RUnlock()
-		brq.prefetcher.PrefetchAfterBlockRetrieved(block, kmd, priority, false)
-	}()
-}
-
 // FinalizeRequest is the last step of a retrieval request once a block has
 // been obtained. It removes the request from the blockRetrievalQueue,
 // preventing more requests from mutating the retrieval, then notifies all
@@ -265,15 +251,11 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 
 	// Cache the block and trigger prefetches if there is no error.
 	if err == nil {
-		if brq.config.BlockCache() != nil {
-			_ = brq.config.BlockCache().PutWithPrefetch(
-				retrieval.blockPtr, retrieval.kmd.TlfID(), block,
-				retrieval.cacheLifetime, true)
-		}
 		// We treat this request as not having been prefetched, because the
 		// only way to get here is if the request wasn't already cached.
-		brq.triggerPrefetchAfterBlockRetrieved(
-			block, retrieval.kmd, retrieval.priority, false)
+		brq.Prefetcher().PrefetchAfterBlockRetrieved(block,
+			retrieval.blockPtr, retrieval.kmd, retrieval.priority,
+			retrieval.cacheLifetime, false)
 	}
 
 	// This is a symbolic lock, since there shouldn't be any other goroutines
@@ -313,12 +295,9 @@ func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context, enable boo
 	// this function doesn't leak prefetchers.
 	brq.prefetchMtx.Lock()
 	defer brq.prefetchMtx.Unlock()
-	shutdownCh := brq.prefetcher.Shutdown()
-	select {
-	case <-shutdownCh:
-	case <-ctx.Done():
-		return ctx.Err()
-	}
+	// Don't wait for the existing prefetcher to shutdown so we don't deadlock
+	// any callers.
+	_ = brq.prefetcher.Shutdown()
 	if enable {
 		brq.prefetcher = newBlockPrefetcher(brq, brq.config)
 	}
