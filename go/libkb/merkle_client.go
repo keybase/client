@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -181,14 +180,6 @@ func (h *NodeHashAny) MarshalJSON() ([]byte, error) {
 	return keybase1.Quote(s), nil
 }
 
-func newSeqnoFromString(s string) (Seqno, error) {
-	i, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		return Seqno(-1), err
-	}
-	return Seqno(i), nil
-}
-
 type MerkleClient struct {
 	Contextified
 
@@ -200,7 +191,7 @@ type MerkleClient struct {
 	// The most recently-available root
 	lastRoot *MerkleRoot
 
-	// The first node we saw that hat skip pointers
+	// The first node we saw that has skip pointers
 	firstSkip *MerkleRoot
 
 	// protects whole object
@@ -381,6 +372,9 @@ func (mc *MerkleClient) dbLookup(ctx context.Context, k DbKey) (ret *MerkleRoot,
 	return mr, err
 }
 
+// loadFirstSkip loads the first Merkle block that had full skip pointers. This is
+// going to be most useful for development machines. On prod, we'll just hardcode
+// the first sequence that has them.
 func (mc *MerkleClient) loadFirstSkip(ctx context.Context) (err error) {
 	defer mc.G().CTrace(ctx, "MerkleClient#loadFirstSkip()", func() error { return err })()
 	var mr *MerkleRoot
@@ -511,8 +505,8 @@ func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArg
 	// Get back a series of skips from the last merkle root we had to the new
 	// one we're getting back, and hold the server to it.
 	lastSeqno := lastRoot.Seqno()
-	if lastSeqno >= 0 {
-		q.Add("last", I{int(lastSeqno)})
+	if lastSeqno != nil {
+		q.Add("last", I{int(*lastSeqno)})
 	}
 
 	res, err = mc.G().API.Get(APIArg{
@@ -652,15 +646,6 @@ func pathStepFromJSON(jw *jsonw.Wrapper) (ps *PathStep, err error) {
 	return
 }
 
-func (mc *MerkleClient) LastSeqno() Seqno {
-	mc.RLock()
-	defer mc.RUnlock()
-	if mc.lastRoot != nil {
-		return mc.lastRoot.Seqno()
-	}
-	return -1
-}
-
 func (mc *MerkleClient) LastRoot() *MerkleRoot {
 	mc.RLock()
 	defer mc.RUnlock()
@@ -670,13 +655,17 @@ func (mc *MerkleClient) LastRoot() *MerkleRoot {
 	return mc.lastRoot.ShallowCopy()
 }
 
-func (mc *MerkleClient) FirstSeqnoWithSkips() Seqno {
+func (mc *MerkleClient) FirstSeqnoWithSkips() *Seqno {
+	if mc.G().Env.GetRunMode() == ProductionRunMode {
+		return FirstProdMerkleSeqnoWithSkips
+	}
+
 	mc.RLock()
 	defer mc.RUnlock()
-	if mc.firstSkip != nil {
+	if mc.firstSkip != nil && mc.G().Env.GetRunMode() != ProductionRunMode {
 		return mc.firstSkip.Seqno()
 	}
-	return -1
+	return nil
 }
 
 func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, string, error) {
@@ -707,56 +696,81 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 			mc.G().Log.CDebugf(ctx, "| lastRoot==nil, so OK")
 			return nil
 		}
-		if fss < 0 {
+		if fss == nil {
 			mc.G().Log.CDebugf(ctx, "| no known root with skips, so OK")
 			return nil
 		}
-		if fss > lastRoot.Seqno() {
-			mc.G().Log.CDebugf(ctx, "| lastRoot (%d) is from before first known root with skips (%d), so OK", int(lastRoot.Seqno()), int(fss))
+		if *fss > *lastRoot.Seqno() {
+			mc.G().Log.CDebugf(ctx, "| lastRoot (%d) is from before first known root with skips (%d), so OK", int(*lastRoot.Seqno()), int(*fss))
 			return nil
 		}
-		if thisRoot != nil && lastRoot.Seqno() == thisRoot.Seqno() {
-			mc.G().Log.CDebugf(ctx, "| thisRoot is the same as lastRoot (%d), so OK", int(lastRoot.Seqno()))
+		if thisRoot != nil && *lastRoot.Seqno() == *thisRoot.Seqno() {
+			mc.G().Log.CDebugf(ctx, "| thisRoot is the same as lastRoot (%d), so OK", int(*lastRoot.Seqno()))
 			return nil
 		}
-
-		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(lastRoot.Seqno()))}
+		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(*lastRoot.Seqno()))}
 	}
 
-	for i := 0; i < len(ss)-1; i++ {
-		j := i + 1
-		a, b := ss[i].seqno(), ss[j].seqno()
-		mc.G().Log.CDebugf(ctx, "| Checking skip %d->%d", a, b)
-		if a <= b {
-			return MerkleClientError{fmt.Sprintf("Sequence error: %d <= %d", a, b)}
+	// Enforce the invariant that the most recently published merkle root and the last gotten
+	// merkle root are the bookends of the sequence.  we should have set up datastructures
+	// previously so this is the case
+	if *thisRoot.Seqno() != ss[0].seqno() {
+		msg := fmt.Sprintf("expected the left bookend of the SkipSequence to be this root, but %d != %d", *thisRoot.Seqno(), ss[0].seqno())
+		panic(msg)
+	}
+
+	if *lastRoot.Seqno() != ss[len(ss)-1].seqno() {
+		msg := fmt.Sprintf("expected the right bookend of the SkipSequence to be last root, but %d != %d", *thisRoot.Seqno(), ss[len(ss)-1].seqno())
+		panic(msg)
+	}
+
+	return verifySkipSequence(ctx, mc.G(), ss)
+}
+
+// verifySkipSequence verifies the raw "Skip Sequence" ss. ss contains a list of MerkleRootPayloads beginning
+// with the most // recently returned root, and ending with the last root that we fetched. So for instance,
+// it might contain: [ 100, 84, 82, 81 ] in that case that we last fetched Seqno=81 and the server is
+// currently at Seqno=100.
+func verifySkipSequence(ctx context.Context, g *GlobalContext, ss SkipSequence) error {
+
+	for index := 0; index < len(ss)-1; index++ {
+		nextIndex := index + 1
+		thisRoot, prevRoot := ss[index].seqno(), ss[nextIndex].seqno()
+		g.Log.CDebugf(ctx, "| Checking skip %d->%d", thisRoot, prevRoot)
+
+		// First check that the merkle Seqno sequence is strictly decreasing
+		if thisRoot <= prevRoot {
+			return MerkleClientError{fmt.Sprintf("Sequence error: %d <= %d", thisRoot, prevRoot)}
 		}
-		hash := ss[i].skipToSeqno(b)
+
+		// Next compare the skip pointer in this merkle root against the hash of the previous
+		// root in the merkle root sequence. They must be equal.
+		hash := ss[index].skipToSeqno(prevRoot)
 		if hash == nil {
-			return MerkleClientError{fmt.Sprintf("Skip missing at %d->%d", a, b)}
+			return MerkleClientError{fmt.Sprintf("Skip missing at %d->%d", thisRoot, prevRoot)}
 		}
-		if !hashEq(hash, ss[j].shortHash()) {
-			mc.G().Log.CDebugf(ctx, "| Failure in hashes: %s != %s", hash.String(), ss[j].shortHash().String())
-			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", a, b)}
+		if !hashEq(hash, ss[nextIndex].shortHash()) {
+			g.Log.CDebugf(ctx, "| Failure in hashes: %s != %s", hash.String(), ss[nextIndex].shortHash().String())
+			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", thisRoot, prevRoot)}
 		}
 	}
-
 	return nil
 }
 
-func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot, seqnoWhenCalled Seqno) error {
+func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *Seqno) error {
 
 	// First make sure it's not a rollback
-	if seqnoWhenCalled >= 0 && seqnoWhenCalled > root.Seqno() {
-		return fmt.Errorf("Server rolled back Merkle tree: %d > %d", seqnoWhenCalled, root.Seqno())
+	if seqnoWhenCalled != nil && *seqnoWhenCalled > *root.Seqno() {
+		return fmt.Errorf("Server rolled back Merkle tree: %d > %d", *seqnoWhenCalled, root.Seqno())
 	}
 
-	mc.G().Log.CDebugf(ctx, "| Merkle root: got back %d, >= cached %d", int(root.Seqno()), int(seqnoWhenCalled))
+	mc.G().Log.CDebugf(ctx, "| Merkle root: got back %d, >= cached %v", int(*root.Seqno()), seqnoWhenCalled)
 
 	mc.Lock()
 	defer mc.Unlock()
 
 	// Maybe we've already verified it before.
-	verified, found := mc.verified[root.Seqno()]
+	verified, found := mc.verified[*root.Seqno()]
 	if verified && found {
 		return nil
 	}
@@ -784,9 +798,10 @@ func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot
 		return err
 	}
 
-	mc.verified[root.Seqno()] = true
+	mc.verified[*root.Seqno()] = true
+
 	newFirstSkip := false
-	if mc.firstSkip == nil && root.HasSkips() {
+	if mc.firstSkip == nil && root.HasSkips() && mc.G().Env.GetRunMode() != ProductionRunMode {
 		mc.firstSkip = root
 		newFirstSkip = true
 	}
@@ -1104,7 +1119,7 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 
 	ret = jsonw.NewDictionary()
-	ret.SetKey("seqno", jsonw.NewInt(int(mr.Seqno())))
+	ret.SetKey("seqno", jsonw.NewInt(int(*mr.Seqno())))
 	ret.SetKey("ctime", jsonw.NewInt64(int64(mr.Ctime())))
 	ret.SetKey("hash", jsonw.NewString(mr.RootHash().String()))
 
@@ -1113,7 +1128,7 @@ func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 
 func (mr *MerkleRoot) ToInfo() chat1.MerkleRoot {
 	return chat1.MerkleRoot{
-		Seqno: int64(mr.Seqno()),
+		Seqno: int64(*mr.Seqno()),
 		Hash:  mr.RootHash().bytes(),
 	}
 }
@@ -1175,11 +1190,12 @@ func (mr MerkleRoot) ShallowCopy() *MerkleRoot {
 	return &mr
 }
 
-func (mr *MerkleRoot) Seqno() Seqno {
+func (mr *MerkleRoot) Seqno() *Seqno {
 	if mr == nil {
-		return -1
+		return nil
 	}
-	return mr.payload.seqno()
+	tmp := mr.payload.seqno()
+	return &tmp
 }
 
 func (mr *MerkleRoot) RootHash() NodeHash {

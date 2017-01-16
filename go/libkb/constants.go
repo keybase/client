@@ -478,3 +478,6 @@ const (
 const (
 	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
 )
+
+// Eventually, this will be set to the first merkle root block with skip pointers.
+var FirstProdMerkleSeqnoWithSkips *Seqno
