@@ -61,8 +61,44 @@ func (o *Outbox) readDiskOutbox() (diskOutbox, libkb.ChatStorageError) {
 	return obox, nil
 }
 
+func (o *Outbox) logSummary(obox diskOutbox) {
+	type summary struct {
+		total  int
+		busted int
+		stats  map[chat1.OutboxStateType]int
+	}
+	s := summary{
+		total:  0,
+		busted: 0,
+		stats:  make(map[chat1.OutboxStateType]int),
+	}
+	for _, r := range obox.Records {
+		s.total++
+		typ, err := r.State.State()
+		if err != nil {
+			s.busted++
+		}
+		n, ok := s.stats[typ]
+		if !ok {
+			n = 0
+		}
+		s.stats[typ] = n + 1
+	}
+	str := ""
+	if s.busted > 0 {
+		str += fmt.Sprintf("busted:%v, ", s.busted)
+	}
+	str += fmt.Sprintf("total:%v", s.total)
+	for typ, n := range s.stats {
+		name := chat1.OutboxStateTypeRevMap[typ]
+		str += fmt.Sprintf(", %v:%v", name, n)
+	}
+	o.G().Log.Debug("Outbox summary: %s", str)
+}
+
 func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, libkb.ChatStorageError) {
+	o.G().Log.Debug("Outbox PushMessage")
 	o.Lock()
 	defer o.Unlock()
 
@@ -98,6 +134,7 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 
 	// Write out box
 	obox.Version = outboxVersion
+	o.logSummary(obox)
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return nil, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -107,6 +144,7 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 }
 
 func (o *Outbox) PullAllConversations() ([]chat1.OutboxRecord, error) {
+	o.G().Log.Debug("Outbox PullAllConversations")
 	o.Lock()
 	defer o.Unlock()
 
@@ -120,6 +158,7 @@ func (o *Outbox) PullAllConversations() ([]chat1.OutboxRecord, error) {
 }
 
 func (o *Outbox) PullConversation(convID chat1.ConversationID) ([]chat1.OutboxRecord, error) {
+	o.G().Log.Debug("Outbox PullConversation")
 	o.Lock()
 	defer o.Unlock()
 
@@ -139,6 +178,7 @@ func (o *Outbox) PullConversation(convID chat1.ConversationID) ([]chat1.OutboxRe
 }
 
 func (o *Outbox) PopNOldestMessages(n int) error {
+	o.G().Log.Debug("Outbox PopNOldestMessages")
 	o.Lock()
 	defer o.Unlock()
 
@@ -153,6 +193,7 @@ func (o *Outbox) PopNOldestMessages(n int) error {
 
 	// Write out box
 	obox.Version = outboxVersion
+	o.logSummary(obox)
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -162,6 +203,7 @@ func (o *Outbox) PopNOldestMessages(n int) error {
 }
 
 func (o *Outbox) RecordFailedAttempt(obid chat1.OutboxID) error {
+	o.G().Log.Debug("Outbox RecordFailedAttempt")
 	o.Lock()
 	defer o.Unlock()
 
@@ -189,6 +231,7 @@ func (o *Outbox) RecordFailedAttempt(obid chat1.OutboxID) error {
 
 	// Write out box
 	obox.Records = recs
+	o.logSummary(obox)
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -198,6 +241,7 @@ func (o *Outbox) RecordFailedAttempt(obid chat1.OutboxID) error {
 }
 
 func (o *Outbox) RetryMessage(obid chat1.OutboxID) error {
+	o.G().Log.Debug("Outbox RetryMessage")
 	o.Lock()
 	defer o.Unlock()
 
@@ -218,6 +262,7 @@ func (o *Outbox) RetryMessage(obid chat1.OutboxID) error {
 
 	// Write out box
 	obox.Records = recs
+	o.logSummary(obox)
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -227,6 +272,7 @@ func (o *Outbox) RetryMessage(obid chat1.OutboxID) error {
 }
 
 func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
+	o.G().Log.Debug("Outbox MarkAllAsError")
 	o.Lock()
 	defer o.Unlock()
 
@@ -245,6 +291,7 @@ func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
 
 	// Write out box
 	obox.Records = recs
+	o.logSummary(obox)
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return recs, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -254,6 +301,7 @@ func (o *Outbox) MarkAllAsError() ([]chat1.OutboxRecord, error) {
 }
 
 func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {
+	o.G().Log.Debug("Outbox MarkAsError")
 	o.Lock()
 	defer o.Unlock()
 
@@ -274,6 +322,7 @@ func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {
 
 	// Write out box
 	obox.Records = recs
+	o.logSummary(obox)
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -283,6 +332,7 @@ func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {
 }
 
 func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
+	o.G().Log.Debug("Outbox RemoveMessage")
 	o.Lock()
 	defer o.Unlock()
 
@@ -302,6 +352,7 @@ func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
 	obox.Records = recs
 
 	// Write out box
+	o.logSummary(obox)
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -352,6 +403,7 @@ func (o *Outbox) insertMessage(thread *chat1.ThreadView, obr chat1.OutboxRecord)
 }
 
 func (o *Outbox) SprinkleIntoThread(convID chat1.ConversationID, thread *chat1.ThreadView) error {
+	o.G().Log.Debug("Outbox SprinkleIntoThread")
 	o.Lock()
 	defer o.Unlock()
 
