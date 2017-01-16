@@ -1186,6 +1186,11 @@ export type TLFFinalizeUpdate = {
 
 export type TLFID = bytes
 
+export type TLFResolveUpdate = {
+  convID: ConversationID,
+  inboxVers: InboxVers,
+}
+
 export type TLFVisibility = 
     0 // ANY_0
   | 1 // PUBLIC_1
