@@ -910,23 +910,26 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return chat1.PostLocalRes{}, err
 	}
 
+	// send an attachment message
+
 	// note that we only want to set the Title to what the user entered,
 	// even if that is nothing.
 	object.Title = arg.Title
+	object.MimeType = pre.ContentType
+	object.Metadata = pre.BaseMetadata()
+
+	attachment := chat1.MessageAttachment{
+		Object:   object,
+		Metadata: arg.Metadata,
+	}
+
 	if preview != nil {
 		preview.Title = arg.Title
 		preview.MimeType = pre.PreviewContentType
 		preview.Metadata = pre.PreviewMetadata()
+		attachment.Previews = []chat1.Asset{*preview}
 	}
-	object.MimeType = pre.ContentType
-	object.Metadata = pre.BaseMetadata()
 
-	// send an attachment message
-	attachment := chat1.MessageAttachment{
-		Object:   object,
-		Preview:  preview,
-		Metadata: arg.Metadata,
-	}
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
 		Msg: chat1.MessagePlaintext{
@@ -1017,11 +1020,11 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 
 	obj := attachment.Object
 	if arg.Preview {
-		if attachment.Preview == nil {
+		if len(attachment.Previews) == 0 {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
 		h.G().Log.Debug("downloading preview attachment asset")
-		obj = *attachment.Preview
+		obj = attachment.Previews[0]
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
@@ -1243,9 +1246,7 @@ func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID 
 	}
 
 	assets := []chat1.Asset{attachment.Object}
-	if attachment.Preview != nil {
-		assets = append(assets, *attachment.Preview)
-	}
+	assets = append(assets, attachment.Previews...)
 
 	return assets, nil
 }
