@@ -2907,7 +2907,7 @@ export type CsrfToken = string
 
 export type DbKey = {
   dbType: DbType,
-  objType: byte,
+  objType: int,
   key: string,
 }
 

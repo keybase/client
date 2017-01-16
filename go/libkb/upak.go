@@ -61,7 +61,7 @@ func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revoke
 
 func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
 	defer g.Trace(fmt.Sprintf("UPAK.GetRemoteChainLinkFor(%s,%s,%s)", u.Base.Uid, username, uid), func() error { return err })()
-	g.Log.Debug("| Full user: %+v\n", *u)
+	g.VDL.Log(VLog1, "| Full user: %+v\n", *u)
 	rtl := u.GetRemoteTrack(username.String())
 	if rtl == nil {
 		g.Log.Debug("| no remote track found")

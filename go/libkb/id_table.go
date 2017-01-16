@@ -1341,8 +1341,11 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	}
 
 	if !forceRemoteCheck {
-		if res.cached = idt.G().ProofCache.Get(sid); res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
+		res.cached = idt.G().ProofCache.Get(sid)
+		idt.G().Log.CDebugf(ctx, "| Proof cache lookup for %s: %+v", sid, res.cached)
+		if res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
 			res.err = res.cached.Status
+			idt.G().Log.CDebugf(ctx, "| Early exit after proofCache hit for %s", sid)
 			return
 		}
 	}

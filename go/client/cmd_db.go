@@ -92,16 +92,16 @@ func parseDbKey(ctx *cli.Context, nargs int, usage string) (key keybase1.DbKey, 
 	return key, nil
 }
 
-func parseObjType(s string) (byte, error) {
+func parseObjType(s string) (int, error) {
 	if len(s) > 2 && s[0:2] == "0x" {
 		b, err := strconv.ParseUint(s[2:], 16, 8)
 		if err != nil {
-			return byte(0), err
+			return int(0), err
 		}
-		return byte(b), nil
+		return int(b), nil
 	}
 	b, err := strconv.ParseUint(s, 10, 8)
-	return byte(b), err
+	return int(b), err
 }
 
 func (c *CmdDbDelete) Run() error {

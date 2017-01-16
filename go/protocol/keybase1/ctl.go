@@ -61,7 +61,7 @@ func (e DbType) String() string {
 
 type DbKey struct {
 	DbType  DbType `codec:"dbType" json:"dbType"`
-	ObjType byte   `codec:"objType" json:"objType"`
+	ObjType int    `codec:"objType" json:"objType"`
 	Key     string `codec:"key" json:"key"`
 }
 

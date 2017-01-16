@@ -23,7 +23,7 @@ protocol ctl {
 
   record DbKey {
     DbType dbType;
-    byte objType;
+    int objType;
     string key;
   }
 
