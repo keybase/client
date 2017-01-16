@@ -1078,6 +1078,7 @@ export type OutboxRecord = {
   state: OutboxState,
   outboxID: OutboxID,
   convID: ConversationID,
+  ctime: gregor1.Time,
   Msg: MessagePlaintext,
   identifyBehavior: keybase1.TLFIdentifyBehavior,
 }

@@ -362,6 +362,10 @@
           "name": "convID"
         },
         {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        },
+        {
           "type": "MessagePlaintext",
           "name": "Msg",
           "lint": "ignore"

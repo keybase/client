@@ -719,7 +719,7 @@ func TestGetOutbox(t *testing.T) {
 	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
 	outbox := storage.NewOutbox(tc.G, users[0].User.GetUID().ToBytes(), h.getSecretUI)
 
-	obid, err := outbox.PushMessage(created.Id, chat1.MessagePlaintext{
+	obid, err := outbox.PushMessage(context.TODO(), created.Id, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,

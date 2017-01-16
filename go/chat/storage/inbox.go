@@ -99,7 +99,7 @@ func (i *Inbox) dbKey() libkb.DbKey {
 	}
 }
 
-func (i *Inbox) readDiskInbox() (inboxDiskData, Error) {
+func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	var ibox inboxDiskData
 	found, err := i.readDiskBox(i.dbKey(), &ibox)
 	if err != nil {
@@ -110,8 +110,12 @@ func (i *Inbox) readDiskInbox() (inboxDiskData, Error) {
 		return ibox, MissError{}
 	}
 	if ibox.Version > inboxVersion {
-		return ibox, NewInternalError(i.DebugLabeler,
-			"invalid inbox version: %d (current: %d)", ibox.Version, inboxVersion)
+		i.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
+			ibox.Version, inboxVersion)
+		if cerr := i.clear(); cerr != nil {
+			return ibox, cerr
+		}
+		return inboxDiskData{Version: inboxVersion}, nil
 	}
 	return ibox, nil
 }
@@ -183,7 +187,7 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	copy(convs, convsIn)
 
 	// Read inbox off disk to determine if we can merge, or need to full replace
-	ibox, err := i.readDiskInbox()
+	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return err
@@ -393,7 +397,7 @@ func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.P
 	defer i.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
-	ibox, err := i.readDiskInbox()
+	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
 			i.Debug(ctx, "Read: miss: no inbox found")
@@ -458,7 +462,7 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "NewConversation: vers: %d convID: %s", vers, conv.GetConvID())
-	ibox, err := i.readDiskInbox()
+	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		return err
 	}
@@ -547,7 +551,7 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "NewMessage: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox()
+	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		return err
 	}
@@ -620,7 +624,7 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "ReadMessage: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox()
+	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		return err
 	}
@@ -658,7 +662,7 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox()
+	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		return err
 	}
@@ -695,7 +699,7 @@ func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs [
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "TlfFinalize: vers: %d convIDs: %v finalizeInfo: %v", vers, convIDs, finalizeInfo)
-	ibox, err := i.readDiskInbox()
+	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		return err
 	}
@@ -731,7 +735,7 @@ func (i *Inbox) VersionSync(ctx context.Context, vers chat1.InboxVers) (err Erro
 	defer i.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
-	ibox, err := i.readDiskInbox()
+	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return err

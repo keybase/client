@@ -438,6 +438,7 @@ type OutboxRecord struct {
 	State            OutboxState                  `codec:"state" json:"state"`
 	OutboxID         OutboxID                     `codec:"outboxID" json:"outboxID"`
 	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	Ctime            gregor1.Time                 `codec:"ctime" json:"ctime"`
 	Msg              MessagePlaintext             `codec:"Msg" json:"Msg"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
