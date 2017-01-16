@@ -1680,3 +1680,17 @@ func (e LevelDBOpenClosedError) Error() string {
 }
 
 //=============================================================================
+
+type DBError struct {
+	Msg string
+}
+
+func (e DBError) Error() string {
+	return fmt.Sprintf("DB error: %s", e.Msg)
+}
+
+func NewDBError(s string) DBError {
+	return DBError{Msg: s}
+}
+
+//=============================================================================

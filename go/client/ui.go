@@ -340,7 +340,9 @@ func (w LinkCheckResultWrapper) GetHint() SigHintWrapper {
 
 func (w LinkCheckResultWrapper) GetCachedMsg() string {
 	var msg string
-	if o := w.lcr.Cached; o != nil {
+	if w.GetDiff() != nil && w.GetDiff().Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
+		msg = "failure temporarily ignored until " + libkb.FormatTime(w.GetTmpTrackExpireTime())
+	} else if o := w.lcr.Cached; o != nil {
 		fresh := (o.Freshness == keybase1.CheckResultFreshness_FRESH)
 		snze := w.GetSnoozedError()
 		snoozed := (o.Freshness == keybase1.CheckResultFreshness_AGED && snze != nil)
@@ -351,8 +353,6 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 		if snoozed {
 			msg += "; but got a retryable error (" + snze.Error() + ") this time around"
 		}
-	} else if w.GetDiff() != nil && w.GetDiff().Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
-		msg = "failure temporarily ignored until " + libkb.FormatTime(w.GetTmpTrackExpireTime())
 	}
 	if len(msg) > 0 {
 		msg = "[" + msg + "]"

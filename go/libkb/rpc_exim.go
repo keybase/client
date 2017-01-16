@@ -1565,3 +1565,10 @@ func (e InvalidAddressError) ToStatus() keybase1.Status {
 		Desc: e.Error(),
 	}
 }
+
+func ImportDbKey(k keybase1.DbKey) DbKey {
+	return DbKey{
+		Typ: ObjType(k.ObjType),
+		Key: k.Key,
+	}
+}
