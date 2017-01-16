@@ -419,6 +419,22 @@ func UIDListContains(list []UID, x UID) bool {
 	return false
 }
 
+// Merge two lists of UIDs. Duplicates will be dropped. Not stably ordered.
+func UIDListMerge(list1 []UID, list2 []UID) []UID {
+	m := make(map[string]UID)
+	for _, uid := range list1 {
+		m[uid.String()] = uid
+	}
+	for _, uid := range list2 {
+		m[uid.String()] = uid
+	}
+	res := make([]UID, 0)
+	for _, uid := range m {
+		res = append(res, uid)
+	}
+	return res
+}
+
 var _ gregor.UID = UID{}
 var _ gregor.MsgID = MsgID{}
 var _ gregor.DeviceID = DeviceID{}
