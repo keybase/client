@@ -48,17 +48,17 @@ func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnbox
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
-func makeDelete(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnboxed {
+func makeDelete(id chat1.MessageID, originalMessage chat1.MessageID, allEdits []chat1.MessageID) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_DELETE,
-			Supersedes:  supersedes,
+			Supersedes:  originalMessage,
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
-			MessageIDs: []chat1.MessageID{supersedes},
+			MessageIDs: append([]chat1.MessageID{originalMessage}, allEdits...),
 		}),
 	}
 	return chat1.NewMessageUnboxedWithValid(msg)
@@ -271,7 +271,7 @@ func TestStorageLargeList(t *testing.T) {
 func TestStorageSupersedes(t *testing.T) {
 	var err error
 
-	_, storage, uid := setupStorageTest(t, "suprsedes")
+	_, storage, uid := setupStorageTest(t, "supersedes")
 
 	// First test an Edit message.
 	supersedingEdit := makeEdit(chat1.MessageID(111), 6)
@@ -291,8 +291,9 @@ func TestStorageSupersedes(t *testing.T) {
 	require.Equal(t, chat1.MessageID(6), sheader.MessageID, "MessageID incorrect")
 	require.Equal(t, chat1.MessageID(111), sheader.SupersededBy, "supersededBy incorrect")
 
-	// Now test a delete message.
-	supersedingDelete := makeDelete(chat1.MessageID(112), 11)
+	// Now test a delete message. This should result in the deletion of *both*
+	// the original message's body and the body of the edit above.
+	supersedingDelete := makeDelete(chat1.MessageID(112), 6, []chat1.MessageID{111})
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid,
 		[]chat1.MessageUnboxed{supersedingDelete}))
@@ -301,14 +302,19 @@ func TestStorageSupersedes(t *testing.T) {
 	res, err = storage.Fetch(context.TODO(), conv, uid, nil, nil)
 	require.NoError(t, err)
 
-	deletedMessage := res.Messages[len(msgs)-11].Valid()
+	deletedMessage := res.Messages[len(msgs)-6].Valid()
 	deletedHeader := deletedMessage.ServerHeader
-	require.Equal(t, chat1.MessageID(11), deletedHeader.MessageID, "MessageID incorrect")
+	require.Equal(t, chat1.MessageID(6), deletedHeader.MessageID, "MessageID incorrect")
 	require.Equal(t, chat1.MessageID(112), deletedHeader.SupersededBy, "supersededBy incorrect")
 	// Check that the body is deleted.
 	deletedBodyType, err := deletedMessage.MessageBody.MessageType()
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageType_NONE, deletedBodyType, "expected the body to be deleted, but it's not!!!")
+	// Check that the body of the edit is *also* is deleted.
+	deletedEdit := res.Messages[len(msgs)-111].Valid()
+	deletedEditBodyType, err := deletedEdit.MessageBody.MessageType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.MessageType_NONE, deletedEditBodyType, "expected the edit's body to be deleted also, but it's not!!!")
 }
 
 func TestStorageMiss(t *testing.T) {
