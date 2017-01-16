@@ -53,6 +53,7 @@ func makeRandomBlockPointer(t *testing.T) BlockPointer {
 		id,
 		5,
 		1,
+		true,
 		kbfsblock.MakeContext(
 			"fake creator",
 			"fake writer",

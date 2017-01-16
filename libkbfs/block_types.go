@@ -188,10 +188,30 @@ func (fb *FileBlock) NewEmpty() Block {
 
 // DataVersion returns data version for this block.
 func (fb *FileBlock) DataVersion() DataVer {
+	// If this is an indirect block, and none of its children are
+	// marked as direct blocks, then this must be a big file.  Note
+	// that we do it this way, rather than returning on the first
+	// non-direct block, to support appending to existing files and
+	// making them big.
+	hasHoles := false
+	hasDirect := false
 	for i := range fb.IPtrs {
-		if fb.IPtrs[i].Holes {
-			return FilesWithHolesDataVer
+		if fb.IPtrs[i].IsDirect {
+			hasDirect = true
+		} else if fb.IPtrs[i].Holes {
+			hasHoles = true
 		}
+		// We can only safely break if both vars are definitely set to
+		// their final value.
+		if hasDirect && hasHoles {
+			break
+		}
+	}
+
+	if len(fb.IPtrs) > 0 && !hasDirect {
+		return BigFilesDataVer
+	} else if hasHoles {
+		return FilesWithHolesDataVer
 	}
 	return FirstValidDataVer
 }

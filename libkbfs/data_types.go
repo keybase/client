@@ -195,6 +195,9 @@ const (
 	// FilesWithHolesDataVer is the data version for files
 	// with holes.
 	FilesWithHolesDataVer DataVer = 2
+	// BigFilesDataVer is the data version for files that have
+	// multiple levels of indirection.
+	BigFilesDataVer DataVer = 3
 )
 
 // BlockRef is a block ID/ref nonce pair, which defines a unique
@@ -223,9 +226,10 @@ func (r BlockRef) String() string {
 // NOTE: Don't add or modify anything in this struct without
 // considering how old clients will handle them.
 type BlockPointer struct {
-	ID      kbfsblock.ID `codec:"i"`
-	KeyGen  KeyGen       `codec:"k"` // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
-	DataVer DataVer      `codec:"d"` // if valid, which version of the KBFS data structures is pointed to
+	ID       kbfsblock.ID `codec:"i"`
+	KeyGen   KeyGen       `codec:"k"`           // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
+	DataVer  DataVer      `codec:"d"`           // if valid, which version of the KBFS data structures is pointed to
+	IsDirect bool         `codec:"s,omitempty"` // if true, the pointed-to block is definitely a leaf block
 	kbfsblock.Context
 }
 

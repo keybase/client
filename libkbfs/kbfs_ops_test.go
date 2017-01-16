@@ -3565,44 +3565,6 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 		})
 }
 
-func TestKBFSOpsWriteFailTooBig(t *testing.T) {
-	mockCtrl, config, ctx, cancel := kbfsOpsInit(t, true)
-	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
-
-	uid, id, rmd := injectNewRMD(t, config)
-
-	rootID := kbfsblock.FakeID(42)
-	fileID := kbfsblock.FakeID(43)
-	rootBlock := NewDirBlock().(*DirBlock)
-	rootBlock.Children["f"] = DirEntry{
-		BlockInfo: BlockInfo{
-			BlockPointer: makeBP(fileID, rmd, config, uid),
-			EncodedSize:  1,
-		},
-		EntryInfo: EntryInfo{
-			Type: File,
-			Size: 10,
-		},
-	}
-	fileBlock := NewFileBlock().(*FileBlock)
-	fileBlock.Contents = []byte{1, 2, 3, 4, 5}
-	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
-	fileNode := pathNode{makeBP(fileID, rmd, config, uid), "f"}
-	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
-	ops := getOps(config, id)
-	n := nodeFromPath(t, ops, p)
-	data := []byte{6, 7, 8}
-
-	config.maxFileBytes = 12
-
-	err := config.KBFSOps().Write(ctx, n, data, 10)
-	if err == nil {
-		t.Errorf("Got no expected error on Write")
-	} else if _, ok := err.(FileTooBigError); !ok {
-		t.Errorf("Got unexpected error on Write: %+v", err)
-	}
-}
-
 // Read tests check the same error cases, so no need for similar write
 // error tests
 
