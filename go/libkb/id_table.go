@@ -533,7 +533,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 		} else {
 			sb.proofState = keybase1.ProofState(i)
 			if sb.proofState != keybase1.ProofState_OK {
-				l.G().Log.Debug("Including broken proof at index = %d\n", index)
+				l.G().Log.Debug("Including broken proof at index = %d", index)
 			}
 			ret = append(ret, sb)
 		}

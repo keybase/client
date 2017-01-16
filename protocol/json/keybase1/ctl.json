@@ -15,6 +15,38 @@
         "NOTOK_2",
         "RESTART_4"
       ]
+    },
+    {
+      "type": "enum",
+      "name": "DbType",
+      "symbols": [
+        "MAIN_0",
+        "CHAT_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DbKey",
+      "fields": [
+        {
+          "type": "DbType",
+          "name": "dbType"
+        },
+        {
+          "type": "byte",
+          "name": "objType"
+        },
+        {
+          "type": "string",
+          "name": "key"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DbValue",
+      "fields": [],
+      "typedef": "bytes"
     }
   ],
   "messages": {
@@ -66,6 +98,52 @@
         }
       ],
       "response": null
+    },
+    "dbDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "DbKey"
+        }
+      ],
+      "response": null
+    },
+    "dbPut": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "DbKey"
+        },
+        {
+          "name": "value",
+          "type": "DbValue"
+        }
+      ],
+      "response": null
+    },
+    "dbGet": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "DbKey"
+        }
+      ],
+      "response": [
+        null,
+        "DbValue"
+      ]
     }
   },
   "namespace": "keybase.1"

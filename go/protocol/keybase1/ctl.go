@@ -35,6 +35,37 @@ func (e ExitCode) String() string {
 	return ""
 }
 
+type DbType int
+
+const (
+	DbType_MAIN DbType = 0
+	DbType_CHAT DbType = 1
+)
+
+var DbTypeMap = map[string]DbType{
+	"MAIN": 0,
+	"CHAT": 1,
+}
+
+var DbTypeRevMap = map[DbType]string{
+	0: "MAIN",
+	1: "CHAT",
+}
+
+func (e DbType) String() string {
+	if v, ok := DbTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type DbKey struct {
+	DbType  DbType `codec:"dbType" json:"dbType"`
+	ObjType byte   `codec:"objType" json:"objType"`
+	Key     string `codec:"key" json:"key"`
+}
+
+type DbValue []byte
 type StopArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	ExitCode  ExitCode `codec:"exitCode" json:"exitCode"`
@@ -56,12 +87,31 @@ type AppExitArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DbDeleteArg struct {
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	Key       DbKey `codec:"key" json:"key"`
+}
+
+type DbPutArg struct {
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	Key       DbKey   `codec:"key" json:"key"`
+	Value     DbValue `codec:"value" json:"value"`
+}
+
+type DbGetArg struct {
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	Key       DbKey `codec:"key" json:"key"`
+}
+
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error
 	LogRotate(context.Context, int) error
 	Reload(context.Context, int) error
 	DbNuke(context.Context, int) error
 	AppExit(context.Context, int) error
+	DbDelete(context.Context, DbDeleteArg) error
+	DbPut(context.Context, DbPutArg) error
+	DbGet(context.Context, DbGetArg) (*DbValue, error)
 }
 
 func CtlProtocol(i CtlInterface) rpc.Protocol {
@@ -148,6 +198,54 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"dbDelete": {
+				MakeArg: func() interface{} {
+					ret := make([]DbDeleteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DbDeleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DbDeleteArg)(nil), args)
+						return
+					}
+					err = i.DbDelete(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"dbPut": {
+				MakeArg: func() interface{} {
+					ret := make([]DbPutArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DbPutArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DbPutArg)(nil), args)
+						return
+					}
+					err = i.DbPut(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"dbGet": {
+				MakeArg: func() interface{} {
+					ret := make([]DbGetArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DbGetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DbGetArg)(nil), args)
+						return
+					}
+					ret, err = i.DbGet(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -182,5 +280,20 @@ func (c CtlClient) DbNuke(ctx context.Context, sessionID int) (err error) {
 func (c CtlClient) AppExit(ctx context.Context, sessionID int) (err error) {
 	__arg := AppExitArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.ctl.appExit", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) DbDelete(ctx context.Context, __arg DbDeleteArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbDelete", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) DbPut(ctx context.Context, __arg DbPutArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbPut", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) DbGet(ctx context.Context, __arg DbGetArg) (res *DbValue, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []interface{}{__arg}, &res)
 	return
 }

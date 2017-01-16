@@ -71,3 +71,70 @@ func (c *CtlHandler) AppExit(_ context.Context, sessionID int) error {
 	c.G().NotifyRouter.HandleAppExit()
 	return nil
 }
+
+func (c *CtlHandler) DbDelete(_ context.Context, arg keybase1.DbDeleteArg) (err error) {
+	key := libkb.ImportDbKey(arg.Key)
+
+	switch arg.Key.DbType {
+	case keybase1.DbType_MAIN:
+		err = c.G().LocalDb.Delete(key)
+	case keybase1.DbType_CHAT:
+		err = c.G().LocalChatDb.Delete(key)
+	default:
+		err = libkb.NewDBError("no such DB type")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	c.G().Log.Debug("Clearing memory caches after DbDelete")
+	c.G().ConfigureCaches()
+
+	return nil
+}
+
+func (c *CtlHandler) DbGet(_ context.Context, arg keybase1.DbGetArg) (*keybase1.DbValue, error) {
+	key := libkb.ImportDbKey(arg.Key)
+	var res []byte
+	var found bool
+	var err error
+	switch arg.Key.DbType {
+	case keybase1.DbType_MAIN:
+		res, found, err = c.G().LocalDb.GetRaw(key)
+	case keybase1.DbType_CHAT:
+		res, found, err = c.G().LocalChatDb.GetRaw(key)
+	default:
+		return nil, libkb.NewDBError("no such DB type")
+	}
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, nil
+	}
+	val := keybase1.DbValue(res)
+	return &val, nil
+}
+
+func (c *CtlHandler) DbPut(_ context.Context, arg keybase1.DbPutArg) (err error) {
+	key := libkb.ImportDbKey(arg.Key)
+
+	switch arg.Key.DbType {
+	case keybase1.DbType_MAIN:
+		err = c.G().LocalDb.PutRaw(key, []byte(arg.Value))
+	case keybase1.DbType_CHAT:
+		err = c.G().LocalChatDb.PutRaw(key, []byte(arg.Value))
+	default:
+		err = libkb.NewDBError("no such DB type")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	c.G().Log.Debug("Clearing memory caches after DbPut")
+	c.G().ConfigureCaches()
+
+	return nil
+}

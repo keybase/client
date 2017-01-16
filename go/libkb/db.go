@@ -207,5 +207,4 @@ func DbKeyNotificationDismiss(prefix string, username NormalizedUsername) DbKey 
 		Typ: DBNotificationDismiss,
 		Key: fmt.Sprintf("%s:%s", prefix, username),
 	}
-
 }
