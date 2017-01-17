@@ -20,37 +20,37 @@ type PgpInfoError = {
 
 function dropPgp (kid: KID): DropPgp {
   return {
-    type: Constants.dropPgp,
     payload: {kid},
+    type: Constants.dropPgp,
   }
 }
 
 function _revokedErrorResponse (error: string): FinishRevokeProof {
   return {
-    type: Constants.finishRevokeProof,
-    payload: {error},
     error: true,
+    payload: {error},
+    type: Constants.finishRevokeProof,
   }
 }
 
 function _revokedWaitingForResponse (waiting: boolean): WaitingRevokeProof {
   return {
-    type: Constants.waitingRevokeProof,
     payload: {waiting},
+    type: Constants.waitingRevokeProof,
   }
 }
 
 function updatePgpInfo (pgpInfo: $Shape<PgpInfo>): UpdatePgpInfo {
   return {
-    type: Constants.updatePgpInfo,
     payload: pgpInfo,
+    type: Constants.updatePgpInfo,
   }
 }
 
 function generatePgp (): GeneratePgp {
   return {
-    type: Constants.generatePgp,
     payload: undefined,
+    type: Constants.generatePgp,
   }
 }
 
@@ -66,10 +66,10 @@ function _checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
   const errorNameMessage = errorName ? errorName.message : null
 
   return {
-    errorText: errorNameMessage || errorEmail1Message || errorEmail2Message || errorEmail3Message,
     errorEmail1: !!errorEmail1,
     errorEmail2: !!errorEmail2,
     errorEmail3: !!errorEmail3,
+    errorText: errorNameMessage || errorEmail1Message || errorEmail2Message || errorEmail3Message,
   }
 }
 
@@ -78,16 +78,16 @@ function _checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
 // If the service expects a reply, a response will be attached to the payload
 function _generatePgpKey (channelConfig: ChannelConfig<*>, pgpInfo: PgpInfo): any {
   const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
-    username: pgpInfo.fullName || '',
     comment: '',
     email: email || '',
+    username: pgpInfo.fullName || '',
   }))
 
   return pgpPgpKeyGenDefaultRpcChannelMap(channelConfig, {
     param: {
       createUids: {
-        useDefault: false,
         ids: identities,
+        useDefault: false,
       },
     },
   })
@@ -100,9 +100,9 @@ function * _checkPgpInfo (action: UpdatePgpInfo): SagaGenerator<any, any> {
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
 
   const errorUpdateAction: UpdatePgpInfo = {
-    type: Constants.updatePgpInfo,
     error: true,
     payload: _checkPgpInfoForErrors(pgpInfo),
+    type: Constants.updatePgpInfo,
   }
 
   yield put(errorUpdateAction)
@@ -136,8 +136,8 @@ function * _generatePgpSaga (): SagaGenerator<any, any> {
 
   try {
     const {cancel, keyGenerated}: {keyGenerated: any, cancel: ?any} = yield race({
-      keyGenerated: takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.keyGenerated'),
       cancel: take(Constants.cancelPgpGen),
+      keyGenerated: takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.keyGenerated'),
     })
 
     if (cancel) {
@@ -149,7 +149,7 @@ function * _generatePgpSaga (): SagaGenerator<any, any> {
     yield call([keyGenerated.response, keyGenerated.response.result])
     const publicKey = keyGenerated.params.key.key
 
-    yield put({type: Constants.updatePgpPublicKey, payload: {publicKey}})
+    yield put({payload: {publicKey}, type: Constants.updatePgpPublicKey})
     yield put(navigateAppend(['finished'], [profileTab, 'pgp']))
 
     const finishedAction: FinishedWithKeyGen = yield take(Constants.finishedWithKeyGen)

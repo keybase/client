@@ -4,11 +4,7 @@ import * as Constants from '../../constants/login'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import openURL from '../../util/open-url'
-import type {DeviceRole} from '../../constants/login'
-import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
-import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
-import type {ResponseType} from '../../engine'
+import {RPCError} from '../../util/errors'
 import {bootstrap} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab} from '../../constants/tabs'
@@ -21,13 +17,18 @@ import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
 } from '../../constants/types/flow-types'
 import {navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
-import {RPCError} from '../../util/errors'
+
+import type {DeviceRole} from '../../constants/login'
+import type {DeviceType} from '../../constants/types/more'
+import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
+import type {ResponseType} from '../../engine'
+import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
 
 module.hot && module.hot.accept(() => {
   console.log('accepted update in actions/login')
 })
 
-const InputCancelError = {desc: 'Cancel Login', code: ConstantsStatusCode.scinputcanceled}
+const InputCancelError = {code: ConstantsStatusCode.scinputcanceled, desc: 'Cancel Login'}
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
@@ -37,8 +38,8 @@ function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boo
 
 function waitingForResponse (waiting: boolean) : TypedAction<'login:waitingForResponse', boolean, void> {
   return {
-    type: Constants.waitingForResponse,
     payload: waiting,
+    type: Constants.waitingForResponse,
   }
 }
 
@@ -74,9 +75,9 @@ function getAccounts (): AsyncAction {
       ...makeWaitingHandler(dispatch),
       callback: (error, accounts) => {
         if (error) {
-          dispatch({type: Constants.configuredAccounts, error: true, payload: error})
+          dispatch({error: true, payload: error, type: Constants.configuredAccounts})
         } else {
-          dispatch({type: Constants.configuredAccounts, payload: {accounts}})
+          dispatch({payload: {accounts}, type: Constants.configuredAccounts})
         }
       },
     })
@@ -93,39 +94,39 @@ export function login (): AsyncAction {
       const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onProvisionerSuccess)
       loginLoginRpc({
         ...makeWaitingHandler(dispatch),
-        param: {
-          deviceType,
-          usernameOrEmail: usernameOrEmail,
-          clientType: CommonClientType.gui,
-        },
-        incomingCallMap,
         callback: (error, response) => {
           if (error) {
             dispatch({
-              type: Constants.loginDone,
               error: true,
               payload: error,
+              type: Constants.loginDone,
             })
 
             if (error.code !== InputCancelError.code) {
               dispatch(navigateAppend([{
-                selected: 'error',
                 props: {
                   error,
                   onBack: () => dispatch(cancelLogin()),
                 },
+                selected: 'error',
               }], [loginTab, 'login']))
             }
           } else {
             dispatch({
-              type: Constants.loginDone,
               error: false,
               payload: undefined,
+              type: Constants.loginDone,
             })
 
             dispatch(loadDevices())
             dispatch(bootstrap())
           }
+        },
+        incomingCallMap,
+        param: {
+          clientType: CommonClientType.gui,
+          deviceType,
+          usernameOrEmail: usernameOrEmail,
         },
       })
     }
@@ -134,36 +135,36 @@ export function login (): AsyncAction {
     // flow, let's set ourselves to be a newDevice.  If we were in the Devices
     // tab flow, we'd want the opposite.
     dispatch({
-      type: Constants.setMyDeviceCodeState,
       payload:
         isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer,
+      type: Constants.setMyDeviceCodeState,
     })
     // We ask for user since the login will auto login with the last user which we don't always want
     dispatch(navigateAppend([{
-      selected: 'usernameOrEmail',
       props: {
         onBack: () => dispatch(cancelLogin()),
         onSubmit: loginSubmit,
       },
+      selected: 'usernameOrEmail',
     }], [loginTab, 'login']))
   }
 }
 
 export function setRevokedSelf (revoked: string) {
-  return {type: Constants.setRevokedSelf, payload: revoked}
+  return {payload: revoked, type: Constants.setRevokedSelf}
 }
 
 export function setDeletedSelf (deletedUsername: string) {
-  return {type: Constants.setDeletedSelf, payload: deletedUsername}
+  return {payload: deletedUsername, type: Constants.setDeletedSelf}
 }
 
 export function setLoginFromRevokedDevice (error: string) {
-  return {type: Constants.setLoginFromRevokedDevice, payload: error}
+  return {payload: error, type: Constants.setLoginFromRevokedDevice}
 }
 
 export function doneRegistering (): TypedAction<'login:doneRegistering', void, void> {
   // this has to be undefined for flow to match it to void
-  return {type: Constants.doneRegistering, payload: undefined}
+  return {payload: undefined, type: Constants.doneRegistering}
 }
 
 function setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) : AsyncAction {
@@ -174,7 +175,7 @@ function setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) : AsyncAction 
       return
     }
     dispatch(setCodePageMode(defaultModeForDeviceRoles(store.myDeviceRole, otherDeviceRole, false)))
-    dispatch({type: Constants.setOtherDeviceCodeState, payload: otherDeviceRole})
+    dispatch({payload: otherDeviceRole, type: Constants.setOtherDeviceCodeState})
   }
 }
 
@@ -182,7 +183,7 @@ function generateQRCode (dispatch: Dispatch, getState: GetState) {
   const store = getState().login.codePage
 
   if (!store.qrCode && store.textCode) {
-    dispatch({type: Constants.setQRCode, payload: {qrCode: new HiddenString(qrGenerate(store.textCode.stringValue()))}})
+    dispatch({payload: {qrCode: new HiddenString(qrGenerate(store.textCode.stringValue()))}, type: Constants.setQRCode})
   }
 }
 
@@ -196,13 +197,13 @@ function setCodePageMode (mode) : AsyncAction {
       return // already in this mode
     }
 
-    dispatch({type: Constants.setCodeMode, payload: mode})
+    dispatch({payload: mode, type: Constants.setCodeMode})
   }
 }
 
 function setCameraBrokenMode (broken) : AsyncAction {
   return (dispatch, getState) => {
-    dispatch({type: Constants.cameraBrokenMode, payload: broken})
+    dispatch({payload: broken, type: Constants.cameraBrokenMode})
 
     const root = getState().login.codePage
     if (root.myDeviceRole == null) {
@@ -220,31 +221,31 @@ function setCameraBrokenMode (broken) : AsyncAction {
 }
 
 export function updateForgotPasswordEmail (email: string) : TypedAction<'login:actionUpdateForgotPasswordEmailAddress', string, void> {
-  return {type: Constants.actionUpdateForgotPasswordEmailAddress, payload: email}
+  return {payload: email, type: Constants.actionUpdateForgotPasswordEmailAddress}
 }
 
 export function submitForgotPassword () : AsyncAction {
   return (dispatch, getState) => {
-    dispatch({type: Constants.actionSetForgotPasswordSubmitting, payload: undefined})
+    dispatch({payload: undefined, type: Constants.actionSetForgotPasswordSubmitting})
 
     loginRecoverAccountFromEmailAddressRpc({
       ...makeWaitingHandler(dispatch),
-      param: {email: getState().login.forgotPasswordEmailAddress},
       callback: (error, response) => {
         if (error) {
           dispatch({
-            type: Constants.actionForgotPasswordDone,
-            payload: error,
             error: true,
+            payload: error,
+            type: Constants.actionForgotPasswordDone,
           })
         } else {
           dispatch({
-            type: Constants.actionForgotPasswordDone,
-            payload: undefined,
             error: false,
+            payload: undefined,
+            type: Constants.actionForgotPasswordDone,
           })
         }
       },
+      param: {email: getState().login.forgotPasswordEmailAddress},
     })
   }
 }
@@ -254,16 +255,6 @@ export function autoLogin () : AsyncAction {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
     loginLoginRpc({
       ...makeWaitingHandler(dispatch),
-      param: {
-        deviceType,
-        usernameOrEmail: '',
-        clientType: login.ClientType.gui,
-      },
-      incomingCallMap: {
-        'keybase.1.loginUi.getEmailOrUsername': (_, response) => {
-          response.error(new RPCError('Attempting auto login', ConstantsStatusCode.scnoui))
-        },
-      },
       callback: (error, status) => {
         if (error) {
           console.log(error)
@@ -272,6 +263,16 @@ export function autoLogin () : AsyncAction {
           dispatch({type: Constants.loginDone, payload: status})
           dispatch(navBasedOnLoginState())
         }
+      },
+      incomingCallMap: {
+        'keybase.1.loginUi.getEmailOrUsername': (_, response) => {
+          response.error(new RPCError('Attempting auto login', ConstantsStatusCode.scnoui))
+        },
+      },
+      param: {
+        clientType: login.ClientType.gui,
+        deviceType,
+        usernameOrEmail: '',
       },
     })
   }
@@ -282,10 +283,14 @@ export function relogin (user: string, passphrase: string) : AsyncAction {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
     loginLoginRpc({
       ...makeWaitingHandler(dispatch),
-      param: {
-        deviceType,
-        usernameOrEmail: user,
-        clientType: CommonClientType.gui,
+      callback: (error, status) => {
+        if (error) {
+          console.log(error)
+          dispatch({type: Constants.loginDone, error: true, payload: error})
+        } else {
+          dispatch({type: Constants.loginDone, payload: status})
+          dispatch(navBasedOnLoginState())
+        }
       },
       incomingCallMap: {
         'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
@@ -306,14 +311,10 @@ export function relogin (user: string, passphrase: string) : AsyncAction {
           dispatch(navigateTo([loginTab]))
         },
       },
-      callback: (error, status) => {
-        if (error) {
-          console.log(error)
-          dispatch({type: Constants.loginDone, error: true, payload: error})
-        } else {
-          dispatch({type: Constants.loginDone, payload: status})
-          dispatch(navBasedOnLoginState())
-        }
+      param: {
+        clientType: CommonClientType.gui,
+        deviceType,
+        usernameOrEmail: user,
       },
     })
   }
@@ -337,8 +338,8 @@ export function logout () : AsyncAction {
 export function logoutDone () : AsyncAction {
   // We've logged out, let's check our current status
   return (dispatch, getState) => {
-    dispatch({type: Constants.logoutDone, payload: undefined})
-    dispatch({type: CommonConstants.resetStore, payload: undefined})
+    dispatch({payload: undefined, type: Constants.logoutDone})
+    dispatch({payload: undefined, type: CommonConstants.resetStore})
 
     dispatch(navBasedOnLoginState())
     dispatch(bootstrap())
@@ -372,9 +373,9 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
     // device flow, let's set ourselves to be a existingDevice.  If login()
     // starts in the future, it'll set us back to being a newDevice then.
     dispatch({
-      type: Constants.setMyDeviceCodeState,
       payload:
         isMobile ? Constants.codePageDeviceRoleExistingPhone : Constants.codePageDeviceRoleExistingComputer,
+      type: Constants.setMyDeviceCodeState,
     })
 
     const onBack = response => {
@@ -399,10 +400,10 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
 
     deviceDeviceAddRpc({
       ...makeWaitingHandler(dispatch),
-      incomingCallMap,
       callback: (ignoredError, response) => {
         onBack()
       },
+      incomingCallMap,
     })
   }
 }
@@ -431,128 +432,74 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
           myDeviceRole, otherDeviceRole, cameraBrokenMode,
         } = state.login.codePage
         return {
-          mode,
+          cameraBrokenMode,
           codeCountDown,
-          textCode: textCode ? textCode.stringValue() : '',
-          qrCode: qrCode ? qrCode.stringValue() : '',
+          mode,
           myDeviceRole,
           otherDeviceRole,
-          cameraBrokenMode,
+          qrCode: qrCode ? qrCode.stringValue() : '',
+          textCode: textCode ? textCode.stringValue() : '',
         }
       }
 
       // This can be appended on either loginTab or devicesTab.
       dispatch(navigateAppend([{
-        selected: 'codePage',
         props: {
+          doneRegistering: () => dispatch(doneRegistering()),
           mapStateToProps,
           onBack: onBack,
-          setCodePageMode: mode => dispatch(setCodePageMode(mode)),
           qrScanned: code => cb(code.data),
           setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
+          setCodePageMode: mode => dispatch(setCodePageMode(mode)),
           textEntered: text => cb(text),
-          doneRegistering: () => dispatch(doneRegistering()),
         },
+        selected: 'codePage',
       }]))
     }
   }
 
   return {
-    'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
-      dispatch(navigateAppend([{
-        selected: 'usernameOrEmail',
-        props: {
-          onSubmit: usernameOrEmail => response.result(usernameOrEmail),
-          onBack: () => onBack(response),
-        },
-      }], [loginTab, 'login']))
-    },
-    'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
-      dispatch(navigateAppend([{
-        selected: 'selectOtherDevice',
-        props: {
-          devices,
-          onSelect: deviceID => {
-            // $FlowIssue
-            const type: DeviceType = (devices || []).find(d => d.deviceID === deviceID).type
-            const role = ({
-              mobile: Constants.codePageDeviceRoleExistingPhone,
-              desktop: Constants.codePageDeviceRoleExistingComputer,
-            }: {[key: DeviceType]: DeviceRole})[type]
-            dispatch(setCodePageOtherDeviceRole(role))
-            response.result(deviceID)
-          },
-          onWont: () => response.result(''),
-          onBack: () => onBack(response),
-        },
-      }], [loginTab, 'login']))
-    },
-    'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
-      switch (type) {
-        case PassphraseCommonPassphraseType.paperKey:
-          dispatch(navigateAppend([{
-            selected: 'paperkey',
-            props: {
-              onSubmit: (passphrase: string) => { response.result({passphrase, storeSecret: false}) },
-              onBack: () => onBack(response),
-              error: retryLabel,
-            },
-          }], [loginTab, 'login']))
-          break
-        case PassphraseCommonPassphraseType.passPhrase:
-          dispatch(navigateAppend([{
-            selected: 'passphrase',
-            props: {
-              prompt,
-              onSubmit: passphrase => response.result({
-                passphrase,
-                storeSecret: false,
-              }),
-              onBack: () => onBack(response),
-              error: retryLabel,
-              username,
-            },
-          }], [loginTab, 'login']))
-          break
-        default:
-          response.error(new RPCError('Unknown getPassphrase type', ConstantsStatusCode.scnotfound))
-      }
-    },
-    'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
-      dispatch({type: Constants.setTextCode, payload: {textCode: new HiddenString(phrase)}})
-      generateQRCode(dispatch, getState)
-      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, () => onBack(response)))
-    },
-    'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {
-      dispatch(navigateAppend([{
-        selected: 'setPublicName',
-        props: {
-          existingDevices,
-          deviceNameError: errorMessage,
-          onSubmit: deviceName => { response.result(deviceName) },
-          onBack: () => onBack(response),
-        },
-      }], [loginTab, 'login']))
-    },
-    'keybase.1.provisionUi.chooseGPGMethod': (param, response) => {
-      dispatch(navigateAppend([{
-        selected: 'gpgSign',
-        props: {
-          onSubmit: exportKey => response.result(exportKey ? ProvisionUiGPGMethod.gpgImport : ProvisionUiGPGMethod.gpgSign),
-          onBack: () => onBack(response),
-        },
-      }], [loginTab, 'login']))
+    'keybase.1.gpgUi.selectKey': (param, response) => {
+      response.error(new RPCError('Not supported in GUI', ConstantsStatusCode.sckeynotfound))
     },
     'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
       dispatch(navigateAppend([{
-        selected: 'success',
         props: {
-          paperkey: new HiddenString(phrase),
-          waiting: false,
-          onFinish: () => { response.result() },
           onBack: () => onBack(response),
+          onFinish: () => { response.result() },
+          paperkey: new HiddenString(phrase),
           title: 'Your new paper key!',
+          waiting: false,
         },
+        selected: 'success',
+      }], [loginTab, 'login']))
+    },
+    'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
+      dispatch(navigateAppend([{
+        props: {
+          onBack: () => onBack(response),
+          onSubmit: usernameOrEmail => response.result(usernameOrEmail),
+        },
+        selected: 'usernameOrEmail',
+      }], [loginTab, 'login']))
+    },
+    'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
+      dispatch({payload: {textCode: new HiddenString(phrase)}, type: Constants.setTextCode})
+      generateQRCode(dispatch, getState)
+      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, () => onBack(response)))
+    },
+    'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => {
+      response.result()
+    },
+    'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {
+      dispatch(navigateAppend([{
+        props: {
+          deviceNameError: errorMessage,
+          existingDevices,
+          onBack: () => onBack(response),
+          onSubmit: deviceName => { response.result(deviceName) },
+        },
+        selected: 'setPublicName',
       }], [loginTab, 'login']))
     },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
@@ -562,11 +509,65 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
       response.result()
       onProvisionerSuccess()
     },
-    'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => {
-      response.result()
+    'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
+      dispatch(navigateAppend([{
+        props: {
+          devices,
+          onBack: () => onBack(response),
+          onSelect: deviceID => {
+            // $FlowIssue
+            const type: DeviceType = (devices || []).find(d => d.deviceID === deviceID).type
+            const role = ({
+              desktop: Constants.codePageDeviceRoleExistingComputer,
+              mobile: Constants.codePageDeviceRoleExistingPhone,
+            }: {[key: DeviceType]: DeviceRole})[type]
+            dispatch(setCodePageOtherDeviceRole(role))
+            response.result(deviceID)
+          },
+          onWont: () => response.result(''),
+        },
+        selected: 'selectOtherDevice',
+      }], [loginTab, 'login']))
     },
-    'keybase.1.gpgUi.selectKey': (param, response) => {
-      response.error(new RPCError('Not supported in GUI', ConstantsStatusCode.sckeynotfound))
+    'keybase.1.provisionUi.chooseGPGMethod': (param, response) => {
+      dispatch(navigateAppend([{
+        props: {
+          onBack: () => onBack(response),
+          onSubmit: exportKey => response.result(exportKey ? ProvisionUiGPGMethod.gpgImport : ProvisionUiGPGMethod.gpgSign),
+        },
+        selected: 'gpgSign',
+      }], [loginTab, 'login']))
+    },
+    'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
+      switch (type) {
+        case PassphraseCommonPassphraseType.paperKey:
+          dispatch(navigateAppend([{
+            props: {
+              error: retryLabel,
+              onBack: () => onBack(response),
+              onSubmit: (passphrase: string) => { response.result({passphrase, storeSecret: false}) },
+            },
+            selected: 'paperkey',
+          }], [loginTab, 'login']))
+          break
+        case PassphraseCommonPassphraseType.passPhrase:
+          dispatch(navigateAppend([{
+            props: {
+              error: retryLabel,
+              onBack: () => onBack(response),
+              onSubmit: passphrase => response.result({
+                passphrase,
+                storeSecret: false,
+              }),
+              prompt,
+              username,
+            },
+            selected: 'passphrase',
+          }], [loginTab, 'login']))
+          break
+        default:
+          response.error(new RPCError('Unknown getPassphrase type', ConstantsStatusCode.scnotfound))
+      }
     },
   }
 }

@@ -237,6 +237,17 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
+  _onResize = ({width}) => {
+    if (width !== this._lastWidth) {
+      this._lastWidth = width
+      this._recomputeListDebounced()
+    }
+  }
+
+  _cellRenderer = ({rowIndex, ...rest}) => {
+    return this._rowRenderer({index: rowIndex, ...rest})
+  }
+
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
@@ -280,6 +291,20 @@ class ConversationList extends Component<void, Props, State> {
     this._list && this._list.recomputeRowHeights()
   }
 
+  _onCopyCapture (e) {
+    // Copy text only, not HTML/styling.
+    e.preventDefault()
+    clipboard.writeText(window.getSelection().toString())
+  }
+
+  _setCellMeasurerRef = r => {
+    this._cellMeasurer = r
+  }
+
+  _setListRef = r => {
+    this._list = r
+  }
+
   render () {
     if (!this.props.validated) {
       return (
@@ -288,62 +313,29 @@ class ConversationList extends Component<void, Props, State> {
         </div>
       )
     }
+
     const rowCount = this.state.messages.count() + 1 // Loading row
     let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
-    // We need to use both visibility and opacity css properties for the
-    // action button hide/show on hover.
-    // We use opacity because it shows/hides the button immediately on
-    // hover, while visibility has slight lag.
-    // We use visibility so that the action button content isn't copied
-    // during copy/paste actions since user-select isn't working in
-    // Chrome.
-    const realCSS = `
-    .message {
-      background-color: transparent;
-    }
-    .message .action-button {
-      visibility: hidden;
-      opacity: 0;
-    }
-    .message:hover {
-      background-color: ${globalColors.black_05};
-    }
-    .message:hover .action-button {
-      visibility: visible;
-      opacity: 1;
-    }
-    `
-
     return (
-      <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}} onCopyCapture={(e) => {
-        // Copy text only, not HTML/styling.
-        e.preventDefault()
-        clipboard.writeText(window.getSelection().toString())
-      }}>
+      <div style={containerStyle} onCopyCapture={this._onCopyCapture}>
         <style>{realCSS}</style>
-        <AutoSizer
-          onResize={({width}) => {
-            if (width !== this._lastWidth) {
-              this._lastWidth = width
-              this._recomputeListDebounced()
-            }
-          }} >
-          {({height, width}) => {
+        <AutoSizer onResize={this._onResize}>{
+          ({height, width}) => (
             // width is adjusted to assume scrollbars, see https://github.com/bvaughn/react-virtualized/issues/401
-            return <CellMeasurer
-              cellRenderer={({rowIndex, ...rest}) => this._rowRenderer({index: rowIndex, ...rest})}
+            <CellMeasurer
+              cellRenderer={this._cellRenderer}
               columnCount={1}
-              ref={r => { this._cellMeasurer = r }}
+              ref={this._setCellMeasurerRef}
               cellSizeCache={this._cellCache}
               rowCount={rowCount}
               width={width - scrollbarWidth} >
-              {({getRowHeight}) => {
-                return <VirtualizedList
+              {({getRowHeight}) => (
+                <VirtualizedList
                   style={listStyle}
                   height={height}
-                  ref={r => { this._list = r }}
+                  ref={this._setListRef}
                   width={width}
                   onScroll={this._onScroll}
                   scrollTop={scrollTop}
@@ -351,10 +343,7 @@ class ConversationList extends Component<void, Props, State> {
                   rowCount={rowCount}
                   rowHeight={getRowHeight}
                   columnWidth={width}
-                  rowRenderer={this._rowRenderer} />
-              }}
-            </CellMeasurer>
-          }}
+                  rowRenderer={this._rowRenderer} />)}</CellMeasurer>)}
         </AutoSizer>
         {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 0, width: 320}}>
           <SidePanel {...this.props} />
@@ -362,6 +351,36 @@ class ConversationList extends Component<void, Props, State> {
       </div>
     )
   }
+}
+
+// We need to use both visibility and opacity css properties for the
+// action button hide/show on hover.
+// We use opacity because it shows/hides the button immediately on
+// hover, while visibility has slight lag.
+// We use visibility so that the action button content isn't copied
+// during copy/paste actions since user-select isn't working in
+// Chrome.
+const realCSS = `
+.message {
+  background-color: transparent;
+}
+.message .action-button {
+  visibility: hidden;
+  opacity: 0;
+}
+.message:hover {
+  background-color: ${globalColors.black_05};
+}
+.message:hover .action-button {
+  visibility: visible;
+  opacity: 1;
+}
+`
+
+const containerStyle = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  position: 'relative',
 }
 
 const listStyle = {
