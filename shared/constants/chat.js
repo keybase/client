@@ -191,32 +191,6 @@ export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'
 
-export const appendMessages = 'chat:appendMessages'
-export const badgeAppForChat = 'chat:badgeAppForChat'
-export const deleteMessage = 'chat:deleteMessage'
-export const editMessage = 'chat:editMessage'
-export const incomingMessage = 'chat:incomingMessage'
-export const loadInbox = 'chat:loadInbox'
-export const loadedInbox = 'chat:loadedInbox'
-export const loadMoreMessages = 'chat:loadMoreMessages'
-export const loadingMessages = 'chat:loadingMessages'
-export const newChat = 'chat:newChat'
-export const openFolder = 'chat:openFolder'
-export const postMessage = 'chat:postMessage'
-export const prependMessages = 'chat:prependMessages'
-export const retryMessage = 'chat:retryMessage'
-export const selectConversation = 'chat:selectConversation'
-export const setupChatHandlers = 'chat:setupChatHandlers'
-export const startConversation = 'chat:startConversation'
-export const updateBadging = 'chat:updateBadging'
-export const updateLatestMessage = 'chat:updateLatestMessage'
-export const updateMetadata = 'chat:updateMetadata'
-export const updatedMetadata = 'chat:updatedMetadata'
-export const selectAttachment = 'chat:selectAttachment'
-export const updateInbox = 'chat:updateInbox'
-export const updateInboxComplete = 'chat:updateInboxComplete'
-export const updateBrokenTracker = 'chat:updateBrokenTracker'
-
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {ConversationIDKey: ConversationIDKey}>

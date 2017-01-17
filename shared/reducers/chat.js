@@ -86,7 +86,7 @@ function reducer (state: State = initialState, action: Actions) {
         conversationStates.set(conversationIDKey, clearedConversationState)
       )
     }
-    case Constants.prependMessages: {
+    case 'chat:prependMessages': {
       const {messages: prependMessages, moreToLoad, paginationNext, conversationIDKey} = action.payload
       const {messages, deletedIDs} = _filterTypes(prependMessages)
 
@@ -113,7 +113,7 @@ function reducer (state: State = initialState, action: Actions) {
         .set('conversationStates', newConversationStates)
         .set('inbox', newInboxStates)
     }
-    case Constants.appendMessages: {
+    case 'chat:appendMessages': {
       const appendAction: AppendMessages = action
       const appendMessages = appendAction.payload.messages
       const isSelected = action.payload.isSelected
@@ -277,7 +277,7 @@ function reducer (state: State = initialState, action: Actions) {
         })
       )
     }
-    case Constants.updateLatestMessage:
+    case 'chat:updateLatestMessage':
       // Clear new messages id of conversation
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
@@ -285,14 +285,14 @@ function reducer (state: State = initialState, action: Actions) {
         conversation => conversation.set('firstNewMessageID', null))
       state = state.set('conversationStates', newConversationStates)
       return state
-    case Constants.selectConversation:
+    case 'chat:selectConversation':
       const conversationIDKey = action.payload.conversationIDKey
 
       // Set unread to zero
       const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
       return state
         .set('inbox', newInboxStates)
-    case Constants.loadingMessages: {
+    case 'chat:loadingMessages': {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
         initialConversation,
@@ -300,9 +300,9 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state.set('conversationStates', newConversationStates)
     }
-    case Constants.updatedMetadata:
+    case 'chat:updatedMetadata':
       return state.set('metaData', state.get('metaData').merge(action.payload))
-    case Constants.loadedInbox:
+    case 'chat:loadedInbox':
       // Don't overwrite existing verified inbox data
       const existingRows = state.get('inbox')
       return state.set('inbox', action.payload.inbox.map(newRow => {
@@ -310,9 +310,9 @@ function reducer (state: State = initialState, action: Actions) {
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
         return existingRow || newRow
       }))
-    case Constants.updateInboxComplete:
+    case 'chat:updateInboxComplete':
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
-    case Constants.updateInbox:
+    case 'chat:updateInbox':
       const convo: InboxState = action.payload.conversation
       const toFind = convo.get('conversationIDKey')
       return state.set('inbox', state.get('inbox').map(i => {
@@ -322,7 +322,7 @@ function reducer (state: State = initialState, action: Actions) {
           return i
         }
       }))
-    case Constants.updateBrokenTracker:
+    case 'chat:updateBrokenTracker':
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')
 
