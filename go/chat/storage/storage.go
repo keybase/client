@@ -378,14 +378,14 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 	return s.fetchUpToMsgIDLocked(ctx, convID, uid, maxMsgID, query, pagination)
 }
 
-func (s *Storage) Fetch(ctx context.Context, conv chat1.ConversationLocal,
+func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
 	defer s.Unlock()
 
-	return s.fetchUpToMsgIDLocked(ctx, conv.Info.Id, uid, conv.ReaderInfo.MaxMsgid, query, pagination)
+	return s.fetchUpToMsgIDLocked(ctx, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid, query, pagination)
 }
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,

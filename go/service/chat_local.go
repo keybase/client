@@ -573,7 +573,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
 	// could need expansion.  Look up the conversation metadata.
 	uid := h.G().Env.GetUID()
-	conv, rl, err := chat.ConversationMetadata(ctx, h.G().InboxSource, uid.ToBytes(), arg.ConversationID)
+	conv, rl, err := h.G().InboxSource.ReadUnverified(ctx, uid.ToBytes(), arg.ConversationID)
 	if err != nil {
 		return deflt, err
 	}
@@ -581,7 +581,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		rlimits = append(rlimits, *rl)
 	}
 
-	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs, conv.Info.FinalizeInfo)
+	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return deflt, err
 	}

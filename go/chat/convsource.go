@@ -44,7 +44,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	var rl []*chat1.RateLimit
 
-	conv, ratelim, err := ConversationMetadata(ctx, s.G().InboxSource, uid, convID)
+	conv, ratelim, err := s.G().InboxSource.ReadUnverified(ctx, uid, convID)
 	rl = append(rl, ratelim)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
@@ -61,7 +61,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, rl, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Info.FinalizeInfo)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -198,7 +198,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, ratelim, err := ConversationMetadata(ctx, s.G().InboxSource, uid, convID)
+	conv, ratelim, err := s.G().InboxSource.ReadUnverified(ctx, uid, convID)
 	rl = append(rl, ratelim)
 	if err == nil {
 		// Try locally first
@@ -208,7 +208,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
 			// Identify this TLF by running crypt keys
-			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages, conv.Info.FinalizeInfo); ierr != nil {
+			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
 				s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
 				return chat1.ThreadView{}, nil, ierr
 			}
@@ -258,7 +258,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Unbox
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Info.FinalizeInfo)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}

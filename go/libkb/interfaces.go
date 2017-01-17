@@ -553,6 +553,7 @@ type InboxSource interface {
 		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
 	ReadRemote(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer,
 		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+	ReadUnverified(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error

@@ -233,6 +233,20 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 	return nil
 }
 
+func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error) {
+	query := &chat1.GetInboxLocalQuery{
+		ConvID: &convID,
+	}
+	inbox, ratelim, err := s.Read(ctx, uid, nil, query, nil)
+	if err != nil {
+		return chat1.Conversation{}, ratelim, err
+	}
+	if len(inbox.ConvsUnverified) == 0 {
+		return chat1.Conversation{}, ratelim, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
+	}
+	return inbox.ConvsUnverified[0], ratelim, nil
+}
+
 type HybridInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
@@ -426,6 +440,20 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 		return err
 	}
 	return nil
+}
+
+func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error) {
+	query := &chat1.GetInboxLocalQuery{
+		ConvID: &convID,
+	}
+	inbox, ratelim, err := s.Read(ctx, uid, nil, query, nil)
+	if err != nil {
+		return chat1.Conversation{}, ratelim, err
+	}
+	if len(inbox.ConvsUnverified) == 0 {
+		return chat1.Conversation{}, ratelim, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
+	}
+	return inbox.ConvsUnverified[0], ratelim, nil
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
@@ -699,18 +727,4 @@ func NewInboxSource(g *libkb.GlobalContext, typ string, ri func() chat1.RemoteIn
 	default:
 		return remoteInbox
 	}
-}
-
-func ConversationMetadata(ctx context.Context, source libkb.InboxSource, uid gregor1.UID, convID chat1.ConversationID) (chat1.ConversationLocal, *chat1.RateLimit, error) {
-	query := &chat1.GetInboxLocalQuery{
-		ConvID: &convID,
-	}
-	inbox, ratelim, err := source.Read(ctx, uid, nil, query, nil)
-	if err != nil {
-		return chat1.ConversationLocal{}, ratelim, err
-	}
-	if len(inbox.Convs) == 0 {
-		return chat1.ConversationLocal{}, ratelim, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
-	}
-	return inbox.Convs[0], ratelim, nil
 }
