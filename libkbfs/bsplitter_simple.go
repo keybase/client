@@ -74,7 +74,11 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 			"desired size of %d", desiredBlockSize)
 	}
 
-	maxPtrs := int(maxSize / int64(bpSize))
+	// Trial and error shows that this magic 75% constant maximizes
+	// the number of realistic indirect pointers you can fit into the
+	// default block size.  TODO: calculate this number more exactly
+	// during initialization for a given `maxSize`.
+	maxPtrs := int(.75 * float64(maxSize/int64(bpSize)))
 	if maxPtrs < 2 {
 		maxPtrs = 2
 	}
