@@ -30,15 +30,14 @@ func mdDumpGetDeviceString(k kbfscrypto.CryptPublicKey, ui libkbfs.UserInfo) (
 func mdDumpGetReplacements(ctx context.Context, codec kbfscodec.Codec,
 	service libkbfs.KeybaseService, brmd libkbfs.BareRootMetadata,
 	extra libkbfs.ExtraMetadata) (map[string]string, error) {
-	readers, writers, err := brmd.GetUserDeviceKeyInfoMaps(
-		codec, brmd.LatestKeyGeneration(), extra)
+	writers, readers, err := brmd.GetUserDevicePublicKeys(extra)
 	if err != nil {
 		return nil, err
 	}
 
 	replacements := make(map[string]string)
-	for _, udkim := range []libkbfs.UserDeviceKeyInfoMap{writers, readers} {
-		for u, dkim := range udkim {
+	for _, userKeys := range []libkbfs.UserDevicePublicKeys{writers, readers} {
+		for u, deviceKeys := range userKeys {
 			if _, ok := replacements[u.String()]; ok {
 				continue
 			}
@@ -57,7 +56,7 @@ func mdDumpGetReplacements(ctx context.Context, codec kbfscodec.Codec,
 				continue
 			}
 
-			for k := range dkim {
+			for k := range deviceKeys {
 				if _, ok := replacements[k.String()]; ok {
 					continue
 				}

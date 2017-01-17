@@ -263,7 +263,7 @@ func TestToTLFReaderKeyBundleV3(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
 	_, err := rkg.ToTLFReaderKeyBundleV3(codec, TLFWriterKeyBundleV2{})
 	require.Error(t, err)
-	require.True(t, strings.HasPrefix(err.Error(), "Invalid writer key index "),
+	require.True(t, strings.HasPrefix(err.Error(), "Invalid key in writerEPubKeys with index "),
 		"err: %v", err)
 
 	wEPubKey1 := kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0x3})

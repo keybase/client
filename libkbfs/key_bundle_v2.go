@@ -14,21 +14,28 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ePubKeyTypeV2 int
+// ePubKeyLocationV2 represents the location of a user's ephemeral
+// public key. Note that for V2, a reader ePubKey can be in either the
+// writers array (if rekeyed normally) or the readers array (if
+// rekeyed by a reader), but a writer ePubKey can be in either array
+// also; if a reader whose ePubKey is in the readers array is
+// promoted, then the reader becomes a writer whose ePubKey is still
+// in the readers array.
+type ePubKeyLocationV2 int
 
 const (
-	writerEPubKey ePubKeyTypeV2 = 1
-	readerEPubKey ePubKeyTypeV2 = 2
+	writerEPubKeys ePubKeyLocationV2 = 1
+	readerEPubKeys ePubKeyLocationV2 = 2
 )
 
-func (t ePubKeyTypeV2) String() string {
+func (t ePubKeyLocationV2) String() string {
 	switch t {
-	case writerEPubKey:
-		return "writer"
-	case readerEPubKey:
-		return "reader"
+	case writerEPubKeys:
+		return "writerEPubKeys"
+	case readerEPubKeys:
+		return "readerEPubKeys"
 	default:
-		return fmt.Sprintf("ePubKeyTypeV2(%d)", t)
+		return fmt.Sprintf("ePubKeyLocationV2(%d)", t)
 	}
 }
 
@@ -37,26 +44,27 @@ func (t ePubKeyTypeV2) String() string {
 // BareRootMetadataV2.UpdateKeyGeneration.
 func getEphemeralPublicKeyInfoV2(info TLFCryptKeyInfo,
 	wkb TLFWriterKeyBundleV2, rkb TLFReaderKeyBundleV2) (
-	keyType ePubKeyTypeV2, index int,
+	keyLocation ePubKeyLocationV2, index int,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey, err error) {
 	var publicKeys kbfscrypto.TLFEphemeralPublicKeys
 	if info.EPubKeyIndex >= 0 {
 		index = info.EPubKeyIndex
 		publicKeys = wkb.TLFEphemeralPublicKeys
-		keyType = writerEPubKey
+		keyLocation = writerEPubKeys
 	} else {
 		index = -1 - info.EPubKeyIndex
 		publicKeys = rkb.TLFReaderEphemeralPublicKeys
-		keyType = readerEPubKey
+		keyLocation = readerEPubKeys
 	}
 	keyCount := len(publicKeys)
 	if index >= keyCount {
-		return ePubKeyTypeV2(0), 0, kbfscrypto.TLFEphemeralPublicKey{},
-			fmt.Errorf("Invalid %s key index %d >= %d",
-				keyType, index, keyCount)
+		return ePubKeyLocationV2(0),
+			0, kbfscrypto.TLFEphemeralPublicKey{},
+			fmt.Errorf("Invalid key in %s with index %d >= %d",
+				keyLocation, index, keyCount)
 	}
 
-	return keyType, index, publicKeys[index], nil
+	return keyLocation, index, publicKeys[index], nil
 }
 
 // DeviceKeyInfoMapV2 is a map from a user devices (identified by the
@@ -67,11 +75,11 @@ type DeviceKeyInfoMapV2 map[keybase1.KID]TLFCryptKeyInfo
 func (dkimV2 DeviceKeyInfoMapV2) fillInDeviceInfos(crypto cryptoPure,
 	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
-	publicKeys map[kbfscrypto.CryptPublicKey]bool) (
+	updatedDeviceKeys DevicePublicKeys) (
 	serverHalves DeviceKeyServerHalves, err error) {
-	serverHalves = make(DeviceKeyServerHalves, len(publicKeys))
+	serverHalves = make(DeviceKeyServerHalves, len(updatedDeviceKeys))
 	// TODO: parallelize
-	for k := range publicKeys {
+	for k := range updatedDeviceKeys {
 		// Skip existing entries, and only fill in new ones.
 		if _, ok := dkimV2[k.KID()]; ok {
 			continue
@@ -90,81 +98,38 @@ func (dkimV2 DeviceKeyInfoMapV2) fillInDeviceInfos(crypto cryptoPure,
 	return serverHalves, nil
 }
 
-func (dkimV2 DeviceKeyInfoMapV2) toDKIM(codec kbfscodec.Codec) (
-	DeviceKeyInfoMap, error) {
-	dkim := make(DeviceKeyInfoMap, len(dkimV2))
-	for kid, info := range dkimV2 {
-		var infoCopy TLFCryptKeyInfo
-		err := kbfscodec.Update(codec, &infoCopy, info)
-		if err != nil {
-			return nil, err
-		}
-		dkim[kbfscrypto.MakeCryptPublicKey(kid)] = infoCopy
+func (dkimV2 DeviceKeyInfoMapV2) toPublicKeys() DevicePublicKeys {
+	publicKeys := make(DevicePublicKeys, len(dkimV2))
+	for kid := range dkimV2 {
+		publicKeys[kbfscrypto.MakeCryptPublicKey(kid)] = true
 	}
-	return dkim, nil
-}
-
-func dkimToV2(codec kbfscodec.Codec, dkim DeviceKeyInfoMap) (
-	DeviceKeyInfoMapV2, error) {
-	dkimV2 := make(DeviceKeyInfoMapV2, len(dkim))
-	for key, info := range dkim {
-		var infoCopy TLFCryptKeyInfo
-		err := kbfscodec.Update(codec, &infoCopy, info)
-		if err != nil {
-			return nil, err
-		}
-		dkimV2[key.KID()] = infoCopy
-	}
-	return dkimV2, nil
+	return publicKeys
 }
 
 // UserDeviceKeyInfoMapV2 maps a user's keybase UID to their
 // DeviceKeyInfoMapV2.
 type UserDeviceKeyInfoMapV2 map[keybase1.UID]DeviceKeyInfoMapV2
 
-func (udkimV2 UserDeviceKeyInfoMapV2) toUDKIM(
-	codec kbfscodec.Codec) (UserDeviceKeyInfoMap, error) {
-	udkim := make(UserDeviceKeyInfoMap, len(udkimV2))
+func (udkimV2 UserDeviceKeyInfoMapV2) toPublicKeys() UserDevicePublicKeys {
+	publicKeys := make(UserDevicePublicKeys, len(udkimV2))
 	for u, dkimV2 := range udkimV2 {
-		dkim, err := dkimV2.toDKIM(codec)
-		if err != nil {
-			return nil, err
-		}
-		udkim[u] = dkim
+		publicKeys[u] = dkimV2.toPublicKeys()
 	}
-	return udkim, nil
-}
-
-func udkimToV2(codec kbfscodec.Codec, udkim UserDeviceKeyInfoMap) (
-	UserDeviceKeyInfoMapV2, error) {
-	udkimV2 := make(UserDeviceKeyInfoMapV2, len(udkim))
-	for u, dkim := range udkim {
-		dkimV2, err := dkimToV2(codec, dkim)
-		if err != nil {
-			return nil, err
-		}
-		udkimV2[u] = dkimV2
-	}
-	return udkimV2, nil
+	return publicKeys
 }
 
 // removeDevicesNotIn removes any info for any device that is not
 // contained in the given map of users and devices.
 func (udkimV2 UserDeviceKeyInfoMapV2) removeDevicesNotIn(
-	keys UserDevicePublicKeys) ServerHalfRemovalInfo {
+	updatedUserKeys UserDevicePublicKeys) ServerHalfRemovalInfo {
 	removalInfo := make(ServerHalfRemovalInfo)
 	for uid, dkim := range udkimV2 {
-		userKIDs := make(map[keybase1.KID]bool, len(keys[uid]))
-		for key := range keys[uid] {
-			userKIDs[key.KID()] = true
-		}
-
 		deviceServerHalfIDs := make(deviceServerHalfRemovalInfo)
 
 		for kid, info := range dkim {
-			if !userKIDs[kid] {
+			key := kbfscrypto.MakeCryptPublicKey(kid)
+			if !updatedUserKeys[uid][key] {
 				delete(dkim, kid)
-				key := kbfscrypto.MakeCryptPublicKey(kid)
 				deviceServerHalfIDs[key] = append(
 					deviceServerHalfIDs[key],
 					info.ServerHalfID)
@@ -194,18 +159,19 @@ func (udkimV2 UserDeviceKeyInfoMapV2) removeDevicesNotIn(
 }
 
 func (udkimV2 UserDeviceKeyInfoMapV2) fillInUserInfos(
-	crypto cryptoPure, newIndex int, pubKeys UserDevicePublicKeys,
+	crypto cryptoPure, newIndex int, updatedUserKeys UserDevicePublicKeys,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (
 	serverHalves UserDeviceKeyServerHalves, err error) {
-	serverHalves = make(UserDeviceKeyServerHalves, len(pubKeys))
-	for u, keys := range pubKeys {
+	serverHalves = make(UserDeviceKeyServerHalves, len(updatedUserKeys))
+	for u, updatedDeviceKeys := range updatedUserKeys {
 		if _, ok := udkimV2[u]; !ok {
 			udkimV2[u] = DeviceKeyInfoMapV2{}
 		}
 
 		deviceServerHalves, err := udkimV2[u].fillInDeviceInfos(
-			crypto, u, tlfCryptKey, ePrivKey, newIndex, keys)
+			crypto, u, tlfCryptKey, ePrivKey, newIndex,
+			updatedDeviceKeys)
 		if err != nil {
 			return nil, err
 		}
@@ -275,36 +241,21 @@ func (wkg TLFWriterKeyGenerationsV2) ToTLFWriterKeyBundleV3(
 			errors.New("No key generations to convert")
 	}
 
-	// Check for invalid indices into
-	// wkbV2.TLFEphemeralPublicKeys.
-	wkbV2 := wkg[keyGen-FirstValidKeyGen]
-	for u, dkimV2 := range wkbV2.WKeys {
-		for kid, keyInfo := range dkimV2 {
-			index := keyInfo.EPubKeyIndex
-			if index < 0 || index >= len(wkbV2.TLFEphemeralPublicKeys) {
-				return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{},
-					fmt.Errorf("Invalid writer key index %d for user=%s, kid=%s",
-						index, u, kid)
-			}
-		}
-	}
-
-	var wkbV3 TLFWriterKeyBundleV3
-
 	// Copy the latest UserDeviceKeyInfoMap.
-	udkimV3, err := udkimV2ToV3(codec, wkbV2.WKeys)
+	wkbV2 := wkg[keyGen-FirstValidKeyGen]
+	ePubKeyCount := len(wkbV2.TLFEphemeralPublicKeys)
+	udkimV3, err := writerUDKIMV2ToV3(codec, wkbV2.WKeys, ePubKeyCount)
 	if err != nil {
 		return TLFWriterKeyBundleV2{}, TLFWriterKeyBundleV3{}, err
 	}
-	wkbV3.Keys = udkimV3
-
+	wkbV3 := TLFWriterKeyBundleV3{
+		Keys: udkimV3,
+		TLFEphemeralPublicKeys: make(
+			kbfscrypto.TLFEphemeralPublicKeys, ePubKeyCount),
+		TLFPublicKey: wkbV2.TLFPublicKey,
+	}
 	// Copy all of the TLFEphemeralPublicKeys at this generation.
-	wkbV3.TLFEphemeralPublicKeys = make(kbfscrypto.TLFEphemeralPublicKeys,
-		len(wkbV2.TLFEphemeralPublicKeys))
 	copy(wkbV3.TLFEphemeralPublicKeys[:], wkbV2.TLFEphemeralPublicKeys)
-
-	// Copy the current TLFPublicKey.
-	wkbV3.TLFPublicKey = wkbV2.TLFPublicKey
 
 	if keyGen > FirstValidKeyGen {
 		// Fetch all of the TLFCryptKeys.
@@ -411,13 +362,14 @@ func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 				return TLFReaderKeyBundleV3{}, err
 			}
 
-			keyType, index, ePubKey, err := getEphemeralPublicKeyInfoV2(info, wkb, rkb)
+			keyLocation, index, ePubKey, err :=
+				getEphemeralPublicKeyInfoV2(info, wkb, rkb)
 			if err != nil {
 				return TLFReaderKeyBundleV3{}, err
 			}
 
-			switch keyType {
-			case writerEPubKey:
+			switch keyLocation {
+			case writerEPubKeys:
 				// Map the old index in the writer list to a new index
 				// at the end of the reader list.
 				newIndex, ok := pubKeyIndicesMap[index]
@@ -432,11 +384,11 @@ func (rkg TLFReaderKeyGenerationsV2) ToTLFReaderKeyBundleV3(
 					pubKeyIndicesMap[index] = newIndex
 				}
 				infoCopy.EPubKeyIndex = newIndex
-			case readerEPubKey:
+			case readerEPubKeys:
 				// Use the real index in the reader list.
 				infoCopy.EPubKeyIndex = index
 			default:
-				return TLFReaderKeyBundleV3{}, fmt.Errorf("Unknown key type %s", keyType)
+				return TLFReaderKeyBundleV3{}, fmt.Errorf("Unknown key location %s", keyLocation)
 			}
 			dkimV3[kbfscrypto.MakeCryptPublicKey(kid)] = infoCopy
 		}

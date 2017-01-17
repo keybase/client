@@ -28,7 +28,7 @@ func makeBRMDForTest(t *testing.T, codec kbfscodec.Codec, crypto cryptoPure,
 	md.SetRevision(revision)
 	md.SetLastModifyingWriter(uid)
 	md.SetLastModifyingUser(uid)
-	FakeInitialRekey(&md, codec, crypto, h, kbfscrypto.TLFPublicKey{})
+	FakeInitialRekey(&md, h, kbfscrypto.TLFPublicKey{})
 	md.SetPrevRoot(prevRoot)
 	return &md
 }

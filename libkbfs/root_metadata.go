@@ -311,15 +311,6 @@ func (md *RootMetadata) MakeSuccessor(
 	return newMd, nil
 }
 
-func (md *RootMetadata) addKeyGenerationForTest(codec kbfscodec.Codec,
-	crypto cryptoPure, currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
-	wDkim, rDkim UserDeviceKeyInfoMap) {
-	extra := md.bareMd.addKeyGenerationForTest(
-		codec, crypto, md.extra, currCryptKey, nextCryptKey,
-		kbfscrypto.TLFPublicKey{}, wDkim, rDkim)
-	md.extra = extra
-}
-
 // GetTlfHandle returns the TlfHandle for this RootMetadata.
 func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 	if md.tlfHandle == nil {
@@ -520,6 +511,11 @@ func (md *RootMetadata) GetTLFCryptKeyParams(
 	kbfscrypto.TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
 	TLFCryptKeyServerHalfID, bool, error) {
 	return md.bareMd.GetTLFCryptKeyParams(keyGen, user, key, md.extra)
+}
+
+// KeyGenerationsToUpdate wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) KeyGenerationsToUpdate() (KeyGen, KeyGen) {
+	return md.bareMd.KeyGenerationsToUpdate()
 }
 
 // LatestKeyGeneration wraps the respective method of the underlying BareRootMetadata for convenience.
@@ -732,20 +728,23 @@ func (md *RootMetadata) SetTlfID(tlf tlf.ID) {
 }
 
 // HasKeyForUser wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
-	return md.bareMd.HasKeyForUser(keyGen, user, md.extra)
+func (md *RootMetadata) HasKeyForUser(user keybase1.UID) (
+	bool, error) {
+	writers, readers, err := md.bareMd.GetUserDevicePublicKeys(md.extra)
+	if err != nil {
+		return false, err
+	}
+	return len(writers[user]) > 0 || len(readers[user]) > 0, nil
 }
 
 // fakeInitialRekey wraps the FakeInitialRekey test function for
 // convenience.
-func (md *RootMetadata) fakeInitialRekey(
-	codec kbfscodec.Codec, crypto cryptoPure) {
+func (md *RootMetadata) fakeInitialRekey() {
 	bh, err := md.tlfHandle.ToBareHandle()
 	if err != nil {
 		panic(err)
 	}
-	md.extra = FakeInitialRekey(md.bareMd,
-		codec, crypto, bh, kbfscrypto.TLFPublicKey{})
+	md.extra = FakeInitialRekey(md.bareMd, bh, kbfscrypto.TLFPublicKey{})
 }
 
 // GetBareRootMetadata returns an interface to the underlying serializeable metadata.
@@ -755,19 +754,27 @@ func (md *RootMetadata) GetBareRootMetadata() BareRootMetadata {
 
 // AddKeyGeneration adds a new key generation to this revision of metadata.
 func (md *RootMetadata) AddKeyGeneration(codec kbfscodec.Codec,
-	crypto cryptoPure, prevCryptKey, currCryptKey kbfscrypto.TLFCryptKey,
-	pubKey kbfscrypto.TLFPublicKey) error {
-	newExtra, err := md.bareMd.AddKeyGeneration(
-		codec, crypto, md.extra, prevCryptKey, currCryptKey, pubKey)
+	crypto cryptoPure, wKeys, rKeys UserDevicePublicKeys,
+	ePubKey kbfscrypto.TLFEphemeralPublicKey,
+	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+	pubKey kbfscrypto.TLFPublicKey,
+	privKey kbfscrypto.TLFPrivateKey,
+	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey) (
+	serverHalves UserDeviceKeyServerHalves, err error) {
+	nextExtra, serverHalves, err := md.bareMd.AddKeyGeneration(
+		codec, crypto, md.extra, wKeys, rKeys, ePubKey, ePrivKey,
+		pubKey, currCryptKey, nextCryptKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	md.extra = newExtra
-	return nil
+	md.extra = nextExtra
+	md.data.TLFPrivateKey = privKey
+	return serverHalves, nil
 }
 
-func (md *RootMetadata) promoteReader(uid keybase1.UID) error {
-	return md.bareMd.PromoteReader(uid, md.extra)
+func (md *RootMetadata) promoteReaders(
+	readersToPromote map[keybase1.UID]bool) error {
+	return md.bareMd.PromoteReaders(readersToPromote, md.extra)
 }
 
 func (md *RootMetadata) revokeRemovedDevices(
@@ -776,23 +783,23 @@ func (md *RootMetadata) revokeRemovedDevices(
 	return md.bareMd.RevokeRemovedDevices(wKeys, rKeys, md.extra)
 }
 
-func (md *RootMetadata) updateKeyGeneration(crypto cryptoPure, keyGen KeyGen,
+func (md *RootMetadata) updateKeyBundles(crypto cryptoPure,
 	wKeys, rKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
-	tlfCryptKey kbfscrypto.TLFCryptKey) (UserDeviceKeyServerHalves, error) {
-	return md.bareMd.UpdateKeyGeneration(crypto, keyGen, md.extra,
-		wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKey)
+	tlfCryptKeys []kbfscrypto.TLFCryptKey) (
+	[]UserDeviceKeyServerHalves, error) {
+	return md.bareMd.UpdateKeyBundles(crypto, md.extra,
+		wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKeys)
 }
 
 func (md *RootMetadata) finalizeRekey(crypto cryptoPure) error {
 	return md.bareMd.FinalizeRekey(crypto, md.extra)
 }
 
-func (md *RootMetadata) getUserDeviceKeyInfoMaps(
-	codec kbfscodec.Codec, keyGen KeyGen) (
-	rDkim, wDkim UserDeviceKeyInfoMap, err error) {
-	return md.bareMd.GetUserDeviceKeyInfoMaps(codec, keyGen, md.extra)
+func (md *RootMetadata) getUserDevicePublicKeys() (
+	writers, readers UserDevicePublicKeys, err error) {
+	return md.bareMd.GetUserDevicePublicKeys(md.extra)
 }
 
 // GetTLFWriterKeyBundleID returns the ID of the externally-stored

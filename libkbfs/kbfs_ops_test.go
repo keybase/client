@@ -348,7 +348,7 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 			EncodedSize: 1,
 		},
 	}
-	rmd.fakeInitialRekey(config.Codec(), config.Crypto())
+	rmd.fakeInitialRekey()
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(
@@ -503,7 +503,7 @@ func (p ptrMatcher) String() string {
 
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
 	if !rmd.TlfID().IsPublic() {
-		rmd.fakeInitialRekey(config.Codec(), config.Crypto())
+		rmd.fakeInitialRekey()
 	}
 	rootPtr := BlockPointer{
 		ID:      kbfsblock.FakeID(42),

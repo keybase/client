@@ -92,7 +92,7 @@ func (c CryptoCommon) MakeTLFWriterKeyBundleID(wkb TLFWriterKeyBundleV3) (
 	TLFWriterKeyBundleID, error) {
 	if len(wkb.Keys) == 0 {
 		return TLFWriterKeyBundleID{}, errors.New(
-			"Writer key bundle with no keys")
+			"Writer key bundle with no keys (MakeTLFWriterKeyBundleID)")
 	}
 	buf, err := c.codec.Encode(wkb)
 	if err != nil {

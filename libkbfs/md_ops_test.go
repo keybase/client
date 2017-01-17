@@ -14,7 +14,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -45,6 +44,16 @@ func (c shimCrypto) Verify(
 	return kbfscrypto.Verify(msg, sigInfo)
 }
 
+func (c shimCrypto) MakeTLFWriterKeyBundleID(
+	wkb TLFWriterKeyBundleV3) (TLFWriterKeyBundleID, error) {
+	return c.pure.MakeTLFWriterKeyBundleID(wkb)
+}
+
+func (c shimCrypto) MakeTLFReaderKeyBundleID(
+	rkb TLFReaderKeyBundleV3) (TLFReaderKeyBundleID, error) {
+	return c.pure.MakeTLFReaderKeyBundleID(rkb)
+}
+
 func injectShimCrypto(config Config) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("test key")
 	crypto := shimCrypto{
@@ -67,12 +76,6 @@ func mdOpsInit(t *testing.T, ver MetadataVer) (mockCtrl *gomock.Controller,
 	config.SetKeyBundleCache(NewKeyBundleCacheStandard(1))
 	config.mockMdserv.EXPECT().OffsetFromServerTime().
 		Return(time.Duration(0), true).AnyTimes()
-	h1, _ := kbfshash.DefaultHash([]byte{1})
-	h2, _ := kbfshash.DefaultHash([]byte{2})
-	config.mockCrypto.EXPECT().MakeTLFWriterKeyBundleID(gomock.Any()).
-		Return(TLFWriterKeyBundleID{h1}, nil).AnyTimes()
-	config.mockCrypto.EXPECT().MakeTLFReaderKeyBundleID(gomock.Any()).
-		Return(TLFReaderKeyBundleID{h2}, nil).AnyTimes()
 	injectShimCrypto(config)
 	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
 	ctx = context.Background()
@@ -97,7 +100,7 @@ func addFakeRMDData(t *testing.T,
 	rmd.SetLastModifyingWriter(h.FirstResolvedWriter())
 	rmd.SetLastModifyingUser(h.FirstResolvedWriter())
 	if !h.IsPublic() {
-		rmd.fakeInitialRekey(codec, crypto)
+		rmd.fakeInitialRekey()
 	}
 }
 

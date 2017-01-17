@@ -193,9 +193,8 @@ func (kmd emptyKeyMetadata) LatestKeyGeneration() KeyGen {
 	return kmd.keyGen
 }
 
-func (kmd emptyKeyMetadata) HasKeyForUser(
-	keyGen KeyGen, user keybase1.UID) bool {
-	return false
+func (kmd emptyKeyMetadata) HasKeyForUser(user keybase1.UID) (bool, error) {
+	return false, nil
 }
 
 func (kmd emptyKeyMetadata) GetTLFCryptKeyParams(
@@ -308,12 +307,10 @@ func testKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver Me
 
 // makeDirWKeyInfoMap creates a new user device key info map with a writer key.
 func makeDirWKeyInfoMap(uid keybase1.UID,
-	cryptPublicKey kbfscrypto.CryptPublicKey) UserDeviceKeyInfoMap {
-	return UserDeviceKeyInfoMap{
+	cryptPublicKey kbfscrypto.CryptPublicKey) UserDevicePublicKeys {
+	return UserDevicePublicKeys{
 		uid: {
-			cryptPublicKey: TLFCryptKeyInfo{
-				EPubKeyIndex: 0,
-			},
+			cryptPublicKey: true,
 		},
 	}
 }
@@ -330,9 +327,15 @@ func testKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T, ver Metad
 
 	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	storedTLFCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
-	rmd.addKeyGenerationForTest(config.Codec(), config.Crypto(),
-		kbfscrypto.TLFCryptKey{}, storedTLFCryptKey,
-		makeDirWKeyInfoMap(uid, subkey), UserDeviceKeyInfoMap{})
+
+	crypto := MakeCryptoCommon(config.Codec())
+	_, err = rmd.AddKeyGeneration(config.Codec(), crypto,
+		makeDirWKeyInfoMap(uid, subkey), UserDevicePublicKeys{},
+		kbfscrypto.TLFEphemeralPublicKey{},
+		kbfscrypto.TLFEphemeralPrivateKey{},
+		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
+		kbfscrypto.TLFCryptKey{}, storedTLFCryptKey)
+	require.NoError(t, err)
 
 	storesHistoric := rmd.StoresHistoricTLFCryptKeys()
 	expectUncachedGetTLFCryptKey(t, config, rmd.TlfID(),
@@ -357,9 +360,15 @@ func testKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T, ver Met
 
 	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	storedTLFCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
-	rmd.addKeyGenerationForTest(config.Codec(), config.Crypto(),
-		kbfscrypto.TLFCryptKey{}, storedTLFCryptKey,
-		makeDirWKeyInfoMap(uid, subkey), UserDeviceKeyInfoMap{})
+
+	crypto := MakeCryptoCommon(config.Codec())
+	_, err = rmd.AddKeyGeneration(config.Codec(), crypto,
+		makeDirWKeyInfoMap(uid, subkey), UserDevicePublicKeys{},
+		kbfscrypto.TLFEphemeralPublicKey{},
+		kbfscrypto.TLFEphemeralPrivateKey{},
+		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
+		kbfscrypto.TLFCryptKey{}, storedTLFCryptKey)
+	require.NoError(t, err)
 
 	expectUncachedGetTLFCryptKeyAnyDevice(
 		config, rmd.TlfID(), rmd.LatestKeyGeneration(), uid, subkey,
@@ -384,13 +393,27 @@ func testKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T, ver 
 	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	storedTLFCryptKey1 := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 	storedTLFCryptKey2 := kbfscrypto.MakeTLFCryptKey([32]byte{0x2})
-	rmd.addKeyGenerationForTest(config.Codec(), config.Crypto(),
-		kbfscrypto.TLFCryptKey{}, storedTLFCryptKey1,
-		makeDirWKeyInfoMap(uid, subkey), UserDeviceKeyInfoMap{})
 
-	rmd.addKeyGenerationForTest(config.Codec(), config.Crypto(),
-		storedTLFCryptKey1, storedTLFCryptKey2,
-		makeDirWKeyInfoMap(uid, subkey), UserDeviceKeyInfoMap{})
+	crypto := MakeCryptoCommon(config.Codec())
+	_, err = rmd.AddKeyGeneration(config.Codec(), crypto,
+		makeDirWKeyInfoMap(uid, subkey), UserDevicePublicKeys{},
+		kbfscrypto.TLFEphemeralPublicKey{},
+		kbfscrypto.TLFEphemeralPrivateKey{},
+		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
+		kbfscrypto.TLFCryptKey{}, storedTLFCryptKey1)
+	require.NoError(t, err)
+
+	var currCryptKey kbfscrypto.TLFCryptKey
+	if rmd.StoresHistoricTLFCryptKeys() {
+		currCryptKey = storedTLFCryptKey1
+	}
+	_, err = rmd.AddKeyGeneration(config.Codec(), crypto,
+		makeDirWKeyInfoMap(uid, subkey), UserDevicePublicKeys{},
+		kbfscrypto.TLFEphemeralPublicKey{},
+		kbfscrypto.TLFEphemeralPrivateKey{},
+		kbfscrypto.TLFPublicKey{}, kbfscrypto.TLFPrivateKey{},
+		currCryptKey, storedTLFCryptKey2)
+	require.NoError(t, err)
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	storesHistoric := rmd.StoresHistoricTLFCryptKeys()
@@ -577,41 +600,159 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer
 	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 }
 
-func testKeyManagerPromoteReaderSuccessPrivate(t *testing.T, ver MetadataVer) {
-	mockCtrl, config, ctx := keyManagerInit(t, ver)
-	defer keyManagerShutdown(mockCtrl, config)
+func hasWriterKey(t *testing.T, rmd *RootMetadata, uid keybase1.UID) bool {
+	writers, _, err := rmd.getUserDevicePublicKeys()
+	require.NoError(t, err)
+	return len(writers[uid]) > 0
+}
+
+func hasReaderKey(t *testing.T, rmd *RootMetadata, uid keybase1.UID) bool {
+	_, readers, err := rmd.getUserDevicePublicKeys()
+	require.NoError(t, err)
+	return len(readers[uid]) > 0
+}
+
+func testKeyManagerPromoteReaderSuccess(t *testing.T, ver MetadataVer) {
+	ctx := context.Background()
+
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	id := tlf.FakeID(1, false)
 	h, err := ParseTlfHandle(ctx, config.KBPKI(),
 		"alice,bob@twitter#bob", false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
-	oldKeyGen := rmd.LatestKeyGeneration()
+	// Make the first key generation.
+	done, _, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
 
-	tlfCryptKey := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
-	expectRekey(config, h.ToBareHandleOrBust(), 2, true, true, tlfCryptKey)
+	aliceUID := keybase1.MakeTestUID(1)
+	bobUID := keybase1.MakeTestUID(2)
+
+	require.True(t, hasWriterKey(t, rmd, aliceUID))
+	require.False(t, hasWriterKey(t, rmd, bobUID))
+
+	oldKeyGen := rmd.LatestKeyGeneration()
 
 	// Pretend that bob@twitter now resolves to bob.
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
-	// Make the first key generation
-	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
-		t.Fatalf("Got error on rekey: %t, %+v", done, err)
-	}
+	// Rekey as alice.
+	done, _, err = config.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
 
-	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
-		t.Fatalf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
-	}
+	// Reader promotion shouldn't increase the key generation.
+	require.Equal(t, oldKeyGen, rmd.LatestKeyGeneration())
+
+	require.True(t, hasWriterKey(t, rmd, aliceUID))
+	require.True(t, hasWriterKey(t, rmd, bobUID))
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t,
 		CanonicalTlfName("alice,bob"),
 		newH.GetCanonicalName())
+}
+
+func testKeyManagerPromoteReaderSelf(t *testing.T, ver MetadataVer) {
+	ctx := context.Background()
+
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer CheckConfigAndShutdown(ctx, t, config)
+
+	id := tlf.FakeID(1, false)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,bob@twitter#bob", false)
+	require.NoError(t, err)
+
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
+
+	// Make the first key generation.
+	done, _, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+
+	aliceUID := keybase1.MakeTestUID(1)
+	bobUID := keybase1.MakeTestUID(2)
+
+	require.True(t, hasWriterKey(t, rmd, aliceUID))
+	require.False(t, hasWriterKey(t, rmd, bobUID))
+
+	oldKeyGen := rmd.LatestKeyGeneration()
+
+	config2 := ConfigAsUser(config, "bob")
+
+	// Pretend that bob@twitter now resolves to bob.
+	daemon := config2.KeybaseService().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
+
+	// Rekey as bob, which should still succeed.
+	done, _, err = config2.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+
+	// Reader promotion shouldn't increase the key generation.
+	require.Equal(t, oldKeyGen, rmd.LatestKeyGeneration())
+
+	require.True(t, hasWriterKey(t, rmd, aliceUID))
+	require.True(t, hasWriterKey(t, rmd, bobUID))
+
+	newH := rmd.GetTlfHandle()
+	require.Equal(t,
+		CanonicalTlfName("alice,bob"),
+		newH.GetCanonicalName())
+}
+
+func testKeyManagerReaderRekeyShouldNotPromote(t *testing.T, ver MetadataVer) {
+	ctx := context.Background()
+
+	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
+	defer CheckConfigAndShutdown(ctx, t, config)
+
+	id := tlf.FakeID(1, false)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,charlie@twitter#bob,charlie", false)
+	require.NoError(t, err)
+
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
+
+	// Make the first key generation.
+	done, _, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+
+	aliceUID := keybase1.MakeTestUID(1)
+	bobUID := keybase1.MakeTestUID(2)
+	charlieUID := keybase1.MakeTestUID(3)
+
+	require.True(t, hasWriterKey(t, rmd, aliceUID))
+	require.False(t, hasWriterKey(t, rmd, bobUID))
+	require.False(t, hasWriterKey(t, rmd, charlieUID))
+
+	config2 := ConfigAsUser(config, "bob")
+
+	// Pretend that charlie@twitter now resolves to charlie.
+	daemon := config2.KeybaseService().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
+
+	AddDeviceForLocalUserOrBust(t, config2, bobUID)
+
+	// Try to rekey as bob, which should succeed partially.
+	done, _, err = config2.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+
+	require.True(t, hasWriterKey(t, rmd, aliceUID))
+	require.False(t, hasWriterKey(t, rmd, bobUID))
+	require.False(t, hasWriterKey(t, rmd, charlieUID))
 }
 
 func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver MetadataVer) {
@@ -2006,7 +2147,9 @@ func TestKeyManager(t *testing.T) {
 		testKeyManagerRekeyResolveAgainSuccessPublic,
 		testKeyManagerRekeyResolveAgainSuccessPublicSelf,
 		testKeyManagerRekeyResolveAgainSuccessPrivate,
-		testKeyManagerPromoteReaderSuccessPrivate,
+		testKeyManagerPromoteReaderSuccess,
+		testKeyManagerPromoteReaderSelf,
+		testKeyManagerReaderRekeyShouldNotPromote,
 		testKeyManagerReaderRekeyResolveAgainSuccessPrivate,
 		testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate,
 		testKeyManagerRekeyAddAndRevokeDevice,

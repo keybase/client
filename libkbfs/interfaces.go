@@ -495,10 +495,9 @@ type KeyMetadata interface {
 	GetTlfHandle() *TlfHandle
 
 	// HasKeyForUser returns whether or not the given user has
-	// keys for at least one device at the given key
-	// generation. Returns false if the TLF is public, or if the
-	// given key generation is invalid.
-	HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool
+	// keys for at least one device. Returns an error if the TLF
+	// is public.
+	HasKeyForUser(user keybase1.UID) (bool, error)
 
 	// GetTLFCryptKeyParams returns all the necessary info to
 	// construct the TLF crypt key for the given key generation,
@@ -820,7 +819,7 @@ type cryptoPure interface {
 		kbfscrypto.TLFEphemeralPrivateKey, error)
 
 	// MakeRandomTLFKeys generates keys using a CSPRNG for a
-	// single key generation of TLF.
+	// single key generation of a TLF.
 	MakeRandomTLFKeys() (kbfscrypto.TLFPublicKey,
 		kbfscrypto.TLFPrivateKey, kbfscrypto.TLFCryptKey, error)
 	// MakeRandomTLFCryptKeyServerHalf generates the server-side of a
@@ -1625,6 +1624,12 @@ type RekeyQueue interface {
 type BareRootMetadata interface {
 	// TlfID returns the ID of the TLF this BareRootMetadata is for.
 	TlfID() tlf.ID
+	// KeyGenerationsToUpdate returns a range that has to be
+	// updated when rekeying. start is included, but end is not
+	// included. This range can be empty (i.e., start >= end), in
+	// which case there's nothing to update, i.e. the TLF is
+	// public, or there aren't any existing key generations.
+	KeyGenerationsToUpdate() (start KeyGen, end KeyGen)
 	// LatestKeyGeneration returns the most recent key generation in this
 	// BareRootMetadata, or PublicKeyGen if this TLF is public.
 	LatestKeyGeneration() KeyGen
@@ -1671,20 +1676,11 @@ type BareRootMetadata interface {
 	MakeBareTlfHandle(extra ExtraMetadata) (tlf.Handle, error)
 	// TlfHandleExtensions returns a list of handle extensions associated with the TLf.
 	TlfHandleExtensions() (extensions []tlf.HandleExtension)
-	// GetDeviceKIDs returns the KIDs (of
-	// kbfscrypto.CryptPublicKeys) for all known devices for the
-	// given user at the given key generation, if any.  Returns an
-	// error if the TLF is public, or if the given key generation
-	// is invalid.
-	GetDeviceKIDs(keyGen KeyGen, user keybase1.UID, extra ExtraMetadata) (
-		[]keybase1.KID, error)
-	// HasKeyForUser returns whether or not the given user has keys for at
-	// least one device at the given key generation. Returns false if the
-	// TLF is public, or if the given key generation is invalid. Equivalent to:
-	//
-	//   kids, err := GetDeviceKIDs(keyGen, user)
-	//   return (err == nil) && (len(kids) > 0)
-	HasKeyForUser(keyGen KeyGen, user keybase1.UID, extra ExtraMetadata) bool
+	// GetDevicePublicKeys returns the kbfscrypto.CryptPublicKeys
+	// for all known users and devices. Returns an error if the
+	// TLF is public.
+	GetUserDevicePublicKeys(extra ExtraMetadata) (
+		writers, readers UserDevicePublicKeys, err error)
 	// GetTLFCryptKeyParams returns all the necessary info to construct
 	// the TLF crypt key for the given key generation, user, and device
 	// (identified by its crypt public key), or false if not found. This
@@ -1734,11 +1730,10 @@ type BareRootMetadata interface {
 	// GetCurrentTLFPublicKey returns the TLF public key for the
 	// current key generation.
 	GetCurrentTLFPublicKey(ExtraMetadata) (kbfscrypto.TLFPublicKey, error)
-	// AreKeyGenerationsEqual returns true if all key generations in the passed metadata are equal to those
-	// in this revision.
-	AreKeyGenerationsEqual(kbfscodec.Codec, BareRootMetadata) (bool, error)
-	// GetUnresolvedParticipants returns any unresolved readers and writers present in this revision of metadata.
-	GetUnresolvedParticipants() (readers, writers []keybase1.SocialAssertion)
+	// GetUnresolvedParticipants returns any unresolved readers
+	// and writers present in this revision of metadata. The
+	// returned array should be safe to modify by the caller.
+	GetUnresolvedParticipants() []keybase1.SocialAssertion
 	// GetTLFWriterKeyBundleID returns the ID of the externally-stored writer key bundle, or the zero value if
 	// this object stores it internally.
 	GetTLFWriterKeyBundleID() TLFWriterKeyBundleID
@@ -1753,11 +1748,6 @@ type BareRootMetadata interface {
 	GetHistoricTLFCryptKey(c cryptoPure, keyGen KeyGen,
 		currentKey kbfscrypto.TLFCryptKey, extra ExtraMetadata) (
 		kbfscrypto.TLFCryptKey, error)
-	// GetUserDeviceKeyInfoMaps returns copies of the given user
-	// device key info maps for the given key generation.
-	GetUserDeviceKeyInfoMaps(
-		codec kbfscodec.Codec, keyGen KeyGen, extra ExtraMetadata) (
-		readers, writers UserDeviceKeyInfoMap, err error)
 }
 
 // MutableBareRootMetadata is a mutable interface to the bare serializeable MD that is signed by the reader or writer.
@@ -1819,57 +1809,56 @@ type MutableBareRootMetadata interface {
 	// SetTlfID sets the ID of the underlying folder in the metadata structure.
 	SetTlfID(tlf tlf.ID)
 
-	// addKeyGenerationForTest is like AddKeyGeneration, except
-	// currCryptKey and nextCryptKey don't have to be zero if
-	// StoresHistoricTLFCryptKeys is false, and takes in
-	// pre-filled UserDeviceKeyInfoMaps, and also calls
-	// FinalizeRekey.
-	addKeyGenerationForTest(codec kbfscodec.Codec, crypto cryptoPure,
-		prevExtra ExtraMetadata,
-		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
-		pubKey kbfscrypto.TLFPublicKey,
-		wDkim, rDkim UserDeviceKeyInfoMap) ExtraMetadata
-
 	// AddKeyGeneration adds a new key generation to this revision
 	// of metadata. If StoresHistoricTLFCryptKeys is false, then
-	// currCryptKey and nextCryptKey must be zero. Otherwise,
-	// nextCryptKey must be non-zero, and currCryptKey must be
+	// currCryptKey must be zero. Otherwise, currCryptKey must be
 	// zero if there are no existing key generations, and non-zero
 	// for otherwise.
 	//
 	// AddKeyGeneration must only be called on metadata for
 	// private TLFs.
+	//
+	// Note that the TLFPrivateKey corresponding to privKey must
+	// also be stored in PrivateMetadata.
 	AddKeyGeneration(codec kbfscodec.Codec, crypto cryptoPure,
-		prevExtra ExtraMetadata,
-		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
-		pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error)
-
-	// UpdateKeyGeneration ensures that every device in the given
-	// key generation for every writer and reader in the provided
-	// lists has complete TLF crypt key info, and uses the new
-	// ephemeral key pair to generate the info if it doesn't yet
-	// exist.
-	//
-	// wKeys and rKeys usually contains the full maps of writers
-	// to per-device crypt public keys, but for reader rekey,
-	// wKeys will be empty and rKeys will contain only a single
-	// entry.
-	//
-	// UpdateKeyGeneration must only be called on metadata for
-	// private TLFs.
-	//
-	// TODO: Also handle reader promotion.
-	//
-	// TODO: Move the key generation handling into this function.
-	UpdateKeyGeneration(crypto cryptoPure, keyGen KeyGen,
-		extra ExtraMetadata, wKeys, rKeys UserDevicePublicKeys,
+		currExtra ExtraMetadata,
+		updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 		ePubKey kbfscrypto.TLFEphemeralPublicKey,
 		ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
-		tlfCryptKey kbfscrypto.TLFCryptKey) (
-		UserDeviceKeyServerHalves, error)
+		pubKey kbfscrypto.TLFPublicKey,
+		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey) (
+		nextExtra ExtraMetadata,
+		serverHalves UserDeviceKeyServerHalves, err error)
 
-	// PromoteReader converts the given user from a reader to a writer.
-	PromoteReader(uid keybase1.UID, extra ExtraMetadata) error
+	// UpdateKeyBundles ensures that every device for every writer
+	// and reader in the provided lists has complete TLF crypt key
+	// info, and uses the new ephemeral key pair to generate the
+	// info if it doesn't yet exist. tlfCryptKeys must contain an
+	// entry for each key generation in KeyGenerationsToUpdate(),
+	// in ascending order.
+	//
+	// updatedWriterKeys and updatedReaderKeys usually contains
+	// the full maps of writers to per-device crypt public keys,
+	// but for reader rekey, updatedWriterKeys will be empty and
+	// updatedReaderKeys will contain only a single entry.
+	//
+	// UpdateKeyBundles must only be called on metadata for
+	// private TLFs.
+	//
+	// An array of server halves to push to the server are
+	// returned, with each entry corresponding to each key
+	// generation in KeyGenerationsToUpdate(), in ascending order.
+	UpdateKeyBundles(crypto cryptoPure, extra ExtraMetadata,
+		updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
+		ePubKey kbfscrypto.TLFEphemeralPublicKey,
+		ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+		tlfCryptKeys []kbfscrypto.TLFCryptKey) (
+		[]UserDeviceKeyServerHalves, error)
+
+	// PromoteReaders converts the given set of users (which may
+	// be empty) from readers to writers.
+	PromoteReaders(readersToPromote map[keybase1.UID]bool,
+		extra ExtraMetadata) error
 
 	// RevokeRemovedDevices removes key info for any device not in
 	// the given maps, and returns a corresponding map of server
@@ -1878,7 +1867,8 @@ type MutableBareRootMetadata interface {
 	// Note: the returned server halves may not be for all key
 	// generations, e.g. for MDv3 it's only for the latest key
 	// generation.
-	RevokeRemovedDevices(wKeys, rKeys UserDevicePublicKeys,
+	RevokeRemovedDevices(
+		updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 		extra ExtraMetadata) (ServerHalfRemovalInfo, error)
 
 	// FinalizeRekey must be called called after all rekeying work
