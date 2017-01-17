@@ -92,7 +92,11 @@ const Banner = (props: Props) => {
     return <BrokenTrackerBanner {...props} />
   }
 
-  return <Header style={{backgroundColor: globalColors.blue}} title={props.text} />
+  return ( 
+    <Header style={{backgroundColor: globalColors.blue}}>
+      <BannerText>{props.text}</BannerText>
+    </Header>
+  )
 }
 
 export default Banner
