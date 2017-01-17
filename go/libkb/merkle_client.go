@@ -743,7 +743,7 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 }
 
 // verify verifies the raw "Skip Sequence" ss. ss contains a list of MerkleRootPayloads beginning
-// with the most // recently returned root, and ending with the last root that we fetched. So for instance,
+// with the most recently returned root, and ending with the last root that we fetched. So for instance,
 // it might contain: [ 100, 84, 82, 81 ] in that case that we last fetched Seqno=81 and the server is
 // currently at Seqno=100.
 func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot Seqno, lastRoot Seqno) (err error) {
