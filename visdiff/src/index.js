@@ -79,6 +79,8 @@ function renderScreenshots (commitRange) {
       console.log(`Error creating work dir clone:`, result.error, result.stderr)
       process.exit(1)
     }
+  } else {
+    console.log(`Note: using existing work dir: ${WORK_DIR}. Try clearing out this directory if you are having problems.`)
   }
   const workPath = path.join(WORK_DIR, relPath)
   console.log(`Running in work dir: ${workPath}`)
