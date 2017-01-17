@@ -1,21 +1,21 @@
 // @flow
 import * as Constants from '../../constants/profile'
 import engine, {Engine} from '../../engine'
-import {cryptocurrencyRegisterAddressRpcPromise, proveStartProofRpcChannelMap, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select, race, take} from 'redux-saga/effects'
+import {cryptocurrencyRegisterAddressRpcPromise, proveStartProofRpcChannelMap, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
 import {navigateTo, navigateAppend} from '../route-tree'
 import {profileTab} from '../../constants/tabs'
 import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, safeTakeEvery} from '../../util/saga'
 
-import type {NavigateTo} from '../../constants/route-tree'
 import type {AddProof, CancelAddProof, CheckProof, CleanupUsername, SubmitBTCAddress, SubmitUsername, UpdateErrorText, UpdatePlatform, UpdateProofStatus, UpdateProofText, UpdateSigID, Waiting, SubmitZcashAddress} from '../../constants/profile'
+import type {NavigateTo} from '../../constants/route-tree'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 import type {SigID} from '../../constants/types/flow-types'
 import type {TypedState} from '../../constants/reducer'
 
 function _updatePlatform (platform: PlatformsExpandedType): UpdatePlatform {
-  return {type: Constants.updatePlatform, payload: {platform}}
+  return {payload: {platform}, type: Constants.updatePlatform}
 }
 
 function _askTextOrDNS (): NavigateTo {
@@ -31,51 +31,51 @@ function _registerZcash (): NavigateTo {
 }
 
 function addProof (platform: PlatformsExpandedType): AddProof {
-  return {type: Constants.addProof, payload: {platform}}
+  return {payload: {platform}, type: Constants.addProof}
 }
 
 function _cleanupUsername (): CleanupUsername {
-  return {type: Constants.cleanupUsername, payload: undefined}
+  return {payload: undefined, type: Constants.cleanupUsername}
 }
 
 function submitUsername (): SubmitUsername {
-  return {type: Constants.submitUsername, payload: undefined}
+  return {payload: undefined, type: Constants.submitUsername}
 }
 
 function cancelAddProof (): CancelAddProof {
-  return {type: Constants.cancelAddProof, payload: undefined}
+  return {payload: undefined, type: Constants.cancelAddProof}
 }
 
 function submitBTCAddress (): SubmitBTCAddress {
-  return {type: Constants.submitBTCAddress, payload: undefined}
+  return {payload: undefined, type: Constants.submitBTCAddress}
 }
 
 function submitZcashAddress (): SubmitZcashAddress {
-  return {type: Constants.submitZcashAddress, payload: undefined}
+  return {payload: undefined, type: Constants.submitZcashAddress}
 }
 
 function _updateProofText (proof: string): UpdateProofText {
-  return {type: Constants.updateProofText, payload: {proof}}
+  return {payload: {proof}, type: Constants.updateProofText}
 }
 
 function _updateProofStatus (found, status): UpdateProofStatus {
-  return {type: Constants.updateProofStatus, payload: {found, status}}
+  return {payload: {found, status}, type: Constants.updateProofStatus}
 }
 
 function _waitingForResponse (waiting: boolean): Waiting {
-  return {type: Constants.waiting, payload: {waiting}}
+  return {payload: {waiting}, type: Constants.waiting}
 }
 
 function _updateErrorText (errorText: ?string, errorCode: ?number): UpdateErrorText {
-  return {type: Constants.updateErrorText, payload: {errorText, errorCode}}
+  return {payload: {errorText, errorCode}, type: Constants.updateErrorText}
 }
 
 function _updateSigID (sigID: ?SigID): UpdateSigID {
-  return {type: Constants.updateSigID, payload: {sigID}}
+  return {payload: {sigID}, type: Constants.updateSigID}
 }
 
 function checkProof (): CheckProof {
-  return {type: Constants.checkProof, payload: undefined}
+  return {payload: undefined, type: Constants.checkProof}
 }
 
 function * _checkProof (action: CheckProof): SagaGenerator<any, any> {
@@ -167,17 +167,17 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
 
   while (true) {
     const incoming: {[key: string]: any} = yield race({
-      promptUsername: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptUsername'),
-      outputInstructions: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputInstructions'),
-      promptOverwrite: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptOverwrite'),
-      outputPrechecks: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputPrechecks'),
-      preProofWarning: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.preProofWarning'),
-      okToCheck: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.okToCheck'),
+      cancel: take(Constants.cancelAddProof),
+      checkProof: take(Constants.checkProof),
       displayRecheckWarning: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.displayRecheckWarning'),
       finished: takeFromChannelMap(proveStartProofChanMap, 'finished'),
-      cancel: take(Constants.cancelAddProof),
+      okToCheck: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.okToCheck'),
+      outputInstructions: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputInstructions'),
+      outputPrechecks: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputPrechecks'),
+      preProofWarning: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.preProofWarning'),
+      promptOverwrite: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptOverwrite'),
+      promptUsername: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptUsername'),
       submitUsername: take(Constants.submitUsername),
-      checkProof: take(Constants.checkProof),
     })
     yield put(_waitingForResponse(false))
 
@@ -186,7 +186,7 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
 
       const engineInst: Engine = yield call(engine)
 
-      const InputCancelError = {desc: 'Cancel Add Proof', code: ConstantsStatusCode.scinputcanceled}
+      const InputCancelError = {code: ConstantsStatusCode.scinputcanceled, desc: 'Cancel Add Proof'}
       if (_promptUsernameResponse) {
         yield call([engineInst, engineInst.cancelRPC], _promptUsernameResponse, InputCancelError)
         _promptUsernameResponse = null

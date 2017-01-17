@@ -5,16 +5,16 @@ import {fsListRpcPromise} from '../../constants/types/flow-types'
 import {openSaga, openInFileUISaga} from './index.platform'
 import {safeTakeLatest, safeTakeEvery} from '../../util/saga'
 
-import type {ListResult} from '../../constants/types/flow-types'
 import type {FSList, FSListed, FSOpen} from '../../constants/kbfs'
+import type {ListResult} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 
 function fsList (path: string) : FSList {
-  return {type: Constants.fsList, payload: {path}}
+  return {payload: {path}, type: Constants.fsList}
 }
 
 function openInKBFS (path: string = ''): FSOpen {
-  return {type: Constants.fsOpen, payload: {path}}
+  return {payload: {path}, type: Constants.fsOpen}
 }
 
 function * _listSaga (action: FSList): SagaGenerator<any, any> {
@@ -23,11 +23,11 @@ function * _listSaga (action: FSList): SagaGenerator<any, any> {
 
     if (result) {
       console.log('fs.List: ', result)
-      const listAction: FSListed = {type: Constants.fsListed, payload: result}
+      const listAction: FSListed = {payload: result, type: Constants.fsListed}
       yield put(listAction)
     }
   } catch (error) {
-    const listAction: FSListed = {type: Constants.fsListed, payload: error, error: true}
+    const listAction: FSListed = {error: true, payload: error, type: Constants.fsListed}
     yield put(listAction)
   }
 }

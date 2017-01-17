@@ -6,8 +6,8 @@ function readAppVersion () {
   const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
   const version = nativeBridge.version
   return {
-    type: Constants.readAppVersion,
     payload: {version},
+    type: Constants.readAppVersion,
   }
 }
 
