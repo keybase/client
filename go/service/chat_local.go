@@ -572,21 +572,14 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 
 	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
 	// could need expansion.  Look up the conversation metadata.
-	inbox, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &arg.ConversationID,
-		},
-	})
+	var rlimptr []*chat1.RateLimit
+	conv, err := chat.ConversationMetadata(ctx, h.remoteClient(), arg.ConversationID, &rlimptr)
 	if err != nil {
 		return deflt, err
 	}
-	if inbox.RateLimit != nil {
-		rlimits = append(rlimits, *inbox.RateLimit)
+	for _, r := range rlimptr {
+		rlimits = append(rlimits, *r)
 	}
-	if len(inbox.Inbox.Full().Conversations) == 0 {
-		return deflt, libkb.NotFoundError{}
-	}
-	conv := inbox.Inbox.Full().Conversations[0]
 
 	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs, conv.Metadata.FinalizeInfo)
 	if err != nil {

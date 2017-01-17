@@ -2,7 +2,6 @@ package chat
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/storage"
@@ -46,7 +45,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	var rl []*chat1.RateLimit
 
 	// Get conversation metadata in order to get finalize info
-	conv, err := s.getConvMetadata(ctx, convID, &rl)
+	conv, err := ConversationMetadata(ctx, s.ri(), convID, &rl)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -70,25 +69,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	return thread, rl, nil
 }
 
-// XXX refactor...dup of Hybrid one
-func (s *RemoteConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,
-	rl *[]*chat1.RateLimit) (chat1.Conversation, error) {
-
-	conv, err := s.ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &convID,
-		},
-	})
-	*rl = append(*rl, conv.RateLimit)
-	if err != nil {
-		return chat1.Conversation{}, storage.RemoteError{Msg: err.Error()}
-	}
-	if len(conv.Inbox.Full().Conversations) == 0 {
-		return chat1.Conversation{}, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
-	}
-	return conv.Inbox.Full().Conversations[0], nil
-}
-
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
 	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
@@ -105,8 +85,6 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 		ConversationID: convID,
 		MessageIDs:     msgIDs,
 	})
-
-	// rres.Msgs = utils.AppendTLFResetSuffix(rres.Msgs, finalizeInfo)
 
 	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, finalizeInfo)
 	if err != nil {
@@ -150,8 +128,10 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 
 	// is it possible that this will get called after a conversation has
 	// been finalized?  if so, we need this:
+	// I'm fine with having an error in that case (and thus speeding up this codepath
+	// by avoiding rpc call).
 	var rl []*chat1.RateLimit
-	conv, err := s.getConvMetadata(ctx, convID, &rl)
+	conv, err := ConversationMetadata(ctx, s.ri(), convID, &rl)
 	if err != nil {
 		return chat1.MessageUnboxed{}, continuousUpdate, err
 	}
@@ -185,24 +165,6 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	return decmsg, continuousUpdate, nil
-}
-
-func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,
-	rl *[]*chat1.RateLimit) (chat1.Conversation, error) {
-
-	conv, err := s.ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &convID,
-		},
-	})
-	*rl = append(*rl, conv.RateLimit)
-	if err != nil {
-		return chat1.Conversation{}, storage.RemoteError{Msg: err.Error()}
-	}
-	if len(conv.Inbox.Full().Conversations) == 0 {
-		return chat1.Conversation{}, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
-	}
-	return conv.Inbox.Full().Conversations[0], nil
 }
 
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
@@ -241,7 +203,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := s.getConvMetadata(ctx, convID, &rl)
+	conv, err := ConversationMetadata(ctx, s.ri(), convID, &rl)
 	if err == nil {
 		// Try locally first
 		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
@@ -417,8 +379,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		if err != nil {
 			return nil, err
 		}
-
-		// rmsgs.Msgs = utils.AppendTLFResetSuffix(rmsgs.Msgs, finalizeInfo)
 
 		// Unbox all the remote messages
 		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, finalizeInfo)
