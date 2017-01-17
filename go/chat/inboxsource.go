@@ -257,6 +257,16 @@ func NewHybridInboxSource(g *libkb.GlobalContext,
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
+	// We always want this on for fetches to fill the local inbox, otherwise we never get the
+	// full list for the conversations that come back
+	if query == nil {
+		query = &chat1.GetInboxQuery{
+			ComputeActiveList: true,
+		}
+	} else {
+		query.ComputeActiveList = true
+	}
+
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      query,
 		Pagination: p,
