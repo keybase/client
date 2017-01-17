@@ -44,8 +44,8 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	var rl []*chat1.RateLimit
 
-	// Get conversation metadata in order to get finalize info
-	conv, err := ConversationMetadata(ctx, s.ri(), convID, &rl)
+	conv, ratelim, err := ConversationMetadata(ctx, s.G().InboxSource, uid, convID)
+	rl = append(rl, ratelim)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -61,7 +61,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, rl, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Info.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -126,17 +126,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	var err error
 	continuousUpdate := false
 
-	// is it possible that this will get called after a conversation has
-	// been finalized?  if so, we need this:
-	// I'm fine with having an error in that case (and thus speeding up this codepath
-	// by avoiding rpc call).
-	var rl []*chat1.RateLimit
-	conv, err := ConversationMetadata(ctx, s.ri(), convID, &rl)
-	if err != nil {
-		return chat1.MessageUnboxed{}, continuousUpdate, err
-	}
+	// leaving this empty for message Push.
+	// In a rare case, this will result in an error if a push message
+	// coincides with an account reset.
+	var emptyFinalizeInfo *chat1.ConversationFinalizeInfo
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, msg, conv.Metadata.FinalizeInfo)
+	decmsg, err := s.boxer.UnboxMessage(ctx, msg, emptyFinalizeInfo)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -203,7 +198,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := ConversationMetadata(ctx, s.ri(), convID, &rl)
+	conv, ratelim, err := ConversationMetadata(ctx, s.G().InboxSource, uid, convID)
+	rl = append(rl, ratelim)
 	if err == nil {
 		// Try locally first
 		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
@@ -212,7 +208,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
 			// Identify this TLF by running crypt keys
-			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
+			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages, conv.Info.FinalizeInfo); ierr != nil {
 				s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
 				return chat1.ThreadView{}, nil, ierr
 			}
@@ -262,7 +258,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Unbox
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Info.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
