@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Markdown} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {globalStyles, globalColors} from '../../../styles'
 import MessageComponent from './shared.desktop'
 
 import type {Props} from './text'
