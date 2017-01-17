@@ -124,6 +124,9 @@ type gregorHandler struct {
 	pushStateFilter func(m gregor.Message) bool
 
 	shutdownCh chan struct{}
+
+	pingCtlCh       chan struct{}
+	pingLoopWaiting bool
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -158,6 +161,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 		badger:          nil,
 		identNotifier:   chat.NewIdentifyNotifier(g),
 		chatSync:        chat.NewSyncer(g),
+		pingCtlCh:       make(chan struct{}),
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -515,6 +519,16 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	go func(m gregor1.Message) {
 		g.BroadcastMessage(context.Background(), m)
 	}(g.makeReconnectOobm())
+
+	// Alert ping loop we are connected (if it cares)
+	if g.pingLoopWaiting {
+		select {
+		case g.pingCtlCh <- struct{}{}:
+			g.pingLoopWaiting = false
+		case <-ctx.Done():
+			return fmt.Errorf("OnConnect: context cancelled")
+		}
+	}
 
 	return nil
 }
@@ -1148,6 +1162,12 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 	return nil
 }
 
+func (g *gregorHandler) pingWaitForConnection() {
+	g.Debug("ping loop: waiting for connection")
+	<-g.pingCtlCh
+	g.Debug("ping loop: connected")
+}
+
 func (g *gregorHandler) pingLoop() {
 
 	duration := g.G().Env.GetGregorPingInterval()
@@ -1158,12 +1178,6 @@ func (g *gregorHandler) pingLoop() {
 	for {
 		select {
 		case <-g.G().Clock().After(duration):
-
-			if !g.IsConnected() {
-				g.Debug("ping loop: skipping ping since not connected")
-				continue
-			}
-
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(ctx)
 			cancel()
@@ -1172,12 +1186,16 @@ func (g *gregorHandler) pingLoop() {
 					g.Debug("ping loop: timeout: terminating connection")
 					g.Shutdown()
 
+					g.Lock()
+					g.pingLoopWaiting = true
+					g.Unlock()
 					if err := g.Connect(g.uri); err != nil {
 						g.Debug("ping loop: error connecting: %s", err.Error())
 					}
+
+					g.pingWaitForConnection()
 				}
 			}
-
 		case <-g.shutdownCh:
 			return
 		}
