@@ -27,7 +27,7 @@ import * as ChatTypes from '../constants/types/flow-types-chat'
 
 import type {Action} from '../constants/types/flux'
 import type {ChangedFocus} from '../constants/window'
-import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
@@ -47,6 +47,7 @@ import type {
   MetaData,
   Message,
   MessageID,
+  MessageState,
   NewChat,
   OpenFolder,
   PostMessage,
@@ -54,6 +55,7 @@ import type {
   SelectConversation,
   SetupChatHandlers,
   StartConversation,
+  TextMessage,
   UnhandledMessage,
   UpdateBadging,
   UpdateInbox,
@@ -100,6 +102,7 @@ const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
 const _focusedSelector = (state: TypedState) => state.chat.get('focused')
 const _conversationStateSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: Constants.updateBadging, payload: {conversationIDKey}}
@@ -424,8 +427,9 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       if (incomingMessage) {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
+        const yourDeviceName = yield select(_devicenameSelector)
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
-        const message = _unboxedToMessage(messageUnboxed, 0, yourName, conversationIDKey)
+        const message = _unboxedToMessage(messageUnboxed, 0, yourName, yourDeviceName, conversationIDKey)
 
         // Is this message for the currently selected and focused conversation?
         // And is the Chat tab the currently displayed route? If all that is
@@ -673,7 +677,8 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   }})
 
   const yourName = yield select(usernameSelector)
-  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, conversationIDKey)).reverse()
+  const yourDeviceName = yield select(_devicenameSelector)
+  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, yourDeviceName, conversationIDKey)).reverse()
   let newMessages = []
   messages.forEach((message, idx) => {
     if (idx > 0) {
@@ -749,7 +754,29 @@ const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, usernam
   key: `temp-${outboxID}`,
 })
 
-function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
+function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
+  if (message && message.state === LocalMessageUnboxedState.outbox && message.outbox) {
+    // Outbox messages are always text, not attachments.
+    const payload: OutboxRecord = message.outbox
+    const messageState: MessageState = (payload && payload.state && payload.state.state === 1) ? 'failed' : 'pending'
+    const messageBody: MessageBody = payload.Msg.messageBody
+    // $FlowIssue
+    const messageText: MessageText = messageBody.text
+    return {
+      author: yourName,
+      conversationIDKey,
+      deviceName: yourDeviceName,
+      deviceType: isMobile ? 'mobile' : 'desktop',
+      key: payload.outboxID,
+      message: new HiddenString(messageText && messageText.body || ''),
+      messageState,
+      outboxID: outboxIDToKey(payload.outboxID),
+      senderDeviceRevokedAt: null,
+      timestamp: payload.ctime,
+      type: 'Text',
+      you: yourName,
+    }
+  }
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
@@ -760,7 +787,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
         deviceType: toDeviceType(payload.senderDeviceType),
         timestamp: payload.serverHeader.ctime,
         messageID: payload.serverHeader.messageID,
-        conversationIDKey: conversationIDKey,
+        conversationIDKey,
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
       }
 
