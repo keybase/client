@@ -61,39 +61,6 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	return h
 }
 
-// GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
-func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInboxLocalArg) (inbox chat1.GetInboxLocalRes, err error) {
-	defer h.Trace(ctx, func() error { return err }, "GetInboxLocal")()
-	if err := h.assertLoggedIn(ctx); err != nil {
-		return chat1.GetInboxLocalRes{}, err
-	}
-
-	if arg.Query != nil && arg.Query.TopicName != nil {
-		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
-	}
-
-	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, h.identNotifier)
-	rquery, _, err := chat.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
-	if err != nil {
-		return chat1.GetInboxLocalRes{}, err
-	}
-	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query:      rquery,
-		Pagination: arg.Pagination,
-	})
-	if err != nil {
-		return chat1.GetInboxLocalRes{}, err
-	}
-
-	return chat1.GetInboxLocalRes{
-		ConversationsUnverified: ib.Inbox.Full().Conversations,
-		Pagination:              ib.Inbox.Full().Pagination,
-		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
-		IdentifyFailures:        breaks,
-	}, nil
-}
-
 func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 	if h.mockChatUI != nil {
 		return h.mockChatUI

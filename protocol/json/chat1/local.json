@@ -1350,29 +1350,6 @@
       ],
       "response": "GetThreadLocalRes"
     },
-    "getInboxLocal": {
-      "request": [
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "GetInboxLocalRes"
-    },
     "getInboxAndUnboxLocal": {
       "request": [
         {
