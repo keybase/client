@@ -75,7 +75,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
               containerStyle={{color: usernameColor, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')} />
-            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Markdown>}
+            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15, fontSize: 11, lineHeight: '15px'}}>{snippet}</Markdown>}
           </div>
         </div>
         <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
