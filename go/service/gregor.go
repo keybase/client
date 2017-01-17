@@ -526,7 +526,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		case g.pingCtlCh <- struct{}{}:
 			g.pingLoopWaiting = false
 		case <-ctx.Done():
-			return fmt.Errorf("OnConnect: context cancelled")
+			return ctx.Err()
 		}
 	}
 
