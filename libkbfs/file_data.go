@@ -886,14 +886,21 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 			needExtendFile := nextBlockOff < 0
 			needFillHole := off+nCopied < nextBlockOff
 			newBlockOff := startOff + int64(len(block.Contents))
-			if newBlockOff < off {
-				// We are writing somewhere inside a hole, not right
-				// at the start of it; all we have done so far it
-				// reached the end of an existing block (possibly
-				// zero-filling it out to its capacity).  Make sure
-				// the next block starts right at the offset we care
-				// about.
-				newBlockOff = off
+			if nCopied == 0 {
+				if newBlockOff < off {
+					// We are writing somewhere inside a hole, not right
+					// at the start of it; all we have done so far it
+					// reached the end of an existing block (possibly
+					// zero-filling it out to its capacity).  Make sure
+					// the next block starts right at the offset we care
+					// about.
+					newBlockOff = off
+				}
+			} else if newBlockOff != off+nCopied {
+				return newDe, nil, unrefs, newlyDirtiedChildBytes, 0,
+					fmt.Errorf("Copied %d bytes, but newBlockOff=%d does not "+
+						"match off=%d plus new bytes",
+						nCopied, newBlockOff, off)
 			}
 			var rightParents []parentBlockAndChildIndex
 			if needExtendFile || needFillHole {
