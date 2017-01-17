@@ -164,7 +164,13 @@ function reducer (state: State = initialState, action: Actions) {
           .set('time', message.timestamp)
 
         if (snippet) {
-          newInbox = newInbox.set('snippet', snippet)
+          newInbox = newInbox.set('snippet', snippet).set('snippetKey', message.key)
+        } else {
+          const oldSnippetID = inbox.get('snippetKey')
+          // Deleted the current showing snippet
+          if (oldSnippetID && deletedIDs.includes(oldSnippetID)) {
+            newInbox = newInbox.set('snippet', '').set('snippetKey', null)
+          }
         }
 
         const oldParticipants = newInbox.get('participants')
@@ -204,7 +210,16 @@ function reducer (state: State = initialState, action: Actions) {
             ...m,
             ...message,
           })
-        ))
+        )).update('inbox', inbox => inbox.map((i, inboxIdx) => {
+          // Update snippetKey to messge.messageID so we can clear deleted message snippets
+          if (i.get('conversationIDKey') === conversationIDKey) {
+            if (i.get('snippetKey') === outboxID && message.messageID) {
+              return i.set('snippetKey', message.messageID)
+            }
+          }
+          return i
+        })
+        )
       }
     }
     case 'chat:markSeenMessage': {
