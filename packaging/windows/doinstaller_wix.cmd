@@ -2,7 +2,6 @@
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::
-set GOARCH=386
 
 echo %KEYBASE_SECRET_STORE_FILE%
 :: This has to be reset too for a separate batch command
@@ -10,11 +9,15 @@ if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
 set SIGNTOOL=signtool
 set CERTISSUER=DigiCert
 
+if NOT DEFINED GOOS set GOOS=windows
+if NOT DEFINED GOARCH set GOARCH=amd64
+IF NOT DEFINED TARGETDIR set TARGETDIR=%GOPATH%\%GOOS%_%GOARCH%
+
 ::
 :: get the target build folder. Assume winresource.exe has been built.
 :: If not, go there and do "go generate"
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
-set PathName=%Folder%keybase.exe
+set PathName=%TARGETDIR%\keybase.exe
 
 if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build81
 echo DOKAN_PATH %DOKAN_PATH%
@@ -54,23 +57,28 @@ SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %PathName%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %TARGETDIR%\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %TARGETDIR%\upd.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %TARGETDIR%\runquiet.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %TARGETDIR%\dokanclean.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+if _%GOARCH%_ == _386_ (
+  SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+) else (
+  SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia64\Keybase-win32-ia64\Keybase.exe
+  
+)
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

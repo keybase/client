@@ -20,11 +20,15 @@ go generate
 
 if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
 
+if NOT DEFINED GOOS set GOOS=windows
+if NOT DEFINED GOARCH set GOARCH=amd64
+IF NOT DEFINED TARGETDIR set TARGETDIR=%GOPATH%\%GOOS%_%GOARCH%
+
 for /f %%i in ('winresource.exe -cv') do set KEYBASE_VERSION=%%i
 echo KEYBASE_VERSION %KEYBASE_VERSION%
 for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
 echo KEYBASE_BUILD %KEYBASE_BUILD%
-go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
+go build -a -o %TARGETDIR% -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
 
 
 :: Then build kbfsdokan.
@@ -44,28 +48,28 @@ for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HE
 for /f "tokens=1 delims=+" %%i in ("%KEYBASE_BUILD%") do set KBFS_BUILD=%%i+%KBFS_HASH%
 echo KBFS_BUILD %KBFS_BUILD%
 set CGO_ENABLED=1
-go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=%KBFS_BUILD%"
+go build -a -o %TARGETDIR%\kbfsdokan.exe -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=%KBFS_BUILD%"
 popd
 
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
-go build -a -o upd.exe
+go build -a -o %TARGETDIR%\upd.exe
 popd
 
 :: Runquiet
 pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
 ..\..\keybase\winresource.exe  -d "Keybase quiet start utility" -n "runquiet.exe" -i ../../../media/icons/Keybase.ico
-go build -ldflags "-H windowsgui"
+go build -o %TARGETDIR%\runquiet.exe -ldflags "-H windowsgui"
 popd
 
 :: dokanclean
 pushd %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean
-go build -a
+go build -a -o %TARGETDIR%\dokanclean.exe
 popd
 
 :: release
 pushd %GOPATH%\src\github.com\keybase\release
-go build -a
+go build -a -o %TARGETDIR%\release.exe
 popd
 
 
