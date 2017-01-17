@@ -306,21 +306,14 @@ func testFileDataWriteNewLevel(t *testing.T, levels float64) {
 
 }
 
-func TestFileDataWriteNewOneLevel(t *testing.T) {
-	testFileDataWriteNewLevel(t, 1)
-}
-
-func TestFileDataWriteNewTwoLevels(t *testing.T) {
-	testFileDataWriteNewLevel(t, 2)
-}
-
-func TestFileDataWriteNewThreeLevels(t *testing.T) {
-	testFileDataWriteNewLevel(t, 3)
-}
-
-// Test when new file data all fits into ten levels.
-func TestFileDataWriteNewTenLevels(t *testing.T) {
-	testFileDataWriteNewLevel(t, 10)
+func TestFileDataWriteNewLevel(t *testing.T) {
+	for _, level := range []float64{1, 2, 3, 10} {
+		// capture range variable.
+		level := level
+		t.Run(fmt.Sprintf("%dLevels", int(level)), func(t *testing.T) {
+			testFileDataWriteNewLevel(t, level)
+		})
+	}
 }
 
 func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
@@ -471,20 +464,14 @@ func testFileDataExtendExistingLevels(t *testing.T, levels float64) {
 		t, 2, 2, int64(halfCapacity), int64(capacity))
 }
 
-func TestFileDataExtendExistingOneLevel(t *testing.T) {
-	testFileDataExtendExistingLevels(t, 1)
-}
-
-func TestFileDataExtendExistingTwoLevels(t *testing.T) {
-	testFileDataExtendExistingLevels(t, 2)
-}
-
-func TestFileDataExtendExistingThreeLevels(t *testing.T) {
-	testFileDataExtendExistingLevels(t, 3)
-}
-
-func TestFileDataExtendExistingTenLevels(t *testing.T) {
-	testFileDataExtendExistingLevels(t, 10)
+func TestFileDataExtendExistingLevels(t *testing.T) {
+	for _, level := range []float64{1, 2, 3, 10} {
+		// capture range variable.
+		level := level
+		t.Run(fmt.Sprintf("%dLevels", int(level)), func(t *testing.T) {
+			testFileDataExtendExistingLevels(t, level)
+		})
+	}
 }
 
 func testFileDataOverwriteExistingFile(t *testing.T, maxBlockSize int64,
@@ -565,23 +552,32 @@ func testFileDataOverwriteExistingFile(t *testing.T, maxBlockSize int64,
 	require.True(t, bytes.Equal(data, gotData))
 }
 
-func TestFileDataWriteStartOfHole(t *testing.T) {
-	testFileDataOverwriteExistingFile(t, 2, 2, 10, []testFileDataHole{{5, 10}},
-		5, 8, []testFileDataHole{{8, 10}})
-}
+func TestFileDataWriteHole(t *testing.T) {
+	type test struct {
+		name  string
+		start int64
+		end   int64
+		final []testFileDataHole
+	}
 
-func TestFileDataWriteEndOfHole(t *testing.T) {
-	// The first final hole starts at 6, instead of 5, because a write
-	// extends the existing block.
-	testFileDataOverwriteExistingFile(t, 2, 2, 10, []testFileDataHole{{5, 10}},
-		8, 10, []testFileDataHole{{6, 8}, {10, 10}})
-}
+	tests := []test{
+		{"Start", 5, 8, []testFileDataHole{{8, 10}}},
+		// The first final hole starts at a6, instead of 5, because a write
+		// extends the existing block.
+		{"End", 8, 10, []testFileDataHole{{6, 8}, {10, 10}}},
+		// The first final hole starts at 6, instead of 5, because a write
+		// extends the existing block.
+		{"Middle", 7, 9, []testFileDataHole{{6, 7}, {9, 10}}},
+	}
 
-func TestFileDataWriteMiddleOfHole(t *testing.T) {
-	// The first final hole starts at 6, instead of 5, because a write
-	// extends the existing block.
-	testFileDataOverwriteExistingFile(t, 2, 2, 10, []testFileDataHole{{5, 10}},
-		7, 9, []testFileDataHole{{6, 7}, {9, 10}})
+	for _, test := range tests {
+		// capture range variable.
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			testFileDataOverwriteExistingFile(t, 2, 2, 10,
+				[]testFileDataHole{{5, 10}}, test.start, test.end, test.final)
+		})
+	}
 }
 
 func testFileDataCheckTruncateExtend(t *testing.T, fd *fileData,
@@ -654,12 +650,26 @@ func testFileDataTruncateExtendFile(t *testing.T, maxBlockSize int64,
 	require.True(t, bytes.Equal(data, gotData))
 }
 
-func TestFileDataTruncateExtendSameLevel(t *testing.T) {
-	testFileDataTruncateExtendFile(t, 2, 2, 5, 8, nil)
-}
+func TestFileDataTruncateExtendLevel(t *testing.T) {
+	type test struct {
+		name    string
+		currLen int64
+		newSize uint64
+	}
 
-func TestFileDataTruncateExtendNewLevel(t *testing.T) {
-	testFileDataTruncateExtendFile(t, 2, 2, 3, 8, nil)
+	tests := []test{
+		{"Same", 5, 8},
+		{"New", 3, 8},
+	}
+
+	for _, test := range tests {
+		// capture range variable.
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			testFileDataTruncateExtendFile(
+				t, 2, 2, test.currLen, test.newSize, nil)
+		})
+	}
 }
 
 func testFileDataCheckTruncateShrink(t *testing.T, fd *fileData,
@@ -726,14 +736,24 @@ func testFileDataShrinkExistingFile(t *testing.T, maxBlockSize int64,
 	require.True(t, bytes.Equal(data[:newSize], gotData))
 }
 
-func TestFileDataTruncateShrinkWithinBlock(t *testing.T) {
-	testFileDataShrinkExistingFile(t, 2, 2, 6, 5)
-}
+func TestFileDataTruncateShrink(t *testing.T) {
+	type test struct {
+		name    string
+		currLen int64
+		newSize uint64
+	}
 
-func TestFileDataTruncateShrinkWithinLevel(t *testing.T) {
-	testFileDataShrinkExistingFile(t, 2, 2, 8, 5)
-}
+	tests := []test{
+		{"WithinBlock", 6, 5},
+		{"WithinLevel", 8, 5},
+		{"ToZero", 8, 0},
+	}
 
-func TestFileDataTruncateShrinkToZero(t *testing.T) {
-	testFileDataShrinkExistingFile(t, 2, 2, 8, 0)
+	for _, test := range tests {
+		// capture range variable.
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			testFileDataShrinkExistingFile(t, 2, 2, test.currLen, test.newSize)
+		})
+	}
 }
