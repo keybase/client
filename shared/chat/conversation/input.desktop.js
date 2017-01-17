@@ -83,7 +83,7 @@ class Conversation extends Component<void, Props, State> {
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
           <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
             autoFocus={true}
@@ -126,15 +126,15 @@ class Conversation extends Component<void, Props, State> {
 
 const styleInput = {
   flex: 1,
+  marginTop: globalMargins.tiny,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
   textAlign: 'left',
 }
 
 const styleIcon = {
-  paddingTop: globalMargins.xtiny,
-  paddingLeft: globalMargins.xtiny,
-  paddingRight: globalMargins.xtiny,
+  paddingTop: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
 }
 
 const styleFooter = {

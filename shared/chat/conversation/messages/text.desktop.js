@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Markdown} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {globalStyles, globalColors} from '../../../styles'
 import MessageComponent from './shared.desktop'
 
 import type {Props} from './text'
@@ -31,19 +31,19 @@ export default class MessageTextComponent extends PureComponent<void, Props & {o
   }
 }
 
-const messageTextStyle = {
+const _messageTextStyle = {
+  marginTop: 2,
   flex: 1,
-  marginTop: globalMargins.xtiny,
   whiteSpace: 'pre-wrap',
 }
 
 const sentStyle = {
   ...globalStyles.selectable,
-  ...messageTextStyle,
+  ..._messageTextStyle,
 }
 
 const pendingFailStyle = {
   color: globalColors.black_40,
   ...globalStyles.selectable,
-  ...messageTextStyle,
+  ..._messageTextStyle,
 }

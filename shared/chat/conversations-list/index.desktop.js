@@ -2,7 +2,7 @@
 import React from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {formatTimeForConversationList} from '../../util/timestamp'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {participantFilter} from '../../constants/chat'
 import {shouldUpdate} from 'recompose'
 
@@ -34,7 +34,7 @@ const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: bo
     return globalColors.orange
   }
 
-  return isSelected ? globalColors.darkBlue2 : globalColors.darkBlue4
+  return isSelected ? globalColors.white : globalColors.darkBlue4
 }
 
 type RowProps = Props & {conversation: InboxState}
@@ -51,9 +51,11 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
     size: 24,
   })).toArray().reverse()
   const snippet = conversation.get('snippet')
-  const subColor = (isSelected || hasUnread) ? globalColors.white : globalColors.blue3_40
-  const backgroundColor = isSelected ? globalColors.darkBlue2 : hasUnread ? globalColors.darkBlue : globalColors.transparent
-  const boldOverride = hasUnread ? globalStyles.fontBold : null
+  const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
+  const backgroundColor = isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.transparent
+  const usernameColor = isSelected ? globalColors.black_75 : isMuted ? globalColors.blue3_40 : globalColors.white
+  const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
+  const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
   return (
     <div
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
@@ -61,22 +63,22 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
       style={{...rowContainerStyle, backgroundColor}}>
       <div style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
-        {isMuted && <Icon type='iconfont-shh' style={shhStyle} />}
+        {isMuted && <Icon type={shhIconType} style={shhStyle} />}
       </div>
-      <div style={{...globalStyles.flexBoxRow, flex: 1, borderBottom: `solid 1px ${globalColors.black_10}`, paddingRight: 8, paddingTop: 4, paddingBottom: 4}}>
+      <div style={{...globalStyles.flexBoxRow, ...conversationRowStyle, borderBottom: (!isSelected && !hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
         <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
           <div style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
             <Usernames
               inline={true}
               type='BodySemibold'
-              style={{...boldOverride, color: isMuted ? globalColors.blue3_40 : globalColors.white}}
-              containerStyle={{color: isMuted ? globalColors.blue3_40 : globalColors.white, paddingRight: 7}}
+              style={{...boldOverride, color: usernameColor}}
+              containerStyle={{color: usernameColor, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')} />
             {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Markdown>}
           </div>
         </div>
-        <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
       </div>
     </div>
   )
@@ -98,20 +100,16 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
 })(_Row)
 
 const shhStyle = {
-  color: globalColors.darkBlue2,
-  alignSelf: 'flex-end',
-  marginLeft: -5,
-  marginTop: 5,
-  // TODO remove this when we get the updated icon w/ the stroke
-  textShadow: `
-    -1px -1px 0 ${globalColors.darkBlue4},
-     1px -1px 0 ${globalColors.darkBlue4},
-    -1px  1px 0 ${globalColors.darkBlue4},
-     1px  1px 0 ${globalColors.darkBlue4},
-    -2px -2px 0 ${globalColors.darkBlue4},
-     2px -2px 0 ${globalColors.darkBlue4},
-    -2px  2px 0 ${globalColors.darkBlue4},
-     2px  2px 0 ${globalColors.darkBlue4}`,
+  marginLeft: -globalMargins.small,
+  marginTop: 20,
+  zIndex: 1,
+}
+
+const conversationRowStyle = {
+  flex: 1,
+  paddingRight: 8,
+  paddingTop: 4,
+  paddingBottom: 4,
 }
 
 const ConversationList = (props: Props) => (
