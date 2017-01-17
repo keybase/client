@@ -402,6 +402,10 @@ func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, arg chat1.TlfFinalizeA
 	return nil
 }
 
+func (m *ChatRemoteMock) TlfResolve(ctx context.Context, arg chat1.TlfResolveArg) error {
+	return nil
+}
+
 func (m *ChatRemoteMock) GetUnreadUpdateFull(ctx context.Context, inboxVers chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
 	return chat1.UnreadUpdateFull{}, errors.New("not implemented")
 }
