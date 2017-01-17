@@ -544,3 +544,60 @@ func TestCRChainsRemove(t *testing.T) {
 	require.Equal(t, removedChains[0].original, writtenFileUnref)
 	require.Len(t, removedChains[0].ops, 0)
 }
+
+func TestCRChainsCollapsedSyncOps(t *testing.T) {
+	chainMD := newChainMDForTest(t)
+
+	currPtr, ptrs, revPtrs := testCRInitPtrs(3)
+	rootPtrUnref := ptrs[0]
+	file1Unref := ptrs[1]
+	file2Unref := ptrs[2]
+	expected := make(map[BlockPointer]BlockPointer)
+
+	// Alternate contiguous writes between two files
+	currOff := uint64(0)
+	writeLen := uint64(10)
+	numWrites := uint64(3)
+	expected[rootPtrUnref] = rootPtrUnref
+	expected[file1Unref] = file1Unref
+	expected[file2Unref] = file2Unref
+
+	var so1, so2 *syncOp
+	var err error
+	for i := uint64(0); i < numWrites; i++ {
+		so1, err = newSyncOp(expected[file1Unref])
+		require.NoError(t, err)
+		so1.Writes = append(so1.Writes, WriteRange{Off: currOff, Len: writeLen})
+		currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+			[]BlockPointer{expected[rootPtrUnref], expected[file1Unref]}, so1)
+		chainMD.AddOp(so1)
+		chainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+
+		so2, err = newSyncOp(expected[file2Unref])
+		require.NoError(t, err)
+		so2.Writes = append(so2.Writes, WriteRange{Off: currOff, Len: writeLen})
+		currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+			[]BlockPointer{expected[rootPtrUnref], expected[file2Unref]}, so2)
+		chainMD.AddOp(so2)
+		chainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+
+		currOff += writeLen
+	}
+
+	chainMDs := []chainMetadata{chainMD}
+	cc, err := newCRChains(
+		context.Background(), makeChainCodec(), chainMDs, nil, true)
+	if err != nil {
+		t.Fatalf("Error making chains: %v", err)
+	}
+	checkExpectedChains(t, expected, make(map[BlockPointer]renameInfo),
+		rootPtrUnref, cc, true)
+
+	// newCRChains copies the ops, so modifying them now is ok.
+	so1.Writes = []WriteRange{{Off: 0, Len: writeLen * numWrites}}
+	so2.Writes = []WriteRange{{Off: 0, Len: writeLen * numWrites}}
+
+	// Check for the collapsed syncOps.
+	testCRCheckOps(t, cc, file1Unref, []op{so1})
+	testCRCheckOps(t, cc, file2Unref, []op{so2})
+}

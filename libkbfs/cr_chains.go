@@ -39,6 +39,8 @@ func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
 	originals map[BlockPointer]BlockPointer) (toUnrefs []BlockPointer) {
 	createsSeen := make(map[string]int)
 	indicesToRemove := make(map[int]bool)
+	var wr []WriteRange
+	lastSyncOp := -1
 	for i, op := range cc.ops {
 		switch realOp := op.(type) {
 		case *createOp:
@@ -76,6 +78,10 @@ func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
 			}
 		case *setAttrOp:
 			// TODO: Collapse opposite setex pairs
+		case *syncOp:
+			wr = realOp.collapseWriteRange(wr)
+			indicesToRemove[i] = true
+			lastSyncOp = i
 		default:
 			// ignore other op types
 		}
@@ -84,7 +90,15 @@ func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
 	if len(indicesToRemove) > 0 {
 		ops := make([]op, 0, len(cc.ops)-len(indicesToRemove))
 		for i, op := range cc.ops {
-			if !indicesToRemove[i] {
+			if i == lastSyncOp {
+				so, ok := op.(*syncOp)
+				if !ok {
+					panic(fmt.Sprintf(
+						"Op %s at index %d should have been a syncOp", op, i))
+				}
+				so.Writes = wr
+				ops = append(ops, op)
+			} else if !indicesToRemove[i] {
 				ops = append(ops, op)
 			}
 		}
@@ -120,6 +134,8 @@ func (cc *crChain) getActionsToMerge(
 	// other writes, we can just drop the unmerged syncs.
 	toSkip := make(map[int]bool)
 	if cc.isFile() && mergedChain != nil {
+		// The write ranges should already be collapsed into a single
+		// syncOp, these calls just find that one remaining syncOp.
 		myWriteRange := cc.getCollapsedWriteRange()
 		mergedWriteRange := mergedChain.getCollapsedWriteRange()
 
