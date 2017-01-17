@@ -39,11 +39,11 @@ const _messageTextStyle = {
 
 const sentStyle = {
   ...globalStyles.selectable,
-  ...messageTextStyle,
+  ..._messageTextStyle,
 }
 
 const pendingFailStyle = {
   color: globalColors.black_40,
   ...globalStyles.selectable,
-  ...messageTextStyle,
+  ..._messageTextStyle,
 }
