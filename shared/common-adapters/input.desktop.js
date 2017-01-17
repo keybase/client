@@ -184,7 +184,7 @@ class Input extends Component<void, Props, State> {
 
     const inputStyle = {
       ...commonInputStyle,
-      height: this.props.small ? 18 : 28, 
+      height: this.props.small ? 18 : 28,
     }
 
     const textareaStyle = {
@@ -198,7 +198,6 @@ class Input extends Component<void, Props, State> {
       ...(this.props.rowsMax
         ? {maxHeight: this._rowsToHeight(this.props.rowsMax)}
         : {overflowY: 'hidden'}),
-      
     }
 
     const floatingHintText = !!this.state.value.length &&

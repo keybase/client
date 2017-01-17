@@ -71,8 +71,8 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
             <Usernames
               inline={true}
               type='BodySemibold'
-              style={{...boldOverride, color:usernameColor}}
-              containerStyle={{color:usernameColor, paddingRight: 7}}
+              style={{...boldOverride, color: usernameColor}}
+              containerStyle={{color: usernameColor, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')} />
             {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Text>}
@@ -106,11 +106,11 @@ const shhStyle = {
 }
 
 const conversationRowStyle = {
-    flex: 1, 
-    paddingRight: 8, 
-    paddingTop: 4, 
-    paddingBottom: 4
-  }
+  flex: 1,
+  paddingRight: 8,
+  paddingTop: 4,
+  paddingBottom: 4,
+}
 
 const ConversationList = (props: Props) => (
   <div style={{...globalStyles.flexBoxRow, flex: 1}}>

@@ -2,7 +2,7 @@
 import React from 'react'
 import {Map} from 'immutable'
 import {Box, Avatar, Text, Usernames, Divider, Icon} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {globalStyles, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
