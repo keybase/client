@@ -30,6 +30,7 @@ type NodeHash interface {
 	Check(s string) bool // Check if the node hashes to this string
 	String() string
 	bytes() []byte
+	IsNil() bool
 }
 
 type NodeHashShort [NodeHashLenShort]byte
@@ -69,6 +70,14 @@ func (h1 NodeHashLong) String() string {
 
 func (h1 NodeHashLong) bytes() []byte {
 	return h1[:]
+}
+
+func (h1 NodeHashLong) IsNil() bool {
+	return false
+}
+
+func (h1 NodeHashShort) IsNil() bool {
+	return false
 }
 
 func (h1 NodeHashLong) Check(s string) bool {
@@ -136,6 +145,10 @@ func (h *NodeHashAny) UnmarshalJSON(b []byte) error {
 		return errors.New("unknown hash type")
 	}
 	return nil
+}
+
+func (h NodeHashAny) IsNil() bool {
+	return h.s == nil && h.l == nil
 }
 
 func (h1 *NodeHashShort) UnmarshalJSON(b []byte) error {
@@ -547,6 +560,17 @@ func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArg
 	return ret, ss, res, err
 }
 
+func readSkipSequenceFromStringList(v []string) (ret SkipSequence, err error) {
+	for _, s := range v {
+		var p MerkleRootPayload
+		if p, err = NewMerkleRootPayloadFromJSONString(s); err != nil {
+			return nil, err
+		}
+		ret = append(ret, p)
+	}
+	return ret, nil
+}
+
 // readSkipSequenceFromAPIRes returns a SkipSequence. We construct the sequence by starting with the
 // most recent merkle root, adding the "skip" pointers returned by the server, and finally bookending
 // with the merkle root we last fetched from the DB. In verifySkipSequence, we walk over this Sequence
@@ -574,17 +598,15 @@ func (mc *MerkleClient) readSkipSequenceFromAPIRes(ctx context.Context, res *API
 		return nil, err
 	}
 
+	ret, err = readSkipSequenceFromStringList(v)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create the skip sequence by bookending the list the server replies with
 	// with: (1) the most recent root, sent back in this reply; and (2) our last
 	// root, which we read out of cache (in memory or on disk)
-	ret = SkipSequence{thisRoot.payload}
-	for _, s := range v {
-		var p MerkleRootPayload
-		if p, err = NewMerkleRootPayloadFromJSONString(s); err != nil {
-			return nil, err
-		}
-		ret = append(ret, p)
-	}
+	ret = append(SkipSequence{thisRoot.payload}, ret...)
 	ret = append(ret, lastRoot.payload)
 
 	return ret, nil
@@ -687,7 +709,7 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 		}
 	}
 	var nilKID keybase1.KID
-	return nilKID, "", MerkleClientError{"no known verifying key"}
+	return nilKID, "", MerkleClientError{"no known verifying key", merkleErrorNoKnownKey}
 }
 
 func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence, thisRoot *MerkleRoot, lastRoot *MerkleRoot) (err error) {
@@ -715,30 +737,16 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 			mc.G().Log.CDebugf(ctx, "| thisRoot is the same as lastRoot (%d), so OK", int(*lastRoot.Seqno()))
 			return nil
 		}
-		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(*lastRoot.Seqno()))}
+		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(*lastRoot.Seqno())), merkleErrorNoSkipSequence}
 	}
-
-	// Enforce the invariant that the most recently published merkle root and the last gotten
-	// merkle root are the bookends of the sequence.  we should have set up datastructures
-	// previously so this is the case
-	if *thisRoot.Seqno() != ss[0].seqno() {
-		msg := fmt.Sprintf("expected the left bookend of the SkipSequence to be this root, but %d != %d", *thisRoot.Seqno(), ss[0].seqno())
-		panic(msg)
-	}
-
-	if *lastRoot.Seqno() != ss[len(ss)-1].seqno() {
-		msg := fmt.Sprintf("expected the right bookend of the SkipSequence to be last root, but %d != %d", *thisRoot.Seqno(), ss[len(ss)-1].seqno())
-		panic(msg)
-	}
-
-	return ss.verify(ctx, mc.G())
+	return ss.verify(ctx, mc.G(), *thisRoot.Seqno(), *lastRoot.Seqno())
 }
 
 // verify verifies the raw "Skip Sequence" ss. ss contains a list of MerkleRootPayloads beginning
 // with the most // recently returned root, and ending with the last root that we fetched. So for instance,
 // it might contain: [ 100, 84, 82, 81 ] in that case that we last fetched Seqno=81 and the server is
 // currently at Seqno=100.
-func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext) (err error) {
+func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot Seqno, lastRoot Seqno) (err error) {
 	defer g.CTrace(ctx, "SkipSequence#verify", func() error { return err })()
 
 	for index := 0; index < len(ss)-1; index++ {
@@ -748,20 +756,31 @@ func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext) (err error)
 
 		// First check that the merkle Seqno sequence is strictly decreasing
 		if thisRoot <= prevRoot {
-			return MerkleClientError{fmt.Sprintf("Sequence error: %d <= %d", thisRoot, prevRoot)}
+			return MerkleClientError{fmt.Sprintf("Sequence error: %d <= %d", thisRoot, prevRoot), merkleErrorSkipSequence}
 		}
 
 		// Next compare the skip pointer in this merkle root against the hash of the previous
 		// root in the merkle root sequence. They must be equal.
 		hash := ss[index].skipToSeqno(prevRoot)
-		if hash == nil {
-			return MerkleClientError{fmt.Sprintf("Skip missing at %d->%d", thisRoot, prevRoot)}
+		if hash == nil || hash.IsNil() {
+			return MerkleClientError{fmt.Sprintf("Skip missing at %d->%d", thisRoot, prevRoot), merkleErrorSkipMissing}
 		}
 		if !hashEq(hash, ss[nextIndex].shortHash()) {
 			g.Log.CDebugf(ctx, "| Failure in hashes: %s != %s", hash.String(), ss[nextIndex].shortHash().String())
-			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", thisRoot, prevRoot)}
+			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", thisRoot, prevRoot), merkleErrorSkipHashMismatch}
 		}
 	}
+
+	// Enforce the invariant that the most recently published merkle root and the last gotten
+	// merkle root are the bookends of the sequence.  we should have set up datastructures
+	// previously so this is the case
+	if thisRoot != ss[0].seqno() {
+		return MerkleClientError{fmt.Sprintf("expected the left bookend of the SkipSequence to be this root, but %d != %d", thisRoot, ss[0].seqno()), merkleErrorNoLeftBookend}
+	}
+	if lastRoot != ss[len(ss)-1].seqno() {
+		return MerkleClientError{fmt.Sprintf("expected the right bookend of the SkipSequence to be last root, but %d != %d", thisRoot, ss[len(ss)-1].seqno()), merkleErrorNoRightBookend}
+	}
+
 	return nil
 }
 
@@ -797,7 +816,7 @@ func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot
 	mc.G().Log.CDebugf(ctx, "- Merkle: server sig verified")
 
 	if key == nil {
-		return MerkleClientError{"no known verifying key"}
+		return MerkleClientError{"no known verifying key", merkleErrorNoKnownKey}
 	}
 
 	// Actually run the PGP verification over the signature
@@ -969,7 +988,7 @@ func (vp *VerificationPath) verifyUsername(ctx context.Context) (username string
 	var leaf *jsonw.Wrapper
 
 	if vp.root.LegacyUIDRootHash() == nil {
-		err = MerkleClientError{"no legacy UID root hash found in root"}
+		err = MerkleClientError{"no legacy UID root hash found in root", merkleErrorNoLegacyUIDRoot}
 		return
 	}
 
@@ -1173,7 +1192,7 @@ func (mul *MerkleUserLeaf) MatchUser(u *User, uid keybase1.UID, nun NormalizedUs
 	if mul.username != u.GetName() {
 		err = MerkleClashError{fmt.Sprintf("vs loaded object: username %s != %s", mul.username, u.GetName())}
 	} else if mul.uid.NotEqual(u.GetUID()) {
-		err = MerkleClientError{fmt.Sprintf("vs loaded object: UID %s != %s", mul.uid, u.GetUID())}
+		err = MerkleClientError{fmt.Sprintf("vs loaded object: UID %s != %s", mul.uid, u.GetUID()), merkleErrorUIDMismatch}
 	} else if !nun.IsNil() && !NewNormalizedUsername(mul.username).Eq(nun) {
 		err = MerkleClashError{fmt.Sprintf("vs given arg: username %s != %s", mul.username, nun)}
 	} else if uid.NotEqual(mul.uid) {

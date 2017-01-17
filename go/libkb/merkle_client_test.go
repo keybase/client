@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"encoding/json"
+	"golang.org/x/net/context"
 	"testing"
 )
 
@@ -31,5 +32,34 @@ func TestMerkleRootPayloadUnmarshalWithoutSkips(t *testing.T) {
 	}
 	if r.Body.Skips != nil {
 		t.Fatal("expected an empty skip table")
+	}
+}
+
+func TestMerkleSkipVectors(t *testing.T) {
+	tc := SetupTest(t, "TestMerkleSkipVectors", 1)
+	defer tc.Cleanup()
+	for i, v := range merkleSkipTestVectors {
+		ss, err := readSkipSequenceFromStringList(v.data)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = ss.verify(context.TODO(), tc.G, skipTestVectorsThisRoot, skipTestVectorsLastRoot)
+
+		tc.G.Log.Info("Iteration %d: test %s: %v", i, v.name, err)
+
+		if v.e == merkleErrorNone && err != nil {
+			t.Fatalf("Expected no error in test %s, but got %s", v.name, err)
+		}
+
+		if v.e == merkleErrorNone {
+			continue
+		}
+		me, ok := err.(MerkleClientError)
+		if !ok {
+			t.Fatalf("Got an unexpected error type in test %s: %T (%v)", v.name, err, err)
+		}
+		if me.t != v.e {
+			t.Fatalf("Got wrong error type in test %s: %v != %v", v.name, me.t, v.e)
+		}
 	}
 }
