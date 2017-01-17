@@ -424,7 +424,7 @@ class CellSizeCache extends defaultCellMeasurerCellSizeCache {
 
 export default ConversationList
 
-if (__DEV__) {
+if (__DEV__ && typeof window !== 'undefined') {
   window.showReactVirtualListMeasurer = () => {
     const holder = window.document.body.lastChild
     holder.style.zIndex = 9999
