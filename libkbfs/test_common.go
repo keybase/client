@@ -57,7 +57,8 @@ func newConfigForTest(loggerFn func(module string) logger.Logger) *ConfigLocal {
 		testBlockRetrievalWorkerQueueSize)
 	config.SetBlockOps(bops)
 
-	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
+	config.SetBlockSplitter(&BlockSplitterSimple{
+		64 * 1024, int((^uint(0)) >> 1), 8 * 1024})
 
 	return config
 }

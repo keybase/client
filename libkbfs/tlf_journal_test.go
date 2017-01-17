@@ -198,7 +198,8 @@ func setupTLFJournalTest(
 	cancel context.CancelFunc, tlfJournal *tlfJournal,
 	delegate testBWDelegate) {
 	// Set up config and dependencies.
-	bsplitter := &BlockSplitterSimple{64 * 1024, 8 * 1024}
+	bsplitter := &BlockSplitterSimple{
+		64 * 1024, int(64 * 1024 / bpSize), 8 * 1024}
 	codec := kbfscodec.NewMsgpack()
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")

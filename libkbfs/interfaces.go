@@ -1309,6 +1309,10 @@ type BlockSplitter interface {
 	// bytes from the next block should be appended.
 	CheckSplit(block *FileBlock) int64
 
+	// MaxPtrsPerBlock describes the number of indirect pointers we
+	// can fit into one indirect block.
+	MaxPtrsPerBlock() int
+
 	// ShouldEmbedBlockChanges decides whether we should keep the
 	// block changes embedded in the MD or not.
 	ShouldEmbedBlockChanges(bc *BlockChanges) bool

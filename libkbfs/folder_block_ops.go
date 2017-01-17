@@ -1359,8 +1359,8 @@ func (fbo *folderBlockOps) Write(
 // creates a hole.
 func (fbo *folderBlockOps) truncateExtendLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadata,
-	file path, size uint64) (WriteRange, []BlockPointer, error) {
-
+	file path, size uint64, parentBlocks []parentBlockAndChildIndex) (
+	WriteRange, []BlockPointer, error) {
 	if size > fbo.config.MaxFileBytes() {
 		return WriteRange{}, nil, FileTooBigError{file, int64(size), fbo.config.MaxFileBytes()}
 	}
@@ -1377,7 +1377,8 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 		return WriteRange{}, nil, err
 	}
 	df := fbo.getOrCreateDirtyFileLocked(lState, file)
-	newDe, dirtyPtrs, err := fd.truncateExtend(ctx, size, fblock, de, df)
+	newDe, dirtyPtrs, err := fd.truncateExtend(
+		ctx, size, fblock, parentBlocks, de, df)
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
@@ -1426,7 +1427,7 @@ func (fbo *folderBlockOps) truncateLocked(
 
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
-	_, _, block, nextBlockOff, startOff, _, err :=
+	_, parentBlocks, block, nextBlockOff, startOff, _, err :=
 		fd.getFileBlockAtOffset(ctx, fblock, iSize, blockWrite)
 	if err != nil {
 		return &WriteRange{}, nil, 0, err
@@ -1435,7 +1436,7 @@ func (fbo *folderBlockOps) truncateLocked(
 	currLen := int64(startOff) + int64(len(block.Contents))
 	if currLen+truncateExtendCutoffPoint < iSize {
 		latestWrite, dirtyPtrs, err := fbo.truncateExtendLocked(
-			ctx, lState, kmd, file, uint64(iSize))
+			ctx, lState, kmd, file, uint64(iSize), parentBlocks)
 		if err != nil {
 			return &latestWrite, dirtyPtrs, 0, err
 		}
@@ -1465,7 +1466,7 @@ func (fbo *folderBlockOps) truncateLocked(
 		return nil, nil, 0, err
 	}
 
-	newDe, unrefs, newlyDirtiedChildBytes, err := fd.truncateShrink(
+	newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, err := fd.truncateShrink(
 		ctx, size, fblock, de)
 	// Record the unrefs before checking the error so we remember the
 	// state of newly dirtied blocks.
@@ -1481,7 +1482,7 @@ func (fbo *folderBlockOps) truncateLocked(
 	latestWrite := si.op.addTruncate(size)
 	fbo.deCache[file.tailPointer().Ref()] = newDe
 
-	return &latestWrite, nil, newlyDirtiedChildBytes, nil
+	return &latestWrite, dirtyPtrs, newlyDirtiedChildBytes, nil
 }
 
 // Truncate truncates or extends the given file to the given size.
@@ -1816,7 +1817,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 
 	// If needed, split the children blocks up along new boundaries
 	// (e.g., if using a fingerprint-based block splitter).
-	unrefs, err := fd.split(ctx, fbo.id(), dirtyBcache, fblock)
+	unrefs, err := fd.split(ctx, fbo.id(), dirtyBcache, fblock, df)
 	// Preserve any unrefs before checking the error.
 	for _, unref := range unrefs {
 		md.AddUnrefBlock(unref)
