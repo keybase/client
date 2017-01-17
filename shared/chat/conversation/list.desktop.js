@@ -11,7 +11,7 @@ import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {ProgressIndicator} from '../../common-adapters'
+import {Icon} from '../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import {clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../styles'
@@ -284,7 +284,6 @@ class ConversationList extends Component<void, Props, State> {
     if (!this.props.validated) {
       return (
         <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
-          <ProgressIndicator style={{width: 20}} />
         </div>
       )
     }
