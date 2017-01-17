@@ -113,7 +113,7 @@ func TestChatMessageBox(t *testing.T) {
 	msg := textMsg(t, "hello")
 	tc, boxer := setupChatTest(t, "box")
 	defer tc.Cleanup()
-	boxed, err := boxer.boxMessageWithKeysV1(msg, key, getSigningKeyPairForTest(t, tc, nil))
+	boxed, err := boxer.boxMessageWithKeys(msg, key, getSigningKeyPairForTest(t, tc, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +137,7 @@ func TestChatMessageUnbox(t *testing.T) {
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
+	boxed, err := boxer.boxMessageWithKeys(msg, key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +184,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 		return sum[:]
 	}
 
-	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
+	boxed, err := boxer.boxMessageWithKeys(msg, key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -331,7 +331,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 		return sigInfo, nil
 	}
 
-	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
+	boxed, err := boxer.boxMessageWithKeys(msg, key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -369,7 +369,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
+	boxed, err := boxer.boxMessageWithKeys(msg, key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -430,7 +430,7 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 	// Sign a message using a key of u's that has been revoked
 	t.Logf("signing message")
 	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
-	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
+	boxed, err := boxer.boxMessageWithKeys(msg, key, signKP)
 	require.NoError(t, err)
 
 	boxed.ServerHeader = &chat1.MessageServerHeader{
@@ -483,7 +483,7 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 	// Sign a message using a key of u's that has not yet been revoked
 	t.Logf("signing message")
 	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
-	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
+	boxed, err := boxer.boxMessageWithKeys(msg, key, signKP)
 	require.NoError(t, err)
 
 	boxed.ServerHeader = &chat1.MessageServerHeader{
