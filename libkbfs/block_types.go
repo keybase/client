@@ -210,7 +210,7 @@ func (fb *FileBlock) Set(other Block, codec kbfscodec.Codec) {
 	fb.cacheMtx.Lock()
 	defer fb.cacheMtx.Unlock()
 	fb.cachedEncodedSize = copy.cachedEncodedSize
-	fb.hash = copy.hash
+	// Don't copy the hash so it's calculated automatically when it's needed.
 }
 
 // DeepCopy makes a complete copy of a FileBlock
@@ -222,8 +222,8 @@ func (fb *FileBlock) DeepCopy(codec kbfscodec.Codec) (*FileBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	fileBlockCopy.hash = fb.hash.Copy()
 	fileBlockCopy.cachedEncodedSize = fb.cachedEncodedSize
+	// Don't copy the hash so it's calculated automatically when it's needed.
 	return &fileBlockCopy, nil
 }
 
