@@ -460,20 +460,20 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         }
 
         const conversationState = yield select(_conversationStateSelector, conversationIDKey)
-
-        if (message.type === 'Text' && message.outboxID && yourName === message.author) {
-          // If the message has an outboxID, then we sent it and have already
-          // rendered it in the message list; we just need to mark it as sent.
+        if (message.type === 'Text' && message.outboxID && message.deviceName === yourDeviceName && yourName === message.author) {
+          // If the message has an outboxID and came from our device, then we
+          // sent it and have already rendered it in the message list; we just
+          // need to mark it as sent.
           yield put(({
-            type: 'chat:updateTempMessage',
             payload: {
               conversationIDKey,
-              outboxID: message.outboxID,
               message: {
                 ...message,
                 messageState: 'sent',
               },
+              outboxID: message.outboxID,
             },
+            type: 'chat:updateTempMessage',
           }: Constants.UpdateTempMessage))
 
           const messageID = message.messageID
