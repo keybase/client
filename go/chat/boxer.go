@@ -247,15 +247,13 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
-func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID) (thread chat1.ThreadView, err error) {
-
-	// XXX need to look up finalize info for convID
+func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID, finalizeInfo *chat1.ConversationFinalizeInfo) (thread chat1.ThreadView, err error) {
 
 	thread = chat1.ThreadView{
 		Pagination: boxed.Pagination,
 	}
 
-	if thread.Messages, err = b.UnboxMessages(ctx, boxed.Messages, nil /* finalizeInfo */); err != nil {
+	if thread.Messages, err = b.UnboxMessages(ctx, boxed.Messages, finalizeInfo); err != nil {
 		return chat1.ThreadView{}, err
 	}
 

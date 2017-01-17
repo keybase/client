@@ -43,23 +43,50 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, []*chat1.RateLimit{}, errors.New("RemoteConversationSource.Pull called with empty convID")
 	}
 
+	var rl []*chat1.RateLimit
+
+	// Get conversation metadata in order to get finalize info
+	conv, err := s.getConvMetadata(ctx, convID, &rl)
+	if err != nil {
+		return chat1.ThreadView{}, rl, err
+	}
+
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
-	rl := []*chat1.RateLimit{boxed.RateLimit}
+	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
 
 	return thread, rl, nil
+}
+
+// XXX refactor...dup of Hybrid one
+func (s *RemoteConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,
+	rl *[]*chat1.RateLimit) (chat1.Conversation, error) {
+
+	conv, err := s.ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			ConvID: &convID,
+		},
+	})
+	*rl = append(*rl, conv.RateLimit)
+	if err != nil {
+		return chat1.Conversation{}, storage.RemoteError{Msg: err.Error()}
+	}
+	if len(conv.Inbox.Full().Conversations) == 0 {
+		return chat1.Conversation{}, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
+	}
+	return conv.Inbox.Full().Conversations[0], nil
 }
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
@@ -121,10 +148,15 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	var err error
 	continuousUpdate := false
 
-	// XXX who calls this?
-	// XXX getConvMetadata(convID) to get finalize info?  or does caller have it?
+	// is it possible that this will get called after a conversation has
+	// been finalized?  if so, we need this:
+	var rl []*chat1.RateLimit
+	conv, err := s.getConvMetadata(ctx, convID, &rl)
+	if err != nil {
+		return chat1.MessageUnboxed{}, continuousUpdate, err
+	}
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, msg, nil /* XXX need finalizeInfo */)
+	decmsg, err := s.boxer.UnboxMessage(ctx, msg, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -267,10 +299,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, rl, err
 	}
 
-	boxed.Thread.Messages = utils.AppendTLFResetSuffix(boxed.Thread.Messages, conv.Metadata.FinalizeInfo)
-
 	// Unbox
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
