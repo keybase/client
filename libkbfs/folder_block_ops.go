@@ -2663,7 +2663,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 		fbo.log.CDebugf(ctx, "Fast-forwarding %v -> %v",
 			child.BlockPointer, entry.BlockPointer)
 		fbo.updatePointer(kmd, child.BlockPointer,
-			entry.BlockPointer, false)
+			entry.BlockPointer, true)
 		node := fbo.nodeCache.Get(entry.BlockPointer.Ref())
 		newPath := fbo.nodeCache.PathFromNode(node)
 		if entry.Type == Dir {
