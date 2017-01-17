@@ -665,27 +665,25 @@ func (fd *fileData) newRightBlock(
 }
 
 // shiftBlocksToFillHole should be called after newRightBlock when the
-// offset for the new block (`newHoleStartOff`) is smaller than the
-// size of the file.  This happens when there is a hole in the file,
-// and the user is now writing data into that hole.  This function
-// moves the new block into the correct place, and rearranges all the
-// indirect pointers in the file as needed.  It returns any block
-// pointers that were dirtied in the process.
+// offset for the new block is smaller than the size of the file.
+// This happens when there is a hole in the file, and the user is now
+// writing data into that hole.  This function moves the new block
+// into the correct place, and rearranges all the indirect pointers in
+// the file as needed.  It returns any block pointers that were
+// dirtied in the process.
 func (fd *fileData) shiftBlocksToFillHole(
-	ctx context.Context, newTopBlock *FileBlock, newHoleStartOff int64,
+	ctx context.Context, newTopBlock *FileBlock,
 	parents []parentBlockAndChildIndex) (
 	newDirtyPtrs []BlockPointer, err error) {
-	fd.log.CDebugf(ctx, "Shifting block with offset %d for file %v into "+
-		"position", newHoleStartOff, fd.rootBlockPointer())
 
-	// Walk down the right side of the tree to find the new rightmost
-	// indirect pointer, the offset of which should match
-	// `newHoleStartOff`.  Keep swapping it with its sibling on the
-	// left until its offset would be lower than that child's offset.
-	// If there are no children to the left, continue on with the
-	// children in the cousin block to the left.  If we swap a child
-	// between cousin blocks, we must update the offset in the right
-	// cousin's parent block.  If *that* updated pointer is the
+	// `parents` should represent the right side of the tree down to
+	// the new rightmost indirect pointer, the offset of which should
+	// match `newHoleStartOff`.  Keep swapping it with its sibling on
+	// the left until its offset would be lower than that child's
+	// offset.  If there are no children to the left, continue on with
+	// the children in the cousin block to the left.  If we swap a
+	// child between cousin blocks, we must update the offset in the
+	// right cousin's parent block.  If *that* updated pointer is the
 	// leftmost pointer in its parent block, update that one as well,
 	// up to the root.
 	//
@@ -694,10 +692,10 @@ func (fd *fileData) shiftBlocksToFillHole(
 	// `shiftBlocksToFillHole`.
 	immedParent := parents[len(parents)-1]
 	currIndex := immedParent.childIndex
-	if off := immedParent.pblock.IPtrs[currIndex].Off; off != newHoleStartOff {
-		return nil, fmt.Errorf("Offset of rightmost block %d doesn't "+
-			"match newHoleStartOff %d", off, newHoleStartOff)
-	}
+	newBlockStartOff := immedParent.childIPtr().Off
+
+	fd.log.CDebugf(ctx, "Shifting block with offset %d for file %v into "+
+		"position", newBlockStartOff, fd.rootBlockPointer())
 
 	// Swap left as needed.
 	for {
@@ -742,7 +740,7 @@ func (fd *fileData) shiftBlocksToFillHole(
 		}
 
 		// We're done!
-		if leftOff < newHoleStartOff {
+		if leftOff < newBlockStartOff {
 			return newDirtyPtrs, nil
 		}
 
@@ -934,7 +932,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 			// the hole and shift everything else over.
 			if needFillHole {
 				newDirtyPtrs, err := fd.shiftBlocksToFillHole(
-					ctx, topBlock, newBlockOff, rightParents)
+					ctx, topBlock, rightParents)
 				if err != nil {
 					return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 				}
@@ -1182,6 +1180,11 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 					} else if removeStartingFromIndex < len(pblock.IPtrs) {
 						// Make sure we're modifying a copy of the
 						// block by fetching it again with blockWrite.
+						// We do this instead of calling DeepCopy in
+						// case the a copy of the block has already
+						// been made and put into the dirty
+						// cache. (e.g., in a previous iteration of
+						// this loop).
 						pblock, _, err = fd.getter(
 							ctx, fd.kmd, parentInfo.BlockPointer, fd.file,
 							blockWrite)
