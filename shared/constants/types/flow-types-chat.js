@@ -189,18 +189,6 @@ export function localGetInboxAndUnboxLocalRpcPromise (request: $Exact<requestCom
   return new Promise((resolve, reject) => { localGetInboxAndUnboxLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function localGetInboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.getInboxLocal'})
-}
-
-export function localGetInboxLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localGetInboxLocalRpc({...request, incomingCallMap, callback}))
-}
-
-export function localGetInboxLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>): Promise<localGetInboxLocalResult> {
-  return new Promise((resolve, reject) => { localGetInboxLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
 export function localGetInboxNonblockLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNonblockLocalResult) => void} & {param: localGetInboxNonblockLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.getInboxNonblockLocal'})
 }
@@ -1288,12 +1276,6 @@ export type localGetInboxAndUnboxLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
-export type localGetInboxLocalRpcParam = Exact<{
-  query?: ?GetInboxLocalQuery,
-  pagination?: ?Pagination,
-  identifyBehavior: keybase1.TLFIdentifyBehavior
-}>
-
 export type localGetInboxNonblockLocalRpcParam = Exact<{
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination,
@@ -1478,8 +1460,6 @@ type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
 
-type localGetInboxLocalResult = GetInboxLocalRes
-
 type localGetInboxNonblockLocalResult = GetInboxNonblockLocalRes
 
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
@@ -1538,7 +1518,6 @@ export type rpc =
   | localDownloadFileAttachmentLocalRpc
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
-  | localGetInboxLocalRpc
   | localGetInboxNonblockLocalRpc
   | localGetInboxSummaryForCLILocalRpc
   | localGetMessagesLocalRpc
