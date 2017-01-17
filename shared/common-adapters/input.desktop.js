@@ -171,7 +171,6 @@ class Input extends Component<void, Props, State> {
         fontSize: _bodyTextStyle.fontSize,
         fontWeight: _bodyTextStyle.fontWeight,
         lineHeight: _bodyTextStyle.lineHeight,
-        height: 18,
       }
       : {
         textAlign: 'center',
@@ -180,12 +179,12 @@ class Input extends Component<void, Props, State> {
         lineHeight: _headerTextStyle.lineHeight,
         minWidth: 333,
         borderBottom: `1px solid ${underlineColor}`,
-        height: 28,
       }),
     }
 
     const inputStyle = {
       ...commonInputStyle,
+      height: this.props.small ? 18 : 28, 
     }
 
     const textareaStyle = {
