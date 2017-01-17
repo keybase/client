@@ -998,8 +998,24 @@ func (i InactiveKeyError) Error() string {
 
 //=============================================================================
 
+type merkleClientErrorType int
+
+const (
+	merkleErrorNone merkleClientErrorType = iota
+	merkleErrorNoKnownKey
+	merkleErrorNoLegacyUIDRoot
+	merkleErrorUIDMismatch
+	merkleErrorNoSkipSequence
+	merkleErrorSkipSequence
+	merkleErrorSkipMissing
+	merkleErrorSkipHashMismatch
+	merkleErrorNoLeftBookend
+	merkleErrorNoRightBookend
+)
+
 type MerkleClientError struct {
 	m string
+	t merkleClientErrorType
 }
 
 func (m MerkleClientError) Error() string {
