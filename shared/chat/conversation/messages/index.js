@@ -92,7 +92,7 @@ const factory = (options: Options) => {
         onAction={onAction}
         />
     default:
-      return <Box key={key} style={style} />
+      return <Box key={key} style={style} msgType={message.type} />
   }
 }
 
