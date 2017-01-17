@@ -71,8 +71,8 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.Messag
 // Returns (_, err) for non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
 // Permanent errors can be cached and must be treated as a value to deal with.
 // Whereas temporary errors are transient failures.
-func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed) (chat1.MessageUnboxed, UnboxingError) {
-	tlfName := boxed.ClientHeader.TlfName
+func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) (chat1.MessageUnboxed, UnboxingError) {
+	tlfName := boxed.ClientHeader.TLFNameExpanded(finalizeInfo)
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
@@ -248,11 +248,14 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
 func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID) (thread chat1.ThreadView, err error) {
+
+	// XXX need to look up finalize info for convID
+
 	thread = chat1.ThreadView{
 		Pagination: boxed.Pagination,
 	}
 
-	if thread.Messages, err = b.UnboxMessages(ctx, boxed.Messages); err != nil {
+	if thread.Messages, err = b.UnboxMessages(ctx, boxed.Messages, nil /* finalizeInfo */); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
@@ -273,9 +276,9 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.Messa
 	return b.getUsernameAndDevice(ctx, uid, did)
 }
 
-func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
+func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) (unboxed []chat1.MessageUnboxed, err error) {
 	for _, msg := range boxed {
-		decmsg, err := b.UnboxMessage(ctx, msg)
+		decmsg, err := b.UnboxMessage(ctx, msg, finalizeInfo)
 		if err != nil {
 			return unboxed, err
 		}

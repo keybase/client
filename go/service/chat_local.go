@@ -568,7 +568,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	// XXX if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
 	// needs to be adjusted.
 
-	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs)
+	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs, nil /* XXX need finalizeInfo */)
 	if err != nil {
 		return deflt, err
 	}

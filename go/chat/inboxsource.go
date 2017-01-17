@@ -103,11 +103,15 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 	query *chat1.GetInboxLocalQuery, tlfInfo *TLFInfo) (res []chat1.ConversationLocal, err error) {
 
 	for _, convLocal := range convLocals {
+
 		if rquery != nil && rquery.TlfID != nil {
 			// inbox query contained a TLF name, so check to make sure that
 			// the conversation from the server matches tlfInfo from kbfs
+
 			if convLocal.Info.TLFNameExpanded() != tlfInfo.CanonicalName {
-				return nil, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TLFNameExpanded(), tlfInfo.CanonicalName)
+				if convLocal.Error == nil {
+					return nil, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s", convLocal.Info.TLFNameExpanded(), tlfInfo.CanonicalName)
+				}
 			}
 			if convLocal.Info.Visibility != rquery.Visibility() {
 				return nil, fmt.Errorf("server conversation TLF visibility mismatch: %s, expected %s", convLocal.Info.Visibility, rquery.Visibility())

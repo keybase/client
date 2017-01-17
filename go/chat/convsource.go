@@ -79,9 +79,9 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 		MessageIDs:     msgIDs,
 	})
 
-	rres.Msgs = utils.AppendTLFResetSuffix(rres.Msgs, finalizeInfo)
+	// rres.Msgs = utils.AppendTLFResetSuffix(rres.Msgs, finalizeInfo)
 
-	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs)
+	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, finalizeInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-	return s.boxer.UnboxMessages(ctx, msgs)
+	return s.boxer.UnboxMessages(ctx, msgs, finalizeInfo)
 }
 
 type HybridConversationSource struct {
@@ -121,7 +121,10 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	var err error
 	continuousUpdate := false
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, msg)
+	// XXX who calls this?
+	// XXX getConvMetadata(convID) to get finalize info?  or does caller have it?
+
+	decmsg, err := s.boxer.UnboxMessage(ctx, msg, nil /* XXX need finalizeInfo */)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -385,10 +388,10 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 			return nil, err
 		}
 
-		rmsgs.Msgs = utils.AppendTLFResetSuffix(rmsgs.Msgs, finalizeInfo)
+		// rmsgs.Msgs = utils.AppendTLFResetSuffix(rmsgs.Msgs, finalizeInfo)
 
 		// Unbox all the remote messages
-		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs)
+		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, finalizeInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -452,7 +455,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
 		} else {
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, finalizeInfo)
 			if err != nil {
 				return res, err
 			}
