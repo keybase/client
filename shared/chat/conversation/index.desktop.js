@@ -40,6 +40,7 @@ const Conversation = (props: Props) => {
         onLoadMoreMessages={props.onLoadMoreMessages}
         onOpenInFileUI={props.onOpenInFileUI}
         onOpenInPopup={props.onOpenInPopup}
+        onRetryAttachment={props.onRetryAttachment}
         onRetryMessage={props.onRetryMessage}
         onShowProfile={props.onShowProfile}
         participants={props.participants}

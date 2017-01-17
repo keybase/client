@@ -243,7 +243,9 @@ export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversati
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
-export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType}>
+
+// Pass an outboxID to specify that we are retrying an attachment
+export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType, outboxID?: OutboxIDKey}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   outboxID: OutboxIDKey,

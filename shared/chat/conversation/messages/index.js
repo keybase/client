@@ -9,8 +9,6 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 
 import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMap} from '../../../constants/chat'
 
-const _onRetryTodo = (message: Message) => console.log('todo, hookup attachment onRetry, ', message)
-
 type Options = {
   message: Message,
   includeHeader: boolean,
@@ -25,6 +23,7 @@ type Options = {
   onOpenInFileUI: (path: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
   onRetry: (outboxID: string) => void,
+  onRetryAttachment: () => void,
   you: string,
   metaDataMap: MetaDataMap,
   followingMap: FollowingMap,
@@ -43,6 +42,7 @@ const factory = (options: Options) => {
     onOpenInFileUI,
     onOpenInPopup,
     onRetry,
+    onRetryAttachment,
     you,
     metaDataMap,
     followingMap,
@@ -82,7 +82,7 @@ const factory = (options: Options) => {
         metaDataMap={metaDataMap}
         followingMap={followingMap}
         message={message}
-        onRetry={_onRetryTodo}
+        onRetry={onRetryAttachment}
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         onLoadAttachment={onLoadAttachment}

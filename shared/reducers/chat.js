@@ -16,7 +16,7 @@ function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
   const filteredAppend = append.filter(m => !seenMessages.has(m.key))
 
   const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
-  const updatedMessages = messages.filter(m => !deletedIDs.has(m.messageID)).map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
+  const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
   // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
   const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
   const nextSeenMessages = Set(nextMessages.map(m => m.key))
@@ -191,8 +191,18 @@ function reducer (state: State = initialState, action: Actions) {
     }
     case 'chat:updateTempMessage': {
       if (action.error) {
-        // TODO
-        return state
+        console.warn('Error in updateTempMessage')
+        const {conversationIDKey, outboxID} = action.payload
+        // $FlowIssue
+        return state.update('conversationStates', conversationStates => updateConversationMessage(
+          conversationStates,
+          conversationIDKey,
+          item => !!item.outboxID && item.outboxID === outboxID,
+          m => ({
+            ...m,
+            messageState: 'failed',
+          })
+        ))
       } else {
         const {outboxID, message, conversationIDKey} = action.payload
         // $FlowIssue

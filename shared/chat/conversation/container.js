@@ -6,7 +6,7 @@ import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment, retryAttachment} from '../../actions/chat'
 import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
@@ -124,6 +124,7 @@ export default connect(
     onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
     onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{props: {message}, selected: 'attachment'}])),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
+    onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
     onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
