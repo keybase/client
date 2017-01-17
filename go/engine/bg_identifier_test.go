@@ -38,11 +38,11 @@ func TestBackgroundIdentifier(t *testing.T) {
 	defer runUntrack(tc.G, fu, "t_bob")
 
 	endCh := make(chan struct{})
-	snoopCh := make(chan identifyJob, 100)
+	snoopCh := make(chan IdentifyJob, 100)
 
 	bgi := NewBackgroundIdentifier(tc.G, endCh)
 	ctx := Context{}
-	bgi.setSnooperChannel(snoopCh)
+	bgi.SetSnooperChannel(snoopCh)
 	bgi.testArgs = &BackgroundIdentifierTestArgs{
 		identify2TestArgs: &Identify2WithUIDTestArgs{
 			noCache:          true,
@@ -65,8 +65,8 @@ func TestBackgroundIdentifier(t *testing.T) {
 		err = RunEngine(bgi, &ctx)
 	}()
 
-	pullExactlyOneJob := func() identifyJob {
-		var ret identifyJob
+	pullExactlyOneJob := func() IdentifyJob {
+		var ret IdentifyJob
 		select {
 		case ret = <-snoopCh:
 		case <-time.After(10 * time.Second):
@@ -86,7 +86,7 @@ func TestBackgroundIdentifier(t *testing.T) {
 		return ret
 	}
 
-	assertExactlyOneJob := func(i identifyJob) {
+	assertExactlyOneJob := func(i IdentifyJob) {
 		job := pullExactlyOneJob()
 		if job.uid != i.uid {
 			panic("wrong UID %s")
@@ -113,9 +113,9 @@ func TestBackgroundIdentifier(t *testing.T) {
 
 	assertTracyAdded := func() {
 		bgi.Add(tracy.GetUID())
-		assertExactlyOneJob(identifyJob{uid: tracy.GetUID()})
+		assertExactlyOneJob(IdentifyJob{uid: tracy.GetUID()})
 		advance(bgIdentifyWaitClean + time.Second)
-		assertExactlyOneJob(identifyJob{uid: tracy.GetUID()})
+		assertExactlyOneJob(IdentifyJob{uid: tracy.GetUID()})
 	}
 
 	assertTracyAdded()
@@ -128,35 +128,35 @@ func TestBackgroundIdentifier(t *testing.T) {
 	advance(20 * time.Second)
 
 	bgi.Add(bob.GetUID())
-	assertExactlyOneJob(identifyJob{uid: bob.GetUID()})
+	assertExactlyOneJob(IdentifyJob{uid: bob.GetUID()})
 	advance(bgIdentifyWaitClean - 5*time.Second)
-	assertExactlyOneJob(identifyJob{uid: tracy.GetUID()})
+	assertExactlyOneJob(IdentifyJob{uid: tracy.GetUID()})
 	advance(10 * time.Second)
-	assertExactlyOneJob(identifyJob{uid: bob.GetUID()})
+	assertExactlyOneJob(IdentifyJob{uid: bob.GetUID()})
 
 	origXAPI := tc.G.XAPI
 	flakeyAPI := flakeyRooterAPI{orig: origXAPI, flakeOut: true, G: tc.G}
 	tc.G.XAPI = &flakeyAPI
 	advance(bgIdentifyWaitClean - 5*time.Second)
-	assertExactlyOneJob(identifyJob{uid: tracy.GetUID(), err: errBackgroundIdentifierBadProofsSoft})
+	assertExactlyOneJob(IdentifyJob{uid: tracy.GetUID(), err: errBackgroundIdentifierBadProofsSoft})
 
 	advance(10 * time.Second)
-	assertExactlyOneJob(identifyJob{uid: bob.GetUID()})
+	assertExactlyOneJob(IdentifyJob{uid: bob.GetUID()})
 	advance(bgIdentifyWaitSoftFailure)
-	assertExactlyOneJob(identifyJob{uid: tracy.GetUID(), err: errBackgroundIdentifierBadProofsSoft})
+	assertExactlyOneJob(IdentifyJob{uid: tracy.GetUID(), err: errBackgroundIdentifierBadProofsSoft})
 
 	flakeyAPI.hardFail = true
 	advance(bgIdentifyWaitSoftFailure + time.Second)
-	assertExactlyOneJob(identifyJob{uid: tracy.GetUID(), err: errBackgroundIdentifierBadProofsHard})
+	assertExactlyOneJob(IdentifyJob{uid: tracy.GetUID(), err: errBackgroundIdentifierBadProofsHard})
 	advance(bgIdentifyWaitSoftFailure + time.Second)
 	assertNoJobs()
 
 	advance(bgIdentifyWaitHardFailure + time.Second)
-	assertExactlyOneJob(identifyJob{uid: tracy.GetUID(), err: errBackgroundIdentifierBadProofsHard})
+	assertExactlyOneJob(IdentifyJob{uid: tracy.GetUID(), err: errBackgroundIdentifierBadProofsHard})
 
 	tc.G.XAPI = origXAPI
 	advance(bgIdentifyWaitHardFailure + time.Second)
-	assertExactlyOneJob(identifyJob{uid: tracy.GetUID()})
+	assertExactlyOneJob(IdentifyJob{uid: tracy.GetUID()})
 	advance(bgIdentifyWaitSoftFailure + time.Second)
 	assertNoJobs()
 
