@@ -1379,7 +1379,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		return
 	}
 
-	idt.G().Log.CWarningf(ctx, "| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
+	idt.G().Log.CDebugf(ctx, "| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
 
 	return
 }
