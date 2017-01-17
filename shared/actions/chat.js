@@ -853,7 +853,6 @@ function * _openFolder (): SagaGenerator<any, any> {
   if (inbox) {
     const helper = inbox.get('info').visibility === CommonTLFVisibility.public ? publicFolderWithUsers : privateFolderWithUsers
     const path = helper(inbox.get('participants').toArray())
-    debugger
     yield put(openInKBFS(path))
   } else {
     throw new Error(`Can't find conversation path`)
