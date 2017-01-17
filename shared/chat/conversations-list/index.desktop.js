@@ -78,7 +78,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
             {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15}}>{snippet}</Text>}
           </div>
         </div>
-        <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
       </div>
     </div>
   )
@@ -100,9 +100,8 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
 })(_Row)
 
 const shhStyle = {
-  alignSelf: 'flex-end',
-  marginLeft: -globalMargins.tiny,
-  marginTop: -globalMargins.xtiny,
+  marginLeft: -globalMargins.small,
+  marginTop: 20,
   zIndex: 1,
 }
 
