@@ -153,8 +153,6 @@ class Input extends Component<void, Props, State> {
     }
   }
 
-
-
   render () {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
