@@ -174,6 +174,11 @@ export const ConstantsStatusCode = {
   scidentifysummaryerror: 2511,
 }
 
+export const CtlDbType = {
+  main: 0,
+  chat: 1,
+}
+
 export const CtlExitCode = {
   ok: 0,
   notok: 2,
@@ -981,6 +986,30 @@ export function ctlAppExitRpcPromise (request: $Exact<requestCommon & requestErr
   return new Promise((resolve, reject) => { ctlAppExitRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function ctlDbDeleteRpc (request: Exact<requestCommon & requestErrorCallback & {param: ctlDbDeleteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.ctl.dbDelete'})
+}
+
+export function ctlDbDeleteRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbDeleteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => ctlDbDeleteRpc({...request, incomingCallMap, callback}))
+}
+
+export function ctlDbDeleteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbDeleteRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlDbDeleteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function ctlDbGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: ctlDbGetResult) => void} & {param: ctlDbGetRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.ctl.dbGet'})
+}
+
+export function ctlDbGetRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: ctlDbGetResult) => void} & {param: ctlDbGetRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => ctlDbGetRpc({...request, incomingCallMap, callback}))
+}
+
+export function ctlDbGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: ctlDbGetResult) => void} & {param: ctlDbGetRpcParam}>): Promise<ctlDbGetResult> {
+  return new Promise((resolve, reject) => { ctlDbGetRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function ctlDbNukeRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'keybase.1.ctl.dbNuke'})
 }
@@ -991,6 +1020,18 @@ export function ctlDbNukeRpcChannelMap (channelConfig: ChannelConfig<*>, request
 
 export function ctlDbNukeRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
   return new Promise((resolve, reject) => { ctlDbNukeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function ctlDbPutRpc (request: Exact<requestCommon & requestErrorCallback & {param: ctlDbPutRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.ctl.dbPut'})
+}
+
+export function ctlDbPutRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbPutRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => ctlDbPutRpc({...request, incomingCallMap, callback}))
+}
+
+export function ctlDbPutRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ctlDbPutRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlDbPutRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function ctlLogRotateRpc (request: Exact<requestCommon & requestErrorCallback>) {
@@ -2864,6 +2905,18 @@ export type Cryptocurrency = {
 
 export type CsrfToken = string
 
+export type DbKey = {
+  dbType: DbType,
+  objType: int,
+  key: string,
+}
+
+export type DbType = 
+    0 // MAIN_0
+  | 1 // CHAT_1
+
+export type DbValue = bytes
+
 export type Device = {
   type: string,
   name: string,
@@ -4356,6 +4409,19 @@ export type cryptocurrencyRegisterAddressRpcParam = Exact<{
   wantedFamily: string
 }>
 
+export type ctlDbDeleteRpcParam = Exact<{
+  key: DbKey
+}>
+
+export type ctlDbGetRpcParam = Exact<{
+  key: DbKey
+}>
+
+export type ctlDbPutRpcParam = Exact<{
+  key: DbKey,
+  value: DbValue
+}>
+
 export type ctlStopRpcParam = Exact<{
   exitCode: ExitCode
 }>
@@ -5179,6 +5245,8 @@ type cryptoUnboxBytes32Result = Bytes32
 
 type cryptocurrencyRegisterAddressResult = RegisterAddressRes
 
+type ctlDbGetResult = ?DbValue
+
 type debuggingFirstStepResult = FirstStepResult
 
 type debuggingIncrementResult = int
@@ -5421,7 +5489,10 @@ export type rpc =
   | cryptoUnboxBytes32Rpc
   | cryptocurrencyRegisterAddressRpc
   | ctlAppExitRpc
+  | ctlDbDeleteRpc
+  | ctlDbGetRpc
   | ctlDbNukeRpc
+  | ctlDbPutRpc
   | ctlLogRotateRpc
   | ctlReloadRpc
   | ctlStopRpc

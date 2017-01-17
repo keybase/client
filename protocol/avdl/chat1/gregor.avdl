@@ -55,4 +55,8 @@ protocol gregor {
         InboxVers inboxVers;
     }
 
+    record TLFResolveUpdate {
+        ConversationID convID;
+        InboxVers inboxVers;
+    }
 }

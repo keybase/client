@@ -998,8 +998,24 @@ func (i InactiveKeyError) Error() string {
 
 //=============================================================================
 
+type merkleClientErrorType int
+
+const (
+	merkleErrorNone merkleClientErrorType = iota
+	merkleErrorNoKnownKey
+	merkleErrorNoLegacyUIDRoot
+	merkleErrorUIDMismatch
+	merkleErrorNoSkipSequence
+	merkleErrorSkipSequence
+	merkleErrorSkipMissing
+	merkleErrorSkipHashMismatch
+	merkleErrorNoLeftBookend
+	merkleErrorNoRightBookend
+)
+
 type MerkleClientError struct {
 	m string
+	t merkleClientErrorType
 }
 
 func (m MerkleClientError) Error() string {
@@ -1677,6 +1693,20 @@ type LevelDBOpenClosedError struct{}
 
 func (e LevelDBOpenClosedError) Error() string {
 	return "opening a closed DB"
+}
+
+//=============================================================================
+
+type DBError struct {
+	Msg string
+}
+
+func (e DBError) Error() string {
+	return fmt.Sprintf("DB error: %s", e.Msg)
+}
+
+func NewDBError(s string) DBError {
+	return DBError{Msg: s}
 }
 
 //=============================================================================

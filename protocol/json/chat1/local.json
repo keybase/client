@@ -362,6 +362,10 @@
           "name": "convID"
         },
         {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        },
+        {
           "type": "MessagePlaintext",
           "name": "Msg",
           "lint": "ignore"
@@ -1345,29 +1349,6 @@
         }
       ],
       "response": "GetThreadLocalRes"
-    },
-    "getInboxLocal": {
-      "request": [
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "GetInboxLocalRes"
     },
     "getInboxAndUnboxLocal": {
       "request": [

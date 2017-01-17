@@ -478,24 +478,41 @@ func (e *Identify2WithUID) maybeCacheResult() {
 	canCacheFailures := e.canSucceedWithTrackBreaks()
 
 	e.G().Log.Debug("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
+	defer e.G().Log.Debug("- maybeCacheResult")
 
-	if (isOK || canCacheFailures) && e.getCache() != nil {
-		v := e.exportToResult()
-		if v == nil {
-			e.G().Log.Debug("| not caching; nil result")
-			return
+	if e.getCache() == nil {
+		e.G().Log.Debug("| cache is disabled, so nothing to do")
+		return
+	}
+
+	// If we hit an identify failure, and we're not allowed to cache failures,
+	// then at least bust out the cache.
+	if !isOK && !canCacheFailures {
+		e.G().Log.Debug("| clearing cache due to failure")
+		uid := e.them.GetUID()
+		e.getCache().Delete(uid)
+		if err := e.removeSlowCacheFromDB(); err != nil {
+			e.G().Log.Debug("| Error in removing slow cache from db: %s", err)
 		}
-		e.getCache().Insert(v)
-		e.G().Log.Debug("| insert %+v", v)
+		return
+	}
 
-		// Don't write failures to the disk cache
-		if isOK {
-			if err := e.storeSlowCacheToDB(); err != nil {
-				e.G().Log.Debug("| Error in storing slow cache to db: %s", err)
-			}
+	// Common case --- (isOK || canCacheFailures)
+	v := e.exportToResult()
+	if v == nil {
+		e.G().Log.Debug("| not caching; nil result")
+		return
+	}
+	e.getCache().Insert(v)
+	e.G().Log.Debug("| insert %+v", v)
+
+	// Don't write failures to the disk cache
+	if isOK {
+		if err := e.storeSlowCacheToDB(); err != nil {
+			e.G().Log.Debug("| Error in storing slow cache to db: %s", err)
 		}
 	}
-	e.G().Log.Debug("- maybeCacheResult")
+	return
 }
 
 func (e *Identify2WithUID) insertTrackToken(ctx *Context, outcome *libkb.IdentifyOutcome, ui libkb.IdentifyUI) (err error) {
@@ -857,7 +874,7 @@ func (e *Identify2WithUID) checkFastCacheHit() (hit bool) {
 func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBIdentify,
-		Key: fmt.Sprintf("%s:%s", e.me.GetUID(), them),
+		Key: fmt.Sprintf("%s-%s", e.me.GetUID(), them),
 	}
 }
 
@@ -898,6 +915,19 @@ func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
 	key := e.dbKey(e.them.GetUID())
 	now := keybase1.ToTime(time.Now())
 	err = e.G().LocalDb.PutObj(key, nil, now)
+	return err
+}
+
+// Remove (themUID) from the identify cache, if they're there.
+func (e *Identify2WithUID) removeSlowCacheFromDB() (err error) {
+	prfx := fmt.Sprintf("Identify2WithUID#removeSlowCacheFromDB(%s)", e.them.GetUID())
+	defer e.G().Trace(prfx, func() error { return err })()
+	if e.me == nil {
+		e.G().Log.Debug("not removing from persistent slow cache since no me user")
+		return nil
+	}
+	key := e.dbKey(e.them.GetUID())
+	err = e.G().LocalDb.Delete(key)
 	return err
 }
 

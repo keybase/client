@@ -210,7 +210,7 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 // getSupersedes must be called with a valid msg
 func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, Error) {
 	body := msg.Valid().MessageBody
-	typ, err := (&body).MessageType()
+	typ, err := body.MessageType()
 	if err != nil {
 		return nil, NewInternalError(s.DebugLabeler, "invalid msg: %s", err.Error())
 	}
@@ -264,12 +264,17 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				continue
 			}
 
-			// Update supersededBy on the target message if we have it
+			// Update supersededBy on the target message if we have it. And if
+			// the superseder is a deletion, delete the body as well.
 			superMsg := superMsgs[0]
 			if superMsg.IsValid() {
 				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
 				mvalid := superMsg.Valid()
 				mvalid.ServerHeader.SupersededBy = msgid
+				if msg.GetMessageType() == chat1.MessageType_DELETE {
+					var emptyBody chat1.MessageBody
+					mvalid.MessageBody = emptyBody
+				}
 				superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
 				if err = s.engine.writeMessages(ctx, convID, uid, superMsgs); err != nil {
 					return err

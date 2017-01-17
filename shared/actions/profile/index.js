@@ -17,19 +17,19 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 function editProfile (bio: string, fullname: string, location: string): EditProfile {
-  return {type: Constants.editProfile, payload: {bio, fullname, location}}
+  return {payload: {bio, fullname, location}, type: Constants.editProfile}
 }
 
 function * _editProfile (action: EditProfile): SagaGenerator<any, any> {
   try {
     yield call(apiserverPostRpcPromise, {
       param: {
-        endpoint: 'profile-edit',
         args: [
           {key: 'bio', value: action.payload.bio},
           {key: 'full_name', value: action.payload.fullname},
           {key: 'location', value: action.payload.location},
         ],
+        endpoint: 'profile-edit',
       },
     })
 
@@ -38,23 +38,23 @@ function * _editProfile (action: EditProfile): SagaGenerator<any, any> {
 }
 
 function updateUsername (username: string): UpdateUsername {
-  return {type: Constants.updateUsername, payload: {username}}
+  return {payload: {username}, type: Constants.updateUsername}
 }
 
 function _revokedWaitingForResponse (waiting: boolean): WaitingRevokeProof {
-  return {type: Constants.waitingRevokeProof, payload: {waiting}}
+  return {payload: {waiting}, type: Constants.waitingRevokeProof}
 }
 
 function _revokedErrorResponse (error: string): FinishRevokeProof {
-  return {type: Constants.finishRevokeProof, payload: {error}, error: true}
+  return {error: true, payload: {error}, type: Constants.finishRevokeProof}
 }
 
 function _revokedFinishResponse (): FinishRevokeProof {
-  return {type: Constants.finishRevokeProof, payload: undefined}
+  return {payload: undefined, type: Constants.finishRevokeProof}
 }
 
 function finishRevoking (): FinishRevoking {
-  return {type: Constants.finishRevoking, payload: undefined}
+  return {payload: undefined, type: Constants.finishRevoking}
 }
 
 function * _finishRevoking (): SagaGenerator<any, any> {
@@ -64,19 +64,23 @@ function * _finishRevoking (): SagaGenerator<any, any> {
 }
 
 function onUserClick (username: string, uid: string): OnUserClick {
-  return {type: Constants.onUserClick, payload: {username, uid}}
+  return {payload: {uid, username}, type: Constants.onUserClick}
 }
 
 function * _onUserClick (action: OnUserClick): SagaGenerator<any, any> {
   const {username, uid} = action.payload
   yield put(switchTo([profileTab]))
-  yield put(navigateAppend([{selected: 'profile', props: {username, uid}}], [profileTab]))
+  yield put(navigateAppend([{props: {uid, username}, selected: 'profile'}], [profileTab]))
 }
 
 function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): OnClickAvatar {
   return {
+    payload: {
+      openWebsite,
+      uid,
+      username,
+    },
     type: Constants.onClickAvatar,
-    payload: {username, uid, openWebsite},
   }
 }
 
@@ -95,12 +99,12 @@ function * _onClickAvatar (action: OnClickFollowers): SagaGenerator<any, any> {
 
 function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowers {
   return {
-    type: Constants.onClickFollowers,
     payload: {
-      username,
-      uid,
       openWebsite,
+      uid,
+      username,
     },
+    type: Constants.onClickFollowers,
   }
 }
 
@@ -119,8 +123,12 @@ function * _onClickFollowers (action: OnClickFollowers): SagaGenerator<any, any>
 
 function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowing {
   return {
+    payload: {
+      openWebsite,
+      uid,
+      username,
+    },
     type: Constants.onClickFollowing,
-    payload: {username, uid, openWebsite},
   }
 }
 
@@ -138,7 +146,7 @@ function * _onClickFollowing (action: OnClickFollowing): SagaGenerator<any, any>
 }
 
 function submitRevokeProof (proofId: string): SubmitRevokeProof {
-  return {type: Constants.submitRevokeProof, payload: {proofId}}
+  return {payload: {proofId}, type: Constants.submitRevokeProof}
 }
 
 function * _submitRevokeProof (action: SubmitRevokeProof): SagaGenerator<any, any> {
@@ -164,7 +172,7 @@ function _openURLIfNotNull (nullableThing, url, metaText) {
 }
 
 function outputInstructionsActionLink (): OutputInstructionsActionLink {
-  return {type: Constants.outputInstructionsActionLink, payload: undefined}
+  return {payload: undefined, type: Constants.outputInstructionsActionLink}
 }
 
 function * _outputInstructionsActionLink (): SagaGenerator<any, any> {
@@ -196,7 +204,7 @@ function * _outputInstructionsActionLink (): SagaGenerator<any, any> {
 }
 
 function backToProfile (): BackToProfile {
-  return {type: Constants.backToProfile, payload: undefined}
+  return {payload: undefined, type: Constants.backToProfile}
 }
 
 function * _backToProfile (): SagaGenerator<any, any> {

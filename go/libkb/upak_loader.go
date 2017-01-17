@@ -166,12 +166,12 @@ func (u *CachedUPAKLoader) extractDeviceKey(upk *keybase1.UserPlusAllKeys, devic
 func (u *CachedUPAKLoader) putUPKToCache(ctx context.Context, obj *keybase1.UserPlusAllKeys) error {
 
 	if u.noCache {
-		u.G().Log.CDebugf(ctx, "| no cache enabled, so not putting UPK")
+		u.G().Log.CDebugf(ctx, "| no cache enabled, so not putting UPAK")
 		return nil
 	}
 
 	uid := obj.Base.Uid
-	u.G().Log.CDebugf(ctx, "| %s: Caching: %+v", culDebug(uid), *obj)
+	u.G().Log.CDebugf(ctx, "| Caching UPAK for %s", uid)
 	u.Lock()
 	u.m[uid.String()] = obj
 	u.Unlock()
@@ -204,7 +204,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	defer g.CTrace(ctx, culDebug(arg.UID), func() error { return err })()
 
 	if arg.UID.IsNil() {
-		err = errors.New("need a UID to load UPK from loader")
+		err = errors.New("need a UID to load UPAK from loader")
 		return nil, nil, err
 	}
 

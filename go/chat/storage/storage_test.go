@@ -48,6 +48,37 @@ func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnbox
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
+func makeDelete(id chat1.MessageID, originalMessage chat1.MessageID, allEdits []chat1.MessageID) chat1.MessageUnboxed {
+	msg := chat1.MessageUnboxedValid{
+		ServerHeader: chat1.MessageServerHeader{
+			MessageID: id,
+		},
+		ClientHeader: chat1.MessageClientHeader{
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  originalMessage,
+		},
+		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+			MessageIDs: append([]chat1.MessageID{originalMessage}, allEdits...),
+		}),
+	}
+	return chat1.NewMessageUnboxedWithValid(msg)
+}
+
+func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
+	msg := chat1.MessageUnboxedValid{
+		ServerHeader: chat1.MessageServerHeader{
+			MessageID: id,
+		},
+		ClientHeader: chat1.MessageClientHeader{
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: text,
+		}),
+	}
+	return chat1.NewMessageUnboxedWithValid(msg)
+}
+
 func makeMsgWithType(id chat1.MessageID, supersedes chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
@@ -61,13 +92,9 @@ func makeMsgWithType(id chat1.MessageID, supersedes chat1.MessageID, typ chat1.M
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
-func makeMsg(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnboxed {
-	return makeMsgWithType(id, supersedes, chat1.MessageType_TEXT)
-}
-
 func makeMsgRange(max int) (res []chat1.MessageUnboxed) {
 	for i := max; i > 0; i-- {
-		res = append(res, makeMsg(chat1.MessageID(i), chat1.MessageID(0)))
+		res = append(res, makeText(chat1.MessageID(i), "junk text"))
 	}
 	return res
 }
@@ -75,7 +102,7 @@ func makeMsgRange(max int) (res []chat1.MessageUnboxed) {
 func addMsgs(num int, msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
 	maxID := msgs[0].GetMessageID()
 	for i := 0; i < num; i++ {
-		msgs = append([]chat1.MessageUnboxed{makeMsg(chat1.MessageID(int(maxID)+i+1), 0)},
+		msgs = append([]chat1.MessageUnboxed{makeText(chat1.MessageID(int(maxID)+i+1), "addMsgs junk text")},
 			msgs...)
 	}
 	return msgs
@@ -242,12 +269,15 @@ func TestStorageLargeList(t *testing.T) {
 }
 
 func TestStorageSupersedes(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "suprsedes")
+	var err error
+
+	_, storage, uid := setupStorageTest(t, "supersedes")
+
+	// First test an Edit message.
+	supersedingEdit := makeEdit(chat1.MessageID(111), 6)
 
 	msgs := makeMsgRange(110)
-	superseder := makeEdit(chat1.MessageID(111), 6)
-	superseder2 := makeEdit(chat1.MessageID(112), 11)
-	msgs = append([]chat1.MessageUnboxed{superseder}, msgs...)
+	msgs = append([]chat1.MessageUnboxed{supersedingEdit}, msgs...)
 	conv := makeConversation(msgs[0].GetMessageID())
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
@@ -261,16 +291,30 @@ func TestStorageSupersedes(t *testing.T) {
 	require.Equal(t, chat1.MessageID(6), sheader.MessageID, "MessageID incorrect")
 	require.Equal(t, chat1.MessageID(111), sheader.SupersededBy, "supersededBy incorrect")
 
+	// Now test a delete message. This should result in the deletion of *both*
+	// the original message's body and the body of the edit above.
+	supersedingDelete := makeDelete(chat1.MessageID(112), 6, []chat1.MessageID{111})
+
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid,
-		[]chat1.MessageUnboxed{superseder2}))
+		[]chat1.MessageUnboxed{supersedingDelete}))
 	conv.ReaderInfo.MaxMsgid = 112
-	msgs = append([]chat1.MessageUnboxed{superseder2}, msgs...)
+	msgs = append([]chat1.MessageUnboxed{supersedingDelete}, msgs...)
 	res, err = storage.Fetch(context.TODO(), conv, uid, nil, nil)
 	require.NoError(t, err)
 
-	sheader = res.Messages[len(msgs)-11].Valid().ServerHeader
-	require.Equal(t, chat1.MessageID(11), sheader.MessageID, "MessageID incorrect")
-	require.Equal(t, chat1.MessageID(112), sheader.SupersededBy, "supersededBy incorrect")
+	deletedMessage := res.Messages[len(msgs)-6].Valid()
+	deletedHeader := deletedMessage.ServerHeader
+	require.Equal(t, chat1.MessageID(6), deletedHeader.MessageID, "MessageID incorrect")
+	require.Equal(t, chat1.MessageID(112), deletedHeader.SupersededBy, "supersededBy incorrect")
+	// Check that the body is deleted.
+	deletedBodyType, err := deletedMessage.MessageBody.MessageType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.MessageType_NONE, deletedBodyType, "expected the body to be deleted, but it's not!!!")
+	// Check that the body of the edit is *also* is deleted.
+	deletedEdit := res.Messages[len(msgs)-111].Valid()
+	deletedEditBodyType, err := deletedEdit.MessageBody.MessageType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.MessageType_NONE, deletedEditBodyType, "expected the edit's body to be deleted also, but it's not!!!")
 }
 
 func TestStorageMiss(t *testing.T) {
@@ -295,7 +339,7 @@ func TestStoragePagination(t *testing.T) {
 
 	t.Logf("test next input")
 	tp := pager.NewThreadPager()
-	index, err := tp.MakeIndex(makeMsg(120, 0))
+	index, err := tp.MakeIndex(makeText(120, "TestStoragePagination junk text"))
 	require.NoError(t, err)
 	p := chat1.Pagination{
 		Num:  100,
@@ -322,7 +366,7 @@ func TestStoragePagination(t *testing.T) {
 	}
 
 	t.Logf("test prev input")
-	index, err = tp.MakeIndex(makeMsg(120, 0))
+	index, err = tp.MakeIndex(makeText(120, "TestStoragePagination junk text #2"))
 	require.NoError(t, err)
 	p = chat1.Pagination{
 		Num:      100,

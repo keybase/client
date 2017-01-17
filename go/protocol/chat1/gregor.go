@@ -53,6 +53,11 @@ type TLFFinalizeUpdate struct {
 	InboxVers    InboxVers                `codec:"inboxVers" json:"inboxVers"`
 }
 
+type TLFResolveUpdate struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+}
+
 type GregorInterface interface {
 }
 

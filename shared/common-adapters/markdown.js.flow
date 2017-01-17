@@ -3,6 +3,7 @@ import {Component} from 'react'
 
 export type Props = {
   children?: string,
+  preview?: boolean, // if true render a simplified version
   style?: Object,
 }
 

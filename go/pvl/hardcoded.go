@@ -164,9 +164,9 @@ var hardcodedPVLString = `
               "Could not find link text in Facebook's response"
             ],
             "into": "link_text",
-            "multi": true,
             "selectors": [
-              "div.userContent+div a"
+              "div.userContent+div a",
+              1
             ]
           }
         },

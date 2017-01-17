@@ -836,8 +836,6 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 }
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
-	g.Debug("handleOutOfBand: %+v", obm)
-
 	if obm.System() == nil {
 		return errors.New("nil system in out of band message")
 	}

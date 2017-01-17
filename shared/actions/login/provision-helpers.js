@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../constants/login'
 import QRCodeGen from 'qrcode-generator'
+
 import type {DeviceRole, Mode} from '../../constants/login'
 
 export function defaultModeForDeviceRoles (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, brokenMode: boolean): ?Mode {
