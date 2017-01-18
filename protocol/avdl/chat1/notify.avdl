@@ -63,6 +63,10 @@ protocol NotifyChat {
   void ChatTLFFinalize(keybase1.UID uid, ConversationID convID, ConversationFinalizeInfo finalizeInfo);
 
   @notify("")
+  @lint("ignore")
+  void ChatTLFResolve(keybase1.UID uid, ConversationID convID);
+
+  @notify("")
   @lint("ignore") 
   void ChatInboxStale(keybase1.UID uid);
 

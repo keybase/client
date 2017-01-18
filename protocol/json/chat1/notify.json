@@ -195,6 +195,21 @@
       "notify": "",
       "lint": "ignore"
     },
+    "ChatTLFResolve": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
     "ChatInboxStale": {
       "request": [
         {

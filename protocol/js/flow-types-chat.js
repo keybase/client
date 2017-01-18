@@ -1051,6 +1051,11 @@ export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
   finalizeInfo: ConversationFinalizeInfo
 }>
 
+export type NotifyChatChatTLFResolveRpcParam = Exact<{
+  uid: keybase1.UID,
+  convID: ConversationID
+}>
+
 export type NotifyChatChatThreadsStaleRpcParam = Exact<{
   uid: keybase1.UID,
   convIDs?: ?Array<ConversationID>
@@ -1667,6 +1672,14 @@ export type incomingCallMapType = Exact<{
       uid: keybase1.UID,
       convID: ConversationID,
       finalizeInfo: ConversationFinalizeInfo
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatTLFResolve'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convID: ConversationID
     }> /* ,
     response: {} // Notify call
     */
