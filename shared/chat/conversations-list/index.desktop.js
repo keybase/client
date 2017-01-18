@@ -56,6 +56,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
   const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
   const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
+  const commaColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
   return (
     <div
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
@@ -72,6 +73,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
               inline={true}
               type='BodySemibold'
               style={{...boldOverride, color: usernameColor}}
+              commaColor={commaColor}
               containerStyle={{color: usernameColor, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')} />
@@ -150,8 +152,8 @@ const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   flexShrink: 0,
-  minHeight: 40,
-  maxHeight: 40,
+  minHeight: 48,
+  maxHeight: 48,
 }
 
 export default ConversationList
