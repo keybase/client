@@ -45,7 +45,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const isMuted = conversation.get('muted')
   const hasUnread = !!conversation.get('unreadCount')
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-    backgroundColor: globalColors.darkBlue4,
+    backgroundColor: isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4,
     username,
     borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
     size: 24,
