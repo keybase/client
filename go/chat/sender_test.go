@@ -99,6 +99,7 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 		func() chat1.RemoteInterface { return ri }, f)
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
+	tc.G.MessageDeliverer.(*Deliverer).SetClock(world.Fc)
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
@@ -343,10 +344,13 @@ func TestFailingSender(t *testing.T) {
 	}
 
 	var recvd []chat1.OutboxID
-	select {
-	case recvd = <-listener.failing:
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "event not received")
+	for i := 0; i < 5; i++ {
+		select {
+		case fid := <-listener.failing:
+			recvd = append(recvd, fid...)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "event not received")
+		}
 	}
 
 	require.Equal(t, len(obids), len(recvd), "invalid length")
@@ -355,7 +359,7 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	tc, ri, u, sender, baseSender, listener, _, _ := setupTest(t)
+	tc, ri, u, sender, baseSender, listener, _, cl := setupTest(t)
 	defer tc.Cleanup()
 
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
@@ -389,6 +393,7 @@ func TestDisconnectedFailure(t *testing.T) {
 		}, 0)
 		require.NoError(t, err)
 		obids = append(obids, obid)
+		cl.Advance(time.Millisecond)
 	}
 
 	var allrecvd []chat1.OutboxID
@@ -414,7 +419,8 @@ func TestDisconnectedFailure(t *testing.T) {
 				break
 			}
 			continue
-		case <-time.After(20 * time.Second):
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "timeout in failing loop")
 			break
 		}
 		break
@@ -432,6 +438,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	}
 	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
 	for _, obid := range obids {
+		t.Logf("ORDER: %s", obid)
 		require.NoError(t, outbox.RetryMessage(context.TODO(), obid))
 	}
 	tc.G.MessageDeliverer.Connected(context.TODO())
@@ -444,7 +451,8 @@ func TestDisconnectedFailure(t *testing.T) {
 				break
 			}
 			continue
-		case <-time.After(20 * time.Second):
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "timeout in incoming loop")
 			break
 		}
 		break

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 )
 
@@ -267,6 +268,7 @@ type Deliverer struct {
 	reconnectCh   chan struct{}
 	delivering    bool
 	connected     bool
+	clock         clockwork.Clock
 }
 
 func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
@@ -279,6 +281,7 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 		sender:        sender,
 		storage:       storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
 		identNotifier: NewIdentifyNotifier(g),
+		clock:         clockwork.NewRealClock(),
 	}
 
 	g.PushShutdownHook(func() error {
@@ -298,6 +301,7 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 	s.outbox = storage.NewOutbox(s.G(), uid, func() libkb.SecretUI {
 		return DelivererSecretUI{}
 	})
+	s.outbox.SetClock(s.clock)
 
 	s.delivering = true
 	go s.deliverLoop()
@@ -329,6 +333,10 @@ func (s *Deliverer) ForceDeliverLoop(ctx context.Context) {
 
 func (s *Deliverer) SetSender(sender Sender) {
 	s.sender = sender
+}
+
+func (s *Deliverer) SetClock(clock clockwork.Clock) {
+	s.clock = clock
 }
 
 func (s *Deliverer) Connected(ctx context.Context) {
@@ -436,6 +444,7 @@ func (s *Deliverer) deliverLoop() {
 		markRestAsError := false
 		for _, obr := range obrs {
 
+			s.Debug(bgctx, "OBSENDING: %s ctime: %v", obr.OutboxID, obr.Ctime)
 			// Check type
 			state, err := obr.State.State()
 			if err != nil {
@@ -445,9 +454,11 @@ func (s *Deliverer) deliverLoop() {
 			if state != chat1.OutboxStateType_SENDING {
 				s.Debug(bgctx, "skipping error state record: id: %s convID: %s uid: %s",
 					hex.EncodeToString(obr.OutboxID), obr.ConvID, s.outbox.GetUID())
+				if err := s.outbox.MarkAsError(bgctx, obr, obr.State.Error()); err != nil {
+					s.Debug(bgctx, "unable to rewrite failed message: err: %s", err.Error())
+				}
 				continue
 			}
-
 			// If we have hit an error, we need to add the rest of the items back in as errors
 			// as well
 			if markRestAsError {
@@ -476,14 +487,15 @@ func (s *Deliverer) deliverLoop() {
 					// Record failure if we hit this case, and put the rest of this loop in a
 					// mode where all other entries also fail.
 					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
-					markRestAsError = true
 
+					markRestAsError = true
 					if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
 						Message: err.Error(),
 						Typ:     errTyp,
 					}); err != nil {
 						s.Debug(bgctx, "unable to fail message: err: %s", err.Error())
 					}
+
 				} else {
 					if err = s.outbox.RecordFailedAttempt(bgctx, obr); err != nil {
 						s.Debug(bgctx, "unable to record failed attempt on outbox: uid %s err: %s",

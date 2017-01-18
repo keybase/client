@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
+
+	"sort"
 
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 )
 
 type Outbox struct {
@@ -19,7 +21,8 @@ type Outbox struct {
 	*baseBox
 	utils.DebugLabeler
 
-	uid gregor1.UID
+	clock clockwork.Clock
+	uid   gregor1.UID
 }
 
 const outboxVersion = 3
@@ -35,6 +38,7 @@ func NewOutbox(g *libkb.GlobalContext, uid gregor1.UID, getSecretUI func() libkb
 		DebugLabeler: utils.NewDebugLabeler(g, "Outbox", false),
 		baseBox:      newBaseBox(g, getSecretUI),
 		uid:          uid,
+		clock:        clockwork.NewRealClock(),
 	}
 }
 
@@ -87,6 +91,18 @@ func (o *Outbox) newOutboxID() (chat1.OutboxID, error) {
 	return chat1.OutboxID(rbs), nil
 }
 
+type ByCtimeOrder []chat1.OutboxRecord
+
+func (a ByCtimeOrder) Len() int      { return len(a) }
+func (a ByCtimeOrder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByCtimeOrder) Less(i, j int) bool {
+	return a[i].Ctime.Before(a[j].Ctime)
+}
+
+func (o *Outbox) SetClock(cl clockwork.Clock) {
+	o.clock = cl
+}
+
 func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, identifyBehavior keybase1.TLFIdentifyBehavior) (outboxID chat1.OutboxID, err Error) {
 	o.Lock()
@@ -117,11 +133,12 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	obox.Records = append(obox.Records, chat1.OutboxRecord{
 		State:            chat1.NewOutboxStateWithSending(0),
 		Msg:              msg,
-		Ctime:            gregor1.ToTime(time.Now()),
+		Ctime:            gregor1.ToTime(o.clock.Now()),
 		ConvID:           convID,
 		OutboxID:         outboxID,
 		IdentifyBehavior: identifyBehavior,
 	})
+	sort.Sort(ByCtimeOrder(obox.Records))
 
 	// Write out box
 	obox.Version = outboxVersion
@@ -235,6 +252,7 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 
 	// Write out box
 	obox.Records = recs
+	sort.Sort(ByCtimeOrder(obox.Records))
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -249,6 +267,7 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 	o.Lock()
 	defer o.Unlock()
 
+	o.Debug(ctx, "MARK: %s", obr.OutboxID)
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
 	if err != nil {
@@ -272,6 +291,7 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 
 	// Write out box
 	obox.Records = recs
+	sort.Sort(ByCtimeOrder(obox.Records))
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -301,6 +321,7 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID) error {
 
 	// Write out box
 	obox.Records = recs
+	sort.Sort(ByCtimeOrder(obox.Records))
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -329,6 +350,7 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	obox.Records = recs
 
 	// Write out box
+	sort.Sort(ByCtimeOrder(obox.Records))
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
