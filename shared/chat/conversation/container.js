@@ -122,7 +122,7 @@ export default connect(
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onOpenFolder: () => dispatch(openFolder()),
     onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-    onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{props: {message}, selected: 'attachment'}])),
+    onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{props: {messageID: message.messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}])),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
