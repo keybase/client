@@ -1023,7 +1023,7 @@ type Prefetcher interface {
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
-	// block. It caches if it has triggered a prefetch and returns that.
+	// block. It caches if it has triggered a prefetch.
 	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
 		hasPrefetched bool)
