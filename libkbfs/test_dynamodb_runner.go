@@ -28,7 +28,7 @@ import (
 const (
 	// LocalDynamoDBDownloadURI source: http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html
 	// We don't use latest because Amazon doesn't offer https downloads of this. So we peg to a revision and verify the hash.
-	LocalDynamoDBDownloadURI = "http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_2016-04-19.tar.gz"
+	LocalDynamoDBDownloadURI = "https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_2016-04-19.tar.gz"
 	// LocalDynamoDBSha256Hash is the sha256 hash of the above tar ball.
 	LocalDynamoDBSha256Hash = "35bcbf97c1c3ef8607ac0032d6127eae313edd26a73c80fdc230e4d8a14c1c33"
 	// LocalDynamoDBTmpDir is relative to the system's own TempDir.
