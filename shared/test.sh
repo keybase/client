@@ -2,7 +2,7 @@
 
 test_type="$1"
 commit_hash="$2"
-change_target="$3"
+change_target="origin/$3"
 
 echo "shared/test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target}"
 
@@ -22,14 +22,6 @@ has_js_files() {
     echo 'git fetch'
     git fetch
     check_rc $? 'echo git fetch problem' 1
-    echo 'git log temp 1'
-    git log -1 "$change_target"
-    echo 'git log temp 2'
-    git log -1 "$commit_hash"
-    echo 'git log temp 3'
-    git log -1 "origin/$change_target"
-    echo 'git log temp end'
-
     echo 'git diff'
     git diff --name-only "$change_target...$commit_hash"
     diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/'`
