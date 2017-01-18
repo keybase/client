@@ -56,7 +56,7 @@ var chatFlags = map[string]cli.Flag{
 	},
 	"since": cli.StringFlag{
 		Name:  "time,since",
-		Usage: `Only show updates after certain time.`,
+		Usage: `Only show updates after certain time. Supports durations like "2d" or RFC3339 time like 2017-01-02T15:04:05Z07:00`,
 	},
 	"public": cli.BoolFlag{
 		Name:  "public",
