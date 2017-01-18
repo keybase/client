@@ -211,7 +211,7 @@ function reducer (state: State = initialState, action: Actions) {
             ...message,
           })
         )).update('inbox', inbox => inbox.map((i, inboxIdx) => {
-          // Update snippetKey to messge.messageID so we can clear deleted message snippets
+          // Update snippetKey to message.messageID so we can clear deleted message snippets
           if (i.get('conversationIDKey') === conversationIDKey) {
             if (i.get('snippetKey') === outboxID && message.messageID) {
               return i.set('snippetKey', message.messageID)
