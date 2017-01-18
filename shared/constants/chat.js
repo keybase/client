@@ -143,6 +143,7 @@ export const InboxStateRecord = Record({
   muted: false,
   time: '',
   snippet: '',
+  snippetKey: null,
   unreadCount: 0,
   validated: false,
 })
@@ -154,6 +155,7 @@ export type InboxState = Record<{
   muted: boolean,
   time: string,
   snippet: string,
+  snippetKey: any,
   unreadCount: number,
   validated: boolean,
 }>
