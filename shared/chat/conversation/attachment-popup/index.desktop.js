@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Icon, Text, PopupDialog} from '../../../common-adapters/index'
+import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
 import {AttachmentPopupMenu} from '../messages/popup'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {fileUIName} from '../../../constants/platform'
@@ -26,6 +26,22 @@ const AttachmentStatusFooter = ({message, onDownloadAttachment, onOpenInFileUI}:
   )
 }
 
+const AttachmentView = ({isZoomed, onToggleZoom, path}: {isZoomed: boolean, onToggleZoom: () => void, path: ?string}) => {
+  if (path) {
+    return (
+      <Box style={isZoomed ? styleContentsZoom : styleContentsFit} onClick={onToggleZoom}>
+        <img src={path} style={isZoomed ? styleImageZoom : styleImageFit} />
+      </Box>
+    )
+  } else {
+    return (
+      <Box style={styleContentsCenter}>
+        <ProgressIndicator style={{width: 48}} />
+      </Box>
+    )
+  }
+}
+
 const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetailsPopup, onClose, onDownloadAttachment, onDeleteMessage, onOpenDetailsPopup, onToggleZoom, onOpenInFileUI, you}: Props) => (
   <PopupDialog onClose={onClose} fill={true}>
     {detailsPopupShowing && <AttachmentPopupMenu
@@ -41,9 +57,7 @@ const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetails
       <Text type='BodySemibold' style={{color: globalColors.black_75, flex: 1}}>{message.title}</Text>
       <Icon type='iconfont-ellipsis' style={{color: globalColors.black_40, cursor: 'pointer'}} onClick={detailsPopupShowing ? onCloseDetailsPopup : onOpenDetailsPopup} />
     </Box>
-    <Box style={isZoomed ? styleContentsZoom : styleContentsFit} onClick={onToggleZoom}>
-      <img src={message.downloadedPath} style={isZoomed ? styleImageZoom : styleImageFit} />
-    </Box>
+    <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={message.downloadedPath} />
     <AttachmentStatusFooter message={message} onDownloadAttachment={onDownloadAttachment} onOpenInFileUI={onOpenInFileUI} />
   </PopupDialog>
 )
@@ -60,6 +74,12 @@ const styleHeaderFooter = {
 const styleContentsFit = {
   ...globalStyles.flexBoxRow,
   flex: 1,
+}
+
+const styleContentsCenter = {
+  ...styleContentsFit,
+  alignItems: 'center',
+  justifyContent: 'center',
 }
 
 const styleContentsZoom = {
