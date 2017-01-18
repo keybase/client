@@ -52,7 +52,7 @@ const styles = {
   container: {
     ...globalStyles.flexBoxRow,
     ...globalStyles.noSelect,
-    minHeight:40,
+    minHeight: 40,
     paddingLeft: 10,
     paddingRight: 10,
   },
