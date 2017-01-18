@@ -14,11 +14,11 @@ const featureOn = (key: FeatureKeys, includeAdmin: boolean = false) => ( // esli
 
 const ff: FeatureFlags = {
   admin: featureOn('admin'),
-  chatAdminOnly: featureOn('chatAdminOnly'),
+  chatAdminOnly: featureOn('chatAdminOnly', true),
   mobileAppsExist: featureOn('mobileAppsExist'),
   plansEnabled: featureOn('plansEnabled'),
   recentFilesEnabled: featureOn('recentFilesEnabled'),
-  tabChatEnabled: featureOn('tabChatEnabled', true),
+  tabChatEnabled: true,
   tabPeopleEnabled: featureOn('tabPeopleEnabled'),
   tabProfileEnabled: true,
   tabSettingsEnabled: true,
