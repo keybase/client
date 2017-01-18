@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfssync"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/shirou/gopsutil/mem"
 	"golang.org/x/net/context"
@@ -897,9 +898,20 @@ func (c *ConfigLocal) EnableJournaling(
 	log := c.MakeLogger("")
 	branchListener := c.KBFSOps().(branchChangeListener)
 	flushListener := c.KBFSOps().(mdFlushListener)
+	// Set the journal disk limit to 10 GiB for now.
+	//
+	// TODO: Base this on the size of the disk, e.g. a quarter of
+	// the total size of the disk up to a maximum of 100 GB.
+	//
+	// TODO: Also keep track of and limit the inode count.
+	var journalDiskLimit int64 = 10 * 1024 * 1024 * 1024
+	// TODO: Use a diskLimiter implementation that applies
+	// backpressure.
+	diskLimitSemaphore := kbfssync.NewSemaphore()
+	diskLimitSemaphore.Release(journalDiskLimit)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
-		flushListener)
+		flushListener, diskLimitSemaphore)
 	ctx := context.Background()
 	uid, key, err := getCurrentUIDAndVerifyingKey(ctx, c.KBPKI())
 	if err != nil {

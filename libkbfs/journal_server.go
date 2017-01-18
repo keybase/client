@@ -58,6 +58,31 @@ type mdFlushListener interface {
 	onMDFlush(tlf.ID, BranchID, MetadataRevision)
 }
 
+// diskLimiter is an interface for limiting disk usage. A simple
+// implementation would use a semaphore initialized with the maximum
+// disk usage, but a more sophisticated implementation would apply
+// backpressure on Acquire.
+type diskLimiter interface {
+	// Acquire is called before an operation that would take up n
+	// bytes of disk space. It may block, but must return
+	// immediately with a (possibly-wrapped) ctx.Err() if ctx is
+	// cancelled. The (possibly-updated) number of bytes available
+	// (which can be negative) must be returned, even if the error
+	// is non-nil.
+	Acquire(ctx context.Context, n int64) (int64, error)
+
+	// ForceAcquire is called when initializing a TLF journal with
+	// that journal's current disk usage. The updated number of
+	// bytes available (which can be negative) must be returned.
+	ForceAcquire(n int64) int64
+
+	// Release is called after an operation that has freed up n
+	// bytes of disk space. It is also called when shutting down a
+	// TLF journal. The updated number of bytes available (which
+	// can be negative) must be returned.
+	Release(n int64) int64
+}
+
 // TODO: JournalServer isn't really a server, although it can create
 // objects that act as servers. Rename to JournalManager.
 
@@ -88,6 +113,8 @@ type JournalServer struct {
 	onBranchChange          branchChangeListener
 	onMDFlush               mdFlushListener
 
+	diskLimiter diskLimiter
+
 	// Protects all fields below.
 	lock                sync.RWMutex
 	currentUID          keybase1.UID
@@ -102,7 +129,7 @@ func makeJournalServer(
 	config Config, log logger.Logger, dir string,
 	bcache BlockCache, dirtyBcache DirtyBlockCache, bserver BlockServer,
 	mdOps MDOps, onBranchChange branchChangeListener,
-	onMDFlush mdFlushListener) *JournalServer {
+	onMDFlush mdFlushListener, diskLimiter diskLimiter) *JournalServer {
 	jServer := JournalServer{
 		config:                  config,
 		log:                     log,
@@ -115,6 +142,7 @@ func makeJournalServer(
 		onBranchChange:          onBranchChange,
 		onMDFlush:               onMDFlush,
 		tlfJournals:             make(map[tlf.ID]*tlfJournal),
+		diskLimiter:             diskLimiter,
 	}
 	jServer.dirtyOpsDone = sync.NewCond(&jServer.lock)
 	return &jServer
@@ -367,7 +395,7 @@ func (j *JournalServer) enableLocked(
 	tlfJournal, err := makeTLFJournal(
 		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
 		tlfID, tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
-		bws, nil, j.onBranchChange, j.onMDFlush)
+		bws, nil, j.onBranchChange, j.onMDFlush, j.diskLimiter)
 	if err != nil {
 		return err
 	}

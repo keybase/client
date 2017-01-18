@@ -25,13 +25,16 @@ func (nonce RefNonce) String() string {
 	return hex.EncodeToString(nonce[:])
 }
 
-// MakeRefNonce generates a block reference nonce using a CSPRNG. This
-// is used for distinguishing different references to the same ID.
+// MakeRefNonce generates a non-zero block reference nonce using a
+// CSPRNG. This is used for distinguishing different references to the
+// same ID.
 func MakeRefNonce() (RefNonce, error) {
 	var nonce RefNonce
-	err := kbfscrypto.RandRead(nonce[:])
-	if err != nil {
-		return ZeroRefNonce, err
+	for nonce == ZeroRefNonce {
+		err := kbfscrypto.RandRead(nonce[:])
+		if err != nil {
+			return ZeroRefNonce, err
+		}
 	}
 	return nonce, nil
 }

@@ -5,7 +5,7 @@
 package libkbfs
 
 import (
-	"errors"
+	"math"
 	"os"
 	"reflect"
 	"sync"
@@ -18,7 +18,10 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -84,6 +87,7 @@ type testTLFJournalConfig struct {
 	ekg          singleEncryptionKeyGetter
 	nug          normalizedUsernameGetter
 	mdserver     MDServer
+	dlTimeout    time.Duration
 }
 
 func (c testTLFJournalConfig) BlockSplitter() BlockSplitter {
@@ -144,6 +148,10 @@ func (c testTLFJournalConfig) MDServer() MDServer {
 
 func (c testTLFJournalConfig) MakeLogger(module string) logger.Logger {
 	return c.log
+}
+
+func (c testTLFJournalConfig) diskLimitTimeout() time.Duration {
+	return c.dlTimeout
 }
 
 func (c testTLFJournalConfig) makeBlock(data []byte) (
@@ -220,7 +228,7 @@ func setupTLFJournalTest(
 	config = &testTLFJournalConfig{
 		t, log, tlf.FakeID(1, false), bsplitter, codec, crypto,
 		nil, nil, NewMDCacheStandard(10), ver,
-		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver,
+		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver, defaultDiskLimitTimeout,
 	}
 
 	ctx, cancel = context.WithTimeout(
@@ -255,9 +263,11 @@ func setupTLFJournalTest(
 
 	delegateBlockServer := NewBlockServerMemory(log)
 
+	diskLimitSemaphore := kbfssync.NewSemaphore()
+	diskLimitSemaphore.Release(math.MaxInt64)
 	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
 		tempdir, config.tlfID, config, delegateBlockServer,
-		bwStatus, delegate, nil, nil)
+		bwStatus, delegate, nil, nil, diskLimitSemaphore)
 	require.NoError(t, err)
 
 	switch bwStatus {
@@ -464,6 +474,99 @@ func testTLFJournalSecondBlockOpWhileBusy(t *testing.T, ver MetadataVer) {
 
 	// Should still be able to put a second block while busy.
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4, 5})
+}
+
+func testTLFJournalBlockOpDiskLimit(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	tlfJournal.diskLimiter.ForceAcquire(math.MaxInt64)
+	tlfJournal.diskLimiter.Release(6)
+
+	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
+
+	errCh := make(chan error, 1)
+	go func() {
+		data2 := []byte{5, 6, 7}
+		id, bCtx, serverHalf := config.makeBlock(data2)
+		errCh <- tlfJournal.putBlockData(
+			ctx, id, bCtx, data2, serverHalf)
+	}()
+
+	numFlushed, rev, err := tlfJournal.flushBlockEntries(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, 1, numFlushed)
+	require.Equal(t, rev, MetadataRevisionUninitialized)
+
+	// Fake an MD flush.
+	err = tlfJournal.doOnMDFlush(ctx, nil)
+
+	select {
+	case err := <-errCh:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+}
+
+func testTLFJournalBlockOpDiskLimitCancel(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	tlfJournal.diskLimiter.ForceAcquire(math.MaxInt64)
+
+	ctx2, cancel2 := context.WithCancel(ctx)
+	cancel2()
+
+	data := []byte{1, 2, 3, 4}
+	id, bCtx, serverHalf := config.makeBlock(data)
+	err := tlfJournal.putBlockData(ctx2, id, bCtx, data, serverHalf)
+	require.Equal(t, context.Canceled, errors.Cause(err))
+}
+
+func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	tlfJournal.diskLimiter.ForceAcquire(math.MaxInt64)
+	config.dlTimeout = 3 * time.Microsecond
+
+	data := []byte{1, 2, 3, 4}
+	id, bCtx, serverHalf := config.makeBlock(data)
+	err := tlfJournal.putBlockData(ctx, id, bCtx, data, serverHalf)
+	timeoutErr, ok := errors.Cause(err).(ErrDiskLimitTimeout)
+	require.True(t, ok)
+	require.Error(t, timeoutErr.err)
+	timeoutErr.err = nil
+	require.Equal(t, ErrDiskLimitTimeout{
+		3 * time.Microsecond, int64(len(data)), 0, nil,
+	}, timeoutErr)
+}
+
+func testTLFJournalBlockOpDiskLimitPutFailure(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	tlfJournal.diskLimiter.ForceAcquire(math.MaxInt64)
+	tlfJournal.diskLimiter.Release(6)
+
+	data := []byte{1, 2, 3, 4}
+	id, bCtx, serverHalf := config.makeBlock(data)
+	err := tlfJournal.putBlockData(ctx, id, bCtx, []byte{1}, serverHalf)
+	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
+
+	// If the above incorrectly does not release bytes from
+	// diskLimiter on error, this will hang.
+	err = tlfJournal.putBlockData(ctx, id, bCtx, data, serverHalf)
+	require.NoError(t, err)
 }
 
 type hangingMDServer struct {
@@ -749,11 +852,10 @@ func (s *orderedMDServer) Put(
 func (s *orderedMDServer) Shutdown() {
 }
 
-// TestTLFJournalFlushOrdering tests that we respect the relative
+// testTLFJournalFlushOrdering tests that we respect the relative
 // orderings of blocks and MD ops when flushing, i.e. if a block op
 // was added to the block journal before an MD op was added to the MD
 // journal, then that block op will be flushed before that MD op.
-
 func testTLFJournalFlushOrdering(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
@@ -835,10 +937,9 @@ func testTLFJournalFlushOrdering(t *testing.T, ver MetadataVer) {
 		expectedPuts2, puts)
 }
 
-// TestTLFJournalFlushInterleaving tests that we interleave block and
+// testTLFJournalFlushInterleaving tests that we interleave block and
 // MD ops while respecting the relative orderings of blocks and MD ops
 // when flushing.
-
 func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
@@ -1074,6 +1175,10 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalMDServerBusyPause,
 		testTLFJournalMDServerBusyShutdown,
 		testTLFJournalBlockOpWhileBusy,
+		testTLFJournalBlockOpDiskLimit,
+		testTLFJournalBlockOpDiskLimitCancel,
+		testTLFJournalBlockOpDiskLimitTimeout,
+		testTLFJournalBlockOpDiskLimitPutFailure,
 		testTLFJournalFlushMDBasic,
 		testTLFJournalFlushMDConflict,
 		testTLFJournalFlushOrdering,

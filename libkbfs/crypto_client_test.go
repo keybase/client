@@ -178,7 +178,7 @@ func TestCryptoClientSignCanceled(t *testing.T) {
 	testRPCWithCanceledContext(t, serverConn, f)
 }
 
-// Test that decrypting an TLF crypt key client half encrypted with
+// Test that decrypting a TLF crypt key client half encrypted with
 // box.Seal works.
 func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
