@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"encoding/hex"
-
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -427,7 +425,7 @@ func (s *Deliverer) deliverLoop() {
 		}
 
 		// Fetch outbox
-		obrs, err := s.outbox.PullAllConversations(bgctx, true)
+		obrs, err := s.outbox.PullAllConversations(bgctx, false, true)
 		if err != nil {
 			if _, ok := err.(storage.MissError); !ok {
 				s.Debug(bgctx, "unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
@@ -441,36 +439,8 @@ func (s *Deliverer) deliverLoop() {
 
 		// Send messages
 		var breaks []keybase1.TLFIdentifyFailure
-		markRestAsError := false
 		for _, obr := range obrs {
 
-			// Check type
-			state, err := obr.State.State()
-			if err != nil {
-				s.Debug(bgctx, "skipping strange entry in the outbox, invalid type: %s", err.Error())
-				continue
-			}
-			if state != chat1.OutboxStateType_SENDING {
-				s.Debug(bgctx, "skipping error state record: id: %s convID: %s uid: %s",
-					hex.EncodeToString(obr.OutboxID), obr.ConvID, s.outbox.GetUID())
-				if err := s.outbox.MarkAsError(bgctx, obr, obr.State.Error()); err != nil {
-					s.Debug(bgctx, "unable to rewrite failed message: err: %s", err.Error())
-				}
-				continue
-			}
-			// If we have hit an error, we need to add the rest of the items back in as errors
-			// as well
-			if markRestAsError {
-				if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
-					Message: "previous message failed",
-					Typ:     chat1.OutboxErrorType_MISC,
-				}); err != nil {
-					s.Debug(bgctx, "unable to fail message: %s", err.Error())
-				}
-				continue
-			}
-
-			// Do the actual send
 			bctx := Context(context.Background(), obr.IdentifyBehavior, &breaks, s.identNotifier)
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
@@ -487,7 +457,6 @@ func (s *Deliverer) deliverLoop() {
 					// mode where all other entries also fail.
 					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
 
-					markRestAsError = true
 					if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
 						Message: err.Error(),
 						Typ:     errTyp,

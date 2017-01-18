@@ -138,7 +138,6 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		OutboxID:         outboxID,
 		IdentifyBehavior: identifyBehavior,
 	})
-	sort.Sort(ByCtimeOrder(obox.Records))
 
 	// Write out box
 	obox.Version = outboxVersion
@@ -152,7 +151,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 
 // PullAllConversations grabs all outbox entries for the current outbox, and optionally deletes them
 // from storage
-func (o *Outbox) PullAllConversations(ctx context.Context, remove bool) ([]chat1.OutboxRecord, error) {
+func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, remove bool) ([]chat1.OutboxRecord, error) {
 	o.Lock()
 	defer o.Unlock()
 
@@ -162,47 +161,35 @@ func (o *Outbox) PullAllConversations(ctx context.Context, remove bool) ([]chat1
 		return nil, o.maybeNuke(err, o.dbKey())
 	}
 
-	var res []chat1.OutboxRecord
+	var res, errors []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		state, err := obr.State.State()
+		if err != nil {
+			o.Debug(ctx, "PullAllConversations: unknown state item: skipping: err: %s", err.Error())
+			continue
+		}
+		if state == chat1.OutboxStateType_ERROR {
+			if includeErrors {
+				res = append(res, obr)
+			} else {
+				errors = append(errors, obr)
+			}
+		} else {
+			res = append(res, obr)
+		}
+	}
 	if remove {
-		res = make([]chat1.OutboxRecord, len(obox.Records))
-		copy(res, obox.Records)
-		obox.Records = []chat1.OutboxRecord{}
-
 		// Write out box
+		obox.Records = errors
 		obox.Version = outboxVersion
 		if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 			return nil, o.maybeNuke(NewInternalError(o.DebugLabeler,
 				"error writing outbox: err: %s", err.Error()), o.dbKey())
 		}
 
-	} else {
-		res = obox.Records
 	}
 
 	return res, nil
-}
-
-func (o *Outbox) PopNOldestMessages(ctx context.Context, n int) error {
-	o.Lock()
-	defer o.Unlock()
-
-	// Read outbox for the user
-	obox, err := o.readDiskOutbox(ctx)
-	if err != nil {
-		return o.maybeNuke(err, o.dbKey())
-	}
-
-	// Pop N off front
-	obox.Records = obox.Records[n:]
-
-	// Write out box
-	obox.Version = outboxVersion
-	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(o.DebugLabeler,
-			"error writing outbox: err: %s", err.Error()), o.dbKey())
-	}
-
-	return nil
 }
 
 // RecordFailedAttempt will either modify an existing matching record (if sending) to next attempt
@@ -248,11 +235,11 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 			oldObr.State = chat1.NewOutboxStateWithSending(oldObr.State.Sending() + 1)
 		}
 		recs = append(recs, oldObr)
+		sort.Sort(ByCtimeOrder(recs))
 	}
 
 	// Write out box
 	obox.Records = recs
-	sort.Sort(ByCtimeOrder(obox.Records))
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -286,11 +273,11 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 	if !added {
 		obr.State = chat1.NewOutboxStateWithError(errRec)
 		recs = append(recs, obr)
+		sort.Sort(ByCtimeOrder(recs))
 	}
 
 	// Write out box
 	obox.Records = recs
-	sort.Sort(ByCtimeOrder(obox.Records))
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -320,7 +307,6 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID) error {
 
 	// Write out box
 	obox.Records = recs
-	sort.Sort(ByCtimeOrder(obox.Records))
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
@@ -349,7 +335,6 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	obox.Records = recs
 
 	// Write out box
-	sort.Sort(ByCtimeOrder(obox.Records))
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
