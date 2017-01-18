@@ -267,7 +267,6 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 	o.Lock()
 	defer o.Unlock()
 
-	o.Debug(ctx, "MARK: %s", obr.OutboxID)
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
 	if err != nil {
