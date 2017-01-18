@@ -164,10 +164,10 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
-	// Might have to retry if the context has been canceled.
-	// This loop will iterate a maximum of 2 times. It either hits the `return`
-	// statement at the bottom on the first iteration, or the `continue`
-	// statement first which causes it to `return` on the next iteration.
+	// We might have to retry if the context has been canceled.  This loop will
+	// iterate a maximum of 2 times. It either hits the `return` statement at
+	// the bottom on the first iteration, or the `continue` statement first
+	// which causes it to `return` on the next iteration.
 	for {
 		br, exists := brq.ptrs[bpLookup]
 		if !exists {
@@ -179,9 +179,17 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 				brq.config.BlockCache().GetWithPrefetch(ptr)
 			if err == nil && cachedBlock != nil {
 				block.Set(cachedBlock, brq.config.codec())
-				brq.Prefetcher().PrefetchAfterBlockRetrieved(
-					cachedBlock, ptr, kmd, priority, lifetime, hasPrefetched)
-				ch <- nil
+				// This must be called in a goroutine to prevent deadlock in
+				// case this Request call was triggered by the prefetcher
+				// itself.
+				go func() {
+					brq.Prefetcher().PrefetchAfterBlockRetrieved(
+						cachedBlock, ptr, kmd, priority, lifetime, hasPrefetched)
+					// To prevent races, we don't tell the requestor that we're
+					// done until we've attempted to prefetch and cached the
+					// result of that attempt.
+					ch <- nil
+				}()
 				return ch
 			}
 			// Add to the heap
