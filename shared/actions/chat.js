@@ -283,7 +283,7 @@ function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
   const you = yield select(usernameSelector)
 
   if (inbox && you) {
-    const brokenUsers = getBrokenUsers(inbox.get('participants'), you, metaData)
+    const brokenUsers = getBrokenUsers(inbox.get('participants').toArray(), you, metaData)
     return brokenUsers.length ? TlfKeysTLFIdentifyBehavior.chatGui : TlfKeysTLFIdentifyBehavior.chatGuiStrict
   }
 
