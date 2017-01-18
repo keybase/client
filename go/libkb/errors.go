@@ -1262,6 +1262,10 @@ func (e IdentifySummaryError) Error() string {
 	return fmt.Sprintf("%s", strings.Join(e.problems, "; "))
 }
 
+func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_IDENTIFY, true
+}
+
 //=============================================================================
 
 type NotLatestSubchainError struct {
