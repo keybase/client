@@ -25,14 +25,13 @@ import {toDeviceType} from '../constants/types/more'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
-import type {Action, AsyncAction} from '../constants/types/flux'
+import type {Action} from '../constants/types/flux'
 import type {ChangedFocus} from '../constants/window'
 import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
-  AttachmentMessage,
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
@@ -49,6 +48,7 @@ import type {
   Message,
   MessageID,
   NewChat,
+  OpenAttachmentPopup,
   OpenFolder,
   PostMessage,
   RetryMessage,
@@ -165,20 +165,6 @@ function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Consta
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
 function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
-}
-
-function openAttachmentPopup (message: AttachmentMessage): AsyncAction {
-  const messageID = message.messageID
-  if (!messageID) {
-    throw new Error('Cannot open attachment popup for message missing ID')
-  }
-
-  return (dispatch) => {
-    dispatch(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
-    if (!message.downloadedPath) {
-      dispatch(loadAttachment(message.conversationIDKey, messageID, false, downloadFilePath(message.filename)))
-    }
-  }
 }
 
 function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): ?InboxState {
@@ -1167,6 +1153,19 @@ function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any>
   yield put(loadMoreMessages(selectedConversation, false))
 }
 
+function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any, any> {
+  const {message} = action.payload
+  const messageID = message.messageID
+  if (!messageID) {
+    throw new Error('Cannot open attachment popup for message missing ID')
+  }
+
+  yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
+  if (!message.downloadedPath) {
+    yield put(loadAttachment(message.conversationIDKey, messageID, false, downloadFilePath(message.filename)))
+  }
+}
+
 function _threadIsCleared (originalAction: Action, checkAction: Action): boolean {
   return originalAction.type === 'chat:loadMoreMessages' && checkAction.type === 'chat:clearMessages' && originalAction.conversationIDKey === checkAction.conversationIDKey
 }
@@ -1194,6 +1193,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:appendMessages', _sendNotifications),
     safeTakeEvery('chat:selectAttachment', _selectAttachment),
     safeTakeEvery('chat:loadAttachment', _loadAttachment),
+    safeTakeEvery('chat:openAttachmentPopup', _openAttachmentPopup),
     safeTakeLatest('chat:openFolder', _openFolder),
     safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
     safeTakeLatest('chat:updateInbox', _onUpdateInbox),
@@ -1213,7 +1213,6 @@ export {
   loadMoreMessages,
   newChat,
   selectAttachment,
-  openAttachmentPopup,
   openFolder,
   postMessage,
   retryMessage,
