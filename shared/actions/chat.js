@@ -157,7 +157,7 @@ function deleteMessage (message: Message): DeleteMessage {
 
 function retryAttachment (message: Constants.AttachmentMessage): Constants.SelectAttachment {
   const {conversationIDKey, filename, title, previewType, outboxID} = message
-  return {type: Constants.selectAttachment, payload: {conversationIDKey, filename, title, type: previewType || 'Other', outboxID}}
+  return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type: previewType || 'Other', outboxID}}
 }
 
 function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string, type: Constants.AttachmentType): Constants.SelectAttachment {
