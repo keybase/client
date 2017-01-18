@@ -133,7 +133,7 @@ func main() {
 	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
 	iconPtr := flag.String("i", "../../media/icons/Keybase.ico", "icon pathname")
-	kbfsIconPtr := flag.String("kbfsicon", "../../media/icons/windows/keybase-root-icon.ico", "icon pathname")
+	kbfsIconPtr := flag.String("kbfsicon", "", "icon pathname")
 	fileDescriptionPtr := flag.String("d", "Keybase utility", "File Description")
 	originalFilenamePtr := flag.String("n", "keybase.exe", "File name")
 
@@ -212,9 +212,12 @@ func main() {
 	// Optionally, embed an icon by path
 	// If the icon has multiple sizes, all of the sizes will be embedded
 	vi.IconPath = *iconPtr
-
+	var extraIconPaths []string
+	if *kbfsIconPtr != "" {
+		extraIconPaths = append(extraIconPaths, *kbfsIconPtr)
+	}
 	// Create the file
-	if err := kbWriteSyso(vi, *outPtr, "386", []string{*kbfsIconPtr}); err != nil {
+	if err := kbWriteSyso(vi, *outPtr, os.Getenv("GOARCH"), extraIconPaths); err != nil {
 		log.Printf("Error writing %s: %v", *outPtr, err)
 		os.Exit(3)
 	}

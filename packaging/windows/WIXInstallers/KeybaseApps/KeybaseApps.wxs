@@ -74,9 +74,10 @@
   
 	<Fragment>
 		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-			<Component Id="keybase.exe" Guid="88737432-0E15-413D-B23C-4B18D06EDC2C">				
+			<Component Id="keybaseexe32" Guid="88737432-0E15-413D-B23C-4B18D06EDC2C">
+        <Condition>NOT VersionNT64</Condition>
         <CreateFolder />
-        <RemoveFolder Id="RemoveMyApp" On="uninstall" />
+        <RemoveFolder Id="RemoveMyApp32" On="uninstall" />
         <!-- The heat tool output (which generates gui.wxs) won't work if there are directories with only subdirectories
         and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
@@ -84,8 +85,21 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
+        <File Id="keybaseexe32" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
 			</Component>
+      <Component Id="keybaseexe64" Guid="DD55A5B0-1ED8-448C-9210-98FDCEF1E73C">
+        <Condition>VersionNT64</Condition>
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyApp64" On="uninstall" />
+        <!-- The heat tool output (which generates gui.wxs) won't work if there are directories with only subdirectories
+        and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
+        <RemoveFolder Id="GuiResourcesDirRemove64" On="uninstall" Directory="GuiResourcesDir"/>
+        <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove64" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="keybaseexe64" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\amd64\keybase.exe" Checksum="yes"/>
+      </Component>
       <Component Id="runquiet.exe" Guid="{1265F74B-0775-4522-A67D-25422D1984A3}">
         <CreateFolder />
         <RemoveFolder Id="RemoveMyAppRunner" On="uninstall" />
@@ -95,14 +109,25 @@
         <File Id="runquiet.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe" Checksum="yes"/>
       </Component>
 
-      <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
+      <Component Id="KbfsDokanExe32" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
+        <Condition>NOT VersionNT64</Condition>
         <CreateFolder />
         <RemoveFolder Id="RemoveDokan" On="uninstall" />
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
+        <File Id='KbfsDokanExe32' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
       </Component>
+      <Component Id="KbfsDokanExe64" Guid="{0F8D6C3F-7832-4B55-893C-9E382788F57F}">
+        <Condition>VersionNT64</Condition>
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDokan64" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id='KbfsDokanExe64' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\amd64\kbfsdokan.exe" />
+      </Component>
+
 
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />

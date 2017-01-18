@@ -11,8 +11,7 @@ pushd  %GOPATH%\src\github.com\keybase\client\shared
 echo Calling yarn install
 call yarn install
 
-if _%GOARCH%_ == _386_ (
-    yarn run package -- --arch ia32 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico
-) else (
-    yarn run package -- --arch ia64 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico    
-)
+yarn run package -- --arch ia32 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico
+:: yarn run package -- --arch x64 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico    
+
+popd

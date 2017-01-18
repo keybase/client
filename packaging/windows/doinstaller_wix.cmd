@@ -2,6 +2,7 @@
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::
+set GOARCH=386
 
 echo %KEYBASE_SECRET_STORE_FILE%
 :: This has to be reset too for a separate batch command
@@ -9,15 +10,12 @@ if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
 set SIGNTOOL=signtool
 set CERTISSUER=DigiCert
 
-if NOT DEFINED GOOS set GOOS=windows
-if NOT DEFINED GOARCH set GOARCH=amd64
-IF NOT DEFINED TARGETDIR set TARGETDIR=%GOPATH%\%GOOS%_%GOARCH%
 
 ::
 :: get the target build folder. Assume winresource.exe has been built.
 :: If not, go there and do "go generate"
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
-set PathName=%TARGETDIR%\keybase.exe
+set PathName=%Folder%keybase.exe
 
 if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build81
 echo DOKAN_PATH %DOKAN_PATH%
@@ -57,31 +55,37 @@ SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %PathName%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %TARGETDIR%\kbfsdokan.exe
+SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\keybase\amd64\keybase.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %TARGETDIR%\upd.exe
+SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %TARGETDIR%\runquiet.exe
+SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\amd64\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %TARGETDIR%\dokanclean.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-if _%GOARCH%_ == _386_ (
-  SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
-) else (
-  SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia64\Keybase-win32-ia64\Keybase.exe
-  
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
+IF %ERRORLEVEL% NEQ 0 (k
+  EXIT /B 1
 )
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
+IF %ERRORLEVEL% NEQ 0 (k
+  EXIT /B 1
+)
+
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
+
+
 
 :: Double check that keybase is codesigned
 signtool verify /pa %PathName%
@@ -94,6 +98,10 @@ signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
+signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\amd64\kbfsdokan.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 
 :: Double check that updater is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
@@ -102,10 +110,12 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double check that Keybase.exe gui is codesigned
+
 signtool verify /pa %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
+
 
 if NOT DEFINED BUILD_TAG set BUILD_TAG=%SEMVER%
 
@@ -119,6 +129,7 @@ echo ^<?define DOKAN_PATH=^"%DOKAN_PATH%^" ?^> >> dokanver.xml
 echo ^</Include^>  >> dokanver.xml
 
 msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=x86 /t:Build
+
 popd
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
