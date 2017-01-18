@@ -3,8 +3,28 @@ import React from 'react'
 import {Box, Icon, Text, PopupDialog} from '../../../common-adapters/index'
 import {AttachmentPopupMenu} from '../messages/popup'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import {fileUIName} from '../../../constants/platform'
 
 import type {Props} from './'
+import type {Message} from '../../../constants/chat'
+
+const AttachmentStatusFooter = ({message, onDownloadAttachment, onOpenInFileUI}: {message: Message, onDownloadAttachment: () => void, onOpenInFileUI: () => void}) => {
+  let actionHandler
+  let actionText
+  if (message.downloadedPath) {
+    actionHandler = onOpenInFileUI
+    actionText = `Show in ${fileUIName}`
+  } else {
+    actionHandler = onDownloadAttachment
+    actionText = 'Download'
+  }
+
+  return (
+    <Box style={styleHeaderFooter}>
+      <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={actionHandler}>{actionText}</Text>
+    </Box>
+  )
+}
 
 const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetailsPopup, onClose, onDownloadAttachment, onDeleteMessage, onOpenDetailsPopup, onToggleZoom, onOpenInFileUI, you}: Props) => (
   <PopupDialog onClose={onClose} fill={true}>
@@ -24,9 +44,7 @@ const AttachmentPopup = ({message, detailsPopupShowing, isZoomed, onCloseDetails
     <Box style={isZoomed ? styleContentsZoom : styleContentsFit} onClick={onToggleZoom}>
       <img src={message.downloadedPath} style={isZoomed ? styleImageZoom : styleImageFit} />
     </Box>
-    <Box style={styleHeaderFooter}>
-      <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={onDownload}>Download</Text>
-    </Box>
+    <AttachmentStatusFooter message={message} onDownloadAttachment={onDownloadAttachment} onOpenInFileUI={onOpenInFileUI} />
   </PopupDialog>
 )
 
