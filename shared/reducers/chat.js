@@ -217,6 +217,14 @@ function reducer (state: State = initialState, action: Actions) {
         conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageID))
       ))
     }
+    case 'chat:createPendingFailure': {
+      const {outboxID} = action.payload
+      return state.set('pendingFailures', state.get('pendingFailures').add(outboxID))
+    }
+    case 'chat:removePendingFailure': {
+      const {outboxID} = action.payload
+      return state.set('pendingFailures', state.get('pendingFailures').remove(outboxID))
+    }
     case 'chat:attachmentLoaded': {
       const {conversationIDKey, messageID, path, isPreview} = action.payload
 
