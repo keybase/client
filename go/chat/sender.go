@@ -457,6 +457,7 @@ func (s *Deliverer) deliverLoop() {
 				}); err != nil {
 					s.Debug(bgctx, "unable to fail message: %s", err.Error())
 				}
+				continue
 			}
 
 			// Do the actual send
@@ -467,7 +468,6 @@ func (s *Deliverer) deliverLoop() {
 				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
 			}
 			if err != nil {
-				// Send failed
 				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
@@ -476,6 +476,7 @@ func (s *Deliverer) deliverLoop() {
 					// Record failure if we hit this case, and put the rest of this loop in a
 					// mode where all other entries also fail.
 					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
+					markRestAsError = true
 
 					if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
 						Message: err.Error(),
@@ -489,8 +490,6 @@ func (s *Deliverer) deliverLoop() {
 							s.outbox.GetUID(), err.Error())
 					}
 				}
-
-				break
 			}
 		}
 	}

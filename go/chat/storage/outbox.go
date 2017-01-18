@@ -243,6 +243,8 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 	return nil
 }
 
+// MarkAsError will either mark an existing record as an error, or it will add the passed
+// record as an error with the specified error state
 func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec chat1.OutboxStateError) error {
 	o.Lock()
 	defer o.Unlock()
@@ -255,11 +257,17 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 
 	// Loop through and find record
 	var recs []chat1.OutboxRecord
+	added := false
 	for _, iobr := range obox.Records {
 		if iobr.OutboxID.Eq(obr.OutboxID) {
 			iobr.State = chat1.NewOutboxStateWithError(errRec)
+			added = true
 		}
 		recs = append(recs, iobr)
+	}
+	if !added {
+		obr.State = chat1.NewOutboxStateWithError(errRec)
+		recs = append(recs, obr)
 	}
 
 	// Write out box
