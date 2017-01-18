@@ -53,7 +53,7 @@ function PreviewImage ({message: {previewPath, previewType, previewSize, message
   return null
 }
 
-function ProgressBar ({text, progress, style}, {text: string, progress: number, style: Object}) {
+function ProgressBar ({text, progress, style}: {text: string, progress: number, style: Object}) {
   const basicStyle = {height: 4, width: 64, borderRadius: 4}
   const containerStyle = {
     ...globalStyles.flexBoxRow,
