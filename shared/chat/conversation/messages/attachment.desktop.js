@@ -6,7 +6,7 @@ import {Box, Icon, Text} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
-import type {Props} from './attachment'
+import type {Props, ProgressBarProps, ImageIconProps} from './attachment'
 
 function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: string}) {
   let style = {}
@@ -53,7 +53,7 @@ function PreviewImage ({message: {previewPath, previewType, previewSize, message
   return null
 }
 
-function ProgressBar ({text, progress, style}: {text: string, progress: number, style?: Object}) {
+function ProgressBar ({text, progress, style}: ProgressBarProps) {
   const basicStyle = {height: 4, width: 64, borderRadius: 4}
   const containerStyle = {
     ...globalStyles.flexBoxRow,
@@ -75,7 +75,7 @@ function ProgressBar ({text, progress, style}: {text: string, progress: number, 
   )
 }
 
-function ImageIcon ({type, style}: {type: 'Downloaded' | 'Downloading', style: Object}) {
+function ImageIcon ({type, style}: ImageIconProps) {
   const iconStyle = {
     color: type === 'Downloading' ? globalColors.blue : globalColors.green,
     lineHeight: 0,
@@ -199,4 +199,9 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
       </MessageComponent>
     )
   }
+}
+
+export {
+  ProgressBar,
+  ImageIcon,
 }
