@@ -389,14 +389,14 @@ class ConversationList extends Component<void, Props, State> {
 // Chrome.
 const realCSS = `
 .message {
-  background-color: transparent;
+  border: 1px solid transparent;
 }
 .message .action-button {
   visibility: hidden;
   opacity: 0;
 }
 .message:hover {
-  background-color: ${globalColors.black_05};
+  border: 1px solid ${globalColors.black_10};
 }
 .message:hover .action-button {
   visibility: visible;
