@@ -10,13 +10,12 @@ import type {Props} from 'emoji-mart'
 
 const backgroundImageFn = (set: string, sheetSize: string) => emojiSet
 
+// Size 0 is cause we want the native emoji for copy/paste and not for rendering
 const EmojiWrapper = (props: Props) => {
   const emojiText = `:${props.children}:`
   return (
     <Emoji {...props} emoji={emojiText} backgroundImageFn={backgroundImageFn}>
-      <span style={{opacity: 0}}>
-        <Emoji emoji={emojiText} size={props.size} native={true} />
-      </span>
+      <Emoji emoji={emojiText} size={0} native={true} />
     </Emoji>
   )
 }

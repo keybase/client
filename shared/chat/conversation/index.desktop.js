@@ -24,6 +24,7 @@ const Conversation = (props: Props) => {
         you={props.you}
         metaDataMap={props.metaDataMap}
         followingMap={props.followingMap}
+        onShowProfile={props.onShowProfile}
       />
       <List
         you={props.you}
@@ -40,6 +41,7 @@ const Conversation = (props: Props) => {
         onLoadMoreMessages={props.onLoadMoreMessages}
         onOpenInFileUI={props.onOpenInFileUI}
         onOpenInPopup={props.onOpenInPopup}
+        onRetryAttachment={props.onRetryAttachment}
         onRetryMessage={props.onRetryMessage}
         onShowProfile={props.onShowProfile}
         participants={props.participants}

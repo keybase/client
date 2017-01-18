@@ -25,6 +25,7 @@ export type Props = {
   suffix?: ?string,
   colorFollowing?: boolean,
   colorBroken?: boolean,
+  onUsernameClicked?: (username: string) => void,
 }
 
 declare export function usernameText(props: Props): void

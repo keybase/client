@@ -402,6 +402,10 @@ func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, arg chat1.TlfFinalizeA
 	return nil
 }
 
+func (m *ChatRemoteMock) TlfResolve(ctx context.Context, arg chat1.TlfResolveArg) error {
+	return nil
+}
+
 func (m *ChatRemoteMock) GetUnreadUpdateFull(ctx context.Context, inboxVers chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
 	return chat1.UnreadUpdateFull{}, errors.New("not implemented")
 }
@@ -486,7 +490,7 @@ func NewChatUI(cb chan NonblockInboxResult) *ChatUI {
 	}
 }
 
-func (c *ChatUI) ChatAttachmentUploadStart(context.Context) error {
+func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata) error {
 	return nil
 }
 
@@ -498,7 +502,7 @@ func (c *ChatUI) ChatAttachmentUploadDone(context.Context) error {
 	return nil
 }
 
-func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context) error {
+func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error {
 	return nil
 }
 

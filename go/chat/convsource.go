@@ -2,10 +2,10 @@ package chat
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -42,18 +42,26 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, []*chat1.RateLimit{}, errors.New("RemoteConversationSource.Pull called with empty convID")
 	}
 
+	var rl []*chat1.RateLimit
+
+	conv, ratelim, err := s.G().InboxSource.ReadRemote(ctx, uid, convID)
+	rl = append(rl, ratelim)
+	if err != nil {
+		return chat1.ThreadView{}, rl, err
+	}
+
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
-	rl := []*chat1.RateLimit{boxed.RateLimit}
+	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -63,7 +71,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
-	return chat1.ThreadView{}, libkb.ChatStorageMissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
+	return chat1.ThreadView{}, storage.MissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
 func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
@@ -78,9 +86,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 		MessageIDs:     msgIDs,
 	})
 
-	rres.Msgs = AppendTLFResetSuffix(rres.Msgs, finalizeInfo)
-
-	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs)
+	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, finalizeInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -91,11 +97,13 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-	return s.boxer.UnboxMessages(ctx, msgs)
+	return s.boxer.UnboxMessages(ctx, msgs, finalizeInfo)
 }
 
 type HybridConversationSource struct {
 	libkb.Contextified
+	utils.DebugLabeler
+
 	ri      func() chat1.RemoteInterface
 	boxer   *Boxer
 	storage *storage.Storage
@@ -105,14 +113,11 @@ func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *stor
 	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "HybridConversationSource", false),
 		ri:           ri,
 		boxer:        b,
 		storage:      storage,
 	}
-}
-
-func (s *HybridConversationSource) debug(msg string, args ...interface{}) {
-	s.G().Log.Debug("HybridConversationSource: "+msg, args...)
 }
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
@@ -121,7 +126,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	var err error
 	continuousUpdate := false
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, msg)
+	// leaving this empty for message Push.
+	// In a rare case, this will result in an error if a push message
+	// coincides with an account reset.
+	var emptyFinalizeInfo *chat1.ConversationFinalizeInfo
+
+	decmsg, err := s.boxer.UnboxMessage(ctx, msg, emptyFinalizeInfo)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -138,7 +148,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	// Check to see if we are "appending" this message to the current record.
 	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
 	switch err.(type) {
-	case libkb.ChatStorageMissError:
+	case storage.MissError:
 		continuousUpdate = true
 	case nil:
 		continuousUpdate = maxMsgID >= decmsg.GetMessageID()-1
@@ -152,32 +162,13 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	return decmsg, continuousUpdate, nil
 }
 
-func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,
-	rl *[]*chat1.RateLimit) (chat1.Conversation, error) {
-
-	conv, err := s.ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &convID,
-		},
-	})
-	*rl = append(*rl, conv.RateLimit)
-	if err != nil {
-		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: err.Error()}
-	}
-	if len(conv.Inbox.Full().Conversations) == 0 {
-		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
-	}
-	return conv.Inbox.Full().Conversations[0], nil
-}
-
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) error {
 
 	for _, msg := range msgs {
 		if msg.IsValid() {
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(finalizeInfo)
-
-			s.debug("identifyTLF: identifying from msg ID: %d name: %s convID: %s",
+			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, convID)
 
 			vis := chat1.TLFVisibility_PRIVATE
@@ -185,14 +176,14 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 				vis = chat1.TLFVisibility_PUBLIC
 			}
 			if _, err := LookupTLF(ctx, s.boxer.tlf, tlfName, vis); err != nil {
-				s.debug("identifyTLF: failure: name: %s convID: %s", tlfName, convID)
+				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
 			}
 			return nil
 		}
 	}
 
-	s.debug("identifyTLF: no identify performed, no valid messages found")
+	s.Debug(ctx, "identifyTLF: no identify performed, no valid messages found")
 	return nil
 }
 
@@ -207,17 +198,18 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := s.getConvMetadata(ctx, convID, &rl)
+	conv, ratelim, err := s.G().InboxSource.ReadRemote(ctx, uid, convID)
+	rl = append(rl, ratelim)
 	if err == nil {
 		// Try locally first
 		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
 		if err == nil {
 			// If found, then return the stuff
-			s.debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
+			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
 			// Identify this TLF by running crypt keys
 			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
-				s.debug("Pull: identify failed: %s", ierr.Error())
+				s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
 				return chat1.ThreadView{}, nil, ierr
 			}
 
@@ -231,20 +223,25 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
 			if query != nil && query.MarkAsRead && len(localData.Messages) > 0 {
+				readMsgID := localData.Messages[0].GetMessageID()
 				res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
 					ConversationID: convID,
-					MsgID:          localData.Messages[0].GetMessageID(),
+					MsgID:          readMsgID,
 				})
 				if err != nil {
 					return chat1.ThreadView{}, nil, err
 				}
+				if err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
+					return chat1.ThreadView{}, nil, err
+				}
+
 				rl = append(rl, res.RateLimit)
 			}
 
 			return localData, rl, nil
 		}
 	} else {
-		s.debug("Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
+		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
 			err.Error())
 	}
 
@@ -260,10 +257,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, rl, err
 	}
 
-	boxed.Thread.Messages = AppendTLFResetSuffix(boxed.Thread.Messages, conv.Metadata.FinalizeInfo)
-
 	// Unbox
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -298,7 +293,7 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 		m := message.Valid()
 		if m.HeaderSignature == nil {
 			// Skip revocation check for messages cached before the sig was part of the cache.
-			s.debug("updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
+			s.Debug(ctx, "updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
 			return message, nil
 		}
 
@@ -310,10 +305,10 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 			return chat1.MessageUnboxed{}, err
 		}
 		if !found {
-			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
+			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
 		}
 		if !validAtCtime {
-			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
+			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
 		}
 		m.SenderDeviceRevokedAt = revoked
 		updatedMessage := chat1.NewMessageUnboxedWithValid(m)
@@ -334,7 +329,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	// Identify this TLF by running crypt keys
 	// XXX might need finalize info
 	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages, nil); ierr != nil {
-		s.debug("PullLocalOnly: identify failed: %s", ierr.Error())
+		s.Debug(ctx, "PullLocalOnly: identify failed: %s", ierr.Error())
 		return chat1.ThreadView{}, ierr
 	}
 
@@ -370,7 +365,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	}
 
 	// Grab message from remote
-	s.debug("GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
+	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
 		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
 		rmsgs, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
@@ -381,10 +376,8 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 			return nil, err
 		}
 
-		rmsgs.Msgs = AppendTLFResetSuffix(rmsgs.Msgs, finalizeInfo)
-
 		// Unbox all the remote messages
-		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs)
+		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, finalizeInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -412,7 +405,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 
 	// Identify this TLF by running crypt keys
 	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
-		s.debug("GetMessages: identify failed: %s", ierr.Error())
+		s.Debug(ctx, "GetMessages: identify failed: %s", ierr.Error())
 		return nil, ierr
 	}
 
@@ -441,14 +434,14 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		}
 	}
 
-	s.debug("GetMessagesWithRemotes: convID: %s uid: %s total msgs: %d hits: %d", convID, uid,
+	s.Debug(ctx, "GetMessagesWithRemotes: convID: %s uid: %s total msgs: %d hits: %d", convID, uid,
 		len(msgs), len(lmsgsTab))
 	var merges []chat1.MessageUnboxed
 	for _, msg := range msgs {
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
 		} else {
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, finalizeInfo)
 			if err != nil {
 				return res, err
 			}
@@ -464,7 +457,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 	// Identify this TLF by running crypt keys
 	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
-		s.debug("GetMessagesWithRemotes: identify failed: %s", ierr.Error())
+		s.Debug(ctx, "GetMessagesWithRemotes: identify failed: %s", ierr.Error())
 		return nil, ierr
 	}
 

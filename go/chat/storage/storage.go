@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -22,6 +23,8 @@ type resultCollector interface {
 type Storage struct {
 	sync.Mutex
 	libkb.Contextified
+	utils.DebugLabeler
+
 	getSecretUI func() libkb.SecretUI
 	engine      storageEngine
 	idtracker   *msgIDTracker
@@ -29,11 +32,11 @@ type Storage struct {
 
 type storageEngine interface {
 	init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
-		uid gregor1.UID) (context.Context, libkb.ChatStorageError)
+		uid gregor1.UID) (context.Context, Error)
 	writeMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msgs []chat1.MessageUnboxed) libkb.ChatStorageError
+		msgs []chat1.MessageUnboxed) Error
 	readMessages(ctx context.Context, res resultCollector,
-		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) libkb.ChatStorageError
+		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
 }
 
 func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
@@ -42,6 +45,7 @@ func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
 		getSecretUI:  getSecretUI,
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "Storage", false),
 	}
 }
 
@@ -138,11 +142,7 @@ func (t *typedResultCollector) String() string {
 	return fmt.Sprintf("[ typed: t: %d c: %d (%d types) ]", t.target, t.cur, len(t.typmap))
 }
 
-func (s *Storage) debug(format string, args ...interface{}) {
-	s.G().Log.Debug("+ chatstorage: "+format, args...)
-}
-
-func (s *Storage) MaybeNuke(force bool, err libkb.ChatStorageError, convID chat1.ConversationID, uid gregor1.UID) libkb.ChatStorageError {
+func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, uid gregor1.UID) Error {
 	// Clear index
 	if force || err.ShouldClear() {
 		s.G().Log.Warning("chat local storage corrupted: clearing")
@@ -167,19 +167,19 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 	return maxMsgID, nil
 }
 
-func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
+func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
 	defer s.Unlock()
 
-	var err libkb.ChatStorageError
-	s.debug("Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
+	var err Error
+	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
-		return libkb.ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	ctx, err = s.engine.init(ctx, key, convID, uid)
@@ -208,11 +208,11 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 }
 
 // getSupersedes must be called with a valid msg
-func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, libkb.ChatStorageError) {
+func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, Error) {
 	body := msg.Valid().MessageBody
-	typ, err := (&body).MessageType()
+	typ, err := body.MessageType()
 	if err != nil {
-		return nil, libkb.NewChatStorageInternalError(s.G(), "invalid msg: %s", err.Error())
+		return nil, NewInternalError(s.DebugLabeler, "invalid msg: %s", err.Error())
 	}
 
 	// We use the message ID in the body over the field in the client header to avoid server trust.
@@ -227,15 +227,15 @@ func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, li
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
 
-	s.debug("updateSupersededBy: num msgs: %d", len(msgs))
+	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	for _, msg := range msgs {
 
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			s.debug("updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
+			s.Debug(ctx, "updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
 			continue
 		}
 
@@ -243,18 +243,18 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		if err != nil {
 			continue
 		}
-		s.debug("updateSupersededBy: supersedes: %v", superIDs)
+		s.Debug(ctx, "updateSupersededBy: supersedes: %v", superIDs)
 
 		// Set all supersedes targets
 		for _, superID := range superIDs {
-			s.debug("updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
+			s.Debug(ctx, "updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
 			// Read super msg
 			var superMsgs []chat1.MessageUnboxed
 			rc := newSimpleResultCollector(1)
 			err = s.engine.readMessages(ctx, rc, convID, uid, superID)
 			if err != nil {
 				// If we don't have the message, just keep going
-				if _, ok := err.(libkb.ChatStorageMissError); ok {
+				if _, ok := err.(MissError); ok {
 					continue
 				}
 				return err
@@ -264,18 +264,23 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				continue
 			}
 
-			// Update supersededBy on the target message if we have it
+			// Update supersededBy on the target message if we have it. And if
+			// the superseder is a deletion, delete the body as well.
 			superMsg := superMsgs[0]
 			if superMsg.IsValid() {
-				s.debug("updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
+				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
 				mvalid := superMsg.Valid()
 				mvalid.ServerHeader.SupersededBy = msgid
+				if msg.GetMessageType() == chat1.MessageType_DELETE {
+					var emptyBody chat1.MessageBody
+					mvalid.MessageBody = emptyBody
+				}
 				superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
 				if err = s.engine.writeMessages(ctx, convID, uid, superMsgs); err != nil {
 					return err
 				}
 			} else {
-				s.debug("updateSupersededBy: skipping id: %d, it is stored as an error",
+				s.Debug(ctx, "updateSupersededBy: skipping id: %d, it is stored as an error",
 					superMsg.GetMessageID())
 			}
 		}
@@ -285,16 +290,16 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 }
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, libkb.ChatStorageError) {
+	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
 		return chat1.ThreadView{},
-			libkb.ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}
+			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	// Init storage engine first
-	var err libkb.ChatStorageError
+	var err Error
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
 		return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
@@ -313,19 +318,19 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 			maxID = msgID
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
-				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
+				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
 				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = pid - 1
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
-				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
+				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
 				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
 		}
 	}
-	s.debug("Fetch: maxID: %d num: %d", maxID, num)
+	s.Debug(ctx, "Fetch: maxID: %d num: %d", maxID, num)
 
 	// Figure out how to determine we are done seeking
 	var rc resultCollector
@@ -334,7 +339,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	} else {
 		rc = newSimpleResultCollector(num)
 	}
-	s.debug("Fetch: using result collector: %s", rc)
+	s.Debug(ctx, "Fetch: using result collector: %s", rc)
 
 	// Run seek looking for all the messages
 	var res []chat1.MessageUnboxed
@@ -350,16 +355,16 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 		pmsgs = append(pmsgs, m)
 	}
 	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num); ierr != nil {
-		return chat1.ThreadView{}, libkb.NewChatStorageInternalError(s.G(), "Fetch: failed to encode pager: %s", ierr.Error())
+		return chat1.ThreadView{}, NewInternalError(s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
 	tres.Messages = res
 
-	s.debug("Fetch: cache hit: num: %d", len(res))
+	s.Debug(ctx, "Fetch: cache hit: num: %d", len(res))
 	return tres, nil
 }
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, libkb.ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -374,7 +379,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, libkb.ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -389,12 +394,11 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
-		return nil,
-			libkb.ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	// Init storage engine first
-	var err libkb.ChatStorageError
+	var err Error
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
 		return nil, s.MaybeNuke(false, err, convID, uid)
@@ -406,7 +410,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 		rc := newSimpleResultCollector(1)
 		var sres []chat1.MessageUnboxed
 		if err = s.engine.readMessages(ctx, rc, convID, uid, msgID); err != nil {
-			if _, ok := err.(libkb.ChatStorageMissError); ok {
+			if _, ok := err.(MissError); ok {
 				res = append(res, nil)
 				continue
 			} else {

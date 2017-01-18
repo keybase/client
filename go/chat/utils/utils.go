@@ -1,4 +1,4 @@
-package chat
+package utils
 
 import (
 	"fmt"
@@ -40,7 +40,7 @@ func ParseDurationExtended(s string) (d time.Duration, err error) {
 	return d, nil
 }
 
-func ParseTimeFromRFC3339OrDurationFromPast(kbCtx KeybaseContext, s string) (t time.Time, err error) {
+func ParseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t time.Time, err error) {
 	var errt, errd error
 	var d time.Duration
 
@@ -52,7 +52,7 @@ func ParseTimeFromRFC3339OrDurationFromPast(kbCtx KeybaseContext, s string) (t t
 		return t, nil
 	}
 	if d, errd = ParseDurationExtended(s); errd == nil {
-		return kbCtx.Clock().Now().Add(-d), nil
+		return g.Clock().Now().Add(-d), nil
 	}
 
 	return time.Time{}, fmt.Errorf("given string is neither a valid time (%s) nor a valid duration (%v)", errt, errd)
@@ -152,57 +152,6 @@ func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames
 	return writerNames, readerNames, extensionSuffix, err
 }
 
-type TLFInfo struct {
-	ID            chat1.TLFID
-	CanonicalName string
-}
-
-func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string,
-	visibility chat1.TLFVisibility) (*TLFInfo, error) {
-
-	res, err := CtxKeyFinder(ctx).Find(ctx, tlfcli, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
-	if err != nil {
-		return nil, err
-	}
-	info := &TLFInfo{
-		ID:            chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
-		CanonicalName: res.NameIDBreaks.CanonicalName.String(),
-	}
-	return info, nil
-}
-
-func GetInboxQueryLocalToRemote(ctx context.Context,
-	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery) (
-	rquery *chat1.GetInboxQuery, info *TLFInfo, err error) {
-
-	if lquery == nil {
-		return nil, nil, nil
-	}
-
-	rquery = &chat1.GetInboxQuery{}
-	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
-		var err error
-		info, err = LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility())
-		if err != nil {
-			return nil, nil, err
-		}
-		rquery.TlfID = &info.ID
-	}
-
-	rquery.After = lquery.After
-	rquery.Before = lquery.Before
-	rquery.TlfVisibility = lquery.TlfVisibility
-	rquery.TopicType = lquery.TopicType
-	rquery.UnreadOnly = lquery.UnreadOnly
-	rquery.ReadOnly = lquery.ReadOnly
-	rquery.ComputeActiveList = lquery.ComputeActiveList
-	rquery.ConvID = lquery.ConvID
-	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
-	rquery.Status = lquery.Status
-
-	return rquery, info, nil
-}
-
 const (
 	ChatTopicIDLen    = 16
 	ChatTopicIDSuffix = 0x20
@@ -255,19 +204,44 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
-func AppendTLFResetSuffix(msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) []chat1.MessageBoxed {
-	if finalizeInfo == nil {
-		return msgs
-	}
+type DebugLabeler struct {
+	libkb.Contextified
+	label   string
+	verbose bool
+}
 
-	if len(finalizeInfo.ResetFull) == 0 {
-		return msgs
+func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLabeler {
+	return DebugLabeler{
+		Contextified: libkb.NewContextified(g),
+		label:        label,
+		verbose:      verbose,
 	}
+}
 
-	mod := make([]chat1.MessageBoxed, len(msgs))
-	for i, m := range msgs {
-		m.ClientHeader.TlfName = m.ClientHeader.TLFNameExpanded(finalizeInfo)
-		mod[i] = m
+func (d DebugLabeler) showVerbose() bool {
+	return false
+}
+
+func (d DebugLabeler) showLog() bool {
+	if d.verbose {
+		return d.showVerbose()
 	}
-	return mod
+	return true
+}
+
+func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
+	if d.showLog() {
+		d.G().Log.CDebugf(ctx, "++Chat: "+d.label+": "+msg, args...)
+	}
+}
+
+func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) func() {
+	if d.showLog() {
+		d.G().Log.CDebugf(ctx, "++Chat: %s: + %s", d.label, msg)
+		return func() {
+			d.G().Log.CDebugf(ctx, "++Chat: %s: - %s -> %s", d.label, msg,
+				libkb.ErrToOk(f()))
+		}
+	}
+	return func() {}
 }

@@ -216,6 +216,7 @@ const (
 	SCChatTLFFinalized       = int(keybase1.StatusCode_SCChatTLFFinalized)
 	SCChatCollision          = int(keybase1.StatusCode_SCChatCollision)
 	SCBadEmail               = int(keybase1.StatusCode_SCBadEmail)
+	SCIdentifySummaryError   = int(keybase1.StatusCode_SCIdentifySummaryError)
 )
 
 const (
@@ -478,3 +479,6 @@ const (
 const (
 	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
 )
+
+// Eventually, this will be set to the first merkle root block with skip pointers.
+var FirstProdMerkleSeqnoWithSkips *Seqno

@@ -11,3 +11,4 @@
 /libs/flow-interface.js
 /libs/immutable-interface.js
 /node_modules
+/markdown/parser.js

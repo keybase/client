@@ -298,6 +298,30 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "OutboxErrorType",
+      "symbols": [
+        "MISC_0",
+        "OFFLINE_1",
+        "IDENTIFY_2",
+        "TOOLONG_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutboxStateError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "OutboxErrorType",
+          "name": "typ"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "OutboxState",
       "switch": {
@@ -317,7 +341,7 @@
             "name": "ERROR",
             "def": false
           },
-          "body": "string"
+          "body": "OutboxStateError"
         }
       ]
     },
@@ -338,6 +362,10 @@
           "name": "convID"
         },
         {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        },
+        {
           "type": "MessagePlaintext",
           "name": "Msg",
           "lint": "ignore"
@@ -345,6 +373,37 @@
         {
           "type": "keybase1.TLFIdentifyBehavior",
           "name": "identifyBehavior"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Inbox",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "version"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "convsUnverified"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "convs"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
         }
       ]
     },
@@ -662,12 +721,30 @@
     },
     {
       "type": "record",
+      "name": "ConversationErrorLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "Conversation",
+          "name": "remoteConv"
+        },
+        {
+          "type": "boolean",
+          "name": "permanent"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationLocal",
       "fields": [
         {
           "type": [
             null,
-            "string"
+            "ConversationErrorLocal"
           ],
           "name": "error"
         },
@@ -1272,29 +1349,6 @@
         }
       ],
       "response": "GetThreadLocalRes"
-    },
-    "getInboxLocal": {
-      "request": [
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "GetInboxLocalRes"
     },
     "getInboxAndUnboxLocal": {
       "request": [

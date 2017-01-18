@@ -11,8 +11,9 @@ import (
 )
 
 type bgiUser struct {
-	uid     keybase1.UID
-	nextRun time.Time
+	uid       keybase1.UID
+	nextRun   time.Time
+	lastError error // the last error we encountered
 	// The index is needed by update and is maintained by the heap.Interface methods.
 	index int // The index of the item in the heap.
 }
@@ -56,10 +57,19 @@ func (pq *priorityQueue) Pop() interface{} {
 var errDeleted = errors.New("job deleted")
 var errEmpty = errors.New("queue empty")
 
-type identifyJob struct {
-	uid keybase1.UID
-	err error
+type IdentifyJob struct {
+	uid       keybase1.UID
+	err       error // this error
+	lastError error // the error from the last run of the loop
 }
+
+func (ij IdentifyJob) ErrorChanged() bool {
+	return (ij.err == nil) != (ij.lastError == nil)
+}
+
+func (ij IdentifyJob) UID() keybase1.UID { return ij.uid }
+func (ij IdentifyJob) ThisError() error  { return ij.err }
+func (ij IdentifyJob) LastError() error  { return ij.lastError }
 
 type BackgroundIdentifierTestArgs struct {
 	identify2TestArgs *Identify2WithUIDTestArgs
@@ -71,7 +81,7 @@ type BackgroundIdentifier struct {
 	queue     priorityQueue
 	members   map[keybase1.UID]bool
 	addCh     chan struct{}
-	snooperCh chan<- identifyJob
+	snooperCh chan<- IdentifyJob
 	untilCh   chan struct{}
 	testArgs  *BackgroundIdentifierTestArgs
 	settings  BackgroundIdentifierSettings
@@ -84,7 +94,7 @@ type BackgroundIdentifierSettings struct {
 	WaitClean       time.Duration // = 4 * time.Hour
 	WaitHardFailure time.Duration // = 90 * time.Minute
 	WaitSoftFailure time.Duration // = 10 * time.Minute
-	DelaySlot       time.Duration // = 5 * time.Second
+	DelaySlot       time.Duration // = 30 * time.Second
 }
 
 var BackgroundIdentifierDefaultSettings = BackgroundIdentifierSettings{
@@ -128,9 +138,8 @@ func (b *BackgroundIdentifier) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-// used mainly for testing. A snooper channel wants to know what's going on
-// and will be notified accordingly.
-func (b *BackgroundIdentifier) setSnooperChannel(ch chan<- identifyJob) {
+// A snooper channel wants to know what's going on and will be notified accordingly.
+func (b *BackgroundIdentifier) SetSnooperChannel(ch chan<- IdentifyJob) {
 	b.snooperCh = ch
 }
 
@@ -174,6 +183,9 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 	fn := "BackgroundIdentifier#Run"
 	defer b.G().Trace(fn, func() error { return err })()
 
+	// Mark all identifies with background identifier tag / context.
+	netContext := libkb.WithLogTag(ctx.GetNetContext(), "BG")
+
 	if !b.settings.Enabled {
 		b.G().Log.Debug("%s: Bailing out since BackgroundIdentifier isn't enabled", fn)
 		return nil
@@ -195,6 +207,10 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 			continue
 		case <-b.G().Clock().AfterTime(waitUntil):
 			b.G().Log.Debug("| running next after wait")
+
+			// Reset the netContext everytime through the loop, so we don't
+			// endlessly accumulate WithValues
+			ctx.NetContext = netContext
 			b.runNext(ctx)
 		}
 	}
@@ -281,6 +297,9 @@ func (b *BackgroundIdentifier) runNext(ctx *Context) error {
 	tmp := b.runOne(ctx, user.uid)
 	waitTime := b.errorToRetryDuration(tmp)
 	user.nextRun = b.G().Clock().Now().Add(waitTime)
+	lastError := user.lastError
+	user.lastError = tmp
+
 	b.G().Log.Debug("requeuing %s for %s (until %s)", user.uid, waitTime, user.nextRun)
 	b.requeue(user)
 
@@ -288,7 +307,7 @@ func (b *BackgroundIdentifier) runNext(ctx *Context) error {
 	// Otherwise there could be races -- the Advance() call of a tester might
 	// slip in in before the call to b.G().Clock().Now() above.
 	if b.snooperCh != nil {
-		b.snooperCh <- identifyJob{user.uid, tmp}
+		b.snooperCh <- IdentifyJob{user.uid, tmp, lastError}
 	}
 
 	if d := b.settings.DelaySlot; d != 0 {

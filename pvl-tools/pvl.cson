@@ -99,12 +99,10 @@ services:
 
     # This query operates on the newly extractaparsed comment, not the original page load
     # This is the selector for the post attachment links, which contains the
-    # proof text. It's the "<a> tags inside the div that's the immediate
-    # *sibling* of the 'userContet' div". The second of these three <a> tags
-    # contains the proof text, the others are blank. But we just check their concatenation.
+    # proof text. It's the second <a> tag inside the div that's the immediate
+    # *sibling* of the 'userContet' div. That <a> tags contains the proof text.
     { selector_css: {
-      , selectors: ["div.userContent+div a"]
-      , multi: true
+      , selectors: ["div.userContent+div a", 1]
       , into: "link_text"
       , error: ["FAILED_PARSE", "Could not find link text in Facebook's response"] } },
     { whitespace_normalize: {

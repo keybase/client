@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -52,47 +52,47 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	inbox, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			Status:    chat.VisibleChatConversationStatuses(),
-			TopicType: &topicType,
+			Status:     utils.VisibleChatConversationStatuses(),
+			TopicType:  &topicType,
+			UnreadOnly: opts.UnreadOnly,
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return c.errReply(err)
 	}
-	rlimits = append(rlimits, inbox.RateLimits...)
+	rlimits = utils.AggRateLimits(res.RateLimits)
 
 	var cl ChatList
-	cl.Conversations = make([]ConvSummary, len(inbox.ConversationsUnverified))
-	for i, conv := range inbox.ConversationsUnverified {
+	cl.Conversations = make([]ConvSummary, len(res.Conversations))
+	for i, conv := range res.Conversations {
 		readerInfo := conv.ReaderInfo
 		convUnread := false
 		var convMtime gregor1.Time
-		if readerInfo != nil {
-			convUnread = readerInfo.ReadMsgid < readerInfo.MaxMsgid
-			convMtime = readerInfo.Mtime
-		}
+
+		convUnread = readerInfo.ReadMsgid < readerInfo.MaxMsgid
+		convMtime = readerInfo.Mtime
 
 		maxID := chat1.MessageID(0)
-		for _, msg := range conv.MaxMsgs {
-			if msg.ServerHeader.MessageID > maxID {
-				tlf := msg.ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
-				pub := msg.ClientHeader.TlfPublic
+		for _, msg := range conv.MaxMessages {
+			if msg.IsValid() && msg.GetMessageID() > maxID {
+				tlf := msg.Valid().ClientHeader.TLFNameExpanded(conv.Info.FinalizeInfo)
+				pub := msg.Valid().ClientHeader.TlfPublic
 				cl.Conversations[i] = ConvSummary{
-					ID: conv.Metadata.ConversationID.String(),
+					ID: conv.GetConvID().String(),
 					Channel: ChatChannel{
 						Name:      tlf,
 						Public:    pub,
-						TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
+						TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
 					},
 					Unread:       convUnread,
 					ActiveAt:     convMtime.UnixSeconds(),
 					ActiveAtMs:   convMtime.UnixMilliseconds(),
-					FinalizeInfo: conv.Metadata.FinalizeInfo,
+					FinalizeInfo: conv.Info.FinalizeInfo,
 				}
-				maxID = msg.ServerHeader.MessageID
+				maxID = msg.GetMessageID()
 			}
 		}
 	}

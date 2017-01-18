@@ -14,10 +14,12 @@ const initialConversation: ConversationState = new ConversationStateRecord()
 function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
   const filteredAppend = append.filter(m => !seenMessages.has(m.key))
-  // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
-  const nextMessages = filteredPrepend.concat(messages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
 
-  const nextSeenMessages = nextMessages.reduce((acc, m) => acc.add(m.key), Set())
+  const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
+  const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
+  // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
+  const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
+  const nextSeenMessages = Set(nextMessages.map(m => m.key))
 
   return {
     nextMessages,
@@ -71,7 +73,20 @@ function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return initialState
-    case Constants.prependMessages: {
+    case 'chat:clearMessages': {
+      const {conversationIDKey} = action.payload
+      const origConversationState = state.get('conversationStates').get(conversationIDKey)
+      if (!origConversationState) {
+        console.warn('Attempted to clear conversation state that doesn\'t exist')
+        return
+      }
+      const clearedConversationState = initialConversation.set('firstNewMessageID', origConversationState.get('firstNewMessageID'))
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.set(conversationIDKey, clearedConversationState)
+      )
+    }
+    case 'chat:prependMessages': {
       const {messages: prependMessages, moreToLoad, paginationNext, conversationIDKey} = action.payload
       const {messages, deletedIDs} = _filterTypes(prependMessages)
 
@@ -98,7 +113,7 @@ function reducer (state: State = initialState, action: Actions) {
         .set('conversationStates', newConversationStates)
         .set('inbox', newInboxStates)
     }
-    case Constants.appendMessages: {
+    case 'chat:appendMessages': {
       const appendAction: AppendMessages = action
       const appendMessages = appendAction.payload.messages
       const isSelected = action.payload.isSelected
@@ -149,7 +164,13 @@ function reducer (state: State = initialState, action: Actions) {
           .set('time', message.timestamp)
 
         if (snippet) {
-          newInbox = newInbox.set('snippet', snippet)
+          newInbox = newInbox.set('snippet', snippet).set('snippetKey', message.key)
+        } else {
+          const oldSnippetID = inbox.get('snippetKey')
+          // Deleted the current showing snippet
+          if (oldSnippetID && deletedIDs.includes(oldSnippetID)) {
+            newInbox = newInbox.set('snippet', '').set('snippetKey', null)
+          }
         }
 
         const oldParticipants = newInbox.get('participants')
@@ -174,41 +195,57 @@ function reducer (state: State = initialState, action: Actions) {
         .set('conversationStates', newConversationStates)
         .set('inbox', newInboxStates)
     }
-    case Constants.pendingMessageWasSent: {
-      const {conversationIDKey, message} = action.payload
-      const {messageID, outboxID} = message
-      // Entirely replace the placeholder pending message in the store with the
-      // finalized real message that we just received from the server.
+    case 'chat:updateTempMessage': {
+      if (action.error) {
+        console.warn('Error in updateTempMessage')
+        const {conversationIDKey, outboxID} = action.payload
+        // $FlowIssue
+        return state.update('conversationStates', conversationStates => updateConversationMessage(
+          conversationStates,
+          conversationIDKey,
+          item => !!item.outboxID && item.outboxID === outboxID,
+          m => ({
+            ...m,
+            messageState: 'failed',
+          })
+        ))
+      } else {
+        const {outboxID, message, conversationIDKey} = action.payload
+        // $FlowIssue
+        return state.update('conversationStates', conversationStates => updateConversationMessage(
+          conversationStates,
+          conversationIDKey,
+          item => !!item.outboxID && item.outboxID === outboxID,
+          m => ({
+            ...m,
+            ...message,
+          })
+        )).update('inbox', inbox => inbox.map((i, inboxIdx) => {
+          // Update snippetKey to message.messageID so we can clear deleted message snippets
+          if (i.get('conversationIDKey') === conversationIDKey) {
+            if (i.get('snippetKey') === outboxID && message.messageID) {
+              return i.set('snippetKey', message.messageID)
+            }
+          }
+          return i
+        })
+        )
+      }
+    }
+    case 'chat:markSeenMessage': {
+      const {messageID, conversationIDKey} = action.payload
       // $FlowIssue
-      return state.update('conversationStates', conversationStates => updateConversationMessage(
-        conversationStates,
-        conversationIDKey,
-        item => !!item.outboxID && item.outboxID === outboxID,
-          (m: Constants.TextMessage) => message
-      )).update('conversationStates', conversationStates => updateConversation(
+      return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
         // $FlowIssue
         conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageID))
       ))
     }
-    case Constants.pendingMessageFailed: {
-      const {conversationIDKey, outboxID, messageState} = action.payload
-      // $FlowIssue
-      return state.update('conversationStates', conversationStates => updateConversationMessage(
-        conversationStates,
-        conversationIDKey,
-        item => !!item.outboxID && item.outboxID === outboxID,
-          m => ({
-            ...m,
-            messageState,
-          }))
-      )
-    }
     case 'chat:attachmentLoaded': {
       const {conversationIDKey, messageID, path, isPreview} = action.payload
 
-      const toMerge = isPreview ? {previewPath: path} : {downloadedPath: path}
+      const toMerge = isPreview ? {previewPath: path, messageState: 'sent'} : {downloadedPath: path, messageState: 'downloaded'}
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
@@ -221,7 +258,51 @@ function reducer (state: State = initialState, action: Actions) {
         })
       ))
     }
-    case Constants.updateLatestMessage:
+    case 'chat:downloadProgress': {
+      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
+      const progress = bytesComplete / bytesTotal
+
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.messageID && item.messageID === messageID,
+        m => ({
+          ...m,
+          messageState: 'downloading',
+          progress,
+        })
+      ))
+    }
+    case 'chat:uploadProgress': {
+      const {conversationIDKey, outboxID, bytesComplete, bytesTotal} = action.payload
+      const progress = bytesComplete / bytesTotal
+
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.outboxID && item.outboxID === outboxID,
+        m => ({
+          ...m,
+          messageState: 'uploading',
+          progress,
+        })
+      ))
+    }
+    case 'chat:markThreadsStale': {
+      const {convIDKeys} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.map((conversationState, conversationIDKey) => {
+          if (convIDKeys.length === 0 || convIDKeys.includes(conversationIDKey)) {
+            return conversationState.set('isStale', true)
+          }
+          return conversationState
+        })
+      )
+    }
+    case 'chat:updateLatestMessage':
       // Clear new messages id of conversation
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
@@ -229,14 +310,14 @@ function reducer (state: State = initialState, action: Actions) {
         conversation => conversation.set('firstNewMessageID', null))
       state = state.set('conversationStates', newConversationStates)
       return state
-    case Constants.selectConversation:
+    case 'chat:selectConversation':
       const conversationIDKey = action.payload.conversationIDKey
 
       // Set unread to zero
       const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
       return state
         .set('inbox', newInboxStates)
-    case Constants.loadingMessages: {
+    case 'chat:loadingMessages': {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
         initialConversation,
@@ -244,9 +325,9 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state.set('conversationStates', newConversationStates)
     }
-    case Constants.updatedMetadata:
+    case 'chat:updatedMetadata':
       return state.set('metaData', state.get('metaData').merge(action.payload))
-    case Constants.loadedInbox:
+    case 'chat:loadedInbox':
       // Don't overwrite existing verified inbox data
       const existingRows = state.get('inbox')
       return state.set('inbox', action.payload.inbox.map(newRow => {
@@ -254,9 +335,9 @@ function reducer (state: State = initialState, action: Actions) {
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
         return existingRow || newRow
       }))
-    case Constants.updateInboxComplete:
+    case 'chat:updateInboxComplete':
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
-    case Constants.updateInbox:
+    case 'chat:updateInbox':
       const convo: InboxState = action.payload.conversation
       const toFind = convo.get('conversationIDKey')
       return state.set('inbox', state.get('inbox').map(i => {
@@ -266,7 +347,7 @@ function reducer (state: State = initialState, action: Actions) {
           return i
         }
       }))
-    case Constants.updateBrokenTracker:
+    case 'chat:updateBrokenTracker':
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')
 

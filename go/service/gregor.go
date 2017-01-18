@@ -12,7 +12,6 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/chat"
-	cstorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -111,11 +110,13 @@ type gregorHandler struct {
 	startPingLoop sync.Once
 
 	cli              rpc.GenericClient
+	pingCli          rpc.GenericClient
 	sessionID        gregor1.SessionID
 	skipRetryConnect bool
 	freshReplay      bool
 
 	identNotifier *chat.IdentifyNotifier
+	chatSync      *chat.Syncer
 
 	transportForTesting *connTransport
 
@@ -157,6 +158,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
 		identNotifier:   chat.NewIdentifyNotifier(g),
+		chatSync:        chat.NewSyncer(g),
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -492,14 +494,22 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 			len(replayedMsgs), len(consumedMsgs))
 	}
 
+	// Sync chat data using a Syncer object
+	gcli, err := g.getGregorCli()
+	if err == nil {
+		chatCli := chat1.RemoteClient{Cli: cli}
+		uid := gcli.User.(gregor1.UID)
+		if err := g.chatSync.Connected(ctx, chatCli, uid); err != nil {
+			return err
+		}
+	}
+
+	// Sync badge state in the background
 	if g.badger != nil {
 		go func(badger *Badger) {
 			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli})
 		}(g.badger)
 	}
-
-	// Let the Deliverer know that we are back online
-	g.G().MessageDeliverer.Connected()
 
 	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
 	// reconnection any longer than we have to.
@@ -516,7 +526,9 @@ func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time
 
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
 	g.Debug("disconnected: %v", status)
-	g.G().MessageDeliverer.Disconnected()
+
+	// Alert chat syncer that we are now disconnected
+	g.chatSync.Disconnected(ctx)
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
@@ -824,18 +836,7 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 	return nil
 }
 
-func (g *gregorHandler) sendChatStaleNotifications() {
-
-	// Alert Electron that all chat information could be out of date. Empty conversation ID
-	// list means everything needs to be refreshed
-	uid := keybase1.UID(g.gregorCli.User.String())
-	g.G().NotifyRouter.HandleChatInboxStale(context.Background(), uid)
-	g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), uid, []chat1.ConversationID{})
-}
-
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
-	g.Debug("handleOutOfBand: %+v", obm)
-
 	if obm.System() == nil {
 		return errors.New("nil system in out of band message")
 	}
@@ -855,7 +856,6 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.chatTlfFinalize(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
-		g.sendChatStaleNotifications()
 		return nil
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())
@@ -927,12 +927,9 @@ func (g *gregorHandler) chatTlfFinalize(ctx context.Context, m gregor.OutOfBandM
 	}
 
 	// Update inbox
-	if err := cstorage.NewInbox(g.G(), m.UID().Bytes(), func() libkb.SecretUI {
-		return chat.DelivererSecretUI{}
-	}).TlfFinalize(update.InboxVers, update.ConvIDs, update.FinalizeInfo); err != nil {
-		if _, ok := (err).(libkb.ChatStorageMissError); !ok {
-			g.G().Log.Error("push handler: tlf finalize: unable to update inbox: %s", err.Error())
-		}
+	if err := g.G().InboxSource.TlfFinalize(ctx, m.UID().Bytes(), update.InboxVers, update.ConvIDs,
+		update.FinalizeInfo); err != nil {
+		g.G().Log.Error("push handler: tlf finalize: unable to update inbox: %s", err.Error())
 	}
 
 	// Send notify for each conversation ID
@@ -961,6 +958,9 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 	g.G().Log.Debug("push handler: chat activity: action %s", gm.Action)
 
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, g.identNotifier)
+
 	action := gm.Action
 	reader.Reset(m.Body().Bytes())
 	switch action {
@@ -982,18 +982,12 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		}
 		uid := m.UID().Bytes()
 
-		var identBreaks []keybase1.TLFIdentifyFailure
-		ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, g.identNotifier)
 		decmsg, append, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
 		}
-		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
-			return chat.DelivererSecretUI{}
-		}).NewMessage(nm.InboxVers, nm.ConvID, decmsg); err != nil {
-			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
-				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
-			}
+		if err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.Message); err != nil {
+			g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 		}
 
 		activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
@@ -1025,13 +1019,10 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			nm.ConvID, nm.MsgID)
 
 		uid := m.UID().Bytes()
-		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
-			return chat.DelivererSecretUI{}
-		}).ReadMessage(nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
-			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
-				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
-			}
+		if err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
+			g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 		}
+
 		activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
 			MsgID:  nm.MsgID,
 			ConvID: nm.ConvID,
@@ -1051,12 +1042,8 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			nm.ConvID, nm.Status)
 
 		uid := m.UID().Bytes()
-		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
-			return chat.DelivererSecretUI{}
-		}).SetStatus(nm.InboxVers, nm.ConvID, nm.Status); err != nil {
-			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
-				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
-			}
+		if err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
+			g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 		}
 		activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
 			ConvID: nm.ConvID,
@@ -1078,17 +1065,8 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		uid := m.UID().Bytes()
 
 		// We need to get this conversation and then localize it
-		var inbox chat.Inbox
-		tlf := newTlfHandler(nil, g.G())
-		boxer := chat.NewBoxer(g.G(), tlf)
-		inboxSource := chat.NewRemoteInboxSource(g.G(), boxer,
-			func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: g.cli} },
-			func() keybase1.TlfInterface { return tlf })
-
-		var identBreaks []keybase1.TLFIdentifyFailure
-		ctx = chat.Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
-			&identBreaks, g.identNotifier)
-		if inbox, _, err = inboxSource.Read(ctx, uid, &chat1.GetInboxLocalQuery{
+		var inbox chat1.Inbox
+		if inbox, _, err = g.G().InboxSource.ReadNoCache(ctx, uid, nil, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
 		}, nil); err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
@@ -1098,14 +1076,11 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			g.G().Log.Error("push handler: chat activity: unable to find conversation")
 			return fmt.Errorf("unable to find conversation")
 		}
-
-		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
-			return chat.DelivererSecretUI{}
-		}).NewConversation(nm.InboxVers, inbox.Convs[0]); err != nil {
-			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
-				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
-			}
+		updateConv := inbox.ConvsUnverified[0]
+		if err = g.G().InboxSource.NewConversation(ctx, uid, nm.InboxVers, updateConv); err != nil {
+			g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 		}
+
 		activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
 			Conv: inbox.Convs[0],
 		})
@@ -1185,16 +1160,27 @@ func (g *gregorHandler) pingLoop() {
 		select {
 		case <-g.G().Clock().After(duration):
 
-			if !g.IsConnected() {
-				g.Debug("ping loop: skipping ping since not connected")
-				continue
+			var err error
+			ctx := context.Background()
+			if g.IsConnected() {
+				// If we are connected, subject the ping call to a fairly
+				// aggressive timeout so our chat stuff can be responsive
+				// to changes in connectivity
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, timeout)
+				_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+				cancel()
+			} else {
+				// If we are not connected, we don't want to timeout anything
+				// Just hook into the normal reconnect chan stuff in the RPC
+				// library
+				g.Debug("ping loop: normal ping, not connected")
+				_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
-			_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(ctx)
-			cancel()
 			if err != nil {
-				if err == ErrGregorTimeout {
+				g.Debug("ping loop: error: %s", err.Error())
+				if err == context.DeadlineExceeded {
 					g.Debug("ping loop: timeout: terminating connection")
 					g.Shutdown()
 
@@ -1234,6 +1220,7 @@ func (g *gregorHandler) connectTLS() error {
 	// of OnConnect should use g.cli, everything else should the client that is
 	// a paramater to OnConnect
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
+	g.pingCli = g.conn.GetClient() // Don't want this to have a timeout from here
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
@@ -1255,6 +1242,7 @@ func (g *gregorHandler) connectNoTLS() error {
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
 	g.connMutex.Unlock()
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
+	g.pingCli = g.conn.GetClient()
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library

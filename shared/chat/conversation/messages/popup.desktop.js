@@ -5,9 +5,10 @@ import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import {fileUIName} from '../../../constants/platform'
+import flags from '../../../util/feature-flags'
+
 import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
-
 import type {TextProps, AttachmentProps} from './popup'
 
 function iconNameForDeviceType (deviceType: string, isRevoked: boolean): IconType {
@@ -40,7 +41,7 @@ const MessagePopupHeader = ({message: {author, deviceName, deviceType, timestamp
           backgroundColor={globalColors.blue}
           style={{
             marginTop: globalMargins.small,
-            ...(isLast ? {marginBottom: -globalMargins.small, borderBottomLeftRadius: 3, borderBottomRightRadius: 3} : {}),
+            ...(isLast ? {borderBottomLeftRadius: 3, borderBottomRightRadius: 3, marginBottom: -globalMargins.small} : {}),
           }}
         >{whoRevoked} revoked this device on {formatTimeForRevoked(senderDeviceRevokedAt)}.</PopupHeaderText>
       }
@@ -57,9 +58,15 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
   let items = []
   if (message.author === you) {
     items = [
-      {title: 'Edit', onClick: () => onEditMessage(message)},
-      {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},
+      {onClick: () => onEditMessage(message), title: 'Edit'},
+      {danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'},
     ]
+
+    if (!flags.chatAdminOnly) {
+      // remote edit
+      items.shift()
+    }
+
     if (!message.senderDeviceRevokedAt) {
       items.unshift('Divider')
     }
@@ -74,13 +81,12 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
 export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style, you}: AttachmentProps) => {
   const items = [
     'Divider',
-    {title: 'Download', onClick: () => onDownloadAttachment(message)},
     message.downloadedPath
-      ? {title: `Show in ${fileUIName}`, onClick: () => onOpenInFileUI(message)}
-      : {title: 'Download', onClick: () => onDownloadAttachment(message)},
+      ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`}
+      : {onClick: onDownloadAttachment, title: 'Download'},
   ]
   if (message.author === you) {
-    items.push({title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)})
+    items.push({danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'})
   }
   const header = {
     title: 'header',

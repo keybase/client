@@ -58,6 +58,12 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
       if (key === 'style') {
         return shallowEqual(obj, oth)
       }
+
+      // Messages can be updated, for example progress state on attachments
+      if (key === 'message') {
+        return shallowEqual(obj, oth)
+      }
+
       return undefined
     })
   }

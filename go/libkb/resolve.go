@@ -154,7 +154,7 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 }
 
 func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
-	defer r.G().CTrace(ctx, fmt.Sprintf("Reoslver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
+	defer r.G().CTrace(ctx, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	var key, val string
 	var ares *APIRes

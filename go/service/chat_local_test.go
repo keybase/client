@@ -77,14 +77,18 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	storage := storage.New(tc.G, f)
 	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage,
 		func() chat1.RemoteInterface { return mockRemote })
+	tc.G.InboxSource = chat.NewHybridInboxSource(tc.G,
+		func() keybase1.TlfInterface { return h.tlf },
+		func() chat1.RemoteInterface { return mockRemote },
+		f)
 	h.setTestRemoteClient(mockRemote)
 	h.gh, _ = newGregorHandler(tc.G)
 
 	baseSender := chat.NewBlockingSender(tc.G, h.boxer,
 		func() chat1.RemoteInterface { return mockRemote }, f)
 	tc.G.MessageDeliverer = chat.NewDeliverer(tc.G, baseSender)
-	tc.G.MessageDeliverer.Start(user.User.GetUID().ToBytes())
-	tc.G.MessageDeliverer.Connected()
+	tc.G.MessageDeliverer.Start(context.TODO(), user.User.GetUID().ToBytes())
+	tc.G.MessageDeliverer.Connected(context.TODO())
 
 	tuc := &chatTestUserContext{
 		h: h,
@@ -98,7 +102,7 @@ func (c *chatTestContext) cleanup() {
 	for _, u := range c.users() {
 		deliverer := c.world.Tcs[u.Username].G.MessageDeliverer
 		if deliverer != nil {
-			deliverer.Stop()
+			deliverer.Stop(context.TODO())
 		}
 	}
 	c.world.Cleanup()
@@ -715,7 +719,7 @@ func TestGetOutbox(t *testing.T) {
 	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
 	outbox := storage.NewOutbox(tc.G, users[0].User.GetUID().ToBytes(), h.getSecretUI)
 
-	obid, err := outbox.PushMessage(created.Id, chat1.MessagePlaintext{
+	obid, err := outbox.PushMessage(context.TODO(), created.Id, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,

@@ -233,7 +233,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
 	d.hourlyChecks()
-	d.createConvSource()
+	d.createChatSources()
 	d.createMessageDeliverer()
 	d.startupGregor()
 	d.startMessageDeliverer()
@@ -242,6 +242,10 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configureRekey(uir)
 	d.tryLogin()
 	d.runBackgroundIdentifier()
+
+	// Add a tlfHandler into the user changed handler group so we can keep identify info
+	// fresh
+	d.G().AddUserChangedHandler(newTlfHandler(nil, d.G()))
 }
 
 func (d *Service) createMessageDeliverer() {
@@ -256,16 +260,22 @@ func (d *Service) createMessageDeliverer() {
 func (d *Service) startMessageDeliverer() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
-		d.G().MessageDeliverer.Start(d.G().Env.GetUID().ToBytes())
+		d.G().MessageDeliverer.Start(context.Background(), d.G().Env.GetUID().ToBytes())
 	}
 }
 
-func (d *Service) createConvSource() {
+func (d *Service) createChatSources() {
 	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	tlf := newTlfHandler(nil, d.G())
+	boxer := chat.NewBoxer(d.G(), tlf)
+
+	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(),
+		ri, si, func() keybase1.TlfInterface { return tlf })
+
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
-		chat.NewBoxer(d.G(), tlf), storage.New(d.G(), si), ri)
+		boxer, storage.New(d.G(), si), ri)
+
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {
@@ -433,7 +443,7 @@ func (d *Service) OnLogin() error {
 	}
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
-		d.G().MessageDeliverer.Start(d.G().Env.GetUID().ToBytes())
+		d.G().MessageDeliverer.Start(context.Background(), d.G().Env.GetUID().ToBytes())
 		d.runBackgroundIdentifierWithUID(uid)
 	}
 	return nil
@@ -453,7 +463,7 @@ func (d *Service) OnLogout() (err error) {
 
 	log("shutting down message deliverer")
 	if d.messageDeliverer != nil {
-		d.messageDeliverer.Stop()
+		d.messageDeliverer.Stop(context.Background())
 	}
 
 	log("shutting down rekeyMaster")

@@ -22,6 +22,7 @@ type Identify2Cacher interface {
 	Insert(up *keybase1.Identify2Res) error
 	DidFullUserLoad(keybase1.UID)
 	Shutdown()
+	Delete(uid keybase1.UID) error
 }
 
 type GetCheckTimeFunc func(keybase1.Identify2Res) keybase1.Time
@@ -78,6 +79,10 @@ func (c *Identify2Cache) Insert(up *keybase1.Identify2Res) error {
 	copy := &tmp
 	copy.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
 	return c.cache.Set(string(up.Upk.Uid), copy)
+}
+
+func (c *Identify2Cache) Delete(uid keybase1.UID) error {
+	return c.cache.Delete(string(uid))
 }
 
 // Shutdown stops any goroutines in the cache.

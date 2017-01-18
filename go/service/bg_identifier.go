@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 	"sync"
 )
 
@@ -37,11 +38,13 @@ type BackgroundIdentifier struct {
 	stopCh          chan<- struct{}
 	isDead          bool
 	lastFollowerSet uidSet
+	snooperCh       chan<- engine.IdentifyJob
 }
 
 func newBackgroundIdentifier(g *libkb.GlobalContext, u keybase1.UID) (*BackgroundIdentifier, error) {
 
 	ch := make(chan struct{})
+	sch := make(chan engine.IdentifyJob, 100)
 	eng := engine.NewBackgroundIdentifier(g, ch)
 	ret := &BackgroundIdentifier{
 		Contextified:    libkb.NewContextified(g),
@@ -57,11 +60,20 @@ func newBackgroundIdentifier(g *libkb.GlobalContext, u keybase1.UID) (*Backgroun
 	}
 
 	go func() {
-		err := engine.RunEngine(eng, &engine.Context{})
+		eng.SetSnooperChannel(sch)
+		err := engine.RunEngine(eng, &engine.Context{NetContext: context.Background()})
 		if err != nil {
 			g.Log.Warning("Background identifier failed: %s\n", err)
 		}
+		close(sch)
 	}()
+
+	go func() {
+		for ij := range sch {
+			ret.completedIdentifyJob(ij)
+		}
+	}()
+
 	return ret, nil
 }
 
@@ -70,6 +82,14 @@ func StartOrReuseBackgroundIdentifier(b *BackgroundIdentifier, g *libkb.GlobalCo
 		return newBackgroundIdentifier(g, u)
 	}
 	return b.reuse(u)
+}
+
+func (b *BackgroundIdentifier) completedIdentifyJob(ij engine.IdentifyJob) {
+	if !ij.ErrorChanged() {
+		return
+	}
+	b.G().Log.Debug("| Identify(%s) changed: %v -> %v", ij.UID(), ij.ThisError(), ij.LastError())
+	newTlfHandler(nil, b.G()).HandleUserChanged(ij.UID())
 }
 
 func (b *BackgroundIdentifier) populateWithFollowees() (err error) {
