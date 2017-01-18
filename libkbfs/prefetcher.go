@@ -89,13 +89,10 @@ func (p *blockPrefetcher) run() {
 	for {
 		select {
 		case req := <-p.progressCh:
+			ctx, cancel := context.WithCancel(context.TODO())
+			errCh := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr, req.block, TransientEntry)
 			wg.Add(1)
 			go func() {
-				// Request must be called in a goroutine because this prefetch
-				// request could have been triggered by the retriever itself.
-				ctx, cancel := context.WithCancel(context.TODO())
-				errCh := p.retriever.Request(ctx, req.priority, req.kmd,
-					req.ptr, req.block, TransientEntry)
 				defer wg.Done()
 				defer cancel()
 				select {
