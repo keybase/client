@@ -105,17 +105,21 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
-    if (!this.state.isLockedToBottom && this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
-      // Figure out how many new items we have
-      const prependedCount = this.state.messages.indexOf(prevState.messages.first())
-      if (prependedCount !== -1) {
-        // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-        const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
-          .map(index => this._cellMeasurer.getRowHeight({index: index + 1})) // +1 since 0 is the loading message
-          .reduce((total, height) => total + height, 0)
+    if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
+      if (this.state.isLockedToBottom) {
+        this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: this.state.messages.count()})
+      } else {
+        // Figure out how many new items we have
+        const prependedCount = this.state.messages.indexOf(prevState.messages.first())
+        if (prependedCount !== -1) {
+          // Measure the new items so we can adjust our scrollTop so your position doesn't jump
+          const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
+            .map(index => this._cellMeasurer.getRowHeight({index: index + 1})) // +1 since 0 is the loading message
+            .reduce((total, height) => total + height, 0)
 
-        // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
-        this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
+          // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
+          this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
+        }
       }
     }
   }

@@ -4,9 +4,10 @@ import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
 import {CommonMessageType} from './types/flow-types-chat'
 
+import * as ChatTypes from './types/flow-types-chat'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {AssetMetadata, ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 
 export type MessageType = 'Text'
@@ -369,6 +370,15 @@ function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
   }
 }
 
+function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
+  if (metadata.assetType === ChatTypes.LocalAssetMetadataType.image && metadata.image) {
+    return clampAttachmentPreviewSize(metadata.image)
+  } else if (metadata.assetType === ChatTypes.LocalAssetMetadataType.video && metadata.video) {
+    return clampAttachmentPreviewSize(metadata.video)
+  }
+}
+
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -380,4 +390,5 @@ export {
   serverMessageToMessageBody,
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
+  parseMetadataPreviewSize,
 }
