@@ -302,7 +302,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		// create succeeded; grabbing the conversation and returning
 		uid := h.G().Env.GetUID()
 
-		ib, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), nil,
+		ib, rl, err := h.G().InboxSource.ReadNoCache(ctx, uid.ToBytes(), nil,
 			&chat1.GetInboxLocalQuery{
 				ConvID: &convID,
 			}, nil)
@@ -565,17 +565,25 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		return deflt, err
 	}
 
-	// XXX if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
-	// needs to be adjusted.
-
-	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs)
-	if err != nil {
-		return deflt, err
-	}
-
 	var rlimits []chat1.RateLimit
 	if boxed.RateLimit != nil {
 		rlimits = append(rlimits, *boxed.RateLimit)
+	}
+
+	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
+	// could need expansion.  Look up the conversation metadata.
+	uid := h.G().Env.GetUID()
+	conv, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), arg.ConversationID)
+	if err != nil {
+		return deflt, err
+	}
+	if rl != nil {
+		rlimits = append(rlimits, *rl)
+	}
+
+	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs, conv.Metadata.FinalizeInfo)
+	if err != nil {
+		return deflt, err
 	}
 
 	return chat1.GetMessagesLocalRes{

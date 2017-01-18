@@ -1066,7 +1066,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		// We need to get this conversation and then localize it
 		var inbox chat1.Inbox
-		if inbox, _, err = g.G().InboxSource.ReadRemote(ctx, uid, nil, &chat1.GetInboxLocalQuery{
+		if inbox, _, err = g.G().InboxSource.ReadNoCache(ctx, uid, nil, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
 		}, nil); err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())

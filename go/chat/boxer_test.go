@@ -247,7 +247,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 	boxer.hashV1 = origHashFn
 
 	// This should produce a permanent error. So err will be nil, but the decmsg will be state=error.
-	decmsg, err := boxer.UnboxMessage(ctx, *boxed)
+	decmsg, err := boxer.UnboxMessage(ctx, *boxed, nil /* finalizeInfo */)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -291,7 +291,7 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 
 	// This should produce a non-permanent error. So err will be set.
 	bctx := context.WithValue(ctx, kfKey, NewKeyFinderMock())
-	decmsg, ierr := boxer.UnboxMessage(bctx, *boxed)
+	decmsg, ierr := boxer.UnboxMessage(bctx, *boxed, nil /* finalizeInfo */)
 	if !strings.Contains(ierr.Error(), "no key found") {
 		t.Fatalf("error should contain 'no key found': %v", ierr)
 	}
@@ -547,7 +547,7 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	decmsg, err := boxer.UnboxMessage(ctx, *boxed)
+	decmsg, err := boxer.UnboxMessage(ctx, *boxed, nil /* finalizeInfo */)
 	if err != nil {
 		t.Fatal(err)
 	}

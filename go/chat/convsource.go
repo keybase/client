@@ -2,7 +2,6 @@ package chat
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/storage"
@@ -43,18 +42,26 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, []*chat1.RateLimit{}, errors.New("RemoteConversationSource.Pull called with empty convID")
 	}
 
+	var rl []*chat1.RateLimit
+
+	conv, ratelim, err := s.G().InboxSource.ReadRemote(ctx, uid, convID)
+	rl = append(rl, ratelim)
+	if err != nil {
+		return chat1.ThreadView{}, rl, err
+	}
+
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: convID,
 		Query:          query,
 		Pagination:     pagination,
 	}
 	boxed, err := s.ri().GetThreadRemote(ctx, rarg)
-	rl := []*chat1.RateLimit{boxed.RateLimit}
+	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -79,9 +86,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 		MessageIDs:     msgIDs,
 	})
 
-	rres.Msgs = utils.AppendTLFResetSuffix(rres.Msgs, finalizeInfo)
-
-	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs)
+	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, finalizeInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +97,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
-	return s.boxer.UnboxMessages(ctx, msgs)
+	return s.boxer.UnboxMessages(ctx, msgs, finalizeInfo)
 }
 
 type HybridConversationSource struct {
@@ -121,7 +126,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	var err error
 	continuousUpdate := false
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, msg)
+	// leaving this empty for message Push.
+	// In a rare case, this will result in an error if a push message
+	// coincides with an account reset.
+	var emptyFinalizeInfo *chat1.ConversationFinalizeInfo
+
+	decmsg, err := s.boxer.UnboxMessage(ctx, msg, emptyFinalizeInfo)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -150,24 +160,6 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	return decmsg, continuousUpdate, nil
-}
-
-func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,
-	rl *[]*chat1.RateLimit) (chat1.Conversation, error) {
-
-	conv, err := s.ri().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &convID,
-		},
-	})
-	*rl = append(*rl, conv.RateLimit)
-	if err != nil {
-		return chat1.Conversation{}, storage.RemoteError{Msg: err.Error()}
-	}
-	if len(conv.Inbox.Full().Conversations) == 0 {
-		return chat1.Conversation{}, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
-	}
-	return conv.Inbox.Full().Conversations[0], nil
 }
 
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
@@ -206,7 +198,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := s.getConvMetadata(ctx, convID, &rl)
+	conv, ratelim, err := s.G().InboxSource.ReadRemote(ctx, uid, convID)
+	rl = append(rl, ratelim)
 	if err == nil {
 		// Try locally first
 		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
@@ -264,10 +257,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, rl, err
 	}
 
-	boxed.Thread.Messages = utils.AppendTLFResetSuffix(boxed.Thread.Messages, conv.Metadata.FinalizeInfo)
-
 	// Unbox
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -385,10 +376,8 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 			return nil, err
 		}
 
-		rmsgs.Msgs = utils.AppendTLFResetSuffix(rmsgs.Msgs, finalizeInfo)
-
 		// Unbox all the remote messages
-		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs)
+		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, finalizeInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -452,7 +441,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
 		} else {
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, finalizeInfo)
 			if err != nil {
 				return res, err
 			}
