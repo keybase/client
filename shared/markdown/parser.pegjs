@@ -53,7 +53,10 @@ InsideQuoteBlock
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker
- = (! ":" .) { return text(); }
+ = (! ":" [a-z-_]) { return text(); }
+
+InsideEmojiTone
+ = "::skin-tone-" [1-6] { return text(); }
 
 // Define the rules for styles. Usually a start marker, children, and an end marker.
 QuoteBlock
@@ -75,7 +78,7 @@ InlineCode
  = Ticks1 children:InsideInlineCode* Ticks1 { return {type: 'inline-code', children}; }
 
 Emoji
- = EmojiMarker children:(InsideEmojiMarker / "::")* EmojiMarker { return {type: 'emoji', children: [children.join('')]}; }
+ = EmojiMarker children:InsideEmojiMarker+ tone:InsideEmojiTone? ":" { return {type: 'emoji', children: [children.join('') + (tone || '')]}; }
 
 Text "text"
  = _? NonBlank+ _? { return text() }
