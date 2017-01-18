@@ -218,7 +218,7 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 // PutWithPrefetch implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) PutWithPrefetch(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
-	hasPrefetched bool) error {
+	hasPrefetched bool) (err error) {
 
 	madeRoom := false
 
@@ -242,6 +242,8 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		defer func() {
 			if madeRoom {
 				b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
+			} else {
+				err = cachePutCacheFullError{ptr}
 			}
 		}()
 

@@ -1026,7 +1026,7 @@ type Prefetcher interface {
 	// block. It caches if it has triggered a prefetch and returns that.
 	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		hasPrefetched bool) bool
+		hasPrefetched bool)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are

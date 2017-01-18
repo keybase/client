@@ -340,8 +340,8 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 	block.SetEncodedSize(7)
 	id := kbfsblock.FakeID(8)
 	ptr = BlockPointer{ID: id}
-	if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
-		t.Errorf("Got error on Put for block %s: %v", id, err)
+	if err, isCacheFullError := bcache.Put(ptr, tlf, block, TransientEntry).(cachePutCacheFullError); !isCacheFullError {
+		t.Errorf("Got wrong error on Put for block %s: %v", id, err)
 	}
 
 	// All transient blocks should be gone (including the new one)

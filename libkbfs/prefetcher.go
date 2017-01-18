@@ -172,7 +172,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
 		case Exec:
 			block = &FileBlock{}
 		default:
-			p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of unknown type %T", entry.DirEntry)
+			p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of unknown type %d", entry.Type)
 			continue
 		}
 		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName)
@@ -190,17 +190,29 @@ func (p *blockPrefetcher) PrefetchBlock(
 // blockPrefetcher.
 func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
 	b Block, ptr BlockPointer, kmd KeyMetadata, priority int,
-	lifetime BlockCacheLifetime, hasPrefetched bool) (didPrefetch bool) {
-	defer func() {
-		p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
-			lifetime, didPrefetch)
-	}()
+	lifetime BlockCacheLifetime, hasPrefetched bool) {
 	if hasPrefetched {
-		return true
+		// We discard the error because there's nothing we can do about it.
+		_ = p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
+			lifetime, true)
+		return
 	}
 	if priority < defaultOnDemandRequestPriority {
 		// Only on-demand or higher priority requests can trigger prefetches.
-		return false
+		// We discard the error because there's nothing we can do about it.
+		_ = p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
+			lifetime, false)
+		return
+	}
+	// We must let the cache know at this point that we've prefetched.
+	// 1) To prevent any other Gets from prefetching.
+	// 2) To prevent prefetching if a cache Put fails, since prefetching if
+	//	  only useful when combined with the cache.
+	err := p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
+		lifetime, true)
+	if _, isCacheFullError := err.(cachePutCacheFullError); isCacheFullError {
+		p.log.CDebugf(context.TODO(), "Skipping prefetch because the cache is full")
+		return
 	}
 	switch b := b.(type) {
 	case *FileBlock:
@@ -216,7 +228,6 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
 	default:
 		p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of unknown type %T", b)
 	}
-	return true
 }
 
 // Shutdown implements the Prefetcher interface for blockPrefetcher.
