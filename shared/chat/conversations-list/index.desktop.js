@@ -53,7 +53,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const snippet = conversation.get('snippet')
   const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
   const backgroundColor = isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.transparent
-  const usernameColor = isSelected ? globalColors.black_75 : isMuted ? globalColors.blue3_40 : globalColors.white
+  const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
   const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
   const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
   return (
