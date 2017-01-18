@@ -534,12 +534,13 @@ func (fbo *folderBlockOps) GetDirBlockForReading(ctx context.Context,
 // locks, and in that case `lState` must be `nil`.
 //
 // file is used only when reporting errors and sending read
-// notifications, and can be empty.
+// notifications, and can be empty except that file.Branch must be set
+// correctly.
 //
 // This method also returns whether the block was already dirty.
 func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer,
-	branch BranchName, file path, rtype blockReqType) (
+	file path, rtype blockReqType) (
 	fblock *FileBlock, wasDirty bool, err error) {
 	switch rtype {
 	case blockRead:
@@ -560,12 +561,12 @@ func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 	}
 
 	fblock, err = fbo.getFileBlockHelperLocked(
-		ctx, lState, kmd, ptr, branch, file, rtype)
+		ctx, lState, kmd, ptr, file.Branch, file, rtype)
 	if err != nil {
 		return nil, false, err
 	}
 
-	wasDirty = fbo.config.DirtyBlockCache().IsDirty(fbo.id(), ptr, branch)
+	wasDirty = fbo.config.DirtyBlockCache().IsDirty(fbo.id(), ptr, file.Branch)
 	if rtype == blockWrite {
 		// Copy the block if it's for writing, and either the
 		// block is not yet dirty or the block is currently
@@ -592,7 +593,7 @@ func (fbo *folderBlockOps) getFileLocked(ctx context.Context,
 		return nil, InvalidPathError{file}
 	}
 	fblock, _, err := fbo.getFileBlockLocked(
-		ctx, lState, kmd, file.tailPointer(), file.Branch, file, rtype)
+		ctx, lState, kmd, file.tailPointer(), file, rtype)
 	return fblock, err
 }
 
@@ -1150,7 +1151,7 @@ func (fbo *folderBlockOps) newFileData(lState *lockState,
 				lState = nil
 			}
 			return fbo.getFileBlockLocked(
-				ctx, lState, kmd, ptr, file.Branch, file, rtype)
+				ctx, lState, kmd, ptr, file, rtype)
 		},
 		func(ptr BlockPointer, block Block) error {
 			return fbo.cacheBlockIfNotYetDirtyLocked(
@@ -1175,7 +1176,7 @@ func (fbo *folderBlockOps) newFileDataWithCache(lState *lockState,
 				lState = nil
 			}
 			return fbo.getFileBlockLocked(
-				ctx, lState, kmd, ptr, file.Branch, file, rtype)
+				ctx, lState, kmd, ptr, file, rtype)
 		},
 		func(ptr BlockPointer, block Block) error {
 			return dirtyBcache.Put(file.Tlf, ptr, file.Branch, block)
