@@ -57,7 +57,14 @@ def doBuild() {
     bat '''
         if EXIST src\\github.com\\keybase\\client\\shared\\desktop\\release rmdir /q /s src\\github.com\\keybase\\client\\shared\\desktop\\release
         path
-    '''                
+    '''
+    stage('Wait for CI') {
+        def clientCommit = getCommit('src\\github.com\\keybase\\client')
+        def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
+        bat 'pushd %GOPATH%\src\github.com\keybase\release && go build'
+        bat 'release wait-ci --repo="client" --commit="${clientCommit}" --context="continuous-integration/jenkins/branch" --context="ci/circleci"'
+        bat 'release wait-ci --repo="kbfs" --commit="${kbfsCommit}" --context="continuous-integration/jenkins/branch" --context="ci/circleci"'
+    }                
     stage('Build Client') {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
     } 
