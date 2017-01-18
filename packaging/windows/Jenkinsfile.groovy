@@ -61,7 +61,7 @@ def doBuild() {
     stage('Wait for CI') {
         def clientCommit = getCommit('src\\github.com\\keybase\\client')
         def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
-        bat 'pushd %GOPATH%\src\github.com\keybase\release && go build'
+        bat 'pushd %GOPATH%\\src\\github.com\\keybase\\release && go build'
         bat 'release wait-ci --repo="client" --commit="${clientCommit}" --context="continuous-integration/jenkins/branch" --context="ci/circleci"'
         bat 'release wait-ci --repo="kbfs" --commit="${kbfsCommit}" --context="continuous-integration/jenkins/branch" --context="ci/circleci"'
     }                
