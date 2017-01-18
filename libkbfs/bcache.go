@@ -220,9 +220,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
 	hasPrefetched bool) (err error) {
 
-	_, cacheGetError := b.Get(ptr)
-	wasInCache := cacheGetError == nil
-	madeRoom := false
+	var wasInCache bool
 
 	switch lifetime {
 	case NoCacheEntry:
@@ -240,19 +238,14 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		if b.cleanTransient == nil {
 			return nil
 		}
+		wasInCache = b.cleanTransient.Contains(ptr.ID)
 		// Cache it later, once we know there's room
-		defer func() {
-			if madeRoom || wasInCache {
-				b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
-			} else {
-				err = cachePutCacheFullError{ptr}
-			}
-		}()
 
 	case PermanentEntry:
 		func() {
 			b.cleanLock.Lock()
 			defer b.cleanLock.Unlock()
+			_, wasInCache = b.cleanPermanent[ptr.ID]
 			b.cleanPermanent[ptr.ID] = block
 		}()
 
@@ -260,11 +253,18 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		return fmt.Errorf("Unknown lifetime %v", lifetime)
 	}
 
+	transientCacheHasRoom := true
 	// We must make room whether the cache is transient or permanent, but only
 	// if it wasn't already in the cache.
 	if !wasInCache {
 		size := uint64(getCachedBlockSize(block))
-		madeRoom = b.makeRoomForSize(size)
+		transientCacheHasRoom = b.makeRoomForSize(size)
+	}
+	if lifetime == TransientEntry {
+		if !transientCacheHasRoom {
+			return cachePutCacheFullError{ptr}
+		}
+		b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
 	}
 
 	return nil
