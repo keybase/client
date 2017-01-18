@@ -87,7 +87,14 @@ class GlobalError extends Component<void, Props, State> {
       return null
     }
     return (
-      <Box />
+      <Box style={{...containerOverlayStyle}}>
+        <Box style={{...overlayRowStyle}}>
+          <Text type='BodyBig' style={{color: globalColors.white, textAlign: 'center'}}>Keybase is currently unreachable. Trying to reconnect you…</Text>
+        </Box>
+        <Box style={{...overlayFillStyle}}>
+          <Icon type='icon-loader-connecting-112' />
+        </Box>
+      </Box>
     )
   }
 
