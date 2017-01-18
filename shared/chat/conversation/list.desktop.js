@@ -31,7 +31,7 @@ type State = {
 const scrollbarWidth = 20
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
-const messageStartIndex = 2 // Header and loading cells
+const cellMessageStartIndex = 2 // Header and loading cells
 const DEBUG_ROW_RENDER = __DEV__ && false
 
 class ConversationList extends Component<void, Props, State> {
@@ -67,7 +67,7 @@ class ConversationList extends Component<void, Props, State> {
     } else if (index === 1) {
       return 'loading'
     } else {
-      const messageIndex = index - messageStartIndex
+      const messageIndex = index - cellMessageStartIndex
       const message = this.state.messages.get(messageIndex)
       const id = message && message.key
       if (id == null) {
@@ -113,7 +113,7 @@ class ConversationList extends Component<void, Props, State> {
       if (prependedCount !== -1) {
         // Measure the new items so we can adjust our scrollTop so your position doesn't jump
         const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
-          .map(index => this._cellMeasurer.getRowHeight({index: index + messageStartIndex}))
+          .map(index => this._cellMeasurer.getRowHeight({index: index + cellMessageStartIndex}))
           .reduce((total, height) => total + height, 0)
 
         // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
@@ -148,11 +148,11 @@ class ConversationList extends Component<void, Props, State> {
       const oldMessage = props.messages.get(index, {})
 
       if (item.type === 'Text' && oldMessage.type === 'Text' && item.messageState !== oldMessage.messageState) {
-        this._toRemeasure.push(index + messageStartIndex)
+        this._toRemeasure.push(index + cellMessageStartIndex)
       } else if (item.type === 'Attachment' && oldMessage.type === 'Attachment' &&
                  (item.previewPath !== oldMessage.previewPath ||
                   !shallowEqual(item.previewSize, oldMessage.previewSize))) {
-        this._toRemeasure.push(index + messageStartIndex)
+        this._toRemeasure.push(index + cellMessageStartIndex)
       } else if (!shallowEqual(item, oldMessage)) {
         this._shouldForceUpdateGrid = true
       }
@@ -283,9 +283,9 @@ class ConversationList extends Component<void, Props, State> {
     } else if (index === 1) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
     }
-    const message = this.state.messages.get(index - messageStartIndex)
-    const prevMessage = this.state.messages.get(index - messageStartIndex - 1)
-    const isFirstMessage = index - messageStartIndex === 0
+    const message = this.state.messages.get(index - cellMessageStartIndex)
+    const prevMessage = this.state.messages.get(index - cellMessageStartIndex - 1)
+    const isFirstMessage = index - cellMessageStartIndex === 0
     const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
     const isFirstNewMessage = message.messageID != null && this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
@@ -347,7 +347,7 @@ class ConversationList extends Component<void, Props, State> {
       )
     }
 
-    const rowCount = this.state.messages.count() + messageStartIndex
+    const rowCount = this.state.messages.count() + cellMessageStartIndex
     let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
