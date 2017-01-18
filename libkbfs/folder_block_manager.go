@@ -493,8 +493,11 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 		toDelete.md.Revision())
 	// Make sure that the MD didn't actually become part of the folder
 	// history.  (This could happen if the Sync was canceled while the
-	// MD put was outstanding.)
-	if toDelete.bdType == blockDeleteOnMDFail {
+	// MD put was outstanding.)  If the private MD is not set, there's
+	// no way the revision made it to the server, so we are free to
+	// clean it up without checking with the server.
+	if toDelete.bdType == blockDeleteOnMDFail &&
+		toDelete.md.bareMd.GetSerializedPrivateMetadata() != nil {
 		// Don't use `getSingleMD` here, since it returns an error if
 		// the revision isn't found, and that's useful information for
 		// us here.
