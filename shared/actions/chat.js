@@ -139,8 +139,8 @@ function retryMessage (outboxIDKey: string): RetryMessage {
   return {type: 'chat:retryMessage', payload: {outboxIDKey}}
 }
 
-function loadInbox (): LoadInbox {
-  return {type: 'chat:loadInbox', payload: undefined}
+function loadInbox (conversationIDKey: ?ConversationIDKey): LoadInbox {
+  return {payload: {conversationIDKey}, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
@@ -173,7 +173,7 @@ function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boo
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
 }
 
-function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): ?InboxState {
+function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData, youCreatedConversationIDKey: ?ConversationIDKey): ?InboxState {
   if (!convo || !convo.info || !convo.info.id) {
     return null
   }
@@ -191,12 +191,14 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   const participants = List(convo.info.writerNames || [])
   return new InboxStateRecord({
     info: convo.info,
+    isEmpty: convo.isEmpty,
     conversationIDKey,
     participants,
     muted: false,
     time: convo.readerInfo.mtime,
     snippet,
     unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid,
+    youCreated: youCreatedConversationIDKey === conversationIDKey,
     validated: true,
   })
 }
@@ -554,7 +556,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const followingSelector = (state: TypedState) => state.config.following
 
-function * _loadInbox (): SagaGenerator<any, any> {
+function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -601,8 +603,8 @@ function * _loadInbox (): SagaGenerator<any, any> {
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-      if (conversation) {
+      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData, action.payload.conversationIDKey)
+      if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
         yield put({type: 'chat:updateInbox', payload: {conversation}})
       }
       // find it
@@ -610,6 +612,16 @@ function * _loadInbox (): SagaGenerator<any, any> {
       incoming.chatInboxFailed.response.result()
     } else if (incoming.finished) {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
+
+      // check valid selected
+      const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
+      const inbox = yield select(inboxSelector)
+      if (inbox.count()) {
+        const conversationIDKey = yield select(_selectedSelector)
+        if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
+          yield put(selectConversation(inbox.get(0).get('conversationIDKey'), false))
+        }
+      }
     }
   }
 }
@@ -872,7 +884,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   if (result) {
     const conversationIDKey = conversationIDToKey(result.conv.info.id)
 
-    yield put(loadInbox())
+    yield put(loadInbox(conversationIDKey))
     yield put(selectConversation(conversationIDKey, false))
     yield put(switchTo([chatTab]))
   }
