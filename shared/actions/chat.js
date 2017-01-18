@@ -104,7 +104,7 @@ const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
 const _focusedSelector = (state: TypedState) => state.chat.get('focused')
 const _conversationStateSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get('messages').findIndex(m => m.outboxID === outboxID)
+const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
 const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
@@ -430,12 +430,13 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           // have, just set it to failed.  If we haven't, record this as a
           // pending failure, and pick up the pending failure at the bottom of
           // _postMessage() instead.
-          const pendingMessageExists = yield select(_messageOutboxIDSelector, conversationIDKey, outboxID)
-          if (pendingMessageExists) {
+          const pendingMessage = yield select(_messageOutboxIDSelector, conversationIDKey, outboxID)
+          if (pendingMessage) {
             yield put(({
               payload: {
                 conversationIDKey,
                 message: {
+                  ...pendingMessage,
                   messageState: 'failed',
                 },
                 outboxID,
