@@ -369,7 +369,7 @@ function baseAttachmentPopupMock (message) {
     isZoomed: false,
     onCloseDetailsPopup: () => console.log('onCloseDetailsPopup'),
     onClose: () => console.log('onClose'),
-    onDownload: () => console.log('onDownload'),
+    onDownloadAttachment: () => console.log('onDownload'),
     onDeleteMessage: () => console.log('onDeleteMessage'),
     onOpenDetailsPopup: () => console.log('onOpenDetailsPopup'),
     onOpenInFileUI: () => console.log('onOpenInFileUI'),

@@ -10,7 +10,7 @@ import SidePanel from './side-panel/index.desktop'
 import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
-import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
+import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache as DefaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Icon} from '../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import {clipboard} from 'electron'
@@ -32,6 +32,7 @@ const scrollbarWidth = 20
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
 const messageStartIndex = 2 // Header and loading cells
+const DEBUG_ROW_RENDER = __DEV__ && false
 
 class ConversationList extends Component<void, Props, State> {
   _cellCache: any;
@@ -52,7 +53,10 @@ class ConversationList extends Component<void, Props, State> {
       scrollTop: 0,
     }
 
-    this._cellCache = new CellSizeCache(this._indexToID)
+    this._cellCache = new DefaultCellMeasurerCellSizeCache({
+      uniformColumnWidth: true,
+      uniformRowHeight: false,
+    })
     this._toRemeasure = []
     this._shouldForceUpdateGrid = false
   }
@@ -126,10 +130,12 @@ class ConversationList extends Component<void, Props, State> {
 
     // If we're not scrolling let's update our internal messages
     if (!this.state.isScrolling) {
-      this._invalidateChangedMessages(nextProps)
-      this.setState({
-        messages: nextProps.messages,
-      })
+      if (nextProps.messages !== this.state.messages) {
+        this._invalidateChangedMessages(nextProps)
+        this.setState({
+          messages: nextProps.messages,
+        })
+      }
     }
 
     if (nextProps.listScrollDownState !== this.props.listScrollDownState) {
@@ -260,6 +266,14 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
+    if (__DEV__ && DEBUG_ROW_RENDER && style) {
+      style = {
+        ...style,
+        backgroundColor: '#' + ((1 << 24) * Math.random() | 0).toString(16),
+        overflow: 'hidden',
+      }
+    }
+
     if (index === 0) {
       return (
         <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
@@ -322,6 +336,8 @@ class ConversationList extends Component<void, Props, State> {
     this._list = r
   }
 
+  _cellRangeRenderer = options => chatCellRangeRenderer(this.state.messages.count(), this._cellCache, options)
+
   render () {
     if (!this.props.validated) {
       return (
@@ -350,6 +366,7 @@ class ConversationList extends Component<void, Props, State> {
               width={width - scrollbarWidth} >
               {({getRowHeight}) => (
                 <VirtualizedList
+                  cellRangeRenderer={this._cellRangeRenderer}
                   style={listStyle}
                   height={height}
                   ref={this._setListRef}
@@ -406,37 +423,128 @@ const listStyle = {
   paddingBottom: listBottomMargin,
 }
 
-class CellSizeCache extends defaultCellMeasurerCellSizeCache {
-  _indexToID: (index: number) => any;
+let lastMessageCount
+function chatCellRangeRenderer (messageCount: number, cellSizeCache: any, {
+  cellCache,
+  cellRenderer,
+  columnSizeAndPositionManager,
+  columnStartIndex,
+  columnStopIndex,
+  horizontalOffsetAdjustment,
+  isScrolling,
+  rowSizeAndPositionManager,
+  rowStartIndex,
+  rowStopIndex,
+  scrollLeft,
+  scrollTop,
+  styleCache,
+  verticalOffsetAdjustment,
+  visibleColumnIndices,
+  visibleRowIndices,
+}: DefaultCellRangeRendererParams) {
+  const renderedCells = []
+  const offsetAdjusted = verticalOffsetAdjustment || horizontalOffsetAdjustment
+  const canCacheStyle = !isScrolling || !offsetAdjusted
 
-  constructor (indexToID) {
-    super({uniformColumnWidth: true, uniformRowHeight: false})
-    this._indexToID = indexToID
+  if (messageCount !== lastMessageCount) {
+    lastMessageCount = messageCount
+    rowSizeAndPositionManager.resetCell(0)
+    cellSizeCache.clearAllRowHeights()
   }
 
-  getRowHeight (index) {
-    return super.getRowHeight(this._indexToID(index))
+  for (let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++) {
+    let rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex)
+
+    for (let columnIndex = columnStartIndex; columnIndex <= columnStopIndex; columnIndex++) {
+      let columnDatum = columnSizeAndPositionManager.getSizeAndPositionOfCell(columnIndex)
+      let isVisible = (
+        columnIndex >= visibleColumnIndices.start &&
+        columnIndex <= visibleColumnIndices.stop &&
+        rowIndex >= visibleRowIndices.start &&
+        rowIndex <= visibleRowIndices.stop
+      )
+
+      let key = `${rowIndex}-${messageCount}`
+      let style
+
+      // Cache style objects so shallow-compare doesn't re-render unnecessarily.
+      if (canCacheStyle && styleCache[key]) {
+        style = styleCache[key]
+      } else {
+        style = {
+          height: rowDatum.size,
+          left: columnDatum.offset + horizontalOffsetAdjustment,
+          position: 'absolute',
+          top: rowDatum.offset + verticalOffsetAdjustment,
+          width: columnDatum.size,
+        }
+
+        styleCache[key] = style
+      }
+
+      let cellRendererParams = {
+        columnIndex,
+        isScrolling,
+        isVisible,
+        key,
+        rowIndex,
+        style,
+      }
+
+      let renderedCell
+
+      // Avoid re-creating cells while scrolling.
+      // This can lead to the same cell being created many times and can cause performance issues for "heavy" cells.
+      // If a scroll is in progress- cache and reuse cells.
+      // This cache will be thrown away once scrolling completes.
+      // However if we are scaling scroll positions and sizes, we should also avoid caching.
+      // This is because the offset changes slightly as scroll position changes and caching leads to stale values.
+      // For more info refer to issue #395
+      if (
+        isScrolling &&
+        !horizontalOffsetAdjustment &&
+        !verticalOffsetAdjustment
+      ) {
+        if (!cellCache[key]) {
+          cellCache[key] = cellRenderer(cellRendererParams)
+        }
+
+        renderedCell = cellCache[key]
+
+      // If the user is no longer scrolling, don't cache cells.
+      // This makes dynamic cell content difficult for users and would also lead to a heavier memory footprint.
+      } else {
+        renderedCell = cellRenderer(cellRendererParams)
+      }
+
+      if (renderedCell == null || renderedCell === false) {
+        continue
+      }
+
+      renderedCells.push(renderedCell)
+    }
   }
 
-  getColumnWidth (index) {
-    return super.getColumnWidth(this._indexToID(index))
-  }
+  return renderedCells
+}
 
-  setRowHeight (index, height) {
-    super.setRowHeight(this._indexToID(index), height)
-  }
-
-  setColumnWidth (index, width) {
-    super.setColumnWidth(this._indexToID(index), width)
-  }
-
-  clearRowHeight (index) {
-    super.clearRowHeight(this._indexToID(index))
-  }
-
-  clearColumnWidth (index) {
-    super.clearColumnWidth(this._indexToID(index))
-  }
+type DefaultCellRangeRendererParams = {
+  cellCache: Object,
+  cellRenderer: Function,
+  columnSizeAndPositionManager: Object,
+  columnStartIndex: number,
+  columnStopIndex: number,
+  horizontalOffsetAdjustment: number,
+  isScrolling: boolean,
+  rowSizeAndPositionManager: Object,
+  rowStartIndex: number,
+  rowStopIndex: number,
+  scrollLeft: number,
+  scrollTop: number,
+  styleCache: Object,
+  verticalOffsetAdjustment: number,
+  visibleColumnIndices: Object,
+  visibleRowIndices: Object,
 }
 
 export default ConversationList

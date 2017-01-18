@@ -11,14 +11,14 @@ import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {getPath} from '../route-tree'
-import {navigateTo, switchTo} from './route-tree'
+import {navigateAppend, navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {tmpFile} from '../util/file'
+import {downloadFilePath, tmpFile} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
@@ -35,6 +35,7 @@ import type {
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
+  CreatePendingFailure,
   DeleteMessage,
   EditMessage,
   InboxState,
@@ -49,8 +50,11 @@ import type {
   MessageID,
   MessageState,
   NewChat,
+  OpenAttachmentPopup,
   OpenFolder,
+  OutboxIDKey,
   PostMessage,
+  RemovePendingFailure,
   RetryMessage,
   SelectConversation,
   SetupChatHandlers,
@@ -101,6 +105,8 @@ const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
 const _focusedSelector = (state: TypedState) => state.chat.get('focused')
 const _conversationStateSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
+const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
@@ -157,7 +163,7 @@ function deleteMessage (message: Message): DeleteMessage {
 
 function retryAttachment (message: Constants.AttachmentMessage): Constants.SelectAttachment {
   const {conversationIDKey, filename, title, previewType, outboxID} = message
-  return {type: Constants.selectAttachment, payload: {conversationIDKey, filename, title, type: previewType || 'Other', outboxID}}
+  return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type: previewType || 'Other', outboxID}}
 }
 
 function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string, type: Constants.AttachmentType): Constants.SelectAttachment {
@@ -333,13 +339,14 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   if (sent && author) {
     const outboxID = outboxIDToKey(sent.outboxID)
+    const hasPendingFailure = yield select(_pendingFailureSelector, outboxID)
     const message: Message = {
       type: 'Text',
       author,
       outboxID,
       key: outboxID,
       timestamp: Date.now(),
-      messageState: 'pending',
+      messageState: hasPendingFailure ? 'failed' : 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
       you: author,
       deviceType: isMobile ? 'mobile' : 'desktop',
@@ -369,6 +376,14 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
         messages,
       },
     })
+    if (hasPendingFailure) {
+      yield put(({
+        payload: {
+          outboxID,
+        },
+        type: 'chat:removePendingFailure',
+      }: RemovePendingFailure))
+    }
   }
 }
 
@@ -413,16 +428,35 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         for (const outboxRecord of failedMessage.outboxRecords) {
           const conversationIDKey = conversationIDToKey(outboxRecord.convID)
           const outboxID = outboxIDToKey(outboxRecord.outboxID)
-          yield put(({
-            type: 'chat:updateTempMessage',
-            payload: {
-              conversationIDKey,
-              outboxID,
-              message: {
-                messageState: 'failed',
+
+          // There's an RPC race condition here.  Two possibilities:
+          //
+          // Either we've already finished in _postMessage() and have recorded
+          // the outboxID pending message in the store, or we haven't.  If we
+          // have, just set it to failed.  If we haven't, record this as a
+          // pending failure, and pick up the pending failure at the bottom of
+          // _postMessage() instead.
+          const pendingMessage = yield select(_messageOutboxIDSelector, conversationIDKey, outboxID)
+          if (pendingMessage) {
+            yield put(({
+              payload: {
+                conversationIDKey,
+                message: {
+                  ...pendingMessage,
+                  messageState: 'failed',
+                },
+                outboxID,
               },
-            },
-          }: Constants.UpdateTempMessage))
+              type: 'chat:updateTempMessage',
+            }: Constants.UpdateTempMessage))
+          } else {
+            yield put(({
+              payload: {
+                outboxID,
+              },
+              type: 'chat:createPendingFailure',
+            }: CreatePendingFailure))
+          }
         }
       }
       return
@@ -433,7 +467,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(_devicenameSelector)
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
-        const message = _unboxedToMessage(messageUnboxed, 0, yourName, yourDeviceName, conversationIDKey)
+        const message = _unboxedToMessage(messageUnboxed, 0, yourName, yourDeviceName, conversationIDKey, false)
 
         // Is this message for the currently selected and focused conversation?
         // And is the Chat tab the currently displayed route? If all that is
@@ -682,7 +716,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   const yourName = yield select(usernameSelector)
   const yourDeviceName = yield select(_devicenameSelector)
-  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, yourDeviceName, conversationIDKey)).reverse()
+  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, yourDeviceName, conversationIDKey, true)).reverse()
   let newMessages = []
   messages.forEach((message, idx) => {
     if (idx > 0) {
@@ -758,7 +792,7 @@ const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, usernam
   key: `temp-${outboxID}`,
 })
 
-function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
+function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, yourDeviceName, conversationIDKey: ConversationIDKey, isHistory: boolean): Message {
   if (message && message.state === LocalMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: OutboxRecord = message.outbox
@@ -797,7 +831,8 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
-          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
+          // If we get a histocal message w/ messageID and outboxID ignore the outboxID
+          const outboxID = (isHistory && common.messageID) ? undefined : payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
           return {
             type: 'Text',
             ...common,
@@ -1195,6 +1230,19 @@ function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any>
   yield put(loadMoreMessages(selectedConversation, false))
 }
 
+function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any, any> {
+  const {message} = action.payload
+  const messageID = message.messageID
+  if (!messageID) {
+    throw new Error('Cannot open attachment popup for message missing ID')
+  }
+
+  yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
+  if (!message.downloadedPath) {
+    yield put(loadAttachment(message.conversationIDKey, messageID, false, downloadFilePath(message.filename)))
+  }
+}
+
 function _threadIsCleared (originalAction: Action, checkAction: Action): boolean {
   return originalAction.type === 'chat:loadMoreMessages' && checkAction.type === 'chat:clearMessages' && originalAction.conversationIDKey === checkAction.conversationIDKey
 }
@@ -1222,6 +1270,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:appendMessages', _sendNotifications),
     safeTakeEvery('chat:selectAttachment', _selectAttachment),
     safeTakeEvery('chat:loadAttachment', _loadAttachment),
+    safeTakeEvery('chat:openAttachmentPopup', _openAttachmentPopup),
     safeTakeLatest('chat:openFolder', _openFolder),
     safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
     safeTakeLatest('chat:updateInbox', _onUpdateInbox),

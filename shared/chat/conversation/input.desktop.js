@@ -118,7 +118,7 @@ class Conversation extends Component<void, Props, State> {
           <Icon onClick={this._onClickEmoji} style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={this._openFilePicker} style={styleIcon} type='iconfont-attachment' />
         </Box>
-        <Text type='BodySmall' style={styleFooter} onClick={this._focusInput}>*bold*, _italics_, `code`, >quote</Text>
+        <Text type='BodySmall' style={styleFooter} onClick={this._focusInput}>*bold*, _italics_, `code`</Text>
       </Box>
     )
   }

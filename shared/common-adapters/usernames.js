@@ -6,7 +6,7 @@ import {isMobile} from '../constants/platform'
 
 import type {Props} from './usernames'
 
-function usernameText ({type, users, style, inline, redColor, backgroundMode, colorFollowing, colorBroken = true, onUsernameClicked}: Props) {
+function usernameText ({type, users, style, commaColor, inline, redColor, backgroundMode, colorFollowing, colorBroken = true, onUsernameClicked}: Props) {
   return users.map((u, i) => {
     const userStyle = {
       ...style,
@@ -29,7 +29,7 @@ function usernameText ({type, users, style, inline, redColor, backgroundMode, co
             <Text
               type={type}
               backgroundMode={backgroundMode}
-              style={{...style, marginRight: 1}}>,</Text>}
+              style={{...style, color: commaColor, marginRight: 1}}>,</Text>}
       </Text>
     )
   })

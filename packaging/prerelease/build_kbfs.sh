@@ -29,9 +29,10 @@ elif [ "$PLATFORM" = "windows" ]; then
 fi
 
 echo "Building $build_dir/kbfs ($kbfs_build)"
-go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $pkg 
+go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $pkg
 
 if [ "$PLATFORM" = "darwin" ]; then
+  echo "Signing binary..."
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --sign "$code_sign_identity" $build_dir/kbfs
 elif [ "$PLATFORM" = "linux" ]; then

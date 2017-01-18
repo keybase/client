@@ -25,6 +25,7 @@ echo "Building $build_dir/keybase ($keybase_build)"
 GO15VENDOREXPERIMENT=1 go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase" "github.com/keybase/client/go/keybase"
 
 if [ "$PLATFORM" = "darwin" ]; then
+  echo "Signing binary..."
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --sign "$code_sign_identity" "$build_dir/keybase"
 elif [ "$PLATFORM" = "linux" ]; then
