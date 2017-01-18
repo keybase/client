@@ -338,7 +338,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       outboxID,
       key: outboxID,
       timestamp: Date.now(),
-      messageState: hasPendingFailure ? 'failed': 'pending',
+      messageState: hasPendingFailure ? 'failed' : 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
       you: author,
       deviceType: isMobile ? 'mobile' : 'desktop',
@@ -429,7 +429,6 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           // pending failure, and pick up the pending failure at the bottom of
           // _postMessage() instead.
           const pendingMessageExists = yield select(_messageOutboxIDSelector, conversationIDKey, outboxID)
-          console.warn('outboxIDsel returned ', pendingMessageExists)
           if (pendingMessageExists) {
             yield put(({
               payload: {
