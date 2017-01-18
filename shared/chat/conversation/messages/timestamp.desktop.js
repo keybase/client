@@ -6,12 +6,12 @@ import type {Props} from './timestamp'
 
 const Timestamp = ({timestamp, style}: Props) => (
   <div key={timestamp} style={{...globalStyles.flexBoxRow, ...style}}>
-    <Text style={styleText} type='BodySmall'>{timestamp}</Text>
+    <Text style={styleText} type='BodySmallSemibold'>{timestamp}</Text>
   </div>
 )
 
 export const styleText = {
-  padding: globalMargins.xtiny,
+  padding: globalMargins.tiny,
   flex: 1,
   textAlign: 'center',
   color: globalColors.black_40,

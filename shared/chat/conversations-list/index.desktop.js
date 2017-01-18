@@ -56,7 +56,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
   const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
   const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
-  const commaColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
+  const commaColor = isSelected ? globalColors.black_60 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
   return (
     <div
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
@@ -80,7 +80,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
             {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15, fontSize: 11, lineHeight: '15px'}}>{snippet}</Markdown>}
           </div>
         </div>
-        <Text type='BodySmall' style={{...boldOverride, marginRight: 4, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        <Text type='BodySmall' style={{...boldOverride, marginRight: globalMargins.xtiny, marginTop: globalMargins.xtiny, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
       </div>
     </div>
   )
