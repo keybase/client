@@ -16,6 +16,7 @@ export type Props = {
   type: TextType,
   backgroundMode?: Background,
   style?: Object,
+  commaColor?: string,
   containerStyle?: Object,
   inline?: bool,
   users: UserList,
