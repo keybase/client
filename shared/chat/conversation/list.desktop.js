@@ -262,7 +262,7 @@ class ConversationList extends Component<void, Props, State> {
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     if (index === 0) {
       return (
-        <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116, ...(!this.props.moreToLoad ? null : {opacity: 0})}}>
+        <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
           <Icon type='icon-secured-266' />
         </div>
       )
