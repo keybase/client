@@ -177,6 +177,7 @@ export const StateRecord = Record({
   conversationStates: Map(),
   focused: false,
   metaData: Map(),
+  pendingFailures: Set(),
 })
 
 export type State = Record<{
@@ -184,6 +185,7 @@ export type State = Record<{
   conversationStates: Map<ConversationIDKey, ConversationState>,
   focused: boolean,
   metaData: MetaDataMap,
+  pendingFailures: Set<OutboxIDKey>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -196,6 +198,7 @@ export const nothingSelected = 'chat:noneSelected'
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {ConversationIDKey: ConversationIDKey}>
+export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
@@ -212,6 +215,7 @@ export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup',
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
+export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {outboxIDKey: OutboxIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>

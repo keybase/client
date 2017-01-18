@@ -35,6 +35,7 @@ import type {
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
+  CreatePendingFailure,
   DeleteMessage,
   EditMessage,
   InboxState,
@@ -51,7 +52,9 @@ import type {
   NewChat,
   OpenAttachmentPopup,
   OpenFolder,
+  OutboxIDKey,
   PostMessage,
+  RemovePendingFailure,
   RetryMessage,
   SelectConversation,
   SetupChatHandlers,
@@ -102,6 +105,8 @@ const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
 const _focusedSelector = (state: TypedState) => state.chat.get('focused')
 const _conversationStateSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
+const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
@@ -334,13 +339,14 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   if (sent && author) {
     const outboxID = outboxIDToKey(sent.outboxID)
+    const hasPendingFailure = yield select(_pendingFailureSelector, outboxID)
     const message: Message = {
       type: 'Text',
       author,
       outboxID,
       key: outboxID,
       timestamp: Date.now(),
-      messageState: 'pending',
+      messageState: hasPendingFailure ? 'failed' : 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
       you: author,
       deviceType: isMobile ? 'mobile' : 'desktop',
@@ -370,6 +376,14 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
         messages,
       },
     })
+    if (hasPendingFailure) {
+      yield put(({
+        payload: {
+          outboxID,
+        },
+        type: 'chat:removePendingFailure',
+      }: RemovePendingFailure))
+    }
   }
 }
 
@@ -414,16 +428,35 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         for (const outboxRecord of failedMessage.outboxRecords) {
           const conversationIDKey = conversationIDToKey(outboxRecord.convID)
           const outboxID = outboxIDToKey(outboxRecord.outboxID)
-          yield put(({
-            type: 'chat:updateTempMessage',
-            payload: {
-              conversationIDKey,
-              outboxID,
-              message: {
-                messageState: 'failed',
+
+          // There's an RPC race condition here.  Two possibilities:
+          //
+          // Either we've already finished in _postMessage() and have recorded
+          // the outboxID pending message in the store, or we haven't.  If we
+          // have, just set it to failed.  If we haven't, record this as a
+          // pending failure, and pick up the pending failure at the bottom of
+          // _postMessage() instead.
+          const pendingMessage = yield select(_messageOutboxIDSelector, conversationIDKey, outboxID)
+          if (pendingMessage) {
+            yield put(({
+              payload: {
+                conversationIDKey,
+                message: {
+                  ...pendingMessage,
+                  messageState: 'failed',
+                },
+                outboxID,
               },
-            },
-          }: Constants.UpdateTempMessage))
+              type: 'chat:updateTempMessage',
+            }: Constants.UpdateTempMessage))
+          } else {
+            yield put(({
+              payload: {
+                outboxID,
+              },
+              type: 'chat:createPendingFailure',
+            }: CreatePendingFailure))
+          }
         }
       }
       return
