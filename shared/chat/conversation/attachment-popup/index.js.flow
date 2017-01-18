@@ -10,7 +10,7 @@ export type Props = {
   isZoomed: boolean,
   onCloseDetailsPopup: () => void,
   onClose: () => void,
-  onDownload: () => void,
+  onDownloadAttachment: () => void,
   onOpenInFileUI: () => void,
   onDeleteMessage: () => void,
   onOpenDetailsPopup: () => void,

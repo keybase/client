@@ -10,11 +10,10 @@ import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postM
 import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
-import {navigateAppend} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType} from '../../constants/chat'
+import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType, OpenAttachmentPopup} from '../../constants/chat'
 import type {Props} from '.'
 
 type OwnProps = {}
@@ -122,7 +121,7 @@ export default connect(
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onOpenFolder: () => dispatch(openFolder()),
     onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-    onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{props: {message}, selected: 'attachment'}])),
+    onOpenInPopup: (message: AttachmentMessage) => dispatch(({type: 'chat:openAttachmentPopup', payload: {message}}: OpenAttachmentPopup)),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
     onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),

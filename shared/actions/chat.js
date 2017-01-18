@@ -11,14 +11,14 @@ import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {getPath} from '../route-tree'
-import {navigateTo, switchTo} from './route-tree'
+import {navigateAppend, navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {tmpFile} from '../util/file'
+import {downloadFilePath, tmpFile} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
@@ -49,6 +49,7 @@ import type {
   MessageID,
   MessageState,
   NewChat,
+  OpenAttachmentPopup,
   OpenFolder,
   PostMessage,
   RetryMessage,
@@ -1196,6 +1197,19 @@ function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any>
   yield put(loadMoreMessages(selectedConversation, false))
 }
 
+function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any, any> {
+  const {message} = action.payload
+  const messageID = message.messageID
+  if (!messageID) {
+    throw new Error('Cannot open attachment popup for message missing ID')
+  }
+
+  yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
+  if (!message.downloadedPath) {
+    yield put(loadAttachment(message.conversationIDKey, messageID, false, downloadFilePath(message.filename)))
+  }
+}
+
 function _threadIsCleared (originalAction: Action, checkAction: Action): boolean {
   return originalAction.type === 'chat:loadMoreMessages' && checkAction.type === 'chat:clearMessages' && originalAction.conversationIDKey === checkAction.conversationIDKey
 }
@@ -1223,6 +1237,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:appendMessages', _sendNotifications),
     safeTakeEvery('chat:selectAttachment', _selectAttachment),
     safeTakeEvery('chat:loadAttachment', _loadAttachment),
+    safeTakeEvery('chat:openAttachmentPopup', _openAttachmentPopup),
     safeTakeLatest('chat:openFolder', _openFolder),
     safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
     safeTakeLatest('chat:updateInbox', _onUpdateInbox),
