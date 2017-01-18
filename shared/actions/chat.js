@@ -35,6 +35,7 @@ import type {
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
+  CreatePendingFailure,
   DeleteMessage,
   EditMessage,
   InboxState,
@@ -52,6 +53,7 @@ import type {
   OpenFolder,
   OutboxIDKey,
   PostMessage,
+  RemovePendingFailure,
   RetryMessage,
   SelectConversation,
   SetupChatHandlers,
@@ -369,12 +371,12 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       },
     })
     if (hasPendingFailure) {
-      yield put({
+      yield put(({
         payload: {
           outboxID,
         },
         type: 'chat:removePendingFailure',
-      })
+      }: RemovePendingFailure))
     }
   }
 }
@@ -446,7 +448,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
                 outboxID,
               },
               type: 'chat:createPendingFailure',
-            }))
+            }: CreatePendingFailure))
           }
         }
       }
