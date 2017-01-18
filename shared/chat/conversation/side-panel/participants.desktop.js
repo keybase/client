@@ -35,7 +35,7 @@ const Participants = (props: Props) => (
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
-  height: globalMargins.large,
+  minHeight: globalMargins.large,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
 }
