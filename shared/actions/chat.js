@@ -104,7 +104,7 @@ const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
 const _focusedSelector = (state: TypedState) => state.chat.get('focused')
 const _conversationStateSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get(outboxID)
+const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get('messages').findIndex(m => m.outboxID === outboxID)
 const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
