@@ -444,7 +444,6 @@ func (s *Deliverer) deliverLoop() {
 		markRestAsError := false
 		for _, obr := range obrs {
 
-			s.Debug(bgctx, "OBSENDING: %s ctime: %v", obr.OutboxID, obr.Ctime)
 			// Check type
 			state, err := obr.State.State()
 			if err != nil {

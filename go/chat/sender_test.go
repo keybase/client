@@ -438,7 +438,6 @@ func TestDisconnectedFailure(t *testing.T) {
 	}
 	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
 	for _, obid := range obids {
-		t.Logf("ORDER: %s", obid)
 		require.NoError(t, outbox.RetryMessage(context.TODO(), obid))
 	}
 	tc.G.MessageDeliverer.Connected(context.TODO())
