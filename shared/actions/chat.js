@@ -11,27 +11,28 @@ import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {getPath} from '../route-tree'
-import {navigateTo, switchTo} from './route-tree'
+import {navigateAppend, navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {tmpFile} from '../util/file'
+import {downloadFilePath, tmpFile} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
-import type {Action} from '../constants/types/flux'
+import type {Action, AsyncAction} from '../constants/types/flux'
 import type {ChangedFocus} from '../constants/window'
 import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
+  AttachmentMessage,
   BadgeAppForChat,
   ConversationBadgeStateRecord,
   ConversationIDKey,
@@ -164,6 +165,20 @@ function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Consta
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
 function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
+}
+
+function openAttachmentPopup (message: AttachmentMessage): AsyncAction {
+  const messageID = message.messageID
+  if (!messageID) {
+    throw new Error('Cannot open attachment popup for message missing ID')
+  }
+
+  return (dispatch) => {
+    dispatch(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
+    if (!message.downloadedPath) {
+      dispatch(loadAttachment(message.conversationIDKey, messageID, false, downloadFilePath(message.filename)))
+    }
+  }
 }
 
 function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): ?InboxState {
@@ -1198,6 +1213,7 @@ export {
   loadMoreMessages,
   newChat,
   selectAttachment,
+  openAttachmentPopup,
   openFolder,
   postMessage,
   retryMessage,
