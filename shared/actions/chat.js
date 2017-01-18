@@ -55,7 +55,6 @@ import type {
   SelectConversation,
   SetupChatHandlers,
   StartConversation,
-  TextMessage,
   UnhandledMessage,
   UpdateBadging,
   UpdateInbox,
