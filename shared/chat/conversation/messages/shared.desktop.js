@@ -79,7 +79,7 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
               ? <Avatar size={24} username={message.author} style={_avatarStyle} />
               : <div style={_noHeaderStyle} />}
             <div style={_bodyContainerStyle}>
-              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null)}}>{message.author}</Text>}
+              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null), marginBottom: 2}}>{message.author}</Text>}
               <div style={_textContainerStyle} className='message'>
                 <div style={_childrenWrapStyle}>
                   {children}
@@ -118,7 +118,7 @@ const _exclamationStyle = {
 
 const _ellipsisStyle = {
   fontSize: 16,
-  marginLeft: globalMargins.xtiny,
+  marginLeft: globalMargins.tiny,
   marginRight: globalMargins.xtiny,
 }
 
