@@ -95,19 +95,8 @@ export function setupContextMenu (window: any) {
     {label: 'Select all', role: 'selectall'},
   ])
 
-  // $FlowIssue
-  document.body.addEventListener('contextmenu', e => {
-    e.preventDefault()
-    e.stopPropagation()
+  window.webContents.on('context-menu', (e, props) => {
+    InputMenu.popup(window);
+  });
 
-    let node = e.target
-
-    while (node) {
-      if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
-        InputMenu.popup(window)
-        break
-      }
-      node = node.parentNode
-    }
-  })
 }
