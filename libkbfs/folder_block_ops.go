@@ -2692,7 +2692,8 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 // associated with nodes in the cache by searching for their paths in
 // the current version of the TLF.  If it can't find a corresponding
 // node, it assumes it's been deleted and unlinks it.  Returns the set
-// of node changes that resulted.
+// of node changes that resulted.  If there are no nodes, it returns a
+// nil error because there's nothing to be done.
 func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	lState *lockState, md ReadOnlyRootMetadata) (
 	changes []NodeChange, err error) {
@@ -2705,6 +2706,10 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	defer fbo.blockLock.Unlock(lState)
 
 	nodes := fbo.nodeCache.AllNodes()
+	if len(nodes) == 0 {
+		// Nothing needs to be done!
+		return nil, nil
+	}
 	fbo.log.CDebugf(ctx, "Fast-forwarding %d nodes", len(nodes))
 
 	// Build a "tree" representation for each interesting path prefix.

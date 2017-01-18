@@ -4825,7 +4825,9 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 	}
 
 	// Invalidate all the affected nodes.
-	fbo.observers.batchChanges(ctx, changes)
+	if len(changes) > 0 {
+		fbo.observers.batchChanges(ctx, changes)
+	}
 
 	// Reset the edit history.  TODO: notify any listeners that we've
 	// done this.
