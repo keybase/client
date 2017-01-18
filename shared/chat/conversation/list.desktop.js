@@ -281,6 +281,7 @@ class ConversationList extends Component<void, Props, State> {
       metaDataMap: this.props.metaDataMap,
       onAction: this._onAction,
       onLoadAttachment: this.props.onLoadAttachment,
+      onRetryAttachment: () => { message.type === 'Attachment' && this.props.onRetryAttachment(message) },
       onOpenInFileUI: this.props.onOpenInFileUI,
       onOpenInPopup: this.props.onOpenInPopup,
       onRetry: this.props.onRetryMessage,
