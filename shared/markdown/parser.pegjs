@@ -3,8 +3,8 @@ start
 
 Code = CodeBlock / InlineCode
 
-Content =
-	StyledText / Text
+Content
+ = StyledText / Text
 
 StyledText
  = QuoteBlock / Italic / Bold / Strike / Emoji
