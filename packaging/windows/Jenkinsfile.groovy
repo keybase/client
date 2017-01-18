@@ -63,8 +63,8 @@ def doBuild() {
         def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
         withCredentials([[
             $class: 'StringBinding',
-            credentialsId: 'KEYBASE_TOKEN',
-            variable: 'KEYBASE_TOKEN'
+            credentialsId: 'GITHUB_TOKEN',
+            variable: 'GITHUB_TOKEN'
             ]]) {
             dir('src\\github.com\\keybase\\release') {
                 bat 'go build'
