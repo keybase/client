@@ -293,7 +293,7 @@ func (s *Deliverer) Start(ctx context.Context, uid gregor1.UID) {
 	s.Lock()
 	defer s.Unlock()
 
-	s.doStop(ctx)
+	<-s.doStop(ctx)
 
 	s.outbox = storage.NewOutbox(s.G(), uid, func() libkb.SecretUI {
 		return DelivererSecretUI{}
@@ -383,6 +383,23 @@ func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.
 	return 0, false
 }
 
+func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
+	oserr chat1.OutboxStateError) error {
+
+	if err := s.outbox.MarkAsError(ctx, obr, oserr); err != nil {
+		s.Debug(ctx, "unable to mark as error on outbox: uid: %s err: %s",
+			s.outbox.GetUID(), err.Error())
+		return err
+	}
+	act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+		OutboxRecords: []chat1.OutboxRecord{obr},
+	})
+	s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
+		keybase1.UID(s.outbox.GetUID().String()), &act)
+
+	return nil
+}
+
 func (s *Deliverer) deliverLoop() {
 	bgctx := context.Background()
 	s.Debug(bgctx, "starting non blocking sender deliver loop: uid: %s duration: %v",
@@ -402,7 +419,7 @@ func (s *Deliverer) deliverLoop() {
 		}
 
 		// Fetch outbox
-		obrs, err := s.outbox.PullAllConversations(bgctx)
+		obrs, err := s.outbox.PullAllConversations(bgctx, true)
 		if err != nil {
 			if _, ok := err.(storage.MissError); !ok {
 				s.Debug(bgctx, "unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
@@ -416,6 +433,7 @@ func (s *Deliverer) deliverLoop() {
 
 		// Send messages
 		var breaks []keybase1.TLFIdentifyFailure
+		markRestAsError := false
 		for _, obr := range obrs {
 
 			// Check type
@@ -430,6 +448,17 @@ func (s *Deliverer) deliverLoop() {
 				continue
 			}
 
+			// If we have hit an error, we need to add the rest of the items back in as errors
+			// as well
+			if markRestAsError {
+				if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
+					Message: "previous message failed",
+					Typ:     chat1.OutboxErrorType_MISC,
+				}); err != nil {
+					s.Debug(bgctx, "unable to fail message: %s", err.Error())
+				}
+			}
+
 			// Do the actual send
 			bctx := Context(context.Background(), obr.IdentifyBehavior, &breaks, s.identNotifier)
 			if !s.connected {
@@ -437,38 +466,25 @@ func (s *Deliverer) deliverLoop() {
 			} else {
 				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
 			}
-			if err == nil {
-				// Send succeeded
-				s.Debug(bgctx, "clearing message from outbox: %s uid: %s", obr.OutboxID,
-					s.outbox.GetUID())
-				err = s.outbox.RemoveMessage(bgctx, obr.OutboxID)
-				if err != nil {
-					s.Debug(bgctx, "error clearing message from outbox after successful send: uid:%s %s", s.outbox.GetUID(), err)
-				}
-			} else {
+			if err != nil {
 				// Send failed
 				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
 
 				// Process failure. If we determine that the message is unrecoverable, then bail out.
 				if errTyp, ok := s.doNotRetryFailure(obr, err); ok {
-					// Mark the entire outbox as an error if we can't send
+					// Record failure if we hit this case, and put the rest of this loop in a
+					// mode where all other entries also fail.
 					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
-					deadObrs, err := s.outbox.MarkAllAsError(bgctx, chat1.OutboxStateError{
+
+					if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
 						Message: err.Error(),
 						Typ:     errTyp,
-					})
-					if err != nil {
-						s.Debug(bgctx, "unable to mark as error on outbox: uid: %s err: %s",
-							s.outbox.GetUID(), err.Error())
+					}); err != nil {
+						s.Debug(bgctx, "unable to fail message: err: %s", err.Error())
 					}
-					act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-						OutboxRecords: deadObrs,
-					})
-					s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
-						keybase1.UID(s.outbox.GetUID().String()), &act)
 				} else {
-					if err = s.outbox.RecordFailedAttempt(bgctx, obr.OutboxID); err != nil {
+					if err = s.outbox.RecordFailedAttempt(bgctx, obr); err != nil {
 						s.Debug(bgctx, "unable to record failed attempt on outbox: uid %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}
