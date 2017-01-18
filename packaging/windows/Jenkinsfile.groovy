@@ -68,8 +68,8 @@ def doBuild() {
             ]]) {
             dir('src\\github.com\\keybase\\release') {
                 bat 'go build'
-                bat 'release wait-ci --repo="client" --commit="${clientCommit}" --context="continuous-integration/jenkins/branch" --context="ci/circleci"'
-                bat 'release wait-ci --repo="kbfs" --commit="${kbfsCommit}" --context="continuous-integration/jenkins/branch" --context="ci/circleci"'
+                bat "release wait-ci --repo=\"client\" --commit=\"${clientCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
+                bat "release wait-ci --repo=\"kbfs\" --commit=\"${kbfsCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
             }
         }
     }                
