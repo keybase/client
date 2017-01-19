@@ -2,12 +2,12 @@
 import React from 'react'
 import {Map} from 'immutable'
 import {Box, Avatar, Text, Usernames, Divider, Icon} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {globalStyles, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
 const Participants = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn}}>
+  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
     {props.participants.map(username => {
       const you = username === props.you
       const following = !!props.followingMap[username]
@@ -18,8 +18,8 @@ const Participants = (props: Props) => (
         <Box key={username} style={rowStyle} onClick={() => props.onShowProfile(username)}>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, marginRight: globalMargins.tiny}}>
             <Avatar size={32} username={username} />
-            <Usernames colorFollowing={true} type='Body' users={[{username, you, following, broken}]} containerStyle={{marginLeft: 12}} />
-            <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>{fullname}</Text>
+            <Usernames colorFollowing={true} type='BodySemibold' users={[{username, you, following, broken}]} containerStyle={{marginLeft: 12}} />
+            <Text type='BodySmall' style={{marginLeft: globalMargins.tiny, flex: 1, textAlign: 'right'}}>{fullname}</Text>
           </Box>
           <Divider style={{marginLeft: 44}} />
         </Box>
@@ -35,9 +35,9 @@ const Participants = (props: Props) => (
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
-  height: globalMargins.large,
-  paddingLeft: 20,
-  paddingRight: 17,
+  minHeight: globalMargins.large,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 
 export default Participants

@@ -92,6 +92,7 @@ const (
 	StatusCode_SCChatAlreadyDeleted     StatusCode = 2508
 	StatusCode_SCChatTLFFinalized       StatusCode = 2509
 	StatusCode_SCChatCollision          StatusCode = 2510
+	StatusCode_SCIdentifySummaryError   StatusCode = 2511
 )
 
 var StatusCodeMap = map[string]StatusCode{
@@ -177,6 +178,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatAlreadyDeleted":     2508,
 	"SCChatTLFFinalized":       2509,
 	"SCChatCollision":          2510,
+	"SCIdentifySummaryError":   2511,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -262,6 +264,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2508: "SCChatAlreadyDeleted",
 	2509: "SCChatTLFFinalized",
 	2510: "SCChatCollision",
+	2511: "SCIdentifySummaryError",
 }
 
 func (e StatusCode) String() string {

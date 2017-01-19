@@ -99,8 +99,8 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 		func() chat1.RemoteInterface { return ri }, f)
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
-	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())
-	tc.G.MessageDeliverer.Connected()
+	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
+	tc.G.MessageDeliverer.Connected(context.TODO())
 
 	return tc, ri, u, sender, baseSender, &listener, f, world.Fc
 }
@@ -216,7 +216,7 @@ func TestNonblockTimer(t *testing.T) {
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
-		obid, err := outbox.PushMessage(res.ConvID, chat1.MessagePlaintext{
+		obid, err := outbox.PushMessage(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
@@ -264,7 +264,7 @@ func TestNonblockTimer(t *testing.T) {
 	tres.Messages = storage.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
-	require.NoError(t, outbox.SprinkleIntoThread(res.ConvID, &tres))
+	require.NoError(t, outbox.SprinkleIntoThread(context.TODO(), res.ConvID, &tres))
 	checkThread(t, tres, sentRef)
 	clock.Advance(5 * time.Minute)
 
@@ -339,7 +339,7 @@ func TestFailingSender(t *testing.T) {
 		obids = append(obids, obid)
 	}
 	for i := 0; i < deliverMaxAttempts; i++ {
-		tc.G.MessageDeliverer.ForceDeliverLoop()
+		tc.G.MessageDeliverer.ForceDeliverLoop(context.TODO())
 	}
 
 	var recvd []chat1.OutboxID
@@ -374,7 +374,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	tc.G.MessageDeliverer.Disconnected()
+	tc.G.MessageDeliverer.Disconnected(context.TODO())
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
 	// Send nonblock
@@ -424,18 +424,18 @@ func TestDisconnectedFailure(t *testing.T) {
 	require.Equal(t, obids, allrecvd, "list mismatch")
 
 	t.Logf("reconnecting and checking for successes")
-	<-tc.G.MessageDeliverer.Stop()
-	<-tc.G.MessageDeliverer.Stop()
+	<-tc.G.MessageDeliverer.Stop(context.TODO())
+	<-tc.G.MessageDeliverer.Stop(context.TODO())
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(baseSender)
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
 	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
 	for _, obid := range obids {
-		require.NoError(t, outbox.RetryMessage(obid))
+		require.NoError(t, outbox.RetryMessage(context.TODO(), obid))
 	}
-	tc.G.MessageDeliverer.Connected()
-	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())
+	tc.G.MessageDeliverer.Connected(context.TODO())
+	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 
 	for {
 		select {

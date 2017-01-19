@@ -91,15 +91,28 @@ protocol local {
     ERROR_1
   }
 
+  enum OutboxErrorType {
+    MISC_0,
+    OFFLINE_1,
+    IDENTIFY_2,
+    TOOLONG_3
+  }
+
+  record OutboxStateError {
+    string message;
+    OutboxErrorType typ;
+  }
+
   variant OutboxState switch (OutboxStateType state) {
     case SENDING: int; // # of attempts
-    case ERROR: string; // err msg
+    case ERROR: OutboxStateError; // error
   }
 
   record OutboxRecord {
     OutboxState state;
     OutboxID outboxID;
     ConversationID convID;
+    gregor1.Time ctime;
     @lint("ignore")
     MessagePlaintext Msg;
     keybase1.TLFIdentifyBehavior identifyBehavior;
@@ -271,8 +284,6 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  // topicName in GetInboxLocalQuery is ignored
-  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
     union { null, Pagination } pagination;

@@ -58,6 +58,12 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
       if (key === 'style') {
         return shallowEqual(obj, oth)
       }
+
+      // Messages can be updated, for example progress state on attachments
+      if (key === 'message') {
+        return shallowEqual(obj, oth)
+      }
+
       return undefined
     })
   }
@@ -65,7 +71,7 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
   render () {
     const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, isSelected, you, followingMap, metaDataMap} = this.props
     return (
-      <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}} className='message'>
+      <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}}>
         <div style={_marginContainerStyle}>
           <div style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: marginColor(message.author, you, followingMap, metaDataMap)}} />
           <div style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
@@ -73,13 +79,13 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
               ? <Avatar size={24} username={message.author} style={_avatarStyle} />
               : <div style={_noHeaderStyle} />}
             <div style={_bodyContainerStyle}>
-              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null)}}>{message.author}</Text>}
-              <div style={_textContainerStyle}>
+              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null), marginBottom: 2}}>{message.author}</Text>}
+              <div style={_textContainerStyle} className='message'>
                 <div style={_childrenWrapStyle}>
                   {children}
                 </div>
                 <div className='action-button'>
-                  {message.senderDeviceRevokedAt && <Icon type='iconfont-info' style={_infoStyle} />}
+                  {message.senderDeviceRevokedAt && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
                   <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
                 </div>
               </div>
@@ -105,20 +111,25 @@ const _stylesSelected = {
   backgroundColor: `${globalColors.black_05}`,
 }
 
-const _infoStyle = {
+const _exclamationStyle = {
   fontSize: 10,
   color: globalColors.blue,
 }
 
 const _ellipsisStyle = {
-  fontSize: 13,
-  marginLeft: globalMargins.xtiny,
-  marginRight: globalMargins.tiny,
+  fontSize: 16,
+  marginLeft: globalMargins.tiny,
+  marginRight: globalMargins.xtiny,
 }
 
 const _textContainerStyle = {
   ...globalStyles.flexBoxRow,
   flex: 1,
+  paddingLeft: globalMargins.xtiny,
+  paddingRight: globalMargins.xtiny,
+  marginLeft: -globalMargins.xtiny,
+  marginRight: globalMargins.xtiny,
+  borderRadius: 4,
 }
 
 const _marginContainerStyle = {

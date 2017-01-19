@@ -164,6 +164,20 @@
           "name": "inboxVers"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TLFResolveUpdate",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        }
+      ]
     }
   ],
   "messages": {},

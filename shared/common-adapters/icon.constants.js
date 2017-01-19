@@ -995,6 +995,41 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-reddit-logo-64.png'),
   },
+  'icon-secured-266': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-secured-266.gif'),
+  },
+  'icon-secured-static-266': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-secured-static-266.png'),
+  },
+  'icon-securing-266': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-securing-266.gif'),
+  },
+  'icon-securing-static-266': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-securing-static-266.png'),
+  },
+  'icon-shh-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-shh-16.png'),
+  },
+  'icon-shh-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-shh-24.png'),
+  },
+  'icon-shh-active-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-shh-active-16.png'),
+  },
   'icon-subnav-folders-all': {
     isFont: false,
     extension: 'png',

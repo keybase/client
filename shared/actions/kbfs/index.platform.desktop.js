@@ -124,7 +124,7 @@ function * openInWindows (openPath: string): SagaGenerator<any, any> {
       throw new Error('No kbfsPath (RPC)')
     }
 
-    yield put({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
+    yield put({payload: {path: kbfsPath}, type: Constants.changeKBFSPath})
   }
 
   openPath = path.resolve(kbfsPath, openPath)

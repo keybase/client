@@ -204,40 +204,44 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
-func AppendTLFResetSuffix(msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) []chat1.MessageBoxed {
-	if finalizeInfo == nil {
-		return msgs
-	}
-
-	if len(finalizeInfo.ResetFull) == 0 {
-		return msgs
-	}
-
-	mod := make([]chat1.MessageBoxed, len(msgs))
-	for i, m := range msgs {
-		m.ClientHeader.TlfName = m.ClientHeader.TLFNameExpanded(finalizeInfo)
-		mod[i] = m
-	}
-	return mod
-}
-
 type DebugLabeler struct {
 	libkb.Contextified
-	label string
+	label   string
+	verbose bool
 }
 
-func NewDebugLabeler(g *libkb.GlobalContext, label string) DebugLabeler {
+func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
 		Contextified: libkb.NewContextified(g),
 		label:        label,
+		verbose:      verbose,
 	}
 }
 
+func (d DebugLabeler) showVerbose() bool {
+	return false
+}
+
+func (d DebugLabeler) showLog() bool {
+	if d.verbose {
+		return d.showVerbose()
+	}
+	return true
+}
+
 func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
-	d.G().Log.CDebugf(ctx, "++Chat: "+d.label+": "+msg, args...)
+	if d.showLog() {
+		d.G().Log.CDebugf(ctx, "++Chat: "+d.label+": "+msg, args...)
+	}
 }
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) func() {
-	d.G().Log.CDebugf(ctx, "++Chat: %s: + %s", d.label, msg)
-	return func() { d.G().Log.CDebugf(ctx, "++Chat: %s: - %s -> %s", d.label, msg, libkb.ErrToOk(f())) }
+	if d.showLog() {
+		d.G().Log.CDebugf(ctx, "++Chat: %s: + %s", d.label, msg)
+		return func() {
+			d.G().Log.CDebugf(ctx, "++Chat: %s: - %s -> %s", d.label, msg,
+				libkb.ErrToOk(f()))
+		}
+	}
+	return func() {}
 }

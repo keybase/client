@@ -533,7 +533,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 		} else {
 			sb.proofState = keybase1.ProofState(i)
 			if sb.proofState != keybase1.ProofState_OK {
-				l.G().Log.Debug("Including broken proof at index = %d\n", index)
+				l.G().Log.Debug("Including broken proof at index = %d", index)
 			}
 			ret = append(ret, sb)
 		}
@@ -1341,8 +1341,11 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	}
 
 	if !forceRemoteCheck {
-		if res.cached = idt.G().ProofCache.Get(sid); res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
+		res.cached = idt.G().ProofCache.Get(sid)
+		idt.G().Log.CDebugf(ctx, "| Proof cache lookup for %s: %+v", sid, res.cached)
+		if res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
 			res.err = res.cached.Status
+			idt.G().Log.CDebugf(ctx, "| Early exit after proofCache hit for %s", sid)
 			return
 		}
 	}
@@ -1376,7 +1379,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		return
 	}
 
-	idt.G().Log.CWarningf(ctx, "| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
+	idt.G().Log.CDebugf(ctx, "| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
 
 	return
 }

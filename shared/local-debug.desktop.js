@@ -7,54 +7,43 @@ import * as Tabs from './constants/tabs'
 import {updateConfig} from './command-line.desktop.js'
 
 let config: {[key: string]: any} = {
-  allowStartupFailure: false,
-  printRPC: false,
-  showDevTools: false,
-  showAllTrackers: false,
-  reduxDevToolsEnable: false,
-  redirectOnLogout: true,
-  reduxDevToolsSelect: state => state, // only watch a subset of the store
-  enableStoreLogging: false,
-  enableActionLogging: true,
-  forwardLogs: true,
-  devStoreChangingFunctions: false,
-  printOutstandingRPCs: false,
-  reactPerf: false,
-  overrideLoggedInTab: null,
-  printRoutes: false,
-  skipSecondaryDevtools: true,
-  initialTabState: {},
-  forceMainWindowPosition: null,
-  closureStoreCheck: false,
-  logStatFrequency: 0,
   actionStatFrequency: 0,
-  isTesting: false,
-  resetEngineOnHMR: false,
+  closureStoreCheck: false,
+  devStoreChangingFunctions: false,
+  enableActionLogging: true,
+  enableStoreLogging: false,
+  forceMainWindowPosition: null,
+  forwardLogs: true,
   ignoreDisconnectOverlay: false,
+  initialTabState: {},
+  isTesting: false,
+  logStatFrequency: 0,
+  overrideLoggedInTab: null,
+  printOutstandingRPCs: false,
+  printRPC: false,
+  printRoutes: false,
+  reactPerf: false,
+  redirectOnLogout: true,
+  reduxDevToolsEnable: false,
+  reduxDevToolsSelect: state => state, // only watch a subset of the store
+  resetEngineOnHMR: false,
+  showAllTrackers: false,
+  showDevTools: false,
+  skipSecondaryDevtools: true,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-  config.allowStartupFailure = true
-  config.printRPC = true
-  config.showDevTools = false
-  config.showAllTrackers = false
-  config.reduxDevToolsEnable = false
-  config.redirectOnLogout = false
-  config.reduxDevToolsSelect = state => state.tracker
-  config.enableStoreLogging = true
-  config.enableActionLogging = false
-  config.forwardLogs = false
-  config.devStoreChangingFunctions = true
-  config.printOutstandingRPCs = true
-  config.reactPerf = false
-  config.overrideLoggedInTab = Tabs.settingsTab
-  config.printRoutes = true
-  config.initialTabState = {
-    [Tabs.loginTab]: [],
-    [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
-  }
-  config.logStatFrequency = 0.8
   config.actionStatFrequency = 0.8
+  config.devStoreChangingFunctions = true
+  config.enableActionLogging = false
+  config.enableStoreLogging = true
+  config.forwardLogs = false
+  config.logStatFrequency = 0.8
+  config.overrideLoggedInTab = Tabs.settingsTab
+  config.printOutstandingRPCs = true
+  config.printRPC = true
+  config.printRoutes = true
+  config.redirectOnLogout = false
 
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
@@ -62,9 +51,22 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
 
 config = updateConfig(config)
 
+if (__DEV__ && process.env.KEYBASE_PERF) {
+  config.actionStatFrequency = 0
+  config.devStoreChangingFunctions = false
+  config.enableActionLogging = false
+  config.enableStoreLogging = false
+  config.forwardLogs = false
+  config.logStatFrequency = 0
+  config.overrideLoggedInTab = Tabs.settingsTab
+  config.printOutstandingRPCs = false
+  config.printRPC = false
+  config.printRoutes = false
+  config.redirectOnLogout = false
+}
+
 export const {
   actionStatFrequency,
-  allowStartupFailure,
   closureStoreCheck,
   devStoreChangingFunctions,
   enableActionLogging,
@@ -86,14 +88,6 @@ export const {
   showDevTools,
   skipSecondaryDevtools,
 } = config
-
-export function initTabbedRouterState () {
-  if (!__DEV__ || !process.env.KEYBASE_LOCAL_DEBUG) {
-    return []
-  }
-
-  return config.initialTabState
-}
 
 export function envVarDebugJson () {
   if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {

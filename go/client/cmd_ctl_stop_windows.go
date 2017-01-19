@@ -72,6 +72,6 @@ func (s *CmdCtlStop) doKillKBFS() {
 	} else {
 		// open special "file". Errors not relevant.
 		s.G().Log.Debug("KillKBFS: opening .kbfs_unmount")
-		os.Open(filepath.Join(mountDir, ".kbfs_unmount"))
+		os.Open(filepath.Join(mountDir, "\\.kbfs_unmount"))
 	}
 }

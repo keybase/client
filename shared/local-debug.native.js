@@ -10,72 +10,56 @@ import {updateDebugConfig} from './actions/dev'
 const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
 let config: {[key: string]: any} = {
-  allowStartupFailure: false,
-  printRPC: false,
-  showAllTrackers: false,
-  redirectOnLogout: true,
-  enableStoreLogging: false,
-  enableActionLogging: true,
-  forwardLogs: true,
-  devStoreChangingFunctions: false,
-  printOutstandingRPCs: false,
-  reactPerf: false,
-  initialTabState: {},
-  overrideLoggedInTab: null,
-  printRoutes: false,
-  logStatFrequency: 0,
   actionStatFrequency: 0,
-  isTesting: nativeBridge.test === '1',
+  devStoreChangingFunctions: false,
   dumbSheetOnly: false,
+  enableActionLogging: true,
+  enableStoreLogging: false,
+  forwardLogs: true,
+  isTesting: nativeBridge.test === '1',
+  logStatFrequency: 0,
+  overrideLoggedInTab: null,
+  printOutstandingRPCs: false,
+  printRPC: false,
+  printRoutes: false,
+  reactPerf: false,
+  redirectOnLogout: true,
+  showAllTrackers: false,
 }
 
 if (__DEV__ && true) {
-  config.allowStartupFailure = true
-  config.printRPC = true
-  config.showAllTrackers = false
-  config.redirectOnLogout = false
-  config.enableStoreLogging = true
-  config.enableActionLogging = false
-  config.forwardLogs = true
   config.devStoreChangingFunctions = true
-  config.printOutstandingRPCs = true
-  config.reactPerf = false
-  config.initialTabState = {
-    [Tabs.loginTab]: [],
-    [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
-  }
-  config.overrideLoggedInTab = Tabs.settingsTab
-  config.printRoutes = true
   config.dumbSheetOnly = false
+  config.enableActionLogging = false
+  config.enableStoreLogging = true
+  config.forwardLogs = true
+  config.overrideLoggedInTab = Tabs.settingsTab
+  config.printOutstandingRPCs = true
+  config.printRPC = true
+  config.printRoutes = true
+  config.reactPerf = false
+  config.redirectOnLogout = false
+  config.showAllTrackers = false
 }
 
 export const {
+  actionStatFrequency,
+  devStoreChangingFunctions,
+  dumbSheetOnly,
   enableActionLogging,
-  allowStartupFailure,
-  printRPC,
-  showDevTools,
-  showAllTrackers,
-  reduxDevToolsSelect,
   enableStoreLogging,
   forwardLogs,
-  devStoreChangingFunctions,
-  printOutstandingRPCs,
-  reactPerf,
-  overrideLoggedInTab,
-  printRoutes,
-  logStatFrequency,
-  actionStatFrequency,
   isTesting,
-  dumbSheetOnly,
+  logStatFrequency,
+  overrideLoggedInTab,
+  printOutstandingRPCs,
+  printRPC,
+  printRoutes,
+  reactPerf,
+  reduxDevToolsSelect,
+  showAllTrackers,
+  showDevTools,
 } = config
-
-export function initTabbedRouterState () {
-  if (!__DEV__) {
-    return []
-  }
-
-  return config.initialTabState
-}
 
 export function setup (store: any) {
   const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))

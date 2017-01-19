@@ -285,6 +285,12 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			assertion = s.Fields[0].Value
 		}
 		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
+	case SCIdentifySummaryError:
+		ret := IdentifySummaryError{}
+		for _, problem := range s.Fields {
+			ret.problems = append(ret.problems, problem.Value)
+		}
+		return ret
 	case SCTrackingBroke:
 		return TrackingBrokeError{}
 	case SCResolutionFailed:
@@ -466,6 +472,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return InvalidAddressError{Msg: s.Desc}
 	case SCChatCollision:
 		return ChatCollisionError{}
+
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1240,6 +1247,22 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e IdentifySummaryError) ToStatus() keybase1.Status {
+	var kvpairs []keybase1.StringKVPair
+	for index, problem := range e.problems {
+		kvpairs = append(kvpairs, keybase1.StringKVPair{
+			Key:   fmt.Sprintf("%d", index),
+			Value: problem,
+		})
+	}
+	return keybase1.Status{
+		Code:   SCIdentifySummaryError,
+		Name:   "SC_IDENTIFY_SUMMARY_ERROR",
+		Desc:   e.Error(),
+		Fields: kvpairs,
+	}
+}
+
 func (e ProfileNotPublicError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCProfileNotPublic,
@@ -1540,5 +1563,12 @@ func (e InvalidAddressError) ToStatus() keybase1.Status {
 		Code: SCInvalidAddress,
 		Name: "SC_INVALID_ADDRESS",
 		Desc: e.Error(),
+	}
+}
+
+func ImportDbKey(k keybase1.DbKey) DbKey {
+	return DbKey{
+		Typ: ObjType(k.ObjType),
+		Key: k.Key,
 	}
 }

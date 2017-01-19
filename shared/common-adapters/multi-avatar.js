@@ -39,14 +39,15 @@ const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
 
 const containerStyle = {
   position: 'relative',
+  width: 32,
 }
 
 const leftAvatar = {
 }
 
 const rightAvatar = {
-  marginLeft: '34%',
-  marginTop: '-63%',
+  marginLeft: 8,
+  marginTop: -16,
 }
 
 export default MultiAvatar

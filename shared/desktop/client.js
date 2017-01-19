@@ -14,7 +14,8 @@ const name = path.join(__dirname, 'dist', 'main.bundle.js')
 const params = [name]
 
 // Find extensions
-let devToolRoots = process.env.KEYBASE_DEV_TOOL_ROOTS
+
+let devToolRoots = !process.env.KEYBASE_PERF && process.env.KEYBASE_DEV_TOOL_ROOTS
 let devToolExtensions
 if (devToolRoots) {
   devToolExtensions = {

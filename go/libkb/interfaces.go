@@ -534,13 +534,13 @@ type ConversationSource interface {
 }
 
 type MessageDeliverer interface {
-	Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext,
+	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, error)
-	Start(uid gregor1.UID)
-	Stop() chan struct{}
-	ForceDeliverLoop()
-	Connected()
-	Disconnected()
+	Start(ctx context.Context, uid gregor1.UID)
+	Stop(ctx context.Context) chan struct{}
+	ForceDeliverLoop(ctx context.Context)
+	Connected(ctx context.Context)
+	Disconnected(ctx context.Context)
 }
 
 type ChatLocalizer interface {
@@ -551,8 +551,9 @@ type ChatLocalizer interface {
 type InboxSource interface {
 	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, query *chat1.GetInboxLocalQuery,
 		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
-	ReadRemote(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer,
+	ReadNoCache(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer,
 		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+	ReadRemote(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error

@@ -17,7 +17,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat"
-	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -51,7 +50,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	h := &chatLocalHandler{
 		BaseHandler:   NewBaseHandler(xp),
 		Contextified:  libkb.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "ChatLocalHandler"),
+		DebugLabeler:  utils.NewDebugLabeler(g, "ChatLocalHandler", false),
 		gh:            gh,
 		tlf:           tlf,
 		boxer:         chat.NewBoxer(g, tlf),
@@ -60,39 +59,6 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	}
 
 	return h
-}
-
-// GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
-func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInboxLocalArg) (inbox chat1.GetInboxLocalRes, err error) {
-	defer h.Trace(ctx, func() error { return err }, "GetInboxLocal")()
-	if err := h.assertLoggedIn(ctx); err != nil {
-		return chat1.GetInboxLocalRes{}, err
-	}
-
-	if arg.Query != nil && arg.Query.TopicName != nil {
-		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
-	}
-
-	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, h.identNotifier)
-	rquery, _, err := chat.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
-	if err != nil {
-		return chat1.GetInboxLocalRes{}, err
-	}
-	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query:      rquery,
-		Pagination: arg.Pagination,
-	})
-	if err != nil {
-		return chat1.GetInboxLocalRes{}, err
-	}
-
-	return chat1.GetInboxLocalRes{
-		ConversationsUnverified: ib.Inbox.Full().Conversations,
-		Pagination:              ib.Inbox.Full().Pagination,
-		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
-		IdentifyFailures:        breaks,
-	}, nil
 }
 
 func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
@@ -253,8 +219,8 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	if err = outbox.SprinkleIntoThread(arg.ConversationID, &thread); err != nil {
-		if _, ok := err.(libkb.ChatStorageMissError); !ok {
+	if err = outbox.SprinkleIntoThread(ctx, arg.ConversationID, &thread); err != nil {
+		if _, ok := err.(storage.MissError); !ok {
 			return chat1.GetThreadLocalRes{}, err
 		}
 	}
@@ -336,7 +302,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		// create succeeded; grabbing the conversation and returning
 		uid := h.G().Env.GetUID()
 
-		ib, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), nil,
+		ib, rl, err := h.G().InboxSource.ReadNoCache(ctx, uid.ToBytes(), nil,
 			&chat1.GetInboxLocalQuery{
 				ConvID: &convID,
 			}, nil)
@@ -599,17 +565,25 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		return deflt, err
 	}
 
-	// XXX if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
-	// needs to be adjusted.
-
-	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs)
-	if err != nil {
-		return deflt, err
-	}
-
 	var rlimits []chat1.RateLimit
 	if boxed.RateLimit != nil {
 		rlimits = append(rlimits, *boxed.RateLimit)
+	}
+
+	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
+	// could need expansion.  Look up the conversation metadata.
+	uid := h.G().Env.GetUID()
+	conv, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), arg.ConversationID)
+	if err != nil {
+		return deflt, err
+	}
+	if rl != nil {
+		rlimits = append(rlimits, *rl)
+	}
+
+	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs, conv.Metadata.FinalizeInfo)
+	if err != nil {
+		return deflt, err
 	}
 
 	return chat1.GetMessagesLocalRes{
@@ -650,10 +624,6 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	err = msgchecker.CheckMessagePlaintext(arg.Msg)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
 
 	// Make sure sender is set
 	db := make([]byte, 16)
@@ -1053,7 +1023,7 @@ func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.Outbox
 
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	if err = outbox.RemoveMessage(outboxID); err != nil {
+	if err = outbox.RemoveMessage(ctx, outboxID); err != nil {
 		return err
 	}
 
@@ -1069,12 +1039,12 @@ func (h *chatLocalHandler) RetryPost(ctx context.Context, outboxID chat1.OutboxI
 	// Mark as retry in the outbox
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	if err = outbox.RetryMessage(outboxID); err != nil {
+	if err = outbox.RetryMessage(ctx, outboxID); err != nil {
 		return err
 	}
 
 	// Force the send loop to try again
-	h.G().MessageDeliverer.ForceDeliverLoop()
+	h.G().MessageDeliverer.ForceDeliverLoop(ctx)
 
 	return nil
 }

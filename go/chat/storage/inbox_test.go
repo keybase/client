@@ -93,7 +93,7 @@ func TestInboxBasic(t *testing.T) {
 	vers, res, _, err = inbox.Read(context.TODO(), nil, &chat1.Pagination{
 		Num: numConvs / 2,
 	})
-	require.IsType(t, libkb.ChatStorageMissError{}, err, "expected miss error")
+	require.IsType(t, MissError{}, err, "expected miss error")
 	require.NoError(t, inbox.Merge(context.TODO(), 2, convs, nil, &chat1.Pagination{
 		Num: numConvs / 2,
 	}))
@@ -281,9 +281,9 @@ func TestInboxPagination(t *testing.T) {
 }
 
 func validateBadUpdate(t *testing.T, inbox *Inbox, f func() error) {
-	require.IsType(t, libkb.ChatStorageVersionMismatchError{}, f())
+	require.IsType(t, VersionMismatchError{}, f())
 	_, _, _, err := inbox.Read(context.TODO(), nil, nil)
-	require.IsType(t, libkb.ChatStorageMissError{}, err)
+	require.IsType(t, MissError{}, err)
 }
 
 func TestInboxNewConversation(t *testing.T) {

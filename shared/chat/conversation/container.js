@@ -6,15 +6,14 @@ import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment, retryAttachment} from '../../actions/chat'
 import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
-import {navigateAppend} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType} from '../../constants/chat'
+import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType, OpenAttachmentPopup} from '../../constants/chat'
 import type {Props} from '.'
 
 type OwnProps = {}
@@ -122,14 +121,15 @@ export default connect(
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onOpenFolder: () => dispatch(openFolder()),
     onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-    onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{props: {message}, selected: 'attachment'}])),
+    onOpenInPopup: (message: AttachmentMessage) => dispatch(({type: 'chat:openAttachmentPopup', payload: {message}}: OpenAttachmentPopup)),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
+    onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
     onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const brokenUsers = getBrokenUsers(stateProps.participants, stateProps.you, stateProps.metaDataMap)
+    const brokenUsers = getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
     const bannerMessage = brokenUsers.length
       ? {
         onClick: (user: string) => dispatchProps.onShowTracker(user),
@@ -143,7 +143,7 @@ export default connect(
       ...dispatchProps,
       ...ownProps,
       bannerMessage,
-      onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
+      onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => p !== stateProps.you).toArray()),
       onAttach: (filename: string, title: string, type: AttachmentType) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title, type),
       onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
       onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
