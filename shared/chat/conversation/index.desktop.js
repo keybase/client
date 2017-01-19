@@ -14,6 +14,8 @@ const Conversation = (props: Props) => {
   const bannerMessage: ?BannerMessage = props.bannerMessage
   // $FlowIssue with variants
   const banner = bannerMessage && <Banner {...bannerMessage} />
+
+  let _input
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Header
@@ -39,6 +41,7 @@ const Conversation = (props: Props) => {
         onEditMessage={props.onEditMessage}
         onLoadAttachment={props.onLoadAttachment}
         onLoadMoreMessages={props.onLoadMoreMessages}
+        onFocusInput={() => _input && _input.focusInput()}
         onOpenInFileUI={props.onOpenInFileUI}
         onOpenInPopup={props.onOpenInPopup}
         onRetryAttachment={props.onRetryAttachment}
@@ -51,6 +54,7 @@ const Conversation = (props: Props) => {
       />
       {banner}
       <Input
+        ref={(input) => { _input = input }}
         emojiPickerOpen={props.emojiPickerOpen}
         isLoading={props.isLoading}
         onAttach={props.onAttach}

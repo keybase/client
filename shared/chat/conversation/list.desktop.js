@@ -345,7 +345,7 @@ class ConversationList extends Component<void, Props, State> {
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
     return (
-      <div style={containerStyle} onCopyCapture={this._onCopyCapture}>
+      <div style={containerStyle} onClick={this.props.onFocusInput} onCopyCapture={this._onCopyCapture}>
         <style>{realCSS}</style>
         <AutoSizer onResize={this._onResize}>{
           ({height, width}) => (
