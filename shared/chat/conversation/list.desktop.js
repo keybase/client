@@ -387,26 +387,17 @@ class ConversationList extends Component<void, Props, State> {
   }
 }
 
-// We need to use both visibility and opacity css properties for the
-// action button hide/show on hover.
-// We use opacity because it shows/hides the button immediately on
-// hover, while visibility has slight lag.
-// We use visibility so that the action button content isn't copied
-// during copy/paste actions since user-select isn't working in
-// Chrome.
 const realCSS = `
 .message {
   border: 1px solid transparent;
 }
 .message .action-button {
-  visibility: hidden;
   opacity: 0;
 }
 .message:hover {
   border: 1px solid ${globalColors.black_10};
 }
 .message:hover .action-button {
-  visibility: visible;
   opacity: 1;
 }
 `

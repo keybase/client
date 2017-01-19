@@ -725,6 +725,16 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-loader-uploading-16.gif'),
   },
+  'icon-message-action-ellipsis-13': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-action-ellipsis-13.png'),
+  },
+  'icon-message-action-exclamation-10': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-message-action-exclamation-10.png'),
+  },
   'icon-no-gpg': {
     isFont: false,
     extension: 'png',
