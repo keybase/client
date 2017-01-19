@@ -1,7 +1,5 @@
 package auth
 
-// TEMP
-
 import (
 	"fmt"
 	libkb "github.com/keybase/client/go/libkb"
