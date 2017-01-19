@@ -9,7 +9,7 @@ describe('Markdown parser', () => {
   })
 
   it('parses invalid emoji fragments correctly', () => {
-    const ast = parser.parse('one::\n::two\n:three?::\n::four:\n::')
+    const ast = parser.parse('one::\n::two\n:three?::\n::four:\n:: :+1:')
     expect(ast).toMatchSnapshot()
   })
 })

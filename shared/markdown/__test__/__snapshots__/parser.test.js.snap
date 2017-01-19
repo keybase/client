@@ -13,7 +13,13 @@ Object {
     "::four:",
     "
 ",
-    "::",
+    ":: ",
+    Object {
+      "children": Array [
+        "+1",
+      ],
+      "type": "emoji",
+    },
   ],
   "type": "text",
 }
