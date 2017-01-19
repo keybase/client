@@ -173,11 +173,7 @@ function peg$parse(input, options) {
       peg$c29 = function(children, tone) { return {type: 'emoji', children: [children.join('') + (tone || '')]}; },
       peg$c30 = peg$otherExpectation("text"),
       peg$c31 = function() {
-       	var t = text()
-          if (testLink(t)) {
-          	return {type: 'link', children: [t]}
-          }
-          return t
+          return convertLink(text())
        },
       peg$c32 = function(ws) {
             return ws;
@@ -1601,9 +1597,27 @@ function peg$parse(input, options) {
   }
 
 
-  	var linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/, 'gi')
-  	function testLink (text) {
-  	    return text && text.match(linkExp)
+  	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/, 'gi')
+      const linkSuffixExclaimations = ['.', '?']
+      function convertLink (text) {
+        const matches = text.match(linkExp)
+        if (matches) {
+          const match = matches[0]
+          const lastChar = match[match.length - 1]
+          // strip exclaimation at end
+          if (linkSuffixExclaimations.indexOf(lastChar) !== -1) {
+  	        return [
+              	{type: 'link', children: [match.substring(0, match.length - 1)]},
+              	lastChar + ' ',
+              ]
+          }
+      	return [
+              {type: 'link', children: [match]},
+              ' ',
+          ]
+        } else {
+          return text
+        }
       }
 
 

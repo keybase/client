@@ -1,7 +1,25 @@
 {
-	var linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/, 'gi')
-	function testLink (text) {
-	    return text && text.match(linkExp)
+	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/, 'gi')
+    const linkSuffixExclaimations = ['.', '?']
+    function convertLink (text) {
+      const matches = text.match(linkExp)
+      if (matches) {
+        const match = matches[0]
+        const lastChar = match[match.length - 1]
+        // strip exclaimation at end
+        if (linkSuffixExclaimations.indexOf(lastChar) !== -1) {
+	        return [
+            	{type: 'link', children: [match.substring(0, match.length - 1)]},
+            	lastChar + ' ',
+            ]
+        }
+    	return [
+            {type: 'link', children: [match]},
+            ' ',
+        ]
+      } else {
+        return text
+      }
     }
 }
 
@@ -41,7 +59,7 @@ FromQuote
 
 // Define what text inside a style looks like. Usually everything but the end marker
 InsideBoldMarker
- = (! BoldMarker .) { return text(); }
+ = ((! BoldMarker) .) { return text(); }
 
 InsideItalicMarker
  = ((! ItalicMarker) .) { return text(); }
@@ -89,11 +107,7 @@ Emoji
 
 Text "text"
  = _? NonBlank+ _? {
- 	var t = text()
-    if (testLink(t)) {
-    	return {type: 'link', children: [t]}
-    }
-    return t
+    return convertLink(text())
  }
 
 // Useful helpers
