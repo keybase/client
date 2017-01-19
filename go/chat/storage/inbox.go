@@ -392,6 +392,22 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 	return false
 }
 
+func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []chat1.Conversation, err Error) {
+	i.Lock()
+	defer i.Unlock()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			i.Debug(ctx, "Read: miss: no inbox found")
+		}
+		return 0, nil, err
+	}
+
+	return ibox.InboxVersion, ibox.Conversations, nil
+}
+
 func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.Pagination) (vers chat1.InboxVers, res []chat1.Conversation, pagination *chat1.Pagination, err Error) {
 	i.Lock()
 	defer i.Unlock()
