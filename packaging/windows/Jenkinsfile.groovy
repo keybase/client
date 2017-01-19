@@ -59,17 +59,19 @@ def doBuild() {
         path
     '''
     stage('Wait for CI') {
-        def clientCommit = getCommit('src\\github.com\\keybase\\client')
-        def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
-        withCredentials([[
-            $class: 'StringBinding',
-            credentialsId: 'GITHUB_TOKEN',
-            variable: 'GITHUB_TOKEN'
-            ]]) {
-            dir('src\\github.com\\keybase\\release') {
-                bat 'go build'
-                bat "release wait-ci --repo=\"client\" --commit=\"${clientCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
-                bat "release wait-ci --repo=\"kbfs\" --commit=\"${kbfsCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
+        if (UpdateChannel == "Smoke"){
+            def clientCommit = getCommit('src\\github.com\\keybase\\client')
+            def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
+            withCredentials([[
+                $class: 'StringBinding',
+                credentialsId: 'GITHUB_TOKEN',
+                variable: 'GITHUB_TOKEN'
+                ]]) {
+                dir('src\\github.com\\keybase\\release') {
+                    bat 'go build'
+                    bat "release wait-ci --repo=\"client\" --commit=\"${clientCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
+                    bat "release wait-ci --repo=\"kbfs\" --commit=\"${kbfsCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
+                }
             }
         }
     }                
