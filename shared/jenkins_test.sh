@@ -4,7 +4,7 @@ test_type="$1"
 commit_hash="$2"
 change_target="origin/$3"
 
-echo "shared/test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target}"
+echo "shared/jenkins_test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target}"
 
 check_rc() {
   # exit if passed in value is not = 0
@@ -25,7 +25,7 @@ has_js_files() {
     echo 'git diff'
     git diff --name-only "$change_target...$commit_hash"
     # ignore test.sh for now
-    diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/' | grep -v '^shared/test\.sh'`
+    diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/' | grep -v '^shared/jenkins_test\.sh'`
     check_rc $? 'no files js cares about' 0
     echo "continuing due to changes in $diff_files"
 }
@@ -72,4 +72,3 @@ elif [ $test_type == 'visdiff-install' ]; then
 else
     js_tests
 fi
-

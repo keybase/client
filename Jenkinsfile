@@ -124,7 +124,7 @@ helpers.rootLinuxNode(env, {
                             ]) {
                                 dir("shared") {
                                     stage("JS tests") {
-                                        sh "./test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                        sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                     }
                                 }
                                 // Only run visdiff for PRs
@@ -144,13 +144,13 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("shared") {
-                                            sh "./test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                            sh "./jenkins_test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
                                                 dir("shared") {
                                                     stage("js visdiff") {
-                                                        sh "./test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                                        sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                                     }
                                                 }
                                             }
@@ -310,8 +310,7 @@ helpers.rootLinuxNode(env, {
 
 def testNixGo(prefix) {
     dir('go') {
-        // TEMP
-        // helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        // sh './test/run_tests.sh'
+        helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
+        sh "./test/jenkins_test.sh ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
     }
 }
