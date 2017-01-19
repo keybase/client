@@ -22,14 +22,13 @@ type cmdChatList struct {
 func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list",
-		Usage:        "Show conversations in inbox, sorted by activity.",
+		Usage:        "List conversations, sorted by activity.",
 		Aliases:      []string{"ls"},
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatList{Contextified: libkb.NewContextified(g)}, "list", c)
 		},
-		Flags:       getInboxFetcherActivitySortedFlags(),
-		Description: `"keybase chat list" display an inbox view of chat messages. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
+		Flags: getInboxFetcherActivitySortedFlags(),
 	}
 }
 

@@ -3,10 +3,10 @@ import * as Constants from '../../constants/config'
 import engine from '../../engine'
 import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, configWaitForClientRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 import {isMobile} from '../../constants/platform'
+import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login'
 import {registerGregorListeners, registerReachability} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
-import {listenForKBFSNotifications} from '../../actions/notifications'
 
 import type {AsyncAction, Action} from '../../constants/types/flux'
 
@@ -24,7 +24,7 @@ function getConfig (): AsyncAction {
             return
           }
 
-          dispatch({type: Constants.configLoaded, payload: {config}})
+          dispatch({payload: {config}, type: Constants.configLoaded})
           resolve()
         },
       })
@@ -39,7 +39,6 @@ export function isFollower (getState: any, username: string): boolean {
 function getMyFollowers (username: string): AsyncAction {
   return dispatch => {
     userListTrackersByNameRpc({
-      param: {username},
       callback: (error, trackers) => {
         if (error) {
           return
@@ -48,7 +47,6 @@ function getMyFollowers (username: string): AsyncAction {
         if (trackers && trackers.length) {
           const uids = trackers.map(t => t.tracker)
           userLoadUncheckedUserSummariesRpc({
-            param: {uids},
             callback: (error, summaries) => {
               if (error) {
                 return
@@ -57,13 +55,15 @@ function getMyFollowers (username: string): AsyncAction {
               const followers = {}
               summaries && summaries.forEach(s => { followers[s.username] = true })
               dispatch({
-                type: Constants.updateFollowers,
                 payload: {followers},
+                type: Constants.updateFollowers,
               })
             },
+            param: {uids},
           })
         }
       },
+      param: {username},
     })
   }
 }
@@ -75,7 +75,6 @@ export function isFollowing (getState: () => any, username: string) : boolean {
 function getMyFollowing (username: string): AsyncAction {
   return dispatch => {
     userListTrackingRpc({
-      param: {assertion: username, filter: ''},
       callback: (error, summaries) => {
         if (error) {
           return
@@ -84,10 +83,11 @@ function getMyFollowing (username: string): AsyncAction {
         const following = {}
         summaries && summaries.forEach(s => { following[s.username] = true })
         dispatch({
-          type: Constants.updateFollowing,
           payload: {following},
+          type: Constants.updateFollowing,
         })
       },
+      param: {assertion: username, filter: ''},
     })
   }
 }
@@ -96,7 +96,6 @@ export function waitForKBFS (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       configWaitForClientRpc({
-        param: {clientType: CommonClientType.kbfs, timeout: 10.0},
         callback: (error, found) => {
           if (error) {
             reject(error)
@@ -108,6 +107,7 @@ export function waitForKBFS (): AsyncAction {
           }
           resolve()
         },
+        param: {clientType: CommonClientType.kbfs, timeout: 10.0},
       })
     })
   }
@@ -123,7 +123,7 @@ export function getExtendedStatus (): AsyncAction {
             return
           }
 
-          dispatch({type: Constants.extendedConfigLoaded, payload: {extendedConfig}})
+          dispatch({payload: {extendedConfig}, type: Constants.extendedConfigLoaded})
           resolve(extendedConfig)
         },
       })
@@ -142,7 +142,7 @@ function registerListeners (): AsyncAction {
 
 export function retryBootstrap (): AsyncAction {
   return (dispatch, getState) => {
-    dispatch({type: Constants.bootstrapRetry, payload: null})
+    dispatch({payload: null, type: Constants.bootstrapRetry})
     dispatch(bootstrap())
   }
 }
@@ -166,7 +166,7 @@ export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
             dispatch(getMyFollowers(username))
             dispatch(getMyFollowing(username))
           }
-          dispatch({type: Constants.bootstrapped, payload: null})
+          dispatch({payload: null, type: Constants.bootstrapped})
           dispatch(listenForKBFSNotifications())
           if (!opts.isReconnect) {
             dispatch(navBasedOnLoginState())
@@ -176,14 +176,14 @@ export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
         }).catch(error => {
           console.warn('[bootstrap] error bootstrapping: ', error)
           const triesRemaining = getState().config.bootstrapTriesRemaining
-          dispatch({type: Constants.bootstrapAttemptFailed, payload: null})
+          dispatch({payload: null, type: Constants.bootstrapAttemptFailed})
           if (triesRemaining > 0) {
             const retryDelay = Constants.bootstrapRetryDelay / triesRemaining
             console.log(`[bootstrap] resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
             setTimeout(() => engine().reset(), retryDelay)
           } else {
             console.error('[bootstrap] exhausted bootstrap retries')
-            dispatch({type: Constants.bootstrapFailed, payload: {error}})
+            dispatch({payload: {error}, type: Constants.bootstrapFailed})
           }
         })
     }
@@ -201,8 +201,8 @@ function getCurrentStatus (): AsyncAction {
           }
 
           dispatch({
-            type: Constants.statusLoaded,
             payload: {status},
+            type: Constants.statusLoaded,
           })
 
           resolve(status && status.user && status.user.username)

@@ -226,7 +226,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 func RunBug3964Repairman(g *GlobalContext, lctx LoginContext, pps *PassphraseStream) error {
 	err := newBug3964Repairman(g).Run(lctx, pps)
 	if err != nil {
-		g.Log.Warning("Error running Bug 3964 repairman: %s", err)
+		g.Log.Debug("Error running Bug 3964 repairman: %s", err)
 	}
 	return err
 }

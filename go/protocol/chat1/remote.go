@@ -122,14 +122,6 @@ type SetConversationStatusArg struct {
 	Status         ConversationStatus `codec:"status" json:"status"`
 }
 
-type TlfFinalizeArg struct {
-	TlfID          TLFID        `codec:"tlfID" json:"tlfID"`
-	ResetUser      string       `codec:"resetUser" json:"resetUser"`
-	ResetDate      string       `codec:"resetDate" json:"resetDate"`
-	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
-	ResetFull      string       `codec:"resetFull" json:"resetFull"`
-}
-
 type GetUnreadUpdateFullArg struct {
 	InboxVers InboxVers `codec:"inboxVers" json:"inboxVers"`
 }
@@ -147,6 +139,20 @@ type GetInboxVersionArg struct {
 	Uid gregor1.UID `codec:"uid" json:"uid"`
 }
 
+type TlfFinalizeArg struct {
+	TlfID          TLFID        `codec:"tlfID" json:"tlfID"`
+	ResetUser      string       `codec:"resetUser" json:"resetUser"`
+	ResetDate      string       `codec:"resetDate" json:"resetDate"`
+	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
+	ResetFull      string       `codec:"resetFull" json:"resetFull"`
+}
+
+type TlfResolveArg struct {
+	TlfID           TLFID         `codec:"tlfID" json:"tlfID"`
+	ResolvedWriters []gregor1.UID `codec:"resolvedWriters" json:"resolvedWriters"`
+	ResolvedReaders []gregor1.UID `codec:"resolvedReaders" json:"resolvedReaders"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -156,11 +162,12 @@ type RemoteInterface interface {
 	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
 	SetConversationStatus(context.Context, SetConversationStatusArg) (SetConversationStatusRes, error)
-	TlfFinalize(context.Context, TlfFinalizeArg) error
 	GetUnreadUpdateFull(context.Context, InboxVers) (UnreadUpdateFull, error)
 	GetS3Params(context.Context, ConversationID) (S3Params, error)
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
 	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
+	TlfFinalize(context.Context, TlfFinalizeArg) error
+	TlfResolve(context.Context, TlfResolveArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -295,22 +302,6 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"tlfFinalize": {
-				MakeArg: func() interface{} {
-					ret := make([]TlfFinalizeArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]TlfFinalizeArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]TlfFinalizeArg)(nil), args)
-						return
-					}
-					err = i.TlfFinalize(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"GetUnreadUpdateFull": {
 				MakeArg: func() interface{} {
 					ret := make([]GetUnreadUpdateFullArg, 1)
@@ -375,6 +366,38 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"tlfFinalize": {
+				MakeArg: func() interface{} {
+					ret := make([]TlfFinalizeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TlfFinalizeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TlfFinalizeArg)(nil), args)
+						return
+					}
+					err = i.TlfFinalize(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"tlfResolve": {
+				MakeArg: func() interface{} {
+					ret := make([]TlfResolveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TlfResolveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TlfResolveArg)(nil), args)
+						return
+					}
+					err = i.TlfResolve(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -424,11 +447,6 @@ func (c RemoteClient) SetConversationStatus(ctx context.Context, __arg SetConver
 	return
 }
 
-func (c RemoteClient) TlfFinalize(ctx context.Context, __arg TlfFinalizeArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, nil)
-	return
-}
-
 func (c RemoteClient) GetUnreadUpdateFull(ctx context.Context, inboxVers InboxVers) (res UnreadUpdateFull, err error) {
 	__arg := GetUnreadUpdateFullArg{InboxVers: inboxVers}
 	err = c.Cli.Call(ctx, "chat.1.remote.GetUnreadUpdateFull", []interface{}{__arg}, &res)
@@ -449,5 +467,15 @@ func (c RemoteClient) S3Sign(ctx context.Context, __arg S3SignArg) (res []byte, 
 func (c RemoteClient) GetInboxVersion(ctx context.Context, uid gregor1.UID) (res InboxVers, err error) {
 	__arg := GetInboxVersionArg{Uid: uid}
 	err = c.Cli.Call(ctx, "chat.1.remote.getInboxVersion", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) TlfFinalize(ctx context.Context, __arg TlfFinalizeArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) TlfResolve(ctx context.Context, __arg TlfResolveArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.tlfResolve", []interface{}{__arg}, nil)
 	return
 }

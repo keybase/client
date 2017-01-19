@@ -12,6 +12,7 @@ export type Props = {
   onOpenFolder: () => void,
   onToggleSidePanel: () => void,
   sidePanelOpen: boolean,
+  onShowProfile: (user: string) => void,
 }
 
 export default class Header extends Component<void, Props, void> { }

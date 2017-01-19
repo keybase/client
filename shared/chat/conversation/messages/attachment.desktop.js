@@ -6,7 +6,7 @@ import {Box, Icon, Text} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
-import type {Props} from './attachment'
+import type {Props, ProgressBarProps, ImageIconProps} from './attachment'
 
 function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: string}) {
   let style = {}
@@ -53,7 +53,7 @@ function PreviewImage ({message: {previewPath, previewType, previewSize, message
   return null
 }
 
-function ProgressBar ({text, progress, style}, {text: string, progress: number, style: Object}) {
+function ProgressBar ({text, progress, style}: ProgressBarProps) {
   const basicStyle = {height: 4, width: 64, borderRadius: 4}
   const containerStyle = {
     ...globalStyles.flexBoxRow,
@@ -75,7 +75,7 @@ function ProgressBar ({text, progress, style}, {text: string, progress: number, 
   )
 }
 
-function ImageIcon ({type, style}: {type: 'Downloaded' | 'Downloading', style: Object}) {
+function ImageIcon ({type, style}: ImageIconProps) {
   const iconStyle = {
     color: type === 'Downloading' ? globalColors.blue : globalColors.green,
     lineHeight: 0,
@@ -164,7 +164,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Constant
 
 function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onOpenInPopup: () => void}) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.clickable, flex: 1}}>
       <AttachmentTitle {...message} />
       <PreviewImageWithInfo message={message} onOpenInFileUI={onOpenInFileUI} onOpenInPopup={onOpenInPopup} />
     </Box>
@@ -172,11 +172,11 @@ function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}
 }
 
 export default class AttachmentMessage extends PureComponent<void, Props, void> {
-  _onOpenInPopup () {
+  _onOpenInPopup = () => {
     this.props.onOpenInPopup(this.props.message)
   }
 
-  _onOpenInFileUI () {
+  _onOpenInFileUI = () => {
     const {downloadedPath} = this.props.message
     downloadedPath && this.props.onOpenInFileUI(downloadedPath)
   }
@@ -187,10 +187,10 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
     let attachment
     switch (message.previewType) {
       case 'Image':
-        attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={() => this._onOpenInPopup()} onOpenInFileUI={() => this._onOpenInFileUI()} />
+        attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={this._onOpenInPopup} onOpenInFileUI={this._onOpenInFileUI} />
         break
       default:
-        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={() => this._onOpenInFileUI()} />
+        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} />
     }
 
     return (
@@ -199,4 +199,9 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
       </MessageComponent>
     )
   }
+}
+
+export {
+  ProgressBar,
+  ImageIcon,
 }

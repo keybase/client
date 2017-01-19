@@ -390,31 +390,6 @@
       "response": "SetConversationStatusRes",
       "lint": "ignore"
     },
-    "tlfFinalize": {
-      "request": [
-        {
-          "name": "tlfID",
-          "type": "TLFID"
-        },
-        {
-          "name": "resetUser",
-          "type": "string"
-        },
-        {
-          "name": "resetDate",
-          "type": "string"
-        },
-        {
-          "name": "resetTimestamp",
-          "type": "gregor1.Time"
-        },
-        {
-          "name": "resetFull",
-          "type": "string"
-        }
-      ],
-      "response": null
-    },
     "GetUnreadUpdateFull": {
       "request": [
         {
@@ -455,6 +430,54 @@
         }
       ],
       "response": "InboxVers"
+    },
+    "tlfFinalize": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        },
+        {
+          "name": "resetUser",
+          "type": "string"
+        },
+        {
+          "name": "resetDate",
+          "type": "string"
+        },
+        {
+          "name": "resetTimestamp",
+          "type": "gregor1.Time"
+        },
+        {
+          "name": "resetFull",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "tlfResolve": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        },
+        {
+          "name": "resolvedWriters",
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          }
+        },
+        {
+          "name": "resolvedReaders",
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          }
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

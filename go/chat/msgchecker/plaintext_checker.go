@@ -16,6 +16,10 @@ func (e MessagePlaintextLengthExceedingError) Error() string {
 	return fmt.Sprintf("%s exceeds the maximum length of %d bytes", e.DescriptibleItemName, e.MaxLength)
 }
 
+func (e MessagePlaintextLengthExceedingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_TOOLONG, true
+}
+
 func plaintextFieldLengthChecker(descriptibleItemName string, actualLength int, maxLength int) error {
 	if actualLength > maxLength {
 		return MessagePlaintextLengthExceedingError{

@@ -108,7 +108,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
 class UserSearchRender extends Component<void, Props, void> {
   render () {
     return (
-      <Box style={{overflowY: 'auto', flex: 1, position: 'relative', minHeight: 40}}>
+      <Box style={{flex: 1, position: 'relative', minHeight: 40}}>
         {this.props.waiting && <ProgressIndicator white={false}
           style={{position: 'absolute', width: 20, top: 0, left: 0, right: 0, marginLeft: 'auto', marginRight: 'auto'}} />}
         {this.props.results.map(r => (

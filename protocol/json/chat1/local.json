@@ -298,6 +298,30 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "OutboxErrorType",
+      "symbols": [
+        "MISC_0",
+        "OFFLINE_1",
+        "IDENTIFY_2",
+        "TOOLONG_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutboxStateError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "OutboxErrorType",
+          "name": "typ"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "OutboxState",
       "switch": {
@@ -317,7 +341,7 @@
             "name": "ERROR",
             "def": false
           },
-          "body": "string"
+          "body": "OutboxStateError"
         }
       ]
     },
@@ -336,6 +360,10 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
         },
         {
           "type": "MessagePlaintext",
@@ -1321,29 +1349,6 @@
         }
       ],
       "response": "GetThreadLocalRes"
-    },
-    "getInboxLocal": {
-      "request": [
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "GetInboxLocalRes"
     },
     "getInboxAndUnboxLocal": {
       "request": [

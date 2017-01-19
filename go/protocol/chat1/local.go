@@ -343,10 +343,45 @@ func (e OutboxStateType) String() string {
 	return ""
 }
 
+type OutboxErrorType int
+
+const (
+	OutboxErrorType_MISC     OutboxErrorType = 0
+	OutboxErrorType_OFFLINE  OutboxErrorType = 1
+	OutboxErrorType_IDENTIFY OutboxErrorType = 2
+	OutboxErrorType_TOOLONG  OutboxErrorType = 3
+)
+
+var OutboxErrorTypeMap = map[string]OutboxErrorType{
+	"MISC":     0,
+	"OFFLINE":  1,
+	"IDENTIFY": 2,
+	"TOOLONG":  3,
+}
+
+var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
+	0: "MISC",
+	1: "OFFLINE",
+	2: "IDENTIFY",
+	3: "TOOLONG",
+}
+
+func (e OutboxErrorType) String() string {
+	if v, ok := OutboxErrorTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type OutboxStateError struct {
+	Message string          `codec:"message" json:"message"`
+	Typ     OutboxErrorType `codec:"typ" json:"typ"`
+}
+
 type OutboxState struct {
-	State__   OutboxStateType `codec:"state" json:"state"`
-	Sending__ *int            `codec:"sending,omitempty" json:"sending,omitempty"`
-	Error__   *string         `codec:"error,omitempty" json:"error,omitempty"`
+	State__   OutboxStateType   `codec:"state" json:"state"`
+	Sending__ *int              `codec:"sending,omitempty" json:"sending,omitempty"`
+	Error__   *OutboxStateError `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o *OutboxState) State() (ret OutboxStateType, err error) {
@@ -375,12 +410,12 @@ func (o OutboxState) Sending() int {
 	return *o.Sending__
 }
 
-func (o OutboxState) Error() string {
+func (o OutboxState) Error() OutboxStateError {
 	if o.State__ != OutboxStateType_ERROR {
 		panic("wrong case accessed")
 	}
 	if o.Error__ == nil {
-		return ""
+		return OutboxStateError{}
 	}
 	return *o.Error__
 }
@@ -392,7 +427,7 @@ func NewOutboxStateWithSending(v int) OutboxState {
 	}
 }
 
-func NewOutboxStateWithError(v string) OutboxState {
+func NewOutboxStateWithError(v OutboxStateError) OutboxState {
 	return OutboxState{
 		State__: OutboxStateType_ERROR,
 		Error__: &v,
@@ -403,6 +438,7 @@ type OutboxRecord struct {
 	State            OutboxState                  `codec:"state" json:"state"`
 	OutboxID         OutboxID                     `codec:"outboxID" json:"outboxID"`
 	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	Ctime            gregor1.Time                 `codec:"ctime" json:"ctime"`
 	Msg              MessagePlaintext             `codec:"Msg" json:"Msg"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
@@ -837,12 +873,6 @@ type GetThreadLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type GetInboxLocalArg struct {
-	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
 type GetInboxAndUnboxLocalArg struct {
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -984,7 +1014,6 @@ type MarkAsReadLocalArg struct {
 
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
-	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (GetInboxNonblockLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
@@ -1022,22 +1051,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadLocal(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getInboxLocal": {
-				MakeArg: func() interface{} {
-					ret := make([]GetInboxLocalArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetInboxLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetInboxLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.GetInboxLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1356,11 +1369,6 @@ type LocalClient struct {
 
 func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg) (res GetThreadLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getThreadLocal", []interface{}{__arg}, &res)
-	return
-}
-
-func (c LocalClient) GetInboxLocal(ctx context.Context, __arg GetInboxLocalArg) (res GetInboxLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getInboxLocal", []interface{}{__arg}, &res)
 	return
 }
 

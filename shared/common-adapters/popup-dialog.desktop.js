@@ -52,11 +52,12 @@ const styleContainerFill = {
 
 const styleClipContainer = {
   ...globalStyles.flexBoxColumn,
+  position: 'relative',
   flex: 1,
   background: globalColors.white,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
   borderRadius: 4,
-  overflow: 'hidden',
+  maxWidth: '100%',
 }
 
 const styleClose = {

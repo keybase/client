@@ -24,7 +24,13 @@ func NewKBFSMountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KBFSMountH
 
 func (h *KBFSMountHandler) GetCurrentMountDir(ctx context.Context) (res string, err error) {
 
-	return h.G().Env.GetMountDir()
+	drive, err := h.G().Env.GetMountDir()
+	if drive != "" && err == nil {
+		// Drive icon repairman: RemoteSettingsRepairman forgot about this, so let's set
+		// the registry again here for a few releases
+		doMountChange("", drive)
+	}
+	return drive, err
 }
 
 func (h *KBFSMountHandler) GetAllAvailableMountDirs(ctx context.Context) (res []string, err error) {

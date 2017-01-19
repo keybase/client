@@ -31,7 +31,7 @@ class Conversation extends Component<void, Props, State> {
 
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.selectedConversation !== this.props.selectedConversation) {
-      this._input && this._input.focus()
+      this._focusInput()
       _cachedInput[this.props.selectedConversation] = this.state.text
       this.setState({text: _cachedInput[nextProps.selectedConversation] || ''})
     }
@@ -39,7 +39,7 @@ class Conversation extends Component<void, Props, State> {
 
   componentDidUpdate (prevProps: Props) {
     if (!this.props.isLoading && prevProps.isLoading) {
-      this._input && this._input.focus()
+      this._focusInput()
     }
   }
 
@@ -49,7 +49,7 @@ class Conversation extends Component<void, Props, State> {
       const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
       const nextText = [text.substring(0, selectionStart), emojiColons, text.substring(selectionEnd)].join('')
       this.setState({text: nextText})
-      this._input.focus()
+      this._focusInput()
     }
   }
 
@@ -71,10 +71,19 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
+  _focusInput = () => {
+    this._input && this._input.focus()
+  }
+
+  _pickerOnClick = (emoji) => {
+    this._insertEmoji(emoji.colons)
+    this._onClickEmoji()
+  }
+
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
           <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
           <Input
             autoFocus={true}
@@ -101,7 +110,7 @@ class Conversation extends Component<void, Props, State> {
               <Box style={{position: 'absolute', right: 0, bottom: 0, top: 0, left: 0}} onClick={() => this.setState({emojiPickerOpen: false})} />
               <Box style={{position: 'relative'}}>
                 <Box style={{position: 'absolute', right: 0, bottom: 0}}>
-                  <Picker onClick={emoji => this._insertEmoji(emoji.colons)} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
+                  <Picker onClick={this._pickerOnClick} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
                 </Box>
               </Box>
             </Box>
@@ -109,7 +118,7 @@ class Conversation extends Component<void, Props, State> {
           <Icon onClick={this._onClickEmoji} style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={this._openFilePicker} style={styleIcon} type='iconfont-attachment' />
         </Box>
-        <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
+        <Text type='BodySmall' style={styleFooter} onClick={this._focusInput}>*bold*, _italics_, `code`</Text>
       </Box>
     )
   }
@@ -117,20 +126,21 @@ class Conversation extends Component<void, Props, State> {
 
 const styleInput = {
   flex: 1,
+  marginTop: globalMargins.tiny,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
   textAlign: 'left',
 }
 
 const styleIcon = {
-  paddingTop: globalMargins.xtiny,
-  paddingLeft: globalMargins.xtiny,
-  paddingRight: globalMargins.xtiny,
+  paddingTop: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
 }
 
 const styleFooter = {
   flex: 1,
   color: globalColors.black_20,
+  cursor: 'text',
   textAlign: 'right',
   marginTop: 0,
   marginBottom: globalMargins.xtiny,

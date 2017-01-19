@@ -112,6 +112,7 @@ export const ConversationStateRecord = Record({
   seenMessages: Set(),
   moreToLoad: true,
   isRequesting: false,
+  isStale: false,
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
@@ -123,6 +124,7 @@ export type ConversationState = Record<{
   seenMessages: Set<MessageID>,
   moreToLoad: boolean,
   isRequesting: boolean,
+  isStale: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
@@ -141,6 +143,7 @@ export const InboxStateRecord = Record({
   muted: false,
   time: '',
   snippet: '',
+  snippetKey: null,
   unreadCount: 0,
   validated: false,
 })
@@ -152,6 +155,7 @@ export type InboxState = Record<{
   muted: boolean,
   time: string,
   snippet: string,
+  snippetKey: any,
   unreadCount: number,
   validated: boolean,
 }>
@@ -173,6 +177,7 @@ export const StateRecord = Record({
   conversationStates: Map(),
   focused: false,
   metaData: Map(),
+  pendingFailures: Set(),
 })
 
 export type State = Record<{
@@ -180,6 +185,7 @@ export type State = Record<{
   conversationStates: Map<ConversationIDKey, ConversationState>,
   focused: boolean,
   metaData: MetaDataMap,
+  pendingFailures: Set<OutboxIDKey>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -189,36 +195,13 @@ export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'
 
-export const appendMessages = 'chat:appendMessages'
-export const badgeAppForChat = 'chat:badgeAppForChat'
-export const deleteMessage = 'chat:deleteMessage'
-export const editMessage = 'chat:editMessage'
-export const incomingMessage = 'chat:incomingMessage'
-export const loadInbox = 'chat:loadInbox'
-export const loadedInbox = 'chat:loadedInbox'
-export const loadMoreMessages = 'chat:loadMoreMessages'
-export const loadingMessages = 'chat:loadingMessages'
-export const newChat = 'chat:newChat'
-export const openFolder = 'chat:openFolder'
-export const postMessage = 'chat:postMessage'
-export const prependMessages = 'chat:prependMessages'
-export const retryMessage = 'chat:retryMessage'
-export const selectConversation = 'chat:selectConversation'
-export const setupChatHandlers = 'chat:setupChatHandlers'
-export const startConversation = 'chat:startConversation'
-export const updateBadging = 'chat:updateBadging'
-export const updateLatestMessage = 'chat:updateLatestMessage'
-export const updateMetadata = 'chat:updateMetadata'
-export const updatedMetadata = 'chat:updatedMetadata'
-export const selectAttachment = 'chat:selectAttachment'
-export const updateInbox = 'chat:updateInbox'
-export const updateInboxComplete = 'chat:updateInboxComplete'
-export const updateBrokenTracker = 'chat:updateBrokenTracker'
-
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
+export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {ConversationIDKey: ConversationIDKey}>
+export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
+export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
@@ -226,10 +209,13 @@ export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: 
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
+export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
+export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
+export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {outboxIDKey: OutboxIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
@@ -238,7 +224,9 @@ export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversati
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
-export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType}>
+
+// Pass an outboxID to specify that we are retrying an attachment
+export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType, outboxID?: OutboxIDKey}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   outboxID: OutboxIDKey,

@@ -345,10 +345,7 @@ func (g *GlobalContext) ConfigureAPI() error {
 	return nil
 }
 
-func (g *GlobalContext) ConfigureCaches() error {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-
+func (g *GlobalContext) configureMemCachesLocked() {
 	g.Resolver.EnableCaching()
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
@@ -362,14 +359,34 @@ func (g *GlobalContext) ConfigureCaches() error {
 	g.Log.Debug("made a new full self cache")
 	g.upakLoader = NewCachedUPAKLoader(g, CachedUserTimeout)
 	g.Log.Debug("made a new cached UPAK loader (timeout=%v)", CachedUserTimeout)
+}
 
+func (g *GlobalContext) ConfigureMemCaches() {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.configureMemCachesLocked()
+}
+
+func (g *GlobalContext) ConfigureCaches() error {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.configureMemCachesLocked()
+	return g.configureDiskCachesLocked()
+}
+
+func (g *GlobalContext) configureDiskCachesLocked() error {
 	// We consider the local DBs as caches; they're caching our
 	// fetches from the server after all (and also our cryptographic
 	// checking).
 	g.LocalDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetDbFilename))
 	g.LocalChatDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetChatDbFilename))
 
-	return g.LocalDb.Open()
+	e1 := g.LocalDb.Open()
+	e2 := g.LocalChatDb.Open()
+	if e1 != nil {
+		return e1
+	}
+	return e2
 }
 
 func (g *GlobalContext) ConfigureMerkleClient() error {
@@ -451,7 +468,7 @@ func (g *GlobalContext) Shutdown() error {
 			g.Resolver.Shutdown()
 		}
 		if g.MessageDeliverer != nil {
-			g.MessageDeliverer.Stop()
+			g.MessageDeliverer.Stop(context.Background())
 		}
 
 		for _, hook := range g.ShutdownHooks {

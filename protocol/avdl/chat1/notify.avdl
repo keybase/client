@@ -11,7 +11,7 @@ protocol NotifyChat {
     NEW_CONVERSATION_3,
     SET_STATUS_4,
     FAILED_MESSAGE_5
-  }
+  } 
 
   record IncomingMessage {
     MessageUnboxed message;
@@ -61,7 +61,7 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatTLFFinalize(keybase1.UID uid, ConversationID convID, ConversationFinalizeInfo finalizeInfo);
-  
+
   @notify("")
   @lint("ignore") 
   void ChatInboxStale(keybase1.UID uid);

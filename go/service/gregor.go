@@ -110,6 +110,7 @@ type gregorHandler struct {
 	startPingLoop sync.Once
 
 	cli              rpc.GenericClient
+	pingCli          rpc.GenericClient
 	sessionID        gregor1.SessionID
 	skipRetryConnect bool
 	freshReplay      bool
@@ -836,8 +837,6 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cl
 }
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
-	g.Debug("handleOutOfBand: %+v", obm)
-
 	if obm.System() == nil {
 		return errors.New("nil system in out of band message")
 	}
@@ -1067,7 +1066,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		// We need to get this conversation and then localize it
 		var inbox chat1.Inbox
-		if inbox, _, err = g.G().InboxSource.ReadRemote(ctx, uid, nil, &chat1.GetInboxLocalQuery{
+		if inbox, _, err = g.G().InboxSource.ReadNoCache(ctx, uid, nil, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
 		}, nil); err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
@@ -1161,16 +1160,27 @@ func (g *gregorHandler) pingLoop() {
 		select {
 		case <-g.G().Clock().After(duration):
 
-			if !g.IsConnected() {
-				g.Debug("ping loop: skipping ping since not connected")
-				continue
+			var err error
+			ctx := context.Background()
+			if g.IsConnected() {
+				// If we are connected, subject the ping call to a fairly
+				// aggressive timeout so our chat stuff can be responsive
+				// to changes in connectivity
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, timeout)
+				_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+				cancel()
+			} else {
+				// If we are not connected, we don't want to timeout anything
+				// Just hook into the normal reconnect chan stuff in the RPC
+				// library
+				g.Debug("ping loop: normal ping, not connected")
+				_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
-			_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(ctx)
-			cancel()
 			if err != nil {
-				if err == ErrGregorTimeout {
+				g.Debug("ping loop: error: %s", err.Error())
+				if err == context.DeadlineExceeded {
 					g.Debug("ping loop: timeout: terminating connection")
 					g.Shutdown()
 
@@ -1210,6 +1220,7 @@ func (g *gregorHandler) connectTLS() error {
 	// of OnConnect should use g.cli, everything else should the client that is
 	// a paramater to OnConnect
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
+	g.pingCli = g.conn.GetClient() // Don't want this to have a timeout from here
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
@@ -1231,6 +1242,7 @@ func (g *gregorHandler) connectNoTLS() error {
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
 	g.connMutex.Unlock()
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
+	g.pingCli = g.conn.GetClient()
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library

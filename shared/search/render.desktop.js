@@ -30,7 +30,7 @@ class SearchRender extends Component<void, Props, void> {
         <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
           <ClearSearch {...this.props} />
           <SearchBar {...searchBarProps} />
-          <Box style={{overflowY: 'auto'}}>
+          <Box style={{overflowY: 'auto', willChange: 'transform'}}>
             {this.props.showUserGroup ? <UserGroup {...userGroupProps} /> : <UserSearch {...userSearchProps} />}
           </Box>
         </Box>
