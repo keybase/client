@@ -9,7 +9,12 @@ describe('Markdown parser', () => {
   })
 
   it('parses invalid emoji fragments correctly', () => {
-    const ast = parser.parse('one::\n::two\n:three?::\n::four:\n:: :+1:')
+    const ast = parser.parse('one::\n::two\n:three?::\n::four:\n::')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('parses numbers and some symbols emoji', () => {
+    const ast = parser.parse(':+1: :100:')
     expect(ast).toMatchSnapshot()
   })
 })
