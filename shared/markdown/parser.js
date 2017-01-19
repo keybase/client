@@ -175,7 +175,7 @@ function peg$parse(input, options) {
       peg$c31 = function() {
        	var t = text()
           if (testLink(t)) {
-          	return {type: 'link', children: t}
+          	return {type: 'link', children: [t]}
           }
           return t
        },

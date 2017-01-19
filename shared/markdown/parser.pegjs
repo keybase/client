@@ -91,7 +91,7 @@ Text "text"
  = _? NonBlank+ _? {
  	var t = text()
     if (testLink(t)) {
-    	return {type: 'link', children: t}
+    	return {type: 'link', children: [t]}
     }
     return t
  }
