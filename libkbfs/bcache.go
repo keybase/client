@@ -90,6 +90,10 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (Block, bool, err
 		return b.cleanPermanent[ptr.ID]
 	}()
 	if block != nil {
+		// A permanent entry can only be created if this client is performing a
+		// write. Since the client is writing, it knows what goes into it,
+		// including any potential directory entries or indirect blocks.
+		// Thus, it is treated as already prefetched.
 		return block, true, nil
 	}
 
@@ -212,11 +216,16 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 }
 
 // PutWithPrefetch implements the BlockCache interface for BlockCacheStandard.
+// This method is idempotent for a given ptr, but that invariant is not
+// currently goroutine-safe, and it does not hold if a block size changes
+// between Puts. That is, we assume that a cached block associated with a given
+// pointer will never change its size, even when it gets Put into the cache
+// again.
 func (b *BlockCacheStandard) PutWithPrefetch(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
-	hasPrefetched bool) error {
+	hasPrefetched bool) (err error) {
 
-	madeRoom := false
+	var wasInCache bool
 
 	switch lifetime {
 	case NoCacheEntry:
@@ -234,17 +243,17 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		if b.cleanTransient == nil {
 			return nil
 		}
+		// We could use `cleanTransient.Contains()`, but that wouldn't update
+		// the LRU time. By using `Get`, we make it less likely that another
+		// goroutine will evict this block before we can `Put` it again.
+		_, wasInCache = b.cleanTransient.Get(ptr.ID)
 		// Cache it later, once we know there's room
-		defer func() {
-			if madeRoom {
-				b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
-			}
-		}()
 
 	case PermanentEntry:
 		func() {
 			b.cleanLock.Lock()
 			defer b.cleanLock.Unlock()
+			_, wasInCache = b.cleanPermanent[ptr.ID]
 			b.cleanPermanent[ptr.ID] = block
 		}()
 
@@ -252,9 +261,23 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		return fmt.Errorf("Unknown lifetime %v", lifetime)
 	}
 
-	// We must make room whether the cache is transient or permanent
-	size := uint64(getCachedBlockSize(block))
-	madeRoom = b.makeRoomForSize(size)
+	transientCacheHasRoom := true
+	// We must make room whether the cache is transient or permanent, but only
+	// if it wasn't already in the cache.
+	// TODO: This is racy, where another goroutine can evict or add this block
+	// between our check above and our attempt to make room. If the other
+	// goroutine evicts this block, we under-count its size as 0. If the other
+	// goroutine inserts this block, we double-count it.
+	if !wasInCache {
+		size := uint64(getCachedBlockSize(block))
+		transientCacheHasRoom = b.makeRoomForSize(size)
+	}
+	if lifetime == TransientEntry {
+		if !transientCacheHasRoom {
+			return cachePutCacheFullError{ptr}
+		}
+		b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
+	}
 
 	return nil
 }

@@ -1163,3 +1163,11 @@ func (e TLFCryptKeyNotPerDeviceEncrypted) Error() string {
 	return fmt.Sprintf("TLF crypt key for %s at generation %d is not per-device encrypted",
 		e.tlf, e.keyGen)
 }
+
+type cachePutCacheFullError struct {
+	ptr BlockPointer
+}
+
+func (e cachePutCacheFullError) Error() string {
+	return fmt.Sprintf("tried and failed to put transient block into the cache because it is full. Pointer: %+v", e.ptr)
+}

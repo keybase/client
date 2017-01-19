@@ -89,7 +89,7 @@ func (p *blockPrefetcher) run() {
 	for {
 		select {
 		case req := <-p.progressCh:
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(context.TODO())
 			errCh := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr, req.block, TransientEntry)
 			wg.Add(1)
 			go func() {
@@ -135,7 +135,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadat
 	if numIPtrs > defaultIndirectPointerPrefetchCount {
 		numIPtrs = defaultIndirectPointerPrefetchCount
 	}
-	p.log.CDebugf(context.Background(), "Prefetching pointers for indirect file block. Num pointers to prefetch: %d", numIPtrs)
+	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect file block. Num pointers to prefetch: %d", numIPtrs)
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		p.request(fileIndirectBlockPrefetchPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), "")
@@ -148,7 +148,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata)
 	if numIPtrs > defaultIndirectPointerPrefetchCount {
 		numIPtrs = defaultIndirectPointerPrefetchCount
 	}
-	p.log.CDebugf(context.Background(), "Prefetching pointers for indirect dir block. Num pointers to prefetch: %d", numIPtrs)
+	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect dir block. Num pointers to prefetch: %d", numIPtrs)
 	for _, ptr := range b.IPtrs[:numIPtrs] {
 		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), "")
@@ -156,7 +156,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata)
 }
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
-	p.log.CDebugf(context.Background(), "Prefetching entries for directory block. Num entries: %d", len(b.Children))
+	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block. Num entries: %d", len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
@@ -172,7 +172,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
 		case Exec:
 			block = &FileBlock{}
 		default:
-			p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T", entry.DirEntry)
+			p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of unknown type %d", entry.Type)
 			continue
 		}
 		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName)
@@ -180,16 +180,38 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
 }
 
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
-func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
-	p.log.CDebugf(context.Background(), "Prefetching block by request from upstream component. Priority: %d", priority)
+func (p *blockPrefetcher) PrefetchBlock(
+	block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
+	p.log.CDebugf(context.TODO(), "Prefetching block by request from upstream component. Priority: %d", priority)
 	return p.request(priority, kmd, ptr, block, "")
 }
 
 // PrefetchAfterBlockRetrieved implements the Prefetcher interface for
 // blockPrefetcher.
-func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, priority int, hasPrefetched bool) {
-	if hasPrefetched || priority < defaultOnDemandRequestPriority {
+func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
+	b Block, ptr BlockPointer, kmd KeyMetadata, priority int,
+	lifetime BlockCacheLifetime, hasPrefetched bool) {
+	if hasPrefetched {
+		// We discard the error because there's nothing we can do about it.
+		_ = p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
+			lifetime, true)
+		return
+	}
+	if priority < defaultOnDemandRequestPriority {
 		// Only on-demand or higher priority requests can trigger prefetches.
+		// We discard the error because there's nothing we can do about it.
+		_ = p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
+			lifetime, false)
+		return
+	}
+	// We must let the cache know at this point that we've prefetched.
+	// 1) To prevent any other Gets from prefetching.
+	// 2) To prevent prefetching if a cache Put fails, since prefetching if
+	//	  only useful when combined with the cache.
+	err := p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), b,
+		lifetime, true)
+	if _, isCacheFullError := err.(cachePutCacheFullError); isCacheFullError {
+		p.log.CDebugf(context.TODO(), "Skipping prefetch because the cache is full")
 		return
 	}
 	switch b := b.(type) {
@@ -204,7 +226,7 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block, kmd KeyMetadata, 
 			p.prefetchDirectDirBlock(b, kmd)
 		}
 	default:
-		p.log.CDebugf(context.Background(), "Skipping prefetch for entry of unknown type %T", b)
+		p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of unknown type %T", b)
 	}
 }
 
