@@ -216,6 +216,11 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 }
 
 // PutWithPrefetch implements the BlockCache interface for BlockCacheStandard.
+// This method is idempotent for a given ptr, but that invariant is not
+// currently goroutine-safe, and it does not hold if a block size changes
+// between Puts. That is, we assume that a cached block associated with a given
+// pointer will never change its size, even when it gets Put into the cache
+// again.
 func (b *BlockCacheStandard) PutWithPrefetch(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
 	hasPrefetched bool) (err error) {
