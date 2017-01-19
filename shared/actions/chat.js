@@ -22,6 +22,7 @@ import {downloadFilePath, tmpFile} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
+import {showMainWindow} from './platform.specific'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
@@ -1219,7 +1220,14 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     if (message && message.type === 'Text') {
       const snippet = makeSnippet(serverMessageToMessageBody(message))
-      NotifyPopup(message.author, {body: snippet})
+
+      yield put((dispatch: Dispatch) => {
+        NotifyPopup(message.author, {body: snippet}, -1, () => {
+          dispatch(selectConversation(action.payload.conversationIDKey, false))
+          dispatch(switchTo([chatTab]))
+          dispatch(showMainWindow())
+        })
+      })
     }
   }
 }

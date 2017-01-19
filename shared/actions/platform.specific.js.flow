@@ -1,0 +1,10 @@
+// @flow
+import type {AsyncAction} from '../constants/types/flux'
+
+declare function requestPushPermissions (): Promise<*>
+declare function showMainWindow (): AsyncAction
+
+export {
+  requestPushPermissions,
+  showMainWindow,
+}
