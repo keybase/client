@@ -52,7 +52,7 @@ js_tests() {
 visdiff() {
     echo 'visdiff'
     has_js_files
-    node ../visdiff/dist/index.js "merge-base(origin/master, '${commit_hash})...${commit_hash}"
+    node ../visdiff/dist/index.js "$change_target...$commit_hash"
     check_rc $? 'visdiff fail' 1
 }
 
