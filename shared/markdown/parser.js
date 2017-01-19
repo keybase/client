@@ -141,7 +141,7 @@ function peg$parse(input, options) {
       peg$startRuleFunctions = { start: peg$parsestart },
       peg$startRuleFunction  = peg$parsestart,
 
-      peg$c0 = function(children) { return {type: 'text', children: children}; },
+      peg$c0 = function(children) { return {type: 'text', children}; },
       peg$c1 = "`",
       peg$c2 = peg$literalExpectation("`", false),
       peg$c3 = "```",
@@ -164,15 +164,21 @@ function peg$parse(input, options) {
       peg$c20 = peg$literalExpectation("::skin-tone-", false),
       peg$c21 = /^[1-6]/,
       peg$c22 = peg$classExpectation([["1", "6"]], false, false),
-      peg$c23 = function(children) { return {type: 'quote-block', children: children}; },
-      peg$c24 = function(children) { return {type: 'bold', children: children}; },
-      peg$c25 = function(children) { return {type: 'italic', children: children}; },
-      peg$c26 = function(children) { return {type: 'strike', children: children}; },
+      peg$c23 = function(children) { return {type: 'quote-block', children}; },
+      peg$c24 = function(children) { return {type: 'bold', children}; },
+      peg$c25 = function(children) { return {type: 'italic', children}; },
+      peg$c26 = function(children) { return {type: 'strike', children}; },
       peg$c27 = function(children) { return {type: 'code-block', children}; },
       peg$c28 = function(children) { return {type: 'inline-code', children}; },
       peg$c29 = function(children, tone) { return {type: 'emoji', children: [children.join('') + (tone || '')]}; },
       peg$c30 = peg$otherExpectation("text"),
-      peg$c31 = function() { return text() },
+      peg$c31 = function() {
+       	var t = text()
+          if (testLink(t)) {
+          	return {type: 'link', children: t}
+          }
+          return t
+       },
       peg$c32 = function(ws) {
             return ws;
           },
@@ -1593,6 +1599,13 @@ function peg$parse(input, options) {
 
     return s0;
   }
+
+
+  	var linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/, 'gi')
+  	function testLink (text) {
+  	    return text && text.match(linkExp)
+      }
+
 
   peg$result = peg$startRuleFunction();
 
