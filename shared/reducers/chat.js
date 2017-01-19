@@ -22,7 +22,7 @@ function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
   const nextSeenMessages = Set(nextMessages.map(m => m.key))
     .union(nextMessages.map(m => m.outboxID != null && m.outboxID))
     .union(nextMessages.map(m => m.messageID))
-    .filter(Boolean)
+    .filter(i => i != null && i !== false)
 
   return {
     nextMessages,
