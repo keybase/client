@@ -25,7 +25,7 @@ has_js_files() {
     echo 'git diff'
     git diff --name-only "$change_target...$commit_hash"
     # ignore test.sh for now
-    diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/'` | grep -v '^shared/test\.sh'
+    diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/' | grep -v '^shared/test\.sh'`
     check_rc $? 'no files js cares about' 0
     echo "continuing due to changes in $diff_files"
 }
