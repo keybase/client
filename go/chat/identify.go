@@ -118,6 +118,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 			return err
 		}
 	}
+	h.Debug(ctx, "using TLF name: %s", tlfName)
 
 	// Take this guy out of the cache, we want this to run fresh
 	if err = h.G().Identify2Cache.Delete(uid); err != nil {
