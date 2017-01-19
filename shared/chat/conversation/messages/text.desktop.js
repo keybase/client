@@ -23,6 +23,10 @@ export default class MessageTextComponent extends PureComponent<void, Props & {o
   render () {
     const {message} = this.props
 
+    if (message.key === 167) {
+      console.log('aaa text render')
+    }
+
     return (
       <MessageComponent {...this.props}>
         <MessageText message={message} />

@@ -17,7 +17,7 @@ import {clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {List} from 'immutable'
-import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
+import type {Message, MessageID, TextMessage, AttachmentMessage, ConversationIDKey} from '../../constants/chat'
 import type {Props} from './list'
 
 type State = {
@@ -303,6 +303,10 @@ class ConversationList extends Component<void, Props, State> {
       you: this.props.you,
     }
 
+    if (key === '167') {
+      console.log('aaaa', options)
+    }
+
     return messageFactory(options)
   }
 
@@ -329,7 +333,7 @@ class ConversationList extends Component<void, Props, State> {
     this._list = r
   }
 
-  _cellRangeRenderer = options => chatCellRangeRenderer(this._cellCache, this._indexToID, options)
+  _cellRangeRenderer = options => chatCellRangeRenderer(this._cellCache, this._indexToID, this.props.selectedConversation, options)
 
   render () {
     if (!this.props.validated) {
@@ -416,8 +420,12 @@ const listStyle = {
   paddingBottom: listBottomMargin,
 }
 
-let firstRowIndex
-function chatCellRangeRenderer (cellSizeCache: any, rowToIndex: (index: number) => any, {
+let previousFirstRowIndex
+let previousWidth
+let prevSelectedConversation
+// Cache of styles for all cells, only changes if we actually redraw
+let permaStyleCache = {}
+function chatCellRangeRenderer (cellSizeCache: any, rowToIndex: (index: number) => any, selectedConversation: ?ConversationIDKey, {
   cellCache,
   cellRenderer,
   columnSizeAndPositionManager,
@@ -430,20 +438,27 @@ function chatCellRangeRenderer (cellSizeCache: any, rowToIndex: (index: number) 
   rowStopIndex,
   scrollLeft,
   scrollTop,
-  styleCache,
+  // styleCache, // no longer used
   verticalOffsetAdjustment,
   visibleColumnIndices,
   visibleRowIndices,
 }: DefaultCellRangeRendererParams) {
   const renderedCells = []
-  const offsetAdjusted = verticalOffsetAdjustment || horizontalOffsetAdjustment
-  const canCacheStyle = !isScrolling || !offsetAdjusted
+  // const offsetAdjusted = verticalOffsetAdjustment || horizontalOffsetAdjustment
+  // const canCacheStyle = !isScrolling || !offsetAdjusted
 
   const currentFirstRowIndex = rowToIndex(1) // not the loader
-  if (currentFirstRowIndex !== firstRowIndex) {
-    firstRowIndex = currentFirstRowIndex
+  // Top changed or width changed
+  const currentWidth = columnSizeAndPositionManager.getSizeAndPositionOfLastMeasuredCell().size
+  if (currentFirstRowIndex !== previousFirstRowIndex ||
+      currentWidth !== previousWidth ||
+      selectedConversation !== prevSelectedConversation) {
+    previousFirstRowIndex = currentFirstRowIndex
+    previousWidth = currentWidth
+    prevSelectedConversation = selectedConversation
+
     rowSizeAndPositionManager.resetCell(0)
-    Object.keys(styleCache).forEach(k => delete styleCache[k])
+    permaStyleCache = {}
     cellSizeCache.clearAllRowHeights()
   }
 
@@ -463,8 +478,8 @@ function chatCellRangeRenderer (cellSizeCache: any, rowToIndex: (index: number) 
       let style
 
       // Cache style objects so shallow-compare doesn't re-render unnecessarily.
-      if (canCacheStyle && styleCache[key]) {
-        style = styleCache[key]
+      if (permaStyleCache[key]) {
+        style = permaStyleCache[key]
       } else {
         style = {
           height: rowDatum.size,
@@ -474,7 +489,7 @@ function chatCellRangeRenderer (cellSizeCache: any, rowToIndex: (index: number) 
           width: columnDatum.size,
         }
 
-        styleCache[key] = style
+        permaStyleCache[key] = style
       }
 
       let cellRendererParams = {
