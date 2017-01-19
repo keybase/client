@@ -1606,15 +1606,9 @@ function peg$parse(input, options) {
           const lastChar = match[match.length - 1]
           // strip exclaimation at end
           if (linkSuffixExclaimations.indexOf(lastChar) !== -1) {
-  	        return [
-              	{type: 'link', children: [match.substring(0, match.length - 1)]},
-              	lastChar + ' ',
-              ]
+  	        return {type: 'link', children: [match.substring(0, match.length - 1)]}
           }
-      	return [
-              {type: 'link', children: [match]},
-              ' ',
-          ]
+      	return {type: 'link', children: [match]}
         } else {
           return text
         }
