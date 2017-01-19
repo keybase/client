@@ -67,7 +67,8 @@ var errNoConvForUser = errors.New("user not found in inbox")
 
 func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.UID) (string, error) {
 
-	inbox := storage.NewInbox(h.G(), uid, func() libkb.SecretUI {
+	me := h.G().Env.GetUID()
+	inbox := storage.NewInbox(h.G(), me.ToBytes(), func() libkb.SecretUI {
 		return DelivererSecretUI{}
 	})
 
@@ -94,8 +95,8 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 }
 
 func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error) {
-	defer h.G().Trace(fmt.Sprintf("tlfHandler.HandleUserChanged(uid=%s)", uid),
-		func() error { return err })()
+	defer h.Trace(context.Background(), func() error { return err },
+		fmt.Sprintf("HandleUserChanged(uid=%s)", uid))()
 
 	// If this is about us we don't care
 	me := h.G().Env.GetUID()
@@ -120,8 +121,8 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 
 	// Take this guy out of the cache, we want this to run fresh
 	if err = h.G().Identify2Cache.Delete(uid); err != nil {
+		// Charge through this error, probably doesn't matter
 		h.Debug(ctx, "unable to delete cache entry: uid: %s: err: %s", uid, err.Error())
-		return err
 	}
 
 	// Run against CryptKeys to generate notifications if necessary
