@@ -8,7 +8,6 @@ import type {TypedState} from '../constants/reducer'
 
 import type {PushNotification, PushNotificationAction, PushPermissionsPromptAction, PushPermissionsRequestAction, PushPermissionsRequestingAction, PushTokenAction, SavePushTokenAction, TokenType, UpdatePushTokenAction} from '../constants/push'
 
-// $FlowIssue
 import {requestPushPermissions} from './platform.specific'
 
 export function permissionsRequest (): PushPermissionsRequestAction {
