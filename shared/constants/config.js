@@ -8,6 +8,7 @@ export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
 
 // Actions
+export const daemonError = 'config:daemonError'
 export const globalError = 'config:globalError'
 export const globalErrorDismiss = 'config:globalErrorDismiss'
 export const statusLoaded = 'config:statusLoaded'

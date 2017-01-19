@@ -65,14 +65,14 @@ function rpcLog (type: rpcLogType, title: string, info?: Object): void {
   }
 
   const prefix = {
+    'engineInternal': '[engine]',
     'engineToServer': '[engine] ->',
     'serverToEngine': '[engine] <-',
-    'engineInternal': '[engine]',
   }[type]
   const style = {
+    'engineInternal': 'color: purple',
     'engineToServer': 'color: blue',
     'serverToEngine': 'color: green',
-    'engineInternal': 'color: purple',
   }[type]
 
   requestIdleCallback(() => {
@@ -82,14 +82,17 @@ function rpcLog (type: rpcLogType, title: string, info?: Object): void {
 
 class TransportShared extends RobustTransport {
   // $FlowIssue
-  constructor (opts, connectCallback, incomingRPCCallback, writeCallback) {
-    const hooks = connectCallback ? {
+  constructor (opts, connectCallback, disconnectCallback, incomingRPCCallback, writeCallback) {
+    const hooks = {
       connected: () => {
         // $FlowIssue complains that this might be null
         this.needsConnect = false
-        connectCallback()
+        connectCallback && connectCallback()
       },
-    } : null
+      eof: () => {
+        disconnectCallback && disconnectCallback()
+      },
+    }
 
     super({hooks, ...opts})
 

@@ -8,6 +8,7 @@ import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/typ
 
 export type ConfigState = {
   globalError: ?Error,
+  daemonError: ?string,
   status: ?GetCurrentStatusRes,
   config: ?Config,
   extendedConfig: ?ExtendedStatus,
@@ -24,6 +25,7 @@ export type ConfigState = {
 
 const initialState: ConfigState = {
   globalError: null,
+  daemonError: null,
   status: null,
   config: null,
   extendedConfig: null,
@@ -134,6 +136,12 @@ export default function (state: ConfigState = initialState, action: Action): Con
       return {
         ...state,
         globalError: action.payload,
+      }
+    }
+    case Constants.daemonError: {
+      return {
+        ...state,
+        daemonError: action.payload.daemonError,
       }
     }
 
