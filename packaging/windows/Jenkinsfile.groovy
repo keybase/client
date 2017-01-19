@@ -73,6 +73,8 @@ def doBuild() {
                     bat "release wait-ci --repo=\"kbfs\" --commit=\"${kbfsCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
                 }
             }
+        } else {
+            echo "Non Smoke build"
         }
     }                
     stage('Build Client') {
