@@ -831,15 +831,14 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
-          // If we get a historical message w/ messageID and outboxID ignore the outboxID
-          const outboxID = (isHistory && common.messageID) ? undefined : payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
           return {
             type: 'Text',
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
-            key: outboxID || common.messageID,
+            key: common.messageID,
           }
         case CommonMessageType.attachment:
           // $FlowIssue

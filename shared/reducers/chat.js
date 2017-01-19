@@ -19,7 +19,7 @@ function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
   const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
   // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
   const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
-  const nextSeenMessages = Set(nextMessages.map(m => m.outboxID != null && m.outboxID)).union(nextMessages.map(m => m.messageID).filter(Boolean))
+  const nextSeenMessages = Set(nextMessages.map(m => m.key))
 
   return {
     nextMessages,
