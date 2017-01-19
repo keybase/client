@@ -72,3 +72,4 @@ elif [ $test_type == 'visdiff-install' ]; then
 else
     js_tests
 fi
+
