@@ -147,7 +147,7 @@ export function retryBootstrap (): AsyncAction {
   }
 }
 
-function daemonError (error: string): AsyncAction {
+function daemonError (error: ?string): Action {
   return {type: Constants.daemonError, payload: {daemonError: error}}
 }
 
