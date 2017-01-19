@@ -3,11 +3,12 @@ package service
 import (
 	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"sync"
 )
 
 type uidSet map[keybase1.UID]bool
@@ -88,8 +89,8 @@ func (b *BackgroundIdentifier) completedIdentifyJob(ij engine.IdentifyJob) {
 	if !ij.ErrorChanged() {
 		return
 	}
-	b.G().Log.Debug("| Identify(%s) changed: %v -> %v", ij.UID(), ij.ThisError(), ij.LastError())
-	newTlfHandler(nil, b.G()).HandleUserChanged(ij.UID())
+	//b.G().Log.Debug("| Identify(%s) changed: %v -> %v", ij.UID(), ij.ThisError(), ij.LastError())
+	//newTlfHandler(nil, b.G()).HandleUserChanged(ij.UID())
 }
 
 func (b *BackgroundIdentifier) populateWithFollowees() (err error) {
