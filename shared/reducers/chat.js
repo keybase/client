@@ -12,14 +12,27 @@ const initialConversation: ConversationState = new ConversationStateRecord()
 
 // _filterMessages dedupes and removed deleted messages
 function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
-  const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
-  const filteredAppend = append.filter(m => !seenMessages.has(m.key))
+  const hasBeenSeen = m => seenMessages.has(m.key) || (m.messageID && seenMessages.has(m.messageID))
+  const hasNotBeenSeen = m => !hasBeenSeen(m)
 
-  const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
-  const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
+  const filteredPrepend = prepend.filter(hasNotBeenSeen)
+  const filteredAppend = append.filter(hasNotBeenSeen)
+
+  const messagesToUpdate = prepend.concat(append).filter(m => hasBeenSeen(m))
+
+  const messageMap = Map(messagesToUpdate.map(m => [m.key, m]).concat(messagesToUpdate.map(m => [m.messageID, m])))
+  const updatedMessages = messages.map(m => {
+    if (messageMap.has(m.key)) {
+      return messageMap.get(m.key)
+    } else if (m.messageID && messageMap.has(m.messageID)) {
+      return messageMap.get(m.messageID)
+    }
+    return m
+  })
+
   // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
   const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
-  const nextSeenMessages = Set(nextMessages.map(m => m.key))
+  const nextSeenMessages = Set(nextMessages.map(m => m.key).concat(nextMessages.map(m => m.messageID).filter(i => i)))
 
   return {
     nextMessages,
