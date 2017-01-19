@@ -2,7 +2,7 @@
 
 test_type="$1"
 commit_hash="$2"
-change_target="$3"
+change_target="origin/$3"
 
 echo "shared/test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target}"
 
@@ -23,10 +23,11 @@ has_js_files() {
     git fetch
     check_rc $? 'echo git fetch problem' 1
     echo 'git diff'
-    echo "merge target is $2"
-    diff_files=`git diff --name-only ${change_target}...${commit_hash} | grep '^shared/'`
+    git diff --name-only "$change_target...$commit_hash"
+    # ignore test.sh for now
+    diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/'` | grep -v '^shared/test\.sh'
     check_rc $? 'no files js cares about' 0
-    echo "continuing due to changes in ${diff_files}"
+    echo "continuing due to changes in $diff_files"
 }
 
 js_tests() {
