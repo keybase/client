@@ -104,7 +104,7 @@ func (o *Outbox) SetClock(cl clockwork.Clock) {
 }
 
 func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, identifyBehavior keybase1.TLFIdentifyBehavior) (outboxID chat1.OutboxID, err Error) {
+	msg chat1.MessagePlaintext, identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
 	o.Lock()
 	defer o.Unlock()
 
@@ -112,7 +112,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	obox, err := o.readDiskOutbox(ctx)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
-			return nil, o.maybeNuke(err, o.dbKey())
+			return rec, o.maybeNuke(err, o.dbKey())
 		}
 		obox = diskOutbox{
 			Version: outboxVersion,
@@ -122,31 +122,32 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 
 	// Generate new outbox ID
 	var ierr error
-	outboxID, ierr = o.newOutboxID()
+	outboxID, ierr := o.newOutboxID()
 	if ierr != nil {
-		return nil, o.maybeNuke(NewInternalError(o.DebugLabeler,
+		return rec, o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error getting outboxID: err: %s", ierr.Error()), o.dbKey())
 	}
 
 	// Append record
 	msg.ClientHeader.OutboxID = &outboxID
-	obox.Records = append(obox.Records, chat1.OutboxRecord{
+	rec = chat1.OutboxRecord{
 		State:            chat1.NewOutboxStateWithSending(0),
 		Msg:              msg,
 		Ctime:            gregor1.ToTime(o.clock.Now()),
 		ConvID:           convID,
 		OutboxID:         outboxID,
 		IdentifyBehavior: identifyBehavior,
-	})
+	}
+	obox.Records = append(obox.Records, rec)
 
 	// Write out box
 	obox.Version = outboxVersion
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-		return nil, o.maybeNuke(NewInternalError(o.DebugLabeler,
+		return rec, o.maybeNuke(NewInternalError(o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
-	return outboxID, nil
+	return rec, nil
 }
 
 // PullAllConversations grabs all outbox entries for the current outbox, and optionally deletes them

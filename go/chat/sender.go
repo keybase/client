@@ -351,21 +351,21 @@ func (s *Deliverer) Disconnected(ctx context.Context) {
 }
 
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, error) {
+	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error) {
 
 	s.Debug(ctx, "queued new message: convID: %s uid: %s ident: %v", convID, s.outbox.GetUID(),
 		identifyBehavior)
 
 	// Push onto outbox and immediatley return
-	oid, err := s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
+	obr, err := s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
 	if err != nil {
-		return oid, err
+		return obr, err
 	}
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
 
-	return oid, nil
+	return obr, nil
 }
 
 func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, bool) {
@@ -501,6 +501,6 @@ func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationI
 	}
 
 	identifyBehavior, _, _ := IdentifyMode(ctx)
-	oid, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
-	return oid, 0, &chat1.RateLimit{}, err
+	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
+	return obr.OutboxID, 0, &chat1.RateLimit{}, err
 }

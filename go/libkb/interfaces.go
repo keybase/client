@@ -535,7 +535,7 @@ type ConversationSource interface {
 
 type MessageDeliverer interface {
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, error)
+		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
 	Start(ctx context.Context, uid gregor1.UID)
 	Stop(ctx context.Context) chan struct{}
 	ForceDeliverLoop(ctx context.Context)
