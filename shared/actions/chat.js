@@ -831,7 +831,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
-          // If we get a histocal message w/ messageID and outboxID ignore the outboxID
+          // If we get a historical message w/ messageID and outboxID ignore the outboxID
           const outboxID = (isHistory && common.messageID) ? undefined : payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
           return {
             type: 'Text',
