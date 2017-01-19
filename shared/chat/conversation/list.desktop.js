@@ -59,6 +59,19 @@ class ConversationList extends Component<void, Props, State> {
     })
     this._toRemeasure = []
     this._shouldForceUpdateGrid = false
+
+    this._setupDebug()
+  }
+
+  _setupDebug () {
+    if (__DEV__ && typeof window !== 'undefined') {
+      window.dumpChat = (...columns) => {
+        console.table(this.state.messages.toJS().map(m => ({
+          ...m,
+          decoded: m.message && m.message.stringValue(),
+        })), columns.length && columns)
+      }
+    }
   }
 
   _indexToID = index => {
