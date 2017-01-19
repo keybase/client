@@ -1,0 +1,46 @@
+exports[`Markdown parser parses invalid emoji fragments correctly 1`] = `
+Object {
+  "children": Array [
+    "one::",
+    "
+",
+    "::two",
+    "
+",
+    ":three?::",
+    "
+",
+    "::four:",
+    "
+",
+    "::",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses multiple adjacent emoji correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "ok_hand::skin-tone-2",
+      ],
+      "type": "emoji",
+    },
+    Object {
+      "children": Array [
+        "smile",
+      ],
+      "type": "emoji",
+    },
+    Object {
+      "children": Array [
+        "wink",
+      ],
+      "type": "emoji",
+    },
+  ],
+  "type": "text",
+}
+`;
