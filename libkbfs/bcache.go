@@ -238,7 +238,10 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		if b.cleanTransient == nil {
 			return nil
 		}
-		wasInCache = b.cleanTransient.Contains(ptr.ID)
+		// We could use `cleanTransient.Contains()`, but that wouldn't update
+		// the LRU time. By using `Get`, we make it less likely that another
+		// goroutine will evict this block before we can `Put` it again.
+		_, wasInCache = b.cleanTransient.Get(ptr.ID)
 		// Cache it later, once we know there's room
 
 	case PermanentEntry:
@@ -256,6 +259,10 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 	transientCacheHasRoom := true
 	// We must make room whether the cache is transient or permanent, but only
 	// if it wasn't already in the cache.
+	// TODO: This is racy, where another goroutine can evict or add this block
+	// between our check above and our attempt to make room. If the other
+	// goroutine evicts this block, we under-count its size as 0. If the other
+	// goroutine inserts this block, we double-count it.
 	if !wasInCache {
 		size := uint64(getCachedBlockSize(block))
 		transientCacheHasRoom = b.makeRoomForSize(size)

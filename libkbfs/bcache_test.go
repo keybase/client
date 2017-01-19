@@ -10,10 +10,11 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
-func blockCacheTestInit(t *testing.T, capacity int,
+func blockCacheTestBlockCacheInit(t *testing.T, capacity int,
 	bytesCapacity uint64) Config {
 	b := NewBlockCacheStandard(capacity, bytesCapacity)
 	config := MakeTestConfigOrBust(t, "test")
@@ -26,16 +27,13 @@ func testBcachePutWithBlock(t *testing.T, id kbfsblock.ID, bcache BlockCache, li
 	tlf := tlf.FakeID(1, false)
 
 	// put the block
-	if err := bcache.Put(ptr, tlf, block, lifetime); err != nil {
-		t.Errorf("Got error on Put for block %s: %v", id, err)
-	}
+	err := bcache.Put(ptr, tlf, block, lifetime)
+	require.NoError(t, err)
 
 	// make sure we can get it successfully
-	if block2, err := bcache.Get(ptr); err != nil {
-		t.Errorf("Got error on get for block %s: %v", id, err)
-	} else if block2 != block {
-		t.Errorf("Got %v, expected %v", block2, block)
-	}
+	block2, err := bcache.Get(ptr)
+	require.NoError(t, err)
+	require.Equal(t, block, block2)
 }
 
 func testBcachePut(t *testing.T, id kbfsblock.ID, bcache BlockCache, lifetime BlockCacheLifetime) {
@@ -46,24 +44,21 @@ func testBcachePut(t *testing.T, id kbfsblock.ID, bcache BlockCache, lifetime Bl
 func testExpectedMissing(t *testing.T, id kbfsblock.ID, bcache BlockCache) {
 	expectedErr := NoSuchBlockError{id}
 	ptr := BlockPointer{ID: id}
-	if _, err := bcache.Get(ptr); err == nil {
-		t.Errorf("No expected error on 1st get: %v", err)
-	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on 1st get: %v", err)
-	}
+	_, err := bcache.Get(ptr)
+	require.EqualError(t, err, expectedErr.Error())
 }
 
-func TestBcachePut(t *testing.T) {
+func TestBlockCachePut(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 100, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(ctx, t, config)
 	testBcachePut(t, kbfsblock.FakeID(1), config.BlockCache(), TransientEntry)
 	testBcachePut(t, kbfsblock.FakeID(2), config.BlockCache(), PermanentEntry)
 }
 
-func TestBcachePutPastCapacity(t *testing.T) {
+func TestBlockCachePutPastCapacity(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 2, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 2, 1<<30)
 	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 	id1 := kbfsblock.FakeID(1)
@@ -76,17 +71,16 @@ func TestBcachePutPastCapacity(t *testing.T) {
 	testExpectedMissing(t, id1, bcache)
 
 	// but 2 should still be there
-	if _, err := bcache.Get(BlockPointer{ID: id2}); err != nil {
-		t.Errorf("Got unexpected error on 2nd get: %v", err)
-	}
+	_, err := bcache.Get(BlockPointer{ID: id2})
+	require.NoError(t, err)
 
 	// permanent blocks don't count
 	testBcachePut(t, kbfsblock.FakeID(4), config.BlockCache(), PermanentEntry)
 }
 
-func TestBcacheCheckPtrSuccess(t *testing.T) {
+func TestBlockCacheCheckPtrSuccess(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 100, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
@@ -97,21 +91,16 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 	tlf := tlf.FakeID(1, false)
 
 	err := bcache.Put(ptr, tlf, block, TransientEntry)
-	if err != nil {
-		t.Errorf("Couldn't put block: %v", err)
-	}
+	require.NoError(t, err)
 
 	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
-	if err != nil {
-		t.Errorf("Unexpected error checking id: %v", err)
-	} else if checkedPtr != ptr {
-		t.Errorf("Unexpected pointer; got %v, expected %v", checkedPtr, id)
-	}
+	require.NoError(t, err)
+	require.Equal(t, ptr, checkedPtr)
 }
 
-func TestBcacheCheckPtrPermanent(t *testing.T) {
+func TestBlockCacheCheckPtrPermanent(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 100, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 100, 1<<30)
 	defer config.Shutdown(ctx)
 	bcache := config.BlockCache()
 
@@ -122,21 +111,16 @@ func TestBcacheCheckPtrPermanent(t *testing.T) {
 	tlf := tlf.FakeID(1, false)
 
 	err := bcache.Put(ptr, tlf, block, PermanentEntry)
-	if err != nil {
-		t.Errorf("Couldn't put block: %v", err)
-	}
+	require.NoError(t, err)
 
 	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
-	if err != nil {
-		t.Errorf("Unexpected error checking id: %v", err)
-	} else if checkedPtr != (BlockPointer{}) {
-		t.Errorf("Unexpected non-zero pointer %v", checkedPtr)
-	}
+	require.NoError(t, err)
+	require.Equal(t, BlockPointer{}, checkedPtr)
 }
 
-func TestBcacheCheckPtrNotFound(t *testing.T) {
+func TestBlockCacheCheckPtrNotFound(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 100, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
@@ -147,23 +131,18 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 	tlf := tlf.FakeID(1, false)
 
 	err := bcache.Put(ptr, tlf, block, TransientEntry)
-	if err != nil {
-		t.Errorf("Couldn't put block: %v", err)
-	}
+	require.NoError(t, err)
 
 	block2 := NewFileBlock().(*FileBlock)
 	block2.Contents = []byte{4, 3, 2, 1}
 	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block2)
-	if err != nil {
-		t.Errorf("Unexpected error checking id: %v", err)
-	} else if checkedPtr.IsInitialized() {
-		t.Errorf("Unexpected ID; got %v, expected null", checkedPtr)
-	}
+	require.NoError(t, err)
+	require.False(t, checkedPtr.IsInitialized())
 }
 
-func TestBcacheDeleteTransient(t *testing.T) {
+func TestBlockCacheDeleteTransient(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 100, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
@@ -174,26 +153,20 @@ func TestBcacheDeleteTransient(t *testing.T) {
 	tlf := tlf.FakeID(1, false)
 
 	err := bcache.Put(ptr, tlf, block, TransientEntry)
-	if err != nil {
-		t.Errorf("Couldn't put block: %v", err)
-	}
+	require.NoError(t, err)
 
-	if err := bcache.DeleteTransient(ptr, tlf); err != nil {
-		t.Fatalf("Couldn't delete transient: %v", err)
-	}
+	err = bcache.DeleteTransient(ptr, tlf)
+	require.NoError(t, err)
 
 	// Make sure the pointer is gone from the hash cache too.
 	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
-	if err != nil {
-		t.Errorf("Unexpected error checking id: %v", err)
-	} else if checkedPtr.IsInitialized() {
-		t.Errorf("Unexpected ID; got %v, expected null", checkedPtr)
-	}
+	require.NoError(t, err)
+	require.False(t, checkedPtr.IsInitialized())
 }
 
-func TestBcacheDeletePermanent(t *testing.T) {
+func TestBlockCacheDeletePermanent(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 100, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 
@@ -210,14 +183,13 @@ func TestBcacheDeletePermanent(t *testing.T) {
 	testExpectedMissing(t, id1, bcache)
 
 	// 2 should still be there
-	if _, err := bcache.Get(BlockPointer{ID: id2}); err != nil {
-		t.Errorf("Got unexpected error on 2nd get: %v", err)
-	}
+	_, err := bcache.Get(BlockPointer{ID: id2})
+	require.NoError(t, err)
 }
 
-func TestBcacheEmptyTransient(t *testing.T) {
+func TestBlockCacheEmptyTransient(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 0, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 0, 1<<30)
 	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
@@ -230,30 +202,23 @@ func TestBcacheEmptyTransient(t *testing.T) {
 	// Make sure all the operations work even if the cache has no
 	// transient capacity.
 
-	if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
-		t.Errorf("Got error on Put for block %s: %v", id, err)
-	}
+	err := bcache.Put(ptr, tlf, block, TransientEntry)
+	require.NoError(t, err)
 
-	_, err := bcache.Get(ptr)
-	if _, ok := err.(NoSuchBlockError); !ok {
-		t.Errorf("Got unexpected error %v", err)
-	}
+	_, err = bcache.Get(ptr)
+	require.EqualError(t, err, NoSuchBlockError{ptr.ID}.Error())
 
 	err = bcache.DeletePermanent(id)
-	if err != nil {
-		t.Errorf("Got unexpected error %v", err)
-	}
+	require.NoError(t, err)
 
 	_, err = bcache.CheckForKnownPtr(tlf, block.(*FileBlock))
-	if err != nil {
-		t.Errorf("Got unexpected error %v", err)
-	}
+	require.NoError(t, err)
 }
 
-func TestBcacheEvictOnBytes(t *testing.T) {
+func TestBlockCacheEvictOnBytes(t *testing.T) {
 	ctx := context.Background()
 	// Make a cache that can only handle 5 bytes
-	config := blockCacheTestInit(t, 1000, 5)
+	config := blockCacheTestBlockCacheInit(t, 1000, 5)
 	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
@@ -266,9 +231,8 @@ func TestBcacheEvictOnBytes(t *testing.T) {
 		id := kbfsblock.FakeID(i)
 		ptr := BlockPointer{ID: id}
 
-		if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
-			t.Errorf("Got error on Put for block %s: %v", id, err)
-		}
+		err := bcache.Put(ptr, tlf, block, TransientEntry)
+		require.NoError(t, err)
 	}
 
 	// Only blocks 3 through 7 should be left
@@ -279,16 +243,15 @@ func TestBcacheEvictOnBytes(t *testing.T) {
 
 	for i := byte(3); i < 8; i++ {
 		id := kbfsblock.FakeID(i)
-		if _, err := bcache.Get(BlockPointer{ID: id}); err != nil {
-			t.Errorf("Got unexpected error on get: %v", err)
-		}
+		_, err := bcache.Get(BlockPointer{ID: id})
+		require.NoError(t, err)
 	}
 }
 
-func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
+func TestBlockCacheEvictIncludesPermanentSize(t *testing.T) {
 	ctx := context.Background()
 	// Make a cache that can only handle 5 bytes
-	config := blockCacheTestInit(t, 1000, 5)
+	config := blockCacheTestBlockCacheInit(t, 1000, 5)
 	defer config.Shutdown(ctx)
 
 	bcache := config.BlockCache()
@@ -299,9 +262,8 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 	block := &FileBlock{
 		Contents: make([]byte, 2),
 	}
-	if err := bcache.Put(ptr, tlf, block, PermanentEntry); err != nil {
-		t.Errorf("Got error on Put for block %s: %v", idPerm, err)
-	}
+	err := bcache.Put(ptr, tlf, block, PermanentEntry)
+	require.NoError(t, err)
 
 	for i := byte(1); i < 8; i++ {
 		block := &FileBlock{
@@ -310,15 +272,13 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 		id := kbfsblock.FakeID(i)
 		ptr := BlockPointer{ID: id}
 
-		if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
-			t.Errorf("Got error on Put for block %s: %v", id, err)
-		}
+		err := bcache.Put(ptr, tlf, block, TransientEntry)
+		require.NoError(t, err)
 	}
 
 	// The permanent block shouldn't be evicted
-	if _, err := bcache.Get(BlockPointer{ID: idPerm}); err != nil {
-		t.Errorf("Got unexpected error on get: %v", err)
-	}
+	_, err = bcache.Get(BlockPointer{ID: idPerm})
+	require.NoError(t, err)
 
 	// Only transient blocks 5 through 7 should be left
 	for i := byte(1); i < 5; i++ {
@@ -328,9 +288,8 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 
 	for i := byte(5); i < 8; i++ {
 		id := kbfsblock.FakeID(i)
-		if _, err := bcache.Get(BlockPointer{ID: id}); err != nil {
-			t.Errorf("Got unexpected error on get: %v", err)
-		}
+		_, err := bcache.Get(BlockPointer{ID: id})
+		require.NoError(t, err)
 	}
 
 	// Try putting in a block that's too big
@@ -340,14 +299,12 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 	block.SetEncodedSize(7)
 	id := kbfsblock.FakeID(8)
 	ptr = BlockPointer{ID: id}
-	if err, isCacheFullError := bcache.Put(ptr, tlf, block, TransientEntry).(cachePutCacheFullError); !isCacheFullError {
-		t.Errorf("Got wrong unexpected on Put for block %s: %v", id, err)
-	}
+	err = bcache.Put(ptr, tlf, block, TransientEntry)
+	require.EqualError(t, err, cachePutCacheFullError{ptr}.Error())
 
 	// All transient blocks should be gone (including the new one)
-	if _, err := bcache.Get(BlockPointer{ID: idPerm}); err != nil {
-		t.Errorf("Got unexpected error on Get: %v", err)
-	}
+	_, err = bcache.Get(BlockPointer{ID: idPerm})
+	require.NoError(t, err)
 
 	// Only transient blocks 5 through 7 should be left
 	for i := byte(1); i < 9; i++ {
@@ -362,21 +319,18 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 	block2 := &FileBlock{
 		Contents: make([]byte, 10),
 	}
-	if err := bcache.Put(ptr2, tlf, block2, PermanentEntry); err != nil {
-		t.Errorf("Got error on Put for block %s: %v", idPerm, err)
-	}
+	err = bcache.Put(ptr2, tlf, block2, PermanentEntry)
+	require.NoError(t, err)
 
-	if _, err := bcache.Get(BlockPointer{ID: idPerm}); err != nil {
-		t.Errorf("Got unexpected error on get: %v", err)
-	}
-	if _, err := bcache.Get(BlockPointer{ID: idPerm2}); err != nil {
-		t.Errorf("Got unexpected error on get: %v", err)
-	}
+	_, err = bcache.Get(BlockPointer{ID: idPerm})
+	require.NoError(t, err)
+	_, err = bcache.Get(BlockPointer{ID: idPerm2})
+	require.NoError(t, err)
 }
 
-func TestPutNoHashCalculation(t *testing.T) {
+func TestBlockCachePutNoHashCalculation(t *testing.T) {
 	ctx := context.Background()
-	config := blockCacheTestInit(t, 100, 1<<30)
+	config := blockCacheTestBlockCacheInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(ctx, t, config)
 	bcache := config.BlockCache()
 	ptr := BlockPointer{ID: kbfsblock.FakeID(1)}
@@ -387,17 +341,38 @@ func TestPutNoHashCalculation(t *testing.T) {
 	// this is an invalid hash; if Put() does not calculate hash, it should go
 	// into the cache
 	block.hash = &kbfshash.RawDefaultHash{}
-	if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
-		t.Errorf("Got error on Put for block %s: %v", ptr.ID, err)
-	}
+	err := bcache.Put(ptr, tlf, block, TransientEntry)
+	require.NoError(t, err)
 
 	// CheckForKnownPtr() calculates hash, which results in a valid hash at
 	// block.hash. If the block with invalid hash was put into cache, this should
 	// fail to find the block.
 	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
-	if err != nil {
-		t.Errorf("Unexpected error checking id: %v", err)
-	} else if checkedPtr == ptr {
-		t.Errorf("Put() is calculating hash")
-	}
+	require.NoError(t, err)
+	require.NotEqual(t, ptr, checkedPtr, "Put() is calculating hash")
+}
+
+func TestBlockCacheDoublePut(t *testing.T) {
+	ctx := context.Background()
+	config := blockCacheTestBlockCacheInit(t, 1, 1<<30)
+	defer CheckConfigAndShutdown(ctx, t, config)
+	cache := config.BlockCache().(*BlockCacheStandard)
+	id1 := kbfsblock.FakeID(1)
+	id2 := kbfsblock.FakeID(2)
+	block := makeFakeFileBlock(t, false)
+	bytes := uint64(len(block.Contents))
+
+	t.Log("Put a block into the cache. Check that the cache calculated its byte usage correctly.")
+	testBcachePutWithBlock(t, id1, cache, TransientEntry, block)
+	require.Equal(t, bytes, cache.cleanTotalBytes)
+
+	t.Log("Put the same block into the cache. Check that the cache's byte usage hasn't changed.")
+	testBcachePutWithBlock(t, id1, cache, TransientEntry, block)
+	require.Equal(t, bytes, cache.cleanTotalBytes)
+
+	t.Log("Put a new block into the cache, evicting the first one. Check that the byte usage is updated correctly.")
+	block = NewFileBlock().(*FileBlock)
+	bytes = uint64(len(block.Contents))
+	testBcachePutWithBlock(t, id2, cache, TransientEntry, block)
+	require.Equal(t, bytes, cache.cleanTotalBytes)
 }
