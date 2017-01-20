@@ -90,10 +90,23 @@ func (w *ChatMockWorld) GetConversationByID(convID chat1.ConversationID) *chat1.
 	return nil
 }
 
+type ByUsername []*FakeUser
+
+func (m ByUsername) Len() int      { return len(m) }
+func (m ByUsername) Swap(i, j int) { m[i], m[j] = m[j], m[i] }
+func (m ByUsername) Less(i, j int) bool {
+	res := strings.Compare(m[i].Username, m[j].Username)
+	if res < 0 {
+		return true
+	}
+	return false
+}
+
 func (w *ChatMockWorld) GetUsers() (res []*FakeUser) {
 	for _, v := range w.Users {
 		res = append(res, v)
 	}
+	sort.Sort(ByUsername(res))
 	return res
 }
 

@@ -23,7 +23,7 @@ func TestChatBackgroundIdentify(t *testing.T) {
 
 	u := world.GetUsers()[0]
 	u1 := world.GetUsers()[1]
-	tc := userTc(t, world, u)
+	tc := world.Tcs[u.Username]
 
 	inbox := storage.NewInbox(tc.G, u.User.GetUID().ToBytes(), func() libkb.SecretUI {
 		return &libkb.TestSecretUI{}

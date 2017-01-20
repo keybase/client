@@ -71,14 +71,14 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	}
 }
 
-func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) kbtest.ChatTestContext {
+func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *kbtest.ChatTestContext {
 	for _, u := range world.Users {
 		if u.Username == user.Username {
-			return *world.Tcs[u.Username]
+			return world.Tcs[u.Username]
 		}
 	}
 	require.Fail(t, "not user found")
-	return kbtest.ChatTestContext{}
+	return &kbtest.ChatTestContext{}
 }
 
 func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI) {
