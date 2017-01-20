@@ -132,9 +132,6 @@ func (c *CmdPassphraseRecover) Run() error {
 }
 
 func (c *CmdPassphraseRecover) loginWithPaperKey(ctx context.Context) error {
-	// TODO take this comment out.
-	// This way of doing things leaves you logged in but locked.
-
 	client, err := GetLoginClient(c.G())
 	if err != nil {
 		return err

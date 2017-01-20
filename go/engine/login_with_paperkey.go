@@ -12,9 +12,8 @@ type LoginWithPaperKey struct {
 	libkb.Contextified
 }
 
-// NewLoginWithPaperKey creates a LoginWithPaperKey engine.  username is optional.
-// deviceType should be libkb.DeviceTypeDesktop or
-// libkb.DeviceTypeMobile.
+// NewLoginWithPaperKey creates a LoginWithPaperKey engine.
+// Uses the paperkey to log in and unlock LKS.
 func NewLoginWithPaperKey(g *libkb.GlobalContext) *LoginWithPaperKey {
 	return &LoginWithPaperKey{
 		Contextified: libkb.NewContextified(g),
@@ -48,8 +47,57 @@ func (e *LoginWithPaperKey) Run(ctx *Context) error {
 		return err
 	}
 
+	// Prompts for a paper key.
 	kp, err := findPaperKeys(ctx, e.G(), me)
+	if err != nil {
+		return err
+	}
 
-	err = e.G().LoginState().LoginWithKey(ctx.LoginContext, me, kp.sigKey, nil)
+	// TODO remove me.
+	// err = e.G().LoginState().LoginWithKey(ctx.LoginContext, me, kp.sigKey, nil)
+	// if err != nil {
+	// 	return err
+	// }
+
+	err = e.G().LoginState().LoginWithKey(ctx.LoginContext, me, kp.sigKey, func(lctx libkb.LoginContext) error {
+		ctx.LoginContext = lctx
+		gen, clientLKS, err := fetchLKS(ctx, e.G(), kp.encKey)
+		_ = gen
+		_ = clientLKS
+		if err != nil {
+			return err
+		}
+
+		// e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.arg.User.GetUID(), e.G())
+
+		// saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), e.lks)
+
+		err = e.unlockDeviceKeys(ctx, me)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	return err
+}
+
+func (e *LoginWithPaperKey) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
+
+	ska := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceSigningKeyType,
+	}
+	_, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	if err != nil {
+		return err
+	}
+	ska.KeyType = libkb.DeviceEncryptionKeyType
+	_, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
