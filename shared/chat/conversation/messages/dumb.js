@@ -398,14 +398,14 @@ const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
       ...baseAttachmentPopupMock({
         ...attachmentMessageMock('sent', 'cecileb', 'cecileb'),
         title: 'Pacific',
-        downloadedPath: require('../../../images/mock/coast-wide.jpg'),
+        hdPreviewPath: require('../../../images/mock/coast-wide.jpg'),
       }),
     },
     'You - Small Image': {
       ...baseAttachmentPopupMock({
         ...attachmentMessageMock('sent', 'cecileb', 'cecileb'),
         title: 'Washington',
-        downloadedPath: require('../../../images/mock/washington-small.jpg'),
+        hdPreviewPath: require('../../../images/mock/washington-small.jpg'),
       }),
     },
     'You - Zoomed': {
