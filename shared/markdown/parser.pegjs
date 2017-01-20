@@ -1,25 +1,25 @@
 {
 	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
-    function convertLink (text) {
-      const matches = text.match(linkExp)
-      if (matches) {
-        const match = matches[0]
-        const rest = text.substring(match.length)
-        if (rest) {
-	        return {
-            	type: 'text',
-                children: [
-	                {type: 'link', children: [match]},
-                    rest
-                ]
-    	    }
-        } else {
-	        return {type: 'link', children: [match]}
-        }
-      } else {
-        return text
-      }
-    }
+	function convertLink (text) {
+		const matches = text.match(linkExp)
+		if (matches) {
+			const match = matches[0]
+			const rest = text.substring(match.length)
+			if (rest) {
+				return {
+					type: 'text',
+					children: [
+						{type: 'link', children: [match]},
+						rest
+					]
+				}
+			} else {
+				return {type: 'link', children: [match]}
+			}
+		} else {
+			return text
+		}
+	}
 }
 
 start
@@ -58,7 +58,7 @@ FromQuote
 
 // Define what text inside a style looks like. Usually everything but the end marker
 InsideBoldMarker
- = ((! BoldMarker) .) { return text(); }
+ = (! BoldMarker .) { return text(); }
 
 InsideItalicMarker
  = ((! ItalicMarker) .) { return text(); }
