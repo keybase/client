@@ -217,7 +217,7 @@ func TestNonblockTimer(t *testing.T) {
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
-		obid, err := outbox.PushMessage(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		obr, err := outbox.PushMessage(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
@@ -227,6 +227,7 @@ func TestNonblockTimer(t *testing.T) {
 				},
 			},
 		}, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		obid := obr.OutboxID
 		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
 		require.NoError(t, err)
 		sentRef = append(sentRef, sentRecord{outboxID: &obid})
