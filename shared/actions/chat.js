@@ -145,8 +145,8 @@ function retryMessage (outboxIDKey: string): RetryMessage {
   return {type: 'chat:retryMessage', payload: {outboxIDKey}}
 }
 
-function loadInbox (conversationIDKey: ?ConversationIDKey): LoadInbox {
-  return {payload: {conversationIDKey}, type: 'chat:loadInbox'}
+function loadInbox (newConversationIDKey: ?ConversationIDKey): LoadInbox {
+  return {payload: {newConversationIDKey}, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
@@ -179,7 +179,7 @@ function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boo
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
 }
 
-function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData, youCreatedConversationIDKey: ?ConversationIDKey): ?InboxState {
+function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): ?InboxState {
   if (!convo || !convo.info || !convo.info.id) {
     return null
   }
@@ -204,7 +204,6 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
     time: convo.readerInfo.mtime,
     snippet,
     unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid,
-    youCreated: youCreatedConversationIDKey === conversationIDKey,
     validated: true,
   })
 }
@@ -637,7 +636,10 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData, action.payload.conversationIDKey)
+      let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
+      if (conversation && action.payload.newConversationIDKey) {
+        conversation = conversation.set('youCreated', true)
+      }
       if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
         yield put({type: 'chat:updateInbox', payload: {conversation}})
       }
