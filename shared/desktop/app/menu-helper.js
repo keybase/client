@@ -100,12 +100,11 @@ export function setupContextMenu (window: any) {
   ])
 
   window.webContents.on('context-menu', (e, props) => {
-    const { selectionText, isEditable } = props;
+    const {selectionText, isEditable} = props
     if (isEditable) {
-      inputMenu.popup(window);
+      inputMenu.popup(window)
     } else if (selectionText && selectionText.trim() !== '') {
-      selectionMenu.popup(window);
+      selectionMenu.popup(window)
     }
   })
-
 }
