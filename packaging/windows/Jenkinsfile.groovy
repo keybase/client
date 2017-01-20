@@ -59,7 +59,7 @@ def doBuild() {
         path
     '''
     stage('Wait for CI') {
-        if (UpdateChannel == "Smoke"){
+        if (UpdateChannel == "SmokeCI"){
             def clientCommit = getCommit('src\\github.com\\keybase\\client')
             def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
             withCredentials([[
@@ -74,7 +74,7 @@ def doBuild() {
                 }
             }
         } else {
-            echo "Non Smoke build"
+            echo "Non CI build"
         }
     }                
     stage('Build Client') {
