@@ -80,6 +80,20 @@ class Conversation extends Component<void, Props, State> {
     this._onClickEmoji()
   }
 
+  _onKeyDown = e => {
+    if (e.metaKey && e.key === 'k') {
+      this.props.onQuickSearch(true)
+    }
+  }
+
+  _onEnterKeyDown = e => {
+    e.preventDefault()
+    if (this.state.text) {
+      this.props.onPostMessage(this.state.text)
+      this.setState({text: ''})
+    }
+  }
+
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
@@ -97,13 +111,8 @@ class Conversation extends Component<void, Props, State> {
             multiline={true}
             rowsMin={1}
             rowsMax={5}
-            onEnterKeyDown={(e) => {
-              e.preventDefault()
-              if (this.state.text) {
-                this.props.onPostMessage(this.state.text)
-                this.setState({text: ''})
-              }
-            }}
+            onKeyDown={this._onKeyDown}
+            onEnterKeyDown={this._onEnterKeyDown}
           />
           {this.state.emojiPickerOpen && (
             <Box>

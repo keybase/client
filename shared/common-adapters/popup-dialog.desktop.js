@@ -10,8 +10,14 @@ function stopBubbling (ev) {
 }
 
 export function PopupDialog ({children, onClose, fill}: Props) {
+  const onKeyDown = e => {
+    if (e.charCode === 27 && onClose) {
+      onClose()
+    }
+  }
+
   return (
-    <Box style={styleCover} onClick={onClose}>
+    <Box style={styleCover} onClick={onClose} onKeyDown={onKeyDown}>
       <Box style={{...styleContainer, ...(fill ? styleContainerFill : null)}}>
         <Icon type='iconfont-close' style={styleClose} />
         <Box style={styleClipContainer} onClick={stopBubbling}>

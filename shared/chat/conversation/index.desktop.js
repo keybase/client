@@ -56,6 +56,7 @@ const Conversation = (props: Props) => {
         onAttach={props.onAttach}
         onPostMessage={props.onPostMessage}
         selectedConversation={props.selectedConversation}
+        onQuickSearch={props.onQuickSearch}
       />
     </Box>
   )

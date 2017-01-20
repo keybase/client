@@ -7,6 +7,7 @@ import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment, retryAttachment} from '../../actions/chat'
+import {navigateAppend} from '../../actions/route-tree'
 import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
@@ -15,8 +16,9 @@ import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
 import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType, OpenAttachmentPopup} from '../../constants/chat'
 import type {Props} from '.'
+import type {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = {}
+type OwnProps = RouteProps<{}, {}>
 type State = {
   listScrollDownCounter: number, // count goes up when this mutates, causing the list to scroll down
   sidePanelOpen: boolean,
@@ -68,9 +70,10 @@ class ConversationContainer extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state: TypedState, {routePath}) => {
+  (state: TypedState, {routePath, routeState}) => {
     const selectedConversation = routePath.last()
 
+    const {showingQuickSearch} = routeState
     const you = state.config.username || ''
     const followingMap = state.config.following
 
@@ -93,6 +96,7 @@ export default connect(
           moreToLoad: conversationState.moreToLoad,
           participants,
           selectedConversation,
+          showingQuickSearch,
           validated: selected && selected.validated,
           you,
         }
@@ -108,6 +112,7 @@ export default connect(
       moreToLoad: false,
       participants: List(),
       selectedConversation,
+      showingQuickSearch,
       validated: false,
       you,
     }
@@ -127,6 +132,7 @@ export default connect(
     onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
+    onQuickSearch: () => dispatch(navigateAppend([{props: {}, selected: 'quickSearch'}])),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const brokenUsers = getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
@@ -148,6 +154,7 @@ export default connect(
       onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
       onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
+      // onQuickSearch: (show: boolean) => ownProps.setRouteState({showingQuickSearch: show}),
     }
   },
 )(ConversationContainer)

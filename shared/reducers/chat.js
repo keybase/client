@@ -364,6 +364,8 @@ function reducer (state: State = initialState, action: Actions) {
       })
 
       return state.set('metaData', metaData)
+    case 'chat:ShowQuickSearch':
+      return state.set('showingQuickSearch', action.payload.show)
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
   }

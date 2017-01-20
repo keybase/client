@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
+import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters'
 import {AttachmentPopupMenu} from '../messages/popup'
 import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon} from '../messages/attachment'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
