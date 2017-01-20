@@ -18,7 +18,7 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {downloadFilePath, tmpFile} from '../util/file'
+import {downloadFilePath, tmpFile, copy} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
@@ -106,7 +106,8 @@ const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
 const _focusedSelector = (state: TypedState) => state.chat.get('focused')
 const _conversationStateSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
+const _messageSelector = (state: TypedState, conversationIDKey: ConversationIDKey, messageID: MessageID) => _conversationStateSelector(state, conversationIDKey).get('messages').find(m => m.messageID === messageID)
+const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => _conversationStateSelector(state, conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
 const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
@@ -171,8 +172,8 @@ function selectAttachment (conversationIDKey: ConversationIDKey, filename: strin
   return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type}}
 }
 
-function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, filename: string): Constants.LoadAttachment {
-  return {type: 'chat:loadAttachment', payload: {conversationIDKey, messageID, loadPreview, filename}}
+function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, isHdPreview: boolean, filename: string): Constants.LoadAttachment {
+  return {type: 'chat:loadAttachment', payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
@@ -551,7 +552,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           })
 
           if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
-            yield put(loadAttachment(conversationIDKey, message.messageID, true, tmpFile(message.filename)))
+            yield put(loadAttachment(conversationIDKey, message.messageID, true, false, tmpFile('preview-' + message.filename)))
           }
         }
       }
@@ -744,7 +745,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   // Load previews for attachments
   const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
   // $FlowIssue we check for messageID existance above
-  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, tmpFile(filename)))).toArray()
+  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile('preview-' + filename)))).toArray()
 }
 
 function _threadToPagination (thread) {
@@ -1160,8 +1161,38 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
   }
 }
 
+// Instead of redownloading the full attachment again, we may have it cached from an earlier hdPreview
+// returns cached filepath
+function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any> {
+  try {
+    const message = yield select(_messageSelector, conversationIDKey, messageID)
+    if (message.hdPreviewPath) {
+      return message.hdPreviewPath
+    }
+  } catch (e) {
+    console.warn('error in checking cached file', e)
+    return
+  }
+}
+
 // TODO load previews too
-function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
+function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
+  // If we are loading the actual attachment,
+  // let's see if we've already downloaded it as an hdPreview
+  if (!loadPreview && !isHdPreview) {
+    const cachedPath = yield call(_isCached, conversationIDKey, messageID)
+
+    if (cachedPath) {
+      copy(cachedPath, filename)
+      const action: Constants.AttachmentLoaded = {
+        type: 'chat:attachmentLoaded',
+        payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
+      }
+      yield put(action)
+      return
+    }
+  }
+
   const param = {
     conversationID: keyToConversationID(conversationIDKey),
     messageID,
@@ -1203,7 +1234,7 @@ function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview
 
   const action: Constants.AttachmentLoaded = {
     type: 'chat:attachmentLoaded',
-    payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview},
+    payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
   }
   yield put(action)
 }
@@ -1245,8 +1276,8 @@ function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any
   }
 
   yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
-  if (!message.downloadedPath) {
-    yield put(loadAttachment(message.conversationIDKey, messageID, false, downloadFilePath(message.filename)))
+  if (!message.hdPreviewPath) {
+    yield put(loadAttachment(message.conversationIDKey, messageID, false, true, tmpFile(message.filename)))
   }
 }
 

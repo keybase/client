@@ -2,6 +2,7 @@
 
 declare function tmpFile (suffix: string): string;
 declare function downloadFilePath (filename: string): string;
+declare function copy (from: string, to: string);
 
 export {
   downloadFilePath,

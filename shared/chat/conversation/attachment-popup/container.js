@@ -77,7 +77,7 @@ export default compose(
         ...stateProps,
         ...dispatchProps,
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
-        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.downloadedPath),
+        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.hdPreviewPath),
       }
     },
   ),

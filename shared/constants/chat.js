@@ -83,6 +83,7 @@ export type AttachmentMessage = {
   previewType: ?AttachmentType,
   previewPath: ?string,
   previewSize: ?AttachmentSize,
+  hdPreviewPath: ?string,
   downloadedPath: ?string,
   outboxID?: OutboxIDKey,
   progress?: number, /* between 0 - 1 */
@@ -244,12 +245,14 @@ export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,
   loadPreview: boolean,
+  isHdPreview: boolean,
   filename: string,
 }>
 export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,
   isPreview: boolean,
+  isHdPreview: boolean,
   path: string,
 }>
 export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
