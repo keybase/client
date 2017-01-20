@@ -86,6 +86,36 @@ const {
 
 const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers} = Constants
 
+// Whitelisted action loggers
+const loadedInboxActionTransformer = action => ({
+  payload: {
+    inbox: action.payload.inbox.map(i => {
+      const {
+        conversationIDKey,
+        muted,
+        time,
+        unreadCount,
+        validated,
+        participants,
+        info,
+      } = i
+
+      return {
+        conversationIDKey,
+        info: {
+          status: info && info.status,
+        },
+        muted,
+        participantsCount: participants.count(),
+        time,
+        unreadCount,
+        validated,
+      }
+    }),
+  },
+  type: action.type,
+})
+
 const _selectedSelector = (state: TypedState) => {
   const chatPath = getPath(state.routeTree.routeState, [chatTab])
   if (chatPath.get(0) !== chatTab) {
@@ -622,7 +652,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   const following = yield select(followingSelector)
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
-  yield put({type: 'chat:loadedInbox', payload: {inbox: conversations}})
+  yield put({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer})
   chatInboxUnverified.response.result()
 
   // +1 for the finish call
