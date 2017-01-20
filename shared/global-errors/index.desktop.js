@@ -91,7 +91,7 @@ class GlobalError extends Component<void, Props, State> {
     return (
       <Box style={{...containerOverlayStyle}}>
         <Box style={{...overlayRowStyle}}>
-          <Text type='BodyBig' style={{color: globalColors.white, textAlign: 'center'}}>{message}</Text>
+          <Text type='BodySemibold' style={{color: globalColors.white, textAlign: 'center'}}>{message}</Text>
         </Box>
         <Box style={{...overlayFillStyle}}>
           <Icon type='icon-loader-connecting-112' />

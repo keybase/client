@@ -59,6 +59,19 @@ class ConversationList extends Component<void, Props, State> {
     })
     this._toRemeasure = []
     this._shouldForceUpdateGrid = false
+
+    this._setupDebug()
+  }
+
+  _setupDebug () {
+    if (__DEV__ && typeof window !== 'undefined') {
+      window.dumpChat = (...columns) => {
+        console.table(this.state.messages.toJS().map(m => ({
+          ...m,
+          decoded: m.message && m.message.stringValue(),
+        })), columns.length && columns)
+      }
+    }
   }
 
   _indexToID = index => {
@@ -277,7 +290,7 @@ class ConversationList extends Component<void, Props, State> {
     if (index === 0) {
       return (
         <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
-          <Icon type='icon-secured-266' />
+          {!this.props.moreToLoad && <Icon type='icon-secured-266' />}
         </div>
       )
     } else if (index === 1) {
