@@ -1490,6 +1490,18 @@ export function loginLoginRpcPromise (request: $Exact<requestCommon & requestErr
   return new Promise((resolve, reject) => { loginLoginRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function loginLoginWithPaperKeyRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.login.loginWithPaperKey'})
+}
+
+export function loginLoginWithPaperKeyRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => loginLoginWithPaperKeyRpc({...request, incomingCallMap, callback}))
+}
+
+export function loginLoginWithPaperKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLoginWithPaperKeyRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginLogoutRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'keybase.1.login.logout'})
 }
@@ -5531,6 +5543,7 @@ export type rpc =
   | loginDeprovisionRpc
   | loginGetConfiguredAccountsRpc
   | loginLoginRpc
+  | loginLoginWithPaperKeyRpc
   | loginLogoutRpc
   | loginPaperKeyRpc
   | loginPaperKeySubmitRpc

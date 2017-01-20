@@ -24,6 +24,10 @@ type LoginArg struct {
 	ClientType      ClientType `codec:"clientType" json:"clientType"`
 }
 
+type LoginWithPaperKeyArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ClearStoredSecretArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
@@ -86,6 +90,7 @@ type LoginInterface interface {
 	// will be attempted.  If the device is already provisioned, login
 	// via email address does not work.
 	Login(context.Context, LoginArg) error
+	LoginWithPaperKey(context.Context, int) error
 	// Removes any existing stored secret for the given username.
 	// loginWithStoredSecret(_, username) will fail after this is called.
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
@@ -140,6 +145,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						return
 					}
 					err = i.Login(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"loginWithPaperKey": {
+				MakeArg: func() interface{} {
+					ret := make([]LoginWithPaperKeyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoginWithPaperKeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoginWithPaperKeyArg)(nil), args)
+						return
+					}
+					err = i.LoginWithPaperKey(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -331,6 +352,12 @@ func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (
 // via email address does not work.
 func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.login", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) LoginWithPaperKey(ctx context.Context, sessionID int) (err error) {
+	__arg := LoginWithPaperKeyArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPaperKey", []interface{}{__arg}, nil)
 	return
 }
 
