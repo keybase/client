@@ -310,7 +310,7 @@ func resolveDbKey(key string) DbKey {
 
 func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
 	// Only cache immutable resolutions to disk
-	if res.mutable {
+	if res.mutable || res.err != nil {
 		return
 	}
 	r.Stats.diskPuts++
@@ -324,6 +324,9 @@ func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
 // to avoid caching data that can go stale, and stores the result.
 func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 	if r.cache == nil {
+		return
+	}
+	if res.err == nil {
 		return
 	}
 	res.cachedAt = r.NowFunc()
