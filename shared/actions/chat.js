@@ -758,7 +758,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
+  if (prevMessage == null || prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
