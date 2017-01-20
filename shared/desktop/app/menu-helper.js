@@ -84,19 +84,30 @@ export default function makeMenu (window: any) {
 }
 
 export function setupContextMenu (window: any) {
-  const InputMenu = Menu.buildFromTemplate([
-    {label: 'Undo', role: 'undo'},
-    {label: 'Redo', role: 'redo'},
+  const selectionMenu = Menu.buildFromTemplate([
+    {role: 'copy'},
     {type: 'separator'},
-    {label: 'Cut', role: 'cut'},
-    {label: 'Copy', role: 'copy'},
-    {label: 'Paste', role: 'paste'},
+    {role: 'selectall'},
+  ])
+
+  const inputMenu = Menu.buildFromTemplate([
+    {role: 'undo'},
+    {role: 'redo'},
     {type: 'separator'},
-    {label: 'Select all', role: 'selectall'},
+    {role: 'cut'},
+    {role: 'copy'},
+    {role: 'paste'},
+    {type: 'separator'},
+    {role: 'selectall'},
   ])
 
   window.webContents.on('context-menu', (e, props) => {
-    InputMenu.popup(window);
-  });
+    const { selectionText, isEditable } = props;
+    if (isEditable) {
+      inputMenu.popup(window);
+    } else if (selectionText && selectionText.trim() !== '') {
+      selectionMenu.popup(window);
+    }
+  })
 
 }
