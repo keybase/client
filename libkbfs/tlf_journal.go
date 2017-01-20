@@ -979,10 +979,7 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 			return err
 		}
 		if removedBytes > 0 {
-			availableBytes := j.diskLimiter.Release(removedBytes)
-			j.log.CDebugf(ctx,
-				"Released %d bytes for %s: available=%d",
-				removedBytes, j.tlfID, availableBytes)
+			j.diskLimiter.Release(removedBytes)
 		}
 		if nextLastToRemove == 0 {
 			break
@@ -1375,10 +1372,7 @@ func (j *tlfJournal) shutdown() {
 	// shut-down journals against the disk limit.
 	storedBytes := j.blockJournal.getStoredBytes()
 	if storedBytes > 0 {
-		availableBytes := j.diskLimiter.Release(storedBytes)
-		j.log.Debug(
-			"Released %d bytes for %s on shutdown: available=%d",
-			storedBytes, j.tlfID, availableBytes)
+		j.diskLimiter.Release(storedBytes)
 	}
 
 	// Make further accesses error out.
@@ -1487,7 +1481,6 @@ func (j *tlfJournal) putBlockData(
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	j.log.CDebugf(acquireCtx, "Acquiring %d bytes for %s", bufLen, j.tlfID)
 	availableBytes, err := j.diskLimiter.Acquire(acquireCtx, bufLen)
 	switch errors.Cause(err) {
 	case nil:
@@ -1499,13 +1492,9 @@ func (j *tlfJournal) putBlockData(
 	default:
 		return err
 	}
-	j.log.CDebugf(ctx, "Acquired %d bytes for %s: available=%d",
-		bufLen, j.tlfID, availableBytes)
 
 	defer func() {
 		if err != nil {
-			j.log.CDebugf(ctx, "Releasing %d bytes for %s due to error %+v",
-				bufLen, j.tlfID, err)
 			j.diskLimiter.Release(bufLen)
 		}
 	}()

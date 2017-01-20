@@ -323,8 +323,6 @@ func (j *blockJournal) remove(ctx context.Context, id kbfsblock.ID) (
 		return 0, err
 	}
 
-	j.log.CDebugf(ctx, "Removed %s for %d bytes", id, bytesToRemove)
-
 	return bytesToRemove, nil
 }
 
