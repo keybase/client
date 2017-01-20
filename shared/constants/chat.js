@@ -2,7 +2,6 @@
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-import {CommonMessageType} from './types/flow-types-chat'
 
 import * as ChatTypes from './types/flow-types-chat'
 import type {UserListItem} from '../common-adapters/usernames'
@@ -311,9 +310,9 @@ function makeSnippet (messageBody: ?MessageBody): ?string {
     return null
   }
   switch (messageBody.messageType) {
-    case CommonMessageType.text:
+    case ChatTypes.CommonMessageType.text:
       return textSnippet(messageBody.text && messageBody.text.body, 100)
-    case CommonMessageType.attachment:
+    case ChatTypes.CommonMessageType.attachment:
       return 'Attachment'
     default:
       return null
@@ -339,7 +338,7 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
   switch (message.type) {
     case 'Text':
       return {
-        messageType: CommonMessageType.text,
+        messageType: ChatTypes.CommonMessageType.text,
         text: {
           body: message.message.stringValue(),
         },
@@ -377,7 +376,6 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
     return clampAttachmentPreviewSize(metadata.video)
   }
 }
-
 
 export {
   getBrokenUsers,
