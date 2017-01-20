@@ -1,8 +1,15 @@
 {
 	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
+    // Instead of encoding all the bad cases into a more complicated regexp lets just add some simple code here
+    function goodLink (link) {
+        if (link.includes('..'))
+            return false
+        return true
+    }
+
 	function convertLink (text) {
 		const matches = text.match(linkExp)
-		if (matches) {
+		if (matches && goodLink(matches[0])) {
 			const match = matches[0]
 			const rest = text.substring(match.length)
 			if (rest) {
