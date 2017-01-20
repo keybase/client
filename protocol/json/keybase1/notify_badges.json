@@ -19,10 +19,6 @@
       "fields": [
         {
           "type": "int",
-          "name": "total"
-        },
-        {
-          "type": "int",
           "name": "newTlfs",
           "lint": "ignore"
         },
@@ -33,14 +29,6 @@
         {
           "type": "int",
           "name": "newFollowers"
-        },
-        {
-          "type": "int",
-          "name": "unreadChatMessages"
-        },
-        {
-          "type": "int",
-          "name": "unreadChatConversations"
         },
         {
           "type": {

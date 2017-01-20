@@ -91,8 +91,6 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 		}
 	}
 
-	b.updateCounts()
-
 	return nil
 }
 
@@ -106,7 +104,6 @@ func (b *BadgeState) UpdateWithChat(update chat1.UnreadUpdate, inboxVers chat1.I
 	}
 
 	b.updateWithChat(update)
-	b.updateCounts()
 }
 
 func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
@@ -129,7 +126,6 @@ func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
 	}
 
 	b.inboxVers = update.InboxVers
-	b.updateCounts()
 }
 
 func (b *BadgeState) Clear() {
@@ -143,19 +139,4 @@ func (b *BadgeState) updateWithChat(update chat1.UnreadUpdate) {
 		ConvID:         keybase1.ChatConversationID(update.ConvID),
 		UnreadMessages: update.UnreadMessages,
 	}
-}
-
-func (b *BadgeState) updateCounts() {
-	// Compute chat counts
-	b.state.UnreadChatMessages = 0
-	b.state.UnreadChatConversations = 0
-	for _, info := range b.chatUnreadMap {
-		if info.UnreadMessages > 0 {
-			b.state.UnreadChatConversations++
-		}
-		b.state.UnreadChatMessages += info.UnreadMessages
-	}
-
-	// Compute total badge count
-	b.state.Total = b.state.NewTlfs + b.state.RekeysNeeded + b.state.NewFollowers + b.state.UnreadChatConversations
 }
