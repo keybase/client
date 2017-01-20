@@ -99,12 +99,6 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 }
 
 func (c *chatTestContext) cleanup() {
-	for _, u := range c.users() {
-		deliverer := c.world.Tcs[u.Username].G.MessageDeliverer
-		if deliverer != nil {
-			deliverer.Stop(context.TODO())
-		}
-	}
 	c.world.Cleanup()
 }
 

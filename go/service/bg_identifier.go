@@ -95,7 +95,7 @@ func (b *BackgroundIdentifier) completedIdentifyJob(ij engine.IdentifyJob) {
 	// Let the chat system know about this identify change
 	chat.NewIdentifyChangedHandler(b.G(), func() keybase1.TlfInterface {
 		return newTlfHandler(nil, b.G())
-	}).HandleUserChanged(ij.UID())
+	}).BackgroundIdentifyChanged(ij)
 }
 
 func (b *BackgroundIdentifier) populateWithFollowees() (err error) {

@@ -4,10 +4,11 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type bgiUser struct {
@@ -61,6 +62,14 @@ type IdentifyJob struct {
 	uid       keybase1.UID
 	err       error // this error
 	lastError error // the error from the last run of the loop
+}
+
+func NewIdentifyJob(uid keybase1.UID, err, lastError error) IdentifyJob {
+	return IdentifyJob{
+		uid:       uid,
+		err:       err,
+		lastError: lastError,
+	}
 }
 
 func (ij IdentifyJob) ErrorChanged() bool {

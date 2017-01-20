@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -65,7 +66,12 @@ func NewIdentifyChangedHandler(g *libkb.GlobalContext, tlf func() keybase1.TlfIn
 
 var errNoConvForUser = errors.New("user not found in inbox")
 
-func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.UID) (string, error) {
+func (h *IdentifyChangedHandler) getUsername(ctx context.Context, uid keybase1.UID) (string, error) {
+	u, err := h.G().GetUPAKLoader().LookupUsername(ctx, uid)
+	return u.String(), err
+}
+
+func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.UID) (string, chat1.TLFID, error) {
 
 	me := h.G().Env.GetUID()
 	inbox := storage.NewInbox(h.G(), me.ToBytes(), func() libkb.SecretUI {
@@ -74,7 +80,7 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 
 	_, allConvs, err := inbox.ReadAll(ctx)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	for _, conv := range allConvs {
@@ -86,12 +92,59 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 				continue
 			}
 
-			return maxText.ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo), nil
+			return maxText.ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo),
+				conv.Metadata.IdTriple.Tlfid, nil
 		}
 	}
 
 	h.Debug(ctx, "no conversation found for update for uid: %s", uid)
-	return "", errNoConvForUser
+	return "", nil, errNoConvForUser
+}
+
+func (h *IdentifyChangedHandler) BackgroundIdentifyChanged(job engine.IdentifyJob) {
+	notifier := NewIdentifyNotifier(h.G())
+	ctx := context.Background()
+
+	// Get username
+	uid := job.UID()
+	username, err := h.getUsername(ctx, uid)
+	if err != nil {
+		h.Debug(ctx, "BackgroundIdentifyChanged: failed to load username: uid: %s err: %s", uid, err)
+		return
+	}
+
+	// Get TLF info out of inbox
+	tlfName, tlfID, err := h.getTLFtoCrypt(ctx, uid.ToBytes())
+	if err != nil {
+		if err != errNoConvForUser {
+			h.Debug(ctx, "BackgroundIdentifyChanged: error finding TLF name for update: err: %s",
+				err.Error())
+		}
+		return
+	}
+
+	// Form payload
+	h.Debug(ctx, "BackgroundIdentifyChanged: using TLF name: %s", tlfName)
+	notifyPayload := keybase1.CanonicalTLFNameAndIDWithBreaks{
+		TlfID:         keybase1.TLFID(tlfID.String()),
+		CanonicalName: keybase1.CanonicalTlfName(tlfName),
+	}
+	if job.ThisError() != nil {
+		// Handle error case by transmitting a break
+		idbreak := keybase1.TLFIdentifyFailure{
+			User: keybase1.User{
+				Uid:      uid,
+				Username: username,
+			},
+		}
+		notifyPayload.Breaks = keybase1.TLFBreak{
+			Breaks: []keybase1.TLFIdentifyFailure{idbreak},
+		}
+		h.Debug(ctx, "BackgroundIdentifyChanged: transmitting a break")
+	}
+
+	// Fire away!
+	notifier.Send(notifyPayload)
 }
 
 func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error) {
@@ -111,19 +164,21 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	ctx := Context(context.Background(), ident, &breaks, notifier)
 
 	// Find a TLF name from the local inbox that includes the user sent to us
-	tlfName, err := h.getTLFtoCrypt(ctx, uid.ToBytes())
+	tlfName, _, err := h.getTLFtoCrypt(ctx, uid.ToBytes())
 	if err != nil {
 		if err != errNoConvForUser {
-			h.Debug(ctx, "error finding TLF name for update: err: %s", err.Error())
+			h.Debug(ctx, "HandleUserChanged: error finding TLF name for update: err: %s", err.Error())
 			return err
 		}
+		return nil
 	}
-	h.Debug(ctx, "using TLF name: %s", tlfName)
+	h.Debug(ctx, "HandleUserChanged: using TLF name: %s", tlfName)
 
 	// Take this guy out of the cache, we want this to run fresh
 	if err = h.G().Identify2Cache.Delete(uid); err != nil {
 		// Charge through this error, probably doesn't matter
-		h.Debug(ctx, "unable to delete cache entry: uid: %s: err: %s", uid, err.Error())
+		h.Debug(ctx, "HandleUserChanged: unable to delete cache entry: uid: %s: err: %s", uid,
+			err.Error())
 	}
 
 	// Run against CryptKeys to generate notifications if necessary
@@ -132,7 +187,7 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 		IdentifyBehavior: ident,
 	})
 	if err != nil {
-		h.Debug(ctx, "failed to run CryptKeys: %s", err.Error())
+		h.Debug(ctx, "HandleUserChanged: failed to run CryptKeys: %s", err.Error())
 	}
 
 	return nil

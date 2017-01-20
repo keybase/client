@@ -480,6 +480,9 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 	i.Debug(ctx, "NewConversation: vers: %d convID: %s", vers, conv.GetConvID())
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
 		return err
 	}
 
@@ -569,6 +572,9 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	i.Debug(ctx, "NewMessage: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
 		return err
 	}
 
@@ -642,6 +648,9 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 	i.Debug(ctx, "ReadMessage: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
 		return err
 	}
 
@@ -680,6 +689,9 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
 		return err
 	}
 
@@ -717,6 +729,9 @@ func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs [
 	i.Debug(ctx, "TlfFinalize: vers: %d convIDs: %v finalizeInfo: %v", vers, convIDs, finalizeInfo)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
 		return err
 	}
 

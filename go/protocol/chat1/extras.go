@@ -304,7 +304,7 @@ func (c Conversation) GetMaxMessage(typ MessageType) (MessageBoxed, error) {
 
 func (c Conversation) Includes(uid gregor1.UID) bool {
 	for _, auid := range c.Metadata.ActiveList {
-		if bytes.Equal(auid.Bytes(), uid.Bytes()) {
+		if uid.Eq(auid) {
 			return true
 		}
 	}
