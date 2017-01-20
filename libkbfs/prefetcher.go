@@ -226,7 +226,7 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
 			p.prefetchDirectDirBlock(b, kmd)
 		}
 	default:
-		p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of unknown type %T", b)
+		// Skipping prefetch for block of unknown type (likely CommonBlock)
 	}
 }
 
