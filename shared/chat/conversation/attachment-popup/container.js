@@ -62,6 +62,7 @@ export default compose(
             conversationIDKey: message.conversationIDKey,
             filename: downloadFilePath(message.filename),
             loadPreview: false,
+            isHdPreview: false,
             messageID,
           },
         }: LoadAttachment))
@@ -77,7 +78,7 @@ export default compose(
         ...stateProps,
         ...dispatchProps,
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
-        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.hdPreviewPath),
+        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.downloadedPath),
       }
     },
   ),

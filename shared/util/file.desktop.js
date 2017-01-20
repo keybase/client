@@ -6,7 +6,7 @@ import fs from 'fs'
 import fsExtra from 'fs-extra'
 
 function tmpFile (suffix: string): string {
-  return _findAvailableFilename(path.join(os.tmpdir(), suffix))
+  return path.join(os.tmpdir(), suffix)
 }
 
 // TODO make this a user setting
@@ -14,6 +14,10 @@ const downloadFolder = path.join(os.homedir(), 'Downloads')
 
 function downloadFilePath (suffix: string): string {
   return _findAvailableFilename(path.join(downloadFolder, suffix))
+}
+
+function exists (filepath: string): boolean {
+  return fs.existsSync(filepath)
 }
 
 function _findAvailableFilename (filepath: string): string {
@@ -41,5 +45,6 @@ function copy (from: string, to: string) {
 export {
   copy,
   downloadFilePath,
+  exists,
   tmpFile,
 }

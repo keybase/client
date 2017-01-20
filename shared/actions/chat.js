@@ -18,7 +18,7 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {downloadFilePath, tmpFile, copy} from '../util/file'
+import {tmpFile, copy, exists} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
@@ -110,6 +110,10 @@ const _messageSelector = (state: TypedState, conversationIDKey: ConversationIDKe
 const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => _conversationStateSelector(state, conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
 const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
+
+function _tmpFileName (isHdPreview: boolean, messageID: ?MessageID, filename: string) {
+  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${messageID || ''}-${filename}`
+}
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: 'chat:updateBadging', payload: {conversationIDKey}}
@@ -552,7 +556,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           })
 
           if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
-            yield put(loadAttachment(conversationIDKey, message.messageID, true, false, tmpFile('preview-' + message.filename)))
+            yield put(loadAttachment(conversationIDKey, message.messageID, true, false, tmpFile(_tmpFileName(false, message.messageID, message.filename))))
           }
         }
       }
@@ -745,7 +749,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   // Load previews for attachments
   const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
   // $FlowIssue we check for messageID existance above
-  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile('preview-' + filename)))).toArray()
+  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile(_tmpFileName(false, messageID, filename))))).toArray()
 }
 
 function _threadToPagination (thread) {
@@ -863,6 +867,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
             messageState: 'sent',
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
+            hdPreviewPath: null,
             previewSize,
             downloadedPath: null,
             key: common.messageID,
@@ -1177,6 +1182,18 @@ function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any
 
 // TODO load previews too
 function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
+  // See if we already have this image cached
+  if (loadPreview || isHdPreview) {
+    if (exists(filename)) {
+      const action: Constants.AttachmentLoaded = {
+        type: 'chat:attachmentLoaded',
+        payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
+      }
+      yield put(action)
+      return
+    }
+  }
+
   // If we are loading the actual attachment,
   // let's see if we've already downloaded it as an hdPreview
   if (!loadPreview && !isHdPreview) {
@@ -1277,7 +1294,7 @@ function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any
 
   yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
   if (!message.hdPreviewPath) {
-    yield put(loadAttachment(message.conversationIDKey, messageID, false, true, tmpFile(message.filename)))
+    yield put(loadAttachment(message.conversationIDKey, messageID, false, true, tmpFile(_tmpFileName(true, message.messageID, message.filename))))
   }
 }
 

@@ -96,7 +96,7 @@ function ImageIcon ({type, style}: ImageIconProps) {
 }
 
 function ShowInFileUi ({downloadedPath, onOpenInFileUI}) {
-  return <Text type='BodySmallSecondaryLink' style={!downloadedPath ? {visibility: 'hidden'} : {}} onClick={() => onOpenInFileUI(downloadedPath)}>
+  return <Text type='BodySmallSecondaryLink' style={!downloadedPath ? {visibility: 'hidden'} : {}} onClick={() => { !!downloadedPath && onOpenInFileUI(downloadedPath) }}>
     Show in {fileUIName}
   </Text>
 }
