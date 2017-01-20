@@ -1,16 +1,21 @@
 {
-	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/, 'gi')
-    const linkSuffixExclaimations = ['.', '?']
+	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
     function convertLink (text) {
       const matches = text.match(linkExp)
       if (matches) {
         const match = matches[0]
-        const lastChar = match[match.length - 1]
-        // strip exclaimation at end
-        if (linkSuffixExclaimations.indexOf(lastChar) !== -1) {
-	        return {type: 'link', children: [match.substring(0, match.length - 1)]}
+        const rest = text.substring(match.length)
+        if (rest) {
+	        return {
+            	type: 'text',
+                children: [
+	                {type: 'link', children: [match]},
+                    rest
+                ]
+    	    }
+        } else {
+	        return {type: 'link', children: [match]}
         }
-    	return {type: 'link', children: [match]}
       } else {
         return text
       }
