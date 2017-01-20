@@ -86,8 +86,6 @@ export default function makeMenu (window: any) {
 export function setupContextMenu (window: any) {
   const selectionMenu = Menu.buildFromTemplate([
     {role: 'copy'},
-    {type: 'separator'},
-    {role: 'selectall'},
   ])
 
   const inputMenu = Menu.buildFromTemplate([
