@@ -719,7 +719,7 @@ func TestGetOutbox(t *testing.T) {
 	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
 	outbox := storage.NewOutbox(tc.G, users[0].User.GetUID().ToBytes(), h.getSecretUI)
 
-	obid, err := outbox.PushMessage(context.TODO(), created.Id, chat1.MessagePlaintext{
+	obr, err := outbox.PushMessage(context.TODO(), created.Id, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
@@ -738,7 +738,7 @@ func TestGetOutbox(t *testing.T) {
 
 	routbox := extractOutbox(t, thread.Thread.Messages)
 	require.Equal(t, 1, len(routbox), "wrong size outbox")
-	require.Equal(t, obid, routbox[0].Outbox().OutboxID, "wrong outbox ID")
+	require.Equal(t, obr.OutboxID, routbox[0].Outbox().OutboxID, "wrong outbox ID")
 
 	thread, err = h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created2.Id,

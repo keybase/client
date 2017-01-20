@@ -1,5 +1,29 @@
+{
+	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
+	function convertLink (text) {
+		const matches = text.match(linkExp)
+		if (matches) {
+			const match = matches[0]
+			const rest = text.substring(match.length)
+			if (rest) {
+				return {
+					type: 'text',
+					children: [
+						{type: 'link', children: [match]},
+						rest
+					]
+				}
+			} else {
+				return {type: 'link', children: [match]}
+			}
+		} else {
+			return text
+		}
+	}
+}
+
 start
- = children:(Blank / Code / Content / Blank)* { return {type: 'text', children: children}; }
+ = children:(Blank / Code / Content / Blank)* { return {type: 'text', children}; }
 
 Code = CodeBlock / InlineCode
 
@@ -60,16 +84,16 @@ InsideEmojiTone
 
 // Define the rules for styles. Usually a start marker, children, and an end marker.
 QuoteBlock
- = QuoteBlockMarker _? children:FromQuote* LineTerminatorSequence { return {type: 'quote-block', children: children}; }
+ = QuoteBlockMarker _? children:FromQuote* LineTerminatorSequence { return {type: 'quote-block', children}; }
 
 Bold
- = BoldMarker children:FromBold* BoldMarker { return {type: 'bold', children: children}; }
+ = BoldMarker children:FromBold* BoldMarker { return {type: 'bold', children}; }
 
 Italic
- = ItalicMarker children:FromItalic* ItalicMarker { return {type: 'italic', children: children}; }
+ = ItalicMarker children:FromItalic* ItalicMarker { return {type: 'italic', children}; }
 
 Strike
- = StrikeMarker children:FromStrike* StrikeMarker { return {type: 'strike', children: children}; }
+ = StrikeMarker children:FromStrike* StrikeMarker { return {type: 'strike', children}; }
 
 CodeBlock
  = Ticks3 children:InsideCodeBlock* Ticks3 { return {type: 'code-block', children}; }
@@ -81,7 +105,9 @@ Emoji
  = EmojiMarker children:InsideEmojiMarker+ tone:InsideEmojiTone? ":" { return {type: 'emoji', children: [children.join('') + (tone || '')]}; }
 
 Text "text"
- = _? NonBlank+ _? { return text() }
+ = _? NonBlank+ _? {
+    return convertLink(text())
+ }
 
 // Useful helpers
 

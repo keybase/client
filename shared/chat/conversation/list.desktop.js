@@ -289,7 +289,7 @@ class ConversationList extends Component<void, Props, State> {
 
     if (index === 0) {
       return (
-        <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
+        <div key={key || index} style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
           {!this.props.moreToLoad && <Icon type='icon-secured-266' />}
         </div>
       )

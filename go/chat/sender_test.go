@@ -99,6 +99,7 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 		func() chat1.RemoteInterface { return ri }, f)
 	tc.G.NotifyRouter.SetListener(&listener)
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
+	tc.G.MessageDeliverer.(*Deliverer).SetClock(world.Fc)
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
@@ -216,7 +217,7 @@ func TestNonblockTimer(t *testing.T) {
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
-		obid, err := outbox.PushMessage(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		obr, err := outbox.PushMessage(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
@@ -226,6 +227,7 @@ func TestNonblockTimer(t *testing.T) {
 				},
 			},
 		}, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		obid := obr.OutboxID
 		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
 		require.NoError(t, err)
 		sentRef = append(sentRef, sentRecord{outboxID: &obid})
@@ -343,10 +345,13 @@ func TestFailingSender(t *testing.T) {
 	}
 
 	var recvd []chat1.OutboxID
-	select {
-	case recvd = <-listener.failing:
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "event not received")
+	for i := 0; i < 5; i++ {
+		select {
+		case fid := <-listener.failing:
+			recvd = append(recvd, fid...)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "event not received")
+		}
 	}
 
 	require.Equal(t, len(obids), len(recvd), "invalid length")
@@ -355,7 +360,7 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	tc, ri, u, sender, baseSender, listener, _, _ := setupTest(t)
+	tc, ri, u, sender, baseSender, listener, _, cl := setupTest(t)
 	defer tc.Cleanup()
 
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
@@ -389,6 +394,7 @@ func TestDisconnectedFailure(t *testing.T) {
 		}, 0)
 		require.NoError(t, err)
 		obids = append(obids, obid)
+		cl.Advance(time.Millisecond)
 	}
 
 	var allrecvd []chat1.OutboxID
@@ -415,6 +421,7 @@ func TestDisconnectedFailure(t *testing.T) {
 			}
 			continue
 		case <-time.After(20 * time.Second):
+			require.Fail(t, "timeout in failing loop")
 			break
 		}
 		break
@@ -445,6 +452,7 @@ func TestDisconnectedFailure(t *testing.T) {
 			}
 			continue
 		case <-time.After(20 * time.Second):
+			require.Fail(t, "timeout in incoming loop")
 			break
 		}
 		break
