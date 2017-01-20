@@ -111,7 +111,7 @@ const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: Conversa
 const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
 
-function _tmpFileName (isHdPreview: boolean, messageID: ?MessageID, filename: string) {
+function _tmpFileName (isHdPreview: boolean, conversationID: ConversationIDKey, messageID: ?MessageID, filename: string) {
   return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${messageID || ''}-${filename}`
 }
 
@@ -556,7 +556,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           })
 
           if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
-            yield put(loadAttachment(conversationIDKey, message.messageID, true, false, tmpFile(_tmpFileName(false, message.messageID, message.filename))))
+            yield put(loadAttachment(conversationIDKey, message.messageID, true, false, tmpFile(_tmpFileName(false, message.conversationIDKey, message.messageID, message.filename))))
           }
         }
       }
@@ -749,7 +749,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   // Load previews for attachments
   const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
   // $FlowIssue we check for messageID existance above
-  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile(_tmpFileName(false, messageID, filename))))).toArray()
+  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile(_tmpFileName(false, conversationIDKey, messageID, filename))))).toArray()
 }
 
 function _threadToPagination (thread) {
@@ -1294,7 +1294,7 @@ function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any
 
   yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
   if (!message.hdPreviewPath) {
-    yield put(loadAttachment(message.conversationIDKey, messageID, false, true, tmpFile(_tmpFileName(true, message.messageID, message.filename))))
+    yield put(loadAttachment(message.conversationIDKey, messageID, false, true, tmpFile(_tmpFileName(true, message.conversationIDKey, message.messageID, message.filename))))
   }
 }
 
