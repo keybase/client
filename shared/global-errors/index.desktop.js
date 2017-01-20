@@ -87,7 +87,7 @@ class GlobalError extends Component<void, Props, State> {
       return null
     }
 
-    const message = this.props.daemonError ? "Keybase can't connect to the local service. Trying to reconnect you…" : 'Keybase is currently unreachable. Trying to reconnect you…'
+    const message = this.props.daemonError && this.props.daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
       <Box style={{...containerOverlayStyle}}>
         <Box style={{...overlayRowStyle}}>

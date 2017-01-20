@@ -8,7 +8,7 @@ import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/typ
 
 export type ConfigState = {
   globalError: ?Error,
-  daemonError: ?string,
+  daemonError: ?Error,
   status: ?GetCurrentStatusRes,
   config: ?Config,
   extendedConfig: ?ExtendedStatus,
