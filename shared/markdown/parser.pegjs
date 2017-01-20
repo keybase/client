@@ -1,10 +1,34 @@
+{
+	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
+	function convertLink (text) {
+		const matches = text.match(linkExp)
+		if (matches) {
+			const match = matches[0]
+			const rest = text.substring(match.length)
+			if (rest) {
+				return {
+					type: 'text',
+					children: [
+						{type: 'link', children: [match]},
+						rest
+					]
+				}
+			} else {
+				return {type: 'link', children: [match]}
+			}
+		} else {
+			return text
+		}
+	}
+}
+
 start
- = children:(Blank / Code / Content / Blank)* { return {type: 'text', children: children}; }
+ = children:(Blank / Code / Content / Blank)* { return {type: 'text', children}; }
 
 Code = CodeBlock / InlineCode
 
-Content =
-	StyledText / Text
+Content
+ = StyledText / Text
 
 StyledText
  = QuoteBlock / Italic / Bold / Strike / Emoji
@@ -53,20 +77,23 @@ InsideQuoteBlock
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker
- = (! ":" .) { return text(); }
+ = (! ":" [a-z-_]) { return text(); }
+
+InsideEmojiTone
+ = "::skin-tone-" [1-6] { return text(); }
 
 // Define the rules for styles. Usually a start marker, children, and an end marker.
 QuoteBlock
- = QuoteBlockMarker _? children:FromQuote* LineTerminatorSequence { return {type: 'quote-block', children: children}; }
+ = QuoteBlockMarker _? children:FromQuote* LineTerminatorSequence { return {type: 'quote-block', children}; }
 
 Bold
- = BoldMarker children:FromBold* BoldMarker { return {type: 'bold', children: children}; }
+ = BoldMarker children:FromBold* BoldMarker { return {type: 'bold', children}; }
 
 Italic
- = ItalicMarker children:FromItalic* ItalicMarker { return {type: 'italic', children: children}; }
+ = ItalicMarker children:FromItalic* ItalicMarker { return {type: 'italic', children}; }
 
 Strike
- = StrikeMarker children:FromStrike* StrikeMarker { return {type: 'strike', children: children}; }
+ = StrikeMarker children:FromStrike* StrikeMarker { return {type: 'strike', children}; }
 
 CodeBlock
  = Ticks3 children:InsideCodeBlock* Ticks3 { return {type: 'code-block', children}; }
@@ -75,10 +102,12 @@ InlineCode
  = Ticks1 children:InsideInlineCode* Ticks1 { return {type: 'inline-code', children}; }
 
 Emoji
- = EmojiMarker children:(InsideEmojiMarker / "::")* EmojiMarker { return {type: 'emoji', children: [children.join('')]}; }
+ = EmojiMarker children:InsideEmojiMarker+ tone:InsideEmojiTone? ":" { return {type: 'emoji', children: [children.join('') + (tone || '')]}; }
 
 Text "text"
- = _? NonBlank+ _? { return text() }
+ = _? NonBlank+ _? {
+    return convertLink(text())
+ }
 
 // Useful helpers
 

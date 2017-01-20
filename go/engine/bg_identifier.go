@@ -102,7 +102,7 @@ var BackgroundIdentifierDefaultSettings = BackgroundIdentifierSettings{
 	WaitClean:       4 * time.Hour,
 	WaitHardFailure: 90 * time.Minute,
 	WaitSoftFailure: 10 * time.Minute,
-	DelaySlot:       30 * time.Second,
+	DelaySlot:       3 * time.Minute,
 }
 
 func NewBackgroundIdentifier(g *libkb.GlobalContext, untilCh chan struct{}) *BackgroundIdentifier {

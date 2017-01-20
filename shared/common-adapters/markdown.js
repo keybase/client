@@ -6,6 +6,7 @@ import Emoji from './emoji'
 import React, {PureComponent} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import parser from '../markdown/parser'
+import openURL from '../util/open-url'
 
 import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
@@ -41,6 +42,7 @@ const codeSnippetBlockStyle = {
 }
 
 const neutralStyle = {...wrapStyle, color: undefined, fontWeight: undefined}
+const linkStyle = {...wrapStyle, fontWeight: undefined}
 const neutralPreviewStyle = {color: undefined, fontWeight: undefined}
 const boldStyle = {...wrapStyle, color: undefined}
 const italicStyle = {...wrapStyle, color: undefined, fontStyle: 'italic', fontWeight: undefined}
@@ -63,12 +65,21 @@ function previewCreateComponent (type, key, children) {
   }
 }
 
+function onClickLink (e) {
+  if (e.target.innerText) {
+    // $FlowIssue doens't understand innerText
+    openURL(e.target.innerText)
+  }
+}
+
 function messageCreateComponent (type, key, children) {
   switch (type) {
     case 'inline-code':
       return <Text type='Body' key={key} style={codeSnippetStyle}>{children}</Text>
     case 'code-block':
       return <Text type='Body' key={key} style={codeSnippetBlockStyle}>{children}</Text>
+    case 'link':
+      return <Text type='BodyPrimaryLink' key={key} style={linkStyle} onClick={onClickLink}>{children}</Text>
     case 'text':
       return <Text type='Body' key={key} style={neutralStyle}>{children}</Text>
     case 'bold':

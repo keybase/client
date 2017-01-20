@@ -22,6 +22,7 @@ import {downloadFilePath, tmpFile} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
+import {showMainWindow} from './platform.specific'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
@@ -757,7 +758,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
+  if (prevMessage == null || prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
@@ -831,15 +832,14 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
-          // If we get a histocal message w/ messageID and outboxID ignore the outboxID
-          const outboxID = (isHistory && common.messageID) ? undefined : payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
           return {
             type: 'Text',
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
-            key: outboxID || common.messageID,
+            key: common.messageID,
           }
         case CommonMessageType.attachment:
           // $FlowIssue
@@ -1219,7 +1219,14 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     if (message && message.type === 'Text') {
       const snippet = makeSnippet(serverMessageToMessageBody(message))
-      NotifyPopup(message.author, {body: snippet})
+
+      yield put((dispatch: Dispatch) => {
+        NotifyPopup(message.author, {body: snippet}, -1, () => {
+          dispatch(selectConversation(action.payload.conversationIDKey, false))
+          dispatch(switchTo([chatTab]))
+          dispatch(showMainWindow())
+        })
+      })
     }
   }
 }
