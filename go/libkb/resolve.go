@@ -313,6 +313,10 @@ func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
 	if res.mutable {
 		return
 	}
+	// Don't cache errors
+	if res.err != nil {
+		return
+	}
 	r.Stats.diskPuts++
 	err := r.G().LocalDb.PutObj(resolveDbKey(key), nil, res.uid)
 	if err != nil {
@@ -324,6 +328,10 @@ func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
 // to avoid caching data that can go stale, and stores the result.
 func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 	if r.cache == nil {
+		return
+	}
+	// Don't cache errors
+	if res.err != nil {
 		return
 	}
 	res.cachedAt = r.NowFunc()
