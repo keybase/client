@@ -48,21 +48,22 @@ func TestChatBackgroundIdentify(t *testing.T) {
 	handler := NewIdentifyChangedHandler(tc.G, func() keybase1.TlfInterface {
 		return kbtest.NewTlfMock(world)
 	})
+	require.NotNil(t, handler.G().NotifyRouter, "notify router")
 
 	t.Logf("new error job in inbox")
 	job := engine.NewIdentifyJob(u.User.GetUID(), errors.New("AHHHHHHH"), nil)
-	go func() { handler.BackgroundIdentifyChanged(job) }()
+	go handler.BackgroundIdentifyChanged(context.TODO(), job)
 	select {
 	case update := <-listener.identifyUpdate:
 		require.Equal(t, update.CanonicalName.String(), tlfName, "wrong tlf name")
 		require.NotZero(t, len(update.Breaks.Breaks), "no breaks")
-	case <-time.After(20 * time.Second):
+	case <-time.After(2 * time.Second):
 		require.Fail(t, "no identify update received")
 	}
 
 	t.Logf("new error job not in inbox")
 	job = engine.NewIdentifyJob(u1.User.GetUID(), errors.New("AHHHHHHH"), nil)
-	handler.BackgroundIdentifyChanged(job)
+	handler.BackgroundIdentifyChanged(context.TODO(), job)
 	select {
 	case <-listener.identifyUpdate:
 		require.Fail(t, "not supposed to get update")
@@ -71,7 +72,7 @@ func TestChatBackgroundIdentify(t *testing.T) {
 
 	t.Logf("cleared error in inbox")
 	job = engine.NewIdentifyJob(u.User.GetUID(), nil, errors.New("AHHHHHHH"))
-	go func() { handler.BackgroundIdentifyChanged(job) }()
+	go handler.BackgroundIdentifyChanged(context.TODO(), job)
 	select {
 	case update := <-listener.identifyUpdate:
 		require.Equal(t, update.CanonicalName.String(), tlfName, "wrong tlf name")

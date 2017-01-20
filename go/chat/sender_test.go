@@ -86,7 +86,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
 	u := world.GetUsers()[0]
-	tc := userTc(t, world, u)
+	tc := world.Tcs[u.Username]
 	tc.G.SetService()
 	boxer := NewBoxer(tc.G, tlf)
 	f := func() libkb.SecretUI {

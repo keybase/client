@@ -101,9 +101,8 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 	return "", nil, errNoConvForUser
 }
 
-func (h *IdentifyChangedHandler) BackgroundIdentifyChanged(job engine.IdentifyJob) {
+func (h *IdentifyChangedHandler) BackgroundIdentifyChanged(ctx context.Context, job engine.IdentifyJob) {
 	notifier := NewIdentifyNotifier(h.G())
-	ctx := context.Background()
 
 	// Get username
 	uid := job.UID()
