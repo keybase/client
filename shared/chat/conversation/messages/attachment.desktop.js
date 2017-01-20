@@ -95,6 +95,12 @@ function ImageIcon ({type, style}: ImageIconProps) {
   )
 }
 
+function ShowInFileUi ({downloadedPath, onOpenInFileUI}) {
+  return <Text type='BodySmallSecondaryLink' style={!downloadedPath ? {visibility: 'hidden'} : {}} onClick={() => onOpenInFileUI(downloadedPath)}>
+    Show in {fileUIName}
+  </Text>
+}
+
 function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void, onOpenInPopup: () => void}) {
   const {downloadedPath, messageState} = message
 
@@ -112,10 +118,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
             style={progressBarStyle}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}
-        {!!downloadedPath &&
-          <Text type='BodySmallSecondaryLink' onClick={() => onOpenInFileUI(downloadedPath)}>
-            Show in {fileUIName}
-          </Text>}
+        <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />
       </Box>
     </Box>
   )
@@ -153,10 +156,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Constant
           <ProgressBar
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}
-        {!!downloadedPath &&
-          <Text type='BodySmallSecondaryLink' onClick={() => onOpenInFileUI()}>
-            Show in {fileUIName}
-          </Text>}
+        <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />
       </Box>
     </Box>
   )
