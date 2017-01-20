@@ -1597,22 +1597,25 @@ function peg$parse(input, options) {
   }
 
 
-  	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
+  	const linkExp = new RegExp(/((ftp|http(s)?):\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
+      const protoExp = new RegExp(/^(ftp|http(s)?)/i)
   	function convertLink (text) {
-  		const matches = text.match(linkExp)
+  		const matches = linkExp.exec(text)
   		if (matches) {
   			const match = matches[0]
-  			const rest = text.substring(match.length)
-  			if (rest) {
-  				return {
-  					type: 'text',
-  					children: [
-  						{type: 'link', children: [match]},
-  						rest
-  					]
-  				}
-  			} else {
-  				return {type: 'link', children: [match]}
+              const protocolMatch = match.match(protoExp)
+              const href = protocolMatch && match || 'https://' + match
+              const start = matches.index
+              const end = start + match.length
+  			const left = text.substring(0, start)
+              const right = text.substring(start + end)
+  			return {
+  				type: 'text',
+  				children: [
+                  	...(left ? [left] : []),
+  					{type: 'link', children: [match], href},
+                      ...(right ? [right] : []),
+  				]
   			}
   		} else {
   			return text
