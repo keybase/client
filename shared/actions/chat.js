@@ -845,12 +845,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
           // $FlowIssue
           const preview: Asset = payload.messageBody.attachment.preview
           const mimeType = preview && preview.mimeType
-          let previewSize
-          if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
-            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.image)
-          } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
-            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.video)
-          }
+          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
           return {
             type: 'Attachment',
@@ -1080,6 +1075,19 @@ function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: Chat
   const previewTask = yield fork(function * () {
     const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
     previewUploadStart.response.result()
+
+    const metadata = previewUploadStart.params && previewUploadStart.params.metadata
+    const previewSize = metadata && Constants.parseMetadataPreviewSize(metadata)
+    if (previewSize) {
+      yield put(({
+        type: 'chat:updateTempMessage',
+        payload: {
+          conversationIDKey,
+          outboxID,
+          message: {previewSize},
+        },
+      }: Constants.UpdateTempMessage))
+    }
 
     const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
     previewUploadDone.response.result()
