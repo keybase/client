@@ -6,9 +6,9 @@ import ReactDOM from 'react-dom'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import {AppContainer} from 'react-hot-loader'
 import {MuiThemeProvider} from 'material-ui/styles'
-import materialTheme from '../shared/styles/material-theme.desktop'
+import materialTheme from '../../styles/material-theme.desktop'
 
-module.hot && module.hot.accept('../shared/dev/dumb-sheet/render.desktop', render)
+module.hot && module.hot.accept('../../dev/dumb-sheet/render.desktop', render)
 
 class Wrapper extends React.Component<any, any, any> {
   constructor () {
@@ -31,7 +31,7 @@ class Wrapper extends React.Component<any, any, any> {
 }
 
 function render () {
-  const DumbSheet = require('../shared/dev/dumb-sheet/render.desktop').default
+  const DumbSheet = require('../../dev/dumb-sheet/render.desktop').default
   ReactDOM.render((
     <AppContainer>
       <MuiThemeProvider muiTheme={materialTheme}>
