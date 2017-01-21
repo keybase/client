@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfssync"
@@ -36,13 +37,6 @@ const (
 	// The delay to wait for before trying a failed block deletion
 	// again. Used by enqueueBlocksToDeleteAfterShortDelay().
 	deleteBlocksRetryDelay = 10 * time.Millisecond
-
-	// The maximum time we're allowed to retry a delete request.  This
-	// should be bigger than the expected time it would take us to get
-	// a notification about one of our own revisions from the md
-	// server (a revision which locally looked canceled, but still
-	// made it safely to the mdserver).
-	deleteBlockMaxRetryTime = 20 * time.Second
 )
 
 type blockDeleteType int
@@ -60,10 +54,10 @@ const (
 )
 
 type blocksToDelete struct {
-	md     ReadOnlyRootMetadata
-	blocks []BlockPointer
-	bdType blockDeleteType
-	start  time.Time
+	md      ReadOnlyRootMetadata
+	blocks  []BlockPointer
+	bdType  blockDeleteType
+	backoff backoff.BackOff
 }
 
 // folderBlockManager is a helper class for managing the blocks in a
@@ -234,10 +228,15 @@ func (fbm *folderBlockManager) cleanUpBlockState(
 	md ReadOnlyRootMetadata, bps *blockPutState, bdType blockDeleteType) {
 	fbm.log.CDebugf(nil, "Clean up md %d %s, bdType=%d", md.Revision(),
 		md.MergedStatus(), bdType)
+	expBackoff := backoff.NewExponentialBackOff()
+	// Never give up when trying to delete blocks; it might just take
+	// a long time to confirm with the server whether a revision
+	// succeeded or not.
+	expBackoff.MaxElapsedTime = 0
 	toDelete := blocksToDelete{
-		md:     md,
-		bdType: bdType,
-		start:  fbm.config.Clock().Now(),
+		md:      md,
+		bdType:  bdType,
+		backoff: expBackoff,
 	}
 	for _, bs := range bps.blockStates {
 		toDelete.blocks = append(toDelete.blocks, bs.blockPtr)
@@ -251,9 +250,14 @@ func (fbm *folderBlockManager) enqueueBlocksToDelete(toDelete blocksToDelete) {
 }
 
 func (fbm *folderBlockManager) enqueueBlocksToDeleteAfterShortDelay(
-	toDelete blocksToDelete) {
+	ctx context.Context, toDelete blocksToDelete) {
 	fbm.blocksToDeleteWaitGroup.Add(1)
-	time.AfterFunc(deleteBlocksRetryDelay,
+	duration := toDelete.backoff.NextBackOff()
+	if duration == backoff.Stop {
+		panic(fmt.Sprintf("Backoff stopped while checking whether we "+
+			"should delete revision %d", toDelete.md.Revision()))
+	}
+	time.AfterFunc(duration,
 		func() {
 			select {
 			case fbm.blocksToDeleteChan <- toDelete:
@@ -487,50 +491,64 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 
 	fbm.log.CDebugf(ctx, "Checking deleted blocks for revision %d",
 		toDelete.md.Revision())
-	// Make sure that the MD didn't actually become
-	// part of the folder history.  (This could happen
-	// if the Sync was canceled while the MD put was
-	// outstanding.)
-	if toDelete.bdType == blockDeleteOnMDFail {
-		rmd, err := getSingleMD(ctx, fbm.config, fbm.id, toDelete.md.BID(),
+	// Make sure that the MD didn't actually become part of the folder
+	// history.  (This could happen if the Sync was canceled while the
+	// MD put was outstanding.)  If the private MD is not set, there's
+	// no way the revision made it to the server, so we are free to
+	// clean it up without checking with the server.
+	if toDelete.bdType == blockDeleteOnMDFail &&
+		toDelete.md.bareMd.GetSerializedPrivateMetadata() != nil {
+		// Don't use `getSingleMD` here, since it returns an error if
+		// the revision isn't found, and that's useful information for
+		// us here.
+		rmds, err := getMDRange(
+			ctx, fbm.config, fbm.id, toDelete.md.BID(), toDelete.md.Revision(),
 			toDelete.md.Revision(), toDelete.md.MergedStatus())
 		if err != nil {
-			// Don't re-enqueue immediately, since this might mean no
-			// new revision has made it to the server yet, and we'd
-			// just get into an infinite loop.  But don't retry
-			// forever; if the operation was canceled locally and a
-			// new revision hasn't happened yet, eventually we should
-			// just assume the server never saw it and get on with our
-			// lives.
-			timeSinceStart := fbm.config.Clock().Now().Sub(toDelete.start)
-			if timeSinceStart < deleteBlockMaxRetryTime {
-				fbm.enqueueBlocksToDeleteAfterShortDelay(toDelete)
-				return nil
-			}
-			fbm.log.CDebugf(ctx, "Giving up on waiting for a new %d "+
-				"revision, and proceeding with the cleanup",
+			fbm.log.CDebugf(ctx,
+				"Error trying to get MD %d; retrying after a delay",
 				toDelete.md.Revision())
-		} else {
-			mdID, err := fbm.config.Crypto().MakeMdID(toDelete.md.bareMd)
-			if err != nil {
-				fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
-			} else if mdID == rmd.mdID {
-				if err := isArchivableMDOrError(rmd.ReadOnly()); err != nil {
-					fbm.log.CDebugf(ctx, "Skipping archiving for non-deleted, "+
-						"unarchivable revision %d: %v", rmd.Revision(), err)
-					return nil
-				}
+			// We don't know whether or not the revision made it to
+			// the server, so try again.  But don't re-enqueue
+			// immediately to avoid fast infinite loops.
+			fbm.enqueueBlocksToDeleteAfterShortDelay(ctx, toDelete)
+			return nil
+		}
 
-				// This md is part of the history of the folder, so we
-				// shouldn't delete the blocks.  But, since this MD
-				// put seems to have succeeded, we should archive it.
-				fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
-					"archiving it", rmd.Revision())
-				// Don't block on archiving the MD, because that could
-				// lead to deadlock.
-				fbm.archiveUnrefBlocksNoWait(rmd.ReadOnly())
+		var rmd ImmutableRootMetadata
+		if len(rmds) == 0 {
+			// The rmd.mdID check below will fail intentionally since
+			// rmd is empty.  Note that this assumes that the MD
+			// servers don't cache negative lookups, or if they do,
+			// they use synchronous cache invalidations for that case.
+			// If we ever allow MD servers to cache negative lookups,
+			// we'll have to retry here for at least the amount of the
+			// maximum allowable cache timeout.
+			fbm.log.CDebugf(ctx, "No revision %d found on MD server, so we "+
+				"can safely archive", toDelete.md.Revision())
+		} else {
+			rmd = rmds[0]
+		}
+
+		mdID, err := fbm.config.Crypto().MakeMdID(toDelete.md.bareMd)
+		if err != nil {
+			fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
+		} else if mdID == rmd.mdID {
+			if err := isArchivableMDOrError(rmd.ReadOnly()); err != nil {
+				fbm.log.CDebugf(ctx, "Skipping archiving for non-deleted, "+
+					"unarchivable revision %d: %v", rmd.Revision(), err)
 				return nil
 			}
+
+			// This md is part of the history of the folder, so we
+			// shouldn't delete the blocks.  But, since this MD put
+			// seems to have succeeded, we should archive it.
+			fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
+				"archiving it", rmd.Revision())
+			// Don't block on archiving the MD, because that could
+			// lead to deadlock.
+			fbm.archiveUnrefBlocksNoWait(rmd.ReadOnly())
+			return nil
 		}
 
 		// Otherwise something else has been written over
