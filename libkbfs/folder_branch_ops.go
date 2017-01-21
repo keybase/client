@@ -4010,6 +4010,17 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			return err
 		}
 		if mergedRev != MetadataRevisionUninitialized {
+			if len(rmds) > 0 {
+				// We should update our view of the merged master though,
+				// to avoid re-registering for the same updates again.
+				func() {
+					fbo.headLock.Lock(lState)
+					defer fbo.headLock.Unlock(lState)
+					fbo.setLatestMergedRevisionLocked(
+						ctx, lState, rmds[len(rmds)-1].Revision(), false)
+				}()
+			}
+
 			fbo.log.CDebugf(ctx,
 				"Ignoring fetched revisions while MDs are in journal")
 			return nil
