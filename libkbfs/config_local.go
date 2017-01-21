@@ -308,6 +308,13 @@ func (c *ConfigLocal) SetKeyManager(k KeyManager) {
 	c.keyman = k
 }
 
+// KeyGetter implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) keyGetter() blockKeyGetter {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.keyman
+}
+
 // Reporter implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Reporter() Reporter {
 	c.lock.RLock()
@@ -390,6 +397,13 @@ func (c *ConfigLocal) SetCrypto(cr Crypto) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.crypto = cr
+}
+
+// CryptoPure implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) cryptoPure() cryptoPure {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.crypto
 }
 
 // Codec implements the Config interface for ConfigLocal.

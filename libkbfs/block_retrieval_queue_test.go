@@ -30,7 +30,7 @@ func newTestBlockRetrievalConfig(t *testing.T) *testBlockRetrievalConfig {
 	}
 }
 
-func (c *testBlockRetrievalConfig) codec() kbfscodec.Codec {
+func (c *testBlockRetrievalConfig) Codec() kbfscodec.Codec {
 	return c.testCodec
 }
 

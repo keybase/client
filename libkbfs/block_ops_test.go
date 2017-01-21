@@ -79,25 +79,25 @@ func (kg fakeBlockKeyGetter) GetTLFCryptKeyForBlockDecryption(
 }
 
 type testBlockOpsConfig struct {
-	bserver    BlockServer
-	testCodec  kbfscodec.Codec
-	cryptoPure cryptoPure
-	cache      BlockCache
-	t          *testing.T
+	bserver   BlockServer
+	testCodec kbfscodec.Codec
+	cp        cryptoPure
+	cache     BlockCache
+	t         *testing.T
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
 
-func (config testBlockOpsConfig) blockServer() BlockServer {
+func (config testBlockOpsConfig) BlockServer() BlockServer {
 	return config.bserver
 }
 
-func (config testBlockOpsConfig) codec() kbfscodec.Codec {
+func (config testBlockOpsConfig) Codec() kbfscodec.Codec {
 	return config.testCodec
 }
 
-func (config testBlockOpsConfig) crypto() cryptoPure {
-	return config.cryptoPure
+func (config testBlockOpsConfig) cryptoPure() cryptoPure {
+	return config.cp
 }
 
 func (config testBlockOpsConfig) keyGetter() blockKeyGetter {
@@ -160,7 +160,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 		kmd.keys[latestKeyGen-FirstValidKeyGen])
 
 	decryptedBlock := &FileBlock{}
-	err = config.cryptoPure.DecryptBlock(
+	err = config.cryptoPure().DecryptBlock(
 		encryptedBlock, blockCryptKey, decryptedBlock)
 	require.NoError(t, err)
 	decryptedBlock.SetEncodedSize(uint32(readyBlockData.GetEncodedSize()))
@@ -196,7 +196,7 @@ func (c badServerHalfMaker) MakeRandomBlockCryptKeyServerHalf() (
 // fails properly if we fail to generate a  server half.
 func TestBlockOpsReadyFailServerHalfGet(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
-	config.cryptoPure = badServerHalfMaker{config.cryptoPure}
+	config.cp = badServerHalfMaker{config.cryptoPure()}
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
@@ -222,7 +222,7 @@ func (c badBlockEncryptor) EncryptBlock(
 // fails properly if we fail to encrypt the block.
 func TestBlockOpsReadyFailEncryption(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
-	config.cryptoPure = badBlockEncryptor{config.cryptoPure}
+	config.cp = badBlockEncryptor{config.cryptoPure()}
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
@@ -507,7 +507,7 @@ func (c badBlockDecryptor) DecryptBlock(encryptedBlock EncryptedBlock,
 // fails if it can't decrypt the encrypted block.
 func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
-	config.cryptoPure = badBlockDecryptor{config.cryptoPure}
+	config.cp = badBlockDecryptor{config.cryptoPure()}
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
