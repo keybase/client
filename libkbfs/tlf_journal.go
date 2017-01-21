@@ -504,7 +504,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 
 				if err != nil {
 					j.log.CWarningf(ctx,
-						"Background work error for %s: %v",
+						"Background work error for %s: %+v",
 						j.tlfID, err)
 
 					bTime := retry.NextBackOff()
