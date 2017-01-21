@@ -301,3 +301,36 @@ func (c Conversation) GetMaxMessage(typ MessageType) (MessageBoxed, error) {
 	}
 	return MessageBoxed{}, fmt.Errorf("max message not found: %v", typ)
 }
+
+func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
+	t, err := v1.MessageType()
+	if err != nil {
+		return MessageBody{}, err
+	}
+	switch t {
+	case MessageType_TEXT:
+		return NewMessageBodyWithText(v1.Text()), nil
+	case MessageType_ATTACHMENT:
+		previous := v1.Attachment()
+		upgraded := MessageAttachment{
+			Object:   previous.Object,
+			Metadata: previous.Metadata,
+		}
+		if previous.Preview != nil {
+			upgraded.Previews = []Asset{*previous.Preview}
+		}
+		return NewMessageBodyWithAttachment(upgraded), nil
+	case MessageType_EDIT:
+		return NewMessageBodyWithEdit(v1.Edit()), nil
+	case MessageType_DELETE:
+		return NewMessageBodyWithDelete(v1.Delete()), nil
+	case MessageType_METADATA:
+		return NewMessageBodyWithMetadata(v1.Metadata()), nil
+	case MessageType_HEADLINE:
+		return NewMessageBodyWithHeadline(v1.Headline()), nil
+	case MessageType_NONE:
+		return MessageBody{MessageType__: MessageType_NONE}, nil
+	}
+
+	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
+}
