@@ -170,7 +170,7 @@ func (b *BlockCacheStandard) GetCleanBytesCapacity() (capacity uint64) {
 	return atomic.LoadUint64(&b.cleanBytesCapacity)
 }
 
-func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
+func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLifetime) bool {
 	if b.cleanTransient == nil {
 		return false
 	}
@@ -209,6 +209,11 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 	if b.cleanTotalBytes+size > cleanBytesCapacity {
 		// There must be too many permanent clean blocks, so we
 		// couldn't make room.
+		if lifetime == PermanentEntry {
+			// Permanent entries will be added no matter what, so we have to
+			// account for them.
+			b.cleanTotalBytes += size
+		}
 		return false
 	}
 	// Only count clean bytes if we actually have a transient cache.
@@ -271,7 +276,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 	// goroutine inserts this block, we double-count it.
 	if !wasInCache {
 		size := uint64(getCachedBlockSize(block))
-		transientCacheHasRoom = b.makeRoomForSize(size)
+		transientCacheHasRoom = b.makeRoomForSize(size, lifetime)
 	}
 	if lifetime == TransientEntry {
 		if !transientCacheHasRoom {
