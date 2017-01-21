@@ -1031,14 +1031,18 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 	// If a copy of the top indirect block was made, we need to
 	// redirty all the sync'd blocks under their new IDs, so that
 	// future syncs will know they failed.
+	newPtrs := make(map[BlockPointer]bool, len(redirtyOnRecoverableError))
+	for newPtr := range redirtyOnRecoverableError {
+		newPtrs[newPtr] = true
+	}
+	found, err := fd.findIPtrsAndClearSize(ctx, fblock, newPtrs)
+	if err != nil {
+		fbo.log.CWarningf(
+			ctx, "Couldn't find and clear iptrs during recovery: %v", err)
+		return
+	}
 	for newPtr, oldPtr := range redirtyOnRecoverableError {
-		found, err := fd.findIPtrsAndClearSize(ctx, fblock, newPtr)
-		if err != nil {
-			fbo.log.CWarningf(
-				ctx, "Couldn't find and clear iptrs during recovery: %v", err)
-			return
-		}
-		if !found {
+		if !found[newPtr] {
 			continue
 		}
 
