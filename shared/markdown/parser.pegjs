@@ -77,7 +77,7 @@ InsideQuoteBlock
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker
- = (! ":" [a-z-_]) { return text(); }
+ = (! ":" [a-zA-Z0-9+_-]) { return text(); }
 
 InsideEmojiTone
  = "::skin-tone-" [1-6] { return text(); }
