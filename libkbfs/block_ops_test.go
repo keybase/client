@@ -88,19 +88,19 @@ type testBlockOpsConfig struct {
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
 
-func (config testBlockOpsConfig) blockServer() BlockServer {
+func (config testBlockOpsConfig) BlockServer() BlockServer {
 	return config.bserver
 }
 
-func (config testBlockOpsConfig) codec() kbfscodec.Codec {
+func (config testBlockOpsConfig) Codec() kbfscodec.Codec {
 	return config.testCodec
 }
 
-func (config testBlockOpsConfig) crypto() cryptoPure {
+func (config testBlockOpsConfig) CryptoPure() cryptoPure {
 	return config.cryptoPure
 }
 
-func (config testBlockOpsConfig) keyGetter() blockKeyGetter {
+func (config testBlockOpsConfig) KeyGetter() blockKeyGetter {
 	return fakeBlockKeyGetter{}
 }
 

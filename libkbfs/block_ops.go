@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -16,32 +15,10 @@ type blockOpsConfig interface {
 	dataVersioner
 	logMaker
 	blockCacher
-	blockServer() BlockServer
-	codec() kbfscodec.Codec
-	crypto() cryptoPure
-	keyGetter() blockKeyGetter
-}
-
-type blockOpsConfigAdapter struct {
-	Config
-}
-
-var _ blockOpsConfig = (*blockOpsConfigAdapter)(nil)
-
-func (config blockOpsConfigAdapter) blockServer() BlockServer {
-	return config.Config.BlockServer()
-}
-
-func (config blockOpsConfigAdapter) codec() kbfscodec.Codec {
-	return config.Config.Codec()
-}
-
-func (config blockOpsConfigAdapter) crypto() cryptoPure {
-	return config.Config.Crypto()
-}
-
-func (config blockOpsConfigAdapter) keyGetter() blockKeyGetter {
-	return config.Config.KeyManager()
+	blockServerGetter
+	codecGetter
+	cryptoPureGetter
+	keyGetterGetter
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying
@@ -89,9 +66,9 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 		}
 	}()
 
-	crypto := b.config.crypto()
+	crypto := b.config.CryptoPure()
 
-	tlfCryptKey, err := b.config.keyGetter().
+	tlfCryptKey, err := b.config.KeyGetter().
 		GetTLFCryptKeyForEncryption(ctx, kmd)
 	if err != nil {
 		return
@@ -109,7 +86,7 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 		return
 	}
 
-	buf, err := b.config.codec().Encode(encryptedBlock)
+	buf, err := b.config.Codec().Encode(encryptedBlock)
 	if err != nil {
 		return
 	}
@@ -146,7 +123,7 @@ func (b *BlockOpsStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	for _, ptr := range ptrs {
 		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.Context)
 	}
-	return b.config.blockServer().RemoveBlockReferences(ctx, tlfID, contexts)
+	return b.config.BlockServer().RemoveBlockReferences(ctx, tlfID, contexts)
 }
 
 // Archive implements the BlockOps interface for BlockOpsStandard.
@@ -157,7 +134,7 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.Context)
 	}
 
-	return b.config.blockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
+	return b.config.BlockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
 }
 
 // TogglePrefetcher implements the BlockOps interface for BlockOpsStandard.
