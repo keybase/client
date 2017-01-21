@@ -66,9 +66,9 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 		}
 	}()
 
-	crypto := b.config.CryptoPure()
+	crypto := b.config.cryptoPure()
 
-	tlfCryptKey, err := b.config.KeyGetter().
+	tlfCryptKey, err := b.config.keyGetter().
 		GetTLFCryptKeyForEncryption(ctx, kmd)
 	if err != nil {
 		return

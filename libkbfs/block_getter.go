@@ -43,7 +43,7 @@ func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 		return err
 	}
 
-	tlfCryptKey, err := bg.config.KeyGetter().
+	tlfCryptKey, err := bg.config.keyGetter().
 		GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 	}
 
 	// decrypt the block
-	err = bg.config.CryptoPure().DecryptBlock(
+	err = bg.config.cryptoPure().DecryptBlock(
 		encryptedBlock, blockCryptKey, block)
 	if err != nil {
 		return err

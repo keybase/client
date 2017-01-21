@@ -11,7 +11,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -25,8 +24,7 @@ type blockRetrievalConfig interface {
 	dataVersioner
 	logMaker
 	blockCacher
-	// Codec for copying blocks
-	Codec() kbfscodec.Codec
+	codecGetter
 }
 
 // blockRetrievalRequest represents one consumer's request for a block.

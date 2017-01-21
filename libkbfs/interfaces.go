@@ -32,7 +32,7 @@ type blockCacher interface {
 }
 
 type keyGetterGetter interface {
-	KeyGetter() blockKeyGetter
+	keyGetter() blockKeyGetter
 }
 
 type codecGetter interface {
@@ -44,7 +44,7 @@ type blockServerGetter interface {
 }
 
 type cryptoPureGetter interface {
-	CryptoPure() cryptoPure
+	cryptoPure() cryptoPure
 }
 
 // Block just needs to be (de)serialized using msgpack

@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
 )
 
@@ -14,20 +13,16 @@ import (
 type mdServerLocalConfig interface {
 	Clock() Clock
 	Codec() kbfscodec.Codec
-	cryptoPure() cryptoPure
 	currentInfoGetter() currentInfoGetter
 	MetadataVersion() MetadataVer
-	MakeLogger(module string) logger.Logger
+	logMaker
+	cryptoPureGetter
 }
 
 // mdServerLocalConfigWrapper is an adapter for Config objects to the
 // mdServerLocalConfig interface.
 type mdServerLocalConfigAdapter struct {
 	Config
-}
-
-func (ca mdServerLocalConfigAdapter) cryptoPure() cryptoPure {
-	return ca.Config.Crypto()
 }
 
 func (ca mdServerLocalConfigAdapter) currentInfoGetter() currentInfoGetter {
