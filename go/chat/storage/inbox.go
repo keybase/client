@@ -381,7 +381,7 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 		i.Debug(ctx, "Read: queryExists: error hashing query: %s", err.Error())
 		return false
 	}
-	i.Debug(ctx, "Read: queryExists: query hash: %s", hquery)
+	i.Debug(ctx, "Read: queryExists: query hash: %s p: %v", hquery, p)
 
 	qp := inboxDiskQuery{QueryHash: hquery, Pagination: p}
 	for _, q := range ibox.Queries {
