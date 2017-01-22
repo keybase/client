@@ -110,6 +110,130 @@ func (_mr *_MockblockCacherRecorder) BlockCache() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockCache")
 }
 
+// Mock of keyGetterGetter interface
+type MockkeyGetterGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockkeyGetterGetterRecorder
+}
+
+// Recorder for MockkeyGetterGetter (not exported)
+type _MockkeyGetterGetterRecorder struct {
+	mock *MockkeyGetterGetter
+}
+
+func NewMockkeyGetterGetter(ctrl *gomock.Controller) *MockkeyGetterGetter {
+	mock := &MockkeyGetterGetter{ctrl: ctrl}
+	mock.recorder = &_MockkeyGetterGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockkeyGetterGetter) EXPECT() *_MockkeyGetterGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockkeyGetterGetter) keyGetter() blockKeyGetter {
+	ret := _m.ctrl.Call(_m, "keyGetter")
+	ret0, _ := ret[0].(blockKeyGetter)
+	return ret0
+}
+
+func (_mr *_MockkeyGetterGetterRecorder) keyGetter() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "keyGetter")
+}
+
+// Mock of codecGetter interface
+type MockcodecGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockcodecGetterRecorder
+}
+
+// Recorder for MockcodecGetter (not exported)
+type _MockcodecGetterRecorder struct {
+	mock *MockcodecGetter
+}
+
+func NewMockcodecGetter(ctrl *gomock.Controller) *MockcodecGetter {
+	mock := &MockcodecGetter{ctrl: ctrl}
+	mock.recorder = &_MockcodecGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockcodecGetter) EXPECT() *_MockcodecGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockcodecGetter) Codec() kbfscodec.Codec {
+	ret := _m.ctrl.Call(_m, "Codec")
+	ret0, _ := ret[0].(kbfscodec.Codec)
+	return ret0
+}
+
+func (_mr *_MockcodecGetterRecorder) Codec() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Codec")
+}
+
+// Mock of blockServerGetter interface
+type MockblockServerGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockblockServerGetterRecorder
+}
+
+// Recorder for MockblockServerGetter (not exported)
+type _MockblockServerGetterRecorder struct {
+	mock *MockblockServerGetter
+}
+
+func NewMockblockServerGetter(ctrl *gomock.Controller) *MockblockServerGetter {
+	mock := &MockblockServerGetter{ctrl: ctrl}
+	mock.recorder = &_MockblockServerGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockblockServerGetter) EXPECT() *_MockblockServerGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockblockServerGetter) BlockServer() BlockServer {
+	ret := _m.ctrl.Call(_m, "BlockServer")
+	ret0, _ := ret[0].(BlockServer)
+	return ret0
+}
+
+func (_mr *_MockblockServerGetterRecorder) BlockServer() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockServer")
+}
+
+// Mock of cryptoPureGetter interface
+type MockcryptoPureGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockcryptoPureGetterRecorder
+}
+
+// Recorder for MockcryptoPureGetter (not exported)
+type _MockcryptoPureGetterRecorder struct {
+	mock *MockcryptoPureGetter
+}
+
+func NewMockcryptoPureGetter(ctrl *gomock.Controller) *MockcryptoPureGetter {
+	mock := &MockcryptoPureGetter{ctrl: ctrl}
+	mock.recorder = &_MockcryptoPureGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockcryptoPureGetter) EXPECT() *_MockcryptoPureGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockcryptoPureGetter) cryptoPure() cryptoPure {
+	ret := _m.ctrl.Call(_m, "cryptoPure")
+	ret0, _ := ret[0].(cryptoPure)
+	return ret0
+}
+
+func (_mr *_MockcryptoPureGetterRecorder) cryptoPure() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "cryptoPure")
+}
+
 // Mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -1783,12 +1907,13 @@ func (_mr *_MockBlockCacheRecorder) DeleteKnownPtr(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteKnownPtr", arg0, arg1)
 }
 
-func (_m *MockBlockCache) GetWithPrefetch(ptr BlockPointer) (Block, bool, error) {
+func (_m *MockBlockCache) GetWithPrefetch(ptr BlockPointer) (Block, bool, BlockCacheLifetime, error) {
 	ret := _m.ctrl.Call(_m, "GetWithPrefetch", ptr)
 	ret0, _ := ret[0].(Block)
 	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret2, _ := ret[2].(BlockCacheLifetime)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 func (_mr *_MockBlockCacheRecorder) GetWithPrefetch(arg0 interface{}) *gomock.Call {
@@ -3897,6 +4022,46 @@ func (_mr *_MockConfigRecorder) BlockCache() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockCache")
 }
 
+func (_m *MockConfig) BlockServer() BlockServer {
+	ret := _m.ctrl.Call(_m, "BlockServer")
+	ret0, _ := ret[0].(BlockServer)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) BlockServer() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockServer")
+}
+
+func (_m *MockConfig) Codec() kbfscodec.Codec {
+	ret := _m.ctrl.Call(_m, "Codec")
+	ret0, _ := ret[0].(kbfscodec.Codec)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) Codec() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Codec")
+}
+
+func (_m *MockConfig) cryptoPure() cryptoPure {
+	ret := _m.ctrl.Call(_m, "cryptoPure")
+	ret0, _ := ret[0].(cryptoPure)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) cryptoPure() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "cryptoPure")
+}
+
+func (_m *MockConfig) keyGetter() blockKeyGetter {
+	ret := _m.ctrl.Call(_m, "keyGetter")
+	ret0, _ := ret[0].(blockKeyGetter)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) keyGetter() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "keyGetter")
+}
+
 func (_m *MockConfig) KBFSOps() KBFSOps {
 	ret := _m.ctrl.Call(_m, "KBFSOps")
 	ret0, _ := ret[0].(KBFSOps)
@@ -4067,16 +4232,6 @@ func (_mr *_MockConfigRecorder) SetCrypto(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetCrypto", arg0)
 }
 
-func (_m *MockConfig) Codec() kbfscodec.Codec {
-	ret := _m.ctrl.Call(_m, "Codec")
-	ret0, _ := ret[0].(kbfscodec.Codec)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) Codec() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Codec")
-}
-
 func (_m *MockConfig) SetCodec(_param0 kbfscodec.Codec) {
 	_m.ctrl.Call(_m, "SetCodec", _param0)
 }
@@ -4155,16 +4310,6 @@ func (_m *MockConfig) SetMDServer(_param0 MDServer) {
 
 func (_mr *_MockConfigRecorder) SetMDServer(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMDServer", arg0)
-}
-
-func (_m *MockConfig) BlockServer() BlockServer {
-	ret := _m.ctrl.Call(_m, "BlockServer")
-	ret0, _ := ret[0].(BlockServer)
-	return ret0
-}
-
-func (_mr *_MockConfigRecorder) BlockServer() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockServer")
 }
 
 func (_m *MockConfig) SetBlockServer(_param0 BlockServer) {

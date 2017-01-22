@@ -273,12 +273,12 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		fbo.id(), ptr, branch); err == nil {
 		return block, nil
 	}
-	if block, hasPrefetched, err := fbo.config.BlockCache().GetWithPrefetch(ptr); err == nil {
+	if block, hasPrefetched, lifetime, err := fbo.config.BlockCache().GetWithPrefetch(ptr); err == nil {
 		// If the block was cached in the past, we need to handle it as if it's
 		// an on-demand request so that its downstream prefetches are triggered
 		// correctly according to the new on-demand fetch priority.
 		fbo.config.BlockOps().Prefetcher().PrefetchAfterBlockRetrieved(
-			block, ptr, kmd, defaultOnDemandRequestPriority, TransientEntry,
+			block, ptr, kmd, defaultOnDemandRequestPriority, lifetime,
 			hasPrefetched)
 		return block, nil
 	}

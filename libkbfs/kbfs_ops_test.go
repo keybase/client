@@ -4789,7 +4789,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		ptrMatcher{fileBlock.IPtrs[2].BlockPointer}, p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[2].BlockPointer.ID})
 	config.mockBcache.EXPECT().GetWithPrefetch(ptrMatcher{fileBlock.IPtrs[2].BlockPointer}).
-		Return(block3, true, nil)
+		Return(block3, true, TransientEntry, nil)
 	config.mockDirtyBcache.EXPECT().IsDirty(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
 		p.Branch).AnyTimes().Return(false)
@@ -4999,7 +4999,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		ptrMatcher{fileBlock.IPtrs[1].BlockPointer}, p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[1].BlockPointer.ID})
 	config.mockBcache.EXPECT().GetWithPrefetch(ptrMatcher{fileBlock.IPtrs[1].BlockPointer}).
-		Return(block2, true, nil)
+		Return(block2, true, TransientEntry, nil)
 	config.mockDirtyBcache.EXPECT().IsDirty(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
 		p.Branch).AnyTimes().Return(false)
@@ -5007,7 +5007,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer}, p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[3].BlockPointer.ID})
 	config.mockBcache.EXPECT().GetWithPrefetch(ptrMatcher{fileBlock.IPtrs[3].BlockPointer}).
-		Return(block4, true, nil)
+		Return(block4, true, TransientEntry, nil)
 	config.mockDirtyBcache.EXPECT().IsDirty(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
 		p.Branch).Return(false)

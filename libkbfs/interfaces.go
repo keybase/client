@@ -702,7 +702,7 @@ type BlockCache interface {
 	// GetWithPrefetch retrieves a block from the cache, along with whether or
 	// not it has triggered a prefetch.
 	GetWithPrefetch(ptr BlockPointer) (
-		block Block, hasPrefetched bool, err error)
+		block Block, hasPrefetched bool, lifetime BlockCacheLifetime, err error)
 	// PutWithPrefetch puts a block into the cache, along with whether or not
 	// it has triggered a prefetch.
 	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
