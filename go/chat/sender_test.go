@@ -13,37 +13,39 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 type chatListener struct {
 	sync.Mutex
-	obids    []chat1.OutboxID
-	incoming chan int
-	failing  chan []chat1.OutboxID
+	obids          []chat1.OutboxID
+	incoming       chan int
+	failing        chan []chat1.OutboxID
+	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
 
-func (n *chatListener) Logout()                                                            {}
-func (n *chatListener) Login(username string)                                              {}
-func (n *chatListener) ClientOutOfDate(to, uri, msg string)                                {}
-func (n *chatListener) UserChanged(uid keybase1.UID)                                       {}
-func (n *chatListener) TrackingChanged(uid keybase1.UID, username string)                  {}
-func (n *chatListener) FSActivity(activity keybase1.FSNotification)                        {}
-func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                      {}
-func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                   {}
-func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                  {}
-func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                          {}
-func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)       {}
-func (n *chatListener) FavoritesChanged(uid keybase1.UID)                                  {}
-func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                                  {}
-func (n *chatListener) PGPKeyInSecretStoreFile()                                           {}
-func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                          {}
-func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                        {}
-func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
+func (n *chatListener) Logout()                                                      {}
+func (n *chatListener) Login(username string)                                        {}
+func (n *chatListener) ClientOutOfDate(to, uri, msg string)                          {}
+func (n *chatListener) UserChanged(uid keybase1.UID)                                 {}
+func (n *chatListener) TrackingChanged(uid keybase1.UID, username string)            {}
+func (n *chatListener) FSActivity(activity keybase1.FSNotification)                  {}
+func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                {}
+func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)             {}
+func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)            {}
+func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                    {}
+func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {}
+func (n *chatListener) FavoritesChanged(uid keybase1.UID)                            {}
+func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                            {}
+func (n *chatListener) PGPKeyInSecretStoreFile()                                     {}
+func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                    {}
+func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                  {}
+func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+	n.identifyUpdate <- update
+}
 func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
 func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
@@ -69,18 +71,22 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	}
 }
 
-func getUser(world *kbtest.ChatMockWorld) (libkb.TestContext, *kbtest.FakeUser) {
+func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *kbtest.ChatTestContext {
 	for _, u := range world.Users {
-		return *world.Tcs[u.Username], u
+		if u.Username == user.Username {
+			return world.Tcs[u.Username]
+		}
 	}
-	return libkb.TestContext{}, nil
+	require.Fail(t, "not user found")
+	return &kbtest.ChatTestContext{}
 }
 
-func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.FakeUser, Sender, Sender, *chatListener, func() libkb.SecretUI, clockwork.FakeClock) {
-	world := kbtest.NewChatMockWorld(t, "chatsender", 1)
+func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI) {
+	world := kbtest.NewChatMockWorld(t, "chatsender", numUsers)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
-	tc, u := getUser(world)
+	u := world.GetUsers()[0]
+	tc := world.Tcs[u.Username]
 	tc.G.SetService()
 	boxer := NewBoxer(tc.G, tlf)
 	f := func() libkb.SecretUI {
@@ -89,8 +95,9 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	baseSender := NewBlockingSender(tc.G, boxer, func() chat1.RemoteInterface { return ri }, f)
 	sender := NewNonblockingSender(tc.G, baseSender)
 	listener := chatListener{
-		incoming: make(chan int),
-		failing:  make(chan []chat1.OutboxID),
+		incoming:       make(chan int),
+		failing:        make(chan []chat1.OutboxID),
+		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
 	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, f),
 		func() chat1.RemoteInterface { return ri })
@@ -103,13 +110,14 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
-	return tc, ri, u, sender, baseSender, &listener, f, world.Fc
+	return world, ri, sender, baseSender, &listener, f
 }
 
 func TestNonblockChannel(t *testing.T) {
-	tc, ri, u, sender, _, listener, _, _ := setupTest(t)
-	defer tc.Cleanup()
+	world, ri, sender, _, listener, _ := setupTest(t, 1)
+	defer world.Cleanup()
 
+	u := world.GetUsers()[0]
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
 			Tlfid:     []byte{4, 5, 6},
@@ -174,9 +182,11 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 }
 
 func TestNonblockTimer(t *testing.T) {
-	tc, ri, u, _, baseSender, listener, f, clock := setupTest(t)
-	defer tc.Cleanup()
+	world, ri, _, baseSender, listener, f := setupTest(t, 1)
+	defer world.Cleanup()
 
+	u := world.GetUsers()[0]
+	clock := world.Fc
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
 			Tlfid:     []byte{4, 5, 6},
@@ -213,6 +223,7 @@ func TestNonblockTimer(t *testing.T) {
 		sentRef = append(sentRef, sentRecord{msgID: &msgID})
 	}
 
+	tc := userTc(t, world, u)
 	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
@@ -306,9 +317,10 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, 
 
 func TestFailingSender(t *testing.T) {
 
-	tc, ri, u, sender, _, listener, _, _ := setupTest(t)
-	defer tc.Cleanup()
+	world, ri, sender, _, listener, _ := setupTest(t, 1)
+	defer world.Cleanup()
 
+	u := world.GetUsers()[0]
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
 			Tlfid:     []byte{4, 5, 6},
@@ -325,6 +337,7 @@ func TestFailingSender(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	tc := userTc(t, world, u)
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
 	// Send nonblock
@@ -360,9 +373,11 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	tc, ri, u, sender, baseSender, listener, _, cl := setupTest(t)
-	defer tc.Cleanup()
+	world, ri, sender, baseSender, listener, _ := setupTest(t, 1)
+	defer world.Cleanup()
 
+	u := world.GetUsers()[0]
+	cl := world.Fc
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
 			Tlfid:     []byte{4, 5, 6},
@@ -379,6 +394,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	tc := userTc(t, world, u)
 	tc.G.MessageDeliverer.Disconnected(context.TODO())
 	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
