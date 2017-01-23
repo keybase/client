@@ -796,11 +796,14 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		chatUI.ChatAttachmentUploadProgress(ctx, parg)
 	}
 
-	// get s3 upload params from server
-	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
+	// Send a placeholder attachment message that will
+	// be edited after the assets are uploaded.  Sending
+	// it now to preserve the order of send messages.
+	placeholder, err := h.postAttachmentPlaceholder(ctx, arg)
 	if err != nil {
-		return chat1.PostLocalRes{}, err
+		return placeholder, err
 	}
+	h.G().Log.Debug("placeholder message id: %v", placeholder.MessageID)
 
 	// preprocess asset (get content type, create preview if possible)
 	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
@@ -810,6 +813,12 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	if pre.Preview != nil {
 		h.G().Log.Debug("created preview in preprocess")
 		arg.Preview = pre.Preview
+	}
+
+	// get s3 upload params from server
+	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
 	}
 
 	// upload attachment and (optional) preview concurrently
@@ -863,17 +872,21 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	object.MimeType = pre.ContentType
 	object.Metadata = pre.BaseMetadata()
 
-	// send an attachment message
+	// edit the placeholder  attachment message with the asset information
 	attachment := chat1.MessageAttachment{
 		Object:   object,
 		Preview:  preview,
 		Metadata: arg.Metadata,
 	}
+	body := chat1.NewMessageBodyWithAttachment(attachment)
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: arg.ClientHeader,
-			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
+			MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+				MessageID: placeholder.MessageID,
+				Body:      body,
+			}),
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
@@ -1058,6 +1071,33 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 		Version: 1,
 	}
 	return h.remoteClient().S3Sign(context.Background(), arg)
+}
+
+func (h *chatLocalHandler) postAttachmentPlaceholder(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
+	attachment := chat1.MessageAttachment{
+		// Object:   object,
+		// Preview:  preview,
+		Metadata: arg.Metadata,
+	}
+	postArg := chat1.PostLocalArg{
+		ConversationID: arg.ConversationID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: arg.ClientHeader,
+			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
+		},
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+
+	h.G().Log.Debug("posting attachment placeholder message")
+	res, err := h.PostLocal(ctx, postArg)
+	if err != nil {
+		h.G().Log.Debug("error posting attachment placeholder message: %s", err)
+	} else {
+		h.G().Log.Debug("posted attachment placeholder message successfully")
+	}
+
+	return res, err
+
 }
 
 type dimension struct {
