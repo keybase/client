@@ -296,7 +296,7 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 			var nextBlockOffset int64
 			// We only need to fetch direct blocks if we've been asked
 			// to do so.
-			if getDirect || !ptr.IsDirect {
+			if getDirect || !ptr.IsDirect() {
 				block, _, err := fd.getter(
 					groupCtx, fd.kmd, ptr, fd.file, blockReadParallel)
 				if err != nil {
@@ -1651,7 +1651,7 @@ func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
 
 func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 	[]BlockInfo, error) {
-	if fd.rootBlockPointer().IsDirect {
+	if fd.rootBlockPointer().IsDirect() {
 		return nil, nil
 	}
 

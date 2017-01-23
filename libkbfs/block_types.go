@@ -196,7 +196,7 @@ func (fb *FileBlock) DataVersion() DataVer {
 	hasHoles := false
 	hasDirect := false
 	for i := range fb.IPtrs {
-		if fb.IPtrs[i].IsDirect {
+		if fb.IPtrs[i].IsDirect() {
 			hasDirect = true
 		} else if fb.IPtrs[i].Holes {
 			hasHoles = true

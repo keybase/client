@@ -26,7 +26,7 @@ func makeFakeBlockPointer(t *testing.T) BlockPointer {
 		kbfsblock.FakeID(1),
 		5,
 		1,
-		true,
+		directBlock,
 		makeFakeBlockContext(t),
 	}
 }

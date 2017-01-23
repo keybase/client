@@ -185,6 +185,37 @@ func (v MetadataVer) String() string {
 
 // DataVer is the type of a version for marshalled KBFS data
 // structures.
+//
+// 1) DataVer is a per-block attribute, not per-file. This means that,
+// in theory, an indirect block of with DataVer n may point to blocks
+// with DataVers less than, equal to, or greater than n. However, for
+// now, it's guaranteed that an indirect block will never point to
+// blocks with greater versions than itself. (See #3 for details.)
+//
+// 2) DataVer is an external attribute of a block, meaning that it's
+// not stored as part of the block, but computed by the creator (or
+// anyone with the latest kbfs client), and stored only in pointers to
+// the block.
+//
+// 2.5) A file (or, in the future a dir) can in theory have any
+// arbitrary tree structure of blocks. However, we only write files
+// such that all paths to leaves have the same depth.
+//
+// Currently, in addition to 2.5, we have the following constraints on block
+// tree structures:
+// a) Direct blocks are always v1.
+// b) Indirect blocks of depth 2 (meaning one indirect block pointing
+// to all direct blocks) can be v1 (if it has no holes) or v2 (if it has
+// holes). However, all its indirect pointers will have DataVer
+// 1, by a).
+// c) Indirect blocks of depth 3 must be v3 and must have at least one
+// indirect pointer with an indirect DirectType [although if it holds
+// for one, it should hold for all], although its indirect pointers
+// may have any combination of DataVer 1 or 2, by b).
+// d) Indirect blocks of dept k > 3 must be v3 and must have at least
+// one indirect pointer with an indirect DirectType [although if it
+// holds for one, it should hold for all], and all of its indirect
+// pointers must have DataVer 3, by c).
 type DataVer int
 
 const (
@@ -196,7 +227,8 @@ const (
 	// with holes.
 	FilesWithHolesDataVer DataVer = 2
 	// BigFilesDataVer is the data version for files that have
-	// multiple levels of indirection.
+	// multiple levels of indirection (i.e., the top block of the file
+	// has indirect pointers with indirect DirectTypes).
 	BigFilesDataVer DataVer = 3
 )
 
@@ -221,15 +253,35 @@ func (r BlockRef) String() string {
 	return s
 }
 
+type blockDirectType int
+
+const (
+	unknownDirectType blockDirectType = 0
+	directBlock       blockDirectType = 1
+	indirectBlock     blockDirectType = 2
+)
+
+func (bdt blockDirectType) String() string {
+	switch bdt {
+	case unknownDirectType:
+		return "unknown"
+	case directBlock:
+		return "direct"
+	case indirectBlock:
+		return "indirect"
+	}
+	return fmt.Sprintf("<unknown blockDirectType %d>", bdt)
+}
+
 // BlockPointer contains the identifying information for a block in KBFS.
 //
 // NOTE: Don't add or modify anything in this struct without
 // considering how old clients will handle them.
 type BlockPointer struct {
-	ID       kbfsblock.ID `codec:"i"`
-	KeyGen   KeyGen       `codec:"k"`           // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
-	DataVer  DataVer      `codec:"d"`           // if valid, which version of the KBFS data structures is pointed to
-	IsDirect bool         `codec:"s,omitempty"` // if true, the pointed-to block is definitely a leaf block
+	ID         kbfsblock.ID    `codec:"i"`
+	KeyGen     KeyGen          `codec:"k"`           // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
+	DataVer    DataVer         `codec:"d"`           // if valid, which version of the KBFS data structures is pointed to
+	DirectType blockDirectType `codec:"t,omitempty"` // the type (direct or indirect) of the pointer-to block
 	kbfsblock.Context
 }
 
@@ -246,11 +298,19 @@ func (p BlockPointer) IsValid() bool {
 	return true
 }
 
+// IsDirect returns true if it is known for sure that the pointed-to
+// block is a direct block.
+func (p BlockPointer) IsDirect() bool {
+	return p.DirectType == directBlock
+}
+
 func (p BlockPointer) String() string {
 	if p == (BlockPointer{}) {
 		return "BlockPointer{}"
 	}
-	return fmt.Sprintf("BlockPointer{ID: %s, KeyGen: %d, DataVer: %d, Context: %s}", p.ID, p.KeyGen, p.DataVer, p.Context)
+	return fmt.Sprintf("BlockPointer{ID: %s, KeyGen: %d, DataVer: %d, "+
+		"Context: %s, DirectType=%s}",
+		p.ID, p.KeyGen, p.DataVer, p.Context, p.DirectType)
 }
 
 // IsInitialized returns whether or not this BlockPointer has non-nil data.

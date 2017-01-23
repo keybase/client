@@ -1719,14 +1719,14 @@ func makeDirTree(id tlf.ID, uid keybase1.UID, components ...string) (
 }
 
 func makeFile(dir path, parentDirBlock *DirBlock, name string, et EntryType,
-	isDirect bool) (
+	directType blockDirectType) (
 	path, *FileBlock) {
 	if et != File && et != Exec {
 		panic(fmt.Sprintf("Unexpected type %s", et))
 	}
 	bid := kbfsblock.FakeIDAdd(dir.tailPointer().ID, 1)
 	bi := makeBIFromID(bid, dir.tailPointer().Creator)
-	bi.IsDirect = isDirect
+	bi.DirectType = directType
 
 	parentDirBlock.Children[name] = DirEntry{
 		BlockInfo: bi,
@@ -1812,8 +1812,7 @@ func testKBFSOpsRemoveFileSuccess(t *testing.T, et EntryType) {
 	if et == Exec {
 		entryName += ".exe"
 	}
-	p, _ := makeFile(dirPath, parentDirBlock, entryName, et, true)
-	//testPutBlockInCache(t, config, p.tailPointer(), id, block)
+	p, _ := makeFile(dirPath, parentDirBlock, entryName, et, directBlock)
 
 	// sync block
 	var newRmd ImmutableRootMetadata
@@ -1997,10 +1996,10 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 		makeIFP(bid3, rmd, config, uid, 5, 10),
 		makeIFP(bid4, rmd, config, uid, 5, 15),
 	}
-	fileBlock.IPtrs[0].IsDirect = true
-	fileBlock.IPtrs[1].IsDirect = true
-	fileBlock.IPtrs[2].IsDirect = true
-	fileBlock.IPtrs[3].IsDirect = true
+	fileBlock.IPtrs[0].DirectType = directBlock
+	fileBlock.IPtrs[1].DirectType = directBlock
+	fileBlock.IPtrs[2].DirectType = directBlock
+	fileBlock.IPtrs[3].DirectType = directBlock
 	fileBP := makeBP(fileBID, rmd, config, uid)
 	p := dirPath.ChildPath(entryName, fileBP)
 	ops := getOps(config, id)
@@ -2096,7 +2095,7 @@ func testKBFSOpsRemoveFileMissingBlockSuccess(t *testing.T, et EntryType) {
 	if et == Exec {
 		entryName += ".exe"
 	}
-	p, _ := makeFile(dirPath, parentDirBlock, entryName, et, false)
+	p, _ := makeFile(dirPath, parentDirBlock, entryName, et, indirectBlock)
 	// The operation might be retried several times.
 	config.mockBops.EXPECT().Get(
 		gomock.Any(), gomock.Any(), p.tailPointer(),
