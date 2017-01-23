@@ -32,6 +32,10 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "email",
 				Usage: "Specify an account email.",
 			},
+			cli.BoolFlag{
+				Name:  "g, get-code",
+				Usage: "Request an invite code from the server.",
+			},
 			cli.StringFlag{
 				Name:  "username",
 				Usage: "Specify a username.",
@@ -71,6 +75,7 @@ type CmdSignup struct {
 	doPrompt          bool
 	skipMail          bool
 	genPGP            bool
+	requestCode       bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -101,6 +106,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	if s.defaultDevice == "" {
 		s.defaultDevice = "home computer"
 	}
+	s.requestCode = ctx.Bool("get-code")
 
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
@@ -150,6 +156,12 @@ func (s *CmdSignup) Run() (err error) {
 
 	if err = s.checkRegistered(); err != nil {
 		return err
+	}
+
+	if s.requestCode {
+		if err = s.postCodeRequest(); err != nil {
+			return err
+		}
 	}
 
 	if err = s.trySignup(); err != nil {
@@ -420,6 +432,18 @@ func (s *CmdSignup) postInviteRequest() (err error) {
 		s.G().Log.Info("Success! You're on our list, thanks for your interest.")
 	}
 	return
+}
+
+func (s *CmdSignup) postCodeRequest() error {
+
+	code, err := s.scli.GetInvitationCode(context.TODO(), 0)
+	if err != nil {
+		s.G().Log.Info("Error getting new code: %v", err)
+	} else {
+		s.G().Log.Info("Success! You got new code %s", code)
+	}
+	s.code = code
+	return err
 }
 
 func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {

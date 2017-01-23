@@ -214,3 +214,16 @@ func CheckInvitationCode(code string) error {
 	_, err := G.API.Get(arg)
 	return err
 }
+
+func GetInvitationCode() (string, error) {
+	arg := APIArg{
+		Endpoint:    "invitation_bypass_request",
+		NeedSession: false,
+	}
+	res, err := G.API.Get(arg)
+	var invitation_id string
+	if err == nil {
+		invitation_id, err = res.Body.AtKey("invitation_id").GetString()
+	}
+	return invitation_id, err
+}
