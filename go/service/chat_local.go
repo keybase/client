@@ -803,6 +803,86 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 	return h.postAttachmentLocal(ctx, parg)
 }
 
+// PostFileAttachmentNonblockLocal implements chat1.LocalInterface.PostFileAttachmentNonblockLocal.
+func (h *chatLocalHandler) PostFileAttachmentNonblockLocal(ctx context.Context, arg chat1.PostFileAttachmentNonblockLocalArg) (res chat1.PostLocalNonblockRes, err error) {
+	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentNonblockLocal")()
+
+	// preprocess the arg to find some minimal information about the assets
+
+	// send an attachment message
+	attachment := chat1.MessageAttachment{
+		// Object:   object,
+		// Preview:  preview,
+		Metadata: arg.Metadata,
+	}
+	msg := chat1.MessagePlaintext{
+		ClientHeader: arg.ClientHeader,
+		MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
+	}
+
+	// create a listener
+	/*
+		listener := newChatListener()
+		h.G().NotifyRouter.SetListener(&listener)
+	*/
+
+	// Create non block sender
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
+
+	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, msg, arg.ClientPrev)
+	if err != nil {
+		return chat1.PostLocalNonblockRes{},
+			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
+	}
+
+	// stick the full attachment into some sort of attachment sender...
+
+	// instead of returning, let's just try doing this all at once for testing
+	_ = obid
+	_ = rl
+	/*
+		return chat1.PostLocalNonblockRes{
+			OutboxID:         obid,
+			RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+			IdentifyFailures: identBreaks,
+		}, nil
+	*/
+
+	// listen for the message in order to get the message id
+
+	/*
+		parg := postAttachmentArg{
+			SessionID:        arg.SessionID,
+			ConversationID:   arg.ConversationID,
+			ClientHeader:     arg.ClientHeader,
+			Title:            arg.Title,
+			Metadata:         arg.Metadata,
+			IdentifyBehavior: arg.IdentifyBehavior,
+		}
+		asrc, err := newFileSource(arg.Attachment)
+		if err != nil {
+			return chat1.PostLocalRes{}, err
+		}
+		parg.Attachment = asrc
+		defer parg.Attachment.Close()
+
+		if arg.Preview != nil {
+			psrc, err := newFileSource(*arg.Preview)
+			if err != nil {
+				return chat1.PostLocalRes{}, err
+			}
+			parg.Preview = psrc
+			defer parg.Preview.Close()
+		}
+
+		return h.postAttachmentLocal(ctx, parg)
+	*/
+	return chat1.PostLocalNonblockRes{}, errors.New("not yet implemented")
+}
+
 // postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
 type postAttachmentArg struct {
 	SessionID        int

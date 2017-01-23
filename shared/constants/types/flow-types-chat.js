@@ -309,6 +309,18 @@ export function localPostFileAttachmentLocalRpcPromise (request: $Exact<requestC
   return new Promise((resolve, reject) => { localPostFileAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localPostFileAttachmentNonblockLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostFileAttachmentNonblockLocalResult) => void} & {param: localPostFileAttachmentNonblockLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.postFileAttachmentNonblockLocal'})
+}
+
+export function localPostFileAttachmentNonblockLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostFileAttachmentNonblockLocalResult) => void} & {param: localPostFileAttachmentNonblockLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localPostFileAttachmentNonblockLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localPostFileAttachmentNonblockLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostFileAttachmentNonblockLocalResult) => void} & {param: localPostFileAttachmentNonblockLocalRpcParam}>): Promise<localPostFileAttachmentNonblockLocalResult> {
+  return new Promise((resolve, reject) => { localPostFileAttachmentNonblockLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localPostLocalNonblockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalNonblockResult) => void} & {param: localPostLocalNonblockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.postLocalNonblock'})
 }
@@ -1370,6 +1382,17 @@ export type localPostFileAttachmentLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localPostFileAttachmentNonblockLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  clientHeader: MessageClientHeader,
+  clientPrev: MessageID,
+  attachment: LocalFileSource,
+  preview?: ?LocalFileSource,
+  title: string,
+  metadata: bytes,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
 export type localPostLocalNonblockRpcParam = Exact<{
   conversationID: ConversationID,
   msg: MessagePlaintext,
@@ -1503,6 +1526,8 @@ type localPostEditNonblockResult = PostLocalNonblockRes
 
 type localPostFileAttachmentLocalResult = PostLocalRes
 
+type localPostFileAttachmentNonblockLocalResult = PostLocalNonblockRes
+
 type localPostLocalNonblockResult = PostLocalNonblockRes
 
 type localPostLocalResult = PostLocalRes
@@ -1551,6 +1576,7 @@ export type rpc =
   | localPostDeleteNonblockRpc
   | localPostEditNonblockRpc
   | localPostFileAttachmentLocalRpc
+  | localPostFileAttachmentNonblockLocalRpc
   | localPostLocalNonblockRpc
   | localPostLocalRpc
   | localPostTextNonblockRpc

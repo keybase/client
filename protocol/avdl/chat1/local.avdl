@@ -432,6 +432,9 @@ protocol local {
 
   // Post an attachment from file source to conversationID.
   PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, LocalFileSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  
+  // Post an attachment from file source to conversationID, without blocking.
+  PostLocalNonblockRes postFileAttachmentNonblockLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, MessageID clientPrev, LocalFileSource attachment, union { null, LocalFileSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
     array<RateLimit> rateLimits;

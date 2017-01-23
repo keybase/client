@@ -1706,6 +1706,50 @@
       ],
       "response": "PostLocalRes"
     },
+    "postFileAttachmentNonblockLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "clientHeader",
+          "type": "MessageClientHeader"
+        },
+        {
+          "name": "clientPrev",
+          "type": "MessageID"
+        },
+        {
+          "name": "attachment",
+          "type": "LocalFileSource"
+        },
+        {
+          "name": "preview",
+          "type": [
+            null,
+            "LocalFileSource"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalNonblockRes"
+    },
     "DownloadAttachmentLocal": {
       "request": [
         {
