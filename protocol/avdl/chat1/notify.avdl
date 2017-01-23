@@ -64,7 +64,7 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatTLFResolve(keybase1.UID uid, ConversationID convID);
+  void ChatTLFResolve(keybase1.UID uid, ConversationID convID, ConversationResolveInfo resolveInfo);
 
   @notify("")
   @lint("ignore") 

@@ -204,6 +204,10 @@
         {
           "name": "convID",
           "type": "ConversationID"
+        },
+        {
+          "name": "resolveInfo",
+          "type": "ConversationResolveInfo"
         }
       ],
       "response": null,

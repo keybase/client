@@ -170,6 +170,10 @@ type ConversationFinalizeInfo struct {
 	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
 }
 
+type ConversationResolveInfo struct {
+	NewTLFName string `codec:"newTLFName" json:"newTLFName"`
+}
+
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
