@@ -282,7 +282,7 @@ func TestPrefetcherDirectDirBlockAlreadyCached(t *testing.T) {
 }
 
 func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
-	t.Log("Test that prefetches aren't triggered when the cache is full.")
+	t.Log("Test that prefetches aren't triggered when the cache is full with permanent entries.")
 	q, w, bg, config := initPrefetcherTest(t)
 	cache := NewBlockCacheStandard(1, uint64(1))
 	config.testCache = cache
@@ -320,7 +320,7 @@ func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
 	require.Equal(t, dir1, block)
 
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching." +
-		" This shouldn't block, indicating that no prefetches were triggered.")
+		" This shouldn't hang, indicating that no prefetches were triggered.")
 	<-q.Prefetcher().Shutdown()
 }
 
