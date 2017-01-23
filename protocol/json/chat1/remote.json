@@ -210,6 +210,26 @@
     },
     {
       "type": "record",
+      "name": "GetPublicConversationsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnreadUpdateFull",
       "fields": [
         {
@@ -310,6 +330,19 @@
         }
       ],
       "response": "GetThreadRemoteRes"
+    },
+    "getPublicConversations": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        }
+      ],
+      "response": "GetPublicConversationsRes"
     },
     "postRemote": {
       "request": [

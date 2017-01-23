@@ -1320,6 +1320,33 @@
           "name": "identifyFailures"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FindConversationsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1803,7 +1830,7 @@
       ],
       "response": "MarkAsReadRes"
     },
-    "findConversations": {
+    "findConversationsLocal": {
       "request": [
         {
           "name": "tlfName",
@@ -1820,12 +1847,13 @@
         {
           "name": "topicName",
           "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "ConversationLocal"
-      }
+      "response": "FindConversationsLocalRes"
     }
   },
   "namespace": "chat.1"

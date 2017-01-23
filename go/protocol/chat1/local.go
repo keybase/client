@@ -866,6 +866,12 @@ type DownloadAttachmentLocalRes struct {
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
+type FindConversationsLocalRes struct {
+	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
@@ -1012,11 +1018,12 @@ type MarkAsReadLocalArg struct {
 	MsgID          MessageID      `codec:"msgID" json:"msgID"`
 }
 
-type FindConversationsArg struct {
-	TlfName    string        `codec:"tlfName" json:"tlfName"`
-	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
-	TopicType  TopicType     `codec:"topicType" json:"topicType"`
-	TopicName  string        `codec:"topicName" json:"topicName"`
+type FindConversationsLocalArg struct {
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
+	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
+	TopicName        string                       `codec:"topicName" json:"topicName"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type LocalInterface interface {
@@ -1040,7 +1047,7 @@ type LocalInterface interface {
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, OutboxID) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadRes, error)
-	FindConversations(context.Context, FindConversationsArg) ([]ConversationLocal, error)
+	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1367,18 +1374,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"findConversations": {
+			"findConversationsLocal": {
 				MakeArg: func() interface{} {
-					ret := make([]FindConversationsArg, 1)
+					ret := make([]FindConversationsLocalArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]FindConversationsArg)
+					typedArgs, ok := args.(*[]FindConversationsLocalArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]FindConversationsArg)(nil), args)
+						err = rpc.NewTypeError((*[]FindConversationsLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.FindConversations(ctx, (*typedArgs)[0])
+					ret, err = i.FindConversationsLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1495,7 +1502,7 @@ func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalA
 	return
 }
 
-func (c LocalClient) FindConversations(ctx context.Context, __arg FindConversationsArg) (res []ConversationLocal, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.findConversations", []interface{}{__arg}, &res)
+func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConversationsLocalArg) (res FindConversationsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.findConversationsLocal", []interface{}{__arg}, &res)
 	return
 }
