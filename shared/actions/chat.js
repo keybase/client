@@ -116,6 +116,47 @@ const loadedInboxActionTransformer = action => ({
   type: action.type,
 })
 
+const postMessageActionTransformer = action => ({
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+  },
+  type: action.type,
+})
+
+const retryMessageActionTransformer = action => ({
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+    outboxIDKey: action.payload.outboxIDKey,
+  },
+  type: action.type,
+})
+
+const safeServerMessageMap = m => ({
+  key: m.key,
+  messageID: m.messageID,
+  messageState: m.messageState,
+  outboxID: m.outboxID,
+  type: m.type,
+})
+
+const prependMessagesActionTransformer = action => ({
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+    messages: action.payload.messages.map(safeServerMessageMap),
+    moreToLoad: action.payload.moreToLoad,
+    paginationNext: !!action.payload.paginationNext,
+  },
+  type: action.type,
+})
+
+const appendMessageActionTransformer = action => ({
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+    messages: action.payload.messages.map(safeServerMessageMap),
+  },
+  type: action.type,
+})
+
 const _selectedSelector = (state: TypedState) => {
   const chatPath = getPath(state.routeTree.routeState, [chatTab])
   if (chatPath.get(0) !== chatTab) {
@@ -165,7 +206,7 @@ function newChat (existingParticipants: Array<string>): NewChat {
 }
 
 function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
-  return {type: 'chat:postMessage', payload: {conversationIDKey, text}}
+  return {type: 'chat:postMessage', payload: {conversationIDKey, text}, logTransformer: postMessageActionTransformer}
 }
 
 function setupChatHandlers (): SetupChatHandlers {
@@ -173,7 +214,7 @@ function setupChatHandlers (): SetupChatHandlers {
 }
 
 function retryMessage (outboxIDKey: string): RetryMessage {
-  return {type: 'chat:retryMessage', payload: {outboxIDKey}}
+  return {type: 'chat:retryMessage', payload: {outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
 function loadInbox (): LoadInbox {
@@ -400,12 +441,13 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     messages.push(message)
     const selectedConversation = yield select(_selectedSelector)
     yield put({
-      type: 'chat:appendMessages',
+      logTransformer: appendMessageActionTransformer,
       payload: {
         conversationIDKey,
         isSelected: conversationIDKey === selectedConversation,
         messages,
       },
+      type: 'chat:appendMessages',
     })
     if (hasPendingFailure) {
       yield put(({
@@ -562,22 +604,24 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             const timestamp = _maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
-                type: 'chat:appendMessages',
+                logTransformer: appendMessageActionTransformer,
                 payload: {
                   conversationIDKey,
                   isSelected: conversationIDKey === selectedConversationIDKey,
                   messages: [timestamp],
                 },
+                type: 'chat:appendMessages',
               })
             }
           }
           yield put({
-            type: 'chat:appendMessages',
+            logTransformer: appendMessageActionTransformer,
             payload: {
               conversationIDKey,
               isSelected: conversationIDKey === selectedConversationIDKey,
               messages: [message],
             },
+            type: 'chat:appendMessages',
           })
 
           if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
@@ -762,13 +806,14 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   const pagination = _threadToPagination(thread)
 
   yield put({
-    type: 'chat:prependMessages',
     payload: {
       conversationIDKey,
       messages: newMessages,
       moreToLoad: !pagination.last,
       paginationNext: pagination.next,
     },
+    logTransformer: prependMessagesActionTransformer,
+    type: 'chat:prependMessages',
   })
 
   // Load previews for attachments
@@ -1136,7 +1181,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
   const username = yield select(usernameSelector)
 
   yield put({
-    type: 'chat:appendMessages',
+    logTransformer: appendMessageActionTransformer,
     payload: {
       conversationIDKey,
       messages: [_temporaryAttachmentMessageForUpload(
@@ -1148,6 +1193,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
         type,
       )],
     },
+    type: 'chat:appendMessages',
   })
 
   const param = {
