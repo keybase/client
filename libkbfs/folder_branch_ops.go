@@ -2349,10 +2349,10 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	}
 
 	if isConflict {
-		// drop this block. we've probably collided with someone also
+		// Drop this block. We've probably collided with someone also
 		// trying to rekey the same folder but that's not necessarily
-		// the case. we'll queue another rekey just in case. it should
-		// be safe as it's idempotent. we don't want any rekeys present
+		// the case. We'll queue another rekey just in case. It should
+		// be safe as it's idempotent. We don't want any rekeys present
 		// in unmerged history or that will just make a mess.
 		fbo.config.RekeyQueue().Enqueue(md.TlfID())
 		return RekeyConflictError{err}
