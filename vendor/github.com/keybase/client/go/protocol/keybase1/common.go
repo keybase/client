@@ -190,6 +190,7 @@ type UserPlusKeys struct {
 	RevokedDeviceKeys []RevokedKey      `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
 	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`
 	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
+	DeletedDeviceKeys []PublicKey       `codec:"deletedDeviceKeys" json:"deletedDeviceKeys"`
 }
 
 type RemoteTrack struct {
