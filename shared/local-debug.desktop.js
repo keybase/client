@@ -33,16 +33,16 @@ let config: {[key: string]: any} = {
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-  config.actionStatFrequency = 0
+  config.actionStatFrequency = 0.8
   config.devStoreChangingFunctions = true
-  config.enableActionLogging = true
-  config.enableStoreLogging = false
+  config.enableActionLogging = false
+  config.enableStoreLogging = true
   config.forwardLogs = false
-  config.logStatFrequency = 0
+  config.logStatFrequency = 0.8
   config.overrideLoggedInTab = Tabs.settingsTab
-  config.printOutstandingRPCs = false
-  config.printRPC = false
-  config.printRoutes = false
+  config.printOutstandingRPCs = true
+  config.printRPC = true
+  config.printRoutes = true
   config.redirectOnLogout = false
 
   const envJson = envVarDebugJson()
