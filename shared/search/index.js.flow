@@ -12,6 +12,7 @@ export type RootProps = {
   userForInfoPane: ?SearchResult,
   showUserGroup: boolean,
   selectedUsers: Array<SearchResult>,
+  searchTextClearTrigger: number,
   onRemoveUserFromGroup: UserFn,
   onClickUserInGroup: UserFn,
   onAddAnotherUserToGroup?: () => void,
