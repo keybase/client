@@ -138,6 +138,8 @@ export type ConversationBadgeStateRecord = Record<{
 
 export const InboxStateRecord = Record({
   info: null,
+  isEmpty: false,
+  youCreated: false,
   participants: List(),
   conversationIDKey: '',
   muted: false,
@@ -150,6 +152,8 @@ export const InboxStateRecord = Record({
 
 export type InboxState = Record<{
   info: ConversationInfoLocal,
+  isEmpty: boolean,
+  youCreated: boolean, // true if you made it this session
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
@@ -197,13 +201,13 @@ export const nothingSelected = 'chat:noneSelected'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
-export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {ConversationIDKey: ConversationIDKey}>
+export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
+export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDKey: ?ConversationIDKey}>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
