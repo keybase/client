@@ -116,8 +116,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
     <Box style={{position: 'relative'}}>
       <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
       <Box style={{marginTop: globalMargins.xtiny}}>
-        {!!message.progress &&
-          (messageState === 'uploading' || messageState === 'downloading') &&
+        {_showProgressBar(messageState, message.progress) && !!message.progress &&
           <ProgressBar
             style={progressBarStyle}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
@@ -156,10 +155,10 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Constant
 
         {(_showProgressBar(messageState, progress) || downloadedPath) &&
           <Box style={{height: 14}}>
-            {_showProgressBar(messageState, progress) &&
+            {_showProgressBar(messageState, progress) && !!progress &&
               <ProgressBar
                 text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
-                progress={message.progress} />}
+                progress={progress} />}
             {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
           </Box>}
       </Box>
