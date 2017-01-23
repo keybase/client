@@ -1,10 +1,8 @@
 // @flow
-
 import React from 'react'
-import Search from './render'
-import type {DumbComponentMap} from '../constants/types/more'
+import Search from '.'
 import UserPane from './user-pane/render'
-
+import type {DumbComponentMap} from '../constants/types/more'
 import userPaneMocks from './user-pane/dumb'
 
 const results = [
