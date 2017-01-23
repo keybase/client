@@ -187,7 +187,7 @@ func (v MetadataVer) String() string {
 // structures.
 //
 // 1) DataVer is a per-block attribute, not per-file. This means that,
-// in theory, an indirect block of with DataVer n may point to blocks
+// in theory, an indirect block with DataVer n may point to blocks
 // with DataVers less than, equal to, or greater than n. However, for
 // now, it's guaranteed that an indirect block will never point to
 // blocks with greater versions than itself. (See #3 for details.)
@@ -223,13 +223,13 @@ const (
 	// valid data version. Note that the nil value is not
 	// considered valid.
 	FirstValidDataVer DataVer = 1
-	// FilesWithHolesDataVer is the data version for files
-	// with holes.
-	FilesWithHolesDataVer DataVer = 2
-	// BigFilesDataVer is the data version for files that have
-	// multiple levels of indirection (i.e., the top block of the file
-	// has indirect pointers with indirect DirectTypes).
-	BigFilesDataVer DataVer = 3
+	// ChildHolesDataVer is the data version for any indirect block
+	// containing a set of pointers with holes.
+	ChildHolesDataVer DataVer = 2
+	// AtLeastTwoLevelsOfChildrenDataVer is the data version for
+	// blocks that have multiple levels of indirection below them
+	// (i.e., indirect blocks that point to other indirect blocks).
+	AtLeastTwoLevelsOfChildrenDataVer DataVer = 3
 )
 
 // BlockRef is a block ID/ref nonce pair, which defines a unique
@@ -253,21 +253,29 @@ func (r BlockRef) String() string {
 	return s
 }
 
-type blockDirectType int
+// BlockDirectType indicates to what kind of block (direct or
+// indirect) a BlockPointer points.
+type BlockDirectType int
 
 const (
-	unknownDirectType blockDirectType = 0
-	directBlock       blockDirectType = 1
-	indirectBlock     blockDirectType = 2
+	// UnknownDirectType indicates an old block that was written
+	// before we started labeling pointers.
+	UnknownDirectType BlockDirectType = 0
+	// DirectBlock indicates the pointed-to block has no indirect
+	// pointers.
+	DirectBlock BlockDirectType = 1
+	// IndirectBlock indicates the pointed-to block has indirect
+	// pointers.
+	IndirectBlock BlockDirectType = 2
 )
 
-func (bdt blockDirectType) String() string {
+func (bdt BlockDirectType) String() string {
 	switch bdt {
-	case unknownDirectType:
+	case UnknownDirectType:
 		return "unknown"
-	case directBlock:
+	case DirectBlock:
 		return "direct"
-	case indirectBlock:
+	case IndirectBlock:
 		return "indirect"
 	}
 	return fmt.Sprintf("<unknown blockDirectType %d>", bdt)
@@ -281,7 +289,7 @@ type BlockPointer struct {
 	ID         kbfsblock.ID    `codec:"i"`
 	KeyGen     KeyGen          `codec:"k"`           // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
 	DataVer    DataVer         `codec:"d"`           // if valid, which version of the KBFS data structures is pointed to
-	DirectType blockDirectType `codec:"t,omitempty"` // the type (direct or indirect) of the pointer-to block
+	DirectType BlockDirectType `codec:"t,omitempty"` // the type (direct, indirect, or unknown [if omitted]) of the pointed-to block
 	kbfsblock.Context
 }
 
@@ -296,12 +304,6 @@ func (p BlockPointer) IsValid() bool {
 	// bunch of tests use invalid values for one of these.)
 
 	return true
-}
-
-// IsDirect returns true if it is known for sure that the pointed-to
-// block is a direct block.
-func (p BlockPointer) IsDirect() bool {
-	return p.DirectType == directBlock
 }
 
 func (p BlockPointer) String() string {

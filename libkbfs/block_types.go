@@ -35,7 +35,9 @@ type IndirectFilePtr struct {
 	// be dirty.
 	BlockInfo
 	Off int64 `codec:"o"`
-	// Marker for files with holes
+	// Marker for files with holes.  This is here for historical
+	// reasons; a `FileBlock` should be treated as having a `HasHoles`
+	// flag set to true if any of its IPtrs have `Holes` set to true.
 	Holes bool `codec:"h,omitempty"`
 
 	codec.UnknownFieldSetHandler
@@ -186,7 +188,8 @@ func (fb *FileBlock) NewEmpty() Block {
 	return &FileBlock{}
 }
 
-// DataVersion returns data version for this block.
+// DataVersion returns data version for this block, which is assumed
+// to have been modified locally.
 func (fb *FileBlock) DataVersion() DataVer {
 	// If this is an indirect block, and none of its children are
 	// marked as direct blocks, then this must be a big file.  Note
@@ -196,7 +199,7 @@ func (fb *FileBlock) DataVersion() DataVer {
 	hasHoles := false
 	hasDirect := false
 	for i := range fb.IPtrs {
-		if fb.IPtrs[i].IsDirect() {
+		if fb.IPtrs[i].DirectType == DirectBlock {
 			hasDirect = true
 		} else if fb.IPtrs[i].Holes {
 			hasHoles = true
@@ -209,9 +212,9 @@ func (fb *FileBlock) DataVersion() DataVer {
 	}
 
 	if len(fb.IPtrs) > 0 && !hasDirect {
-		return BigFilesDataVer
+		return AtLeastTwoLevelsOfChildrenDataVer
 	} else if hasHoles {
-		return FilesWithHolesDataVer
+		return ChildHolesDataVer
 	}
 	return FirstValidDataVer
 }
@@ -277,7 +280,7 @@ func (fb *FileBlock) GetHash() kbfshash.RawDefaultHash {
 // DefaultNewBlockDataVersion returns the default data version for new blocks.
 func DefaultNewBlockDataVersion(holes bool) DataVer {
 	if holes {
-		return FilesWithHolesDataVer
+		return ChildHolesDataVer
 	}
 	return FirstValidDataVer
 }

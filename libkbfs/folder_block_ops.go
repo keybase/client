@@ -1743,9 +1743,9 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 	crypto cryptoPure, kmd KeyMetadata, block Block, uid keybase1.UID) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
 	var ptr BlockPointer
-	directType := indirectBlock
+	directType := IndirectBlock
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
-		directType = directBlock
+		directType = DirectBlock
 		// first see if we are duplicating any known blocks in this folder
 		ptr, err = bcache.CheckForKnownPtr(kmd.TlfID(), fBlock)
 		if err != nil {
@@ -1756,7 +1756,7 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 			panic("Indirect directory blocks aren't supported yet")
 		}
 		// TODO: support indirect directory blocks.
-		directType = directBlock
+		directType = DirectBlock
 	}
 
 	// Ready the block, even in the case where we can reuse an

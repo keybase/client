@@ -245,11 +245,16 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 	prefixOk bool, getDirect bool) (pathsFromRoot [][]parentBlockAndChildIndex,
 	blocks map[BlockPointer]*FileBlock, nextBlockOffset int64, err error) {
 	if !pblock.IsInd {
-		// Return a single empty path and a child map with only this
-		// block in it, under the assumption that the caller already
-		// checked the range for this block.
-		return [][]parentBlockAndChildIndex{nil},
-			map[BlockPointer]*FileBlock{ptr: pblock}, -1, nil
+		// Return a single empty path, under the assumption that the
+		// caller already checked the range for this block.
+		if getDirect {
+			// Return a child map with only this block in it.
+			return [][]parentBlockAndChildIndex{nil},
+				map[BlockPointer]*FileBlock{ptr: pblock}, -1, nil
+		}
+		// Return an empty child map with no blocks in it (since
+		// !getDirect is false).
+		return [][]parentBlockAndChildIndex{nil}, nil, -1, nil
 	}
 
 	type resp struct {
@@ -290,13 +295,14 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 		childIndex := i
 		respCh := make(chan resp, 1)
 		respChans = append(respChans, respCh)
+		// Don't reference the uncaptured `i` or `iptr` variables below.
 		eg.Go(func() error {
 			var pfr [][]parentBlockAndChildIndex
 			var blocks map[BlockPointer]*FileBlock
 			var nextBlockOffset int64
 			// We only need to fetch direct blocks if we've been asked
 			// to do so.
-			if getDirect || !ptr.IsDirect() {
+			if getDirect || ptr.DirectType != DirectBlock {
 				block, _, err := fd.getter(
 					groupCtx, fd.kmd, ptr, fd.file, blockReadParallel)
 				if err != nil {
@@ -1651,7 +1657,7 @@ func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
 
 func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 	[]BlockInfo, error) {
-	if fd.rootBlockPointer().IsDirect() {
+	if fd.rootBlockPointer().DirectType == DirectBlock {
 		return nil, nil
 	}
 

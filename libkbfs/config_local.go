@@ -600,7 +600,7 @@ func (c *ConfigLocal) SetMetadataVersion(mdVer MetadataVer) {
 
 // DataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DataVersion() DataVer {
-	return BigFilesDataVer
+	return AtLeastTwoLevelsOfChildrenDataVer
 }
 
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
