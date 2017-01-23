@@ -894,6 +894,8 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 				}
 			}
 
+			// If we've ignored all of the block IDs in `idsToIgnore`,
+			// we can avoid iterating through the rest of the journal.
 			if len(idsToIgnore) == ignored {
 				return nil
 			}
