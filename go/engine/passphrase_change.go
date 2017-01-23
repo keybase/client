@@ -48,7 +48,6 @@ func (c *PassphraseChange) Prereqs() Prereqs {
 // RequiredUIs returns the required UIs.
 func (c *PassphraseChange) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
-		libkb.LogUIKind,
 		libkb.SecretUIKind,
 	}
 }
