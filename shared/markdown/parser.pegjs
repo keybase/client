@@ -10,23 +10,23 @@
 
   function convertLink (text) {
     const matches = text.match(linkExp)
-      if (matches && goodLink(matches[0])) {
-        const match = matches[0]
-          const rest = text.substring(match.length)
-          if (rest) {
-            return {
-type: 'text',
-        children: [
-        {type: 'link', children: [match]},
-        rest
-        ]
-            }
-          } else {
-            return {type: 'link', children: [match]}
-          }
+    if (matches && goodLink(matches[0])) {
+      const match = matches[0]
+      const rest = text.substring(match.length)
+      if (rest) {
+        return {
+          type: 'text',
+          children: [
+            {type: 'link', children: [match]},
+            rest,
+          ],
+        }
       } else {
-        return text
+        return {type: 'link', children: [match]}
       }
+    } else {
+      return text
+    }
   }
 }
 
