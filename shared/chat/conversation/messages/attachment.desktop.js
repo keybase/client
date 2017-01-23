@@ -8,6 +8,10 @@ import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
 import type {Props, ProgressBarProps, ImageIconProps} from './attachment'
 
+function _showProgressBar (messageState, progress) {
+  return !!progress && (messageState === 'uploading' || messageState === 'downloading')
+}
+
 function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: string}) {
   let style = {}
   switch (messageState) {
@@ -95,6 +99,12 @@ function ImageIcon ({type, style}: ImageIconProps) {
   )
 }
 
+function ShowInFileUi ({downloadedPath, onOpenInFileUI}) {
+  return <Text type='BodySmallSecondaryLink' onClick={() => onOpenInFileUI(downloadedPath)}>
+    Show in {fileUIName}
+  </Text>
+}
+
 function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void, onOpenInPopup: () => void}) {
   const {downloadedPath, messageState} = message
 
@@ -106,16 +116,12 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
     <Box style={{position: 'relative'}}>
       <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
       <Box style={{marginTop: globalMargins.xtiny}}>
-        {!!message.progress &&
-          (messageState === 'uploading' || messageState === 'downloading') &&
+        {_showProgressBar(messageState, message.progress) && !!message.progress &&
           <ProgressBar
             style={progressBarStyle}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}
-        {!!downloadedPath &&
-          <Text type='BodySmallSecondaryLink' onClick={() => onOpenInFileUI(downloadedPath)}>
-            Show in {fileUIName}
-          </Text>}
+        {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
       </Box>
     </Box>
   )
@@ -123,7 +129,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
 
 function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMessageState}) {
   let iconType = 'icon-file-24'
-  let style = {}
+  let style = {marginTop: 8, marginBottom: 8}
   switch (messageState) {
     case 'downloading':
       iconType = 'icon-file-downloading-24'
@@ -140,23 +146,21 @@ function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMess
 }
 
 function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void}) {
-  const {downloadedPath, messageState} = message
+  const {downloadedPath, messageState, progress} = message
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.tiny}}>
-      <Box>
-        <AttachmentIcon messageState={messageState} />
-      </Box>
+      <AttachmentIcon messageState={messageState} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
         <AttachmentTitle {...message} />
-        {!!message.progress &&
-          (messageState === 'uploading' || messageState === 'downloading') &&
-          <ProgressBar
-            text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
-            progress={message.progress} />}
-        {!!downloadedPath &&
-          <Text type='BodySmallSecondaryLink' onClick={() => onOpenInFileUI()}>
-            Show in {fileUIName}
-          </Text>}
+
+        {(_showProgressBar(messageState, progress) || downloadedPath) &&
+          <Box style={{height: 14}}>
+            {_showProgressBar(messageState, progress) && !!progress &&
+              <ProgressBar
+                text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
+                progress={progress} />}
+            {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
+          </Box>}
       </Box>
     </Box>
   )

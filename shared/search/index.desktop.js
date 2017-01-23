@@ -6,7 +6,7 @@ import UserSearch from './user-search/render.desktop'
 import UserGroup from './user-search/user-group'
 import SearchBar from './user-search/search-bar.desktop'
 
-import type {Props, RootProps} from './render'
+import type {Props, RootProps} from '.'
 import type {Props as UserSearchProps} from './user-search/render'
 import type {Props as UserGroupProps} from './user-search/user-group'
 import type {Props as SearchBarProps} from './user-search/search-bar'

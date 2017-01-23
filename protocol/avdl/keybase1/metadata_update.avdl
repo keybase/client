@@ -5,4 +5,10 @@ protocol metadataUpdate {
 
   void metadataUpdate(string folderID, long revision);
   void folderNeedsRekey(string folderID, long revision);
+
+  record RekeyRequest {
+    string folderID;
+    long   revision;
+  }
+  void foldersNeedRekey(array<RekeyRequest> requests);
 }

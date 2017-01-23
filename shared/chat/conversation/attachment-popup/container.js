@@ -62,6 +62,7 @@ export default compose(
             conversationIDKey: message.conversationIDKey,
             filename: downloadFilePath(message.filename),
             loadPreview: false,
+            isHdPreview: false,
             messageID,
           },
         }: LoadAttachment))

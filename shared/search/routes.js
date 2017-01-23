@@ -1,13 +1,13 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
 import {profileRoute} from '../profile/routes'
-import Search from './'
+import Search from './container'
 
 const routeTree = new RouteDefNode({
-  component: Search,
   children: {
     profile: profileRoute,
   },
+  component: Search,
 })
 
 export default routeTree

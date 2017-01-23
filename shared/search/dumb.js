@@ -1,143 +1,141 @@
 // @flow
-
 import React from 'react'
-import Search from './render'
-import type {DumbComponentMap} from '../constants/types/more'
+import Search from '.'
 import UserPane from './user-pane/render'
-
 import userPaneMocks from './user-pane/dumb'
+
+import type {DumbComponentMap} from '../constants/types/more'
 
 const results = [
   {
+    extraInfo: {
+      fullName: 'Chris Coyne',
+      isFollowing: true,
+      service: 'keybase',
+      username: 'chris',
+    },
+    icon: 'icon-twitter-logo-32',
+    keybaseSearchResult: null,
+    profileUrl: 'https://twitter.com/malgorithms',
     service: 'external',
     serviceAvatar: '',
-    icon: 'icon-twitter-logo-32',
-    username: 'malgorithms',
     serviceName: 'Twitter',
-    profileUrl: 'https://twitter.com/malgorithms',
-    keybaseSearchResult: null,
-    extraInfo: {
-      service: 'keybase',
-      username: 'chris',
-      fullName: 'Chris Coyne',
-      isFollowing: true,
-    },
+    username: 'malgorithms',
   },
   {
+    extraInfo: {
+      fullName: 'John Malg',
+      service: 'none',
+    },
+    isFollowing: false,
     service: 'keybase',
     username: 'malg',
-    isFollowing: false,
-    extraInfo: {
-      service: 'none',
-      fullName: 'John Malg',
-    },
   },
   {
+    extraInfo: {
+      fullName: 'Malgo Malg',
+      service: 'none',
+    },
+    isFollowing: false,
     service: 'keybase',
     username: 'malgomalg',
-    isFollowing: false,
-    extraInfo: {
-      service: 'none',
-      fullName: 'Malgo Malg',
-    },
   },
   {
+    extraInfo: {
+      fullNameOnService: 'Chris Coyne',
+      icon: 'iconfont-identity-twitter',
+      service: 'external',
+      serviceAvatar: '',
+      serviceUsername: 'malgorithms',
+    },
+    isFollowing: true,
     service: 'keybase',
     username: 'chris',
-    isFollowing: true,
-    extraInfo: {
-      service: 'external',
-      icon: 'iconfont-identity-twitter',
-      serviceUsername: 'malgorithms',
-      serviceAvatar: '',
-      fullNameOnService: 'Chris Coyne',
-    },
   },
   {
-    service: 'keybase',
-    username: 'chris2',
-    isFollowing: true,
     extraInfo: {
-      service: 'keybase',
-      username: 'chris',
       fullName: 'Chris Coyne',
       isFollowing: true,
+      service: 'keybase',
+      username: 'chris',
     },
+    isFollowing: true,
+    service: 'keybase',
+    username: 'chris2',
   },
 ]
 
 const commonUsers = [
   {
+    extraInfo: {
+      fullName: 'Max Krohn',
+      service: 'none',
+    },
+    isFollowing: false,
     service: 'keybase',
     username: 'max',
-    isFollowing: false,
-    extraInfo: {
-      service: 'none',
-      fullName: 'Max Krohn',
-    },
   },
   {
+    extraInfo: {
+      fullName: 'John Malg',
+      service: 'none',
+    },
+    isFollowing: false,
     service: 'keybase',
     username: 'malg',
-    isFollowing: false,
-    extraInfo: {
-      service: 'none',
-      fullName: 'John Malg',
-    },
   },
   {
+    extraInfo: {
+      fullNameOnService: 'Chris Coyne',
+      icon: 'icon-twitter-logo-32',
+      service: 'external',
+      serviceAvatar: '',
+      serviceUsername: 'malgorithms',
+    },
+    icon: 'icon-twitter-logo-32',
+    keybaseSearchResult: null,
+    profileUrl: 'https://twitter.com/malgorithms',
     service: 'external',
     serviceAvatar: '',
     serviceName: 'Twitter',
-    icon: 'icon-twitter-logo-32',
     username: 'malgorithms',
-    profileUrl: 'https://twitter.com/malgorithms',
-    keybaseSearchResult: null,
-    extraInfo: {
-      service: 'external',
-      icon: 'icon-twitter-logo-32',
-      serviceUsername: 'malgorithms',
-      serviceAvatar: '',
-      fullNameOnService: 'Chris Coyne',
-    },
   },
 ]
 
 const commonProps = {
-  username: 'bob',
-  waiting: false,
-  // $FlowIssue
-  userPane: <UserPane mode='keybase' userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']} />,
-  onSearch: text => console.log('OnSearch: ', text),
-  searchHintText: 'Search Keybase',
-  searchText: 'malg',
-  searchIcon: 'icon-keybase-logo-32',
-  selectedService: 'Keybase',
-  onClickService: () => console.log('onClickService'),
-  onReset: () => console.log('onReset'),
+  chatEnabled: false,
+  onAddUser: () => console.log('onAddUser'),
   onClickResult: () => console.log('onClickResult'),
-  results,
-  showUserGroup: false,
+  onClickService: () => console.log('onClickService'),
+  onClickUserInGroup: u => console.log('onClickUser', u),
+  onGroupChat: () => console.log('onGroupChat'),
   onOpenPrivateGroupFolder: () => console.log('onOpenPrivateGroupFolder'),
   onOpenPublicGroupFolder: () => console.log('onOpenPublicGroupFolder'),
   onRemoveUserFromGroup: u => console.log('onRemoveUser', u),
-  onClickUserInGroup: u => console.log('onClickUser', u),
-  onGroupChat: () => console.log('onGroupChat'),
-  onAddUser: () => console.log('onAddUser'),
+  onReset: () => console.log('onReset'),
+  onSearch: text => console.log('OnSearch: ', text),
+  results,
+  searchHintText: 'Search Keybase',
+  searchIcon: 'icon-keybase-logo-32',
+  searchText: 'malg',
+  searchTextClearTrigger: 1,
+  selectedService: 'Keybase',
   selectedUsers: commonUsers,
+  showUserGroup: false,
   userForInfoPane: commonUsers[0],
+  // $FlowIssue
+  userPane: <UserPane mode='keybase' userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']} />,
+  username: 'bob',
+  waiting: false,
 }
 
 const searchMap: DumbComponentMap<Search> = {
   component: Search,
   mocks: {
-    'Waiting': {
+    'Chat enabled': {
       ...commonProps,
-      waiting: true,
-      results: [],
-    },
-    'Searching': {
-      ...commonProps,
+      chatEnabled: true,
+      showUserGroup: true,
     },
     'Group': {
       ...commonProps,
@@ -146,34 +144,39 @@ const searchMap: DumbComponentMap<Search> = {
     'Group non-user': {
       ...commonProps,
       showUserGroup: true,
+      userForInfoPane: commonUsers[2],
       // $FlowIssue
       userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Normal']} />,
-      userForInfoPane: commonUsers[2],
-    },
-    'Group non-user No Avatar': {
-      ...commonProps,
-      showUserGroup: true,
-      // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['No Avatar']} />,
-      userForInfoPane: commonUsers[2],
-    },
-    'Group non-user Out of invites': {
-      ...commonProps,
-      showUserGroup: true,
-      // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Out of invites']} />,
-      userForInfoPane: commonUsers[2],
     },
     'Group non-user Has Invite': {
       ...commonProps,
       showUserGroup: true,
+      userForInfoPane: commonUsers[2],
       // $FlowIssue
       userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Has Invite']} />,
-      userForInfoPane: commonUsers[2],
     },
-    'Chat enabled': {
+    'Group non-user No Avatar': {
       ...commonProps,
       showUserGroup: true,
+      userForInfoPane: commonUsers[2],
+      // $FlowIssue
+      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['No Avatar']} />,
+    },
+    'Group non-user Out of invites': {
+      ...commonProps,
+      showUserGroup: true,
+      userForInfoPane: commonUsers[2],
+      // $FlowIssue
+      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Out of invites']} />,
+    },
+    'Searching': {
+      ...commonProps,
+    },
+    'Waiting': {
+      ...commonProps,
+      results: [],
+      showUserGroup: true,
+      waiting: true,
     },
   },
 }
