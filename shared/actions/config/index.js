@@ -147,6 +147,10 @@ export function retryBootstrap (): AsyncAction {
   }
 }
 
+function daemonError (error: ?string): Action {
+  return {type: Constants.daemonError, payload: {daemonError: error ? new Error(error) : null}}
+}
+
 let bootstrapSetup = false
 type BootstrapOptions = {isReconnect?: boolean}
 export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
@@ -155,9 +159,14 @@ export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
       bootstrapSetup = true
       console.log('[bootstrap] registered bootstrap')
       engine().listenOnConnect('bootstrap', () => {
+        dispatch(daemonError(null))
         console.log('[bootstrap] bootstrapping on connect')
         dispatch(bootstrap())
       })
+      engine().listenOnDisconnect('daemonError', () => {
+        dispatch(daemonError('Disconnected'))
+      })
+      dispatch(registerListeners())
     } else {
       console.log('[bootstrap] performing bootstrap...')
       Promise.all(
@@ -172,7 +181,6 @@ export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
             dispatch(navBasedOnLoginState())
             dispatch((resetSignup(): Action))
           }
-          dispatch(registerListeners())
         }).catch(error => {
           console.warn('[bootstrap] error bootstrapping: ', error)
           const triesRemaining = getState().config.bootstrapTriesRemaining
