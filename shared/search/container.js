@@ -38,16 +38,33 @@ export default connect(
     }
   },
   (dispatch: Dispatch) => ({
-    onAddAnotherUserToGroup: () => { dispatch(hideUserGroup()) },
+    onAddAnotherUserToGroup: () => dispatch(hideUserGroup()),
     onClickResult: user => dispatch(addUsersToGroup([user])),
-    onClickService: (platform, searchPlatform) => { searchPlatform !== platform && dispatch(selectPlatform(platform)) },
-    onClickUserInGroup: user => { dispatch(isMobile ? navigateAppend([{props: {username: user.username}, selected: 'profile'}]) : selectUserForInfo(user)) },
-    onGroupChat: (username, selectedUsers) => { dispatch(startConversation(selectedUsers.map(searchResultToAssertion).concat(username || ''))) },
-    onOpenPrivateGroupFolder: (username, selectedUsers) => { username && dispatch(openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username)))) },
-    onOpenPublicGroupFolder: (username, selectedUsers) => { username && dispatch(openInKBFS(publicFolderWithUsers(selectedUsers.map(searchResultToAssertion)))) },
-    onRemoveUserFromGroup: user => { dispatch(removeUserFromGroup(user)) },
-    onReset: () => { dispatch(reset()) },
-    onSearch: (term, selectedPlatform, searchPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)) },
+    onClickService: (platform, searchPlatform) => {
+      if (searchPlatform !== platform) {
+        dispatch(selectPlatform(platform))
+      }
+    },
+    onClickUserInGroup: user => dispatch(isMobile ? navigateAppend([{props: {username: user.username}, selected: 'profile'}]) : selectUserForInfo(user)),
+    onGroupChat: (username, selectedUsers) => {
+      dispatch(reset())
+      dispatch(startConversation(selectedUsers.map(searchResultToAssertion).concat(username || '')))
+    },
+    onOpenPrivateGroupFolder: (username, selectedUsers) => {
+      if (username) {
+        dispatch(reset())
+        dispatch(openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username))))
+      }
+    },
+    onOpenPublicGroupFolder: (username, selectedUsers) => {
+      if (username) {
+        dispatch(reset())
+        dispatch(openInKBFS(publicFolderWithUsers(selectedUsers.map(searchResultToAssertion))))
+      }
+    },
+    onRemoveUserFromGroup: user => dispatch(removeUserFromGroup(user)),
+    onReset: () => dispatch(reset()),
+    onSearch: (term, selectedPlatform, searchPlatform) => dispatch(search(term, selectedPlatform || searchPlatform)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     ...stateProps,
