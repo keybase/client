@@ -142,9 +142,9 @@ const safeServerMessageMap = m => ({
 const prependMessagesActionTransformer = action => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
+    hasPaginationNext: !!action.payload.paginationNext,
     messages: action.payload.messages.map(safeServerMessageMap),
     moreToLoad: action.payload.moreToLoad,
-    paginationNext: !!action.payload.paginationNext,
   },
   type: action.type,
 })
