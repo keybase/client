@@ -73,14 +73,15 @@ func NewBlockCacheStandard(transientCapacity int,
 }
 
 // GetWithPrefetch implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (Block, bool, error) {
+func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
+	Block, bool, BlockCacheLifetime, error) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
 			bc, ok := tmp.(blockContainer)
 			if !ok {
-				return nil, false, BadDataError{ptr.ID}
+				return nil, false, TransientEntry, BadDataError{ptr.ID}
 			}
-			return bc.block, bc.hasPrefetched, nil
+			return bc.block, bc.hasPrefetched, NoCacheEntry, nil
 		}
 	}
 
@@ -94,15 +95,15 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (Block, bool, err
 		// write. Since the client is writing, it knows what goes into it,
 		// including any potential directory entries or indirect blocks.
 		// Thus, it is treated as already prefetched.
-		return block, true, nil
+		return block, true, PermanentEntry, nil
 	}
 
-	return nil, false, NoSuchBlockError{ptr.ID}
+	return nil, false, NoCacheEntry, NoSuchBlockError{ptr.ID}
 }
 
 // Get implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
-	block, _, err := b.GetWithPrefetch(ptr)
+	block, _, _, err := b.GetWithPrefetch(ptr)
 	return block, err
 }
 

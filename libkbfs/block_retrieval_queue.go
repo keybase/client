@@ -169,11 +169,15 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 	for {
 		br, exists := brq.ptrs[bpLookup]
 		if !exists {
-			// Attempt to retrieve the block from the cache. This might be a
-			// specific type where the request blocks are CommonBlocks, but
-			// that direction can Set correctly. The cache will never have
-			// CommonBlocks.
-			cachedBlock, hasPrefetched, err :=
+			// Attempt to retrieve the block from the cache. This
+			// might be a specific type where the request blocks are
+			// CommonBlocks, but that direction can Set correctly. The
+			// cache will never have CommonBlocks.  TODO: verify that
+			// the returned lifetime here matches `lifetime` (which
+			// should always be TransientEntry, since a PermanentEntry
+			// would have been served directly from the cache
+			// elsewhere)?
+			cachedBlock, hasPrefetched, _, err :=
 				brq.config.BlockCache().GetWithPrefetch(ptr)
 			if err == nil && cachedBlock != nil {
 				block.Set(cachedBlock, brq.config.Codec())
