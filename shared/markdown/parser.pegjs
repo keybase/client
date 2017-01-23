@@ -25,9 +25,9 @@
         return {
           type: 'text',
           children: [
-          ...(left ? [left] : []),
-          {type: 'link', children: [match], href},
-          ...(right ? [right] : []),
+            ...(left ? [left] : []),
+            {type: 'link', children: [match], href},
+            ...(right ? [right] : []),
           ],
         }
       }
