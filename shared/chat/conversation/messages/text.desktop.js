@@ -32,7 +32,6 @@ export default class MessageTextComponent extends PureComponent<void, Props & {o
 }
 
 const _messageTextStyle = {
-  marginTop: 2,
   flex: 1,
   whiteSpace: 'pre-wrap',
 }

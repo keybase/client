@@ -2,11 +2,11 @@
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-import {CommonMessageType} from './types/flow-types-chat'
 
+import * as ChatTypes from './types/flow-types-chat'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {AssetMetadata, ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 
 export type MessageType = 'Text'
@@ -314,9 +314,9 @@ function makeSnippet (messageBody: ?MessageBody): ?string {
     return null
   }
   switch (messageBody.messageType) {
-    case CommonMessageType.text:
+    case ChatTypes.CommonMessageType.text:
       return textSnippet(messageBody.text && messageBody.text.body, 100)
-    case CommonMessageType.attachment:
+    case ChatTypes.CommonMessageType.attachment:
       return 'Attachment'
     default:
       return null
@@ -342,7 +342,7 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
   switch (message.type) {
     case 'Text':
       return {
-        messageType: CommonMessageType.text,
+        messageType: ChatTypes.CommonMessageType.text,
         text: {
           body: message.message.stringValue(),
         },
@@ -373,6 +373,14 @@ function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
   }
 }
 
+function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
+  if (metadata.assetType === ChatTypes.LocalAssetMetadataType.image && metadata.image) {
+    return clampAttachmentPreviewSize(metadata.image)
+  } else if (metadata.assetType === ChatTypes.LocalAssetMetadataType.video && metadata.video) {
+    return clampAttachmentPreviewSize(metadata.video)
+  }
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -384,4 +392,5 @@ export {
   serverMessageToMessageBody,
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
+  parseMetadataPreviewSize,
 }

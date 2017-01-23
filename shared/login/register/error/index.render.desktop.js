@@ -76,6 +76,8 @@ const renderError = (error: RPCError) => {
           <Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#password-reset')}>https://keybase.io/#password-reset</Text>
         </p>)
     case ConstantsStatusCode.sckeysyncedpgpnotfound:
+    case ConstantsStatusCode.scgpgunavailable:
+    case ConstantsStatusCode.sckeynosecret:
       return (
         <p>
           <Text type='Body'>Sorry, your account is already established with a PGP public key, but we can't access the corresponding private key.</Text>

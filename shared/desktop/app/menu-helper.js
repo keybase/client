@@ -84,30 +84,27 @@ export default function makeMenu (window: any) {
 }
 
 export function setupContextMenu (window: any) {
-  const InputMenu = Menu.buildFromTemplate([
-    {label: 'Undo', role: 'undo'},
-    {label: 'Redo', role: 'redo'},
-    {type: 'separator'},
-    {label: 'Cut', role: 'cut'},
-    {label: 'Copy', role: 'copy'},
-    {label: 'Paste', role: 'paste'},
-    {type: 'separator'},
-    {label: 'Select all', role: 'selectall'},
+  const selectionMenu = Menu.buildFromTemplate([
+    {role: 'copy'},
   ])
 
-  // $FlowIssue
-  document.body.addEventListener('contextmenu', e => {
-    e.preventDefault()
-    e.stopPropagation()
+  const inputMenu = Menu.buildFromTemplate([
+    {role: 'undo'},
+    {role: 'redo'},
+    {type: 'separator'},
+    {role: 'cut'},
+    {role: 'copy'},
+    {role: 'paste'},
+    {type: 'separator'},
+    {role: 'selectall'},
+  ])
 
-    let node = e.target
-
-    while (node) {
-      if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
-        InputMenu.popup(window)
-        break
-      }
-      node = node.parentNode
+  window.webContents.on('context-menu', (e, props) => {
+    const {selectionText, isEditable} = props
+    if (isEditable) {
+      inputMenu.popup(window)
+    } else if (selectionText && selectionText.trim() !== '') {
+      selectionMenu.popup(window)
     }
   })
 }

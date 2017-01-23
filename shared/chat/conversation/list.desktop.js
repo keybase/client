@@ -1,7 +1,7 @@
 // @flow
-// An infinite scrolling chat list. Using react-virtualized which doens't really handle this case out of the box
-// We control which set of messages we render in our state object
-// We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
+// An infinite scrolling chat list. Using react-virtualized which doesn't really handle this case out of the box.
+// We control which set of messages we render in our state object.
+// We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling.
 
 import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
@@ -11,7 +11,7 @@ import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache as DefaultCellMeasurerCellSizeCache} from 'react-virtualized'
-import {ProgressIndicator} from '../../common-adapters'
+import {Icon} from '../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
 import {clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../styles'
@@ -31,6 +31,7 @@ type State = {
 const scrollbarWidth = 20
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
+const cellMessageStartIndex = 2 // Header and loading cells
 const DEBUG_ROW_RENDER = __DEV__ && false
 
 class ConversationList extends Component<void, Props, State> {
@@ -58,14 +59,28 @@ class ConversationList extends Component<void, Props, State> {
     })
     this._toRemeasure = []
     this._shouldForceUpdateGrid = false
+
+    this._setupDebug()
+  }
+
+  _setupDebug () {
+    if (__DEV__ && typeof window !== 'undefined') {
+      window.dumpChat = (...columns) => {
+        console.table(this.state.messages.toJS().map(m => ({
+          ...m,
+          decoded: m.message && m.message.stringValue(),
+        })), columns.length && columns)
+      }
+    }
   }
 
   _indexToID = index => {
     if (index === 0) {
-      return 'loader'
+      return 'header'
+    } else if (index === 1) {
+      return 'loading'
     } else {
-      // minus one because loader message is there
-      const messageIndex = index - 1
+      const messageIndex = index - cellMessageStartIndex
       const message = this.state.messages.get(messageIndex)
       const id = message && message.key
       if (id == null) {
@@ -105,17 +120,21 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
-    if (!this.state.isLockedToBottom && this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
-      // Figure out how many new items we have
-      const prependedCount = this.state.messages.indexOf(prevState.messages.first())
-      if (prependedCount !== -1) {
-        // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-        const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
-          .map(index => this._cellMeasurer.getRowHeight({index: index + 1})) // +1 since 0 is the loading message
-          .reduce((total, height) => total + height, 0)
+    if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
+      if (this.state.isLockedToBottom) {
+        this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: this.state.messages.count()})
+      } else {
+        // Figure out how many new items we have
+        const prependedCount = this.state.messages.indexOf(prevState.messages.first())
+        if (prependedCount !== -1) {
+          // Measure the new items so we can adjust our scrollTop so your position doesn't jump
+          const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
+            .map(index => this._cellMeasurer.getRowHeight({index: index + cellMessageStartIndex}))
+            .reduce((total, height) => total + height, 0)
 
-        // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
-        this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
+          // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
+          this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
+        }
       }
     }
   }
@@ -146,11 +165,11 @@ class ConversationList extends Component<void, Props, State> {
       const oldMessage = props.messages.get(index, {})
 
       if (item.type === 'Text' && oldMessage.type === 'Text' && item.messageState !== oldMessage.messageState) {
-        this._toRemeasure.push(index + 1)
+        this._toRemeasure.push(index + cellMessageStartIndex)
       } else if (item.type === 'Attachment' && oldMessage.type === 'Attachment' &&
                  (item.previewPath !== oldMessage.previewPath ||
                   !shallowEqual(item.previewSize, oldMessage.previewSize))) {
-        this._toRemeasure.push(index + 1)
+        this._toRemeasure.push(index + cellMessageStartIndex)
       } else if (!shallowEqual(item, oldMessage)) {
         this._shouldForceUpdateGrid = true
       }
@@ -273,12 +292,17 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     if (index === 0) {
+      return (
+        <div key={key || index} style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
+          {!this.props.moreToLoad && <Icon type='icon-secure-266' />}
+        </div>
+      )
+    } else if (index === 1) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
     }
-
-    const message = this.state.messages.get(index - 1)
-    const prevMessage = this.state.messages.get(index - 2)
-    const isFirstMessage = index - 1 === 0
+    const message = this.state.messages.get(index - cellMessageStartIndex)
+    const prevMessage = this.state.messages.get(index - cellMessageStartIndex - 1)
+    const isFirstMessage = index - cellMessageStartIndex === 0
     const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
     const isFirstNewMessage = message.messageID != null && this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
@@ -334,13 +358,13 @@ class ConversationList extends Component<void, Props, State> {
   render () {
     if (!this.props.validated) {
       return (
-        <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
-          <ProgressIndicator style={{width: 20}} />
+        <div style={{display: 'flex', alignItems: 'center', flex: 1, justifyContent: 'center'}}>
+          <Icon type='icon-securing-266' style={{alignSelf: 'flex-start'}} />
         </div>
       )
     }
 
-    const rowCount = this.state.messages.count() + 1 // Loading row
+    const rowCount = this.state.messages.count() + cellMessageStartIndex
     let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
@@ -389,14 +413,14 @@ class ConversationList extends Component<void, Props, State> {
 // Chrome.
 const realCSS = `
 .message {
-  background-color: transparent;
+  border: 1px solid transparent;
 }
 .message .action-button {
   visibility: hidden;
   opacity: 0;
 }
 .message:hover {
-  background-color: ${globalColors.black_05};
+  border: 1px solid ${globalColors.black_10};
 }
 .message:hover .action-button {
   visibility: visible;

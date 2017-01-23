@@ -267,16 +267,18 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 
 	// We always want this on for fetches to fill the local inbox, otherwise we never get the
 	// full list for the conversations that come back
+	var rquery chat1.GetInboxQuery
 	if query == nil {
-		query = &chat1.GetInboxQuery{
+		rquery = chat1.GetInboxQuery{
 			ComputeActiveList: true,
 		}
 	} else {
-		query.ComputeActiveList = true
+		rquery = *query
+		rquery.ComputeActiveList = true
 	}
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query:      query,
+		Query:      &rquery,
 		Pagination: p,
 	})
 	if err != nil {

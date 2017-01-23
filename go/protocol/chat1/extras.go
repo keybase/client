@@ -301,3 +301,12 @@ func (c Conversation) GetMaxMessage(typ MessageType) (MessageBoxed, error) {
 	}
 	return MessageBoxed{}, fmt.Errorf("max message not found: %v", typ)
 }
+
+func (c Conversation) Includes(uid gregor1.UID) bool {
+	for _, auid := range c.Metadata.ActiveList {
+		if uid.Eq(auid) {
+			return true
+		}
+	}
+	return false
+}

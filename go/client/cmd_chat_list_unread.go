@@ -22,14 +22,13 @@ type cmdChatListUnread struct {
 func newCmdChatListUnread(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list-unread",
-		Usage:        "Show conversations in inbox, with ones with unread messages shown first.",
+		Usage:        "List conversations, with unread messages at the top.",
 		Aliases:      []string{"lsur"},
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatListUnread{Contextified: libkb.NewContextified(g)}, "list-unread", c)
 		},
-		Flags:       getInboxFetcherUnreadFirstFlags(),
-		Description: `"keybase chat list" display an inbox view of chat messages. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
+		Flags: getInboxFetcherUnreadFirstFlags(),
 	}
 }
 

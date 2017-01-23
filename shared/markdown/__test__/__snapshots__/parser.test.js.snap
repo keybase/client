@@ -1,0 +1,214 @@
+exports[`Markdown parser parses invalid emoji fragments correctly 1`] = `
+Object {
+  "children": Array [
+    "one::",
+    "
+",
+    "::two",
+    "
+",
+    ":three?::",
+    "
+",
+    "::four:",
+    "
+",
+    "::",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses multiple adjacent emoji correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "ok_hand::skin-tone-2",
+      ],
+      "type": "emoji",
+    },
+    Object {
+      "children": Array [
+        "smile",
+      ],
+      "type": "emoji",
+    },
+    Object {
+      "children": Array [
+        "wink",
+      ],
+      "type": "emoji",
+    },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses numbers and some symbols emoji 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "+1",
+      ],
+      "type": "emoji",
+    },
+    " ",
+    Object {
+      "children": Array [
+        "100",
+      ],
+      "type": "emoji",
+    },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses urls correctly 1`] = `
+Object {
+  "children": Array [
+    "This ",
+    "should ",
+    "ignore ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "mailto:blah@blah.com",
+          ],
+          "type": "link",
+        },
+        " ",
+      ],
+      "type": "text",
+    },
+    "but ",
+    "include ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "http://keybase.io",
+          ],
+          "type": "link",
+        },
+        " ",
+      ],
+      "type": "text",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "https://keybase.io",
+          ],
+          "type": "link",
+        },
+        " ",
+      ],
+      "type": "text",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "HTTP://cnn.com",
+          ],
+          "type": "link",
+        },
+        " ",
+      ],
+      "type": "text",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "http://twitter.com",
+          ],
+          "type": "link",
+        },
+        " ",
+      ],
+      "type": "text",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "google.com",
+          ],
+          "type": "link",
+        },
+        " ",
+      ],
+      "type": "text",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "amazon.co.uk",
+          ],
+          "type": "link",
+        },
+        ". ",
+      ],
+      "type": "text",
+    },
+    "We ",
+    "want ",
+    "to ",
+    "ignore ",
+    "extra ",
+    "chars ",
+    "when ",
+    "links ",
+    "end ",
+    "a ",
+    "sentence ",
+    "like ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "type": "link",
+        },
+        ", ",
+      ],
+      "type": "text",
+    },
+    "or ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "type": "link",
+        },
+        ". ",
+      ],
+      "type": "text",
+    },
+    "or ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "type": "link",
+        },
+        "?",
+      ],
+      "type": "text",
+    },
+  ],
+  "type": "text",
+}
+`;

@@ -10,6 +10,7 @@ import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/t
 import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
+import {delay} from 'redux-saga'
 import {getPath} from '../route-tree'
 import {navigateAppend, navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
@@ -22,6 +23,7 @@ import {downloadFilePath, tmpFile} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
+import {showMainWindow} from './platform.specific'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
@@ -632,6 +634,7 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
       finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
+      timeout: call(delay, 5000),
     })
 
     if (incoming.chatInboxConversation) {
@@ -648,7 +651,6 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
       incoming.chatInboxFailed.response.result()
     } else if (incoming.finished) {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
-
       // check valid selected
       const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
       const inbox = yield select(inboxSelector)
@@ -658,6 +660,11 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
           yield put(selectConversation(inbox.get(0).get('conversationIDKey'), false))
         }
       }
+      break
+    } else if (incoming.timeout) {
+      console.warn('Inbox loading timed out')
+      yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      break
     }
   }
 }
@@ -771,7 +778,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
+  if (prevMessage == null || prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
@@ -845,26 +852,20 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
-          // If we get a histocal message w/ messageID and outboxID ignore the outboxID
-          const outboxID = (isHistory && common.messageID) ? undefined : payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
           return {
             type: 'Text',
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
-            key: outboxID || common.messageID,
+            key: common.messageID,
           }
         case CommonMessageType.attachment:
           // $FlowIssue
           const preview: Asset = payload.messageBody.attachment.preview
           const mimeType = preview && preview.mimeType
-          let previewSize
-          if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
-            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.image)
-          } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
-            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.video)
-          }
+          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
           return {
             type: 'Attachment',
@@ -1095,6 +1096,19 @@ function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: Chat
     const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
     previewUploadStart.response.result()
 
+    const metadata = previewUploadStart.params && previewUploadStart.params.metadata
+    const previewSize = metadata && Constants.parseMetadataPreviewSize(metadata)
+    if (previewSize) {
+      yield put(({
+        type: 'chat:updateTempMessage',
+        payload: {
+          conversationIDKey,
+          outboxID,
+          message: {previewSize},
+        },
+      }: Constants.UpdateTempMessage))
+    }
+
     const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
     previewUploadDone.response.result()
   })
@@ -1233,7 +1247,14 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     if (message && message.type === 'Text') {
       const snippet = makeSnippet(serverMessageToMessageBody(message))
-      NotifyPopup(message.author, {body: snippet})
+
+      yield put((dispatch: Dispatch) => {
+        NotifyPopup(message.author, {body: snippet}, -1, () => {
+          dispatch(selectConversation(action.payload.conversationIDKey, false))
+          dispatch(switchTo([chatTab]))
+          dispatch(showMainWindow())
+        })
+      })
     }
   }
 }
