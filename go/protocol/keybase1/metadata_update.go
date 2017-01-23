@@ -23,9 +23,14 @@ type FolderNeedsRekeyArg struct {
 	Revision int64  `codec:"revision" json:"revision"`
 }
 
+type FoldersNeedRekeyArg struct {
+	Requests []RekeyRequest `codec:"requests" json:"requests"`
+}
+
 type MetadataUpdateInterface interface {
 	MetadataUpdate(context.Context, MetadataUpdateArg) error
 	FolderNeedsRekey(context.Context, FolderNeedsRekeyArg) error
+	FoldersNeedRekey(context.Context, []RekeyRequest) error
 }
 
 func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc.Protocol {
@@ -64,6 +69,22 @@ func MetadataUpdateProtocol(i MetadataUpdateInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"foldersNeedRekey": {
+				MakeArg: func() interface{} {
+					ret := make([]FoldersNeedRekeyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FoldersNeedRekeyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FoldersNeedRekeyArg)(nil), args)
+						return
+					}
+					err = i.FoldersNeedRekey(ctx, (*typedArgs)[0].Requests)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -79,5 +100,11 @@ func (c MetadataUpdateClient) MetadataUpdate(ctx context.Context, __arg Metadata
 
 func (c MetadataUpdateClient) FolderNeedsRekey(ctx context.Context, __arg FolderNeedsRekeyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadataUpdate.folderNeedsRekey", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MetadataUpdateClient) FoldersNeedRekey(ctx context.Context, requests []RekeyRequest) (err error) {
+	__arg := FoldersNeedRekeyArg{Requests: requests}
+	err = c.Cli.Call(ctx, "keybase.1.metadataUpdate.foldersNeedRekey", []interface{}{__arg}, nil)
 	return
 }
