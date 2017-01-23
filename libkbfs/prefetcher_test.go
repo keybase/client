@@ -55,12 +55,16 @@ func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
 	}}
 }
 
-func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue, *blockRetrievalWorker, *fakeBlockGetter, *testBlockRetrievalConfig) {
+func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue,
+	*blockRetrievalWorker, *fakeBlockGetter, *testBlockRetrievalConfig) {
 	config := newTestBlockRetrievalConfig(t)
 	q := newBlockRetrievalQueue(1, config)
 	require.NotNil(t, q)
 
-	bg := newFakeBlockGetter()
+	// We don't want the block getter to respect cancelation, because we need
+	// <-q.Prefetcher().Shutdown() to represent whether the retrieval requests
+	// _actually_ completed.
+	bg := newFakeBlockGetter(false)
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 
@@ -315,12 +319,63 @@ func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, dir1, block)
 
-	// TODO: Fix so that it actually blocks in a failure. Right now, the
-	// prefetcher will automatically cancel the request, and the block getter
-	// will respect that cancelation.
-	t.Log("Shutdown the prefetcher and wait until it's done prefetching. This shouldn't block, indicating that no prefetches were triggered.")
+	t.Log("Shutdown the prefetcher and wait until it's done prefetching." +
+		" This shouldn't block, indicating that no prefetches were triggered.")
 	<-q.Prefetcher().Shutdown()
 }
 
 func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
+	t.Log("Test that prefetches are only triggered once for a given block.")
+	q, w, bg, config := initPrefetcherTest(t)
+	cache := config.BlockCache().(*BlockCacheStandard)
+	defer shutdownPrefetcherTest(q, w)
+
+	t.Log("Initialize a direct dir block with an entry pointing to 1 file.")
+	file1 := makeFakeFileBlock(t, true)
+	ptr1 := makeRandomBlockPointer(t)
+	dir1 := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 60, "a"),
+	}}
+	childPtr := dir1.Children["a"].BlockPointer
+
+	_, continueCh1 := bg.setBlockToReturn(ptr1, dir1)
+	_, continueCh2 := bg.setBlockToReturn(childPtr, file1)
+
+	t.Log("Request the block for ptr1.")
+	var block Block = &DirBlock{}
+	kmd := makeKMD()
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd, ptr1, block, TransientEntry)
+	continueCh1 <- nil
+	err := <-ch
+	require.NoError(t, err)
+	require.Equal(t, dir1, block)
+
+	t.Log("Release the prefetched block.")
+	continueCh2 <- nil
+
+	t.Log("Wait for the prefetch to finish, then verify that the prefetched block is in the cache.")
+	<-q.Prefetcher().Shutdown()
+	block, err = cache.Get(childPtr)
+	require.NoError(t, err)
+	require.Equal(t, file1, block)
+
+	t.Log("Remove the prefetched block from the cache.")
+	cache.DeleteTransient(childPtr, kmd.TlfID())
+	_, err = cache.Get(childPtr)
+	require.EqualError(t, err, NoSuchBlockError{childPtr.ID}.Error())
+
+	t.Log("Restart the prefetcher.")
+	q.TogglePrefetcher(context.Background(), true)
+
+	t.Log("Request the block for ptr1 again. Should be cached.")
+	block = &DirBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd, ptr1, block, TransientEntry)
+	err = <-ch
+	require.NoError(t, err)
+	require.Equal(t, dir1, block)
+
+	t.Log("Wait for the prefetch to finish, then verify that the child block is still not in the cache.")
+	<-q.Prefetcher().Shutdown()
+	_, err = cache.Get(childPtr)
+	require.EqualError(t, err, NoSuchBlockError{childPtr.ID}.Error())
 }
