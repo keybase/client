@@ -48,6 +48,7 @@ func makeFakeBlockJournalEntryFuture(t *testing.T) blockJournalEntryFuture {
 			},
 			MetadataRevisionInitial,
 			false,
+			false,
 			codec.UnknownFieldSetHandler{},
 		},
 		kbfscodec.MakeExtraOrBust("blockJournalEntry", t),
@@ -632,7 +633,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 
 	// Put a revision marker
 	rev := MetadataRevision(10)
-	err := j.markMDRevision(ctx, rev)
+	err := j.markMDRevision(ctx, rev, false)
 	require.NoError(t, err)
 
 	blockServer := NewBlockServerMemory(log)
@@ -661,6 +662,68 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
+	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
+
+	// Put some blocks.
+
+	data1 := []byte{1, 2, 3, 4}
+	_, _, _ = putBlockData(ctx, t, j, data1)
+	data2 := []byte{5, 6, 7, 8}
+	id2, _, _ := putBlockData(ctx, t, j, data2)
+
+	// Put a revision marker and say it's from a local squash.
+	rev := MetadataRevision(10)
+	err := j.markMDRevision(ctx, rev, true)
+	require.NoError(t, err)
+
+	// Do another, that isn't from a local squash.
+	data3 := []byte{9, 10, 11, 12}
+	id3, _, _ := putBlockData(ctx, t, j, data3)
+	data4 := []byte{13, 14, 15, 16}
+	_, _, _ = putBlockData(ctx, t, j, data4)
+	rev++
+	err = j.markMDRevision(ctx, rev, false)
+	require.NoError(t, err)
+
+	err = j.ignoreBlocksAndMDRevMarkers(ctx, []kbfsblock.ID{id2, id3})
+	require.NoError(t, err)
+
+	blockServer := NewBlockServerMemory(log)
+	tlfID := tlf.FakeID(1, false)
+	bcache := NewBlockCacheStandard(0, 0)
+	reporter := NewReporterSimple(nil, 0)
+
+	// Make sure the block journal reports that entries up to 10 can
+	// be flushed; there should only be two blocks left, and one
+	// revision marker (plus 2 ignored blocks and 1 ignored revision
+	// marker).
+	last, err := j.j.readLatestOrdinal()
+	require.NoError(t, err)
+	entries, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
+		maxJournalBlockFlushBatchSize)
+	require.NoError(t, err)
+	require.Equal(t, rev-1, gotRev)
+	require.Equal(t, 6, entries.length())
+	require.Len(t, entries.puts.blockStates, 2)
+	require.Len(t, entries.adds.blockStates, 0)
+	require.Len(t, entries.other, 4)
+
+	err = flushBlockEntries(ctx, j.log, blockServer,
+		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+		entries)
+	require.NoError(t, err)
+	removedBytes, err := j.removeFlushedEntries(
+		ctx, entries, tlfID, reporter)
+	require.NoError(t, err)
+	require.Equal(t, int64(len(data1)+len(data2)+len(data3)+len(data4)),
+		removedBytes)
+
+	err = j.checkInSyncForTest()
+	require.NoError(t, err)
+}
+
 func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
@@ -673,7 +736,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 
 	// Put a revision marker
 	rev := MetadataRevision(10)
-	err := j.markMDRevision(ctx, rev)
+	err := j.markMDRevision(ctx, rev, false)
 	require.NoError(t, err)
 
 	data3 := []byte{8, 9, 10, 11, 12}
@@ -683,7 +746,12 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 
 	// Put a revision marker
 	rev = MetadataRevision(11)
-	err = j.markMDRevision(ctx, rev)
+	err = j.markMDRevision(ctx, rev, false)
+	require.NoError(t, err)
+
+	// Save the blocks to test that ignores make it to the saved
+	// journal, too.
+	err = j.saveBlocksUntilNextMDFlush()
 	require.NoError(t, err)
 
 	err = j.ignoreBlocksAndMDRevMarkers(ctx, []kbfsblock.ID{bID2, bID3})
@@ -714,8 +782,18 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	removedBytes, err := j.removeFlushedEntries(
 		ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
+	// There's a saved journal, so no bytes will be removed.
+	require.Equal(t, int64(0), removedBytes)
+
+	// Try flushing up the first MD marker.  Since that marker is
+	// ignored, all blocks should be flushed.
+	nextLastToRemove, removedBytes, err := j.onMDFlush(
+		ctx, 100, rev-1, 0)
+	require.NoError(t, err)
+	require.Zero(t, nextLastToRemove)
 	require.Equal(t, int64(len(data1)+len(data2)+len(data3)+len(data4)),
 		removedBytes)
+
 	err = j.checkInSyncForTest()
 	require.NoError(t, err)
 }
@@ -732,7 +810,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	// Put a revision marker
 	rev := MetadataRevision(10)
-	err := j.markMDRevision(ctx, rev)
+	err := j.markMDRevision(ctx, rev, false)
 	require.NoError(t, err)
 
 	data3 := []byte{9, 10, 11, 12}
@@ -742,7 +820,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	// Put a revision marker
 	rev = MetadataRevision(11)
-	err = j.markMDRevision(ctx, rev)
+	err = j.markMDRevision(ctx, rev, false)
 	require.NoError(t, err)
 
 	err = j.saveBlocksUntilNextMDFlush()
@@ -818,7 +896,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	lastToRemove := journalOrdinal(0)
 	for i := 0; i < len(savedBlocks)-1+2; i++ {
 		lastToRemove, removedBytes, err = j.onMDFlush(
-			ctx, 1, lastToRemove)
+			ctx, 1, rev+1, lastToRemove)
 		require.NoError(t, err)
 		require.NotZero(t, lastToRemove, "Iter %d", i)
 		// Set expectedSize to 4 only for the puts of
@@ -830,7 +908,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 		require.Equal(t, expectedSize, removedBytes, "Iter %d", i)
 		require.NotNil(t, j.saveUntilMDFlush)
 	}
-	lastToRemove, _, err = j.onMDFlush(ctx, 1, lastToRemove)
+	lastToRemove, _, err = j.onMDFlush(ctx, 1, rev+1, lastToRemove)
 	require.NoError(t, err)
 	require.Zero(t, lastToRemove)
 	require.Equal(t, int64(4), removedBytes)

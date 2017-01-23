@@ -501,7 +501,8 @@ func testTLFJournalBlockOpDiskLimit(t *testing.T, ver MetadataVer) {
 	require.Equal(t, rev, MetadataRevisionUninitialized)
 
 	// Fake an MD flush.
-	err = tlfJournal.doOnMDFlush(ctx, nil)
+	md := config.makeMD(MetadataRevisionInitial, MdID{})
+	err = tlfJournal.doOnMDFlush(ctx, &RootMetadataSigned{MD: md.bareMd})
 
 	select {
 	case err := <-errCh:

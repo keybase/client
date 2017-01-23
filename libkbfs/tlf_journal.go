@@ -959,7 +959,7 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 			nextLastToRemove, removedBytes, err :=
 				j.blockJournal.onMDFlush(
 					ctx, maxSavedBlockRemovalsAtATime,
-					lastToRemove)
+					rmds.MD.RevisionNumber(), lastToRemove)
 			if err != nil {
 				return 0, 0, err
 			}
@@ -1654,7 +1654,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 		return MdID{}, false, err
 	}
 
-	err = j.blockJournal.markMDRevision(ctx, rmd.Revision())
+	err = j.blockJournal.markMDRevision(ctx, rmd.Revision(), false)
 	if err != nil {
 		return MdID{}, false, err
 	}
@@ -1786,7 +1786,8 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	}
 
 	// Finally, append a new, non-ignored md rev marker for the new revision.
-	err = j.blockJournal.markMDRevision(ctx, rmd.Revision())
+	err = j.blockJournal.markMDRevision(
+		ctx, rmd.Revision(), isPendingLocalSquash)
 	if err != nil {
 		return MdID{}, false, err
 	}
