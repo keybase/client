@@ -571,10 +571,10 @@ func (md *MDServerRemote) MetadataUpdate(_ context.Context, arg keybase1.Metadat
 }
 
 // FoldersNeedRekey implements the MetadataUpdateProtocol interface.
-func (md *MDServerRemote) FoldersNeedRekey(_ context.Context,
+func (md *MDServerRemote) FoldersNeedRekey(ctx context.Context,
 	requests []keybase1.RekeyRequest) error {
 	if md.squelchRekey {
-		md.log.Debug("MDServerRemote: rekey updates squelched for testing")
+		md.log.CDebugf(ctx, "MDServerRemote: rekey updates squelched for testing")
 		return nil
 	}
 	for _, req := range requests {
@@ -582,7 +582,7 @@ func (md *MDServerRemote) FoldersNeedRekey(_ context.Context,
 		if err != nil {
 			return err
 		}
-		md.log.Debug("MDServerRemote: folder needs rekey: %s", id.String())
+		md.log.CDebugf(ctx, "MDServerRemote: folder needs rekey: %s", id.String())
 		// queue the folder for rekeying
 		md.config.RekeyQueue().Enqueue(id)
 	}
@@ -593,15 +593,15 @@ func (md *MDServerRemote) FoldersNeedRekey(_ context.Context,
 }
 
 // FolderNeedsRekey implements the MetadataUpdateProtocol interface.
-func (md *MDServerRemote) FolderNeedsRekey(_ context.Context,
+func (md *MDServerRemote) FolderNeedsRekey(ctx context.Context,
 	arg keybase1.FolderNeedsRekeyArg) error {
 	id, err := tlf.ParseID(arg.FolderID)
 	if err != nil {
 		return err
 	}
-	md.log.Debug("MDServerRemote: folder needs rekey: %s", id.String())
+	md.log.CDebugf(ctx, "MDServerRemote: folder needs rekey: %s", id.String())
 	if md.squelchRekey {
-		md.log.Debug("MDServerRemote: rekey updates squelched for testing")
+		md.log.CDebugf(ctx, "MDServerRemote: rekey updates squelched for testing")
 		return nil
 	}
 	// queue the folder for rekeying
