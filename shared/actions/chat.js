@@ -3,13 +3,13 @@ import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
 import engine from '../engine'
-import flags from '../util/feature-flags'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
+import {delay} from 'redux-saga'
 import {getPath} from '../route-tree'
 import {navigateAppend, navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
@@ -632,6 +632,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
       finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
+      timeout: call(delay, 5000),
     })
 
     if (incoming.chatInboxConversation) {
@@ -645,6 +646,11 @@ function * _loadInbox (): SagaGenerator<any, any> {
       incoming.chatInboxFailed.response.result()
     } else if (incoming.finished) {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      break
+    } else if (incoming.timeout) {
+      console.warn('Inbox loading timed out')
+      yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      break
     }
   }
 }
@@ -1263,10 +1269,6 @@ function _threadIsCleared (originalAction: Action, checkAction: Action): boolean
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
-  if (!flags.tabChatEnabled) {
-    return
-  }
-
   yield [
     safeTakeSerially('chat:loadInbox', _loadInbox),
     safeTakeLatest('chat:inboxStale', _loadInbox),

@@ -2,7 +2,6 @@
 import React from 'react'
 import Search from '.'
 import UserPane from './user-pane'
-import flags from '../util/feature-flags'
 import {connect} from 'react-redux'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
@@ -23,7 +22,6 @@ export default connect(
     const {username} = state.config
 
     return {
-      chatEnabled: flags.tabChatEnabled,
       results,
       searchHintText,
       searchIcon,

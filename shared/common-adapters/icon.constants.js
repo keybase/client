@@ -995,15 +995,15 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-reddit-logo-64.png'),
   },
-  'icon-secured-266': {
+  'icon-secure-266': {
     isFont: false,
     extension: 'gif',
-    require: require('../images/icons/icon-secured-266.gif'),
+    require: require('../images/icons/icon-secure-266.gif'),
   },
-  'icon-secured-static-266': {
+  'icon-secure-static-266': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-secured-static-266.png'),
+    require: require('../images/icons/icon-secure-static-266.png'),
   },
   'icon-securing-266': {
     isFont: false,

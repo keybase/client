@@ -17,8 +17,7 @@ class SearchRender extends Component<void, Props, void> {
           onClickUserInGroup={this.props.onClickUserInGroup}
           onOpenPrivateGroupFolder={this.props.onOpenPrivateGroupFolder}
           onOpenPublicGroupFolder={this.props.onOpenPublicGroupFolder}
-          onGroupChat={this.props.onGroupChat}
-          chatEnabled={this.props.chatEnabled} />
+          onGroupChat={this.props.onGroupChat} />
       )
     } else {
       return (

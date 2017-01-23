@@ -2,9 +2,9 @@
 // Builds our code, serves changes if NO_SERVER is false
 const express = require('express')
 const webpack = require('webpack')
-const config = Object.assign({}, require('./webpack.config.development'))
 const getenv = require('getenv')
 
+const config = getenv.boolish('DUMB', false) ? Object.assign({}, require('./webpack.config.dumb')) : Object.assign({}, require('./webpack.config.development'))
 const PORT = 4000
 const compiler = webpack(config)
 

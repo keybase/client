@@ -175,6 +175,7 @@ const searchMap: DumbComponentMap<Search> = {
     'Waiting': {
       ...commonProps,
       results: [],
+      showUserGroup: true,
       waiting: true,
     },
   },
