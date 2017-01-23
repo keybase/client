@@ -44,6 +44,7 @@ type NotifyListener interface {
 	ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 	ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
 		finalizeInfo chat1.ConversationFinalizeInfo)
+	ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID)
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
@@ -556,6 +557,35 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 		n.listener.ChatTLFFinalize(uid, convID, finalizeInfo)
 	}
 	n.G().Log.Debug("- Sent ChatTLFFinalize notification")
+}
+
+func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, resolveInfo chat1.ConversationResolveInfo) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.Debug("+ Sending ChatTLFResolve notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).ChatTLFResolve(context.Background(), chat1.ChatTLFResolveArg{
+					Uid:         uid,
+					ConvID:      convID,
+					ResolveInfo: resolveInfo,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatTLFResolve(uid, convID)
+	}
+	n.G().Log.Debug("- Sent ChatTLFResolve notification")
 }
 
 func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UID) {
