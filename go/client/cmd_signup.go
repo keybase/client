@@ -159,9 +159,8 @@ func (s *CmdSignup) Run() (err error) {
 	}
 
 	if s.code == "" {
-		if err = s.postCodeRequest(); err != nil {
-			return err
-		}
+		// Eat the error here - we prompt the user in that case
+		s.postCodeRequest()
 	}
 
 	if err = s.trySignup(); err != nil {
