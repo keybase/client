@@ -191,6 +191,10 @@ func (fb *FileBlock) NewEmpty() Block {
 // DataVersion returns data version for this block, which is assumed
 // to have been modified locally.
 func (fb *FileBlock) DataVersion() DataVer {
+	if !fb.IsInd {
+		return FirstValidDataVer
+	}
+
 	// If this is an indirect block, and none of its children are
 	// marked as direct blocks, then this must be a big file.  Note
 	// that we do it this way, rather than returning on the first
@@ -198,7 +202,17 @@ func (fb *FileBlock) DataVersion() DataVer {
 	// making them big.
 	hasHoles := false
 	hasDirect := false
+	maxDirectType := UnknownDirectType
 	for i := range fb.IPtrs {
+		if maxDirectType != UnknownDirectType &&
+			fb.IPtrs[i].DirectType != UnknownDirectType &&
+			maxDirectType != fb.IPtrs[i].DirectType {
+			panic("Mixed data versions among indirect pointers")
+		}
+		if fb.IPtrs[i].DirectType > maxDirectType {
+			maxDirectType = fb.IPtrs[i].DirectType
+		}
+
 		if fb.IPtrs[i].DirectType == DirectBlock {
 			hasDirect = true
 		} else if fb.IPtrs[i].Holes {
@@ -209,6 +223,10 @@ func (fb *FileBlock) DataVersion() DataVer {
 		if hasDirect && hasHoles {
 			break
 		}
+	}
+
+	if maxDirectType == UnknownDirectType {
+		panic("No known type for any indirect pointer")
 	}
 
 	if len(fb.IPtrs) > 0 && !hasDirect {
