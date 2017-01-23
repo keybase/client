@@ -3,9 +3,7 @@
   // Instead of encoding all the bad cases into a more complicated regexp lets just add some simple code here
   // Note: We aren't trying to be 100% perfect here, just getting something that works pretty good and pretty quickly
   function goodLink (link) {
-    if (link.includes('..'))
-      return false
-        return true
+    return !link.includes('..')
   }
 
   function convertLink (text) {
