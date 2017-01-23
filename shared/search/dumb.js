@@ -103,6 +103,7 @@ const commonUsers = [
 
 const commonProps = {
   username: 'bob',
+  searchTextClearTrigger: 1,
   waiting: false,
   // $FlowIssue
   userPane: <UserPane mode='keybase' userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']} />,

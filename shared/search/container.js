@@ -19,7 +19,7 @@ type OwnProps = {}
 
 export default connect(
   (state: TypedState) => {
-    const {waiting, searchHintText, searchPlatform: selectedService, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers} = state.search
+    const {waiting, searchHintText, searchPlatform: selectedService, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers, searchTextClearTrigger} = state.search
     const {username} = state.config
 
     return {
@@ -28,6 +28,7 @@ export default connect(
       searchHintText,
       searchIcon,
       searchText,
+      searchTextClearTrigger,
       selectedService,
       selectedUsers,
       showUserGroup,
