@@ -1893,13 +1893,21 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 			"Indirect file %v had no indirect blocks", fd.rootBlockPointer())
 	}
 
+	// If the number of leaf blocks (len(pfr)) is likely to represent
+	// a file greater than 2 GB, abort conflict resolution.  Until
+	// disk caching is ready, we'll have to help people deal with this
+	// on a case-by-case basis.  // TODO: once the disk-backed cache
+	// is ready, make sure we use it here for both the dirty block
+	// cache and blockPutState (via some sort of "ready" block cache),
+	// so we avoid memory explosion in the case of journaling and
+	// multiple devices modifying the same large file or set of files.
+	// And then remove this check.
+	if len(pfr) > (2*1024*1024*1024)/MaxBlockSizeBytesDefault {
+		return nil, FileTooBigForCRError{fd.file}
+	}
+
 	// Append the leaf block to each path, since readyHelper expects it.
 	// TODO: parallelize these fetches.
-	// TODO: once the disk-backed cache is ready, make sure we use it
-	// here for both the dirty block cache and blockPutState (via some
-	// sort of "ready" block cache), so we avoid memory explosion in
-	// the case of journaling and multiple devices modifying the same
-	// large file or set of files.
 	for i, path := range pfr {
 		leafPtr := path[len(path)-1].childIPtr().BlockPointer
 		leafBlock, _, err := fd.getter(
