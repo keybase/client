@@ -72,6 +72,9 @@ Object {
     "This ",
     "should ",
     "ignore ",
+    "a...b ",
+    "but ",
+    "include ",
     Object {
       "children": Array [
         Object {
@@ -84,8 +87,6 @@ Object {
       ],
       "type": "text",
     },
-    "but ",
-    "include ",
     Object {
       "children": Array [
         Object {

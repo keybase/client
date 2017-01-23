@@ -1597,27 +1597,33 @@ function peg$parse(input, options) {
   }
 
 
-  	const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
-  	function convertLink (text) {
-  		const matches = text.match(linkExp)
-  		if (matches) {
-  			const match = matches[0]
-  			const rest = text.substring(match.length)
-  			if (rest) {
-  				return {
-  					type: 'text',
-  					children: [
-  						{type: 'link', children: [match]},
-  						rest
-  					]
-  				}
-  			} else {
-  				return {type: 'link', children: [match]}
-  			}
-  		} else {
-  			return text
-  		}
-  	}
+    const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
+    // Instead of encoding all the bad cases into a more complicated regexp lets just add some simple code here
+    // Note: We aren't trying to be 100% perfect here, just getting something that works pretty good and pretty quickly
+    function goodLink (link) {
+      return !link.includes('..')
+    }
+
+    function convertLink (text) {
+      const matches = text.match(linkExp)
+      if (matches && goodLink(matches[0])) {
+        const match = matches[0]
+        const rest = text.substring(match.length)
+        if (rest) {
+          return {
+            type: 'text',
+            children: [
+              {type: 'link', children: [match]},
+              rest,
+            ],
+          }
+        } else {
+          return {type: 'link', children: [match]}
+        }
+      } else {
+        return text
+      }
+    }
 
 
   peg$result = peg$startRuleFunction();
