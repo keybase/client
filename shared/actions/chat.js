@@ -3,13 +3,13 @@ import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
 import engine from '../engine'
-import flags from '../util/feature-flags'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
+import {delay} from 'redux-saga'
 import {getPath} from '../route-tree'
 import {navigateAppend, navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
@@ -146,8 +146,8 @@ function retryMessage (outboxIDKey: string): RetryMessage {
   return {type: 'chat:retryMessage', payload: {outboxIDKey}}
 }
 
-function loadInbox (): LoadInbox {
-  return {type: 'chat:loadInbox', payload: undefined}
+function loadInbox (newConversationIDKey: ?ConversationIDKey): LoadInbox {
+  return {payload: {newConversationIDKey}, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
@@ -198,6 +198,7 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   const participants = List(convo.info.writerNames || [])
   return new InboxStateRecord({
     info: convo.info,
+    isEmpty: convo.isEmpty,
     conversationIDKey,
     participants,
     muted: false,
@@ -589,7 +590,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const followingSelector = (state: TypedState) => state.config.following
 
-function * _loadInbox (): SagaGenerator<any, any> {
+function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -632,12 +633,16 @@ function * _loadInbox (): SagaGenerator<any, any> {
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
       finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
+      timeout: call(delay, 5000),
     })
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-      if (conversation) {
+      let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
+      if (conversation && action.payload.newConversationIDKey) {
+        conversation = conversation.set('youCreated', true)
+      }
+      if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
         yield put({type: 'chat:updateInbox', payload: {conversation}})
       }
       // find it
@@ -645,6 +650,20 @@ function * _loadInbox (): SagaGenerator<any, any> {
       incoming.chatInboxFailed.response.result()
     } else if (incoming.finished) {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      // check valid selected
+      const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
+      const inbox = yield select(inboxSelector)
+      if (inbox.count()) {
+        const conversationIDKey = yield select(_selectedSelector)
+        if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
+          yield put(selectConversation(inbox.get(0).get('conversationIDKey'), false))
+        }
+      }
+      break
+    } else if (incoming.timeout) {
+      console.warn('Inbox loading timed out')
+      yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      break
     }
   }
 }
@@ -845,12 +864,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
           // $FlowIssue
           const preview: Asset = payload.messageBody.attachment.preview
           const mimeType = preview && preview.mimeType
-          let previewSize
-          if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
-            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.image)
-          } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
-            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.video)
-          }
+          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
           return {
             type: 'Attachment',
@@ -906,7 +920,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   if (result) {
     const conversationIDKey = conversationIDToKey(result.conv.info.id)
 
-    yield put(loadInbox())
+    yield put(loadInbox(conversationIDKey))
     yield put(selectConversation(conversationIDKey, false))
     yield put(switchTo([chatTab]))
   }
@@ -1080,6 +1094,19 @@ function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: Chat
   const previewTask = yield fork(function * () {
     const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
     previewUploadStart.response.result()
+
+    const metadata = previewUploadStart.params && previewUploadStart.params.metadata
+    const previewSize = metadata && Constants.parseMetadataPreviewSize(metadata)
+    if (previewSize) {
+      yield put(({
+        type: 'chat:updateTempMessage',
+        payload: {
+          conversationIDKey,
+          outboxID,
+          message: {previewSize},
+        },
+      }: Constants.UpdateTempMessage))
+    }
 
     const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
     previewUploadDone.response.result()
@@ -1255,10 +1282,6 @@ function _threadIsCleared (originalAction: Action, checkAction: Action): boolean
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
-  if (!flags.tabChatEnabled) {
-    return
-  }
-
   yield [
     safeTakeSerially('chat:loadInbox', _loadInbox),
     safeTakeLatest('chat:inboxStale', _loadInbox),

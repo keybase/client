@@ -45,148 +45,290 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses numbers and some symbols emoji 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "+1",
+      ],
+      "type": "emoji",
+    },
+    " ",
+    Object {
+      "children": Array [
+        "100",
+      ],
+      "type": "emoji",
+    },
+  ],
+  "type": "text",
+}
+`;
+
 exports[`Markdown parser parses urls correctly 1`] = `
 Object {
   "children": Array [
-    "This ",
-    "should ",
-    "ignore ",
-    Object {
-      "children": Array [
-        Object {
-          "children": Array [
-            "mailto:blah@blah.com",
-          ],
-          "type": "link",
-        },
-        " ",
-      ],
-      "type": "text",
-    },
-    "but ",
-    "include ",
+    "
+",
+    " ",
+    " ",
+    "Ignore:",
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
+    "a...b,",
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
+    "ftp://blah.com,",
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
+    "gopher://blah.com,",
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
+    "mailto:blah@blah.com",
+    "
+",
+    " ",
+    " ",
+    "Include:",
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "http://keybase.io",
           ],
+          "href": "http://keybase.io",
           "type": "link",
         },
-        " ",
       ],
       "type": "text",
     },
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "https://keybase.io",
           ],
+          "href": "https://keybase.io",
           "type": "link",
         },
-        " ",
       ],
       "type": "text",
     },
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "HTTP://cnn.com",
           ],
+          "href": "HTTP://cnn.com",
           "type": "link",
         },
-        " ",
       ],
       "type": "text",
     },
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "http://twitter.com",
           ],
+          "href": "http://twitter.com",
           "type": "link",
         },
-        " ",
       ],
       "type": "text",
     },
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "google.com",
           ],
+          "href": "http://google.com",
           "type": "link",
         },
-        " ",
       ],
       "type": "text",
     },
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "amazon.co.uk",
           ],
+          "href": "http://amazon.co.uk",
           "type": "link",
         },
-        ". ",
+        ".",
       ],
       "type": "text",
     },
-    "We ",
-    "want ",
-    "to ",
-    "ignore ",
-    "extra ",
-    "chars ",
-    "when ",
-    "links ",
-    "end ",
-    "a ",
-    "sentence ",
-    "like ",
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "keybase.io",
           ],
+          "href": "http://keybase.io",
           "type": "link",
         },
-        ", ",
+        ",",
       ],
       "type": "text",
     },
-    "or ",
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "keybase.io",
           ],
+          "href": "http://keybase.io",
           "type": "link",
         },
-        ". ",
+        ".",
       ],
       "type": "text",
     },
-    "or ",
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             "keybase.io",
           ],
+          "href": "http://keybase.io",
           "type": "link",
         },
         "?",
       ],
       "type": "text",
     },
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "keybase.io/a/user/lookup?one=1&two=2",
+          ],
+          "href": "http://keybase.io/a/user/lookup?one=1&two=2",
+          "type": "link",
+        },
+      ],
+      "type": "text",
+    },
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "keybase.io?blah=true",
+          ],
+          "href": "http://keybase.io?blah=true",
+          "type": "link",
+        },
+      ],
+      "type": "text",
+    },
+    "
+",
+    " ",
+    " ",
+    " ",
+    " ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "http://keybase.io/blah/../up-one/index.html",
+          ],
+          "href": "http://keybase.io/blah/../up-one/index.html",
+          "type": "link",
+        },
+      ],
+      "type": "text",
+    },
+    "
+",
   ],
   "type": "text",
 }

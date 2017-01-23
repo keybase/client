@@ -14,7 +14,6 @@ import Notifications from './notifications'
 import InviteGenerated from './invite-generated'
 import PlanDetails from './plan-details'
 import Invites from './invites'
-import Help from './help'
 import {landingTab} from '../constants/settings'
 
 import type {DumbComponentMap} from '../constants/types/more'
@@ -479,13 +478,6 @@ const invitesMap: DumbComponentMap<Invites> = {
   },
 }
 
-const helpMap: DumbComponentMap<Help> = {
-  component: Help,
-  mocks: {
-    'Normal': {},
-  },
-}
-
 export default {
   UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
@@ -498,5 +490,4 @@ export default {
   InviteGenerated: inviteGeneratedMap,
   PlanDetails: planDetailsMap,
   Invites: invitesMap,
-  Help: helpMap,
 }

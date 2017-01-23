@@ -106,6 +106,8 @@ function* safeTakeSerially (pattern: string | Array<any> | Function, worker: Fun
       const action = yield take(pattern)
       if (!lastTask || !lastTask.isRunning()) {
         lastTask = yield fork(wrappedWorker, ...args.concat(action))
+      } else if (__DEV__) {
+        lastTask && console.log('safeTakeSerially ignoring incoming due to running existing task: ', pattern, args)
       }
     }
   })
