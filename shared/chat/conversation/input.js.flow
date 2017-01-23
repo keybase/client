@@ -9,6 +9,7 @@ export type Props = {
   onAttach: (filename: string, title: string, type: AttachmentType) => void,
   onPostMessage: (text: string) => void,
   selectedConversation: ?ConversationIDKey,
+  onQuickSearch: (show: boolean) => void,
 }
 
 export default class Input extends Component<void, Props, void> { }

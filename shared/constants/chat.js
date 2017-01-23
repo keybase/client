@@ -182,6 +182,7 @@ export const StateRecord = Record({
   focused: false,
   metaData: Map(),
   pendingFailures: Set(),
+  showingQuickSearch: false,
 })
 
 export type State = Record<{
@@ -190,6 +191,7 @@ export type State = Record<{
   focused: boolean,
   metaData: MetaDataMap,
   pendingFailures: Set<OutboxIDKey>,
+  showingQuickSearch: boolean,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -223,6 +225,7 @@ export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {outboxIDKey: OutboxIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
+export type ShowQuickSearch = NoErrorTypedAction<'chat:ShowQuickSearch', {show: boolean}>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>

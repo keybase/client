@@ -59,6 +59,7 @@ import type {
   RetryMessage,
   SelectConversation,
   SetupChatHandlers,
+  ShowQuickSearch,
   StartConversation,
   UnhandledMessage,
   UpdateBadging,
@@ -109,6 +110,10 @@ const _conversationStateSelector = (state: TypedState, conversationIDKey: Conver
 const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
 const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
+
+function showQuickSearch (show: boolean): ShowQuickSearch {
+  return {type: 'chat:showQuickSearch', payload: {show}}
+}
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: 'chat:updateBadging', payload: {conversationIDKey}}
