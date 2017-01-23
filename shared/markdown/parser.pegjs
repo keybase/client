@@ -11,10 +11,10 @@
       (!protocolMatch || ['http://', 'https://'].includes(protocolMatch[0].toLowerCase())) // only allow http(s)
   }
 
-	function convertLink (text) {
-		const matches = text.match(linkExp)
-		if (matches) {
-			const match = matches[0]
+  function convertLink (text) {
+    const matches = text.match(linkExp)
+    if (matches) {
+      const match = matches[0]
       const protocolMatch = match.match(protoExp)
       if (goodLink(match, protocolMatch)) {
         const href = protocolMatch && match || 'http://' + match
@@ -25,9 +25,9 @@
         return {
           type: 'text',
           children: [
-            ...(left ? [left] : []),
-            {type: 'link', children: [match], href},
-            ...(right ? [right] : []),
+          ...(left ? [left] : []),
+          {type: 'link', children: [match], href},
+          ...(right ? [right] : []),
           ],
         }
       }
