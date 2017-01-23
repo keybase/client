@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -89,8 +90,12 @@ func (b *BackgroundIdentifier) completedIdentifyJob(ij engine.IdentifyJob) {
 	if !ij.ErrorChanged() {
 		return
 	}
-	//b.G().Log.Debug("| Identify(%s) changed: %v -> %v", ij.UID(), ij.ThisError(), ij.LastError())
-	//newTlfHandler(nil, b.G()).HandleUserChanged(ij.UID())
+	b.G().Log.Debug("| Identify(%s) changed: %v -> %v", ij.UID(), ij.ThisError(), ij.LastError())
+
+	// Let the chat system know about this identify change
+	chat.NewIdentifyChangedHandler(b.G(), func() keybase1.TlfInterface {
+		return newTlfHandler(nil, b.G())
+	}).BackgroundIdentifyChanged(context.Background(), ij)
 }
 
 func (b *BackgroundIdentifier) populateWithFollowees() (err error) {

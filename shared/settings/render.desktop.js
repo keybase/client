@@ -3,15 +3,10 @@ import React from 'react'
 import SettingsNav from './nav'
 import {Box} from '../common-adapters'
 import {globalStyles} from '../styles'
-import SettingsHelp from './help.desktop'
 
 import type {Props} from './render'
 
 function SettingsRender (props: Props) {
-  if (props.showComingSoon) {
-    return <SettingsHelp />
-  }
-
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>

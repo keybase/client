@@ -45,12 +45,36 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses numbers and some symbols emoji 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "+1",
+      ],
+      "type": "emoji",
+    },
+    " ",
+    Object {
+      "children": Array [
+        "100",
+      ],
+      "type": "emoji",
+    },
+  ],
+  "type": "text",
+}
+`;
+
 exports[`Markdown parser parses urls correctly 1`] = `
 Object {
   "children": Array [
     "This ",
     "should ",
     "ignore ",
+    "a...b ",
+    "but ",
+    "include ",
     Object {
       "children": Array [
         Object {
@@ -63,8 +87,6 @@ Object {
       ],
       "type": "text",
     },
-    "but ",
-    "include ",
     Object {
       "children": Array [
         Object {

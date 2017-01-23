@@ -242,10 +242,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configureRekey(uir)
 	d.tryLogin()
 	d.runBackgroundIdentifier()
-
-	// Add a tlfHandler into the user changed handler group so we can keep identify info
-	// fresh
-	d.G().AddUserChangedHandler(newTlfHandler(nil, d.G()))
 }
 
 func (d *Service) createMessageDeliverer() {
@@ -276,6 +272,11 @@ func (d *Service) createChatSources() {
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
 		boxer, storage.New(d.G(), si), ri)
 
+	// Add a tlfHandler into the user changed handler group so we can keep identify info
+	// fresh
+	d.G().AddUserChangedHandler(chat.NewIdentifyChangedHandler(d.G(), func() keybase1.TlfInterface {
+		return tlf
+	}))
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {

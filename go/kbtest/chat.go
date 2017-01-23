@@ -19,11 +19,22 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type ChatTestContext struct {
+	libkb.TestContext
+}
+
+func (c ChatTestContext) Cleanup() {
+	if c.G.MessageDeliverer != nil {
+		<-c.G.MessageDeliverer.Stop(context.TODO())
+	}
+	c.TestContext.Cleanup()
+}
+
 type ChatMockWorld struct {
 	Fc clockwork.FakeClock
 
-	Tcs     map[string]*libkb.TestContext
-	TcsByID map[string]*libkb.TestContext
+	Tcs     map[string]*ChatTestContext
+	TcsByID map[string]*ChatTestContext
 	Users   map[string]*FakeUser
 	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
 	tlfKeys map[keybase1.CanonicalTlfName][]keybase1.CryptKey
@@ -38,15 +49,18 @@ type ChatMockWorld struct {
 func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockWorld) {
 	world = &ChatMockWorld{
 		Fc:      clockwork.NewFakeClockAt(time.Now()),
-		Tcs:     make(map[string]*libkb.TestContext),
-		TcsByID: make(map[string]*libkb.TestContext),
+		Tcs:     make(map[string]*ChatTestContext),
+		TcsByID: make(map[string]*ChatTestContext),
 		Users:   make(map[string]*FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
 		Msgs:    make(map[string][]*chat1.MessageBoxed),
 	}
 	for i := 0; i < numUsers; i++ {
-		tc := externals.SetupTest(t, "chat_"+name, 0)
+		kbTc := externals.SetupTest(t, "chat_"+name, 0)
+		tc := ChatTestContext{
+			TestContext: kbTc,
+		}
 		tc.G.SetClock(world.Fc)
 		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
@@ -74,6 +88,26 @@ func (w *ChatMockWorld) GetConversationByID(convID chat1.ConversationID) *chat1.
 		}
 	}
 	return nil
+}
+
+type ByUsername []*FakeUser
+
+func (m ByUsername) Len() int      { return len(m) }
+func (m ByUsername) Swap(i, j int) { m[i], m[j] = m[j], m[i] }
+func (m ByUsername) Less(i, j int) bool {
+	res := strings.Compare(m[i].Username, m[j].Username)
+	if res < 0 {
+		return true
+	}
+	return false
+}
+
+func (w *ChatMockWorld) GetUsers() (res []*FakeUser) {
+	for _, v := range w.Users {
+		res = append(res, v)
+	}
+	sort.Sort(ByUsername(res))
+	return res
 }
 
 func mustDecodeHex(h string) (b []byte) {

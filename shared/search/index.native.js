@@ -1,8 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import UserSearch from './user-search/render'
 import UserGroup from './user-search/user-group'
-import type {Props} from './render'
+import UserSearch from './user-search/render'
+
+import type {Props} from '.'
 
 class SearchRender extends Component<void, Props, void> {
   render () {
@@ -16,8 +17,7 @@ class SearchRender extends Component<void, Props, void> {
           onClickUserInGroup={this.props.onClickUserInGroup}
           onOpenPrivateGroupFolder={this.props.onOpenPrivateGroupFolder}
           onOpenPublicGroupFolder={this.props.onOpenPublicGroupFolder}
-          onGroupChat={this.props.onGroupChat}
-          chatEnabled={this.props.chatEnabled} />
+          onGroupChat={this.props.onGroupChat} />
       )
     } else {
       return (

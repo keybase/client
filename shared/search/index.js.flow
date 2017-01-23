@@ -12,6 +12,7 @@ export type RootProps = {
   userForInfoPane: ?SearchResult,
   showUserGroup: boolean,
   selectedUsers: Array<SearchResult>,
+  searchTextClearTrigger: number,
   onRemoveUserFromGroup: UserFn,
   onClickUserInGroup: UserFn,
   onAddAnotherUserToGroup?: () => void,
@@ -19,7 +20,6 @@ export type RootProps = {
   onOpenPublicGroupFolder: () => void,
   onGroupChat: () => void,
   onReset: () => void,
-  chatEnabled: boolean,
   userPane: React$Element<*>,
 }
 

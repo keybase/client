@@ -2,11 +2,11 @@
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-import {CommonMessageType} from './types/flow-types-chat'
 
+import * as ChatTypes from './types/flow-types-chat'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {AssetMetadata, ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 
 export type MessageType = 'Text'
@@ -83,6 +83,7 @@ export type AttachmentMessage = {
   previewType: ?AttachmentType,
   previewPath: ?string,
   previewSize: ?AttachmentSize,
+  hdPreviewPath: ?string,
   downloadedPath: ?string,
   outboxID?: OutboxIDKey,
   progress?: number, /* between 0 - 1 */
@@ -138,6 +139,8 @@ export type ConversationBadgeStateRecord = Record<{
 
 export const InboxStateRecord = Record({
   info: null,
+  isEmpty: false,
+  youCreated: false,
   participants: List(),
   conversationIDKey: '',
   muted: false,
@@ -150,6 +153,8 @@ export const InboxStateRecord = Record({
 
 export type InboxState = Record<{
   info: ConversationInfoLocal,
+  isEmpty: boolean,
+  youCreated: boolean, // true if you made it this session
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
@@ -197,13 +202,13 @@ export const nothingSelected = 'chat:noneSelected'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
-export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {ConversationIDKey: ConversationIDKey}>
+export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
+export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDKey: ?ConversationIDKey}>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
@@ -244,12 +249,14 @@ export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,
   loadPreview: boolean,
+  isHdPreview: boolean,
   filename: string,
 }>
 export type AttachmentLoaded = NoErrorTypedAction<'chat:attachmentLoaded', {
   messageID: MessageID,
   conversationIDKey: ConversationIDKey,
   isPreview: boolean,
+  isHdPreview: boolean,
   path: string,
 }>
 export type UpdateTempMessage = TypedAction<'chat:updateTempMessage', {
@@ -310,9 +317,9 @@ function makeSnippet (messageBody: ?MessageBody): ?string {
     return null
   }
   switch (messageBody.messageType) {
-    case CommonMessageType.text:
+    case ChatTypes.CommonMessageType.text:
       return textSnippet(messageBody.text && messageBody.text.body, 100)
-    case CommonMessageType.attachment:
+    case ChatTypes.CommonMessageType.attachment:
       return 'Attachment'
     default:
       return null
@@ -338,7 +345,7 @@ function serverMessageToMessageBody (message: ServerMessage): ?MessageBody {
   switch (message.type) {
     case 'Text':
       return {
-        messageType: CommonMessageType.text,
+        messageType: ChatTypes.CommonMessageType.text,
         text: {
           body: message.message.stringValue(),
         },
@@ -369,6 +376,14 @@ function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
   }
 }
 
+function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
+  if (metadata.assetType === ChatTypes.LocalAssetMetadataType.image && metadata.image) {
+    return clampAttachmentPreviewSize(metadata.image)
+  } else if (metadata.assetType === ChatTypes.LocalAssetMetadataType.video && metadata.video) {
+    return clampAttachmentPreviewSize(metadata.video)
+  }
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -380,4 +395,5 @@ export {
   serverMessageToMessageBody,
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
+  parseMetadataPreviewSize,
 }

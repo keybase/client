@@ -1838,6 +1838,18 @@ export function metadataUpdateFolderNeedsRekeyRpcPromise (request: $Exact<reques
   return new Promise((resolve, reject) => { metadataUpdateFolderNeedsRekeyRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function metadataUpdateFoldersNeedRekeyRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFoldersNeedRekeyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.metadataUpdate.foldersNeedRekey'})
+}
+
+export function metadataUpdateFoldersNeedRekeyRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFoldersNeedRekeyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => metadataUpdateFoldersNeedRekeyRpc({...request, incomingCallMap, callback}))
+}
+
+export function metadataUpdateFoldersNeedRekeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFoldersNeedRekeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataUpdateFoldersNeedRekeyRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataUpdateMetadataUpdateRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.metadataUpdate.metadataUpdate'})
 }
@@ -3741,6 +3753,11 @@ export type RekeyEventType =
   | 7 // HARASS_7
   | 8 // NO_GREGOR_MESSAGES_8
 
+export type RekeyRequest = {
+  folderID: string,
+  revision: long,
+}
+
 export type RemoteProof = {
   proofType: ProofType,
   key: string,
@@ -4756,6 +4773,10 @@ export type metadataUpdateFolderNeedsRekeyRpcParam = Exact<{
   revision: long
 }>
 
+export type metadataUpdateFoldersNeedRekeyRpcParam = Exact<{
+  requests?: ?Array<RekeyRequest>
+}>
+
 export type metadataUpdateMetadataUpdateRpcParam = Exact<{
   folderID: string,
   revision: long
@@ -5560,6 +5581,7 @@ export type rpc =
   | metadataTruncateLockRpc
   | metadataTruncateUnlockRpc
   | metadataUpdateFolderNeedsRekeyRpc
+  | metadataUpdateFoldersNeedRekeyRpc
   | metadataUpdateMetadataUpdateRpc
   | notifyCtlSetNotificationsRpc
   | paperprovisionPaperProvisionRpc

@@ -80,7 +80,11 @@ function reducer (state: State = initialState, action: Actions) {
         console.warn('Attempted to clear conversation state that doesn\'t exist')
         return
       }
-      const clearedConversationState = initialConversation.set('firstNewMessageID', origConversationState.get('firstNewMessageID'))
+      // $FlowIssue
+      const clearedConversationState = initialConversation.merge({
+        firstNewMessageID: origConversationState.get('firstNewMessageID'),
+        messages: origConversationState.get('messages').filter(m => m.messageState === 'pending'),
+      })
       // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         conversationStates.set(conversationIDKey, clearedConversationState)
@@ -251,9 +255,16 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('pendingFailures', state.get('pendingFailures').remove(outboxID))
     }
     case 'chat:attachmentLoaded': {
-      const {conversationIDKey, messageID, path, isPreview} = action.payload
+      const {conversationIDKey, messageID, path, isPreview, isHdPreview} = action.payload
 
-      const toMerge = isPreview ? {previewPath: path, messageState: 'sent'} : {downloadedPath: path, messageState: 'downloaded'}
+      let toMerge
+      if (isPreview) {
+        toMerge = {previewPath: path, messageState: 'sent'}
+      } else if (isHdPreview) {
+        toMerge = {hdPreviewPath: path, messageState: 'sent'}
+      } else {
+        toMerge = {downloadedPath: path, messageState: 'downloaded'}
+      }
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(

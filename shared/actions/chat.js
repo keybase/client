@@ -3,13 +3,13 @@ import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
 import engine from '../engine'
-import flags from '../util/feature-flags'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
+import {delay} from 'redux-saga'
 import {getPath} from '../route-tree'
 import {navigateAppend, navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
@@ -18,7 +18,7 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {downloadFilePath, tmpFile} from '../util/file'
+import {tmpFile, copy, exists} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
@@ -177,9 +177,14 @@ const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
 const _focusedSelector = (state: TypedState) => state.chat.get('focused')
 const _conversationStateSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => state.chat.get('conversationStates', Map()).get(conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
+const _messageSelector = (state: TypedState, conversationIDKey: ConversationIDKey, messageID: MessageID) => _conversationStateSelector(state, conversationIDKey).get('messages').find(m => m.messageID === messageID)
+const _messageOutboxIDSelector = (state: TypedState, conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => _conversationStateSelector(state, conversationIDKey).get('messages').find(m => m.outboxID === outboxID)
 const _pendingFailureSelector = (state: TypedState, outboxID: OutboxIDKey) => state.chat.get('pendingFailures').get(outboxID)
 const _devicenameSelector = (state: TypedState) => state.config && state.config.extendedConfig && state.config.extendedConfig.device && state.config.extendedConfig.device.name
+
+function _tmpFileName (isHdPreview: boolean, conversationID: ConversationIDKey, messageID: ?MessageID, filename: string) {
+  return `kbchat-${isHdPreview ? 'hdPreview' : 'preview'}-${messageID || ''}-${filename}`
+}
 
 function updateBadging (conversationIDKey: ConversationIDKey): UpdateBadging {
   return {type: 'chat:updateBadging', payload: {conversationIDKey}}
@@ -217,8 +222,8 @@ function retryMessage (outboxIDKey: string): RetryMessage {
   return {type: 'chat:retryMessage', payload: {outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
-function loadInbox (): LoadInbox {
-  return {type: 'chat:loadInbox', payload: undefined}
+function loadInbox (newConversationIDKey: ?ConversationIDKey): LoadInbox {
+  return {payload: {newConversationIDKey}, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
@@ -242,8 +247,8 @@ function selectAttachment (conversationIDKey: ConversationIDKey, filename: strin
   return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type}}
 }
 
-function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, filename: string): Constants.LoadAttachment {
-  return {type: 'chat:loadAttachment', payload: {conversationIDKey, messageID, loadPreview, filename}}
+function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, isHdPreview: boolean, filename: string): Constants.LoadAttachment {
+  return {type: 'chat:loadAttachment', payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
@@ -269,6 +274,7 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   const participants = List(convo.info.writerNames || [])
   return new InboxStateRecord({
     info: convo.info,
+    isEmpty: convo.isEmpty,
     conversationIDKey,
     participants,
     muted: false,
@@ -625,7 +631,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           })
 
           if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
-            yield put(loadAttachment(conversationIDKey, message.messageID, true, tmpFile(message.filename)))
+            yield put(loadAttachment(conversationIDKey, message.messageID, true, false, tmpFile(_tmpFileName(false, message.conversationIDKey, message.messageID, message.filename))))
           }
         }
       }
@@ -663,7 +669,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const followingSelector = (state: TypedState) => state.config.following
 
-function * _loadInbox (): SagaGenerator<any, any> {
+function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -706,12 +712,16 @@ function * _loadInbox (): SagaGenerator<any, any> {
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
       finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
+      timeout: call(delay, 5000),
     })
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      const conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-      if (conversation) {
+      let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
+      if (conversation && action.payload.newConversationIDKey) {
+        conversation = conversation.set('youCreated', true)
+      }
+      if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
         yield put({type: 'chat:updateInbox', payload: {conversation}})
       }
       // find it
@@ -719,6 +729,20 @@ function * _loadInbox (): SagaGenerator<any, any> {
       incoming.chatInboxFailed.response.result()
     } else if (incoming.finished) {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      // check valid selected
+      const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
+      const inbox = yield select(inboxSelector)
+      if (inbox.count()) {
+        const conversationIDKey = yield select(_selectedSelector)
+        if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
+          yield put(selectConversation(inbox.get(0).get('conversationIDKey'), false))
+        }
+      }
+      break
+    } else if (incoming.timeout) {
+      console.warn('Inbox loading timed out')
+      yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      break
     }
   }
 }
@@ -819,7 +843,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   // Load previews for attachments
   const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
   // $FlowIssue we check for messageID existance above
-  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, tmpFile(filename)))).toArray()
+  yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile(_tmpFileName(false, conversationIDKey, messageID, filename))))).toArray()
 }
 
 function _threadToPagination (thread) {
@@ -920,12 +944,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
           // $FlowIssue
           const preview: Asset = payload.messageBody.attachment.preview
           const mimeType = preview && preview.mimeType
-          let previewSize
-          if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.image && preview.metadata.image) {
-            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.image)
-          } else if (preview && preview.metadata.assetType === ChatTypes.LocalAssetMetadataType.video && preview.metadata.video) {
-            previewSize = Constants.clampAttachmentPreviewSize(preview.metadata.video)
-          }
+          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
           return {
             type: 'Attachment',
@@ -937,6 +956,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
             messageState: 'sent',
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
+            hdPreviewPath: null,
             previewSize,
             downloadedPath: null,
             key: common.messageID,
@@ -981,7 +1001,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   if (result) {
     const conversationIDKey = conversationIDToKey(result.conv.info.id)
 
-    yield put(loadInbox())
+    yield put(loadInbox(conversationIDKey))
     yield put(selectConversation(conversationIDKey, false))
     yield put(switchTo([chatTab]))
   }
@@ -1156,6 +1176,19 @@ function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: Chat
     const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
     previewUploadStart.response.result()
 
+    const metadata = previewUploadStart.params && previewUploadStart.params.metadata
+    const previewSize = metadata && Constants.parseMetadataPreviewSize(metadata)
+    if (previewSize) {
+      yield put(({
+        type: 'chat:updateTempMessage',
+        payload: {
+          conversationIDKey,
+          outboxID,
+          message: {previewSize},
+        },
+      }: Constants.UpdateTempMessage))
+    }
+
     const previewUploadDone = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadDone')
     previewUploadDone.response.result()
   })
@@ -1236,8 +1269,50 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
   }
 }
 
+// Instead of redownloading the full attachment again, we may have it cached from an earlier hdPreview
+// returns cached filepath
+function * _isCached (conversationIDKey, messageID): Generator<any, ?string, any> {
+  try {
+    const message = yield select(_messageSelector, conversationIDKey, messageID)
+    if (message.hdPreviewPath) {
+      return message.hdPreviewPath
+    }
+  } catch (e) {
+    console.warn('error in checking cached file', e)
+    return
+  }
+}
+
 // TODO load previews too
-function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
+function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview, isHdPreview, filename}}: Constants.LoadAttachment): SagaGenerator<any, any> {
+  // See if we already have this image cached
+  if (loadPreview || isHdPreview) {
+    if (exists(filename)) {
+      const action: Constants.AttachmentLoaded = {
+        type: 'chat:attachmentLoaded',
+        payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
+      }
+      yield put(action)
+      return
+    }
+  }
+
+  // If we are loading the actual attachment,
+  // let's see if we've already downloaded it as an hdPreview
+  if (!loadPreview && !isHdPreview) {
+    const cachedPath = yield call(_isCached, conversationIDKey, messageID)
+
+    if (cachedPath) {
+      copy(cachedPath, filename)
+      const action: Constants.AttachmentLoaded = {
+        type: 'chat:attachmentLoaded',
+        payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
+      }
+      yield put(action)
+      return
+    }
+  }
+
   const param = {
     conversationID: keyToConversationID(conversationIDKey),
     messageID,
@@ -1279,7 +1354,7 @@ function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview
 
   const action: Constants.AttachmentLoaded = {
     type: 'chat:attachmentLoaded',
-    payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview},
+    payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
   }
   yield put(action)
 }
@@ -1321,8 +1396,8 @@ function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any
   }
 
   yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
-  if (!message.downloadedPath) {
-    yield put(loadAttachment(message.conversationIDKey, messageID, false, downloadFilePath(message.filename)))
+  if (!message.hdPreviewPath) {
+    yield put(loadAttachment(message.conversationIDKey, messageID, false, true, tmpFile(_tmpFileName(true, message.conversationIDKey, message.messageID, message.filename))))
   }
 }
 
@@ -1331,10 +1406,6 @@ function _threadIsCleared (originalAction: Action, checkAction: Action): boolean
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
-  if (!flags.tabChatEnabled) {
-    return
-  }
-
   yield [
     safeTakeSerially('chat:loadInbox', _loadInbox),
     safeTakeLatest('chat:inboxStale', _loadInbox),

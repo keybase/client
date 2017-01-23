@@ -16,7 +16,6 @@ export type Props = {
   onOpenPrivateGroupFolder: () => void,
   onOpenPublicGroupFolder: () => void,
   onGroupChat: () => void,
-  chatEnabled: boolean
 }
 
 export default class Render extends Component<void, Props, void> { }

@@ -1,16 +1,18 @@
 // @flow
-import type {incomingRPCCallbackType, connectCallbackType} from './index.platform'
 import {Buffer} from 'buffer'
 import {NativeModules, NativeAppEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
+
+import type {incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 // Modules from the native part of the code. Differently named on android/ios
 const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
 class NativeTransport extends TransportShared {
-  constructor (incomingRPCCallback, connectCallback) {
+  constructor (incomingRPCCallback, connectCallback, disconnectCallback) {
     super({},
       connectCallback,
+      disconnectCallback,
       incomingRPCCallback,
       // We pass data over to the native side to be handled
       (data) => {
@@ -46,8 +48,8 @@ class NativeTransport extends TransportShared {
   }
 }
 
-function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCallback: connectCallbackType) {
-  const client = sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback))
+function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCallback: connectDisconnectCB, disconnectCallback: connectDisconnectCB) {
+  const client = sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
 
   // This is how the RN side writes back to us
   NativeAppEventEmitter.addListener(
