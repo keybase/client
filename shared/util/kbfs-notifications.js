@@ -2,11 +2,16 @@
 import _ from 'lodash'
 import {KbfsCommonFSErrorType, KbfsCommonFSNotificationType, KbfsCommonFSStatusCode} from '../constants/types/flow-types'
 import path from 'path'
+import {parseFolderNameToUsers} from './kbfs'
 import type {FSNotification} from '../constants/types/flow-types'
 
 type DecodedKBFSError = {
   'title': string,
   'body': string,
+}
+
+function usernamesForNotification (notification: FSNotification) {
+  return parseFolderNameToUsers(null, notification.filename.split(path.sep)[3]).map(i => i.username)
 }
 
 function tlfForNotification (notification: FSNotification): string {
@@ -171,10 +176,10 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
     return
   }
 
-  const tlf = tlfForNotification(notification)
+  const usernames = usernamesForNotification(notification).join(' & ')
 
   let title = `KBFS: ${action}`
-  let body = `Files in ${tlf} ${notification.status}`
+  let body = `Chat or files with ${usernames} ${notification.status}`
   let user = getState().config.username
 
   const isError = notification.statusCode === KbfsCommonFSStatusCode.error
@@ -183,7 +188,7 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
     ({title, body} = decodeKBFSError(user, notification))
   }
 
-  if (rateLimitAllowsNotify(action, state, tlf, isError)) {
+  if (rateLimitAllowsNotify(action, state, usernames, isError)) {
     notify(title, {body})
   }
 }
