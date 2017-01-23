@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../constants/profile'
-import flags from '../../util/feature-flags'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, proofsSaga, submitZcashAddress} from './proofs'
@@ -89,7 +88,7 @@ function * _onClickAvatar (action: OnClickFollowers): SagaGenerator<any, any> {
     return
   }
 
-  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+  if (!action.openWebsite) {
     // TODO(mm) hint followings
     yield put(onUserClick(action.payload.username, action.payload.uid))
   } else {
@@ -113,7 +112,7 @@ function * _onClickFollowers (action: OnClickFollowers): SagaGenerator<any, any>
     return
   }
 
-  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+  if (!action.openWebsite) {
     // TODO(mm) hint followings
     yield put(onUserClick(action.payload.username, action.payload.uid))
   } else {
@@ -137,7 +136,7 @@ function * _onClickFollowing (action: OnClickFollowing): SagaGenerator<any, any>
     return
   }
 
-  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+  if (!action.openWebsite) {
     // TODO(mm) hint followings
     yield put(onUserClick(action.payload.username, action.payload.uid))
   } else {

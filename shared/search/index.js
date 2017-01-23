@@ -9,7 +9,6 @@ import {privateFolderWithUsers, publicFolderWithUsers} from '../constants/config
 import {openInKBFS} from '../actions/kbfs'
 import {navigateAppend} from '../actions/route-tree'
 import UserPane from './user-pane'
-import flags from '../util/feature-flags'
 import {startConversation} from '../actions/chat'
 
 import type {TypedState} from '../constants/reducer'
@@ -57,5 +56,4 @@ export default connector.connect(
       onOpenPrivateGroupFolder: () => { username && dispatch(openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username)))) },
       onOpenPublicGroupFolder: () => { username && dispatch(openInKBFS(publicFolderWithUsers(selectedUsers.map(searchResultToAssertion)))) },
       onGroupChat: () => { dispatch(startConversation(selectedUsers.map(searchResultToAssertion).concat(username || ''))) },
-      chatEnabled: flags.tabChatEnabled,
     }))(Search)

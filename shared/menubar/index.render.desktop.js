@@ -2,7 +2,6 @@
 import Folders from '../folders/render'
 import React, {Component} from 'react'
 import UserAdd from './user-add'
-import flags from '../util/feature-flags'
 import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
 import {folderTab, profileTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
@@ -116,11 +115,10 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    // $FlowIssue
     const badgeTypes: Array<BadgeIconType> = [
       'folder',
-      ...(flags.tabProfileEnabled ? ['people'] : []),
-      ...(flags.tabChatEnabled ? ['chat'] : []),
+      'people',
+      'chat',
       'device',
     ]
 

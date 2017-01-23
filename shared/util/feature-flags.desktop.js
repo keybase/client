@@ -18,10 +18,7 @@ const ff: FeatureFlags = {
   mobileAppsExist: featureOn('mobileAppsExist'),
   plansEnabled: featureOn('plansEnabled'),
   recentFilesEnabled: featureOn('recentFilesEnabled'),
-  tabChatEnabled: true,
   tabPeopleEnabled: featureOn('tabPeopleEnabled'),
-  tabProfileEnabled: true,
-  tabSettingsEnabled: true,
 }
 
 if (__DEV__) {
