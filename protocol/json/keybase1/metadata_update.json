@@ -48,18 +48,6 @@
         }
       ],
       "response": null
-    },
-    "foldersNeedRekey": {
-      "request": [
-        {
-          "name": "requests",
-          "type": {
-            "type": "array",
-            "items": "RekeyRequest"
-          }
-        }
-      ],
-      "response": null
     }
   },
   "namespace": "keybase.1"

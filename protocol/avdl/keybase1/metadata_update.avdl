@@ -10,5 +10,5 @@ protocol metadataUpdate {
     string folderID;
     long   revision;
   }
-  void foldersNeedRekey(array<RekeyRequest> requests);
+  // void foldersNeedRekey(array<RekeyRequest> requests);
 }
