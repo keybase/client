@@ -843,6 +843,8 @@ func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)             
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
 func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
+func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
+}
 func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
 func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {

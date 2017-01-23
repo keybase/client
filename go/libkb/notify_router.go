@@ -44,7 +44,8 @@ type NotifyListener interface {
 	ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 	ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
 		finalizeInfo chat1.ConversationFinalizeInfo)
-	ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID)
+	ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID,
+		resolveInfo chat1.ConversationResolveInfo)
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
@@ -583,7 +584,7 @@ func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UI
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.ChatTLFResolve(uid, convID)
+		n.listener.ChatTLFResolve(uid, convID, resolveInfo)
 	}
 	n.G().Log.Debug("- Sent ChatTLFResolve notification")
 }
