@@ -3,7 +3,6 @@ import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
 import engine from '../engine'
-import flags from '../util/feature-flags'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
@@ -1270,10 +1269,6 @@ function _threadIsCleared (originalAction: Action, checkAction: Action): boolean
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
-  if (!flags.tabChatEnabled) {
-    return
-  }
-
   yield [
     safeTakeSerially('chat:loadInbox', _loadInbox),
     safeTakeLatest('chat:inboxStale', _loadInbox),

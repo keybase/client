@@ -52,16 +52,14 @@ export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers
         source={_folderSource}
         style={stylesTabButton}
       />
-      {flags.tabChatEnabled &&
-        <TabBarButton
-          label='Chat'
-          selected={selectedTab === chatTab}
-          onClick={() => onTabClick(chatTab)}
-          badgeNumber={badgeNumbers[chatTab]}
-          source={_chatSource}
-          style={stylesTabButton}
-        />
-      }
+      <TabBarButton
+        label='Chat'
+        selected={selectedTab === chatTab}
+        onClick={() => onTabClick(chatTab)}
+        badgeNumber={badgeNumbers[chatTab]}
+        source={_chatSource}
+        style={stylesTabButton}
+      />
       {flags.tabPeopleEnabled &&
         <TabBarButton
           label='People'

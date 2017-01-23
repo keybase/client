@@ -124,7 +124,6 @@ const commonProps = {
   onClickUserInGroup: u => console.log('onClickUser', u),
   onGroupChat: () => console.log('onGroupChat'),
   onAddUser: () => console.log('onAddUser'),
-  chatEnabled: false,
   selectedUsers: commonUsers,
   userForInfoPane: commonUsers[0],
 }
@@ -175,7 +174,6 @@ const searchMap: DumbComponentMap<Search> = {
     'Chat enabled': {
       ...commonProps,
       showUserGroup: true,
-      chatEnabled: true,
     },
   },
 }

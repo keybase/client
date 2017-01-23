@@ -2,7 +2,6 @@
 import ErrorComponent from '../common-adapters/error-profile'
 import Profile from './index'
 import React, {PureComponent} from 'react'
-import flags from '../util/feature-flags'
 import {addProof, onUserClick, onClickAvatar, onClickFollowers, onClickFollowing, checkProof} from '../actions/profile'
 import {connect} from 'react-redux'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
@@ -151,7 +150,6 @@ export default connect(
       onFollow: () => dispatchProps.onFollow(username),
       onUnfollow: () => dispatchProps.onUnfollow(username),
       onAcceptProofs: () => dispatchProps.onFollow(username),
-      showComingSoon: !flags.tabProfileEnabled,
       onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
       onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
       onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
