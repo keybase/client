@@ -58,6 +58,16 @@
       "response": null,
       "doc": "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile.  usernameOrEmail is optional.\n    If the current device isn't provisioned, this function will\n    provision it.\n\n    Note that if usernameOrEmail is an email address, only provisioning\n    will be attempted.  If the device is already provisioned, login\n    via email address does not work."
     },
+    "loginWithPaperKey": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Login and unlock by\n\t- trying unlocked device keys if available\n\t- prompting for a paper key and using that"
+    },
     "clearStoredSecret": {
       "request": [
         {
