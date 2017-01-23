@@ -25,16 +25,18 @@ type blockReturner struct {
 
 // fakeBlockGetter allows specifying and obtaining fake blocks.
 type fakeBlockGetter struct {
-	mtx      sync.RWMutex
-	blockMap map[BlockPointer]blockReturner
-	codec    kbfscodec.Codec
+	mtx           sync.RWMutex
+	blockMap      map[BlockPointer]blockReturner
+	codec         kbfscodec.Codec
+	respectCancel bool
 }
 
 // newFakeBlockGetter returns a fakeBlockGetter.
-func newFakeBlockGetter() *fakeBlockGetter {
+func newFakeBlockGetter(respectCancel bool) *fakeBlockGetter {
 	return &fakeBlockGetter{
-		blockMap: make(map[BlockPointer]blockReturner),
-		codec:    kbfscodec.NewMsgpack(),
+		blockMap:      make(map[BlockPointer]blockReturner),
+		codec:         kbfscodec.NewMsgpack(),
+		respectCancel: respectCancel,
 	}
 }
 
@@ -61,6 +63,13 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 	if !ok {
 		return errors.New("Block doesn't exist in fake block map")
 	}
+	cancelCh := make(chan struct{})
+	if bg.respectCancel {
+		go func() {
+			<-ctx.Done()
+			close(cancelCh)
+		}()
+	}
 	// Wait until the caller tells us to continue
 	for {
 		select {
@@ -70,7 +79,7 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 				return err
 			}
 			return kbfscodec.Update(bg.codec, block, source.block)
-		case <-ctx.Done():
+		case <-cancelCh:
 			return ctx.Err()
 		}
 	}
@@ -95,7 +104,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter()
+	bg := newFakeBlockGetter(false)
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 	defer w.Shutdown()
@@ -118,7 +127,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter()
+	bg := newFakeBlockGetter(false)
 	w1, w2 := newBlockRetrievalWorker(bg, q), newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w1)
 	require.NotNil(t, w2)
@@ -161,7 +170,7 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter()
+	bg := newFakeBlockGetter(false)
 	w1 := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w1)
 	defer w1.Shutdown()
@@ -212,7 +221,7 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter()
+	bg := newFakeBlockGetter(true)
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 	defer w.Shutdown()
@@ -235,7 +244,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter()
+	bg := newFakeBlockGetter(false)
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 
@@ -268,7 +277,7 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter()
+	bg := newFakeBlockGetter(false)
 	w1 := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w1)
 	defer w1.Shutdown()
