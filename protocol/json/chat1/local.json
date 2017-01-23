@@ -1802,6 +1802,30 @@
         }
       ],
       "response": "MarkAsReadRes"
+    },
+    "findConversations": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "visibility",
+          "type": "TLFVisibility"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
+          "name": "topicName",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ConversationLocal"
+      }
     }
   },
   "namespace": "chat.1"

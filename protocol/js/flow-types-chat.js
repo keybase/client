@@ -165,6 +165,18 @@ export function localDownloadFileAttachmentLocalRpcPromise (request: $Exact<requ
   return new Promise((resolve, reject) => { localDownloadFileAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localFindConversationsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsResult) => void} & {param: localFindConversationsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.findConversations'})
+}
+
+export function localFindConversationsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsResult) => void} & {param: localFindConversationsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localFindConversationsRpc({...request, incomingCallMap, callback}))
+}
+
+export function localFindConversationsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsResult) => void} & {param: localFindConversationsRpcParam}>): Promise<localFindConversationsResult> {
+  return new Promise((resolve, reject) => { localFindConversationsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.getConversationForCLILocal'})
 }
@@ -1283,6 +1295,13 @@ export type localDownloadFileAttachmentLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localFindConversationsRpcParam = Exact<{
+  tlfName: string,
+  visibility: TLFVisibility,
+  topicType: TopicType,
+  topicName: string
+}>
+
 export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
@@ -1479,6 +1498,8 @@ type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
 
+type localFindConversationsResult = ?Array<ConversationLocal>
+
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
@@ -1539,6 +1560,7 @@ export type rpc =
     localCancelPostRpc
   | localDownloadAttachmentLocalRpc
   | localDownloadFileAttachmentLocalRpc
+  | localFindConversationsRpc
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxNonblockLocalRpc

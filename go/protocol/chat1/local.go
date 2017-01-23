@@ -1012,6 +1012,13 @@ type MarkAsReadLocalArg struct {
 	MsgID          MessageID      `codec:"msgID" json:"msgID"`
 }
 
+type FindConversationsArg struct {
+	TlfName    string        `codec:"tlfName" json:"tlfName"`
+	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
+	TopicType  TopicType     `codec:"topicType" json:"topicType"`
+	TopicName  string        `codec:"topicName" json:"topicName"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
@@ -1033,6 +1040,7 @@ type LocalInterface interface {
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, OutboxID) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadRes, error)
+	FindConversations(context.Context, FindConversationsArg) ([]ConversationLocal, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1359,6 +1367,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"findConversations": {
+				MakeArg: func() interface{} {
+					ret := make([]FindConversationsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FindConversationsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FindConversationsArg)(nil), args)
+						return
+					}
+					ret, err = i.FindConversations(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1468,5 +1492,10 @@ func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err erro
 
 func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalArg) (res MarkAsReadRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.markAsReadLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) FindConversations(ctx context.Context, __arg FindConversationsArg) (res []ConversationLocal, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.findConversations", []interface{}{__arg}, &res)
 	return
 }
