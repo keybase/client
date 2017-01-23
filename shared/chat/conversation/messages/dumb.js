@@ -45,6 +45,7 @@ function attachmentMessageMock (messageState: MessageState, author: string, you:
     previewType: 'Image',
     previewPath: require('../../../images/mock/yosemite-preview.jpg'),
     downloadedPath: require('../../../images/mock/yosemite.jpg'),
+    hdPreviewPath: require('../../../images/mock/yosemite.jpg'),
     previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
   }
 }
@@ -133,6 +134,7 @@ const attachmentBaseMessage = {
   previewType: 'Image',
   previewPath: null,
   downloadedPath: null,
+  hdPreviewPath: null,
   messageState: 'sent',
   key: 'foo',
   you: 'cecileb',
@@ -153,6 +155,7 @@ const attachmentMessageWithImg = {
   previewType: 'Image',
   previewPath: require('../../../images/mock/yosemite-preview.jpg'),
   downloadedPath: require('../../../images/mock/yosemite-preview.jpg'),
+  hdPreviewPath: require('../../../images/mock/yosemite-preview.jpg'),
   messageState: 'sent',
   key: 'foo',
   you: 'cecileb',
@@ -172,6 +175,7 @@ const attachmentMessageGeneric = {
   title: 'seattle-map.pdf',
   previewType: 'Other',
   downloadedPath: '/tmp/somewhere', // eslint-disable-line
+  hdPreviewPath: null,
   previewPath: null,
   messageState: 'sent',
   key: 'foo',
@@ -394,14 +398,14 @@ const attachmentPopupMap: DumbComponentMap<AttachmentPopup> = {
       ...baseAttachmentPopupMock({
         ...attachmentMessageMock('sent', 'cecileb', 'cecileb'),
         title: 'Pacific',
-        downloadedPath: require('../../../images/mock/coast-wide.jpg'),
+        hdPreviewPath: require('../../../images/mock/coast-wide.jpg'),
       }),
     },
     'You - Small Image': {
       ...baseAttachmentPopupMock({
         ...attachmentMessageMock('sent', 'cecileb', 'cecileb'),
         title: 'Washington',
-        downloadedPath: require('../../../images/mock/washington-small.jpg'),
+        hdPreviewPath: require('../../../images/mock/washington-small.jpg'),
       }),
     },
     'You - Zoomed': {

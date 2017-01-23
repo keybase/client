@@ -27,7 +27,7 @@ class PopupMenu extends Component<void, Props, void> {
           {this.props.header && this.props.header.view}
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: globalMargins.tiny, paddingBottom: globalMargins.tiny}}>
             {
-              this.props.items.map((i, idx) => {
+              this.props.items.filter(Boolean).map((i, idx) => {
                 if (i === 'Divider') {
                   return <Divider key={idx} />
                 }
