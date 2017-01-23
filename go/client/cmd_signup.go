@@ -32,10 +32,6 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "email",
 				Usage: "Specify an account email.",
 			},
-			cli.BoolFlag{
-				Name:  "g, get-code",
-				Usage: "Request an invite code from the server.",
-			},
 			cli.StringFlag{
 				Name:  "username",
 				Usage: "Specify a username.",
@@ -52,7 +48,12 @@ type PromptFields struct {
 }
 
 func (pf PromptFields) ToList() []*Field {
-	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry, pf.deviceName}
+	fields := []*Field{pf.email}
+	if pf.code.Defval == "" {
+		fields = append(fields, pf.code)
+	}
+	fields = append(fields, pf.username, pf.passphraseRetry, pf.deviceName)
+	return fields
 }
 
 type CmdSignup struct {
@@ -106,7 +107,6 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	if s.defaultDevice == "" {
 		s.defaultDevice = "home computer"
 	}
-	s.requestCode = ctx.Bool("get-code")
 
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
@@ -158,7 +158,7 @@ func (s *CmdSignup) Run() (err error) {
 		return err
 	}
 
-	if s.requestCode {
+	if s.code == "" {
 		if err = s.postCodeRequest(); err != nil {
 			return err
 		}
@@ -335,6 +335,9 @@ func (s *CmdSignup) MakePrompter() {
 			}
 			return nil
 		}
+	} else {
+		// we omit this prompt if populated
+		code.Value = &s.code
 	}
 
 	passphraseRetry := &Field{
