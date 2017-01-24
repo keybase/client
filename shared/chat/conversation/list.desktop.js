@@ -365,7 +365,7 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     const rowCount = this.state.messages.count() + cellMessageStartIndex
-    let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
+    let scrollToIndex = this.state.isLockedToBottom ? rowCount : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
     return (
