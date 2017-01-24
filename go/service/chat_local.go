@@ -1069,8 +1069,6 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 
 func (h *chatLocalHandler) postAttachmentPlaceholder(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
 	attachment := chat1.MessageAttachment{
-		// Object:   object,
-		// Preview:  preview,
 		Metadata: arg.Metadata,
 	}
 	postArg := chat1.PostLocalArg{
