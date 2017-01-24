@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import React, {Component} from 'react'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import Header from './header.desktop'
@@ -8,75 +8,126 @@ import Input from './input.desktop'
 import Banner from './banner'
 
 import type {Props} from '.'
-import type {Props as BannerMessage} from './banner'
 
-const Conversation = (props: Props) => {
-  const bannerMessage: ?BannerMessage = props.bannerMessage
-  // $FlowIssue with variants
-  const banner = bannerMessage && <Banner {...bannerMessage} />
+type State = {
+  showDropOverlay: boolean,
+}
 
-  const onDragOver = e => {
+class Conversation extends Component<void, Props, State> {
+  state = {
+    showDropOverlay: false,
+  }
+
+  _onDrop = e => {
+    const fileList = e.dataTransfer.files
+    // FileList, not an array
+    const files = Array.prototype.map.call(fileList, file => ({
+      name: file.name,
+      path: file.path,
+      type: file.type,
+    }))
+    files.forEach(f => {
+      this.props.onAttach(f.path, f.name, f.type.includes('image/') ? 'Image' : 'Other')
+    })
+    this.setState({showDropOverlay: false})
+  }
+
+  _onDragEnter = e => {
     e.dataTransfer.effectAllowed = 'copy'
-    console.log('aaaaaaaaaa drag over', e)
-    e.preventDefault()
+    this.setState({showDropOverlay: true})
   }
 
-  const onDrop = e => {
-    console.log('aaaaaaaaaa drop', e)
+  _onDragLeave = e => {
+    this.setState({showDropOverlay: false})
   }
 
-  const dropOverlay = (
-    <Box style={dropOverlayStyle}>
-      <Icon type='icon-file-dropping-48' />
-    </Box>
-  )
+  render () {
+    const {
+      bannerMessage,
+      emojiPickerOpen,
+      firstNewMessageID,
+      followingMap,
+      isLoading,
+      listScrollDownState,
+      messages,
+      metaDataMap,
+      moreToLoad,
+      onAddParticipant,
+      onAttach,
+      onDeleteMessage,
+      onEditMessage,
+      onLoadAttachment,
+      onLoadMoreMessages,
+      onOpenFolder,
+      onOpenInFileUI,
+      onOpenInPopup,
+      onPostMessage,
+      onRetryAttachment,
+      onRetryMessage,
+      onShowProfile,
+      onToggleSidePanel,
+      participants,
+      selectedConversation,
+      sidePanelOpen,
+      validated,
+      you,
+    } = this.props
 
-  return (
-    <Box className='conversation' style={containerStyle} onDragOver={onDragOver} onDrop={onDrop}>
-      <Header
-        onOpenFolder={props.onOpenFolder}
-        onToggleSidePanel={props.onToggleSidePanel}
-        participants={props.participants}
-        sidePanelOpen={props.sidePanelOpen}
-        you={props.you}
-        metaDataMap={props.metaDataMap}
-        followingMap={props.followingMap}
-        onShowProfile={props.onShowProfile}
-      />
-      <List
-        you={props.you}
-        metaDataMap={props.metaDataMap}
-        followingMap={props.followingMap}
-        firstNewMessageID={props.firstNewMessageID}
-        listScrollDownState={props.listScrollDownState}
-        messages={props.messages}
-        moreToLoad={props.moreToLoad}
-        onAddParticipant={props.onAddParticipant}
-        onDeleteMessage={props.onDeleteMessage}
-        onEditMessage={props.onEditMessage}
-        onLoadAttachment={props.onLoadAttachment}
-        onLoadMoreMessages={props.onLoadMoreMessages}
-        onOpenInFileUI={props.onOpenInFileUI}
-        onOpenInPopup={props.onOpenInPopup}
-        onRetryAttachment={props.onRetryAttachment}
-        onRetryMessage={props.onRetryMessage}
-        onShowProfile={props.onShowProfile}
-        participants={props.participants}
-        selectedConversation={props.selectedConversation}
-        sidePanelOpen={props.sidePanelOpen}
-        validated={props.validated}
-      />
-      {banner}
-      <Input
-        emojiPickerOpen={props.emojiPickerOpen}
-        isLoading={props.isLoading}
-        onAttach={props.onAttach}
-        onPostMessage={props.onPostMessage}
-        selectedConversation={props.selectedConversation}
-      />
-      {dropOverlay}
-    </Box>
-  )
+    // $FlowIssue with variants
+    const banner = bannerMessage && <Banner {...bannerMessage} />
+
+    const dropOverlay = this.state.showDropOverlay && (
+      <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
+        <Icon type='icon-file-dropping-48' />
+      </Box>
+    )
+    return (
+      <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter}>
+        <Header
+          onOpenFolder={onOpenFolder}
+          onToggleSidePanel={onToggleSidePanel}
+          participants={participants}
+          sidePanelOpen={sidePanelOpen}
+          you={you}
+          metaDataMap={metaDataMap}
+          followingMap={followingMap}
+          onShowProfile={onShowProfile}
+        />
+        <List
+          you={you}
+          metaDataMap={metaDataMap}
+          followingMap={followingMap}
+          firstNewMessageID={firstNewMessageID}
+          listScrollDownState={listScrollDownState}
+          messages={messages}
+          moreToLoad={moreToLoad}
+          onAddParticipant={onAddParticipant}
+          onDeleteMessage={onDeleteMessage}
+          onEditMessage={onEditMessage}
+          onLoadAttachment={onLoadAttachment}
+          onLoadMoreMessages={onLoadMoreMessages}
+          onOpenInFileUI={onOpenInFileUI}
+          onOpenInPopup={onOpenInPopup}
+          onRetryAttachment={onRetryAttachment}
+          onRetryMessage={onRetryMessage}
+          onShowProfile={onShowProfile}
+          participants={participants}
+          selectedConversation={selectedConversation}
+          sidePanelOpen={sidePanelOpen}
+          validated={validated}
+        />
+        {banner}
+        <Input
+          emojiPickerOpen={emojiPickerOpen}
+          isLoading={isLoading}
+          onAttach={onAttach}
+          onPostMessage={onPostMessage}
+          selectedConversation={selectedConversation}
+        />
+        {dropOverlay}
+      </Box>
+    )
+  }
 }
 
 const containerStyle = {
