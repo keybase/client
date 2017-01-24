@@ -29,9 +29,9 @@ const (
 	// related to conflict resolution
 	CtxCRIDKey CtxCRTagKey = iota
 
-	// If the number of outstanding revisions that need to be resolved
-	// together (unmerged+merged) is greater than this number, then
-	// block unmerged writes to make sure we don't get *too* unmerged.
+	// If the number of outstanding unmerged revisions that need to be
+	// resolved together is greater than this number, then block
+	// unmerged writes to make sure we don't get *too* unmerged.
 	// TODO: throttle unmerged writes before resorting to complete
 	// blockage.
 	crMaxRevsThresholdDefault = 500
@@ -363,9 +363,14 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 	cr.currInput.merged = rev
 
 	// Take the lock right away next time if either there are lots of
-	// revisions, or this is a local squash and we won't block for
-	// very long.
-	if (len(unmerged)+len(merged) > cr.maxRevsThreshold) ||
+	// unmerged revisions, or this is a local squash and we won't
+	// block for very long.
+	//
+	// TODO: if there are a lot of merged revisions, and they keep
+	// coming, we might consider doing a "partial" resolution, writing
+	// the result back to the unmerged branch (basically "rebasing"
+	// it).  See KBFS-1896.
+	if (len(unmerged) > cr.maxRevsThreshold) ||
 		(len(unmerged) > 0 && unmerged[0].BID() == PendingLocalSquashBranchID) {
 		cr.lockNextTime = true
 	}
