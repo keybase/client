@@ -119,9 +119,13 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
+  _scrollToBottom = () => {
+    this._list && this._list.Grid && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: this.state.messages.count() + cellMessageStartIndex})
+  }
+
   componentDidUpdate (prevProps: Props, prevState: State) {
     if (this.state.isLockedToBottom) {
-      this._list && this._list.Grid && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: this.state.messages.count() + cellMessageStartIndex})
+      this._scrollToBottom()
     }
 
     if (this.state.messages !== prevState.messages && prevState.messages.count() > 1 && !this.state.isLockedToBottom) {
@@ -337,6 +341,9 @@ class ConversationList extends Component<void, Props, State> {
   _recomputeList () {
     this._cellCache.clearAllRowHeights()
     this._list && this._list.recomputeRowHeights()
+    if (this.state.isLockedToBottom) {
+      this._scrollToBottom()
+    }
   }
 
   _onCopyCapture (e) {
