@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"io"
+	"runtime/debug"
 	"sort"
 	"sync"
 
@@ -156,7 +157,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata)
 }
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
-	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block. Num entries: %d", len(b.Children))
+	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block. Num entries: %d. Stack: %s", len(b.Children), string(debug.Stack()))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
@@ -181,8 +182,11 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
 
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
 func (p *blockPrefetcher) PrefetchBlock(
-	block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
+	block Block, ptr BlockPointer, kmd KeyMetadata, priority int,
+	lifetime BlockCacheLifetime, hasPrefetched bool) error {
 	p.log.CDebugf(context.TODO(), "Prefetching block by request from upstream component. Priority: %d", priority)
+	_ = p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
+		lifetime, hasPrefetched)
 	return p.request(priority, kmd, ptr, block, "")
 }
 

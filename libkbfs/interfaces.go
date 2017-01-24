@@ -1035,7 +1035,7 @@ type KeyOps interface {
 type Prefetcher interface {
 	// PrefetchBlock directs the prefetcher to prefetch a block.
 	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata,
-		priority int) error
+		priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a

@@ -2681,28 +2681,30 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer, shouldPrefetch bool) {
 	// TODO: Remove this comment when we're done debugging because it'll be
 	// everywhere.
-	fbo.log.CDebugf(context.TODO(), "Updating reference for pointer %s to %s", oldPtr.ID, newPtr.ID)
 	updated := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
 	if !updated {
 		return
 	}
-	// Prefetch the new reference, but only if it already exists in the block
-	// cache. Ideally we'd always prefetch it, but we need the type of the
-	// block so that we can call `NewEmpty`.
-	// TODO KBFS-1850: Eventually we should use the codec library's ability to
-	// decode into a nil interface to no longer need to pre-initialize the
-	// correct type.
-	block, err := fbo.config.BlockCache().Get(oldPtr)
-	if err != nil {
-		return
-	}
-
+	fbo.log.CDebugf(context.TODO(), "Updating reference for pointer %s to %s", oldPtr.ID, newPtr.ID)
 	if shouldPrefetch {
+		// Prefetch the new reference, but only if it already exists in the block
+		// cache. Ideally we'd always prefetch it, but we need the type of the
+		// block so that we can call `NewEmpty`.
+		// TODO KBFS-1850: Eventually we should use the codec library's ability to
+		// decode into a nil interface to no longer need to pre-initialize the
+		// correct type.
+		block, hasPrefetched, lifetime, err := fbo.config.BlockCache().GetWithPrefetch(oldPtr)
+		if err != nil {
+			return
+		}
+
 		fbo.config.BlockOps().Prefetcher().PrefetchBlock(
 			block.NewEmpty(),
 			newPtr,
 			kmd,
 			updatePointerPrefetchPriority,
+			lifetime,
+			hasPrefetched,
 		)
 	}
 }

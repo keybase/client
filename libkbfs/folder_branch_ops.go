@@ -1333,7 +1333,8 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	// We will prefetch this as on-demand so that it triggers downstream
 	// prefetches.
 	fbo.config.BlockOps().Prefetcher().PrefetchBlock(
-		&DirBlock{}, md.data.Dir.BlockPointer, md, defaultOnDemandRequestPriority)
+		&DirBlock{}, md.data.Dir.BlockPointer, md, defaultOnDemandRequestPriority,
+		TransientEntry, true)
 
 	// Return early if the head is already set.  This avoids taking
 	// mdWriterLock for no reason, and it also avoids any side effects
