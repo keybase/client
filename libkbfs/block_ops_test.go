@@ -113,7 +113,7 @@ func (config testBlockOpsConfig) MakeLogger(module string) logger.Logger {
 }
 
 func (config testBlockOpsConfig) DataVersion() DataVer {
-	return FilesWithHolesDataVer
+	return ChildHolesDataVer
 }
 
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {

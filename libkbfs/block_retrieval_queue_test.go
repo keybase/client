@@ -43,7 +43,7 @@ func (c *testBlockRetrievalConfig) MakeLogger(_ string) logger.Logger {
 }
 
 func (c testBlockRetrievalConfig) DataVersion() DataVer {
-	return FilesWithHolesDataVer
+	return ChildHolesDataVer
 }
 
 func makeRandomBlockPointer(t *testing.T) BlockPointer {
@@ -53,6 +53,7 @@ func makeRandomBlockPointer(t *testing.T) BlockPointer {
 		id,
 		5,
 		1,
+		DirectBlock,
 		kbfsblock.MakeContext(
 			"fake creator",
 			"fake writer",

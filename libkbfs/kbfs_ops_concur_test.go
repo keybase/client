@@ -998,6 +998,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 
 	// make blocks small
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
+	config.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
@@ -1108,6 +1109,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	// make blocks small
 	blockSize := int64(5)
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
+	config.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
@@ -1255,6 +1257,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// make blocks small
 	blockSize := int64(5)
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
+	config.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)

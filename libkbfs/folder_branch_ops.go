@@ -1780,9 +1780,10 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		return err
 	}
 	ptr := BlockPointer{
-		ID:      bid,
-		KeyGen:  md.LatestKeyGeneration(),
-		DataVer: fbo.config.DataVersion(),
+		ID:         bid,
+		KeyGen:     md.LatestKeyGeneration(),
+		DataVer:    fbo.config.DataVersion(),
+		DirectType: DirectBlock,
 		Context: kbfsblock.Context{
 			Creator:  uid,
 			RefNonce: kbfsblock.ZeroRefNonce,

@@ -1475,9 +1475,6 @@ type Config interface {
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
-	// MaxFileBytes indicates the maximum supported plaintext size of
-	// a file in bytes.
-	MaxFileBytes() uint64
 	// MaxNameBytes indicates the maximum supported size of a
 	// directory entry name in bytes.
 	MaxNameBytes() uint32

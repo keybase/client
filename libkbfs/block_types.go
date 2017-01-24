@@ -35,7 +35,9 @@ type IndirectFilePtr struct {
 	// be dirty.
 	BlockInfo
 	Off int64 `codec:"o"`
-	// Marker for files with holes
+	// Marker for files with holes.  This is here for historical
+	// reasons; a `FileBlock` should be treated as having a `HasHoles`
+	// flag set to true if any of its IPtrs have `Holes` set to true.
 	Holes bool `codec:"h,omitempty"`
 
 	codec.UnknownFieldSetHandler
@@ -186,12 +188,51 @@ func (fb *FileBlock) NewEmpty() Block {
 	return &FileBlock{}
 }
 
-// DataVersion returns data version for this block.
+// DataVersion returns data version for this block, which is assumed
+// to have been modified locally.
 func (fb *FileBlock) DataVersion() DataVer {
+	if !fb.IsInd {
+		return FirstValidDataVer
+	}
+
+	// If this is an indirect block, and none of its children are
+	// marked as direct blocks, then this must be a big file.  Note
+	// that we do it this way, rather than returning on the first
+	// non-direct block, to support appending to existing files and
+	// making them big.
+	hasHoles := false
+	hasDirect := false
+	maxDirectType := UnknownDirectType
 	for i := range fb.IPtrs {
-		if fb.IPtrs[i].Holes {
-			return FilesWithHolesDataVer
+		if maxDirectType != UnknownDirectType &&
+			fb.IPtrs[i].DirectType != UnknownDirectType &&
+			maxDirectType != fb.IPtrs[i].DirectType {
+			panic("Mixed data versions among indirect pointers")
 		}
+		if fb.IPtrs[i].DirectType > maxDirectType {
+			maxDirectType = fb.IPtrs[i].DirectType
+		}
+
+		if fb.IPtrs[i].DirectType == DirectBlock {
+			hasDirect = true
+		} else if fb.IPtrs[i].Holes {
+			hasHoles = true
+		}
+		// We can only safely break if both vars are definitely set to
+		// their final value.
+		if hasDirect && hasHoles {
+			break
+		}
+	}
+
+	if maxDirectType == UnknownDirectType {
+		panic("No known type for any indirect pointer")
+	}
+
+	if !hasDirect {
+		return AtLeastTwoLevelsOfChildrenDataVer
+	} else if hasHoles {
+		return ChildHolesDataVer
 	}
 	return FirstValidDataVer
 }
@@ -257,7 +298,7 @@ func (fb *FileBlock) GetHash() kbfshash.RawDefaultHash {
 // DefaultNewBlockDataVersion returns the default data version for new blocks.
 func DefaultNewBlockDataVersion(holes bool) DataVer {
 	if holes {
-		return FilesWithHolesDataVer
+		return ChildHolesDataVer
 	}
 	return FirstValidDataVer
 }

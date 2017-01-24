@@ -1603,6 +1603,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	// make blocks small
 	blockSize := int64(5)
 	config1.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
+	config1.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config1, name, false)

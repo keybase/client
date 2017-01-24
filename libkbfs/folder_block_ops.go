@@ -1302,11 +1302,6 @@ func (fbo *folderBlockOps) writeDataLocked(
 		fbo.log.CDebugf(ctx, "writeDataLocked done: %v", err)
 	}()
 
-	if sz := off + int64(len(data)); uint64(sz) > fbo.config.MaxFileBytes() {
-		return WriteRange{}, nil, 0,
-			FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
-	}
-
 	fblock, uid, err := fbo.writeGetFileLocked(ctx, lState, kmd, file)
 	if err != nil {
 		return WriteRange{}, nil, 0, err
@@ -1451,10 +1446,6 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadata,
 	file path, size uint64, parentBlocks []parentBlockAndChildIndex) (
 	WriteRange, []BlockPointer, error) {
-	if size > fbo.config.MaxFileBytes() {
-		return WriteRange{}, nil, FileTooBigError{file, int64(size), fbo.config.MaxFileBytes()}
-	}
-
 	fblock, uid, err := fbo.writeGetFileLocked(ctx, lState, kmd, file)
 	if err != nil {
 		return WriteRange{}, nil, err
@@ -1752,12 +1743,20 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 	crypto cryptoPure, kmd KeyMetadata, block Block, uid keybase1.UID) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
 	var ptr BlockPointer
+	directType := IndirectBlock
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
+		directType = DirectBlock
 		// first see if we are duplicating any known blocks in this folder
 		ptr, err = bcache.CheckForKnownPtr(kmd.TlfID(), fBlock)
 		if err != nil {
 			return
 		}
+	} else if dBlock, ok := block.(*DirBlock); ok {
+		if dBlock.IsInd {
+			panic("Indirect directory blocks aren't supported yet")
+		}
+		// TODO: support indirect directory blocks.
+		directType = DirectBlock
 	}
 
 	// Ready the block, even in the case where we can reuse an
@@ -1776,9 +1775,10 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 		ptr.SetWriter(uid)
 	} else {
 		ptr = BlockPointer{
-			ID:      id,
-			KeyGen:  kmd.LatestKeyGeneration(),
-			DataVer: block.DataVersion(),
+			ID:         id,
+			KeyGen:     kmd.LatestKeyGeneration(),
+			DataVer:    block.DataVersion(),
+			DirectType: directType,
 			Context: kbfsblock.Context{
 				Creator:  uid,
 				RefNonce: kbfsblock.ZeroRefNonce,
