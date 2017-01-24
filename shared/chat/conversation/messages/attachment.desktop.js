@@ -33,7 +33,7 @@ function PreviewImage ({message: {previewPath, previewType, previewSize, message
       position: 'relative',
       alignItems: 'flex-end',
     }
-    const imgStyle = {...globalStyles.rounded, backgroundColor: globalColors.white, ...(previewSize ? {width: previewSize.width, height: previewSize.height} : {maxHeight: 320, maxWidth: 320})}
+    const imgStyle = {...globalStyles.rounded, ...(previewSize ? {width: previewSize.width, height: previewSize.height} : {maxHeight: 320, maxWidth: 320})}
 
     switch (messageState) {
       case 'uploading':
