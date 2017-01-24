@@ -523,21 +523,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 
-	// XXX change this so that it can use the cache:
-
-	rarg := chat1.GetMessagesRemoteArg{
-		ConversationID: arg.ConversationID,
-		MessageIDs:     arg.MessageIDs,
-	}
-	boxed, err := h.remoteClient().GetMessagesRemote(ctx, rarg)
-	if err != nil {
-		return deflt, err
-	}
-
 	var rlimits []chat1.RateLimit
-	if boxed.RateLimit != nil {
-		rlimits = append(rlimits, *boxed.RateLimit)
-	}
 
 	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
 	// could need expansion.  Look up the conversation metadata.
@@ -550,7 +536,8 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		rlimits = append(rlimits, *rl)
 	}
 
-	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs, conv.Metadata.FinalizeInfo)
+	// use ConvSource to get the messages, to try the cache first
+	messages, err := h.G().ConvSource.GetMessages(ctx, arg.ConversationID, uid.ToBytes(), arg.MessageIDs, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return deflt, err
 	}
