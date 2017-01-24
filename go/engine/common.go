@@ -26,6 +26,44 @@ type keypair struct {
 	sigKey libkb.GenericKey
 }
 
+// findDeviceKeys looks for device keys and unlocks them.
+func findDeviceKeys(ctx *Context, e Engine, me *libkb.User) (*keypair, error) {
+	// need to be logged in to get a device key (unlocked)
+	lin, _, err := IsLoggedIn(e, ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !lin {
+		return nil, libkb.LoginRequiredError{}
+	}
+
+	// Get unlocked device for decryption and signing
+	// passing in nil SecretUI since we don't know the passphrase.
+	e.G().Log.Debug("findDeviceKeys: getting device encryption key")
+	parg := libkb.SecretKeyPromptArg{
+		LoginContext: ctx.LoginContext,
+		Ska: libkb.SecretKeyArg{
+			Me:      me,
+			KeyType: libkb.DeviceEncryptionKeyType,
+		},
+		Reason: "change passphrase",
+	}
+	encKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(parg)
+	if err != nil {
+		return nil, err
+	}
+	e.G().Log.Debug("findDeviceKeys: got device encryption key")
+	e.G().Log.Debug("findDeviceKeys: getting device signing key")
+	parg.Ska.KeyType = libkb.DeviceSigningKeyType
+	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(parg)
+	if err != nil {
+		return nil, err
+	}
+	e.G().Log.Debug("findDeviceKeys: got device signing key")
+
+	return &keypair{encKey: encKey, sigKey: sigKey}, nil
+}
+
 // findPaperKeys checks if the user has paper backup keys.  If he/she
 // does, it prompts for a paperkey phrase.  This is used to
 // regenerate paper keys, which are then matched against the

@@ -29,6 +29,13 @@ protocol login {
   void login(int sessionID, string deviceType, string usernameOrEmail, ClientType clientType);
 
   /**
+    Login and unlock by
+	- trying unlocked device keys if available
+	- prompting for a paper key and using that
+    */
+  void loginWithPaperKey(int sessionID);
+
+  /**
     Removes any existing stored secret for the given username.
     loginWithStoredSecret(_, username) will fail after this is called.
     */

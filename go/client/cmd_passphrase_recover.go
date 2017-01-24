@@ -4,7 +4,9 @@
 package client
 
 import (
-	"fmt"
+	"errors"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -32,22 +34,8 @@ func NewCmdPassphraseRecoverRunner(g *libkb.GlobalContext) *CmdPassphraseRecover
 	}
 }
 
-func (c *CmdPassphraseRecover) confirm() error {
-	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("Password recovery will put your account on probation for 5 days.\n")
-	ui.Printf("You won't be able to perform certain actions, like revoking devices.\n")
-
-	hsk, err := hasServerKeys(c.G())
-	if err != nil {
-		return err
-	}
-	if hsk.HasServerKeys {
-		ui.Printf("You have uploaded an encrypted PGP private key, it will be lost.\n")
-	}
-	return ui.PromptForConfirmation("Continue with password recovery?")
-}
-
 func (c *CmdPassphraseRecover) Run() error {
+	ui := c.G().UI.GetTerminalUI()
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(c.G()),
 	}
@@ -55,27 +43,68 @@ func (c *CmdPassphraseRecover) Run() error {
 		return err
 	}
 
-	loggedIn, err := c.G().LoginState().LoggedInLoad()
-	if err != nil {
-		c.G().Log.Debug("Passphrase recover couldn't query LoggedInProvisionedLoad: %v", err)
-		loggedIn = false
-	}
-	if !loggedIn {
-		ui := c.G().UI.GetTerminalUI()
-		ui.Printf("Passphrase recovery requires that you are logged in first.\n")
-		ui.Printf("Please run `keybase login` before `keybase passphrase recover`.\n")
-		ui.Printf("But don't panic, you can log in with a paper key.\n")
-		return fmt.Errorf("Passphrase recovery requires login")
+	// Check that there is a UID.
+	// This a proxy for whether this device has been provisioned for the recoverer.
+	uid := c.G().GetMyUID()
+	if !uid.Exists() {
+		return c.errNoUID()
 	}
 
-	if err := c.confirm(); err != nil {
+	// Login with unlocked keys or a prompted paper key.
+	err := c.loginWithPaperKey(context.TODO())
+	switch err.(type) {
+	case libkb.InputCanceledError:
+		return c.errLockedKeys()
+	}
+	if err != nil {
 		return err
 	}
+
+	// Check whether the user would lose server-stored encrypted PGP keys.
+	// (bug) This will return true even if those keys are already lost.
+	hsk, err := hasServerKeys(c.G())
+	if err != nil {
+		return err
+	}
+
+	// Confirm with the user.
+	ui.Printf("Password recovery will put your account on probation for 5 days.\n")
+	ui.Printf("You won't be able to perform certain actions, like revoking devices.\n")
+	if hsk.HasServerKeys {
+		ui.Printf("You have uploaded an encrypted PGP private key, it will be lost.\n")
+	}
+	err = ui.PromptForConfirmation("Continue with password recovery?")
+	if err != nil {
+		return err
+	}
+
+	// Ask for the new passphase.
 	pp, err := PromptNewPassphrase(c.G())
 	if err != nil {
 		return err
 	}
+
+	// Run the main recovery engine.At this point the user should be logged in with
+	// unlocked keys. This has the potential to issue all sorts of prompts
+	// but given that we should now be logged in and unlocked, it shouldn't
+	// issue any prompts.
 	return passphraseChange(c.G(), newChangeArg(pp, true))
+
+	// BUG the user sometimes ends up recovered and unlocked, but logged out after all this.
+	// Running `keybase login` or restarting the service both effortlessly log them in.
+}
+
+func (c *CmdPassphraseRecover) loginWithPaperKey(ctx context.Context) error {
+	// TODO How can we be sure here that a missing SecretUI isn't going to cause a panic?
+	client, err := GetLoginClient(c.G())
+	if err != nil {
+		return err
+	}
+	err = client.LoginWithPaperKey(ctx, 0)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func (c *CmdPassphraseRecover) ParseArgv(ctx *cli.Context) error {
@@ -88,4 +117,23 @@ func (c *CmdPassphraseRecover) GetUsage() libkb.Usage {
 		API:       true,
 		KbKeyring: true,
 	}
+}
+
+func (c *CmdPassphraseRecover) errNoUID() error {
+	return errors.New(`Can't recover without a UID.
+
+If you have not provisioned this device before but do have
+your paper key, try running: keybase login
+`)
+}
+
+func (c *CmdPassphraseRecover) errLockedKeys() error {
+	return errors.New(`Cannot unlock device keys.
+
+These device keys are locked and you did not enter a paper key.
+To change your forgotten passphrase you will need either a device
+with unlocked keys or your paper key.
+
+If you'd like to reset your account:  https://keybase.io/#account-reset
+`)
 }
