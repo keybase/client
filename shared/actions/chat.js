@@ -289,12 +289,6 @@ function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey)
 function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
   const {conversationIDKey, outboxIDKey} = action.payload
 
-  yield call(localRetryPostRpcPromise, {
-    param: {
-      outboxID: keyToOutboxID(outboxIDKey),
-    },
-  })
-
   yield put(({
     payload: {
       conversationIDKey,
@@ -305,6 +299,12 @@ function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
     },
     type: 'chat:updateTempMessage',
   }: Constants.UpdateTempMessage))
+
+  yield call(localRetryPostRpcPromise, {
+    param: {
+      outboxID: keyToOutboxID(outboxIDKey),
+    },
+  })
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
