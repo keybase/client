@@ -76,6 +76,20 @@ func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {
 	w.Shutdown()
 }
 
+func testPrefetcherCheckGet(t *testing.T, bcache BlockCache,
+	ptr BlockPointer, expectedBlock Block, expectedHasPrefetch bool,
+	expectedLifetime BlockCacheLifetime) {
+	block, hasPrefetched, lifetime, err := bcache.GetWithPrefetch(ptr)
+	require.NoError(t, err)
+	require.Equal(t, expectedBlock, block)
+	if expectedHasPrefetch {
+		require.True(t, hasPrefetched)
+	} else {
+		require.False(t, hasPrefetched)
+	}
+	require.Equal(t, expectedLifetime, lifetime)
+}
+
 func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	t.Log("Test indirect file block prefetching.")
 	q, w, bg, config := initPrefetcherTest(t)
@@ -109,24 +123,14 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	block, hasPrefetched, lifetime, err :=
-		config.BlockCache().GetWithPrefetch(ptr1)
-	require.NoError(t, err)
-	require.Equal(t, block1, block)
-	require.True(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
-	block, hasPrefetched, lifetime, err =
-		config.BlockCache().GetWithPrefetch(ptrs[0].BlockPointer)
-	require.NoError(t, err)
-	require.Equal(t, block2, block)
-	require.False(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
-	block, hasPrefetched, lifetime, err =
-		config.BlockCache().GetWithPrefetch(ptrs[1].BlockPointer)
-	require.NoError(t, err)
-	require.Equal(t, block3, block)
-	require.False(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptr1, block1, true, TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptrs[0].BlockPointer, block2, false,
+		TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptrs[1].BlockPointer, block3, false,
+		TransientEntry)
 }
 
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
@@ -162,24 +166,14 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	block, hasPrefetched, lifetime, err :=
-		config.BlockCache().GetWithPrefetch(ptr1)
-	require.NoError(t, err)
-	require.Equal(t, block1, block)
-	require.True(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
-	block, hasPrefetched, lifetime, err =
-		config.BlockCache().GetWithPrefetch(ptrs[0].BlockPointer)
-	require.NoError(t, err)
-	require.Equal(t, block2, block)
-	require.False(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
-	block, hasPrefetched, lifetime, err =
-		config.BlockCache().GetWithPrefetch(ptrs[1].BlockPointer)
-	require.NoError(t, err)
-	require.Equal(t, block3, block)
-	require.False(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptr1, block1, true, TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptrs[0].BlockPointer, block2, false,
+		TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptrs[1].BlockPointer, block3, false,
+		TransientEntry)
 }
 
 func TestPrefetcherDirectDirBlock(t *testing.T) {
@@ -222,24 +216,15 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	block, hasPrefetched, lifetime, err :=
-		config.BlockCache().GetWithPrefetch(ptr1)
-	require.NoError(t, err)
-	require.Equal(t, dir1, block)
-	require.True(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
-	block, hasPrefetched, lifetime, err =
-		config.BlockCache().GetWithPrefetch(dir1.Children["c"].BlockPointer)
-	require.NoError(t, err)
-	require.Equal(t, file2, block)
-	require.False(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
-	block, hasPrefetched, lifetime, err =
-		config.BlockCache().GetWithPrefetch(dir1.Children["b"].BlockPointer)
-	require.NoError(t, err)
-	require.Equal(t, dir2, block)
-	require.False(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptr1, dir1, true, TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), dir1.Children["c"].BlockPointer, file2, false,
+		TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), dir1.Children["b"].BlockPointer, dir2, false,
+		TransientEntry)
+
 	t.Log("Ensure that the largest block isn't in the cache.")
 	block, err = config.BlockCache().Get(dir1.Children["a"].BlockPointer)
 	require.EqualError(t, err, NoSuchBlockError{dir1.Children["a"].BlockPointer.ID}.Error())
@@ -303,19 +288,13 @@ func TestPrefetcherDirectDirBlockAlreadyCached(t *testing.T) {
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
 	<-q.Prefetcher().Shutdown()
 
-	block, hasPrefetched, lifetime, err :=
-		config.BlockCache().GetWithPrefetch(dir2.Children["b"].BlockPointer)
-	require.NoError(t, err)
-	require.Equal(t, file1, block)
-	require.False(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
-
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), dir2.Children["b"].BlockPointer, file1, false,
+		TransientEntry)
 	// Check that the dir block is marked as having been prefetched.
-	_, hasPrefetched, lifetime, err =
-		config.BlockCache().GetWithPrefetch(dir1.Children["a"].BlockPointer)
-	require.NoError(t, err)
-	require.True(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), dir1.Children["a"].BlockPointer, dir2, true,
+		TransientEntry)
 }
 
 func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
@@ -392,11 +371,8 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 
 	t.Log("Wait for the prefetch to finish, then verify that the prefetched block is in the cache.")
 	<-q.Prefetcher().Shutdown()
-	block, hasPrefetched, lifetime, err := cache.GetWithPrefetch(childPtr)
-	require.NoError(t, err)
-	require.Equal(t, file1, block)
-	require.False(t, hasPrefetched)
-	require.Equal(t, TransientEntry, lifetime)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), childPtr, file1, false, TransientEntry)
 
 	t.Log("Remove the prefetched block from the cache.")
 	cache.DeleteTransient(childPtr, kmd.TlfID())
