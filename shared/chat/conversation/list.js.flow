@@ -15,6 +15,7 @@ export type Props = {
   onAddParticipant: () => void,
   onDeleteMessage: (message: Message) => void,
   onEditMessage: (message: Message) => void,
+  onFocusInput: () => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
   onOpenInFileUI: (filename: string) => void,

@@ -31,7 +31,7 @@ class Conversation extends Component<void, Props, State> {
 
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.selectedConversation !== this.props.selectedConversation) {
-      this._focusInput()
+      this.focusInput()
       _cachedInput[this.props.selectedConversation] = this.state.text
       this.setState({text: _cachedInput[nextProps.selectedConversation] || ''})
     }
@@ -39,7 +39,7 @@ class Conversation extends Component<void, Props, State> {
 
   componentDidUpdate (prevProps: Props) {
     if (!this.props.isLoading && prevProps.isLoading) {
-      this._focusInput()
+      this.focusInput()
     }
   }
 
@@ -49,7 +49,7 @@ class Conversation extends Component<void, Props, State> {
       const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
       const nextText = [text.substring(0, selectionStart), emojiColons, text.substring(selectionEnd)].join('')
       this.setState({text: nextText})
-      this._focusInput()
+      this.focusInput()
     }
   }
 
@@ -71,7 +71,7 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
-  _focusInput = () => {
+  focusInput = () => {
     this._input && this._input.focus()
   }
 
@@ -118,7 +118,7 @@ class Conversation extends Component<void, Props, State> {
           <Icon onClick={this._onClickEmoji} style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={this._openFilePicker} style={styleIcon} type='iconfont-attachment' />
         </Box>
-        <Text type='BodySmall' style={styleFooter} onClick={this._focusInput}>*bold*, _italics_, `code`</Text>
+        <Text type='BodySmall' style={styleFooter} onClick={this.focusInput}>*bold*, _italics_, `code`</Text>
       </Box>
     )
   }
