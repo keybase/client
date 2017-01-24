@@ -189,6 +189,12 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   if (!convo || !convo.info || !convo.info.id) {
     return null
   }
+
+  // We don't support mixed reader/writers
+  if (convo.info.tlfName.includes('#')) {
+    return null
+  }
+
   const conversationIDKey = conversationIDToKey(convo.info.id)
   let snippet
 
