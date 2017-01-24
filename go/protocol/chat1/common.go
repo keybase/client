@@ -20,25 +20,27 @@ type OutboxID []byte
 type MessageType int
 
 const (
-	MessageType_NONE       MessageType = 0
-	MessageType_TEXT       MessageType = 1
-	MessageType_ATTACHMENT MessageType = 2
-	MessageType_EDIT       MessageType = 3
-	MessageType_DELETE     MessageType = 4
-	MessageType_METADATA   MessageType = 5
-	MessageType_TLFNAME    MessageType = 6
-	MessageType_HEADLINE   MessageType = 7
+	MessageType_NONE           MessageType = 0
+	MessageType_TEXT           MessageType = 1
+	MessageType_ATTACHMENT     MessageType = 2
+	MessageType_EDIT           MessageType = 3
+	MessageType_DELETE         MessageType = 4
+	MessageType_METADATA       MessageType = 5
+	MessageType_TLFNAME        MessageType = 6
+	MessageType_HEADLINE       MessageType = 7
+	MessageType_EDITATTACHMENT MessageType = 8
 )
 
 var MessageTypeMap = map[string]MessageType{
-	"NONE":       0,
-	"TEXT":       1,
-	"ATTACHMENT": 2,
-	"EDIT":       3,
-	"DELETE":     4,
-	"METADATA":   5,
-	"TLFNAME":    6,
-	"HEADLINE":   7,
+	"NONE":           0,
+	"TEXT":           1,
+	"ATTACHMENT":     2,
+	"EDIT":           3,
+	"DELETE":         4,
+	"METADATA":       5,
+	"TLFNAME":        6,
+	"HEADLINE":       7,
+	"EDITATTACHMENT": 8,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -50,6 +52,7 @@ var MessageTypeRevMap = map[MessageType]string{
 	5: "METADATA",
 	6: "TLFNAME",
 	7: "HEADLINE",
+	8: "EDITATTACHMENT",
 }
 
 type TopicType int

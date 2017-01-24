@@ -18,6 +18,13 @@ protocol local {
     string body;
   }
 
+  record MessageEditAttachment {
+    MessageID messageID;
+    Asset object;                // the primary attachment object
+    union {null, Asset} preview; // the (optional) preview of object
+    bytes metadata;              // generic metadata (msgpack)
+  }
+
   record MessageDelete {
     array<MessageID> messageIDs;
   }
@@ -77,6 +84,15 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
+  variant MessageBodyV1 switch (MessageType messageType) {
+    case TEXT: MessageText;
+    case ATTACHMENT: MessageAttachment;
+    case EDIT: MessageEdit;
+    case DELETE: MessageDelete;
+    case METADATA: MessageConversationMetadata;
+    case HEADLINE: MessageHeadline;
+  }
+
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -84,6 +100,7 @@ protocol local {
     case DELETE: MessageDelete;
     case METADATA: MessageConversationMetadata;
     case HEADLINE: MessageHeadline;
+    case EDITATTACHMENT: MessageEditAttachment;
   }
 
   enum OutboxStateType {
@@ -153,13 +170,21 @@ protocol local {
   }
 
   enum BodyPlaintextVersion {
-    V1_1
+    V1_1,
+    V2_2
   }
 
   // BodyPlaintextV1 is version 1 of BodyPlaintext.
   // The fields here cannot change.  To modify,
   // create a new record type with a new version.
   record BodyPlaintextV1 {
+    MessageBodyV1 messageBody;
+  }
+
+  // BodyPlaintextV2 is version 2 of BodyPlaintext.
+  // The fields here cannot change.  To modify,
+  // create a new record type with a new version.
+  record BodyPlaintextV2 {
     MessageBody messageBody;
   }
 
@@ -167,6 +192,7 @@ protocol local {
   // versions of BodyPlaintext.
   variant BodyPlaintext switch (BodyPlaintextVersion version) {
     case V1: BodyPlaintextV1;
+    case V2: BodyPlaintextV2;
   }
 
   record MessagePlaintext {

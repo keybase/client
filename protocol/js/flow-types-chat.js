@@ -73,6 +73,7 @@ export const CommonMessageType = {
   metadata: 5,
   tlfname: 6,
   headline: 7,
+  editattachment: 8,
 }
 
 export const CommonTLFVisibility = {
@@ -96,6 +97,7 @@ export const LocalAssetMetadataType = {
 
 export const LocalBodyPlaintextVersion = {
   v1: 1,
+  v2: 2,
 }
 
 export const LocalHeaderPlaintextVersion = {
@@ -605,13 +607,19 @@ export type AssetMetadataVideo = {
 
 export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
+  | { version : 2, v2 : ?BodyPlaintextV2 }
 
 export type BodyPlaintextV1 = {
+  messageBody: MessageBodyV1,
+}
+
+export type BodyPlaintextV2 = {
   messageBody: MessageBody,
 }
 
 export type BodyPlaintextVersion = 
     1 // V1_1
+  | 2 // V2_2
 
 export type ChatActivity = 
     { activityType : 1, incomingMessage : ?IncomingMessage }
@@ -940,6 +948,15 @@ export type MessageBody =
   | { messageType : 4, delete : ?MessageDelete }
   | { messageType : 5, metadata : ?MessageConversationMetadata }
   | { messageType : 7, headline : ?MessageHeadline }
+  | { messageType : 8, editattachment : ?MessageEditAttachment }
+
+export type MessageBodyV1 = 
+    { messageType : 1, text : ?MessageText }
+  | { messageType : 2, attachment : ?MessageAttachment }
+  | { messageType : 3, edit : ?MessageEdit }
+  | { messageType : 4, delete : ?MessageDelete }
+  | { messageType : 5, metadata : ?MessageConversationMetadata }
+  | { messageType : 7, headline : ?MessageHeadline }
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
@@ -975,6 +992,13 @@ export type MessageDelete = {
 export type MessageEdit = {
   messageID: MessageID,
   body: string,
+}
+
+export type MessageEditAttachment = {
+  messageID: MessageID,
+  object: Asset,
+  preview?: ?Asset,
+  metadata: bytes,
 }
 
 export type MessageHeadline = {
@@ -1018,6 +1042,7 @@ export type MessageType =
   | 5 // METADATA_5
   | 6 // TLFNAME_6
   | 7 // HEADLINE_7
+  | 8 // EDITATTACHMENT_8
 
 export type MessageUnboxed = 
     { state : 1, valid : ?MessageUnboxedValid }

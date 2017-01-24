@@ -69,7 +69,8 @@
         "DELETE_4",
         "METADATA_5",
         "TLFNAME_6",
-        "HEADLINE_7"
+        "HEADLINE_7",
+        "EDITATTACHMENT_8"
       ],
       "go": "nostring"
     },

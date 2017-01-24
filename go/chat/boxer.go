@@ -232,10 +232,24 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	}
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
+		bodyUpgraded, err := chat1.ConvertMessageBodyV1ToV2(body.V1().MessageBody)
+		if err != nil {
+			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
+		}
 		return unboxMessageWithKeyRes{
 			messagePlaintext: chat1.MessagePlaintext{
 				ClientHeader: clientHeader,
-				MessageBody:  body.V1().MessageBody,
+				MessageBody:  bodyUpgraded,
+			},
+			headerHash:            headerHash,
+			headerSignature:       headerSignature,
+			senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
+		}, nil
+	case chat1.BodyPlaintextVersion_V2:
+		return unboxMessageWithKeyRes{
+			messagePlaintext: chat1.MessagePlaintext{
+				ClientHeader: clientHeader,
+				MessageBody:  body.V2().MessageBody,
 			},
 			headerHash:            headerHash,
 			headerSignature:       headerSignature,
@@ -344,7 +358,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError(msg, false)
 	}
 
-	boxed, err := b.boxMessageWithKeysV1(msg, recentKey, signingKeyPair)
+	boxed, err := b.boxMessageWithKeys(msg, recentKey, signingKeyPair)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
@@ -354,13 +368,13 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 
 // boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *Boxer) boxMessageWithKeysV1(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
+func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 
-	body := chat1.BodyPlaintextV1{
+	body := chat1.BodyPlaintextV2{
 		MessageBody: msg.MessageBody,
 	}
-	plaintextBody := chat1.NewBodyPlaintextWithV1(body)
+	plaintextBody := chat1.NewBodyPlaintextWithV2(body)
 	encryptedBody, err := b.seal(plaintextBody, key)
 	if err != nil {
 		return nil, err

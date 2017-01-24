@@ -523,6 +523,8 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 
+	// XXX change this so that it can use the cache:
+
 	rarg := chat1.GetMessagesRemoteArg{
 		ConversationID: arg.ConversationID,
 		MessageIDs:     arg.MessageIDs,
@@ -873,23 +875,25 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	object.Metadata = pre.BaseMetadata()
 
 	// edit the placeholder  attachment message with the asset information
-	attachment := chat1.MessageAttachment{
-		Object:   object,
-		Preview:  preview,
-		Metadata: arg.Metadata,
-	}
-	body := chat1.NewMessageBodyWithAttachment(attachment)
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
 		Msg: chat1.MessagePlaintext{
-			ClientHeader: arg.ClientHeader,
-			MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageBody: chat1.NewMessageBodyWithEditattachment(chat1.MessageEditAttachment{
 				MessageID: placeholder.MessageID,
-				Body:      body,
+				Object:    object,
+				Preview:   preview,
+				Metadata:  arg.Metadata,
 			}),
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
+
+	// set msg client header explicitly
+	postArg.Msg.ClientHeader.Conv = arg.ClientHeader.Conv
+	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_EDITATTACHMENT
+	postArg.Msg.ClientHeader.Supersedes = placeholder.MessageID
+	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
+	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic
 
 	h.G().Log.Debug("attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)

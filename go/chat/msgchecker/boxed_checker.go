@@ -26,7 +26,7 @@ func boxedFieldLengthChecker(descriptibleItemName string, actualLength int, maxL
 
 func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 	switch msg.GetMessageType() {
-	case chat1.MessageType_ATTACHMENT, chat1.MessageType_DELETE, chat1.MessageType_NONE, chat1.MessageType_TLFNAME:
+	case chat1.MessageType_ATTACHMENT, chat1.MessageType_DELETE, chat1.MessageType_NONE, chat1.MessageType_TLFNAME, chat1.MessageType_EDITATTACHMENT:
 		return nil
 	case chat1.MessageType_TEXT:
 		return boxedFieldLengthChecker("TEXT message", len(msg.BodyCiphertext.E), BoxedTextMessageBodyMaxLength)
