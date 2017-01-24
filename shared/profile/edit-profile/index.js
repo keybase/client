@@ -20,7 +20,6 @@ class EditProfile extends Component<void, Props, void> {
       onBack={this.props.onBack}
       onBioChange={this.props.onBioChange}
       onCancel={this.props.onBack}
-      onEditProfile={this.props.onEditProfile}
       onFullnameChange={this.props.onFullnameChange}
       onLocationChange={this.props.onLocationChange}
       onSubmit={this.props.onEditProfile}
