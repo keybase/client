@@ -1262,14 +1262,27 @@ func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID
 
 	msg := first.Valid()
 	body := msg.MessageBody
-	if t, err := body.MessageType(); err != nil {
+	t, err := body.MessageType()
+	if err != nil {
 		return nil, msgs.RateLimits, err
-	} else if t != chat1.MessageType_ATTACHMENT {
-		return nil, msgs.RateLimits, errors.New("not an attachment message")
 	}
 
-	attachment := msg.MessageBody.Attachment()
-	return &attachment, msgs.RateLimits, nil
+	switch t {
+	case chat1.MessageType_ATTACHMENT:
+		attachment := msg.MessageBody.Attachment()
+		return &attachment, msgs.RateLimits, nil
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		uploaded := msg.MessageBody.Attachmentuploaded()
+		attachment := chat1.MessageAttachment{
+			Object:   uploaded.Object,
+			Preview:  uploaded.Preview,
+			Metadata: uploaded.Metadata,
+		}
+		return &attachment, msgs.RateLimits, nil
+	}
+
+	return nil, msgs.RateLimits, errors.New("not an attachment message")
+
 }
 
 func (h *chatLocalHandler) pendingAssetDeletes(ctx context.Context, arg chat1.PostLocalArg) []chat1.Asset {

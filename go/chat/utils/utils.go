@@ -292,6 +292,8 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
 	case chat1.MessageType_DELETE:
 		return msg.Valid().MessageBody.Delete().MessageIDs, nil
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		return []chat1.MessageID{msg.Valid().MessageBody.Attachmentuploaded().MessageID}, nil
 	default:
 		return nil, nil
 	}
