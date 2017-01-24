@@ -233,9 +233,10 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	require.EqualError(t, err, NoSuchBlockError{dir2.Children["d"].BlockPointer.ID}.Error())
 }
 
-func TestPrefetcherDirectDirBlockAlreadyCached(t *testing.T) {
+func TestPrefetcherAlreadyCached(t *testing.T) {
 	t.Log("Test direct dir block prefetching when the dir block is cached.")
 	q, w, bg, config := initPrefetcherTest(t)
+	cache := config.BlockCache()
 	defer shutdownPrefetcherTest(q, w)
 
 	t.Log("Initialize a direct dir block with an entry pointing to 1 folder, which in turn points to 1 file.")
@@ -253,8 +254,9 @@ func TestPrefetcherDirectDirBlockAlreadyCached(t *testing.T) {
 	_, continueCh3 := bg.setBlockToReturn(dir2.Children["b"].BlockPointer, file1)
 
 	t.Log("Request the block for ptr1.")
+	kmd := makeKMD()
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, makeKMD(), ptr1, block, TransientEntry)
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd, ptr1, block, TransientEntry)
 	continueCh1 <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -266,11 +268,11 @@ func TestPrefetcherDirectDirBlockAlreadyCached(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched block is in the cache.")
-	block, err = config.BlockCache().Get(dir1.Children["a"].BlockPointer)
+	block, err = cache.Get(dir1.Children["a"].BlockPointer)
 	require.NoError(t, err)
 	require.Equal(t, dir2, block)
 	t.Log("Ensure that the second-level directory didn't cause a prefetch.")
-	block, err = config.BlockCache().Get(dir2.Children["b"].BlockPointer)
+	block, err = cache.Get(dir2.Children["b"].BlockPointer)
 	require.EqualError(t, err, NoSuchBlockError{dir2.Children["b"].BlockPointer.ID}.Error())
 
 	t.Log("Restart the prefetcher.")
@@ -278,7 +280,7 @@ func TestPrefetcherDirectDirBlockAlreadyCached(t *testing.T) {
 
 	t.Log("Request the already-cached second-level directory block. We don't need to unblock this one.")
 	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, makeKMD(), dir1.Children["a"].BlockPointer, block, TransientEntry)
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd, dir1.Children["a"].BlockPointer, block, TransientEntry)
 	err = <-ch
 	require.NoError(t, err)
 	require.Equal(t, dir2, block)
@@ -289,12 +291,30 @@ func TestPrefetcherDirectDirBlockAlreadyCached(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	testPrefetcherCheckGet(
-		t, config.BlockCache(), dir2.Children["b"].BlockPointer, file1, false,
+		t, cache, dir2.Children["b"].BlockPointer, file1, false,
 		TransientEntry)
 	// Check that the dir block is marked as having been prefetched.
 	testPrefetcherCheckGet(
-		t, config.BlockCache(), dir1.Children["a"].BlockPointer, dir2, true,
+		t, cache, dir1.Children["a"].BlockPointer, dir2, true,
 		TransientEntry)
+
+	t.Log("Remove the prefetched file block from the cache.")
+	cache.DeleteTransient(dir2.Children["b"].BlockPointer, kmd.TlfID())
+	_, err = cache.Get(dir2.Children["b"].BlockPointer)
+	require.EqualError(t, err, NoSuchBlockError{dir2.Children["b"].BlockPointer.ID}.Error())
+
+	t.Log("Restart the prefetcher.")
+	q.TogglePrefetcher(context.Background(), true)
+
+	t.Log("Request the second-level directory block again. No prefetches should be triggered.")
+	block = &DirBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd, dir1.Children["a"].BlockPointer, block, TransientEntry)
+	err = <-ch
+	require.NoError(t, err)
+	require.Equal(t, dir2, block)
+
+	t.Log("Shutdown the prefetcher and wait until it's done prefetching. Since no prefetches were triggered, this shouldn't hang.")
+	<-q.Prefetcher().Shutdown()
 }
 
 func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
