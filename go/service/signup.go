@@ -86,5 +86,5 @@ func (h *SignupHandler) CheckInvitationCode(_ context.Context, arg keybase1.Chec
 }
 
 func (h *SignupHandler) GetInvitationCode(c context.Context, sessionId int) (code string, err error) {
-	return libkb.GetInvitationCode(h.G())
+	return libkb.GetInvitationCode(c, h.G())
 }
