@@ -26,5 +26,5 @@ export type TypedAsyncAction<A> = (dispatch: TypedDispatch<A>, getState: GetStat
 export type TypedDispatch<-A> = (action: TypedAsyncAction<A> | A) => ?Promise<*>
 
 export const noPayloadTransformer: LogTransformer = (action) => {
-  return {...action, payload: null}
+  return {...action, payload: undefined}
 }
