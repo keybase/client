@@ -149,7 +149,8 @@ func (ncs *nodeCacheStandard) Get(ref BlockRef) Node {
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdatePointer(
 	oldRef BlockRef, newPtr BlockPointer) (updated bool) {
-	if oldRef == (BlockRef{}) && newPtr == (BlockPointer{}) {
+	if (oldRef == (BlockRef{}) && newPtr == (BlockPointer{})) ||
+		(oldRef.ID == newPtr.ID) {
 		return false
 	}
 
