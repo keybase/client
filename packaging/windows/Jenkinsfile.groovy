@@ -100,15 +100,6 @@ def doBuild() {
             publish("prerelease.keybase.io", 
                     "", 
                     "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json") 
-            withCredentials([[
-                $class: 'StringBinding',
-                credentialsId: 'KEYBASE_TOKEN',
-                variable: 'KEYBASE_TOKEN'
-                ]]) {
-                dir('src\\github.com\\keybase\\release') {
-                    bat 'release index-html --bucket-name="prerelease.keybase.io" --prefixes="windows/" --upload="windows/index.html"'
-                }
-            }
         } else {
             echo "No update channel"
         }
