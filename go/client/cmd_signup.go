@@ -76,7 +76,6 @@ type CmdSignup struct {
 	doPrompt          bool
 	skipMail          bool
 	genPGP            bool
-	requestCode       bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
