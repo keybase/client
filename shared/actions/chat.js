@@ -1048,7 +1048,7 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   // Don't send sharing before signup values
   const metaData = yield select(_metaDataSelector)
-  const usernames = action.payload.users.filter(name => !metaData.getIn([name, 'fullname']) && name.indexOf('@') === -1)
+  const usernames = action.payload.users.filter(name => metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1)
   if (!usernames.length) {
     return
   }
