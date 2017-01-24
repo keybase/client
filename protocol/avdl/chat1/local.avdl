@@ -18,13 +18,6 @@ protocol local {
     string body;
   }
 
-  record MessageEditAttachment {
-    MessageID messageID;
-    Asset object;                // the primary attachment object
-    union {null, Asset} preview; // the (optional) preview of object
-    bytes metadata;              // generic metadata (msgpack)
-  }
-
   record MessageDelete {
     array<MessageID> messageIDs;
   }
@@ -84,6 +77,13 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
+  record MessageAttachmentUploaded {
+    MessageID messageID;
+    Asset object;                // the primary attachment object
+    union {null, Asset} preview; // the (optional) preview of object
+    bytes metadata;              // generic metadata (msgpack)
+  }
+
   variant MessageBodyV1 switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -100,7 +100,7 @@ protocol local {
     case DELETE: MessageDelete;
     case METADATA: MessageConversationMetadata;
     case HEADLINE: MessageHeadline;
-    case EDITATTACHMENT: MessageEditAttachment;
+    case ATTACHMENTUPLOADED: MessageAttachmentUploaded;
   }
 
   enum OutboxStateType {

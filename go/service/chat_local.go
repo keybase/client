@@ -878,7 +878,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
 		Msg: chat1.MessagePlaintext{
-			MessageBody: chat1.NewMessageBodyWithEditattachment(chat1.MessageEditAttachment{
+			MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
 				MessageID: placeholder.MessageID,
 				Object:    object,
 				Preview:   preview,
@@ -890,7 +890,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 
 	// set msg client header explicitly
 	postArg.Msg.ClientHeader.Conv = arg.ClientHeader.Conv
-	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_EDITATTACHMENT
+	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENTUPLOADED
 	postArg.Msg.ClientHeader.Supersedes = placeholder.MessageID
 	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
 	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic

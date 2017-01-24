@@ -53,31 +53,6 @@
     },
     {
       "type": "record",
-      "name": "MessageEditAttachment",
-      "fields": [
-        {
-          "type": "MessageID",
-          "name": "messageID"
-        },
-        {
-          "type": "Asset",
-          "name": "object"
-        },
-        {
-          "type": [
-            null,
-            "Asset"
-          ],
-          "name": "preview"
-        },
-        {
-          "type": "bytes",
-          "name": "metadata"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "MessageDelete",
       "fields": [
         {
@@ -263,6 +238,31 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageAttachmentUploaded",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "preview"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBodyV1",
       "switch": {
@@ -366,10 +366,10 @@
         },
         {
           "label": {
-            "name": "EDITATTACHMENT",
+            "name": "ATTACHMENTUPLOADED",
             "def": false
           },
-          "body": "MessageEditAttachment"
+          "body": "MessageAttachmentUploaded"
         }
       ]
     },

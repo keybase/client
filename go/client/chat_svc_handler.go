@@ -807,13 +807,13 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 // need this to get message type name
 func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 	return MsgContent{
-		TypeName:       strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
-		Text:           mb.Text__,
-		Attachment:     mb.Attachment__,
-		Edit:           mb.Edit__,
-		Delete:         mb.Delete__,
-		Metadata:       mb.Metadata__,
-		EditAttachment: mb.Editattachment__,
+		TypeName:           strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
+		Text:               mb.Text__,
+		Attachment:         mb.Attachment__,
+		Edit:               mb.Edit__,
+		Delete:             mb.Delete__,
+		Metadata:           mb.Metadata__,
+		AttachmentUploaded: mb.Attachmentuploaded__,
 	}
 }
 
@@ -927,13 +927,13 @@ type MsgSender struct {
 // Text, Attachment, Edit, Delete, Metadata depending on the type of message.
 // It is included in MsgSummary.
 type MsgContent struct {
-	TypeName       string                             `json:"type"`
-	Text           *chat1.MessageText                 `json:"text,omitempty"`
-	Attachment     *chat1.MessageAttachment           `json:"attachment,omitempty"`
-	Edit           *chat1.MessageEdit                 `json:"edit,omitempty"`
-	Delete         *chat1.MessageDelete               `json:"delete,omitempty"`
-	Metadata       *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
-	EditAttachment *chat1.MessageEditAttachment       `json:"edit_attachment,omitempty"`
+	TypeName           string                             `json:"type"`
+	Text               *chat1.MessageText                 `json:"text,omitempty"`
+	Attachment         *chat1.MessageAttachment           `json:"attachment,omitempty"`
+	Edit               *chat1.MessageEdit                 `json:"edit,omitempty"`
+	Delete             *chat1.MessageDelete               `json:"delete,omitempty"`
+	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
+	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.

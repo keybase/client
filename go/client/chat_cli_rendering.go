@@ -399,7 +399,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		mv.Renderable = false
 	case chat1.MessageType_HEADLINE:
 		mv.Renderable = false
-	case chat1.MessageType_EDITATTACHMENT:
+	case chat1.MessageType_ATTACHMENTUPLOADED:
 		mv.Renderable = false
 		att := body.Attachment()
 		title := att.Object.Title

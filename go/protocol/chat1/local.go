@@ -24,13 +24,6 @@ type MessageEdit struct {
 	Body      string    `codec:"body" json:"body"`
 }
 
-type MessageEditAttachment struct {
-	MessageID MessageID `codec:"messageID" json:"messageID"`
-	Object    Asset     `codec:"object" json:"object"`
-	Preview   *Asset    `codec:"preview,omitempty" json:"preview,omitempty"`
-	Metadata  []byte    `codec:"metadata" json:"metadata"`
-}
-
 type MessageDelete struct {
 	MessageIDs []MessageID `codec:"messageIDs" json:"messageIDs"`
 }
@@ -176,6 +169,13 @@ type MessageAttachment struct {
 	Object   Asset  `codec:"object" json:"object"`
 	Preview  *Asset `codec:"preview,omitempty" json:"preview,omitempty"`
 	Metadata []byte `codec:"metadata" json:"metadata"`
+}
+
+type MessageAttachmentUploaded struct {
+	MessageID MessageID `codec:"messageID" json:"messageID"`
+	Object    Asset     `codec:"object" json:"object"`
+	Preview   *Asset    `codec:"preview,omitempty" json:"preview,omitempty"`
+	Metadata  []byte    `codec:"metadata" json:"metadata"`
 }
 
 type MessageBodyV1 struct {
@@ -327,14 +327,14 @@ func NewMessageBodyV1WithHeadline(v MessageHeadline) MessageBodyV1 {
 }
 
 type MessageBody struct {
-	MessageType__    MessageType                  `codec:"messageType" json:"messageType"`
-	Text__           *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
-	Attachment__     *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
-	Edit__           *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
-	Delete__         *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
-	Metadata__       *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
-	Headline__       *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
-	Editattachment__ *MessageEditAttachment       `codec:"editattachment,omitempty" json:"editattachment,omitempty"`
+	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
+	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
+	Attachment__         *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
+	Edit__               *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
+	Delete__             *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
+	Metadata__           *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	Headline__           *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
+	Attachmentuploaded__ *MessageAttachmentUploaded   `codec:"attachmentuploaded,omitempty" json:"attachmentuploaded,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -369,9 +369,9 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 			err = errors.New("unexpected nil value for Headline__")
 			return ret, err
 		}
-	case MessageType_EDITATTACHMENT:
-		if o.Editattachment__ == nil {
-			err = errors.New("unexpected nil value for Editattachment__")
+	case MessageType_ATTACHMENTUPLOADED:
+		if o.Attachmentuploaded__ == nil {
+			err = errors.New("unexpected nil value for Attachmentuploaded__")
 			return ret, err
 		}
 	}
@@ -438,14 +438,14 @@ func (o MessageBody) Headline() MessageHeadline {
 	return *o.Headline__
 }
 
-func (o MessageBody) Editattachment() MessageEditAttachment {
-	if o.MessageType__ != MessageType_EDITATTACHMENT {
+func (o MessageBody) Attachmentuploaded() MessageAttachmentUploaded {
+	if o.MessageType__ != MessageType_ATTACHMENTUPLOADED {
 		panic("wrong case accessed")
 	}
-	if o.Editattachment__ == nil {
-		return MessageEditAttachment{}
+	if o.Attachmentuploaded__ == nil {
+		return MessageAttachmentUploaded{}
 	}
-	return *o.Editattachment__
+	return *o.Attachmentuploaded__
 }
 
 func NewMessageBodyWithText(v MessageText) MessageBody {
@@ -490,10 +490,10 @@ func NewMessageBodyWithHeadline(v MessageHeadline) MessageBody {
 	}
 }
 
-func NewMessageBodyWithEditattachment(v MessageEditAttachment) MessageBody {
+func NewMessageBodyWithAttachmentuploaded(v MessageAttachmentUploaded) MessageBody {
 	return MessageBody{
-		MessageType__:    MessageType_EDITATTACHMENT,
-		Editattachment__: &v,
+		MessageType__:        MessageType_ATTACHMENTUPLOADED,
+		Attachmentuploaded__: &v,
 	}
 }
 

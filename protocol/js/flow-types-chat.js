@@ -73,7 +73,7 @@ export const CommonMessageType = {
   metadata: 5,
   tlfname: 6,
   headline: 7,
-  editattachment: 8,
+  attachmentuploaded: 8,
 }
 
 export const CommonTLFVisibility = {
@@ -941,6 +941,13 @@ export type MessageAttachment = {
   metadata: bytes,
 }
 
+export type MessageAttachmentUploaded = {
+  messageID: MessageID,
+  object: Asset,
+  preview?: ?Asset,
+  metadata: bytes,
+}
+
 export type MessageBody = 
     { messageType : 1, text : ?MessageText }
   | { messageType : 2, attachment : ?MessageAttachment }
@@ -948,7 +955,7 @@ export type MessageBody =
   | { messageType : 4, delete : ?MessageDelete }
   | { messageType : 5, metadata : ?MessageConversationMetadata }
   | { messageType : 7, headline : ?MessageHeadline }
-  | { messageType : 8, editattachment : ?MessageEditAttachment }
+  | { messageType : 8, attachmentuploaded : ?MessageAttachmentUploaded }
 
 export type MessageBodyV1 = 
     { messageType : 1, text : ?MessageText }
@@ -994,13 +1001,6 @@ export type MessageEdit = {
   body: string,
 }
 
-export type MessageEditAttachment = {
-  messageID: MessageID,
-  object: Asset,
-  preview?: ?Asset,
-  metadata: bytes,
-}
-
 export type MessageHeadline = {
   headline: string,
 }
@@ -1042,7 +1042,7 @@ export type MessageType =
   | 5 // METADATA_5
   | 6 // TLFNAME_6
   | 7 // HEADLINE_7
-  | 8 // EDITATTACHMENT_8
+  | 8 // ATTACHMENTUPLOADED_8
 
 export type MessageUnboxed = 
     { state : 1, valid : ?MessageUnboxedValid }
