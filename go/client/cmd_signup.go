@@ -160,7 +160,7 @@ func (s *CmdSignup) Run() (err error) {
 
 	if s.code == "" {
 		// Eat the error here - we prompt the user in that case
-		s.postCodeRequest()
+		s.requestInvitationCode()
 	}
 
 	if err = s.trySignup(); err != nil {
@@ -436,13 +436,13 @@ func (s *CmdSignup) postInviteRequest() (err error) {
 	return
 }
 
-func (s *CmdSignup) postCodeRequest() error {
+func (s *CmdSignup) requestInvitationCode() error {
 
 	code, err := s.scli.GetInvitationCode(context.TODO(), 0)
 	if err != nil {
-		s.G().Log.Info("Error getting new code: %v", err)
+		s.G().Log.Debug("Error getting new code: %v", err)
 	} else {
-		s.G().Log.Info("Success! You got new code %s", code)
+		s.G().Log.Debug("Success! You got new code %s", code)
 	}
 	s.code = code
 	return err

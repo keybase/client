@@ -215,12 +215,13 @@ func CheckInvitationCode(code string) error {
 	return err
 }
 
-func GetInvitationCode() (string, error) {
+func GetInvitationCode(g *GlobalContext) (string, error) {
 	arg := APIArg{
 		Endpoint:    "invitation_bypass_request",
 		NeedSession: false,
+		NetContext:  g.GetNetContext(),
 	}
-	res, err := G.API.Get(arg)
+	res, err := g.API.Get(arg)
 	var invitation_id string
 	if err == nil {
 		invitation_id, err = res.Body.AtKey("invitation_id").GetString()
