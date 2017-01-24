@@ -4487,6 +4487,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		}
 	}
 
+	currKeyGen := md.LatestKeyGeneration()
 	rekeyDone, tlfCryptKey, err := fbo.config.KeyManager().
 		Rekey(ctx, md, promptPaper)
 
@@ -4592,8 +4593,10 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 
 	// send rekey finish notification
 	handle := md.GetTlfHandle()
-	fbo.config.Reporter().Notify(ctx,
-		rekeyNotification(ctx, fbo.config, handle, true))
+	if currKeyGen >= FirstValidKeyGen {
+		fbo.config.Reporter().Notify(ctx,
+			rekeyNotification(ctx, fbo.config, handle, true))
+	}
 	if !stillNeedsRekey && fbo.rekeyWithPromptTimer != nil {
 		fbo.log.CDebugf(ctx, "Scheduled rekey timer no longer needed")
 		fbo.rekeyWithPromptTimer.Stop()

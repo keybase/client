@@ -733,11 +733,14 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	}
 
 	// Send rekey start notification once we're sure that this device
-	// can perform the rekey.
+	// can perform the rekey.  Don't send this for the first key
+	// generation though, since that's not really a "re"key.
 	//
 	// TODO: Shouldn't this happen earlier?
-	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, resolvedHandle,
-		false))
+	if currKeyGen >= FirstValidKeyGen {
+		km.config.Reporter().Notify(ctx, rekeyNotification(
+			ctx, km.config, resolvedHandle, false))
+	}
 
 	// Delete server-side key halves for any revoked devices, if
 	// there are any previous key generations. Do this before
