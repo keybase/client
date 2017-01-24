@@ -865,6 +865,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		preview.Title = arg.Title
 		preview.MimeType = pre.PreviewContentType
 		preview.Metadata = pre.PreviewMetadata()
+		preview.Tag = chat1.AssetTag_PRIMARY
 		uploaded.Previews = []chat1.Asset{*preview}
 	}
 
