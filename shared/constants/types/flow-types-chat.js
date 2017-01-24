@@ -731,7 +731,7 @@ export type GetConversationForCLILocalQuery = {
   MessageTypes?: ?Array<MessageType>,
   Since?: ?string,
   limit: UnreadFirstNumLimit,
-  conversationId: ConversationID,
+  conv: ConversationLocal,
 }
 
 export type GetConversationForCLILocalRes = {

@@ -1216,8 +1216,8 @@
           "name": "limit"
         },
         {
-          "type": "ConversationID",
-          "name": "conversationId",
+          "type": "ConversationLocal",
+          "name": "conv",
           "lint": "ignore"
         }
       ]

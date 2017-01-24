@@ -864,8 +864,12 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 	if err != nil {
 		return conv, rlimits, err
 	}
-	gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-		Query: &query,
+	gilres, err := client.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
+		TlfName:          *query.TlfName,
+		Visibility:       query.Visibility(),
+		TopicType:        *query.TopicType,
+		TopicName:        *query.TopicName,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return conv, rlimits, err

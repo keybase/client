@@ -832,11 +832,11 @@ type GetInboxSummaryForCLILocalRes struct {
 }
 
 type GetConversationForCLILocalQuery struct {
-	MarkAsRead     bool                `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes   []MessageType       `codec:"MessageTypes" json:"MessageTypes"`
-	Since          *string             `codec:"Since,omitempty" json:"Since,omitempty"`
-	Limit          UnreadFirstNumLimit `codec:"limit" json:"limit"`
-	ConversationId ConversationID      `codec:"conversationId" json:"conversationId"`
+	MarkAsRead   bool                `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes []MessageType       `codec:"MessageTypes" json:"MessageTypes"`
+	Since        *string             `codec:"Since,omitempty" json:"Since,omitempty"`
+	Limit        UnreadFirstNumLimit `codec:"limit" json:"limit"`
+	Conv         ConversationLocal   `codec:"conv" json:"conv"`
 }
 
 type GetConversationForCLILocalRes struct {

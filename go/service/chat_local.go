@@ -481,20 +481,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		arg.Limit.AtMost = int(^uint(0) >> 1) // maximum int
 	}
 
-	ibres, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-		Query: &chat1.GetInboxLocalQuery{
-			ConvID: &arg.ConversationId,
-		},
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	})
-	if err != nil {
-		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationId, err)
-	}
-	rlimits = append(rlimits, ibres.RateLimits...)
-	if len(ibres.Conversations) != 1 {
-		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("unexpected number (%d) of conversation; need 1", len(ibres.Conversations))
-	}
-	convLocal := ibres.Conversations[0]
+	convLocal := arg.Conv
 
 	var since time.Time
 	if arg.Since != nil {
@@ -514,7 +501,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 
 	tv, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-		ConversationID:   arg.ConversationId,
+		ConversationID:   convLocal.Info.Id,
 		Query:            &query,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
