@@ -88,7 +88,7 @@ def doBuild() {
     }
     stage('Build Installer') {
         bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\doinstaller_wix.cmd'
-        // archiveArtifacts "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.*"
+        archiveArtifacts "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.*"
     }
 
     stage('Publish to S3') {
@@ -116,7 +116,7 @@ def doBuild() {
 
     
     stage('Invoke SmokeB build') {
-        if (UpdateChannel == "Smoke"){
+        if (UpdateChannel == "Smoke" || UpdateChannel == "SmokeCI"){
             // Smoke A json
             publish("prerelease.keybase.io/windows-support", 
                 "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json",
