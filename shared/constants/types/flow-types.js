@@ -2354,6 +2354,18 @@ export function signupCheckUsernameAvailableRpcPromise (request: $Exact<requestC
   return new Promise((resolve, reject) => { signupCheckUsernameAvailableRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function signupGetInvitationCodeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.signup.getInvitationCode'})
+}
+
+export function signupGetInvitationCodeRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => signupGetInvitationCodeRpc({...request, incomingCallMap, callback}))
+}
+
+export function signupGetInvitationCodeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>): Promise<signupGetInvitationCodeResult> {
+  return new Promise((resolve, reject) => { signupGetInvitationCodeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function signupInviteRequestRpc (request: Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.signup.inviteRequest'})
 }
@@ -5408,6 +5420,8 @@ type secretUiGetPassphraseResult = GetPassphraseRes
 
 type sessionCurrentSessionResult = Session
 
+type signupGetInvitationCodeResult = string
+
 type signupSignupResult = SignupRes
 
 type sigsSigListJSONResult = string
@@ -5624,6 +5638,7 @@ export type rpc =
   | sessionSessionPingRpc
   | signupCheckInvitationCodeRpc
   | signupCheckUsernameAvailableRpc
+  | signupGetInvitationCodeRpc
   | signupInviteRequestRpc
   | signupSignupRpc
   | sigsSigListJSONRpc
