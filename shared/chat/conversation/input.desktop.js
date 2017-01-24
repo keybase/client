@@ -1,4 +1,5 @@
 // @flow
+/* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
