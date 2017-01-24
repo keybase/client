@@ -7,7 +7,7 @@ import Timestamp from './timestamp'
 import {Box} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
 
-import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMap} from '../../../constants/chat'
+import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMap, OutboxIDKey} from '../../../constants/chat'
 
 type Options = {
   message: Message,
@@ -22,7 +22,7 @@ type Options = {
   onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,
   onOpenInFileUI: (path: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
-  onRetry: (outboxID: string) => void,
+  onRetry: (outboxID: OutboxIDKey) => void,
   onRetryAttachment: () => void,
   you: string,
   metaDataMap: MetaDataMap,
