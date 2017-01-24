@@ -218,8 +218,8 @@ function setupChatHandlers (): SetupChatHandlers {
   return {type: 'chat:setupChatHandlers', payload: undefined}
 }
 
-function retryMessage (outboxIDKey: string): RetryMessage {
-  return {type: 'chat:retryMessage', payload: {outboxIDKey}, logTransformer: retryMessageActionTransformer}
+function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string): RetryMessage {
+  return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
 function loadInbox (newConversationIDKey: ?ConversationIDKey): LoadInbox {
@@ -364,7 +364,18 @@ function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey)
 }
 
 function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
-  const {outboxIDKey} = action.payload
+  const {conversationIDKey, outboxIDKey} = action.payload
+
+  yield put(({
+    payload: {
+      conversationIDKey,
+      message: {
+        messageState: 'pending',
+      },
+      outboxID: outboxIDKey,
+    },
+    type: 'chat:updateTempMessage',
+  }: Constants.UpdateTempMessage))
 
   yield call(localRetryPostRpcPromise, {
     param: {
