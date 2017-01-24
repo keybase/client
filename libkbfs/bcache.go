@@ -79,9 +79,9 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
 			bc, ok := tmp.(blockContainer)
 			if !ok {
-				return nil, false, TransientEntry, BadDataError{ptr.ID}
+				return nil, false, NoCacheEntry, BadDataError{ptr.ID}
 			}
-			return bc.block, bc.hasPrefetched, NoCacheEntry, nil
+			return bc.block, bc.hasPrefetched, TransientEntry, nil
 		}
 	}
 
