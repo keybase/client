@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -30,35 +29,13 @@ func NewStateChecker(config Config) *StateChecker {
 	return &StateChecker{config, config.MakeLogger("")}
 }
 
-func (sc *StateChecker) newFileData(lState *lockState,
-	file path, kmd KeyMetadata, ops *folderBranchOps) *fileData {
-	var uid keybase1.UID // reads don't need UID
-	return newFileData(file, uid, sc.config.Crypto(),
-		sc.config.BlockSplitter(), kmd,
-		// We shouldn't ever be fetching dirty blocks during state
-		// checking.
-		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
-			file path, rtype blockReqType) (*FileBlock, bool, error) {
-			block, err := ops.blocks.GetFileBlockForReading(
-				ctx, lState, kmd, ptr, file.Branch, file)
-			if err != nil {
-				return nil, false, err
-			}
-			return block, false, nil
-		},
-		func(ptr BlockPointer, block Block) error {
-			return nil
-		}, sc.log)
-}
-
 // findAllFileBlocks adds all file blocks found under this block to
 // the blocksFound map, if the given path represents an indirect
 // block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
 	file path, blockSizes map[BlockPointer]uint32) error {
-	fd := sc.newFileData(lState, file, kmd, ops)
-	infos, err := fd.getIndirectFileBlockInfos(ctx)
+	infos, err := ops.blocks.GetIndirectFileBlockInfos(ctx, lState, kmd, file)
 	if err != nil {
 		return err
 	}

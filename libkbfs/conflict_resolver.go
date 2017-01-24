@@ -2071,56 +2071,25 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	return dblock, nil
 }
 
-func (cr *ConflictResolver) newFileData(lState *lockState,
-	file path, uid keybase1.UID, kmd KeyMetadata,
-	dirtyBcache DirtyBlockCache) *fileData {
-	return newFileData(file, uid, cr.config.Crypto(),
-		cr.config.BlockSplitter(), kmd,
-		// We shouldn't ever be fetching dirty blocks during a successful
-		// conflict resolution.
-		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
-			file path, rtype blockReqType) (*FileBlock, bool, error) {
-			// Use an invalid path because a) we don't know the full
-			// path here, and b) we don't need read notifications sent
-			// for these files.
-			block, err := cr.fbo.blocks.GetFileBlockForReading(
-				ctx, lState, kmd, ptr, file.Branch, path{})
-			if err != nil {
-				return nil, false, err
-			}
-			return block, false, nil
-		},
-		func(ptr BlockPointer, block Block) error {
-			return dirtyBcache.Put(cr.fbo.id(), ptr, cr.fbo.branch(), block)
-		}, cr.log)
-}
-
 // fileBlockMap maps latest merged block pointer to a map of final
 // merged name -> file block.
 type fileBlockMap map[BlockPointer]map[string]*FileBlock
 
 func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
-	lState *lockState, chains *crChains, mergedMostRecent BlockPointer, parentPath path,
-	name string, ptr BlockPointer, blocks fileBlockMap) (
-	BlockPointer, error) {
+	lState *lockState, chains *crChains, mergedMostRecent BlockPointer,
+	parentPath path, name string, ptr BlockPointer, blocks fileBlockMap,
+	dirtyBcache DirtyBlockCache) (BlockPointer, error) {
 	kmd := chains.mostRecentChainMDInfo.kmd
-	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return BlockPointer{}, err
-	}
-
-	dirtyBcache := simpleDirtyBlockCacheStandard()
-	// Simple dirty bcaches don't need to be shut down.
 
 	file := parentPath.ChildPath(name, ptr)
-	fd := cr.newFileData(lState, file, uid, kmd, dirtyBcache)
-	oldInfos, err := fd.getIndirectFileBlockInfos(ctx)
+	oldInfos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
+		ctx, lState, kmd, file)
 	if err != nil {
 		return BlockPointer{}, err
 	}
 
-	newPtr, allChildPtrs, err := fd.deepCopy(
-		ctx, cr.config.Codec(), cr.config.DataVersion())
+	newPtr, allChildPtrs, err := cr.fbo.blocks.DeepCopyFile(
+		ctx, lState, kmd, file, dirtyBcache, cr.config.DataVersion())
 	if err != nil {
 		return BlockPointer{}, err
 	}
@@ -2161,10 +2130,6 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	}
 
 	blocks[mergedMostRecent][name] = fblock
-	// TODO: when we support multiple levels of indirection, for any
-	// mid-level indirect blocks in allChildPtrs, save the
-	// corresponding dirty block to some structure where it will later
-	// be added to the blockPutState and written to the server.
 	return newPtr, nil
 }
 
@@ -2172,7 +2137,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	lState *lockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	actionMap map[BlockPointer]crActionList, lbc localBcache,
-	newFileBlocks fileBlockMap) error {
+	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) error {
 	// For each set of actions:
 	//   * Find the corresponding chains
 	//   * Make a reference to each slice of ops
@@ -2248,13 +2213,13 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 				ptr BlockPointer) (BlockPointer, error) {
 				return cr.makeFileBlockDeepCopy(ctx, lState, unmergedChains,
 					mergedPath.tailPointer(), unmergedPath, name, ptr,
-					newFileBlocks)
+					newFileBlocks, dirtyBcache)
 			}
 			mergedFetcher := func(ctx context.Context, name string,
 				ptr BlockPointer) (BlockPointer, error) {
 				return cr.makeFileBlockDeepCopy(ctx, lState, mergedChains,
 					mergedPath.tailPointer(), mergedPath, name,
-					ptr, newFileBlocks)
+					ptr, newFileBlocks, dirtyBcache)
 			}
 
 			// Execute each action and save the modified ops back into
@@ -2817,7 +2782,8 @@ type crPathTreeNode struct {
 func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 	unmergedChains *crChains, newMD *RootMetadata, uid keybase1.UID,
 	node *crPathTreeNode, stopAt BlockPointer, lbc localBcache,
-	newFileBlocks fileBlockMap) (*blockPutState, error) {
+	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) (
+	*blockPutState, error) {
 	// If this has no children, then sync it, as far back as stopAt.
 	if len(node.children) == 0 {
 		// Look for the directory block or the new file block.
@@ -2849,16 +2815,10 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 		}
 
 		var childBps *blockPutState
+		// For an indirect file block, make sure a new
+		// reference is made for every child block.
 		if entryType != Dir && fblock.IsInd {
 			childBps = newBlockPutState(1)
-			// For an indirect file block, make sure a new
-			// reference is made for every child block.
-
-			dirtyBcache := simpleDirtyBlockCacheStandard()
-			// Simple dirty bcaches don't need to be shut down.
-
-			fd := cr.newFileData(
-				lState, node.mergedPath, uid, newMD.ReadOnly(), dirtyBcache)
 			var infos []BlockInfo
 			var err error
 
@@ -2866,22 +2826,35 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 			// supported.  We have to fetch each block and ready
 			// it.  TODO: remove this when KBFS-1149 is fixed.
 			if TLFJournalEnabled(cr.config, cr.fbo.id()) {
-				infos, err = fd.undupChildrenInCopy(
-					ctx, cr.config.BlockCache(), cr.config.BlockOps(),
-					childBps, fblock)
+				infos, err = cr.fbo.blocks.UndupChildrenInCopy(
+					ctx, lState, newMD.ReadOnly(), node.mergedPath, childBps,
+					dirtyBcache, fblock)
 				if err != nil {
 					return nil, err
 				}
 			} else {
-				infos, err = fd.getIndirectFileBlockInfosWithTopBlock(
-					ctx, fblock)
+				// Ready any mid-level internal children.
+				_, err = cr.fbo.blocks.ReadyNonLeafBlocksInCopy(
+					ctx, lState, newMD.ReadOnly(), node.mergedPath, childBps,
+					dirtyBcache, fblock)
+				if err != nil {
+					return nil, err
+				}
+
+				infos, err = cr.fbo.blocks.
+					GetIndirectFileBlockInfosWithTopBlock(
+						ctx, lState, newMD.ReadOnly(), node.mergedPath, fblock)
 				if err != nil {
 					return nil, err
 				}
 
 				for _, info := range infos {
-					childBps.addNewBlock(info.BlockPointer, nil,
-						ReadyBlockData{}, nil)
+					// The indirect blocks were already added to
+					// childBps, so only add the dedup'd leaf blocks.
+					if info.RefNonce != kbfsblock.ZeroRefNonce {
+						childBps.addNewBlock(info.BlockPointer,
+							nil, ReadyBlockData{}, nil)
+					}
 				}
 			}
 			for _, info := range infos {
@@ -2917,7 +2890,7 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 		}
 		childBps, err := cr.syncTree(
 			ctx, lState, unmergedChains, newMD, uid, child, localStopAt, lbc,
-			newFileBlocks)
+			newFileBlocks, dirtyBcache)
 		if err != nil {
 			return nil, err
 		}
@@ -3229,7 +3202,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	md *RootMetadata, unmergedChains, mergedChains *crChains,
 	mostRecentMergedMD ImmutableRootMetadata,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
-	newFileBlocks fileBlockMap) (
+	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) (
 	updates map[BlockPointer]BlockPointer, bps *blockPutState,
 	blocksToDelete []kbfsblock.ID, err error) {
 	err = cr.checkDone(ctx)
@@ -3274,7 +3247,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 
 		if root != nil {
 			bps, err = cr.syncTree(ctx, lState, unmergedChains, md, uid, root,
-				BlockPointer{}, lbc, newFileBlocks)
+				BlockPointer{}, lbc, newFileBlocks, dirtyBcache)
 			if err != nil {
 				return nil, nil, nil, err
 			}
@@ -3689,7 +3662,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	lState *lockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	mostRecentMergedMD ImmutableRootMetadata, lbc localBcache,
-	newFileBlocks fileBlockMap, writerLocked bool) (err error) {
+	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
+	writerLocked bool) (err error) {
 	md, err := cr.createResolvedMD(
 		ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains, mostRecentMergedMD)
@@ -3705,7 +3679,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 
 	updates, bps, blocksToDelete, err := cr.syncBlocks(
 		ctx, lState, md, unmergedChains, mergedChains,
-		mostRecentMergedMD, resolvedPaths, lbc, newFileBlocks)
+		mostRecentMergedMD, resolvedPaths, lbc, newFileBlocks, dirtyBcache)
 	if err != nil {
 		return err
 	}
@@ -3902,7 +3876,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		newFileBlocks := make(fileBlockMap)
 		err = cr.completeResolution(ctx, lState, unmergedChains,
 			mergedChains, unmergedPaths, mergedPaths,
-			mostRecentMergedMD, lbc, newFileBlocks, doLock)
+			mostRecentMergedMD, lbc, newFileBlocks, nil, doLock)
 		return
 	}
 
@@ -3983,8 +3957,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// references for all indirect pointers inside it.  If it is not
 	// an indirect block, just add a new reference to the block.
 	newFileBlocks := make(fileBlockMap)
+	dirtyBcache := simpleDirtyBlockCacheStandard()
+	// Simple dirty bcaches don't need to be shut down.
+
 	err = cr.doActions(ctx, lState, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
+		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
 	if err != nil {
 		return
 	}
@@ -4001,7 +3978,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// notifications.
 	err = cr.completeResolution(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, mostRecentMergedMD,
-		lbc, newFileBlocks, doLock)
+		lbc, newFileBlocks, dirtyBcache, doLock)
 	if err != nil {
 		return
 	}

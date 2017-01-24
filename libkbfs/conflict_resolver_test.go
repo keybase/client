@@ -1176,8 +1176,9 @@ func TestCRDoActionsSimple(t *testing.T) {
 
 	lbc := make(localBcache)
 	newFileBlocks := make(fileBlockMap)
+	dirtyBcache := simpleDirtyBlockCacheStandard()
 	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
+		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)
 	}
@@ -1292,8 +1293,9 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 
 	lbc := make(localBcache)
 	newFileBlocks := make(fileBlockMap)
+	dirtyBcache := simpleDirtyBlockCacheStandard()
 	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks)
+		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
 	if err != nil {
 		t.Fatalf("Couldn't do actions: %v", err)
 	}
