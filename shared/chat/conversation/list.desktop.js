@@ -122,7 +122,7 @@ class ConversationList extends Component<void, Props, State> {
   componentDidUpdate (prevProps: Props, prevState: State) {
     if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
       if (this.state.isLockedToBottom) {
-        this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: this.state.messages.count()})
+        this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: this.state.messages.count() + cellMessageStartIndex})
       } else {
         // Figure out how many new items we have
         const prependedCount = this.state.messages.indexOf(prevState.messages.first())
@@ -365,11 +365,11 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     const rowCount = this.state.messages.count() + cellMessageStartIndex
-    let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
+    let scrollToIndex = this.state.isLockedToBottom ? rowCount : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
     return (
-      <div style={containerStyle} onCopyCapture={this._onCopyCapture}>
+      <div style={containerStyle} onClick={this.props.onFocusInput} onCopyCapture={this._onCopyCapture}>
         <style>{realCSS}</style>
         <AutoSizer onResize={this._onResize}>{
           ({height, width}) => (

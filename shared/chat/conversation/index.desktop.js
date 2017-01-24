@@ -6,14 +6,29 @@ import Header from './header.desktop'
 import List from './list.desktop'
 import Input from './input.desktop'
 import Banner from './banner'
+import {withHandlers} from 'recompose'
 
 import type {Props} from '.'
 import type {Props as BannerMessage} from './banner'
 
-const Conversation = (props: Props) => {
+type FocusHandlerProps = {
+  onInputRef: (input: React$Element<*>) => void,
+  onFocusInput: () => void,
+}
+
+const withFocusHandlers = withHandlers(() => {
+  let _input
+  return {
+    onInputRef: (props) => (input) => { _input = input },
+    onFocusInput: (props) => () => { _input && _input.focusInput() },
+  }
+})
+
+const Conversation = (props: Props & FocusHandlerProps) => {
   const bannerMessage: ?BannerMessage = props.bannerMessage
   // $FlowIssue with variants
   const banner = bannerMessage && <Banner {...bannerMessage} />
+
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Header
@@ -39,6 +54,7 @@ const Conversation = (props: Props) => {
         onEditMessage={props.onEditMessage}
         onLoadAttachment={props.onLoadAttachment}
         onLoadMoreMessages={props.onLoadMoreMessages}
+        onFocusInput={props.onFocusInput}
         onOpenInFileUI={props.onOpenInFileUI}
         onOpenInPopup={props.onOpenInPopup}
         onRetryAttachment={props.onRetryAttachment}
@@ -51,6 +67,7 @@ const Conversation = (props: Props) => {
       />
       {banner}
       <Input
+        ref={props.onInputRef}
         emojiPickerOpen={props.emojiPickerOpen}
         isLoading={props.isLoading}
         onAttach={props.onAttach}
@@ -61,4 +78,4 @@ const Conversation = (props: Props) => {
   )
 }
 
-export default Conversation
+export default withFocusHandlers(Conversation)

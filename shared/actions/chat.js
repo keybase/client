@@ -86,6 +86,77 @@ const {
 
 const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers} = Constants
 
+// Whitelisted action loggers
+const loadedInboxActionTransformer = action => ({
+  payload: {
+    inbox: action.payload.inbox.map(i => {
+      const {
+        conversationIDKey,
+        muted,
+        time,
+        unreadCount,
+        validated,
+        participants,
+        info,
+      } = i
+
+      return {
+        conversationIDKey,
+        info: {
+          status: info && info.status,
+        },
+        muted,
+        participantsCount: participants.count(),
+        time,
+        unreadCount,
+        validated,
+      }
+    }),
+  },
+  type: action.type,
+})
+
+const postMessageActionTransformer = action => ({
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+  },
+  type: action.type,
+})
+
+const retryMessageActionTransformer = action => ({
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+    outboxIDKey: action.payload.outboxIDKey,
+  },
+  type: action.type,
+})
+
+const safeServerMessageMap = m => ({
+  key: m.key,
+  messageID: m.messageID,
+  messageState: m.messageState,
+  outboxID: m.outboxID,
+  type: m.type,
+})
+
+const prependMessagesActionTransformer = action => ({
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+    hasPaginationNext: !!action.payload.paginationNext,
+    messages: action.payload.messages.map(safeServerMessageMap),
+    moreToLoad: action.payload.moreToLoad,
+  },
+  type: action.type,
+})
+
+const appendMessageActionTransformer = action => ({
+  payload: {
+    conversationIDKey: action.payload.conversationIDKey,
+    messages: action.payload.messages.map(safeServerMessageMap),
+  },
+  type: action.type,
+})
+
 const _selectedSelector = (state: TypedState) => {
   const chatPath = getPath(state.routeTree.routeState, [chatTab])
   if (chatPath.get(0) !== chatTab) {
@@ -140,7 +211,7 @@ function newChat (existingParticipants: Array<string>): NewChat {
 }
 
 function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
-  return {type: 'chat:postMessage', payload: {conversationIDKey, text}}
+  return {type: 'chat:postMessage', payload: {conversationIDKey, text}, logTransformer: postMessageActionTransformer}
 }
 
 function setupChatHandlers (): SetupChatHandlers {
@@ -148,7 +219,7 @@ function setupChatHandlers (): SetupChatHandlers {
 }
 
 function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string): RetryMessage {
-  return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}}
+  return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
 function loadInbox (newConversationIDKey: ?ConversationIDKey): LoadInbox {
@@ -189,6 +260,12 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   if (!convo || !convo.info || !convo.info.id) {
     return null
   }
+
+  // We don't support mixed reader/writers
+  if (convo.info.tlfName.includes('#')) {
+    return null
+  }
+
   const conversationIDKey = conversationIDToKey(convo.info.id)
   let snippet
 
@@ -387,12 +464,13 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     messages.push(message)
     const selectedConversation = yield select(_selectedSelector)
     yield put({
-      type: 'chat:appendMessages',
+      logTransformer: appendMessageActionTransformer,
       payload: {
         conversationIDKey,
         isSelected: conversationIDKey === selectedConversation,
         messages,
       },
+      type: 'chat:appendMessages',
     })
     if (hasPendingFailure) {
       yield put(({
@@ -549,22 +627,24 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             const timestamp = _maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
-                type: 'chat:appendMessages',
+                logTransformer: appendMessageActionTransformer,
                 payload: {
                   conversationIDKey,
                   isSelected: conversationIDKey === selectedConversationIDKey,
                   messages: [timestamp],
                 },
+                type: 'chat:appendMessages',
               })
             }
           }
           yield put({
-            type: 'chat:appendMessages',
+            logTransformer: appendMessageActionTransformer,
             payload: {
               conversationIDKey,
               isSelected: conversationIDKey === selectedConversationIDKey,
               messages: [message],
             },
+            type: 'chat:appendMessages',
           })
 
           if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
@@ -639,7 +719,7 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   const following = yield select(followingSelector)
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
-  yield put({type: 'chat:loadedInbox', payload: {inbox: conversations}})
+  yield put({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer})
   chatInboxUnverified.response.result()
 
   // +1 for the finish call
@@ -767,13 +847,14 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   const pagination = _threadToPagination(thread)
 
   yield put({
-    type: 'chat:prependMessages',
     payload: {
       conversationIDKey,
       messages: newMessages,
       moreToLoad: !pagination.last,
       paginationNext: pagination.next,
     },
+    logTransformer: prependMessagesActionTransformer,
+    type: 'chat:prependMessages',
   })
 
   // Load previews for attachments
@@ -1150,7 +1231,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
   const username = yield select(usernameSelector)
 
   yield put({
-    type: 'chat:appendMessages',
+    logTransformer: appendMessageActionTransformer,
     payload: {
       conversationIDKey,
       messages: [_temporaryAttachmentMessageForUpload(
@@ -1162,6 +1243,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
         type,
       )],
     },
+    type: 'chat:appendMessages',
   })
 
   const param = {
