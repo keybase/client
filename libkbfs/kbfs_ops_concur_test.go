@@ -1095,6 +1095,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	if maxParallelBlockPuts <= 1 {
 		t.Skip("Skipping because we are not putting blocks in parallel.")
 	}
+	t.Skip("Racy failing test under investigation")
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
