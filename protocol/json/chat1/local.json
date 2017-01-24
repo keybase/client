@@ -159,6 +159,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AssetTag",
+      "symbols": [
+        "PRIMARY_0"
+      ],
+      "go": "nostring"
+    },
+    {
       "type": "record",
       "name": "Asset",
       "fields": [
@@ -213,12 +221,16 @@
         {
           "type": "AssetMetadata",
           "name": "metadata"
+        },
+        {
+          "type": "AssetTag",
+          "name": "tag"
         }
       ]
     },
     {
       "type": "record",
-      "name": "MessageAttachment",
+      "name": "MessageAttachmentV1",
       "fields": [
         {
           "type": "Asset",
@@ -239,6 +251,27 @@
     },
     {
       "type": "record",
+      "name": "MessageAttachment",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "previews"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageAttachmentUploaded",
       "fields": [
         {
@@ -250,11 +283,11 @@
           "name": "object"
         },
         {
-          "type": [
-            null,
-            "Asset"
-          ],
-          "name": "preview"
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "previews"
         },
         {
           "type": "bytes",
@@ -282,7 +315,7 @@
             "name": "ATTACHMENT",
             "def": false
           },
-          "body": "MessageAttachment"
+          "body": "MessageAttachmentV1"
         },
         {
           "label": {

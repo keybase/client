@@ -383,7 +383,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 			title = filepath.Base(att.Object.Filename)
 		}
 		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.ServerHeader.MessageID)
-		if att.Preview != nil {
+		if len(att.Previews) > 0 {
 			mv.Body += " [preview available]"
 		}
 		mv.Body += " (...)"
@@ -407,7 +407,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 			title = filepath.Base(att.Object.Filename)
 		}
 		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.ServerHeader.MessageID)
-		if att.Preview != nil {
+		if len(att.Previews) > 0 {
 			mv.Body += " [preview available]"
 		}
 		mv.Body += " (uploaded)"

@@ -320,7 +320,15 @@ func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 	case MessageType_TEXT:
 		return NewMessageBodyWithText(v1.Text()), nil
 	case MessageType_ATTACHMENT:
-		return NewMessageBodyWithAttachment(v1.Attachment()), nil
+		previous := v1.Attachment()
+		upgraded := MessageAttachment{
+			Object:   previous.Object,
+			Metadata: previous.Metadata,
+		}
+		if previous.Preview != nil {
+			upgraded.Previews = []Asset{*previous.Preview}
+		}
+		return NewMessageBodyWithAttachment(upgraded), nil
 	case MessageType_EDIT:
 		return NewMessageBodyWithEdit(v1.Edit()), nil
 	case MessageType_DELETE:

@@ -149,6 +149,20 @@ func NewAssetMetadataWithAudio(v AssetMetadataAudio) AssetMetadata {
 	}
 }
 
+type AssetTag int
+
+const (
+	AssetTag_PRIMARY AssetTag = 0
+)
+
+var AssetTagMap = map[string]AssetTag{
+	"PRIMARY": 0,
+}
+
+var AssetTagRevMap = map[AssetTag]string{
+	0: "PRIMARY",
+}
+
 type Asset struct {
 	Filename  string        `codec:"filename" json:"filename"`
 	Region    string        `codec:"region" json:"region"`
@@ -163,25 +177,32 @@ type Asset struct {
 	Title     string        `codec:"title" json:"title"`
 	Nonce     []byte        `codec:"nonce" json:"nonce"`
 	Metadata  AssetMetadata `codec:"metadata" json:"metadata"`
+	Tag       AssetTag      `codec:"tag" json:"tag"`
 }
 
-type MessageAttachment struct {
+type MessageAttachmentV1 struct {
 	Object   Asset  `codec:"object" json:"object"`
 	Preview  *Asset `codec:"preview,omitempty" json:"preview,omitempty"`
 	Metadata []byte `codec:"metadata" json:"metadata"`
 }
 
+type MessageAttachment struct {
+	Object   Asset   `codec:"object" json:"object"`
+	Previews []Asset `codec:"previews" json:"previews"`
+	Metadata []byte  `codec:"metadata" json:"metadata"`
+}
+
 type MessageAttachmentUploaded struct {
 	MessageID MessageID `codec:"messageID" json:"messageID"`
 	Object    Asset     `codec:"object" json:"object"`
-	Preview   *Asset    `codec:"preview,omitempty" json:"preview,omitempty"`
+	Previews  []Asset   `codec:"previews" json:"previews"`
 	Metadata  []byte    `codec:"metadata" json:"metadata"`
 }
 
 type MessageBodyV1 struct {
 	MessageType__ MessageType                  `codec:"messageType" json:"messageType"`
 	Text__        *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
-	Attachment__  *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
+	Attachment__  *MessageAttachmentV1         `codec:"attachment,omitempty" json:"attachment,omitempty"`
 	Edit__        *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
 	Delete__      *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
 	Metadata__    *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
@@ -234,12 +255,12 @@ func (o MessageBodyV1) Text() MessageText {
 	return *o.Text__
 }
 
-func (o MessageBodyV1) Attachment() MessageAttachment {
+func (o MessageBodyV1) Attachment() MessageAttachmentV1 {
 	if o.MessageType__ != MessageType_ATTACHMENT {
 		panic("wrong case accessed")
 	}
 	if o.Attachment__ == nil {
-		return MessageAttachment{}
+		return MessageAttachmentV1{}
 	}
 	return *o.Attachment__
 }
@@ -291,7 +312,7 @@ func NewMessageBodyV1WithText(v MessageText) MessageBodyV1 {
 	}
 }
 
-func NewMessageBodyV1WithAttachment(v MessageAttachment) MessageBodyV1 {
+func NewMessageBodyV1WithAttachment(v MessageAttachmentV1) MessageBodyV1 {
 	return MessageBodyV1{
 		MessageType__: MessageType_ATTACHMENT,
 		Attachment__:  &v,

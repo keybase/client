@@ -95,6 +95,10 @@ export const LocalAssetMetadataType = {
   audio: 3,
 }
 
+export const LocalAssetTag = {
+  primary: 0,
+}
+
 export const LocalBodyPlaintextVersion = {
   v1: 1,
   v2: 2,
@@ -577,6 +581,7 @@ export type Asset = {
   title: string,
   nonce: bytes,
   metadata: AssetMetadata,
+  tag: AssetTag,
 }
 
 export type AssetMetadata = 
@@ -604,6 +609,9 @@ export type AssetMetadataVideo = {
   height: int,
   durationMs: int,
 }
+
+export type AssetTag = 
+    0 // PRIMARY_0
 
 export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
@@ -937,12 +945,18 @@ export type MerkleRoot = {
 
 export type MessageAttachment = {
   object: Asset,
-  preview?: ?Asset,
+  previews?: ?Array<Asset>,
   metadata: bytes,
 }
 
 export type MessageAttachmentUploaded = {
   messageID: MessageID,
+  object: Asset,
+  previews?: ?Array<Asset>,
+  metadata: bytes,
+}
+
+export type MessageAttachmentV1 = {
   object: Asset,
   preview?: ?Asset,
   metadata: bytes,
@@ -959,7 +973,7 @@ export type MessageBody =
 
 export type MessageBodyV1 = 
     { messageType : 1, text : ?MessageText }
-  | { messageType : 2, attachment : ?MessageAttachment }
+  | { messageType : 2, attachment : ?MessageAttachmentV1 }
   | { messageType : 3, edit : ?MessageEdit }
   | { messageType : 4, delete : ?MessageDelete }
   | { messageType : 5, metadata : ?MessageConversationMetadata }

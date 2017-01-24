@@ -866,24 +866,26 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	// note that we only want to set the Title to what the user entered,
 	// even if that is nothing.
 	object.Title = arg.Title
+	object.MimeType = pre.ContentType
+	object.Metadata = pre.BaseMetadata()
+
+	uploaded := chat1.MessageAttachmentUploaded{
+		MessageID: placeholder.MessageID,
+		Object:    object,
+		Metadata:  arg.Metadata,
+	}
 	if preview != nil {
 		preview.Title = arg.Title
 		preview.MimeType = pre.PreviewContentType
 		preview.Metadata = pre.PreviewMetadata()
+		uploaded.Previews = []chat1.Asset{*preview}
 	}
-	object.MimeType = pre.ContentType
-	object.Metadata = pre.BaseMetadata()
 
 	// edit the placeholder  attachment message with the asset information
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
 		Msg: chat1.MessagePlaintext{
-			MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
-				MessageID: placeholder.MessageID,
-				Object:    object,
-				Preview:   preview,
-				Metadata:  arg.Metadata,
-			}),
+			MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(uploaded),
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
@@ -976,11 +978,11 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 
 	obj := attachment.Object
 	if arg.Preview {
-		if attachment.Preview == nil {
+		if len(attachment.Previews) == 0 {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
 		h.G().Log.Debug("downloading preview attachment asset")
-		obj = *attachment.Preview
+		obj = attachment.Previews[0]
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
@@ -1229,9 +1231,7 @@ func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID 
 	}
 
 	assets := []chat1.Asset{attachment.Object}
-	if attachment.Preview != nil {
-		assets = append(assets, *attachment.Preview)
-	}
+	assets = append(assets, attachment.Previews...)
 
 	return assets, nil
 }
@@ -1275,7 +1275,7 @@ func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID
 		uploaded := msg.MessageBody.Attachmentuploaded()
 		attachment := chat1.MessageAttachment{
 			Object:   uploaded.Object,
-			Preview:  uploaded.Preview,
+			Previews: uploaded.Previews,
 			Metadata: uploaded.Metadata,
 		}
 		return &attachment, msgs.RateLimits, nil

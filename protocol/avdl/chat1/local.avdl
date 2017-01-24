@@ -54,6 +54,11 @@ protocol local {
     case VIDEO: AssetMetadataVideo;
     case AUDIO: AssetMetadataAudio;
   }
+  
+  @go("nostring")
+  enum AssetTag {
+    PRIMARY_0
+  }
 
   record Asset {
     string filename;           // original filename of the object
@@ -69,24 +74,31 @@ protocol local {
     string title;              // title of the asset (defaults to filename if not provided)
     bytes nonce;               // encryption nonce
     AssetMetadata metadata;    // type-specific metadata
+    AssetTag tag;              // for multiple previews, a tag to differentiate
+  }
+
+  record MessageAttachmentV1 {
+    Asset object;                // the primary attachment object
+    union {null, Asset} preview; // the (optional) preview of object
+    bytes metadata;              // generic metadata (msgpack)
   }
 
   record MessageAttachment {
     Asset object;                // the primary attachment object
-    union {null, Asset} preview; // the (optional) preview of object
+    array<Asset> previews;       // the previews of object
     bytes metadata;              // generic metadata (msgpack)
   }
 
   record MessageAttachmentUploaded {
     MessageID messageID;
     Asset object;                // the primary attachment object
-    union {null, Asset} preview; // the (optional) preview of object
+    array<Asset> previews;       // the previews of object
     bytes metadata;              // generic metadata (msgpack)
   }
 
   variant MessageBodyV1 switch (MessageType messageType) {
     case TEXT: MessageText;
-    case ATTACHMENT: MessageAttachment;
+    case ATTACHMENT: MessageAttachmentV1;
     case EDIT: MessageEdit;
     case DELETE: MessageDelete;
     case METADATA: MessageConversationMetadata;
