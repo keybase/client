@@ -17,7 +17,6 @@ const _cachedInput: {[key: ?string]: ?string} = { }
 class Conversation extends Component<void, Props, State> {
   _input: any;
   _fileInput: any;
-  _globalKeyDownHandler: (ev: Event) => void;
   state: State;
 
   _setRef = r => {
@@ -28,7 +27,6 @@ class Conversation extends Component<void, Props, State> {
     super(props)
     const {emojiPickerOpen} = props
     this.state = {emojiPickerOpen, text: _cachedInput[props.selectedConversation] || ''}
-    this._globalKeyDownHandler = ev => this._handleGlobalKeyPress(ev)
   }
 
   componentDidMount () {
@@ -65,6 +63,7 @@ class Conversation extends Component<void, Props, State> {
 
     this._input.focus()
   }
+  _globalKeyDownHandler = (ev: Event) => this._handleGlobalKeyPress(ev)
 
   _insertEmoji (emojiColons: string) {
     const text: string = this.state.text || ''
