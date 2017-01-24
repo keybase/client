@@ -1,11 +1,12 @@
 // @flow
+import Banner from './banner'
+import Header from './header.desktop'
+import Input from './input.desktop'
+import List from './list.desktop'
 import React, {Component} from 'react'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
-import Header from './header.desktop'
-import List from './list.desktop'
-import Input from './input.desktop'
-import Banner from './banner'
+import {withHandlers} from 'recompose'
 
 import type {Props} from '.'
 
@@ -13,7 +14,20 @@ type State = {
   showDropOverlay: boolean,
 }
 
-class Conversation extends Component<void, Props, State> {
+type FocusHandlerProps = {
+  onInputRef: (input: React$Element<*>) => void,
+  onFocusInput: () => void,
+}
+
+const withFocusHandlers = withHandlers(() => {
+  let _input
+  return {
+    onInputRef: (props) => (input) => { _input = input },
+    onFocusInput: (props) => () => { _input && _input.focusInput() },
+  }
+})
+
+class Conversation extends Component<void, Props & FocusHandlerProps, State> {
   state = {
     showDropOverlay: false,
   }
@@ -56,6 +70,8 @@ class Conversation extends Component<void, Props, State> {
       onAttach,
       onDeleteMessage,
       onEditMessage,
+      onFocusInput,
+      onInputRef,
       onLoadAttachment,
       onLoadMoreMessages,
       onOpenFolder,
@@ -104,6 +120,7 @@ class Conversation extends Component<void, Props, State> {
           onAddParticipant={onAddParticipant}
           onDeleteMessage={onDeleteMessage}
           onEditMessage={onEditMessage}
+          onFocusInput={onFocusInput}
           onLoadAttachment={onLoadAttachment}
           onLoadMoreMessages={onLoadMoreMessages}
           onOpenInFileUI={onOpenInFileUI}
@@ -118,6 +135,7 @@ class Conversation extends Component<void, Props, State> {
         />
         {banner}
         <Input
+          ref={onInputRef}
           emojiPickerOpen={emojiPickerOpen}
           isLoading={isLoading}
           onAttach={onAttach}
@@ -149,4 +167,4 @@ const dropOverlayStyle = {
   top: 0,
 }
 
-export default Conversation
+export default withFocusHandlers(Conversation)
