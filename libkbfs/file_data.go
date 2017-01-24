@@ -253,7 +253,7 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 				map[BlockPointer]*FileBlock{ptr: pblock}, -1, nil
 		}
 		// Return an empty child map with no blocks in it (since
-		// !getDirect is false).
+		// getDirect is false).
 		return [][]parentBlockAndChildIndex{nil}, nil, -1, nil
 	}
 

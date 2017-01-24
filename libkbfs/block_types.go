@@ -229,7 +229,7 @@ func (fb *FileBlock) DataVersion() DataVer {
 		panic("No known type for any indirect pointer")
 	}
 
-	if len(fb.IPtrs) > 0 && !hasDirect {
+	if !hasDirect {
 		return AtLeastTwoLevelsOfChildrenDataVer
 	} else if hasHoles {
 		return ChildHolesDataVer

@@ -311,7 +311,7 @@ func (p BlockPointer) String() string {
 		return "BlockPointer{}"
 	}
 	return fmt.Sprintf("BlockPointer{ID: %s, KeyGen: %d, DataVer: %d, "+
-		"Context: %s, DirectType=%s}",
+		"Context: %s, DirectType: %s}",
 		p.ID, p.KeyGen, p.DataVer, p.Context, p.DirectType)
 }
 
