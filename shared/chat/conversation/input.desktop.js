@@ -52,7 +52,7 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
-  _handleGlobalKeyPress (ev: Event) {
+  _globalKeyDownHandler = (ev: Event) => {
     if (!this._input) {
       return
     }
@@ -64,7 +64,6 @@ class Conversation extends Component<void, Props, State> {
 
     this._input.focus()
   }
-  _globalKeyDownHandler = (ev: Event) => this._handleGlobalKeyPress(ev)
 
   _insertEmoji (emojiColons: string) {
     const text: string = this.state.text || ''
