@@ -53,12 +53,13 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
-  _handleGlobalKeyPress (ev) {
+  _handleGlobalKeyPress (ev: Event) {
     if (!this._input) {
       return
     }
 
-    if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA') {
+    const target = ev.target
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return
     }
 
