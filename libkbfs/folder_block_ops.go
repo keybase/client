@@ -2685,27 +2685,28 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 	if !updated {
 		return
 	}
-	fbo.log.CDebugf(context.TODO(), "Updating reference for pointer %s to %s", oldPtr.ID, newPtr.ID)
-	if shouldPrefetch {
-		// Prefetch the new reference, but only if it already exists in the block
-		// cache. Ideally we'd always prefetch it, but we need the type of the
-		// block so that we can call `NewEmpty`.
-		// TODO KBFS-1850: Eventually we should use the codec library's ability to
-		// decode into a nil interface to no longer need to pre-initialize the
-		// correct type.
-		block, hasPrefetched, lifetime, err := fbo.config.BlockCache().GetWithPrefetch(oldPtr)
-		if err != nil {
-			return
-		}
+	// Only prefetch if the updated pointer is a new block ID.
+	if oldPtr.ID != newPtr.ID {
+		fbo.log.CDebugf(context.TODO(), "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
+		if shouldPrefetch {
+			// Prefetch the new ref, but only if the old ref already exists in
+			// the block cache. Ideally we'd always prefetch it, but we need
+			// the type of the block so that we can call `NewEmpty`.
+			// TODO KBFS-1850: Eventually we should use the codec library's
+			// ability to decode into a nil interface to no longer need to
+			// pre-initialize the correct type.
+			block, _, _, err := fbo.config.BlockCache().GetWithPrefetch(oldPtr)
+			if err != nil {
+				return
+			}
 
-		fbo.config.BlockOps().Prefetcher().PrefetchBlock(
-			block.NewEmpty(),
-			newPtr,
-			kmd,
-			updatePointerPrefetchPriority,
-			lifetime,
-			hasPrefetched,
-		)
+			fbo.config.BlockOps().Prefetcher().PrefetchBlock(
+				block.NewEmpty(),
+				newPtr,
+				kmd,
+				updatePointerPrefetchPriority,
+			)
+		}
 	}
 }
 

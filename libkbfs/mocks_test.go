@@ -2903,14 +2903,14 @@ func (_m *MockPrefetcher) EXPECT() *_MockPrefetcherRecorder {
 	return _m.recorder
 }
 
-func (_m *MockPrefetcher) PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error {
-	ret := _m.ctrl.Call(_m, "PrefetchBlock", block, blockPtr, kmd, priority, lifetime, hasPrefetched)
+func (_m *MockPrefetcher) PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata, priority int) error {
+	ret := _m.ctrl.Call(_m, "PrefetchBlock", block, blockPtr, kmd, priority)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockPrefetcherRecorder) PrefetchBlock(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchBlock", arg0, arg1, arg2, arg3, arg4, arg5)
+func (_mr *_MockPrefetcherRecorder) PrefetchBlock(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PrefetchBlock", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockPrefetcher) PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, hasPrefetched bool) {
