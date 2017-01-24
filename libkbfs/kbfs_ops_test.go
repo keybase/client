@@ -5440,6 +5440,7 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	// make blocks small
 	blockSize := int64(5)
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
+	config.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
 
 	// create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
