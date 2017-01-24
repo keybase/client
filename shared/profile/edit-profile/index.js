@@ -9,10 +9,6 @@ import {navigateUp} from '../../actions/route-tree'
 import type {Props} from './render'
 
 class EditProfile extends Component<void, Props, void> {
-  onSubmit () {
-    this.props.onEditProfile()
-  }
-
   render () {
     const bioMaxChars = maxProfileBioChars
     const bioLengthLeft = bioMaxChars - this.props.bio.length
@@ -27,7 +23,7 @@ class EditProfile extends Component<void, Props, void> {
       onEditProfile={this.props.onEditProfile}
       onFullnameChange={this.props.onFullnameChange}
       onLocationChange={this.props.onLocationChange}
-      onSubmit={() => this.onSubmit()}
+      onSubmit={this.props.onEditProfile}
     />
   }
 }
@@ -46,9 +42,15 @@ export default connect(
     return {
       onBack: () => dispatch(navigateUp()),
       onBioChange: bio => { setRouteState({bio}) },
+      onEditProfile: (bio, fullname, location) => dispatch(editProfile(bio, fullname, location)),
       onFullnameChange: fullname => { setRouteState({fullname}) },
       onLocationChange: location => { setRouteState({location}) },
-      onEditProfile: () => dispatch(editProfile(routeState.bio, routeState.fullname, routeState.location)),
     }
-  }
+  },
+  (stateProps, dispatchProps, ownProps) => ({
+    ...stateProps,
+    ...dispatchProps,
+    ...ownProps,
+    onEditProfile: () => { dispatchProps.onEditProfile(stateProps.bio, stateProps.fullname, stateProps.location) },
+  })
 )(EditProfile)
