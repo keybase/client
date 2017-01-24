@@ -365,7 +365,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     // Time to decide: should we add a timestamp before our new message?
     const conversationState = yield select(_conversationStateSelector, conversationIDKey)
     let messages = []
-    if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
+    if (conversationState && conversationState.messages !== null && conversationState.messages.size > 1) {
       const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
       const timestamp = _maybeAddTimestamp(message, prevMessage)
       if (timestamp !== null) {
@@ -533,8 +533,9 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           }
         } else {
           // How long was it between the previous message and this one?
-          if (conversationState && conversationState.messages !== null) {
+          if (conversationState && conversationState.messages !== null && conversationState.messages.size > 1) {
             const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
+
             const timestamp = _maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
@@ -547,12 +548,26 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               })
             }
           }
+
+          let messages = []
+          if (message.type === 'Attachment') {
+            const existingAttachment = yield select(_messageSelector, conversationIDKey, message.messageID)
+            if (existingAttachment) {
+              messages = [{...message, previewSize: existingAttachment.previewSize}]
+            } else {
+              messages = [message]
+            }
+          } else {
+            messages = [message]
+
+          }
+
           yield put({
             type: 'chat:appendMessages',
             payload: {
               conversationIDKey,
               isSelected: conversationIDKey === selectedConversationIDKey,
-              messages: [message],
+              messages,
             },
           })
 
