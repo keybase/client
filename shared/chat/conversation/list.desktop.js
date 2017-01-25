@@ -262,7 +262,8 @@ class ConversationList extends Component<void, Props, State> {
     })
 
     const container = document.getElementById('popupContainer')
-    ReactDOM.render(popupComponent, container)
+    // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+    ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 
   _onAction = (message, event) => {

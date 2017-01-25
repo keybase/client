@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Icon} from './'
+import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
 import type {Props} from './popup-dialog'
@@ -11,14 +12,16 @@ function stopBubbling (ev) {
 
 export function PopupDialog ({children, onClose, fill}: Props) {
   return (
-    <Box style={styleCover} onClick={onClose}>
-      <Box style={{...styleContainer, ...(fill ? styleContainerFill : null)}}>
-        <Icon type='iconfont-close' style={styleClose} />
-        <Box style={styleClipContainer} onClick={stopBubbling}>
-          {children}
+    <EscapeHandler onESC={onClose}>
+      <Box style={styleCover} onClick={onClose}>
+        <Box style={{...styleContainer, ...(fill ? styleContainerFill : null)}}>
+          <Icon type='iconfont-close' style={styleClose} />
+          <Box style={styleClipContainer} onClick={stopBubbling}>
+            {children}
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </EscapeHandler>
   )
 }
 
