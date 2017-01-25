@@ -1,30 +1,38 @@
 {
-  const linkExp = new RegExp(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)\b/, 'gi')
+  const linkExp = new RegExp(/(?:(?:ftp|http(?:s)?)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)\b/i)
+  const protoExp = new RegExp(/^([a-z]*):\/\//i)
+  const dotDotExp = new RegExp(/[^/]\.\.[^/]/)
+  const mailToExp = new RegExp(/^mailto:/i)
   // Instead of encoding all the bad cases into a more complicated regexp lets just add some simple code here
   // Note: We aren't trying to be 100% perfect here, just getting something that works pretty good and pretty quickly
-  function goodLink (link) {
-    return !link.includes('..')
+  function goodLink (link, protocolMatch) {
+    return !link.match(dotDotExp) && // disallow 'a...b', but allow /../
+      !link.match(mailToExp) && // disallow mailto:
+      (!protocolMatch || ['http://', 'https://'].includes(protocolMatch[0].toLowerCase())) // only allow http(s)
   }
 
   function convertLink (text) {
     const matches = text.match(linkExp)
-    if (matches && goodLink(matches[0])) {
+    if (matches) {
       const match = matches[0]
-      const rest = text.substring(match.length)
-      if (rest) {
+      const protocolMatch = match.match(protoExp)
+      if (goodLink(match, protocolMatch)) {
+        const href = protocolMatch && match || 'http://' + match
+        const start = matches.index
+        const end = start + match.length
+        const left = text.substring(0, start)
+        const right = text.substring(start + end)
         return {
           type: 'text',
           children: [
-            {type: 'link', children: [match]},
-            rest,
+            ...(left ? [left] : []),
+            {type: 'link', children: [match], href},
+            ...(right ? [right] : []),
           ],
         }
-      } else {
-        return {type: 'link', children: [match]}
       }
-    } else {
-      return text
     }
+    return text
   }
 }
 
