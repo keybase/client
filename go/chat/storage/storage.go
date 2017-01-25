@@ -315,8 +315,8 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 
 	// Figure out how to determine we are done seeking
 	var rc resultCollector
-	s.Debug(ctx, "Fetch: types: %v", query.MessageTypes)
 	if query != nil && len(query.MessageTypes) > 0 {
+		s.Debug(ctx, "Fetch: types: %v", query.MessageTypes)
 		rc = newTypedResultCollector(num, query.MessageTypes)
 	} else {
 		rc = newSimpleResultCollector(num)
