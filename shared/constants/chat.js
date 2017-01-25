@@ -231,7 +231,7 @@ export type StartConversation = NoErrorTypedAction<'chat:startConversation', {us
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
-export type UpdateUnreadConversationCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', Map<ConversationIDKey, number>>
+export type UpdateConversationUnreadCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', Map<ConversationIDKey, number>>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 
 // Pass an outboxID to specify that we are retrying an attachment

@@ -1158,10 +1158,10 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   conversations.map(conv => {
     conversationsWithKeys[conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
   })
-  const conversationsWithKeysMap = Map(conversationsWithKeys)
+  const conversationUnreadCounts = Map(conversationsWithKeys)
   yield put({
-    payload: conversationsWithKeysMap,
-    type: 'chat:updateUnreadConversations',
+    payload: conversationUnreadCounts,
+    type: 'chat:updateConversationUnreadCounts',
   })
 }
 

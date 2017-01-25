@@ -46,10 +46,9 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
       const {conversations, newTlfs} = badgeState
-      let convos = List()
-      conversations.forEach(conversation => {
-        convos.push(Record(conversation))
-      })
+      const convos = List(conversations.map(conversation => Record(conversation)))
+      console.warn('convos is ', convos)
+      console.warn(convos)
       dispatch(badgeAppForChat(convos))
       dispatch(badgeApp('newTLFs', newTlfs > 0, newTlfs))
     },
