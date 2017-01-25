@@ -7,7 +7,7 @@ import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {call, put, select, race, cancel, fork, join, take} from 'redux-saga/effects'
+import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {delay} from 'redux-saga'
 import {getPath} from '../route-tree'
@@ -28,7 +28,7 @@ import * as ChatTypes from '../constants/types/flow-types-chat'
 
 import type {Action} from '../constants/types/flux'
 import type {ChangedFocus} from '../constants/window'
-import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, ConversationLocal, GetInboxLocalRes, ConversationInfoLocal} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
@@ -318,7 +318,7 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
   }).filter(Boolean))
 }
 
-function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {
+function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey, existingInfo: ?ConversationInfoLocal): Generator<any, ?ChatTypes.MessageClientHeader, any> {
   const infoSelector = (state: TypedState) => {
     const convo = _inboxSelector(state).find(convo => convo.get('conversationIDKey') === conversationIDKey)
     if (convo) {
@@ -327,7 +327,7 @@ function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey)
     return null
   }
 
-  const info = yield select(infoSelector)
+  const info = existingInfo || (yield select(infoSelector))
 
   if (!info) {
     console.warn('No info to postmessage!')
@@ -395,41 +395,44 @@ function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function * _startConversationAndPost (action: PostMessage): SagaGenerator<any, any> {
+  const {conversationIDKey} = action.payload
+  const [, tlf] = conversationIDKey.split(':')
+  const result = yield call(localNewConversationLocalRpcPromise, {
+    param: {
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      tlfName: tlf,
+      tlfVisibility: CommonTLFVisibility.private,
+      topicType: CommonTopicType.chat,
+    }})
+  if (result) {
+    const newConversationIDKey = conversationIDToKey(result.conv.info.id)
+    yield put(selectConversation(newConversationIDKey, false))
+    yield put(loadInbox(newConversationIDKey))
+    yield put({
+      payload: {
+        ...action.payload,
+        conversationIDKey: newConversationIDKey,
+        info: result.conv.info,
+      },
+      type: 'chat:postMessage',
+    })
+  } else {
+    throw new Error("Couldn't create conversation")
+  }
+}
+
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
 
   // We created a temp fake conversation? Let's make it and then post
   if (inbox && inbox.get('isFake')) {
-    const [, tlf] = conversationIDKey.split(':')
-    const result = yield call(localNewConversationLocalRpcPromise, {
-      param: {
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        tlfName: tlf,
-        tlfVisibility: CommonTLFVisibility.private,
-        topicType: CommonTopicType.chat,
-      }})
-    if (result) {
-      const newConversationIDKey = conversationIDToKey(result.conv.info.id)
-      yield put(selectConversation(newConversationIDKey, false))
-      // Wait till the inbox is loaded, TODO we hopefully don't actually have to load it all, just the convo we care about
-      yield put(loadInbox(newConversationIDKey))
-      yield take('chat:updateInboxComplete')
-      // Then post
-      yield put({
-        payload: {
-          ...action.payload,
-          conversationIDKey: newConversationIDKey,
-        },
-        type: 'chat:postMessage',
-      })
-    } else {
-      throw new Error("Couldn't create conversation")
-    }
+    yield call(_startConversationAndPost, action)
     return
   }
 
-  const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
+  const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey, action.payload.info)
   const conversationState = yield select(_conversationStateSelector, conversationIDKey)
   let lastMessageID
   if (conversationState) {
