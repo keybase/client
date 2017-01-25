@@ -771,7 +771,7 @@ type postAttachmentArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
-func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
+func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
@@ -793,6 +793,27 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 		return placeholder, err
 	}
 	h.G().Log.Debug("placeholder message id: %v", placeholder.MessageID)
+
+	// if there are any errors going forward, delete the placeholder message
+	defer func() {
+		if err == nil {
+			return
+		}
+
+		h.G().Log.Debug("postAttachmentLocal error after placeholder message sent, deleting placeholder message")
+		deleteArg := chat1.PostDeleteNonblockArg{
+			ConversationID:   arg.ConversationID,
+			IdentifyBehavior: arg.IdentifyBehavior,
+			Conv:             arg.ClientHeader.Conv,
+			Supersedes:       placeholder.MessageID,
+			TlfName:          arg.ClientHeader.TlfName,
+			TlfPublic:        arg.ClientHeader.TlfPublic,
+		}
+		_, derr := h.PostDeleteNonblock(ctx, deleteArg)
+		if derr != nil {
+			h.G().Log.Debug("error deleting placeholder message: %s", derr)
+		}
+	}()
 
 	// preprocess asset (get content type, create preview if possible)
 	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
