@@ -34,7 +34,7 @@ import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
   BadgeAppForChat,
-  ConversationBadgeState,
+  ConversationBadgeStateRecord,
   ConversationIDKey,
   CreatePendingFailure,
   DeleteMessage,
@@ -194,7 +194,7 @@ function updateLatestMessage (conversationIDKey: ConversationIDKey): UpdateLates
   return {type: 'chat:updateLatestMessage', payload: {conversationIDKey}}
 }
 
-function badgeAppForChat (conversations: [ConversationBadgeState]): BadgeAppForChat {
+function badgeAppForChat (conversations: List<ConversationBadgeStateRecord>): BadgeAppForChat {
   return {type: 'chat:badgeAppForChat', payload: conversations}
 }
 
@@ -1143,20 +1143,20 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   const selectedConversationIDKey = yield select(_selectedSelector)
   const windowFocused = yield select(_focusedSelector)
 
-  const newConversations = _.reduce(conversations, (acc, conv) => {
+  const newConversations = conversations.reduce((acc, conv) => {
     // Badge this conversation if it's unread and either the app doesn't have
     // focus (so the user didn't see the message) or the conversation isn't
     // selected (same).
-    const unread = conv.UnreadMessages > 0
-    const selected = (conversationIDToKey(conv.convID) === selectedConversationIDKey)
+    const unread = conv.get('UnreadMessages') > 0
+    const selected = (conversationIDToKey(conv.get('convID')) === selectedConversationIDKey)
     const addThisConv = (unread && (!selected || !windowFocused))
     return addThisConv ? acc + 1 : acc
   }, 0)
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 
   let conversationsWithKeys = {}
-  conversations.forEach(conv => {
-    conversationsWithKeys[conversationIDToKey(conv.convID)] = conv.UnreadMessages
+  conversations.map(conv => {
+    conversationsWithKeys[conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
   })
   const conversationsWithKeysMap = Map(conversationsWithKeys)
   yield put({

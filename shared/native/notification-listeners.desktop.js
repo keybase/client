@@ -1,5 +1,6 @@
 // @flow
 import {remote} from 'electron'
+import {List, Record} from 'immutable'
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
 import {badgeApp} from '../actions/notifications'
@@ -45,7 +46,11 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
       const {conversations, newTlfs} = badgeState
-      dispatch(badgeAppForChat(conversations))
+      let convos = List()
+      conversations.forEach(conversation => {
+        convos.push(Record(conversation))
+      })
+      dispatch(badgeAppForChat(convos))
       dispatch(badgeApp('newTLFs', newTlfs > 0, newTlfs))
     },
     'keybase.1.NotifyService.shutdown': () => {
