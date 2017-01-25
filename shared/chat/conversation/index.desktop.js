@@ -57,6 +57,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
 
   render () {
     const {
+    // $FlowIssue with variants
       bannerMessage,
       emojiPickerOpen,
       firstNewMessageID,
@@ -89,7 +90,6 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
       you,
     } = this.props
 
-    // $FlowIssue with variants
     const banner = bannerMessage && <Banner {...bannerMessage} />
 
     const dropOverlay = this.state.showDropOverlay && (
