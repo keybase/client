@@ -756,7 +756,6 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 		return gilres.Conversations, gilres.RateLimits, nil
 	}
 
-	// canonicalize the tlf name (no visibility necessary?)
 	tlfClient, err := GetTlfClient(c.G())
 	if err != nil {
 		return nil, nil, err
