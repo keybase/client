@@ -141,6 +141,8 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 
 	// Modify original delete message
 	msg.ClientHeader.Deletes = deletes
+	// NOTE: If we ever add more fields to MessageDelete, we'll need to be
+	//       careful to preserve them here.
 	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
 
 	return msg, nil

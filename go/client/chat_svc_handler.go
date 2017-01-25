@@ -239,11 +239,13 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 	arg := sendArgV1{
 		conversationID: convID,
 		channel:        opts.Channel,
-		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messages}),
 		mtype:          chat1.MessageType_DELETE,
 		supersedes:     opts.MessageID,
 		deletes:        messages,
 		response:       "message deleted",
+
+		// NOTE: The service will fill in the IDs of edit messages that also need to be deleted.
+		body: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messages}),
 	}
 	return c.sendV1(ctx, arg)
 }
