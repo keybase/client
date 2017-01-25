@@ -996,9 +996,12 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	onPutStalledCh, putUnstallCh, putCtx :=
 		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
-	// make blocks small
-	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
-	config.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
+	// Make the blocks small, with multiple levels of indirection, but
+	// make the unembedded size large, so we don't create thousands of
+	// unembedded block change blocks.
+	blockSize := int64(5)
+	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024}
+	config.SetBlockSplitter(bsplit)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
@@ -1095,7 +1098,6 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	if maxParallelBlockPuts <= 1 {
 		t.Skip("Skipping because we are not putting blocks in parallel.")
 	}
-	t.Skip("Racy failing test under investigation")
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
@@ -1107,10 +1109,12 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	config.BlockServer().Shutdown()
 	config.SetBlockServer(b)
 
-	// make blocks small
+	// Make the blocks small, with multiple levels of indirection, but
+	// make the unembedded size large, so we don't create thousands of
+	// unembedded block change blocks.
 	blockSize := int64(5)
-	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
-	config.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
+	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024}
+	config.SetBlockSplitter(bsplit)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
@@ -1255,10 +1259,12 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	b.EXPECT().ArchiveBlockReferences(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
 
-	// make blocks small
+	// Make the blocks small, with multiple levels of indirection, but
+	// make the unembedded size large, so we don't create thousands of
+	// unembedded block change blocks.
 	blockSize := int64(5)
-	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
-	config.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
+	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024}
+	config.SetBlockSplitter(bsplit)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)

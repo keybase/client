@@ -5437,10 +5437,12 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
-	// make blocks small
+	// Make the blocks small, with multiple levels of indirection, but
+	// make the unembedded size large, so we don't create thousands of
+	// unembedded block change blocks.
 	blockSize := int64(5)
-	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
-	config.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
+	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024}
+	config.SetBlockSplitter(bsplit)
 
 	// create a file.
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)

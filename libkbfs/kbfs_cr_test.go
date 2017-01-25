@@ -1600,10 +1600,12 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	config2.SetClock(newTestClockNow())
 	name := userName1.String() + "," + userName2.String()
 
-	// make blocks small
+	// Make the blocks small, with multiple levels of indirection, but
+	// make the unembedded size large, so we don't create thousands of
+	// unembedded block change blocks.
 	blockSize := int64(5)
-	config1.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
-	config1.BlockSplitter().(*BlockSplitterSimple).maxPtrsPerBlock = 2
+	bsplit := &BlockSplitterSimple{blockSize, 2, 100 * 1024}
+	config1.SetBlockSplitter(bsplit)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(ctx, t, config1, name, false)
