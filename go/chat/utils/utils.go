@@ -260,3 +260,39 @@ func GetRemoteConv(ctx context.Context, g *libkb.GlobalContext, uid gregor1.UID,
 	}
 	return inbox.ConvsUnverified[0], ratelim, nil
 }
+
+func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery) (res []chat1.MessageUnboxed) {
+	if query != nil && len(query.MessageTypes) > 0 {
+		typmap := make(map[chat1.MessageType]bool)
+		for _, mt := range query.MessageTypes {
+			typmap[mt] = true
+		}
+		for _, msg := range msgs {
+			if _, ok := typmap[msg.GetMessageType()]; ok {
+				res = append(res, msg)
+			}
+		}
+	} else {
+		res = msgs
+	}
+	return res
+}
+
+// GetSupersedes must be called with a valid msg
+func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
+	body := msg.Valid().MessageBody
+	typ, err := body.MessageType()
+	if err != nil {
+		return nil, err
+	}
+
+	// We use the message ID in the body over the field in the client header to avoid server trust.
+	switch typ {
+	case chat1.MessageType_EDIT:
+		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
+	case chat1.MessageType_DELETE:
+		return msg.Valid().MessageBody.Delete().MessageIDs, nil
+	default:
+		return nil, nil
+	}
+}

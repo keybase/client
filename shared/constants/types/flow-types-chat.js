@@ -848,6 +848,7 @@ export type GetThreadLocalRes = {
 export type GetThreadQuery = {
   markAsRead: boolean,
   messageTypes?: ?Array<MessageType>,
+  resolveSupersedes: boolean,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
 }
