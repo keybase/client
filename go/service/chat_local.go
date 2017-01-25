@@ -560,7 +560,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
 	// could need expansion.  Look up the conversation metadata.
 	uid := h.G().Env.GetUID()
-	conv, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), arg.ConversationID)
+	conv, rl, err := utils.GetRemoteConv(ctx, h.G(), uid.ToBytes(), arg.ConversationID)
 	if err != nil {
 		return deflt, err
 	}
