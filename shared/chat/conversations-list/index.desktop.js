@@ -11,10 +11,11 @@ import type {InboxState} from '../../constants/chat'
 
 const AddNewRow = ({onNewChat}: Props) => (
   <div
-    style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, minHeight: 48, justifyContent: 'center', alignItems: 'center', flexShrink: 0}}
-    onClick={() => onNewChat()}>
-    <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
-    <Text type='BodyBigLink'>New chat</Text>
+    style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
+    <div style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, alignItems: 'center', justifyContent: 'center'}} onClick={onNewChat}>
+      <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
+      <Text type='BodyBigLink'>New chat</Text>
+    </div>
   </div>
 )
 
@@ -46,9 +47,9 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const hasUnread = !!conversation.get('unreadCount')
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor: isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4,
-    username,
     borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
     size: 24,
+    username,
   })).toArray().reverse()
   const snippet = conversation.get('snippet')
   const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
@@ -62,13 +63,13 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
       title={`${conversation.get('unreadCount')} unread`}
       style={{...rowContainerStyle, backgroundColor}}>
-      <div style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
+      <div style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
         {isMuted && <Icon type={shhIconType} style={shhStyle} />}
       </div>
       <div style={{...globalStyles.flexBoxRow, ...conversationRowStyle, borderBottom: (!isSelected && !hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
         <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
-          <div style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
+          <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', bottom: 0, justifyContent: 'center', left: 0, position: 'absolute', right: 0, top: 0}}>
             <Usernames
               inline={true}
               type='BodySemibold'
@@ -77,10 +78,10 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
               containerStyle={{color: usernameColor, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')} />
-            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15, fontSize: 11, lineHeight: '15px'}}>{snippet}</Markdown>}
+            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>}
           </div>
         </div>
-        <Text type='BodySmall' style={{...boldOverride, marginRight: globalMargins.xtiny, marginTop: globalMargins.xtiny, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        <Text type='BodySmall' style={{...boldOverride, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px', marginRight: globalMargins.xtiny, marginTop: globalMargins.xtiny}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
       </div>
     </div>
   )
@@ -109,9 +110,9 @@ const shhStyle = {
 
 const conversationRowStyle = {
   flex: 1,
+  paddingBottom: 4,
   paddingRight: 8,
   paddingTop: 4,
-  paddingBottom: 4,
 }
 
 const ConversationList = (props: Props) => (
@@ -129,15 +130,15 @@ const ConversationList = (props: Props) => (
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue4,
-  maxWidth: 240,
   flex: 1,
+  maxWidth: 240,
 }
 
 const scrollableStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  willChange: 'transform',
   overflowY: 'auto',
+  willChange: 'transform',
 }
 
 const noWrapStyle = {
@@ -152,8 +153,8 @@ const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   flexShrink: 0,
-  minHeight: 48,
   maxHeight: 48,
+  minHeight: 48,
 }
 
 export default ConversationList
