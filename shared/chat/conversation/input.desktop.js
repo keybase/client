@@ -1,4 +1,5 @@
 // @flow
+/* eslint-env browser */
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
@@ -29,6 +30,14 @@ class Conversation extends Component<void, Props, State> {
     this.state = {emojiPickerOpen, text: _cachedInput[props.selectedConversation] || ''}
   }
 
+  componentDidMount () {
+    document.body.addEventListener('keydown', this._globalKeyDownHandler)
+  }
+
+  componentWillUnmount () {
+    document.body.removeEventListener('keydown', this._globalKeyDownHandler)
+  }
+
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.selectedConversation !== this.props.selectedConversation) {
       this.focusInput()
@@ -41,6 +50,19 @@ class Conversation extends Component<void, Props, State> {
     if (!this.props.isLoading && prevProps.isLoading) {
       this.focusInput()
     }
+  }
+
+  _globalKeyDownHandler = (ev: Event) => {
+    if (!this._input) {
+      return
+    }
+
+    const target = ev.target
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      return
+    }
+
+    this._input.focus()
   }
 
   _insertEmoji (emojiColons: string) {
