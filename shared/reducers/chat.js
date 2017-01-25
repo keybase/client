@@ -6,7 +6,7 @@ import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord} = Constants
+const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord, InboxStateRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -375,6 +375,23 @@ function reducer (state: State = initialState, action: Actions) {
       })
 
       return state.set('metaData', metaData)
+    case 'chat:newFakeConversation': {
+      const newConversationStates = state.get('conversationStates').update(
+        action.payload.conversationIDKey,
+        initialConversation,
+        conversation => conversation.set('moreToLoad', false)
+      )
+
+      const newInbox = state.get('inbox').unshift(new InboxStateRecord({
+        conversationIDKey: action.payload.conversationIDKey,
+        isFake: true,
+        participants: new List(action.payload.participants),
+        time: Date.now(),
+        validated: true,
+      }))
+
+      return state.set('inbox', newInbox).set('conversationStates', newConversationStates)
+    }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
   }

@@ -20,6 +20,7 @@ export type AttachmentType = 'Image' | 'Other'
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
+export type FakeConversationIDKey = string
 
 export type OutboxID = RPCOutboxID
 export type OutboxIDKey = string
@@ -139,8 +140,9 @@ export type ConversationBadgeStateRecord = Record<{
 
 export const InboxStateRecord = Record({
   info: null,
+  showEvenIfEmpty: false,
   isEmpty: false,
-  youCreated: false,
+  isFake: false,
   participants: List(),
   conversationIDKey: '',
   muted: false,
@@ -153,8 +155,9 @@ export const InboxStateRecord = Record({
 
 export type InboxState = Record<{
   info: ConversationInfoLocal,
+  showEvenIfEmpty: boolean,
   isEmpty: boolean,
-  youCreated: boolean, // true if you made it this session
+  isFake: boolean,
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
@@ -216,6 +219,7 @@ export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conv
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
+export type NewFakeConveration = NoErrorTypedAction<'chat:newFakeConversation', {conversationIDKey: FakeConversationIDKey, participants: Array<string>}>
 export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
@@ -384,6 +388,10 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
+function isConversationIDKeyFake (conversationIDKey: ConversationIDKey) {
+  return conversationIDKey.startsWith('fake:')
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -396,4 +404,5 @@ export {
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
   parseMetadataPreviewSize,
+  isConversationIDKeyFake,
 }

@@ -7,7 +7,7 @@ import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
+import {call, put, select, race, cancel, fork, join, take} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {delay} from 'redux-saga'
 import {getPath} from '../route-tree'
@@ -84,7 +84,7 @@ const {
   localRetryPostRpcPromise,
 } = ChatTypes
 
-const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers} = Constants
+const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers, isConversationIDKeyFake} = Constants
 
 // Whitelisted action loggers
 const loadedInboxActionTransformer = action => ({
@@ -169,8 +169,12 @@ const _selectedSelector = (state: TypedState) => {
   return selected
 }
 
+const _inboxSelector = (state: TypedState) => {
+  return state.chat.get('inbox')
+}
+
 const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
-  return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
+  return _inboxSelector(state).find(convo => convo.get('conversationIDKey') === conversationIDKey)
 }
 
 const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
@@ -316,7 +320,7 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
 
 function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey): Generator<any, ?ChatTypes.MessageClientHeader, any> {
   const infoSelector = (state: TypedState) => {
-    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
+    const convo = _inboxSelector(state).find(convo => convo.get('conversationIDKey') === conversationIDKey)
     if (convo) {
       return convo.get('info')
     }
@@ -393,6 +397,38 @@ function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
 
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
+  const inbox = yield select(_selectedInboxSelector, conversationIDKey)
+
+  // We created a temp fake conversation? Let's make it and then post
+  if (inbox && inbox.get('isFake')) {
+    const [, tlf] = conversationIDKey.split(':')
+    const result = yield call(localNewConversationLocalRpcPromise, {
+      param: {
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        tlfName: tlf,
+        tlfVisibility: CommonTLFVisibility.private,
+        topicType: CommonTopicType.chat,
+      }})
+    if (result) {
+      const newConversationIDKey = conversationIDToKey(result.conv.info.id)
+      yield put(selectConversation(newConversationIDKey, false))
+      // Wait till the inbox is loaded, TODO we hopefully don't actually have to load it all, just the convo we care about
+      yield put(loadInbox(newConversationIDKey))
+      yield take('chat:updateInboxComplete')
+      // Then post
+      yield put({
+        payload: {
+          ...action.payload,
+          conversationIDKey: newConversationIDKey,
+        },
+        type: 'chat:postMessage',
+      })
+    } else {
+      throw new Error("Couldn't create conversation")
+    }
+    return
+  }
+
   const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
   const conversationState = yield select(_conversationStateSelector, conversationIDKey)
   let lastMessageID
@@ -724,10 +760,10 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
       let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-      if (conversation && action.payload.newConversationIDKey) {
-        conversation = conversation.set('youCreated', true)
-      }
-      if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
+      if (conversation) {
+        if (action.payload.newConversationIDKey) {
+          conversation = conversation.set('showEvenIfEmpty', true)
+        }
         yield put({type: 'chat:updateInbox', payload: {conversation}})
       }
       // find it
@@ -736,11 +772,14 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
     } else if (incoming.finished) {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       // check valid selected
-      const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
-      const inbox = yield select(inboxSelector)
+      const inbox = yield select(_inboxSelector)
       if (inbox.count()) {
         const conversationIDKey = yield select(_selectedSelector)
-        if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
+        // Update our selected conversation if our current one isn't valid
+        if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey &&
+          c.get('validated') &&
+          (!c.get('isEmpty') || c.get('showEvenIfEmpty'))
+          )) {
           yield put(selectConversation(inbox.get(0).get('conversationIDKey'), false))
         }
       }
@@ -774,7 +813,7 @@ function * _onUpdateInbox (action: UpdateInbox): SagaGenerator<any, any> {
 function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
 
-  if (!conversationIDKey) {
+  if (!conversationIDKey || isConversationIDKeyFake(conversationIDKey)) {
     return
   }
 
@@ -996,21 +1035,32 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
   }
 }
 
-function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
-  const result = yield call(localNewConversationLocalRpcPromise, {
-    param: {
-      tlfName: action.payload.users.join(','),
-      topicType: CommonTopicType.chat,
-      tlfVisibility: CommonTLFVisibility.private,
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-    }})
-  if (result) {
-    const conversationIDKey = conversationIDToKey(result.conv.info.id)
-
-    yield put(loadInbox(conversationIDKey))
-    yield put(selectConversation(conversationIDKey, false))
-    yield put(switchTo([chatTab]))
+function newFakeConversation (conversationIDKey: string, participants: Array<string>) {
+  return {
+    payload: {
+      conversationIDKey,
+      participants,
+    },
+    type: 'chat:newFakeConversation',
   }
+}
+
+function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
+  const users = action.payload.users.sort()
+  const tlfName = users.join(',')
+  const inbox = yield select(_inboxSelector)
+  const existing = inbox.find(i => i.participants.sort().join(',') === tlfName)
+
+  let conversationIDKey
+  if (existing) {
+    conversationIDKey = existing.get('conversationIDKey')
+  } else {
+    conversationIDKey = `fake:${tlfName}`
+    yield put(newFakeConversation(conversationIDKey, users))
+  }
+
+  yield put(selectConversation(conversationIDKey, false))
+  yield put(switchTo([chatTab]))
 }
 
 function * _openFolder (): SagaGenerator<any, any> {
