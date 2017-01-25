@@ -397,7 +397,7 @@ protocol local {
     UnreadFirstNumLimit limit;
 
     @lint("ignore")
-    ConversationID conversationId;
+    ConversationLocal conv;
   }
   record GetConversationForCLILocalRes {
     ConversationLocal conversation;
@@ -453,5 +453,14 @@ protocol local {
   void RetryPost(OutboxID outboxID);
 
   MarkAsReadRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
+
+  record FindConversationsLocalRes {
+    array<ConversationLocal> conversations;
+
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+
+  FindConversationsLocalRes findConversationsLocal(string tlfName, TLFVisibility visibility, TopicType topicType, string topicName, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 }

@@ -78,7 +78,7 @@ func (c *CmdChatHide) Run() error {
 		return err
 	}
 
-	conversationInfo, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
+	conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		Interactive:       false,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -88,7 +88,7 @@ func (c *CmdChatHide) Run() error {
 	}
 
 	setStatusArg := chat1.SetConversationStatusLocalArg{
-		ConversationID: conversationInfo.Id,
+		ConversationID: conversation.Info.Id,
 		Status:         c.status,
 	}
 

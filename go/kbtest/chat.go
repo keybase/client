@@ -203,6 +203,7 @@ func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.T
 type ChatRemoteMock struct {
 	world     *ChatMockWorld
 	readMsgid map[string]chat1.MessageID
+	uid       *gregor1.UID
 }
 
 var _ chat1.RemoteInterface = (*ChatRemoteMock)(nil)
@@ -227,10 +228,24 @@ func (m *ChatRemoteMock) makeReaderInfo(convID chat1.ConversationID) (ri *chat1.
 	return ri
 }
 
+func (m *ChatRemoteMock) SetCurrentUser(uid gregor1.UID) {
+	m.uid = &uid
+}
+
+func (m *ChatRemoteMock) inConversation(conv *chat1.Conversation) bool {
+	if m.uid != nil && len(conv.Metadata.ActiveList) > 0 {
+		return conv.Includes(*m.uid)
+	}
+	return true
+}
+
 func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxRemoteArg) (res chat1.GetInboxRemoteRes, err error) {
 	// TODO: add pagination support
 	var ibfull chat1.InboxViewFull
 	for _, conv := range m.world.conversations {
+		if !m.inConversation(conv) {
+			continue
+		}
 		if arg.Query != nil {
 			if arg.Query.ConvID != nil && !conv.Metadata.ConversationID.Eq(*arg.Query.ConvID) {
 				continue
@@ -247,7 +262,9 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 			if arg.Query.ReadOnly && m.readMsgid[conv.Metadata.ConversationID.String()] != m.makeReaderInfo(conv.Metadata.ConversationID).MaxMsgid {
 				continue
 			}
-			// TODO: check arg.Query.TlfVisibility
+			if arg.Query.TlfVisibility != nil && conv.Metadata.Visibility != *arg.Query.TlfVisibility {
+				continue
+			}
 			if arg.Query.After != nil && m.makeReaderInfo(conv.Metadata.ConversationID).Mtime < *arg.Query.After {
 				continue
 			}
@@ -266,6 +283,23 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 	return chat1.GetInboxRemoteRes{
 		Inbox: chat1.NewInboxViewWithFull(ibfull),
 	}, nil
+}
+
+func (m *ChatRemoteMock) GetPublicConversations(ctx context.Context, arg chat1.GetPublicConversationsArg) (res chat1.GetPublicConversationsRes, err error) {
+
+	for _, conv := range m.world.conversations {
+		if conv.Metadata.Visibility == chat1.TLFVisibility_PUBLIC &&
+			conv.Metadata.IdTriple.Tlfid.Eq(arg.TlfID) &&
+			conv.Metadata.IdTriple.TopicType == arg.TopicType {
+
+			convToAppend := *conv
+			convToAppend.ReaderInfo = m.makeReaderInfo(convToAppend.Metadata.ConversationID)
+			res.Conversations = append(res.Conversations, convToAppend)
+
+		}
+	}
+
+	return res, nil
 }
 
 func (m *ChatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.TLFID) (res chat1.GetInboxByTLFIDRemoteRes, err error) {

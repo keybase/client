@@ -165,6 +165,18 @@ export function localDownloadFileAttachmentLocalRpcPromise (request: $Exact<requ
   return new Promise((resolve, reject) => { localDownloadFileAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localFindConversationsLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsLocalResult) => void} & {param: localFindConversationsLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.findConversationsLocal'})
+}
+
+export function localFindConversationsLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsLocalResult) => void} & {param: localFindConversationsLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localFindConversationsLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localFindConversationsLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsLocalResult) => void} & {param: localFindConversationsLocalRpcParam}>): Promise<localFindConversationsLocalResult> {
+  return new Promise((resolve, reject) => { localFindConversationsLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.getConversationForCLILocal'})
 }
@@ -403,6 +415,18 @@ export function remoteGetMessagesRemoteRpcChannelMap (channelConfig: ChannelConf
 
 export function remoteGetMessagesRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>): Promise<remoteGetMessagesRemoteResult> {
   return new Promise((resolve, reject) => { remoteGetMessagesRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function remoteGetPublicConversationsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetPublicConversationsResult) => void} & {param: remoteGetPublicConversationsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.getPublicConversations'})
+}
+
+export function remoteGetPublicConversationsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetPublicConversationsResult) => void} & {param: remoteGetPublicConversationsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetPublicConversationsRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteGetPublicConversationsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetPublicConversationsResult) => void} & {param: remoteGetPublicConversationsRpcParam}>): Promise<remoteGetPublicConversationsResult> {
+  return new Promise((resolve, reject) => { remoteGetPublicConversationsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function remoteGetS3ParamsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3ParamsResult) => void} & {param: remoteGetS3ParamsRpcParam}>) {
@@ -696,6 +720,12 @@ export type FailedMessageInfo = {
   outboxRecords?: ?Array<OutboxRecord>,
 }
 
+export type FindConversationsLocalRes = {
+  conversations?: ?Array<ConversationLocal>,
+  rateLimits?: ?Array<RateLimit>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
+}
+
 export type GenericPayload = {
   Action: string,
 }
@@ -705,7 +735,7 @@ export type GetConversationForCLILocalQuery = {
   MessageTypes?: ?Array<MessageType>,
   Since?: ?string,
   limit: UnreadFirstNumLimit,
-  conversationId: ConversationID,
+  conv: ConversationLocal,
 }
 
 export type GetConversationForCLILocalRes = {
@@ -801,6 +831,11 @@ export type GetMessagesLocalRes = {
 
 export type GetMessagesRemoteRes = {
   msgs?: ?Array<MessageBoxed>,
+  rateLimit?: ?RateLimit,
+}
+
+export type GetPublicConversationsRes = {
+  conversations?: ?Array<Conversation>,
   rateLimit?: ?RateLimit,
 }
 
@@ -1293,6 +1328,14 @@ export type localDownloadFileAttachmentLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localFindConversationsLocalRpcParam = Exact<{
+  tlfName: string,
+  visibility: TLFVisibility,
+  topicType: TopicType,
+  topicName: string,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
 export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
@@ -1428,6 +1471,11 @@ export type remoteGetMessagesRemoteRpcParam = Exact<{
   messageIDs?: ?Array<MessageID>
 }>
 
+export type remoteGetPublicConversationsRpcParam = Exact<{
+  tlfID: TLFID,
+  topicType: TopicType
+}>
+
 export type remoteGetS3ParamsRpcParam = Exact<{
   conversationID: ConversationID
 }>
@@ -1489,6 +1537,8 @@ type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
 
+type localFindConversationsLocalResult = FindConversationsLocalRes
+
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
@@ -1527,6 +1577,8 @@ type remoteGetInboxVersionResult = InboxVers
 
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
 
+type remoteGetPublicConversationsResult = GetPublicConversationsRes
+
 type remoteGetS3ParamsResult = S3Params
 
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
@@ -1549,6 +1601,7 @@ export type rpc =
     localCancelPostRpc
   | localDownloadAttachmentLocalRpc
   | localDownloadFileAttachmentLocalRpc
+  | localFindConversationsLocalRpc
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxNonblockLocalRpc
@@ -1569,6 +1622,7 @@ export type rpc =
   | remoteGetInboxRemoteRpc
   | remoteGetInboxVersionRpc
   | remoteGetMessagesRemoteRpc
+  | remoteGetPublicConversationsRpc
   | remoteGetS3ParamsRpc
   | remoteGetThreadRemoteRpc
   | remoteGetUnreadUpdateFullRpc

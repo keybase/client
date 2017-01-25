@@ -65,6 +65,11 @@ type SetConversationStatusRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
+type GetPublicConversationsRes struct {
+	Conversations []Conversation `codec:"conversations" json:"conversations"`
+	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
 type UnreadUpdateFull struct {
 	Ignore    bool           `codec:"ignore" json:"ignore"`
 	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
@@ -91,6 +96,11 @@ type GetThreadRemoteArg struct {
 	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
 	Query          *GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+type GetPublicConversationsArg struct {
+	TlfID     TLFID     `codec:"tlfID" json:"tlfID"`
+	TopicType TopicType `codec:"topicType" json:"topicType"`
 }
 
 type PostRemoteArg struct {
@@ -156,6 +166,7 @@ type TlfResolveArg struct {
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
+	GetPublicConversations(context.Context, GetPublicConversationsArg) (GetPublicConversationsRes, error)
 	PostRemote(context.Context, PostRemoteArg) (PostRemoteRes, error)
 	NewConversationRemote(context.Context, ConversationIDTriple) (NewConversationRemoteRes, error)
 	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (NewConversationRemoteRes, error)
@@ -202,6 +213,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadRemote(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getPublicConversations": {
+				MakeArg: func() interface{} {
+					ret := make([]GetPublicConversationsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetPublicConversationsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetPublicConversationsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPublicConversations(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -413,6 +440,11 @@ func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteAr
 
 func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res GetThreadRemoteRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) GetPublicConversations(ctx context.Context, __arg GetPublicConversationsArg) (res GetPublicConversationsRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.getPublicConversations", []interface{}{__arg}, &res)
 	return
 }
 

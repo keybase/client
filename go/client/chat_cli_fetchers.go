@@ -34,7 +34,7 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 
 	hasTTY := isatty.IsTerminal(os.Stdout.Fd())
 
-	conversationInfo, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
+	conversation, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		Interactive:       hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -42,13 +42,13 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("resolving conversation error: %v\n", err)
 	}
-	if conversationInfo == nil {
+	if conversation == nil {
 		return chat1.ConversationLocal{}, nil, nil
 	}
-	f.query.ConversationId = conversationInfo.Id
+	f.query.Conv = *conversation
 
-	if conversationInfo.Id == nil || len(conversationInfo.Id) == 0 {
-		return chat1.ConversationLocal{}, nil, fmt.Errorf("empty conversationInfo.Id: %+v", conversationInfo)
+	if conversation.Info.Id == nil || len(conversation.Info.Id) == 0 {
+		return chat1.ConversationLocal{}, nil, fmt.Errorf("empty conversationInfo.Id: %+v", conversation.Info)
 	}
 
 	gcfclres, err := chatClient.GetConversationForCLILocal(ctx, f.query)

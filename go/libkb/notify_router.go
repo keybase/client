@@ -505,7 +505,6 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 }
 
 func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
-	n.G().Log.Debug("WTFWTFWTF")
 	if n == nil {
 		return
 	}
@@ -525,7 +524,6 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.G().Log.Debug("SENDING THIS STUPID UPDATE")
 		n.listener.ChatIdentifyUpdate(update)
 	}
 	n.G().Log.Debug("- Sent ChatIdentifyUpdate notification")
