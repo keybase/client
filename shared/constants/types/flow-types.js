@@ -2792,12 +2792,9 @@ export type BadgeConversationInfo = {
 }
 
 export type BadgeState = {
-  total: int,
   newTlfs: int,
   rekeysNeeded: int,
   newFollowers: int,
-  unreadChatMessages: int,
-  unreadChatConversations: int,
   conversations?: ?Array<BadgeConversationInfo>,
 }
 

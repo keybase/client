@@ -277,7 +277,7 @@ func (n *NotifyRouter) HandleBadgeState(badgeState keybase1.BadgeState) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("Sending BadgeState notification: %v", badgeState.Total)
+	n.G().Log.Debug("Sending BadgeState notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Badges` notification type
