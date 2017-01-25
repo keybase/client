@@ -66,13 +66,6 @@ func makeKMD() KeyMetadata {
 	return emptyKeyMetadata{tlf.FakeID(0, false), 1}
 }
 
-func makeBlockCache() func() BlockCache {
-	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
-	return func() BlockCache {
-		return cache
-	}
-}
-
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it.")
 	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))

@@ -744,7 +744,7 @@ func (c *ConfigLocal) ResetCaches() {
 // MakeLogger implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 	// No need to lock since c.loggerFn is initialized once at
-	// construction.
+	// construction. Also resetCachesWithoutShutdown would deadlock.
 	return c.loggerFn(module)
 }
 
