@@ -12,11 +12,11 @@ const brokenStyle = {
 
 const commonHeaderStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.red,
-  padding: 6,
-  justifyContent: 'center',
   alignItems: 'center',
+  backgroundColor: globalColors.red,
   flexWrap: 'wrap',
+  justifyContent: 'center',
+  padding: 6,
 }
 
 function brokenSeparator (idx, item, arr) {
