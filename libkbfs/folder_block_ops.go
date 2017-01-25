@@ -1856,6 +1856,8 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 			fmt.Errorf("No syncOp found for file ref %v", fileRef)
 	}
 
+	// Collapse the write range to reduce the size of the sync op.
+	si.op.Writes = si.op.collapseWriteRange(nil)
 	// If this function returns a success, we need to make sure the op
 	// in `md` is not the same variable as the op in `unrefCache`,
 	// because the latter could get updated still by local writes
