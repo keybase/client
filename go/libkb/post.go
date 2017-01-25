@@ -223,9 +223,9 @@ func GetInvitationCode(net context.Context, g *GlobalContext) (string, error) {
 		NetContext:  net,
 	}
 	res, err := g.API.Get(arg)
-	var invitation_id string
+	var invitationID string
 	if err == nil {
-		invitation_id, err = res.Body.AtKey("invitation_id").GetString()
+		invitationID, err = res.Body.AtKey("invitation_id").GetString()
 	}
-	return invitation_id, err
+	return invitationID, err
 }
