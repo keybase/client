@@ -671,6 +671,10 @@ export type ConversationReaderInfo = {
   maxMsgid: MessageID,
 }
 
+export type ConversationResolveInfo = {
+  newTLFName: string,
+}
+
 export type ConversationStatus = 
     0 // UNFILED_0
   | 1 // FAVORITE_1
@@ -1049,6 +1053,12 @@ export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID,
   finalizeInfo: ConversationFinalizeInfo
+}>
+
+export type NotifyChatChatTLFResolveRpcParam = Exact<{
+  uid: keybase1.UID,
+  convID: ConversationID,
+  resolveInfo: ConversationResolveInfo
 }>
 
 export type NotifyChatChatThreadsStaleRpcParam = Exact<{
@@ -1667,6 +1677,15 @@ export type incomingCallMapType = Exact<{
       uid: keybase1.UID,
       convID: ConversationID,
       finalizeInfo: ConversationFinalizeInfo
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatTLFResolve'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convID: ConversationID,
+      resolveInfo: ConversationResolveInfo
     }> /* ,
     response: {} // Notify call
     */

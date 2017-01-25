@@ -106,6 +106,8 @@ func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                  
 func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                        {}
 func (n *nlistener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
+func (n *nlistener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
+}
 func (n *nlistener) ChatInboxStale(uid keybase1.UID) {}
 func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
 	select {
