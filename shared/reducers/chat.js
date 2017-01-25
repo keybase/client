@@ -369,6 +369,8 @@ function reducer (state: State = initialState, action: Actions) {
       })
 
       return state.set('metaData', metaData)
+    case 'chat:updateUnreadConversations':
+      return state.set('conversationUnreadCounts', action.payload)
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
   }

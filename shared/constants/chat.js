@@ -108,6 +108,11 @@ export type DeletedMessage = {
 
 export type MaybeTimestamp = TimestampMessage | null
 
+export type ConversationBadgeState = {
+  convID: ConversationID,
+  UnreadMessages: number,
+}
+
 export const ConversationStateRecord = Record({
   messages: List(),
   seenMessages: Set(),
@@ -130,11 +135,6 @@ export type ConversationState = Record<{
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
   deletedIDs: Set<MessageID>,
-}>
-
-export type ConversationBadgeStateRecord = Record<{
-  convID: ConversationID,
-  UnreadMessages: number,
 }>
 
 export const InboxStateRecord = Record({
@@ -183,6 +183,7 @@ export const StateRecord = Record({
   focused: false,
   metaData: Map(),
   pendingFailures: Set(),
+  conversationUnreadCounts: Map(),
 })
 
 export type State = Record<{
@@ -191,6 +192,7 @@ export type State = Record<{
   focused: boolean,
   metaData: MetaDataMap,
   pendingFailures: Set<OutboxIDKey>,
+  conversationUnreadCounts: Map<ConversationIDKey, number>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -201,7 +203,7 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
-export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', Array<ConversationBadgeStateRecord>>
+export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', [ConversationBadgeState]>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
@@ -228,6 +230,7 @@ export type StartConversation = NoErrorTypedAction<'chat:startConversation', {us
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
+export type UpdateUnreadConversationCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', Map<ConversationIDKey, number>>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 
 // Pass an outboxID to specify that we are retrying an attachment

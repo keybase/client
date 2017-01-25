@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import {List} from 'immutable'
+import {List, Map} from 'immutable'
 
 import type {InboxState, ConversationIDKey} from '../../constants/chat'
 
@@ -11,6 +11,7 @@ export type Props = {
   selectedConversation: ConversationIDKey,
   onNewChat: () => void,
   children?: React$Element<*>,
+  conversationUnreadCounts: Map<ConversationIDKey, number>,
   you: string,
 }
 

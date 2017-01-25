@@ -34,7 +34,7 @@ import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
   BadgeAppForChat,
-  ConversationBadgeStateRecord,
+  ConversationBadgeState,
   ConversationIDKey,
   CreatePendingFailure,
   DeleteMessage,
@@ -194,7 +194,7 @@ function updateLatestMessage (conversationIDKey: ConversationIDKey): UpdateLates
   return {type: 'chat:updateLatestMessage', payload: {conversationIDKey}}
 }
 
-function badgeAppForChat (conversations: Array<ConversationBadgeStateRecord>): BadgeAppForChat {
+function badgeAppForChat (conversations: [ConversationBadgeState]): BadgeAppForChat {
   return {type: 'chat:badgeAppForChat', payload: conversations}
 }
 
@@ -1153,6 +1153,16 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
     return addThisConv ? acc + 1 : acc
   }, 0)
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
+
+  let conversationsWithKeys = {}
+  conversations.forEach(conv => {
+    conversationsWithKeys[conversationIDToKey(conv.convID)] = conv.UnreadMessages
+  })
+  const conversationsWithKeysMap = Map(conversationsWithKeys)
+  yield put({
+    payload: conversationsWithKeysMap,
+    type: 'chat:updateUnreadConversations',
+  })
 }
 
 function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: ChatTypes.localPostFileAttachmentLocalRpcParam, conversationIDKey: ConversationIDKey, outboxID: Constants.OutboxIDKey}) {
