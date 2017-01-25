@@ -208,6 +208,15 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 	}, ib.RateLimit, nil
 }
 
+func (s *RemoteInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
+	q *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+	lq, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), q)
+	if err != nil {
+		return chat1.Inbox{}, nil, err
+	}
+	return readRemote(ctx, s.getChatInterface(), uid, lq, p)
+}
+
 func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	conv chat1.Conversation) error {
 	return nil
@@ -231,10 +240,6 @@ func (s *RemoteInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error {
 	return nil
-}
-
-func (s *RemoteInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error) {
-	return readRemote(ctx, s.getChatInterface(), uid, convID)
 }
 
 type HybridInboxSource struct {
@@ -383,6 +388,15 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 	return inbox, rl, nil
 }
 
+func (s *HybridInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
+	q *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+	lq, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), q)
+	if err != nil {
+		return chat1.Inbox{}, nil, err
+	}
+	return readRemote(ctx, s.getChatInterface(), uid, lq, p)
+}
+
 func (s *HybridInboxSource) handleInboxError(err storage.Error, uid gregor1.UID) error {
 	if _, ok := err.(storage.MissError); ok {
 		return nil
@@ -442,10 +456,6 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 		return err
 	}
 	return nil
-}
-
-func (s *HybridInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error) {
-	return readRemote(ctx, s.getChatInterface(), uid, convID)
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
@@ -678,20 +688,22 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	return conversationLocal
 }
 
-func readRemote(ctx context.Context, ri chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error) {
+func readRemote(ctx context.Context, ri chat1.RemoteInterface, uid gregor1.UID,
+	q *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 	inbox, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &convID,
-		},
+		Query:      q,
+		Pagination: p,
 	})
 
 	if err != nil {
-		return chat1.Conversation{}, inbox.RateLimit, storage.RemoteError{Msg: err.Error()}
+		return chat1.Inbox{}, inbox.RateLimit, storage.RemoteError{Msg: err.Error()}
 	}
-	if len(inbox.Inbox.Full().Conversations) == 0 {
-		return chat1.Conversation{}, inbox.RateLimit, storage.RemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
-	}
-	return inbox.Inbox.Full().Conversations[0], inbox.RateLimit, nil
+
+	return chat1.Inbox{
+		ConvsUnverified: inbox.Inbox.Full().Conversations,
+		Pagination:      inbox.Inbox.Full().Pagination,
+		Version:         inbox.Inbox.Full().Vers,
+	}, inbox.RateLimit, nil
 }
 
 func GetInboxQueryLocalToRemote(ctx context.Context,

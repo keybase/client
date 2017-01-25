@@ -245,3 +245,18 @@ func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) fun
 	}
 	return func() {}
 }
+
+func GetRemoteConv(ctx context.Context, g *libkb.GlobalContext, uid gregor1.UID,
+	convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error) {
+
+	inbox, ratelim, err := g.InboxSource.ReadRemote(ctx, uid, &chat1.GetInboxLocalQuery{
+		ConvID: &convID,
+	}, nil)
+	if err != nil {
+		return chat1.Conversation{}, ratelim, fmt.Errorf("getRemoteConv: %s", err.Error())
+	}
+	if len(inbox.ConvsUnverified) == 0 {
+		return chat1.Conversation{}, ratelim, fmt.Errorf("getRemoteConv: no conv found: %s", convID)
+	}
+	return inbox.ConvsUnverified[0], ratelim, nil
+}
