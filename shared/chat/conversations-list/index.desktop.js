@@ -11,30 +11,29 @@ import type {InboxState} from '../../constants/chat'
 
 const AddNewRow = ({onNewChat}: Props) => (
   <div
-    style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, minHeight: 48, justifyContent: 'center', alignItems: 'center', flexShrink: 0}}
-    onClick={() => onNewChat()}>
-    <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
-    <Text type='BodyBigLink'>New chat</Text>
+    style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
+    <div style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, alignItems: 'center', justifyContent: 'center'}} onClick={onNewChat}>
+      <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
+      <Text type='BodyBigLink'>New chat</Text>
+    </div>
   </div>
 )
 
-const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: boolean, isSelected: boolean) => {
-  // Not the most recent? Don't color
-  if (idx !== lastParticipantIndex) {
+function rowBackgroundColor (hasUnread: boolean, isSelected: boolean) {
+  return isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
+}
+
+// All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
+// forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
+function rowBorderColor (idx: number, isLastParticipant: boolean, hasUnread: boolean, isSelected: boolean) {
+  // Only color the foreground items
+  if (isLastParticipant) {
     return undefined
   }
 
-  // Only one avatar?
-  if (lastParticipantIndex === 0) {
-    return hasUnread ? globalColors.orange : undefined
-  }
-
-  // Multiple avatars?
-  if (hasUnread) {
-    return globalColors.orange
-  }
-
-  return isSelected ? globalColors.white : globalColors.darkBlue4
+  const rowBackground = rowBackgroundColor(hasUnread, isSelected)
+  // We don't want a border if we're a single avatar
+  return !idx && isLastParticipant ? undefined : rowBackground
 }
 
 type RowProps = Props & {conversation: InboxState, unreadCount: number}
@@ -43,16 +42,17 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const participants = participantFilter(conversation.get('participants'), you)
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
+  const avatarCount = Math.min(2, participants.count())
   const hasUnread = !!unreadCount
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-    backgroundColor: isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4,
-    username,
-    borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
+    backgroundColor: rowBackgroundColor(hasUnread, isSelected),
+    borderColor: rowBorderColor(idx, idx === (avatarCount - 1), hasUnread, isSelected),
     size: 24,
-  })).toArray().reverse()
+    username,
+  })).toArray()
   const snippet = conversation.get('snippet')
   const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
-  const backgroundColor = isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.transparent
+  const backgroundColor = rowBackgroundColor(hasUnread, isSelected)
   const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
   const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
   const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
@@ -62,13 +62,13 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
       title={`${unreadCount} unread`}
       style={{...rowContainerStyle, backgroundColor}}>
-      <div style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
+      <div style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
         {isMuted && <Icon type={shhIconType} style={shhStyle} />}
       </div>
       <div style={{...globalStyles.flexBoxRow, ...conversationRowStyle, borderBottom: (!isSelected && !hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
         <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
-          <div style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
+          <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', bottom: 0, justifyContent: 'center', left: 0, position: 'absolute', right: 0, top: 0}}>
             <Usernames
               inline={true}
               type='BodySemibold'
@@ -77,13 +77,23 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
               containerStyle={{color: usernameColor, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')} />
-            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, minHeight: 15, fontSize: 11, lineHeight: '15px'}}>{snippet}</Markdown>}
+            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>}
           </div>
         </div>
-        <Text type='BodySmall' style={{...boldOverride, marginRight: globalMargins.xtiny, marginTop: globalMargins.xtiny, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        <Text type='BodySmall' style={{...boldOverride, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px', marginTop: globalMargins.xtiny}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        {hasUnread && <div style={unreadDotStyle} />}
       </div>
     </div>
   )
+}
+
+const unreadDotStyle = {
+  backgroundColor: globalColors.orange,
+  height: 6,
+  width: 6,
+  borderRadius: 3,
+  marginLeft: 4,
+  marginTop: 10,
 }
 
 const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
@@ -113,9 +123,9 @@ const shhStyle = {
 
 const conversationRowStyle = {
   flex: 1,
+  paddingBottom: 4,
   paddingRight: 8,
   paddingTop: 4,
-  paddingBottom: 4,
 }
 
 const ConversationList = (props: Props) => (
@@ -133,15 +143,15 @@ const ConversationList = (props: Props) => (
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue4,
-  maxWidth: 240,
   flex: 1,
+  maxWidth: 240,
 }
 
 const scrollableStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  willChange: 'transform',
   overflowY: 'auto',
+  willChange: 'transform',
 }
 
 const noWrapStyle = {
@@ -156,8 +166,8 @@ const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   flexShrink: 0,
-  minHeight: 48,
   maxHeight: 48,
+  minHeight: 48,
 }
 
 export default ConversationList
