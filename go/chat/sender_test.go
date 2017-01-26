@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -83,7 +84,7 @@ func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *k
 	return &kbtest.ChatTestContext{}
 }
 
-func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI) {
+func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI, kbtest.TlfMock) {
 	world := kbtest.NewChatMockWorld(t, "chatsender", numUsers)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
@@ -102,7 +103,8 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
 	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, f),
-		func() chat1.RemoteInterface { return ri })
+		func() chat1.RemoteInterface { return ri },
+		func() libkb.SecretUI { return &libkb.TestSecretUI{} })
 	tc.G.InboxSource = NewHybridInboxSource(tc.G,
 		func() keybase1.TlfInterface { return tlf },
 		func() chat1.RemoteInterface { return ri }, f)
@@ -112,11 +114,11 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
-	return world, ri, sender, baseSender, &listener, f
+	return world, ri, sender, baseSender, &listener, f, tlf
 }
 
 func TestNonblockChannel(t *testing.T) {
-	world, ri, sender, _, listener, _ := setupTest(t, 1)
+	world, ri, sender, _, listener, _, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -184,7 +186,7 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 }
 
 func TestNonblockTimer(t *testing.T) {
-	world, ri, _, baseSender, listener, f := setupTest(t, 1)
+	world, ri, _, baseSender, listener, f, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -276,7 +278,7 @@ func TestNonblockTimer(t *testing.T) {
 	typs := []chat1.MessageType{chat1.MessageType_TEXT}
 	tres, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
-	tres.Messages = storage.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
+	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
 	require.NoError(t, outbox.SprinkleIntoThread(context.TODO(), res.ConvID, &tres))
@@ -319,7 +321,7 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, 
 
 func TestFailingSender(t *testing.T) {
 
-	world, ri, sender, _, listener, _ := setupTest(t, 1)
+	world, ri, sender, _, listener, _, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -375,7 +377,7 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	world, ri, sender, baseSender, listener, _ := setupTest(t, 1)
+	world, ri, sender, baseSender, listener, _, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]

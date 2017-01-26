@@ -275,6 +275,8 @@ protocol local {
   record GetThreadQuery {
     boolean markAsRead;
     array<MessageType> messageTypes;
+    boolean disableResolveSupersedes;
+    
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
   }

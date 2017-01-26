@@ -212,6 +212,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, err := s.Prepare(ctx, msg, &convID)
 	if err != nil {
+		s.Debug(ctx, "error in Prepare: %s", err.Error())
 		return chat1.OutboxID{}, 0, nil, err
 	}
 

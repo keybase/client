@@ -18,7 +18,7 @@ import (
 
 func TestChatBackgroundIdentify(t *testing.T) {
 
-	world, _, _, _, listener, _ := setupTest(t, 2)
+	world, _, _, _, listener, _, _ := setupTest(t, 2)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]

@@ -12,17 +12,71 @@ import (
 	"golang.org/x/net/context"
 )
 
+type baseConversationSource struct {
+	libkb.Contextified
+	utils.DebugLabeler
+
+	getSecretUI func() libkb.SecretUI
+}
+
+func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *baseConversationSource {
+	return &baseConversationSource{
+		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
+		getSecretUI:  getSecretUI,
+	}
+}
+
+func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
+	finalizeInfo *chat1.ConversationFinalizeInfo) (err error) {
+
+	// Sanity check the prev pointers in this thread.
+	// TODO: We'll do this against what's in the cache once that's ready,
+	//       rather than only checking the messages we just fetched against
+	//       each other.
+	_, err = CheckPrevPointersAndGetUnpreved(thread)
+	if err != nil {
+		return err
+	}
+
+	// Resolve supersedes
+	if q == nil || !q.DisableResolveSupersedes {
+		transform := newSupersedesTransform(s.G())
+		if thread.Messages, err = transform.run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
+			return err
+		}
+	}
+
+	// Run type filter if it exists
+	thread.Messages = utils.FilterByType(thread.Messages, q)
+
+	// Fetch outbox and tack onto the result
+	outbox := storage.NewOutbox(s.G(), uid, s.getSecretUI)
+	if err = outbox.SprinkleIntoThread(ctx, convID, thread); err != nil {
+		if _, ok := err.(storage.MissError); !ok {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type RemoteConversationSource struct {
+	*baseConversationSource
+
 	libkb.Contextified
 	ri    func() chat1.RemoteInterface
 	boxer *Boxer
 }
 
-func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface) *RemoteConversationSource {
+func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface,
+	si func() libkb.SecretUI) *RemoteConversationSource {
 	return &RemoteConversationSource{
-		Contextified: libkb.NewContextified(g),
-		ri:           ri,
-		boxer:        b,
+		Contextified:           libkb.NewContextified(g),
+		baseConversationSource: newBaseConversationSource(g, si),
+		ri:    ri,
+		boxer: b,
 	}
 }
 
@@ -66,6 +120,11 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, rl, err
 	}
 
+	// Post process thread before returning
+	if err = s.postProcessThread(ctx, uid, convID, &thread, query, conv.Metadata.FinalizeInfo); err != nil {
+		return chat1.ThreadView{}, nil, err
+	}
+
 	return thread, rl, nil
 }
 
@@ -103,6 +162,7 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 type HybridConversationSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
+	*baseConversationSource
 
 	ri      func() chat1.RemoteInterface
 	boxer   *Boxer
@@ -110,13 +170,14 @@ type HybridConversationSource struct {
 }
 
 func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface) *HybridConversationSource {
+	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) *HybridConversationSource {
 	return &HybridConversationSource{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "HybridConversationSource", false),
-		ri:           ri,
-		boxer:        b,
-		storage:      storage,
+		Contextified:           libkb.NewContextified(g),
+		DebugLabeler:           utils.NewDebugLabeler(g, "HybridConversationSource", false),
+		baseConversationSource: newBaseConversationSource(g, si),
+		ri:      ri,
+		boxer:   b,
+		storage: storage,
 	}
 }
 
@@ -138,6 +199,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 
 	// Check conversation ID and change to error if it is wrong
 	if decmsg.IsValid() && !decmsg.Valid().ClientHeader.Conv.Derivable(convID) {
+		s.Debug(ctx, "invalid conversation ID detected, not derivable: %s", convID)
 		decmsg = chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
 			ErrMsg:      "invalid conversation ID",
 			MessageID:   msg.GetMessageID(),
@@ -188,10 +250,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 }
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
-
-	var err error
-	var rl []*chat1.RateLimit
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, rl []*chat1.RateLimit, err error) {
 
 	if convID.IsNil() {
 		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
@@ -200,30 +259,39 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Get conversation metadata
 	conv, ratelim, err := utils.GetRemoteConv(ctx, s.G(), uid, convID)
 	rl = append(rl, ratelim)
+
+	// Post process thread before returning
+	defer func() {
+		if err == nil {
+			err = s.postProcessThread(ctx, uid, convID, &thread, query,
+				conv.Metadata.FinalizeInfo)
+		}
+	}()
+
 	if err == nil {
 		// Try locally first
-		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
+		thread, err = s.storage.Fetch(ctx, conv, uid, query, pagination)
 		if err == nil {
 			// If found, then return the stuff
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
 			// Identify this TLF by running crypt keys
-			if ierr := s.identifyTLF(ctx, convID, uid, localData.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
+			if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
 				s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
 				return chat1.ThreadView{}, nil, ierr
 			}
 
 			// Before returning the stuff, update SenderDeviceRevokedAt on each message.
-			updatedMessages, err := s.updateMessages(ctx, localData.Messages)
+			updatedMessages, err := s.updateMessages(ctx, thread.Messages)
 			if err != nil {
 				return chat1.ThreadView{}, rl, err
 			}
-			localData.Messages = updatedMessages
+			thread.Messages = updatedMessages
 
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
-			if query != nil && query.MarkAsRead && len(localData.Messages) > 0 {
-				readMsgID := localData.Messages[0].GetMessageID()
+			if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
+				readMsgID := thread.Messages[0].GetMessageID()
 				res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
 					ConversationID: convID,
 					MsgID:          readMsgID,
@@ -238,7 +306,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				rl = append(rl, res.RateLimit)
 			}
 
-			return localData, rl, nil
+			return thread, rl, nil
 		}
 	} else {
 		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
@@ -258,14 +326,14 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Unbox
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
+	thread, err = s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
 
 	// Store locally (just warn on error, don't abort the whole thing)
 	if err = s.storage.Merge(ctx, convID, uid, thread.Messages); err != nil {
-		s.G().Log.Warning("Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
+		s.Debug(ctx, "Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
 	}
 
 	return thread, rl, nil
@@ -465,9 +533,9 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface) libkb.ConversationSource {
+	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) libkb.ConversationSource {
 	if typ == "hybrid" {
-		return NewHybridConversationSource(g, boxer, storage, ri)
+		return NewHybridConversationSource(g, boxer, storage, ri, si)
 	}
-	return NewRemoteConversationSource(g, boxer, ri)
+	return NewRemoteConversationSource(g, boxer, ri, si)
 }

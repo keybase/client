@@ -270,7 +270,7 @@ func (d *Service) createChatSources() {
 		ri, si, func() keybase1.TlfInterface { return tlf })
 
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
-		boxer, storage.New(d.G(), si), ri)
+		boxer, storage.New(d.G(), si), ri, si)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh

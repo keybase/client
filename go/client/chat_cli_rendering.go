@@ -359,21 +359,6 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	mv.MessageID = m.ServerHeader.MessageID
 	mv.FromRevokedDevice = m.SenderDeviceRevokedAt != nil
 
-	// Check what message supersedes this one.
-	var mvsup *messageView
-	supersededBy := m.ServerHeader.SupersededBy
-	if supersededBy != 0 {
-		msup, err := fetchOneMessage(g, conversationID, supersededBy)
-		if err != nil {
-			return mv, err
-		}
-		mvsupInner, err := newMessageView(g, conversationID, msup)
-		if err != nil {
-			return mv, err
-		}
-		mvsup = &mvsupInner
-	}
-
 	body := m.MessageBody
 	typ, err := body.MessageType()
 	mv.messageType = typ
@@ -384,33 +369,11 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_NONE:
 		// NONE is what you get when a message has been deleted.
 		mv.Renderable = true
-		if mvsup != nil {
-			switch mvsup.messageType {
-			case chat1.MessageType_EDIT:
-				// Use the edited body
-				mv.Body = mvsup.Body
-			case chat1.MessageType_DELETE:
-				mv.Body = deletedTextCLI
-			default:
-				// Some unknown supersedeer type
-			}
-		}
 	case chat1.MessageType_TEXT:
 		mv.Renderable = true
 		mv.Body = body.Text().Body
-		if mvsup != nil {
-			if mvsup.FromRevokedDevice {
-				mv.FromRevokedDevice = true
-			}
-			switch mvsup.messageType {
-			case chat1.MessageType_EDIT:
-				mv.Body = mvsup.Body
-			case chat1.MessageType_DELETE:
-				// This is unlikely because deleted messages are usually NONE
-				mv.Body = deletedTextCLI
-			default:
-				// Some unknown supersedeer type
-			}
+		if m.ServerHeader.SupersededBy > 0 {
+			mv.Body += " (edited)"
 		}
 	case chat1.MessageType_ATTACHMENT:
 		mv.Renderable = true
@@ -422,19 +385,6 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.ServerHeader.MessageID)
 		if att.Preview != nil {
 			mv.Body += " [preview available]"
-		}
-		if mvsup != nil {
-			if mvsup.FromRevokedDevice {
-				mv.FromRevokedDevice = true
-			}
-			switch mvsup.messageType {
-			case chat1.MessageType_EDIT:
-				// Editing attachments is not supported, ignore the edit
-			case chat1.MessageType_DELETE:
-				mv.Body = deletedTextCLI
-			default:
-				// Some unknown supersedeer type
-			}
 		}
 	case chat1.MessageType_EDIT:
 		mv.Renderable = false
