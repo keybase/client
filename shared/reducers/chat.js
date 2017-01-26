@@ -191,7 +191,7 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state
         .set('conversationStates', newConversationStates)
-        .set('inbox', sortInbox(state.get('inbox')))
+        .set('inbox', sortInbox(newInboxStates))
     }
     case 'chat:updateTempMessage': {
       if (action.error) {
