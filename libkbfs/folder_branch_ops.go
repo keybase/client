@@ -1590,8 +1590,8 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Lookup %s %s", getNodeIDStr(dir), name)
 	defer func() {
-		fbo.deferLog.CDebugf(ctx, "Lookup %s %s done: %+v",
-			getNodeIDStr(dir), name, err)
+		fbo.deferLog.CDebugf(ctx, "Lookup %s %s done: %v %+v",
+			getNodeIDStr(dir), name, getNodeIDStr(node), err)
 	}()
 
 	err = fbo.checkNode(dir)
