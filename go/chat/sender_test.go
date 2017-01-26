@@ -84,7 +84,7 @@ func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *k
 	return &kbtest.ChatTestContext{}
 }
 
-func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI) {
+func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI, kbtest.TlfMock) {
 	world := kbtest.NewChatMockWorld(t, "chatsender", numUsers)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
@@ -114,11 +114,11 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
-	return world, ri, sender, baseSender, &listener, f
+	return world, ri, sender, baseSender, &listener, f, tlf
 }
 
 func TestNonblockChannel(t *testing.T) {
-	world, ri, sender, _, listener, _ := setupTest(t, 1)
+	world, ri, sender, _, listener, _, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -186,7 +186,7 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 }
 
 func TestNonblockTimer(t *testing.T) {
-	world, ri, _, baseSender, listener, f := setupTest(t, 1)
+	world, ri, _, baseSender, listener, f, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -321,7 +321,7 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, 
 
 func TestFailingSender(t *testing.T) {
 
-	world, ri, sender, _, listener, _ := setupTest(t, 1)
+	world, ri, sender, _, listener, _, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -377,7 +377,7 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	world, ri, sender, baseSender, listener, _ := setupTest(t, 1)
+	world, ri, sender, baseSender, listener, _, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]

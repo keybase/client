@@ -530,6 +530,16 @@ func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1
 	}
 	m.world.Msgs[convID.String()] = append(m.world.Msgs[convID.String()], &msg)
 	sort.Sort(msgByMessageIDDesc{world: m.world, convID: convID})
+
+	// If this message supersedes something, track it down and set supersededBy
+	if msg.ClientHeader.Supersedes > 0 {
+		for _, wmsg := range m.world.Msgs[convID.String()] {
+			if wmsg.GetMessageID() == msg.ClientHeader.Supersedes {
+				wmsg.ServerHeader.SupersededBy = msg.GetMessageID()
+			}
+		}
+	}
+
 	return msg
 }
 

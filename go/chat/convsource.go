@@ -199,6 +199,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 
 	// Check conversation ID and change to error if it is wrong
 	if decmsg.IsValid() && !decmsg.Valid().ClientHeader.Conv.Derivable(convID) {
+		s.Debug(ctx, "invalid conversation ID detected, not derivable: %s", convID)
 		decmsg = chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
 			ErrMsg:      "invalid conversation ID",
 			MessageID:   msg.GetMessageID(),
