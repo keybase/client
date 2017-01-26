@@ -1,0 +1,129 @@
+@namespace("keybase.1")
+
+protocol GuiFileAccess {
+
+  import idl "common.avdl";
+
+/*
+  File manipulation interface
+  
+  Caller provides OpID to asynchronous method call, repeats until status is no
+  longer pending or operation is cancelled.
+ 
+  KBFS paths are expected to start with "private" or "public" - mount name is implied.
+*/
+
+  // Random GUID provided by caller 
+  fixed OpID(16);
+  
+  enum ItemType {
+    FILE,
+    DIR
+  }
+
+  record Item {
+    string path;
+    Time time;
+    int size;   // size of file or count of dir entries
+    ItemType itemType;
+  }
+
+  enum Status {
+    finished,
+    pending,
+    invalidated,
+    error
+  }
+
+  record Result {
+    Status status;
+    int progress;       // if status == pending
+    int errno;          // if status == error
+    string description; // if status == error
+  }
+
+  record ListResult {
+    array<Item> items;
+    Result result;
+  }
+
+  record FileContent {
+    bytes data
+    Result result;
+  }
+
+  /**
+   Begin list if items in directory at path
+   Return indicates error
+   Retrieve results with getList()
+   */
+  int startList(OpID opID, string path);
+
+  /**
+   Begin recursive list if items in directory at path
+   Return indicates error
+   */
+  int startListRecursive(OpID opID, string path);
+
+  /**
+   Get list if items in progress. Can indicate status of pending
+   to get more items.
+   */
+  ListResult getList(OpID opID)
+
+  /**
+   Begin copy of file or directory into filesystem 
+   */
+  int startCopyIn(OpID opID, string src, string dest);
+
+  /**
+   Begin recursive copy of file into filesystem 
+   */
+  int startCopyInRecursive(OpID opID, string src, string dest);
+
+  /**
+   Begin copy file or directory out of filesystem
+   */
+  Result startCopyOut(OpID opID, string src, string dest);
+
+  /**
+   Begin recursive copy file or directory out of filesystem
+   */
+  Result startCopyOutRecursive(OpID opID, string src, string dest);
+
+  /**
+   Begin copy file content out of filesystem
+   */
+  Result startCopyContent(OpID opID, string src);
+
+  /**
+   Retrieve content of started copy
+   */
+  FileContent getContent()
+
+  /**
+   Remove file or directory from filesystem
+   */
+  Result remove(OpID opID, string path);
+
+  /**
+   Convenience helper for generating new random value
+   */
+  Result makeOpID();
+
+  /**
+   Close OpID, cancels any pending operation.
+   Must be called after list/copy/remove
+   */
+  Result closeOpID(OpID opID);
+
+  /**
+   Check progress of pending operation
+   */
+  Result checkOp(OpID opID);
+
+  /**
+   Blocking wait for the pending operation to finish
+   */
+  int waitForOp(OpID opID);
+}
