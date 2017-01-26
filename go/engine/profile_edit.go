@@ -26,9 +26,9 @@ func (e *ProfileEdit) Run(ctx *Context) (err error) {
 		Endpoint:    "profile-edit",
 		NeedSession: true,
 		Args: libkb.HTTPArgs{
-			"bio":      libkb.S{Val: e.arg.Bio},
-			"fullname": libkb.S{Val: e.arg.FullName},
-			"location": libkb.S{Val: e.arg.Location},
+			"bio":       libkb.S{Val: e.arg.Bio},
+			"full_name": libkb.S{Val: e.arg.FullName},
+			"location":  libkb.S{Val: e.arg.Location},
 		},
 		NetContext: ctx.NetContext,
 	})
