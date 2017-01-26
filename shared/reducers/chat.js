@@ -116,12 +116,9 @@ function reducer (state: State = initialState, action: Actions) {
             .set('isRequesting', false)
         })
 
-      // Reset the unread count
-      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
-
       return state
         .set('conversationStates', newConversationStates)
-        .set('inbox', sortInbox(newInboxStates))
+        .set('inbox', sortInbox(state.get('inbox')))
     }
     case 'chat:appendMessages': {
       const appendAction: AppendMessages = action
@@ -167,7 +164,6 @@ function reducer (state: State = initialState, action: Actions) {
         }
 
         let newInbox = inbox
-          .set('unreadCount', isSelected ? 0 : inbox.get('unreadCount') + appendMessages.length)
           .set('time', message.timestamp)
 
         if (snippet) {
@@ -195,7 +191,7 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state
         .set('conversationStates', newConversationStates)
-        .set('inbox', sortInbox(newInboxStates))
+        .set('inbox', sortInbox(state.get('inbox')))
     }
     case 'chat:updateTempMessage': {
       if (action.error) {
@@ -328,12 +324,7 @@ function reducer (state: State = initialState, action: Actions) {
       state = state.set('conversationStates', newConversationStates)
       return state
     case 'chat:selectConversation':
-      const conversationIDKey = action.payload.conversationIDKey
-
-      // Set unread to zero
-      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
       return state
-        .set('inbox', newInboxStates)
     case 'chat:loadingMessages': {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
