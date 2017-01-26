@@ -1,13 +1,26 @@
 // @flow
-
-import os from 'os'
-import path from 'path'
+import crypto from 'crypto'
 import fs from 'fs'
 import fsExtra from 'fs-extra'
+import os from 'os'
+import path from 'path'
 
 function tmpFile (suffix: string): string {
   return path.join(os.tmpdir(), suffix)
 }
+
+function tmpRandFile (suffix: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(16, (err, buf) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      resolve(path.join(os.tmpdir(), buf.toString('hex') + suffix))
+    })
+  })
+}
+
 
 // TODO make this a user setting
 const downloadFolder = path.join(os.homedir(), 'Downloads')
@@ -47,4 +60,5 @@ export {
   downloadFilePath,
   exists,
   tmpFile,
+  tmpRandFile,
 }
