@@ -8,6 +8,7 @@ import {badgeAppForChat} from '../actions/chat'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {pgpKeyInSecretStoreFile} from '../constants/pgp'
 import {ConversationBadgeStateRecord} from '../constants/chat'
+
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
 
