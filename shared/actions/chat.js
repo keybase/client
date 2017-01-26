@@ -524,7 +524,7 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
       },
     })
     // It's deleted, but we don't get notified that the conversation now has
-    // one less outbox entry in it.  Gotta refresh ourselves.
+    // one less outbox entry in it.  Gotta remove it from the store ourselves.
     yield put(({
       payload: {conversationIDKey, outboxID},
       type: 'chat:removeOutboxMessage',
