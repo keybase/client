@@ -20,7 +20,7 @@ const AddNewRow = ({onNewChat}: Props) => (
 )
 
 function rowBackgroundColor (hasUnread: boolean, isSelected: boolean) {
-  return isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : undefined
+  return isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
 }
 
 function rowBorderColor (idx: number, lastParticipantIndex: number, hasUnread: boolean, isSelected: boolean) {
@@ -29,7 +29,8 @@ function rowBorderColor (idx: number, lastParticipantIndex: number, hasUnread: b
     return undefined
   }
 
-  return rowBackgroundColor(hasUnread, isSelected)
+  const rowBackground = rowBackgroundColor(hasUnread, isSelected)
+  return (rowBackground === globalColors.darkBlue4) && !lastParticipantIndex ? undefined : rowBackground
 }
 
 type RowProps = Props & {conversation: InboxState}
@@ -40,11 +41,11 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const isMuted = conversation.get('muted')
   const hasUnread = !!conversation.get('unreadCount')
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-    backgroundColor: globalColors.white,
+    backgroundColor: rowBackgroundColor(hasUnread, isSelected),
     borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
     size: 24,
     username,
-  })).toArray().reverse()
+  })).toArray()
   const snippet = conversation.get('snippet')
   const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
   const backgroundColor = rowBackgroundColor(hasUnread, isSelected)
