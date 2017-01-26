@@ -14,6 +14,7 @@ import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
   deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, CommonClientType,
   ConstantsStatusCode, ProvisionUiGPGMethod, CommonDeviceType,
   PassphraseCommonPassphraseType,
+  loginLoginProvisionedDeviceRpc,
 } from '../../constants/types/flow-types'
 import {navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
@@ -113,7 +114,6 @@ export function login (): AsyncAction {
             }
           } else {
             dispatch({
-              error: false,
               payload: undefined,
               type: Constants.loginDone,
             })
@@ -250,46 +250,24 @@ export function submitForgotPassword () : AsyncAction {
   }
 }
 
-export function autoLogin () : AsyncAction {
+export function relogin (username: string, passphrase: string) : AsyncAction {
   return dispatch => {
-    const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-    loginLoginRpc({
+    loginLoginProvisionedDeviceRpc({
       ...makeWaitingHandler(dispatch),
       callback: (error, status) => {
         if (error) {
-          console.log(error)
-          dispatch({type: Constants.loginDone, error: true, payload: error})
+          const message = 'This device is no longer provisioned.'
+          dispatch({
+            error: true,
+            payload: {message},
+            type: Constants.loginDone,
+          })
+          dispatch(setLoginFromRevokedDevice(message))
+          dispatch(navigateTo([loginTab]))
         } else {
-          dispatch({type: Constants.loginDone, payload: status})
-          dispatch(navBasedOnLoginState())
-        }
-      },
-      incomingCallMap: {
-        'keybase.1.loginUi.getEmailOrUsername': (_, response) => {
-          response.error(new RPCError('Attempting auto login', ConstantsStatusCode.scnoui))
-        },
-      },
-      param: {
-        clientType: login.ClientType.gui,
-        deviceType,
-        usernameOrEmail: '',
-      },
-    })
-  }
-}
-
-export function relogin (user: string, passphrase: string) : AsyncAction {
-  return dispatch => {
-    const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-    loginLoginRpc({
-      ...makeWaitingHandler(dispatch),
-      callback: (error, status) => {
-        if (error) {
-          console.log(error)
-          dispatch({type: Constants.loginDone, error: true, payload: error})
-        } else {
-          dispatch({type: Constants.loginDone, payload: status})
-          dispatch(navBasedOnLoginState())
+          dispatch({payload: undefined, type: Constants.loginDone})
+          dispatch(loadDevices())
+          dispatch(bootstrap())
         }
       },
       incomingCallMap: {
@@ -299,22 +277,10 @@ export function relogin (user: string, passphrase: string) : AsyncAction {
             storeSecret: true,
           })
         },
-        'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
-          const message = 'This device is no longer provisioned.'
-          response.error(new RPCError(message, ConstantsStatusCode.scgeneric))
-          dispatch({
-            type: Constants.loginDone,
-            error: true,
-            payload: {message},
-          })
-          dispatch(setLoginFromRevokedDevice(message))
-          dispatch(navigateTo([loginTab]))
-        },
       },
       param: {
-        clientType: CommonClientType.gui,
-        deviceType,
-        usernameOrEmail: user,
+        noPassphrasePrompt: false,
+        username,
       },
     })
   }
