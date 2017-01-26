@@ -27,6 +27,13 @@ protocol login {
     via email address does not work.
     */
   void login(int sessionID, string deviceType, string usernameOrEmail, ClientType clientType);
+ 
+  /**
+    Login a user only if the user is on a provisioned device.  Username is optional.
+    If noPassphrasePrompt is set, then only a stored secret will be used to unlock
+    the device keys.
+    */ 
+  void loginProvisionedDevice(int sessionID, string username, boolean noPassphrasePrompt);
 
   /**
     Login and unlock by

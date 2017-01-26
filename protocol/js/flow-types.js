@@ -1478,6 +1478,18 @@ export function loginGetConfiguredAccountsRpcPromise (request: $Exact<requestCom
   return new Promise((resolve, reject) => { loginGetConfiguredAccountsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function loginLoginProvisionedDeviceRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.login.loginProvisionedDevice'})
+}
+
+export function loginLoginProvisionedDeviceRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => loginLoginProvisionedDeviceRpc({...request, incomingCallMap, callback}))
+}
+
+export function loginLoginProvisionedDeviceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLoginProvisionedDeviceRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginLoginRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.login.login'})
 }
@@ -4655,6 +4667,11 @@ export type loginDeprovisionRpcParam = Exact<{
   doRevoke: boolean
 }>
 
+export type loginLoginProvisionedDeviceRpcParam = Exact<{
+  username: string,
+  noPassphrasePrompt: boolean
+}>
+
 export type loginLoginRpcParam = Exact<{
   deviceType: string,
   usernameOrEmail: string,
@@ -5574,6 +5591,7 @@ export type rpc =
   | loginClearStoredSecretRpc
   | loginDeprovisionRpc
   | loginGetConfiguredAccountsRpc
+  | loginLoginProvisionedDeviceRpc
   | loginLoginRpc
   | loginLoginWithPaperKeyRpc
   | loginLogoutRpc
