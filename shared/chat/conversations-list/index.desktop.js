@@ -23,6 +23,8 @@ function rowBackgroundColor (hasUnread: boolean, isSelected: boolean) {
   return isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
 }
 
+// All this complexity isn't great but the current implmentation of avatar forces us to juggle all these colors and
+// forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
 function rowBorderColor (idx: number, lastParticipantIndex: number, hasUnread: boolean, isSelected: boolean) {
   // Not the most recent? Don't color
   if (idx === lastParticipantIndex) {
