@@ -36,14 +36,14 @@ function rowBorderColor (idx: number, isLastParticipant: boolean, hasUnread: boo
   return !idx && isLastParticipant ? undefined : rowBackground
 }
 
-type RowProps = Props & {conversation: InboxState}
+type RowProps = Props & {conversation: InboxState, unreadCount: number}
 
-const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, you}: RowProps) => {
+const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, unreadCount, you}: RowProps) => {
   const participants = participantFilter(conversation.get('participants'), you)
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
-  const hasUnread = !!conversation.get('unreadCount')
   const avatarCount = Math.min(2, participants.count())
+  const hasUnread = !!unreadCount
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor: rowBackgroundColor(hasUnread, isSelected),
     borderColor: rowBorderColor(idx, idx === (avatarCount - 1), hasUnread, isSelected),
@@ -60,7 +60,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   return (
     <div
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
-      title={`${conversation.get('unreadCount')} unread`}
+      title={`${unreadCount} unread`}
       style={{...rowContainerStyle, backgroundColor}}>
       <div style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
@@ -108,6 +108,10 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
     return true
   }
 
+  if (props.unreadCount !== nextProps.unreadCount) {
+    return true
+  }
+
   return false
 })(_Row)
 
@@ -129,7 +133,7 @@ const ConversationList = (props: Props) => (
     <div style={containerStyle}>
       <AddNewRow {...props} />
       <div style={scrollableStyle}>
-        {props.inbox.map(conversation => <Row {...props} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
+        {props.inbox.map(conversation => <Row {...props} unreadCount={props.conversationUnreadCounts.get(conversation.get('conversationIDKey'))} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
       </div>
     </div>
     {props.children}

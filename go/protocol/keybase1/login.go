@@ -24,6 +24,12 @@ type LoginArg struct {
 	ClientType      ClientType `codec:"clientType" json:"clientType"`
 }
 
+type LoginProvisionedDeviceArg struct {
+	SessionID          int    `codec:"sessionID" json:"sessionID"`
+	Username           string `codec:"username" json:"username"`
+	NoPassphrasePrompt bool   `codec:"noPassphrasePrompt" json:"noPassphrasePrompt"`
+}
+
 type LoginWithPaperKeyArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -90,6 +96,10 @@ type LoginInterface interface {
 	// will be attempted.  If the device is already provisioned, login
 	// via email address does not work.
 	Login(context.Context, LoginArg) error
+	// Login a user only if the user is on a provisioned device.  Username is optional.
+	// If noPassphrasePrompt is set, then only a stored secret will be used to unlock
+	// the device keys.
+	LoginProvisionedDevice(context.Context, LoginProvisionedDeviceArg) error
 	// Login and unlock by
 	// - trying unlocked device keys if available
 	// - prompting for a paper key and using that
@@ -148,6 +158,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						return
 					}
 					err = i.Login(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"loginProvisionedDevice": {
+				MakeArg: func() interface{} {
+					ret := make([]LoginProvisionedDeviceArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoginProvisionedDeviceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoginProvisionedDeviceArg)(nil), args)
+						return
+					}
+					err = i.LoginProvisionedDevice(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -355,6 +381,14 @@ func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (
 // via email address does not work.
 func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.login", []interface{}{__arg}, nil)
+	return
+}
+
+// Login a user only if the user is on a provisioned device.  Username is optional.
+// If noPassphrasePrompt is set, then only a stored secret will be used to unlock
+// the device keys.
+func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProvisionedDeviceArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.loginProvisionedDevice", []interface{}{__arg}, nil)
 	return
 }
 

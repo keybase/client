@@ -1478,6 +1478,18 @@ export function loginGetConfiguredAccountsRpcPromise (request: $Exact<requestCom
   return new Promise((resolve, reject) => { loginGetConfiguredAccountsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function loginLoginProvisionedDeviceRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.login.loginProvisionedDevice'})
+}
+
+export function loginLoginProvisionedDeviceRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => loginLoginProvisionedDeviceRpc({...request, incomingCallMap, callback}))
+}
+
+export function loginLoginProvisionedDeviceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLoginProvisionedDeviceRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginLoginRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.login.login'})
 }
@@ -2760,6 +2772,18 @@ export function userLoadUserRpcChannelMap (channelConfig: ChannelConfig<*>, requ
 
 export function userLoadUserRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>): Promise<userLoadUserResult> {
   return new Promise((resolve, reject) => { userLoadUserRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userProfileEditRpc (request: Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.user.profileEdit'})
+}
+
+export function userProfileEditRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => userProfileEditRpc({...request, incomingCallMap, callback}))
+}
+
+export function userProfileEditRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { userProfileEditRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function userSearchRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
@@ -4655,6 +4679,11 @@ export type loginDeprovisionRpcParam = Exact<{
   doRevoke: boolean
 }>
 
+export type loginLoginProvisionedDeviceRpcParam = Exact<{
+  username: string,
+  noPassphrasePrompt: boolean
+}>
+
 export type loginLoginRpcParam = Exact<{
   deviceType: string,
   usernameOrEmail: string,
@@ -5231,6 +5260,12 @@ export type userLoadUserRpcParam = Exact<{
   uid: UID
 }>
 
+export type userProfileEditRpcParam = Exact<{
+  fullName: string,
+  location: string,
+  bio: string
+}>
+
 export type userSearchRpcParam = Exact<{
   query: string
 }>
@@ -5574,6 +5609,7 @@ export type rpc =
   | loginClearStoredSecretRpc
   | loginDeprovisionRpc
   | loginGetConfiguredAccountsRpc
+  | loginLoginProvisionedDeviceRpc
   | loginLoginRpc
   | loginLoginWithPaperKeyRpc
   | loginLogoutRpc
@@ -5681,6 +5717,7 @@ export type rpc =
   | userLoadUserByNameRpc
   | userLoadUserPlusKeysRpc
   | userLoadUserRpc
+  | userProfileEditRpc
   | userSearchRpc
 export type incomingCallMapType = Exact<{
   'keybase.1.gpgUi.wantToAddGPGKey'?: (

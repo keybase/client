@@ -156,6 +156,13 @@ type ListTrackers2Arg struct {
 	Reverse   bool   `codec:"reverse" json:"reverse"`
 }
 
+type ProfileEditArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	FullName  string `codec:"fullName" json:"fullName"`
+	Location  string `codec:"location" json:"location"`
+	Bio       string `codec:"bio" json:"bio"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -187,6 +194,7 @@ type UserInterface interface {
 	// from the server with no verification
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
 	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
+	ProfileEdit(context.Context, ProfileEditArg) error
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -433,6 +441,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"profileEdit": {
+				MakeArg: func() interface{} {
+					ret := make([]ProfileEditArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ProfileEditArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ProfileEditArg)(nil), args)
+						return
+					}
+					err = i.ProfileEdit(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -531,5 +555,10 @@ func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadA
 
 func (c UserClient) ListTrackers2(ctx context.Context, __arg ListTrackers2Arg) (res UserSummary2Set, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers2", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []interface{}{__arg}, nil)
 	return
 }

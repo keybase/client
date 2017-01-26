@@ -58,6 +58,24 @@
       "response": null,
       "doc": "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile.  usernameOrEmail is optional.\n    If the current device isn't provisioned, this function will\n    provision it.\n\n    Note that if usernameOrEmail is an email address, only provisioning\n    will be attempted.  If the device is already provisioned, login\n    via email address does not work."
     },
+    "loginProvisionedDevice": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "noPassphrasePrompt",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "Login a user only if the user is on a provisioned device.  Username is optional.\n    If noPassphrasePrompt is set, then only a stored secret will be used to unlock\n    the device keys."
+    },
     "loginWithPaperKey": {
       "request": [
         {
