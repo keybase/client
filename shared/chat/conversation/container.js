@@ -13,7 +13,7 @@ import {getProfile} from '../../actions/tracker'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType, OpenAttachmentPopup} from '../../constants/chat'
+import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType, OpenAttachmentPopup, OutboxIDKey} from '../../constants/chat'
 import type {Props} from '.'
 
 type OwnProps = {}
@@ -124,7 +124,7 @@ export default connect(
     onOpenInPopup: (message: AttachmentMessage) => dispatch(({type: 'chat:openAttachmentPopup', payload: {message}}: OpenAttachmentPopup)),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
-    onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
+    onRetryMessage: (conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => dispatch(retryMessage(conversationIDKey, outboxID)),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
   }),
@@ -148,6 +148,7 @@ export default connect(
       onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
       onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
+      onRetryMessage: (outboxID: OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
     }
   },
 )(ConversationContainer)

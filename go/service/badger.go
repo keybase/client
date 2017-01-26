@@ -79,7 +79,7 @@ func (b *Badger) send() error {
 	if err != nil {
 		return err
 	}
-	b.G().Log.Debug("Badger send (total:%v ucm:%v)", state.Total, state.UnreadChatMessages)
+	b.G().Log.Debug("Badger send")
 	b.G().NotifyRouter.HandleBadgeState(state)
 	return nil
 }

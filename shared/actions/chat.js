@@ -222,8 +222,8 @@ function setupChatHandlers (): SetupChatHandlers {
   return {type: 'chat:setupChatHandlers', payload: undefined}
 }
 
-function retryMessage (outboxIDKey: string): RetryMessage {
-  return {type: 'chat:retryMessage', payload: {outboxIDKey}, logTransformer: retryMessageActionTransformer}
+function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string): RetryMessage {
+  return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
 function loadInbox (newConversationIDKey: ?ConversationIDKey): LoadInbox {
@@ -368,7 +368,18 @@ function * _clientHeader (messageType: ChatTypes.MessageType, conversationIDKey,
 }
 
 function * _retryMessage (action: RetryMessage): SagaGenerator<any, any> {
-  const {outboxIDKey} = action.payload
+  const {conversationIDKey, outboxIDKey} = action.payload
+
+  yield put(({
+    payload: {
+      conversationIDKey,
+      message: {
+        messageState: 'pending',
+      },
+      outboxID: outboxIDKey,
+    },
+    type: 'chat:updateTempMessage',
+  }: Constants.UpdateTempMessage))
 
   yield call(localRetryPostRpcPromise, {
     param: {
@@ -714,7 +725,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const followingSelector = (state: TypedState) => state.config.following
 
-function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
+function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -764,7 +775,7 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
       incoming.chatInboxConversation.response.result()
       let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
       if (conversation) {
-        if (action.payload.newConversationIDKey) {
+        if (action && action.payload.newConversationIDKey) {
           conversation = conversation.set('showEvenIfEmpty', true)
         }
         yield put({type: 'chat:updateInbox', payload: {conversation}})
@@ -1101,7 +1112,7 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
   // Don't send sharing before signup values
   const metaData = yield select(_metaDataSelector)
-  const usernames = action.payload.users.filter(name => !metaData.getIn([name, 'fullname']) && name.indexOf('@') === -1)
+  const usernames = action.payload.users.filter(name => metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1)
   if (!usernames.length) {
     return
   }

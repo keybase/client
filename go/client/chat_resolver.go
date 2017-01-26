@@ -116,16 +116,32 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 		return nil, err
 	}
 
-	gilres, err := r.ChatClient.GetInboxAndUnboxLocal(ctx, arg)
+	// Convert argument
+	var fcArg chat1.FindConversationsLocalArg
+	if arg.Query.TlfName != nil {
+		fcArg.TlfName = *arg.Query.TlfName
+	}
+	if arg.Query.TlfVisibility != nil {
+		fcArg.Visibility = *arg.Query.TlfVisibility
+	}
+	if arg.Query.TopicType != nil {
+		fcArg.TopicType = *arg.Query.TopicType
+	}
+	if arg.Query.TopicName != nil {
+		fcArg.TopicName = *arg.Query.TopicName
+	}
+	fcArg.IdentifyBehavior = identifyBehavior
+
+	res, err := r.ChatClient.FindConversationsLocal(ctx, fcArg)
 	if err != nil {
 		return nil, err
 	}
 
-	return gilres.Conversations, nil
+	return res.Conversations, nil
 }
 
 func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Context, req chatConversationResolvingRequest, conversations []chat1.ConversationLocal) (
-	conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
+	conversation *chat1.ConversationLocal, userChosen bool, err error) {
 	switch len(conversations) {
 	case 0:
 		fallthrough
@@ -147,12 +163,12 @@ func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Con
 				continue
 			}
 		}
-		return &conversations[num-1].Info, true, nil
+		return &conversations[num-1], true, nil
 	}
 }
 
 func (r *chatConversationResolver) create(ctx context.Context, req chatConversationResolvingRequest) (
-	conversationInfo *chat1.ConversationInfoLocal, err error) {
+	conversationInfo *chat1.ConversationLocal, err error) {
 	var newConversation string
 	if req.TopicType == chat1.TopicType_CHAT {
 		newConversation = fmt.Sprintf("Creating a new %s %s conversation", req.Visibility, req.TopicType)
@@ -188,11 +204,11 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 	if err != nil {
 		return nil, fmt.Errorf("creating conversation error: %v\n", err)
 	}
-	return &ncres.Conv.Info, err
+	return &ncres.Conv, err
 }
 
 func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversationResolvingRequest, behavior chatConversationResolvingBehavior) (
-	conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
+	conversation *chat1.ConversationLocal, userChosen bool, err error) {
 	req.ctx = &chatConversationResolvingRequestContext{}
 
 	conversations, err := r.resolveWithService(ctx, req, behavior.IdentifyBehavior)
@@ -203,18 +219,19 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 	switch len(conversations) {
 	case 0:
 		if behavior.CreateIfNotExists {
-			conversationInfo, err = r.create(ctx, req)
+			conversation, err = r.create(ctx, req)
 			if err != nil {
 				return nil, false, err
 			}
-			return conversationInfo, false, nil
+			return conversation, false, nil
 		}
 		return nil, false, errors.New("no conversation found")
 	case 1:
 		if conversations[0].Error != nil {
 			return nil, false, errors.New(conversations[0].Error.Message)
 		}
-		info := conversations[0].Info
+		conversation := conversations[0]
+		info := conversation.Info
 		if req.TlfName != info.TlfName {
 			// This must be:
 			//
@@ -228,13 +245,13 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 			if info.Triple.TopicType == chat1.TopicType_CHAT {
 				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation: %s\n",
 					info.Visibility,
-					info.Triple.TopicType, info.TLFNameExpandedSummary())
+					info.Triple.TopicType, conversation.Info.TLFNameExpandedSummary())
 			} else {
 				r.G.UI.GetTerminalUI().Printf("Found %s %s conversation [%s]: %s\n",
 					info.Visibility, info.Triple.TopicType, info.TopicName, info.TLFNameExpandedSummary())
 			}
 		}
-		return &info, false, nil
+		return &conversation, false, nil
 	default:
 		if behavior.Interactive {
 			return r.resolveWithCliUIInteractively(ctx, req, conversations)

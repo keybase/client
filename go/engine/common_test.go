@@ -62,6 +62,11 @@ func (fu FakeUser) NormalizedUsername() libkb.NormalizedUsername {
 	return libkb.NewNormalizedUsername(fu.Username)
 }
 
+func (fu FakeUser) UID() keybase1.UID {
+	// All new-style names will have a 1-to-1 mapping
+	return libkb.UsernameToUID(fu.Username)
+}
+
 func NewFakeUserOrBust(tb testing.TB, prefix string) (fu *FakeUser) {
 	var err error
 	if fu, err = NewFakeUser(prefix); err != nil {

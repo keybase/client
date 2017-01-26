@@ -57,7 +57,26 @@ def doBuild() {
     bat '''
         if EXIST src\\github.com\\keybase\\client\\shared\\desktop\\release rmdir /q /s src\\github.com\\keybase\\client\\shared\\desktop\\release
         path
-    '''                
+    '''
+    stage('Wait for CI') {
+        if (UpdateChannel == "SmokeCI"){
+            def clientCommit = getCommit('src\\github.com\\keybase\\client')
+            def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
+            withCredentials([[
+                $class: 'StringBinding',
+                credentialsId: 'GITHUB_TOKEN',
+                variable: 'GITHUB_TOKEN'
+                ]]) {
+                dir('src\\github.com\\keybase\\release') {
+                    bat 'go build'
+                    bat "release wait-ci --repo=\"client\" --commit=\"${clientCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
+                    bat "release wait-ci --repo=\"kbfs\" --commit=\"${kbfsCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
+                }
+            }
+        } else {
+            echo "Non CI build"
+        }
+    }                
     stage('Build Client') {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
     } 
@@ -88,7 +107,7 @@ def doBuild() {
 
     
     stage('Invoke SmokeB build') {
-        if (UpdateChannel == "Smoke"){
+        if (UpdateChannel == "Smoke" || UpdateChannel == "SmokeCI"){
             // Smoke A json
             publish("prerelease.keybase.io/windows-support", 
                 "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json",

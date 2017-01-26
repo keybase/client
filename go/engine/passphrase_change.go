@@ -94,40 +94,7 @@ func (c *PassphraseChange) Run(ctx *Context) (err error) {
 
 // findDeviceKeys looks for device keys and unlocks them.
 func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
-	// need to be logged in to get a device key (unlocked)
-	lin, _, err := IsLoggedIn(c, ctx)
-	if err != nil {
-		return nil, err
-	}
-	if !lin {
-		return nil, libkb.LoginRequiredError{}
-	}
-
-	// Get unlocked device for decryption and signing
-	// passing in nil SecretUI since we don't know the passphrase.
-	c.G().Log.Debug("runForcedUpdate: getting device encryption key")
-	parg := libkb.SecretKeyPromptArg{
-		LoginContext: ctx.LoginContext,
-		Ska: libkb.SecretKeyArg{
-			Me:      c.me,
-			KeyType: libkb.DeviceEncryptionKeyType,
-		},
-		Reason: "change passphrase",
-	}
-	encKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(parg)
-	if err != nil {
-		return nil, err
-	}
-	c.G().Log.Debug("runForcedUpdate: got device encryption key")
-	c.G().Log.Debug("runForcedUpdate: getting device signing key")
-	parg.Ska.KeyType = libkb.DeviceSigningKeyType
-	sigKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(parg)
-	if err != nil {
-		return nil, err
-	}
-	c.G().Log.Debug("runForcedUpdate: got device signing key")
-
-	return &keypair{encKey: encKey, sigKey: sigKey}, nil
+	return findDeviceKeys(ctx, c, c.me)
 }
 
 // findPaperKeys checks if the user has paper keys.  If he/she

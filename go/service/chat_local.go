@@ -481,20 +481,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		arg.Limit.AtMost = int(^uint(0) >> 1) // maximum int
 	}
 
-	ibres, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-		Query: &chat1.GetInboxLocalQuery{
-			ConvID: &arg.ConversationId,
-		},
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	})
-	if err != nil {
-		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationId, err)
-	}
-	rlimits = append(rlimits, ibres.RateLimits...)
-	if len(ibres.Conversations) != 1 {
-		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("unexpected number (%d) of conversation; need 1", len(ibres.Conversations))
-	}
-	convLocal := ibres.Conversations[0]
+	convLocal := arg.Conv
 
 	var since time.Time
 	if arg.Since != nil {
@@ -514,7 +501,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 
 	tv, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-		ConversationID:   arg.ConversationId,
+		ConversationID:   convLocal.Info.Id,
 		Query:            &query,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
@@ -573,7 +560,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
 	// could need expansion.  Look up the conversation metadata.
 	uid := h.G().Env.GetUID()
-	conv, rl, err := h.G().InboxSource.ReadRemote(ctx, uid.ToBytes(), arg.ConversationID)
+	conv, rl, err := utils.GetRemoteConv(ctx, h.G(), uid.ToBytes(), arg.ConversationID)
 	if err != nil {
 		return deflt, err
 	}
@@ -1302,4 +1289,88 @@ func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat
 	}
 
 	h.G().Log.Debug("deleted %d assets", len(assets))
+}
+
+func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
+	arg chat1.FindConversationsLocalArg) (res chat1.FindConversationsLocalRes, err error) {
+	defer h.Trace(ctx, func() error { return err }, "FindConversationsLocal")()
+
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	uid := h.G().Env.GetUID()
+
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+
+	// First look in the local user inbox
+	query := chat1.GetInboxLocalQuery{
+		TlfName:       &arg.TlfName,
+		TlfVisibility: &arg.Visibility,
+		TopicType:     &arg.TopicType,
+		TopicName:     &arg.TopicName,
+	}
+	inbox, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+		Query:            &query,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	})
+	if err != nil {
+		return res, err
+	}
+	res.RateLimits = append(res.RateLimits, inbox.RateLimits...)
+	res.IdentifyFailures = inbox.IdentifyFailures
+
+	// If we have inbox hits, return those
+	if len(inbox.Conversations) > 0 {
+		h.Debug(ctx, "FindConversation: found conversations in inbox: tlfName: %s num: %d",
+			arg.TlfName, len(inbox.Conversations))
+		res.Conversations = inbox.Conversations
+	} else if arg.Visibility == chat1.TLFVisibility_PUBLIC {
+		h.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
+
+		// If we miss the inbox, and we are looking for a public TLF, let's try and find
+		// any conversation that matches
+		_, tlfInfo, err := chat.GetInboxQueryLocalToRemote(ctx, h.tlf, &query)
+		if err != nil {
+			return res, err
+		}
+
+		// Call into gregor to try and find some public convs
+		pubConvs, err := h.remoteClient().GetPublicConversations(ctx, chat1.GetPublicConversationsArg{
+			TlfID:     tlfInfo.ID,
+			TopicType: arg.TopicType,
+		})
+		if err != nil {
+			return res, err
+		}
+		if pubConvs.RateLimit != nil {
+			res.RateLimits = append(res.RateLimits, *pubConvs.RateLimit)
+		}
+
+		// Localize the convs (if any)
+		if len(pubConvs.Conversations) > 0 {
+			localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface {
+				return h.tlf
+			})
+			convsLocal, err := localizer.Localize(ctx, uid.ToBytes(), chat1.Inbox{
+				ConvsUnverified: pubConvs.Conversations,
+			})
+			if err != nil {
+				return res, nil
+			}
+
+			// Search for conversations that match the topic name
+			for _, convLocal := range convsLocal {
+				if convLocal.Info.TopicName == arg.TopicName {
+					h.Debug(ctx, "FindConversation: found matching public conv: id: %s topicName: %s",
+						convLocal.GetConvID(), arg.TopicName)
+					res.Conversations = append(res.Conversations, convLocal)
+				}
+			}
+		}
+
+	}
+
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
+	return res, nil
 }

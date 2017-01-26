@@ -27,6 +27,8 @@ class Engine {
   _failOnError: boolean = false
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
+  // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
+  _hasConnected: boolean = false
 
   constructor () {
     this._setupClient()
@@ -90,6 +92,7 @@ class Engine {
 
   // Called when we reconnect to the server
   _onConnected () {
+    this._hasConnected = true
     if (!this._onConnectHandlers) {
       return
     }
@@ -271,8 +274,8 @@ class Engine {
       throw new Error('Null callback sent to listenOnDisconnect')
     }
 
-    // The transport is already disconnected, so let's call this function right away
-    if (this._rpcClient.transport.needsConnect) {
+    // If we've actually connected and are now disconnected lets call this immediately
+    if (this._hasConnected && this._rpcClient.transport.needsConnect) {
       f()
     }
 

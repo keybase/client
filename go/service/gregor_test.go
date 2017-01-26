@@ -106,6 +106,8 @@ func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                  
 func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                        {}
 func (n *nlistener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
+func (n *nlistener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
+}
 func (n *nlistener) ChatInboxStale(uid keybase1.UID) {}
 func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
 	select {
@@ -646,7 +648,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	t.Logf("client sync complete")
 
 	bs = listener.getBadgeState(t)
-	require.Equal(t, 1, bs.Total, "no more badges")
+	require.Equal(t, 1, bs.NewTlfs, "no more badges")
 }
 
 // TestGregorBadgesOOBM doesn't actually use out of band messages.
@@ -677,9 +679,8 @@ func TestGregorBadgesOOBM(t *testing.T) {
 	}, 1)
 
 	bs := listener.getBadgeState(t)
-	require.Equal(t, 2, bs.UnreadChatConversations, "unread chat convs")
-	require.Equal(t, 4, bs.UnreadChatMessages, "unread chat messages")
-	require.Equal(t, 2, bs.Total, "total badge count")
+	require.Equal(t, 2, badgeStateStats(bs).UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 4, badgeStateStats(bs).UnreadChatMessages, "unread chat messages")
 
 	t.Logf("resyncing")
 	// Instead of calling badger.Resync, reach in and twiddle the knobs.
@@ -692,16 +693,14 @@ func TestGregorBadgesOOBM(t *testing.T) {
 	})
 	h.badger.send()
 	bs = listener.getBadgeState(t)
-	require.Equal(t, 1, bs.UnreadChatConversations, "unread chat convs")
-	require.Equal(t, 3, bs.UnreadChatMessages, "unread chat messages")
-	require.Equal(t, 1, bs.Total, "total badge count")
+	require.Equal(t, 1, badgeStateStats(bs).UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 3, badgeStateStats(bs).UnreadChatMessages, "unread chat messages")
 
 	t.Logf("clearing")
 	h.badger.Clear(context.TODO())
 	bs = listener.getBadgeState(t)
-	require.Equal(t, 0, bs.UnreadChatConversations, "unread chat convs")
-	require.Equal(t, 0, bs.UnreadChatMessages, "unread chat messages")
-	require.Equal(t, 0, bs.Total, "total badge count")
+	require.Equal(t, 0, badgeStateStats(bs).UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 0, badgeStateStats(bs).UnreadChatMessages, "unread chat messages")
 }
 
 func TestSyncDismissalExistingState(t *testing.T) {
@@ -835,4 +834,19 @@ func TestBroadcastRepeat(t *testing.T) {
 		}
 	}
 
+}
+
+type BadgeStateStats struct {
+	UnreadChatConversations int
+	UnreadChatMessages      int
+}
+
+func badgeStateStats(bs keybase1.BadgeState) (res BadgeStateStats) {
+	for _, c := range bs.Conversations {
+		res.UnreadChatMessages += c.UnreadMessages
+		if c.UnreadMessages > 0 {
+			res.UnreadChatConversations++
+		}
+	}
+	return
 }

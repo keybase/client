@@ -102,6 +102,10 @@ protocol common {
     gregor1.Time resetTimestamp;
   }
 
+  record ConversationResolveInfo {
+    string newTLFName;
+  }
+
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;

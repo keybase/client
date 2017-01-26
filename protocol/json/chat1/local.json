@@ -1216,8 +1216,8 @@
           "name": "limit"
         },
         {
-          "type": "ConversationID",
-          "name": "conversationId",
+          "type": "ConversationLocal",
+          "name": "conv",
           "lint": "ignore"
         }
       ]
@@ -1305,6 +1305,33 @@
       "type": "record",
       "name": "DownloadAttachmentLocalRes",
       "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FindConversationsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
         {
           "type": {
             "type": "array",
@@ -1802,6 +1829,31 @@
         }
       ],
       "response": "MarkAsReadRes"
+    },
+    "findConversationsLocal": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "visibility",
+          "type": "TLFVisibility"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
+          "name": "topicName",
+          "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "FindConversationsLocalRes"
     }
   },
   "namespace": "chat.1"

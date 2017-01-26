@@ -48,6 +48,8 @@ func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDW
 }
 func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
+func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
+}
 func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
 func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
@@ -475,4 +477,77 @@ func TestDisconnectedFailure(t *testing.T) {
 	}
 	require.Equal(t, len(obids), len(listener.obids), "wrong amount of successes")
 	require.Equal(t, obids, listener.obids, "wrong obids for successes")
+}
+
+// The sender is responsible for making sure that a deletion of a single
+// message is expanded to include all of its edits.
+func TestDeletionHeaders(t *testing.T) {
+	world, ri, _, blockingSender, _, _ := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple: chat1.ConversationIDTriple{
+			Tlfid:     []byte{4, 5, 6},
+			TopicType: 0,
+			TopicID:   []byte{0},
+		},
+		TLFMessage: chat1.MessageBoxed{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:   u.Username,
+				TlfPublic: false,
+			},
+			KeyGeneration: 1,
+		},
+	})
+	require.NoError(t, err)
+
+	// Send a message and an edit.
+	_, firstMessageID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+	}, 0)
+	require.NoError(t, err)
+	_, editID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_EDIT,
+			Supersedes:  firstMessageID,
+		},
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: firstMessageID, Body: "bar"}),
+	}, 0)
+	require.NoError(t, err)
+
+	// Now prepare a deletion.
+	deletion := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  firstMessageID,
+		},
+		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
+	}
+	preparedDeletion, err := blockingSender.Prepare(context.TODO(), deletion, &res.ConvID)
+	require.NoError(t, err)
+
+	// Assert that the deletion gets the edit too.
+	deletedIDs := map[chat1.MessageID]bool{}
+	for _, id := range preparedDeletion.ClientHeader.Deletes {
+		deletedIDs[id] = true
+	}
+	if len(deletedIDs) != 2 {
+		t.Fatalf("expected 2 deleted IDs, found %d", len(deletedIDs))
+	}
+	if !deletedIDs[firstMessageID] {
+		t.Fatalf("expected message #%d to be deleted", firstMessageID)
+	}
+	if !deletedIDs[3] {
+		t.Fatalf("expected message #%d to be deleted", editID)
+	}
 }

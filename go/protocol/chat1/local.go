@@ -832,11 +832,11 @@ type GetInboxSummaryForCLILocalRes struct {
 }
 
 type GetConversationForCLILocalQuery struct {
-	MarkAsRead     bool                `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes   []MessageType       `codec:"MessageTypes" json:"MessageTypes"`
-	Since          *string             `codec:"Since,omitempty" json:"Since,omitempty"`
-	Limit          UnreadFirstNumLimit `codec:"limit" json:"limit"`
-	ConversationId ConversationID      `codec:"conversationId" json:"conversationId"`
+	MarkAsRead   bool                `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes []MessageType       `codec:"MessageTypes" json:"MessageTypes"`
+	Since        *string             `codec:"Since,omitempty" json:"Since,omitempty"`
+	Limit        UnreadFirstNumLimit `codec:"limit" json:"limit"`
+	Conv         ConversationLocal   `codec:"conv" json:"conv"`
 }
 
 type GetConversationForCLILocalRes struct {
@@ -862,6 +862,12 @@ type LocalFileSource struct {
 }
 
 type DownloadAttachmentLocalRes struct {
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+type FindConversationsLocalRes struct {
+	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
@@ -1012,6 +1018,14 @@ type MarkAsReadLocalArg struct {
 	MsgID          MessageID      `codec:"msgID" json:"msgID"`
 }
 
+type FindConversationsLocalArg struct {
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
+	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
+	TopicName        string                       `codec:"topicName" json:"topicName"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
@@ -1033,6 +1047,7 @@ type LocalInterface interface {
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, OutboxID) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadRes, error)
+	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1359,6 +1374,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"findConversationsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]FindConversationsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FindConversationsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FindConversationsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.FindConversationsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1468,5 +1499,10 @@ func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err erro
 
 func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalArg) (res MarkAsReadRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.markAsReadLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConversationsLocalArg) (res FindConversationsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.findConversationsLocal", []interface{}{__arg}, &res)
 	return
 }

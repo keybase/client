@@ -19,7 +19,26 @@ describe('Markdown parser', () => {
   })
 
   it('parses urls correctly', () => {
-    const ast = parser.parse('This should ignore a...b but include mailto:blah@blah.com http://keybase.io https://keybase.io HTTP://cnn.com http://twitter.com google.com amazon.co.uk. We want to ignore extra chars when links end a sentence like keybase.io, or keybase.io. or keybase.io?')
+    const ast = parser.parse(`
+  Ignore:
+    a...b,
+    ftp://blah.com,
+    gopher://blah.com,
+    mailto:blah@blah.com
+  Include:
+    http://keybase.io
+    https://keybase.io
+    HTTP://cnn.com
+    http://twitter.com
+    google.com
+    amazon.co.uk.
+    keybase.io,
+    keybase.io.
+    keybase.io?
+    keybase.io/a/user/lookup?one=1&two=2
+    keybase.io?blah=true
+    http://keybase.io/blah/../up-one/index.html
+`)
     expect(ast).toMatchSnapshot()
   })
 })

@@ -207,7 +207,7 @@ func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.Secr
 	switch {
 	case strings.HasPrefix(line, "D "):
 		res = &keybase1.SecretEntryRes{Text: resDecode(line[2:])}
-	case strings.HasPrefix(line, "ERR 83886179 canceled"):
+	case strings.HasPrefix(line, "ERR 83886179 canceled") || strings.HasPrefix(line, "ERR 83886179 Operation cancelled"):
 		res = &keybase1.SecretEntryRes{Canceled: true}
 	case line == "OK":
 		res = &keybase1.SecretEntryRes{}

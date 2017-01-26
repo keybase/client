@@ -69,6 +69,12 @@ function updateConversationMessage (conversationStates: ConversationsStates, con
   )
 }
 
+function sortInbox (inbox: List<InboxState>): List<InboxState> {
+  return inbox.sort((a, b) => {
+    return b.get('time') - a.get('time')
+  })
+}
+
 function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
@@ -115,7 +121,7 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state
         .set('conversationStates', newConversationStates)
-        .set('inbox', newInboxStates)
+        .set('inbox', sortInbox(newInboxStates))
     }
     case 'chat:appendMessages': {
       const appendAction: AppendMessages = action
@@ -155,13 +161,10 @@ function reducer (state: State = initialState, action: Actions) {
       const author = message.type === 'Text' && message.author
       // Update snippets / unread / participant order
 
-      let updatedIdx = -1
       let newInboxStates = state.get('inbox').map((inbox, inboxIdx) => {
         if (inbox.get('conversationIDKey') !== conversationIDKey) {
           return inbox
         }
-
-        updatedIdx = inboxIdx
 
         let newInbox = inbox
           .set('unreadCount', isSelected ? 0 : inbox.get('unreadCount') + appendMessages.length)
@@ -190,14 +193,9 @@ function reducer (state: State = initialState, action: Actions) {
         return newInbox
       })
 
-      if (updatedIdx !== -1) {
-        const newFirst = newInboxStates.get(updatedIdx)
-        newInboxStates = newInboxStates.delete(updatedIdx).unshift(newFirst)
-      }
-
       return state
         .set('conversationStates', newConversationStates)
-        .set('inbox', newInboxStates)
+        .set('inbox', sortInbox(newInboxStates))
     }
     case 'chat:updateTempMessage': {
       if (action.error) {
@@ -349,23 +347,19 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:loadedInbox':
       // Don't overwrite existing verified inbox data
       const existingRows = state.get('inbox')
-      return state.set('inbox', action.payload.inbox.map(newRow => {
+      return state.set('inbox', sortInbox(action.payload.inbox.map(newRow => {
         const id = newRow.get('conversationIDKey')
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
         return existingRow || newRow
-      }))
+      })))
     case 'chat:updateInboxComplete':
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
     case 'chat:updateInbox':
       const convo: InboxState = action.payload.conversation
       const toFind = convo.get('conversationIDKey')
-      return state.set('inbox', state.get('inbox').map(i => {
-        if (i.get('conversationIDKey') === toFind) {
-          return convo
-        } else {
-          return i
-        }
-      }))
+      const oldInbox = state.get('inbox')
+      const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
+      return state.set('inbox', sortInbox(oldInbox.set(existing ? existing[0] : -1, convo)))
     case 'chat:updateBrokenTracker':
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')

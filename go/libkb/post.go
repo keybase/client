@@ -9,6 +9,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 type PostProofRes struct {
@@ -213,4 +214,18 @@ func CheckInvitationCode(code string) error {
 	}
 	_, err := G.API.Get(arg)
 	return err
+}
+
+func GetInvitationCode(net context.Context, g *GlobalContext) (string, error) {
+	arg := APIArg{
+		Endpoint:    "invitation_bypass_request",
+		NeedSession: false,
+		NetContext:  net,
+	}
+	res, err := g.API.Get(arg)
+	var invitationID string
+	if err == nil {
+		invitationID, err = res.Body.AtKey("invitation_id").GetString()
+	}
+	return invitationID, err
 }

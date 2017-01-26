@@ -143,6 +143,10 @@ IF %UpdateChannel% EQU Smoke (
 IF %UpdateChannel% EQU Smoke2 (
   set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
 )
+IF %UpdateChannel% EQU SmokeCI (
+  set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
+)
+
 echo %JSON_UPDATE_FILENAME%
 
 :: Run keybase sign to get signature of update

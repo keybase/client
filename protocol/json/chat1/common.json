@@ -263,6 +263,16 @@
     },
     {
       "type": "record",
+      "name": "ConversationResolveInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "newTLFName"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationMetadata",
       "fields": [
         {

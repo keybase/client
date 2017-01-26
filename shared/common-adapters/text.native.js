@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import openURL from '../util/open-url'
 import {NativeText} from './native-wrappers.native'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 
@@ -14,6 +15,10 @@ class Text extends Component<void, Props, void> {
     }
   }
 
+  _urlClick = () => {
+    this.props.onClickURL && openURL(this.props.onClickURL)
+  }
+
   render () {
     const style = {
       ...getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
@@ -24,7 +29,7 @@ class Text extends Component<void, Props, void> {
       ref={ref => { this._nativeText = ref }}
       style={style}
       {...lineClamp(this.props.lineClamp)}
-      onPress={this.props.onClick}>{this.props.children}</NativeText>
+      onPress={this.props.onClick || this._urlClick}>{this.props.children}</NativeText>
   }
 }
 

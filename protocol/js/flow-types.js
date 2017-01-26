@@ -1478,6 +1478,18 @@ export function loginGetConfiguredAccountsRpcPromise (request: $Exact<requestCom
   return new Promise((resolve, reject) => { loginGetConfiguredAccountsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function loginLoginProvisionedDeviceRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.login.loginProvisionedDevice'})
+}
+
+export function loginLoginProvisionedDeviceRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => loginLoginProvisionedDeviceRpc({...request, incomingCallMap, callback}))
+}
+
+export function loginLoginProvisionedDeviceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLoginProvisionedDeviceRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginLoginRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.login.login'})
 }
@@ -1488,6 +1500,18 @@ export function loginLoginRpcChannelMap (channelConfig: ChannelConfig<*>, reques
 
 export function loginLoginRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { loginLoginRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginLoginWithPaperKeyRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.login.loginWithPaperKey'})
+}
+
+export function loginLoginWithPaperKeyRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => loginLoginWithPaperKeyRpc({...request, incomingCallMap, callback}))
+}
+
+export function loginLoginWithPaperKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLoginWithPaperKeyRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function loginLogoutRpc (request: Exact<requestCommon & requestErrorCallback>) {
@@ -2354,6 +2378,18 @@ export function signupCheckUsernameAvailableRpcPromise (request: $Exact<requestC
   return new Promise((resolve, reject) => { signupCheckUsernameAvailableRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function signupGetInvitationCodeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.signup.getInvitationCode'})
+}
+
+export function signupGetInvitationCodeRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => signupGetInvitationCodeRpc({...request, incomingCallMap, callback}))
+}
+
+export function signupGetInvitationCodeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupGetInvitationCodeResult) => void}>): Promise<signupGetInvitationCodeResult> {
+  return new Promise((resolve, reject) => { signupGetInvitationCodeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function signupInviteRequestRpc (request: Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.signup.inviteRequest'})
 }
@@ -2738,6 +2774,18 @@ export function userLoadUserRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => { userLoadUserRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function userProfileEditRpc (request: Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.user.profileEdit'})
+}
+
+export function userProfileEditRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => userProfileEditRpc({...request, incomingCallMap, callback}))
+}
+
+export function userProfileEditRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { userProfileEditRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userSearchRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.user.search'})
 }
@@ -2768,12 +2816,9 @@ export type BadgeConversationInfo = {
 }
 
 export type BadgeState = {
-  total: int,
   newTlfs: int,
   rekeysNeeded: int,
   newFollowers: int,
-  unreadChatMessages: int,
-  unreadChatConversations: int,
   conversations?: ?Array<BadgeConversationInfo>,
 }
 
@@ -4634,6 +4679,11 @@ export type loginDeprovisionRpcParam = Exact<{
   doRevoke: boolean
 }>
 
+export type loginLoginProvisionedDeviceRpcParam = Exact<{
+  username: string,
+  noPassphrasePrompt: boolean
+}>
+
 export type loginLoginRpcParam = Exact<{
   deviceType: string,
   usernameOrEmail: string,
@@ -5210,6 +5260,12 @@ export type userLoadUserRpcParam = Exact<{
   uid: UID
 }>
 
+export type userProfileEditRpcParam = Exact<{
+  fullName: string,
+  location: string,
+  bio: string
+}>
+
 export type userSearchRpcParam = Exact<{
   query: string
 }>
@@ -5408,6 +5464,8 @@ type secretUiGetPassphraseResult = GetPassphraseRes
 
 type sessionCurrentSessionResult = Session
 
+type signupGetInvitationCodeResult = string
+
 type signupSignupResult = SignupRes
 
 type sigsSigListJSONResult = string
@@ -5551,7 +5609,9 @@ export type rpc =
   | loginClearStoredSecretRpc
   | loginDeprovisionRpc
   | loginGetConfiguredAccountsRpc
+  | loginLoginProvisionedDeviceRpc
   | loginLoginRpc
+  | loginLoginWithPaperKeyRpc
   | loginLogoutRpc
   | loginPaperKeyRpc
   | loginPaperKeySubmitRpc
@@ -5624,6 +5684,7 @@ export type rpc =
   | sessionSessionPingRpc
   | signupCheckInvitationCodeRpc
   | signupCheckUsernameAvailableRpc
+  | signupGetInvitationCodeRpc
   | signupInviteRequestRpc
   | signupSignupRpc
   | sigsSigListJSONRpc
@@ -5656,6 +5717,7 @@ export type rpc =
   | userLoadUserByNameRpc
   | userLoadUserPlusKeysRpc
   | userLoadUserRpc
+  | userProfileEditRpc
   | userSearchRpc
 export type incomingCallMapType = Exact<{
   'keybase.1.gpgUi.wantToAddGPGKey'?: (

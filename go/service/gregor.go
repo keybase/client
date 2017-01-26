@@ -854,6 +854,8 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.newChatActivity(ctx, obm)
 	case "chat.tlffinalize":
 		return g.chatTlfFinalize(ctx, obm)
+	case "chat.tlfresolve":
+		return g.chatTlfResolve(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -938,6 +940,46 @@ func (g *gregorHandler) chatTlfFinalize(ctx context.Context, m gregor.OutOfBandM
 		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid),
 			convID, update.FinalizeInfo)
 	}
+
+	return nil
+}
+
+func (g *gregorHandler) chatTlfResolve(ctx context.Context, m gregor.OutOfBandMessage) error {
+	if m.Body() == nil {
+		return errors.New("gregor handler for chat.tlfresolve: nil message body")
+	}
+
+	g.G().Log.Debug("push handler: tlf resolve received")
+
+	var update chat1.TLFResolveUpdate
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err := dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+
+	uid := m.UID().String()
+
+	// Get and localize the conversation to get the new tlfname.
+	inbox, _, err := g.G().InboxSource.Read(ctx, m.UID().Bytes(), nil, &chat1.GetInboxLocalQuery{
+		ConvID: &update.ConvID,
+	}, nil)
+	if err != nil {
+		g.G().Log.Error("push handler: chat activity: resolve: unable to read conversation: %s", err.Error())
+		return err
+	}
+	if len(inbox.Convs) != 1 {
+		g.G().Log.Error("push handler: chat activity: resolve: unable to find conversation")
+		return fmt.Errorf("unable to find conversation")
+	}
+	updateConv := inbox.Convs[0]
+
+	resolveInfo := chat1.ConversationResolveInfo{
+		NewTLFName: updateConv.Info.TlfName,
+	}
+
+	g.G().NotifyRouter.HandleChatTLFResolve(context.Background(), keybase1.UID(uid), update.ConvID, resolveInfo)
 
 	return nil
 }

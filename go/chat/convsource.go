@@ -44,7 +44,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	var rl []*chat1.RateLimit
 
-	conv, ratelim, err := s.G().InboxSource.ReadRemote(ctx, uid, convID)
+	conv, ratelim, err := utils.GetRemoteConv(ctx, s.G(), uid, convID)
 	rl = append(rl, ratelim)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
@@ -198,7 +198,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, ratelim, err := s.G().InboxSource.ReadRemote(ctx, uid, convID)
+	conv, ratelim, err := utils.GetRemoteConv(ctx, s.G(), uid, convID)
 	rl = append(rl, ratelim)
 	if err == nil {
 		// Try locally first
