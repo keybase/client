@@ -60,6 +60,7 @@ type Identify2WithUIDTester struct {
 	slowStats       cacheStats
 	fastStats       cacheStats
 	now             time.Time
+	card            keybase1.UserCard
 	userLoads       map[keybase1.UID]int
 }
 
@@ -143,7 +144,8 @@ func (i *Identify2WithUIDTester) ReportTrackToken(keybase1.TrackToken) (err erro
 func (i *Identify2WithUIDTester) SetStrict(b bool) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayUserCard(keybase1.UserCard) error {
+func (i *Identify2WithUIDTester) DisplayUserCard(card keybase1.UserCard) error {
+	i.card = card
 	return nil
 }
 
