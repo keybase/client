@@ -34,7 +34,7 @@ import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
   BadgeAppForChat,
-  ConversationBadgeStateRecord,
+  ConversationBadgeState,
   ConversationIDKey,
   CreatePendingFailure,
   DeleteMessage,
@@ -194,7 +194,7 @@ function updateLatestMessage (conversationIDKey: ConversationIDKey): UpdateLates
   return {type: 'chat:updateLatestMessage', payload: {conversationIDKey}}
 }
 
-function badgeAppForChat (conversations: List<ConversationBadgeStateRecord>): BadgeAppForChat {
+function badgeAppForChat (conversations: List<ConversationBadgeState>): BadgeAppForChat {
   return {type: 'chat:badgeAppForChat', payload: conversations}
 }
 

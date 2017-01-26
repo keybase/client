@@ -8,6 +8,8 @@ import {badgeAppForChat} from '../actions/chat'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {pgpKeyInSecretStoreFile} from '../constants/pgp'
 
+import {ConversationBadgeStateRecord} from '../constants/chat'
+
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
 
@@ -46,7 +48,7 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
       const {conversations, newTlfs} = badgeState
-      const convos = List(conversations.map(conversation => Record(conversation)))
+      const convos = List(conversations.map(conversation => ConversationBadgeStateRecord(conversation)))
       console.warn('convos is ', convos)
       console.warn(convos)
       dispatch(badgeAppForChat(convos))

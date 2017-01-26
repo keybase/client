@@ -133,10 +133,15 @@ export type ConversationState = Record<{
   deletedIDs: Set<MessageID>,
 }>
 
-export type ConversationBadgeStateRecord = Record<{
+export type ConversationBadgeState = Record<{
   convID: ConversationID,
   UnreadMessages: number,
 }>
+
+export const ConversationBadgeStateRecord = Record({
+  convID: undefined,
+  UnreadMessages: 0,
+})
 
 export const InboxStateRecord = Record({
   info: null,
@@ -204,7 +209,7 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, isSelected: boolean, messages: Array<ServerMessage>}>
-export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeStateRecord>>
+export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
