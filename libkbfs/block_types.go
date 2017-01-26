@@ -93,7 +93,7 @@ func (cb *CommonBlock) Set(other Block) {
 	cb.SetEncodedSize(otherCopy.GetEncodedSize())
 }
 
-// Copy copies a CommonBlock without the lock.
+// DeepCopy copies a CommonBlock without the lock.
 func (cb *CommonBlock) DeepCopy() CommonBlock {
 	return CommonBlock{
 		IsInd: cb.IsInd,
