@@ -18,9 +18,6 @@ type State = {
   url: ?string,
 }
 
-// Holds the loaded or errored state. undefined if we don't know. So we can skip trying this on repeat images
-const _avatarCache: {[key: string]: ?boolean} = { }
-
 class Avatar extends Component<void, Props, State> {
   state: State;
   _onURLLoaded: ?(username: string, url: ?string) => void;
@@ -103,76 +100,113 @@ class Avatar extends Component<void, Props, State> {
     }
   }
 
-  _imgOnError = () => {
-    if (this.state.url) {
-      _avatarCache[this.state.url] = false
-    }
-
-    this.setState({errored: true})
-    this.props.onAvatarLoaded && this.props.onAvatarLoaded()
-  }
-
-  _imgOnLoad = () => {
-    if (this.state.url) {
-      _avatarCache[this.state.url] = true
-    }
-
-    this.setState({avatarLoaded: true})
-    this.props.onAvatarLoaded && this.props.onAvatarLoaded()
+  _onLoadDone = (avatarCache: AvatarCache) => {
+    const triedToLoad = avatarCache.hasOwnProperty(this.state.url)
+    const loadSuccess = avatarCache[this.state.url || '']
+    this.setState({resolvedURL: triedToLoad && loadSuccess && this.state.url})
   }
 
   render () {
     const {size} = this.props
     const width = size
     const height = size
-    const resolvedURL = this.state.url || noAvatar
+    // const resolvedURL = this.state.url || noAvatar
     const avatarStyle = {width, height, position: 'absolute'}
     const borderStyle = this.props.borderColor ? {borderRadius: '50%', borderWidth: 2, borderStyle: 'solid', borderColor: this.props.borderColor} : {borderRadius: '50%'}
 
     const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
-    const alreadyGood = _avatarCache.hasOwnProperty(resolvedURL) && _avatarCache[resolvedURL]
-    const alreadyBad = _avatarCache.hasOwnProperty(resolvedURL) && !_avatarCache[resolvedURL]
+    // const alreadyGood = _avatarCache.hasOwnProperty(resolvedURL) && _avatarCache[resolvedURL]
+    // const alreadyBad = _avatarCache.hasOwnProperty(resolvedURL) && !_avatarCache[resolvedURL]
     const showNoAvatar = alreadyBad || (!showLoadingColor && ((!alreadyGood && !this.state.avatarLoaded) || this.state.errored))
 
+    const containerStyle = {
+      ...globalStyles.noSelect,
+      height,
+      position: 'relative',
+      width,
+      ...this.props.style,
+    }
+
+    const image = this.state.resolvedURL && (
+      <img
+        src={this.state.resolvedURL}
+        style={{
+          ...avatarStyle,
+          ...borderStyle,
+          backgroundColor: this.props.backgroundColor || globalColors.white,
+          display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
+          opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
+        }} />
+    )
+
+      // TODO
+        // {showNoAvatar &&
+          // <img src={noAvatar} style={{...avatarStyle, ...borderStyle, display: 'block'}} />}
+        // {showLoadingColor && <div style={{...avatarStyle, ...borderStyle, backgroundColor: this.props.loadingColor}} />}
+
     return (
-      <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
-        {this.props.backgroundColor &&
-          <div
-            style={{...avatarStyle,
-              ...borderStyle,
-              backgroundColor: this.props.backgroundColor,
-              backgroundSize: 'cover',
-            }} />}
-        {showNoAvatar &&
-          <img src={noAvatar} style={{...avatarStyle, ...borderStyle, display: 'block'}} />}
-        {showLoadingColor && <div style={{...avatarStyle, ...borderStyle, backgroundColor: this.props.loadingColor}} />}
-        {!alreadyBad &&
-        <img
-          src={resolvedURL}
-          style={{
-            ...avatarStyle,
-            ...borderStyle,
-            display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
-            backgroundColor: this.props.backgroundColor || globalColors.white,
-            opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
-            backgroundClip: 'padding-box',
-          }}
-          onError={this._imgOnError}
-          onLoad={this._imgOnLoad} />
-        }
+      <div onClick={this.props.onClick} style={containerStyle}>
+        <ImageLoader url={this.state.url} onLoadDone={this._onLoadDone} />
+        {image}
         <div>
-          {size > 16 && (this.props.following || this.props.followsYou) &&
-            <div>
-              {this.props.followsYou && <div style={{...followTop(size, globalColors.green)}}> <div style={{...followInner(size, globalColors.white)}} /></div>}
-              <div style={{...followBottom(size, this.props.following ? globalColors.green : globalColors.grey)}} />
-            </div>
-          }
+          {size > 16 && (this.props.following || this.props.followsYou) && <FollowDots followsYou={this.props.followsYou} following={this.props.following} size={this.props.size} />}
           {this.props.children}
         </div>
       </div>
     )
   }
 }
+
+// Holds the loaded or errored state. undefined if we don't know. So we can skip trying this on repeat images
+type AvatarCache = {[key: string]: ?boolean}
+const _avatarCache: AvatarCache = { }
+
+type LoaderProps = {
+  url: ?string,
+  onLoadDone: (avatarCache: AvatarCache) => void,
+}
+
+// Loads an image and tells you if the image is good or not, doens't render anything visibly!
+class ImageLoader extends Component<void, LoaderProps, void> {
+  componentWillReceiveProps (nextProps: Props) {
+    if (_avatarCache.hasOwnProperty(nextProps.url)) {
+      nextProps.onLoadDone(_avatarCache)
+    }
+  }
+
+  _imgOnError = () => {
+    if (this.props.url) {
+      _avatarCache[this.props.url] = false
+    }
+    this.props.onLoadDone(_avatarCache)
+  }
+
+  _imgOnLoad = () => {
+    if (this.props.url) {
+      _avatarCache[this.props.url] = true
+    }
+    this.props.onLoadDone(_avatarCache)
+  }
+
+  render () {
+    return <img
+      src={this.props.url}
+      style={{maxWidth: 0, maxHeight: 0}}
+      onError={this._imgOnError}
+      onLoad={this._imgOnLoad} />
+  }
+}
+
+const FollowDots = ({followsYou, following, size}) => (
+  <div>
+    {followsYou && (
+    <div style={{...followTop(size, globalColors.green)}}>
+      <div style={{...followInner(size, globalColors.white)}} />
+    </div>)
+    }
+    <div style={{...followBottom(size, following ? globalColors.green : globalColors.grey)}} />
+  </div>
+)
 
 const followBadgeCommon = (size, color) => ({
   position: 'absolute',
