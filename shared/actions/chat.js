@@ -93,7 +93,6 @@ const loadedInboxActionTransformer = action => ({
         conversationIDKey,
         muted,
         time,
-        unreadCount,
         validated,
         participants,
         info,
@@ -107,7 +106,6 @@ const loadedInboxActionTransformer = action => ({
         muted,
         participantsCount: participants.count(),
         time,
-        unreadCount,
         validated,
       }
     }),
@@ -285,7 +283,6 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
     muted: false,
     time: convo.readerInfo.mtime,
     snippet,
-    unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid,
     validated: true,
   })
 }
@@ -307,7 +304,6 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
       muted: false, // TODO integrate this when it's available
       time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
       snippet: ' ',
-      unreadCount: convoUnverified.readerInfo && (convoUnverified.readerInfo.maxMsgid - convoUnverified.readerInfo.readMsgid),
       validated: false,
     })
   }).filter(Boolean))
