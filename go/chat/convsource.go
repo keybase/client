@@ -41,7 +41,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	}
 
 	// Resolve supersedes
-	if !q.DisableResolveSupersedes {
+	if q == nil || !q.DisableResolveSupersedes {
 		transform := newSupersedesTransform(s.G())
 		if thread.Messages, err = transform.run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
 			return err
