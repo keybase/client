@@ -84,7 +84,7 @@ const {
   localRetryPostRpcPromise,
 } = ChatTypes
 
-const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers, isConversationIDKeyFake} = Constants
+const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers, isConversationIDKeyTemp, isVisibleConversation} = Constants
 
 // Whitelisted action loggers
 const loadedInboxActionTransformer = action => ({
@@ -169,13 +169,11 @@ const _selectedSelector = (state: TypedState) => {
   return selected
 }
 
-const _inboxSelector = (state: TypedState) => {
-  return state.chat.get('inbox')
-}
+const _inboxSelector = (state: TypedState) => state.chat.get('inbox')
 
-const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
-  return _inboxSelector(state).find(convo => convo.get('conversationIDKey') === conversationIDKey)
-}
+const _selectedInboxSelector = (state: TypedState, conversationIDKey) => (
+  _inboxSelector(state).find(convo => convo.get('conversationIDKey') === conversationIDKey)
+)
 
 const _metaDataSelector = (state: TypedState) => state.chat.get('metaData')
 const _routeSelector = (state: TypedState) => state.routeTree.get('routeState').get('selected')
@@ -256,8 +254,8 @@ function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Consta
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
-function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
-  return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
+function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean, showEvenIfEmpty: ?boolean): SelectConversation {
+  return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser, showEvenIfEmpty}}
 }
 
 function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): ?InboxState {
@@ -284,7 +282,7 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   const participants = List(convo.info.writerNames || [])
   return new InboxStateRecord({
     info: convo.info,
-    isEmpty: convo.isEmpty,
+    // isEmpty: convo.isEmpty,
     conversationIDKey,
     participants,
     muted: false,
@@ -418,7 +416,15 @@ function * _startConversationAndPost (action: PostMessage): SagaGenerator<any, a
     }})
   if (result) {
     const newConversationIDKey = conversationIDToKey(result.conv.info.id)
+    yield put({
+      payload: {
+        newConversationIDKey,
+        tempConversationIDKey: conversationIDKey,
+      },
+      type: 'chat:tempToRealConversationID',
+    })
     yield put(selectConversation(newConversationIDKey, false))
+    console.log('aaa', newConversationIDKey)
     yield put(loadInbox(newConversationIDKey))
     yield put({
       payload: {
@@ -437,8 +443,8 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
 
-  // We created a temp fake conversation? Let's make it and then post
-  if (inbox && inbox.get('isFake')) {
+  // We created a temp conversation? Let's make it and then post
+  if (inbox && inbox.get('isTemp')) {
     yield call(_startConversationAndPost, action)
     return
   }
@@ -748,7 +754,6 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   })
 
   const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
-
   if (!chatInboxUnverified) {
     throw new Error("Can't load inbox")
   }
@@ -757,7 +762,9 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   const inbox: GetInboxLocalRes = chatInboxUnverified.params.inbox
   const author = yield select(usernameSelector)
   const following = yield select(followingSelector)
-  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
+  const oldInbox = yield select(_inboxSelector)
+  const tempInboxItems = oldInbox.filter(i => i.get('isTemp'))
+  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData).concat(tempInboxItems)
   yield put({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer})
   chatInboxUnverified.response.result()
 
@@ -785,18 +792,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       incoming.chatInboxFailed.response.result()
     } else if (incoming.finished) {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
-      // check valid selected
-      const inbox = yield select(_inboxSelector)
-      if (inbox.count()) {
-        const conversationIDKey = yield select(_selectedSelector)
-        // Update our selected conversation if our current one isn't valid
-        if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey &&
-          c.get('validated') &&
-          (!c.get('isEmpty') || c.get('showEvenIfEmpty'))
-          )) {
-          yield put(selectConversation(inbox.get(0).get('conversationIDKey'), false))
-        }
-      }
+      yield put({payload: undefined, type: 'chat:ensureValidSelectedConversation'})
       break
     } else if (incoming.timeout) {
       console.warn('Inbox loading timed out')
@@ -827,7 +823,7 @@ function * _onUpdateInbox (action: UpdateInbox): SagaGenerator<any, any> {
 function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
 
-  if (!conversationIDKey || isConversationIDKeyFake(conversationIDKey)) {
+  if (!conversationIDKey || isConversationIDKeyTemp(conversationIDKey)) {
     return
   }
 
@@ -1049,13 +1045,13 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
   }
 }
 
-function newFakeConversation (conversationIDKey: string, participants: Array<string>) {
+function newTempConversation (conversationIDKey: string, participants: Array<string>) {
   return {
     payload: {
       conversationIDKey,
       participants,
     },
-    type: 'chat:newFakeConversation',
+    type: 'chat:newTempConversation',
   }
 }
 
@@ -1069,11 +1065,11 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   if (existing) {
     conversationIDKey = existing.get('conversationIDKey')
   } else {
-    conversationIDKey = `fake:${tlfName}`
-    yield put(newFakeConversation(conversationIDKey, users))
+    conversationIDKey = `temp:${tlfName}`
+    yield put(newTempConversation(conversationIDKey, users))
   }
 
-  yield put(selectConversation(conversationIDKey, false))
+  yield put(selectConversation(conversationIDKey, false, true))
   yield put(switchTo([chatTab]))
 }
 
@@ -1139,6 +1135,19 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
     type: 'chat:updatedMetadata',
     payload,
   })
+}
+
+function * _ensureValidSelectedConversation (): SagaGenerator<any, any> {
+  // check valid selected
+  const inbox = yield select(_inboxSelector)
+  const conversationIDKey = yield select(_selectedSelector)
+  // Update our selected conversation if our current one isn't valid
+  if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && isVisibleConversation(c))) {
+    const firstGood = inbox.find(c => isVisibleConversation(c))
+    if (firstGood) {
+      yield put(selectConversation(firstGood.get('conversationIDKey'), false))
+    }
+  }
 }
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
@@ -1482,6 +1491,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest('chat:loadedInbox', _loadedInbox),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),
+    safeTakeLatest('chat:ensureValidSelectedConversation', _ensureValidSelectedConversation),
     safeTakeEvery('chat:updateBadging', _updateBadging),
     safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers),
     safeTakeEvery('chat:incomingMessage', _incomingMessage),

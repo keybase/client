@@ -330,10 +330,20 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:selectConversation':
       const conversationIDKey = action.payload.conversationIDKey
 
-      // Set unread to zero
-      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
-      return state
-        .set('inbox', newInboxStates)
+      // Set unread to zero. Show even if empty
+      const newInboxStates = state.get('inbox').map(inbox => {
+        if (inbox.get('conversationIDKey') !== conversationIDKey) {
+          return inbox
+        }
+
+        let newInbox = inbox.set('unreadCount', 0)
+        if (action.payload.showEvenIfEmpty) {
+          newInbox = newInbox.set('showEvenIfEmpty', true)
+        }
+        return newInbox
+      })
+
+      return state.set('inbox', newInboxStates)
     case 'chat:loadingMessages': {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
@@ -369,7 +379,33 @@ function reducer (state: State = initialState, action: Actions) {
       })
 
       return state.set('metaData', metaData)
-    case 'chat:newFakeConversation': {
+    case 'chat:tempToRealConversationID': {
+      const toFind = action.payload.tempConversationIDKey
+      const newItem = action.payload.newConversationIDKey
+      const oldInbox = state.get('inbox')
+      const existingNew = oldInbox.findEntry(i => i.get('conversationIDKey') === newItem)
+      const existingTemp = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
+
+      // already exists?
+      if (existingNew) {
+        if (existingTemp) {
+          return state.set('inbox', oldInbox.delete(existingTemp[0]))
+        } else {
+          return state
+        }
+      }
+
+      // Update existing
+      if (existingTemp) {
+        return state.set('inbox', oldInbox.set(existingTemp[0], existingTemp[1]
+              .set('conversationIDKey', newItem)
+              .set('isTemp', false)
+              .set('showEvenIfEmpty', true)
+              ))
+      }
+      return state
+    }
+    case 'chat:newTempConversation': {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
         initialConversation,
@@ -378,7 +414,7 @@ function reducer (state: State = initialState, action: Actions) {
 
       const newInbox = state.get('inbox').unshift(new InboxStateRecord({
         conversationIDKey: action.payload.conversationIDKey,
-        isFake: true,
+        isTemp: true,
         participants: new List(action.payload.participants),
         time: Date.now(),
         validated: true,

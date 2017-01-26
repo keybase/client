@@ -20,7 +20,7 @@ export type AttachmentType = 'Image' | 'Other'
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
-export type FakeConversationIDKey = string
+export type TempConversationIDKey = string
 
 export type OutboxID = RPCOutboxID
 export type OutboxIDKey = string
@@ -110,27 +110,33 @@ export type DeletedMessage = {
 export type MaybeTimestamp = TimestampMessage | null
 
 export const ConversationStateRecord = Record({
-  messages: List(),
-  seenMessages: Set(),
-  moreToLoad: true,
+  deletedIDs: Set(),
+  firstNewMessageID: undefined,
+  isEmpty: false,
   isRequesting: false,
   isStale: false,
+  isTemp: false,
+  messages: List(),
+  moreToLoad: true,
   paginationNext: undefined,
   paginationPrevious: undefined,
-  firstNewMessageID: undefined,
-  deletedIDs: Set(),
+  seenMessages: Set(),
+  showEvenIfEmpty: false,
 })
 
 export type ConversationState = Record<{
-  messages: List<Message>,
-  seenMessages: Set<MessageID>,
-  moreToLoad: boolean,
+  deletedIDs: Set<MessageID>,
+  firstNewMessageID: ?MessageID,
+  isEmpty: boolean,
   isRequesting: boolean,
   isStale: boolean,
+  isTemp: boolean,
+  messages: List<Message>,
+  moreToLoad: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
-  firstNewMessageID: ?MessageID,
-  deletedIDs: Set<MessageID>,
+  seenMessages: Set<MessageID>,
+  showEvenIfEmpty: boolean,
 }>
 
 export type ConversationBadgeStateRecord = Record<{
@@ -139,25 +145,19 @@ export type ConversationBadgeStateRecord = Record<{
 }>
 
 export const InboxStateRecord = Record({
-  info: null,
-  showEvenIfEmpty: false,
-  isEmpty: false,
-  isFake: false,
-  participants: List(),
   conversationIDKey: '',
+  info: null,
   muted: false,
-  time: 0,
+  participants: List(),
   snippet: '',
   snippetKey: null,
+  time: 0,
   unreadCount: 0,
   validated: false,
 })
 
 export type InboxState = Record<{
   info: ConversationInfoLocal,
-  showEvenIfEmpty: boolean,
-  isEmpty: boolean,
-  isFake: boolean,
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
@@ -176,22 +176,22 @@ export type MetaData = Record<{
 export type MetaDataMap = Map<string, MetaData>
 
 export const MetaDataRecord = Record({
-  fullname: 'Unknown',
   brokenTracker: false,
+  fullname: 'Unknown',
 })
 
 export const StateRecord = Record({
-  inbox: List(),
   conversationStates: Map(),
   focused: false,
+  inbox: List(),
   metaData: Map(),
   pendingFailures: Set(),
 })
 
 export type State = Record<{
-  inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   focused: boolean,
+  inbox: List<InboxState>,
   metaData: MetaDataMap,
   pendingFailures: Set<OutboxIDKey>,
 }>
@@ -211,6 +211,7 @@ export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: M
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
+export type EnsureValidSelectedConversation = NoErrorTypedAction<'chat:ensureValidSelectedConversation', void>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDKey: ?ConversationIDKey}>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
@@ -219,16 +220,17 @@ export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conv
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
-export type NewFakeConveration = NoErrorTypedAction<'chat:newFakeConversation', {conversationIDKey: FakeConversationIDKey, participants: Array<string>}>
+export type NewTempConveration = NoErrorTypedAction<'chat:newTempConversation', {conversationIDKey: TempConversationIDKey, participants: Array<string>}>
 export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString, info?: ConversationInfoLocal}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
-export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
+export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean, showEvenIfEmpty?: boolean}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
+export type TempToRealConversationID = NoErrorTypedAction<'chat:tempToRealConversationID', {tempConversationIDKey: TempConversationIDKey, newConversationIDKey: ConversationIDKey}>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
@@ -388,8 +390,12 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
-function isConversationIDKeyFake (conversationIDKey: ConversationIDKey) {
-  return conversationIDKey.startsWith('fake:')
+function isConversationIDKeyTemp (conversationIDKey: ConversationIDKey) {
+  return conversationIDKey.startsWith('temp:')
+}
+
+function isVisibleConversation (i: InboxState) {
+  return (!i.get('isEmpty') || i.get('showEvenIfEmpty')) || i.get('isTemp')
 }
 
 export {
@@ -404,5 +410,6 @@ export {
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
   parseMetadataPreviewSize,
-  isConversationIDKeyFake,
+  isConversationIDKeyTemp,
+  isVisibleConversation,
 }
