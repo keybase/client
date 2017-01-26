@@ -270,7 +270,7 @@ export function autoLogin () : AsyncAction {
         },
       },
       param: {
-        clientType: CommonClientType.gui,
+        clientType: login.ClientType.gui,
         deviceType,
         usernameOrEmail: '',
       },
