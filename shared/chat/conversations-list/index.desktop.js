@@ -98,6 +98,10 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
     return true
   }
 
+  if (props.unreadCount !== nextProps.unreadCount) {
+    return true
+  }
+
   return false
 })(_Row)
 
