@@ -129,7 +129,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
 
 function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMessageState}) {
   let iconType = 'icon-file-24'
-  let style = {marginTop: 8, marginBottom: 8}
+  let style = {marginTop: 8, marginBottom: 8, height: 24}
   switch (messageState) {
     case 'downloading':
       iconType = 'icon-file-downloading-24'
@@ -145,10 +145,10 @@ function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMess
   return <Icon type={iconType} style={style} />
 }
 
-function AttachmentMessageGeneric ({message, onOpenInFileUI}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void}) {
+function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onLoadAttachment: () => void}) {
   const {downloadedPath, messageState, progress} = message
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.tiny}}>
+    <Box style={{...globalStyles.flexBoxRow, ...(!message.downloadedPath ? globalStyles.clickable : {}), alignItems: 'center', marginTop: globalMargins.tiny}} onClick={!message.downloadedPath ? onLoadAttachment : undefined}>
       <AttachmentIcon messageState={messageState} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
         <AttachmentTitle {...message} />
@@ -185,6 +185,11 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
     downloadedPath && this.props.onOpenInFileUI(downloadedPath)
   }
 
+  _onLoadAttachment = () => {
+    const {messageID, filename} = this.props.message
+    this.props.onLoadAttachment(messageID, filename)
+  }
+
   render () {
     const {message} = this.props
 
@@ -194,7 +199,7 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
         attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={this._onOpenInPopup} onOpenInFileUI={this._onOpenInFileUI} />
         break
       default:
-        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} />
+        attachment = <AttachmentMessageGeneric message={message} onOpenInFileUI={this._onOpenInFileUI} onLoadAttachment={this._onLoadAttachment} />
     }
 
     return (
