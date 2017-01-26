@@ -54,9 +54,9 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Icon type='icon-keybase-logo-128' style={stylesLogo} />
+          <Icon type='icon-keybase-logo-logged-out-64' style={stylesLogo} />
           <Text type='Body' small={true} style={{alignSelf: 'center', marginTop: 6}}>You're logged out of Keybase!</Text>
-          <Button type='Primary' label='Log In' onClick={this.props.logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12}} />
+          <Button type='Primary' label='Log In' onClick={this.props.logIn} style={{alignSelf: 'center', marginTop: 12}} />
         </Box>
         {this.state.showingMenu && <PopupMenu style={styleMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />}
       </Box>
