@@ -108,7 +108,6 @@ export type DeletedMessage = {
 
 export type MaybeTimestamp = TimestampMessage | null
 
-
 export const ConversationStateRecord = Record({
   messages: List(),
   seenMessages: Set(),
