@@ -108,8 +108,33 @@ export type DeletedMessage = {
 
 export type MaybeTimestamp = TimestampMessage | null
 
+// A message describing how to change the previous list into a new list
+// This should make insertions/deletions significantly easier.
+// Starting from an empty list and applying each one in order should
+// give you the final state of the messages.
+export type MessageChange = {
+  type: 'Append',
+  message: Message,
+} | {
+  type: 'Prepend',
+  message: Message,
+} | {
+  type: 'Insert',
+  position: number,
+  message: Message,
+} | {
+  type: 'Swap',
+  position: number,
+  message: Message,
+} | {
+  type: 'Delete',
+  position: number,
+  message: Message,
+}
+
 export const ConversationStateRecord = Record({
   messages: List(),
+  messageChanges: List(),
   seenMessages: Set(),
   moreToLoad: true,
   isRequesting: false,
@@ -122,6 +147,7 @@ export const ConversationStateRecord = Record({
 
 export type ConversationState = Record<{
   messages: List<Message>,
+  messageChanges: List<MessageChange>,
   seenMessages: Set<MessageID>,
   moreToLoad: boolean,
   isRequesting: boolean,

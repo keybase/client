@@ -17,7 +17,7 @@ import {clipboard} from 'electron'
 import {globalColors, globalStyles} from '../../styles'
 
 import type {List} from 'immutable'
-import type {Message, MessageID, TextMessage, AttachmentMessage} from '../../constants/chat'
+import type {Message, MessageID, TextMessage, AttachmentMessage, MessageChange} from '../../constants/chat'
 import type {Props} from './list'
 
 type State = {
