@@ -19,23 +19,17 @@ const AddNewRow = ({onNewChat}: Props) => (
   </div>
 )
 
-const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: boolean, isSelected: boolean) => {
+function rowBackgroundColor (hasUnread: boolean, isSelected: boolean) {
+  return isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : undefined
+}
+
+function rowBorderColor (idx: number, lastParticipantIndex: number, hasUnread: boolean, isSelected: boolean) {
   // Not the most recent? Don't color
-  if (idx !== lastParticipantIndex) {
+  if (idx === lastParticipantIndex) {
     return undefined
   }
 
-  // Only one avatar?
-  if (lastParticipantIndex === 0) {
-    return hasUnread ? globalColors.orange : undefined
-  }
-
-  // Multiple avatars?
-  if (hasUnread) {
-    return globalColors.orange
-  }
-
-  return isSelected ? globalColors.white : globalColors.darkBlue4
+  return rowBackgroundColor(hasUnread, isSelected)
 }
 
 type RowProps = Props & {conversation: InboxState}
@@ -46,14 +40,14 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const isMuted = conversation.get('muted')
   const hasUnread = !!conversation.get('unreadCount')
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-    backgroundColor: isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4,
+    backgroundColor: globalColors.white,
     borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
     size: 24,
     username,
   })).toArray().reverse()
   const snippet = conversation.get('snippet')
   const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
-  const backgroundColor = isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.transparent
+  const backgroundColor = rowBackgroundColor(hasUnread, isSelected)
   const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
   const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
   const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
@@ -81,10 +75,20 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
             {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>}
           </div>
         </div>
-        <Text type='BodySmall' style={{...boldOverride, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px', marginRight: globalMargins.xtiny, marginTop: globalMargins.xtiny}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        <Text type='BodySmall' style={{...boldOverride, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px', marginTop: globalMargins.xtiny}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        {hasUnread && <div style={unreadDotStyle} />}
       </div>
     </div>
   )
+}
+
+const unreadDotStyle = {
+  backgroundColor: globalColors.orange,
+  height: 6,
+  width: 6,
+  borderRadius: 3,
+  marginLeft: 4,
+  marginTop: 10,
 }
 
 const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {

@@ -22,8 +22,8 @@ const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
     return null
   }
 
-  const leftProps: AvatarProps = avatarProps[0]
-  const rightProps: AvatarProps = avatarProps[1]
+  const leftProps: AvatarProps = avatarProps[1]
+  const rightProps: AvatarProps = avatarProps[0]
 
   if (avatarProps.length === 1) {
     return <Avatar {...leftProps} size={singleSize} />
