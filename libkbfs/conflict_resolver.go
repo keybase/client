@@ -2063,10 +2063,7 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	dblock, err = dblock.DeepCopy(cr.config.Codec())
-	if err != nil {
-		return nil, err
-	}
+	dblock = dblock.DeepCopy()
 	lbc[ptr] = dblock
 	return dblock, nil
 }

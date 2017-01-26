@@ -24,7 +24,6 @@ type blockRetrievalConfig interface {
 	dataVersioner
 	logMaker
 	blockCacher
-	codecGetter
 }
 
 // blockRetrievalRequest represents one consumer's request for a block.
@@ -180,7 +179,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			cachedBlock, hasPrefetched, _, err :=
 				brq.config.BlockCache().GetWithPrefetch(ptr)
 			if err == nil && cachedBlock != nil {
-				block.Set(cachedBlock, brq.config.Codec())
+				block.Set(cachedBlock)
 				// This must be called in a goroutine to prevent deadlock in
 				// case this Request call was triggered by the prefetcher
 				// itself.
@@ -278,7 +277,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		req := r
 		if block != nil {
 			// Copy the decrypted block to the caller
-			req.block.Set(block, brq.config.Codec())
+			req.block.Set(block)
 		}
 		// Since we created this channel with a buffer size of 1, this won't block.
 		req.doneCh <- err

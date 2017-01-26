@@ -479,7 +479,7 @@ func expectBlock(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, blo
 		ptrMatcher{blockPtr}, gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, kmd KeyMetadata,
 			blockPtr BlockPointer, getBlock Block, lifetime BlockCacheLifetime) {
-			getBlock.Set(block, config.Codec())
+			getBlock.Set(block)
 			config.BlockCache().Put(blockPtr, kmd.TlfID(), getBlock, lifetime)
 		}).Return(err)
 }

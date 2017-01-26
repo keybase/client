@@ -1744,7 +1744,7 @@ func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
 
 	// Handle the single-level case first.
 	if !topBlock.IsInd {
-		newTopBlock, err := topBlock.DeepCopy(codec)
+		newTopBlock := topBlock.DeepCopy()
 		if err != nil {
 			return zeroPtr, nil, err
 		}
@@ -1793,7 +1793,7 @@ func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
 
 			// Copy the parent block and save it for later (it will be
 			// cached below).
-			pblock, err := path[level].pblock.DeepCopy(codec)
+			pblock := path[level].pblock.DeepCopy()
 			if err != nil {
 				return zeroPtr, nil, err
 			}

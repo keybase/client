@@ -574,10 +574,7 @@ func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 		// already dirty.
 		df := fbo.dirtyFiles[file.tailPointer()]
 		if !wasDirty || (df != nil && df.blockNeedsCopy(ptr)) {
-			fblock, err = fblock.DeepCopy(fbo.config.Codec())
-			if err != nil {
-				return nil, false, err
-			}
+			fblock = fblock.DeepCopy()
 		}
 	}
 	return fblock, wasDirty, nil
@@ -712,10 +709,7 @@ func (fbo *folderBlockOps) getDirLocked(ctx context.Context,
 		fbo.id(), dir.tailPointer(), dir.Branch) {
 		// Copy the block if it's for writing and the block is
 		// not yet dirty.
-		dblock, err = dblock.DeepCopy(fbo.config.Codec())
-		if err != nil {
-			return nil, err
-		}
+		dblock = dblock.DeepCopy()
 	}
 	return dblock, nil
 }
@@ -767,11 +761,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 		}
 
 		if dblockCopy == nil {
-			var err error
-			dblockCopy, err = block.DeepCopy(fbo.config.Codec())
-			if err != nil {
-				return nil, err
-			}
+			dblockCopy = block.DeepCopy()
 		}
 
 		dblockCopy.Children[k] = de
@@ -1868,10 +1858,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 
 	// Fill in syncState.
 	if fblock.IsInd {
-		fblockCopy, err := fblock.DeepCopy(fbo.config.Codec())
-		if err != nil {
-			return nil, nil, syncState, nil, err
-		}
+		fblockCopy := fblock.DeepCopy()
 		syncState.fblock = fblock
 		syncState.savedFblock = fblockCopy
 		syncState.redirtyOnRecoverableError = make(map[BlockPointer]BlockPointer)
@@ -2088,7 +2075,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 			fbo.revertSyncInfoAfterRecoverableError(blocksToRemove, result)
 		}
 		if result.fblock != nil {
-			result.fblock.Set(result.savedFblock, fbo.config.Codec())
+			result.fblock.Set(result.savedFblock)
 			fbo.fixChildBlocksAfterRecoverableErrorLocked(
 				ctx, lState, file, md,
 				result.redirtyOnRecoverableError)
