@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
-import _ from 'lodash'
 import engine from '../engine'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'

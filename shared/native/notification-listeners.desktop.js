@@ -1,6 +1,6 @@
 // @flow
 import {remote} from 'electron'
-import {List, Record} from 'immutable'
+import {List} from 'immutable'
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
 import {badgeApp} from '../actions/notifications'
