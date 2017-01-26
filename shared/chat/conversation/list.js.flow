@@ -2,12 +2,13 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaDataMap, FollowingMap} from '../../constants/chat'
+import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaDataMap, FollowingMap, MessageChange} from '../../constants/chat'
 
 export type Props = {
   firstNewMessageID: ?MessageID,
   listScrollDownState: number,
   messages: List<Message>,
+  messageChanges: List<MessageChange>,
   metaDataMap: MetaDataMap,
   you: string,
   followingMap: FollowingMap,

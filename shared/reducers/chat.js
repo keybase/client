@@ -4,14 +4,14 @@ import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
 
-import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
+import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, MessageChange} from '../constants/chat'
 
 const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
 // _filterMessages dedupes and removed deleted messages
-function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
+function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>, messageChanges: List<MessageChange>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>, nextMessageChanges: List<MessageChange>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
   const filteredAppend = append.filter(m => !seenMessages.has(m.key))
 
@@ -21,8 +21,15 @@ function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> 
   const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
   const nextSeenMessages = Set(nextMessages.map(m => m.key))
 
+  const nextMessageChanges = messageChanges.concat(
+    filteredPrepend.map(m => ({type: 'Prepend', message: m})),
+    filteredAppend.map(m => ({type: 'Append', message: m}))
+    // TODO add swap messages, insertions, and deletions
+  )
+
   return {
     nextMessages,
+    nextMessageChanges,
     nextSeenMessages,
   }
 }
@@ -105,10 +112,11 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
-          const {nextMessages, nextSeenMessages} = _filterMessages(conversation.seenMessages, conversation.messages, List(messages), List(), nextDeletedIDs)
+          const {nextMessages, nextSeenMessages, nextMessageChanges} = _filterMessages(conversation.seenMessages, conversation.messages, List(messages), List(), nextDeletedIDs, conversation.messageChanges)
 
           return conversation
             .set('messages', nextMessages)
+            .set('messageChanges', nextMessageChanges)
             .set('seenMessages', nextSeenMessages)
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
@@ -134,7 +142,7 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
-          const {nextMessages, nextSeenMessages} = _filterMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs)
+          const {nextMessages, nextMessageChanges, nextSeenMessages} = _filterMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs, conversation.messageChanges)
 
           const firstMessage = appendMessages[0]
           const inConversationFocused = (isSelected && state.get('focused'))
@@ -150,6 +158,7 @@ function reducer (state: State = initialState, action: Actions) {
 
           return conversation
             .set('messages', nextMessages)
+            .set('messageChanges', nextMessageChanges)
             .set('seenMessages', nextSeenMessages)
             .set('deletedIDs', nextDeletedIDs)
         })

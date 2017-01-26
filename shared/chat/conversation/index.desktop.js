@@ -65,6 +65,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
       isLoading,
       listScrollDownState,
       messages,
+      messageChanges,
       metaDataMap,
       moreToLoad,
       onAddParticipant,
@@ -116,6 +117,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
           firstNewMessageID={firstNewMessageID}
           listScrollDownState={listScrollDownState}
           messages={messages}
+          messageChanges={messageChanges}
           moreToLoad={moreToLoad}
           onAddParticipant={onAddParticipant}
           onDeleteMessage={onDeleteMessage}
