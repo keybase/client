@@ -3,7 +3,7 @@ import * as Constants from '../../constants/profile'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, proofsSaga, submitZcashAddress} from './proofs'
-import {apiserverPostRpcPromise, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
+import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../actions/route-tree'
@@ -15,25 +15,16 @@ import type {BackToProfile, EditProfile, FinishRevokeProof, FinishRevoking, OnCl
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-function editProfile (bio: string, fullname: string, location: string): EditProfile {
-  return {payload: {bio, fullname, location}, type: Constants.editProfile}
+function editProfile (bio: string, fullName: string, location: string): EditProfile {
+  return {payload: {bio, fullName, location}, type: Constants.editProfile}
 }
 
 function * _editProfile (action: EditProfile): SagaGenerator<any, any> {
-  try {
-    yield call(apiserverPostRpcPromise, {
-      param: {
-        args: [
-          {key: 'bio', value: action.payload.bio},
-          {key: 'full_name', value: action.payload.fullname},
-          {key: 'location', value: action.payload.location},
-        ],
-        endpoint: 'profile-edit',
-      },
-    })
-
-    yield put(navigateUp())
-  } catch (_) { }
+  const {bio, fullName, location} = action.payload
+  yield call(userProfileEditRpcPromise, {
+    param: {bio, fullName, location},
+  })
+  yield put(navigateUp())
 }
 
 function updateUsername (username: string): UpdateUsername {
