@@ -1,11 +1,13 @@
 // @flow
 import {remote} from 'electron'
+import {List} from 'immutable'
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
 import {badgeApp} from '../actions/notifications'
 import {badgeAppForChat} from '../actions/chat'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {pgpKeyInSecretStoreFile} from '../constants/pgp'
+import {ConversationBadgeStateRecord} from '../constants/chat'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
@@ -45,7 +47,8 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
       const {conversations, newTlfs} = badgeState
-      dispatch(badgeAppForChat(conversations))
+      const convos = List(conversations.map(conversation => ConversationBadgeStateRecord(conversation)))
+      dispatch(badgeAppForChat(convos))
       dispatch(badgeApp('newTLFs', newTlfs > 0, newTlfs))
     },
     'keybase.1.NotifyService.shutdown': () => {

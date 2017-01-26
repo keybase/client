@@ -37,13 +37,13 @@ const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: bo
   return isSelected ? globalColors.white : globalColors.darkBlue4
 }
 
-type RowProps = Props & {conversation: InboxState}
+type RowProps = Props & {conversation: InboxState, unreadCount: number}
 
-const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, you}: RowProps) => {
+const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, unreadCount, you}: RowProps) => {
   const participants = participantFilter(conversation.get('participants'), you)
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
-  const hasUnread = !!conversation.get('unreadCount')
+  const hasUnread = !!unreadCount
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor: isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4,
     username,
@@ -60,7 +60,7 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   return (
     <div
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
-      title={`${conversation.get('unreadCount')} unread`}
+      title={`${unreadCount} unread`}
       style={{...rowContainerStyle, backgroundColor}}>
       <div style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
@@ -98,6 +98,10 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
     return true
   }
 
+  if (props.unreadCount !== nextProps.unreadCount) {
+    return true
+  }
+
   return false
 })(_Row)
 
@@ -119,7 +123,7 @@ const ConversationList = (props: Props) => (
     <div style={containerStyle}>
       <AddNewRow {...props} />
       <div style={scrollableStyle}>
-        {props.inbox.map(conversation => <Row {...props} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
+        {props.inbox.map(conversation => <Row {...props} unreadCount={props.conversationUnreadCounts.get(conversation.get('conversationIDKey'))} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
       </div>
     </div>
     {props.children}
