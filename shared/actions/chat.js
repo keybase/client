@@ -686,7 +686,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const followingSelector = (state: TypedState) => state.config.following
 
-function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
+function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -735,7 +735,7 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
       let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-      if (conversation && action.payload.newConversationIDKey) {
+      if (conversation && action && action.payload.newConversationIDKey) {
         conversation = conversation.set('youCreated', true)
       }
       if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
