@@ -360,8 +360,10 @@ class ConversationList extends Component<void, Props, State> {
     this._list = r
   }
 
+  _rowCount = () => this.state.messages.count() + cellMessageStartIndex
+
   _scrollToBottom = () => {
-    const rowCount = this.state.messages.count() + cellMessageStartIndex
+    const rowCount = this._rowCount()
     this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: rowCount})
   }
 
@@ -376,7 +378,7 @@ class ConversationList extends Component<void, Props, State> {
       )
     }
 
-    const rowCount = this.state.messages.count() + cellMessageStartIndex
+    const rowCount = this._rowCount()
     let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
