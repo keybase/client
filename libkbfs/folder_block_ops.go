@@ -2679,14 +2679,13 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 }
 
 func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, newPtr BlockPointer, shouldPrefetch bool) {
-	// TODO: Remove this comment when we're done debugging because it'll be
-	// everywhere.
 	updated := fbo.nodeCache.UpdatePointer(oldPtr.Ref(), newPtr)
 	if !updated {
 		return
 	}
 	// Only prefetch if the updated pointer is a new block ID.
 	if oldPtr.ID != newPtr.ID {
+		// TODO: Remove this comment when we're done debugging because it'll be everywhere.
 		fbo.log.CDebugf(context.TODO(), "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
 		if shouldPrefetch {
 			// Prefetch the new ref, but only if the old ref already exists in
