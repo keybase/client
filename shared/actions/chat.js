@@ -780,7 +780,8 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
+      const conv = incoming.chatInboxConversation.params.conv
+      let conversation: ?InboxState = _inboxConversationToConversation(conv, author, following || {}, metaData)
       if (conversation) {
         if (action && action.payload.newConversationIDKey) {
           conversation = conversation.set('showEvenIfEmpty', true)
