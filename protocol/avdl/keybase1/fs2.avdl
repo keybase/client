@@ -1,20 +1,19 @@
 @namespace("keybase.1")
 
-/**
- File manipulation interface
-
- Caller provides handle to asynchronous method call, repeats until status is no longer pending
- or operation is cancelled.
-
- KBFS paths are expected to start with "private" or "public" - mount name is implied.
- */
-
 protocol fs2 {
+
   import idl "common.avdl";
 
-  /**
-   Random GUID provided by caller
-   */
+/*
+  File manipulation interface
+  
+  Caller provides handle to asynchronous method call, repeats until status is no
+  longer pending or operation is cancelled.
+ 
+  KBFS paths are expected to start with "private" or "public" - mount name is implied.
+*/
+
+  // Random GUID provided by caller 
   fixed Handle(16);
   
   enum ItemType {
@@ -51,22 +50,22 @@ protocol fs2 {
    Get list if items in directory at path
    Can call repeatedly until status is no longer pending 
    */
-  ListResult list(Handle handle, string path)
+  ListResult list(Handle handle, string path);
 
   /**
    Copy file or directory into filesystem
    */
-  Result copyIn(Handle handle, string src, string dest)
+  Result copyIn(Handle handle, string src, string dest);
 
   /**
    Copy file or directory out of filesystem
    */
-  Result copyOut(Handle handle, string src, string dest)
+  Result copyOut(Handle handle, string src, string dest);
 
   /**
    Remove file or directory from filesystem
    */
-  Result remove(Handle handle, string path)
+  Result remove(Handle handle, string path);
 
   /**
    Convenience helper for generating new random value
