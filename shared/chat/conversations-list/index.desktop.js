@@ -23,16 +23,17 @@ function rowBackgroundColor (hasUnread: boolean, isSelected: boolean) {
   return isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
 }
 
-// All this complexity isn't great but the current implmentation of avatar forces us to juggle all these colors and
+// All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
-function rowBorderColor (idx: number, lastParticipantIndex: number, hasUnread: boolean, isSelected: boolean) {
-  // Not the most recent? Don't color
-  if (idx === lastParticipantIndex) {
+function rowBorderColor (idx: number, isLastParticipant: boolean, hasUnread: boolean, isSelected: boolean) {
+  // Only color the foreground items
+  if (isLastParticipant) {
     return undefined
   }
 
   const rowBackground = rowBackgroundColor(hasUnread, isSelected)
-  return (rowBackground === globalColors.darkBlue4) && !lastParticipantIndex ? undefined : rowBackground
+  // We don't want a border if we're a single avatar
+  return !idx && isLastParticipant ? undefined : rowBackground
 }
 
 type RowProps = Props & {conversation: InboxState}
@@ -42,9 +43,10 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
   const hasUnread = !!conversation.get('unreadCount')
+  const avatarCount = Math.min(2, participants.count())
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor: rowBackgroundColor(hasUnread, isSelected),
-    borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, hasUnread, isSelected),
+    borderColor: rowBorderColor(idx, idx === (avatarCount - 1), hasUnread, isSelected),
     size: 24,
     username,
   })).toArray()
