@@ -58,16 +58,16 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
 
   _onPaste = e => {
     // TODO: Should we read/save the clipboard data on the main thread?
-    readClipboard(e, () => {this.setState({showDropOverlay: true})}).then(
-      (clipboardData) => {
-        this.setState({showDropOverlay: false})
-        if (clipboardData) {
-          const {path, title, format} = clipboardData
-          const type = format.includes('image/') ? 'Image' : 'Other'
-          this.props.onAttach(path, title, type)
-        }
+    readClipboard(e, () => {
+      this.setState({showDropOverlay: true})
+    }).then(clipboardData => {
+      this.setState({showDropOverlay: false})
+      if (clipboardData) {
+        const {path, title, format} = clipboardData
+        const type = format.includes('image/') ? 'Image' : 'Other'
+        this.props.onAttach(path, title, type)
       }
-    )
+    })
   }
 
   render () {

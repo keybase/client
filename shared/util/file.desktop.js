@@ -21,7 +21,6 @@ function tmpRandFile (suffix: string): Promise<string> {
   })
 }
 
-
 // TODO make this a user setting
 const downloadFolder = path.join(os.homedir(), 'Downloads')
 

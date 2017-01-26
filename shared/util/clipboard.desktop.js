@@ -1,7 +1,6 @@
 // @flow
 import {clipboard} from 'electron'
 import fs from 'fs'
-import os from 'os'
 import {tmpRandFile} from './file.desktop'
 
 export type ClipboardData = {
@@ -35,7 +34,7 @@ export function readClipboard (event: any, beforeSave: () => void): Promise<?Cli
       let blob = items[1].getAsFile()
       tmpRandFile(name).then(path => {
         console.log('Saving clipboard to:', path)
-        let reader = new FileReader()
+        let reader = new FileReader() // eslint-disable-line
         reader.onload = e => {
           fs.writeFile(path, Buffer.from(e.target.result), err => {
             if (err) {
