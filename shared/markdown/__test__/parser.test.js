@@ -18,6 +18,21 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses kitchen sink demo correctly', () => {
+    const ast = parser.parse('I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";``` How about *bold* and _italic?_ nice.\n Now youre thinking with ~portals~ crypto.\n how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('parses escaped chars correctly', () => {
+    const ast = parser.parse('I \\*should\\* see asterisks')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('parses special characters within words correctly', () => {
+    const ast = parser.parse('not*bolded*')
+    expect(ast).toMatchSnapshot()
+  })
+
   it('parses urls correctly', () => {
     const ast = parser.parse(`
   Ignore:
