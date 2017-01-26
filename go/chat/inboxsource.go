@@ -18,12 +18,15 @@ import (
 
 type localizerPipeline struct {
 	libkb.Contextified
+	utils.DebugLabeler
+
 	getTlfInterface func() keybase1.TlfInterface
 }
 
 func newLocalizerPipeline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified:    libkb.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g, "localizerPipeline", false),
 		getTlfInterface: getTlfInterface,
 	}
 }
@@ -545,7 +548,7 @@ func (s *localizerPipeline) isErrPermanent(err error) bool {
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
-	s.G().Log.Debug("localizeConversation: localizing %d msgs", len(conversationRemote.MaxMsgs))
+	s.Debug(ctx, "localizing %d msgs", len(conversationRemote.MaxMsgs))
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:         conversationRemote.Metadata.ConversationID,
@@ -597,12 +600,15 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.IsEmpty = true
 
 	var maxValidID chat1.MessageID
+	superXform := newSupersedesTransform(s.G())
+
+	var newMaxMsgs []chat1.MessageUnboxed
 	for _, mm := range conversationLocal.MaxMessages {
 		if mm.IsValid() {
 			body := mm.Valid().MessageBody
 			typ, err := body.MessageType()
 			if err != nil {
-				s.G().Log.Debug("localizeConversation: failed to get message type: convID: %s id: %d",
+				s.Debug(ctx, "failed to get message type: convID: %s id: %d",
 					conversationRemote.Metadata.ConversationID, mm.GetMessageID())
 				continue
 			}
@@ -617,9 +623,23 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.TlfName = mm.Valid().ClientHeader.TlfName
 				maxValidID = mm.GetMessageID()
 			}
+
 			conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
+
+			// Resolve edits/deletes
+			var newMsg []chat1.MessageUnboxed
+			if newMsg, err = superXform.run(ctx, conversationLocal.GetConvID(), uid,
+				[]chat1.MessageUnboxed{mm}, conversationRemote.Metadata.FinalizeInfo); err != nil {
+				s.Debug(ctx, "failed to transform message: id: %d err: %s", mm.GetMessageID(),
+					err.Error())
+			} else {
+				if len(newMsg) > 0 {
+					newMaxMsgs = append(newMaxMsgs, newMsg[0])
+				}
+			}
 		}
 	}
+	conversationLocal.MaxMessages = newMaxMsgs
 
 	if len(conversationLocal.Info.TlfName) == 0 {
 		errMsg := "no valid message in the conversation"
