@@ -252,7 +252,11 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		// We could use `cleanTransient.Contains()`, but that wouldn't update
 		// the LRU time. By using `Get`, we make it less likely that another
 		// goroutine will evict this block before we can `Put` it again.
-		_, wasInCache = b.cleanTransient.Get(ptr.ID)
+		var block interface{}
+		block, wasInCache = b.cleanTransient.Get(ptr.ID)
+		if wasInCache {
+			hasPrefetched = (hasPrefetched || block.(blockContainer).hasPrefetched)
+		}
 		// Cache it later, once we know there's room
 
 	case PermanentEntry:

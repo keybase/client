@@ -4968,10 +4968,6 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockDirtyBcache.EXPECT().IsDirty(gomock.Any(),
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
 		p.Branch).Return(false)
-	config.mockBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}).
-		Times(1).Return(rootBlock, nil)
-	config.mockBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer}).
-		Times(1).Return(fileBlock, nil)
 
 	// no matching pointers
 	config.mockBcache.EXPECT().CheckForKnownPtr(gomock.Any(), gomock.Any()).

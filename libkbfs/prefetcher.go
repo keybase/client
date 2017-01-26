@@ -155,8 +155,8 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata)
 	}
 }
 
-func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
-	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block. Num entries: %d", len(b.Children))
+func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock, kmd KeyMetadata) {
+	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block ID %s. Num entries: %d", ptr.ID, len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
@@ -182,6 +182,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(b *DirBlock, kmd KeyMetadata) {
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
 func (p *blockPrefetcher) PrefetchBlock(
 	block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
+	// TODO: Remove this log line.
 	p.log.CDebugf(context.TODO(), "Prefetching block by request from upstream component. Priority: %d", priority)
 	return p.request(priority, kmd, ptr, block, "")
 }
@@ -223,7 +224,7 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
 		if b.IsInd {
 			p.prefetchIndirectDirBlock(b, kmd)
 		} else {
-			p.prefetchDirectDirBlock(b, kmd)
+			p.prefetchDirectDirBlock(ptr, b, kmd)
 		}
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
