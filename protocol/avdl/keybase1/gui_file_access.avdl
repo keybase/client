@@ -69,7 +69,7 @@ protocol GuiFileAccess {
    Get list if items in progress. Can indicate status of pending
    to get more items.
    */
-  ListResult getList(OpID opID)
+  ListResult getList(OpID opID);
 
   /**
    Begin copy of file or directory into filesystem 
@@ -99,7 +99,7 @@ protocol GuiFileAccess {
   /**
    Retrieve content of started copy
    */
-  FileContent getContent()
+  FileContent getContent(OpID opID);
 
   /**
    Remove file or directory from filesystem
@@ -125,5 +125,5 @@ protocol GuiFileAccess {
   /**
    Blocking wait for the pending operation to finish
    */
-  int waitForOp(OpID opID);
+  Result wait(OpID opID);
 }
