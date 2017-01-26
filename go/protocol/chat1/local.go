@@ -746,11 +746,11 @@ type ThreadView struct {
 }
 
 type GetThreadQuery struct {
-	MarkAsRead        bool          `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes      []MessageType `codec:"messageTypes" json:"messageTypes"`
-	ResolveSupersedes bool          `codec:"resolveSupersedes" json:"resolveSupersedes"`
-	Before            *gregor1.Time `codec:"before,omitempty" json:"before,omitempty"`
-	After             *gregor1.Time `codec:"after,omitempty" json:"after,omitempty"`
+	MarkAsRead               bool          `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes             []MessageType `codec:"messageTypes" json:"messageTypes"`
+	DisableResolveSupersedes bool          `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
+	Before                   *gregor1.Time `codec:"before,omitempty" json:"before,omitempty"`
+	After                    *gregor1.Time `codec:"after,omitempty" json:"after,omitempty"`
 }
 
 type GetThreadLocalRes struct {

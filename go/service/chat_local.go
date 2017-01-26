@@ -480,7 +480,6 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		query.After = &gsince
 	}
 
-	query.ResolveSupersedes = true
 	tv, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 		ConversationID:   convLocal.Info.Id,
 		Query:            &query,

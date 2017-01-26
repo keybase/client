@@ -827,7 +827,7 @@
         },
         {
           "type": "boolean",
-          "name": "resolveSupersedes"
+          "name": "disableResolveSupersedes"
         },
         {
           "type": [
