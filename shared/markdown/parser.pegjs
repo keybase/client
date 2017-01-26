@@ -37,7 +37,7 @@
 }
 
 start
- = children:(Blank / Code / Content / Blank)* { return {type: 'text', children}; }
+ = children:(Blank / Code / Content / Blank)* { return {type: 'text', children} }
 
 Code = CodeBlock / InlineCode
 
@@ -59,7 +59,7 @@ QuoteBlockMarker = ">"
 
 // Define what we can go to when we are inside a style. e.g. Bold -> Bold doesn't make sense, but Bold -> Strike does
 FromBold
- = (Italic / Strike / InsideBoldMarker)
+ = Italic / Strike / InsideBoldMarker
 
 FromItalic
  = Bold / Strike / InsideItalicMarker
@@ -72,83 +72,54 @@ FromQuote
 
 // Define what text inside a style looks like. Usually everything but the end marker
 InsideBoldMarker
- = (! BoldMarker .) { return text(); }
+ = (! BoldMarker .) { return text() }
 
 InsideItalicMarker
- = ((! ItalicMarker) .) { return text(); }
+ = (! ItalicMarker .) { return text() }
 
 InsideStrikeMarker
- = ((! StrikeMarker) .) { return text(); }
+ = (! StrikeMarker .) { return text() }
 
 InsideCodeBlock
- = ((! Ticks3) .) { return text(); }
+ = (! Ticks3 .) { return text() }
 
 InsideInlineCode
- = ((! Ticks1) .) { return text(); }
+ = (! Ticks1 .) { return text() }
 
 InsideQuoteBlock
- = ((! LineTerminatorSequence) .) { return text(); }
+ = (! LineTerminatorSequence .) { return text() }
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker
- = (! ":" [a-zA-Z0-9+_-]) { return text(); }
+ = !EmojiMarker [a-zA-Z0-9+_-] { return text() }
 
 InsideEmojiTone
- = "::skin-tone-" [1-6] { return text(); }
-
-// Define the rules for styles. Usually a start marker, children, and an end marker.
-QuoteBlock
- = QuoteBlockMarker _? children:FromQuote* LineTerminatorSequence { return {type: 'quote-block', children}; }
-
-Bold
- = BoldMarker children:FromBold* BoldMarker { return {type: 'bold', children}; }
-
-Italic
- = ItalicMarker children:FromItalic* ItalicMarker { return {type: 'italic', children}; }
-
-Strike
- = StrikeMarker children:FromStrike* StrikeMarker { return {type: 'strike', children}; }
-
-CodeBlock
- = Ticks3 children:InsideCodeBlock* Ticks3 { return {type: 'code-block', children}; }
-
-InlineCode
- = Ticks1 children:InsideInlineCode* Ticks1 { return {type: 'inline-code', children}; }
+ = "::skin-tone-" [1-6] { return text() }
 
 Emoji
- = EmojiMarker children:InsideEmojiMarker+ tone:InsideEmojiTone? ":" { return {type: 'emoji', children: [children.join('') + (tone || '')]}; }
-
-Text "text"
- = _? NonBlank+ _? {
-    return convertLink(text())
- }
-
-// Useful helpers
+ = EmojiMarker children:InsideEmojiMarker+ tone:InsideEmojiTone? ":" { return {type: 'emoji', children: [children.join('') + (tone || '')]} }
 
 Blank
-  = ws:(WhiteSpace / LineTerminatorSequence) {
-      return ws;
-    }
+ = (WhiteSpace / LineTerminatorSequence) { return text() }
 
 NonBlank
-  = !(WhiteSpace / LineTerminatorSequence) char:. {
-      return char;
-    }
+ = !(WhiteSpace / LineTerminatorSequence) char:. { return char }
+
 _
-  = (WhiteSpace)*
+ = (WhiteSpace)*
 
 __
-  = (WhiteSpace / LineTerminatorSequence)*
+ = (WhiteSpace / LineTerminatorSequence)*
 
 WhiteSpace
-  = [\t\v\f \u00A0\uFEFF] / Space
+ = [\t\v\f \u00A0\uFEFF] / Space
 
 LineTerminatorSequence "end of line"
-  = "\n"
-  / "\r\n"
-  / "\r"
-  / "\u2028" // line spearator
-  / "\u2029" // paragraph separator
+ = "\n"
+ / "\r\n"
+ / "\r"
+ / "\u2028" // line spearator
+ / "\u2029" // paragraph separator
 
 Space
-  = [\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]
+ = [\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]
