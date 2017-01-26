@@ -113,13 +113,7 @@ export function login (): AsyncAction {
               }], [loginTab, 'login']))
             }
           } else {
-            dispatch({
-              payload: undefined,
-              type: Constants.loginDone,
-            })
-
-            dispatch(loadDevices())
-            dispatch(bootstrap())
+            dispatch(loginSuccess())
           }
         },
         incomingCallMap,
@@ -250,6 +244,14 @@ export function submitForgotPassword () : AsyncAction {
   }
 }
 
+function loginSuccess (): AsyncAction {
+  return dispatch => {
+    dispatch({payload: undefined, type: Constants.loginDone})
+    dispatch(loadDevices())
+    dispatch(bootstrap())
+  }
+}
+
 export function relogin (username: string, passphrase: string) : AsyncAction {
   return dispatch => {
     loginLoginProvisionedDeviceRpc({
@@ -265,9 +267,7 @@ export function relogin (username: string, passphrase: string) : AsyncAction {
           dispatch(setLoginFromRevokedDevice(message))
           dispatch(navigateTo([loginTab]))
         } else {
-          dispatch({payload: undefined, type: Constants.loginDone})
-          dispatch(loadDevices())
-          dispatch(bootstrap())
+          dispatch(loginSuccess())
         }
       },
       incomingCallMap: {
