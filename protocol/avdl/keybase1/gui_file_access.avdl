@@ -7,10 +7,14 @@ protocol GuiFileAccess {
 /*
   File manipulation interface
   
-  Caller provides OpID to asynchronous method call, repeats until status is no
+  Caller provides OpID to asynchronous method call, then polls 
+  by calling a get* method until status is no
   longer pending or operation is cancelled.
+
+  Caller can optionally block by calling wait
  
   KBFS paths are expected to start with "private" or "public" - mount name is implied.
+  Other paths are absolute, full paths.
 */
 
   // Random GUID provided by caller 
@@ -18,15 +22,20 @@ protocol GuiFileAccess {
   
   enum ItemType {
     FILE,
-    DIR
+    DIR,
+    SYM,
+    EXEC
   }
 
   record Item {
     string path;
     Time time;
-    int size;   // size of file or count of dir entries
+    int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
     ItemType itemType;
   }
+
+  @typedef("int")
+  record ErrornNum {}
 
   enum Status {
     finished,
@@ -38,7 +47,7 @@ protocol GuiFileAccess {
   record Result {
     Status status;
     int progress;       // if status == pending
-    int errno;          // if status == error
+    ErrornNum errnum;   // if status == error
     string description; // if status == error
   }
 
@@ -54,16 +63,15 @@ protocol GuiFileAccess {
 
   /**
    Begin list if items in directory at path
-   Return indicates error
    Retrieve results with getList()
+   Can be a single file to get flags/status
    */
-  int startList(OpID opID, string path);
+  ErrorNum list(OpID opID, string path);
 
   /**
    Begin recursive list if items in directory at path
-   Return indicates error
    */
-  int startListRecursive(OpID opID, string path);
+  ErrorNum listRecursive(OpID opID, string path);
 
   /**
    Get list if items in progress. Can indicate status of pending
@@ -72,34 +80,57 @@ protocol GuiFileAccess {
   ListResult getList(OpID opID);
 
   /**
-   Begin copy of file or directory into filesystem 
+   Begin copy of file or directory 
    */
-  int startCopyIn(OpID opID, string src, string dest);
+  ErrorNum copy(OpID opID, string src, string dest);
 
   /**
-   Begin recursive copy of file into filesystem 
+   Begin recursive copy of directory 
    */
-  int startCopyInRecursive(OpID opID, string src, string dest);
+  ErrorNum copyRecursive(OpID opID, string src, string dest);
 
   /**
-   Begin copy file or directory out of filesystem
+   Begin move of file or directory 
    */
-  Result startCopyOut(OpID opID, string src, string dest);
+  ErrorNum move(OpID opID, string src, string dest);
 
   /**
-   Begin recursive copy file or directory out of filesystem
+   Begin recursive move of directory 
    */
-  Result startCopyOutRecursive(OpID opID, string src, string dest);
+  ErrorNum moveRecursive(OpID opID, string src, string dest);
+
+  /**
+   Rename file or directory
+   */
+  ErrorNum rename(string src, string dest);
 
   /**
    Begin copy file content out of filesystem
    */
-  Result startCopyContent(OpID opID, string src);
+  ErrorNum copyContent(OpID opID, string src);
 
   /**
    Retrieve content of started copy
    */
   FileContent getContent(OpID opID);
+
+  /**
+   Create/open a file and leave it open
+   or create a directory
+   or set the executable bit on an existing file.
+   Files must be closed afterwards.
+   Flags:
+   REPLACE    = 1     overwrite
+   EXISTING   = 2     fail if not present already
+   DIRECTORY  = 4
+   EXECUTABLE = 8   
+   */
+  ErrorNum open(OpID opID, string dest, int Flags);
+
+  /**
+   Append content to opened file
+   */
+  Result addContent(OpID opID, FileContent content);
 
   /**
    Remove file or directory from filesystem
