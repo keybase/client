@@ -7,6 +7,7 @@ import NoConversation from './no-conversation'
 import React, {Component} from 'react'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
+import {nothingSelected} from '../../constants/chat'
 import {withHandlers, branch, renderComponent} from 'recompose'
 
 import type {Props} from '.'
@@ -169,7 +170,7 @@ const dropOverlayStyle = {
 }
 
 export default branch(
-  (props: Props) => !props.selectedConversation,
+  (props: Props) => props.selectedConversation === nothingSelected,
   renderComponent(NoConversation),
 withFocusHandlers)(Conversation)
 
