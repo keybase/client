@@ -22,7 +22,7 @@
             LicenseUrl="https://keybase.io/docs/terms"
             ThemeFile="HyperlinkTheme.xml"
             LocalizationFile="HyperlinkTheme.wxl"
-            LogoFile="$(env.GOPATH)\src\github.com\keybase\client\media\logos\mascot\keybase_logo_mascot_64x64.png"
+            LogoFile="$(env.GOPATH)\src\github.com\keybase\client\media\icons\icon-keybase-logo-windows-64.png"
             LicenseFile="license.rtf"
             ShowVersion="yes"
             SuppressOptionsUI="yes"
