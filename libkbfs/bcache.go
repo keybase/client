@@ -145,7 +145,7 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (
 		return BlockPointer{}, nil
 	}
 
-	key := idCacheKey{tlf, block.UpdateHash()}
+	key := idCacheKey{tlf, block.GetHash()}
 	tmp, ok := b.ids.Get(key)
 	if !ok {
 		return BlockPointer{}, nil

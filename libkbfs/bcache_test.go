@@ -340,16 +340,17 @@ func TestBlockCachePutNoHashCalculation(t *testing.T) {
 
 	// this is an invalid hash; if Put() does not calculate hash, it should go
 	// into the cache
-	block.hash = &kbfshash.RawDefaultHash{}
+	hash := &kbfshash.RawDefaultHash{}
+	block.hash = hash
 	err := bcache.Put(ptr, tlf, block, TransientEntry)
 	require.NoError(t, err)
 
-	// CheckForKnownPtr() calculates hash, which results in a valid hash at
-	// block.hash. If the block with invalid hash was put into cache, this should
-	// fail to find the block.
+	// CheckForKnownPtr() calculates hash only if it's nil. If the block with
+	// invalid hash was put into cache, this will find it.
 	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
 	require.NoError(t, err)
-	require.NotEqual(t, ptr, checkedPtr, "Put() is calculating hash")
+	require.Equal(t, ptr, checkedPtr)
+	require.Equal(t, hash, block.hash)
 }
 
 func TestBlockCacheDoublePut(t *testing.T) {
