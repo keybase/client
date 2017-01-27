@@ -7,7 +7,7 @@ import React, {Component} from 'react'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {withHandlers} from 'recompose'
-import {readClipboard} from '../../util/clipboard.desktop'
+import {readImageFromClipboard} from '../../util/clipboard.desktop'
 
 import type {Props} from '.'
 
@@ -58,7 +58,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
 
   _onPaste = e => {
     // TODO: Should we read/save the clipboard data on the main thread?
-    readClipboard(e, () => {
+    readImageFromClipboard(e, () => {
       this.setState({showDropOverlay: true})
     }).then(clipboardData => {
       this.setState({showDropOverlay: false})

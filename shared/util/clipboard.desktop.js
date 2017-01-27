@@ -32,9 +32,7 @@ function readImage (format: string): Promise<?ClipboardData> {
   })
 }
 
-export function readClipboard (event: any, willReadData: () => void): Promise<?ClipboardData> {
-  // If a user pastes image data, there are 2 items, the filename and
-  // the file.
+export function readImageFromClipboard (event: any, willReadData: () => void): Promise<?ClipboardData> {
   const formats = clipboard.availableFormats()
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))
