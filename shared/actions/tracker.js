@@ -694,8 +694,7 @@ function _listTrackersOrTracking (username: string, listTrackers: boolean): Prom
       param: {
         endpoint: 'user/list_followers_for_display',
         args: [
-          {key: 'uid', value: 'e0b4166c9c839275cf5633ff65c3e819'}, // TEMP hardcoded to test until coyne changes this
-          // {key: 'username', value: username},
+          {key: 'username', value: username},
           {key: 'reverse', value: String(!listTrackers)},
         ],
       },
