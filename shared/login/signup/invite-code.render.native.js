@@ -5,12 +5,12 @@ import type {Props} from './invite-code.render'
 import {Text, Input, Button, Icon, Box} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 
-class InviteCodeRender extends Component {
-  props: Props;
+type State = {
+  inviteCode: string,
+}
 
-  state: {
-    inviteCode: ?string,
-  };
+class InviteCodeRender extends Component<void, Props, State> {
+  state: State
 
   constructor (props: Props) {
     super(props)
@@ -19,17 +19,21 @@ class InviteCodeRender extends Component {
     }
   }
 
-  render () {
-    const submitInviteCode = () => {
-      this.props.onInviteCodeSubmit(this.state.inviteCode)
-    }
+  _onSubmit = () => {
+    this.props.onInviteCodeSubmit(this.state.inviteCode)
+  }
 
+  _updateInviteCode = inviteCode => {
+    this.setState({inviteCode})
+  }
+
+  render () {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Text style={stylesHeader} type='Header'>Type in your invite code:</Text>
         <Icon style={stylesIcon} type='icon-invite-code-48' />
-        <Input autoFocus={true} style={stylesInput} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChangeText={inviteCode => this.setState({inviteCode})} />
-        <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
+        <Input autoFocus={true} style={stylesInput} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={this._onSubmit} onChangeText={this._updateInviteCode} />
+        <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={this._onSubmit} disabled={!this.state.inviteCode} />
         <Text type='BodySmall'>Not invited?</Text>
         <Text type='BodySmallSecondaryLink' onClick={this.props.onRequestInvite}>Request an invite</Text>
         <Box style={{flex: 1}} />
@@ -56,4 +60,5 @@ const stylesButton = {
   marginTop: globalMargins.medium,
   marginBottom: globalMargins.small,
 }
+
 export default InviteCodeRender

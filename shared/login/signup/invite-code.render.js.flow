@@ -1,13 +1,13 @@
 // @flow
-import React, {Component} from 'react'
+import {Component} from 'react'
 
 export type Props = {
   onBack: () => void,
-  onInviteCodeSubmit: () => void,
+  onInviteCodeSubmit: (code: string) => void,
   onRequestInvite: () => void,
   inviteCode: ?string,
   inviteCodeErrorText: ?string,
-  waiting: boolean
+  waiting: boolean,
 }
 
 export default class Render extends Component<void, Props, void> { }
