@@ -484,7 +484,7 @@ func TestDisconnectedFailure(t *testing.T) {
 // The sender is responsible for making sure that a deletion of a single
 // message is expanded to include all of its edits.
 func TestDeletionHeaders(t *testing.T) {
-	world, ri, _, blockingSender, _, _ := setupTest(t, 1)
+	world, ri, _, blockingSender, _, _, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
