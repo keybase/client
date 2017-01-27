@@ -6,11 +6,11 @@ import {Box, Text, Input, Button, Icon} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 type State = {
-  inviteCode: ?string,
+  inviteCode: string,
 }
 
 class InviteCodeRender extends Component<void, Props, State> {
-  state: State;
+  state: State
 
   constructor (props: Props) {
     super(props)
@@ -19,11 +19,15 @@ class InviteCodeRender extends Component<void, Props, State> {
     }
   }
 
-  render () {
-    const submitInviteCode = () => {
-      this.props.onInviteCodeSubmit(this.state.inviteCode)
-    }
+  _onSubmit = () => {
+    this.props.onInviteCodeSubmit(this.state.inviteCode)
+  }
 
+  _updateInviteCode = inviteCode => {
+    this.setState({inviteCode})
+  }
+
+  render () {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Box style={stylesBox}>
@@ -36,10 +40,10 @@ class InviteCodeRender extends Component<void, Props, State> {
             floatingHintTextOverride='Invite code'
             value={this.state.inviteCode}
             errorText={this.props.inviteCodeErrorText}
-            onEnterKeyDown={submitInviteCode}
-            onChangeText={inviteCode => this.setState({inviteCode})}
+            onEnterKeyDown={this._onSubmit}
+            onChangeText={this._updateInviteCode}
           />
-          <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
+          <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={this._onSubmit} disabled={!this.state.inviteCode} />
           <Text style={stylesText} type='Body'>Not invited?</Text>
           <Text type='BodyPrimaryLink' onClick={this.props.onRequestInvite}>Request an invite code</Text>
         </Box>
