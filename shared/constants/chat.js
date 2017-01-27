@@ -197,6 +197,7 @@ export const StateRecord = Record({
   metaData: Map(),
   pendingFailures: Set(),
   conversationUnreadCounts: Map(),
+  rekeyInfos: Map(),
 })
 
 export type State = Record<{
