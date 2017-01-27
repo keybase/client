@@ -20,7 +20,6 @@ export type SignupState = {
   deviceName: ?string,
   paperkey: ?HiddenString,
   signupError: ?HiddenString,
-  autoInviteRequestState: AutoInviteRequestState,
   waiting: boolean,
   phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
 }
@@ -38,7 +37,6 @@ const initialState: SignupState = {
   deviceNameError: null,
   paperkey: null,
   signupError: null,
-  autoInviteRequestState: 'NotRequested',
   deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
   waiting: false,
   phase: 'inviteCode',

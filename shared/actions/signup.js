@@ -2,12 +2,12 @@
 import * as Constants from '../constants/signup'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
-import {CommonDeviceType, signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc, signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../constants/types/flow-types'
+import {CommonDeviceType, signupGetInvitationCodeRpc, signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc, signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
 import {navBasedOnLoginState} from './login'
-import {navigateAppend} from '../actions/route-tree'
+import {navigateAppend, navigateTo} from '../actions/route-tree'
 
 import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../constants/signup'
 import type {NavigateAppend, NavigateTo} from '../constants/route-tree'
@@ -56,6 +56,31 @@ function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode 
     })
   })
 }
+
+function requestAutoInvite (): TypedAsyncAction<CheckInviteCode | NavigateAppend | NavigateTo | SignupWaiting> {
+  return dispatch => new Promise((resolve, reject) => {
+    signupGetInvitationCodeRpc({
+      callback: (err, inviteCode) => {
+        // TODO: It would be better to book-keep having asked for an auto
+        // invite code, instead of just acting as if the one we receive
+        // here had been typed, using the same store entry as a manual one.
+        if (err) {
+          dispatch(navigateTo([loginTab, 'signup']))
+          reject(err)
+        } else {
+          dispatch(checkInviteCode(inviteCode))
+          // For navigateAppend to work in nextPhase(), need the right path.
+          dispatch(navigateTo([loginTab, 'signup']))
+          dispatch(nextPhase())
+          inviteCode ? resolve() : reject(err)
+        }
+      },
+      param: {},
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
+    })
+  })
+}
+
 
 function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | NavigateAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
@@ -358,10 +383,6 @@ function showSuccess (): ShowSuccess {
     payload: {},
     type: Constants.showSuccess,
   }
-}
-
-function requestAutoInvite (): AsyncAction {
-  // TODO @cjb i didn't make the call
 }
 
 export {

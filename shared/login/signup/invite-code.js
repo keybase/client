@@ -10,12 +10,10 @@ export default connect(
     inviteCode: state.signup.inviteCode,
     inviteCodeErrorText: state.signup.inviteCodeError,
     waiting: state.signup.waiting,
-    autoInviteRequestState: state.signup.autoInviteRequestState,
   }),
   (dispatch: Dispatch) => ({
     onBack: () => dispatch(restartSignup()),
     onInviteCodeSubmit: (code: string) => dispatch(checkInviteCode(code)),
     onRequestInvite: () => dispatch(startRequestInvite()),
-    onRequestAutoInvite: () => dispatch(requestAutoInvite()),
   })
 )(InviteCode)
