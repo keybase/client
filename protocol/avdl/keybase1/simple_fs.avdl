@@ -44,6 +44,15 @@ protocol GuiFileAccess {
     error_3
   }
 
+  enum openFlags {
+    REPLACE_1      // overwrite
+    EXISTING_2     // fail if not present already
+    READ_4
+    WRITE_8
+    EXECUTABLE_16
+    DIRECTORY_32
+  }
+
   record Result {
     Status status;
     int progress;       // if status == pending
@@ -100,11 +109,6 @@ protocol GuiFileAccess {
   void rename(string src, string dest);
 
   /**
-   Begin copy file content out of filesystem
-   */
-  void copyContent(OpID opID, string src);
-
-  /**
    Retrieve content of started copy
    */
   FileContent read(OpID opID);
@@ -114,13 +118,8 @@ protocol GuiFileAccess {
    or create a directory
    or set the executable bit on an existing file.
    Files must be closed afterwards.
-   Flags:
-   REPLACE    = 1     overwrite
-   EXISTING   = 2     fail if not present already
-   DIRECTORY  = 4
-   EXECUTABLE = 8   
    */
-  void open(OpID opID, string dest, int Flags);
+  void open(OpID opID, string dest, openFlags Flags);
 
   /**
    Append content to opened file
@@ -141,12 +140,12 @@ protocol GuiFileAccess {
    Close OpID, cancels any pending operation.
    Must be called after list/copy/remove
    */
-  Result closeOpID(OpID opID);
+  Result close(OpID opID);
 
   /**
    Check progress of pending operation
    */
-  Result checkOp(OpID opID);
+  Result check(OpID opID);
 
   /**
    Get all the outstanding operations
