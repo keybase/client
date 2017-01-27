@@ -2603,6 +2603,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
+	co.setFinalPath(dirPath)
 	md.AddOp(co)
 	// create new data block
 	var newBlock Block
@@ -2834,6 +2835,7 @@ func (fbo *folderBranchOps) createLinkLocked(
 	if err != nil {
 		return DirEntry{}, err
 	}
+	co.setFinalPath(dirPath)
 	md.AddOp(co)
 
 	// Create a direntry for the link, and then sync
@@ -2937,6 +2939,7 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	if err != nil {
 		return err
 	}
+	ro.setFinalPath(dir)
 	md.AddOp(ro)
 	err = fbo.unrefEntry(ctx, lState, md, dir, de, name)
 	if err != nil {
@@ -3418,6 +3421,7 @@ func (fbo *folderBranchOps) setExLocked(
 		return nil
 	}
 
+	sao.setFinalPath(file)
 	md.AddOp(sao)
 
 	dblock.Children[file.tailName()] = de
@@ -3490,6 +3494,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 		return nil
 	}
 
+	sao.setFinalPath(file)
 	md.AddOp(sao)
 
 	dblock.Children[file.tailName()] = de
