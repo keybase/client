@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import {Map} from 'immutable'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
@@ -7,7 +8,7 @@ import {participantFilter} from '../../constants/chat'
 import {shouldUpdate} from 'recompose'
 
 import type {Props} from './'
-import type {InboxState} from '../../constants/chat'
+import type {InboxState, RekeyInfo, ConversationIDKey} from '../../constants/chat'
 
 const AddNewRow = ({onNewChat}: Props) => (
   <div
@@ -36,18 +37,26 @@ function rowBorderColor (idx: number, isLastParticipant: boolean, hasUnread: boo
   return !idx && isLastParticipant ? undefined : rowBackground
 }
 
-type RowProps = Props & {conversation: InboxState, unreadCount: number}
+type RowProps = Props & {conversation: InboxState, unreadCount: number, rekeyInfos: Map<ConversationIDKey, RekeyInfo>}
 
-const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, unreadCount, you}: RowProps) => {
+const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, unreadCount, you, rekeyInfos}: RowProps) => {
   const participants = participantFilter(conversation.get('participants'), you)
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
   const isMuted = conversation.get('muted')
   const avatarCount = Math.min(2, participants.count())
   const hasUnread = !!unreadCount
+  const conversationIDKey = conversation.get('conversationIDKey')
+  const rekeyInfo = rekeyInfos.get(selectedConversation)
+  const youNeedToRekey = rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
+  const participantNeedToRekey = rekeyInfo && rekeyInfo.get('rekeyParticipants').count()
+
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor: rowBackgroundColor(hasUnread, isSelected),
     borderColor: rowBorderColor(idx, idx === (avatarCount - 1), hasUnread, isSelected),
     size: 24,
+    style: {
+      opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
+    },
     username,
   })).toArray()
   const snippet = conversation.get('snippet')
@@ -57,31 +66,42 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
   const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
   const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
   const commaColor = isSelected ? globalColors.black_60 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
+
+  let bottomLine
+
+  if (participantNeedToRekey) {
+    bottomLine = <Text type='BodySmall'>Waiting for participants to rekey</Text>
+  } else if (snippet && !isMuted) {
+    bottomLine = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>
+  }
+
   return (
     <div
-      onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
+      onClick={() => onSelectConversation(conversationIDKey)}
       title={`${unreadCount} unread`}
       style={{...rowContainerStyle, backgroundColor}}>
       <div style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4}}>
         <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
         {isMuted && <Icon type={shhIconType} style={shhStyle} />}
       </div>
-      <div style={{...globalStyles.flexBoxRow, ...conversationRowStyle, borderBottom: (!isSelected && !hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
-        <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
-          <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', bottom: 0, justifyContent: 'center', left: 0, position: 'absolute', right: 0, top: 0}}>
-            <Usernames
-              inline={true}
-              type='BodySemibold'
-              style={{...boldOverride, color: usernameColor}}
-              commaColor={commaColor}
-              containerStyle={{color: usernameColor, paddingRight: 7}}
-              users={participants.map(p => ({username: p})).toArray()}
-              title={participants.join(', ')} />
-            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>}
+      <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!isSelected && !hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
+        <div style={{...globalStyles.flexBoxRow}>
+          <div style={{...globalStyles.flexBoxRow, flex: 1, position: 'relative'}}>
+            <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', bottom: 0, justifyContent: 'center', left: 0, position: 'absolute', right: 0, top: 0}}>
+              <Usernames
+                inline={true}
+                type='BodySemibold'
+                style={{...boldOverride, color: usernameColor}}
+                commaColor={commaColor}
+                containerStyle={{color: usernameColor, paddingRight: 7}}
+                users={participants.map(p => ({username: p})).toArray()}
+                title={participants.join(', ')} />
+            </div>
           </div>
+          <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: '17px', marginTop: globalMargins.xtiny}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+          {hasUnread && <div style={unreadDotStyle} />}
         </div>
-        <Text type='BodySmall' style={{...boldOverride, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px', marginTop: globalMargins.xtiny}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
-        {hasUnread && <div style={unreadDotStyle} />}
+        {bottomLine}
       </div>
     </div>
   )

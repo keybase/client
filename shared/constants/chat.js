@@ -180,6 +180,16 @@ export const MetaDataRecord = Record({
   brokenTracker: false,
 })
 
+export const RekeyInfoRecord = Record({
+  rekeyParticipants: List(),
+  youCanRekey: false,
+})
+
+export type RekeyInfo = Record<{
+  rekeyParticipants: List<string>,
+  youCanRekey: boolean,
+}>
+
 export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
@@ -196,6 +206,7 @@ export type State = Record<{
   metaData: MetaDataMap,
   pendingFailures: Set<OutboxIDKey>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
+  rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
 }>
 
 export const maxAttachmentPreviewSize = 320

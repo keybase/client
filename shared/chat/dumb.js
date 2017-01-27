@@ -6,7 +6,7 @@ import ConversationBanner from './conversation/banner'
 import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
 import HiddenString from '../util/hidden-string'
-import {InboxStateRecord, MetaDataRecord} from '../constants/chat'
+import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 
@@ -246,6 +246,20 @@ const sidePanel = {
   },
 }
 
+const rekeyConvo = (youCanRekey) => ({
+  ...commonConversationsProps,
+  rekeyInfos: Map({
+    convo1: new RekeyInfoRecord({
+      rekeyParticipants: List(['jzila']),
+      youCanRekey,
+    }),
+    convo3: new RekeyInfoRecord({
+      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch']),
+      youCanRekey,
+    }),
+  }),
+})
+
 const conversationsList = {
   component: ConversationsList,
   mocks: {
@@ -262,6 +276,14 @@ const conversationsList = {
     },
     'Empty': {
       ...emptyConversationsProps,
+    },
+    'PartRekey': {
+      ...rekeyConvo(false) ,
+      selectedConversation: 'convo3',
+    },
+    'PartRekeySelected': {
+      ...rekeyConvo(false),
+      selectedConversation: 'convo1',
     },
   },
 }
