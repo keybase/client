@@ -129,6 +129,7 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.I
 				foundMsgs = append(foundMsgs, *msg)
 			}
 		}
+
 		if len(foundMsgs) != len(msgs) {
 			return getMessagesRes{
 				err:    errors.New("missing messages locally"),
@@ -609,6 +610,8 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 				// If a localize callback channel exists, send along the result as well
 				if localizeCb != nil {
 					if convLocal.Error != nil {
+						s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
+							convLocal.Error.Message)
 						*localizeCb <- NonblockInboxResult{
 							Err:    errors.New(convLocal.Error.Message),
 							ConvID: conv.conv.Metadata.ConversationID,
