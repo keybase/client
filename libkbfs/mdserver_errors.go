@@ -44,6 +44,10 @@ const (
 	// StatusCodeMDServerErrorTooManyFoldersCreated is the error code to
 	// indicate that the user has created more folders than their limit.
 	StatusCodeMDServerErrorTooManyFoldersCreated = 2811
+	// StatusCodeMDServerErrorCannotReadFinalizedTLF is the error code
+	// to indicate that a reader has requested to read a TLF ID that
+	// has been finalized, which isn't allowed.
+	StatusCodeMDServerErrorCannotReadFinalizedTLF = 2812
 )
 
 // MDServerError is a generic server-side error.
@@ -297,6 +301,25 @@ func (e MDServerErrorTooManyFoldersCreated) ToStatus() (s keybase1.Status) {
 	return
 }
 
+// MDServerErrorCannotReadFinalizedTLF is returned when the client
+// isn't authorized to read a finalized TLF.
+type MDServerErrorCannotReadFinalizedTLF struct{}
+
+// Error implements the Error interface for
+// MDServerErrorCannotReadFinalizedTLF.
+func (e MDServerErrorCannotReadFinalizedTLF) Error() string {
+	return "MDServerErrorCannotReadFinalizedTLF{}"
+}
+
+// ToStatus implements the ExportableError interface for
+// MDServerErrorCannotReadFinalizedTLF.
+func (e MDServerErrorCannotReadFinalizedTLF) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeMDServerErrorCannotReadFinalizedTLF
+	s.Name = "CANNOT_READ_FINALIZED_TLF"
+	s.Desc = e.Error()
+	return
+}
+
 // MDServerErrorUnwrapper is an implementation of rpc.ErrorUnwrapper
 // for errors coming from the MDServer.
 type MDServerErrorUnwrapper struct{}
@@ -364,6 +387,9 @@ func (eu MDServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, d
 			}
 		}
 		appError = err
+		break
+	case StatusCodeMDServerErrorCannotReadFinalizedTLF:
+		appError = MDServerErrorCannotReadFinalizedTLF{}
 		break
 	default:
 		ase := libkb.AppStatusError{
