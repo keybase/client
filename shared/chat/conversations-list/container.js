@@ -21,6 +21,7 @@ export default connect(
   (state: TypedState, {routeSelected}) => ({
     conversationUnreadCounts: state.chat.get('conversationUnreadCounts'),
     inbox: state.chat.get('inbox'),
+    rekeyInfos: state.chat.get('rekeyInfos'),
     selectedConversation: routeSelected,
     you: state.config.username || '',
   }),
