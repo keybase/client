@@ -312,6 +312,12 @@
 			"revisionTime": "2014-10-08T16:43:58+02:00"
 		},
 		{
+			"checksumSHA1": "fyXuOuqF3c4LqHm5ZRt20aFjjfw=",
+			"path": "github.com/keybase/rog-go/reverse",
+			"revision": "e1b59e173f7b826b3f812e22a0b6dea0650663f7",
+			"revisionTime": "2017-01-13T17:06:45Z"
+		},
+		{
 			"path": "github.com/keybase/saltpack",
 			"revision": "4804ac34f11533bfd1b08c2e5385ef66c6dba9aa",
 			"revisionTime": "2016-03-23T19:53:58-05:00"
