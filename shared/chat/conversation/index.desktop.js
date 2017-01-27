@@ -63,9 +63,8 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
     }).then(clipboardData => {
       this.setState({showDropOverlay: false})
       if (clipboardData) {
-        const {path, title, format} = clipboardData
-        const type = format.includes('image/') ? 'Image' : 'Other'
-        this.props.onAttach(path, title, type)
+        const {path, title} = clipboardData
+        this.props.onAttach(path, title, 'Image')
       }
     })
   }

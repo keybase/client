@@ -9,7 +9,7 @@ export type ClipboardData = {
   format: string,
 }
 
-function readImage (format: string): Promise<?ClipboardData> {
+function readImage (): Promise<?ClipboardData> {
   return new Promise((resolve, reject) => {
     tmpRandFile('.png').then(path => {
       const image = clipboard.readImage()
@@ -26,7 +26,7 @@ function readImage (format: string): Promise<?ClipboardData> {
           reject(err)
           return
         }
-        resolve({format, path, title: 'image.png'})
+        resolve({path, title: 'image.png'})
       })
     })
   })
@@ -44,7 +44,7 @@ export function readImageFromClipboard (event: any, willReadData: () => void): P
     willReadData()
 
     // Read image from Electron clipboard
-    return readImage(imageFormats[0])
+    return readImage()
   } else {
     // Nothing to read
     return new Promise((resolve, reject) => { resolve(null) })
