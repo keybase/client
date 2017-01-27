@@ -16,9 +16,13 @@
         "__SCREENSHOT__": false
     },
     "plugins": [
-        "mocha", "filenames", "babel", "flowtype"
+        "mocha", "filenames", "babel", "import", "flowtype"
     ],
     "settings": {
+        "import/core-modules": [ electron, react-native ],
+        "import/resolver": {
+          webpack: 'webpack.config.base.js'
+        },
     },
     "rules": {
         "babel/func-params-comma-dangle": "off",
@@ -35,7 +39,16 @@
         "flowtype/delimiter-dangle": ["error", "always-multiline"],
         "flowtype/no-dupe-keys": "error",
         "flowtype/semi": ["error", "never"],
+        "flowtype/object-type-delimiter": ["error", "comma"],
         "jsx-quotes": ["error", "prefer-single"],
+        "import/named": "error",
+        "import/export": "error",
+        "import/no-named-as-default": "error",
+        "import/no-named-as-default-member": "error",
+        "import/no-extraneous-dependencies": "error",
+        "import/no-mutable-exports": "error",
+        "import/imports-first": "error",
+        "import/no-duplicates": "error",
         "no-duplicate-imports": "off",
         "react/jsx-boolean-value": ["error", "always"],
         "react/jsx-curly-spacing": "error",
