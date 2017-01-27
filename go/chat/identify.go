@@ -17,6 +17,8 @@ import (
 
 type IdentifyNotifier struct {
 	libkb.Contextified
+	utils.DebugLabeler
+
 	sync.RWMutex
 	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
 }
@@ -24,6 +26,7 @@ type IdentifyNotifier struct {
 func NewIdentifyNotifier(g *libkb.GlobalContext) *IdentifyNotifier {
 	return &IdentifyNotifier{
 		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
 }
@@ -36,7 +39,7 @@ func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 	if ok {
 		// We have the exact update stored, don't send it again
 		if stored.Eq(update) {
-			i.G().Log.Debug("IdentifyNotifier: hit cache, not sending notify: %s", tlfName)
+			i.Debug(context.Background(), "hit cache, not sending notify: %s", tlfName)
 			return
 		}
 	}
@@ -45,7 +48,7 @@ func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 	i.identCache[tlfName] = update
 	i.Unlock()
 
-	i.G().Log.Debug("IdentifyNotifier: cache miss, sending notify: %s dat: %v", tlfName, update)
+	i.Debug(context.Background(), "cache miss, sending notify: %s dat: %v", tlfName, update)
 	i.G().NotifyRouter.HandleChatIdentifyUpdate(context.Background(), update)
 }
 
