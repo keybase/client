@@ -45,12 +45,12 @@ protocol GuiFileAccess {
   }
 
   enum openFlags {
-    REPLACE_1      // overwrite
-    EXISTING_2     // fail if not present already
-    READ_4
-    WRITE_8
-    EXECUTABLE_16
-    DIRECTORY_32
+    READ_0,         // exclusive of other flags
+    REPLACE_1,      // overwrite
+    EXISTING_2,     // fail if not present already
+    WRITE_4,        // read is implied if not write, executable, or directory
+    EXECUTABLE_8,
+    DIRECTORY_16
   }
 
   record Result {
@@ -86,7 +86,7 @@ protocol GuiFileAccess {
    Get list if items in progress. Can indicate status of pending
    to get more items.
    */
-  ListResult getList(OpID opID);
+  ListResult readList(OpID opID);
 
   /**
    Begin copy of file or directory 
@@ -109,17 +109,17 @@ protocol GuiFileAccess {
   void rename(string src, string dest);
 
   /**
-   Retrieve content of started copy
-   */
-  FileContent read(OpID opID);
-
-  /**
    Create/open a file and leave it open
    or create a directory
    or set the executable bit on an existing file.
    Files must be closed afterwards.
    */
   void open(OpID opID, string dest, openFlags Flags);
+
+  /**
+   Read contents of open file
+   */
+  FileContent read(OpID opID);
 
   /**
    Append content to opened file
