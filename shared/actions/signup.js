@@ -360,10 +360,15 @@ function showSuccess (): ShowSuccess {
   }
 }
 
+function requestAutoInvite (): AsyncAction {
+  // TODO @cjb i didn't make the call
+}
+
 export {
   checkInviteCode,
   checkPassphrase,
   checkUsernameEmail,
+  requestAutoInvite,
   requestInvite,
   resetSignup,
   restartSignup,

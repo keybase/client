@@ -1,37 +1,21 @@
 // @flow
-import * as signupActions from '../../actions/signup'
-import React, {Component} from 'react'
-import Render from './invite-code.render'
-import {bindActionCreators} from 'redux'
+import InviteCode from './invite-code.render'
 import {connect} from 'react-redux'
+import {restartSignup, checkInviteCode, startRequestInvite, requestAutoInvite} from '../../actions/signup'
 
-class InviteCode extends Component {
-  render () {
-    return (
-      <Render
-        inviteCode={this.props.inviteCode}
-        onRequestInvite={this.props.startRequestInvite}
-        onInviteCodeSubmit={this.props.checkInviteCode}
-        inviteCodeErrorText={this.props.errorText}
-        onBack={this.props.restartSignup}
-        waiting={this.props.waiting} />
-    )
-  }
-}
+import type {TypedState} from '../../constants/reducer'
 
-InviteCode.propTypes = {
-  checkInviteCode: React.PropTypes.func,
-  errorText: React.PropTypes.string,
-}
-
-// $FlowIssue type this connector
 export default connect(
-  state => ({
-    errorText: state.signup.inviteCodeError,
+  (state: TypedState) => ({
     inviteCode: state.signup.inviteCode,
+    inviteCodeErrorText: state.signup.inviteCodeError,
     waiting: state.signup.waiting,
+    autoInviteRequestState: state.signup.autoInviteRequestState,
   }),
-    dispatch => bindActionCreators({
-      ...signupActions,
-    }, dispatch)
+  (dispatch: Dispatch) => ({
+    onBack: () => dispatch(restartSignup()),
+    onInviteCodeSubmit: (code: string) => dispatch(checkInviteCode(code)),
+    onRequestInvite: () => dispatch(startRequestInvite()),
+    onRequestAutoInvite: () => dispatch(requestAutoInvite()),
+  })
 )(InviteCode)

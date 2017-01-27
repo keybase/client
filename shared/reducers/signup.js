@@ -4,7 +4,7 @@ import * as Constants from '../constants/signup'
 import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 
-import type {SignupActions} from '../constants/signup'
+import type {SignupActions, AutoInviteRequestState} from '../constants/signup'
 
 export type SignupState = {
   inviteCode: ?string,
@@ -20,6 +20,7 @@ export type SignupState = {
   deviceName: ?string,
   paperkey: ?HiddenString,
   signupError: ?HiddenString,
+  autoInviteRequestState: AutoInviteRequestState,
   waiting: boolean,
   phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
 }
@@ -37,6 +38,7 @@ const initialState: SignupState = {
   deviceNameError: null,
   paperkey: null,
   signupError: null,
+  autoInviteRequestState: 'NotRequested',
   deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
   waiting: false,
   phase: 'inviteCode',
