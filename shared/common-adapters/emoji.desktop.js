@@ -12,7 +12,7 @@ const backgroundImageFn = (set: string, sheetSize: string) => emojiSet
 
 // Size 0 is cause we want the native emoji for copy/paste and not for rendering
 const EmojiWrapper = (props: Props) => {
-  const emojiText = `:${props.children}:`
+  const emojiText = String(props.children)
   return (
     <Emoji {...props} emoji={emojiText} backgroundImageFn={backgroundImageFn}>
       <Emoji emoji={emojiText} size={0} native={true} />

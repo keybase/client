@@ -1,10 +1,32 @@
+exports[`Markdown parser parses a line with just whitespace correctly 1`] = `
+Object {
+  "children": Array [
+    "    ",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses an empty line correctly 1`] = `
+Object {
+  "children": Array [],
+  "type": "text",
+}
+`;
+
 exports[`Markdown parser parses escaped chars correctly 1`] = `
 Object {
   "children": Array [
-    "I ",
-    "\\*should\\* ",
-    "see ",
-    "asterisks",
+    "I *should* see asterisks",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses invalid bold correctly 1`] = `
+Object {
+  "children": Array [
+    "*not bold**",
   ],
   "type": "text",
 }
@@ -13,19 +35,18 @@ Object {
 exports[`Markdown parser parses invalid emoji fragments correctly 1`] = `
 Object {
   "children": Array [
-    "one::",
+    "one::
+::two
+:three?::
+:",
+    Object {
+      "children": Array [
+        ":four:",
+      ],
+      "type": "emoji",
+    },
     "
-",
-    "::two",
-    "
-",
-    ":three?::",
-    "
-",
-    "::four:",
-    "
-",
-    "::",
+::",
   ],
   "type": "text",
 }
@@ -34,176 +55,53 @@ Object {
 exports[`Markdown parser parses kitchen sink demo correctly 1`] = `
 Object {
   "children": Array [
-    "I ",
-    "think ",
-    "we ",
-    "should ",
-    "try ",
-    "to ",
-    "use ",
+    "I think we should try to use ",
     Object {
       "children": Array [
-        "i",
-        "f",
-        " ",
-        "e",
-        "l",
-        "s",
-        "e",
+        "if else",
       ],
       "type": "inline-code",
     },
-    " ",
-    "statements ",
+    " statements ",
     Object {
       "children": Array [
-        "i",
-        "f",
-        " ",
-        "(",
-        "v",
-        "a",
-        "r",
-        " ",
-        "=",
-        "=",
-        " ",
-        "\"",
-        "f",
-        "o",
-        "o",
-        "\"",
-        ")",
-        "
-",
-        " ",
-        " ",
-        "e",
-        "c",
-        "h",
-        "o",
-        " ",
-        "\"",
-        "f",
-        "o",
-        "o",
-        "\"",
-        ";",
-        "
-",
-        "e",
-        "l",
-        "s",
-        "e",
-        " ",
-        "e",
-        "c",
-        "h",
-        "o",
-        " ",
-        "\"",
-        "b",
-        "a",
-        "r",
-        "\"",
-        ";",
+        "if (var == \"foo\")
+  echo \"foo\";
+else echo \"bar\";",
       ],
       "type": "code-block",
     },
-    "How ",
-    "about ",
+    " How about ",
     Object {
       "children": Array [
-        "b",
-        "o",
-        "l",
-        "d",
+        "bold",
       ],
       "type": "bold",
     },
-    " ",
-    "and ",
+    " and ",
     Object {
       "children": Array [
-        "i",
-        "t",
-        "a",
-        "l",
-        "i",
-        "c",
-        "?",
+        "italic?",
       ],
       "type": "italic",
     },
-    " ",
-    "nice.",
-    "
-",
-    " ",
-    "Now ",
-    "youre ",
-    "thinking ",
-    "with ",
+    " nice.
+ Now youre thinking with ",
     Object {
       "children": Array [
-        "p",
-        "o",
-        "r",
-        "t",
-        "a",
-        "l",
-        "s",
+        "portals",
       ],
       "type": "strike",
     },
-    " ",
-    "crypto.",
-    "
-",
-    " ",
-    "how ",
-    "about ",
+    " crypto.
+ how about ",
     Object {
       "children": Array [
         Object {
           "children": Array [
             Object {
               "children": Array [
-                "b",
-                "o",
-                "l",
-                "d",
-                " ",
-                "a",
-                "n",
-                "d",
-                " ",
-                "i",
-                "t",
-                "a",
-                "l",
-                "i",
-                "c",
-                " ",
-                "a",
-                "n",
-                "d",
-                " ",
-                "s",
-                "t",
-                "r",
-                "i",
-                "k",
-                "e",
-                " ",
-                "t",
-                "h",
-                "r",
-                "o",
-                "u",
-                "g",
-                "h",
-                "?",
+                "bold and italic and strike through?",
               ],
               "type": "bold",
             },
@@ -213,42 +111,16 @@ Object {
       ],
       "type": "strike",
     },
-    " ",
-    "- ",
-    "now ",
-    "- ",
+    " - now - ",
     Object {
       "children": Array [
         Object {
           "children": Array [
-            "s",
-            "o",
-            "m",
-            "e",
-            " ",
-            "b",
-            "o",
-            "l",
-            "d",
+            "some bold",
           ],
           "type": "bold",
         },
-        " ",
-        "a",
-        "n",
-        "d",
-        " ",
-        "j",
-        "u",
-        "s",
-        "t",
-        " ",
-        "i",
-        "t",
-        "a",
-        "l",
-        "i",
-        "c",
+        " and just italic",
       ],
       "type": "italic",
     },
@@ -262,22 +134,50 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "ok_hand::skin-tone-2",
+        ":ok_hand::skin-tone-2:",
       ],
       "type": "emoji",
     },
     Object {
       "children": Array [
-        "smile",
+        ":smile:",
       ],
       "type": "emoji",
     },
     Object {
       "children": Array [
-        "wink",
+        ":wink:",
       ],
       "type": "emoji",
     },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses native emoji correctly 1`] = `
+Object {
+  "children": Array [
+    "hello there ",
+    Object {
+      "children": Array [
+        ":cherry_blossom:",
+      ],
+      "type": "native-emoji",
+    },
+    Object {
+      "children": Array [
+        ":sunglasses:",
+      ],
+      "type": "native-emoji",
+    },
+    Object {
+      "children": Array [
+        ":+1::skin-tone-5:",
+      ],
+      "type": "native-emoji",
+    },
+    "!",
   ],
   "type": "text",
 }
@@ -288,17 +188,26 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "+1",
+        ":+1:",
       ],
       "type": "emoji",
     },
     " ",
     Object {
       "children": Array [
-        "100",
+        ":100:",
       ],
       "type": "emoji",
     },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses special characters within words correctly 1`] = `
+Object {
+  "children": Array [
+    "not*bolded*",
   ],
   "type": "text",
 }
@@ -308,49 +217,22 @@ exports[`Markdown parser parses urls correctly 1`] = `
 Object {
   "children": Array [
     "
-",
-    " ",
-    " ",
-    "Ignore:",
+  Ignore:
+    a...b,
+    ftp://blah.com,
+    gopher://blah.com,
+    mailto:blah@blah.com
+  Include:
+    ",
+    Object {
+      "children": Array [
+        "http://keybase.io",
+      ],
+      "href": "http://keybase.io",
+      "type": "link",
+    },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
-    "a...b,",
-    "
-",
-    " ",
-    " ",
-    " ",
-    " ",
-    "ftp://blah.com,",
-    "
-",
-    " ",
-    " ",
-    " ",
-    " ",
-    "gopher://blah.com,",
-    "
-",
-    " ",
-    " ",
-    " ",
-    " ",
-    "mailto:blah@blah.com",
-    "
-",
-    " ",
-    " ",
-    "Include:",
-    "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
         Object {
@@ -361,209 +243,133 @@ Object {
           "type": "link",
         },
       ],
-      "type": "text",
+      "type": "bold",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
         Object {
           "children": Array [
-            "https://keybase.io",
+            Object {
+              "children": Array [
+                "http://keybase.io",
+              ],
+              "href": "http://keybase.io",
+              "type": "link",
+            },
           ],
-          "href": "https://keybase.io",
-          "type": "link",
+          "type": "italic",
         },
       ],
-      "type": "text",
+      "type": "bold",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "HTTP://cnn.com",
-          ],
-          "href": "HTTP://cnn.com",
-          "type": "link",
-        },
+        "http://keybase.io",
       ],
-      "type": "text",
+      "type": "inline-code",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "http://twitter.com",
-          ],
-          "href": "http://twitter.com",
-          "type": "link",
-        },
+        "https://keybase.io",
       ],
-      "type": "text",
+      "href": "https://keybase.io",
+      "type": "link",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "google.com",
-          ],
-          "href": "http://google.com",
-          "type": "link",
-        },
+        "HTTP://cnn.com",
       ],
-      "type": "text",
+      "href": "HTTP://cnn.com",
+      "type": "link",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "amazon.co.uk",
-          ],
-          "href": "http://amazon.co.uk",
-          "type": "link",
-        },
-        ".",
+        "http://twitter.com",
       ],
-      "type": "text",
+      "href": "http://twitter.com",
+      "type": "link",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "keybase.io",
-          ],
-          "href": "http://keybase.io",
-          "type": "link",
-        },
-        ",",
+        "google.com",
       ],
-      "type": "text",
+      "href": "http://google.com",
+      "type": "link",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "keybase.io",
-          ],
-          "href": "http://keybase.io",
-          "type": "link",
-        },
-        ".",
+        "amazon.co.uk.",
       ],
-      "type": "text",
+      "href": "http://amazon.co.uk.",
+      "type": "link",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "keybase.io",
-          ],
-          "href": "http://keybase.io",
-          "type": "link",
-        },
-        "?",
+        "keybase.io,",
       ],
-      "type": "text",
+      "href": "http://keybase.io,",
+      "type": "link",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "keybase.io/a/user/lookup?one=1&two=2",
-          ],
-          "href": "http://keybase.io/a/user/lookup?one=1&two=2",
-          "type": "link",
-        },
+        "keybase.io.",
       ],
-      "type": "text",
+      "href": "http://keybase.io.",
+      "type": "link",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "keybase.io?blah=true",
-          ],
-          "href": "http://keybase.io?blah=true",
-          "type": "link",
-        },
+        "keybase.io?",
       ],
-      "type": "text",
+      "href": "http://keybase.io?",
+      "type": "link",
     },
     "
-",
-    " ",
-    " ",
-    " ",
-    " ",
+    ",
     Object {
       "children": Array [
-        Object {
-          "children": Array [
-            "http://keybase.io/blah/../up-one/index.html",
-          ],
-          "href": "http://keybase.io/blah/../up-one/index.html",
-          "type": "link",
-        },
+        "keybase.io/a/user/lookup?one=1&two=2",
       ],
-      "type": "text",
+      "href": "http://keybase.io/a/user/lookup?one=1&two=2",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "keybase.io?blah=true",
+      ],
+      "href": "http://keybase.io?blah=true",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "http://keybase.io/blah/../up-one/index.html",
+      ],
+      "href": "http://keybase.io/blah/../up-one/index.html",
+      "type": "link",
     },
     "
 ",
