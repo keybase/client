@@ -5504,6 +5504,24 @@ func (fbo *folderBranchOps) PushStatusChange() {
 	fbo.config.KBFSOps().PushStatusChange()
 }
 
+// ClearPrivateFolderMD implements the KBFSOps interface for
+// folderBranchOps.
+func (fbo *folderBranchOps) ClearPrivateFolderMD() {
+	if fbo.folderBranch.Tlf.IsPublic() {
+		return
+	}
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+
+	fbo.log.CDebugf(context.TODO(), "Clearing folder MD")
+	fbo.head = ImmutableRootMetadata{}
+	fbo.latestMergedRevision = MetadataRevisionUninitialized
+}
+
 // PushConnectionStatusChange pushes human readable connection status changes.
 func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus error) {
 	fbo.config.KBFSOps().PushConnectionStatusChange(service, newStatus)

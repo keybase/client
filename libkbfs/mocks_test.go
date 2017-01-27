@@ -763,6 +763,14 @@ func (_mr *_MockKBFSOpsRecorder) PushStatusChange() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PushStatusChange")
 }
 
+func (_m *MockKBFSOps) ClearPrivateFolderMD() {
+	_m.ctrl.Call(_m, "ClearPrivateFolderMD")
+}
+
+func (_mr *_MockKBFSOpsRecorder) ClearPrivateFolderMD() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ClearPrivateFolderMD")
+}
+
 // Mock of KeybaseService interface
 type MockKeybaseService struct {
 	ctrl     *gomock.Controller

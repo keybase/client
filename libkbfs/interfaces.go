@@ -314,6 +314,9 @@ type KBFSOps interface {
 	// PushStatusChange causes Status listeners to be notified via closing
 	// the status channel.
 	PushStatusChange()
+	// ClearPrivateFolderMD clears any cached private folder metadata,
+	// e.g. on a logout.
+	ClearPrivateFolderMD()
 }
 
 // KeybaseService is an interface for communicating with the keybase
