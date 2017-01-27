@@ -95,22 +95,22 @@ export default connect(
       onRefollow: () => { actions.onRefollow(ownProps.username) },
       onUnfollow: () => { actions.onUnfollow(ownProps.username) },
       startTimer: () => { actions.startTimer() },
-      onClickAvatar: (username, uid) => { dispatch(onClickAvatar(username, uid, true)) },
-      onClickFollowers: (username, uid) => { dispatch(onClickFollowers(username, uid, true)) },
-      onClickFollowing: (username, uid) => { dispatch(onClickFollowing(username, uid, true)) },
+      onClickAvatar: (username) => { dispatch(onClickAvatar(username, true)) },
+      onClickFollowers: (username) => { dispatch(onClickFollowers(username, true)) },
+      onClickFollowing: (username) => { dispatch(onClickFollowing(username, true)) },
       errorRetry: ownProps.errorRetry || (() => { actions.getProfile(ownProps.username, true) }),
     }
   },
   (stateProps, dispatchProps, ownProps) => {
-    const {username, userInfo: {uid} = {}} = stateProps
+    const {username} = stateProps
 
     return {
       ...ownProps,
       ...stateProps,
       ...dispatchProps,
-      onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
-      onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
-      onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
+      onClickAvatar: () => dispatchProps.onClickAvatar(username),
+      onClickFollowers: () => dispatchProps.onClickFollowers(username),
+      onClickFollowing: () => dispatchProps.onClickFollowing(username),
       error: stateProps.errorMessage
       ? {
         onRetry: dispatchProps.errorRetry,

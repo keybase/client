@@ -53,21 +53,20 @@ function * _finishRevoking (): SagaGenerator<any, any> {
   yield put(navigateUp())
 }
 
-function onUserClick (username: string, uid: string): OnUserClick {
-  return {payload: {uid, username}, type: Constants.onUserClick}
+function onUserClick (username: string): OnUserClick {
+  return {payload: {username}, type: Constants.onUserClick}
 }
 
 function * _onUserClick (action: OnUserClick): SagaGenerator<any, any> {
-  const {username, uid} = action.payload
+  const {username} = action.payload
   yield put(switchTo([profileTab]))
-  yield put(navigateAppend([{props: {uid, username}, selected: 'profile'}], [profileTab]))
+  yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
 }
 
-function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): OnClickAvatar {
+function onClickAvatar (username: string, openWebsite?: boolean): OnClickAvatar {
   return {
     payload: {
       openWebsite,
-      uid,
       username,
     },
     type: Constants.onClickAvatar,
@@ -81,17 +80,16 @@ function * _onClickAvatar (action: OnClickFollowers): SagaGenerator<any, any> {
 
   if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username, action.payload.uid))
+    yield put(onUserClick(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}`)
   }
 }
 
-function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowers {
+function onClickFollowers (username: string, openWebsite?: boolean): OnClickFollowers {
   return {
     payload: {
       openWebsite,
-      uid,
       username,
     },
     type: Constants.onClickFollowers,
@@ -105,17 +103,16 @@ function * _onClickFollowers (action: OnClickFollowers): SagaGenerator<any, any>
 
   if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username, action.payload.uid))
+    yield put(onUserClick(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
-function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowing {
+function onClickFollowing (username: string, openWebsite?: boolean): OnClickFollowing {
   return {
     payload: {
       openWebsite,
-      uid,
       username,
     },
     type: Constants.onClickFollowing,
@@ -129,7 +126,7 @@ function * _onClickFollowing (action: OnClickFollowing): SagaGenerator<any, any>
 
   if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username, action.payload.uid))
+    yield put(onUserClick(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }

@@ -28,7 +28,6 @@ export default connector.connect(
         }
       }
       if (username && trackerState && trackerState.type === 'tracker') {
-        const {userInfo: {uid}} = trackerState
         const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
         const loading = trackerState.serverActive
         return {
@@ -44,9 +43,9 @@ export default connector.connect(
             onFollow: () => { dispatch(onFollow(username, false)) },
             onUnfollow: () => { dispatch(onUnfollow(username)) },
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
-            onClickAvatar: () => { dispatch(onClickAvatar(username, uid)) },
-            onClickFollowers: () => { dispatch(onClickFollowers(username, uid)) },
-            onClickFollowing: () => { dispatch(onClickFollowing(username, uid)) },
+            onClickAvatar: () => { dispatch(onClickAvatar(username)) },
+            onClickFollowers: () => { dispatch(onClickFollowers(username)) },
+            onClickFollowing: () => { dispatch(onClickFollowing(username)) },
           },
         }
       } else {

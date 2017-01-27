@@ -20,7 +20,6 @@ import type {Tab as FriendshipsTab} from './friendships'
 type OwnProps = {
   routeProps: {
     username: ?string,
-    uid: ?string,
   },
 } & RouteProps<{}, {currentFriendshipsTab: FriendshipsTab}>
 
@@ -78,17 +77,13 @@ class ProfileContainer extends PureComponent<void, EitherProps<Props>, State> {
 export default connect(
   (state, {routeProps, routeState, routePath}: OwnProps) => {
     const myUsername = state.config.username
-    const myUid = state.config.uid
     const username = routeProps.username ? routeProps.username : myUsername
-    // FIXME: we shouldn't be falling back to myUid here
-    const uid = routeProps.username && routeProps.uid || myUid
 
     return {
       currentFriendshipsTab: routeState.currentFriendshipsTab,
       myUsername,
       profileIsRoot: routePath.size === 1 && routePath.first() === profileTab,
       trackerState: state.tracker.trackers[username],
-      uid,
       username,
     }
   },
@@ -97,9 +92,9 @@ export default connect(
     onAcceptProofs: username => { dispatch(onFollow(username, false)) },
     onBack: () => { dispatch(navigateUp()) },
     onChangeFriendshipsTab: currentFriendshipsTab => { setRouteState({currentFriendshipsTab}) },
-    onClickAvatar: (username, uid) => { dispatch(onClickAvatar(username, uid)) },
-    onClickFollowers: (username, uid) => { dispatch(onClickFollowers(username, uid)) },
-    onClickFollowing: (username, uid) => { dispatch(onClickFollowing(username, uid)) },
+    onClickAvatar: username => { dispatch(onClickAvatar(username)) },
+    onClickFollowers: username => { dispatch(onClickFollowers(username)) },
+    onClickFollowing: username => { dispatch(onClickFollowing(username)) },
     onEditAvatar: () => { dispatch(navigateAppend(['editAvatar'])) },
     onEditProfile: () => { dispatch(navigateAppend(['editProfile'])) },
     onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
@@ -110,19 +105,15 @@ export default connect(
       dispatch(navigateAppend([{props: {platform: proof.type, platformHandle: proof.name, proofId: proof.id}, selected: 'revoke'}], [profileTab]))
     },
     onUnfollow: username => { dispatch(onUnfollow(username)) },
-    onUserClick: (username, uid) => { dispatch(onUserClick(username, uid)) },
+    onUserClick: username => { dispatch(onUserClick(username)) },
     onViewProof: (proof: Proof) => { dispatch(openProofUrl(proof)) },
-    updateTrackers: (username, uid) => dispatch(updateTrackers(username, uid)),
+    updateTrackers: (username) => dispatch(updateTrackers(username)),
   }),
   (stateProps, dispatchProps) => {
-    const {username, uid} = stateProps
-    if (!uid) {
-      throw new Error('Attempted to render a Profile page with no uid set')
-    }
-
+    const {username} = stateProps
     const refresh = () => {
       dispatchProps.getProfile(username)
-      dispatchProps.updateTrackers(username, uid)
+      dispatchProps.updateTrackers(username)
     }
     const isYou = username === stateProps.myUsername
     const bioEditFns = isYou ? {
@@ -150,9 +141,9 @@ export default connect(
       loading: isLoading(stateProps.trackerState) && !isTesting,
       onAcceptProofs: () => dispatchProps.onFollow(username),
       onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
-      onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
-      onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
-      onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
+      onClickAvatar: () => dispatchProps.onClickAvatar(username),
+      onClickFollowers: () => dispatchProps.onClickFollowers(username),
+      onClickFollowing: () => dispatchProps.onClickFollowing(username),
       onFollow: () => dispatchProps.onFollow(username),
       onUnfollow: () => dispatchProps.onUnfollow(username),
       refresh,
