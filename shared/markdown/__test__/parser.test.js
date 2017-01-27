@@ -44,7 +44,7 @@ describe('Markdown parser', () => {
   })
 
   it('parses special characters within words correctly', () => {
-    const ast = parser.parse('not*bolded*')
+    const ast = parser.parse('not*bolded* *also*notbolded')
     expect(ast).toMatchSnapshot()
   })
 

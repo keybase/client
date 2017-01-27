@@ -207,7 +207,7 @@ Object {
 exports[`Markdown parser parses special characters within words correctly 1`] = `
 Object {
   "children": Array [
-    "not*bolded*",
+    "not*bolded* *also*notbolded",
   ],
   "type": "text",
 }

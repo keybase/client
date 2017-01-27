@@ -1223,6 +1223,9 @@ function peg$parse(input, options) {
             s5 = peg$currPos;
             peg$silentFails++;
             s6 = peg$parseBoldMarker();
+            if (s6 === peg$FAILED) {
+              s6 = peg$parseNormalChar();
+            }
             peg$silentFails--;
             if (s6 === peg$FAILED) {
               s5 = void 0;
@@ -1444,6 +1447,9 @@ function peg$parse(input, options) {
             s5 = peg$currPos;
             peg$silentFails++;
             s6 = peg$parseItalicMarker();
+            if (s6 === peg$FAILED) {
+              s6 = peg$parseNormalChar();
+            }
             peg$silentFails--;
             if (s6 === peg$FAILED) {
               s5 = void 0;
@@ -1665,6 +1671,9 @@ function peg$parse(input, options) {
             s5 = peg$currPos;
             peg$silentFails++;
             s6 = peg$parseStrikeMarker();
+            if (s6 === peg$FAILED) {
+              s6 = peg$parseNormalChar();
+            }
             peg$silentFails--;
             if (s6 === peg$FAILED) {
               s5 = void 0;

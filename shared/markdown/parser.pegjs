@@ -76,13 +76,13 @@ QuoteBlock
  = QuoteBlockMarker WhiteSpace* children:__INLINE_MACRO__<!LineTerminatorSequence> LineTerminatorSequence { return {type: 'quote-block', children} }
 
 Bold
- = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !BoldMarker { return {type: 'bold', children: flatten(children)} }
+ = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
 
 Italic
- = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker !ItalicMarker { return {type: 'italic', children: flatten(children)} }
+ = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
 
 Strike
- = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !StrikeMarker { return {type: 'strike', children: flatten(children)} }
+ = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
 CodeBlock
  = Ticks3 children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
