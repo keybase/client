@@ -159,16 +159,19 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.I
 	var res []chat1.Conversation
 	for _, conv := range inbox.ConvsUnverified {
 		localConv := cmap[conv.GetConvID().String()]
-		if localConv.IsEmpty {
-			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.GetConvID())
-			continue
-		}
+
 		if localConv.Error != nil &&
 			localConv.Error.Typ != chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND {
 			b.Debug(ctx, "filterInboxRes: skipping because error: convID: %s err: %s", conv.GetConvID(),
 				localConv.Error.Message)
 			continue
 		}
+
+		if localConv.IsEmpty {
+			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.GetConvID())
+			continue
+		}
+
 		res = append(res, conv)
 	}
 
@@ -774,7 +777,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 	}
 	conversationLocal.MaxMessages = newMaxMsgs
-
 	if len(conversationLocal.Info.TlfName) == 0 {
 		errMsg := "no valid message in the conversation"
 		conversationLocal.Error = &chat1.ConversationErrorLocal{
