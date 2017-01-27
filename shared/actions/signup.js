@@ -75,7 +75,6 @@ function requestAutoInvite (): TypedAsyncAction<CheckInviteCode | NavigateAppend
           inviteCode ? resolve() : reject(err)
         }
       },
-      param: {},
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
     })
   })

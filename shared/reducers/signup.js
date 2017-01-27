@@ -4,7 +4,7 @@ import * as Constants from '../constants/signup'
 import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 
-import type {SignupActions, AutoInviteRequestState} from '../constants/signup'
+import type {SignupActions} from '../constants/signup'
 
 export type SignupState = {
   inviteCode: ?string,
