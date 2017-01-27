@@ -268,15 +268,6 @@ func (fb *FileBlock) DeepCopy() *FileBlock {
 	}
 }
 
-// UpdateHash updates the hash of this FileBlock
-func (fb *FileBlock) UpdateHash() kbfshash.RawDefaultHash {
-	fb.cacheMtx.Lock()
-	defer fb.cacheMtx.Unlock()
-	_, hash := kbfshash.DoRawDefaultHash(fb.Contents)
-	fb.hash = &hash
-	return hash
-}
-
 // GetHash returns the hash of this FileBlock. If the hash is nil, it first
 // calculates it.
 func (fb *FileBlock) GetHash() kbfshash.RawDefaultHash {
