@@ -202,6 +202,12 @@
 			"revisionTime": "2016-10-03T19:50:03Z"
 		},
 		{
+			"checksumSHA1": "qtfSDF71FbCm7kTNKdraxOpU7wY=",
+			"path": "github.com/keybase/clockwork",
+			"revision": "976f45f4a979cd2fd048a639630ba20d8378c9d8",
+			"revisionTime": "2016-12-09T21:02:51Z"
+		},
+		{
 			"checksumSHA1": "O7k9QSM9y5D/nnDFZuDrWIzuAfY=",
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-codec/codec",
 			"path": "github.com/keybase/go-codec/codec",
