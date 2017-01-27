@@ -956,6 +956,16 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
 	}
 
+	// GetTLFCryptKeys needs to return the same error.
+	rmd, err := config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't get latest md: %+v", err)
+	}
+	_, _, err = config2Dev2.KBFSOps().GetTLFCryptKeys(ctx, rmd.GetTlfHandle())
+	if _, ok := err.(NeedSelfRekeyError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %+v", err)
+	}
+
 	// Set the KBPKI so we can count the identify calls
 	countKBPKI := &identifyCountingKBPKI{
 		KBPKI: config1.KBPKI(),
@@ -1097,7 +1107,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 
 	// Make sure the server-side keys for the revoked device are gone
 	// for all keygens.
-	rmd, err := config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf)
+	rmd, err = config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get latest md: %+v", err)
 	}
