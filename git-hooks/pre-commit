@@ -53,11 +53,9 @@ my_dirname() {
 check_go_vet() {
 	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
 	[ -z "$gofiles" ] && return 0
-    echo $gofiles > /tmp/out
 
 	# change from file names to a list of unique paths
 	godirs=$(my_dirname $gofiles | sort -u | xargs)
-    echo $godirs > /tmp/out.dirs
 
 	# Allow this one vet warning on Windows
 	warnings=$(go tool vet $godirs | grep -E -v 'go\\libkb\\util_windows\.go:[[:digit:]]+: possible misuse of unsafe\.Pointer' 2>&1)
