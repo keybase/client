@@ -837,7 +837,11 @@ func (fbo *folderBranchOps) identifyOnce(
 	ctx context.Context, md ReadOnlyRootMetadata) error {
 	fbo.identifyLock.Lock()
 	defer fbo.identifyLock.Unlock()
-	if fbo.identifyDone {
+
+	ei := getExtendedIdentify(ctx)
+	if fbo.identifyDone && !ei.behavior.AlwaysRunIdentify() {
+		// TODO: provide a way for the service to break this cache when identify
+		// state changes on a TLF. For now, we do it this way to make chat work.
 		return nil
 	}
 
@@ -852,7 +856,6 @@ func (fbo *folderBranchOps) identifyOnce(
 		return err
 	}
 
-	ei := getExtendedIdentify(ctx)
 	if ei.behavior.WarningInsteadOfErrorOnBrokenTracks() &&
 		len(ei.getTlfBreakAndClose().Breaks) > 0 {
 		fbo.log.CDebugf(ctx,
