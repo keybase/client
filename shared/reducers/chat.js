@@ -79,6 +79,16 @@ function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return initialState
+    case 'chat:removeOutboxMessage': {
+      const {conversationIDKey, outboxID} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversation(
+        conversationStates,
+        conversationIDKey,
+        // $FlowIssue
+        conversation => conversation.update('messages', messages => messages.filter(m => m.outboxID !== outboxID)
+      )))
+    }
     case 'chat:clearMessages': {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)

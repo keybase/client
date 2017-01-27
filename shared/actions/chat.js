@@ -54,6 +54,7 @@ import type {
   OpenFolder,
   OutboxIDKey,
   PostMessage,
+  RemoveOutboxMessage,
   RemovePendingFailure,
   RetryMessage,
   SelectConversation,
@@ -73,6 +74,7 @@ const {
   CommonTopicType,
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
+  localCancelPostRpcPromise,
   localDownloadFileAttachmentLocalRpcChannelMap,
   localGetInboxNonblockLocalRpcChannelMap,
   localGetThreadLocalRpcPromise,
@@ -493,22 +495,41 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
       break
   }
 
-  if (!messageID) throw new Error('No messageID for message delete')
   if (!conversationIDKey) throw new Error('No conversation for message delete')
 
-  // TODO: Use delete message RPC call when it is available
-  const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
-  clientHeader.supersedes = messageID
+  if (messageID) {
+    // Deleting a server message.
+    // TODO: Use delete message RPC call when it is available
+    const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
+    clientHeader.supersedes = messageID
 
-  yield call(localPostLocalNonblockRpcPromise, {
-    param: {
-      conversationID: keyToConversationID(conversationIDKey),
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      msg: {
-        clientHeader,
+    yield call(localPostLocalNonblockRpcPromise, {
+      param: {
+        conversationID: keyToConversationID(conversationIDKey),
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        msg: {
+          clientHeader,
+        },
       },
-    },
-  })
+    })
+  } else {
+    // Deleting a local outbox message.
+    if (message.messageState !== 'failed') throw new Error('Tried to delete a non-failed message')
+    const outboxID = message.outboxID
+    if (!outboxID) throw new Error('No outboxID for pending message delete')
+
+    yield call(localCancelPostRpcPromise, {
+      param: {
+        outboxID: keyToOutboxID(outboxID),
+      },
+    })
+    // It's deleted, but we don't get notified that the conversation now has
+    // one less outbox entry in it.  Gotta remove it from the store ourselves.
+    yield put(({
+      payload: {conversationIDKey, outboxID},
+      type: 'chat:removeOutboxMessage',
+    }: RemoveOutboxMessage))
+  }
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
@@ -527,6 +548,12 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           // have, just set it to failed.  If we haven't, record this as a
           // pending failure, and pick up the pending failure at the bottom of
           // _postMessage() instead.
+          //
+          // Do we have this conversation loaded?  If not, don't do anything -
+          // we'll pick up the failure when we load that thread.
+          const isConversationLoaded = yield select(_conversationStateSelector, conversationIDKey)
+          if (!isConversationLoaded) return
+
           const pendingMessage = yield select(_messageOutboxIDSelector, conversationIDKey, outboxID)
           if (pendingMessage) {
             yield put(({
