@@ -134,7 +134,7 @@ type OpCommon struct {
 	writerInfo writerInfo
 	// finalPath is the final resolved path to the node that this
 	// operation affects in a set of MD updates.  Not exported; only
-	// used during conflict resolution.
+	// used locally.
 	finalPath path
 	// localTimestamp should be set to the localTimestamp of the
 	// corresponding ImmutableRootMetadata when ops need individual
