@@ -6,11 +6,10 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	"runtime/debug"
-	"time"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
+	"runtime/debug"
+	"time"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -780,7 +779,7 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 	}
 
 	if repairErr := RunBug3964Repairman(s.G(), lctx, lctx.PassphraseStreamCache().PassphraseStream()); repairErr != nil {
-		s.G().Log.Warning("In Bug 3964 repair: %s", repairErr)
+		s.G().Log.Debug("In Bug 3964 repair: %s", repairErr)
 	}
 
 	return nil

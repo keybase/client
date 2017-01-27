@@ -56,5 +56,11 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return safeWriteToFileOnce(g, t, mode)
 }
 
-func RemoteSettingsRepairman(g *GlobalContext) {
+func RemoteSettingsRepairman(g *GlobalContext) error {
+	return nil
+}
+
+// Unicode error detection is windows only for now
+func isUnicodeMark(b []byte) bool {
+	return false
 }

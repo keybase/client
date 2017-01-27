@@ -40,7 +40,9 @@ type configGetter interface {
 	GetGpgHome() string
 	GetGpgOptions() []string
 	GetGregorDisabled() (bool, bool)
+	GetBGIdentifierDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
+	GetGregorPingTimeout() (time.Duration, bool)
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorURI() string
 	GetHome() string
@@ -69,6 +71,7 @@ type configGetter interface {
 	GetUpdaterConfigFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
+	GetChatDelivererInterval() (time.Duration, bool)
 }
 
 type CommandLine interface {
@@ -304,6 +307,7 @@ type SecretUI interface {
 type SaltpackUI interface {
 	SaltpackPromptForDecrypt(context.Context, keybase1.SaltpackPromptForDecryptArg, bool) error
 	SaltpackVerifySuccess(context.Context, keybase1.SaltpackVerifySuccessArg) error
+	SaltpackVerifyBadSender(context.Context, keybase1.SaltpackVerifyBadSenderArg) error
 }
 
 type LogUI interface {
@@ -330,14 +334,17 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
-	ChatAttachmentUploadStart(context.Context) error
+	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata) error
 	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
 	ChatAttachmentUploadDone(context.Context) error
-	ChatAttachmentPreviewUploadStart(context.Context) error
+	ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error
 	ChatAttachmentPreviewUploadDone(context.Context) error
 	ChatAttachmentDownloadStart(context.Context) error
 	ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error
 	ChatAttachmentDownloadDone(context.Context) error
+	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
+	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
+	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
 }
 
 type PromptDefault int
@@ -449,10 +456,15 @@ type APIContext interface {
 	GetServerURI() string
 }
 
+type NetContext interface {
+	GetNetContext() context.Context
+}
+
 // ProofContext defines features needed by the proof system
 type ProofContext interface {
 	LogContext
 	APIContext
+	NetContext
 }
 
 type AssertionContext interface {
@@ -510,17 +522,57 @@ type ExternalServicesCollector interface {
 
 type ConversationSource interface {
 	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msg chat1.MessageBoxed) (chat1.MessageUnboxed, error)
+		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, error)
+	GetMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
+	GetMessagesWithRemotes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 }
 
 type MessageDeliverer interface {
-	Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error)
-	Start(uid gregor1.UID)
-	Stop()
-	ForceDeliverLoop()
+	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
+		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
+	Start(ctx context.Context, uid gregor1.UID)
+	Stop(ctx context.Context) chan struct{}
+	ForceDeliverLoop(ctx context.Context)
+	Connected(ctx context.Context)
+	Disconnected(ctx context.Context)
+}
+
+type ChatLocalizer interface {
+	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
+	Name() string
+}
+
+type InboxSource interface {
+	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, query *chat1.GetInboxLocalQuery,
+		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+	ReadNoCache(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer,
+		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+	ReadRemote(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxLocalQuery,
+		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+
+	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		conv chat1.Conversation) error
+	NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		msg chat1.MessageBoxed) error
+	ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		msgID chat1.MessageID) error
+	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		status chat1.ConversationStatus) error
+	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error
+}
+
+// UserChangedHandler is a generic interface for handling user changed events.
+// If the call returns an error, we'll remove this handler from the list, under the
+// supposition that it's now dead.
+type UserChangedHandler interface {
+	// HandlerUserChanged is called when the with User with the given UID has
+	// changed, either because of a sigchain change, or a profile change.
+	HandleUserChanged(uid keybase1.UID) error
 }

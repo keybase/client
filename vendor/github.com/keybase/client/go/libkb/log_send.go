@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/logger"
-	rogReverse "github.com/rogpeppe/rog-go/reverse"
+	rogReverse "github.com/keybase/rog-go/reverse"
 )
 
 // Logs is the struct to specify the path of log files
@@ -108,27 +108,11 @@ func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, s
 }
 
 func tail(log logger.Logger, filename string, numLines int) string {
-	if filename == "" {
-		return ""
-	}
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		log.Debug("log %q doesn't exist", filename)
-		return ""
-	}
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Errorf("error opening log %q: %s", filename, err)
-		return ""
-	}
-	b := rogReverse.NewScanner(f)
-	b.Split(bufio.ScanLines)
-
-	var lines []string
-	for b.Scan() {
-		lines = append(lines, b.Text())
-		if len(lines) == numLines {
-			break
-		}
+	linesPrev := tailLines(log, filename+".1", numLines)
+	linesCurrent := tailLines(log, filename, numLines)
+	lines := append(linesCurrent, linesPrev...)
+	if len(lines) > numLines {
+		lines = lines[0:numLines]
 	}
 
 	for left, right := 0, len(lines)-1; left < right; left, right = left+1, right-1 {
@@ -136,6 +120,39 @@ func tail(log logger.Logger, filename string, numLines int) string {
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+// tailLines returns lines from files (in reversed order)
+func tailLines(log logger.Logger, filename string, numLines int) []string {
+	if filename == "" {
+		return []string{}
+	}
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		log.Debug("log %q doesn't exist", filename)
+		return []string{}
+	}
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Errorf("error opening log %q: %s", filename, err)
+		return []string{}
+	}
+	defer f.Close()
+	b := rogReverse.NewScanner(f)
+	b.Split(bufio.ScanLines)
+
+	lines := make([]string, 0, numLines)
+	for b.Scan() {
+		lines = append(lines, b.Text())
+		if len(lines) == numLines {
+			break
+		}
+	}
+
+	if b.Err() != nil {
+		log.Warning("error occurred during reverse scan: %s", b.Err())
+	}
+
+	return lines
 }
 
 // LogSend sends the the tails of log files to kb

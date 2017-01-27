@@ -1,0 +1,172 @@
+=== RUN   TestCachedUserLoad
+shitass <nil> true
+shitass &{{295a7eea607af32040647123732bc819 t_alice [] [] 1 {33 3 3 449884800000 0}} [{01010d3a98c56466fcda42e945bd1641da4e29ded110eda9ed27d96d10df899b5d850a 2373fd089f28f328916b88f99c7927c0bdfdadf9 [{Test 0 test+t_0@test.keybase.io}] true true     1424293518000 1581973518000}]} true
+returning at fresh
+--- FAIL: TestCachedUserLoad (0.13s)
+	test_logger.go:56: 2016-11-18 14:11:03.693999708 -0500 EST test_common.go:206: [D] SetupTest CachedUserLoader_1fac70209e
+	test_logger.go:56: 2016-11-18 14:11:03.69406694 -0500 EST login_state.go:920: [D] + LoginState: Running request loop
+	test_logger.go:56: 2016-11-18 14:11:03.694101757 -0500 EST test_common.go:215: [D] SetupTest home directory: /var/folders/p2/d6br3rk10rg9mp3pnknx1cyw0000gp/T/CachedUserLoader_1fac70209e062219486
+	test_logger.go:56: 2016-11-18 14:11:03.694292515 -0500 EST json.go:50: [D] + loading config file: /var/folders/p2/d6br3rk10rg9mp3pnknx1cyw0000gp/T/CachedUserLoader_1fac70209e062219486/Library/Application Support/KeybaseDevel/config.json
+	test_logger.go:56: 2016-11-18 14:11:03.69432016 -0500 EST json.go:58: [D] No config file found; tried /var/folders/p2/d6br3rk10rg9mp3pnknx1cyw0000gp/T/CachedUserLoader_1fac70209e062219486/Library/Application Support/KeybaseDevel/config.json
+	test_logger.go:56: 2016-11-18 14:11:03.694374808 -0500 EST globals.go:302: [D] Created Identify2Cache, max age: 5m0s
+	test_logger.go:56: 2016-11-18 14:11:03.694424204 -0500 EST globals.go:305: [D] Created LinkCache, max size: 65536, clean dur: 1m0s
+	test_logger.go:56: 2016-11-18 14:11:03.694441656 -0500 EST globals.go:307: [D] Created CardCache, max age: 5m0s
+	test_logger.go:56: 2016-11-18 14:11:03.69450183 -0500 EST util.go:391: [D] + CachedUserLoader#Load(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.69451373 -0500 EST locktab.go:50: [D] + LockTable.Lock(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.694520326 -0500 EST locktab.go:60: [D] - LockTable.Lock(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.694532381 -0500 EST cached_user_loader.go:32: [D] | missed cached
+	test_logger.go:56: 2016-11-18 14:11:03.694574499 -0500 EST loaduser.go:139: [D] LoadUser: {Contextified:{g:<nil>} UID:295a7eea607af32040647123732bc819 Name: PublicKeyOptional:false NoCacheResult:false Self:false ForceReload:false AllKeys:false LoginContext:<nil> AbortIfSigchainUnchanged:false ResolveBody:<nil> MerkleLeaf:<nil> SigHints:<nil>}
+	test_logger.go:56: 2016-11-18 14:11:03.694594758 -0500 EST loaduser.go:157: [D] + LoadUser(uid=295a7eea607af32040647123732bc819, name=)
+	test_logger.go:56: 2016-11-18 14:11:03.694605156 -0500 EST login_state.go:1046: [D] + Account "G - GetMyUID - GetUID"
+	test_logger.go:56: 2016-11-18 14:11:03.694627367 -0500 EST login_state.go:1048: [D] - Account "G - GetMyUID - GetUID"
+	test_logger.go:56: 2016-11-18 14:11:03.694637681 -0500 EST loaduser.go:168: [D] | resolved to 295a7eea607af32040647123732bc819
+	test_logger.go:56: 2016-11-18 14:11:03.694649723 -0500 EST sig_hints.go:126: [D] + LoadSigHints(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.69466661 -0500 EST leveldb.go:109: [D] + LevelDb.open
+	test_logger.go:56: 2016-11-18 14:11:03.694671757 -0500 EST leveldb.go:111: [D] | Opening LevelDB for local cache: &{{{0 0} 0 0 1 0} <nil> 0xc4201a53d0 /var/folders/p2/d6br3rk10rg9mp3pnknx1cyw0000gp/T/CachedUserLoader_1fac70209e062219486/Library/Application Support/KeybaseDevel/keybase.leveldb {0xc42008b600}} /var/folders/p2/d6br3rk10rg9mp3pnknx1cyw0000gp/T/CachedUserLoader_1fac70209e062219486/Library/Application Support/KeybaseDevel/keybase.leveldb
+	test_logger.go:56: 2016-11-18 14:11:03.697040589 -0500 EST leveldb.go:124: [D] - LevelDb.open -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.697084619 -0500 EST sig_hints.go:135: [D] | SigHints loaded @v0
+	test_logger.go:56: 2016-11-18 14:11:03.697091809 -0500 EST sig_hints.go:137: [D] - LoadSigHints(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.697099751 -0500 EST loaduser.go:288: [D] + loadUserFromLocalStorage(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.697112563 -0500 EST loaduser.go:295: [D] - loadUserFromLocalStorage(295a7eea607af32040647123732bc819): Not found
+	test_logger.go:56: 2016-11-18 14:11:03.697124325 -0500 EST merkle_client.go:708: [D] + MerkleClient.LookupUser(map[uid:295a7eea607af32040647123732bc819])
+	test_logger.go:56: 2016-11-18 14:11:03.697140163 -0500 EST merkle_client.go:170: [D] + MerkleClient.LoadRoot()
+	test_logger.go:56: 2016-11-18 14:11:03.697148208 -0500 EST merkle_client.go:176: [D] - MerkleClient.LoadRoot() -> nil
+	test_logger.go:56: 2016-11-18 14:11:03.697155211 -0500 EST merkle_client.go:723: [D] | LookupPath
+	test_logger.go:56: 2016-11-18 14:11:03.697178152 -0500 EST api.go:140: [D] + API GET request to http://localhost:3000/_/api/1.0/merkle/path.json?poll=10&sig_hints_low=0&uid=295a7eea607af32040647123732bc819
+	test_logger.go:56: 2016-11-18 14:11:03.697204373 -0500 EST api.go:196: [D] | doRequestShared(fixHeaders) for merkle/path
+	test_logger.go:56: 2016-11-18 14:11:03.69722168 -0500 EST api.go:196: [D] | doRequestShared(getCli) for merkle/path
+	test_logger.go:56: 2016-11-18 14:11:03.697227446 -0500 EST api.go:129: [D] | Cli wasn't found; remaking for cookied=false
+	test_logger.go:56: 2016-11-18 14:11:03.69724283 -0500 EST api.go:196: [D] | doRequestShared(Do) for merkle/path
+	test_logger.go:56: 2016-11-18 14:11:03.728520716 -0500 EST api.go:196: [D] | doRequestShared(Done) for merkle/path
+	test_logger.go:56: 2016-11-18 14:11:03.728546119 -0500 EST api.go:233: [D] | Result is: 200 OK
+	test_logger.go:56: 2016-11-18 14:11:03.728945747 -0500 EST api.go:644: [D] - API call merkle/path success
+	test_logger.go:56: 2016-11-18 14:11:03.728969548 -0500 EST util.go:391: [D] + RefreshWith
+	test_logger.go:56: 2016-11-18 14:11:03.729003022 -0500 EST util.go:392: [D] - RefreshWith -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.729058159 -0500 EST merkle_client.go:728: [D] | VerifyRoot
+	test_logger.go:56: 2016-11-18 14:11:03.7290658 -0500 EST merkle_client.go:411: [D] | Merkle root: got back 205647, >= cached -1
+	test_logger.go:56: 2016-11-18 14:11:03.729073572 -0500 EST merkle_client.go:426: [D] + Merkle: using KID=0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a for verifying server sig
+	test_logger.go:56: 2016-11-18 14:11:03.729085719 -0500 EST special_keys.go:69: [D] + SpecialKeyRing.Load(0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a)
+	test_logger.go:56: 2016-11-18 14:11:03.72910487 -0500 EST special_keys.go:85: [D] | Load(0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a) going to network
+	test_logger.go:56: 2016-11-18 14:11:03.729117255 -0500 EST api.go:140: [D] + API GET request to http://localhost:3000/_/api/1.0/key/special.json?kid=0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a
+	test_logger.go:56: 2016-11-18 14:11:03.729132557 -0500 EST api.go:196: [D] | doRequestShared(fixHeaders) for key/special
+	test_logger.go:56: 2016-11-18 14:11:03.729142691 -0500 EST api.go:196: [D] | doRequestShared(getCli) for key/special
+	test_logger.go:56: 2016-11-18 14:11:03.729149039 -0500 EST api.go:196: [D] | doRequestShared(Do) for key/special
+	test_logger.go:56: 2016-11-18 14:11:03.732098018 -0500 EST api.go:196: [D] | doRequestShared(Done) for key/special
+	test_logger.go:56: 2016-11-18 14:11:03.732122201 -0500 EST api.go:233: [D] | Result is: 200 OK
+	test_logger.go:56: 2016-11-18 14:11:03.732236025 -0500 EST api.go:644: [D] - API call key/special success
+	test_logger.go:56: 2016-11-18 14:11:03.732797377 -0500 EST pgp_key.go:175: [D] | Storing Key (kid=0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a) to Local DB
+	test_logger.go:56: 2016-11-18 14:11:03.732981749 -0500 EST special_keys.go:113: [D] - SpecialKeyRing.Load(0101be58b6c82db64f6ccabb05088db443c69f87d5d48857d709ed6f73948dabe67d0a)
+	test_logger.go:56: 2016-11-18 14:11:03.732999516 -0500 EST merkle_client.go:433: [D] - Merkle: server sig verified
+	test_logger.go:56: 2016-11-18 14:11:03.733385116 -0500 EST merkle_client.go:733: [D] | VerifyUser
+	test_logger.go:56: 2016-11-18 14:11:03.733619715 -0500 EST merkle_client.go:538: [D] + ParsingMerkleUserLeaf
+	test_logger.go:56: 2016-11-18 14:11:03.733639403 -0500 EST merkle_client.go:575: [D] - ParsingMerkleUserLeaf -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.733645791 -0500 EST merkle_client.go:738: [D] | VerifyUsername
+	test_logger.go:56: 2016-11-18 14:11:03.733664718 -0500 EST merkle_client.go:581: [D] | Username t_alice mapped to 295a7eea607af32040647123732bc819 via direct hash
+	test_logger.go:56: 2016-11-18 14:11:03.733674537 -0500 EST merkle_client.go:745: [D] - MerkleClient.LookupUser(map[uid:295a7eea607af32040647123732bc819 poll:10 sig_hints_low:0]) -> OK
+	test_logger.go:56: 2016-11-18 14:11:03.733690339 -0500 EST loaduser.go:259: [D] | No local user stored for 295a7eea607af32040647123732bc819
+	test_logger.go:56: 2016-11-18 14:11:03.733696299 -0500 EST loaduser.go:268: [D] | Freshness: basics=false; for 295a7eea607af32040647123732bc819
+	test_logger.go:56: 2016-11-18 14:11:03.733701755 -0500 EST loaduser.go:344: [D] + Load User from server: 295a7eea607af32040647123732bc819
+	test_logger.go:56: 2016-11-18 14:11:03.733715002 -0500 EST api.go:140: [D] + API GET request to http://localhost:3000/_/api/1.0/user/lookup.json?uid=295a7eea607af32040647123732bc819
+	test_logger.go:56: 2016-11-18 14:11:03.733735302 -0500 EST api.go:196: [D] | doRequestShared(fixHeaders) for user/lookup
+	test_logger.go:56: 2016-11-18 14:11:03.733747764 -0500 EST api.go:196: [D] | doRequestShared(getCli) for user/lookup
+	test_logger.go:56: 2016-11-18 14:11:03.733755026 -0500 EST api.go:196: [D] | doRequestShared(Do) for user/lookup
+	test_logger.go:56: 2016-11-18 14:11:03.80588699 -0500 EST api.go:196: [D] | doRequestShared(Done) for user/lookup
+	test_logger.go:56: 2016-11-18 14:11:03.805920384 -0500 EST api.go:233: [D] | Result is: 200 OK
+	test_logger.go:56: 2016-11-18 14:11:03.806188556 -0500 EST api.go:644: [D] - API call user/lookup success
+	test_logger.go:56: 2016-11-18 14:11:03.806215428 -0500 EST util.go:391: [D] + ParseKeyFamily
+	test_logger.go:56: 2016-11-18 14:11:03.806904457 -0500 EST keyfamily.go:131: [D] adding PGP kid 01010d3a98c56466fcda42e945bd1641da4e29ded110eda9ed27d96d10df899b5d850a with full hash fbbabd015f4fe83644059baaee4665fc1bc3548fcf69eed229c7f8b295b26636
+	test_logger.go:56: 2016-11-18 14:11:03.80692457 -0500 EST util.go:392: [D] - ParseKeyFamily -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.806933125 -0500 EST loaduser.go:367: [D] - Load user from server: 295a7eea607af32040647123732bc819 -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.806948098 -0500 EST sig_chain.go:872: [D] + SigChainLoader.Load(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.806964319 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) GetFingerprint
+	test_logger.go:56: 2016-11-18 14:11:03.806969358 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) AccessPreload
+	test_logger.go:56: 2016-11-18 14:11:03.806977892 -0500 EST sig_chain.go:619: [D] | Preload failed
+	test_logger.go:56: 2016-11-18 14:11:03.806982183 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) LoadLinksFromStorage
+	test_logger.go:56: 2016-11-18 14:11:03.806986857 -0500 EST sig_chain.go:637: [D] + SigChainLoader.LoadFromStorage(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.807002022 -0500 EST sig_chain.go:610: [D] | LastLinkId was null
+	test_logger.go:56: 2016-11-18 14:11:03.807010532 -0500 EST sig_chain.go:641: [D] | Failed to load last link ID
+	test_logger.go:56: 2016-11-18 14:11:03.807019023 -0500 EST sig_chain.go:643: [D] | no error loading last link ID from storage
+	test_logger.go:56: 2016-11-18 14:11:03.807025552 -0500 EST sig_chain.go:646: [D] | mt (MerkleTriple) nil result from load last link ID from storage
+	test_logger.go:56: 2016-11-18 14:11:03.807032485 -0500 EST sig_chain.go:638: [D] - SigChainLoader.LoadFromStorage(295a7eea607af32040647123732bc819) -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.807043056 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) MakeSigChain
+	test_logger.go:56: 2016-11-18 14:11:03.807048219 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) VerifyChain
+	test_logger.go:56: 2016-11-18 14:11:03.807056368 -0500 EST sig_chain.go:215: [D] + SigChain::VerifyChain()
+	test_logger.go:56: 2016-11-18 14:11:03.807061292 -0500 EST sig_chain.go:217: [D] - SigChain::VerifyChain() -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.80706562 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) CheckFreshness
+	test_logger.go:56: 2016-11-18 14:11:03.807073678 -0500 EST sig_chain.go:734: [D] + CheckFreshness
+	test_logger.go:56: 2016-11-18 14:11:03.807078495 -0500 EST sig_chain.go:740: [D] | Server triple: &{3 72efdba2829ccac7e2560a696c50384a384da5447528602453b499c3598cfdee c06c0cd9c9328dff400317cb3e0da888259b843d1348066d96c4685a88597f010f}
+	test_logger.go:56: 2016-11-18 14:11:03.807101944 -0500 EST sig_chain.go:749: [D] | Client triple=nil
+	test_logger.go:56: 2016-11-18 14:11:03.807109964 -0500 EST sig_chain.go:754: [D] | Future triple=nil
+	test_logger.go:56: 2016-11-18 14:11:03.807118344 -0500 EST sig_chain.go:783: [D] | Local chain version is out-of-date: -1 < 3
+	test_logger.go:56: 2016-11-18 14:11:03.807124103 -0500 EST sig_chain.go:792: [D] - CheckFreshness (295a7eea607af32040647123732bc819) -> (false,ok)
+	test_logger.go:56: 2016-11-18 14:11:03.807129791 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) LoadFromServer
+	test_logger.go:56: 2016-11-18 14:11:03.807149974 -0500 EST sig_chain.go:292: [D] + GetLastLoadedSeqno()
+	test_logger.go:56: 2016-11-18 14:11:03.807154962 -0500 EST sig_chain.go:294: [D] - GetLastLoadedSeqno() -> 0
+	test_logger.go:56: 2016-11-18 14:11:03.807159515 -0500 EST sig_chain.go:135: [D] + Load SigChain from server (uid=295a7eea607af32040647123732bc819, low=0)
+	test_logger.go:56: 2016-11-18 14:11:03.807172839 -0500 EST api.go:140: [D] + API GET request to http://localhost:3000/_/api/1.0/sig/get.json?low=0&uid=295a7eea607af32040647123732bc819
+	test_logger.go:56: 2016-11-18 14:11:03.807189771 -0500 EST api.go:196: [D] | doRequestShared(fixHeaders) for sig/get
+	test_logger.go:56: 2016-11-18 14:11:03.807199816 -0500 EST api.go:196: [D] | doRequestShared(getCli) for sig/get
+	test_logger.go:56: 2016-11-18 14:11:03.807206044 -0500 EST api.go:196: [D] | doRequestShared(Do) for sig/get
+	test_logger.go:56: 2016-11-18 14:11:03.816737039 -0500 EST api.go:196: [D] | doRequestShared(Done) for sig/get
+	test_logger.go:56: 2016-11-18 14:11:03.816765818 -0500 EST api.go:233: [D] | Result is: 200 OK
+	test_logger.go:56: 2016-11-18 14:11:03.81710925 -0500 EST api.go:644: [D] - API call sig/get success
+	test_logger.go:56: 2016-11-18 14:11:03.817126832 -0500 EST sig_chain.go:159: [D] | Got back 3 new entries
+	test_logger.go:56: 2016-11-18 14:11:03.81728008 -0500 EST chain_link.go:314: [D] | Found chain tail advertised in Merkle tree @3
+	test_logger.go:56: 2016-11-18 14:11:03.817295741 -0500 EST sig_chain.go:136: [D] - Loaded SigChain -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.817303554 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) VerifyChain
+	test_logger.go:56: 2016-11-18 14:11:03.817310084 -0500 EST sig_chain.go:215: [D] + SigChain::VerifyChain()
+	test_logger.go:56: 2016-11-18 14:11:03.818001154 -0500 EST sig_chain.go:217: [D] - SigChain::VerifyChain() -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.818009731 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) Store
+	test_logger.go:56: 2016-11-18 14:11:03.818285718 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) VerifySig
+	test_logger.go:56: 2016-11-18 14:11:03.818297515 -0500 EST sig_chain.go:821: [D] VerifySigsAndComputeKeys(): l.leaf: &{0xc42011f500 <nil> 33 t_alice 295a7eea607af32040647123732bc819 01010d3a98c56466fcda42e945bd1641da4e29ded110eda9ed27d96d10df899b5d850a}, l.leaf.eldest: 01010d3a98c56466fcda42e945bd1641da4e29ded110eda9ed27d96d10df899b5d850a, l.ckf: {{<nil>} 0xc4202150e0 <nil>}
+	test_logger.go:56: 2016-11-18 14:11:03.818319024 -0500 EST sig_chain.go:487: [D] + VerifySigsAndComputeKeys for user 295a7eea607af32040647123732bc819 (eldest = 01010d3a98c56466fcda42e945bd1641da4e29ded110eda9ed27d96d10df899b5d850a)
+	test_logger.go:56: 2016-11-18 14:11:03.818326911 -0500 EST sig_chain.go:215: [D] + SigChain::VerifyChain()
+	test_logger.go:56: 2016-11-18 14:11:03.818336251 -0500 EST sig_chain.go:222: [D] | short-circuit at link 2
+	test_logger.go:56: 2016-11-18 14:11:03.818341564 -0500 EST sig_chain.go:217: [D] - SigChain::VerifyChain() -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.818349574 -0500 EST sig_chain.go:384: [D] + verifySubchain
+	test_logger.go:56: 2016-11-18 14:11:03.81872043 -0500 EST chain_link.go:531: [D] Caching SigCheck for link 72efdba2829ccac7e2560a696c50384a384da5447528602453b499c3598cfdee:
+	test_logger.go:56: 2016-11-18 14:11:03.818729972 -0500 EST sig_chain.go:386: [D] - verifySubchain -> false, ok
+	test_logger.go:56: 2016-11-18 14:11:03.818736006 -0500 EST sig_chain.go:489: [D] - VerifySigsAndComputeKeys for user 295a7eea607af32040647123732bc819 -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.818745564 -0500 EST sig_chain.go:878: [D] | SigChainLoader.Load(295a7eea607af32040647123732bc819) Store
+	test_logger.go:56: 2016-11-18 14:11:03.818794359 -0500 EST sig_chain.go:837: [D] | Storing dirtyTail @ 3 (&{3 72efdba2829ccac7e2560a696c50384a384da5447528602453b499c3598cfdee c06c0cd9c9328dff400317cb3e0da888259b843d1348066d96c4685a88597f010f})
+	test_logger.go:56: 2016-11-18 14:11:03.818977656 -0500 EST sig_chain.go:874: [D] - SigChainLoader.Load(295a7eea607af32040647123732bc819) -> (true, ok)
+	test_logger.go:56: 2016-11-18 14:11:03.818989187 -0500 EST loaduser.go:138: [D] time> SigChainLoader.Load: t_alice: 286003h11m3.818984555s
+	test_logger.go:56: 2016-11-18 14:11:03.818996173 -0500 EST loaduser.go:138: [D] time> LoadSigChains: t_alice: 286003h11m3.818994548s
+	test_logger.go:56: 2016-11-18 14:11:03.819001785 -0500 EST user.go:246: [D] + Store user t_alice
+	test_logger.go:56: 2016-11-18 14:11:03.819006942 -0500 EST sig_hints.go:114: [D] + SigHints.Store() for uid=295a7eea607af32040647123732bc819
+	test_logger.go:56: 2016-11-18 14:11:03.819052896 -0500 EST sig_hints.go:121: [D] - SigHints.Store() for uid=295a7eea607af32040647123732bc819 -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.819061649 -0500 EST user.go:274: [D] + StoreTopLevel
+	test_logger.go:56: 2016-11-18 14:11:03.81917361 -0500 EST user.go:287: [D] - StoreTopLevel -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.819180193 -0500 EST user.go:268: [D] - Store user t_alice -> OK
+	test_logger.go:56: 2016-11-18 14:11:03.819187366 -0500 EST user.go:447: [D] + HasActiveKey
+	test_logger.go:56: 2016-11-18 14:11:03.819201054 -0500 EST user.go:457: [D] | Checking user's ComputedKeyFamily
+	test_logger.go:56: 2016-11-18 14:11:03.819210526 -0500 EST user.go:449: [D] - HasActiveKey -> true
+	test_logger.go:56: 2016-11-18 14:11:03.819258685 -0500 EST util.go:391: [D] + IdentityTable::populate
+	test_logger.go:56: 2016-11-18 14:11:03.819289848 -0500 EST util.go:392: [D] - IdentityTable::populate -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.819296092 -0500 EST user.go:422: [D] + VerifySelfSig for user t_alice
+	test_logger.go:56: 2016-11-18 14:11:03.819306252 -0500 EST id_table.go:1126: [D] | Found self-signature for t_alice @uid=295a7eea607af32040647123732bc819, seq=3, link=72efdba2829ccac7e2560a696c50384a384da5447528602453b499c3598cfdee
+	test_logger.go:56: 2016-11-18 14:11:03.819313818 -0500 EST user.go:425: [D] - VerifySelfSig via SigChain
+	test_logger.go:56: 2016-11-18 14:11:03.8193216 -0500 EST loaduser.go:138: [D] time> LoadUser: {Contextified:{g:<nil>} UID:295a7eea607af32040647123732bc819 Name: PublicKeyOptional:false NoCacheResult:false Self:false ForceReload:false AllKeys:false LoginContext:<nil> AbortIfSigchainUnchanged:false ResolveBody:<nil> MerkleLeaf:<nil> SigHints:<nil>}: 286003h11m3.819319925s
+	test_logger.go:56: 2016-11-18 14:11:03.819349081 -0500 EST keyfamily.go:747: [D] + GetRevokedKeys
+	test_logger.go:56: 2016-11-18 14:11:03.819354997 -0500 EST keyfamily.go:777: [D] - GetRevokedKeys
+	test_logger.go:56: 2016-11-18 14:11:03.819360459 -0500 EST sig_chain.go:278: [D] + GetLastKnownSeqno()
+	test_logger.go:56: 2016-11-18 14:11:03.819365147 -0500 EST sig_chain.go:292: [D] + GetLastLoadedSeqno()
+	test_logger.go:56: 2016-11-18 14:11:03.819369519 -0500 EST sig_chain.go:297: [D] | Fetched from main chain
+	test_logger.go:56: 2016-11-18 14:11:03.819378326 -0500 EST sig_chain.go:294: [D] - GetLastLoadedSeqno() -> 3
+	test_logger.go:56: 2016-11-18 14:11:03.819382979 -0500 EST sig_chain.go:280: [D] - GetLastKnownSeqno() -> 3
+	test_logger.go:56: 2016-11-18 14:11:03.819398933 -0500 EST locktab.go:26: [D] + LockTable.Release(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.81940887 -0500 EST locktab.go:31: [D] | LockTable.unref(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.81941377 -0500 EST locktab.go:35: [D] - LockTable.Unlock(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.819418984 -0500 EST util.go:392: [D] - CachedUserLoader#Load(295a7eea607af32040647123732bc819) -> ok
+	test_logger.go:56: 2016-11-18 14:11:03.819426748 -0500 EST util.go:391: [D] + CachedUserLoader#Load(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.819431341 -0500 EST locktab.go:50: [D] + LockTable.Lock(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.819439787 -0500 EST locktab.go:60: [D] - LockTable.Lock(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.81944498 -0500 EST cached_user_loader.go:38: [D] | cache hit was fresh (cached 6s ago)
+	test_logger.go:56: 2016-11-18 14:11:03.81964258 -0500 EST locktab.go:26: [D] + LockTable.Release(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.819649662 -0500 EST locktab.go:31: [D] | LockTable.unref(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.819654209 -0500 EST locktab.go:35: [D] - LockTable.Unlock(295a7eea607af32040647123732bc819)
+	test_logger.go:56: 2016-11-18 14:11:03.819658678 -0500 EST util.go:392: [D] - CachedUserLoader#Load(295a7eea607af32040647123732bc819) -> ok
+	cached_user_loader_test.go:47: wrong info: {InCache:true TimedOut:false StaleVersion:false LoadedLeaf:false LoadedUser:true}
+FAIL
+exit status 1
+FAIL	github.com/keybase/client/go/libkb	0.148s

@@ -6,6 +6,7 @@ package libkb
 import (
 	"sync"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -35,6 +36,7 @@ type SecretStoreContext interface {
 	GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error)
 	GetStoredSecretServiceName() string
 	GetStoredSecretAccessGroup() string
+	GetLog() logger.Logger
 }
 
 type SecretStoreImp struct {

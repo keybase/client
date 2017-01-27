@@ -197,6 +197,19 @@ func GetPGPFingerprintVoid(w *jsonw.Wrapper, p *PGPFingerprint, e *error) {
 	}
 }
 
+func (p *PGPFingerprint) UnmarshalJSON(b []byte) error {
+	tmp, err := PGPFingerprintFromHex(keybase1.Unquote(b))
+	if err != nil {
+		return err
+	}
+	*p = *tmp
+	return nil
+}
+
+func (p *PGPFingerprint) MarshalJSON() ([]byte, error) {
+	return keybase1.Quote(p.String()), nil
+}
+
 func (k PGPKeyBundle) toList() openpgp.EntityList {
 	list := make(openpgp.EntityList, 1, 1)
 	list[0] = k.Entity
@@ -221,12 +234,12 @@ func GetPGPFingerprintFromGenericKey(k GenericKey) *PGPFingerprint {
 	}
 }
 
-func (k PGPKeyBundle) KeysById(id uint64) []openpgp.Key {
-	return k.toList().KeysById(id)
+func (k PGPKeyBundle) KeysById(id uint64, fp []byte) []openpgp.Key {
+	return k.toList().KeysById(id, fp)
 }
 
-func (k PGPKeyBundle) KeysByIdUsage(id uint64, usage byte) []openpgp.Key {
-	return k.toList().KeysByIdUsage(id, usage)
+func (k PGPKeyBundle) KeysByIdUsage(id uint64, fp []byte, usage byte) []openpgp.Key {
+	return k.toList().KeysByIdUsage(id, fp, usage)
 }
 
 func (k PGPKeyBundle) DecryptionKeys() []openpgp.Key {

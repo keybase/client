@@ -109,25 +109,78 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return err
 }
 
-func RemoteSettingsRepairman(g *GlobalContext) {
+// helper for RemoteSettingsRepairman
+func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) error {
+	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
+	files, _ := filepath.Glob(filepath.Join(oldHome, "*"))
+	for _, oldPathName := range files {
+		_, name := filepath.Split(oldPathName)
+		// Chromium seems stubborn about these - TBD
+		switch name {
+		case "GPUCache":
+			continue
+		case "lockfile":
+			continue
+		case "app-state.json":
+			continue
+		case "Cache":
+			continue
+		case "Cookies":
+			continue
+		case "Cookies-journal":
+			continue
+		case "Local Storage":
+			continue
+		}
+		// explicitly skip logs
+		if strings.HasSuffix(name, ".log") {
+			continue
+		}
+		newPathName := filepath.Join(currentHome, name)
+		var err error
+		g.Log.Info("   moving %s", name)
+
+		for i := 0; i < 5; i++ {
+			if err != nil {
+				time.Sleep(100 * time.Millisecond)
+			}
+			err = os.Rename(oldPathName, newPathName)
+			if err == nil {
+				break
+			}
+		}
+		if err != nil {
+			g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
+			return err
+		}
+	}
+	return nil
+}
+
+// RemoteSettingsRepairman does a one-time move of everyting from the roaming
+// target directory to local. We depend on the .exe files having been uninstalled from
+// there first.
+// Note that Chromium still insists on keeping some stuff in roaming,
+// exceptions for which are hardcoded.
+func RemoteSettingsRepairman(g *GlobalContext) error {
 	w := Win32{Base{"keybase",
 		func() string { return g.Env.getHomeFromCmdOrConfig() },
 		func() RunMode { return g.Env.GetRunMode() }}}
 
-	currentPathname := w.Home(false)
-	kbDir := filepath.Base(currentPathname)
+	currentHome := w.Home(false)
+	kbDir := filepath.Base(currentHome)
+	currentConfig := g.Env.GetConfigFilename()
 	oldDir, err := AppDataDir()
 	if err != nil {
-		return
+		return err
 	}
-	oldPathname := filepath.Join(oldDir, kbDir)
-	if oldExists, _ := FileExists(oldPathname); oldExists {
-		if currentExists, _ := FileExists(currentPathname); !currentExists {
-			g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldPathname, currentPathname)
-			err = os.Rename(oldPathname, currentPathname)
-			if err != nil {
-				g.Log.Error("RemoteSettingsRepairman error - %s", err)
-			}
+	_, configName := filepath.Split(currentConfig)
+	oldHome := filepath.Join(oldDir, kbDir)
+	oldConfig := filepath.Join(oldHome, configName)
+	if oldExists, _ := FileExists(oldConfig); oldExists {
+		if currentExists, _ := FileExists(currentConfig); !currentExists {
+			return moveNonChromiumFiles(g, oldHome, currentHome)
 		}
 	}
+	return nil
 }
