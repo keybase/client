@@ -42,24 +42,24 @@ func (ctx *proofContextExtImpl) getStubDNS() *stubDNSEngine {
 
 func debugWithState(g proofContextExt, state scriptState, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	g.GetLogPvl().Debug("PVL @(service:%v script:%v pc:%v) %v",
+	g.GetLogPvl().CDebugf(g.GetNetContext(), "PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, s)
 }
 
 func debugWithStateError(g proofContextExt, state scriptState, err libkb.ProofError) {
-	g.GetLogPvl().Debug("PVL @(service:%v script:%v pc:%v) Error code=%v: %v",
+	g.GetLogPvl().CDebugf(g.GetNetContext(), "PVL @(service:%v script:%v pc:%v) Error code=%v: %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, err.GetProofStatus(), err.GetDesc())
 }
 
 func debugWithPosition(g proofContextExt, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	g.GetLogPvl().Debug("PVL @(service:%v script:%v pc:%v) %v",
+	g.GetLogPvl().CDebugf(g.GetNetContext(), "PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(service), whichscript, pc, s)
 }
 
 func debug(g proofContextExt, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
-	g.GetLogPvl().Debug("PVL %v", s)
+	g.GetLogPvl().CDebugf(g.GetNetContext(), "PVL %v", s)
 }
 
 // debugServiceToString returns the name of a service or number string if it is invalid.

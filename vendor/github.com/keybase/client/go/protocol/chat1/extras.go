@@ -6,6 +6,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+	"strings"
+
+	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 // Eq compares two TLFIDs
@@ -191,4 +194,119 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 
 func (o OutboxID) Eq(r OutboxID) bool {
 	return bytes.Equal(o, r)
+}
+
+func (o OutboxID) String() string {
+	return hex.EncodeToString(o)
+}
+
+func (t TLFVisibility) Eq(r TLFVisibility) bool {
+	return int(t) == int(r)
+}
+
+// Visibility is a helper to get around a nil pointer for visibility,
+// and to get around TLFVisibility_ANY.  The default is PRIVATE.
+// Note:  not sure why visibility is a pointer, or what TLFVisibility_ANY
+// is for, but don't want to change the API.
+func (q *GetInboxLocalQuery) Visibility() TLFVisibility {
+	visibility := TLFVisibility_PRIVATE
+	if q.TlfVisibility != nil && *q.TlfVisibility == TLFVisibility_PUBLIC {
+		visibility = TLFVisibility_PUBLIC
+	}
+	return visibility
+}
+
+// Visibility is a helper to get around a nil pointer for visibility,
+// and to get around TLFVisibility_ANY.  The default is PRIVATE.
+// Note:  not sure why visibility is a pointer, or what TLFVisibility_ANY
+// is for, but don't want to change the API.
+func (q *GetInboxQuery) Visibility() TLFVisibility {
+	visibility := TLFVisibility_PRIVATE
+	if q.TlfVisibility != nil && *q.TlfVisibility == TLFVisibility_PUBLIC {
+		visibility = TLFVisibility_PUBLIC
+	}
+	return visibility
+}
+
+// TLFNameExpanded returns a TLF name with a reset suffix if it exists.
+// This version can be used in requests to lookup the TLF.
+func (c ConversationInfoLocal) TLFNameExpanded() string {
+	return ExpandTLFName(c.TlfName, c.FinalizeInfo)
+}
+
+// TLFNameExpandedSummary returns a TLF name with a summary of the
+// account reset if there was one.
+// This version is for display purposes only and connot be used to lookup the TLF.
+func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
+	if c.FinalizeInfo == nil {
+		return c.TlfName
+	}
+	return c.TlfName + " " + c.FinalizeInfo.BeforeSummary()
+}
+
+// TLFNameExpanded returns a TLF name with a reset suffix if it exists.
+// This version can be used in requests to lookup the TLF.
+func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+	return ExpandTLFName(h.TlfName, finalizeInfo)
+}
+
+// ExpandTLFName returns a TLF name with a reset suffix if it exists.
+// This version can be used in requests to lookup the TLF.
+func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {
+	if finalizeInfo == nil {
+		return name
+	}
+	if len(finalizeInfo.ResetFull) == 0 {
+		return name
+	}
+	if strings.Contains(name, " account reset ") {
+		return name
+	}
+	return name + " " + finalizeInfo.ResetFull
+}
+
+// BeforeSummary returns a summary of the finalize without "files" in it.
+// The canonical name for a TLF after reset has a "(files before ... account reset...)" suffix
+// which doesn't make much sense in other uses (like chat).
+func (f *ConversationFinalizeInfo) BeforeSummary() string {
+	return fmt.Sprintf("(before %s account reset %s)", f.ResetUser, f.ResetDate)
+}
+
+func (p Pagination) Eq(other Pagination) bool {
+	return p.Last == other.Last && bytes.Equal(p.Next, other.Next) &&
+		bytes.Equal(p.Previous, other.Previous) && p.Num == other.Num
+}
+
+func (c ConversationLocal) GetMtime() gregor1.Time {
+	return c.ReaderInfo.Mtime
+}
+
+func (c ConversationLocal) GetConvID() ConversationID {
+	return c.Info.Id
+}
+
+func (c Conversation) GetMtime() gregor1.Time {
+	return c.ReaderInfo.Mtime
+}
+
+func (c Conversation) GetConvID() ConversationID {
+	return c.Metadata.ConversationID
+}
+
+func (c Conversation) GetMaxMessage(typ MessageType) (MessageBoxed, error) {
+	for _, msg := range c.MaxMsgs {
+		if msg.GetMessageType() == typ {
+			return msg, nil
+		}
+	}
+	return MessageBoxed{}, fmt.Errorf("max message not found: %v", typ)
+}
+
+func (c Conversation) Includes(uid gregor1.UID) bool {
+	for _, auid := range c.Metadata.ActiveList {
+		if uid.Eq(auid) {
+			return true
+		}
+	}
+	return false
 }

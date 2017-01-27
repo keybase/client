@@ -130,22 +130,39 @@ func jsonStringSimple(object *jsonw.Wrapper) (string, error) {
 	return "", fmt.Errorf("Non-simple object: %v", object)
 }
 
-// selectionContents gets the HTML contents of all elements in a selection, concatenated by a space.
-// If getting the contents/attr value of any elements fails, that does not cause an error.
+// selectionText gets the Text of all elements in a selection, concatenated by a space.
 // The result can be an empty string.
-func selectionContents(selection *goquery.Selection, useAttr bool, attr string) string {
+func selectionText(selection *goquery.Selection) string {
 	var results []string
 	selection.Each(func(i int, element *goquery.Selection) {
-		if useAttr {
-			res, ok := element.Attr(attr)
-			if ok {
-				results = append(results, res)
-			}
-		} else {
-			results = append(results, element.Text())
+		results = append(results, element.Text())
+	})
+	return strings.Join(results, " ")
+}
+
+// selectionAttr gets the specified attr of all elements in a selection, concatenated by a space.
+// If getting the attr of any elements fails, that does not cause an error.
+// The result can be an empty string.
+func selectionAttr(selection *goquery.Selection, attr string) string {
+	var results []string
+	selection.Each(func(i int, element *goquery.Selection) {
+		res, ok := element.Attr(attr)
+		if ok {
+			results = append(results, res)
 		}
 	})
+	return strings.Join(results, " ")
+}
 
+// selectionData gets the first node's data of all elements in a selection, concatenated by a space.
+// The result can be an empty string.
+func selectionData(selection *goquery.Selection) string {
+	var results []string
+	selection.Each(func(i int, element *goquery.Selection) {
+		if len(element.Nodes) > 0 {
+			results = append(results, element.Nodes[0].Data)
+		}
+	})
 	return strings.Join(results, " ")
 }
 
@@ -228,4 +245,24 @@ func validateProtocol(s string, allowed []string) (string, bool) {
 		return canon, stringsContains(allowed, canon)
 	}
 	return canon, false
+}
+
+func rooterRewriteURL(ctx libkb.ProofContext, s string) (string, error) {
+	u1, err := url.Parse(s)
+	if err != nil {
+		return "", err
+	}
+	u2, err := url.Parse(ctx.GetServerURI())
+	if err != nil {
+		return "", err
+	}
+
+	u3 := url.URL{
+		Host:     u2.Host,
+		Scheme:   u2.Scheme,
+		Path:     u1.Path,
+		Fragment: u1.Fragment,
+	}
+
+	return u3.String(), nil
 }
