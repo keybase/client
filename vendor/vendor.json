@@ -125,13 +125,6 @@
 			"revisionTime": "2016-02-07T21:47:19Z"
 		},
 		{
-			"checksumSHA1": "irxwCucfzk0o745pGL995YofeTM=",
-			"origin": "github.com/keybase/client/go/vendor/github.com/jonboulle/clockwork",
-			"path": "github.com/jonboulle/clockwork",
-			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
-			"revisionTime": "2016-08-26T20:58:34Z"
-		},
-		{
 			"path": "github.com/kardianos/osext",
 			"revision": "29ae4ffbc9a6fe9fb2bc5029050ce6996ea1d3bc",
 			"revisionTime": "2015-12-22T07:32:29-08:00"
