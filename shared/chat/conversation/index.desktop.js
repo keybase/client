@@ -3,10 +3,11 @@ import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
 import List from './list.desktop'
+import NoConversation from './no-conversation'
 import React, {Component} from 'react'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
-import {withHandlers} from 'recompose'
+import {withHandlers, branch, renderComponent} from 'recompose'
 
 import type {Props} from '.'
 
@@ -167,4 +168,8 @@ const dropOverlayStyle = {
   top: 0,
 }
 
-export default withFocusHandlers(Conversation)
+export default branch(
+  (props: Props) => !props.selectedConversation,
+  renderComponent(NoConversation),
+withFocusHandlers)(Conversation)
+
