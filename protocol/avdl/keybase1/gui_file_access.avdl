@@ -38,16 +38,16 @@ protocol GuiFileAccess {
   record ErrorNum {}
 
   enum Status {
-    finished,
-    pending,
-    invalidated,
-    error
+    finished_0,
+    pending_1,
+    invalidated_2,
+    error_3
   }
 
   record Result {
     Status status;
     int progress;       // if status == pending
-    ErrorNum errnum;   // if status == error
+    ErrorNum errnum;    // if status == error
     string description; // if status == error
   }
 
@@ -95,11 +95,6 @@ protocol GuiFileAccess {
   void move(OpID opID, string src, string dest);
 
   /**
-   Begin recursive move of directory 
-   */
-  void moveRecursive(OpID opID, string src, string dest);
-
-  /**
    Rename file or directory
    */
   void rename(string src, string dest);
@@ -112,7 +107,7 @@ protocol GuiFileAccess {
   /**
    Retrieve content of started copy
    */
-  FileContent getContent(OpID opID);
+  FileContent read(OpID opID);
 
   /**
    Create/open a file and leave it open
@@ -130,7 +125,7 @@ protocol GuiFileAccess {
   /**
    Append content to opened file
    */
-  Result addContent(OpID opID, FileContent content);
+  Result write(OpID opID, FileContent content);
 
   /**
    Remove file or directory from filesystem
