@@ -240,10 +240,33 @@ protocol local {
     union { null, ConversationFinalizeInfo } finalizeInfo;
   }
 
+  enum ConversationErrorType {
+    MISC_0,
+    MISSINGINFO_1,
+    SELFREKEYNEEDED_2,
+    OTHERREKEYNEEDED_3,
+    IDENTIFY_4,
+    LOCALMAXMESSAGENOTFOUND_5 // special use-case internally
+  }
+
   record ConversationErrorLocal {
+    ConversationErrorType typ;
     string message;
     Conversation remoteConv;
     boolean permanent;
+    // Only set if typ is for rekeying.
+    union { null, ConversationErrorRekey} rekeyInfo;
+  }
+
+  record ConversationErrorRekey {
+	// All of this stuff is server trust. Don't use it to send messages.
+    string tlfName;
+    boolean tlfPublic;
+    // Users who could rekey this conv.
+    array<string> rekeyers;
+    // Lists of usernames in the conv. Untrusted.
+    array<string> writerNames;
+    array<string> readerNames;
   }
 
   // ConversationLocal, whenever present, has a valid `identifyFailures` field that

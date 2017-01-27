@@ -76,6 +76,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
+		// TODO remove this
+		// tmp := fmt.Sprintf("%+v", err)
+		// b.log().Warning("@@@ crypt key err: %T ||| %s", err, strings.Split(tmp, "\n")[0])
 		// transient error
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}

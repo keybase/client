@@ -723,10 +723,56 @@ type ConversationInfoLocal struct {
 	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 }
 
+type ConversationErrorType int
+
+const (
+	ConversationErrorType_MISC                    ConversationErrorType = 0
+	ConversationErrorType_MISSINGINFO             ConversationErrorType = 1
+	ConversationErrorType_SELFREKEYNEEDED         ConversationErrorType = 2
+	ConversationErrorType_OTHERREKEYNEEDED        ConversationErrorType = 3
+	ConversationErrorType_IDENTIFY                ConversationErrorType = 4
+	ConversationErrorType_LOCALMAXMESSAGENOTFOUND ConversationErrorType = 5
+)
+
+var ConversationErrorTypeMap = map[string]ConversationErrorType{
+	"MISC":                    0,
+	"MISSINGINFO":             1,
+	"SELFREKEYNEEDED":         2,
+	"OTHERREKEYNEEDED":        3,
+	"IDENTIFY":                4,
+	"LOCALMAXMESSAGENOTFOUND": 5,
+}
+
+var ConversationErrorTypeRevMap = map[ConversationErrorType]string{
+	0: "MISC",
+	1: "MISSINGINFO",
+	2: "SELFREKEYNEEDED",
+	3: "OTHERREKEYNEEDED",
+	4: "IDENTIFY",
+	5: "LOCALMAXMESSAGENOTFOUND",
+}
+
+func (e ConversationErrorType) String() string {
+	if v, ok := ConversationErrorTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ConversationErrorLocal struct {
-	Message    string       `codec:"message" json:"message"`
-	RemoteConv Conversation `codec:"remoteConv" json:"remoteConv"`
-	Permanent  bool         `codec:"permanent" json:"permanent"`
+	Typ        ConversationErrorType   `codec:"typ" json:"typ"`
+	Message    string                  `codec:"message" json:"message"`
+	RemoteConv Conversation            `codec:"remoteConv" json:"remoteConv"`
+	Permanent  bool                    `codec:"permanent" json:"permanent"`
+	RekeyInfo  *ConversationErrorRekey `codec:"rekeyInfo,omitempty" json:"rekeyInfo,omitempty"`
+}
+
+type ConversationErrorRekey struct {
+	TlfName     string   `codec:"tlfName" json:"tlfName"`
+	TlfPublic   bool     `codec:"tlfPublic" json:"tlfPublic"`
+	Rekeyers    []string `codec:"rekeyers" json:"rekeyers"`
+	WriterNames []string `codec:"writerNames" json:"writerNames"`
+	ReaderNames []string `codec:"readerNames" json:"readerNames"`
 }
 
 type ConversationLocal struct {

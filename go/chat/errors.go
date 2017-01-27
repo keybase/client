@@ -30,10 +30,26 @@ func (e PermanentUnboxingError) IsPermanent() bool { return true }
 func (e PermanentUnboxingError) Inner() error { return e.inner }
 
 func NewTransientUnboxingError(inner error) UnboxingError {
-	return &TransientUnboxingError{inner}
+	return &TransientUnboxingError{
+		inner:         inner,
+		needRekey:     false,
+		needRekeySelf: false,
+	}
 }
 
-type TransientUnboxingError struct{ inner error }
+func NewTransientUnboxingNeedRekey(inner error, self bool) UnboxingError {
+	return &TransientUnboxingError{
+		inner:         inner,
+		needRekey:     true,
+		needRekeySelf: self,
+	}
+}
+
+type TransientUnboxingError struct {
+	inner         error
+	needRekey     bool
+	needRekeySelf bool
+}
 
 func (e TransientUnboxingError) Error() string {
 	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
