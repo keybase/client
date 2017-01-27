@@ -129,14 +129,26 @@ export default connect(
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    let bannerMessage
+
     const brokenUsers = getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
-    const bannerMessage = brokenUsers.length
-      ? {
+    if (brokenUsers.length) {
+      bannerMessage = {
         onClick: (user: string) => dispatchProps.onShowTracker(user),
         type: 'BrokenTracker',
         users: brokenUsers,
       }
-      : null
+    }
+
+    if (!bannerMessage) {
+      const sbsUsers = stateProps.participants.filter(p => p.includes('@')).toArray()
+      if (sbsUsers.length) {
+        bannerMessage = {
+          type: 'Invite',
+          users: sbsUsers,
+        }
+      }
+    }
 
     return {
       ...stateProps,
