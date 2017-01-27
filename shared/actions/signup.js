@@ -80,7 +80,6 @@ function requestAutoInvite (): TypedAsyncAction<CheckInviteCode | NavigateAppend
   })
 }
 
-
 function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | NavigateAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     // Returns an error string if not valid
