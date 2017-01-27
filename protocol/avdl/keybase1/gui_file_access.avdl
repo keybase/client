@@ -35,7 +35,7 @@ protocol GuiFileAccess {
   }
 
   @typedef("int")
-  record ErrornNum {}
+  record ErrorNum {}
 
   enum Status {
     finished,
@@ -47,7 +47,7 @@ protocol GuiFileAccess {
   record Result {
     Status status;
     int progress;       // if status == pending
-    ErrornNum errnum;   // if status == error
+    ErrorNum errnum;   // if status == error
     string description; // if status == error
   }
 
@@ -66,12 +66,12 @@ protocol GuiFileAccess {
    Retrieve results with getList()
    Can be a single file to get flags/status
    */
-  ErrorNum list(OpID opID, string path);
+  void list(OpID opID, string path);
 
   /**
    Begin recursive list if items in directory at path
    */
-  ErrorNum listRecursive(OpID opID, string path);
+  void listRecursive(OpID opID, string path);
 
   /**
    Get list if items in progress. Can indicate status of pending
@@ -82,32 +82,32 @@ protocol GuiFileAccess {
   /**
    Begin copy of file or directory 
    */
-  ErrorNum copy(OpID opID, string src, string dest);
+  void copy(OpID opID, string src, string dest);
 
   /**
    Begin recursive copy of directory 
    */
-  ErrorNum copyRecursive(OpID opID, string src, string dest);
+  void copyRecursive(OpID opID, string src, string dest);
 
   /**
    Begin move of file or directory 
    */
-  ErrorNum move(OpID opID, string src, string dest);
+  void move(OpID opID, string src, string dest);
 
   /**
    Begin recursive move of directory 
    */
-  ErrorNum moveRecursive(OpID opID, string src, string dest);
+  void moveRecursive(OpID opID, string src, string dest);
 
   /**
    Rename file or directory
    */
-  ErrorNum rename(string src, string dest);
+  void rename(string src, string dest);
 
   /**
    Begin copy file content out of filesystem
    */
-  ErrorNum copyContent(OpID opID, string src);
+  void copyContent(OpID opID, string src);
 
   /**
    Retrieve content of started copy
@@ -125,7 +125,7 @@ protocol GuiFileAccess {
    DIRECTORY  = 4
    EXECUTABLE = 8   
    */
-  ErrorNum open(OpID opID, string dest, int Flags);
+  void open(OpID opID, string dest, int Flags);
 
   /**
    Append content to opened file
@@ -152,6 +152,11 @@ protocol GuiFileAccess {
    Check progress of pending operation
    */
   Result checkOp(OpID opID);
+
+  /**
+   Get all the outstanding operations
+   */
+  array<OpID> getOps();
 
   /**
    Blocking wait for the pending operation to finish
