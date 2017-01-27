@@ -188,19 +188,39 @@ func addUnflushedPaths(ctx context.Context,
 		rootInfo: mostRecentMDInfo.pmd.Dir.BlockInfo,
 	}
 
-	err := cpp.populateChainPaths(ctx, log, chains, true)
-	if err != nil {
-		return err
+	// Does the last op already have a valid path in each chain?  If
+	// so, we don't need to bother populating the paths, which can
+	// take a fair amount of CPU since the node cache isn't already
+	// up-to-date with the current set of pointers (because the MDs
+	// haven't been committed yet).
+	skipPaths := true
+	for _, chain := range chains.byOriginal {
+		if len(chain.ops) > 0 &&
+			!chain.ops[len(chain.ops)-1].getFinalPath().isValid() {
+			skipPaths = false
+			break
+		}
+	}
+
+	if !skipPaths {
+		err := cpp.populateChainPaths(ctx, log, chains, true)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, chain := range chains.byOriginal {
-		for _, op := range chain.ops {
-			revPaths, ok := unflushedPaths[op.getWriterInfo().revision]
-			if !ok {
-				panic(fmt.Sprintf("No rev map for revision %d",
-					op.getWriterInfo().revision))
+		if len(chain.ops) > 0 {
+			// Use the same final path from the chain for all ops.
+			finalPath := chain.ops[len(chain.ops)-1].getFinalPath().String()
+			for _, op := range chain.ops {
+				revPaths, ok := unflushedPaths[op.getWriterInfo().revision]
+				if !ok {
+					panic(fmt.Sprintf("No rev map for revision %d",
+						op.getWriterInfo().revision))
+				}
+				revPaths[finalPath] = true
 			}
-			revPaths[op.getFinalPath().String()] = true
 		}
 	}
 	return nil
