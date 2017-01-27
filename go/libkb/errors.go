@@ -35,11 +35,15 @@ func ProofErrorToState(pe ProofError) keybase1.ProofState {
 		return keybase1.ProofState_OK
 	}
 
-	if s := pe.GetProofStatus(); s == keybase1.ProofStatus_NO_HINT || s == keybase1.ProofStatus_UNKNOWN_TYPE {
-		return keybase1.ProofState_NONE
+	switch pe.GetProofStatus() {
+	case keybase1.ProofStatus_NO_HINT:
+		return keybase1.ProofState_SIG_HINT_MISSING
+	case keybase1.ProofStatus_UNKNOWN_TYPE:
+		return keybase1.ProofState_UNKNOWN_TYPE
+	default:
+		return keybase1.ProofState_TEMP_FAILURE
 	}
 
-	return keybase1.ProofState_TEMP_FAILURE
 }
 
 type ProofErrorImpl struct {
