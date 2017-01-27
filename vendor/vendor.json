@@ -344,12 +344,6 @@
 			"revisionTime": "2015-11-29T16:13:40-08:00"
 		},
 		{
-			"checksumSHA1": "GUoUEVIFbwrc65Iqo9bYXlA+sCA=",
-			"path": "github.com/rogpeppe/rog-go/reverse",
-			"revision": "f57ad5e24ab7813942c045f86eda1066eb969e98",
-			"revisionTime": "2015-01-10T16:24:53Z"
-		},
-		{
 			"checksumSHA1": "zJZyxS96XiEnDJSZkWwXtktziRY=",
 			"path": "github.com/shirou/gopsutil/internal/common",
 			"revision": "22a03b5be3f384f558742929065778aa26471033",
