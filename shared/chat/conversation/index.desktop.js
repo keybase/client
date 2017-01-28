@@ -3,6 +3,7 @@ import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
 import List from './list.desktop'
+import ParticipantRekey from './participant-rekey'
 import NoConversation from './no-conversation'
 import React, {Component} from 'react'
 import {Box, Icon} from '../../common-adapters'
@@ -172,5 +173,10 @@ const dropOverlayStyle = {
 export default branch(
   (props: Props) => props.selectedConversation === nothingSelected,
   renderComponent(NoConversation),
-withFocusHandlers)(Conversation)
+  branch(
+    (props: Props) => !!props.rekeyInfo,
+    renderComponent(ParticipantRekey),
+    withFocusHandlers
+  )
+)(Conversation)
 

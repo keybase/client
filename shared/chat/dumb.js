@@ -237,7 +237,8 @@ const list = {
       parentProps: listParentProps,
     },
     'PartRekey': {
-      ...rekeyConvo(false),
+      ...commonConvoProps,
+      rekeyInfo: rekeyConvo(false).rekeyInfos.get(1),
       selectedConversation: 'convo3',
     },
   },
