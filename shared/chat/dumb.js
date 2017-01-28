@@ -211,16 +211,34 @@ const listParentProps = {
   },
 }
 
+const rekeyConvo = (youCanRekey) => ({
+  ...commonConversationsProps,
+  rekeyInfos: Map({
+    convo1: new RekeyInfoRecord({
+      rekeyParticipants: List(['jzila']),
+      youCanRekey,
+    }),
+    convo3: new RekeyInfoRecord({
+      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch']),
+      youCanRekey,
+    }),
+  }),
+})
+
 const list = {
   component: ConversationList,
   mocks: {
+    'Empty': {
+      ...emptyConvoProps,
+      parentProps: listParentProps,
+    },
     'Normal': {
       ...commonConvoProps,
       parentProps: listParentProps,
     },
-    'Empty': {
-      ...emptyConvoProps,
-      parentProps: listParentProps,
+    'PartRekey': {
+      ...rekeyConvo(false),
+      selectedConversation: 'convo3',
     },
   },
 }
@@ -246,20 +264,6 @@ const sidePanel = {
     },
   },
 }
-
-const rekeyConvo = (youCanRekey) => ({
-  ...commonConversationsProps,
-  rekeyInfos: Map({
-    convo1: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila']),
-      youCanRekey,
-    }),
-    convo3: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch']),
-      youCanRekey,
-    }),
-  }),
-})
 
 const conversationsList = {
   component: ConversationsList,
