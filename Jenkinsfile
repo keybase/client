@@ -293,40 +293,24 @@ def runNixTest(prefix) {
             sh 'go test -i'
             sh 'go test -race -c'
             sh './libkbfs.test -test.timeout 3m'
-            withEnv([
-                'KEYBASE_TEST_BSERVER_ADDR=tempdir',
-                'KEYBASE_TEST_MDSERVER_ADDR=tempdir',
-            ]) {
-                sh './libkbfs.test -test.timeout 3m'
-            }
         }
     }
     tests[prefix+'libfuse'] = {
-        withEnv([
-            'KEYBASE_TEST_BSERVER_ADDR=tempdir',
-            'KEYBASE_TEST_MDSERVER_ADDR=tempdir',
-        ]) {
-            dir('libfuse') {
-                sh 'go test -i'
-                sh 'go test -c'
-                sh './libfuse.test -test.timeout 2m'
-            }
+        dir('libfuse') {
+            sh 'go test -i'
+            sh 'go test -c'
+            sh './libfuse.test -test.timeout 2m'
         }
     }
     tests[prefix+'test'] = {
-        withEnv([
-            'KEYBASE_TEST_BSERVER_ADDR=tempdir',
-            'KEYBASE_TEST_MDSERVER_ADDR=tempdir',
-        ]) {
-            dir('test') {
-                sh 'go test -i -tags fuse'
-                println "Test Dir with Race but no Fuse"
-                sh 'go test -race -c'
-                sh './test.test -test.timeout 7m'
-                println "Test Dir with Fuse but no Race"
-                sh 'go test -c -tags fuse'
-                sh './test.test -test.timeout 7m'
-            }
+        dir('test') {
+            sh 'go test -i -tags fuse'
+            println "Test Dir with Race but no Fuse"
+            sh 'go test -race -c'
+            sh './test.test -test.timeout 7m'
+            println "Test Dir with Fuse but no Race"
+            sh 'go test -c -tags fuse'
+            sh './test.test -test.timeout 7m'
         }
     }
     parallel (tests)
