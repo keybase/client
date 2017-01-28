@@ -472,6 +472,24 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return InvalidAddressError{Msg: s.Desc}
 	case SCChatCollision:
 		return ChatCollisionError{}
+	case SCNeedSelfRekey:
+		ret := NeedSelfRekeyError{Msg: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Tlf":
+				ret.Tlf = field.Value
+			}
+		}
+		return ret
+	case SCNeedOtherRekey:
+		ret := NeedOtherRekeyError{Msg: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Tlf":
+				ret.Tlf = field.Value
+			}
+		}
+		return ret
 
 	default:
 		ase := AppStatusError{
@@ -1562,6 +1580,22 @@ func (e InvalidAddressError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCInvalidAddress,
 		Name: "SC_INVALID_ADDRESS",
+		Desc: e.Error(),
+	}
+}
+
+func (e NeedSelfRekeyError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNeedSelfRekey,
+		Name: "SC_NEED_SELF_REKEY",
+		Desc: e.Error(),
+	}
+}
+
+func (e NeedOtherRekeyError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNeedOtherRekey,
+		Name: "SC_NEED_OTHER_REKEY",
 		Desc: e.Error(),
 	}
 }

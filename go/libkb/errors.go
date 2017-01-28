@@ -1718,3 +1718,33 @@ func NewDBError(s string) DBError {
 }
 
 //=============================================================================
+
+// These rekey types are not-exact duplicates of the libkbfs errors of the same name.
+
+// NeedSelfRekeyError indicates that the folder in question needs to
+// be rekeyed for the local device, and can be done so by one of the
+// other user's devices.
+type NeedSelfRekeyError struct {
+	// Canonical tlf name
+	Tlf string
+	Msg string
+}
+
+func (e NeedSelfRekeyError) Error() string {
+	return e.Msg
+}
+
+// NeedOtherRekeyError indicates that the folder in question needs to
+// be rekeyed for the local device, and can only done so by one of the
+// other users.
+type NeedOtherRekeyError struct {
+	// Canonical tlf name
+	Tlf string
+	Msg string
+}
+
+func (e NeedOtherRekeyError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================
