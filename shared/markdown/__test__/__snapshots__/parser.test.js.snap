@@ -312,6 +312,34 @@ Object {
     ",
     Object {
       "children": Array [
+        "keybase.io/a/user/lookup?one=1&two=2",
+      ],
+      "href": "http://keybase.io/a/user/lookup?one=1&two=2",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "keybase.io?blah=true",
+      ],
+      "href": "http://keybase.io?blah=true",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "http://keybase.io/blah/../up-one/index.html",
+      ],
+      "href": "http://keybase.io/blah/../up-one/index.html",
+      "type": "link",
+    },
+    "
+  These should have the trailing punctuation outside the link:
+    ",
+    Object {
+      "children": Array [
         "amazon.co.uk",
       ],
       "href": "http://amazon.co.uk",
@@ -345,33 +373,6 @@ Object {
       "type": "link",
     },
     "?
-    ",
-    Object {
-      "children": Array [
-        "keybase.io/a/user/lookup?one=1&two=2",
-      ],
-      "href": "http://keybase.io/a/user/lookup?one=1&two=2",
-      "type": "link",
-    },
-    "
-    ",
-    Object {
-      "children": Array [
-        "keybase.io?blah=true",
-      ],
-      "href": "http://keybase.io?blah=true",
-      "type": "link",
-    },
-    "
-    ",
-    Object {
-      "children": Array [
-        "http://keybase.io/blah/../up-one/index.html",
-      ],
-      "href": "http://keybase.io/blah/../up-one/index.html",
-      "type": "link",
-    },
-    "
 ",
   ],
   "type": "text",
