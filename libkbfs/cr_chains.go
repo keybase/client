@@ -726,8 +726,17 @@ func (ccs *crChains) addOps(codec kbfscodec.Codec,
 	privateMD PrivateMetadata, winfo writerInfo,
 	localTimestamp time.Time) error {
 	// Copy the ops since CR will change them.
-	ops := make(opsList, len(privateMD.Changes.Ops))
-	err := kbfscodec.Update(codec, &ops, privateMD.Changes.Ops)
+	var oldOps opsList
+	if privateMD.Changes.Info.BlockPointer.IsInitialized() {
+		// In some cases (e.g., journaling) we might not have been
+		// able to re-embed the block changes.  So used the cached
+		// version directly.
+		oldOps = privateMD.cachedChanges.Ops
+	} else {
+		oldOps = privateMD.Changes.Ops
+	}
+	ops := make(opsList, len(oldOps))
+	err := kbfscodec.Update(codec, &ops, oldOps)
 	if err != nil {
 		return err
 	}

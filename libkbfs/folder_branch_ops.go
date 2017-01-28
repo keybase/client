@@ -1862,8 +1862,8 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 
 	md.AddRefBytes(uint64(info.EncodedSize))
 	md.AddDiskUsage(uint64(info.EncodedSize))
-	changes.Info = info
 	md.data.cachedChanges = *changes
+	changes.Info = info
 	changes.Ops = nil
 	return nil
 }
