@@ -67,7 +67,7 @@ const TopLine = ({isSelected, hasUnread, boldOverride, participants, subColor, c
   return (
     <div style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
       <div style={{...globalStyles.flexBoxRow, flex: 1, height: 17, position: 'relative'}}>
-        <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', bottom: 0, justifyContent: 'center', left: 0, position: 'absolute', right: 0, top: 0}}>
+        <div style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
           <Usernames
             inline={true}
             type='BodySemibold'
@@ -93,11 +93,15 @@ const BottomLine = ({participantNeedToRekey, isMuted, boldOverride, subColor, co
     content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
   } else if (snippet && !isMuted) {
     content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>
+  } else {
+    return null
   }
 
   return (
-    <div style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
-      {content}
+    <div style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative'}}>
+      <div style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+        {content}
+      </div>
     </div>
   )
 }

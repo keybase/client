@@ -279,12 +279,40 @@ const conversationsList = {
       ...emptyConversationsProps,
     },
     'PartRekey': {
-      ...rekeyConvo(false) ,
+      ...rekeyConvo(false),
       selectedConversation: 'convo3',
     },
     'PartRekeySelected': {
       ...rekeyConvo(false),
       selectedConversation: 'convo1',
+    },
+    'LongTop': {
+      ...commonConversationsProps,
+      inbox: List([
+        new InboxStateRecord({
+          conversationIDKey: 'convo1',
+          info: null,
+          muted: false,
+          participants: List(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
+          snippet: 'look up!',
+          time: now,
+          unreadCount: 3,
+        }),
+      ]),
+    },
+    'LongBottom': {
+      ...commonConversationsProps,
+      inbox: List([
+        new InboxStateRecord({
+          conversationIDKey: 'convo1',
+          info: null,
+          muted: false,
+          participants: List(['look down!']),
+          snippet: 'one two three four five six seven eight nine ten',
+          time: now,
+          unreadCount: 3,
+        }),
+      ]),
     },
   },
 }
