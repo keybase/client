@@ -312,39 +312,39 @@ Object {
     ",
     Object {
       "children": Array [
-        "amazon.co.uk.",
+        "amazon.co.uk",
       ],
-      "href": "http://amazon.co.uk.",
+      "href": "http://amazon.co.uk",
       "type": "link",
     },
-    "
+    ".
     ",
     Object {
       "children": Array [
-        "keybase.io,",
+        "keybase.io",
       ],
-      "href": "http://keybase.io,",
+      "href": "http://keybase.io",
       "type": "link",
     },
-    "
+    ",
     ",
     Object {
       "children": Array [
-        "keybase.io.",
+        "keybase.io",
       ],
-      "href": "http://keybase.io.",
+      "href": "http://keybase.io",
       "type": "link",
     },
-    "
+    ".
     ",
     Object {
       "children": Array [
-        "keybase.io?",
+        "keybase.io",
       ],
-      "href": "http://keybase.io?",
+      "href": "http://keybase.io",
       "type": "link",
     },
-    "
+    "?
     ",
     Object {
       "children": Array [

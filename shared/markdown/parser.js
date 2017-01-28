@@ -205,14 +205,18 @@ function peg$parse(input, options) {
              return false
            }
            const match = matches[0]
+           url._match = match  // save the match via expando property (used below)
            return goodLink(match)
          },
       peg$c42 = function(proto, url) {
          const urlText = url.join('')
          const protoText = proto ? proto.join('') : ''
-         const href = (protoText || 'http://') + urlText
-         const text = protoText + urlText
-         return {type: 'link', href, children: [text]}
+         const href = (protoText || 'http://') + url._match
+         const text = protoText + url._match
+         return [
+           {type: 'link', href, children: [text]},
+           urlText.substring(url._match.length, urlText.length),
+         ]
        },
       peg$c43 = /^[\t\x0B\f \xA0\uFEFF]/,
       peg$c44 = peg$classExpectation(["\t", "\x0B", "\f", " ", "\xA0", "\uFEFF"], false, false),
