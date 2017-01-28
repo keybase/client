@@ -16,9 +16,7 @@ export type ErrorVariant = {
 
 export type InviteVariant = {
   type: 'Invite',
-  username: string,
-  inviteLink: string,
-  onClickInviteLink: () => void,
+  users: Array<string>,
 }
 
 export type InfoVariant = {
