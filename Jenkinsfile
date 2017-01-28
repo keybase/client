@@ -71,21 +71,6 @@ helpers.rootLinuxNode(env, {
                         env.AUTHOR_EMAIL = readFile('.author_email')
                         sh 'rm .author_name .author_email'
                     },
-                    pull_mysql: {
-                        if (startKbweb) {
-                            mysqlImage.pull()
-                        }
-                    },
-                    pull_gregor: {
-                        if (startKbweb) {
-                            gregorImage.pull()
-                        }
-                    },
-                    pull_kbweb: {
-                        if (startKbweb) {
-                            kbwebImage.pull()
-                        }
-                    },
                     pull_kbclient: {
                         if (cause == "upstream" && clientProjectName != '') {
                             retry(5) {
@@ -126,6 +111,23 @@ helpers.rootLinuxNode(env, {
 
                 parallel (
                     test_kbfs: {
+                        parallel (
+                            pull_mysql: {
+                                if (startKbweb) {
+                                    mysqlImage.pull()
+                                }
+                            },
+                            pull_gregor: {
+                                if (startKbweb) {
+                                    gregorImage.pull()
+                                }
+                            },
+                            pull_kbweb: {
+                                if (startKbweb) {
+                                    kbwebImage.pull()
+                                }
+                            },
+                        )
                         if (startKbweb) {
                             retry(5) {
                                 sh "docker-compose up -d mysql.local"
