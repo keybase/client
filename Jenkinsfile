@@ -293,7 +293,6 @@ def runNixTest(prefix) {
             sh 'go test -i'
             sh 'go test -race -c'
             sh './libkbfs.test -test.timeout 3m'
-            sh './libkbfs.test -test.timeout 3m'
         }
     }
     tests[prefix+'libfuse'] = {
