@@ -209,13 +209,15 @@ function peg$parse(input, options) {
            return goodLink(match)
          },
       peg$c42 = function(proto, url) {
+         const match = url._match
+         delete url._match
          const urlText = url.join('')
          const protoText = proto ? proto.join('') : ''
-         const href = (protoText || 'http://') + url._match
-         const text = protoText + url._match
+         const href = (protoText || 'http://') + match
+         const text = protoText + match
          return [
            {type: 'link', href, children: [text]},
-           urlText.substring(url._match.length, urlText.length),
+           urlText.substring(match.length, urlText.length),
          ]
        },
       peg$c43 = /^[\t\x0B\f \xA0\uFEFF]/,
