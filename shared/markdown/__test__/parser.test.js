@@ -69,13 +69,14 @@ describe('Markdown parser', () => {
     HTTP://cnn.com
     http://twitter.com
     google.com
+    keybase.io/a/user/lookup?one=1&two=2
+    keybase.io?blah=true
+    http://keybase.io/blah/../up-one/index.html
+  These should have the trailing punctuation outside the link:
     amazon.co.uk.
     keybase.io,
     keybase.io.
     keybase.io?
-    keybase.io/a/user/lookup?one=1&two=2
-    keybase.io?blah=true
-    http://keybase.io/blah/../up-one/index.html
 `)
     expect(ast).toMatchSnapshot()
   })
