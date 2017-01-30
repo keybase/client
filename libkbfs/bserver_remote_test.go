@@ -5,11 +5,8 @@
 package libkbfs
 
 import (
-	"bytes"
-	"errors"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -17,265 +14,106 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
-type FakeBServerClient struct {
-	bserverMem *BlockServerMemory
-
-	readyChan  chan<- struct{}
-	goChan     <-chan struct{}
-	finishChan chan<- struct{}
+type fakeBlockEntry struct {
+	folder   string
+	buf      []byte
+	blockKey string
+	refs     map[keybase1.BlockRefNonce]keybase1.BlockReference
 }
 
-func NewFakeBServerClient(
-	crypto cryptoPure, log logger.Logger,
-	readyChan chan<- struct{},
-	goChan <-chan struct{},
-	finishChan chan<- struct{}) *FakeBServerClient {
-	return &FakeBServerClient{
-		bserverMem: NewBlockServerMemory(log),
-		readyChan:  readyChan,
-		goChan:     goChan,
-		finishChan: finishChan,
-	}
+type fakeBServerClient struct {
+	keybase1.BlockInterface
+	entries map[keybase1.BlockIdCombo]fakeBlockEntry
 }
 
-func (fc *FakeBServerClient) maybeWaitOnChannel(ctx context.Context) error {
-	if fc.readyChan == nil {
-		return nil
-	}
-
-	// say we're ready, and wait for a signal to proceed or a
-	// cancellation.
-	select {
-	case fc.readyChan <- struct{}{}:
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-	select {
-	case <-fc.goChan:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-func (fc *FakeBServerClient) maybeFinishOnChannel(ctx context.Context) error {
-	if fc.finishChan != nil {
-		select {
-		case fc.finishChan <- struct{}{}:
-			return nil
-		case <-ctx.Done():
-			return ctx.Err()
+func (fc *fakeBServerClient) PutBlock(
+	ctx context.Context, arg keybase1.PutBlockArg) error {
+	var refs map[keybase1.BlockRefNonce]keybase1.BlockReference
+	if e, ok := fc.entries[arg.Bid]; ok {
+		refs = e.refs
+	} else {
+		refs = make(map[keybase1.BlockRefNonce]keybase1.BlockReference)
+		fc.entries[arg.Bid] = fakeBlockEntry{
+			arg.Folder, arg.Buf, arg.BlockKey, refs,
 		}
+	}
+	refs[keybase1.BlockRefNonce{}] = keybase1.BlockReference{
+		Bid: arg.Bid,
 	}
 	return nil
 }
 
-func (fc *FakeBServerClient) GetSessionChallenge(context.Context) (keybase1.ChallengeInfo, error) {
-	return keybase1.ChallengeInfo{}, errors.New("GetSessionChallenge not implemented")
-}
-
-func (fc *FakeBServerClient) AuthenticateSession(context.Context, string) error {
-	return errors.New("AuthenticateSession not implemented")
-}
-
-func (fc *FakeBServerClient) PutBlock(ctx context.Context, arg keybase1.PutBlockArg) error {
-	err := fc.maybeWaitOnChannel(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		finishErr := fc.maybeFinishOnChannel(ctx)
-		if err == nil {
-			err = finishErr
-		}
-	}()
-
-	id, err := kbfsblock.IDFromString(arg.Bid.BlockHash)
-	if err != nil {
-		return err
-	}
-
-	tlfID, err := tlf.ParseID(arg.Folder)
-	if err != nil {
-		return err
-	}
-
-	serverHalf, err := kbfscrypto.ParseBlockCryptKeyServerHalf(arg.BlockKey)
-	if err != nil {
-		return err
-	}
-
-	bCtx := kbfsblock.Context{
-		RefNonce: kbfsblock.ZeroRefNonce,
-		Creator:  arg.Bid.ChargedTo,
-	}
-	return fc.bserverMem.Put(ctx, tlfID, id, bCtx, arg.Buf, serverHalf)
-}
-
-func (fc *FakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlockArg) (keybase1.GetBlockRes, error) {
-	err := fc.maybeWaitOnChannel(ctx)
-	if err != nil {
-		return keybase1.GetBlockRes{}, err
-	}
-	defer func() {
-		finishErr := fc.maybeFinishOnChannel(ctx)
-		if err == nil {
-			err = finishErr
-		}
-	}()
-
-	id, err := kbfsblock.IDFromString(arg.Bid.BlockHash)
-	if err != nil {
-		return keybase1.GetBlockRes{}, err
-	}
-
-	tlfID, err := tlf.ParseID(arg.Folder)
-	if err != nil {
-		return keybase1.GetBlockRes{}, err
-	}
-
-	// Always use this block context (the one the block was
-	// originally put with) since the RPC API doesn't pass along
-	// all the info from the block context passed into
-	// BlockServer.Get().
-	bCtx := kbfsblock.Context{
-		RefNonce: kbfsblock.ZeroRefNonce,
-		Creator:  arg.Bid.ChargedTo,
-	}
-
-	data, serverHalf, err := fc.bserverMem.Get(ctx, tlfID, id, bCtx)
-	if err != nil {
-		return keybase1.GetBlockRes{}, err
+func (fc *fakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlockArg) (keybase1.GetBlockRes, error) {
+	e, ok := fc.entries[arg.Bid]
+	if !ok {
+		return keybase1.GetBlockRes{}, kbfsblock.BServerErrorBlockNonExistent{}
 	}
 	return keybase1.GetBlockRes{
-		BlockKey: serverHalf.String(),
-		Buf:      data,
+		Buf:      e.buf,
+		BlockKey: e.blockKey,
 	}, nil
 }
 
-func (fc *FakeBServerClient) AddReference(ctx context.Context, arg keybase1.AddReferenceArg) error {
-	id, err := kbfsblock.IDFromString(arg.Ref.Bid.BlockHash)
-	if err != nil {
-		return err
+func (fc *fakeBServerClient) AddReference(ctx context.Context, arg keybase1.AddReferenceArg) error {
+	e, ok := fc.entries[arg.Ref.Bid]
+	if !ok {
+		return kbfsblock.BServerErrorBlockNonExistent{}
 	}
-
-	tlfID, err := tlf.ParseID(arg.Folder)
-	if err != nil {
-		return err
-	}
-
-	bCtx := kbfsblock.Context{
-		RefNonce: kbfsblock.RefNonce(arg.Ref.Nonce),
-		Creator:  arg.Ref.ChargedTo,
-	}
-
-	return fc.bserverMem.AddBlockReference(ctx, tlfID, id, bCtx)
-}
-
-func (fc *FakeBServerClient) DelReference(context.Context, keybase1.DelReferenceArg) error {
-	return errors.New("DelReference not implemented")
-}
-
-func (fc *FakeBServerClient) DelReferenceWithCount(context.Context, keybase1.DelReferenceWithCountArg) (
-	res keybase1.DowngradeReferenceRes, err error) {
-	return res, errors.New("DelReferenceWithCount not implemented")
-}
-
-func (fc *FakeBServerClient) ArchiveReference(context.Context, keybase1.ArchiveReferenceArg) ([]keybase1.BlockReference, error) {
-	return nil, errors.New("ArchiveReference not implemented")
-}
-
-func (fc *FakeBServerClient) ArchiveReferenceWithCount(context.Context, keybase1.ArchiveReferenceWithCountArg) (
-	res keybase1.DowngradeReferenceRes, err error) {
-	return res, errors.New("ArchiveReference not implemented")
-}
-
-func (fc *FakeBServerClient) GetUserQuotaInfo(context.Context) ([]byte, error) {
-	return nil, errors.New("GetUserQuotaInfo not implemented")
-}
-
-func (fc *FakeBServerClient) numBlocks() int {
-	return fc.bserverMem.numBlocks()
+	e.refs[arg.Ref.Nonce] = arg.Ref
+	return nil
 }
 
 // Test that putting a block, and getting it back, works
 func TestBServerRemotePutAndGet(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"user1", "user2"})
-	currentUID := localUsers[0].UID
+	currentUID := keybase1.MakeTestUID(1)
 	log := logger.NewTestLogger(t)
-	crypto := MakeCryptoCommon(codec)
-	fc := NewFakeBServerClient(crypto, log, nil, nil, nil)
-	b := newBlockServerRemoteWithClient(codec, nil, log, fc)
+	fc := fakeBServerClient{
+		entries: make(map[keybase1.BlockIdCombo]fakeBlockEntry),
+	}
+	b := newBlockServerRemoteWithClient(codec, nil, log, &fc)
 
 	tlfID := tlf.FakeID(2, false)
 	bCtx := kbfsblock.MakeFirstContext(currentUID)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
-	if err != nil {
-		t.Errorf("Couldn't make block server key half: %v", err)
-	}
+	require.NoError(t, err)
 	ctx := context.Background()
 	err = b.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
-	if err != nil {
-		t.Fatalf("Put got error: %v", err)
-	}
+	require.NoError(t, err)
 
-	// make sure it actually got to the db
-	nb := fc.numBlocks()
-	if nb != 1 {
-		t.Errorf("There are %d blocks in the db, not 1 as expected", nb)
-	}
-
-	// Now get the same block back
-	buf, key, err := b.Get(ctx, tlfID, bID, bCtx)
-	if err != nil {
-		t.Fatalf("Get returned an error: %v", err)
-	}
-	if !bytes.Equal(buf, data) {
-		t.Errorf("Got bad data -- got %v, expected %v", buf, data)
-	}
-	if key != serverHalf {
-		t.Errorf("Got bad key -- got %v, expected %v", key, serverHalf)
-	}
+	// Now get the same block back.
+	buf, sh, err := b.Get(ctx, tlfID, bID, bCtx)
+	require.NoError(t, err)
+	require.Equal(t, data, buf)
+	require.Equal(t, serverHalf, sh)
 
 	// Add a reference.
 	nonce, err := kbfsblock.MakeRefNonce()
-	if err != nil {
-		t.Fatal(err)
-	}
-	bCtx2 := kbfsblock.MakeContext(currentUID, localUsers[1].UID, nonce)
+	require.NoError(t, err)
+	bCtx2 := kbfsblock.MakeContext(
+		currentUID, keybase1.MakeTestUID(2), nonce)
 	err = b.AddBlockReference(ctx, tlfID, bID, bCtx2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	// Now get the same block back
-	buf, key, err = b.Get(ctx, tlfID, bID, bCtx2)
-	if err != nil {
-		t.Fatalf("Get returned an error: %v", err)
-	}
-	if !bytes.Equal(buf, data) {
-		t.Errorf("Got bad data -- got %v, expected %v", buf, data)
-	}
-	if key != serverHalf {
-		t.Errorf("Got bad key -- got %v, expected %v", key, serverHalf)
-	}
+	// Now get the same block back.
+	buf, sh, err = b.Get(ctx, tlfID, bID, bCtx2)
+	require.NoError(t, err)
+	require.Equal(t, data, buf)
+	require.Equal(t, serverHalf, sh)
 }
 
 // If we cancel the RPC before the RPC returns, the call should error quickly.
 func TestBServerRemotePutCanceled(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"testuser"})
-	currentUID := localUsers[0].UID
+	currentUID := keybase1.MakeTestUID(1)
 	serverConn, conn := rpc.MakeConnectionForTest(t)
 	log := logger.NewTestLogger(t)
 	b := newBlockServerRemoteWithClient(codec, nil, log,
@@ -286,12 +124,9 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		tlfID := tlf.FakeID(2, false)
 		bCtx := kbfsblock.MakeFirstContext(currentUID)
 		data := []byte{1, 2, 3, 4}
-		serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
-		if err != nil {
-			t.Errorf("Couldn't make block server key half: %v", err)
-		}
-		err = b.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
-		return err
+		serverHalf := kbfscrypto.MakeBlockCryptKeyServerHalf(
+			[32]byte{0x1})
+		return b.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	}
 	testRPCWithCanceledContext(t, serverConn, f)
 }

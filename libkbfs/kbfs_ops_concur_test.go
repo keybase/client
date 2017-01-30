@@ -14,6 +14,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -1092,6 +1093,87 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	}
 }
 
+type stallingBServer struct {
+	*BlockServerMemory
+
+	readyChan  chan<- struct{}
+	goChan     <-chan struct{}
+	finishChan chan<- struct{}
+}
+
+func newStallingBServer(log logger.Logger) *stallingBServer {
+	return &stallingBServer{BlockServerMemory: NewBlockServerMemory(log)}
+}
+
+func (fc *stallingBServer) maybeWaitOnChannel(ctx context.Context) error {
+	if fc.readyChan == nil {
+		return nil
+	}
+
+	// say we're ready, and wait for a signal to proceed or a
+	// cancellation.
+	select {
+	case fc.readyChan <- struct{}{}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	select {
+	case <-fc.goChan:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (fc *stallingBServer) maybeFinishOnChannel(ctx context.Context) error {
+	if fc.finishChan != nil {
+		select {
+		case fc.finishChan <- struct{}{}:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return nil
+}
+
+func (fc *stallingBServer) Get(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	err error) {
+	err = fc.maybeWaitOnChannel(ctx)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+	}
+	defer func() {
+		finishErr := fc.maybeFinishOnChannel(ctx)
+		if err == nil {
+			err = finishErr
+		}
+	}()
+
+	return fc.BlockServerMemory.Get(ctx, tlfID, id, context)
+}
+
+func (fc *stallingBServer) Put(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context,
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	err = fc.maybeWaitOnChannel(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		finishErr := fc.maybeFinishOnChannel(ctx)
+		if err == nil {
+			err = finishErr
+		}
+	}()
+
+	return fc.BlockServerMemory.Put(ctx, tlfID, id, context, buf, serverHalf)
+}
+
 // Test that a write consisting of multiple blocks can be canceled
 // before all blocks have been written.
 func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
@@ -1103,10 +1185,8 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 
 	// give it a remote block server with a fake client
 	log := config.MakeLogger("")
-	fc := NewFakeBServerClient(config.Crypto(), log, nil, nil, nil)
-	b := newBlockServerRemoteWithClient(
-		config.Codec(), config.KBPKI(), log, fc)
 	config.BlockServer().Shutdown()
+	b := newStallingBServer(log)
 	config.SetBlockServer(b)
 
 	// Make the blocks small, with multiple levels of indirection, but
@@ -1144,11 +1224,11 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	readyChan := make(chan struct{})
 	goChan := make(chan struct{})
 	finishChan := make(chan struct{})
-	fc.readyChan = readyChan
-	fc.goChan = goChan
-	fc.finishChan = finishChan
+	b.readyChan = readyChan
+	b.goChan = goChan
+	b.finishChan = finishChan
 
-	prevNBlocks := fc.numBlocks()
+	prevNBlocks := b.numBlocks()
 	ctx2, cancel2 := context.WithCancel(ctx)
 	go func() {
 		// let the first initialBlocks blocks through.
@@ -1202,7 +1282,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	if err != ctx2.Err() {
 		t.Errorf("Sync did not get canceled error: %v", err)
 	}
-	nowNBlocks := fc.numBlocks()
+	nowNBlocks := b.numBlocks()
 	if nowNBlocks != prevNBlocks+2 {
 		t.Errorf("Unexpected number of blocks; prev = %d, now = %d",
 			prevNBlocks, nowNBlocks)
@@ -1221,10 +1301,8 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	//
 	// Create new objects to avoid racing with goroutines from the
 	// first sync.
-	fc = NewFakeBServerClient(config.Crypto(), log, nil, nil, nil)
-	b = newBlockServerRemoteWithClient(
-		config.Codec(), config.KBPKI(), log, fc)
 	config.BlockServer().Shutdown()
+	b = newStallingBServer(log)
 	config.SetBlockServer(b)
 	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
 		t.Fatalf("Second sync failed: %v", err)
