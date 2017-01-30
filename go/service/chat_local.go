@@ -837,7 +837,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 	var g errgroup.Group
 
 	g.Go(func() error {
-		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata())
+		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata(), placeholder.MessageID)
 		var err error
 		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)

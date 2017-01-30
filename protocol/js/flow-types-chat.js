@@ -1332,7 +1332,8 @@ export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
 }>
 
 export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
-  metadata: AssetMetadata
+  metadata: AssetMetadata,
+  placeholderMsgID: MessageID
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
@@ -1678,7 +1679,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
       sessionID: int,
-      metadata: AssetMetadata
+      metadata: AssetMetadata,
+      placeholderMsgID: MessageID
     }>,
     response: CommonResponseHandler
   ) => void,
