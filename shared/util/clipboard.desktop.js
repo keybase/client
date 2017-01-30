@@ -6,7 +6,6 @@ import {tmpRandFile} from './file.desktop'
 export type ClipboardData = {
   path: string,
   title: string,
-  format: string,
 }
 
 function readImage (): Promise<?ClipboardData> {
