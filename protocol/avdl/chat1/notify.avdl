@@ -16,17 +16,13 @@ protocol NotifyChat {
   record IncomingMessage {
     MessageUnboxed message;
     ConversationID convID;
-  }
-
-  record MessageSentInfo {
-    ConversationID convID;
-    RateLimit rateLimit;
-    OutboxID outboxID;
+    union { null, ConversationLocal } conv;
   }
 
   record ReadMessageInfo {
     ConversationID convID;
     MessageID msgID;
+    union { null, ConversationLocal } conv;
   }
 
   record NewConversationInfo {
@@ -36,6 +32,7 @@ protocol NotifyChat {
   record SetStatusInfo {
     ConversationID convID;
     ConversationStatus status;
+    union { null, ConversationLocal } conv;
   }
 
   record FailedMessageInfo {

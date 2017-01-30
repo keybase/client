@@ -143,17 +143,19 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		}
 		uid := m.UID().Bytes()
 
+		var conv *chat1.ConversationLocal
 		decmsg, append, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.Debug(ctx, "chat activity: unable to storage message: %s", err.Error())
 		}
-		if err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.Message); err != nil {
+		if conv, err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.Message); err != nil {
 			g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 		}
 
 		activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: decmsg,
 			ConvID:  nm.ConvID,
+			Conv:    conv,
 		})
 
 		// If this message was not "appended", meaning there is a hole between what we have in cache,
@@ -179,14 +181,16 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		g.Debug(ctx, "chat activity: readMessage: convID: %s msgID: %d",
 			nm.ConvID, nm.MsgID)
 
+		var conv *chat1.ConversationLocal
 		uid := m.UID().Bytes()
-		if err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
+		if conv, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
 			g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 		}
 
 		activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
 			MsgID:  nm.MsgID,
 			ConvID: nm.ConvID,
+			Conv:   conv,
 		})
 
 		if badger != nil && nm.UnreadUpdate != nil {
@@ -202,13 +206,15 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		g.Debug(ctx, "chat activity: setStatus: convID: %s status: %d",
 			nm.ConvID, nm.Status)
 
+		var conv *chat1.ConversationLocal
 		uid := m.UID().Bytes()
-		if err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
+		if conv, err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
 			g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 		}
 		activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
 			ConvID: nm.ConvID,
 			Status: nm.Status,
+			Conv:   conv,
 		})
 
 		if badger != nil && nm.UnreadUpdate != nil {

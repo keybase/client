@@ -924,6 +924,7 @@ export type InboxViewFull = {
 export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
+  conv?: ?ConversationLocal,
 }
 
 export type LocalFileSource = {
@@ -1009,12 +1010,6 @@ export type MessagePlaintext = {
 export type MessagePreviousPointer = {
   id: MessageID,
   hash: Hash,
-}
-
-export type MessageSentInfo = {
-  convID: ConversationID,
-  rateLimit: RateLimit,
-  outboxID: OutboxID,
 }
 
 export type MessageServerHeader = {
@@ -1194,6 +1189,7 @@ export type RateLimit = {
 export type ReadMessageInfo = {
   convID: ConversationID,
   msgID: MessageID,
+  conv?: ?ConversationLocal,
 }
 
 export type ReadMessagePayload = {
@@ -1226,6 +1222,7 @@ export type SetConversationStatusRes = {
 export type SetStatusInfo = {
   convID: ConversationID,
   status: ConversationStatus,
+  conv?: ?ConversationLocal,
 }
 
 export type SetStatusPayload = {
