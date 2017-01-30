@@ -2,6 +2,7 @@
 import ConversationHeader from './conversation/header.desktop'
 import ConversationInput from './conversation/input.desktop'
 import ConversationList from './conversation/list.desktop'
+import ParticipantRekey from './conversation/participant-rekey.desktop'
 import ConversationBanner from './conversation/banner'
 import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
@@ -219,11 +220,23 @@ const rekeyConvo = (youCanRekey) => ({
       youCanRekey,
     }),
     convo3: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch']),
+      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
       youCanRekey,
     }),
   }),
 })
+
+const participantRekey = {
+  component: ParticipantRekey,
+  mocks: {
+    'Normal': {
+      ...commonConvoProps,
+      onUsernameClicked: (user: string) => { console.log(user, 'clicked') },
+      parentProps: listParentProps,
+      rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
+    },
+  },
+}
 
 const list = {
   component: ConversationList,
@@ -235,11 +248,6 @@ const list = {
     'Normal': {
       ...commonConvoProps,
       parentProps: listParentProps,
-    },
-    'PartRekey': {
-      ...commonConvoProps,
-      rekeyInfo: rekeyConvo(false).rekeyInfos.get(1),
-      selectedConversation: 'convo3',
     },
   },
 }
@@ -331,7 +339,7 @@ const conversationBanner = {
     },
     'Invite': {
       type: 'Invite',
-      username: 'malg@twitter',
+      users: ['malg@twitter'],
       inviteLink: 'keybase.io/inv/9999999999',
       onClickInviteLink: () => { console.log('Clicked the invite link') },
     },
@@ -366,4 +374,5 @@ export default {
   'ChatSidePanel': sidePanel,
   'ChatConversationsList': conversationsList,
   'ChatBanner': conversationBanner,
+  'ChatParticipantRekey': participantRekey,
 }
