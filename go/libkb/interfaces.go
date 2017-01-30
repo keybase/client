@@ -565,7 +565,7 @@ type InboxSource interface {
 	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		status chat1.ConversationStatus) (*chat1.ConversationLocal, error)
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error
+		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

@@ -48,16 +48,28 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	}
 
 	// Update inbox
-	if err := g.G().InboxSource.TlfFinalize(ctx, m.UID().Bytes(), update.InboxVers, update.ConvIDs,
-		update.FinalizeInfo); err != nil {
+	var convs []chat1.ConversationLocal
+	if convs, err = g.G().InboxSource.TlfFinalize(ctx, m.UID().Bytes(), update.InboxVers,
+		update.ConvIDs, update.FinalizeInfo); err != nil {
 		g.Debug(ctx, "tlf finalize: unable to update inbox: %s", err.Error())
+	}
+	convMap := make(map[string]chat1.ConversationLocal)
+	for _, conv := range convs {
+		convMap[conv.GetConvID().String()] = conv
 	}
 
 	// Send notify for each conversation ID
 	uid := m.UID().String()
 	for _, convID := range update.ConvIDs {
-		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid),
-			convID, update.FinalizeInfo)
+		var conv *chat1.ConversationLocal
+		if mapConv, ok := convMap[convID.String()]; ok {
+			conv = &mapConv
+		} else {
+			conv = nil
+		}
+
+		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid), convID, update.FinalizeInfo, conv)
+
 	}
 
 	return nil

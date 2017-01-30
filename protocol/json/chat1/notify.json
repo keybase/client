@@ -192,6 +192,13 @@
         {
           "name": "finalizeInfo",
           "type": "ConversationFinalizeInfo"
+        },
+        {
+          "name": "conv",
+          "type": [
+            null,
+            "ConversationLocal"
+          ]
         }
       ],
       "response": null,

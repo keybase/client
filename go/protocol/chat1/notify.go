@@ -210,6 +210,7 @@ type ChatTLFFinalizeArg struct {
 	Uid          keybase1.UID             `codec:"uid" json:"uid"`
 	ConvID       ConversationID           `codec:"convID" json:"convID"`
 	FinalizeInfo ConversationFinalizeInfo `codec:"finalizeInfo" json:"finalizeInfo"`
+	Conv         *ConversationLocal       `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 type ChatTLFResolveArg struct {
