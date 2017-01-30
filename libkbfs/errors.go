@@ -245,6 +245,20 @@ func (e NeedSelfRekeyError) Error() string {
 		"devices to grant access: %+v", buildCanonicalPathForTlfName(false, e.Tlf), e.Err)
 }
 
+// ToStatus exports error to status
+func (e NeedSelfRekeyError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "Tlf",
+		Value: string(e.Tlf),
+	}
+	return keybase1.Status{
+		Code:   int(keybase1.StatusCode_SCNeedSelfRekey),
+		Name:   "SC_NEED_SELF_REKEY",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
 // NeedOtherRekeyError indicates that the folder in question needs to
 // be rekeyed for the local device, and can only done so by one of the
 // other users.
@@ -259,6 +273,20 @@ func (e NeedOtherRekeyError) Error() string {
 		"directory %s, ask one of the other directory participants to "+
 		"log into Keybase to grant you access automatically: %+v",
 		buildCanonicalPathForTlfName(false, e.Tlf), e.Err)
+}
+
+// ToStatus exports error to status
+func (e NeedOtherRekeyError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "Tlf",
+		Value: string(e.Tlf),
+	}
+	return keybase1.Status{
+		Code:   int(keybase1.StatusCode_SCNeedOtherRekey),
+		Name:   "SC_NEED_OTHER_REKEY",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
 }
 
 // NotFileBlockError indicates that a file block was expected but a
