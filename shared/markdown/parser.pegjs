@@ -1,154 +1,165 @@
 {
-  const linkExp = new RegExp(/(?:(?:ftp|http(?:s)?)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)\b/i)
-  const protoExp = new RegExp(/^([a-z]*):\/\//i)
-  const dotDotExp = new RegExp(/[^/]\.\.[^/]/)
-  const mailToExp = new RegExp(/^mailto:/i)
   // Instead of encoding all the bad cases into a more complicated regexp lets just add some simple code here
   // Note: We aren't trying to be 100% perfect here, just getting something that works pretty good and pretty quickly
-  function goodLink (link, protocolMatch) {
-    return !link.match(dotDotExp) && // disallow 'a...b', but allow /../
-      !link.match(mailToExp) && // disallow mailto:
-      (!protocolMatch || ['http://', 'https://'].includes(protocolMatch[0].toLowerCase())) // only allow http(s)
+  function goodLink (link) {
+    return !link.match(dotDotExp) // disallow 'a...b', but allow /../
   }
 
-  function convertLink (text) {
-    const matches = text.match(linkExp)
-    if (matches) {
-      const match = matches[0]
-      const protocolMatch = match.match(protoExp)
-      if (goodLink(match, protocolMatch)) {
-        const href = protocolMatch && match || 'http://' + match
-        const start = matches.index
-        const end = start + match.length
-        const left = text.substring(0, start)
-        const right = text.substring(start + end)
-        return {
-          type: 'text',
-          children: [
-            ...(left ? [left] : []),
-            {type: 'link', children: [match], href},
-            ...(right ? [right] : []),
-          ],
+  function flatten (input) {
+    const result = []
+    let strs = []
+
+    function visit(x) {
+      if (Array.isArray(x) ) {
+        for (const y of x) {
+          if (y) {
+            visit(y)
+          }
         }
+      } else if (typeof x === 'string') {
+        strs.push(x)
+      } else {
+        if (strs.length) {
+          result.push(strs.join(''))
+          strs = []
+        }
+        result.push(x)
       }
     }
-    return text
+
+    visit(input)
+    if (strs.length) {
+      result.push(strs.join(''))
+    }
+    return result
   }
 }
 
 start
- = children:(Blank / Code / Content / Blank)* { return {type: 'text', children}; }
+ = children:(QuoteBlock / Line / BlankLine)* { return {type: 'text', children: flatten(children)} }
 
-Code = CodeBlock / InlineCode
+BlankLine
+ = WhiteSpace* LineTerminatorSequence { return text() }
 
-Content
- = StyledText / Text
+Line
+ = (WhiteSpace* __INLINE_MACRO__<> / WhiteSpace+) LineTerminatorSequence?
 
-StyledText
- = QuoteBlock / Italic / Bold / Strike / Emoji
+InlineStart
+ = CodeBlock / InlineCode / Italic / Bold / Strike / Link / InlineCont
 
-// Define what our markers look like
-Ticks1 = "`" ! '`'
-Ticks3 = __? "```" __? ! '```'
+InlineCont
+ = Text / Emoji / EscapedChar / NativeEmoji / SpecialChar
 
-StrikeMarker = "~" ! "~"
-BoldMarker = "*" ! "*"
-ItalicMarker = "_" ! "_"
-EmojiMarker = ":" ! ":"
+Ticks1 = "`"
+Ticks3 = "```"
+EscapeMarker = "\\"
+StrikeMarker = "~"
+BoldMarker = "*"
+ItalicMarker = "_"
+EmojiMarker = ":"
 QuoteBlockMarker = ">"
 
-// Define what we can go to when we are inside a style. e.g. Bold -> Bold doesn't make sense, but Bold -> Strike does
-FromBold
- = (Italic / Strike / InsideBoldMarker)
+SpecialChar
+ = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 { return text() }
 
-FromItalic
- = Bold / Strike / InsideItalicMarker
+EscapedChar
+ = EscapeMarker char:SpecialChar { return char }
 
-FromStrike
- = Italic / Bold / InsideStrikeMarker
+NormalChar
+ = !NativeEmojiCharacter !SpecialChar NonBlank { return text() }
 
-FromQuote
- = Italic / Bold / Strike / InsideQuoteBlock
+Text
+ = NormalChar+ { return text() }
 
-// Define what text inside a style looks like. Usually everything but the end marker
-InsideBoldMarker
- = (! BoldMarker .) { return text(); }
+// TODO: should coalesce multiple line quotes
+QuoteBlock
+ = QuoteBlockMarker WhiteSpace* children:__INLINE_MACRO__<!LineTerminatorSequence> LineTerminatorSequence { return {type: 'quote-block', children} }
 
-InsideItalicMarker
- = ((! ItalicMarker) .) { return text(); }
+Bold
+ = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
 
-InsideStrikeMarker
- = ((! StrikeMarker) .) { return text(); }
+Italic
+ = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
 
-InsideCodeBlock
- = ((! Ticks3) .) { return text(); }
+Strike
+ = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
-InsideInlineCode
- = ((! Ticks1) .) { return text(); }
+CodeBlock
+ = Ticks3 children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
 
-InsideQuoteBlock
- = ((! LineTerminatorSequence) .) { return text(); }
+InlineCode
+ = Ticks1 children:(!Ticks1 .)+ Ticks1 { return {type: 'inline-code', children: flatten(children)} }
 
 // Here we use the literal ":" because we want to not match the :foo in ::foo
 InsideEmojiMarker
- = (! ":" [a-zA-Z0-9+_-]) { return text(); }
+ = !EmojiMarker [a-zA-Z0-9+_-] { return text() }
 
 InsideEmojiTone
- = "::skin-tone-" [1-6] { return text(); }
-
-// Define the rules for styles. Usually a start marker, children, and an end marker.
-QuoteBlock
- = QuoteBlockMarker _? children:FromQuote* LineTerminatorSequence { return {type: 'quote-block', children}; }
-
-Bold
- = BoldMarker children:FromBold* BoldMarker { return {type: 'bold', children}; }
-
-Italic
- = ItalicMarker children:FromItalic* ItalicMarker { return {type: 'italic', children}; }
-
-Strike
- = StrikeMarker children:FromStrike* StrikeMarker { return {type: 'strike', children}; }
-
-CodeBlock
- = Ticks3 children:InsideCodeBlock* Ticks3 { return {type: 'code-block', children}; }
-
-InlineCode
- = Ticks1 children:InsideInlineCode* Ticks1 { return {type: 'inline-code', children}; }
+ = "::skin-tone-" [1-6] { return text() }
 
 Emoji
- = EmojiMarker children:InsideEmojiMarker+ tone:InsideEmojiTone? ":" { return {type: 'emoji', children: [children.join('') + (tone || '')]}; }
+ = EmojiMarker children:InsideEmojiMarker+ tone:InsideEmojiTone? EmojiMarker { return {type: 'emoji', children: [text()]} }
 
-Text "text"
- = _? NonBlank+ _? {
-    return convertLink(text())
+NativeEmojiCharacter "unicode emoji"
+ = [__EMOJI_CHARACTERS__]
+
+NativeEmoji
+ = emoji:(NativeEmojiCharacter+)
+ {
+   const emojiText = emoji.join('')
+   const results = []
+   let match
+   let idx = 0
+   while ((match = emojiExp.exec(emojiText)) !== null) {
+     results.push(emojiText.substring(idx, match.index))
+     results.push({type: 'native-emoji', children: [emojiIndex[match[0]]]})
+     idx = match.index + match[0].length
+   }
+   results.push(emojiText.substring(idx, emojiText.length))
+   return results.filter(Boolean)
  }
 
-// Useful helpers
+LinkSpecialChar
+ = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker
 
-Blank
-  = ws:(WhiteSpace / LineTerminatorSequence) {
-      return ws;
-    }
+LinkChar
+ = !LinkSpecialChar char:NonBlank { return char }
+
+Link
+ = proto:("http"i "s"i? ":")? url:(LinkChar+) & {
+     const matches = url.join('').match(linkExp)
+     if (!matches) {
+       return false
+     }
+     const match = matches[0]
+     url._match = match  // save the match via expando property (used below)
+     return goodLink(match)
+   }
+ {
+   const match = url._match
+   delete url._match
+   const urlText = url.join('')
+   const protoText = proto ? proto.join('') : ''
+   const href = (protoText || 'http://') + match
+   const text = protoText + match
+   return [
+     {type: 'link', href, children: [text]},
+     urlText.substring(match.length, urlText.length),
+   ]
+ }
 
 NonBlank
-  = !(WhiteSpace / LineTerminatorSequence) char:. {
-      return char;
-    }
-_
-  = (WhiteSpace)*
-
-__
-  = (WhiteSpace / LineTerminatorSequence)*
+ = !(WhiteSpace / LineTerminatorSequence) char:. { return char }
 
 WhiteSpace
-  = [\t\v\f \u00A0\uFEFF] / Space
+ = [\t\v\f \u00A0\uFEFF] / Space
 
 LineTerminatorSequence "end of line"
-  = "\n"
-  / "\r\n"
-  / "\r"
-  / "\u2028" // line spearator
-  / "\u2029" // paragraph separator
+ = "\n"
+ / "\r\n"
+ / "\r"
+ / "\u2028" // line spearator
+ / "\u2029" // paragraph separator
 
 Space
-  = [\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]
+ = [\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]
