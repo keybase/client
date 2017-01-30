@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -1733,8 +1732,7 @@ func (fd *fileData) findIPtrsAndClearSize(
 // and making new random BlockPointers for all indirect blocks.  It
 // returns the new top pointer of the copy, and all the new child
 // pointers in the copy.
-func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
-	dataVer DataVer) (
+func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 	newTopPtr BlockPointer, allChildPtrs []BlockPointer, err error) {
 	topBlock, _, err := fd.getter(ctx, fd.kmd, fd.rootBlockPointer(),
 		fd.file, blockRead)

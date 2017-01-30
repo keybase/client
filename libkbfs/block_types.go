@@ -97,6 +97,7 @@ func (cb *CommonBlock) Set(other Block) {
 func (cb *CommonBlock) DeepCopy() CommonBlock {
 	return CommonBlock{
 		IsInd: cb.IsInd,
+		// We don't need to copy UnknownFieldSetHandler because it's immutable.
 		UnknownFieldSetHandler: cb.UnknownFieldSetHandler,
 		cachedEncodedSize:      cb.GetEncodedSize(),
 	}
@@ -128,15 +129,18 @@ func (db *DirBlock) NewEmpty() Block {
 	return NewDirBlock()
 }
 
+// ToCommonBlock implements the Block interface for DirBlock.
+func (db *DirBlock) ToCommonBlock() *CommonBlock {
+	return &db.CommonBlock
+}
+
 // Set implements the Block interface for DirBlock
 func (db *DirBlock) Set(other Block) {
 	otherDb := other.(*DirBlock)
 	dbCopy := otherDb.DeepCopy()
 	db.Children = dbCopy.Children
 	db.IPtrs = dbCopy.IPtrs
-	db.CommonBlock.IsInd = dbCopy.IsInd
-	db.CommonBlock.UnknownFieldSetHandler = dbCopy.UnknownFieldSetHandler
-	db.CommonBlock.SetEncodedSize(dbCopy.GetEncodedSize())
+	db.ToCommonBlock().Set(dbCopy.ToCommonBlock())
 }
 
 // DeepCopy makes a complete copy of a DirBlock
@@ -152,11 +156,6 @@ func (db *DirBlock) DeepCopy() *DirBlock {
 		Children:    childrenCopy,
 		IPtrs:       db.IPtrs,
 	}
-}
-
-// ToCommonBlock implements the Block interface for DirBlock.
-func (db *DirBlock) ToCommonBlock() *CommonBlock {
-	return &db.CommonBlock
 }
 
 // FileBlock is the contents of a file
@@ -244,9 +243,7 @@ func (fb *FileBlock) Set(other Block) {
 	fbCopy := otherFb.DeepCopy()
 	fb.Contents = fbCopy.Contents
 	fb.IPtrs = fbCopy.IPtrs
-	fb.CommonBlock.IsInd = fbCopy.IsInd
-	fb.CommonBlock.UnknownFieldSetHandler = fbCopy.UnknownFieldSetHandler
-	fb.CommonBlock.SetEncodedSize(fbCopy.GetEncodedSize())
+	fb.ToCommonBlock().Set(fbCopy.ToCommonBlock())
 }
 
 // DeepCopy makes a complete copy of a FileBlock
