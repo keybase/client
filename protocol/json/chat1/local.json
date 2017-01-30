@@ -826,6 +826,10 @@
           "name": "messageTypes"
         },
         {
+          "type": "boolean",
+          "name": "disableResolveSupersedes"
+        },
+        {
           "type": [
             null,
             "gregor1.Time"

@@ -19,13 +19,14 @@ class ConversationListContainer extends Component {
 
 export default connect(
   (state: TypedState, {routeSelected}) => ({
+    conversationUnreadCounts: state.chat.get('conversationUnreadCounts'),
     inbox: state.chat.get('inbox'),
     selectedConversation: routeSelected,
     you: state.config.username || '',
   }),
   (dispatch: Dispatch) => ({
     loadInbox: () => dispatch(loadInbox()),
-    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
     onNewChat: () => dispatch(newChat([])),
+    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
   })
 )(ConversationListContainer)

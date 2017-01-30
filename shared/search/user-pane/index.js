@@ -23,30 +23,29 @@ export default connector.connect(
       const trackerState = trackers[username]
       if (username && trackerState && trackerState.type === 'tracker' && !!trackerState.error) {
         return {
-          mode: 'error',
           error: trackerState.error,
+          mode: 'error',
         }
       }
       if (username && trackerState && trackerState.type === 'tracker') {
-        const {userInfo: {uid}} = trackerState
         const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
         const loading = trackerState.serverActive
         return {
           mode: 'keybase',
           userInfoProps: {
-            username: username,
-            userInfo: trackerState.userInfo,
-            isYou: username === myUsername,
-            proofs: trackerState.proofs,
-            loading: loading,
             currentlyFollowing: currentlyFollowing,
-            trackerState: trackerState.trackerState,
+            isYou: username === myUsername,
+            loading: loading,
+            onAcceptProofs: () => { dispatch(onFollow(username, false)) },
+            onClickAvatar: () => { dispatch(onClickAvatar(username)) },
+            onClickFollowers: () => { dispatch(onClickFollowers(username)) },
+            onClickFollowing: () => { dispatch(onClickFollowing(username)) },
             onFollow: () => { dispatch(onFollow(username, false)) },
             onUnfollow: () => { dispatch(onUnfollow(username)) },
-            onAcceptProofs: () => { dispatch(onFollow(username, false)) },
-            onClickAvatar: () => { dispatch(onClickAvatar(username, uid)) },
-            onClickFollowers: () => { dispatch(onClickFollowers(username, uid)) },
-            onClickFollowing: () => { dispatch(onClickFollowing(username, uid)) },
+            proofs: trackerState.proofs,
+            trackerState: trackerState.trackerState,
+            userInfo: trackerState.userInfo,
+            username: username,
           },
         }
       } else {
@@ -56,9 +55,9 @@ export default connector.connect(
 
         // Enter loading mode, when the store gets updated we'll come back to here
         return {
+          loading: true,
           mode: 'loading',
           username,
-          loading: true,
         }
       }
     } else if (userForInfoPane && userForInfoPane.service === 'external') {
@@ -66,13 +65,13 @@ export default connector.connect(
         mode: 'external',
         nonUserInfoProps: {
           avatar: userForInfoPane.serviceAvatar || '',
-          username: userForInfoPane.username,
           fullName: fullName(userForInfoPane.extraInfo),
-          serviceName: userForInfoPane.serviceName,
-          profileUrl: userForInfoPane.profileUrl,
+          inviteLink: null,
           onSendInvite: () => { openURL(`${keybaseUrl}/account/invitations`) },
           outOfInvites: null,
-          inviteLink: null,
+          profileUrl: userForInfoPane.profileUrl,
+          serviceName: userForInfoPane.serviceName,
+          username: userForInfoPane.username,
         },
       }
     } else {

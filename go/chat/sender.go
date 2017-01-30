@@ -141,6 +141,8 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 
 	// Modify original delete message
 	msg.ClientHeader.Deletes = deletes
+	// NOTE: If we ever add more fields to MessageDelete, we'll need to be
+	//       careful to preserve them here.
 	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
 
 	return msg, nil
@@ -210,6 +212,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, err := s.Prepare(ctx, msg, &convID)
 	if err != nil {
+		s.Debug(ctx, "error in Prepare: %s", err.Error())
 		return chat1.OutboxID{}, 0, nil, err
 	}
 

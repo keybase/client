@@ -2,6 +2,8 @@
 import HiddenString from '../util/hidden-string'
 import type {TypedAction} from '../constants/types/flux'
 
+export type AutoInviteRequestState = 'NotRequested' | 'Requested' | 'Done'
+
 export const checkInviteCode = 'signup:checkInviteCode'
 export type CheckInviteCode = TypedAction<'signup:checkInviteCode', {inviteCode: string}, {errorText: string}>
 

@@ -120,21 +120,22 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
-    if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
-      if (this.state.isLockedToBottom) {
-        this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: this.state.messages.count() + cellMessageStartIndex})
-      } else {
-        // Figure out how many new items we have
-        const prependedCount = this.state.messages.indexOf(prevState.messages.first())
-        if (prependedCount !== -1) {
-          // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-          const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
-            .map(index => this._cellMeasurer.getRowHeight({index: index + cellMessageStartIndex}))
-            .reduce((total, height) => total + height, 0)
+    if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
+        (this.state.messages !== prevState.messages)) {
+      this.state.isLockedToBottom && this._scrollToBottom()
+    }
 
-          // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
-          this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
-        }
+    if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
+      // Figure out how many new items we have
+      const prependedCount = this.state.messages.indexOf(prevState.messages.first())
+      if (prependedCount !== -1) {
+        // Measure the new items so we can adjust our scrollTop so your position doesn't jump
+        const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
+          .map(index => this._cellMeasurer.getRowHeight({index: index + cellMessageStartIndex}))
+          .reduce((total, height) => total + height, 0)
+
+        // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
+        this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
       }
     }
   }
@@ -142,20 +143,16 @@ class ConversationList extends Component<void, Props, State> {
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.selectedConversation !== nextProps.selectedConversation) {
       this.setState({isLockedToBottom: true})
-      this._recomputeList(true)
+      this._recomputeList()
     }
 
-    // If we're not scrolling let's update our internal messages
-    if (!this.state.isScrolling) {
-      if (nextProps.messages !== this.state.messages) {
-        this._invalidateChangedMessages(nextProps)
-        this.setState({
-          messages: nextProps.messages,
-        })
-      }
+    const willScrollDown = nextProps.listScrollDownState !== this.props.listScrollDownState
+
+    if (!this.state.isScrolling || willScrollDown || this.state.isLockedToBottom) {
+      this._updateInternalMessages(nextProps)
     }
 
-    if (nextProps.listScrollDownState !== this.props.listScrollDownState) {
+    if (willScrollDown) {
       this.setState({isLockedToBottom: true})
     }
   }
@@ -176,12 +173,20 @@ class ConversationList extends Component<void, Props, State> {
     })
   }
 
+  _updateInternalMessages = (props: Props) => {
+    if (props.messages !== this.state.messages) {
+      this._invalidateChangedMessages(props)
+      this.setState({
+        messages: props.messages,
+      })
+    }
+  }
+
   _onScrollSettled = _.debounce(() => {
     // If we've stopped scrolling let's update our internal messages
-    this._invalidateChangedMessages(this.props)
+    this._updateInternalMessages(this.props)
     this.setState({
       isScrolling: false,
-      ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
     })
   }, 1000)
 
@@ -262,7 +267,8 @@ class ConversationList extends Component<void, Props, State> {
     })
 
     const container = document.getElementById('popupContainer')
-    ReactDOM.render(popupComponent, container)
+    // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+    ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 
   _onAction = (message, event) => {
@@ -337,6 +343,7 @@ class ConversationList extends Component<void, Props, State> {
   _recomputeList () {
     this._cellCache.clearAllRowHeights()
     this._list && this._list.recomputeRowHeights()
+    this.state.isLockedToBottom && this._scrollToBottom()
   }
 
   _onCopyCapture (e) {
@@ -353,6 +360,19 @@ class ConversationList extends Component<void, Props, State> {
     this._list = r
   }
 
+  _rowCount = () => this.state.messages.count() + cellMessageStartIndex
+
+  _scrollToBottom = () => {
+    const rowCount = this._rowCount()
+    this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: rowCount})
+  }
+
+  _handleListClick = () => {
+    if (window.getSelection().isCollapsed) {
+      this.props.onFocusInput()
+    }
+  }
+
   _cellRangeRenderer = options => chatCellRangeRenderer(this.state.messages.count(), this._cellCache, options)
 
   render () {
@@ -364,12 +384,12 @@ class ConversationList extends Component<void, Props, State> {
       )
     }
 
-    const rowCount = this.state.messages.count() + cellMessageStartIndex
-    let scrollToIndex = this.state.isLockedToBottom ? rowCount : undefined
+    const rowCount = this._rowCount()
+    let scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
     return (
-      <div style={containerStyle} onClick={this.props.onFocusInput} onCopyCapture={this._onCopyCapture}>
+      <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
         <style>{realCSS}</style>
         <AutoSizer onResize={this._onResize}>{
           ({height, width}) => (

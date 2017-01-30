@@ -148,9 +148,18 @@ const inbox = [
   }),
 ]
 
+const conversationUnreadCounts = {
+  convo1: 3,
+  convo2: 0,
+  convo3: 0,
+  convo5: 0,
+  convo6: 1,
+}
+
 const commonConversationsProps = {
   nowOverride: now,
   inbox: List(inbox),
+  conversationUnreadCounts: Map(conversationUnreadCounts),
   onSelectConversation: (key: ConversationIDKey) => console.log('selected', key),
   selectedConversation: null,
   onNewChat: () => console.log('new chat'),

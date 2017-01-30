@@ -2,18 +2,16 @@
 import * as Constants from '../constants/signup'
 import HiddenString from '../util/hidden-string'
 import _ from 'lodash'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName,
-  Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite,
-  StartRequestInvite, SignupWaiting} from '../constants/signup'
-import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
-import {loginTab} from '../constants/tabs'
+import {CommonDeviceType, signupGetInvitationCodeRpc, signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc, signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
-import {navigateAppend} from '../actions/route-tree'
-import type {NavigateAppend, NavigateTo} from '../constants/route-tree'
-import {CommonDeviceType, signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
-  signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../constants/types/flow-types'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
+import {loginTab} from '../constants/tabs'
 import {navBasedOnLoginState} from './login'
+import {navigateAppend, navigateTo} from '../actions/route-tree'
+
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../constants/signup'
+import type {NavigateAppend, NavigateTo} from '../constants/route-tree'
+import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
 
 function nextPhase (): TypedAsyncAction<NavigateAppend> {
   return (dispatch, getState) => {
@@ -23,70 +21,108 @@ function nextPhase (): TypedAsyncAction<NavigateAppend> {
   }
 }
 
-export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | NavigateAppend> {
+function startRequestInvite (): TypedAsyncAction<StartRequestInvite | NavigateAppend> {
   return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.startRequestInvite, payload: {}})
+    dispatch({payload: {}, type: Constants.startRequestInvite})
     dispatch(nextPhase())
   })
 }
 
-export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | NavigateAppend | SignupWaiting> {
+function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | NavigateAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
+    dispatch({payload: {inviteCode}, type: Constants.checkInviteCode})
 
     signupCheckInvitationCodeRpc({
-      param: {invitationCode: inviteCode},
-      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: err => {
         if (err) {
           console.warn('error in inviteCode:', err)
-          dispatch(({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}}: CheckInviteCode))
+          dispatch({
+            error: true,
+            payload: {errorText: "Sorry, that's not a valid invite code."},
+            type: Constants.checkInviteCode,
+          })
           reject(err)
         } else {
-          dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
+          dispatch({
+            payload: {inviteCode},
+            type: Constants.checkInviteCode,
+          })
           dispatch(nextPhase())
           resolve()
         }
       },
+      param: {invitationCode: inviteCode},
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
     })
   })
 }
 
-export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | NavigateAppend | SignupWaiting> {
+function requestAutoInvite (): TypedAsyncAction<CheckInviteCode | NavigateAppend | NavigateTo | SignupWaiting> {
+  return dispatch => new Promise((resolve, reject) => {
+    signupGetInvitationCodeRpc({
+      callback: (err, inviteCode) => {
+        // TODO: It would be better to book-keep having asked for an auto
+        // invite code, instead of just acting as if the one we receive
+        // here had been typed, using the same store entry as a manual one.
+        if (err) {
+          dispatch(navigateTo([loginTab, 'signup']))
+          reject(err)
+        } else {
+          dispatch(checkInviteCode(inviteCode))
+          // For navigateAppend to work in nextPhase(), need the right path.
+          dispatch(navigateTo([loginTab, 'signup']))
+          dispatch(nextPhase())
+          inviteCode ? resolve() : reject(err)
+        }
+      },
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
+    })
+  })
+}
+
+function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | NavigateAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     // Returns an error string if not valid
     const emailError = isValidEmail(email)
     const nameError = isValidName(name)
     if (emailError || nameError || !email || !name) {
       dispatch(({
-        type: Constants.requestInvite,
         error: true,
-        payload: {emailError, nameError, email, name},
+        payload: {
+          email,
+          emailError,
+          name,
+          nameError,
+        },
+        type: Constants.requestInvite,
       }: RequestInvite))
       resolve()
       return
     }
 
     signupInviteRequestRpc({
-      param: {
-        email: email,
-        fullname: name,
-        notes: 'Requested through GUI app',
-      },
-      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: err => {
         if (err) {
           dispatch(({
-            type: Constants.requestInvite,
             error: true,
-            payload: {emailError: err, nameError: null, email, name},
+            payload: {
+              email,
+              emailError: err,
+              name,
+              nameError: null,
+            },
+            type: Constants.requestInvite,
           }: RequestInvite))
           reject(err)
         } else {
           if (email && name) {
             dispatch({
+              payload: {
+                email,
+                error: null,
+                name,
+              },
               type: Constants.requestInvite,
-              payload: {error: null, email, name},
             })
             dispatch(nextPhase())
             resolve()
@@ -95,43 +131,60 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
           }
         }
       },
+      param: {
+        email: email,
+        fullname: name,
+        notes: 'Requested through GUI app',
+      },
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
     })
   })
 }
 
-export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | NavigateAppend | SignupWaiting> {
+function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | NavigateAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     const emailError = isValidEmail(email)
     const usernameError = isValidUsername(username)
 
     if (emailError || usernameError || !username || !email) {
       dispatch(({
-        type: Constants.checkUsernameEmail,
         error: true,
-        payload: {emailError, usernameError, email, username},
+        payload: {
+          email,
+          emailError,
+          username,
+          usernameError,
+        },
+        type: Constants.checkUsernameEmail,
       }: CheckUsernameEmail))
       resolve()
       return
     }
 
     signupCheckUsernameAvailableRpc({
-      param: {username},
-      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: (err) => {
         if (err) {
           console.warn("username isn't available:", err)
           dispatch(({
-            type: Constants.checkUsernameEmail,
             error: true,
-            payload: {emailError, usernameError: err, email, username},
+            payload: {
+              email,
+              emailError,
+              username,
+              usernameError: err,
+            },
+            type: Constants.checkUsernameEmail,
           }: CheckUsernameEmail))
           resolve()
         } else {
           // We need this check to make flow happy. This should never be null
           if (username && email) {
             dispatch({
+              payload: {
+                email,
+                username,
+              },
               type: Constants.checkUsernameEmail,
-              payload: {username, email},
             })
             dispatch(nextPhase())
             resolve()
@@ -140,11 +193,13 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
           }
         }
       },
+      param: {username},
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
     })
   })
 }
 
-export function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | NavigateAppend> {
+function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | NavigateAppend> {
   return dispatch => new Promise((resolve, reject) => {
     let passphraseError = null
     if (!passphrase1 || !passphrase2) {
@@ -157,14 +212,14 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
 
     if (passphraseError) {
       dispatch(({
-        type: Constants.checkPassphrase,
         error: true,
         payload: {passphraseError},
+        type: Constants.checkPassphrase,
       }: CheckPassphrase))
     } else {
       dispatch({
-        type: Constants.checkPassphrase,
         payload: {passphrase: new HiddenString(passphrase1)},
+        type: Constants.checkPassphrase,
       })
       dispatch(nextPhase())
     }
@@ -173,7 +228,7 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
   })
 }
 
-export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | NavigateAppend | Signup | ShowPaperKey | SignupWaiting> {
+function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | NavigateAppend | Signup | ShowPaperKey | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     // TODO do some checking on the device name - ideally this is done on the service side
     let deviceNameError = null
@@ -183,28 +238,32 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
 
     if (deviceNameError) {
       dispatch(({
-        type: Constants.submitDeviceName,
         error: true,
-        payload: {deviceNameError: deviceNameError || '', deviceName},
+        payload: {
+          deviceName,
+          deviceNameError: deviceNameError || '',
+        },
+        type: Constants.submitDeviceName,
       }: SubmitDeviceName))
     } else {
       deviceCheckDeviceNameFormatRpc({
-        param: {name: deviceName},
-        waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
         callback: err => {
           if (err) {
             console.warn('device name is invalid: ', err)
             dispatch(({
-              type: Constants.submitDeviceName,
               error: true,
-              payload: {deviceNameError: `Device name is invalid: ${err.desc}.`, deviceName},
+              payload: {
+                deviceName,
+                deviceNameError: `Device name is invalid: ${err.desc}.`,
+              },
+              type: Constants.submitDeviceName,
             }: SubmitDeviceName))
             reject(err)
           } else {
             if (deviceName) {
               dispatch(({
-                type: Constants.submitDeviceName,
                 payload: {deviceName},
+                type: Constants.submitDeviceName,
               }: SubmitDeviceName))
 
               const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
@@ -216,13 +275,15 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
             }
           }
         },
+        param: {name: deviceName},
+        waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       })
     }
   })
 }
 
 let paperKeyResponse = null
-export function sawPaperKey (): AsyncAction {
+function sawPaperKey (): AsyncAction {
   return () => {
     if (paperKeyResponse) {
       paperKeyResponse.result()
@@ -239,7 +300,37 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
 
     if (email && username && inviteCode && passphrase && deviceName) {
       signupSignupRpc({
-        waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
+        callback: (err, {passphraseOk, postOk, writeOk}) => {
+          if (err) {
+            console.warn('error in signup:', err)
+            dispatch(({
+              error: true,
+              payload: {signupError: new HiddenString(err.desc)},
+              type: Constants.signup,
+            }: Signup))
+            dispatch(nextPhase())
+            reject()
+          } else {
+            console.log('Successful signup', passphraseOk, postOk, writeOk)
+            dispatch(waiting(true))
+            resolve()
+          }
+        },
+        incomingCallMap: {
+          'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
+            // Do not add a gpg key for now
+            response.result(false)
+          },
+          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
+            paperKeyResponse = response
+            dispatch(({
+              payload: {paperkey: new HiddenString(phrase)},
+              type: Constants.showPaperKey,
+            }: ShowPaperKey))
+            onDisplayPaperKey && onDisplayPaperKey()
+            dispatch(nextPhase())
+          },
+        },
         param: {
           deviceName,
           deviceType,
@@ -251,37 +342,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
           storeSecret: true,
           username,
         },
-        incomingCallMap: {
-          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
-            paperKeyResponse = response
-            dispatch(({
-              type: Constants.showPaperKey,
-              payload: {paperkey: new HiddenString(phrase)},
-            }: ShowPaperKey))
-            onDisplayPaperKey && onDisplayPaperKey()
-            dispatch(nextPhase())
-          },
-          'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
-            // Do not add a gpg key for now
-            response.result(false)
-          },
-        },
-        callback: (err, {passphraseOk, postOk, writeOk}) => {
-          if (err) {
-            console.warn('error in signup:', err)
-            dispatch(({
-              type: Constants.signup,
-              error: true,
-              payload: {signupError: new HiddenString(err.desc)},
-            }: Signup))
-            dispatch(nextPhase())
-            reject()
-          } else {
-            console.log('Successful signup', passphraseOk, postOk, writeOk)
-            dispatch(waiting(true))
-            resolve()
-          }
-        },
+        waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       })
     } else {
       console.warn('Entered signup action with a null required field')
@@ -292,26 +353,46 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
 
 function waiting (isWaiting: boolean): SignupWaiting {
   return {
-    type: Constants.signupWaiting,
     payload: isWaiting,
+    type: Constants.signupWaiting,
   }
 }
 
-export function resetSignup (): ResetSignup {
+function resetSignup (): ResetSignup {
   return {
-    type: Constants.resetSignup,
     payload: undefined,
+    type: Constants.resetSignup,
   }
 }
 
-export function restartSignup (): TypedAsyncAction<RestartSignup | NavigateTo> {
+function restartSignup (): TypedAsyncAction<RestartSignup | NavigateTo> {
   return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.restartSignup, payload: {}})
+    dispatch({
+      payload: {},
+      type: Constants.restartSignup,
+    })
     dispatch(navBasedOnLoginState())
     resolve()
   })
 }
 
-export function showSuccess (): ShowSuccess {
-  return {type: Constants.showSuccess, payload: {}}
+function showSuccess (): ShowSuccess {
+  return {
+    payload: {},
+    type: Constants.showSuccess,
+  }
+}
+
+export {
+  checkInviteCode,
+  checkPassphrase,
+  checkUsernameEmail,
+  requestAutoInvite,
+  requestInvite,
+  resetSignup,
+  restartSignup,
+  sawPaperKey,
+  showSuccess,
+  startRequestInvite,
+  submitDeviceName,
 }
