@@ -60,3 +60,7 @@ func (c *UserCardCache) key(uid keybase1.UID, session bool) string {
 	}
 	return uid.String() + ":" + suffix
 }
+
+func (c *UserCardCache) Delete(uid keybase1.UID) error {
+	return c.cache.Delete(c.key(uid, true))
+}

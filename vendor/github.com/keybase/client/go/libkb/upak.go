@@ -3,6 +3,8 @@ package libkb
 // UPAK = "User Plus All Keys"
 
 import (
+	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -30,24 +32,74 @@ func checkKIDPGP(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool) {
 	return false
 }
 
-func checkKIDKeybase(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime) {
+func checkKIDKeybase(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
 	for _, key := range u.Base.DeviceKeys {
 		if key.KID.Equal(kid) {
-			return true, nil
+			return true, nil, false
 		}
 	}
 	for _, key := range u.Base.RevokedDeviceKeys {
 		if key.Key.KID.Equal(kid) {
-			return true, &key.Time
+			return true, &key.Time, false
 		}
 	}
-	return false, nil
+	for _, key := range u.Base.DeletedDeviceKeys {
+		if key.KID.Equal(kid) {
+			return true, nil, true
+		}
+	}
+	return false, nil, false
 }
 
-func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime) {
+func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
 	if IsPGPAlgo(AlgoType(kid.GetKeyType())) {
 		found = checkKIDPGP(u, kid)
-		return found, nil
+		return found, nil, false
 	}
 	return checkKIDKeybase(u, kid)
+}
+
+func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
+	defer g.Trace(fmt.Sprintf("UPAK.GetRemoteChainLinkFor(%s,%s,%s)", u.Base.Uid, username, uid), func() error { return err })()
+	g.VDL.Log(VLog1, "| Full user: %+v\n", *u)
+	rtl := u.GetRemoteTrack(username.String())
+	if rtl == nil {
+		g.Log.Debug("| no remote track found")
+		return nil, nil
+	}
+	if !rtl.Uid.Equal(uid) {
+		return nil, UIDMismatchError{Msg: fmt.Sprintf("didn't match username %q", username.String())}
+	}
+	var lid LinkID
+	g.Log.Debug("| remote track found with linkID=%s", rtl.LinkID)
+	lid, err = ImportLinkID(rtl.LinkID)
+	if err != nil {
+		g.Log.Debug("| Failed to import link ID")
+		return nil, err
+	}
+	var link *ChainLink
+	link, err = ImportLinkFromStorage(lid, u.Base.Uid, g)
+	if err != nil {
+		g.Log.Debug("| failed to import link from storage")
+		return nil, err
+	}
+	if link == nil {
+		g.Log.Debug("| no cached chainlink found")
+		// Such a bug is only possible if the DB cache was reset after
+		// this user was originally loaded in; otherwise, all of this
+		// UPAK's chain links should be available on disk.
+		return nil, InconsistentCacheStateError{}
+	}
+	ret, err = ParseTrackChainLink(GenericChainLink{link})
+	g.Log.Debug("| ParseTrackChainLink -> found=%v", (ret != nil))
+	return ret, err
+}
+
+func TrackChainLinkFromUserPlusAllKeys(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (*TrackChainLink, error) {
+	tcl, err := GetRemoteChainLinkFor(u, username, uid, g)
+	if _, ok := err.(InconsistentCacheStateError); ok {
+		return nil, err
+	}
+	tcl, err = TrackChainLinkFor(u.Base.Uid, uid, tcl, err, g)
+	return tcl, err
 }

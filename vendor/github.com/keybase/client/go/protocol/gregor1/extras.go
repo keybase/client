@@ -8,12 +8,17 @@ import (
 	"strings"
 	"time"
 
+	"bytes"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/go-codec/codec"
 )
 
-func (u UID) Bytes() []byte                   { return []byte(u) }
-func (u UID) String() string                  { return hex.EncodeToString(u) }
+func (u UID) Bytes() []byte  { return []byte(u) }
+func (u UID) String() string { return hex.EncodeToString(u) }
+func (u UID) Eq(other UID) bool {
+	return bytes.Equal(u.Bytes(), other.Bytes())
+}
 func (d DeviceID) Bytes() []byte              { return []byte(d) }
 func (d DeviceID) String() string             { return hex.EncodeToString(d) }
 func (m MsgID) Bytes() []byte                 { return []byte(m) }
@@ -409,6 +414,31 @@ func (r ReminderSet) Reminders() []gregor.Reminder {
 }
 
 func (r ReminderSet) MoreRemindersReady() bool { return r.MoreRemindersReady_ }
+
+func UIDListContains(list []UID, x UID) bool {
+	for _, y := range list {
+		if x.String() == y.String() {
+			return true
+		}
+	}
+	return false
+}
+
+// Merge two lists of UIDs. Duplicates will be dropped. Not stably ordered.
+func UIDListMerge(list1 []UID, list2 []UID) []UID {
+	m := make(map[string]UID)
+	for _, uid := range list1 {
+		m[uid.String()] = uid
+	}
+	for _, uid := range list2 {
+		m[uid.String()] = uid
+	}
+	res := make([]UID, 0)
+	for _, uid := range m {
+		res = append(res, uid)
+	}
+	return res
+}
 
 var _ gregor.UID = UID{}
 var _ gregor.MsgID = MsgID{}

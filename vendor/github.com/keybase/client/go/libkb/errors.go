@@ -998,8 +998,24 @@ func (i InactiveKeyError) Error() string {
 
 //=============================================================================
 
+type merkleClientErrorType int
+
+const (
+	merkleErrorNone merkleClientErrorType = iota
+	merkleErrorNoKnownKey
+	merkleErrorNoLegacyUIDRoot
+	merkleErrorUIDMismatch
+	merkleErrorNoSkipSequence
+	merkleErrorSkipSequence
+	merkleErrorSkipMissing
+	merkleErrorSkipHashMismatch
+	merkleErrorNoLeftBookend
+	merkleErrorNoRightBookend
+)
+
 type MerkleClientError struct {
 	m string
+	t merkleClientErrorType
 }
 
 func (m MerkleClientError) Error() string {
@@ -1211,6 +1227,14 @@ func (e IdentifyTimeoutError) Error() string {
 
 //=============================================================================
 
+type TrackBrokenError struct{}
+
+func (e TrackBrokenError) Error() string {
+	return "track of user was broken"
+}
+
+//=============================================================================
+
 type IdentifyDidNotCompleteError struct{}
 
 func (e IdentifyDidNotCompleteError) Error() string {
@@ -1236,6 +1260,10 @@ type IdentifySummaryError struct {
 
 func (e IdentifySummaryError) Error() string {
 	return fmt.Sprintf("%s", strings.Join(e.problems, "; "))
+}
+
+func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_IDENTIFY, true
 }
 
 //=============================================================================
@@ -1385,10 +1413,24 @@ func (e TrackStaleError) Error() string {
 
 //=============================================================================
 
+type InconsistentCacheStateError struct{}
+
+func (e InconsistentCacheStateError) Error() string {
+	return "Inconsistent cache state, likely after a DB reset; need a force reload"
+}
+
+//=============================================================================
+
 type UnknownStreamError struct{}
 
 func (e UnknownStreamError) Error() string {
 	return "unknown stream format"
+}
+
+type UTF16UnsupportedError struct{}
+
+func (e UTF16UnsupportedError) Error() string {
+	return "UTF-16 not supported"
 }
 
 type WrongCryptoFormatError struct {
@@ -1525,123 +1567,6 @@ func (e UnexpectedChatDataFromServer) Error() string {
 
 //=============================================================================
 
-type ChatBoxingError struct {
-	Msg string
-}
-
-func (e ChatBoxingError) Error() string {
-	return fmt.Sprintf("error boxing chat message: %s", e.Msg)
-}
-
-//=============================================================================
-
-type ChatUnboxingError interface {
-	Error() string
-	Inner() error
-	IsPermanent() bool
-}
-
-var _ error = (ChatUnboxingError)(nil)
-
-func NewPermanentChatUnboxingError(inner error) ChatUnboxingError {
-	return &PermanentChatUnboxingError{inner}
-}
-
-type PermanentChatUnboxingError struct{ inner error }
-
-func (e PermanentChatUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
-}
-
-func (e PermanentChatUnboxingError) IsPermanent() bool { return true }
-
-func (e PermanentChatUnboxingError) Inner() error { return e.inner }
-
-func NewTransientChatUnboxingError(inner error) ChatUnboxingError {
-	return &TransientChatUnboxingError{inner}
-}
-
-type TransientChatUnboxingError struct{ inner error }
-
-func (e TransientChatUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
-}
-
-func (e TransientChatUnboxingError) IsPermanent() bool { return false }
-
-func (e TransientChatUnboxingError) Inner() error { return e.inner }
-
-//=============================================================================
-
-type ConsistencyErrorCode int
-
-const (
-	DuplicateID ConsistencyErrorCode = iota
-	OutOfOrderID
-	InconsistentHash
-	IncorrectHash
-)
-
-type ChatThreadConsistencyError interface {
-	error
-	Code() ConsistencyErrorCode
-}
-
-type chatThreadConsistencyErrorImpl struct {
-	msg  string
-	code ConsistencyErrorCode
-}
-
-func (e chatThreadConsistencyErrorImpl) Error() string {
-	return e.msg
-}
-
-func (e chatThreadConsistencyErrorImpl) Code() ConsistencyErrorCode {
-	return e.code
-}
-
-func NewChatThreadConsistencyError(code ConsistencyErrorCode, msg string, formatArgs ...interface{}) ChatThreadConsistencyError {
-	return &chatThreadConsistencyErrorImpl{
-		code: code,
-		msg:  fmt.Sprintf(msg, formatArgs...),
-	}
-}
-
-//=============================================================================
-
-type ChatVersionError struct {
-	Kind    string
-	Version int
-}
-
-func (e ChatVersionError) Error() string {
-	return fmt.Sprintf("chat version error: unhandled %s version %d", e.Kind, e.Version)
-}
-
-func NewChatHeaderVersionError(version chat1.HeaderPlaintextVersion) ChatVersionError {
-	return ChatVersionError{
-		Kind:    "header",
-		Version: int(version),
-	}
-}
-
-func NewChatBodyVersionError(version chat1.BodyPlaintextVersion) ChatVersionError {
-	return ChatVersionError{
-		Kind:    "body",
-		Version: int(version),
-	}
-}
-
-//=============================================================================
-
-type ChatBodyHashInvalid struct{}
-
-func (e ChatBodyHashInvalid) Error() string {
-	return "chat body hash invalid"
-}
-
-//=============================================================================
-
 type ChatInternalError struct{}
 
 func (e ChatInternalError) Error() string {
@@ -1750,86 +1675,6 @@ func (e ChatTLFFinalizedError) Error() string {
 
 //=============================================================================
 
-type ChatStorageError interface {
-	error
-	ShouldClear() bool
-	Message() string
-}
-
-type ChatStorageInternalError struct {
-	Msg string
-}
-
-func (e ChatStorageInternalError) ShouldClear() bool {
-	return true
-}
-
-func (e ChatStorageInternalError) Error() string {
-	return fmt.Sprintf("internal chat storage error: %s", e.Msg)
-}
-
-func (e ChatStorageInternalError) Message() string {
-	return e.Msg
-}
-
-func NewChatStorageInternalError(g *GlobalContext, msg string, args ...interface{}) ChatStorageInternalError {
-	g.Log.Debug("internal chat storage error: "+msg, args...)
-	return ChatStorageInternalError{Msg: fmt.Sprintf(msg, args...)}
-}
-
-type ChatStorageMissError struct {
-	Msg string
-}
-
-func (e ChatStorageMissError) Error() string {
-	if len(e.Msg) > 0 {
-		return "chat cache miss: " + e.Msg
-	}
-	return "chat cache miss"
-}
-
-func (e ChatStorageMissError) ShouldClear() bool {
-	return false
-}
-
-func (e ChatStorageMissError) Message() string {
-	return e.Error()
-}
-
-type ChatStorageRemoteError struct {
-	Msg string
-}
-
-func (e ChatStorageRemoteError) Error() string {
-	return fmt.Sprintf("chat remote error: %s", e.Msg)
-}
-
-func (e ChatStorageRemoteError) ShouldClear() bool {
-	return false
-}
-
-func (e ChatStorageRemoteError) Message() string {
-	return e.Msg
-}
-
-type ChatStorageMiscError struct {
-	Msg string
-}
-
-func (e ChatStorageMiscError) Error() string {
-	return e.Msg
-}
-
-func (e ChatStorageMiscError) ShouldClear() bool {
-	return false
-}
-
-func (e ChatStorageMiscError) Message() string {
-	return e.Msg
-}
-
-//=============================================================================
-
 type InvalidAddressError struct {
 	Msg string
 }
@@ -1853,3 +1698,49 @@ type LevelDBOpenClosedError struct{}
 func (e LevelDBOpenClosedError) Error() string {
 	return "opening a closed DB"
 }
+
+//=============================================================================
+
+type DBError struct {
+	Msg string
+}
+
+func (e DBError) Error() string {
+	return fmt.Sprintf("DB error: %s", e.Msg)
+}
+
+func NewDBError(s string) DBError {
+	return DBError{Msg: s}
+}
+
+//=============================================================================
+
+// These rekey types are not-exact duplicates of the libkbfs errors of the same name.
+
+// NeedSelfRekeyError indicates that the folder in question needs to
+// be rekeyed for the local device, and can be done so by one of the
+// other user's devices.
+type NeedSelfRekeyError struct {
+	// Canonical tlf name
+	Tlf string
+	Msg string
+}
+
+func (e NeedSelfRekeyError) Error() string {
+	return e.Msg
+}
+
+// NeedOtherRekeyError indicates that the folder in question needs to
+// be rekeyed for the local device, and can only done so by one of the
+// other users.
+type NeedOtherRekeyError struct {
+	// Canonical tlf name
+	Tlf string
+	Msg string
+}
+
+func (e NeedOtherRekeyError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================

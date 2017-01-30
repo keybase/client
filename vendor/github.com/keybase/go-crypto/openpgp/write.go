@@ -59,6 +59,38 @@ func armoredDetachSign(w io.Writer, signer *Entity, message io.Reader, sigType p
 	return out.Close()
 }
 
+// SignWithSigner signs the message of type sigType with s and writes the
+// signature to w.
+// If config is nil, sensible defaults will be used.
+func SignWithSigner(s packet.Signer, w io.Writer, message io.Reader, sigType packet.SignatureType, config *packet.Config) (err error) {
+	keyId := s.KeyId()
+	sig := new(packet.Signature)
+	sig.SigType = sigType
+	sig.PubKeyAlgo = s.PublicKeyAlgo()
+	sig.Hash = config.Hash()
+	sig.CreationTime = config.Now()
+	sig.IssuerKeyId = &keyId
+
+	s.Reset()
+
+	wrapped := s.(hash.Hash)
+
+	if sigType == packet.SigTypeText {
+		wrapped = NewCanonicalTextHash(s)
+	}
+
+	io.Copy(wrapped, message)
+
+	err = sig.Sign(s, nil, config)
+	if err != nil {
+		return
+	}
+
+	err = sig.Serialize(w)
+
+	return
+}
+
 func detachSign(w io.Writer, signer *Entity, message io.Reader, sigType packet.SignatureType, config *packet.Config) (err error) {
 	signerSubkey, ok := signer.signingKey(config.Now())
 	if !ok {
@@ -203,11 +235,20 @@ func Encrypt(ciphertext io.Writer, to []*Entity, signed *Entity, hints *FileHint
 		hashToHashId(crypto.SHA1),
 		hashToHashId(crypto.RIPEMD160),
 	}
-	// In the event that a recipient doesn't specify any supported ciphers
-	// or hash functions, these are the ones that we assume that every
-	// implementation supports.
-	defaultCiphers := candidateCiphers[len(candidateCiphers)-1:]
-	defaultHashes := candidateHashes[len(candidateHashes)-1:]
+
+	// If no preferences were specified, assume something safe and reasonable.
+	defaultCiphers := []uint8{
+		uint8(packet.CipherAES128),
+		uint8(packet.CipherAES192),
+		uint8(packet.CipherAES256),
+		uint8(packet.CipherCAST5),
+	}
+
+	defaultHashes := []uint8{
+		hashToHashId(crypto.SHA256),
+		hashToHashId(crypto.SHA512),
+		hashToHashId(crypto.RIPEMD160),
+	}
 
 	encryptKeys := make([]Key, len(to))
 	for i := range to {
@@ -231,8 +272,11 @@ func Encrypt(ciphertext io.Writer, to []*Entity, signed *Entity, hints *FileHint
 		candidateHashes = intersectPreferences(candidateHashes, preferredHashes)
 	}
 
-	if len(candidateCiphers) == 0 || len(candidateHashes) == 0 {
-		return nil, errors.InvalidArgumentError("cannot encrypt because recipient set shares no common algorithms")
+	if len(candidateCiphers) == 0 {
+		return nil, errors.InvalidArgumentError("cannot encrypt because recipient set shares no common ciphers")
+	}
+	if len(candidateHashes) == 0 {
+		return nil, errors.InvalidArgumentError("cannot encrypt because recipient set shares no common hashes")
 	}
 
 	cipher := packet.CipherFunction(candidateCiphers[0])

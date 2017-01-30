@@ -83,18 +83,21 @@ const (
 	UserCacheMaxAge      = 5 * time.Minute
 	PGPFingerprintHexLen = 40
 
-	ProofCacheSize             = 0x1000
-	ProofCacheLongDur          = 48 * time.Hour
-	ProofCacheMediumDur        = 6 * time.Hour
-	ProofCacheShortDur         = 30 * time.Minute
-	Identify2CacheLongTimeout  = 6 * time.Hour
-	Identify2CacheShortTimeout = 1 * time.Minute
-	CachedUserTimeout          = 10 * time.Minute // How long we'll go without rerequesting hints/merkle seqno
-	LinkCacheSize              = 0x10000
-	LinkCacheCleanDur          = 1 * time.Minute
+	ProofCacheSize              = 0x1000
+	ProofCacheLongDur           = 48 * time.Hour
+	ProofCacheMediumDur         = 6 * time.Hour
+	ProofCacheShortDur          = 30 * time.Minute
+	Identify2CacheLongTimeout   = 6 * time.Hour
+	Identify2CacheBrokenTimeout = 1 * time.Hour
+	Identify2CacheShortTimeout  = 1 * time.Minute
+	CachedUserTimeout           = 10 * time.Minute // How long we'll go without rerequesting hints/merkle seqno
+	LinkCacheSize               = 0x10000
+	LinkCacheCleanDur           = 1 * time.Minute
 
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour
+
+	CriticalClockSkewLimit = time.Hour
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -213,6 +216,9 @@ const (
 	SCChatTLFFinalized       = int(keybase1.StatusCode_SCChatTLFFinalized)
 	SCChatCollision          = int(keybase1.StatusCode_SCChatCollision)
 	SCBadEmail               = int(keybase1.StatusCode_SCBadEmail)
+	SCIdentifySummaryError   = int(keybase1.StatusCode_SCIdentifySummaryError)
+	SCNeedSelfRekey          = int(keybase1.StatusCode_SCNeedSelfRekey)
+	SCNeedOtherRekey         = int(keybase1.StatusCode_SCNeedOtherRekey)
 )
 
 const (
@@ -475,3 +481,6 @@ const (
 const (
 	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
 )
+
+// Eventually, this will be set to the first merkle root block with skip pointers.
+var FirstProdMerkleSeqnoWithSkips *Seqno

@@ -8,16 +8,18 @@ import (
 	"bytes"
 	"crypto/cipher"
 	"crypto/dsa"
+	"crypto/ecdsa"
 	"crypto/sha1"
-	"github.com/keybase/go-crypto/openpgp/elgamal"
-	"github.com/keybase/go-crypto/openpgp/errors"
-	"github.com/keybase/go-crypto/openpgp/s2k"
-	"github.com/keybase/go-crypto/rsa"
 	"io"
 	"io/ioutil"
 	"math/big"
 	"strconv"
 	"time"
+
+	"github.com/keybase/go-crypto/openpgp/elgamal"
+	"github.com/keybase/go-crypto/openpgp/errors"
+	"github.com/keybase/go-crypto/openpgp/s2k"
+	"github.com/keybase/go-crypto/rsa"
 )
 
 // PrivateKey represents a possibly encrypted private key. See RFC 4880,
@@ -50,6 +52,13 @@ func NewDSAPrivateKey(currentTime time.Time, priv *dsa.PrivateKey) *PrivateKey {
 func NewElGamalPrivateKey(currentTime time.Time, priv *elgamal.PrivateKey) *PrivateKey {
 	pk := new(PrivateKey)
 	pk.PublicKey = *NewElGamalPublicKey(currentTime, &priv.PublicKey)
+	pk.PrivateKey = priv
+	return pk
+}
+
+func NewECDSAPrivateKey(currentTime time.Time, priv *ecdsa.PrivateKey) *PrivateKey {
+	pk := new(PrivateKey)
+	pk.PublicKey = *NewECDSAPublicKey(currentTime, &priv.PublicKey)
 	pk.PrivateKey = priv
 	return pk
 }
@@ -95,7 +104,6 @@ func (pk *PrivateKey) parse(r io.Reader) (err error) {
 	default:
 		return errors.UnsupportedError("deprecated s2k function in private key")
 	}
-
 	if pk.Encrypted {
 		blockSize := pk.cipher.blockSize()
 		if blockSize == 0 {
@@ -157,6 +165,10 @@ func (pk *PrivateKey) Serialize(w io.Writer) (err error) {
 			err = serializeDSAPrivateKey(privateKeyBuf, priv)
 		case *elgamal.PrivateKey:
 			err = serializeElGamalPrivateKey(privateKeyBuf, priv)
+		case *ecdsa.PrivateKey:
+			err = serializeECDSAPrivateKey(privateKeyBuf, priv)
+		case *ecdhPrivateKey:
+			err = serializeECDHPrivateKey(privateKeyBuf, priv)
 		default:
 			err = errors.InvalidArgumentError("unknown private key type")
 		}
@@ -219,6 +231,14 @@ func serializeElGamalPrivateKey(w io.Writer, priv *elgamal.PrivateKey) error {
 	return writeBig(w, priv.X)
 }
 
+func serializeECDSAPrivateKey(w io.Writer, priv *ecdsa.PrivateKey) error {
+	return writeBig(w, priv.D)
+}
+
+func serializeECDHPrivateKey(w io.Writer, priv *ecdhPrivateKey) error {
+	return writeBig(w, priv.x)
+}
+
 // Decrypt decrypts an encrypted private key using a passphrase.
 func (pk *PrivateKey) Decrypt(passphrase []byte) error {
 	if !pk.Encrypted {
@@ -274,6 +294,10 @@ func (pk *PrivateKey) parsePrivateKey(data []byte) (err error) {
 		return pk.parseDSAPrivateKey(data)
 	case PubKeyAlgoElGamal:
 		return pk.parseElGamalPrivateKey(data)
+	case PubKeyAlgoECDSA:
+		return pk.parseECDSAPrivateKey(data)
+	case PubKeyAlgoECDH:
+		return pk.parseECDHPrivateKey(data)
 	}
 	panic("impossible")
 }
@@ -344,6 +368,43 @@ func (pk *PrivateKey) parseElGamalPrivateKey(data []byte) (err error) {
 
 	priv.X = new(big.Int).SetBytes(x)
 	pk.PrivateKey = priv
+	pk.Encrypted = false
+	pk.encryptedData = nil
+
+	return nil
+}
+
+func (pk *PrivateKey) parseECDHPrivateKey(data []byte) (err error) {
+	pub := pk.PublicKey.PublicKey.(*ecdsa.PublicKey)
+	priv := new(ecdhPrivateKey)
+	priv.PublicKey = *pub
+
+	buf := bytes.NewBuffer(data)
+	d, _, err := readMPI(buf)
+	if err != nil {
+		return
+	}
+
+	priv.x = new(big.Int).SetBytes(d)
+	pk.PrivateKey = priv
+	pk.Encrypted = false
+	pk.encryptedData = nil
+	return nil
+}
+
+func (pk *PrivateKey) parseECDSAPrivateKey(data []byte) (err error) {
+	ecdsaPub := pk.PublicKey.PublicKey.(*ecdsa.PublicKey)
+	ecdsaPriv := new(ecdsa.PrivateKey)
+	ecdsaPriv.PublicKey = *ecdsaPub
+
+	buf := bytes.NewBuffer(data)
+	d, _, err := readMPI(buf)
+	if err != nil {
+		return
+	}
+
+	ecdsaPriv.D = new(big.Int).SetBytes(d)
+	pk.PrivateKey = ecdsaPriv
 	pk.Encrypted = false
 	pk.encryptedData = nil
 

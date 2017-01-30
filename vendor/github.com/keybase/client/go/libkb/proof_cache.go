@@ -166,7 +166,9 @@ func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 	dbkey, sidstr := pc.dbKey(sid)
 
 	pc.G().Log.Debug("+ ProofCache.dbGet(%s)", sidstr)
-	defer pc.G().Log.Debug("- ProofCache.dbGet(%s) -> %v", sidstr, (cr != nil))
+	defer func() {
+		pc.G().Log.Debug("- ProofCache.dbGet(%s) -> %v", sidstr, (cr != nil))
+	}()
 
 	jw, err := pc.G().LocalDb.Get(dbkey)
 	if err != nil {

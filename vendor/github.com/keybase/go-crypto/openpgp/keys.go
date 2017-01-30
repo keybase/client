@@ -5,13 +5,13 @@
 package openpgp
 
 import (
-	"io"
-	"time"
-
+	"crypto/hmac"
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
 	"github.com/keybase/go-crypto/rsa"
+	"io"
+	"time"
 )
 
 // PublicKeyType is the armor type for a PGP public key.
@@ -68,13 +68,22 @@ type Key struct {
 
 // A KeyRing provides access to public and private keys.
 type KeyRing interface {
+
 	// KeysById returns the set of keys that have the given key id.
-	KeysById(id uint64) []Key
+	// fp can be optionally supplied, which is the full key fingerprint.
+	// If it's provided, then it must match. This comes up in the case
+	// of GPG subpacket 33.
+	KeysById(id uint64, fp []byte) []Key
+
 	// KeysByIdAndUsage returns the set of keys with the given id
 	// that also meet the key usage given by requiredUsage.
 	// The requiredUsage is expressed as the bitwise-OR of
 	// packet.KeyFlag* values.
-	KeysByIdUsage(id uint64, requiredUsage byte) []Key
+	// fp can be optionally supplied, which is the full key fingerprint.
+	// If it's provided, then it must match. This comes up in the case
+	// of GPG subpacket 33.
+	KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) []Key
+
 	// DecryptionKeys returns all private keys that are valid for
 	// decryption.
 	DecryptionKeys() []Key
@@ -186,10 +195,23 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 // An EntityList contains one or more Entities.
 type EntityList []*Entity
 
+func keyMatchesIdAndFingerprint(key *packet.PublicKey, id uint64, fp []byte) bool {
+	if key.KeyId != id {
+		return false
+	}
+	if fp == nil {
+		return true
+	}
+	return hmac.Equal(fp, key.Fingerprint[:])
+}
+
 // KeysById returns the set of keys that have the given key id.
-func (el EntityList) KeysById(id uint64) (keys []Key) {
+// fp can be optionally supplied, which is the full key fingerprint.
+// If it's provided, then it must match. This comes up in the case
+// of GPG subpacket 33.
+func (el EntityList) KeysById(id uint64, fp []byte) (keys []Key) {
 	for _, e := range el {
-		if e.PrimaryKey.KeyId == id {
+		if keyMatchesIdAndFingerprint(e.PrimaryKey, id, fp) {
 			var selfSig *packet.Signature
 			for _, ident := range e.Identities {
 				if selfSig == nil {
@@ -203,7 +225,7 @@ func (el EntityList) KeysById(id uint64) (keys []Key) {
 		}
 
 		for _, subKey := range e.Subkeys {
-			if subKey.PublicKey.KeyId == id {
+			if keyMatchesIdAndFingerprint(subKey.PublicKey, id, fp) {
 
 				// If there's both a a revocation and a sig, then take the
 				// revocation. Otherwise, we can proceed with the sig.
@@ -222,8 +244,11 @@ func (el EntityList) KeysById(id uint64) (keys []Key) {
 // KeysByIdAndUsage returns the set of keys with the given id that also meet
 // the key usage given by requiredUsage.  The requiredUsage is expressed as
 // the bitwise-OR of packet.KeyFlag* values.
-func (el EntityList) KeysByIdUsage(id uint64, requiredUsage byte) (keys []Key) {
-	for _, key := range el.KeysById(id) {
+// fp can be optionally supplied, which is the full key fingerprint.
+// If it's provided, then it must match. This comes up in the case
+// of GPG subpacket 33.
+func (el EntityList) KeysByIdUsage(id uint64, fp []byte, requiredUsage byte) (keys []Key) {
+	for _, key := range el.KeysById(id, fp) {
 		if len(key.Entity.Revocations) > 0 {
 			continue
 		}
@@ -232,20 +257,43 @@ func (el EntityList) KeysByIdUsage(id uint64, requiredUsage byte) (keys []Key) {
 			continue
 		}
 
-		if key.SelfSignature.FlagsValid && requiredUsage != 0 {
+		if requiredUsage != 0 {
 			var usage byte
-			if key.SelfSignature.FlagCertify {
-				usage |= packet.KeyFlagCertify
-			}
-			if key.SelfSignature.FlagSign {
-				usage |= packet.KeyFlagSign
-			}
-			if key.SelfSignature.FlagEncryptCommunications {
+
+			switch {
+			case key.SelfSignature.FlagsValid:
+				if key.SelfSignature.FlagCertify {
+					usage |= packet.KeyFlagCertify
+				}
+				if key.SelfSignature.FlagSign {
+					usage |= packet.KeyFlagSign
+				}
+				if key.SelfSignature.FlagEncryptCommunications {
+					usage |= packet.KeyFlagEncryptCommunications
+				}
+				if key.SelfSignature.FlagEncryptStorage {
+					usage |= packet.KeyFlagEncryptStorage
+				}
+
+			case key.PublicKey.PubKeyAlgo == packet.PubKeyAlgoElGamal:
+				// We also need to handle the case where, although the sig's
+				// flags aren't valid, the key can is implicitly usable for
+				// encryption by virtue of being ElGamal. See also the comment
+				// in encryptionKey() above.
 				usage |= packet.KeyFlagEncryptCommunications
-			}
-			if key.SelfSignature.FlagEncryptStorage {
 				usage |= packet.KeyFlagEncryptStorage
+
+			case key.PublicKey.PubKeyAlgo == packet.PubKeyAlgoDSA:
+				usage |= packet.KeyFlagSign
+
+			// For a primary RSA key without any key flags, be as permissiable
+			// as possible.
+			case key.PublicKey.PubKeyAlgo == packet.PubKeyAlgoRSA &&
+				keyMatchesIdAndFingerprint(key.Entity.PrimaryKey, id, fp):
+				usage = (packet.KeyFlagCertify | packet.KeyFlagSign |
+					packet.KeyFlagEncryptCommunications | packet.KeyFlagEncryptStorage)
 			}
+
 			if usage&requiredUsage != requiredUsage {
 				continue
 			}
@@ -408,9 +456,26 @@ EachPacket:
 
 			// Next handle the case of a self-signature. According to RFC8440,
 			// Section 5.2.3.3, if there are several self-signatures,
-			// we should take the newer one.
+			// we should take the newer one.  If they were both created
+			// at the same time, but one of them has keyflags specified and the
+			// other doesn't, keep the one with the keyflags. We have actually
+			// seen this in the wild (see the 'Yield' test in read_test.go).
+			// If there is a tie, and both have the same value for FlagsValid,
+			// then "last writer wins."
+			//
+			// HOWEVER! We have seen yet more keys in the wild (see the 'Spiros'
+			// test in read_test.go), in which the later self-signature is a bunch
+			// of junk, and doesn't even specify key flags. Does it really make
+			// sense to overwrite reasonable key flags with the empty set? I'm not
+			// sure what that would be trying to achieve, and plus GPG seems to be
+			// ok with this situation, and ignores the later (empty) keyflag set.
+			// So further tighten our overwrite rules, and only allow the later
+			// signature to overwrite the earlier signature if so doing won't
+			// trash the key flags.
 			if current != nil &&
-				(current.SelfSignature == nil || pkt.CreationTime.After(current.SelfSignature.CreationTime)) &&
+				(current.SelfSignature == nil ||
+					(!pkt.CreationTime.Before(current.SelfSignature.CreationTime) &&
+						(pkt.FlagsValid || !current.SelfSignature.FlagsValid))) &&
 				(pkt.SigType == packet.SigTypePositiveCert || pkt.SigType == packet.SigTypeGenericCert) &&
 				pkt.IssuerKeyId != nil &&
 				*pkt.IssuerKeyId == e.PrimaryKey.KeyId {
@@ -441,7 +506,17 @@ EachPacket:
 				// directly on keys (eg. to bind additional
 				// revocation keys).
 			} else if current == nil {
-				return nil, errors.StructuralError("signature packet found before user id packet")
+				// NOTE(maxtaco)
+				//
+				// See https://github.com/keybase/client/issues/2666
+				//
+				// There might have been a user attribute picture before this signature,
+				// in which case this is still a valid PGP key. In the future we might
+				// not ignore user attributes (like picture). But either way, it doesn't
+				// make sense to bail out here. Keep looking for other valid signatures.
+				//
+				// Used to be:
+				//    return nil, errors.StructuralError("signature packet found before user id packet")
 			} else {
 				current.Signatures = append(current.Signatures, pkt)
 			}

@@ -489,13 +489,23 @@ func (f JSONConfigFile) GetGregorURI() string {
 func (f JSONConfigFile) GetGregorDisabled() (bool, bool) {
 	return f.GetBoolAtPath("push.disabled")
 }
-
+func (f JSONConfigFile) GetBGIdentifierDisabled() (bool, bool) {
+	return f.GetBoolAtPath("bg_identifier.disabled")
+}
 func (f JSONConfigFile) GetGregorSaveInterval() (time.Duration, bool) {
 	return f.GetDurationAtPath("push.save_interval")
 }
 
 func (f JSONConfigFile) GetGregorPingInterval() (time.Duration, bool) {
 	return f.GetDurationAtPath("push.ping_interval")
+}
+
+func (f JSONConfigFile) GetGregorPingTimeout() (time.Duration, bool) {
+	return f.GetDurationAtPath("push.ping_timeout")
+}
+
+func (f JSONConfigFile) GetChatDelivererInterval() (time.Duration, bool) {
+	return f.GetDurationAtPath("chat.deliverer_interval")
 }
 
 func (f JSONConfigFile) getCacheSize(w string) (int, bool) {

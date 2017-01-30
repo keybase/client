@@ -18,13 +18,15 @@ type Identify2Cache struct {
 }
 
 type Identify2Cacher interface {
-	Get(keybase1.UID, GetCheckTimeFunc, time.Duration) (*keybase1.UserPlusKeys, error)
-	Insert(up *keybase1.UserPlusKeys) error
+	Get(keybase1.UID, GetCheckTimeFunc, GetCacheDurationFunc, bool) (*keybase1.Identify2Res, error)
+	Insert(up *keybase1.Identify2Res) error
 	DidFullUserLoad(keybase1.UID)
 	Shutdown()
+	Delete(uid keybase1.UID) error
 }
 
-type GetCheckTimeFunc func(keybase1.UserPlusKeys) keybase1.Time
+type GetCheckTimeFunc func(keybase1.Identify2Res) keybase1.Time
+type GetCacheDurationFunc func(keybase1.Identify2Res) time.Duration
 
 // NewIdentify2Cache creates a Identify2Cache and sets the object max age to
 // maxAge.  Once a user is inserted, after maxAge duration passes,
@@ -39,7 +41,7 @@ func NewIdentify2Cache(maxAge time.Duration) *Identify2Cache {
 }
 
 // Get returns a user object.  If none exists for uid, it will return nil.
-func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, timeout time.Duration) (*keybase1.UserPlusKeys, error) {
+func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, gcdf GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2Res, error) {
 	v, err := c.cache.Get(string(uid))
 	if err != nil {
 		if err == ramcache.ErrNotFound {
@@ -47,7 +49,7 @@ func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, timeout ti
 		}
 		return nil, err
 	}
-	up, ok := v.(*keybase1.UserPlusKeys)
+	up, ok := v.(*keybase1.Identify2Res)
 	if !ok {
 		return nil, fmt.Errorf("invalid type in cache: %T", v)
 	}
@@ -55,12 +57,16 @@ func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, timeout ti
 	if gctf != nil {
 		then := gctf(*up)
 		if then == 0 {
-			return nil, TimeoutError{}
+			return nil, IdentifyTimeoutError{}
+		}
+		if up.TrackBreaks != nil && !breaksOK {
+			return nil, TrackBrokenError{}
 		}
 
 		thenTime := keybase1.FromTime(then)
+		timeout := gcdf(*up)
 		if time.Since(thenTime) > timeout {
-			return nil, TimeoutError{}
+			return nil, IdentifyTimeoutError{}
 		}
 	}
 
@@ -68,11 +74,15 @@ func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, timeout ti
 }
 
 // Insert adds a user to the cache, keyed on UID.
-func (c *Identify2Cache) Insert(up *keybase1.UserPlusKeys) error {
+func (c *Identify2Cache) Insert(up *keybase1.Identify2Res) error {
 	tmp := *up
 	copy := &tmp
-	copy.Uvv.CachedAt = keybase1.ToTime(time.Now())
-	return c.cache.Set(string(up.Uid), copy)
+	copy.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
+	return c.cache.Set(string(up.Upk.Uid), copy)
+}
+
+func (c *Identify2Cache) Delete(uid keybase1.UID) error {
+	return c.cache.Delete(string(uid))
 }
 
 // Shutdown stops any goroutines in the cache.

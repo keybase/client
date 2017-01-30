@@ -51,6 +51,10 @@ func (s *IdentifyState) Result() *IdentifyOutcome {
 	return s.res
 }
 
+func (s *IdentifyState) TmpTrackLookup() *TrackLookup {
+	return s.tmpTrack
+}
+
 func (s *IdentifyState) computeRevokedProofs() {
 	if s.track == nil {
 		return

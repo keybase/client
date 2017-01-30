@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/agl/ed25519"
+	"github.com/keybase/go-crypto/brainpool"
 	"github.com/keybase/go-crypto/openpgp/elgamal"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/rsa"
@@ -34,11 +35,17 @@ var (
 	oidCurveP384 []byte = []byte{0x2B, 0x81, 0x04, 0x00, 0x22}
 	// NIST curve P-521
 	oidCurveP521 []byte = []byte{0x2B, 0x81, 0x04, 0x00, 0x23}
+	// Brainpool curve P-256r1
+	oidCurveP256r1 []byte = []byte{0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x07}
+	// Brainpool curve P-384r1
+	oidCurveP384r1 []byte = []byte{0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0B}
+	// Brainpool curve P-512r1
+	oidCurveP512r1 []byte = []byte{0x2B, 0x24, 0x03, 0x03, 0x02, 0x08, 0x01, 0x01, 0x0D}
 	// EdDSA
 	oidEdDSA []byte = []byte{0x2B, 0x06, 0x01, 0x04, 0x01, 0xDA, 0x47, 0x0F, 0x01}
 )
 
-const maxOIDLength = 9
+const maxOIDLength = 10
 
 // ecdsaKey stores the algorithm-specific fields for ECDSA keys.
 // as defined in RFC 6637, Section 9.
@@ -57,7 +64,7 @@ func (e *edDSAkey) Verify(payload []byte, r parsedMPI, s parsedMPI) bool {
 	var key [ed25519.PublicKeySize]byte
 	var sig [ed25519.SignatureSize]byte
 
-	// note(mnk): I'm not entirely sure why we need to ignore the first byte.
+	// NOTE(maxtaco): I'm not entirely sure why we need to ignore the first byte.
 	copy(key[:], e.p.bytes[1:])
 	n := copy(sig[:], r.bytes)
 	copy(sig[n:], s.bytes)
@@ -107,6 +114,12 @@ func (f *ecdsaKey) newECDSA() (*ecdsa.PublicKey, error) {
 		c = elliptic.P384()
 	} else if bytes.Equal(f.oid, oidCurveP521) {
 		c = elliptic.P521()
+	} else if bytes.Equal(f.oid, oidCurveP256r1) {
+		c = brainpool.P256r1()
+	} else if bytes.Equal(f.oid, oidCurveP384r1) {
+		c = brainpool.P384r1()
+	} else if bytes.Equal(f.oid, oidCurveP512r1) {
+		c = brainpool.P512r1()
 	} else {
 		return nil, errors.UnsupportedError(fmt.Sprintf("unsupported oid: %x", f.oid))
 	}
@@ -194,10 +207,17 @@ type signingKey interface {
 	serializeWithoutHeaders(io.Writer) error
 }
 
-func fromBig(n *big.Int) parsedMPI {
+func FromBig(n *big.Int) parsedMPI {
 	return parsedMPI{
 		bytes:     n.Bytes(),
 		bitLength: uint16(n.BitLen()),
+	}
+}
+
+func FromBytes(bytes []byte) parsedMPI {
+	return parsedMPI{
+		bytes:     bytes,
+		bitLength: uint16(8 * len(bytes)),
 	}
 }
 
@@ -207,8 +227,8 @@ func NewRSAPublicKey(creationTime time.Time, pub *rsa.PublicKey) *PublicKey {
 		CreationTime: creationTime,
 		PubKeyAlgo:   PubKeyAlgoRSA,
 		PublicKey:    pub,
-		n:            fromBig(pub.N),
-		e:            fromBig(big.NewInt(int64(pub.E))),
+		n:            FromBig(pub.N),
+		e:            FromBig(big.NewInt(int64(pub.E))),
 	}
 
 	pk.setFingerPrintAndKeyId()
@@ -221,10 +241,10 @@ func NewDSAPublicKey(creationTime time.Time, pub *dsa.PublicKey) *PublicKey {
 		CreationTime: creationTime,
 		PubKeyAlgo:   PubKeyAlgoDSA,
 		PublicKey:    pub,
-		p:            fromBig(pub.P),
-		q:            fromBig(pub.Q),
-		g:            fromBig(pub.G),
-		y:            fromBig(pub.Y),
+		p:            FromBig(pub.P),
+		q:            FromBig(pub.Q),
+		g:            FromBig(pub.G),
+		y:            FromBig(pub.Y),
 	}
 
 	pk.setFingerPrintAndKeyId()
@@ -247,10 +267,38 @@ func NewElGamalPublicKey(creationTime time.Time, pub *elgamal.PublicKey) *Public
 		CreationTime: creationTime,
 		PubKeyAlgo:   PubKeyAlgoElGamal,
 		PublicKey:    pub,
-		p:            fromBig(pub.P),
-		g:            fromBig(pub.G),
-		y:            fromBig(pub.Y),
+		p:            FromBig(pub.P),
+		g:            FromBig(pub.G),
+		y:            FromBig(pub.Y),
 	}
+
+	pk.setFingerPrintAndKeyId()
+	return pk
+}
+
+func NewECDSAPublicKey(creationTime time.Time, pub *ecdsa.PublicKey) *PublicKey {
+	pk := &PublicKey{
+		CreationTime: creationTime,
+		PubKeyAlgo:   PubKeyAlgoECDSA,
+		PublicKey:    pub,
+		ec:           new(ecdsaKey),
+	}
+	switch pub.Curve {
+	case elliptic.P256():
+		pk.ec.oid = oidCurveP256
+	case elliptic.P384():
+		pk.ec.oid = oidCurveP384
+	case elliptic.P521():
+		pk.ec.oid = oidCurveP521
+	case brainpool.P256r1():
+		pk.ec.oid = oidCurveP256r1
+	case brainpool.P384r1():
+		pk.ec.oid = oidCurveP384r1
+	case brainpool.P512r1():
+		pk.ec.oid = oidCurveP512r1
+	}
+	pk.ec.p.bytes = elliptic.Marshal(pub.Curve, pub.X, pub.Y)
+	pk.ec.p.bitLength = uint16(8 * len(pk.ec.p.bytes))
 
 	pk.setFingerPrintAndKeyId()
 	return pk
@@ -522,9 +570,18 @@ func (pk *PublicKey) VerifySignature(signed hash.Hash, sig *Signature) (err erro
 	signed.Write(sig.HashSuffix)
 	hashBytes := signed.Sum(nil)
 
-	if hashBytes[0] != sig.HashTag[0] || hashBytes[1] != sig.HashTag[1] {
-		return errors.SignatureError("hash tag doesn't match")
-	}
+	// NOTE(maxtaco) 2016-08-22
+	//
+	// We used to do this:
+	//
+	// if hashBytes[0] != sig.HashTag[0] || hashBytes[1] != sig.HashTag[1] {
+	//	  return errors.SignatureError("hash tag doesn't match")
+	// }
+	//
+	// But don't do anything in this case. Some GPGs generate bad
+	// 2-byte hash prefixes, but GPG also doesn't seem to care on
+	// import. See BrentMaxwell's key. I think it's safe to disable
+	// this check!
 
 	if pk.PubKeyAlgo != sig.PubKeyAlgo {
 		return errors.InvalidArgumentError("public key and signature use different algorithms")
@@ -619,12 +676,18 @@ func keySignatureHash(pk, signed signingKey, hashFunc crypto.Hash) (h hash.Hash,
 	}
 	h = hashFunc.New()
 
+	updateKeySignatureHash(pk, signed, h)
+
+	return
+}
+
+// updateKeySignatureHash does the actual hash updates for keySignatureHash.
+func updateKeySignatureHash(pk, signed signingKey, h hash.Hash) {
 	// RFC 4880, section 5.2.4
 	pk.SerializeSignaturePrefix(h)
 	pk.serializeWithoutHeaders(h)
 	signed.SerializeSignaturePrefix(h)
 	signed.serializeWithoutHeaders(h)
-	return
 }
 
 // VerifyKeySignature returns nil iff sig is a valid signature, made by this
@@ -715,6 +778,14 @@ func userIdSignatureHash(id string, pk *PublicKey, hashFunc crypto.Hash) (h hash
 	}
 	h = hashFunc.New()
 
+	updateUserIdSignatureHash(id, pk, h)
+
+	return
+}
+
+// updateUserIdSignatureHash does the actual hash updates for
+// userIdSignatureHash.
+func updateUserIdSignatureHash(id string, pk *PublicKey, h hash.Hash) {
 	// RFC 4880, section 5.2.4
 	pk.SerializeSignaturePrefix(h)
 	pk.serializeWithoutHeaders(h)

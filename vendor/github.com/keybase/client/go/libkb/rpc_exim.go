@@ -285,6 +285,12 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			assertion = s.Fields[0].Value
 		}
 		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
+	case SCIdentifySummaryError:
+		ret := IdentifySummaryError{}
+		for _, problem := range s.Fields {
+			ret.problems = append(ret.problems, problem.Value)
+		}
+		return ret
 	case SCTrackingBroke:
 		return TrackingBrokeError{}
 	case SCResolutionFailed:
@@ -376,7 +382,11 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "ConvID":
-				convID = chat1.ConversationID(field.Value)
+				bs, err := chat1.MakeConvID(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing ChatConvExistsError")
+				}
+				convID = chat1.ConversationID(bs)
 			}
 		}
 		return ChatConvExistsError{
@@ -462,6 +472,25 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return InvalidAddressError{Msg: s.Desc}
 	case SCChatCollision:
 		return ChatCollisionError{}
+	case SCNeedSelfRekey:
+		ret := NeedSelfRekeyError{Msg: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Tlf":
+				ret.Tlf = field.Value
+			}
+		}
+		return ret
+	case SCNeedOtherRekey:
+		ret := NeedOtherRekeyError{Msg: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Tlf":
+				ret.Tlf = field.Value
+			}
+		}
+		return ret
+
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -857,7 +886,7 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	return exportedKeys
 }
 
-// ExportDeviceKeys is used by LoadUserPlusKeys.  The key list
+// ExportDeviceKeys is used by ExportToUserPlusKeys.  The key list
 // only contains device keys.  It also returns the number of PGP
 // keys in the key family.
 func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicKey, pgpKeyCount int) {
@@ -877,6 +906,20 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicK
 	}
 	sort.Sort(PublicKeyList(exportedKeys))
 	return exportedKeys, pgpKeyCount
+}
+
+// ExportDeletedDeviceKeys is used by ExportToUserPlusKeys.  The key list
+// only contains deleted device keys.
+func (ckf ComputedKeyFamily) ExportDeletedDeviceKeys() []keybase1.PublicKey {
+	var keys []keybase1.PublicKey
+	for _, key := range ckf.GetDeletedKeys() {
+		if _, isPGP := key.(*PGPKeyBundle); isPGP {
+			continue
+		}
+		keys = append(keys, ckf.exportPublicKey(key))
+	}
+	sort.Sort(PublicKeyList(keys))
+	return keys
 }
 
 // ExportAllPGPKeys exports all pgp keys.
@@ -941,6 +984,12 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 	if ckf != nil {
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
 		ret.RevokedDeviceKeys = ckf.ExportRevokedDeviceKeys()
+
+		// PC WIP
+		// these will be added to UserPlusKeys
+		// deletedDeviceKeys := ckf.ExportDeletedDeviceKeys()
+		// u.G().Log.Warning("deleted device keys: %+v", deletedDeviceKeys)
+		ret.DeletedDeviceKeys = ckf.ExportDeletedDeviceKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)
@@ -949,8 +998,40 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 
 func (u *User) ExportToUserPlusAllKeys(idTime keybase1.Time) keybase1.UserPlusAllKeys {
 	return keybase1.UserPlusAllKeys{
-		Base:    u.ExportToUserPlusKeys(idTime),
-		PGPKeys: u.GetComputedKeyFamily().ExportAllPGPKeys(),
+		Base:         u.ExportToUserPlusKeys(idTime),
+		PGPKeys:      u.GetComputedKeyFamily().ExportAllPGPKeys(),
+		RemoteTracks: u.ExportRemoteTracks(),
+	}
+}
+
+type remoteTrackSorter []keybase1.RemoteTrack
+
+func (s remoteTrackSorter) Len() int           { return len(s) }
+func (s remoteTrackSorter) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s remoteTrackSorter) Less(i, j int) bool { return s[i].Username < s[j].Username }
+
+func (u *User) ExportRemoteTracks() []keybase1.RemoteTrack {
+	var ret []keybase1.RemoteTrack
+	if u.IDTable() == nil {
+		return ret
+	}
+	trackList := u.IDTable().GetTrackList()
+	for _, track := range trackList {
+		ret = append(ret, track.Export())
+	}
+	sort.Sort(remoteTrackSorter(ret))
+	return ret
+}
+
+func (i LinkID) Export() keybase1.LinkID {
+	return keybase1.LinkID(i.String())
+}
+
+func (t TrackChainLink) Export() keybase1.RemoteTrack {
+	return keybase1.RemoteTrack{
+		Uid:      t.whomUID,
+		Username: strings.ToLower(t.whomUsername),
+		LinkID:   t.id.Export(),
 	}
 }
 
@@ -1181,6 +1262,22 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 		Fields: []keybase1.StringKVPair{
 			{Key: "assertion", Value: e.Assertion},
 		},
+	}
+}
+
+func (e IdentifySummaryError) ToStatus() keybase1.Status {
+	var kvpairs []keybase1.StringKVPair
+	for index, problem := range e.problems {
+		kvpairs = append(kvpairs, keybase1.StringKVPair{
+			Key:   fmt.Sprintf("%d", index),
+			Value: problem,
+		})
+	}
+	return keybase1.Status{
+		Code:   SCIdentifySummaryError,
+		Name:   "SC_IDENTIFY_SUMMARY_ERROR",
+		Desc:   e.Error(),
+		Fields: kvpairs,
 	}
 }
 
@@ -1484,5 +1581,28 @@ func (e InvalidAddressError) ToStatus() keybase1.Status {
 		Code: SCInvalidAddress,
 		Name: "SC_INVALID_ADDRESS",
 		Desc: e.Error(),
+	}
+}
+
+func (e NeedSelfRekeyError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNeedSelfRekey,
+		Name: "SC_NEED_SELF_REKEY",
+		Desc: e.Error(),
+	}
+}
+
+func (e NeedOtherRekeyError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNeedOtherRekey,
+		Name: "SC_NEED_OTHER_REKEY",
+		Desc: e.Error(),
+	}
+}
+
+func ImportDbKey(k keybase1.DbKey) DbKey {
+	return DbKey{
+		Typ: ObjType(k.ObjType),
+		Key: k.Key,
 	}
 }

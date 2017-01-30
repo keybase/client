@@ -9,6 +9,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 type UserBasic interface {
@@ -35,6 +36,9 @@ type User struct {
 
 	// Loaded from publicKeys
 	keyFamily *KeyFamily
+
+	// Available on partially-copied clones of the User object
+	ckfShallowCopy *ComputedKeyFamily
 
 	dirty bool
 	Contextified
@@ -124,8 +128,10 @@ func (u *User) GetComputedKeyFamily() (ret *ComputedKeyFamily) {
 			return nil
 		}
 		ret = &ComputedKeyFamily{cki: cki, kf: u.keyFamily, Contextified: u.Contextified}
+	} else if u.ckfShallowCopy != nil {
+		ret = u.ckfShallowCopy
 	}
-	return
+	return ret
 }
 
 // GetActivePGPKeys looks into the user's ComputedKeyFamily and
@@ -214,15 +220,15 @@ func (u *User) CheckBasicsFreshness(server int64) (current bool, err error) {
 	return
 }
 
-func (u *User) StoreSigChain() error {
+func (u *User) StoreSigChain(ctx context.Context) error {
 	var err error
 	if u.sigChain() != nil {
-		err = u.sigChain().Store()
+		err = u.sigChain().Store(ctx)
 	}
 	return err
 }
 
-func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
+func (u *User) LoadSigChains(ctx context.Context, allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
 	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), u.G().Clock().Now(), u.G().Log.Debug)
 
 	loader := SigChainLoader{
@@ -233,6 +239,7 @@ func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err er
 		chainType:    PublicChain,
 		Contextified: u.Contextified,
 		preload:      u.sigChain(),
+		ctx:          ctx,
 	}
 
 	u.sigChainMem, err = loader.Load()
@@ -241,37 +248,37 @@ func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err er
 	return err
 }
 
-func (u *User) Store() error {
+func (u *User) Store(ctx context.Context) error {
 
-	u.G().Log.Debug("+ Store user %s", u.name)
+	u.G().Log.CDebugf(ctx, "+ Store user %s", u.name)
 
 	// These might be dirty, in which case we can write it back
 	// to local storage. Note, this can be dirty even if the user is clean.
-	if err := u.sigHints.Store(); err != nil {
+	if err := u.sigHints.Store(ctx); err != nil {
 		return err
 	}
 
 	if !u.dirty {
-		u.G().Log.Debug("- Store for %s skipped; user wasn't dirty", u.name)
+		u.G().Log.CDebugf(ctx, "- Store for %s skipped; user wasn't dirty", u.name)
 		return nil
 	}
 
-	if err := u.StoreSigChain(); err != nil {
+	if err := u.StoreSigChain(ctx); err != nil {
 		return err
 	}
 
-	if err := u.StoreTopLevel(); err != nil {
+	if err := u.StoreTopLevel(ctx); err != nil {
 		return err
 	}
 
 	u.dirty = false
-	u.G().Log.Debug("- Store user %s -> OK", u.name)
+	u.G().Log.CDebugf(ctx, "- Store user %s -> OK", u.name)
 
 	return nil
 }
 
-func (u *User) StoreTopLevel() error {
-	u.G().Log.Debug("+ StoreTopLevel")
+func (u *User) StoreTopLevel(ctx context.Context) error {
+	u.G().Log.CDebugf(ctx, "+ StoreTopLevel")
 
 	jw := jsonw.NewDictionary()
 	jw.SetKey("id", UIDWrapper(u.id))
@@ -284,7 +291,7 @@ func (u *User) StoreTopLevel() error {
 		[]DbKey{{Typ: DBLookupUsername, Key: u.name}},
 		jw,
 	)
-	u.G().Log.Debug("- StoreTopLevel -> %s", ErrToOk(err))
+	u.G().Log.CDebugf(ctx, "- StoreTopLevel -> %s", ErrToOk(err))
 	return err
 }
 
@@ -296,9 +303,9 @@ func (u *User) SyncedSecretKey(lctx LoginContext) (ret *SKB, err error) {
 }
 
 func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) {
-	u.G().Log.Debug("+ User.GetSyncedSecretKeyLogin()")
+	u.G().Log.Debug("+ User#GetSyncedSecretKeyLogin()")
 	defer func() {
-		u.G().Log.Debug("- User.GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User#GetSyncedSecretKeyLogin() -> %s", ErrToOk(err))
 	}()
 
 	if err = lctx.RunSecretSyncer(u.id); err != nil {
@@ -315,9 +322,9 @@ func (u *User) getSyncedSecretKeyLogin(lctx LoginContext) (ret *SKB, err error) 
 }
 
 func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
-	u.G().Log.Debug("+ User.GetSyncedSecretKey()")
+	u.G().Log.Debug("+ User#GetSyncedSecretKey()")
 	defer func() {
-		u.G().Log.Debug("- User.GetSyncedSecretKey() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User#GetSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
 	if err = u.SyncSecrets(); err != nil {
@@ -344,9 +351,9 @@ func (u *User) GetSyncedSecretKey() (ret *SKB, err error) {
 // synced to API server.  LoginContext can be nil if this isn't
 // used while logging in, signing up.
 func (u *User) AllSyncedSecretKeys(lctx LoginContext) (keys []*SKB, err error) {
-	u.G().Log.Debug("+ User.AllSyncedSecretKeys()")
+	u.G().Log.Debug("+ User#AllSyncedSecretKeys()")
 	defer func() {
-		u.G().Log.Debug("- User.AllSyncedSecretKey() -> %s", ErrToOk(err))
+		u.G().Log.Debug("- User#AllSyncedSecretKey() -> %s", ErrToOk(err))
 	}()
 
 	if lctx != nil {
@@ -476,24 +483,32 @@ func (u *User) Equal(other *User) bool {
 }
 
 func (u *User) TmpTrackChainLinkFor(username string, uid keybase1.UID) (tcl *TrackChainLink, err error) {
-	u.G().Log.Debug("+ TmpTrackChainLinkFor for %s", uid)
-	tcl, err = LocalTmpTrackChainLinkFor(u.id, uid, u.G())
-	u.G().Log.Debug("- TmpTrackChainLinkFor for %s -> %v, %v", uid, (tcl != nil), err)
+	return TmpTrackChainLinkFor(u.id, uid, u.G())
+}
+
+func TmpTrackChainLinkFor(me keybase1.UID, them keybase1.UID, g *GlobalContext) (tcl *TrackChainLink, err error) {
+	g.Log.Debug("+ TmpTrackChainLinkFor for %s", them)
+	tcl, err = LocalTmpTrackChainLinkFor(me, them, g)
+	g.Log.Debug("- TmpTrackChainLinkFor for %s -> %v, %v", them, (tcl != nil), err)
 	return tcl, err
 }
 
 func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
 	u.G().Log.Debug("+ TrackChainLinkFor for %s", uid)
 	defer u.G().Log.Debug("- TrackChainLinkFor for %s", uid)
-
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
-	local, e2 := LocalTrackChainLinkFor(u.id, uid, u.G())
+	return TrackChainLinkFor(u.id, uid, remote, e1, u.G())
+}
 
-	u.G().Log.Debug("| Load remote -> %v", (remote != nil))
-	u.G().Log.Debug("| Load local -> %v", (local != nil))
+func TrackChainLinkFor(me keybase1.UID, them keybase1.UID, remote *TrackChainLink, remoteErr error, g *GlobalContext) (*TrackChainLink, error) {
 
-	if e1 != nil && e2 != nil {
-		return nil, e1
+	local, e2 := LocalTrackChainLinkFor(me, them, g)
+
+	g.Log.Debug("| Load remote -> %v", (remote != nil))
+	g.Log.Debug("| Load local -> %v", (local != nil))
+
+	if remoteErr != nil && e2 != nil {
+		return nil, remoteErr
 	}
 
 	if local == nil && remote == nil {
@@ -505,12 +520,12 @@ func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChain
 	}
 
 	if remote == nil && local != nil {
-		u.g.Log.Debug("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
+		g.Log.Debug("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
 		return local, nil
 	}
 
 	if remote.GetCTime().After(local.GetCTime()) {
-		u.G().Log.Debug("| Returning newer remote")
+		g.Log.Debug("| Returning newer remote")
 		return remote, nil
 	}
 
@@ -717,4 +732,24 @@ func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
 		return false
 	}
 	return true
+}
+
+// PartialCopy copies some fields of the User object, but not all.
+// For instance, it doesn't copy the SigChain or IDTable, and it only
+// makes a shallow copy of the ComputedKeyFamily.
+func (u User) PartialCopy() *User {
+	ret := &User{
+		Contextified: NewContextified(u.G()),
+		id:           u.id,
+		name:         u.name,
+		leaf:         u.leaf,
+		dirty:        false,
+	}
+	if ckf := u.GetComputedKeyFamily(); ckf != nil {
+		ret.ckfShallowCopy = ckf.ShallowCopy()
+		ret.keyFamily = ckf.kf
+	} else if u.keyFamily != nil {
+		ret.keyFamily = u.keyFamily.ShallowCopy()
+	}
+	return ret
 }

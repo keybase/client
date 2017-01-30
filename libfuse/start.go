@@ -31,7 +31,7 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 
 	if options.RuntimeDir != "" {
 		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
-		err := info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"))
+		err := info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"), log)
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}
