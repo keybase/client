@@ -60,7 +60,7 @@ function updateConversationMessage (conversationStates: ConversationsStates, con
     conversation => {
       const index = conversation.get('messages').findIndex(pred)
       if (index < 0) {
-        console.warn("Couldn't find an outbox entry to modify")
+        console.warn("Couldn't find a message to update")
         return conversation
       }
       // $FlowIssue
@@ -239,6 +239,19 @@ function reducer (state: State = initialState, action: Actions) {
         })
         )
       }
+    }
+    case 'chat:updateMessage': {
+      const {messageID, message, conversationIDKey} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.messageID && item.messageID === messageID,
+        m => ({
+          ...m,
+          ...message,
+        })
+      ))
     }
     case 'chat:markSeenMessage': {
       const {messageID, conversationIDKey} = action.payload
