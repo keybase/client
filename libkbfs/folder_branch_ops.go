@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -4854,6 +4855,77 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 	return true, nil
 }
 
+func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+
+	if fbo.head == (ImmutableRootMetadata{}) {
+		return
+	}
+
+	// It's safe to give this a finalized number of 1 and a fake user
+	// name.  The whole point here is to move the old finalized TLF
+	// name away to a new name, where the user won't be able to access
+	// it anymore, and if there's a conflict with a previously-moved
+	// TLF that shouldn't matter.
+	now := fbo.config.Clock().Now()
+	finalizedInfo, err := tlf.NewHandleExtension(
+		tlf.HandleExtensionFinalized, 1, libkb.NormalizedUsername("<unknown>"),
+		now)
+	if err != nil {
+		fbo.log.CErrorf(ctx, "Couldn't make finalized info: %+v", err)
+		return
+	}
+
+	fakeSignedHead := &RootMetadataSigned{MD: fbo.head.bareMd}
+	finalRmd, err := fakeSignedHead.MakeFinalCopy(
+		fbo.config.Codec(), now, finalizedInfo)
+	if err != nil {
+		fbo.log.CErrorf(ctx, "Couldn't finalize MD: %+v", err)
+		return
+	}
+
+	// Construct the data needed to fake a new head.
+	mdID, err := fbo.config.Crypto().MakeMdID(finalRmd.MD)
+	if err != nil {
+		fbo.log.CErrorf(ctx, "Couldn't get finalized MD ID: %+v", err)
+		return
+	}
+	bareHandle, err := finalRmd.MD.MakeBareTlfHandle(fbo.head.Extra())
+	if err != nil {
+		fbo.log.CErrorf(ctx, "Couldn't get finalized bare handle: %+v", err)
+		return
+	}
+	handle, err := MakeTlfHandle(ctx, bareHandle, fbo.config.KBPKI())
+	if err != nil {
+		fbo.log.CErrorf(ctx, "Couldn't get finalized handle: %+v", err)
+		return
+	}
+	finalBrmd, ok := finalRmd.MD.(MutableBareRootMetadata)
+	if !ok {
+		fbo.log.CErrorf(ctx, "Couldn't get finalized mutable bare MD: %+v", err)
+		return
+	}
+
+	// We don't have a way to sign this with a valid key (and we might
+	// be logged out anyway), so just directly make the md immutable.
+	finalIrmd := ImmutableRootMetadata{
+		ReadOnlyRootMetadata: makeRootMetadata(
+			finalBrmd, fbo.head.Extra(), handle).ReadOnly(),
+		mdID: mdID,
+	}
+
+	// This will trigger the handle change notification to observers.
+	err = fbo.setHeadSuccessorLocked(ctx, lState, finalIrmd, false)
+	if err != nil {
+		fbo.log.CErrorf(ctx, "Couldn't set finalized MD: %+v", err)
+		return
+	}
+}
+
 func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 	defer close(fbo.updateDoneChan)
 	childDone := make(chan struct{})
@@ -4895,6 +4967,18 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					fbo.log.CDebugf(ctx, "Abandoning updates since we can't "+
 						"read the newest metadata: %+v", err)
 					fbo.status.setPermErr(err)
+					cancel()
+					return ctx.Err()
+				case MDServerErrorCannotReadFinalizedTLF:
+					fbo.log.CDebugf(ctx, "Abandoning updates since we can't "+
+						"read the finalized metadata for this TLF: %+v", err)
+					fbo.status.setPermErr(err)
+
+					// Locally finalize the TLF so new accesses
+					// through to the old folder name will find the
+					// new folder.
+					fbo.locallyFinalizeTLF(newCtx)
+
 					cancel()
 					return ctx.Err()
 				}
