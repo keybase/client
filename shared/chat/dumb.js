@@ -1,12 +1,13 @@
 // @flow
+import ConversationBanner from './conversation/banner'
 import ConversationHeader from './conversation/header.desktop'
 import ConversationInput from './conversation/input.desktop'
 import ConversationList from './conversation/list.desktop'
-import ParticipantRekey from './conversation/participant-rekey.desktop'
-import ConversationBanner from './conversation/banner'
 import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
 import HiddenString from '../util/hidden-string'
+import ParticipantRekey from './conversation/participant-rekey.desktop'
+import YouRekey from './conversation/you-rekey.desktop'
 import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
@@ -238,6 +239,18 @@ const participantRekey = {
   },
 }
 
+const youRekey = {
+  component: YouRekey,
+  mocks: {
+    'Normal': {
+      ...commonConvoProps,
+      onRekey: () => { console.log('Reykey clicked') },
+      parentProps: listParentProps,
+      rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
+    },
+  },
+}
+
 const list = {
   component: ConversationList,
   mocks: {
@@ -383,4 +396,5 @@ export default {
   'ChatConversationsList': conversationsList,
   'ChatBanner': conversationBanner,
   'ChatParticipantRekey': participantRekey,
+  'YouRekey': youRekey,
 }
