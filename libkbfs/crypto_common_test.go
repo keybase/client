@@ -96,9 +96,13 @@ func (tb TestBlock) NewEmpty() Block {
 	return &TestBlock{}
 }
 
-func (tb *TestBlock) Set(other Block, _ kbfscodec.Codec) {
+func (tb *TestBlock) Set(other Block) {
 	otherTb := other.(*TestBlock)
 	tb.A = otherTb.A
+}
+
+func (tb *TestBlock) ToCommonBlock() *CommonBlock {
+	return nil
 }
 
 func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
@@ -542,7 +546,11 @@ func (tba testBlockArray) NewEmpty() Block {
 	return &testBlockArray{}
 }
 
-func (tba *testBlockArray) Set(other Block, _ kbfscodec.Codec) {
+func (tba testBlockArray) ToCommonBlock() *CommonBlock {
+	return nil
+}
+
+func (tba *testBlockArray) Set(other Block) {
 	otherTba := other.(*testBlockArray)
 	*tba = *otherTba
 }

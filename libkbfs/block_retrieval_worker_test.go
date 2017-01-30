@@ -93,7 +93,7 @@ func makeFakeFileBlock(t *testing.T, doHash bool) *FileBlock {
 		Contents: buf,
 	}
 	if doHash {
-		_ = block.UpdateHash()
+		_ = block.GetHash()
 	}
 	return block
 }

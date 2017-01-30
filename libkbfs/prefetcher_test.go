@@ -343,7 +343,7 @@ func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
 	continueCh1 <- nil
 	err := <-ch
 	require.NoError(t, err)
-	_ = block.(*FileBlock).UpdateHash()
+	_ = block.(*FileBlock).GetHash()
 	require.Equal(t, file1, block)
 	require.Equal(t, uint64(16), cache.cleanTotalBytes)
 

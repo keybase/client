@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfshash"
 )
 
@@ -81,27 +80,26 @@ func (cb *CommonBlock) NewEmpty() Block {
 	return NewCommonBlock()
 }
 
-// Set implements the Block interface for CommonBlock.
-func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
-	// Don't assert type for CommonBlock because we need to be able to Set from
-	// specific block types
-	err := kbfscodec.Update(codec, cb, other)
-	if err != nil {
-		panic("Unable to CommonBlock.Set")
-	}
-	cb.cacheMtx.Lock()
-	defer cb.cacheMtx.Unlock()
-	cb.cachedEncodedSize = other.GetEncodedSize()
+// ToCommonBlock implements the Block interface for CommonBlock.
+func (cb *CommonBlock) ToCommonBlock() *CommonBlock {
+	return cb
 }
 
-// Copy copies a CommonBlock without the lock.
-func (cb *CommonBlock) Copy() CommonBlock {
-	cb.cacheMtx.RLock()
-	defer cb.cacheMtx.RUnlock()
+// Set implements the Block interface for CommonBlock.
+func (cb *CommonBlock) Set(other Block) {
+	otherCopy := other.ToCommonBlock()
+	cb.IsInd = otherCopy.IsInd
+	cb.UnknownFieldSetHandler = otherCopy.UnknownFieldSetHandler
+	cb.SetEncodedSize(otherCopy.GetEncodedSize())
+}
+
+// DeepCopy copies a CommonBlock without the lock.
+func (cb *CommonBlock) DeepCopy() CommonBlock {
 	return CommonBlock{
 		IsInd: cb.IsInd,
+		// We don't need to copy UnknownFieldSetHandler because it's immutable.
 		UnknownFieldSetHandler: cb.UnknownFieldSetHandler,
-		cachedEncodedSize:      cb.cachedEncodedSize,
+		cachedEncodedSize:      cb.GetEncodedSize(),
 	}
 }
 
@@ -131,36 +129,33 @@ func (db *DirBlock) NewEmpty() Block {
 	return NewDirBlock()
 }
 
+// ToCommonBlock implements the Block interface for DirBlock.
+func (db *DirBlock) ToCommonBlock() *CommonBlock {
+	return &db.CommonBlock
+}
+
 // Set implements the Block interface for DirBlock
-func (db *DirBlock) Set(other Block, codec kbfscodec.Codec) {
+func (db *DirBlock) Set(other Block) {
 	otherDb := other.(*DirBlock)
-	dbCopy, err := otherDb.DeepCopy(codec)
-	if err != nil {
-		panic("Unable to DirBlock.Set")
-	}
-	db.IsInd = dbCopy.IsInd
-	db.UnknownFieldSetHandler = dbCopy.UnknownFieldSetHandler
+	dbCopy := otherDb.DeepCopy()
 	db.Children = dbCopy.Children
 	db.IPtrs = dbCopy.IPtrs
-	db.cacheMtx.Lock()
-	defer db.cacheMtx.Unlock()
-	db.cachedEncodedSize = dbCopy.cachedEncodedSize
+	db.ToCommonBlock().Set(dbCopy.ToCommonBlock())
 }
 
 // DeepCopy makes a complete copy of a DirBlock
-func (db *DirBlock) DeepCopy(codec kbfscodec.Codec) (*DirBlock, error) {
-	var dirBlockCopy DirBlock
-	err := kbfscodec.Update(codec, &dirBlockCopy, db)
-	if err != nil {
-		return nil, err
+func (db *DirBlock) DeepCopy() *DirBlock {
+	childrenCopy := make(map[string]DirEntry, len(db.Children))
+	for k, v := range db.Children {
+		childrenCopy[k] = v
 	}
-	if dirBlockCopy.Children == nil {
-		dirBlockCopy.Children = make(map[string]DirEntry)
+	// TODO KBFS-3: add a copy for IPtrs too once we support indirect dir
+	// blocks
+	return &DirBlock{
+		CommonBlock: db.CommonBlock.DeepCopy(),
+		Children:    childrenCopy,
+		IPtrs:       db.IPtrs,
 	}
-	db.cacheMtx.RLock()
-	defer db.cacheMtx.RUnlock()
-	dirBlockCopy.cachedEncodedSize = db.cachedEncodedSize
-	return &dirBlockCopy, nil
 }
 
 // FileBlock is the contents of a file
@@ -237,44 +232,37 @@ func (fb *FileBlock) DataVersion() DataVer {
 	return FirstValidDataVer
 }
 
+// ToCommonBlock implements the Block interface for FileBlock.
+func (fb *FileBlock) ToCommonBlock() *CommonBlock {
+	return &fb.CommonBlock
+}
+
 // Set implements the Block interface for FileBlock
-func (fb *FileBlock) Set(other Block, codec kbfscodec.Codec) {
+func (fb *FileBlock) Set(other Block) {
 	otherFb := other.(*FileBlock)
-	copy, err := otherFb.DeepCopy(codec)
-	if err != nil {
-		panic("Unable to DirBlock.Set")
-	}
-	fb.IsInd = copy.IsInd
-	fb.UnknownFieldSetHandler = copy.UnknownFieldSetHandler
-	fb.Contents = copy.Contents
-	fb.IPtrs = copy.IPtrs
-	fb.cacheMtx.Lock()
-	defer fb.cacheMtx.Unlock()
-	fb.cachedEncodedSize = copy.cachedEncodedSize
-	// Don't copy the hash so it's calculated automatically when it's needed.
+	fbCopy := otherFb.DeepCopy()
+	fb.Contents = fbCopy.Contents
+	fb.IPtrs = fbCopy.IPtrs
+	fb.ToCommonBlock().Set(fbCopy.ToCommonBlock())
 }
 
 // DeepCopy makes a complete copy of a FileBlock
-func (fb *FileBlock) DeepCopy(codec kbfscodec.Codec) (*FileBlock, error) {
-	var fileBlockCopy FileBlock
-	fb.cacheMtx.RLock()
-	defer fb.cacheMtx.RUnlock()
-	err := kbfscodec.Update(codec, &fileBlockCopy, fb)
-	if err != nil {
-		return nil, err
+func (fb *FileBlock) DeepCopy() *FileBlock {
+	var contentsCopy []byte
+	if fb.Contents != nil {
+		contentsCopy = make([]byte, len(fb.Contents))
+		copy(contentsCopy, fb.Contents)
 	}
-	fileBlockCopy.cachedEncodedSize = fb.cachedEncodedSize
-	// Don't copy the hash so it's calculated automatically when it's needed.
-	return &fileBlockCopy, nil
-}
-
-// UpdateHash updates the hash of this FileBlock
-func (fb *FileBlock) UpdateHash() kbfshash.RawDefaultHash {
-	fb.cacheMtx.Lock()
-	defer fb.cacheMtx.Unlock()
-	_, hash := kbfshash.DoRawDefaultHash(fb.Contents)
-	fb.hash = &hash
-	return hash
+	var iptrsCopy []IndirectFilePtr
+	if fb.IPtrs != nil {
+		iptrsCopy = make([]IndirectFilePtr, len(fb.IPtrs))
+		copy(iptrsCopy, fb.IPtrs)
+	}
+	return &FileBlock{
+		CommonBlock: fb.CommonBlock.DeepCopy(),
+		Contents:    contentsCopy,
+		IPtrs:       iptrsCopy,
+	}
 }
 
 // GetHash returns the hash of this FileBlock. If the hash is nil, it first

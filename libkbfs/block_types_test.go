@@ -114,20 +114,24 @@ func (dbf *dirBlockFuture) NewEmpty() Block {
 	return &dirBlockFuture{}
 }
 
-func (dbf *dirBlockFuture) Set(other Block, codec kbfscodec.Codec) {
+func (dbf *dirBlockFuture) Set(other Block) {
 	otherDbf := other.(*dirBlockFuture)
-	err := kbfscodec.Update(codec, dbf, otherDbf)
-	if err != nil {
-		panic("Unable to dirBlockFuture.Set")
+	childrenCopy := make(map[string]dirEntryFuture, len(otherDbf.Children))
+	for k, v := range otherDbf.Children {
+		childrenCopy[k] = v
 	}
-	if dbf.Children == nil {
-		dbf.Children = make(map[string]dirEntryFuture, len(otherDbf.Children))
-	}
+	ptrsCopy := make([]indirectDirPtrFuture, len(otherDbf.IPtrs))
+	copy(ptrsCopy, otherDbf.IPtrs)
+	dbf.Children = childrenCopy
+	dbf.IPtrs = ptrsCopy
+	dbf.CommonBlock.IsInd = otherDbf.IsInd
+	dbf.CommonBlock.UnknownFieldSetHandler = otherDbf.UnknownFieldSetHandler
+	dbf.CommonBlock.SetEncodedSize(otherDbf.GetEncodedSize())
 }
 
 func (dbf *dirBlockFuture) toCurrent() *dirBlockCurrent {
 	db := &dirBlockCurrent{
-		CommonBlock: dbf.CommonBlock.Copy(),
+		CommonBlock: dbf.CommonBlock.DeepCopy(),
 	}
 	db.Children = make(map[string]DirEntry, len(dbf.Children))
 	for k, v := range dbf.Children {
@@ -183,17 +187,20 @@ func (fbf *fileBlockFuture) NewEmpty() Block {
 	return &fileBlockFuture{}
 }
 
-func (fbf *fileBlockFuture) Set(other Block, codec kbfscodec.Codec) {
+func (fbf *fileBlockFuture) Set(other Block) {
 	otherFbf := other.(*fileBlockFuture)
-	err := kbfscodec.Update(codec, fbf, otherFbf)
-	if err != nil {
-		panic("Unable to fileBlockFuture.Set")
-	}
+	fbf.Contents = make([]byte, len(otherFbf.Contents))
+	copy(fbf.Contents, otherFbf.Contents)
+	fbf.IPtrs = make([]indirectFilePtrFuture, len(otherFbf.IPtrs))
+	copy(fbf.IPtrs, otherFbf.IPtrs)
+	fbf.CommonBlock.IsInd = otherFbf.IsInd
+	fbf.CommonBlock.UnknownFieldSetHandler = otherFbf.UnknownFieldSetHandler
+	fbf.CommonBlock.SetEncodedSize(otherFbf.GetEncodedSize())
 }
 
 func (fbf *fileBlockFuture) toCurrent() *fileBlockCurrent {
 	fb := &fileBlockCurrent{
-		CommonBlock: fbf.CommonBlock.Copy(),
+		CommonBlock: fbf.CommonBlock.DeepCopy(),
 		hash:        fbf.hash,
 	}
 	fb.IPtrs = make([]IndirectFilePtr, len(fbf.IPtrs))
