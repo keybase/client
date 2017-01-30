@@ -7,14 +7,22 @@ protocol GuiFileAccess {
 /*
   File manipulation interface
   
-  Caller provides OpID to asynchronous method call, then polls 
-  by calling a get* method until status is no
-  longer pending or operation is cancelled.
-
-  Caller can optionally block by calling wait
+  Caller provides OpID to one of these methods to begin an operation:
+    list
+    listRecursive
+    copy
+    open
+    move
+    remove
+  then calls one of the following until until status is no longer pending
+  or operation is cancelled:
+    readList (after list or listRecursive)
+    read (after open)
+    write (after open)
+    check (after copy, move or remove)
+  Caller can optionally block by calling wait()
+  Operation must be closed by calling close
  
-  KBFS paths are expected to start with "private" or "public" - mount name is implied.
-  Other paths are absolute, full paths.
 */
 
   // Random GUID provided by caller 
