@@ -533,6 +533,112 @@ func TestRevokeRemovedDevicesV2(t *testing.T) {
 	require.Equal(t, expectedRKeys, brmd.RKeys)
 }
 
+// TestRevokeLastDeviceV2 checks behavior of RevokeRemovedDevices with
+// respect to removing the last device of a user vs. removing the user
+// completely.
+func TestRevokeLastDeviceV2(t *testing.T) {
+	uid1 := keybase1.MakeTestUID(0x1)
+	uid2 := keybase1.MakeTestUID(0x2)
+	uid3 := keybase1.MakeTestUID(0x3)
+	uid4 := keybase1.MakeTestUID(0x4)
+
+	key1 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key1")
+	key2 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key2")
+
+	half1 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
+	half2 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
+
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	id1, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1, half1)
+	require.NoError(t, err)
+	id2, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2)
+	require.NoError(t, err)
+
+	tlfID := tlf.FakeID(1, false)
+
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3, uid4}, nil, nil, nil)
+	require.NoError(t, err)
+
+	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	require.NoError(t, err)
+
+	brmd.WKeys = TLFWriterKeyGenerationsV2{
+		TLFWriterKeyBundleV2{
+			WKeys: UserDeviceKeyInfoMapV2{
+				uid1: DeviceKeyInfoMapV2{
+					key1.KID(): TLFCryptKeyInfo{
+						ServerHalfID: id1,
+						EPubKeyIndex: 0,
+					},
+				},
+				uid2: DeviceKeyInfoMapV2{
+					key2.KID(): TLFCryptKeyInfo{
+						ServerHalfID: id2,
+						EPubKeyIndex: 1,
+					},
+				},
+			},
+		},
+	}
+
+	brmd.RKeys = TLFReaderKeyGenerationsV2{
+		TLFReaderKeyBundleV2{
+			RKeys: UserDeviceKeyInfoMapV2{
+				uid3: DeviceKeyInfoMapV2{},
+				uid4: DeviceKeyInfoMapV2{},
+			},
+		},
+	}
+
+	updatedWriterKeys := UserDevicePublicKeys{
+		uid1: {},
+	}
+	updatedReaderKeys := UserDevicePublicKeys{
+		uid3: {},
+	}
+
+	removalInfo, err := brmd.RevokeRemovedDevices(
+		updatedWriterKeys, updatedReaderKeys, nil)
+	require.NoError(t, err)
+	require.Equal(t, ServerHalfRemovalInfo{
+		uid1: userServerHalfRemovalInfo{
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key1: []TLFCryptKeyServerHalfID{id1},
+			},
+		},
+		uid2: userServerHalfRemovalInfo{
+			userRemoved: true,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key2: []TLFCryptKeyServerHalfID{id2},
+			},
+		},
+		uid4: userServerHalfRemovalInfo{
+			userRemoved:         true,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{},
+		},
+	}, removalInfo)
+
+	expectedWKeys := TLFWriterKeyGenerationsV2{
+		TLFWriterKeyBundleV2{
+			WKeys: UserDeviceKeyInfoMapV2{
+				uid1: DeviceKeyInfoMapV2{},
+			},
+		},
+	}
+	require.Equal(t, expectedWKeys, brmd.WKeys)
+
+	expectedRKeys := TLFReaderKeyGenerationsV2{
+		TLFReaderKeyBundleV2{
+			RKeys: UserDeviceKeyInfoMapV2{
+				uid3: DeviceKeyInfoMapV2{},
+			},
+		},
+	}
+	require.Equal(t, expectedRKeys, brmd.RKeys)
+}
+
 type userDeviceSet UserDevicePublicKeys
 
 // union returns the union of the user's keys in uds and other. For a
@@ -566,14 +672,21 @@ func (uds userDeviceSet) union(other userDeviceSet) userDeviceSet {
 // device private keys.
 type userDevicePrivateKeys map[keybase1.UID]map[kbfscrypto.CryptPrivateKey]bool
 
+func (udpk userDevicePrivateKeys) hasKeys() bool {
+	for _, privKeys := range udpk {
+		if len(privKeys) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
 func (udpk userDevicePrivateKeys) toPublicKeys() UserDevicePublicKeys {
 	pubKeys := make(UserDevicePublicKeys)
 	for uid, privKeys := range udpk {
+		pubKeys[uid] = make(DevicePublicKeys)
 		for privKey := range privKeys {
 			pubKey := privKey.GetPublicKey()
-			if pubKeys[uid] == nil {
-				pubKeys[uid] = make(DevicePublicKeys)
-			}
 			pubKeys[uid][pubKey] = true
 		}
 	}
@@ -752,8 +865,8 @@ func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 			expectedReaderPubKeys = accumulatePublicKeys(
 				expectedReaderPubKeys,
 				expected.readerPrivKeys.toPublicKeys())
-			if len(expected.writerPrivKeys)+
-				len(expected.readerPrivKeys) > 0 {
+			if expected.writerPrivKeys.hasKeys() ||
+				expected.readerPrivKeys.hasKeys() {
 				if expected.ePubKeyIndex >= 0 {
 					require.Equal(t, expected.ePubKeyIndex,
 						len(expectedWriterEPublicKeys))
@@ -793,7 +906,7 @@ func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 				expected.readerPrivKeys.toPublicKeys())
 			userPubKeys := userDeviceServerHalvesToPublicKeys(
 				expected.serverHalves[keyGen-FirstValidKeyGen])
-			require.Equal(t, expectedUserPubKeys, userPubKeys)
+			require.Equal(t, expectedUserPubKeys.removeKeylessUsersForTest(), userPubKeys)
 			checkGetTLFCryptKeyV2(t, keyGen, expected,
 				expectedTLFCryptKeys[keyGen-FirstValidKeyGen],
 				wkb, rkb)
@@ -1021,6 +1134,70 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	}
 
 	expectedRekeyInfos = append(expectedRekeyInfos, expectedRekeyInfo4b)
+
+	checkKeyBundlesV2(t, expectedRekeyInfos, tlfCryptKeys, pubKeys, rmd)
+}
+
+// TestBareRootMetadataV2AddKeyGenerationKeylessUsers checks that
+// keyless users are handled properly by AddKeyGeneration.
+func TestBareRootMetadataV2AddKeyGenerationKeylessUsers(t *testing.T) {
+	uid1 := keybase1.MakeTestUID(1)
+	uid2 := keybase1.MakeTestUID(2)
+	uid3 := keybase1.MakeTestUID(3)
+
+	updatedWriterKeys := UserDevicePublicKeys{
+		uid1: {},
+		uid2: {},
+	}
+
+	updatedReaderKeys := UserDevicePublicKeys{
+		uid3: {},
+	}
+
+	tlfID := tlf.FakeID(1, false)
+
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UID{uid1, uid2}, []keybase1.UID{uid3},
+		[]keybase1.SocialAssertion{{}},
+		nil, nil)
+	require.NoError(t, err)
+
+	rmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	require.NoError(t, err)
+
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+
+	ePubKey1, ePrivKey1, err := crypto.MakeRandomTLFEphemeralKeys()
+	require.NoError(t, err)
+
+	// Add first key generation.
+
+	fakeKeyData := [32]byte{1}
+	pubKey := kbfscrypto.MakeTLFPublicKey(fakeKeyData)
+	tlfCryptKey := kbfscrypto.MakeTLFCryptKey(fakeKeyData)
+
+	_, serverHalves1Gen, err := rmd.AddKeyGeneration(codec,
+		crypto, nil, updatedWriterKeys, updatedReaderKeys,
+		ePubKey1, ePrivKey1,
+		pubKey, kbfscrypto.TLFCryptKey{}, tlfCryptKey)
+	require.NoError(t, err)
+	serverHalves1 := []UserDeviceKeyServerHalves{serverHalves1Gen}
+
+	pubKeys := []kbfscrypto.TLFPublicKey{pubKey}
+	tlfCryptKeys := []kbfscrypto.TLFCryptKey{tlfCryptKey}
+
+	expectedRekeyInfo1 := expectedRekeyInfoV2{
+		writerPrivKeys: userDevicePrivateKeys{
+			uid1: {},
+			uid2: {},
+		},
+		readerPrivKeys: userDevicePrivateKeys{
+			uid3: {},
+		},
+		serverHalves: serverHalves1,
+	}
+	expectedRekeyInfos := []expectedRekeyInfoV2{expectedRekeyInfo1}
 
 	checkKeyBundlesV2(t, expectedRekeyInfos, tlfCryptKeys, pubKeys, rmd)
 }

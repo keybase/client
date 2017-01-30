@@ -1096,19 +1096,17 @@ func (md *BareRootMetadataV3) AddKeyGeneration(codec kbfscodec.Codec,
 		}
 
 		existingWriterKeys := currExtraV3.wkb.Keys.toPublicKeys()
-		updatedWriterKeysRemoved := updatedWriterKeys.RemoveKeylessUsers()
-		if !existingWriterKeys.Equals(updatedWriterKeysRemoved) {
+		if !existingWriterKeys.Equals(updatedWriterKeys) {
 			return nil, nil, fmt.Errorf(
-				"existingWriterKeys=%+v != updatedWriterKeysRemoved=%+v",
-				existingWriterKeys, updatedWriterKeysRemoved)
+				"existingWriterKeys=%+v != updatedWriterKeys=%+v",
+				existingWriterKeys, updatedWriterKeys)
 		}
 
 		existingReaderKeys := currExtraV3.rkb.Keys.toPublicKeys()
-		updatedReaderKeysRemoved := updatedReaderKeys.RemoveKeylessUsers()
-		if !existingReaderKeys.Equals(updatedReaderKeysRemoved) {
+		if !existingReaderKeys.Equals(updatedReaderKeys) {
 			return nil, nil, fmt.Errorf(
-				"existingReaderKeys=%+v != updatedReaderKeysRemoved=%+v",
-				existingReaderKeys, updatedReaderKeysRemoved)
+				"existingReaderKeys=%+v != updatedReaderKeys=%+v",
+				existingReaderKeys, updatedReaderKeys)
 		}
 
 		if latestKeyGen < FirstValidKeyGen {

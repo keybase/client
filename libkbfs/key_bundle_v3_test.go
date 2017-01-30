@@ -50,6 +50,8 @@ func TestRKBID(t *testing.T) {
 	require.Equal(t, id1, id2)
 }
 
+// TestRemoveDevicesNotInV3 checks basic functionality of
+// removeDevicesNotIn().
 func TestRemoveDevicesNotInV3(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(0x1)
 	uid2 := keybase1.MakeTestUID(0x2)
@@ -88,17 +90,17 @@ func TestRemoveDevicesNotInV3(t *testing.T) {
 		uid1: DeviceKeyInfoMapV3{
 			key1a: TLFCryptKeyInfo{
 				ServerHalfID: id1a,
-				EPubKeyIndex: -1,
+				EPubKeyIndex: 1,
 			},
 			key1b: TLFCryptKeyInfo{
 				ServerHalfID: id1b,
-				EPubKeyIndex: +2,
+				EPubKeyIndex: 2,
 			},
 		},
 		uid2: DeviceKeyInfoMapV3{
 			key2a: TLFCryptKeyInfo{
 				ServerHalfID: id2a,
-				EPubKeyIndex: -2,
+				EPubKeyIndex: 2,
 			},
 			key2b: TLFCryptKeyInfo{
 				ServerHalfID: id2b,
@@ -112,7 +114,7 @@ func TestRemoveDevicesNotInV3(t *testing.T) {
 		uid3: DeviceKeyInfoMapV3{
 			key3a: TLFCryptKeyInfo{
 				ServerHalfID: id3a,
-				EPubKeyIndex: -2,
+				EPubKeyIndex: 2,
 			},
 		},
 	}
@@ -126,7 +128,7 @@ func TestRemoveDevicesNotInV3(t *testing.T) {
 		uid2: DeviceKeyInfoMapV3{
 			key2a: TLFCryptKeyInfo{
 				ServerHalfID: id2a,
-				EPubKeyIndex: -2,
+				EPubKeyIndex: 2,
 			},
 			key2c: TLFCryptKeyInfo{
 				ServerHalfID: id2c,
@@ -136,7 +138,7 @@ func TestRemoveDevicesNotInV3(t *testing.T) {
 		uid3: DeviceKeyInfoMapV3{
 			key3a: TLFCryptKeyInfo{
 				ServerHalfID: id3a,
-				EPubKeyIndex: -2,
+				EPubKeyIndex: 2,
 			},
 		},
 	}, udkimV3)
@@ -154,6 +156,77 @@ func TestRemoveDevicesNotInV3(t *testing.T) {
 			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
 				key2b: []TLFCryptKeyServerHalfID{id2b},
 			},
+		},
+	}, removalInfo)
+}
+
+// TestRemoveLastDeviceV3 checks behavior of removeDevicesNotIn() with
+// respect to removing the last device of a user vs. removing the user
+// completely.
+//
+// This is a regression test for KBFS-1898.
+func TestRemoveLastDeviceV3(t *testing.T) {
+	uid1 := keybase1.MakeTestUID(0x1)
+	uid2 := keybase1.MakeTestUID(0x2)
+	uid3 := keybase1.MakeTestUID(0x3)
+	uid4 := keybase1.MakeTestUID(0x4)
+
+	key1 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key1")
+	key2 := kbfscrypto.MakeFakeCryptPublicKeyOrBust("key2")
+
+	half1 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
+	half2 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
+
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	id1, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1, half1)
+	require.NoError(t, err)
+	id2, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2)
+	require.NoError(t, err)
+
+	udkimV3 := UserDeviceKeyInfoMapV3{
+		uid1: DeviceKeyInfoMapV3{
+			key1: TLFCryptKeyInfo{
+				ServerHalfID: id1,
+				EPubKeyIndex: 1,
+			},
+		},
+		uid2: DeviceKeyInfoMapV3{
+			key2: TLFCryptKeyInfo{
+				ServerHalfID: id2,
+				EPubKeyIndex: 2,
+			},
+		},
+		uid3: DeviceKeyInfoMapV3{},
+		uid4: DeviceKeyInfoMapV3{},
+	}
+
+	removalInfo := udkimV3.removeDevicesNotIn(UserDevicePublicKeys{
+		uid1: {},
+		uid3: {},
+	})
+
+	require.Equal(t, UserDeviceKeyInfoMapV3{
+		uid1: DeviceKeyInfoMapV3{},
+		uid3: DeviceKeyInfoMapV3{},
+	}, udkimV3)
+
+	require.Equal(t, ServerHalfRemovalInfo{
+		uid1: userServerHalfRemovalInfo{
+			userRemoved: false,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key1: []TLFCryptKeyServerHalfID{id1},
+			},
+		},
+		uid2: userServerHalfRemovalInfo{
+			userRemoved: true,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+				key2: []TLFCryptKeyServerHalfID{id2},
+			},
+		},
+		uid4: userServerHalfRemovalInfo{
+			userRemoved:         true,
+			deviceServerHalfIDs: deviceServerHalfRemovalInfo{},
 		},
 	}, removalInfo)
 }

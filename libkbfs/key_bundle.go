@@ -55,9 +55,9 @@ func (dpk DevicePublicKeys) Equals(other DevicePublicKeys) bool {
 // UserDevicePublicKeys is a map from users to that user's set of devices.
 type UserDevicePublicKeys map[keybase1.UID]DevicePublicKeys
 
-// RemoveKeylessUsers returns a new UserDevicePublicKeys objects with
+// removeKeylessUsersForTest returns a new UserDevicePublicKeys objects with
 // all the users with an empty DevicePublicKeys removed.
-func (udpk UserDevicePublicKeys) RemoveKeylessUsers() UserDevicePublicKeys {
+func (udpk UserDevicePublicKeys) removeKeylessUsersForTest() UserDevicePublicKeys {
 	udpkRemoved := make(UserDevicePublicKeys)
 	for u, dpk := range udpk {
 		if len(dpk) > 0 {
