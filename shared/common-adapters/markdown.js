@@ -1,6 +1,7 @@
 // @flow
 
 import Text from './text'
+import Box from './box'
 import {emojiIndex} from 'emoji-mart'
 import Emoji from './emoji'
 import React, {PureComponent} from 'react'
@@ -46,6 +47,7 @@ const neutralPreviewStyle = {color: undefined, fontWeight: undefined}
 const boldStyle = {...wrapStyle, color: undefined}
 const italicStyle = {...wrapStyle, color: undefined, fontStyle: 'italic', fontWeight: undefined}
 const strikeStyle = {...wrapStyle, color: undefined, fontWeight: undefined, textDecoration: 'line-through'}
+const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 13}
 
 class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
   render () {
@@ -86,9 +88,8 @@ function messageCreateComponent (type, key, children, options) {
       return <EmojiIfExists size={16} key={key}>{children}</EmojiIfExists>
     case 'native-emoji':
       return <Emoji size={16} key={key}>{children}</Emoji>
-    // TODO
     case 'quote-block':
-      return <Text type='Body' key={key} style={{}}>{children}</Text>
+      return <Box key={key} style={quoteStyle}>{children}</Box>
   }
 }
 
