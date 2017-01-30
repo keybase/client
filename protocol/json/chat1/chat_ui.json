@@ -145,7 +145,7 @@
         },
         {
           "name": "error",
-          "type": "string"
+          "type": "ConversationErrorLocal"
         }
       ],
       "response": null

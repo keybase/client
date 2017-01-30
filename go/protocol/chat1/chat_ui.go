@@ -57,9 +57,9 @@ type ChatInboxConversationArg struct {
 }
 
 type ChatInboxFailedArg struct {
-	SessionID int            `codec:"sessionID" json:"sessionID"`
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	Error     string         `codec:"error" json:"error"`
+	SessionID int                    `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID         `codec:"convID" json:"convID"`
+	Error     ConversationErrorLocal `codec:"error" json:"error"`
 }
 
 type ChatUiInterface interface {

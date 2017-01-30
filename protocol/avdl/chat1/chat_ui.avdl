@@ -14,5 +14,5 @@ protocol chatUi {
 
   void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
   void chatInboxConversation(int sessionID, ConversationLocal conv);
-  void chatInboxFailed(int sessionID, ConversationID convID, string error);
+  void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 }

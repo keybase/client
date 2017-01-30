@@ -760,10 +760,19 @@ func (e ConversationErrorType) String() string {
 }
 
 type ConversationErrorLocal struct {
-	Typ        ConversationErrorType `codec:"typ" json:"typ"`
-	Message    string                `codec:"message" json:"message"`
-	RemoteConv Conversation          `codec:"remoteConv" json:"remoteConv"`
-	Permanent  bool                  `codec:"permanent" json:"permanent"`
+	Typ        ConversationErrorType   `codec:"typ" json:"typ"`
+	Message    string                  `codec:"message" json:"message"`
+	RemoteConv Conversation            `codec:"remoteConv" json:"remoteConv"`
+	Permanent  bool                    `codec:"permanent" json:"permanent"`
+	RekeyInfo  *ConversationErrorRekey `codec:"rekeyInfo,omitempty" json:"rekeyInfo,omitempty"`
+}
+
+type ConversationErrorRekey struct {
+	TlfName     string   `codec:"tlfName" json:"tlfName"`
+	TlfPublic   bool     `codec:"tlfPublic" json:"tlfPublic"`
+	Rekeyers    []string `codec:"rekeyers" json:"rekeyers"`
+	WriterNames []string `codec:"writerNames" json:"writerNames"`
+	ReaderNames []string `codec:"readerNames" json:"readerNames"`
 }
 
 type ConversationLocal struct {

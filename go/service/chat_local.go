@@ -122,8 +122,8 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 			if convRes.Err != nil {
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
-					Error:     convRes.Err.Error(),
 					ConvID:    convRes.ConvID,
+					Error:     *convRes.Err,
 				})
 			} else if convRes.ConvRes != nil {
 				chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
