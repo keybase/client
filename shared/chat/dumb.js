@@ -216,11 +216,11 @@ const rekeyConvo = (youCanRekey) => ({
   ...commonConversationsProps,
   rekeyInfos: Map({
     convo1: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila']),
+      rekeyParticipants: List(youCanRekey ? [] : ['jzila']),
       youCanRekey,
     }),
     convo3: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
+      rekeyParticipants: List(youCanRekey ? [] : ['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
       youCanRekey,
     }),
   }),
@@ -297,6 +297,14 @@ const conversationsList = {
     },
     'PartRekeySelected': {
       ...rekeyConvo(false),
+      selectedConversation: 'convo1',
+    },
+    'YouRekey': {
+      ...rekeyConvo(true),
+      selectedConversation: 'convo3',
+    },
+    'YouRekeySelected': {
+      ...rekeyConvo(true),
       selectedConversation: 'convo1',
     },
     'LongTop': {
