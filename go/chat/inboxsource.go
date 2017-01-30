@@ -542,6 +542,9 @@ func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 	if len(ib.Convs) == 0 {
 		return conv, fmt.Errorf("unable to find conversation for new message: convID: %s", convID)
 	}
+	if len(ib.Convs) > 1 {
+		return conv, fmt.Errorf("more than one conversation returned? convID: %s", convID)
+	}
 	return &ib.Convs[0], nil
 }
 
