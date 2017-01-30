@@ -187,7 +187,7 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
 
   _onLoadAttachment = () => {
     const {messageID, filename} = this.props.message
-    this.props.onLoadAttachment(messageID, filename)
+    messageID && this.props.onLoadAttachment(messageID, filename)
   }
 
   render () {
