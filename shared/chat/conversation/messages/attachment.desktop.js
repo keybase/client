@@ -2,7 +2,7 @@
 import * as Constants from '../../../constants/chat'
 import MessageComponent from './shared.desktop'
 import React, {PureComponent} from 'react'
-import {Box, Icon, Text} from '../../../common-adapters'
+import {Box, Icon, ProgressIndicator, Text} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
@@ -10,6 +10,10 @@ import type {Props, ProgressBarProps, ImageIconProps} from './attachment'
 
 function _showProgressBar (messageState, progress) {
   return !!progress && (messageState === 'uploading' || messageState === 'downloading')
+}
+
+function _showPreviewProgress (messageState, progress) {
+  return !!progress && (messageState === 'downloading-preview')
 }
 
 function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: string}) {
@@ -112,9 +116,24 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
     ...(messageState === 'uploading' ? {position: 'absolute', bottom: 0, left: 0} : {}),
   }
 
+  const previewProgressIndicatorStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 32,
+    marginLeft: -16,
+    marginTop: -16,
+  }
+
   return (
     <Box style={{position: 'relative'}}>
-      <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
+      <Box style={{display: 'inline-flex', position: 'relative'}}>
+        <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
+        {_showPreviewProgress(messageState, message.progress) && !!message.progress &&
+          <ProgressIndicator
+            style={previewProgressIndicatorStyle}
+          />}
+      </Box>
       <Box style={{marginTop: globalMargins.xtiny}}>
         {_showProgressBar(messageState, message.progress) && !!message.progress &&
           <ProgressBar

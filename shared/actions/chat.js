@@ -1355,6 +1355,17 @@ function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview
 
     if (cachedPath) {
       copy(cachedPath, filename)
+
+      // for visual feedback, we'll briefly display a progress bar
+      for (let i = 0; i < 5; i++) {
+        const fakeProgressAction: Constants.DownloadProgress = {
+          type: 'chat:downloadProgress',
+          payload: {conversationIDKey, messageID, isPreview: false, bytesComplete: i + 1, bytesTotal: 5},
+        }
+        yield put(fakeProgressAction)
+        yield delay(5)
+      }
+
       const action: Constants.AttachmentLoaded = {
         type: 'chat:attachmentLoaded',
         payload: {conversationIDKey, messageID, path: filename, isPreview: loadPreview, isHdPreview: isHdPreview},
@@ -1384,7 +1395,7 @@ function * _loadAttachment ({payload: {conversationIDKey, messageID, loadPreview
     const {bytesComplete, bytesTotal} = response.param
     const action: Constants.DownloadProgress = {
       type: 'chat:downloadProgress',
-      payload: {conversationIDKey, messageID, bytesTotal, bytesComplete},
+      payload: {conversationIDKey, messageID, isPreview: loadPreview || isHdPreview, bytesTotal, bytesComplete},
     }
     yield put(action)
     response.result()
