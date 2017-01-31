@@ -1260,15 +1260,13 @@ function * _muteConversation (action: MuteConversation): SagaGenerator<any, any>
   const conversationID = keyToConversationID(conversationIDKey)
   const status = muted ? CommonConversationStatus.blocked : CommonConversationStatus.unfiled
   const identifyBehavior: TLFIdentifyBehavior = 2 // CHAT_GUI
-  console.warn('in _muteConversation')
-  console.warn(conversationID, status, identifyBehavior)
   yield call(localSetConversationStatusLocalRpcPromise, {
     param: {conversationID, identifyBehavior, status},
   })
 }
 
 function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
-  // Upd  ate gregor's view of the latest message we've read.
+  // Update gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
   const conversationState = yield select(_conversationStateSelector, conversationIDKey)
   if (conversationState && conversationState.firstNewMessageID && conversationState.messages !== null && conversationState.messages.size > 0) {

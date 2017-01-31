@@ -80,7 +80,6 @@ export default connect(
         const inbox = state.chat.get('inbox')
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
         const muted = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation).get('muted')
-        console.warn('muted is', muted)
         const participants = selected && selected.participants || List()
         const metaDataMap = state.chat.get('metaData')
 
