@@ -1091,6 +1091,11 @@ func (fbo *folderBlockOps) PrepRename(
 	if err != nil {
 		return nil, nil, DirEntry{}, nil, err
 	}
+	// A renameOp doesn't have a single path to represent it, so we
+	// can't call setFinalPath here unfortunately.  That means any
+	// rename may force a manual paths population at other layers
+	// (e.g., for journal statuses).  TODO: allow a way to set more
+	// than one final path for renameOps?
 	md.AddOp(ro)
 
 	lbc = make(localBcache)
@@ -1854,6 +1859,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	// before `md` is flushed to the server.  We don't copy it here
 	// because code below still needs to modify it (and by extension,
 	// the one stored in `syncState.si`).
+	si.op.setFinalPath(file)
 	md.AddOp(si.op)
 
 	// Fill in syncState.

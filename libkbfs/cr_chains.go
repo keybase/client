@@ -732,7 +732,8 @@ func (ccs *crChains) addOps(codec kbfscodec.Codec,
 		return err
 	}
 
-	for _, op := range ops {
+	for i, op := range ops {
+		op.setFinalPath(privateMD.Changes.Ops[i].getFinalPath())
 		op.setWriterInfo(winfo)
 		op.setLocalTimestamp(localTimestamp)
 		err := ccs.makeChainForOp(op)
