@@ -129,6 +129,113 @@ else echo \"bar\";",
 }
 `;
 
+exports[`Markdown parser parses more code blocks correctly 1`] = `
+Object {
+  "children": Array [
+    "
+",
+    Object {
+      "children": Array [
+        "this is quoted",
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        "this is ",
+        Object {
+          "children": Array [
+            "italics",
+          ],
+          "type": "italic",
+        },
+        " inside of a quote. This is ",
+        Object {
+          "children": Array [
+            "bold",
+          ],
+          "type": "bold",
+        },
+        " inside of a quote.",
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        "outside code: ",
+        Object {
+          "children": Array [
+            "This is an inline block of code in a quote",
+          ],
+          "type": "inline-code",
+        },
+        " outside again",
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "multi
+line
+code in quote
+",
+          ],
+          "type": "code-block",
+        },
+      ],
+      "type": "quote-block",
+    },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses more code blocks correctly 2`] = `
+Object {
+  "children": Array [
+    "
+        ",
+    Object {
+      "children": Array [
+        "this is a code block",
+      ],
+      "type": "code-block",
+    },
+    "
+",
+    Object {
+      "children": Array [
+        "this is a code block that starts with a newline",
+      ],
+      "type": "code-block",
+    },
+    "
+",
+    Object {
+      "children": Array [
+        "this is a code block that starts with a newline and ends with a newline
+",
+      ],
+      "type": "code-block",
+    },
+    "
+",
+    Object {
+      "children": Array [
+        "
+this is a code block with two newline above",
+      ],
+      "type": "code-block",
+    },
+    "
+",
+  ],
+  "type": "text",
+}
+`;
+
 exports[`Markdown parser parses multiple adjacent emoji correctly 1`] = `
 Object {
   "children": Array [
