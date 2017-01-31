@@ -227,7 +227,7 @@ class ConversationList extends Component<void, Props, State> {
           <TextPopupMenu
             you={this.props.you}
             message={message}
-            onEditMessage={this.props.onEditMessage}
+            onShowEditor={this._showEditor}
             onDeleteMessage={this.props.onDeleteMessage}
             onLoadAttachment={this.props.onLoadAttachment}
             onOpenInFileUI={this.props.onOpenInFileUI}
@@ -249,6 +249,11 @@ class ConversationList extends Component<void, Props, State> {
           />
         )
     }
+  }
+
+  _showEditor (message: TextMessage) {
+    console.log('aaa show editor')
+    // this.props.onEditMessage()
   }
 
   _showPopup (message: TextMessage | AttachmentMessage, event: any) {

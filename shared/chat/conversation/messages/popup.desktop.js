@@ -53,11 +53,11 @@ const stylePopup = {
   width: 196,
 }
 
-export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden, style, you}: TextProps) => {
+export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style, you}: TextProps) => {
   let items = []
   if (message.author === you) {
     items = [
-      {onClick: () => onEditMessage(message), title: 'Edit'},
+      {onClick: () => onShowEditor(message), title: 'Edit'},
       {danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'},
     ]
 
