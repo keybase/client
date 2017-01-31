@@ -111,7 +111,14 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 }
 
 func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
-	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error {
+	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
+
+	// Run all errors through resultCollector
+	defer func() {
+		if err != nil {
+			err = rc.error(err)
+		}
+	}()
 
 	// Read all msgs in reverse order
 	for msgID := maxID; !rc.done() && msgID > 0; msgID-- {

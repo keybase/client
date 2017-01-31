@@ -86,11 +86,17 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	var prevs []chat1.MessagePreviousPointer
 
-	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil, nil)
+	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil,
+		&chat1.Pagination{
+			Num: -1,
+		})
 	switch err.(type) {
 	case storage.MissError:
 		s.Debug(ctx, "No local messages; skipping prev pointers")
 	case nil:
+		if len(res.Messages) == 0 {
+			s.Debug(ctx, "no local messages found for prev pointers")
+		}
 		prevs, err = CheckPrevPointersAndGetUnpreved(&res)
 		if err != nil {
 			return chat1.MessagePlaintext{}, err
