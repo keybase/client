@@ -448,7 +448,7 @@ protocol local {
 
   // Get messages by ID.
   @lint("ignore")
-  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior, boolean disableResolveSupersedes);
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, boolean disableResolveSupersedes, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;

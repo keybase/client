@@ -1789,12 +1789,12 @@
           }
         },
         {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        },
-        {
           "name": "disableResolveSupersedes",
           "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "GetMessagesLocalRes",

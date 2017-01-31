@@ -1192,8 +1192,8 @@ type GetConversationForCLILocalArg struct {
 type GetMessagesLocalArg struct {
 	ConversationID           ConversationID               `codec:"conversationID" json:"conversationID"`
 	MessageIDs               []MessageID                  `codec:"messageIDs" json:"messageIDs"`
-	IdentifyBehavior         keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 	DisableResolveSupersedes bool                         `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
+	IdentifyBehavior         keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type PostAttachmentLocalArg struct {

@@ -1401,8 +1401,8 @@ export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
 export type localGetMessagesLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageIDs?: ?Array<MessageID>,
-  identifyBehavior: keybase1.TLFIdentifyBehavior,
-  disableResolveSupersedes: boolean
+  disableResolveSupersedes: boolean,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
