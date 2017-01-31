@@ -3,18 +3,21 @@
 ## High Level Overview
 
 When Alice sends a message to Bob, she uses the same keys that she would use to
-save a file in `/keybase/private/alice,bob`. That makes a lot of nice things
+save a file in `/keybase/private/alice,bob`. (See the [KBFS crypto
+doc](https://keybase.io/docs/crypto/kbfs).) That makes a lot of nice things
 work right off the bat:
 
-- Alice can send a message to Bob even if he hasn't joined Keybase yet. If she
-  knows Bob is @bobbymcferrin on Twitter, she can send messages to him now, and
-  later one of her devices will check @bobbymcferrin's proof and send him keys
-  automatically.
+- Alice and Bob share a symmetric encryption key, which they pass through the
+  server by encrypting it to each of their devices' public encryption keys.
+- If either of them removes a device, their other devices will create and share
+  a new encryption key. That guarantees the removed device can't read new
+  messages, without relying on the server to enforce it.
 - If either of them adds a new device, that device will get a copy of all the
   keys it needs to read old messages.
-- If either of them removes a device, all of their other devices will start
-  using a new encryption key. That guarantees the removed device can't read new
-  messages, without relying on the server to enforce it.
+- Alice can send a message to Bob even if he hasn't joined Keybase yet. If she
+  knows Bob is `@bobbymcferrin` on Twitter, she can message him now, and later
+  one of her devices will check `@bobbymcferrin`'s proof and share keys with
+  him automatically.
 
 Even though the server can't forge new messages, there are tricks it might try
 to play. For performance reasons, it's the server's responsibility to assign a
@@ -23,7 +26,7 @@ messages, for example, or leave some of them out. To limit tricks like that,
 every time Alice sends a message, she includes some references to other
 messages she's seen before. Bob's device will check that list, to make sure
 it's consistent with what he's seeing. That limits the mischief an evil server
-can do, while still letting Alice send messages quickly on a crappy network.
+can do, while still letting Alice send messages quickly on a bad network.
 
 That shared context prevents the server from dropping Alice's messages without
 her permission, but it's still important that Alice can choose to delete them
@@ -36,15 +39,15 @@ similar way; Alice sends a special "edit" message that Bob can verify.
 
 Signing and encrypting attachments is almost the same as for regular messages,
 except that they could be very large. If Alice uploads a video, Bob might want
-to skip to some little part of it without downloading the whole thing. To make
-that work, Alice splits up her attachments into chunks and signs and encrypts
-them individually, so that Bob can verify just the chunks that he needs. This
-is all done carefully to make sure no one can move the chunks around after the
-fact.
+to see part of it without downloading the whole thing. To make that work, Alice
+splits up her attachments into chunks and signs and encrypts them individually,
+so that Bob can verify just the chunks that he needs. This is all done
+carefully (more details below) to make sure no one can move the chunks around
+after the fact.
 
 Another issue that comes up with large files is that it's helpful to host them
-on third-party CDN's. One worry about CDN's though, even with encrypted files,
-is that we might not be able to delete files reliably when we want to. To help
+on third-party CDNs. One worry about CDNs though, even with encrypted files, is
+that we might not be able to delete files reliably when we want to. To help
 with that, Alice encrypts attachments with a new set of one-time-use keys, and
 she includes those keys in the attachment message body. That way deleting the
 attachment message body has the same effect as deleting the large file.
@@ -56,34 +59,35 @@ attachment message body has the same effect as deleting the large file.
 Message encryption is done with NaCl's
 [`crypto_secretbox`](https://nacl.cr.yp.to/secretbox.html) (XSalsa20,
 Poly1305), and signing is done with NaCl's
-[`crypto_sign`](https://nacl.cr.yp.to/sign.html) (Ed25519, SHA512). The order
-of operations is:
+[`crypto_sign`](https://nacl.cr.yp.to/sign.html) (Ed25519, SHA512). The sender
+(or deleter or editor) of a message performs the following steps:
 
 - Encrypt the message body with a random 24-byte nonce. We don't need
   sequential nonces to enforce ordering, because we have previous message
   references below, so a random nonce is the simplest way to prevent reuse. In
   our case the body is one of several different types of structures (text,
-  attachment, edit, delete, etc.) serialized with MessagePack.
+  attachment, edit, delete, etc.) serialized with
+  [MessagePack](http://msgpack.org/index.html).
 - Hash the ciphertext using SHA-256.
 - Add that hash to the message header, along with other metadata like the list
   of previous message references. This structure also gets serialized with
   MessagePack.
 - Sign the serialized header bytes.
 - Encrypt the signed header with another random nonce.
-- Send the header ciphertext and the body ciphertext to the server, along with
-  both of their nonces.
+- Send the header plaintext, the header ciphertext, the body ciphertext, and
+  both nonces to the server.
 
-The contents of the header aren't secret from the server, and don't necessarily
-require encryption here. The reason for encrypting the signed header is instead
-that the signature *itself* is private. Even though the server knows who's
-talking to whom, because it's delivering all the messages, it's better that it
-can't *prove* what it knows.
+The fields in the header aren't secret from the server, and it actually needs
+to know several of them, like the message type. The reason for encrypting the
+signed header is instead to keep the *signature itself* private. Even though
+the server knows who's talking to whom, because it's delivering all the
+messages, it's better that it can't *prove* what it knows.
 
 The purpose of the signing step is to prevent participants in the chat from
 impersonating one another. Authenticated encryption is already enough to
 prevent people outside the chat from forging messages, but because all the
-participants share the encryption key, it's not enough to distinguish one
-participant from another.
+participants share the encryption key, it wouldn't not enough to distinguish
+one participant from another without server trust.
 
 Attachment encryption is done in constant size chunks, with a single short or
 empty chunk to mark the end and detect truncation. Each chunk's nonce is 16
@@ -121,6 +125,11 @@ in to Keybase, that key is stored on disk in plain text (see tradeoffs below),
 or in the system keyring on macOS. When the user logs out of Keybase, that key
 is deleted, and their secret keys are unreadable until the next login.
 
+Cached chat messages on disk are encrypted with `crypto_secretbox`, with a
+symmetric key that's derived from the device's `crypto_box` secret key. This is
+done so that when the secret key is inaccessible, particularly when the user is
+logged out of Keybase, cached messages are also inaccessible.
+
 ## Limitations and Tradeoffs
 
 ### Forward Secrecy
@@ -156,7 +165,7 @@ online.
 
 ### History Integrity
 
-**Tradeoff:** The server is responsible for assigning sequential ID's to new
+**Tradeoff:** The server is responsible for assigning sequential IDs to new
 messages, and it's possible for the server to change history in specific ways,
 like delaying messages or reordering senders who haven't seen each other's
 messages yet.
@@ -177,12 +186,11 @@ back and forth. It also knows the type of each message, like "text",
 
 **Reason:** Decentralized services make it difficult to add features over time,
 unless the developers can break backwards compatibility, which defeats most of
-the purpose of decentralizing. Moxie Marlinspike, the lead developer of Signal,
-has an [excellent
-article](https://whispersystems.org/blog/the-ecosystem-is-moving/) about these
-issues. Decentralized services can also be *easier* to spy on, depending on
-who's doing the spying. It's much easier to run a malicious Tor exit node than
-to break into Facebook's servers, for example.
+the purpose of decentralizing. Moxie Marlinspike wrote [an article about many
+of these issues](https://whispersystems.org/blog/the-ecosystem-is-moving/).
+Decentralized services can also be *easier* to spy on, depending on who's doing
+the spying. It's much easier to run a malicious Tor exit node than to break
+into Facebook's servers, for example.
 
 ### Keys on Disk
 
@@ -193,10 +201,10 @@ of encrypting them with your password all the time.
 the use case for application-specific encrypted storage is much more limited
 than it used to be. It doesn't help much unless an attacker can read arbitrary
 files from your disk but can't run arbitrary code. That can happen, but it's a
-very specific scenario, and it probably leaks your decrypted files and messages
-even if it doesn't leak your keys. By comparison, throwing extra password
-prompts at the user is a major downside for everyone all the time, especially
-non-experts who don't know how to pick good passwords or manage them.
+very specific scenario, and it leaks your decrypted files even if it doesn't
+leak your keys. By comparison, throwing extra password prompts at the user is a
+major downside for everyone all the time, especially non-experts who don't know
+how to pick good passwords or manage them.
 
 Keybase's centralized model also makes it easier to recover from leaked signing
 keys, compared to PGP. Everyone checks for revocations in your signature chain
