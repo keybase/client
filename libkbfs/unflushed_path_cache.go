@@ -193,16 +193,16 @@ func addUnflushedPaths(ctx context.Context,
 	// take a fair amount of CPU since the node cache isn't already
 	// up-to-date with the current set of pointers (because the MDs
 	// haven't been committed yet).
-	skipPaths := true
+	populatePaths := false
 	for _, chain := range chains.byOriginal {
 		if len(chain.ops) > 0 &&
 			!chain.ops[len(chain.ops)-1].getFinalPath().isValid() {
-			skipPaths = false
+			populatePaths = true
 			break
 		}
 	}
 
-	if !skipPaths {
+	if populatePaths {
 		err := cpp.populateChainPaths(ctx, log, chains, true)
 		if err != nil {
 			return err
