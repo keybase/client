@@ -6,7 +6,7 @@ import {Set, List, Map, Record} from 'immutable'
 import * as ChatTypes from './types/flow-types-chat'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {AssetMetadata, ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 
 export type MessageType = 'Text'
@@ -194,6 +194,11 @@ export type InboxState = Record<{
   validated: boolean,
 }>
 
+export type FinalizedState = Map<ConversationIDKey, ConversationFinalizeInfo>
+
+export type SupersedesState = Map<ConversationIDKey, Set<ConversationIDKey>>
+export type SupersededByState = Map<ConversationIDKey, Set<ConversationIDKey>>
+
 export type MetaData = Record<{
   fullname: string,
   brokenTracker: boolean,
@@ -221,6 +226,9 @@ export const StateRecord = Record({
   conversationStates: Map(),
   focused: false,
   metaData: Map(),
+  finalizedState: Map(),
+  supersedesState: Map(),
+  supersededByState: Map(),
   pendingFailures: Set(),
   conversationUnreadCounts: Map(),
   rekeyInfos: Map(),
@@ -229,6 +237,9 @@ export const StateRecord = Record({
 export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
+  finalizedState: FinalizedState,
+  supersedesState: SupersedesState,
+  supersededByState: SupersededByState,
   focused: boolean,
   metaData: MetaDataMap,
   pendingFailures: Set<OutboxIDKey>,
@@ -256,6 +267,11 @@ export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDK
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
+
+export type UpdateFinalizedState = NoErrorTypedAction<'chat:finalizedStateUpdate', {finalizedState: FinalizedState}>
+export type UpdateSupersedesState = NoErrorTypedAction<'chat:updateSupersedesState', {supersedesState: SupersedesState}>
+export type UpdateSupersededByState = NoErrorTypedAction<'chat:updateSupersededByState', {supersededByState: SupersededByState}>
+
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
@@ -345,6 +361,9 @@ export type Actions = AppendMessages
   | UpdateTempMessage
   | MarkSeenMessage
   | AttachmentLoaded
+  | UpdateFinalizedState
+  | UpdateSupersedesState
+  | UpdateSupersededByState
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
