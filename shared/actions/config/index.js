@@ -152,6 +152,7 @@ function daemonError (error: ?string): Action {
 }
 
 let bootstrapSetup = false
+let bootstrapped = false
 type BootstrapOptions = {isReconnect?: boolean}
 export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
   return (dispatch, getState) => {
@@ -164,13 +165,16 @@ export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
         dispatch(bootstrap())
       })
       engine().listenOnDisconnect('daemonError', () => {
-        dispatch(daemonError('Disconnected'))
+        if (bootstrapped) {
+          dispatch(daemonError('Disconnected'))
+        }
       })
       dispatch(registerListeners())
     } else {
       console.log('[bootstrap] performing bootstrap...')
       Promise.all(
         [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig()), dispatch(waitForKBFS())]).then(([username]) => {
+          bootstrapped = true
           if (username) {
             dispatch(getMyFollowers(username))
             dispatch(getMyFollowing(username))
@@ -219,4 +223,3 @@ function getCurrentStatus (): AsyncAction {
     })
   }
 }
-
