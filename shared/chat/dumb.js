@@ -2,6 +2,7 @@
 import ConversationHeader from './conversation/header.desktop'
 import ConversationInput from './conversation/input.desktop'
 import ConversationList from './conversation/list.desktop'
+import ParticipantRekey from './conversation/participant-rekey.desktop'
 import ConversationBanner from './conversation/banner'
 import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
@@ -211,15 +212,41 @@ const listParentProps = {
   },
 }
 
-const list = {
-  component: ConversationList,
+const rekeyConvo = (youCanRekey) => ({
+  ...commonConversationsProps,
+  rekeyInfos: Map({
+    convo1: new RekeyInfoRecord({
+      rekeyParticipants: List(['jzila']),
+      youCanRekey,
+    }),
+    convo3: new RekeyInfoRecord({
+      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
+      youCanRekey,
+    }),
+  }),
+})
+
+const participantRekey = {
+  component: ParticipantRekey,
   mocks: {
     'Normal': {
       ...commonConvoProps,
+      onUsernameClicked: (user: string) => { console.log(user, 'clicked') },
       parentProps: listParentProps,
+      rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
     },
+  },
+}
+
+const list = {
+  component: ConversationList,
+  mocks: {
     'Empty': {
       ...emptyConvoProps,
+      parentProps: listParentProps,
+    },
+    'Normal': {
+      ...commonConvoProps,
       parentProps: listParentProps,
     },
   },
@@ -246,20 +273,6 @@ const sidePanel = {
     },
   },
 }
-
-const rekeyConvo = (youCanRekey) => ({
-  ...commonConversationsProps,
-  rekeyInfos: Map({
-    convo1: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila']),
-      youCanRekey,
-    }),
-    convo3: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch']),
-      youCanRekey,
-    }),
-  }),
-})
 
 const conversationsList = {
   component: ConversationsList,
@@ -326,7 +339,7 @@ const conversationBanner = {
     },
     'Invite': {
       type: 'Invite',
-      username: 'malg@twitter',
+      users: ['malg@twitter'],
       inviteLink: 'keybase.io/inv/9999999999',
       onClickInviteLink: () => { console.log('Clicked the invite link') },
     },
@@ -361,4 +374,5 @@ export default {
   'ChatSidePanel': sidePanel,
   'ChatConversationsList': conversationsList,
   'ChatBanner': conversationBanner,
+  'ChatParticipantRekey': participantRekey,
 }
