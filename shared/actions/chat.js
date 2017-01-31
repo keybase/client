@@ -1512,16 +1512,23 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
     const me = yield select(usernameSelector)
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     // Is this message part of a muted conversation? If so don't notify.
-    if (message && message.type === 'Text') {
-      const snippet = makeSnippet(serverMessageToMessageBody(message))
+    const selectedConversation = yield select(_selectedSelector)
+    const convo = yield select(_selectedInboxSelector, selectedConversation)
+    if (convo && !convo.muted) {
+      console.warn('convo not muted')
+      if (message && message.type === 'Text') {
+        const snippet = makeSnippet(serverMessageToMessageBody(message))
 
-      yield put((dispatch: Dispatch) => {
-        NotifyPopup(message.author, {body: snippet}, -1, () => {
-          dispatch(selectConversation(action.payload.conversationIDKey, false))
-          dispatch(switchTo([chatTab]))
-          dispatch(showMainWindow())
+        yield put((dispatch: Dispatch) => {
+          NotifyPopup(message.author, {body: snippet}, -1, () => {
+            dispatch(selectConversation(action.payload.conversationIDKey, false))
+            dispatch(switchTo([chatTab]))
+            dispatch(showMainWindow())
+          })
         })
-      })
+      }
+    } else {
+      console.warn('convo muted')
     }
   }
 }
