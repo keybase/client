@@ -57,6 +57,7 @@ export const CommonConversationStatus = {
   favorite: 1,
   ignored: 2,
   blocked: 3,
+  muted: 4,
 }
 
 export const CommonInboxResType = {
@@ -747,6 +748,7 @@ export type ConversationStatus =
   | 1 // FAVORITE_1
   | 2 // IGNORED_2
   | 3 // BLOCKED_3
+  | 4 // MUTED_4
 
 export type DownloadAttachmentLocalRes = {
   rateLimits?: ?Array<RateLimit>,

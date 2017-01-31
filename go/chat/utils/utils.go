@@ -172,10 +172,29 @@ func AllChatConversationStatuses() (res []chat1.ConversationStatus) {
 	return
 }
 
+// Which convs show badges.
+func BadgingChatConversationStatuses() []chat1.ConversationStatus {
+	return []chat1.ConversationStatus{
+		chat1.ConversationStatus_UNFILED,
+		chat1.ConversationStatus_IGNORED,
+	}
+}
+
+func IsBadgingChatConversationStatus(status chat1.ConversationStatus) bool {
+	for _, s := range BadgingChatConversationStatuses() {
+		if status == s {
+			return true
+		}
+	}
+	return false
+}
+
+// Which convs show in the inbox.
 func VisibleChatConversationStatuses() []chat1.ConversationStatus {
 	return []chat1.ConversationStatus{
 		chat1.ConversationStatus_UNFILED,
 		chat1.ConversationStatus_FAVORITE,
+		chat1.ConversationStatus_MUTED,
 	}
 }
 
