@@ -161,7 +161,10 @@ class ConversationList extends Component<void, Props, State> {
     this.state.messages.forEach((item, index) => {
       const oldMessage = props.messages.get(index, {})
 
-      if (item.type === 'Text' && oldMessage.type === 'Text' && item.messageState !== oldMessage.messageState) {
+      if (item.type === 'Text' && oldMessage.type === 'Text' &&
+        (item.messageState !== oldMessage.messageState ||
+        item.editedCount !== oldMessage.editedCount)
+      ) {
         this._toRemeasure.push(index + cellMessageStartIndex)
       } else if (item.type === 'Attachment' && oldMessage.type === 'Attachment' &&
                  (item.previewPath !== oldMessage.previewPath ||
@@ -220,14 +223,14 @@ class ConversationList extends Component<void, Props, State> {
     })
   }
 
-  _renderPopup (message: Message, style: Object): ?React$Element<any> {
+  _renderPopup (message: Message, style: Object, messageRect: any): ?React$Element<any> {
     switch (message.type) {
       case 'Text':
         return (
           <TextPopupMenu
             you={this.props.you}
             message={message}
-            onShowEditor={this._showEditor}
+            onShowEditor={(message: TextMessage) => this._showEditor(message, messageRect)}
             onDeleteMessage={this.props.onDeleteMessage}
             onLoadAttachment={this.props.onLoadAttachment}
             onOpenInFileUI={this.props.onOpenInFileUI}
@@ -251,8 +254,8 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _showEditor = (message: TextMessage, event: Event) => {
-    console.log('aaa show editor')
+  _showEditor = (message: TextMessage, messageRect: any) => {
+    console.log('aaa show editor', messageRect)
     this.props.onEditMessage(message, 'TEST EDIT')
   }
 
@@ -264,7 +267,7 @@ class ConversationList extends Component<void, Props, State> {
     let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
 
-    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y})
+    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, clientRect)
     if (!popupComponent) return
 
     this.setState({

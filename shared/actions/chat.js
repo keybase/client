@@ -481,6 +481,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     const message: Message = {
       type: 'Text',
       author,
+      editedCount: 0,
       outboxID,
       key: outboxID,
       timestamp: Date.now(),
@@ -958,7 +959,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage == null || prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
+  if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'Edit'].includes(message.type)) {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
@@ -1006,6 +1007,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
       conversationIDKey,
       deviceName: yourDeviceName,
       deviceType: isMobile ? 'mobile' : 'desktop',
+      editedCount: 0,
       key: payload.outboxID,
       message: new HiddenString(messageText && messageText.body || ''),
       messageState,
@@ -1036,6 +1038,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
           return {
             type: 'Text',
             ...common,
+            editedCount: 0,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
@@ -1073,11 +1076,13 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
         case CommonMessageType.edit: {
           const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
           return {
-            ...common,
-            type: 'Edit',
-            timestamp: payload.serverHeader.ctime,
+            key: common.messageID,
+            message: new HiddenString(payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body || ''),
+            messageID: common.messageID,
             outboxID,
-            targetID: payload.messageBody.edit && payload.messageBody.edit.messageID,
+            targetMessageID: payload.messageBody.edit ? payload.messageBody.edit.messageID : 0,
+            timestamp: payload.serverHeader.ctime,
+            type: 'Edit',
           }
         }
         default:

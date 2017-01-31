@@ -27,7 +27,7 @@ export type OutboxIDKey = string
 export type MessageID = RPCMessageID
 
 export type ClientMessage = TimestampMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage
 
 export type Message = ClientMessage | ServerMessage
 
@@ -45,6 +45,7 @@ export type TextMessage = {
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
   key: any,
+  editedCount: number, // increase as we edit it
 }
 
 export type ErrorMessage = {
@@ -106,13 +107,14 @@ export type DeletedMessage = {
   deletedIDs: Array<MessageID>,
 }
 
-export type EditMessage = {
+export type EditingMessage = {
   type: 'Edit',
-  timestamp: number,
   key: any,
-  outboxID?: ?OutboxIDKey,
+  message: HiddenString,
   messageID: MessageID,
+  outboxID?: ?OutboxIDKey,
   targetMessageID: MessageID,
+  timestamp: number,
 }
 
 export type MaybeTimestamp = TimestampMessage | null
