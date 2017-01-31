@@ -235,7 +235,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
-	if err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
+	if _, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
 

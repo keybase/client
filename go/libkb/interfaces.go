@@ -559,13 +559,13 @@ type InboxSource interface {
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
 	NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		msg chat1.MessageBoxed) error
+		msg chat1.MessageBoxed) (*chat1.ConversationLocal, error)
 	ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		msgID chat1.MessageID) error
+		msgID chat1.MessageID) (*chat1.ConversationLocal, error)
 	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		status chat1.ConversationStatus) error
+		status chat1.ConversationStatus) (*chat1.ConversationLocal, error)
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error
+		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
