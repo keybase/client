@@ -529,7 +529,7 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	n.G().Log.Debug("- Sent ChatIdentifyUpdate notification")
 }
 
-func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) {
+func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.ConversationLocal) {
 	if n == nil {
 		return
 	}
@@ -545,6 +545,7 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 					Uid:          uid,
 					ConvID:       convID,
 					FinalizeInfo: finalizeInfo,
+					Conv:         conv,
 				})
 				wg.Done()
 			}()

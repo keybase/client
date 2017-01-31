@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
-import _ from 'lodash'
 import engine from '../engine'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
@@ -34,7 +33,7 @@ import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
   BadgeAppForChat,
-  ConversationBadgeStateRecord,
+  ConversationBadgeState,
   ConversationIDKey,
   CreatePendingFailure,
   DeleteMessage,
@@ -55,6 +54,7 @@ import type {
   OpenFolder,
   OutboxIDKey,
   PostMessage,
+  RemoveOutboxMessage,
   RemovePendingFailure,
   RetryMessage,
   SelectConversation,
@@ -74,6 +74,7 @@ const {
   CommonTopicType,
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
+  localCancelPostRpcPromise,
   localDownloadFileAttachmentLocalRpcChannelMap,
   localGetInboxNonblockLocalRpcChannelMap,
   localGetThreadLocalRpcPromise,
@@ -94,7 +95,6 @@ const loadedInboxActionTransformer = action => ({
         conversationIDKey,
         muted,
         time,
-        unreadCount,
         validated,
         participants,
         info,
@@ -108,7 +108,6 @@ const loadedInboxActionTransformer = action => ({
         muted,
         participantsCount: participants.count(),
         time,
-        unreadCount,
         validated,
       }
     }),
@@ -194,7 +193,7 @@ function updateLatestMessage (conversationIDKey: ConversationIDKey): UpdateLates
   return {type: 'chat:updateLatestMessage', payload: {conversationIDKey}}
 }
 
-function badgeAppForChat (conversations: Array<ConversationBadgeStateRecord>): BadgeAppForChat {
+function badgeAppForChat (conversations: List<ConversationBadgeState>): BadgeAppForChat {
   return {type: 'chat:badgeAppForChat', payload: conversations}
 }
 
@@ -286,7 +285,6 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
     muted: false,
     time: convo.readerInfo.mtime,
     snippet,
-    unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid,
     validated: true,
   })
 }
@@ -308,7 +306,6 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
       muted: false, // TODO integrate this when it's available
       time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
       snippet: ' ',
-      unreadCount: convoUnverified.readerInfo && (convoUnverified.readerInfo.maxMsgid - convoUnverified.readerInfo.readMsgid),
       validated: false,
     })
   }).filter(Boolean))
@@ -498,22 +495,41 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
       break
   }
 
-  if (!messageID) throw new Error('No messageID for message delete')
   if (!conversationIDKey) throw new Error('No conversation for message delete')
 
-  // TODO: Use delete message RPC call when it is available
-  const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
-  clientHeader.supersedes = messageID
+  if (messageID) {
+    // Deleting a server message.
+    // TODO: Use delete message RPC call when it is available
+    const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
+    clientHeader.supersedes = messageID
 
-  yield call(localPostLocalNonblockRpcPromise, {
-    param: {
-      conversationID: keyToConversationID(conversationIDKey),
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      msg: {
-        clientHeader,
+    yield call(localPostLocalNonblockRpcPromise, {
+      param: {
+        conversationID: keyToConversationID(conversationIDKey),
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        msg: {
+          clientHeader,
+        },
       },
-    },
-  })
+    })
+  } else {
+    // Deleting a local outbox message.
+    if (message.messageState !== 'failed') throw new Error('Tried to delete a non-failed message')
+    const outboxID = message.outboxID
+    if (!outboxID) throw new Error('No outboxID for pending message delete')
+
+    yield call(localCancelPostRpcPromise, {
+      param: {
+        outboxID: keyToOutboxID(outboxID),
+      },
+    })
+    // It's deleted, but we don't get notified that the conversation now has
+    // one less outbox entry in it.  Gotta remove it from the store ourselves.
+    yield put(({
+      payload: {conversationIDKey, outboxID},
+      type: 'chat:removeOutboxMessage',
+    }: RemoveOutboxMessage))
+  }
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
@@ -532,6 +548,12 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           // have, just set it to failed.  If we haven't, record this as a
           // pending failure, and pick up the pending failure at the bottom of
           // _postMessage() instead.
+          //
+          // Do we have this conversation loaded?  If not, don't do anything -
+          // we'll pick up the failure when we load that thread.
+          const isConversationLoaded = yield select(_conversationStateSelector, conversationIDKey)
+          if (!isConversationLoaded) return
+
           const pendingMessage = yield select(_messageOutboxIDSelector, conversationIDKey, outboxID)
           if (pendingMessage) {
             yield put(({
@@ -622,8 +644,9 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           }
         } else {
           // How long was it between the previous message and this one?
-          if (conversationState && conversationState.messages !== null) {
+          if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
             const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
+
             const timestamp = _maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
@@ -637,6 +660,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               })
             }
           }
+
           yield put({
             logTransformer: appendMessageActionTransformer,
             payload: {
@@ -686,7 +710,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const followingSelector = (state: TypedState) => state.config.following
 
-function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
+function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -735,7 +759,7 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
       let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-      if (conversation && action.payload.newConversationIDKey) {
+      if (conversation && action && action.payload && action.payload.newConversationIDKey) {
         conversation = conversation.set('youCreated', true)
       }
       if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
@@ -1143,16 +1167,26 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   const selectedConversationIDKey = yield select(_selectedSelector)
   const windowFocused = yield select(_focusedSelector)
 
-  const newConversations = _.reduce(conversations, (acc, conv) => {
+  const newConversations = conversations.reduce((acc, conv) => {
     // Badge this conversation if it's unread and either the app doesn't have
     // focus (so the user didn't see the message) or the conversation isn't
     // selected (same).
-    const unread = conv.UnreadMessages > 0
-    const selected = (conversationIDToKey(conv.convID) === selectedConversationIDKey)
+    const unread = conv.get('UnreadMessages') > 0
+    const selected = (conversationIDToKey(conv.get('convID')) === selectedConversationIDKey)
     const addThisConv = (unread && (!selected || !windowFocused))
     return addThisConv ? acc + 1 : acc
   }, 0)
   yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
+
+  let conversationsWithKeys = {}
+  conversations.map(conv => {
+    conversationsWithKeys[conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
+  })
+  const conversationUnreadCounts = Map(conversationsWithKeys)
+  yield put({
+    payload: conversationUnreadCounts,
+    type: 'chat:updateConversationUnreadCounts',
+  })
 }
 
 function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: ChatTypes.localPostFileAttachmentLocalRpcParam, conversationIDKey: ConversationIDKey, outboxID: Constants.OutboxIDKey}) {

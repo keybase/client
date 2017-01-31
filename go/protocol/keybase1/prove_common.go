@@ -10,39 +10,45 @@ import (
 type ProofState int
 
 const (
-	ProofState_NONE         ProofState = 0
-	ProofState_OK           ProofState = 1
-	ProofState_TEMP_FAILURE ProofState = 2
-	ProofState_PERM_FAILURE ProofState = 3
-	ProofState_LOOKING      ProofState = 4
-	ProofState_SUPERSEDED   ProofState = 5
-	ProofState_POSTED       ProofState = 6
-	ProofState_REVOKED      ProofState = 7
-	ProofState_DELETED      ProofState = 8
+	ProofState_NONE             ProofState = 0
+	ProofState_OK               ProofState = 1
+	ProofState_TEMP_FAILURE     ProofState = 2
+	ProofState_PERM_FAILURE     ProofState = 3
+	ProofState_LOOKING          ProofState = 4
+	ProofState_SUPERSEDED       ProofState = 5
+	ProofState_POSTED           ProofState = 6
+	ProofState_REVOKED          ProofState = 7
+	ProofState_DELETED          ProofState = 8
+	ProofState_UNKNOWN_TYPE     ProofState = 9
+	ProofState_SIG_HINT_MISSING ProofState = 10
 )
 
 var ProofStateMap = map[string]ProofState{
-	"NONE":         0,
-	"OK":           1,
-	"TEMP_FAILURE": 2,
-	"PERM_FAILURE": 3,
-	"LOOKING":      4,
-	"SUPERSEDED":   5,
-	"POSTED":       6,
-	"REVOKED":      7,
-	"DELETED":      8,
+	"NONE":             0,
+	"OK":               1,
+	"TEMP_FAILURE":     2,
+	"PERM_FAILURE":     3,
+	"LOOKING":          4,
+	"SUPERSEDED":       5,
+	"POSTED":           6,
+	"REVOKED":          7,
+	"DELETED":          8,
+	"UNKNOWN_TYPE":     9,
+	"SIG_HINT_MISSING": 10,
 }
 
 var ProofStateRevMap = map[ProofState]string{
-	0: "NONE",
-	1: "OK",
-	2: "TEMP_FAILURE",
-	3: "PERM_FAILURE",
-	4: "LOOKING",
-	5: "SUPERSEDED",
-	6: "POSTED",
-	7: "REVOKED",
-	8: "DELETED",
+	0:  "NONE",
+	1:  "OK",
+	2:  "TEMP_FAILURE",
+	3:  "PERM_FAILURE",
+	4:  "LOOKING",
+	5:  "SUPERSEDED",
+	6:  "POSTED",
+	7:  "REVOKED",
+	8:  "DELETED",
+	9:  "UNKNOWN_TYPE",
+	10: "SIG_HINT_MISSING",
 }
 
 func (e ProofState) String() string {

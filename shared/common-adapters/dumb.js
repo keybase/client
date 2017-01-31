@@ -820,7 +820,7 @@ const markdownDumbMap: DumbComponentMap<Markdown> = {
       children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";``` How about *bold* and _italic?_ nice.\n Now youre thinking with ~portals~ crypto.\n how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_',
     },
     'emoji': {
-      children: 'hello there :santa::skin-tone-3:!',
+      children: 'hello there :santa::skin-tone-3: 🌸😎👍🏿!',
     },
     'special chars in code block': {
       children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";\n// this should be *asterisk* ```',
@@ -840,17 +840,21 @@ const markdownDumbMap: DumbComponentMap<Markdown> = {
     mailto:blah@blah.com
   Include:
     http://keybase.io
+    *http://keybase.io*
+    *_http://keybase.io_*
+    \`http://keybase.io\`
     https://keybase.io
     HTTP://cnn.com
     http://twitter.com
     google.com
+    keybase.io/a/user/lookup?one=1&two=2
+    keybase.io?blah=true
+    http://keybase.io/blah/../up-one/index.html
+  These should have the trailing punctuation outside the link:
     amazon.co.uk.
     keybase.io,
     keybase.io.
     keybase.io?
-    keybase.io/a/user/lookup?one=1&two=2
-    keybase.io?blah=true
-    http://keybase.io/blah/../up-one/index.html
 `,
     },
   },

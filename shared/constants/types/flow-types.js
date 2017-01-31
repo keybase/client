@@ -172,6 +172,8 @@ export const ConstantsStatusCode = {
   scchattlffinalized: 2509,
   scchatcollision: 2510,
   scidentifysummaryerror: 2511,
+  scneedselfrekey: 2512,
+  scneedotherrekey: 2513,
 }
 
 export const CtlDbType = {
@@ -316,6 +318,8 @@ export const ProveCommonProofState = {
   posted: 6,
   revoked: 7,
   deleted: 8,
+  unknownType: 9,
+  sigHintMissing: 10,
 }
 
 export const ProveCommonProofStatus = {
@@ -1476,6 +1480,18 @@ export function loginGetConfiguredAccountsRpcChannelMap (channelConfig: ChannelC
 
 export function loginGetConfiguredAccountsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>): Promise<loginGetConfiguredAccountsResult> {
   return new Promise((resolve, reject) => { loginGetConfiguredAccountsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginLoginProvisionedDeviceRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.login.loginProvisionedDevice'})
+}
+
+export function loginLoginProvisionedDeviceRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => loginLoginProvisionedDeviceRpc({...request, incomingCallMap, callback}))
+}
+
+export function loginLoginProvisionedDeviceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginProvisionedDeviceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLoginProvisionedDeviceRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function loginLoginRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>) {
@@ -2762,6 +2778,18 @@ export function userLoadUserRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => { userLoadUserRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function userProfileEditRpc (request: Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.user.profileEdit'})
+}
+
+export function userProfileEditRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => userProfileEditRpc({...request, incomingCallMap, callback}))
+}
+
+export function userProfileEditRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { userProfileEditRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userSearchRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.user.search'})
 }
@@ -3657,6 +3685,8 @@ export type ProofState =
   | 6 // POSTED_6
   | 7 // REVOKED_7
   | 8 // DELETED_8
+  | 9 // UNKNOWN_TYPE_9
+  | 10 // SIG_HINT_MISSING_10
 
 export type ProofStatus = 
     0 // NONE_0
@@ -4095,6 +4125,8 @@ export type StatusCode =
   | 2509 // SCChatTLFFinalized_2509
   | 2510 // SCChatCollision_2510
   | 2511 // SCIdentifySummaryError_2511
+  | 2512 // SCNeedSelfRekey_2512
+  | 2513 // SCNeedOtherRekey_2513
 
 export type Stream = {
   fd: int,
@@ -4653,6 +4685,11 @@ export type loginClearStoredSecretRpcParam = Exact<{
 export type loginDeprovisionRpcParam = Exact<{
   username: string,
   doRevoke: boolean
+}>
+
+export type loginLoginProvisionedDeviceRpcParam = Exact<{
+  username: string,
+  noPassphrasePrompt: boolean
 }>
 
 export type loginLoginRpcParam = Exact<{
@@ -5231,6 +5268,12 @@ export type userLoadUserRpcParam = Exact<{
   uid: UID
 }>
 
+export type userProfileEditRpcParam = Exact<{
+  fullName: string,
+  location: string,
+  bio: string
+}>
+
 export type userSearchRpcParam = Exact<{
   query: string
 }>
@@ -5574,6 +5617,7 @@ export type rpc =
   | loginClearStoredSecretRpc
   | loginDeprovisionRpc
   | loginGetConfiguredAccountsRpc
+  | loginLoginProvisionedDeviceRpc
   | loginLoginRpc
   | loginLoginWithPaperKeyRpc
   | loginLogoutRpc
@@ -5681,6 +5725,7 @@ export type rpc =
   | userLoadUserByNameRpc
   | userLoadUserPlusKeysRpc
   | userLoadUserRpc
+  | userProfileEditRpc
   | userSearchRpc
 export type incomingCallMapType = Exact<{
   'keybase.1.gpgUi.wantToAddGPGKey'?: (

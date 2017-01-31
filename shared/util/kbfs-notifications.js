@@ -11,7 +11,7 @@ type DecodedKBFSError = {
 }
 
 function usernamesForNotification (notification: FSNotification) {
-  return parseFolderNameToUsers(null, notification.filename.split(path.sep)[3]).map(i => i.username)
+  return parseFolderNameToUsers(null, notification.filename.split(path.sep)[3] || notification.filename).map(i => i.username)
 }
 
 function tlfForNotification (notification: FSNotification): string {

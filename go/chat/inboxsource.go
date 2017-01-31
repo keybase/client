@@ -16,15 +16,38 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type getMessagesRes struct {
+	err    error
+	errTyp chat1.ConversationErrorType
+	msgs   []chat1.MessageUnboxed
+}
+
+type getMessagesFunc func(context.Context, chat1.ConversationID, gregor1.UID, []chat1.MessageBoxed,
+	*chat1.ConversationFinalizeInfo) getMessagesRes
+
 type localizerPipeline struct {
 	libkb.Contextified
+	utils.DebugLabeler
+
 	getTlfInterface func() keybase1.TlfInterface
+	getMessages     getMessagesFunc
 }
 
 func newLocalizerPipeline(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified:    libkb.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g, "localizerPipeline", false),
 		getTlfInterface: getTlfInterface,
+	}
+}
+
+func newLocalizerPipelineCustom(g *libkb.GlobalContext, getTlfInterface func() keybase1.TlfInterface,
+	getMessages getMessagesFunc) *localizerPipeline {
+	return &localizerPipeline{
+		Contextified:    libkb.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g, "localizerPipeline", false),
+		getTlfInterface: getTlfInterface,
+		getMessages:     getMessages,
 	}
 }
 
@@ -63,6 +86,8 @@ type NonblockInboxResult struct {
 
 type NonblockingLocalizer struct {
 	libkb.Contextified
+	utils.DebugLabeler
+
 	pipeline   *localizerPipeline
 	localizeCb chan NonblockInboxResult
 }
@@ -71,15 +96,101 @@ func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInb
 	getTlfInterface func() keybase1.TlfInterface) *NonblockingLocalizer {
 	return &NonblockingLocalizer{
 		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
 		pipeline:     newLocalizerPipeline(g, getTlfInterface),
 		localizeCb:   localizeCb,
 	}
 }
 
+func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.Inbox, uid gregor1.UID) chat1.Inbox {
+
+	f := func(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) getMessagesRes {
+
+		var msgIDs []chat1.MessageID
+		for _, msg := range msgs {
+			msgIDs = append(msgIDs, msg.GetMessageID())
+		}
+
+		st := storage.New(b.G(), func() libkb.SecretUI { return DelivererSecretUI{} })
+		res, err := st.FetchMessages(ctx, convID, uid, msgIDs)
+		if err != nil {
+			// Just say we didn't find it in this case
+			return getMessagesRes{
+				err:    err,
+				errTyp: chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND,
+			}
+		}
+
+		// Make sure we get them all
+		var foundMsgs []chat1.MessageUnboxed
+		for _, msg := range res {
+			if msg != nil {
+				foundMsgs = append(foundMsgs, *msg)
+			}
+		}
+
+		if len(foundMsgs) != len(msgs) {
+			return getMessagesRes{
+				err:    errors.New("missing messages locally"),
+				errTyp: chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND,
+			}
+		}
+
+		return getMessagesRes{
+			msgs: foundMsgs,
+		}
+	}
+
+	localizer := newLocalizerPipelineCustom(b.G(), b.pipeline.getTlfInterface, f)
+	convs, err := localizer.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil)
+	if err != nil {
+		// Any errors we just return original inbox
+		b.Debug(ctx, "filterInboxRes: error running localize pipeline: %s", err.Error())
+		return inbox
+	}
+
+	cmap := make(map[string]chat1.ConversationLocal)
+	for _, conv := range convs {
+		cmap[conv.GetConvID().String()] = conv
+	}
+
+	// Loop through and look for empty convs or known errors and skip them
+	var res []chat1.Conversation
+	for _, conv := range inbox.ConvsUnverified {
+		localConv := cmap[conv.GetConvID().String()]
+
+		if localConv.Error != nil &&
+			localConv.Error.Typ != chat1.ConversationErrorType_LOCALMAXMESSAGENOTFOUND {
+			b.Debug(ctx, "filterInboxRes: skipping because error: convID: %s err: %s", conv.GetConvID(),
+				localConv.Error.Message)
+			continue
+		}
+
+		if localConv.IsEmpty {
+			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.GetConvID())
+			continue
+		}
+
+		res = append(res, conv)
+	}
+
+	return chat1.Inbox{
+		Version:         inbox.Version,
+		ConvsUnverified: res,
+		Convs:           inbox.Convs,
+		Pagination:      inbox.Pagination,
+	}
+}
+
 func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error) {
+
+	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
+	filteredInbox := b.filterInboxRes(ctx, inbox, uid)
+
 	// Send inbox over localize channel
 	b.localizeCb <- NonblockInboxResult{
-		InboxRes: &inbox,
+		InboxRes: &filteredInbox,
 	}
 
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
@@ -223,23 +334,23 @@ func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 }
 
 func (s *RemoteInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed) error {
-	return nil
+	convID chat1.ConversationID, msg chat1.MessageBoxed) (*chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 func (s *RemoteInboxSource) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msgID chat1.MessageID) error {
-	return nil
+	convID chat1.ConversationID, msgID chat1.MessageID) (*chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 func (s *RemoteInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, status chat1.ConversationStatus) error {
-	return nil
+	convID chat1.ConversationID, status chat1.ConversationStatus) (*chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error {
-	return nil
+	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 type HybridInboxSource struct {
@@ -415,47 +526,88 @@ func (s *HybridInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 		err = s.handleInboxError(cerr, uid)
 		return err
 	}
+
 	return nil
+}
+
+func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	// Read back affected conversation so we can send it to the frontend
+	ib, _, err := s.Read(ctx, uid, nil, &chat1.GetInboxLocalQuery{
+		ConvID: &convID,
+	}, nil)
+	if err != nil {
+		return conv, err
+	}
+	if len(ib.Convs) == 0 {
+		return conv, fmt.Errorf("unable to find conversation for new message: convID: %s", convID)
+	}
+	if len(ib.Convs) > 1 {
+		return conv, fmt.Errorf("more than one conversation returned? convID: %s", convID)
+	}
+	return &ib.Convs[0], nil
 }
 
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed) (err error) {
+	convID chat1.ConversationID, msg chat1.MessageBoxed) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).NewMessage(ctx, vers, convID, msg); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
-		return err
+		return nil, err
 	}
-	return nil
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "NewMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
 }
 
 func (s *HybridInboxSource) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msgID chat1.MessageID) (err error) {
+	convID chat1.ConversationID, msgID chat1.MessageID) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadMessage")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).ReadMessage(ctx, vers, convID, msgID); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
-		return err
+		return nil, err
 	}
-	return nil
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "ReadMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+
 }
 
 func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
+	convID chat1.ConversationID, status chat1.ConversationStatus) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "SetStatus")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).SetStatus(ctx, vers, convID, status); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
-		return err
+		return nil, err
 	}
-	return nil
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "SetStatus: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
 }
 
 func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (err error) {
+	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).TlfFinalize(ctx, vers, convIDs, finalizeInfo); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
-		return err
+		return convs, err
 	}
-	return nil
+	for _, convID := range convIDs {
+		var conv *chat1.ConversationLocal
+		if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+			s.Debug(ctx, "TlfFinalize: unable to get conversation: %s", convID)
+		}
+		if conv != nil {
+			convs = append(convs, *conv)
+		}
+	}
+	return convs, nil
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
@@ -502,6 +654,8 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 				// If a localize callback channel exists, send along the result as well
 				if localizeCb != nil {
 					if convLocal.Error != nil {
+						s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
+							convLocal.Error.Message)
 						*localizeCb <- NonblockInboxResult{
 							Err:    errors.New(convLocal.Error.Message),
 							ConvID: conv.conv.Metadata.ConversationID,
@@ -545,7 +699,7 @@ func (s *localizerPipeline) isErrPermanent(err error) bool {
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
-	s.G().Log.Debug("localizeConversation: localizing %d msgs", len(conversationRemote.MaxMsgs))
+	s.Debug(ctx, "localizing %d msgs", len(conversationRemote.MaxMsgs))
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:         conversationRemote.Metadata.ConversationID,
@@ -581,28 +735,58 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	var err error
-	conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
-		conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
-	if err != nil {
-		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:    err.Error(),
-			RemoteConv: conversationRemote,
-			Permanent:  s.isErrPermanent(err),
+	// Set empty to an initial value before the real one in case we hit an error processing
+	// max messages
+	conversationLocal.IsEmpty = true
+	for _, maxMsg := range conversationRemote.MaxMsgs {
+		if utils.IsVisibleChatMessageType(maxMsg.GetMessageType()) {
+			conversationLocal.IsEmpty = false
+			break
 		}
-		return conversationLocal
+	}
+
+	// Fetch max messages unboxed, using either a custom function or through
+	// the conversation source configured in the global context
+	var err error
+	if s.getMessages != nil {
+		gmRes := s.getMessages(ctx, conversationRemote.GetConvID(),
+			uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
+		if gmRes.err != nil {
+			conversationLocal.Error = &chat1.ConversationErrorLocal{
+				Message:    gmRes.err.Error(),
+				RemoteConv: conversationRemote,
+				Permanent:  s.isErrPermanent(gmRes.err),
+				Typ:        gmRes.errTyp,
+			}
+			return conversationLocal
+		}
+		conversationLocal.MaxMessages = gmRes.msgs
+	} else {
+		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
+			conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
+		if err != nil {
+			conversationLocal.Error = &chat1.ConversationErrorLocal{
+				Message:    err.Error(),
+				RemoteConv: conversationRemote,
+				Permanent:  s.isErrPermanent(err),
+			}
+			return conversationLocal
+		}
 	}
 
 	// Set to true later if visible messages are in max messages.
 	conversationLocal.IsEmpty = true
 
 	var maxValidID chat1.MessageID
+	superXform := newSupersedesTransform(s.G())
+
+	var newMaxMsgs []chat1.MessageUnboxed
 	for _, mm := range conversationLocal.MaxMessages {
 		if mm.IsValid() {
 			body := mm.Valid().MessageBody
 			typ, err := body.MessageType()
 			if err != nil {
-				s.G().Log.Debug("localizeConversation: failed to get message type: convID: %s id: %d",
+				s.Debug(ctx, "failed to get message type: convID: %s id: %d",
 					conversationRemote.Metadata.ConversationID, mm.GetMessageID())
 				continue
 			}
@@ -617,10 +801,23 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.TlfName = mm.Valid().ClientHeader.TlfName
 				maxValidID = mm.GetMessageID()
 			}
+
 			conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
+
+			// Resolve edits/deletes
+			var newMsg []chat1.MessageUnboxed
+			if newMsg, err = superXform.run(ctx, conversationLocal.GetConvID(), uid,
+				[]chat1.MessageUnboxed{mm}, conversationRemote.Metadata.FinalizeInfo); err != nil {
+				s.Debug(ctx, "failed to transform message: id: %d err: %s", mm.GetMessageID(),
+					err.Error())
+			} else {
+				if len(newMsg) > 0 {
+					newMaxMsgs = append(newMaxMsgs, newMsg[0])
+				}
+			}
 		}
 	}
-
+	conversationLocal.MaxMessages = newMaxMsgs
 	if len(conversationLocal.Info.TlfName) == 0 {
 		errMsg := "no valid message in the conversation"
 		conversationLocal.Error = &chat1.ConversationErrorLocal{

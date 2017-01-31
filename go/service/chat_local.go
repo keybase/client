@@ -205,26 +205,6 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		return chat1.GetThreadLocalRes{}, err
 	}
 
-	// Sanity check the prev pointers in this thread.
-	// TODO: We'll do this against what's in the cache once that's ready,
-	//       rather than only checking the messages we just fetched against
-	//       each other.
-	_, err = chat.CheckPrevPointersAndGetUnpreved(&thread)
-	if err != nil {
-		return chat1.GetThreadLocalRes{}, err
-	}
-
-	// Run type filter if it exists
-	thread.Messages = storage.FilterByType(thread.Messages, arg.Query)
-
-	// Fetch outbox and tack onto the result
-	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	if err = outbox.SprinkleIntoThread(ctx, arg.ConversationID, &thread); err != nil {
-		if _, ok := err.(storage.MissError); !ok {
-			return chat1.GetThreadLocalRes{}, err
-		}
-	}
-
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
 		RateLimits:       utils.AggRateLimitsP(rl),

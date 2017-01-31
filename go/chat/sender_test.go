@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -73,6 +74,21 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	}
 }
 
+func newConvTriple(t *testing.T, tlf keybase1.TlfInterface, username string) chat1.ConversationIDTriple {
+	cres, err := tlf.CryptKeys(context.TODO(), keybase1.TLFQuery{
+		TlfName: username,
+	})
+	require.NoError(t, err)
+
+	trip := chat1.ConversationIDTriple{
+		Tlfid:     cres.NameIDBreaks.TlfID.ToBytes(),
+		TopicType: chat1.TopicType_CHAT,
+		TopicID:   []byte{0},
+	}
+
+	return trip
+}
+
 func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *kbtest.ChatTestContext {
 	for _, u := range world.Users {
 		if u.Username == user.Username {
@@ -83,7 +99,7 @@ func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *k
 	return &kbtest.ChatTestContext{}
 }
 
-func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI) {
+func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, func() libkb.SecretUI, kbtest.TlfMock) {
 	world := kbtest.NewChatMockWorld(t, "chatsender", numUsers)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
@@ -102,7 +118,8 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
 	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, f),
-		func() chat1.RemoteInterface { return ri })
+		func() chat1.RemoteInterface { return ri },
+		func() libkb.SecretUI { return &libkb.TestSecretUI{} })
 	tc.G.InboxSource = NewHybridInboxSource(tc.G,
 		func() keybase1.TlfInterface { return tlf },
 		func() chat1.RemoteInterface { return ri }, f)
@@ -112,22 +129,20 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	tc.G.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	tc.G.MessageDeliverer.Connected(context.TODO())
 
-	return world, ri, sender, baseSender, &listener, f
+	return world, ri, sender, baseSender, &listener, f, tlf
 }
 
 func TestNonblockChannel(t *testing.T) {
-	world, ri, sender, _, listener, _ := setupTest(t, 1)
+	world, ri, sender, _, listener, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
@@ -139,6 +154,7 @@ func TestNonblockChannel(t *testing.T) {
 	// Send nonblock
 	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
+			Conv:      trip,
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
 			TlfPublic: false,
@@ -184,19 +200,17 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 }
 
 func TestNonblockTimer(t *testing.T) {
-	world, ri, _, baseSender, listener, f := setupTest(t, 1)
+	world, ri, _, baseSender, listener, f, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	clock := world.Fc
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
 				TlfName:     u.Username,
 				TlfPublic:   false,
 				MessageType: chat1.MessageType_TLFNAME,
@@ -211,6 +225,7 @@ func TestNonblockTimer(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		_, msgID, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
 				Sender:      u.User.GetUID().ToBytes(),
 				TlfName:     u.Username,
 				TlfPublic:   false,
@@ -258,6 +273,7 @@ func TestNonblockTimer(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		_, msgID, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
 				Sender:      u.User.GetUID().ToBytes(),
 				TlfName:     u.Username,
 				TlfPublic:   false,
@@ -276,7 +292,7 @@ func TestNonblockTimer(t *testing.T) {
 	typs := []chat1.MessageType{chat1.MessageType_TEXT}
 	tres, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
-	tres.Messages = storage.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
+	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
 	require.NoError(t, outbox.SprinkleIntoThread(context.TODO(), res.ConvID, &tres))
@@ -319,18 +335,16 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, 
 
 func TestFailingSender(t *testing.T) {
 
-	world, ri, sender, _, listener, _ := setupTest(t, 1)
+	world, ri, sender, _, listener, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
@@ -347,6 +361,7 @@ func TestFailingSender(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
 				TlfPublic: false,
@@ -375,19 +390,17 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	world, ri, sender, baseSender, listener, _ := setupTest(t, 1)
+	world, ri, sender, baseSender, listener, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	cl := world.Fc
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
@@ -405,6 +418,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
 				TlfPublic: false,
@@ -482,18 +496,16 @@ func TestDisconnectedFailure(t *testing.T) {
 // The sender is responsible for making sure that a deletion of a single
 // message is expanded to include all of its edits.
 func TestDeletionHeaders(t *testing.T) {
-	world, ri, _, blockingSender, _, _ := setupTest(t, 1)
+	world, ri, _, blockingSender, _, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
@@ -505,6 +517,7 @@ func TestDeletionHeaders(t *testing.T) {
 	// Send a message and an edit.
 	_, firstMessageID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_TEXT,
@@ -514,6 +527,7 @@ func TestDeletionHeaders(t *testing.T) {
 	require.NoError(t, err)
 	_, editID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_EDIT,
@@ -526,6 +540,7 @@ func TestDeletionHeaders(t *testing.T) {
 	// Now prepare a deletion.
 	deletion := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_DELETE,

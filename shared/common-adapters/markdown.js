@@ -50,8 +50,8 @@ const strikeStyle = {...wrapStyle, color: undefined, fontWeight: undefined, text
 class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
   render () {
     const emoji = (this.props.children && this.props.children.join('')) || ''
-    const exists = emojiIndex.emojis.hasOwnProperty(emoji.split('::')[0])
-    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={this.props.preview ? neutralPreviewStyle : neutralStyle}>:{emoji}:</Text>
+    const exists = emojiIndex.emojis.hasOwnProperty(emoji.split(':')[1])
+    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={this.props.preview ? neutralPreviewStyle : neutralStyle}>{emoji}</Text>
   }
 }
 
@@ -59,6 +59,8 @@ function previewCreateComponent (type, key, children, options) {
   switch (type) {
     case 'emoji':
       return <EmojiIfExists preview={true} size={13} key={key}>{children}</EmojiIfExists>
+    case 'native-emoji':
+      return <Emoji size={16} key={key}>{children}</Emoji>
     default:
       return <Text type='BodySmall' key={key} style={neutralPreviewStyle}>{children}</Text>
   }
@@ -82,6 +84,8 @@ function messageCreateComponent (type, key, children, options) {
       return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
     case 'emoji':
       return <EmojiIfExists size={16} key={key}>{children}</EmojiIfExists>
+    case 'native-emoji':
+      return <Emoji size={16} key={key}>{children}</Emoji>
     // TODO
     case 'quote-block':
       return <Text type='Body' key={key} style={{}}>{children}</Text>
@@ -95,30 +99,7 @@ function process (ast, createComponent) {
   while (stack.length > 0) {
     const top = stack[0]
     if (top.type && top.seen) {
-      // Needed to collect characters into strings
-      const childrenComponents = top.children.reduce((acc, child, i) => {
-        const last = acc[acc.length - 1]
-        const isLast = i === top.children.length - 1
-        if (Array.isArray(last)) {
-          if (typeof child === 'string') {
-            last.push(child)
-            if (isLast) {
-              acc[acc.length - 1] = last.join('')
-            }
-          } else {
-            acc[acc.length - 1] = last.join('')
-            acc.push(child.component)
-          }
-        } else {
-          if (typeof child === 'string') {
-            acc.push([child])
-          } else {
-            acc.push(child.component)
-          }
-        }
-
-        return acc
-      }, [])
+      const childrenComponents = top.children.map(child => typeof child === 'string' ? child : child.component)
       top.component = createComponent(top.type, index++, childrenComponents, top)
       stack.shift()
     } else if (top.type && !top.seen) {

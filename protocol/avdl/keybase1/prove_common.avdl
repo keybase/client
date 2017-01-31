@@ -10,7 +10,9 @@ protocol proveCommon {
     SUPERSEDED_5,
     POSTED_6,
     REVOKED_7,
-    DELETED_8
+    DELETED_8,
+    UNKNOWN_TYPE_9,
+    SIG_HINT_MISSING_10
   }
 
   /**

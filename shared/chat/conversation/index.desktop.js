@@ -3,10 +3,13 @@ import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
 import List from './list.desktop'
+import NoConversation from './no-conversation'
 import React, {Component} from 'react'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
-import {withHandlers} from 'recompose'
+import {readImageFromClipboard} from '../../util/clipboard.desktop'
+import {nothingSelected} from '../../constants/chat'
+import {withHandlers, branch, renderComponent} from 'recompose'
 
 import type {Props} from '.'
 
@@ -55,6 +58,19 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
     this.setState({showDropOverlay: false})
   }
 
+  _onPaste = e => {
+    // TODO: Should we read/save the clipboard data on the main thread?
+    readImageFromClipboard(e, () => {
+      this.setState({showDropOverlay: true})
+    }).then(clipboardData => {
+      this.setState({showDropOverlay: false})
+      if (clipboardData) {
+        const {path, title} = clipboardData
+        this.props.onAttach(path, title, 'Image')
+      }
+    })
+  }
+
   render () {
     const {
     // $FlowIssue with variants
@@ -98,7 +114,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
       </Box>
     )
     return (
-      <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter}>
+      <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         <Header
           onOpenFolder={onOpenFolder}
           onToggleSidePanel={onToggleSidePanel}
@@ -167,4 +183,7 @@ const dropOverlayStyle = {
   top: 0,
 }
 
-export default withFocusHandlers(Conversation)
+export default branch(
+  (props: Props) => props.selectedConversation === nothingSelected,
+  renderComponent(NoConversation),
+withFocusHandlers)(Conversation)

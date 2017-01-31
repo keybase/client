@@ -3,6 +3,7 @@ import {ipcRenderer} from 'electron'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {MuiThemeProvider} from 'material-ui/styles'
+import {GlobalEscapeHandler} from '../util/escape-handler'
 import materialTheme from '../styles/material-theme.desktop'
 import dumbComponentMap from '../dev/dumb-sheet/component-map.desktop'
 import DumbSheetItem from '../dev/dumb-sheet/item'
@@ -17,14 +18,16 @@ function onDisplay (ev, msg) {
 
   const displayTree = (
     <MuiThemeProvider muiTheme={materialTheme}>
-      <DumbSheetItem
-        key={mockKey}
-        id='rendered'
-        style={{alignSelf: 'flex-start', margin: PADDING}}
-        component={map.component}
-        mockKey={mockKey}
-        mock={map.mocks[mockKey]}
-      />
+      <GlobalEscapeHandler>
+        <DumbSheetItem
+          key={mockKey}
+          id='rendered'
+          style={{alignSelf: 'flex-start', margin: PADDING}}
+          component={map.component}
+          mockKey={mockKey}
+          mock={map.mocks[mockKey]}
+        />
+      </GlobalEscapeHandler>
     </MuiThemeProvider>
   )
 

@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/kbtest"
@@ -618,7 +619,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
-	h.badger = newBadger(tc.G)
+	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
 	t.Logf("server message")
@@ -662,7 +663,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	// Set up client and server
 	h, _, _ := setupSyncTests(t, tc)
-	h.badger = newBadger(tc.G)
+	h.badger = badges.NewBadger(tc.G)
 	t.Logf("client setup complete")
 
 	t.Logf("sending first chat update")
@@ -684,14 +685,14 @@ func TestGregorBadgesOOBM(t *testing.T) {
 
 	t.Logf("resyncing")
 	// Instead of calling badger.Resync, reach in and twiddle the knobs.
-	h.badger.badgeState.UpdateWithChatFull(chat1.UnreadUpdateFull{
+	h.badger.State().UpdateWithChatFull(chat1.UnreadUpdateFull{
 		InboxVers: chat1.InboxVers(4),
 		Updates: []chat1.UnreadUpdate{
 			{ConvID: chat1.ConversationID(`b`), UnreadMessages: 0},
 			{ConvID: chat1.ConversationID(`c`), UnreadMessages: 3},
 		},
 	})
-	h.badger.send()
+	h.badger.Send()
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, badgeStateStats(bs).UnreadChatConversations, "unread chat convs")
 	require.Equal(t, 3, badgeStateStats(bs).UnreadChatMessages, "unread chat messages")

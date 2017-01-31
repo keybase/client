@@ -3,8 +3,7 @@ import React, {Component} from 'react'
 import Render from './index.render'
 import {connect} from 'react-redux'
 import {openAccountResetPage, relogin, login} from '../../actions/login'
-import {loginTab} from '../../constants/tabs'
-import {navigateTo} from '../../actions/route-tree'
+import {requestAutoInvite} from '../../actions/signup'
 
 import type {TypedState} from '../../constants/reducer'
 import type {Props} from './index.render'
@@ -67,7 +66,7 @@ export default connect(
   (dispatch: any) => ({
     onForgotPassphrase: () => dispatch(openAccountResetPage()),
     onLogin: (user, passphrase) => dispatch(relogin(user, passphrase)),
-    onSignup: () => dispatch(navigateTo([loginTab, 'signup'])),
+    onSignup: () => dispatch(requestAutoInvite()),
     onSomeoneElse: () => { dispatch(login()) },
   })
 )(Login)

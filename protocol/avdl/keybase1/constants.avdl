@@ -84,7 +84,9 @@ protocol constants {
     SCChatAlreadyDeleted_2508,
     SCChatTLFFinalized_2509,
     SCChatCollision_2510,
-    SCIdentifySummaryError_2511
+    SCIdentifySummaryError_2511,
+    SCNeedSelfRekey_2512,
+    SCNeedOtherRekey_2513
   }
 
 }
