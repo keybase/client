@@ -49,5 +49,5 @@ func serviceLoggedOut(ctx context.Context, config Config) {
 	// Clear any cached MD for all private TLFs, as they shouldn't be
 	// readable by a logged out user.  We assume that a logged-out
 	// call always comes before a logged-in call.
-	config.KBFSOps().ClearPrivateFolderMD()
+	config.KBFSOps().ClearPrivateFolderMD(ctx)
 }

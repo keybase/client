@@ -5506,7 +5506,7 @@ func (fbo *folderBranchOps) PushStatusChange() {
 
 // ClearPrivateFolderMD implements the KBFSOps interface for
 // folderBranchOps.
-func (fbo *folderBranchOps) ClearPrivateFolderMD() {
+func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 	if fbo.folderBranch.Tlf.IsPublic() {
 		return
 	}
@@ -5517,7 +5517,7 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD() {
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 
-	fbo.log.CDebugf(context.TODO(), "Clearing folder MD")
+	fbo.log.CDebugf(ctx, "Clearing folder MD")
 	fbo.head = ImmutableRootMetadata{}
 	fbo.latestMergedRevision = MetadataRevisionUninitialized
 }

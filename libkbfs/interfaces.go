@@ -316,7 +316,7 @@ type KBFSOps interface {
 	PushStatusChange()
 	// ClearPrivateFolderMD clears any cached private folder metadata,
 	// e.g. on a logout.
-	ClearPrivateFolderMD()
+	ClearPrivateFolderMD(ctx context.Context)
 }
 
 // KeybaseService is an interface for communicating with the keybase
