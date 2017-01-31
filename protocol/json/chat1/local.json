@@ -267,6 +267,10 @@
         {
           "type": "bytes",
           "name": "metadata"
+        },
+        {
+          "type": "boolean",
+          "name": "uploaded"
         }
       ]
     },
@@ -1787,6 +1791,10 @@
         {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
+        },
+        {
+          "name": "disableResolveSupersedes",
+          "type": "boolean"
         }
       ],
       "response": "GetMessagesLocalRes",

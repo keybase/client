@@ -542,6 +542,14 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		return deflt, err
 	}
 
+	// unless arg says not to, transform the superseded messages
+	if !arg.DisableResolveSupersedes {
+		messages, err = h.G().ConvSource.TransformSupersedes(ctx, arg.ConversationID, uid.ToBytes(), messages, conv.Metadata.FinalizeInfo)
+		if err != nil {
+			return deflt, err
+		}
+	}
+
 	return chat1.GetMessagesLocalRes{
 		Messages:         messages,
 		RateLimits:       utils.AggRateLimits(rlimits),

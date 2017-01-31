@@ -82,6 +82,8 @@ func (t MessageType) String() string {
 		return "DELETE"
 	case MessageType_METADATA:
 		return "METADATA"
+	case MessageType_ATTACHMENTUPLOADED:
+		return "ATTACHMENTUPLOADED"
 	default:
 		return "UNKNOWN"
 	}
@@ -321,14 +323,15 @@ func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 		return NewMessageBodyWithText(v1.Text()), nil
 	case MessageType_ATTACHMENT:
 		previous := v1.Attachment()
-		upgraded := MessageAttachmentUploaded{
+		upgraded := MessageAttachment{
 			Object:   previous.Object,
 			Metadata: previous.Metadata,
+			Uploaded: true,
 		}
 		if previous.Preview != nil {
 			upgraded.Previews = []Asset{*previous.Preview}
 		}
-		return NewMessageBodyWithAttachmentuploaded(upgraded), nil
+		return NewMessageBodyWithAttachment(upgraded), nil
 	case MessageType_EDIT:
 		return NewMessageBodyWithEdit(v1.Edit()), nil
 	case MessageType_DELETE:

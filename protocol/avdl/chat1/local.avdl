@@ -87,6 +87,7 @@ protocol local {
     Asset object;                // the primary attachment object
     array<Asset> previews;       // the previews of object
     bytes metadata;              // generic metadata (msgpack)
+    boolean uploaded;            // true if assets have been uploaded
   }
 
   record MessageAttachmentUploaded {
@@ -447,7 +448,7 @@ protocol local {
 
   // Get messages by ID.
   @lint("ignore")
-  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior, boolean disableResolveSupersedes);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;

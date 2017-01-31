@@ -190,6 +190,7 @@ type MessageAttachment struct {
 	Object   Asset   `codec:"object" json:"object"`
 	Previews []Asset `codec:"previews" json:"previews"`
 	Metadata []byte  `codec:"metadata" json:"metadata"`
+	Uploaded bool    `codec:"uploaded" json:"uploaded"`
 }
 
 type MessageAttachmentUploaded struct {
@@ -1189,9 +1190,10 @@ type GetConversationForCLILocalArg struct {
 }
 
 type GetMessagesLocalArg struct {
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	MessageIDs       []MessageID                  `codec:"messageIDs" json:"messageIDs"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	ConversationID           ConversationID               `codec:"conversationID" json:"conversationID"`
+	MessageIDs               []MessageID                  `codec:"messageIDs" json:"messageIDs"`
+	IdentifyBehavior         keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	DisableResolveSupersedes bool                         `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
 }
 
 type PostAttachmentLocalArg struct {

@@ -947,6 +947,7 @@ export type MessageAttachment = {
   object: Asset,
   previews?: ?Array<Asset>,
   metadata: bytes,
+  uploaded: boolean,
 }
 
 export type MessageAttachmentUploaded = {
@@ -1400,7 +1401,8 @@ export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
 export type localGetMessagesLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageIDs?: ?Array<MessageID>,
-  identifyBehavior: keybase1.TLFIdentifyBehavior
+  identifyBehavior: keybase1.TLFIdentifyBehavior,
+  disableResolveSupersedes: boolean
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{

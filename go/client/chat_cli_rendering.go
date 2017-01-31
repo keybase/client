@@ -386,7 +386,11 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		if len(att.Previews) > 0 {
 			mv.Body += " [preview available]"
 		}
-		mv.Body += " (...)"
+		if att.Uploaded {
+			mv.Body += " (uploaded)"
+		} else {
+			mv.Body += " (...)"
+		}
 	case chat1.MessageType_EDIT:
 		mv.Renderable = false
 		// Return the edit body for display in the original
@@ -401,16 +405,6 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		mv.Renderable = false
 	case chat1.MessageType_ATTACHMENTUPLOADED:
 		mv.Renderable = false
-		att := body.Attachmentuploaded()
-		title := att.Object.Title
-		if title == "" {
-			title = filepath.Base(att.Object.Filename)
-		}
-		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.ServerHeader.MessageID)
-		if len(att.Previews) > 0 {
-			mv.Body += " [preview available]"
-		}
-		mv.Body += " (uploaded)"
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}
