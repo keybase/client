@@ -37,6 +37,7 @@
         "HTTP_500_150",
         "TIMEOUT_160",
         "INTERNAL_ERROR_170",
+        "UNCHECKED_171",
         "BASE_HARD_ERROR_200",
         "NOT_FOUND_201",
         "CONTENT_FAILURE_202",
@@ -62,7 +63,7 @@
         "BAD_HINT_TEXT_307",
         "INVALID_PVL_308"
       ],
-      "doc": "3: It's been found in the hunt, but not proven yet\n    1xx: Retryable soft errors\n    2xx: Will likely result in a hard error, if repeated enough\n    3xx: Hard final errors"
+      "doc": "3: It's been found in the hunt, but not proven yet\n    1xx: Retryable soft errors; note that this will be put in the proof_cache, but won't\n       be returned from the proof cache in most cases. Their freshness will always be\n       RANCID.\n    2xx: Will likely result in a hard error, if repeated enough\n    3xx: Hard final errors"
     },
     {
       "type": "enum",

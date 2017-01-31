@@ -1209,11 +1209,18 @@ type CheckCompletedListener interface {
 	CCLCheckCompleted(lcr *LinkCheckResult)
 }
 
-func (idt *IdentityTable) Identify(ctx context.Context, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) error {
+type IdentifyTableMode int
+
+const (
+	IdentifyTableModePassive IdentifyTableMode = iota
+	IdentifyTableModeActive  IdentifyTableMode = iota
+)
+
+func (idt *IdentityTable) Identify(ctx context.Context, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
 	errs := make(chan error, len(is.res.ProofChecks))
 	for _, lcr := range is.res.ProofChecks {
 		go func(l *LinkCheckResult) {
-			errs <- idt.identifyActiveProof(ctx, l, is, forceRemoteCheck, ui, ccl)
+			errs <- idt.identifyActiveProof(ctx, l, is, forceRemoteCheck, ui, ccl, itm)
 		}(lcr)
 	}
 
@@ -1236,8 +1243,8 @@ func (idt *IdentityTable) Identify(ctx context.Context, is IdentifyState, forceR
 
 //=========================================================================
 
-func (idt *IdentityTable) identifyActiveProof(ctx context.Context, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) error {
-	idt.proofRemoteCheck(ctx, is.HasPreviousTrack(), forceRemoteCheck, lcr)
+func (idt *IdentityTable) identifyActiveProof(ctx context.Context, lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener, itm IdentifyTableMode) error {
+	idt.proofRemoteCheck(ctx, is.HasPreviousTrack(), forceRemoteCheck, lcr, itm)
 	if ccl != nil {
 		ccl.CCLCheckCompleted(lcr)
 	}
@@ -1287,7 +1294,7 @@ func (idt *IdentityTable) ComputeRemoteDiff(tracked, trackedTmp, observed keybas
 	return ret
 }
 
-func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult) {
+func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult, itm IdentifyTableMode) {
 	p := res.link
 
 	idt.G().Log.CDebugf(ctx, "+ RemoteCheckProof %s", p.ToDebugString())
@@ -1359,7 +1366,14 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 		return
 	}
 
-	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint)
+	// ProofCheckerModeActive or Passive mainly decides whether we need to reach out to
+	// self-hosted services. We want to avoid so doing when the user is acting passively
+	// (such as when receiving a message).
+	pcm := ProofCheckerModePassive
+	if (hasPreviousTrack && res.trackedProofState != keybase1.ProofState_NONE && res.trackedProofState != keybase1.ProofState_UNCHECKED) || itm == IdentifyTableModeActive {
+		pcm = ProofCheckerModeActive
+	}
+	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint, pcm)
 
 	// If no error than all good
 	if res.err == nil {

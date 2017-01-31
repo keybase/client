@@ -82,6 +82,11 @@ var ProofErrorHTTPOverTor = &ProofErrorImpl{
 	Desc:   "HTTP proofs aren't reliable over Tor",
 }
 
+var ProofErrorUnchecked = &ProofErrorImpl{
+	Status: keybase1.ProofStatus_UNCHECKED,
+	Desc:   "Proof unchecked due to privacy concerns",
+}
+
 type TorSessionRequiredError struct{}
 
 func (t TorSessionRequiredError) Error() string {

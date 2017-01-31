@@ -337,6 +337,7 @@ export const ProveCommonProofStatus = {
   http500: 150,
   timeout: 160,
   internalError: 170,
+  unchecked: 171,
   baseHardError: 200,
   notFound: 201,
   contentFailure: 202,
@@ -3703,6 +3704,7 @@ export type ProofStatus =
   | 150 // HTTP_500_150
   | 160 // TIMEOUT_160
   | 170 // INTERNAL_ERROR_170
+  | 171 // UNCHECKED_171
   | 200 // BASE_HARD_ERROR_200
   | 201 // NOT_FOUND_201
   | 202 // CONTENT_FAILURE_202
