@@ -135,6 +135,21 @@ func (fs *KBFSOpsStandard) PushStatusChange() {
 	fs.currentStatus.PushStatusChange()
 }
 
+// ClearPrivateFolderMD implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) ClearPrivateFolderMD(ctx context.Context) {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+
+	// Block until all private folders have been reset.  TODO:
+	// parallelize these, as they can block for a while waiting for
+	// the lock.
+	for _, fbo := range fs.ops {
+		// This call is a no-op for public folders.
+		fbo.ClearPrivateFolderMD(ctx)
+	}
+}
+
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (

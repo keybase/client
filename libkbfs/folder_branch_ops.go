@@ -1329,15 +1329,16 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 			md.Revision(), md.MergedStatus(), err)
 	}()
 
-	if md.data.Dir.Type != Dir {
-		// Not initialized.
-		return errors.Errorf("MD with revision=%d not initialized",
-			md.Revision())
+	if md.IsReadable() {
+		// We will prefetch this as on-demand so that it triggers downstream
+		// prefetches.
+		fbo.config.BlockOps().Prefetcher().PrefetchBlock(
+			&DirBlock{}, md.data.Dir.BlockPointer, md,
+			defaultOnDemandRequestPriority)
+	} else {
+		fbo.log.CDebugf(ctx,
+			"Setting an unreadable head with revision=%d", md.Revision())
 	}
-	// We will prefetch this as on-demand so that it triggers downstream
-	// prefetches.
-	fbo.config.BlockOps().Prefetcher().PrefetchBlock(
-		&DirBlock{}, md.data.Dir.BlockPointer, md, defaultOnDemandRequestPriority)
 
 	// Return early if the head is already set.  This avoids taking
 	// mdWriterLock for no reason, and it also avoids any side effects
@@ -5501,6 +5502,24 @@ func (fbo *folderBranchOps) GetEditHistory(ctx context.Context,
 // PushStatusChange forces a new status be fetched by status listeners.
 func (fbo *folderBranchOps) PushStatusChange() {
 	fbo.config.KBFSOps().PushStatusChange()
+}
+
+// ClearPrivateFolderMD implements the KBFSOps interface for
+// folderBranchOps.
+func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
+	if fbo.folderBranch.Tlf.IsPublic() {
+		return
+	}
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+
+	fbo.log.CDebugf(ctx, "Clearing folder MD")
+	fbo.head = ImmutableRootMetadata{}
+	fbo.latestMergedRevision = MetadataRevisionUninitialized
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.
