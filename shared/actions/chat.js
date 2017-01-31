@@ -898,9 +898,15 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   yield put({type: 'chat:loadingMessages', payload: {conversationIDKey}})
 
+  // We receive the list with edit/delete already applied so lets filter that out
+  const messageTypes = Object.keys(CommonMessageType).filter(k => !['edit', 'delete', 'tlfname', 'headline'].includes(k)).map(k => CommonMessageType[k])
+
   const thread = yield call(localGetThreadLocalRpcPromise, {param: {
     conversationID,
-    query: {markAsRead: true},
+    query: {
+      markAsRead: true,
+      messageTypes,
+    },
     pagination: {
       next,
       num: Constants.maxMessagesToLoadAtATime,
@@ -1064,6 +1070,16 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
             key: payload.serverHeader.messageID,
             deletedIDs: payload.messageBody.delete && payload.messageBody.delete.messageIDs || [],
           }
+        case CommonMessageType.edit: {
+          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
+          return {
+            ...common,
+            type: 'Edit',
+            timestamp: payload.serverHeader.ctime,
+            outboxID,
+            targetID: payload.messageBody.edit && payload.messageBody.edit.messageID,
+          }
+        }
         default:
           const unhandled: UnhandledMessage = {
             ...common,

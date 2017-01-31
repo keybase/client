@@ -251,9 +251,9 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _showEditor (message: TextMessage) {
+  _showEditor = (message: TextMessage, event: Event) => {
     console.log('aaa show editor')
-    // this.props.onEditMessage()
+    this.props.onEditMessage(message, 'TEST EDIT')
   }
 
   _showPopup (message: TextMessage | AttachmentMessage, event: any) {

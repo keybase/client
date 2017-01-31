@@ -106,6 +106,15 @@ export type DeletedMessage = {
   deletedIDs: Array<MessageID>,
 }
 
+export type EditMessage = {
+  type: 'Edit',
+  timestamp: number,
+  key: any,
+  outboxID?: ?OutboxIDKey,
+  messageID: MessageID,
+  targetMessageID: MessageID,
+}
+
 export type MaybeTimestamp = TimestampMessage | null
 
 export const ConversationStateRecord = Record({

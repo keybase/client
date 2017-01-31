@@ -57,7 +57,7 @@ export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden,
   let items = []
   if (message.author === you) {
     items = [
-      {onClick: () => onShowEditor(message), title: 'Edit'},
+      {onClick: (event: Event) => onShowEditor(message, event), title: 'Edit'},
       {danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'},
     ]
 
