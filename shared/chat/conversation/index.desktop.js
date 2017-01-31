@@ -44,9 +44,15 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
       type: file.type,
     }))
     files.forEach(f => {
-      this.props.onAttach(f.path, f.name, f.type.includes('image/') ? 'Image' : 'Other')
+      if (!this.props.selectedConversation) throw new Error('No conversation')
+      this.props.onAttach({
+        conversationIDKey: this.props.selectedConversation,
+        filename: f.path,
+        title: f.name,
+        type: f.type.includes('image/') ? 'Image' : 'Other',
+      })
+      this.setState({showDropOverlay: false})
     })
-    this.setState({showDropOverlay: false})
   }
 
   _onDragEnter = e => {
@@ -64,9 +70,15 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
       this.setState({showDropOverlay: true})
     }).then(clipboardData => {
       this.setState({showDropOverlay: false})
+      if (!this.props.selectedConversation) throw new Error('No conversation')
       if (clipboardData) {
         const {path, title} = clipboardData
-        this.props.onAttach(path, title, 'Image')
+        this.props.onAttach({
+          conversationIDKey: this.props.selectedConversation,
+          filename: path,
+          title,
+          type: 'Image',
+        })
       }
     })
   }

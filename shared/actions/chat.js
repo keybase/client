@@ -32,6 +32,7 @@ import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
+  AttachmentInput,
   BadgeAppForChat,
   ConversationBadgeState,
   ConversationIDKey,
@@ -239,11 +240,18 @@ function deleteMessage (message: Message): DeleteMessage {
 
 function retryAttachment (message: Constants.AttachmentMessage): Constants.SelectAttachment {
   const {conversationIDKey, filename, title, previewType, outboxID} = message
-  return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type: previewType || 'Other', outboxID}}
+  const input = {
+    conversationIDKey,
+    filename,
+    outboxID,
+    title,
+    type: previewType || 'Other',
+  }
+  return {type: 'chat:selectAttachment', payload: {input}}
 }
 
-function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string, type: Constants.AttachmentType): Constants.SelectAttachment {
-  return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type}}
+function selectAttachment (input: AttachmentInput): Constants.SelectAttachment {
+  return {type: 'chat:selectAttachment', payload: {input}}
 }
 
 function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, isHdPreview: boolean, filename: string): Constants.LoadAttachment {
@@ -1256,7 +1264,13 @@ function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: Chat
   return messageID
 }
 
-function * _selectAttachment ({payload: {conversationIDKey, filename, title, type, outboxID = (Math.ceil(Math.random() * 1e9) + '')}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+  if (!input.outboxID) {
+    input.outboxID = (Math.ceil(Math.random() * 1e9) + '')
+  }
+
+  const {conversationIDKey, title, filename, outboxID, type} = input
+
   const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
   const attachment = {
     filename,

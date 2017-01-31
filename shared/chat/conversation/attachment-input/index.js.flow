@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  title: string,
+  onClose: () => void,
+  onSelect: (title: string) => void,
+}
+
+export default class AttachmentInput extends Component<void, Props, void> {}

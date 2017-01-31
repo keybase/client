@@ -69,6 +69,14 @@ export type AttachmentSize = {
   height: number,
 }
 
+export type AttachmentInput = {
+  conversationIDKey: ConversationIDKey,
+  filename: string,
+  title: string,
+  type: AttachmentType,
+  outboxID?: OutboxIDKey, // Pass an outboxID to specify that we are retrying an attachment
+}
+
 export type AttachmentMessage = {
   type: 'Attachment',
   timestamp: number,
@@ -237,8 +245,7 @@ export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: A
 export type UpdateConversationUnreadCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', Map<ConversationIDKey, number>>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 
-// Pass an outboxID to specify that we are retrying an attachment
-export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType, outboxID?: OutboxIDKey}>
+export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
   outboxID: OutboxIDKey,

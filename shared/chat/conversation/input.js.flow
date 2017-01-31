@@ -1,12 +1,12 @@
 // @flow
 import {Component} from 'react'
 
-import type {ConversationIDKey, AttachmentType} from '../../constants/chat'
+import type {ConversationIDKey, AttachmentInput} from '../../constants/chat'
 
 export type Props = {
   emojiPickerOpen: boolean,
   isLoading: boolean,
-  onAttach: (filename: string, title: string, type: AttachmentType) => void,
+  onAttach: (input: AttachmentInput) => void,
   onPostMessage: (text: string) => void,
   selectedConversation: ?ConversationIDKey,
 }
