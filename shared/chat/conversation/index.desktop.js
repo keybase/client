@@ -51,8 +51,8 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
         title: f.name,
         type: f.type.includes('image/') ? 'Image' : 'Other',
       })
-      this.setState({showDropOverlay: false})
     })
+    this.setState({showDropOverlay: false})
   }
 
   _onDragEnter = e => {
