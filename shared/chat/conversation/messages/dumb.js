@@ -32,6 +32,7 @@ function messageMock (messageState: MessageState, author: string, you: string, t
 function textMessageMock (messageState: MessageState, author: string, you: string, text?: ?string, senderDeviceRevokedAt?: number): TextMessage {
   return {
     type: 'Text',
+    editedCount: 0,
     ...messageMock(messageState, author, you, text, senderDeviceRevokedAt),
   }
 }
@@ -323,6 +324,7 @@ const basePopupMock = {
 const baseTextPopupMenuMock = {
   ...basePopupMock,
   onEditMessage: (m: any) => console.log('onEditMessage', m),
+  onShowEditor: (m: any) => console.log('onShowEditor', m),
   onDeleteMessage: (m: any) => console.log('onDeleteMessage', m),
 }
 

@@ -80,6 +80,8 @@ const {
   localGetThreadLocalRpcPromise,
   localMarkAsReadLocalRpcPromise,
   localNewConversationLocalRpcPromise,
+  localPostDeleteNonblockRpcPromise,
+  localPostEditNonblockRpcPromise,
   localPostFileAttachmentLocalRpcChannelMap,
   localPostLocalNonblockRpcPromise,
   localRetryPostRpcPromise,
@@ -229,8 +231,8 @@ function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded:
   return {type: 'chat:loadMoreMessages', payload: {conversationIDKey, onlyIfUnloaded}}
 }
 
-function editMessage (message: Message): EditMessage {
-  return {type: 'chat:editMessage', payload: {message}}
+function editMessage (message: Message, text: HiddenString): EditMessage {
+  return {type: 'chat:editMessage', payload: {message, text}}
 }
 
 function deleteMessage (message: Message): DeleteMessage {
@@ -399,6 +401,50 @@ function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function * _editMessage (action: EditMessage): SagaGenerator<any, any> {
+  const {message} = action.payload
+  let messageID: ?MessageID
+  let conversationIDKey: ConversationIDKey = ''
+  switch (message.type) {
+    case 'Text':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+      break
+    case 'Attachment':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+      break
+  }
+
+  if (!messageID) {
+    console.warn('Editing unknown message type', message)
+    return
+  }
+
+  const clientHeader = yield call(_clientHeader, CommonMessageType.edit, conversationIDKey)
+  const conversationState = yield select(_conversationStateSelector, conversationIDKey)
+  let lastMessageID
+  if (conversationState) {
+    const message = conversationState.messages.findLast(m => !!m.messageID)
+    if (message) {
+      lastMessageID = message.messageID
+    }
+  }
+
+  yield call(localPostEditNonblockRpcPromise, {
+    param: {
+      body: action.payload.text.stringValue(),
+      clientPrev: lastMessageID,
+      conv: clientHeader.conv,
+      conversationID: keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      supersedes: messageID,
+      tlfName: clientHeader.tlfName,
+      tlfPublic: clientHeader.tlfPublic,
+    },
+  })
+}
+
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
@@ -435,6 +481,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     const message: Message = {
       type: 'Text',
       author,
+      editedCount: 0,
       outboxID,
       key: outboxID,
       timestamp: Date.now(),
@@ -499,17 +546,25 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
 
   if (messageID) {
     // Deleting a server message.
-    // TODO: Use delete message RPC call when it is available
     const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
-    clientHeader.supersedes = messageID
+    const conversationState = yield select(_conversationStateSelector, conversationIDKey)
+    let lastMessageID
+    if (conversationState) {
+      const message = conversationState.messages.findLast(m => !!m.messageID)
+      if (message) {
+        lastMessageID = message.messageID
+      }
+    }
 
-    yield call(localPostLocalNonblockRpcPromise, {
+    yield call(localPostDeleteNonblockRpcPromise, {
       param: {
+        clientPrev: lastMessageID,
+        conv: clientHeader.conv,
         conversationID: keyToConversationID(conversationIDKey),
         identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        msg: {
-          clientHeader,
-        },
+        supersedes: messageID,
+        tlfName: clientHeader.tlfName,
+        tlfPublic: clientHeader.tlfPublic,
       },
     })
   } else {
@@ -844,9 +899,15 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   yield put({type: 'chat:loadingMessages', payload: {conversationIDKey}})
 
+  // We receive the list with edit/delete already applied so lets filter that out
+  const messageTypes = Object.keys(CommonMessageType).filter(k => !['edit', 'delete', 'tlfname', 'headline'].includes(k)).map(k => CommonMessageType[k])
+
   const thread = yield call(localGetThreadLocalRpcPromise, {param: {
     conversationID,
-    query: {markAsRead: true},
+    query: {
+      markAsRead: true,
+      messageTypes,
+    },
     pagination: {
       next,
       num: Constants.maxMessagesToLoadAtATime,
@@ -898,7 +959,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage == null || prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
+  if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'Edit'].includes(message.type)) {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
@@ -946,6 +1007,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
       conversationIDKey,
       deviceName: yourDeviceName,
       deviceType: isMobile ? 'mobile' : 'desktop',
+      editedCount: 0,
       key: payload.outboxID,
       message: new HiddenString(messageText && messageText.body || ''),
       messageState,
@@ -976,6 +1038,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
           return {
             type: 'Text',
             ...common,
+            editedCount: payload.serverHeader.supersededBy ? 1 : 0, // mark it as edited if it's been superseded
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
@@ -1010,6 +1073,18 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
             key: payload.serverHeader.messageID,
             deletedIDs: payload.messageBody.delete && payload.messageBody.delete.messageIDs || [],
           }
+        case CommonMessageType.edit: {
+          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
+          return {
+            key: common.messageID,
+            message: new HiddenString(payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body || ''),
+            messageID: common.messageID,
+            outboxID,
+            targetMessageID: payload.messageBody.edit ? payload.messageBody.edit.messageID : 0,
+            timestamp: payload.serverHeader.ctime,
+            type: 'Edit',
+          }
+        }
         default:
           const unhandled: UnhandledMessage = {
             ...common,
@@ -1469,6 +1544,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
     safeTakeEvery('chat:newChat', _newChat),
     safeTakeEvery('chat:postMessage', _postMessage),
+    safeTakeEvery('chat:editMessage', _editMessage),
     safeTakeEvery('chat:retryMessage', _retryMessage),
     safeTakeEvery('chat:startConversation', _startConversation),
     safeTakeEvery('chat:updateMetadata', _updateMetadata),

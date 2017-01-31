@@ -27,7 +27,7 @@ export type OutboxIDKey = string
 export type MessageID = RPCMessageID
 
 export type ClientMessage = TimestampMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage
 
 export type Message = ClientMessage | ServerMessage
 
@@ -45,6 +45,7 @@ export type TextMessage = {
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
   key: any,
+  editedCount: number, // increase as we edit it
 }
 
 export type ErrorMessage = {
@@ -104,6 +105,16 @@ export type DeletedMessage = {
   key: any,
   messageID: MessageID,
   deletedIDs: Array<MessageID>,
+}
+
+export type EditingMessage = {
+  type: 'Edit',
+  key: any,
+  message: HiddenString,
+  messageID: MessageID,
+  outboxID?: ?OutboxIDKey,
+  targetMessageID: MessageID,
+  timestamp: number,
 }
 
 export type MaybeTimestamp = TimestampMessage | null
@@ -210,7 +221,7 @@ export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<Co
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
-export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
+export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDKey: ?ConversationIDKey}>

@@ -4,22 +4,34 @@ import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
 
-import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
+import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
 const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
-// _filterMessages dedupes and removed deleted messages
-function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
+// dedupes and removed deleted messages. Applies edits
+function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
-  const filteredAppend = append.filter(m => !seenMessages.has(m.key))
+  const filteredAppend = append.filter(m => !seenMessages.has(m.key) && m.type !== 'Edit')
 
   const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
   const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
   // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
-  const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
+  let nextMessages: List<ServerMessage> = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
   const nextSeenMessages = Set(nextMessages.map(m => m.key))
+
+  // Process edits
+  // $ForceType
+  const edits: List<EditingMessage> = append.filter(m => !seenMessages.has(m.key) && m.type === 'Edit')
+  edits.forEach(edit => {
+    const entry = nextMessages.findEntry(m => m.messageID === edit.targetMessageID)
+    if (entry) {
+      const [idx: number, message: TextMessage] = entry
+      // $FlowIssue doesn't like the intersection types
+      nextMessages = nextMessages.set(idx, {...message, message: edit.message, editedCount: message.editedCount + 1})
+    }
+  })
 
   return {
     nextMessages,
@@ -115,7 +127,7 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
-          const {nextMessages, nextSeenMessages} = _filterMessages(conversation.seenMessages, conversation.messages, List(messages), List(), nextDeletedIDs)
+          const {nextMessages, nextSeenMessages} = _processMessages(conversation.seenMessages, conversation.messages, List(messages), List(), nextDeletedIDs)
 
           return conversation
             .set('messages', nextMessages)
@@ -144,7 +156,7 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
-          const {nextMessages, nextSeenMessages} = _filterMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs)
+          const {nextMessages, nextSeenMessages} = _processMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs)
 
           const firstMessage = appendMessages[0]
           const inConversationFocused = (isSelected && state.get('focused'))
