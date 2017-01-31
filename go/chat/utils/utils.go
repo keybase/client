@@ -219,7 +219,7 @@ func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLa
 }
 
 func (d DebugLabeler) showVerbose() bool {
-	return true
+	return false
 }
 
 func (d DebugLabeler) showLog() bool {

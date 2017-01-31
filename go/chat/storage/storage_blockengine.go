@@ -351,18 +351,25 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 }
 
 func (be *blockEngine) readMessages(ctx context.Context, res resultCollector,
-	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error {
+	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
+
+	// Run all errors through resultCollector
+	defer func() {
+		if err != nil {
+			err = res.error(err)
+		}
+	}()
 
 	// Get block index
 	bi, err := be.fetchBlockIndex(ctx, convID, uid)
 	if err != nil {
-		return res.error(err)
+		return err
 	}
 
 	// Get the current block where max ID is found
 	b, err := be.getBlock(ctx, bi, maxID)
 	if err != nil {
-		return res.error(err)
+		return err
 	}
 
 	// Add messages to result set
@@ -380,13 +387,13 @@ func (be *blockEngine) readMessages(ctx context.Context, res resultCollector,
 		if msg.GetMessageID() == 0 {
 			be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
 				b.BlockID, be.getMsgID(b.BlockID, index))
-			return res.error(MissError{})
+			return MissError{}
 		}
 		bMsgID := msg.GetMessageID()
 
 		// Sanity check
 		if bMsgID != be.getMsgID(b.BlockID, index) {
-			return res.error(NewInternalError(be.DebugLabeler, "chat entry corruption: bMsgID: %d != %d (block: %d pos: %d)", bMsgID, be.getMsgID(b.BlockID, index), b.BlockID, index))
+			return NewInternalError(be.DebugLabeler, "chat entry corruption: bMsgID: %d != %d (block: %d pos: %d)", bMsgID, be.getMsgID(b.BlockID, index), b.BlockID, index)
 		}
 
 		be.Debug(ctx, "readMessages: adding msg_id: %d (blockid: %d pos: %d)",
