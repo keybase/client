@@ -133,18 +133,16 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 }
 
 func TestNonblockChannel(t *testing.T) {
-	world, ri, sender, _, listener, _, _ := setupTest(t, 1)
+	world, ri, sender, _, listener, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
@@ -156,6 +154,7 @@ func TestNonblockChannel(t *testing.T) {
 	// Send nonblock
 	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
+			Conv:      trip,
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
 			TlfPublic: false,
@@ -201,19 +200,17 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 }
 
 func TestNonblockTimer(t *testing.T) {
-	world, ri, _, baseSender, listener, f, _ := setupTest(t, 1)
+	world, ri, _, baseSender, listener, f, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	clock := world.Fc
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
 				TlfName:     u.Username,
 				TlfPublic:   false,
 				MessageType: chat1.MessageType_TLFNAME,
@@ -228,6 +225,7 @@ func TestNonblockTimer(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		_, msgID, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
 				Sender:      u.User.GetUID().ToBytes(),
 				TlfName:     u.Username,
 				TlfPublic:   false,
@@ -275,6 +273,7 @@ func TestNonblockTimer(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		_, msgID, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
 				Sender:      u.User.GetUID().ToBytes(),
 				TlfName:     u.Username,
 				TlfPublic:   false,
@@ -336,18 +335,16 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, 
 
 func TestFailingSender(t *testing.T) {
 
-	world, ri, sender, _, listener, _, _ := setupTest(t, 1)
+	world, ri, sender, _, listener, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
@@ -364,6 +361,7 @@ func TestFailingSender(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
 				TlfPublic: false,
@@ -392,19 +390,17 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	world, ri, sender, baseSender, listener, _, _ := setupTest(t, 1)
+	world, ri, sender, baseSender, listener, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	cl := world.Fc
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
@@ -422,6 +418,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
 				TlfPublic: false,
