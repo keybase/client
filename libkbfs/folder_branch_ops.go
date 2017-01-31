@@ -2607,8 +2607,6 @@ func (fbo *folderBranchOps) createEntryLocked(
 	md.AddOp(co)
 	// create new data block
 	var newBlock Block
-	// XXX: for now, put a unique ID in every new block, to make sure it
-	// has a unique block ID. This may not be needed once we have encryption.
 	if entryType == Dir {
 		newBlock = &DirBlock{
 			Children: make(map[string]DirEntry),
