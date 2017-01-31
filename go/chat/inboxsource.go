@@ -556,7 +556,8 @@ func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, ver
 		return nil, err
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
-		return nil, err
+		s.Debug(ctx, "NewMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
 	}
 	return conv, nil
 }
@@ -569,7 +570,8 @@ func (s *HybridInboxSource) ReadMessage(ctx context.Context, uid gregor1.UID, ve
 		return nil, err
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
-		return nil, err
+		s.Debug(ctx, "ReadMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
 	}
 	return conv, nil
 
@@ -583,7 +585,8 @@ func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 		return nil, err
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
-		return nil, err
+		s.Debug(ctx, "SetStatus: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
 	}
 	return conv, nil
 }

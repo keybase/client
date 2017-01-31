@@ -74,6 +74,21 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	}
 }
 
+func newConvTriple(t *testing.T, tlf keybase1.TlfInterface, username string) chat1.ConversationIDTriple {
+	cres, err := tlf.CryptKeys(context.TODO(), keybase1.TLFQuery{
+		TlfName: username,
+	})
+	require.NoError(t, err)
+
+	trip := chat1.ConversationIDTriple{
+		Tlfid:     cres.NameIDBreaks.TlfID.ToBytes(),
+		TopicType: chat1.TopicType_CHAT,
+		TopicID:   []byte{0},
+	}
+
+	return trip
+}
+
 func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *kbtest.ChatTestContext {
 	for _, u := range world.Users {
 		if u.Username == user.Username {
@@ -484,18 +499,16 @@ func TestDisconnectedFailure(t *testing.T) {
 // The sender is responsible for making sure that a deletion of a single
 // message is expanded to include all of its edits.
 func TestDeletionHeaders(t *testing.T) {
-	world, ri, _, blockingSender, _, _, _ := setupTest(t, 1)
+	world, ri, _, blockingSender, _, _, tlf := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: chat1.ConversationIDTriple{
-			Tlfid:     []byte{4, 5, 6},
-			TopicType: 0,
-			TopicID:   []byte{0},
-		},
+		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
@@ -507,6 +520,7 @@ func TestDeletionHeaders(t *testing.T) {
 	// Send a message and an edit.
 	_, firstMessageID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_TEXT,
@@ -516,6 +530,7 @@ func TestDeletionHeaders(t *testing.T) {
 	require.NoError(t, err)
 	_, editID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_EDIT,
@@ -528,6 +543,7 @@ func TestDeletionHeaders(t *testing.T) {
 	// Now prepare a deletion.
 	deletion := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_DELETE,
