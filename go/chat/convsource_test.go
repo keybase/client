@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,17 +14,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
-
-	cres, err := tlf.CryptKeys(context.TODO(), keybase1.TLFQuery{
-		TlfName: u.Username,
-	})
-	require.NoError(t, err)
-
-	trip := chat1.ConversationIDTriple{
-		Tlfid:     cres.NameIDBreaks.TlfID.ToBytes(),
-		TopicType: chat1.TopicType_CHAT,
-		TopicID:   []byte{0},
-	}
+	trip := newConvTriple(t, tlf, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{

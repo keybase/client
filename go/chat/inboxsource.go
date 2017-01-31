@@ -334,23 +334,23 @@ func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 }
 
 func (s *RemoteInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed) error {
-	return nil
+	convID chat1.ConversationID, msg chat1.MessageBoxed) (*chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 func (s *RemoteInboxSource) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msgID chat1.MessageID) error {
-	return nil
+	convID chat1.ConversationID, msgID chat1.MessageID) (*chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 func (s *RemoteInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, status chat1.ConversationStatus) error {
-	return nil
+	convID chat1.ConversationID, status chat1.ConversationStatus) (*chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error {
-	return nil
+	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error) {
+	return nil, nil
 }
 
 type HybridInboxSource struct {
@@ -526,47 +526,88 @@ func (s *HybridInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 		err = s.handleInboxError(cerr, uid)
 		return err
 	}
+
 	return nil
+}
+
+func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
+	// Read back affected conversation so we can send it to the frontend
+	ib, _, err := s.Read(ctx, uid, nil, &chat1.GetInboxLocalQuery{
+		ConvID: &convID,
+	}, nil)
+	if err != nil {
+		return conv, err
+	}
+	if len(ib.Convs) == 0 {
+		return conv, fmt.Errorf("unable to find conversation for new message: convID: %s", convID)
+	}
+	if len(ib.Convs) > 1 {
+		return conv, fmt.Errorf("more than one conversation returned? convID: %s", convID)
+	}
+	return &ib.Convs[0], nil
 }
 
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed) (err error) {
+	convID chat1.ConversationID, msg chat1.MessageBoxed) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "NewMessage")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).NewMessage(ctx, vers, convID, msg); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
-		return err
+		return nil, err
 	}
-	return nil
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "NewMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
 }
 
 func (s *HybridInboxSource) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msgID chat1.MessageID) (err error) {
+	convID chat1.ConversationID, msgID chat1.MessageID) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadMessage")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).ReadMessage(ctx, vers, convID, msgID); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
-		return err
+		return nil, err
 	}
-	return nil
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "ReadMessage: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+
 }
 
 func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
+	convID chat1.ConversationID, status chat1.ConversationStatus) (conv *chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "SetStatus")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).SetStatus(ctx, vers, convID, status); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
-		return err
+		return nil, err
 	}
-	return nil
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "SetStatus: unable to load conversation: convID: %s err: %s", convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
 }
 
 func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (err error) {
+	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).TlfFinalize(ctx, vers, convIDs, finalizeInfo); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
-		return err
+		return convs, err
 	}
-	return nil
+	for _, convID := range convIDs {
+		var conv *chat1.ConversationLocal
+		if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+			s.Debug(ctx, "TlfFinalize: unable to get conversation: %s", convID)
+		}
+		if conv != nil {
+			convs = append(convs, *conv)
+		}
+	}
+	return convs, nil
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,

@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
@@ -38,7 +39,7 @@ type Service struct {
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
 	messageDeliverer     *chat.Deliverer
-	badger               *Badger
+	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
 }
@@ -55,7 +56,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:       make(chan keybase1.ExitCode),
 		logForwarder: newLogFwd(),
 		rekeyMaster:  newRekeyMaster(g),
-		badger:       newBadger(g),
+		badger:       badges.NewBadger(g),
 		reachability: newReachability(g),
 	}
 }
