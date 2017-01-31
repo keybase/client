@@ -432,6 +432,11 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
       if (getState().tracker.pendingIdentifies[username]) {
         console.log('Bailing on idenitifies in time window', username)
         alreadyPending = true
+
+        // Display anyways
+        if (forceDisplay) {
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
         return
       }
 
