@@ -172,39 +172,90 @@ func AllChatConversationStatuses() (res []chat1.ConversationStatus) {
 	return
 }
 
-// Which convs show badges.
-func BadgingChatConversationStatuses() []chat1.ConversationStatus {
-	return []chat1.ConversationStatus{
-		chat1.ConversationStatus_UNFILED,
-		chat1.ConversationStatus_IGNORED,
-	}
+// ConversationStatusBehavior describes how a ConversationStatus behaves
+type ConversationStatusBehavior struct {
+	// Whether to show the conv in the inbox
+	ShowInInbox bool
+	// Whether sending to this conv sets it back to UNFILED
+	SendingRemovesStatus bool
+	// Whether any incoming activity sets it back to UNFILED
+	ActivityRemovesStatus bool
+	// Whether to show desktop notifications
+	DesktopNotifications bool
+	// Whether to send push notifications
+	PushNotifications bool
+	// Whether to show as part of badging
+	ShowBadges bool
 }
 
-func IsBadgingChatConversationStatus(status chat1.ConversationStatus) bool {
-	for _, s := range BadgingChatConversationStatuses() {
-		if status == s {
-			return true
+// When changing these, be sure to update gregor's postMessage as well
+func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatusBehavior {
+	switch s {
+	case chat1.ConversationStatus_UNFILED:
+		return ConversationStatusBehavior{
+			ShowInInbox:           true,
+			SendingRemovesStatus:  false,
+			ActivityRemovesStatus: false,
+			DesktopNotifications:  true,
+			PushNotifications:     true,
+			ShowBadges:            true,
+		}
+	case chat1.ConversationStatus_FAVORITE:
+		return ConversationStatusBehavior{
+			ShowInInbox:           true,
+			SendingRemovesStatus:  false,
+			ActivityRemovesStatus: false,
+			DesktopNotifications:  true,
+			PushNotifications:     true,
+			ShowBadges:            true,
+		}
+	case chat1.ConversationStatus_IGNORED:
+		return ConversationStatusBehavior{
+			ShowInInbox:           false,
+			SendingRemovesStatus:  true,
+			ActivityRemovesStatus: true,
+			DesktopNotifications:  true,
+			PushNotifications:     true,
+			ShowBadges:            true,
+		}
+	case chat1.ConversationStatus_BLOCKED:
+		return ConversationStatusBehavior{
+			ShowInInbox:           false,
+			SendingRemovesStatus:  true,
+			ActivityRemovesStatus: false,
+			DesktopNotifications:  false,
+			PushNotifications:     false,
+			ShowBadges:            false,
+		}
+	case chat1.ConversationStatus_MUTED:
+		return ConversationStatusBehavior{
+			ShowInInbox:           true,
+			SendingRemovesStatus:  false,
+			ActivityRemovesStatus: false,
+			DesktopNotifications:  false,
+			PushNotifications:     false,
+			ShowBadges:            false,
+		}
+	default:
+		return ConversationStatusBehavior{
+			ShowInInbox:           true,
+			SendingRemovesStatus:  false,
+			ActivityRemovesStatus: false,
+			DesktopNotifications:  true,
+			PushNotifications:     true,
+			ShowBadges:            true,
 		}
 	}
-	return false
 }
 
 // Which convs show in the inbox.
-func VisibleChatConversationStatuses() []chat1.ConversationStatus {
-	return []chat1.ConversationStatus{
-		chat1.ConversationStatus_UNFILED,
-		chat1.ConversationStatus_FAVORITE,
-		chat1.ConversationStatus_MUTED,
-	}
-}
-
-func IsVisibleChatConversationStatus(status chat1.ConversationStatus) bool {
-	for _, s := range VisibleChatConversationStatuses() {
-		if status == s {
-			return true
+func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
+	for _, s := range chat1.ConversationStatusMap {
+		if GetConversationStatusBehavior(s).ShowInInbox {
+			res = append(res, s)
 		}
 	}
-	return false
+	return
 }
 
 func VisibleChatMessageTypes() []chat1.MessageType {

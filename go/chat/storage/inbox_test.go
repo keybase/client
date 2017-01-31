@@ -138,6 +138,7 @@ func TestInboxQueries(t *testing.T) {
 	unreads = append(unreads, []chat1.Conversation{convs[19], convs[13], convs[5]}...)
 
 	// Make two ignored
+	// TODO add tests for other statuses
 	convs[18].Metadata.Status = chat1.ConversationStatus_IGNORED
 	convs[4].Metadata.Status = chat1.ConversationStatus_IGNORED
 	ignored = append(ignored, []chat1.Conversation{convs[18], convs[4]}...)

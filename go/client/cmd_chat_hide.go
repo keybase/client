@@ -11,6 +11,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// TODO hide is going to need some awesome help to make sense with mute.
+
 type CmdChatHide struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
