@@ -27,7 +27,8 @@ import * as ChatTypes from '../constants/types/flow-types-chat'
 
 import type {Action} from '../constants/types/flux'
 import type {ChangedFocus} from '../constants/window'
-import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {TLFIdentifyBehavior} from '../constants/types/flow-types'
+import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, SetStatusInfo, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
@@ -49,6 +50,7 @@ import type {
   Message,
   MessageID,
   MessageState,
+  MuteConversation,
   NewChat,
   OpenAttachmentPopup,
   OpenFolder,
@@ -85,6 +87,7 @@ const {
   localPostFileAttachmentLocalRpcChannelMap,
   localPostLocalNonblockRpcPromise,
   localRetryPostRpcPromise,
+  localSetConversationStatusLocalRpcPromise,
 } = ChatTypes
 
 const {conversationIDToKey, keyToConversationID, keyToOutboxID, InboxStateRecord, MetaDataRecord, makeSnippet, outboxIDToKey, serverMessageToMessageBody, getBrokenUsers} = Constants
@@ -231,8 +234,13 @@ function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded:
   return {type: 'chat:loadMoreMessages', payload: {conversationIDKey, onlyIfUnloaded}}
 }
 
+
 function editMessage (message: Message, text: HiddenString): EditMessage {
   return {type: 'chat:editMessage', payload: {message, text}}
+}
+
+function muteConversation (conversationIDKey: ConversationIDKey, muted: boolean) {
+  return {payload: {conversationIDKey, muted}, type: 'chat:muteConversation'}
 }
 
 function deleteMessage (message: Message): DeleteMessage {
@@ -308,7 +316,7 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
       info: null,
       conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
       participants,
-      muted: false, // TODO integrate this when it's available
+      muted: convoUnverified.metadata.status === CommonConversationStatus.blocked,
       time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
       snippet: ' ',
       validated: false,
@@ -592,6 +600,20 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
+    case NotifyChatChatActivityType.setStatus:
+      const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
+      if (setStatus) {
+        const conversationIDKey = conversationIDToKey(setStatus.convID)
+        const muted = setStatus.status === CommonConversationStatus.blocked
+        yield put(({
+          payload: {
+            conversationIDKey,
+            muted,
+          },
+          type: 'chat:conversationSetStatus',
+        }))
+      }
+      return
     case NotifyChatChatActivityType.failedMessage:
       const failedMessage: ?FailedMessageInfo = action.payload.activity.failedMessage
       if (failedMessage && failedMessage.outboxRecords) {
@@ -1233,8 +1255,20 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   }
 }
 
+function * _muteConversation (action: MuteConversation): SagaGenerator<any, any> {
+  const {conversationIDKey, muted} = action.payload
+  const conversationID = keyToConversationID(conversationIDKey)
+  const status = muted ? CommonConversationStatus.blocked : CommonConversationStatus.unfiled
+  const identifyBehavior: TLFIdentifyBehavior = 2 // CHAT_GUI
+  console.warn('in _muteConversation')
+  console.warn(conversationID, status, identifyBehavior)
+  yield call(localSetConversationStatusLocalRpcPromise, {
+    param: {conversationID, identifyBehavior, status},
+  })
+}
+
 function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
-  // Update gregor's view of the latest message we've read.
+  // Upd  ate gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
   const conversationState = yield select(_conversationStateSelector, conversationIDKey)
   if (conversationState && conversationState.firstNewMessageID && conversationState.messages !== null && conversationState.messages.size > 0) {
@@ -1479,6 +1513,7 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
   if (!action.isSelected || !appFocused || !chatTabSelected) {
     const me = yield select(usernameSelector)
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
+    // Is this message part of a muted conversation? If so don't notify.
     if (message && message.type === 'Text') {
       const snippet = makeSnippet(serverMessageToMessageBody(message))
 
@@ -1527,6 +1562,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers),
     safeTakeEvery('chat:incomingMessage', _incomingMessage),
     safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
+    safeTakeEvery('chat:muteConversation', _muteConversation),
     safeTakeEvery('chat:newChat', _newChat),
     safeTakeEvery('chat:postMessage', _postMessage),
     safeTakeEvery('chat:editMessage', _editMessage),
@@ -1554,6 +1590,7 @@ export {
   loadAttachment,
   loadInbox,
   loadMoreMessages,
+  muteConversation,
   newChat,
   selectAttachment,
   openFolder,

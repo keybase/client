@@ -411,6 +411,12 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('metaData', metaData)
     case 'chat:updateConversationUnreadCounts':
       return state.set('conversationUnreadCounts', action.payload)
+    case 'chat:conversationSetStatus':
+      const {conversationIDKey, muted} = action.payload
+      return state.set('inbox', state.get('inbox').update(state.get('inbox')
+        .findIndex(conv => conv.conversationIDKey === conversationIDKey),
+          entry => entry.set('muted', muted))
+      )
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
   }

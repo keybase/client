@@ -91,6 +91,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
       onInputRef,
       onLoadAttachment,
       onLoadMoreMessages,
+      onMuteConversation,
       onOpenFolder,
       onOpenInFileUI,
       onOpenInPopup,
@@ -99,6 +100,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
       onRetryMessage,
       onShowProfile,
       onToggleSidePanel,
+      muted,
       participants,
       selectedConversation,
       sidePanelOpen,
@@ -133,12 +135,14 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
           listScrollDownState={listScrollDownState}
           messages={messages}
           moreToLoad={moreToLoad}
+          muted={muted}
           onAddParticipant={onAddParticipant}
           onDeleteMessage={onDeleteMessage}
           onEditMessage={onEditMessage}
           onFocusInput={onFocusInput}
           onLoadAttachment={onLoadAttachment}
           onLoadMoreMessages={onLoadMoreMessages}
+          onMuteConversation={onMuteConversation}
           onOpenInFileUI={onOpenInFileUI}
           onOpenInPopup={onOpenInPopup}
           onRetryAttachment={onRetryAttachment}

@@ -11,6 +11,8 @@ export type Props = {
   metaDataMap: MetaDataMap,
   followingMap: FollowingMap,
   you: string,
+  muted: boolean,
+  onMuted: (muted: boolean) => void,
 }
 
 export default class SidePanel extends Component<void, Props, void> { }
