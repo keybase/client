@@ -80,6 +80,8 @@ const {
   localGetThreadLocalRpcPromise,
   localMarkAsReadLocalRpcPromise,
   localNewConversationLocalRpcPromise,
+  localPostDeleteNonblockRpcPromise,
+  localPostEditNonblockRpcPromise,
   localPostFileAttachmentLocalRpcChannelMap,
   localPostLocalNonblockRpcPromise,
   localRetryPostRpcPromise,
@@ -229,8 +231,8 @@ function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded:
   return {type: 'chat:loadMoreMessages', payload: {conversationIDKey, onlyIfUnloaded}}
 }
 
-function editMessage (message: Message): EditMessage {
-  return {type: 'chat:editMessage', payload: {message}}
+function editMessage (message: Message, text: HiddenString): EditMessage {
+  return {type: 'chat:editMessage', payload: {message, text}}
 }
 
 function deleteMessage (message: Message): DeleteMessage {
@@ -399,6 +401,50 @@ function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function * _editMessage (action: EditMessage): SagaGenerator<any, any> {
+  const {message} = action.payload
+  let messageID: ?MessageID
+  let conversationIDKey: ConversationIDKey = ''
+  switch (message.type) {
+    case 'Text':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+      break
+    case 'Attachment':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+      break
+  }
+
+  if (!messageID) {
+    console.warn('Editing unknown message type', message)
+    return
+  }
+
+  const clientHeader = yield call(_clientHeader, CommonMessageType.edit, conversationIDKey)
+  const conversationState = yield select(_conversationStateSelector, conversationIDKey)
+  let lastMessageID
+  if (conversationState) {
+    const message = conversationState.messages.findLast(m => !!m.messageID)
+    if (message) {
+      lastMessageID = message.messageID
+    }
+  }
+
+  yield call(localPostEditNonblockRpcPromise, {
+    param: {
+      body: action.payload.text.stringValue(),
+      clientPrev: lastMessageID,
+      conv: clientHeader.conv,
+      conversationID: keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      supersedes: messageID,
+      tlfName: clientHeader.tlfName,
+      tlfPublic: clientHeader.tlfPublic,
+    },
+  })
+}
+
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
@@ -499,17 +545,25 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
 
   if (messageID) {
     // Deleting a server message.
-    // TODO: Use delete message RPC call when it is available
     const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
-    clientHeader.supersedes = messageID
+    const conversationState = yield select(_conversationStateSelector, conversationIDKey)
+    let lastMessageID
+    if (conversationState) {
+      const message = conversationState.messages.findLast(m => !!m.messageID)
+      if (message) {
+        lastMessageID = message.messageID
+      }
+    }
 
-    yield call(localPostLocalNonblockRpcPromise, {
+    yield call(localPostDeleteNonblockRpcPromise, {
       param: {
+        clientPrev: lastMessageID,
+        conv: clientHeader.conv,
         conversationID: keyToConversationID(conversationIDKey),
         identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        msg: {
-          clientHeader,
-        },
+        supersedes: messageID,
+        tlfName: clientHeader.tlfName,
+        tlfPublic: clientHeader.tlfPublic,
       },
     })
   } else {
@@ -1469,6 +1523,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
     safeTakeEvery('chat:newChat', _newChat),
     safeTakeEvery('chat:postMessage', _postMessage),
+    safeTakeEvery('chat:editMessage', _editMessage),
     safeTakeEvery('chat:retryMessage', _retryMessage),
     safeTakeEvery('chat:startConversation', _startConversation),
     safeTakeEvery('chat:updateMetadata', _updateMetadata),

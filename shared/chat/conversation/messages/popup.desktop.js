@@ -5,7 +5,6 @@ import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import {fileUIName} from '../../../constants/platform'
-import flags from '../../../util/feature-flags'
 
 import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
@@ -61,11 +60,6 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
       {onClick: () => onEditMessage(message), title: 'Edit'},
       {danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'},
     ]
-
-    if (!flags.chatAdminOnly) {
-      // remote edit
-      items.shift()
-    }
 
     if (!message.senderDeviceRevokedAt) {
       items.unshift('Divider')
