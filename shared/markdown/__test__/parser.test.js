@@ -53,7 +53,7 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
-  it('parses more code blocks correctly', () => {
+  it('parses quote blocks correctly', () => {
     const ast = parser.parse(`
 > this is quoted
 > this is _italics_ inside of a quote. This is *bold* inside of a quote.
