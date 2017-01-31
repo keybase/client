@@ -78,6 +78,7 @@ func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
 		k.tb.Logf("Journal directory: %s", k.journalDir)
 		for name, c := range userMap {
 			c.(*libkbfs.ConfigLocal).EnableJournaling(
+				context.Background(),
 				filepath.Join(jdir, name.String()),
 				libkbfs.TLFJournalBackgroundWorkEnabled)
 		}

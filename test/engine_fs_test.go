@@ -565,7 +565,7 @@ func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 		e.journalDir = jdir
 		e.tb.Logf("Journal directory: %s", e.journalDir)
 		for i, c := range cfgs {
-			c.EnableJournaling(
+			c.EnableJournaling(context.Background(),
 				filepath.Join(jdir, users[i].String()),
 				libkbfs.TLFJournalBackgroundWorkEnabled)
 		}

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -66,7 +67,7 @@ type InitParams struct {
 	LogFileConfig logger.LogFileConfig
 
 	// TLFJournalBackgroundWorkStatus is the status to use to
-	// pass into config.EnableJournaling. Only has an effect when
+	// pass into JournalServer.EnableJournaling. Only has an effect when
 	// WriteJournalRoot is non-empty.
 	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
 
@@ -326,7 +327,7 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 	log.Info("KBFS version %s", VersionString())
 
 	if err != nil {
-		log.Warning("Failed to setup log file %q: %v", params.LogFileConfig.Path, err)
+		log.Warning("Failed to setup log file %q: %+v", params.LogFileConfig.Path, err)
 	}
 
 	return log, err
@@ -455,14 +456,14 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 
 	mdServer, err := makeMDServer(config, params.MDServerAddr, ctx.NewRPCLogFactory(), log)
 	if err != nil {
-		return nil, fmt.Errorf("problem creating MD server: %v", err)
+		return nil, fmt.Errorf("problem creating MD server: %+v", err)
 	}
 	config.SetMDServer(mdServer)
 
 	// note: the mdserver is the keyserver at the moment.
 	keyServer, err := makeKeyServer(config, params.MDServerAddr, log)
 	if err != nil {
-		return nil, fmt.Errorf("problem creating key server: %v", err)
+		return nil, fmt.Errorf("problem creating key server: %+v", err)
 	}
 
 	if registry := config.MetricsRegistry(); registry != nil {
@@ -473,7 +474,7 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 
 	bserv, err := makeBlockServer(config, params.BServerAddr, ctx.NewRPCLogFactory(), log)
 	if err != nil {
-		return nil, fmt.Errorf("cannot open block database: %v", err)
+		return nil, fmt.Errorf("cannot open block database: %+v", err)
 	}
 
 	if registry := config.MetricsRegistry(); registry != nil {
@@ -484,10 +485,13 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
-
-	if len(params.WriteJournalRoot) > 0 {
-		config.EnableJournaling(params.WriteJournalRoot,
+	if len(params.WriteJournalRoot) != 0 {
+		err := config.EnableJournaling(
+			context.Background(), params.WriteJournalRoot,
 			params.TLFJournalBackgroundWorkStatus)
+		if err != nil {
+			log.Warning("Could not initialize journal server: %+v", err)
+		}
 	}
 
 	return config, nil

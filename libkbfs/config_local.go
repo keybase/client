@@ -5,8 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -16,6 +14,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
+	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/shirou/gopsutil/mem"
 	"golang.org/x/net/context"
@@ -724,9 +723,12 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 // ResetCaches implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ResetCaches() {
 	oldDirtyBcache := c.resetCachesWithoutShutdown()
-	if err := c.journalizeBcaches(); err != nil {
-		if log := c.MakeLogger(""); log != nil {
-			log.CWarningf(nil, "Error journalizing dirty block cache: %v", err)
+	jServer, err := GetJournalServer(c)
+	if err == nil {
+		if err := c.journalizeBcaches(jServer); err != nil {
+			if log := c.MakeLogger(""); log != nil {
+				log.CWarningf(nil, "Error journalizing dirty block cache: %+v", err)
+			}
 		}
 	}
 	if oldDirtyBcache != nil {
@@ -735,7 +737,7 @@ func (c *ConfigLocal) ResetCaches() {
 		if err := oldDirtyBcache.Shutdown(); err != nil {
 			if log := c.MakeLogger(""); log != nil {
 				log.CWarningf(nil,
-					"Error shutting down old dirty block cache: %v", err)
+					"Error shutting down old dirty block cache: %+v", err)
 			}
 		}
 	}
@@ -820,10 +822,10 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 		}
 	}
 
-	var errors []error
+	var errorList []error
 	err := c.KBFSOps().Shutdown(ctx)
 	if err != nil {
-		errors = append(errors, err)
+		errorList = append(errorList, err)
 		// Continue with shutdown regardless of err.
 	}
 	c.BlockOps().Shutdown()
@@ -835,14 +837,14 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	c.Reporter().Shutdown()
 	err = c.DirtyBlockCache().Shutdown()
 	if err != nil {
-		errors = append(errors, err)
+		errorList = append(errorList, err)
 	}
 
-	if len(errors) == 1 {
-		return errors[0]
-	} else if len(errors) > 1 {
+	if len(errorList) == 1 {
+		return errorList[0]
+	} else if len(errorList) > 1 {
 		// Aggregate errors
-		return fmt.Errorf("Multiple errors on shutdown: %v", errors)
+		return errors.Errorf("Multiple errors on shutdown: %+v", errorList)
 	}
 	return nil
 }
@@ -855,16 +857,10 @@ func (c *ConfigLocal) CheckStateOnShutdown() bool {
 	return false
 }
 
-func (c *ConfigLocal) journalizeBcaches() error {
-	jServer, err := GetJournalServer(c)
-	if err != nil {
-		// Journaling is disabled.
-		return nil
-	}
-
+func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 	syncCache, ok := c.DirtyBlockCache().(*DirtyBlockCacheStandard)
 	if !ok {
-		return fmt.Errorf("Dirty bcache unexpectedly type %T", syncCache)
+		return errors.Errorf("Dirty bcache unexpectedly type %T", syncCache)
 	}
 	jServer.delegateDirtyBlockCache = syncCache
 
@@ -884,16 +880,17 @@ func (c *ConfigLocal) journalizeBcaches() error {
 	return nil
 }
 
-// EnableJournaling creates a JournalServer, but journaling may still
-// be enabled manually for individual folders, depending on whether
-// auto-enable is on.
+// EnableJournaling creates a JournalServer and attaches it to
+// this config. journalRoot must be non-empty. Errors returned are
+// non-fatal.
 func (c *ConfigLocal) EnableJournaling(
-	journalRoot string, bws TLFJournalBackgroundWorkStatus) {
+	ctx context.Context, journalRoot string,
+	bws TLFJournalBackgroundWorkStatus) error {
 	jServer, err := GetJournalServer(c)
 	if err == nil {
 		// Journaling shouldn't be enabled twice for the same
 		// config.
-		panic(errors.New("Trying to enable journaling twice"))
+		return errors.New("Trying to enable journaling twice")
 	}
 
 	// TODO: Sanity-check the root directory, e.g. create
@@ -916,19 +913,35 @@ func (c *ConfigLocal) EnableJournaling(
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
 		flushListener, diskLimitSemaphore)
-	ctx := context.Background()
-	uid, key, err := getCurrentUIDAndVerifyingKey(ctx, c.KBPKI())
-	if err != nil {
-		log.Warning("Failed to get current UID and key; not enabling existing journals: %v", err)
-		return
-	}
-	err = jServer.EnableExistingJournals(ctx, uid, key, bws)
-	if err != nil {
-		log.Warning("Failed to enable existing journals: %v", err)
-	}
+
 	c.SetBlockServer(jServer.blockServer())
 	c.SetMDOps(jServer.mdOps())
-	if err := c.journalizeBcaches(); err != nil {
-		panic(err)
+
+	bcacheErr := c.journalizeBcaches(jServer)
+	enableErr := func() error {
+		// If this fails, then existing journals will be
+		// enabled when we receive the login notification.
+		uid, key, err :=
+			getCurrentUIDAndVerifyingKey(ctx, c.KBPKI())
+		if err != nil {
+			return err
+		}
+
+		err = jServer.EnableExistingJournals(ctx, uid, key, bws)
+		if err != nil {
+			return err
+		}
+		return nil
+	}()
+	switch {
+	case bcacheErr != nil && enableErr != nil:
+		return errors.Errorf(
+			"Got errors %+v and %+v", bcacheErr, enableErr)
+	case bcacheErr != nil:
+		return bcacheErr
+	case enableErr != nil:
+		return enableErr
 	}
+
+	return nil
 }
