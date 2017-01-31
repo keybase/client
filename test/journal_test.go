@@ -231,7 +231,7 @@ func TestJournalDoubleCrSimple(t *testing.T) {
 // bob writes a multi-block file that conflicts with a file created by
 // alice when journaling is on.
 func TestJournalCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
-	test(t, journal(), blockSize(20),
+	test(t, journal(), blockSize(20), blockChangeSize(5),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -239,6 +239,7 @@ func TestJournalCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
 		as(bob,
 			enableJournal(),
 			disableUpdates(),
+			checkUnflushedPaths(nil),
 		),
 		as(alice,
 			write("a/b", "hello"),
