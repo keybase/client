@@ -648,8 +648,8 @@ func (fbo *folderBlockOps) DeepCopyFile(
 func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, file path, bps *blockPutState,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
 	var uid keybase1.UID // Data reads don't depend on the uid.
 	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
 	return fd.undupChildrenInCopy(ctx, fbo.config.BlockCache(),
