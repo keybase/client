@@ -4704,8 +4704,10 @@ func (_mr *_MockNodeCacheRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Move", arg0, arg1, arg2)
 }
 
-func (_m *MockNodeCache) Unlink(ref BlockRef, oldPath path) {
-	_m.ctrl.Call(_m, "Unlink", ref, oldPath)
+func (_m *MockNodeCache) Unlink(ref BlockRef, oldPath path) bool {
+	ret := _m.ctrl.Call(_m, "Unlink", ref, oldPath)
+	ret0, _ := ret[0].(bool)
+	return ret0
 }
 
 func (_mr *_MockNodeCacheRecorder) Unlink(arg0, arg1 interface{}) *gomock.Call {

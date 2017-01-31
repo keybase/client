@@ -278,7 +278,10 @@ func TestNodeCacheUnlink(t *testing.T) {
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
-	ncs.Unlink(childPtr2.Ref(), ncs.PathFromNode(childNode2))
+	found := ncs.Unlink(childPtr2.Ref(), ncs.PathFromNode(childNode2))
+	if !found {
+		t.Fatalf("Couldn't unlink")
+	}
 
 	path := ncs.PathFromNode(childNode2)
 	checkNodeCachePath(t, id, branch, path, path2)
@@ -298,7 +301,10 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 	childPtr1 := path2[1].BlockPointer
 
 	// unlink node 2's parent
-	ncs.Unlink(childPtr1.Ref(), ncs.PathFromNode(childNode1))
+	found := ncs.Unlink(childPtr1.Ref(), ncs.PathFromNode(childNode1))
+	if !found {
+		t.Fatalf("Couldn't unlink")
+	}
 
 	path := ncs.PathFromNode(childNode2)
 	checkNodeCachePath(t, id, branch, path, path2)
@@ -319,7 +325,11 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
-	ncs.Unlink(childPtr2.Ref(), ncs.PathFromNode(childNode2))
+	found := ncs.Unlink(childPtr2.Ref(), ncs.PathFromNode(childNode2))
+	if !found {
+		t.Fatalf("Couldn't unlink")
+	}
+
 	newChildName := "newChildName"
 	newChildPtr2 := BlockPointer{ID: kbfsblock.FakeID(22)}
 	ncs.UpdatePointer(childPtr2.Ref(), newChildPtr2) // NO-OP

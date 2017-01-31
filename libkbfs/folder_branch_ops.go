@@ -1590,8 +1590,8 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 	node Node, ei EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "Lookup %s %s", getNodeIDStr(dir), name)
 	defer func() {
-		fbo.deferLog.CDebugf(ctx, "Lookup %s %s done: %+v",
-			getNodeIDStr(dir), name, err)
+		fbo.deferLog.CDebugf(ctx, "Lookup %s %s done: %v %+v",
+			getNodeIDStr(dir), name, getNodeIDStr(node), err)
 	}()
 
 	err = fbo.checkNode(dir)
@@ -3761,8 +3761,13 @@ func (fbo *folderBranchOps) unlinkFromCache(op op, oldDir BlockPointer,
 	// revert the parent pointer
 	childPath.path[len(childPath.path)-2].BlockPointer = oldDir
 	for _, ptr := range op.Unrefs() {
+		// It's ok to modify this path, since we break as soon as the
+		// node cache takes a reference to it.
 		childPath.path[len(childPath.path)-1].BlockPointer = ptr
-		fbo.nodeCache.Unlink(ptr.Ref(), childPath)
+		found := fbo.nodeCache.Unlink(ptr.Ref(), childPath)
+		if found {
+			break
+		}
 	}
 
 	return nil
