@@ -70,17 +70,17 @@ helpers.rootLinuxNode(env, {
                     checkout: {
                         retry(3) {
                             checkout scm
+                            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+                            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+                            env.AUTHOR_NAME = readFile('.author_name')
+                            env.AUTHOR_EMAIL = readFile('.author_email')
+                            sh 'rm .author_name .author_email'
                             sh 'echo -n $(git rev-parse HEAD) > go/revision'
                             sh "git add go/revision"
                             env.GIT_COMMITTER_NAME = 'Jenkins'
                             env.GIT_COMMITTER_EMAIL = 'ci@keybase.io'
                             sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
                             env.COMMIT_HASH = readFile('go/revision')
-                            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-                            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-                            env.AUTHOR_NAME = readFile('.author_name')
-                            env.AUTHOR_EMAIL = readFile('.author_email')
-                            sh 'rm .author_name .author_email'
                         }
                     },
                     pull_glibc: {
