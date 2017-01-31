@@ -534,52 +534,60 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 // Test that quota reclamation doesn't run unless the current head is
 // at least the minimum needed age.
 func TestQuotaReclamationMinHeadAge(t *testing.T) {
-	var userName libkb.NormalizedUsername = "test_user"
-	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
-	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
-
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
-	config.SetClock(clock)
+	config1.SetClock(clock)
 
-	config.qrMinHeadAge = qrMinHeadAgeDefault
+	config2 := ConfigAsUser(config1, u2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
-	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
-	kbfsOps := config.KBFSOps()
-	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+	config2.qrMinHeadAge = qrMinHeadAgeDefault
+
+	name := u1.String() + "," + u2.String()
+
+	// u1 does the writes, and u2 tries to do the QR.
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+	kbfsOps1 := config1.KBFSOps()
+	_, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %+v", err)
 	}
-	err = kbfsOps.RemoveDir(ctx, rootNode, "a")
+	err = kbfsOps1.RemoveDir(ctx, rootNode1, "a")
 	if err != nil {
 		t.Fatalf("Couldn't remove dir: %+v", err)
 	}
 
 	// Increase the time and make a new revision, and make sure quota
 	// reclamation doesn't run.
-	clock.Add(2 * config.QuotaReclamationMinUnrefAge())
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "b")
+	clock.Add(2 * config2.QuotaReclamationMinUnrefAge())
+	_, _, err = kbfsOps1.CreateDir(ctx, rootNode1, "b")
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %+v", err)
 	}
 
 	// Wait for outstanding archives
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
+
 	// Make sure no blocks are deleted before there's a new-enough update.
-	bserverLocal, ok := config.BlockServer().(blockServerLocal)
+	bserverLocal, ok := config2.BlockServer().(blockServerLocal)
 	if !ok {
 		t.Fatalf("Bad block server")
 	}
 	preQR1Blocks, err := bserverLocal.getAllRefsForTest(
-		ctx, rootNode.GetFolderBranch().Tlf)
+		ctx, rootNode2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %+v", err)
 	}
 
-	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
+	ops := kbfsOps2.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode2)
 	ops.fbm.forceQuotaReclamation()
 	err = ops.fbm.waitForQuotaReclamations(ctx)
 	if err != nil {
@@ -587,7 +595,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	}
 
 	postQR1Blocks, err := bserverLocal.getAllRefsForTest(
-		ctx, rootNode.GetFolderBranch().Tlf)
+		ctx, rootNode2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %+v", err)
 	}
@@ -598,10 +606,10 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	}
 
 	// Increase the time again and make sure it does run.
-	clock.Add(2 * config.QuotaReclamationMinHeadAge())
+	clock.Add(2 * config2.QuotaReclamationMinHeadAge())
 
 	preQR2Blocks, err := bserverLocal.getAllRefsForTest(
-		ctx, rootNode.GetFolderBranch().Tlf)
+		ctx, rootNode2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %+v", err)
 	}
@@ -613,13 +621,51 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	}
 
 	postQR2Blocks, err := bserverLocal.getAllRefsForTest(
-		ctx, rootNode.GetFolderBranch().Tlf)
+		ctx, rootNode2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %+v", err)
 	}
 
 	if pre, post := totalBlockRefs(preQR2Blocks),
 		totalBlockRefs(postQR2Blocks); post >= pre {
+		t.Errorf("Blocks didn't shrink after reclamation: pre: %d, post %d",
+			pre, post)
+	}
+
+	// If u2 does a write, we don't have to wait the minimum head age.
+	_, _, err = kbfsOps2.CreateDir(ctx, rootNode2, "c")
+	if err != nil {
+		t.Fatalf("Couldn't create dir: %+v", err)
+	}
+
+	// Wait for outstanding archives
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %+v", err)
+	}
+
+	clock.Add(2 * config2.QuotaReclamationMinUnrefAge())
+
+	preQR3Blocks, err := bserverLocal.getAllRefsForTest(
+		ctx, rootNode2.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't get blocks: %+v", err)
+	}
+
+	ops.fbm.forceQuotaReclamation()
+	err = ops.fbm.waitForQuotaReclamations(ctx)
+	if err != nil {
+		t.Fatalf("Couldn't wait for QR: %+v", err)
+	}
+
+	postQR3Blocks, err := bserverLocal.getAllRefsForTest(
+		ctx, rootNode2.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't get blocks: %+v", err)
+	}
+
+	if pre, post := totalBlockRefs(preQR3Blocks),
+		totalBlockRefs(postQR3Blocks); post >= pre {
 		t.Errorf("Blocks didn't shrink after reclamation: pre: %d, post %d",
 			pre, post)
 	}
