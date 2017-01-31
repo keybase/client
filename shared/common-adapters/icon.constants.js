@@ -675,10 +675,20 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-64.png'),
   },
+  'icon-keybase-logo-80': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-keybase-logo-80.png'),
+  },
   'icon-keybase-logo-logged-out-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-logged-out-64.png'),
+  },
+  'icon-loader-connecting-266-static': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-connecting-266-static.png'),
   },
   'icon-loader-connecting-266': {
     isFont: false,
