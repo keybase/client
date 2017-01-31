@@ -13,7 +13,8 @@ const initialConversation: ConversationState = new ConversationStateRecord()
 // dedupes and removed deleted messages. Applies edits
 function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
-  const filteredAppend = append.filter(m => !seenMessages.has(m.key) && m.type !== 'Edit')
+  const filteredAppendGroups = append.filter(m => !seenMessages.has(m.key)).groupBy(m => m.type === 'Edit' || m.type === 'UpdateAttachment' ? m.type : 'Append')
+  const filteredAppend = filteredAppendGroups.get('Append') || List()
 
   const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
   const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
@@ -21,15 +22,28 @@ function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage>
   let nextMessages: List<ServerMessage> = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
   const nextSeenMessages = Set(nextMessages.map(m => m.key))
 
-  // Process edits
-  // $ForceType
-  const edits: List<EditingMessage> = append.filter(m => !seenMessages.has(m.key) && m.type === 'Edit')
-  edits.forEach(edit => {
-    const entry = nextMessages.findEntry(m => m.messageID === edit.targetMessageID)
+  filteredAppendGroups.get('Edit', List()).forEach(edit => {
+    if (edit.type !== 'Edit') {
+      return
+    }
+    const targetMessageID = edit.targetMessageID
+    const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
     if (entry) {
       const [idx: number, message: TextMessage] = entry
       // $FlowIssue doesn't like the intersection types
       nextMessages = nextMessages.set(idx, {...message, message: edit.message, editedCount: message.editedCount + 1})
+    }
+  })
+  filteredAppendGroups.get('UpdateAttachment', List()).forEach(update => {
+    if (update.type !== 'UpdateAttachment') {
+      return
+    }
+    const targetMessageID = update.targetMessageID
+    const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
+    if (entry) {
+      const [idx: number, message: AttachmentMessage] = entry
+      // $FlowIssue doesn't like the intersection types
+      nextMessages = nextMessages.set(idx, {...message, ...update.updates})
     }
   })
 
@@ -323,14 +337,14 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, outboxID, bytesComplete, bytesTotal} = action.payload
+      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
         conversationIDKey,
-        item => !!item.outboxID && item.outboxID === outboxID,
+        item => !!item.messageID && item.messageID === messageID,
         m => ({
           ...m,
           messageState: 'uploading',

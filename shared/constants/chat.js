@@ -15,7 +15,7 @@ export type FollowingMap = {[key: string]: boolean}
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
-export type AttachmentMessageState = MessageState | 'downloading' | 'uploading' | 'downloaded'
+export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading' | 'uploading' | 'downloaded'
 export type AttachmentType = 'Image' | 'Other'
 
 export type ConversationID = RPCConversationID
@@ -27,7 +27,7 @@ export type OutboxIDKey = string
 export type MessageID = RPCMessageID
 
 export type ClientMessage = TimestampMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment
 
 export type Message = ClientMessage | ServerMessage
 
@@ -79,8 +79,8 @@ export type AttachmentMessage = {
   deviceName: string,
   deviceType: DeviceType,
   messageID?: MessageID,
-  filename: string,
-  title: string,
+  filename: ?string,
+  title: ?string,
   previewType: ?AttachmentType,
   previewPath: ?string,
   previewSize: ?AttachmentSize,
@@ -115,6 +115,21 @@ export type EditingMessage = {
   outboxID?: ?OutboxIDKey,
   targetMessageID: MessageID,
   timestamp: number,
+}
+
+export type UpdatingAttachment = {
+  type: 'UpdateAttachment',
+  key: any,
+  messageID: MessageID,
+  targetMessageID: MessageID,
+  timestamp: number,
+  updates: {
+    filename: ?string,
+    messageState: 'sent',
+    previewType: ?AttachmentType,
+    previewSize: ?AttachmentSize,
+    title: ?string,
+  },
 }
 
 export type MaybeTimestamp = TimestampMessage | null
@@ -253,7 +268,7 @@ export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: 
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {conversationIDKey: ConversationIDKey, filename: string, title: string, type: AttachmentType, outboxID?: OutboxIDKey}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
-  outboxID: OutboxIDKey,
+  messageID: MessageID,
   bytesComplete: number,
   bytesTotal: number,
   conversationIDKey: ConversationIDKey,
