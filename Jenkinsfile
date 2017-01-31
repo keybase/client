@@ -112,6 +112,7 @@ helpers.rootLinuxNode(env, {
                     clientImage = docker.build("keybaseprivate/kbclient")
                     sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
                     archive("kbclient.tar.gz")
+                    sh "rm kbclient.tar.gz"
                 }
                 parallel (
                     test_linux: {
