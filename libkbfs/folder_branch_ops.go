@@ -1567,7 +1567,7 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 		// directory.  In that case, just return an empty set of
 		// children so we don't return an incorrect set from the
 		// cache.
-		if md.data.Dir.BlockPointer != dirPath.path[0].BlockPointer {
+		if md.data.Dir.BlockPointer.ID != dirPath.path[0].BlockPointer.ID {
 			fbo.log.CDebugf(ctx, "Returning an empty children set for "+
 				"unlinked directory %v", dirPath.tailPointer())
 			return nil
@@ -3409,7 +3409,7 @@ func (fbo *folderBranchOps) setExLocked(
 	// If the MD doesn't match the MD expected by the path, that
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this setex.
-	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
+	if md.data.Dir.BlockPointer.ID != file.path[0].BlockPointer.ID {
 		fbo.log.CDebugf(ctx, "Skipping setex for a removed file %v",
 			file.tailPointer())
 		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
@@ -3481,7 +3481,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this
 	// setmtime.
-	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
+	if md.data.Dir.BlockPointer.ID != file.path[0].BlockPointer.ID {
 		fbo.log.CDebugf(ctx, "Skipping setmtime for a removed file %v",
 			file.tailPointer())
 		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
@@ -3547,7 +3547,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	// If the MD doesn't match the MD expected by the path, that
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this sync.
-	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
+	if md.data.Dir.BlockPointer.ID != file.path[0].BlockPointer.ID {
 		fbo.log.CDebugf(ctx, "Skipping sync for a removed file %v",
 			file.tailPointer())
 		// Removing the cached info here is a little sketchy,
