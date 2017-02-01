@@ -405,11 +405,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folder-private-24.png'),
   },
-  'icon-folder-private-32-addon-locked': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-32-addon-locked.png'),
-  },
   'icon-folder-private-32': {
     isFont: false,
     extension: 'png',

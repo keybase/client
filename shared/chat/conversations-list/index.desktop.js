@@ -41,14 +41,7 @@ type RowProps = Props & {conversation: InboxState, unreadCount: number, rekeyInf
 
 const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted, hasUnread, isSelected}) => {
   const avatarCount = Math.min(2, participants.count())
-
-  let icon
-  if (isMuted) {
-    icon = <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarIconStyle} />
-  } else if (participantNeedToRekey || youNeedToRekey) {
-    icon = <Icon type='icon-folder-private-32-addon-locked' style={avatarIconStyle} />
-  }
-
+  const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor: rowBackgroundColor(hasUnread, isSelected),
     borderColor: rowBorderColor(idx, idx === (avatarCount - 1), hasUnread, isSelected),
@@ -62,7 +55,7 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   return (
     <div style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4}}>
       <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
-      {icon}
+      {isMuted && <Icon type={shhIconType} style={shhStyle} />}
     </div>
   )
 }
@@ -91,14 +84,12 @@ const TopLine = ({isSelected, hasUnread, boldOverride, participants, subColor, c
   )
 }
 
-const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, boldOverride, subColor, conversation}) => {
+const BottomLine = ({participantNeedToRekey, isMuted, boldOverride, subColor, conversation}) => {
   const snippet = conversation.get('snippet')
 
   let content
 
-  if (youNeedToRekey) {
-    content = <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{alignSelf: 'flex-start', backgroundColor: globalColors.red, borderRadius: 2, color: globalColors.white, fontSize: 10, paddingLeft: 2, paddingRight: 2}}>REKEY NEEDED</Text>
-  } else if (participantNeedToRekey) {
+  if (participantNeedToRekey) {
     content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
   } else if (snippet && !isMuted) {
     content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>
@@ -151,7 +142,6 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
           isSelected={isSelected} />
         <BottomLine
           participantNeedToRekey={participantNeedToRekey}
-          youNeedToRekey={youNeedToRekey}
           conversation={conversation}
           subColor={subColor}
           boldOverride={boldOverride}
@@ -194,7 +184,7 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
   return false
 })(_Row)
 
-const avatarIconStyle = {
+const shhStyle = {
   marginLeft: -globalMargins.small,
   marginTop: 20,
   zIndex: 1,
