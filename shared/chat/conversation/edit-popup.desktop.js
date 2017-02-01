@@ -7,7 +7,7 @@ type Props = {
   onClose: () => void,
   onSubmit: (message: string) => void,
   message: string,
-  rect: {
+  messageRect: {
     top: number,
     left: number,
     width: number,
@@ -28,7 +28,7 @@ class EditPopup extends Component<void, Props, void> {
   }
 
   render () {
-    const {onClose, message, onSubmit, rect} = this.props
+    const {onClose, message, onSubmit, messageRect} = this.props
     // The setImmediate is due to some timing issues when injecting the portal using the unsafe method, TODO clean that up soon
 
     return <PopupDialog
@@ -44,10 +44,10 @@ class EditPopup extends Component<void, Props, void> {
         backgroundColor: globalColors.white,
         borderBottom: `1px solid ${globalColors.black_05}`,
         borderTop: `1px solid ${globalColors.black_05}`,
-        left: rect.left,
+        left: messageRect.left,
         paddingBottom: globalMargins.xtiny,
         position: 'absolute',
-        top: rect.top,
+        top: messageRect.top,
       }}>
         <Input
           ref={this._setRef}
@@ -56,6 +56,10 @@ class EditPopup extends Component<void, Props, void> {
           hideUnderline={true}
           value={message}
           multiline={true}
+          onClick={e => {
+            e.preventDefault()
+            e.stopPropagation() // else the bottom input bar gets focus!
+          }}
           rowsMin={1}
           rowsMax={5}
           onEnterKeyDown={(e) => {
@@ -64,10 +68,10 @@ class EditPopup extends Component<void, Props, void> {
             onClose()
           }}
           style={{
-            height: rect.height,
-            maxWidth: rect.width,
+            height: messageRect.height,
+            maxWidth: messageRect.width,
             textAlign: 'left',
-            width: rect.width,
+            width: messageRect.width,
           }} />
         <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
           <Button type='Secondary' label='Cancel' onClick={() => { setImmediate(onClose) }} />

@@ -262,7 +262,6 @@ class ConversationList extends Component<void, Props, State> {
         onClose={this._hidePopup}
         message={message.message.stringValue()}
         onSubmit={text => { this.props.onEditMessage(message, text) }}
-        rect={messageRect}
       />
     )
 
