@@ -86,7 +86,6 @@ const TopLine = ({isSelected, hasUnread, boldOverride, participants, subColor, c
 
 const BottomLine = ({participantNeedToRekey, isMuted, boldOverride, subColor, conversation}) => {
   const snippet = conversation.get('snippet')
-
   let content
 
   if (participantNeedToRekey) {
@@ -171,13 +170,11 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
     return true
   }
 
-  // $FlowIssue dunno
   if (props.unreadCount !== nextProps.unreadCount) {
     return true
   }
 
-  // $FlowIssue dunno
-  if (props.rekeyInfo !== nextProps.rekeyInfo) {
+  if (props.rekeyInfos !== nextProps.rekeyInfos) {
     return true
   }
 

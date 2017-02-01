@@ -165,7 +165,7 @@ const commonConversationsProps = {
   selectedConversation: null,
   onNewChat: () => console.log('new chat'),
   you: 'chris',
-  rekeyInfos: Map({}),
+  rekeyInfos: Map(),
 }
 
 const emptyConversationsProps = {
