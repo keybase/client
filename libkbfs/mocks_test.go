@@ -4,6 +4,8 @@
 package libkbfs
 
 import (
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
@@ -14,7 +16,6 @@ import (
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
-	time "time"
 )
 
 // Mock of dataVersioner interface
@@ -4854,16 +4855,6 @@ func (_m *MockRekeyQueue) IsRekeyPending(_param0 tlf.ID) bool {
 
 func (_mr *_MockRekeyQueueRecorder) IsRekeyPending(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsRekeyPending", arg0)
-}
-
-func (_m *MockRekeyQueue) GetRekeyChannel(id tlf.ID) <-chan error {
-	ret := _m.ctrl.Call(_m, "GetRekeyChannel", id)
-	ret0, _ := ret[0].(<-chan error)
-	return ret0
-}
-
-func (_mr *_MockRekeyQueueRecorder) GetRekeyChannel(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRekeyChannel", arg0)
 }
 
 func (_m *MockRekeyQueue) Clear() {

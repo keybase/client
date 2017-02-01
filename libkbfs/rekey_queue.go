@@ -46,7 +46,9 @@ type RekeyQueueStandard struct {
 
 	wg kbfssync.RepeatedWaitGroup
 
-	lock     sync.RWMutex // protects all of the below
+	lock sync.RWMutex // protects all of the below
+	// pendings tracks TLFs that are in the rekey queue, but doesn't include
+	// those that a worker has already picked up and begun working on.
 	pendings map[tlf.ID]<-chan error
 	// cancel, if non-nil, is for all spawned workers. If nil, no workers should
 	// be running. Calling cancel would cause all workers to stop.
@@ -119,27 +121,38 @@ func (rkq *RekeyQueueStandard) ensureRunningLocked() {
 	}
 }
 
+func (rkq *RekeyQueueStandard) getRekeyChannelRLocked(id tlf.ID) <-chan error {
+	if ch, ok := rkq.pendings[id]; ok {
+		return ch
+	}
+	return nil
+}
+
+func (rkq *RekeyQueueStandard) getRekeyChannel(id tlf.ID) <-chan error {
+	rkq.lock.RLock()
+	defer rkq.lock.RUnlock()
+	return rkq.getRekeyChannelRLocked(id)
+}
+
 // Enqueue implements the RekeyQueue interface for RekeyQueueStandard.
 func (rkq *RekeyQueueStandard) Enqueue(id tlf.ID) <-chan error {
 	rkq.log.Debug("Enqueueing %s for rekey", id)
 
-	if ch := rkq.GetRekeyChannel(id); ch != nil {
+	if ch := rkq.getRekeyChannel(id); ch != nil {
 		return ch
 	}
-
-	rkq.wg.Add(1)
 
 	rkq.lock.Lock()
 	defer rkq.lock.Unlock()
 
-	// Now we are locked, check again in case another one slips in. This wouldn't
-	// matter that much since Rekey is idempotent. But since we have the lock
-	// already, it won't hurt.
+	// Now we are locked, check again in case another one slips in.
 	if ch := rkq.getRekeyChannelRLocked(id); ch != nil {
 		return ch
 	}
 
 	rkq.ensureRunningLocked()
+
+	rkq.wg.Add(1)
 
 	ch := make(chan error, 1)
 	rkq.pendings[id] = ch
@@ -161,20 +174,6 @@ func (rkq *RekeyQueueStandard) IsRekeyPending(id tlf.ID) bool {
 	defer rkq.lock.RUnlock()
 	_, ok := rkq.pendings[id]
 	return ok
-}
-
-// GetRekeyChannel implements the RekeyQueue interface for RekeyQueueStandard.
-func (rkq *RekeyQueueStandard) GetRekeyChannel(id tlf.ID) <-chan error {
-	rkq.lock.RLock()
-	defer rkq.lock.RUnlock()
-	return rkq.getRekeyChannelRLocked(id)
-}
-
-func (rkq *RekeyQueueStandard) getRekeyChannelRLocked(id tlf.ID) <-chan error {
-	if ch, ok := rkq.pendings[id]; ok {
-		return ch
-	}
-	return nil
 }
 
 // Clear implements the RekeyQueue interface for RekeyQueueStandard.

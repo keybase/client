@@ -928,16 +928,6 @@ func TestCRDouble(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// Helper to block on rekey of a given folder.
-func waitForRekey(t *testing.T, config Config, id tlf.ID) {
-	rekeyCh := config.RekeyQueue().GetRekeyChannel(id)
-	if rekeyCh != nil {
-		// rekey in progress still
-		err := <-rekeyCh
-		require.NoError(t, err)
-	}
-}
-
 // Tests that two users can make independent writes while forked, and
 // conflict resolution will merge them correctly and the rekey bit is
 // preserved until rekey.
@@ -1036,7 +1026,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 	// wait for the rekey to happen
-	waitForRekey(t, config2, rootNode2.GetFolderBranch().Tlf)
+	config2.RekeyQueue().Wait(ctx)
 
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
@@ -1159,7 +1149,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, err)
 	// wait for the rekey to happen
-	waitForRekey(t, config1, rootNode1.GetFolderBranch().Tlf)
+	config1.RekeyQueue().Wait(ctx)
 
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)

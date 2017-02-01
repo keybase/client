@@ -1633,12 +1633,13 @@ type crAction interface {
 // RekeyQueue is a managed queue of folders needing some rekey action taken upon them
 // by the current client.
 type RekeyQueue interface {
-	// Enqueue enqueues a folder for rekey action.
+	// Enqueue enqueues a folder for rekey action. If the TLF is already in the
+	// rekey queue, the error channel of the existing one is returned.
 	Enqueue(tlf.ID) <-chan error
 	// IsRekeyPending returns true if the given folder is in the rekey queue.
+	// Note that a rekey request that a worker has already picked up and is
+	// working on doesn't count as "pending".
 	IsRekeyPending(tlf.ID) bool
-	// GetRekeyChannel will return any rekey completion channel (if pending.)
-	GetRekeyChannel(id tlf.ID) <-chan error
 	// Clear cancels all pending rekey actions and clears the queue.
 	Clear()
 	// Waits for all queued rekeys to finish
