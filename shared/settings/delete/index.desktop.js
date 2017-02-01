@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {globalStyles, globalMargins} from '../../styles'
-import {Box, Button, Icon, Text} from '../../common-adapters'
+import {Box, Button, Text} from '../../common-adapters'
 
 import type {Props} from './index'
 
