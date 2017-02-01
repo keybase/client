@@ -1038,7 +1038,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
           return {
             type: 'Text',
             ...common,
-            editedCount: 0,
+            editedCount: payload.serverHeader.supersededBy ? 1 : 0, // mark it as edited if it's been superseded
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
