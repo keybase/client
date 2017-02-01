@@ -951,7 +951,7 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 
 	alice := CreateAndSignupFakeUser(tc, "a")
 
-	runTest := func(chatGUImode bool, returnUnchecked bool, shouldCheck bool, wantedMode libkb.ProofCheckerMode, noMe bool) {
+	runTest := func(chatGUImode bool, returnUnchecked bool, shouldCheck bool, wantedMode libkb.ProofCheckerMode) {
 
 		i := newIdentify2WithUIDTester(tc.G)
 		checked := false
@@ -995,15 +995,15 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 
 	// Alice ID's Eve, in ChatGUIMode, without a track. Assert that we get a
 	// PASSIVE proof checker mode for rooter.
-	runTest(true, true, true, libkb.ProofCheckerModePassive, true)
+	runTest(true, true, true, libkb.ProofCheckerModePassive)
 
 	// Alice ID's Eve, in standard ID mode, without a track. Assert that we get a
 	// ACTIVE proof checker more for the rooter
-	runTest(false, false, true, libkb.ProofCheckerModeActive, true)
+	runTest(false, false, true, libkb.ProofCheckerModeActive)
 
 	// Alice ID's Eve in ChatGUIMode, without a track. But she should hit the proof cache
 	// from right above.
-	runTest(true, false, false, libkb.ProofCheckerModePassive, true)
+	runTest(true, false, false, libkb.ProofCheckerModePassive)
 
 	trackUser(tc, alice, eve.NormalizedUsername())
 
@@ -1011,7 +1011,7 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 
 	// Alice ID's Eve, in ChatGUIMode, with a track. Assert that we get an
 	// Active proof checker mode for rooter.
-	runTest(true, true, true, libkb.ProofCheckerModeActive, false)
+	runTest(true, true, true, libkb.ProofCheckerModeActive)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")
