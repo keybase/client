@@ -782,9 +782,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       if (conversation && action && action.payload && action.payload.newConversationIDKey && action.payload.newConversationIDKey === conversation.get('conversationIDKey')) {
         conversation = conversation.set('youCreated', true)
       }
-      if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
-        yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
-      }
+      yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
       // find it
     } else if (incoming.chatInboxFailed) {
       console.warn('ignoring chatInboxFailed', incoming.chatInboxFailed)
