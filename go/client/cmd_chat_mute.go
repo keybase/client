@@ -11,26 +11,26 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type CmdChatHide struct {
+type CmdChatMute struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	status           chat1.ConversationStatus
 }
 
-func newCmdChatHide(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdChatMute(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "hide",
-		Usage:        "Hide or block a conversation.",
+		Name:         "mute",
+		Usage:        "Mute or unmute a conversation.",
 		ArgumentHelp: "[<conversation>]",
 		Action: func(c *cli.Context) {
-			cmd := &CmdChatHide{Contextified: libkb.NewContextified(g)}
-			cl.ChooseCommand(cmd, "hide", c)
+			cmd := &CmdChatMute{Contextified: libkb.NewContextified(g)}
+			cl.ChooseCommand(cmd, "mute", c)
 		},
-		Flags: append(getConversationResolverFlags(), mustGetChatFlags("block", "unhide")...),
+		Flags: append(getConversationResolverFlags(), mustGetChatFlags("unhide")...),
 	}
 }
 
-func (c *CmdChatHide) ParseArgv(ctx *cli.Context) error {
+func (c *CmdChatMute) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	if len(ctx.Args()) > 1 {
@@ -47,16 +47,9 @@ func (c *CmdChatHide) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
-	block := ctx.Bool("block")
 	unhide := ctx.Bool("unhide")
 
-	c.status = chat1.ConversationStatus_IGNORED
-	if block && unhide {
-		return fmt.Errorf("cannot do both --block and --unhide")
-	}
-	if block {
-		c.status = chat1.ConversationStatus_BLOCKED
-	}
+	c.status = chat1.ConversationStatus_MUTED
 	if unhide {
 		c.status = chat1.ConversationStatus_UNFILED
 	}
@@ -64,7 +57,7 @@ func (c *CmdChatHide) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdChatHide) Run() error {
+func (c *CmdChatMute) Run() error {
 	ctx := context.TODO()
 
 	chatClient, err := GetChatLocalClient(c.G())
@@ -99,7 +92,7 @@ func (c *CmdChatHide) Run() error {
 	return nil
 }
 
-func (c *CmdChatHide) GetUsage() libkb.Usage {
+func (c *CmdChatMute) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		API:       true,
 		KbKeyring: true,
