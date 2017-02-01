@@ -102,7 +102,7 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
 
-func (i *Identify2WithUIDTester) CheckStatus(_ libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(_ libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 	if i.checkStatusHook != nil {
 		return i.checkStatusHook(h)
 	}
@@ -383,7 +383,8 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		return nil
 	}
 
-	var origUI libkb.IdentifyUI = tester
+	var origUI libkb.IdentifyUI
+	origUI = tester
 
 	checkBrokenRes := func(res *keybase1.Identify2Res) {
 		if !res.Upk.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {

@@ -408,7 +408,7 @@ func (e *ScanProofsEngine) CheckOne(ctx *Context, rec map[string]string, forcepv
 		return perr, foundhint, nil
 	}
 
-	perr = pc.CheckStatus(e.G(), *hint)
+	perr = pc.CheckStatus(e.G(), *hint, libkb.ProofCheckerModeActive)
 	if perr != nil {
 		return perr, foundhint, nil
 	}

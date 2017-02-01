@@ -48,7 +48,7 @@ func (rc *CoinbaseChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 
 func (rc *CoinbaseChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *CoinbaseChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+func (rc *CoinbaseChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 	if pvl.UsePvl {
 		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_COINBASE,
 			pvl.NewProofInfo(rc.proof, h))
