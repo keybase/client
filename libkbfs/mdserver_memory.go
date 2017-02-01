@@ -605,6 +605,11 @@ func (md *MDServerMemory) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	return c, nil
 }
 
+// CancelRegistration implements the MDServer interface for MDServerMemory.
+func (md *MDServerMemory) CancelRegistration(_ context.Context, id tlf.ID) {
+	md.updateManager.cancel(id, md)
+}
+
 func (md *MDServerMemory) getCurrentDeviceKIDBytes(ctx context.Context) (
 	[]byte, error) {
 	buf := &bytes.Buffer{}
