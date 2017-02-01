@@ -3,6 +3,7 @@
 // We control which set of messages we render in our state object.
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling.
 
+import EditPopup from './edit-popup.desktop'
 import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
@@ -216,7 +217,7 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled()
   }, 200)
 
-  _hidePopup () {
+  _hidePopup = () => {
     ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
     this.setState({
       selectedMessageID: undefined,
@@ -234,7 +235,7 @@ class ConversationList extends Component<void, Props, State> {
             onDeleteMessage={this.props.onDeleteMessage}
             onLoadAttachment={this.props.onLoadAttachment}
             onOpenInFileUI={this.props.onOpenInFileUI}
-            onHidden={() => this._hidePopup()}
+            onHidden={this._hidePopup}
             style={style}
           />
         )
@@ -247,7 +248,7 @@ class ConversationList extends Component<void, Props, State> {
             onDeleteMessage={this.props.onDeleteMessage}
             onDownloadAttachment={() => { messageID && this.props.onLoadAttachment(messageID, filename) }}
             onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
-            onHidden={() => this._hidePopup()}
+            onHidden={this._hidePopup}
             style={style}
           />
         )
@@ -255,19 +256,48 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _showEditor = (message: TextMessage, messageRect: any) => {
-    console.log('aaa show editor', messageRect)
-    this.props.onEditMessage(message, 'TEST EDIT')
+    const popupComponent = (
+      <EditPopup
+        messageRect={messageRect}
+        onClose={this._hidePopup}
+        message={message.message.stringValue()}
+        onSubmit={text => { this.props.onEditMessage(message, text) }}
+        rect={messageRect}
+      />
+    )
+
+    // Have to do this cause it's triggered from a popup that we're reusing else we'll get unmounted
+    setImmediate(() => {
+      const container = document.getElementById('popupContainer')
+      // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+      ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
+    })
+  }
+
+  _findMessageFromDOMNode (start: any) : any {
+    let current = start
+    while (current) {
+      if (current.matches('.message')) {
+        return current
+      }
+      current = current.parentNode
+    }
+
+    return null
   }
 
   _showPopup (message: TextMessage | AttachmentMessage, event: any) {
     const clientRect = event.target.getBoundingClientRect()
+
+    const messageNode = this._findMessageFromDOMNode(event.target)
+    const messageRect = messageNode && messageNode.getClientRects()[0]
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
     const x = clientRect.left - 205
     let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
 
-    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, clientRect)
+    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, messageRect)
     if (!popupComponent) return
 
     this.setState({

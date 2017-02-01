@@ -116,7 +116,7 @@ export default connect(
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, filename, title, type) => dispatch(selectAttachment(selectedConversation, filename, title, type)),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onEditMessage: (message: Message) => { dispatch(editMessage(message, new HiddenString('testeditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditesteditestedittttttttttttttttttttttttttttestedit' + Math.random()))) },
+    onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onOpenFolder: () => dispatch(openFolder()),
