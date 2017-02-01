@@ -766,7 +766,6 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
   yield put({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer})
   chatInboxUnverified.response.result()
-  const selectedConversationIDKey = yield select(_selectedSelector)
 
   let finishedCalled = false
   while (!finishedCalled) {
@@ -784,7 +783,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
         conversation = conversation.set('youCreated', true)
       }
       if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
-        yield put(({type: 'chat:updateInbox', payload: {conversation, loadMoreMessages: true}}: Constants.UpdateInbox))
+        yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
       }
       // find it
     } else if (incoming.chatInboxFailed) {

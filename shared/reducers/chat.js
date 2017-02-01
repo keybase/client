@@ -164,8 +164,6 @@ function reducer (state: State = initialState, action: Actions) {
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      const snippet = makeSnippet(serverMessageToMessageBody(message))
-      const author = message.type === 'Text' && message.author
       // Update snippets / unread / participant order
 
       return state
