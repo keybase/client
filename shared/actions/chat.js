@@ -311,12 +311,12 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
     }
 
     const participants = List(parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName).map(ul => ul.username))
-
+    const muted = convoUnverified.metadata.status === CommonConversationStatus.blocked
     return new InboxStateRecord({
       info: null,
       conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
       participants,
-      muted: convoUnverified.metadata.status === CommonConversationStatus.blocked,
+      muted,
       time: convoUnverified.readerInfo && convoUnverified.readerInfo.mtime,
       snippet: ' ',
       validated: false,
