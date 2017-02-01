@@ -69,6 +69,9 @@ func (t *supersedesTransform) run(ctx context.Context,
 			}
 		}
 	}
+	if len(superMsgIDs) == 0 {
+		return originalMsgs, nil
+	}
 
 	// Get superseding messages
 	msgs, err := t.G().ConvSource.GetMessages(ctx, convID, uid, superMsgIDs, finalizeInfo)

@@ -89,7 +89,7 @@ func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 	return nil
 }
 
-func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 	if pvl.UsePvl {
 		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_FACEBOOK, pvl.NewProofInfo(rc.proof, h))
 	}

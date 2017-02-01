@@ -49,7 +49,10 @@ class GlobalEscapeHandler extends Component<void, GlobalProps, void> {
     }
   }
 
-  _handleESC = () => {
+  _handleESC = (ev: KeyboardEvent) => {
+    if (ev.key !== 'Escape') {
+      return
+    }
     const receiver = this._stack.pop()
     if (!receiver) {
       return

@@ -40,6 +40,8 @@ func ProofErrorToState(pe ProofError) keybase1.ProofState {
 		return keybase1.ProofState_SIG_HINT_MISSING
 	case keybase1.ProofStatus_UNKNOWN_TYPE:
 		return keybase1.ProofState_UNKNOWN_TYPE
+	case keybase1.ProofStatus_UNCHECKED:
+		return keybase1.ProofState_UNCHECKED
 	default:
 		return keybase1.ProofState_TEMP_FAILURE
 	}
@@ -80,6 +82,11 @@ var ProofErrorDNSOverTor = &ProofErrorImpl{
 var ProofErrorHTTPOverTor = &ProofErrorImpl{
 	Status: keybase1.ProofStatus_TOR_SKIPPED,
 	Desc:   "HTTP proofs aren't reliable over Tor",
+}
+
+var ProofErrorUnchecked = &ProofErrorImpl{
+	Status: keybase1.ProofStatus_UNCHECKED,
+	Desc:   "Proof unchecked due to privacy concerns",
 }
 
 type TorSessionRequiredError struct{}

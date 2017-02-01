@@ -254,18 +254,69 @@ func TestGetInboxNonblock(t *testing.T) {
 	ui := kbtest.NewChatUI(cb)
 	ctc.as(t, users[0]).h.mockChatUI = ui
 
+	// Create a bunch of blank convos
 	convs := make(map[string]bool)
 	for i := 0; i < numconvs; i++ {
 		convs[mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[i+1]).user().Username).Id.String()] = true
 	}
 
+	t.Logf("blank convos test")
+	// Get inbox (should be blank)
 	_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
 		chat1.GetInboxNonblockLocalArg{
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		},
 	)
 	require.NoError(t, err)
-	// Get inbox
+	select {
+	case ibox := <-cb:
+		require.NotNil(t, ibox.InboxRes, "nil inbox")
+		require.Zero(t, len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox received")
+	}
+	// Get all convos
+	for i := 0; i < numconvs; i++ {
+		select {
+		case conv := <-cb:
+			require.NotNil(t, conv.ConvRes, "no conv")
+			delete(convs, conv.ConvID.String())
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no conv received")
+		}
+	}
+	require.Equal(t, 0, len(convs), "didnt get all convs")
+
+	// Send a bunch of messages
+	t.Logf("messages in convos test")
+	convs = make(map[string]bool)
+	for i := 0; i < numconvs; i++ {
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[i+1]).user().Username)
+		convs[conv.Id.String()] = true
+
+		_, err := ctc.as(t, users[0]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     conv.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "HI",
+				}),
+			},
+		})
+		require.NoError(t, err)
+	}
+
+	// Get inbox (should be blank)
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
+		chat1.GetInboxNonblockLocalArg{
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		},
+	)
+	require.NoError(t, err)
 	select {
 	case ibox := <-cb:
 		require.NotNil(t, ibox.InboxRes, "nil inbox")
@@ -273,7 +324,6 @@ func TestGetInboxNonblock(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox received")
 	}
-
 	// Get all convos
 	for i := 0; i < numconvs; i++ {
 		select {

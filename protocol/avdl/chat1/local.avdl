@@ -240,7 +240,17 @@ protocol local {
     union { null, ConversationFinalizeInfo } finalizeInfo;
   }
 
+  enum ConversationErrorType {
+    MISC_0,
+    MISSINGINFO_1,
+    SELFREKEYNEEDED_2,
+    OTHERREKEYNEEDED_3,
+    IDENTIFY_4,
+    LOCALMAXMESSAGENOTFOUND_5 // special use-case internally
+  }
+
   record ConversationErrorLocal {
+    ConversationErrorType typ;
     string message;
     Conversation remoteConv;
     boolean permanent;

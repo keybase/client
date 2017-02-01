@@ -299,7 +299,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				if err != nil {
 					return chat1.ThreadView{}, nil, err
 				}
-				if err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
+				if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
 					return chat1.ThreadView{}, nil, err
 				}
 

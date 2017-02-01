@@ -64,7 +64,7 @@ func (h *HackerNewsChecker) CheckHint(ctx libkb.ProofContext, hint libkb.SigHint
 	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should start with '%s'", wanted)
 }
 
-func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint) libkb.ProofError {
+func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 	if pvl.UsePvl {
 		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_HACKERNEWS,
 			pvl.NewProofInfo(h.proof, hint))

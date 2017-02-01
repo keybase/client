@@ -644,8 +644,9 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           }
         } else {
           // How long was it between the previous message and this one?
-          if (conversationState && conversationState.messages !== null) {
+          if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
             const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
+
             const timestamp = _maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
@@ -659,6 +660,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               })
             }
           }
+
           yield put({
             logTransformer: appendMessageActionTransformer,
             payload: {

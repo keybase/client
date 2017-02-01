@@ -98,6 +98,15 @@ export const LocalBodyPlaintextVersion = {
   v1: 1,
 }
 
+export const LocalConversationErrorType = {
+  misc: 0,
+  missinginfo: 1,
+  selfrekeyneeded: 2,
+  otherrekeyneeded: 3,
+  identify: 4,
+  localmaxmessagenotfound: 5,
+}
+
 export const LocalHeaderPlaintextVersion = {
   v1: 1,
 }
@@ -637,10 +646,19 @@ export type Conversation = {
 }
 
 export type ConversationErrorLocal = {
+  typ: ConversationErrorType,
   message: string,
   remoteConv: Conversation,
   permanent: boolean,
 }
+
+export type ConversationErrorType = 
+    0 // MISC_0
+  | 1 // MISSINGINFO_1
+  | 2 // SELFREKEYNEEDED_2
+  | 3 // OTHERREKEYNEEDED_3
+  | 4 // IDENTIFY_4
+  | 5 // LOCALMAXMESSAGENOTFOUND_5
 
 export type ConversationFinalizeInfo = {
   resetUser: string,
@@ -906,6 +924,7 @@ export type InboxViewFull = {
 export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
+  conv?: ?ConversationLocal,
 }
 
 export type LocalFileSource = {
@@ -991,12 +1010,6 @@ export type MessagePlaintext = {
 export type MessagePreviousPointer = {
   id: MessageID,
   hash: Hash,
-}
-
-export type MessageSentInfo = {
-  convID: ConversationID,
-  rateLimit: RateLimit,
-  outboxID: OutboxID,
 }
 
 export type MessageServerHeader = {
@@ -1088,7 +1101,8 @@ export type NotifyChatChatInboxStaleRpcParam = Exact<{
 export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID,
-  finalizeInfo: ConversationFinalizeInfo
+  finalizeInfo: ConversationFinalizeInfo,
+  conv?: ?ConversationLocal
 }>
 
 export type NotifyChatChatTLFResolveRpcParam = Exact<{
@@ -1176,6 +1190,7 @@ export type RateLimit = {
 export type ReadMessageInfo = {
   convID: ConversationID,
   msgID: MessageID,
+  conv?: ?ConversationLocal,
 }
 
 export type ReadMessagePayload = {
@@ -1208,6 +1223,7 @@ export type SetConversationStatusRes = {
 export type SetStatusInfo = {
   convID: ConversationID,
   status: ConversationStatus,
+  conv?: ?ConversationLocal,
 }
 
 export type SetStatusPayload = {
@@ -1731,7 +1747,8 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       convID: ConversationID,
-      finalizeInfo: ConversationFinalizeInfo
+      finalizeInfo: ConversationFinalizeInfo,
+      conv?: ?ConversationLocal
     }> /* ,
     response: {} // Notify call
     */

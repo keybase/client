@@ -367,6 +367,12 @@ class ConversationList extends Component<void, Props, State> {
     this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: rowCount})
   }
 
+  _handleListClick = () => {
+    if (window.getSelection().isCollapsed) {
+      this.props.onFocusInput()
+    }
+  }
+
   _cellRangeRenderer = options => chatCellRangeRenderer(this.state.messages.count(), this._cellCache, options)
 
   render () {
@@ -383,7 +389,7 @@ class ConversationList extends Component<void, Props, State> {
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
     return (
-      <div style={containerStyle} onClick={this.props.onFocusInput} onCopyCapture={this._onCopyCapture}>
+      <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
         <style>{realCSS}</style>
         <AutoSizer onResize={this._onResize}>{
           ({height, width}) => (
