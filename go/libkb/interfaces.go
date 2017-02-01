@@ -472,9 +472,17 @@ type AssertionContext interface {
 }
 
 // ProofChecker is an interface for performing a remote check for a proof
+
+type ProofCheckerMode int
+
+const (
+	ProofCheckerModePassive ProofCheckerMode = iota
+	ProofCheckerModeActive  ProofCheckerMode = iota
+)
+
 type ProofChecker interface {
 	CheckHint(ctx ProofContext, h SigHint) ProofError
-	CheckStatus(ctx ProofContext, h SigHint) ProofError
+	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode) ProofError
 	GetTorError() ProofError
 }
 

@@ -12,12 +12,15 @@ protocol proveCommon {
     REVOKED_7,
     DELETED_8,
     UNKNOWN_TYPE_9,
-    SIG_HINT_MISSING_10
+    SIG_HINT_MISSING_10,
+    UNCHECKED_11
   }
 
   /**
     3: It's been found in the hunt, but not proven yet
-    1xx: Retryable soft errors
+    1xx: Retryable soft errors; note that this will be put in the proof_cache, but won't
+       be returned from the proof cache in most cases. Their freshness will always be
+       RANCID.
     2xx: Will likely result in a hard error, if repeated enough
     3xx: Hard final errors
     */
@@ -37,6 +40,7 @@ protocol proveCommon {
     HTTP_500_150,
     TIMEOUT_160,
     INTERNAL_ERROR_170,
+    UNCHECKED_171,  /* must be a soft error so that it can't be returned to active mode identifiers */
 
     BASE_HARD_ERROR_200,
     NOT_FOUND_201,
