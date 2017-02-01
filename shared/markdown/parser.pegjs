@@ -73,7 +73,7 @@ Text
 
 // TODO: should coalesce multiple line quotes
 QuoteBlock
- = QuoteBlockMarker WhiteSpace* children:__INLINE_MACRO__<!LineTerminatorSequence> LineTerminatorSequence { return {type: 'quote-block', children} }
+ = QuoteBlockMarker WhiteSpace* children:__INLINE_MACRO__<!LineTerminatorSequence> LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
 
 Bold
  = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
@@ -85,7 +85,7 @@ Strike
  = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
 
 CodeBlock
- = Ticks3 children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
+ = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }
 
 InlineCode
  = Ticks1 children:(!Ticks1 .)+ Ticks1 { return {type: 'inline-code', children: flatten(children)} }
