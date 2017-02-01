@@ -595,9 +595,13 @@ func stepAssertRegexMatch(g proofContextExt, ins assertRegexMatchT, state script
 	if err != nil {
 		return state, err
 	}
-	if !re.MatchString(from) {
-		debugWithState(g, state, "Regex did not match:\n  %v\n  %v\n  %v",
-			rdesc.Template, re, from)
+	if re.MatchString(from) == ins.Negate {
+		negate := "not "
+		if ins.Negate {
+			negate = ""
+		}
+		debugWithState(g, state, "Regex did %smatch:\n  %v\n  %v\n  %v",
+			negate, rdesc.Template, re, from)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Regex did not match (%v)", rdesc.Template)
 	}
