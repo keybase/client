@@ -1,12 +1,13 @@
 // @flow
+import ConversationBanner from './conversation/banner'
 import ConversationHeader from './conversation/header.desktop'
 import ConversationInput from './conversation/input.desktop'
 import ConversationList from './conversation/list.desktop'
-import ParticipantRekey from './conversation/participant-rekey.desktop'
-import ConversationBanner from './conversation/banner'
 import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
 import HiddenString from '../util/hidden-string'
+import ParticipantRekey from './conversation/participant-rekey.desktop'
+import YouRekey from './conversation/you-rekey.desktop'
 import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
@@ -216,11 +217,11 @@ const rekeyConvo = (youCanRekey) => ({
   ...commonConversationsProps,
   rekeyInfos: Map({
     convo1: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila']),
+      rekeyParticipants: List(youCanRekey ? [] : ['jzila']),
       youCanRekey,
     }),
     convo3: new RekeyInfoRecord({
-      rekeyParticipants: List(['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
+      rekeyParticipants: List(youCanRekey ? [] : ['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
       youCanRekey,
     }),
   }),
@@ -232,6 +233,18 @@ const participantRekey = {
     'Normal': {
       ...commonConvoProps,
       onUsernameClicked: (user: string) => { console.log(user, 'clicked') },
+      parentProps: listParentProps,
+      rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
+    },
+  },
+}
+
+const youRekey = {
+  component: YouRekey,
+  mocks: {
+    'Normal': {
+      ...commonConvoProps,
+      onRekey: () => { console.log('Reykey clicked') },
       parentProps: listParentProps,
       rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
     },
@@ -297,6 +310,14 @@ const conversationsList = {
     },
     'PartRekeySelected': {
       ...rekeyConvo(false),
+      selectedConversation: 'convo1',
+    },
+    'YouRekey': {
+      ...rekeyConvo(true),
+      selectedConversation: 'convo3',
+    },
+    'YouRekeySelected': {
+      ...rekeyConvo(true),
       selectedConversation: 'convo1',
     },
     'LongTop': {
@@ -375,4 +396,5 @@ export default {
   'ChatConversationsList': conversationsList,
   'ChatBanner': conversationBanner,
   'ChatParticipantRekey': participantRekey,
+  'YouRekey': youRekey,
 }
