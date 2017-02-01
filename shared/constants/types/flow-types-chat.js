@@ -650,6 +650,15 @@ export type ConversationErrorLocal = {
   message: string,
   remoteConv: Conversation,
   permanent: boolean,
+  rekeyInfo?: ?ConversationErrorRekey,
+}
+
+export type ConversationErrorRekey = {
+  tlfName: string,
+  tlfPublic: boolean,
+  rekeyers?: ?Array<string>,
+  writerNames?: ?Array<string>,
+  readerNames?: ?Array<string>,
 }
 
 export type ConversationErrorType = 
@@ -1318,7 +1327,7 @@ export type chatUiChatInboxConversationRpcParam = Exact<{
 
 export type chatUiChatInboxFailedRpcParam = Exact<{
   convID: ConversationID,
-  error: string
+  error: ConversationErrorLocal
 }>
 
 export type chatUiChatInboxUnverifiedRpcParam = Exact<{
@@ -1724,7 +1733,7 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       sessionID: int,
       convID: ConversationID,
-      error: string
+      error: ConversationErrorLocal
     }>,
     response: CommonResponseHandler
   ) => void,

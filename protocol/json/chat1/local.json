@@ -750,6 +750,48 @@
         {
           "type": "boolean",
           "name": "permanent"
+        },
+        {
+          "type": [
+            null,
+            "ConversationErrorRekey"
+          ],
+          "name": "rekeyInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationErrorRekey",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "boolean",
+          "name": "tlfPublic"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "rekeyers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writerNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "readerNames"
         }
       ]
     },

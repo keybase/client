@@ -92,6 +92,26 @@ func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.Conver
 	return name
 }
 
+// Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
+// This is the less featureful version for convs that can't be unboxed.
+func (v conversationListView) convNameLite(g *libkb.GlobalContext, convErr chat1.ConversationErrorRekey, myUsername string) string {
+	var name string
+	if convErr.TlfPublic {
+		name = "(public) " + strings.Join(convErr.WriterNames, ",")
+	} else {
+		name = strings.Join(v.without(g, convErr.WriterNames, myUsername), ",")
+		if len(convErr.WriterNames) == 1 && convErr.WriterNames[0] == myUsername {
+			// The user is the only writer.
+			name = myUsername
+		}
+	}
+	if len(convErr.ReaderNames) > 0 {
+		name += "#" + strings.Join(convErr.ReaderNames, ",")
+	}
+
+	return name
+}
+
 func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el string) (res []string) {
 	for _, x := range slice {
 		if x != el {
@@ -113,7 +133,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	for i, conv := range v {
 
 		if conv.Error != nil {
-			table.Insert(flexibletable.Row{
+			row := flexibletable.Row{
 				flexibletable.Cell{
 					Frame:     [2]string{"[", "]"},
 					Alignment: flexibletable.Right,
@@ -136,7 +156,20 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 					Alignment: flexibletable.Left,
 					Content:   flexibletable.SingleCell{Item: conv.Error.Message},
 				},
-			})
+			}
+
+			if conv.Error.RekeyInfo != nil {
+				row[2].Content = flexibletable.SingleCell{Item: v.convNameLite(g, *conv.Error.RekeyInfo, myUsername)}
+				row[3].Content = flexibletable.SingleCell{Item: ""}
+				switch conv.Error.Typ {
+				case chat1.ConversationErrorType_SELFREKEYNEEDED:
+					row[4].Content = flexibletable.SingleCell{Item: "Rekey needed. Waiting for a participant to open their Keybase app."}
+				case chat1.ConversationErrorType_OTHERREKEYNEEDED:
+					row[4].Content = flexibletable.SingleCell{Item: "Rekey needed. Waiting for another participant to open their Keybase app."}
+				}
+			}
+
+			table.Insert(row)
 			continue
 		}
 
