@@ -752,7 +752,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		gmRes := s.getMessages(ctx, conversationRemote.GetConvID(),
 			uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
 		if gmRes.err != nil {
-			convErr := s.checkRekeyError2(ctx, gmRes.err, conversationRemote)
+			convErr := s.checkRekeyError(ctx, gmRes.err, conversationRemote)
 			if convErr != nil {
 				conversationLocal.Error = convErr
 				return conversationLocal
@@ -771,7 +771,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
 			conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
 		if err != nil {
-			convErr := s.checkRekeyError2(ctx, err, conversationRemote)
+			convErr := s.checkRekeyError(ctx, err, conversationRemote)
 			if convErr != nil {
 				conversationLocal.Error = convErr
 				return conversationLocal
@@ -897,9 +897,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	return conversationLocal
 }
 
-// Wraps checkRekeyError to return either a ConversationErrorLocal or nil.
-func (s *localizerPipeline) checkRekeyError2(ctx context.Context, fromErr error, conversationRemote chat1.Conversation) *chat1.ConversationErrorLocal {
-	convErr, err2 := s.checkRekeyError(ctx, fromErr, conversationRemote)
+// Checks fromErr to see if it is a rekey error.
+// Returns a ConversationErrorLocal if it is a rekey error.
+// Returns nil otherwise.
+func (s *localizerPipeline) checkRekeyError(ctx context.Context, fromErr error, conversationRemote chat1.Conversation) *chat1.ConversationErrorLocal {
+	if fromErr == nil {
+		return nil
+	}
+	convErr, err2 := s.checkRekeyErrorInner(ctx, fromErr, conversationRemote)
 	if err2 != nil {
 		errMsg := fmt.Sprintf("failed to get rekey info: convID: %s: %s",
 			conversationRemote.Metadata.ConversationID, err2.Error())
@@ -919,7 +924,7 @@ func (s *localizerPipeline) checkRekeyError2(ctx context.Context, fromErr error,
 // Returns (ConversationErrorRekey, nil) if it is
 // Returns (nil, nil) if it is a different kind of error
 // Returns (nil, err) if there is an error building the ConversationErrorRekey
-func (s *localizerPipeline) checkRekeyError(ctx context.Context, fromErr error, conversationRemote chat1.Conversation) (*chat1.ConversationErrorLocal, error) {
+func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr error, conversationRemote chat1.Conversation) (*chat1.ConversationErrorLocal, error) {
 	convErrTyp := chat1.ConversationErrorType_MISC
 	var rekeyInfo *chat1.ConversationErrorRekey
 
