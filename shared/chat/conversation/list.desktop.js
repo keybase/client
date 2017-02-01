@@ -411,6 +411,10 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
+  onEditLastMessage = () => {
+    console.log('aaaa oneditlast message')
+  }
+
   _cellRangeRenderer = options => chatCellRangeRenderer(this.state.messages.count(), this._cellCache, options)
 
   render () {
