@@ -548,6 +548,7 @@ func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 	uids[0] = nameToUID(e.tb, config0)
 	for i, name := range users[1:] {
 		c := libkbfs.ConfigAsUser(config0, name)
+		setBlockSizes(e.tb, c, blockSize, blockChangeSize)
 		c.SetClock(clock)
 		cfgs[i+1] = c
 		uids[i+1] = nameToUID(e.tb, c)

@@ -82,6 +82,10 @@ func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
 			wr = realOp.collapseWriteRange(wr)
 			indicesToRemove[i] = true
 			lastSyncOp = i
+			// The last op will have its unrefs listed twice, once in
+			// the op itself and once in the resolutionOp, but that's
+			// harmless.
+			toUnrefs = append(toUnrefs, op.Unrefs()...)
 		default:
 			// ignore other op types
 		}

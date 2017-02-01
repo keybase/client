@@ -231,7 +231,7 @@ func TestJournalDoubleCrSimple(t *testing.T) {
 // bob writes a multi-block file that conflicts with a file created by
 // alice when journaling is on.
 func TestJournalCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
-	test(t, journal(), blockSize(20), blockChangeSize(5),
+	test(t, journal(), blockSize(100), blockChangeSize(5),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -342,7 +342,7 @@ func TestJournalCrResolutionHitsConflict(t *testing.T) {
 
 func TestJournalCrResolutionHitsConflictWithIndirectBlocks(t *testing.T) {
 	testJournalCrResolutionHitsConflict(t,
-		[]optionOp{blockChangeSize(20), blockChangeSize(5)})
+		[]optionOp{blockChangeSize(100), blockChangeSize(5)})
 }
 
 // Check that simple quota reclamation works when journaling is enabled.
@@ -500,7 +500,7 @@ func TestJournalCoalescingWrites(t *testing.T) {
 		busyWork = append(busyWork, write("a/b", contents))
 	}
 
-	test(t, journal(), blockSize(20), blockChangeSize(5),
+	test(t, journal(), blockSize(100), blockChangeSize(5),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -544,7 +544,7 @@ func TestJournalCoalescingMixedOperations(t *testing.T) {
 	}
 
 	targetMtime := time.Now().Add(1 * time.Minute)
-	test(t, journal(), blockSize(20), blockChangeSize(5),
+	test(t, journal(), blockSize(100), blockChangeSize(5),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),

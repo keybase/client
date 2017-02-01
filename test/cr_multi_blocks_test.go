@@ -11,7 +11,7 @@ import "testing"
 // bob writes a multi-block file while unmerged, no conflicts
 func TestCrUnmergedWriteMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), blockChangeSize(20*1024), users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -98,7 +98,7 @@ func TestCrConflictMergedWriteMultiblockFile(t *testing.T) {
 // bob resurrects a file that was removed by alice
 func TestCrConflictWriteToRemovedMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), blockChangeSize(20*1024), users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", ntimesString(15, "0123456789")),
@@ -177,10 +177,10 @@ func TestCrConflictMoveRemovedMultiblockFile(t *testing.T) {
 }
 
 // bob writes a multi-block file while unmerged and the block change
-// size is small, no conflicts
+// size is small, no conflicts.
 func TestCrUnmergedWriteMultiblockFileWithSmallBlockChangeSize(t *testing.T) {
 	test(t,
-		blockSize(20), blockChangeSize(5), users("alice", "bob"),
+		blockSize(100), blockChangeSize(5), users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),

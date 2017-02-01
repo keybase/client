@@ -3087,6 +3087,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	for ptr := range unmergedChains.toUnrefPointers {
 		toUnref[ptr] = true
 	}
+	deletedBlocks := make(map[BlockPointer]bool)
 	for ptr := range toUnref {
 		isUnflushed, err := cr.config.BlockServer().IsUnflushed(
 			ctx, cr.fbo.id(), ptr.ID)
@@ -3095,6 +3096,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 		}
 		if isUnflushed {
 			blocksToDelete = append(blocksToDelete, ptr.ID)
+			deletedBlocks[ptr] = true
 			// No need to unreference this since we haven't flushed it yet.
 			continue
 		}
@@ -3103,6 +3105,23 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 		// cancel out any stray refs in earlier ops.
 		cr.log.CDebugf(ctx, "Unreferencing dropped block %v", ptr)
 		md.data.Changes.Ops = addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+	}
+
+	// Scrub all unrefs of blocks that never made it to the server,
+	// for smaller updates and to make things easier on the
+	// StateChecker.
+	if len(deletedBlocks) > 0 {
+		for _, op := range md.data.Changes.Ops {
+			var toUnref []BlockPointer
+			for _, unref := range op.Unrefs() {
+				if deletedBlocks[unref] {
+					toUnref = append(toUnref, unref)
+				}
+			}
+			for _, unref := range toUnref {
+				op.DelUnrefBlock(unref)
+			}
+		}
 	}
 
 	cr.log.CDebugf(ctx, "New md byte usage: %d ref, %d unref, %d total usage "+

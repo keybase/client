@@ -63,6 +63,7 @@ func (k *LibKBFS) InitTest(ver libkbfs.MetadataVer,
 	// create the rest of the users as copies of the original config
 	for _, name := range users[1:] {
 		c := libkbfs.ConfigAsUser(config, name)
+		setBlockSizes(k.tb, c, blockSize, blockChangeSize)
 		c.SetClock(clock)
 		userMap[name] = c
 		k.refs[c] = make(map[libkbfs.Node]bool)
