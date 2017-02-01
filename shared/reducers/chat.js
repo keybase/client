@@ -168,40 +168,8 @@ function reducer (state: State = initialState, action: Actions) {
       const author = message.type === 'Text' && message.author
       // Update snippets / unread / participant order
 
-      let newInboxStates = state.get('inbox').map((inbox, inboxIdx) => {
-        if (inbox.get('conversationIDKey') !== conversationIDKey) {
-          return inbox
-        }
-
-        let newInbox = inbox
-          .set('time', message.timestamp)
-
-        if (snippet) {
-          newInbox = newInbox.set('snippet', snippet).set('snippetKey', message.key)
-        } else {
-          const oldSnippetID = inbox.get('snippetKey')
-          // Deleted the current showing snippet
-          if (oldSnippetID && deletedIDs.includes(oldSnippetID)) {
-            newInbox = newInbox.set('snippet', '').set('snippetKey', null)
-          }
-        }
-
-        const oldParticipants = newInbox.get('participants')
-
-        if (author && oldParticipants.count() > 1) {
-          const idx = oldParticipants.findKey(p => p.username === author)
-          if (idx > 0) {
-            const newFirst = oldParticipants.get(idx)
-            newInbox = newInbox.set('participants', oldParticipants.delete(idx).unshift(newFirst))
-          }
-        }
-
-        return newInbox
-      })
-
       return state
         .set('conversationStates', newConversationStates)
-        .set('inbox', sortInbox(newInboxStates))
     }
     case 'chat:updateTempMessage': {
       if (action.error) {
