@@ -603,7 +603,7 @@ func stepAssertRegexMatch(g proofContextExt, ins assertRegexMatchT, state script
 		debugWithState(g, state, "Regex did %smatch:\n  %v\n  %v\n  %v",
 			negate, rdesc.Template, re, from)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
-			"Regex did not match (%v)", rdesc.Template)
+			"Regex did %smatch (%v)", negate, rdesc.Template)
 	}
 
 	return state, nil
