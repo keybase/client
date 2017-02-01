@@ -21,6 +21,7 @@ const (
 	ProofState_DELETED          ProofState = 8
 	ProofState_UNKNOWN_TYPE     ProofState = 9
 	ProofState_SIG_HINT_MISSING ProofState = 10
+	ProofState_UNCHECKED        ProofState = 11
 )
 
 var ProofStateMap = map[string]ProofState{
@@ -35,6 +36,7 @@ var ProofStateMap = map[string]ProofState{
 	"DELETED":          8,
 	"UNKNOWN_TYPE":     9,
 	"SIG_HINT_MISSING": 10,
+	"UNCHECKED":        11,
 }
 
 var ProofStateRevMap = map[ProofState]string{
@@ -49,6 +51,7 @@ var ProofStateRevMap = map[ProofState]string{
 	8:  "DELETED",
 	9:  "UNKNOWN_TYPE",
 	10: "SIG_HINT_MISSING",
+	11: "UNCHECKED",
 }
 
 func (e ProofState) String() string {

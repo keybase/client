@@ -40,6 +40,8 @@ func ProofErrorToState(pe ProofError) keybase1.ProofState {
 		return keybase1.ProofState_SIG_HINT_MISSING
 	case keybase1.ProofStatus_UNKNOWN_TYPE:
 		return keybase1.ProofState_UNKNOWN_TYPE
+	case keybase1.ProofStatus_UNCHECKED:
+		return keybase1.ProofState_UNCHECKED
 	default:
 		return keybase1.ProofState_TEMP_FAILURE
 	}

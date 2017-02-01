@@ -1370,7 +1370,7 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	// self-hosted services. We want to avoid so doing when the user is acting passively
 	// (such as when receiving a message).
 	pcm := ProofCheckerModePassive
-	if (hasPreviousTrack && res.trackedProofState != keybase1.ProofState_NONE) || itm == IdentifyTableModeActive {
+	if (hasPreviousTrack && res.trackedProofState != keybase1.ProofState_NONE && res.trackedProofState != keybase1.ProofState_UNCHECKED) || itm == IdentifyTableModeActive {
 		pcm = ProofCheckerModeActive
 	}
 	res.err = pc.CheckStatus(idt.G().CloneWithNetContext(ctx), *res.hint, pcm)

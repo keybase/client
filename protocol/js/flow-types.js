@@ -320,6 +320,7 @@ export const ProveCommonProofState = {
   deleted: 8,
   unknownType: 9,
   sigHintMissing: 10,
+  unchecked: 11,
 }
 
 export const ProveCommonProofStatus = {
@@ -3688,6 +3689,7 @@ export type ProofState =
   | 8 // DELETED_8
   | 9 // UNKNOWN_TYPE_9
   | 10 // SIG_HINT_MISSING_10
+  | 11 // UNCHECKED_11
 
 export type ProofStatus = 
     0 // NONE_0
