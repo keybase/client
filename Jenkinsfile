@@ -70,17 +70,17 @@ helpers.rootLinuxNode(env, {
                     checkout: {
                         retry(3) {
                             checkout scm
+                            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+                            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+                            env.AUTHOR_NAME = readFile('.author_name')
+                            env.AUTHOR_EMAIL = readFile('.author_email')
+                            sh 'rm .author_name .author_email'
                             sh 'echo -n $(git rev-parse HEAD) > go/revision'
                             sh "git add go/revision"
                             env.GIT_COMMITTER_NAME = 'Jenkins'
                             env.GIT_COMMITTER_EMAIL = 'ci@keybase.io'
                             sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
                             env.COMMIT_HASH = readFile('go/revision')
-                            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-                            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-                            env.AUTHOR_NAME = readFile('.author_name')
-                            env.AUTHOR_EMAIL = readFile('.author_email')
-                            sh 'rm .author_name .author_email'
                         }
                     },
                     pull_glibc: {
@@ -105,6 +105,15 @@ helpers.rootLinuxNode(env, {
 
         stage("Test") {
             helpers.withKbweb() {
+                // Build the client docker first so we can immediately kick off KBFS
+                dir('go') {
+                    sh "go install github.com/keybase/client/go/keybase"
+                    sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                    clientImage = docker.build("keybaseprivate/kbclient")
+                    sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                    archive("kbclient.tar.gz")
+                    sh "rm kbclient.tar.gz"
+                }
                 parallel (
                     test_linux: {
                         dir("protocol") {
@@ -170,32 +179,6 @@ helpers.rootLinuxNode(env, {
                                     }}}
                                 }
                             }},
-                            test_kbfs: {
-                                dir('go') {
-                                    sh "go install github.com/keybase/client/go/keybase"
-                                    sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                    clientImage = docker.build("keybaseprivate/kbclient")
-                                    sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                    archive("kbclient.tar.gz")
-                                    build([
-                                        job: "/kbfs/master",
-                                        parameters: [
-                                            [$class: 'StringParameterValue',
-                                                name: 'clientProjectName',
-                                                value: env.JOB_NAME,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePrivateIP',
-                                                value: kbwebNodePrivateIP,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePublicIP',
-                                                value: kbwebNodePublicIP,
-                                            ],
-                                        ]
-                                    ])
-                                }
-                            },
                         )
                     },
                     test_windows: {
@@ -299,6 +282,25 @@ helpers.rootLinuxNode(env, {
                                 )
                             }}
                         }
+                    },
+                    test_kbfs: {
+                        build([
+                            job: "/kbfs/master",
+                            parameters: [
+                                [$class: 'StringParameterValue',
+                                    name: 'clientProjectName',
+                                    value: env.JOB_NAME,
+                                ],
+                                [$class: 'StringParameterValue',
+                                    name: 'kbwebNodePrivateIP',
+                                    value: kbwebNodePrivateIP,
+                                ],
+                                [$class: 'StringParameterValue',
+                                    name: 'kbwebNodePublicIP',
+                                    value: kbwebNodePublicIP,
+                                ],
+                            ]
+                        ])
                     },
                 )
             }
