@@ -68,6 +68,14 @@ func NewRekeyQueueStandard(config Config) *RekeyQueueStandard {
 	return rkq
 }
 
+// workingOn removes entry from pendings, so that if fbo.Rekey() needs to Enqueue
+// again, it wouldn't be ignored.
+func (rkq *RekeyQueueStandard) workingOn(entry rekeyQueueEntry) {
+	rkq.lock.Lock()
+	defer rkq.lock.Unlock()
+	delete(rkq.pendings, entry.id)
+}
+
 func (rkq *RekeyQueueStandard) doneLocked(entry rekeyQueueEntry, err error) {
 	entry.ch <- err
 	close(entry.ch)
@@ -90,6 +98,7 @@ func (rkq *RekeyQueueStandard) work(ctx context.Context) {
 			func() {
 				var err error
 				defer rkq.done(entry, err) // deferred in case a panic happens below
+				rkq.workingOn(entry)
 				newCtx := ctxWithRandomIDReplayable(ctx, CtxRekeyIDKey,
 					CtxRekeyOpID, nil)
 				rkq.log.CDebugf(newCtx, "Processing rekey for %s", entry.id)
