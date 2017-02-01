@@ -5,14 +5,14 @@ import {List} from 'immutable'
 import type {MetaDataMap, FollowingMap} from '../../../constants/chat'
 
 export type Props = {
-  onAddParticipant: () => void,
-  participants: List<string>,
-  onShowProfile: (username: string) => void,
-  metaDataMap: MetaDataMap,
   followingMap: FollowingMap,
-  you: string,
+  metaDataMap: MetaDataMap,
   muted: boolean,
-  onMuted: (muted: boolean) => void,
+  onAddParticipant: () => void,
+  onMuteConversation: (muted: boolean) => void,
+  onShowProfile: (username: string) => void,
+  participants: List<string>,
+  you: string,
 }
 
 export default class SidePanel extends Component<void, Props, void> { }
