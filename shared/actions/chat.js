@@ -407,10 +407,7 @@ function * _editMessage (action: EditMessage): SagaGenerator<any, any> {
   let conversationIDKey: ConversationIDKey = ''
   switch (message.type) {
     case 'Text':
-      conversationIDKey = message.conversationIDKey
-      messageID = message.messageID
-      break
-    case 'Attachment':
+    case 'Attachment': // fallthrough
       conversationIDKey = message.conversationIDKey
       messageID = message.messageID
       break
@@ -1081,7 +1078,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
             messageID: common.messageID,
             outboxID,
             targetMessageID: payload.messageBody.edit ? payload.messageBody.edit.messageID : 0,
-            timestamp: payload.serverHeader.ctime,
+            timestamp: common.timestamp,
             type: 'Edit',
           }
         }
