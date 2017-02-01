@@ -118,7 +118,7 @@ func TestInboxQueries(t *testing.T) {
 	}
 
 	// Make two dev convos
-	var devs, publics, unreads, ignored, full []chat1.Conversation
+	var devs, publics, unreads, ignored, muted, full []chat1.Conversation
 	convs[3].Metadata.IdTriple.TopicType = chat1.TopicType_DEV
 	convs[7].Metadata.IdTriple.TopicType = chat1.TopicType_DEV
 	devs = append(devs, []chat1.Conversation{convs[7], convs[3]}...)
@@ -138,10 +138,13 @@ func TestInboxQueries(t *testing.T) {
 	unreads = append(unreads, []chat1.Conversation{convs[19], convs[13], convs[5]}...)
 
 	// Make two ignored
-	// TODO add tests for other statuses
 	convs[18].Metadata.Status = chat1.ConversationStatus_IGNORED
 	convs[4].Metadata.Status = chat1.ConversationStatus_IGNORED
 	ignored = append(ignored, []chat1.Conversation{convs[18], convs[4]}...)
+
+	// Make one muted
+	convs[12].Metadata.Status = chat1.ConversationStatus_MUTED
+	muted = append(muted, []chat1.Conversation{convs[12]}...)
 
 	// Mark one as finalized and superseded by
 	convs[6].Metadata.FinalizeInfo = &chat1.ConversationFinalizeInfo{
@@ -190,6 +193,10 @@ func TestInboxQueries(t *testing.T) {
 	t.Logf("merging ignore query")
 	q = &chat1.GetInboxQuery{Status: []chat1.ConversationStatus{chat1.ConversationStatus_IGNORED}}
 	mergeReadAndCheck(t, ignored, "ignored")
+
+	t.Logf("merging muted query")
+	q = &chat1.GetInboxQuery{Status: []chat1.ConversationStatus{chat1.ConversationStatus_MUTED}}
+	mergeReadAndCheck(t, muted, "muted")
 
 	t.Logf("merging tlf ID query")
 	q = &chat1.GetInboxQuery{TlfID: &full[0].Metadata.IdTriple.Tlfid}
@@ -452,6 +459,44 @@ func TestInboxSetStatus(t *testing.T) {
 	_, res, _, err = inbox.Read(context.TODO(), &q, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(res), "ignore not unset")
+
+	validateBadUpdate(t, inbox, func() error {
+		return inbox.SetStatus(context.TODO(), 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)
+	})
+}
+
+func TestInboxSetStatusMuted(t *testing.T) {
+
+	_, inbox, uid := setupInboxTest(t, "basic")
+
+	// Create an inbox with a bunch of convos, merge it and read it back out
+	numConvs := 10
+	var convs []chat1.Conversation
+	for i := numConvs - 1; i >= 0; i-- {
+		convs = append(convs, makeConvo(gregor1.Time(i), 1, 1))
+	}
+
+	conv := convs[5]
+	require.NoError(t, inbox.Merge(context.TODO(), 1, convs, nil, nil))
+	require.NoError(t, inbox.SetStatus(context.TODO(), 2, conv.GetConvID(),
+		chat1.ConversationStatus_MUTED))
+
+	q := chat1.GetInboxQuery{
+		Status: []chat1.ConversationStatus{chat1.ConversationStatus_MUTED},
+	}
+	require.NoError(t, inbox.Merge(context.TODO(), 2, []chat1.Conversation{}, &q, nil))
+	_, res, _, err := inbox.Read(context.TODO(), &q, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res), "length")
+	require.Equal(t, conv.GetConvID(), res[0].GetConvID(), "id")
+
+	t.Logf("sending new message to wake up conv")
+	msg := makeInboxMsg(3, chat1.MessageType_TEXT)
+	msg.ClientHeader.Sender = uid
+	require.NoError(t, inbox.NewMessage(context.TODO(), 3, conv.GetConvID(), msg))
+	_, res, _, err = inbox.Read(context.TODO(), &q, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res), "muted wrongly unset")
 
 	validateBadUpdate(t, inbox, func() error {
 		return inbox.SetStatus(context.TODO(), 10, conv.GetConvID(), chat1.ConversationStatus_BLOCKED)
