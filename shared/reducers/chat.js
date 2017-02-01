@@ -328,7 +328,8 @@ function reducer (state: State = initialState, action: Actions) {
       const toFind = convo.get('conversationIDKey')
       const oldInbox = state.get('inbox')
       const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
-      return state.set('inbox', sortInbox(oldInbox.set(existing ? existing[0] : -1, convo)))
+      const updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.concat(convo)
+      return state.set('inbox', sortInbox(updatedInbox))
     case 'chat:updateBrokenTracker':
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')
