@@ -391,6 +391,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 	tv, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
 	if err != nil {
+		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
 	}
 

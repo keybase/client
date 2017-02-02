@@ -351,7 +351,14 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 }
 
 func (be *blockEngine) readMessages(ctx context.Context, res resultCollector,
-	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error {
+	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) (err Error) {
+
+	// Run all errors through resultCollector
+	defer func() {
+		if err != nil {
+			err = res.error(err)
+		}
+	}()
 
 	// Get block index
 	bi, err := be.fetchBlockIndex(ctx, convID, uid)
