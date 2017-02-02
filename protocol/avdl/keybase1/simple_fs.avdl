@@ -121,7 +121,7 @@ protocol SimpleFS {
     Path dest;
   }
 
-  record OpDescription switch (AsyncOps asyncOp) {
+  variant OpDescription switch (AsyncOps asyncOp) {
     case LIST: ListArgs;
     case LIST_RECURSIVE: ListArgs;
     case READ: ReadWriteArgs;
