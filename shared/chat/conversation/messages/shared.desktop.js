@@ -16,6 +16,7 @@ type Props = {
   onAction: (message: Constants.ServerMessage, event: any) => void,
   style: Object,
   isSelected: boolean,
+  index: number,
   children: React$Element<*>,
   message: Constants.TextMessage | Constants.AttachmentMessage,
   you: string,
@@ -80,7 +81,7 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
               : <div style={_noHeaderStyle} />}
             <div style={_bodyContainerStyle}>
               {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.author, you, followingMap, metaDataMap), ...(message.author === you ? globalStyles.italic : null), marginBottom: 2}}>{message.author}</Text>}
-              <div style={_textContainerStyle} className='message'>
+              <div style={_textContainerStyle} className='message' data-message-key={message.key}>
                 <div style={_childrenWrapStyle}>
                   {children}
                 </div>

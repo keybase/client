@@ -103,7 +103,7 @@ class Conversation extends Component<void, Props, State> {
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent) => {
-    if (e.key === 'ArrowUp') {
+    if (e.key === 'ArrowUp' && !this.state.text) {
       this.props.onEditLastMessage()
     }
   }
