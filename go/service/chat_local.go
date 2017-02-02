@@ -780,6 +780,10 @@ type postAttachmentArg struct {
 }
 
 func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
+	if os.Getenv("KEYBASE_CHAT_ATTACHMENT_ORDERED") == "1" {
+		return h.postAttachmentLocalInOrder(ctx, arg)
+	}
+
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
@@ -896,6 +900,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 }
 
 func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
+	h.G().Log.Info("using postAttachmentLocalInOrder flow to upload attachment")
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
