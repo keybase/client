@@ -234,7 +234,6 @@ function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded:
   return {type: 'chat:loadMoreMessages', payload: {conversationIDKey, onlyIfUnloaded}}
 }
 
-
 function editMessage (message: Message, text: HiddenString): EditMessage {
   return {type: 'chat:editMessage', payload: {message, text}}
 }
