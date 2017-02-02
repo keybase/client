@@ -15,10 +15,9 @@ type OwnProps = AttachmentInputRouteProps & {
 }
 
 export default connect(
-  (state: TypedState, {routeProps, ...ownProps}: OwnProps) => {
+  (state: TypedState, {routeProps}: OwnProps) => {
     const {input} = routeProps
     return {
-      ...ownProps,
       input,
       title: input.title,
     }
@@ -36,8 +35,12 @@ export default connect(
       ...stateProps,
       ...dispatchProps,
       onSelect: (title: string) => {
-        input.title = title
-        dispatchProps.onSelect(input)
+        dispatchProps.onSelect({
+          conversationIDKey: input.conversationIDKey,
+          filename: input.filename,
+          title,
+          type: input.type,
+        })
       },
     }
   },
