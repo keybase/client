@@ -109,9 +109,9 @@ function analyzeTypes (json, project) {
       case 'record':
         return [`export type ${t.name} = ${parseRecord(t)}`]
       case 'enum':
-        return [`export type ${t.name} = ${parseEnum(t)}`]
+        return [`export type ${t.name} =${parseEnum(t)}`]
       case 'variant':
-        return [`export type ${t.name} = ${parseVariant(t, project)}`]
+        return [`export type ${t.name} =${parseVariant(t, project)}`]
       case 'fixed':
         return [`export type ${t.name} = any`]
       default:
@@ -274,21 +274,15 @@ function parseRecord (t) {
     return t.typedef
   }
 
-  var objectMapType = '{'
-
-  if (t.fields.length) {
-    objectMapType += '\n'
-  }
-
-  t.fields.forEach(f => {
-    var innerType = parseInnerType(f.type)
+  const divider = t.fields.length ? '\n' : ''
+  const fields = t.fields.map(f => {
+    const innerType = parseInnerType(f.type)
 
     // If we have a maybe type, let's also make the key optional
-    objectMapType += `  ${f.name}${(innerType[0] === '?') ? '?' : ''}: ${innerType},\n`
-  })
-  objectMapType += '}'
+    return `  ${f.name}${(innerType[0] === '?') ? '?' : ''}: ${innerType},\n`
+  }).join('')
 
-  return objectMapType
+  return `{${divider}${fields}}`
 }
 
 function parseVariant (t, project) {
