@@ -995,11 +995,14 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 
 	obj := attachment.Object
 	if arg.Preview {
-		if len(attachment.Previews) == 0 {
+		if len(attachment.Previews) > 0 {
+			obj = attachment.Previews[0]
+		} else if attachment.Preview != nil {
+			obj = *attachment.Preview
+		} else {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
 		h.G().Log.Debug("downloading preview attachment asset")
-		obj = attachment.Previews[0]
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {

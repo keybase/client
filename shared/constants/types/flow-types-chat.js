@@ -624,13 +624,8 @@ export type AssetTag =
 
 export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
-  | { version : 2, v2 : ?BodyPlaintextV2 }
 
 export type BodyPlaintextV1 = {
-  messageBody: MessageBodyV1,
-}
-
-export type BodyPlaintextV2 = {
   messageBody: MessageBody,
 }
 
@@ -973,6 +968,7 @@ export type MerkleRoot = {
 
 export type MessageAttachment = {
   object: Asset,
+  preview?: ?Asset,
   previews?: ?Array<Asset>,
   metadata: bytes,
   uploaded: boolean,
@@ -985,12 +981,6 @@ export type MessageAttachmentUploaded = {
   metadata: bytes,
 }
 
-export type MessageAttachmentV1 = {
-  object: Asset,
-  preview?: ?Asset,
-  metadata: bytes,
-}
-
 export type MessageBody = 
     { messageType : 1, text : ?MessageText }
   | { messageType : 2, attachment : ?MessageAttachment }
@@ -999,14 +989,6 @@ export type MessageBody =
   | { messageType : 5, metadata : ?MessageConversationMetadata }
   | { messageType : 7, headline : ?MessageHeadline }
   | { messageType : 8, attachmentuploaded : ?MessageAttachmentUploaded }
-
-export type MessageBodyV1 = 
-    { messageType : 1, text : ?MessageText }
-  | { messageType : 2, attachment : ?MessageAttachmentV1 }
-  | { messageType : 3, edit : ?MessageEdit }
-  | { messageType : 4, delete : ?MessageDelete }
-  | { messageType : 5, metadata : ?MessageConversationMetadata }
-  | { messageType : 7, headline : ?MessageHeadline }
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
