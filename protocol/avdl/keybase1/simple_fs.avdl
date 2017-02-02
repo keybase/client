@@ -100,13 +100,13 @@ protocol SimpleFS {
   }
 
   enum AsyncOps {
-    list_0,
-    listRecursive_1,
-    read_2,
-    write_3,
-    copy_4,
-    move_5,
-    remove_6
+    LIST_0,
+    LIST_RECURSIVE_1,
+    READ_2,
+    WRITE_3,
+    COPY_4,
+    MOVE_5,
+    REMOVE_6
   }
 
   record ListRemoveArgs {
@@ -127,13 +127,13 @@ protocol SimpleFS {
   }
 
   record OpDescription switch (AsyncOps AsyncOp) {
-    case list: ListArgs;
-    case listRecursive: ListArgs;
-    case read: ReadWriteArgs;
-    case write: ReadWriteArgs;
-    case copy: CopyMoveArgs;
-    case move: CopyMoveArgs;
-    case remove: ListRemoveArgs;
+    case LIST: ListArgs;
+    case LIST_RECURSIVE: ListArgs;
+    case READ: ReadWriteArgs;
+    case WRITE: ReadWriteArgs;
+    case COPY: CopyMoveArgs;
+    case MOVE: CopyMoveArgs;
+    case REMOVE: ListRemoveArgs;
   }
 
   /**
