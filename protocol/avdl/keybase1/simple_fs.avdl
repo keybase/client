@@ -94,11 +94,6 @@ protocol SimpleFS {
   @typedef("string")
   record KBFSPath {}
   
-  variant Path switch (PathType PathType) {
-    case LOCAL: LocalPath;
-    case KBFS: KBFSPath;
-  }
-
   enum AsyncOps {
     LIST_0,
     LIST_RECURSIVE_1,
@@ -126,7 +121,7 @@ protocol SimpleFS {
     Path dest;
   }
 
-  record OpDescription switch (AsyncOps AsyncOp) {
+  record OpDescription switch (AsyncOps asyncOp) {
     case LIST: ListArgs;
     case LIST_RECURSIVE: ListArgs;
     case READ: ReadWriteArgs;
