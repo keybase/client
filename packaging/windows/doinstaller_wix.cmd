@@ -131,9 +131,17 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
+:: Run keybase sign to get signature of update
+set KeybaseBin="%LOCALAPPDATA%\Keybase\keybase.exe"
+set SigFile=sig.txt
+%KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+
 :: UpdateChannel is a Jenkins select parameter, one of: Smoke, Test, None
 echo UpdateChannel: %UpdateChannel%
-set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
 
 :: Test means to skip smoke
 IF %UpdateChannel% EQU Test (
@@ -142,10 +150,13 @@ IF %UpdateChannel% EQU Test (
 
 :: We need a test channel updater .json in all smoke cases
 IF "%UpdateChannel:~0,5%"=="Smoke" (
-  set SMOKE_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
+  %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > update-windows-prod-%KEYBASE_VERSION%.json
   :: All smoke builds go in the test channel too except Smoke2
-  IF %UpdateChannel% NEQ Smoke2 goto set_test_channel
+  IF %UpdateChannel% NEQ Smoke2 GOTO set_test_channel
+  :: Don't make a production json either for smoke2
+  GOTO end_update_json
 )
+set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
 
 GOTO end_test_channel
 
@@ -156,16 +167,6 @@ set JSON_UPDATE_FILENAME=update-windows-prod-test-v2.json
 
 echo %JSON_UPDATE_FILENAME%
 
-:: Run keybase sign to get signature of update
-set KeybaseBin="%LOCALAPPDATA%\Keybase\keybase.exe"
-set SigFile=sig.txt
-%KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-
 %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %JSON_UPDATE_FILENAME%
 
-IF _%SMOKE_UPDATE_FILENAME%_ NEQ __ (
-  %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %SMOKE_UPDATE_FILENAME%
-)
+:end_update_json
