@@ -36,6 +36,7 @@ import type {
   BadgeAppForChat,
   ConversationBadgeState,
   ConversationIDKey,
+  ConversationSetStatus,
   CreatePendingFailure,
   DeleteMessage,
   EditMessage,
@@ -613,7 +614,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             muted,
           },
           type: 'chat:conversationSetStatus',
-        }))
+        }: ConversationSetStatus))
       }
       return
     case NotifyChatChatActivityType.failedMessage:
