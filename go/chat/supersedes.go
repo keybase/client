@@ -40,6 +40,29 @@ func (t *supersedesTransform) transformEdit(msg chat1.MessageUnboxed, superMsg c
 	return &newMsg
 }
 
+func (t *supersedesTransform) transformAttachment(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
+	clientHeader := msg.Valid().ClientHeader
+	clientHeader.MessageType = chat1.MessageType_ATTACHMENT
+	uploaded := superMsg.Valid().MessageBody.Attachmentuploaded()
+	newMsg := chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+		ClientHeader: clientHeader,
+		ServerHeader: msg.Valid().ServerHeader,
+		MessageBody: chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+			Object:   uploaded.Object,
+			Previews: uploaded.Previews,
+			Metadata: uploaded.Metadata,
+			Uploaded: true,
+		}),
+		SenderUsername:        msg.Valid().SenderUsername,
+		SenderDeviceName:      msg.Valid().SenderDeviceName,
+		SenderDeviceType:      msg.Valid().SenderDeviceType,
+		HeaderHash:            msg.Valid().HeaderHash,
+		HeaderSignature:       msg.Valid().HeaderSignature,
+		SenderDeviceRevokedAt: msg.Valid().SenderDeviceRevokedAt,
+	})
+	return &newMsg
+}
+
 func (t *supersedesTransform) transform(ctx context.Context, msg chat1.MessageUnboxed,
 	superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 
@@ -48,6 +71,8 @@ func (t *supersedesTransform) transform(ctx context.Context, msg chat1.MessageUn
 		return nil
 	case chat1.MessageType_EDIT:
 		return t.transformEdit(msg, superMsg)
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		return t.transformAttachment(msg, superMsg)
 	}
 
 	return &msg

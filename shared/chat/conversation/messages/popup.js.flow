@@ -12,7 +12,7 @@ export type TextProps = BaseProps & {
   message: TextMessage,
   you: string,
   onDeleteMessage: (message: TextMessage) => void,
-  onEditMessage: (message: TextMessage) => void,
+  onShowEditor: (message: TextMessage) => void,
 }
 
 export class TextPopupMenu extends Component<void, TextProps, void> { }

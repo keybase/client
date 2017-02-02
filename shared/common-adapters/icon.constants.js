@@ -155,16 +155,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-dns-64.png'),
   },
-  'icon-doggy-crying-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-doggy-crying-48.png'),
-  },
-  'icon-doggy-crying-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-doggy-crying-64.png'),
-  },
   'icon-facebook-logo-16': {
     isFont: false,
     extension: 'png',
@@ -700,15 +690,25 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-64.png'),
   },
-  'icon-loader-connected-112': {
+  'icon-keybase-logo-80': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-loader-connected-112.png'),
+    require: require('../images/icons/icon-keybase-logo-80.png'),
   },
-  'icon-loader-connecting-112': {
+  'icon-keybase-logo-logged-out-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-keybase-logo-logged-out-64.png'),
+  },
+  'icon-loader-connecting-266-static': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-connecting-266-static.png'),
+  },
+  'icon-loader-connecting-266': {
     isFont: false,
     extension: 'gif',
-    require: require('../images/icons/icon-loader-connecting-112.gif'),
+    require: require('../images/icons/icon-loader-connecting-266.gif'),
   },
   'icon-loader-infinity-64': {
     isFont: false,

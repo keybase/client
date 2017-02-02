@@ -117,7 +117,7 @@ export default connect(
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, input: AttachmentInput) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, input}, selected: 'attachmentInput'}])) },
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
+    onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onOpenFolder: () => dispatch(openFolder()),

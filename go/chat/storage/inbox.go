@@ -617,13 +617,13 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
 		conv.Metadata.ActiveList)
 
-	// If we are the sender, and the conv is blocked, set it back to unfiled
+	// If we are the sender, adjust the status.
 	if bytes.Equal(msg.ClientHeader.Sender.Bytes(), i.uid) &&
-		conv.Metadata.Status == chat1.ConversationStatus_BLOCKED {
+		utils.GetConversationStatusBehavior(conv.Metadata.Status).SendingRemovesStatus {
 		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
 	}
-	// If any message is posted to an ignored convo, then we set to unfiled
-	if conv.Metadata.Status == chat1.ConversationStatus_IGNORED {
+	// If we are a participant, adjust the status.
+	if utils.GetConversationStatusBehavior(conv.Metadata.Status).ActivityRemovesStatus {
 		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
 	}
 

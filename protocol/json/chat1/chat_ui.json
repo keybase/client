@@ -12,6 +12,10 @@
         {
           "name": "metadata",
           "type": "AssetMetadata"
+        },
+        {
+          "name": "placeholderMsgID",
+          "type": "MessageID"
         }
       ],
       "response": null,
@@ -145,7 +149,7 @@
         },
         {
           "name": "error",
-          "type": "string"
+          "type": "ConversationErrorLocal"
         }
       ],
       "response": null
