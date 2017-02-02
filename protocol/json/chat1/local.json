@@ -230,7 +230,7 @@
     },
     {
       "type": "record",
-      "name": "MessageAttachment",
+      "name": "MessageAttachmentV1",
       "fields": [
         {
           "type": "Asset",
@@ -242,6 +242,20 @@
             "Asset"
           ],
           "name": "preview"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageAttachment",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "object"
         },
         {
           "type": {
@@ -282,6 +296,58 @@
         {
           "type": "bytes",
           "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "MessageBodyV1",
+      "switch": {
+        "type": "MessageType",
+        "name": "messageType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TEXT",
+            "def": false
+          },
+          "body": "MessageText"
+        },
+        {
+          "label": {
+            "name": "ATTACHMENT",
+            "def": false
+          },
+          "body": "MessageAttachmentV1"
+        },
+        {
+          "label": {
+            "name": "EDIT",
+            "def": false
+          },
+          "body": "MessageEdit"
+        },
+        {
+          "label": {
+            "name": "DELETE",
+            "def": false
+          },
+          "body": "MessageDelete"
+        },
+        {
+          "label": {
+            "name": "METADATA",
+            "def": false
+          },
+          "body": "MessageConversationMetadata"
+        },
+        {
+          "label": {
+            "name": "HEADLINE",
+            "def": false
+          },
+          "body": "MessageHeadline"
         }
       ]
     },
@@ -558,7 +624,37 @@
     },
     {
       "type": "record",
+      "name": "BodyPlaintextVersionInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "crit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BodyPlaintextUnsupported",
+      "fields": [
+        {
+          "type": "BodyPlaintextVersionInfo",
+          "name": "vi"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BodyPlaintextV1",
+      "fields": [
+        {
+          "type": "MessageBodyV1",
+          "name": "messageBody"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BodyPlaintextV2",
       "fields": [
         {
           "type": "MessageBody",
@@ -580,6 +676,19 @@
             "def": false
           },
           "body": "BodyPlaintextV1"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "BodyPlaintextV2"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": "BodyPlaintextUnsupported"
         }
       ]
     },

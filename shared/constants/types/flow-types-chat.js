@@ -626,6 +626,10 @@ export type AssetTag =
 export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
 
+export type BodyPlaintextUnsupported = {
+  vi: BodyPlaintextVersionInfo,
+}
+
 export type BodyPlaintextV1 = {
   messageBody: MessageBody,
 }
@@ -633,6 +637,10 @@ export type BodyPlaintextV1 = {
 export type BodyPlaintextVersion = 
     1 // V1_1
   | 2 // V2_2
+
+export type BodyPlaintextVersionInfo = {
+  crit: boolean,
+}
 
 export type ChatActivity = 
     { activityType : 1, incomingMessage : ?IncomingMessage }
