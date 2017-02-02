@@ -1,6 +1,6 @@
 @namespace("keybase.1")
 
-protocol GuiFileAccess {
+protocol SimpleFS {
 
   import idl "common.avdl";
 
@@ -28,18 +28,18 @@ protocol GuiFileAccess {
   // Random GUID provided by caller 
   fixed OpID(16);
   
-  enum ItemType {
+  enum DirentType {
     FILE,
     DIR,
     SYM,
     EXEC
   }
 
-  record Item {
+  record Dirent {
     string path;
     Time time;
     int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
-    ItemType itemType;
+    DirentType direntType;
   }
 
   @typedef("int")
@@ -61,21 +61,24 @@ protocol GuiFileAccess {
     DIRECTORY_16
   }
 
-  record Result {
-    Status status;
-    int progress;       // if status == pending
-    ErrorNum errnum;    // if status == error
-    string description; // if status == error
-  }
+  @typedef("int")
+  record Progress {}
 
   record ListResult {
     array<Item> items;
-    Result result;
+    Progress progress;
   }
 
   record FileContent {
     bytes data
-    Result result;
+    Progress progress;
+  }
+
+  record OpDescription {
+    OpID opID,
+    string command,     // list, listRecursive, read, write, copy, move, remove
+    string src,         // source or path
+    string dest         // destination if copy or move
   }
 
   /**
@@ -91,8 +94,8 @@ protocol GuiFileAccess {
   void listRecursive(OpID opID, string path);
 
   /**
-   Get list if items in progress. Can indicate status of pending
-   to get more items.
+   Get list if Dirents in progress. Can indicate status of pending
+   to get more entries.
    */
   ListResult readList(OpID opID);
 
@@ -107,12 +110,12 @@ protocol GuiFileAccess {
   void copyRecursive(OpID opID, string src, string dest);
 
   /**
-   Begin move of file or directory 
+   Begin move of file or directory, from/to KBFS only
    */
   void move(OpID opID, string src, string dest);
 
   /**
-   Rename file or directory
+   Rename file or directory, KBFS side only
    */
   void rename(string src, string dest);
 
@@ -132,36 +135,36 @@ protocol GuiFileAccess {
   /**
    Append content to opened file
    */
-  Result write(OpID opID, FileContent content);
+  void write(OpID opID, FileContent content);
 
   /**
    Remove file or directory from filesystem
    */
-  Result remove(OpID opID, string path);
+  void remove(OpID opID, string path);
 
   /**
    Convenience helper for generating new random value
    */
-  Result makeOpID();
+  OpID makeOpID();
 
   /**
    Close OpID, cancels any pending operation.
    Must be called after list/copy/remove
    */
-  Result close(OpID opID);
+  void close(OpID opID);
 
   /**
    Check progress of pending operation
    */
-  Result check(OpID opID);
+  Progress check(OpID opID);
 
   /**
    Get all the outstanding operations
    */
-  array<OpID> getOps();
+  array<OpDescription> getOps();
 
   /**
    Blocking wait for the pending operation to finish
    */
-  Result wait(OpID opID);
+  void wait(OpID opID);
 }
