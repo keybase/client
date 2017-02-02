@@ -290,12 +290,14 @@ function _inboxConversationToConversation (convo: ConversationLocal, author: ?st
   })
 
   const participants = List(convo.info.writerNames || [])
+  const muted = convo.info.status === CommonConversationStatus.muted
+
   return new InboxStateRecord({
     info: convo.info,
     isEmpty: convo.isEmpty,
     conversationIDKey,
     participants,
-    muted: false,
+    muted,
     time: convo.readerInfo.mtime,
     snippet,
     validated: true,
@@ -311,7 +313,7 @@ function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, follow
     }
 
     const participants = List(parseFolderNameToUsers(author, msgBoxed.clientHeader.tlfName).map(ul => ul.username))
-    const muted = convoUnverified.metadata.status === CommonConversationStatus.blocked
+    const muted = convoUnverified.metadata.status === CommonConversationStatus.muted
     return new InboxStateRecord({
       info: null,
       conversationIDKey: conversationIDToKey(convoUnverified.metadata.conversationID),
@@ -604,7 +606,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
         const conversationIDKey = conversationIDToKey(setStatus.convID)
-        const muted = setStatus.status === CommonConversationStatus.blocked
+        const muted = setStatus.status === CommonConversationStatus.muted
         yield put(({
           payload: {
             conversationIDKey,
@@ -1258,7 +1260,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 function * _muteConversation (action: MuteConversation): SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = keyToConversationID(conversationIDKey)
-  const status = muted ? CommonConversationStatus.blocked : CommonConversationStatus.unfiled
+  const status = muted ? CommonConversationStatus.muted : CommonConversationStatus.unfiled
   const identifyBehavior: TLFIdentifyBehavior = 2 // CHAT_GUI
   yield call(localSetConversationStatusLocalRpcPromise, {
     param: {conversationID, identifyBehavior, status},
@@ -1512,13 +1514,10 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
     const me = yield select(usernameSelector)
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     // Is this message part of a muted conversation? If so don't notify.
-    const selectedConversation = yield select(_selectedSelector)
-    const convo = yield select(_selectedInboxSelector, selectedConversation)
+    const convo = yield select(_selectedInboxSelector, action.payload.conversationIDKey)
     if (convo && !convo.muted) {
-      console.warn('convo not muted')
       if (message && message.type === 'Text') {
         const snippet = makeSnippet(serverMessageToMessageBody(message))
-
         yield put((dispatch: Dispatch) => {
           NotifyPopup(message.author, {body: snippet}, -1, () => {
             dispatch(selectConversation(action.payload.conversationIDKey, false))
@@ -1527,8 +1526,6 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
           })
         })
       }
-    } else {
-      console.warn('convo muted')
     }
   }
 }
