@@ -1164,8 +1164,10 @@ type MDServer interface {
 	RegisterForUpdate(ctx context.Context, id tlf.ID,
 		currHead MetadataRevision) (<-chan error, error)
 
-	// CancelRegistration lets the MDserver know that we are no longer
-	// interested in updates for the specified folder.
+	// CancelRegistration lets the local MDServer instance know that
+	// we are no longer interested in updates for the specified
+	// folder.  It does not necessarily forward this cancellation to
+	// remote servers.
 	CancelRegistration(ctx context.Context, id tlf.ID)
 
 	// CheckForRekeys initiates the rekey checking process on the

@@ -401,8 +401,8 @@ func (md *MDServerRemote) CancelRegistration(ctx context.Context, id tlf.ID) {
 	// signal that we've seen the update
 	md.signalObserverLocked(
 		observerChan, id, errors.New("Registration canceled"))
-	// Setting nil here indicates that the server thinks we're still
-	// registered, though locally no one is listening.
+	// Setting nil here indicates that the remote MD server thinks
+	// we're still registered, though locally no one is listening.
 	md.observers[id] = nil
 }
 
