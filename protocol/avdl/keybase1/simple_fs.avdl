@@ -70,7 +70,7 @@ protocol SimpleFS {
   }
 
   record FileContent {
-    bytes data
+    bytes data;
     Progress progress;
   }
 
