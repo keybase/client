@@ -28,15 +28,33 @@ protocol SimpleFS {
   // Random GUID provided by caller 
   fixed OpID(16);
   
+  enum PathType {
+    LOCAL_0,
+    KBFS_1
+  }  
+
+  @typedef("string")
+  record LocalPath {}
+
+  // TODO: do we want to separately specify public/private, 
+  // or leave it as part of the string?
+  @typedef("string")
+  record KBFSPath {}
+  
+  variant Path switch (PathType PathType) {
+    case LOCAL: LocalPath;
+    case KBFS: KBFSPath;
+  }
+
   enum DirentType {
     FILE,
     DIR,
     SYM,
     EXEC
   }
-
+  
   record Dirent {
-    string path;
+    KBFSPath path;
     Time time;
     int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
     DirentType direntType;
@@ -52,7 +70,7 @@ protocol SimpleFS {
     error_3
   }
 
-  enum openFlags {
+  enum OpenFlags {
     READ_0,         // exclusive of other flags
     REPLACE_1,      // overwrite
     EXISTING_2,     // fail if not present already
@@ -65,21 +83,36 @@ protocol SimpleFS {
   record Progress {}
 
   record ListResult {
-    array<Item> items;
+    array<Dirent> Dirents;
     Progress progress;
   }
-
   
   record FileContent {
     bytes data;         // Zero bytes when read is complete
     Progress progress;  // Amount of data copied so far during this and previous reads
   }                     // (TBD: should this be percentage?)
+  
+  enum PathType {
+    LOCAL_0,
+    KBFS_1
+  }  
+
+  @typedef("string")
+  record LocalPath {}
+
+  @typedef("string")
+  record KBFSPath {}
+  
+  variant Path switch (PathType PathType) {
+    case LOCAL: LocalPath;
+    case KBFS: KBFSPath;
+  }
 
   record OpDescription {
     OpID opID;
-    string command;     // list, listRecursive, read, write, copy, move, remove
-    string src;         // source or path
-    string dest;        // destination if copy or move
+    string command;   // list, listRecursive, read, write, copy, move, remove
+    Path src;         // source or path
+    Path dest;        // destination if copy or move
   }
 
   /**
@@ -87,12 +120,12 @@ protocol SimpleFS {
    Retrieve results with readList()
    Can be a single file to get flags/status
    */
-  void list(OpID opID, string path);
+  void list(OpID opID, Path path);
 
   /**
    Begin recursive list of items in directory at path
    */
-  void listRecursive(OpID opID, string path);
+  void listRecursive(OpID opID, KBFSPath path);
 
   /**
    Get list of Dirents in progress. Can indicate status of pending
@@ -103,22 +136,22 @@ protocol SimpleFS {
   /**
    Begin copy of file or directory 
    */
-  void copy(OpID opID, string src, string dest);
+  void copy(OpID opID, Path src, Path dest);
 
   /**
    Begin recursive copy of directory 
    */
-  void copyRecursive(OpID opID, string src, string dest);
+  void copyRecursive(OpID opID, Path src, Path dest);
 
   /**
    Begin move of file or directory, from/to KBFS only
    */
-  void move(OpID opID, string src, string dest);
+  void move(OpID opID, KBFSPath src, KBFSPath dest);
 
   /**
    Rename file or directory, KBFS side only
    */
-  void rename(string src, string dest);
+  void rename(KBFSPath src, KBFSPath dest);
 
   /**
    Create/open a file and leave it open
@@ -126,7 +159,7 @@ protocol SimpleFS {
    or set the executable bit on an existing file.
    Files must be closed afterwards.
    */
-  void open(OpID opID, string dest, openFlags Flags);
+  void open(OpID opID, KBFSPath dest, OpenFlags flags);
 
   /**
    Read (possibly partial) contents of open file.
@@ -143,7 +176,7 @@ protocol SimpleFS {
   /**
    Remove file or directory from filesystem
    */
-  void remove(OpID opID, string path);
+  void remove(OpID opID, KBFSPath path);
 
   /**
    Convenience helper for generating new random value
