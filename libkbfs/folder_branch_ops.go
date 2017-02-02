@@ -280,6 +280,10 @@ type folderBranchOps struct {
 	// Can be used to turn off notifications for a while (e.g., for testing)
 	updatePauseChan chan (<-chan struct{})
 
+	cancelUpdatesLock sync.Mutex
+	// Cancels the goroutine currently waiting on TLF MD updates.
+	cancelUpdates context.CancelFunc
+
 	// After a shutdown, this channel will be closed when the register
 	// goroutine completes.
 	updateDoneChan chan struct{}
@@ -4949,7 +4953,15 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 		// Never give up hope until we shut down
 		expBackoff.MaxElapsedTime = 0
 		// Register and wait in a loop unless we hit an unrecoverable error
-		ctx, cancel := context.WithCancel(ctx)
+		fbo.cancelUpdatesLock.Lock()
+		if fbo.cancelUpdates != nil {
+			// It should be impossible to get here without having
+			// already called the cancel function, but just in case
+			// call it here again.
+			fbo.cancelUpdates()
+		}
+		ctx, fbo.cancelUpdates = context.WithCancel(ctx)
+		fbo.cancelUpdatesLock.Unlock()
 		for {
 			err := backoff.RetryNotifyWithContext(ctx, func() error {
 				// Replace the FBOID one with a fresh id for every attempt
@@ -4976,7 +4988,9 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					fbo.log.CDebugf(ctx, "Abandoning updates since we can't "+
 						"read the newest metadata: %+v", err)
 					fbo.status.setPermErr(err)
-					cancel()
+					// No need to lock here, since `cancelUpdates` is
+					// only set within this same goroutine.
+					fbo.cancelUpdates()
 					return ctx.Err()
 				case MDServerErrorCannotReadFinalizedTLF:
 					fbo.log.CDebugf(ctx, "Abandoning updates since we can't "+
@@ -4988,7 +5002,9 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					// new folder.
 					fbo.locallyFinalizeTLF(newCtx)
 
-					cancel()
+					// No need to lock here, since `cancelUpdates` is
+					// only set within this same goroutine.
+					fbo.cancelUpdates()
 					return ctx.Err()
 				}
 				select {
@@ -5519,8 +5535,25 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 	defer fbo.mdWriterLock.Unlock(lState)
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-
 	fbo.log.CDebugf(ctx, "Clearing folder MD")
+
+	// First cancel the background goroutine that's registered for
+	// updates, because the next time we set the head in this FBO
+	// we'll launch another one.
+	fbo.cancelUpdatesLock.Lock()
+	defer fbo.cancelUpdatesLock.Unlock()
+	if fbo.cancelUpdates != nil {
+		fbo.cancelUpdates()
+		select {
+		case <-fbo.updateDoneChan:
+		case <-ctx.Done():
+			fbo.log.CDebugf(
+				ctx, "Context canceled before updater was canceled")
+			return
+		}
+		fbo.config.MDServer().CancelRegistration(ctx, fbo.id())
+	}
+
 	fbo.head = ImmutableRootMetadata{}
 	fbo.latestMergedRevision = MetadataRevisionUninitialized
 }

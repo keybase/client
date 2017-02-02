@@ -165,6 +165,23 @@ func (m *mdServerLocalUpdateManager) registerForUpdate(
 	return c
 }
 
+func (m *mdServerLocalUpdateManager) cancel(id tlf.ID, server mdServerLocal) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	// Cancel the registration for this server only.
+	for k, v := range m.observers[id] {
+		if k == server {
+			v <- errors.New("Registration canceled")
+			close(v)
+			delete(m.observers[id], k)
+		}
+	}
+	if len(m.observers[id]) == 0 {
+		delete(m.observers, id)
+	}
+}
+
 type keyBundleGetter func(tlf.ID, TLFWriterKeyBundleID, TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error)
 

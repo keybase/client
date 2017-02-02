@@ -4,8 +4,6 @@
 package libkbfs
 
 import (
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
@@ -16,6 +14,7 @@ import (
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
+	time "time"
 )
 
 // Mock of dataVersioner interface
@@ -3166,6 +3165,14 @@ func (_mr *_MockMDServerRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
 }
 
+func (_m *MockMDServer) CancelRegistration(ctx context.Context, id tlf.ID) {
+	_m.ctrl.Call(_m, "CancelRegistration", ctx, id)
+}
+
+func (_mr *_MockMDServerRecorder) CancelRegistration(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CancelRegistration", arg0, arg1)
+}
+
 func (_m *MockMDServer) CheckForRekeys(ctx context.Context) <-chan error {
 	ret := _m.ctrl.Call(_m, "CheckForRekeys", ctx)
 	ret0, _ := ret[0].(<-chan error)
@@ -3350,6 +3357,14 @@ func (_m *MockmdServerLocal) RegisterForUpdate(ctx context.Context, id tlf.ID, c
 
 func (_mr *_MockmdServerLocalRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
+}
+
+func (_m *MockmdServerLocal) CancelRegistration(ctx context.Context, id tlf.ID) {
+	_m.ctrl.Call(_m, "CancelRegistration", ctx, id)
+}
+
+func (_mr *_MockmdServerLocalRecorder) CancelRegistration(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CancelRegistration", arg0, arg1)
 }
 
 func (_m *MockmdServerLocal) CheckForRekeys(ctx context.Context) <-chan error {

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -47,7 +48,9 @@ type MDServerRemote struct {
 	isAuthenticated  bool
 
 	observerMu sync.Mutex // protects observers
-	observers  map[tlf.ID]chan<- error
+	// chan is nil if we have unregistered locally, but not yet with
+	// the server.
+	observers map[tlf.ID]chan<- error
 
 	tickerCancel context.CancelFunc
 	tickerMu     sync.Mutex // protects the ticker cancel function
@@ -385,10 +388,30 @@ func (md *MDServerRemote) cancelObservers() {
 	}
 }
 
+// CancelRegistration implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) CancelRegistration(ctx context.Context, id tlf.ID) {
+	md.observerMu.Lock()
+	defer md.observerMu.Unlock()
+	observerChan, ok := md.observers[id]
+	if !ok {
+		// not registered
+		return
+	}
+
+	// signal that we've seen the update
+	md.signalObserverLocked(
+		observerChan, id, errors.New("Registration canceled"))
+	// Setting nil here indicates that the remote MD server thinks
+	// we're still registered, though locally no one is listening.
+	md.observers[id] = nil
+}
+
 // Signal an observer. The observer lock must be held.
 func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id tlf.ID, err error) {
-	observerChan <- err
-	close(observerChan)
+	if observerChan != nil {
+		observerChan <- err
+		close(observerChan)
+	}
 	delete(md.observers, id)
 }
 
@@ -639,16 +662,24 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 
 		// keep re-adding the observer on retries, since
 		// disconnects or connection errors clear observers.
-		func() {
+		alreadyRegistered := func() bool {
 			md.observerMu.Lock()
 			defer md.observerMu.Unlock()
-			if _, ok := md.observers[id]; ok {
-				panic(fmt.Sprintf("Attempted double-registration for folder: %s",
-					id))
+			// It's possible for a nil channel to be in
+			// `md.observers`, if we are still registered with the
+			// server after a previous cancellation.
+			existingCh, alreadyRegistered := md.observers[id]
+			if existingCh != nil {
+				panic(fmt.Sprintf(
+					"Attempted double-registration for folder: %s", id))
 			}
 			c = make(chan error, 1)
 			md.observers[id] = c
+			return alreadyRegistered
 		}()
+		if alreadyRegistered {
+			return nil
+		}
 		// Use this instead of md.client since we're already
 		// inside a DoCommand().
 		c := keybase1.MetadataClient{Cli: rawClient}

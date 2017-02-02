@@ -482,6 +482,11 @@ func (md *MDServerDisk) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	return c, nil
 }
 
+// CancelRegistration implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) CancelRegistration(_ context.Context, id tlf.ID) {
+	md.updateManager.cancel(id, md)
+}
+
 // TruncateLock implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) TruncateLock(ctx context.Context, id tlf.ID) (
 	bool, error) {
