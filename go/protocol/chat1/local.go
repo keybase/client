@@ -1121,6 +1121,7 @@ type FindConversationsLocalArg struct {
 	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
 	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
 	TopicName        string                       `codec:"topicName" json:"topicName"`
+	OneChatPerTLF    *bool                        `codec:"oneChatPerTLF,omitempty" json:"oneChatPerTLF,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
