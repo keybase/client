@@ -764,6 +764,10 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
       dispatch({type: 'chat:inboxStale', payload: undefined})
     })
 
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFResolve', ({convID, resolveInfo: {newTLFName}}) => {
+      dispatch({type: 'chat:inboxStale', payload: undefined})
+    })
+
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
       dispatch({type: 'chat:markThreadsStale', payload: {convIDKeys: convIDs.map(conversationIDToKey)}})
     })
