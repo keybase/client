@@ -594,9 +594,9 @@ export type Asset = {
 }
 
 export type AssetMetadata = 
-    { assetType : 1, image : ?AssetMetadataImage }
-  | { assetType : 2, video : ?AssetMetadataVideo }
-  | { assetType : 3, audio : ?AssetMetadataAudio }
+    { assetType: 1, image: ?AssetMetadataImage }
+  | { assetType: 2, video: ?AssetMetadataVideo }
+  | { assetType: 3, audio: ?AssetMetadataAudio }
 
 export type AssetMetadataAudio = {
   durationMs: int,
@@ -623,8 +623,9 @@ export type AssetTag =
     0 // PRIMARY_0
 
 export type BodyPlaintext = 
-    { version : 1, v1 : ?BodyPlaintextV1 }
-  | { version : 2, v2 : ?BodyPlaintextV2 }
+    { version: 1, v1: ?BodyPlaintextV1 }
+  | { version: 2, v2: ?BodyPlaintextV2 }
+  | { version: any, 'default': ?BodyPlaintextUnsupported }
 
 export type BodyPlaintextUnsupported = {
   vi: BodyPlaintextVersionInfo,
@@ -647,11 +648,11 @@ export type BodyPlaintextVersionInfo = {
 }
 
 export type ChatActivity = 
-    { activityType : 1, incomingMessage : ?IncomingMessage }
-  | { activityType : 2, readMessage : ?ReadMessageInfo }
-  | { activityType : 3, newConversation : ?NewConversationInfo }
-  | { activityType : 4, setStatus : ?SetStatusInfo }
-  | { activityType : 5, failedMessage : ?FailedMessageInfo }
+    { activityType: 1, incomingMessage: ?IncomingMessage }
+  | { activityType: 2, readMessage: ?ReadMessageInfo }
+  | { activityType: 3, newConversation: ?NewConversationInfo }
+  | { activityType: 4, setStatus: ?SetStatusInfo }
+  | { activityType: 5, failedMessage: ?FailedMessageInfo }
 
 export type ChatActivityType = 
     0 // RESERVED_0
@@ -912,7 +913,7 @@ export type GetThreadRemoteRes = {
 export type Hash = bytes
 
 export type HeaderPlaintext = 
-    { version : 1, v1 : ?HeaderPlaintextV1 }
+    { version: 1, v1: ?HeaderPlaintextV1 }
 
 export type HeaderPlaintextV1 = {
   conv: ConversationIDTriple,
@@ -945,8 +946,8 @@ export type InboxResType =
 export type InboxVers = uint64
 
 export type InboxView = 
-    { rtype : 0 }
-  | { rtype : 1, full : ?InboxViewFull }
+    { rtype: 0 }
+  | { rtype: 1, full: ?InboxViewFull }
 
 export type InboxViewFull = {
   vers: InboxVers,
@@ -1000,21 +1001,21 @@ export type MessageAttachmentV1 = {
 }
 
 export type MessageBody = 
-    { messageType : 1, text : ?MessageText }
-  | { messageType : 2, attachment : ?MessageAttachment }
-  | { messageType : 3, edit : ?MessageEdit }
-  | { messageType : 4, delete : ?MessageDelete }
-  | { messageType : 5, metadata : ?MessageConversationMetadata }
-  | { messageType : 7, headline : ?MessageHeadline }
-  | { messageType : 8, attachmentuploaded : ?MessageAttachmentUploaded }
+    { messageType: 1, text: ?MessageText }
+  | { messageType: 2, attachment: ?MessageAttachment }
+  | { messageType: 3, edit: ?MessageEdit }
+  | { messageType: 4, delete: ?MessageDelete }
+  | { messageType: 5, metadata: ?MessageConversationMetadata }
+  | { messageType: 7, headline: ?MessageHeadline }
+  | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
 
 export type MessageBodyV1 = 
-    { messageType : 1, text : ?MessageText }
-  | { messageType : 2, attachment : ?MessageAttachmentV1 }
-  | { messageType : 3, edit : ?MessageEdit }
-  | { messageType : 4, delete : ?MessageDelete }
-  | { messageType : 5, metadata : ?MessageConversationMetadata }
-  | { messageType : 7, headline : ?MessageHeadline }
+    { messageType: 1, text: ?MessageText }
+  | { messageType: 2, attachment: ?MessageAttachmentV1 }
+  | { messageType: 3, edit: ?MessageEdit }
+  | { messageType: 4, delete: ?MessageDelete }
+  | { messageType: 5, metadata: ?MessageConversationMetadata }
+  | { messageType: 7, headline: ?MessageHeadline }
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
@@ -1090,9 +1091,9 @@ export type MessageType =
   | 8 // ATTACHMENTUPLOADED_8
 
 export type MessageUnboxed = 
-    { state : 1, valid : ?MessageUnboxedValid }
-  | { state : 2, error : ?MessageUnboxedError }
-  | { state : 3, outbox : ?OutboxRecord }
+    { state: 1, valid: ?MessageUnboxedValid }
+  | { state: 2, error: ?MessageUnboxedError }
+  | { state: 3, outbox: ?OutboxRecord }
 
 export type MessageUnboxedError = {
   errMsg: string,
@@ -1201,8 +1202,8 @@ export type OutboxRecord = {
 }
 
 export type OutboxState = 
-    { state : 0, sending : ?int }
-  | { state : 1, error : ?OutboxStateError }
+    { state: 0, sending: ?int }
+  | { state: 1, error: ?OutboxStateError }
 
 export type OutboxStateError = {
   message: string,
