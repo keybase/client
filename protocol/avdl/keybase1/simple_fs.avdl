@@ -22,7 +22,6 @@ protocol SimpleFS {
     check (after copy, move or remove)
   Caller can optionally block by calling wait()
   Operation must be closed by calling close
- 
 */
 
   // Random GUID provided by caller 
@@ -54,7 +53,6 @@ protocol SimpleFS {
   }
   
   record Dirent {
-    KBFSPath path;
     Time time;
     int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
     DirentType direntType;
@@ -62,13 +60,6 @@ protocol SimpleFS {
 
   @typedef("int")
   record ErrorNum {}
-
-  enum Status {
-    finished_0,
-    pending_1,
-    invalidated_2,
-    error_3
-  }
 
   enum OpenFlags {
     READ_0,         // exclusive of other flags
@@ -83,7 +74,7 @@ protocol SimpleFS {
   record Progress {}
 
   record ListResult {
-    array<Dirent> Dirents;
+    array<KBFSPath> Paths;
     Progress progress;
   }
   
@@ -108,11 +99,41 @@ protocol SimpleFS {
     case KBFS: KBFSPath;
   }
 
-  record OpDescription {
+  enum AsyncOps {
+    list_0,
+    listRecursive_1,
+    read_2,
+    write_3,
+    copy_4,
+    move_5,
+    remove_6
+  }
+
+  record ListRemoveArgs {
     OpID opID;
-    string command;   // list, listRecursive, read, write, copy, move, remove
-    Path src;         // source or path
-    Path dest;        // destination if copy or move
+    KBFSPath path;
+  }
+
+  record ReadWriteArgs {
+    OpID opID;
+    KBFSPath path;
+    int offset;
+  }
+
+  record CopyMoveArgs {
+    OpID opID;
+    Path src;
+    Path dest;
+  }
+
+  record OpDescription switch (AsyncOps AsyncOp) {
+    case list: ListArgs;
+    case listRecursive: ListArgs;
+    case read: ReadWriteArgs;
+    case write: ReadWriteArgs;
+    case copy: CopyMoveArgs;
+    case move: CopyMoveArgs;
+    case remove: ListRemoveArgs;
   }
 
   /**
@@ -120,7 +141,7 @@ protocol SimpleFS {
    Retrieve results with readList()
    Can be a single file to get flags/status
    */
-  void list(OpID opID, Path path);
+  void list(OpID opID, KBFSPath path);
 
   /**
    Begin recursive list of items in directory at path
@@ -128,7 +149,7 @@ protocol SimpleFS {
   void listRecursive(OpID opID, KBFSPath path);
 
   /**
-   Get list of Dirents in progress. Can indicate status of pending
+   Get list of Paths in progress. Can indicate status of pending
    to get more entries.
    */
   ListResult readList(OpID opID);
@@ -162,21 +183,28 @@ protocol SimpleFS {
   void open(OpID opID, KBFSPath dest, OpenFlags flags);
 
   /**
-   Read (possibly partial) contents of open file.
+   Read (possibly partial) contents of open file,
+   up to the amount specified by size.
    Repeat until zero bytes are returned or error.
+   If size is zero, read an arbitrary amount.
    */
-  FileContent read(OpID opID);
+  FileContent read(OpID opID, int offset, int size);
 
   /**
    Append content to opened file.
    May be repeated until OpID is closed.
    */
-  void write(OpID opID, bytes content);
+  void write(OpID opID, int offset, bytes content);
 
   /**
    Remove file or directory from filesystem
    */
   void remove(OpID opID, KBFSPath path);
+
+  /**
+   Get info about file
+   */
+  Dirent stat(KBFSPath path);
 
   /**
    Convenience helper for generating new random value
