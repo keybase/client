@@ -4954,6 +4954,12 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 		expBackoff.MaxElapsedTime = 0
 		// Register and wait in a loop unless we hit an unrecoverable error
 		fbo.cancelUpdatesLock.Lock()
+		if fbo.cancelUpdates != nil {
+			// It should be impossible to get here without having
+			// already called the cancel function, but just in case
+			// call it here again.
+			fbo.cancelUpdates()
+		}
 		ctx, fbo.cancelUpdates = context.WithCancel(ctx)
 		fbo.cancelUpdatesLock.Unlock()
 		for {
