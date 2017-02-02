@@ -69,32 +69,33 @@ protocol SimpleFS {
     Progress progress;
   }
 
+  
   record FileContent {
-    bytes data;
-    Progress progress;
-  }
+    bytes data;         // Zero bytes when read is complete
+    Progress progress;  // Amount of data copied so far during this and previous reads
+  }                     // (TBD: should this be percentage?)
 
   record OpDescription {
-    OpID opID,
-    string command,     // list, listRecursive, read, write, copy, move, remove
-    string src,         // source or path
-    string dest         // destination if copy or move
+    OpID opID;
+    string command;     // list, listRecursive, read, write, copy, move, remove
+    string src;         // source or path
+    string dest;        // destination if copy or move
   }
 
   /**
-   Begin list if items in directory at path
-   Retrieve results with getList()
+   Begin list of items in directory at path
+   Retrieve results with readList()
    Can be a single file to get flags/status
    */
   void list(OpID opID, string path);
 
   /**
-   Begin recursive list if items in directory at path
+   Begin recursive list of items in directory at path
    */
   void listRecursive(OpID opID, string path);
 
   /**
-   Get list if Dirents in progress. Can indicate status of pending
+   Get list of Dirents in progress. Can indicate status of pending
    to get more entries.
    */
   ListResult readList(OpID opID);
@@ -128,14 +129,16 @@ protocol SimpleFS {
   void open(OpID opID, string dest, openFlags Flags);
 
   /**
-   Read contents of open file
+   Read (possibly partial) contents of open file.
+   Repeat until zero bytes are returned or error.
    */
   FileContent read(OpID opID);
 
   /**
-   Append content to opened file
+   Append content to opened file.
+   May be repeated until OpID is closed.
    */
-  void write(OpID opID, FileContent content);
+  void write(OpID opID, bytes content);
 
   /**
    Remove file or directory from filesystem
