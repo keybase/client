@@ -134,18 +134,25 @@ IF %ERRORLEVEL% NEQ 0 (
 :: UpdateChannel is a Jenkins select parameter, one of: Smoke, Test, None
 echo UpdateChannel: %UpdateChannel%
 set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
+
+:: Test means to skip smoke
 IF %UpdateChannel% EQU Test (
-  set JSON_UPDATE_FILENAME=update-windows-prod-test-v2.json
+  GOTO set_test_channel
 )
-IF %UpdateChannel% EQU Smoke (
-  set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
+
+:: We need a test channel updater .json in all smoke cases
+IF "%UpdateChannel:~0,5%"=="Smoke" (
+  set SMOKE_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
+  :: All smoke builds go in the test channel too except Smoke2
+  IF %UpdateChannel% NEQ Smoke2 goto set_test_channel
 )
-IF %UpdateChannel% EQU Smoke2 (
-  set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
-)
-IF %UpdateChannel% EQU SmokeCI (
-  set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
-)
+
+GOTO end_test_channel
+
+:set_test_channel
+set JSON_UPDATE_FILENAME=update-windows-prod-test-v2.json
+
+:end_test_channel
 
 echo %JSON_UPDATE_FILENAME%
 
@@ -159,6 +166,6 @@ IF %ERRORLEVEL% NEQ 0 (
 
 %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %JSON_UPDATE_FILENAME%
 
-IF %UpdateChannel% EQU Smoke (
-  %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > update-windows-prod-test-v2.json
+IF _%SMOKE_UPDATE_FILENAME%_ NEQ __ (
+  %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %SMOKE_UPDATE_FILENAME%
 )
