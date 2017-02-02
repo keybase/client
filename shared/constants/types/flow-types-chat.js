@@ -626,6 +626,10 @@ export type BodyPlaintext =
     { version : 1, v1 : ?BodyPlaintextV1 }
   | { version : 2, v2 : ?BodyPlaintextV2 }
 
+export type BodyPlaintextUnsupported = {
+  vi: BodyPlaintextVersionInfo,
+}
+
 export type BodyPlaintextV1 = {
   messageBody: MessageBodyV1,
 }
@@ -637,6 +641,10 @@ export type BodyPlaintextV2 = {
 export type BodyPlaintextVersion = 
     1 // V1_1
   | 2 // V2_2
+
+export type BodyPlaintextVersionInfo = {
+  crit: boolean,
+}
 
 export type ChatActivity = 
     { activityType : 1, incomingMessage : ?IncomingMessage }

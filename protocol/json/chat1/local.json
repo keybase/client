@@ -624,6 +624,26 @@
     },
     {
       "type": "record",
+      "name": "BodyPlaintextVersionInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "crit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BodyPlaintextUnsupported",
+      "fields": [
+        {
+          "type": "BodyPlaintextVersionInfo",
+          "name": "vi"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BodyPlaintextV1",
       "fields": [
         {
@@ -663,6 +683,12 @@
             "def": false
           },
           "body": "BodyPlaintextV2"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": "BodyPlaintextUnsupported"
         }
       ]
     },

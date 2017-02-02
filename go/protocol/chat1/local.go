@@ -742,6 +742,14 @@ func (e BodyPlaintextVersion) String() string {
 	return ""
 }
 
+type BodyPlaintextVersionInfo struct {
+	Crit bool `codec:"crit" json:"crit"`
+}
+
+type BodyPlaintextUnsupported struct {
+	Vi BodyPlaintextVersionInfo `codec:"vi" json:"vi"`
+}
+
 type BodyPlaintextV1 struct {
 	MessageBody MessageBodyV1 `codec:"messageBody" json:"messageBody"`
 }
@@ -751,9 +759,10 @@ type BodyPlaintextV2 struct {
 }
 
 type BodyPlaintext struct {
-	Version__ BodyPlaintextVersion `codec:"version" json:"version"`
-	V1__      *BodyPlaintextV1     `codec:"v1,omitempty" json:"v1,omitempty"`
-	V2__      *BodyPlaintextV2     `codec:"v2,omitempty" json:"v2,omitempty"`
+	Version__ BodyPlaintextVersion      `codec:"version" json:"version"`
+	V1__      *BodyPlaintextV1          `codec:"v1,omitempty" json:"v1,omitempty"`
+	V2__      *BodyPlaintextV2          `codec:"v2,omitempty" json:"v2,omitempty"`
+	Default__ *BodyPlaintextUnsupported `codec:"default,omitempty" json:"default,omitempty"`
 }
 
 func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
@@ -766,6 +775,11 @@ func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
 	case BodyPlaintextVersion_V2:
 		if o.V2__ == nil {
 			err = errors.New("unexpected nil value for V2__")
+			return ret, err
+		}
+	default:
+		if o.Default__ == nil {
+			err = errors.New("unexpected nil value for Default__")
 			return ret, err
 		}
 	}
@@ -792,6 +806,16 @@ func (o BodyPlaintext) V2() BodyPlaintextV2 {
 	return *o.V2__
 }
 
+func (o BodyPlaintext) Default() BodyPlaintextUnsupported {
+	if o.Version__ == BodyPlaintextVersion_V1 || o.Version__ == BodyPlaintextVersion_V2 {
+		panic("wrong case accessed")
+	}
+	if o.Default__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.Default__
+}
+
 func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
 	return BodyPlaintext{
 		Version__: BodyPlaintextVersion_V1,
@@ -803,6 +827,13 @@ func NewBodyPlaintextWithV2(v BodyPlaintextV2) BodyPlaintext {
 	return BodyPlaintext{
 		Version__: BodyPlaintextVersion_V2,
 		V2__:      &v,
+	}
+}
+
+func NewBodyPlaintextDefault(version BodyPlaintextVersion, v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: version,
+		Default__: &v,
 	}
 }
 
