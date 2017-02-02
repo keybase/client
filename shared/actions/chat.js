@@ -1297,7 +1297,6 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
 function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): SagaGenerator<any, any> {
   const {conversationIDKey, title, filename, type} = input
 
-
   const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
   const attachment = {
     filename,
