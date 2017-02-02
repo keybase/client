@@ -246,7 +246,21 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
-	mStatus MergeStatus) (tlf.ID, ImmutableRootMetadata, error) {
+	mStatus MergeStatus) (id tlf.ID, rmd ImmutableRootMetadata, err error) {
+	md.log.CDebugf(ctx, "GetForHandle: %s", handle.GetCanonicalPath())
+	defer func() {
+		// Temporary debugging for KBFS-1921.  TODO: remove.
+		if err != nil {
+			md.log.CDebugf(ctx, "GetForHandle done with err=%+v", err)
+		} else if rmd != (ImmutableRootMetadata{}) {
+			md.log.CDebugf(ctx, "GetForHandle done, id=%s, revision=%d",
+				id, rmd.Revision())
+		} else {
+			md.log.CDebugf(
+				ctx, "GetForHandle done, id=%s, no MD revisions yet", id)
+		}
+	}()
+
 	mdserv := md.config.MDServer()
 	bh, err := handle.ToBareHandle()
 	if err != nil {
@@ -293,7 +307,7 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	// consistency. In the future, we'd want to eventually notify
 	// the upper layers of the new name, either directly, or
 	// through a rekey.
-	rmd, err := md.processMetadata(ctx, mdHandle, rmds, extra, nil)
+	rmd, err = md.processMetadata(ctx, mdHandle, rmds, extra, nil)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
