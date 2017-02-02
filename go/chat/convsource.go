@@ -62,6 +62,11 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	return nil
 }
 
+func (s *baseConversationSource) TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	transform := newSupersedesTransform(s.G())
+	return transform.run(ctx, convID, uid, msgs, finalizeInfo)
+}
+
 type RemoteConversationSource struct {
 	*baseConversationSource
 

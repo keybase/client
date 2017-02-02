@@ -4,22 +4,48 @@ import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
 
-import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState} from '../constants/chat'
+import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
 const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
-// _filterMessages dedupes and removed deleted messages
-function _filterMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
+// dedupes and removed deleted messages. Applies edits
+function _processMessages (seenMessages: Set<any>, messages: List<ServerMessage> = List(), prepend: List<ServerMessage> = List(), append: List<ServerMessage> = List(), deletedIDs: Set<any>): {nextSeenMessages: Set<any>, nextMessages: List<ServerMessage>} {
   const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
-  const filteredAppend = append.filter(m => !seenMessages.has(m.key))
+  const filteredAppendGroups = append.filter(m => !seenMessages.has(m.key)).groupBy(m => m.type === 'Edit' || m.type === 'UpdateAttachment' ? m.type : 'Append')
+  const filteredAppend = filteredAppendGroups.get('Append') || List()
 
   const messagesToUpdate = Map(prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m]))
   const updatedMessages = messages.map(m => messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m)
   // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
-  const nextMessages = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
+  let nextMessages: List<ServerMessage> = filteredPrepend.concat(updatedMessages, filteredAppend).filter(m => !m.messageID || !deletedIDs.has(m.messageID))
   const nextSeenMessages = Set(nextMessages.map(m => m.key))
+
+  filteredAppendGroups.get('Edit', List()).forEach(edit => {
+    if (edit.type !== 'Edit') {
+      return
+    }
+    const targetMessageID = edit.targetMessageID
+    const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
+    if (entry) {
+      const [idx: number, message: TextMessage] = entry
+      // $FlowIssue doesn't like the intersection types
+      nextMessages = nextMessages.set(idx, {...message, message: edit.message, editedCount: message.editedCount + 1})
+    }
+  })
+  filteredAppendGroups.get('UpdateAttachment', List()).forEach(update => {
+    if (update.type !== 'UpdateAttachment') {
+      return
+    }
+    const targetMessageID = update.targetMessageID
+    const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
+    if (entry) {
+      const [idx: number, message: AttachmentMessage] = entry
+      // $FlowIssue doesn't like the intersection types
+      nextMessages = nextMessages.set(idx, {...message, ...update.updates})
+    }
+  })
 
   return {
     nextMessages,
@@ -60,7 +86,7 @@ function updateConversationMessage (conversationStates: ConversationsStates, con
     conversation => {
       const index = conversation.get('messages').findIndex(pred)
       if (index < 0) {
-        console.warn("Couldn't find an outbox entry to modify")
+        console.warn("Couldn't find a message to update")
         return conversation
       }
       // $FlowIssue
@@ -115,7 +141,7 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
-          const {nextMessages, nextSeenMessages} = _filterMessages(conversation.seenMessages, conversation.messages, List(messages), List(), nextDeletedIDs)
+          const {nextMessages, nextSeenMessages} = _processMessages(conversation.seenMessages, conversation.messages, List(messages), List(), nextDeletedIDs)
 
           return conversation
             .set('messages', nextMessages)
@@ -144,7 +170,7 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => {
           const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
-          const {nextMessages, nextSeenMessages} = _filterMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs)
+          const {nextMessages, nextSeenMessages} = _processMessages(conversation.seenMessages, conversation.messages, List(), List(messages), nextDeletedIDs)
 
           const firstMessage = appendMessages[0]
           const inConversationFocused = (isSelected && state.get('focused'))
@@ -240,6 +266,19 @@ function reducer (state: State = initialState, action: Actions) {
         )
       }
     }
+    case 'chat:updateMessage': {
+      const {messageID, message, conversationIDKey} = action.payload
+      // $FlowIssue
+      return state.update('conversationStates', conversationStates => updateConversationMessage(
+        conversationStates,
+        conversationIDKey,
+        item => !!item.messageID && item.messageID === messageID,
+        m => ({
+          ...m,
+          ...message,
+        })
+      ))
+    }
     case 'chat:markSeenMessage': {
       const {messageID, conversationIDKey} = action.payload
       // $FlowIssue
@@ -298,14 +337,14 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, outboxID, bytesComplete, bytesTotal} = action.payload
+      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
         conversationIDKey,
-        item => !!item.outboxID && item.outboxID === outboxID,
+        item => !!item.messageID && item.messageID === messageID,
         m => ({
           ...m,
           messageState: 'uploading',

@@ -334,7 +334,7 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
-	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata) error
+	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error
 	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
 	ChatAttachmentUploadDone(context.Context) error
 	ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error
@@ -539,6 +539,7 @@ type ConversationSource interface {
 	GetMessagesWithRemotes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
+	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 }
 
 type MessageDeliverer interface {

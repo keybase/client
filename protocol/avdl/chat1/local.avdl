@@ -54,6 +54,11 @@ protocol local {
     case VIDEO: AssetMetadataVideo;
     case AUDIO: AssetMetadataAudio;
   }
+  
+  @go("nostring")
+  enum AssetTag {
+    PRIMARY_0
+  }
 
   record Asset {
     string filename;           // original filename of the object
@@ -69,12 +74,36 @@ protocol local {
     string title;              // title of the asset (defaults to filename if not provided)
     bytes nonce;               // encryption nonce
     AssetMetadata metadata;    // type-specific metadata
+    AssetTag tag;              // for multiple previews, a tag to differentiate
+  }
+
+  record MessageAttachmentV1 {
+    Asset object;                // the primary attachment object
+    union {null, Asset} preview; // the (optional) preview of object
+    bytes metadata;              // generic metadata (msgpack)
   }
 
   record MessageAttachment {
     Asset object;                // the primary attachment object
-    union {null, Asset} preview; // the (optional) preview of object
+    array<Asset> previews;       // the previews of object
     bytes metadata;              // generic metadata (msgpack)
+    boolean uploaded;            // true if assets have been uploaded
+  }
+
+  record MessageAttachmentUploaded {
+    MessageID messageID;
+    Asset object;                // the primary attachment object
+    array<Asset> previews;       // the previews of object
+    bytes metadata;              // generic metadata (msgpack)
+  }
+
+  variant MessageBodyV1 switch (MessageType messageType) {
+    case TEXT: MessageText;
+    case ATTACHMENT: MessageAttachmentV1;
+    case EDIT: MessageEdit;
+    case DELETE: MessageDelete;
+    case METADATA: MessageConversationMetadata;
+    case HEADLINE: MessageHeadline;
   }
 
   variant MessageBody switch (MessageType messageType) {
@@ -84,6 +113,7 @@ protocol local {
     case DELETE: MessageDelete;
     case METADATA: MessageConversationMetadata;
     case HEADLINE: MessageHeadline;
+    case ATTACHMENTUPLOADED: MessageAttachmentUploaded;
   }
 
   enum OutboxStateType {
@@ -153,13 +183,21 @@ protocol local {
   }
 
   enum BodyPlaintextVersion {
-    V1_1
+    V1_1,
+    V2_2
   }
 
   // BodyPlaintextV1 is version 1 of BodyPlaintext.
   // The fields here cannot change.  To modify,
   // create a new record type with a new version.
   record BodyPlaintextV1 {
+    MessageBodyV1 messageBody;
+  }
+
+  // BodyPlaintextV2 is version 2 of BodyPlaintext.
+  // The fields here cannot change.  To modify,
+  // create a new record type with a new version.
+  record BodyPlaintextV2 {
     MessageBody messageBody;
   }
 
@@ -167,6 +205,7 @@ protocol local {
   // versions of BodyPlaintext.
   variant BodyPlaintext switch (BodyPlaintextVersion version) {
     case V1: BodyPlaintextV1;
+    case V2: BodyPlaintextV2;
   }
 
   record MessagePlaintext {
@@ -432,7 +471,7 @@ protocol local {
 
   // Get messages by ID.
   @lint("ignore")
-  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, boolean disableResolveSupersedes, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;

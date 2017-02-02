@@ -12,6 +12,10 @@
         {
           "name": "metadata",
           "type": "AssetMetadata"
+        },
+        {
+          "name": "placeholderMsgID",
+          "type": "MessageID"
         }
       ],
       "response": null,

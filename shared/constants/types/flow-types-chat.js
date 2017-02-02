@@ -73,6 +73,7 @@ export const CommonMessageType = {
   metadata: 5,
   tlfname: 6,
   headline: 7,
+  attachmentuploaded: 8,
 }
 
 export const CommonTLFVisibility = {
@@ -94,8 +95,13 @@ export const LocalAssetMetadataType = {
   audio: 3,
 }
 
+export const LocalAssetTag = {
+  primary: 0,
+}
+
 export const LocalBodyPlaintextVersion = {
   v1: 1,
+  v2: 2,
 }
 
 export const LocalConversationErrorType = {
@@ -584,6 +590,7 @@ export type Asset = {
   title: string,
   nonce: bytes,
   metadata: AssetMetadata,
+  tag: AssetTag,
 }
 
 export type AssetMetadata = 
@@ -612,15 +619,24 @@ export type AssetMetadataVideo = {
   durationMs: int,
 }
 
+export type AssetTag = 
+    0 // PRIMARY_0
+
 export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
+  | { version : 2, v2 : ?BodyPlaintextV2 }
 
 export type BodyPlaintextV1 = {
+  messageBody: MessageBodyV1,
+}
+
+export type BodyPlaintextV2 = {
   messageBody: MessageBody,
 }
 
 export type BodyPlaintextVersion = 
     1 // V1_1
+  | 2 // V2_2
 
 export type ChatActivity = 
     { activityType : 1, incomingMessage : ?IncomingMessage }
@@ -957,6 +973,20 @@ export type MerkleRoot = {
 
 export type MessageAttachment = {
   object: Asset,
+  previews?: ?Array<Asset>,
+  metadata: bytes,
+  uploaded: boolean,
+}
+
+export type MessageAttachmentUploaded = {
+  messageID: MessageID,
+  object: Asset,
+  previews?: ?Array<Asset>,
+  metadata: bytes,
+}
+
+export type MessageAttachmentV1 = {
+  object: Asset,
   preview?: ?Asset,
   metadata: bytes,
 }
@@ -964,6 +994,15 @@ export type MessageAttachment = {
 export type MessageBody = 
     { messageType : 1, text : ?MessageText }
   | { messageType : 2, attachment : ?MessageAttachment }
+  | { messageType : 3, edit : ?MessageEdit }
+  | { messageType : 4, delete : ?MessageDelete }
+  | { messageType : 5, metadata : ?MessageConversationMetadata }
+  | { messageType : 7, headline : ?MessageHeadline }
+  | { messageType : 8, attachmentuploaded : ?MessageAttachmentUploaded }
+
+export type MessageBodyV1 = 
+    { messageType : 1, text : ?MessageText }
+  | { messageType : 2, attachment : ?MessageAttachmentV1 }
   | { messageType : 3, edit : ?MessageEdit }
   | { messageType : 4, delete : ?MessageDelete }
   | { messageType : 5, metadata : ?MessageConversationMetadata }
@@ -1040,6 +1079,7 @@ export type MessageType =
   | 5 // METADATA_5
   | 6 // TLFNAME_6
   | 7 // HEADLINE_7
+  | 8 // ATTACHMENTUPLOADED_8
 
 export type MessageUnboxed = 
     { state : 1, valid : ?MessageUnboxedValid }
@@ -1318,7 +1358,8 @@ export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
 }>
 
 export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
-  metadata: AssetMetadata
+  metadata: AssetMetadata,
+  placeholderMsgID: MessageID
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
@@ -1385,6 +1426,7 @@ export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
 export type localGetMessagesLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageIDs?: ?Array<MessageID>,
+  disableResolveSupersedes: boolean,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -1664,7 +1706,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
       sessionID: int,
-      metadata: AssetMetadata
+      metadata: AssetMetadata,
+      placeholderMsgID: MessageID
     }>,
     response: CommonResponseHandler
   ) => void,

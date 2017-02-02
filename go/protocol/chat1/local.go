@@ -149,6 +149,20 @@ func NewAssetMetadataWithAudio(v AssetMetadataAudio) AssetMetadata {
 	}
 }
 
+type AssetTag int
+
+const (
+	AssetTag_PRIMARY AssetTag = 0
+)
+
+var AssetTagMap = map[string]AssetTag{
+	"PRIMARY": 0,
+}
+
+var AssetTagRevMap = map[AssetTag]string{
+	0: "PRIMARY",
+}
+
 type Asset struct {
 	Filename  string        `codec:"filename" json:"filename"`
 	Region    string        `codec:"region" json:"region"`
@@ -163,22 +177,186 @@ type Asset struct {
 	Title     string        `codec:"title" json:"title"`
 	Nonce     []byte        `codec:"nonce" json:"nonce"`
 	Metadata  AssetMetadata `codec:"metadata" json:"metadata"`
+	Tag       AssetTag      `codec:"tag" json:"tag"`
 }
 
-type MessageAttachment struct {
+type MessageAttachmentV1 struct {
 	Object   Asset  `codec:"object" json:"object"`
 	Preview  *Asset `codec:"preview,omitempty" json:"preview,omitempty"`
 	Metadata []byte `codec:"metadata" json:"metadata"`
 }
 
-type MessageBody struct {
+type MessageAttachment struct {
+	Object   Asset   `codec:"object" json:"object"`
+	Previews []Asset `codec:"previews" json:"previews"`
+	Metadata []byte  `codec:"metadata" json:"metadata"`
+	Uploaded bool    `codec:"uploaded" json:"uploaded"`
+}
+
+type MessageAttachmentUploaded struct {
+	MessageID MessageID `codec:"messageID" json:"messageID"`
+	Object    Asset     `codec:"object" json:"object"`
+	Previews  []Asset   `codec:"previews" json:"previews"`
+	Metadata  []byte    `codec:"metadata" json:"metadata"`
+}
+
+type MessageBodyV1 struct {
 	MessageType__ MessageType                  `codec:"messageType" json:"messageType"`
 	Text__        *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
-	Attachment__  *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
+	Attachment__  *MessageAttachmentV1         `codec:"attachment,omitempty" json:"attachment,omitempty"`
 	Edit__        *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
 	Delete__      *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
 	Metadata__    *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
 	Headline__    *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
+}
+
+func (o *MessageBodyV1) MessageType() (ret MessageType, err error) {
+	switch o.MessageType__ {
+	case MessageType_TEXT:
+		if o.Text__ == nil {
+			err = errors.New("unexpected nil value for Text__")
+			return ret, err
+		}
+	case MessageType_ATTACHMENT:
+		if o.Attachment__ == nil {
+			err = errors.New("unexpected nil value for Attachment__")
+			return ret, err
+		}
+	case MessageType_EDIT:
+		if o.Edit__ == nil {
+			err = errors.New("unexpected nil value for Edit__")
+			return ret, err
+		}
+	case MessageType_DELETE:
+		if o.Delete__ == nil {
+			err = errors.New("unexpected nil value for Delete__")
+			return ret, err
+		}
+	case MessageType_METADATA:
+		if o.Metadata__ == nil {
+			err = errors.New("unexpected nil value for Metadata__")
+			return ret, err
+		}
+	case MessageType_HEADLINE:
+		if o.Headline__ == nil {
+			err = errors.New("unexpected nil value for Headline__")
+			return ret, err
+		}
+	}
+	return o.MessageType__, nil
+}
+
+func (o MessageBodyV1) Text() MessageText {
+	if o.MessageType__ != MessageType_TEXT {
+		panic("wrong case accessed")
+	}
+	if o.Text__ == nil {
+		return MessageText{}
+	}
+	return *o.Text__
+}
+
+func (o MessageBodyV1) Attachment() MessageAttachmentV1 {
+	if o.MessageType__ != MessageType_ATTACHMENT {
+		panic("wrong case accessed")
+	}
+	if o.Attachment__ == nil {
+		return MessageAttachmentV1{}
+	}
+	return *o.Attachment__
+}
+
+func (o MessageBodyV1) Edit() MessageEdit {
+	if o.MessageType__ != MessageType_EDIT {
+		panic("wrong case accessed")
+	}
+	if o.Edit__ == nil {
+		return MessageEdit{}
+	}
+	return *o.Edit__
+}
+
+func (o MessageBodyV1) Delete() MessageDelete {
+	if o.MessageType__ != MessageType_DELETE {
+		panic("wrong case accessed")
+	}
+	if o.Delete__ == nil {
+		return MessageDelete{}
+	}
+	return *o.Delete__
+}
+
+func (o MessageBodyV1) Metadata() MessageConversationMetadata {
+	if o.MessageType__ != MessageType_METADATA {
+		panic("wrong case accessed")
+	}
+	if o.Metadata__ == nil {
+		return MessageConversationMetadata{}
+	}
+	return *o.Metadata__
+}
+
+func (o MessageBodyV1) Headline() MessageHeadline {
+	if o.MessageType__ != MessageType_HEADLINE {
+		panic("wrong case accessed")
+	}
+	if o.Headline__ == nil {
+		return MessageHeadline{}
+	}
+	return *o.Headline__
+}
+
+func NewMessageBodyV1WithText(v MessageText) MessageBodyV1 {
+	return MessageBodyV1{
+		MessageType__: MessageType_TEXT,
+		Text__:        &v,
+	}
+}
+
+func NewMessageBodyV1WithAttachment(v MessageAttachmentV1) MessageBodyV1 {
+	return MessageBodyV1{
+		MessageType__: MessageType_ATTACHMENT,
+		Attachment__:  &v,
+	}
+}
+
+func NewMessageBodyV1WithEdit(v MessageEdit) MessageBodyV1 {
+	return MessageBodyV1{
+		MessageType__: MessageType_EDIT,
+		Edit__:        &v,
+	}
+}
+
+func NewMessageBodyV1WithDelete(v MessageDelete) MessageBodyV1 {
+	return MessageBodyV1{
+		MessageType__: MessageType_DELETE,
+		Delete__:      &v,
+	}
+}
+
+func NewMessageBodyV1WithMetadata(v MessageConversationMetadata) MessageBodyV1 {
+	return MessageBodyV1{
+		MessageType__: MessageType_METADATA,
+		Metadata__:    &v,
+	}
+}
+
+func NewMessageBodyV1WithHeadline(v MessageHeadline) MessageBodyV1 {
+	return MessageBodyV1{
+		MessageType__: MessageType_HEADLINE,
+		Headline__:    &v,
+	}
+}
+
+type MessageBody struct {
+	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
+	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
+	Attachment__         *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
+	Edit__               *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
+	Delete__             *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
+	Metadata__           *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	Headline__           *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
+	Attachmentuploaded__ *MessageAttachmentUploaded   `codec:"attachmentuploaded,omitempty" json:"attachmentuploaded,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -211,6 +389,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_HEADLINE:
 		if o.Headline__ == nil {
 			err = errors.New("unexpected nil value for Headline__")
+			return ret, err
+		}
+	case MessageType_ATTACHMENTUPLOADED:
+		if o.Attachmentuploaded__ == nil {
+			err = errors.New("unexpected nil value for Attachmentuploaded__")
 			return ret, err
 		}
 	}
@@ -277,6 +460,16 @@ func (o MessageBody) Headline() MessageHeadline {
 	return *o.Headline__
 }
 
+func (o MessageBody) Attachmentuploaded() MessageAttachmentUploaded {
+	if o.MessageType__ != MessageType_ATTACHMENTUPLOADED {
+		panic("wrong case accessed")
+	}
+	if o.Attachmentuploaded__ == nil {
+		return MessageAttachmentUploaded{}
+	}
+	return *o.Attachmentuploaded__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -316,6 +509,13 @@ func NewMessageBodyWithHeadline(v MessageHeadline) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_HEADLINE,
 		Headline__:    &v,
+	}
+}
+
+func NewMessageBodyWithAttachmentuploaded(v MessageAttachmentUploaded) MessageBody {
+	return MessageBody{
+		MessageType__:        MessageType_ATTACHMENTUPLOADED,
+		Attachmentuploaded__: &v,
 	}
 }
 
@@ -522,14 +722,17 @@ type BodyPlaintextVersion int
 
 const (
 	BodyPlaintextVersion_V1 BodyPlaintextVersion = 1
+	BodyPlaintextVersion_V2 BodyPlaintextVersion = 2
 )
 
 var BodyPlaintextVersionMap = map[string]BodyPlaintextVersion{
 	"V1": 1,
+	"V2": 2,
 }
 
 var BodyPlaintextVersionRevMap = map[BodyPlaintextVersion]string{
 	1: "V1",
+	2: "V2",
 }
 
 func (e BodyPlaintextVersion) String() string {
@@ -540,12 +743,17 @@ func (e BodyPlaintextVersion) String() string {
 }
 
 type BodyPlaintextV1 struct {
+	MessageBody MessageBodyV1 `codec:"messageBody" json:"messageBody"`
+}
+
+type BodyPlaintextV2 struct {
 	MessageBody MessageBody `codec:"messageBody" json:"messageBody"`
 }
 
 type BodyPlaintext struct {
 	Version__ BodyPlaintextVersion `codec:"version" json:"version"`
 	V1__      *BodyPlaintextV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+	V2__      *BodyPlaintextV2     `codec:"v2,omitempty" json:"v2,omitempty"`
 }
 
 func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
@@ -553,6 +761,11 @@ func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
 	case BodyPlaintextVersion_V1:
 		if o.V1__ == nil {
 			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V2:
+		if o.V2__ == nil {
+			err = errors.New("unexpected nil value for V2__")
 			return ret, err
 		}
 	}
@@ -569,10 +782,27 @@ func (o BodyPlaintext) V1() BodyPlaintextV1 {
 	return *o.V1__
 }
 
+func (o BodyPlaintext) V2() BodyPlaintextV2 {
+	if o.Version__ != BodyPlaintextVersion_V2 {
+		panic("wrong case accessed")
+	}
+	if o.V2__ == nil {
+		return BodyPlaintextV2{}
+	}
+	return *o.V2__
+}
+
 func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
 	return BodyPlaintext{
 		Version__: BodyPlaintextVersion_V1,
 		V1__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV2(v BodyPlaintextV2) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V2,
+		V2__:      &v,
 	}
 }
 
@@ -1006,9 +1236,10 @@ type GetConversationForCLILocalArg struct {
 }
 
 type GetMessagesLocalArg struct {
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	MessageIDs       []MessageID                  `codec:"messageIDs" json:"messageIDs"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	ConversationID           ConversationID               `codec:"conversationID" json:"conversationID"`
+	MessageIDs               []MessageID                  `codec:"messageIDs" json:"messageIDs"`
+	DisableResolveSupersedes bool                         `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
+	IdentifyBehavior         keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type PostAttachmentLocalArg struct {

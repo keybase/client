@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const blockIndexVersion = 1
+const blockIndexVersion = 2
 const blockSize = 100
 
 type blockEngine struct {
@@ -108,7 +108,7 @@ func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.Conversa
 	if err = decode(raw, &bi); err != nil {
 		return bi, NewInternalError(be.DebugLabeler, "readBlockIndex: failed to decode: %s", err.Error())
 	}
-	if bi.Version > blockIndexVersion {
+	if bi.Version != blockIndexVersion {
 		return bi, NewInternalError(be.DebugLabeler, "readBlockIndex: incompatible index version")
 	}
 

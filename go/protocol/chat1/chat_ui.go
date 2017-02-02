@@ -9,8 +9,9 @@ import (
 )
 
 type ChatAttachmentUploadStartArg struct {
-	SessionID int           `codec:"sessionID" json:"sessionID"`
-	Metadata  AssetMetadata `codec:"metadata" json:"metadata"`
+	SessionID        int           `codec:"sessionID" json:"sessionID"`
+	Metadata         AssetMetadata `codec:"metadata" json:"metadata"`
+	PlaceholderMsgID MessageID     `codec:"placeholderMsgID" json:"placeholderMsgID"`
 }
 
 type ChatAttachmentUploadProgressArg struct {

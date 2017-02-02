@@ -159,6 +159,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AssetTag",
+      "symbols": [
+        "PRIMARY_0"
+      ],
+      "go": "nostring"
+    },
+    {
       "type": "record",
       "name": "Asset",
       "fields": [
@@ -213,12 +221,16 @@
         {
           "type": "AssetMetadata",
           "name": "metadata"
+        },
+        {
+          "type": "AssetTag",
+          "name": "tag"
         }
       ]
     },
     {
       "type": "record",
-      "name": "MessageAttachment",
+      "name": "MessageAttachmentV1",
       "fields": [
         {
           "type": "Asset",
@@ -234,6 +246,108 @@
         {
           "type": "bytes",
           "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageAttachment",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "previews"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
+        },
+        {
+          "type": "boolean",
+          "name": "uploaded"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageAttachmentUploaded",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "previews"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "MessageBodyV1",
+      "switch": {
+        "type": "MessageType",
+        "name": "messageType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TEXT",
+            "def": false
+          },
+          "body": "MessageText"
+        },
+        {
+          "label": {
+            "name": "ATTACHMENT",
+            "def": false
+          },
+          "body": "MessageAttachmentV1"
+        },
+        {
+          "label": {
+            "name": "EDIT",
+            "def": false
+          },
+          "body": "MessageEdit"
+        },
+        {
+          "label": {
+            "name": "DELETE",
+            "def": false
+          },
+          "body": "MessageDelete"
+        },
+        {
+          "label": {
+            "name": "METADATA",
+            "def": false
+          },
+          "body": "MessageConversationMetadata"
+        },
+        {
+          "label": {
+            "name": "HEADLINE",
+            "def": false
+          },
+          "body": "MessageHeadline"
         }
       ]
     },
@@ -286,6 +400,13 @@
             "def": false
           },
           "body": "MessageHeadline"
+        },
+        {
+          "label": {
+            "name": "ATTACHMENTUPLOADED",
+            "def": false
+          },
+          "body": "MessageAttachmentUploaded"
         }
       ]
     },
@@ -497,12 +618,23 @@
       "type": "enum",
       "name": "BodyPlaintextVersion",
       "symbols": [
-        "V1_1"
+        "V1_1",
+        "V2_2"
       ]
     },
     {
       "type": "record",
       "name": "BodyPlaintextV1",
+      "fields": [
+        {
+          "type": "MessageBodyV1",
+          "name": "messageBody"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BodyPlaintextV2",
       "fields": [
         {
           "type": "MessageBody",
@@ -524,6 +656,13 @@
             "def": false
           },
           "body": "BodyPlaintextV1"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "BodyPlaintextV2"
         }
       ]
     },
@@ -1706,6 +1845,10 @@
             "type": "array",
             "items": "MessageID"
           }
+        },
+        {
+          "name": "disableResolveSupersedes",
+          "type": "boolean"
         },
         {
           "name": "identifyBehavior",
