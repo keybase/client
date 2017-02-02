@@ -1403,28 +1403,28 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
   uploadDone.response.result()
 
   const finished = yield join(finishedTask)
-  const {params: {messageID}} = finished
   yield cancel(progressTask)
   yield cancel(previewTask)
   closeChannelMap(channelMap)
 
-  yield put(({
-    type: 'chat:updateTempMessage',
-    payload: {
-      conversationIDKey,
-      outboxID,
-      message: {type: 'Attachment', messageState: 'sent', messageID, key: messageID},
-    },
-  }: Constants.UpdateTempMessage))
-  yield put(({
-    type: 'chat:markSeenMessage',
-    payload: {
-      conversationIDKey,
-      messageID: messageID,
-    },
-  }: Constants.MarkSeenMessage))
-
-  return messageID
+  if (!finished.error) {
+    const {params: {messageID}} = finished
+    yield put(({
+      type: 'chat:updateTempMessage',
+      payload: {
+        conversationIDKey,
+        outboxID,
+        message: {type: 'Attachment', messageState: 'sent', messageID, key: messageID},
+      },
+    }: Constants.UpdateTempMessage))
+    yield put(({
+      type: 'chat:markSeenMessage',
+      payload: {
+        conversationIDKey,
+        messageID: messageID,
+      },
+    }: Constants.MarkSeenMessage))
+  }
 }
 
 // Instead of redownloading the full attachment again, we may have it cached from an earlier hdPreview
