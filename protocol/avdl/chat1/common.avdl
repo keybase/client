@@ -33,10 +33,10 @@ protocol common {
   }
 
   enum ConversationStatus {
-    // default status of the conversation
+    // Default status of the conversation
     UNFILED_0,
 
-    // ???
+    // Not used yet.
     FAVORITE_1,
 
     // This status is useful for temporarily muting a conversation. Unless told
@@ -46,10 +46,14 @@ protocol common {
     // status, it's automatically changed back to UNFILED.
     IGNORED_2,
 
-    // The conversation is muted (i.e. not included in GetInboxRemote results
+    // The conversation is blocked (i.e. not included in GetInboxRemote results
     // by default), until SetConversationStatus is called with a different
     // status.
-    BLOCKED_3
+    BLOCKED_3,
+
+    // The conversation appears in the inbox with no snippet,
+    // and does not emit notifications nor badges.
+    MUTED_4
   }
 
   record Pagination {

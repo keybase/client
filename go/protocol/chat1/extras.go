@@ -164,6 +164,7 @@ var ConversationStatusGregorMap = map[ConversationStatus]string{
 	ConversationStatus_FAVORITE: "favorite",
 	ConversationStatus_IGNORED:  "ignored",
 	ConversationStatus_BLOCKED:  "blocked",
+	ConversationStatus_MUTED:    "muted",
 }
 
 var ConversationStatusGregorRevMap = map[string]ConversationStatus{
@@ -171,6 +172,7 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 	"favorite": ConversationStatus_FAVORITE,
 	"ignored":  ConversationStatus_IGNORED,
 	"blocked":  ConversationStatus_BLOCKED,
+	"muted":    ConversationStatus_MUTED,
 }
 
 func (t ConversationIDTriple) Hash() []byte {
