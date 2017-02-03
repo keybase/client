@@ -923,8 +923,8 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
       let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
 
-      const supersedesState: Constants.SupersedesState = _inboxConversationToSupersedesState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-      const supersededByState: Constants.SupersededByState = _inboxConversationToSupersededByState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
+      const supersedesState: Constants.SupersedesState = _inboxConversationToSupersedesState(incoming.chatInboxConversation.params.conv)
+      const supersededByState: Constants.SupersededByState = _inboxConversationToSupersededByState(incoming.chatInboxConversation.params.conv)
       yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
       yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
 
