@@ -54,9 +54,10 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 
 	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			Status:     utils.VisibleChatConversationStatuses(),
-			TopicType:  &topicType,
-			UnreadOnly: opts.UnreadOnly,
+			Status:            utils.VisibleChatConversationStatuses(),
+			TopicType:         &topicType,
+			UnreadOnly:        opts.UnreadOnly,
+			OneChatTypePerTLF: new(bool),
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
@@ -94,6 +95,13 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 				}
 				maxID = msg.GetMessageID()
 			}
+		}
+
+		for _, super := range conv.Supersedes {
+			cl.Conversations[i].Supersedes = append(cl.Conversations[i].Supersedes, super.String())
+		}
+		for _, super := range conv.SupersededBy {
+			cl.Conversations[i].SupersededBy = append(cl.Conversations[i].SupersededBy, super.String())
 		}
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
@@ -968,6 +976,8 @@ type ConvSummary struct {
 	ActiveAt     int64                           `json:"active_at"`
 	ActiveAtMs   int64                           `json:"active_at_ms"`
 	FinalizeInfo *chat1.ConversationFinalizeInfo `json:"finalize_info,omitempty"`
+	Supersedes   []string                        `json:"supersedes,omitempty"`
+	SupersededBy []string                        `json:"superseded_by,omitempty"`
 }
 
 // ChatList is a list of conversations in the inbox.
