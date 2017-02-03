@@ -677,9 +677,14 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
+	itm := libkb.IdentifyTableModeActive
+	if e.calledFromChatGUI() {
+		itm = libkb.IdentifyTableModePassive
+	}
+
 	if them.IDTable() == nil {
 		e.G().Log.Debug("| No IDTable for user")
-	} else if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e); err != nil {
+	} else if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e, itm); err != nil {
 		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}

@@ -246,7 +246,7 @@ class ConversationList extends Component<void, Props, State> {
             you={this.props.you}
             message={message}
             onDeleteMessage={this.props.onDeleteMessage}
-            onDownloadAttachment={() => { messageID && this.props.onLoadAttachment(messageID, filename) }}
+            onDownloadAttachment={() => { messageID && filename && this.props.onLoadAttachment(messageID, filename) }}
             onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
             onHidden={this._hidePopup}
             style={style}
@@ -289,7 +289,7 @@ class ConversationList extends Component<void, Props, State> {
     const clientRect = event.target.getBoundingClientRect()
 
     const messageNode = this._findMessageFromDOMNode(event.target)
-    const messageRect = messageNode && this._domNodeToRect(messageNode) //messageNode.getClientRects()[0]
+    const messageRect = messageNode && this._domNodeToRect(messageNode)
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
     const x = clientRect.left - 205
@@ -427,9 +427,10 @@ class ConversationList extends Component<void, Props, State> {
       return
     }
 
-    const entry = this.state.messages.findLastEntry(m => m.type === 'Text' && m.author === this.props.you)
+    const entry: any = this.state.messages.findLastEntry(m => m.type === 'Text' && m.author === this.props.you)
     if (entry) {
-      const [idx, message] = entry
+      const idx: number = entry[0]
+      const message: TextMessage = entry[1]
       this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: idx})
       const listNode = ReactDOM.findDOMNode(this._list)
       if (listNode) {

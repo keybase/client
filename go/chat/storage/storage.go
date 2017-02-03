@@ -17,6 +17,8 @@ type resultCollector interface {
 	push(msg chat1.MessageUnboxed)
 	done() bool
 	result() []chat1.MessageUnboxed
+	error(err Error) Error
+
 	String() string
 }
 
@@ -88,6 +90,9 @@ func (s *simpleResultCollector) push(msg chat1.MessageUnboxed) {
 }
 
 func (s *simpleResultCollector) done() bool {
+	if s.target < 0 {
+		return false
+	}
 	return len(s.res) >= s.target
 }
 
@@ -96,7 +101,17 @@ func (s *simpleResultCollector) result() []chat1.MessageUnboxed {
 }
 
 func (s *simpleResultCollector) String() string {
-	return fmt.Sprintf("[ simple: t: %d c: %d]", s.target, len(s.res))
+	return fmt.Sprintf("[ simple: t: %d c: %d ]", s.target, len(s.res))
+}
+
+func (s *simpleResultCollector) error(err Error) Error {
+	if s.target < 0 {
+		// Swallow this error if we are not looking for a target
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+	}
+	return err
 }
 
 func newSimpleResultCollector(num int) *simpleResultCollector {
@@ -131,6 +146,9 @@ func (t *typedResultCollector) push(msg chat1.MessageUnboxed) {
 }
 
 func (t *typedResultCollector) done() bool {
+	if t.target < 0 {
+		return false
+	}
 	return t.cur >= t.target
 }
 
@@ -140,6 +158,16 @@ func (t *typedResultCollector) result() []chat1.MessageUnboxed {
 
 func (t *typedResultCollector) String() string {
 	return fmt.Sprintf("[ typed: t: %d c: %d (%d types) ]", t.target, t.cur, len(t.typmap))
+}
+
+func (t *typedResultCollector) error(err Error) Error {
+	if t.target < 0 {
+		// Swallow this error if we are not looking for a target
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+	}
+	return err
 }
 
 func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, uid gregor1.UID) Error {
@@ -356,6 +384,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
+	s.Debug(ctx, "FetchUpToLocalMaxMsgID: using max msgID: %d", maxMsgID)
 
 	return s.fetchUpToMsgIDLocked(ctx, convID, uid, maxMsgID, query, pagination)
 }

@@ -78,7 +78,7 @@ resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
 installer_url="https://github.com/keybase/client/releases/download/v1.0.18/KeybaseInstaller-1.1.46-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
-updater_url="https://github.com/keybase/client/releases/download/v1.0.17/KeybaseUpdater-1.0.5-darwin.tgz"
+updater_url="https://github.com/keybase/client/releases/download/v1.0.18/KeybaseUpdater-1.0.6-darwin.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"

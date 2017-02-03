@@ -22,11 +22,6 @@ class EditPopup extends Component<void, Props, void> {
     this._input = r
   }
 
-  _onSave = () => {
-    this._input && this.props.onSubmit(this._input.getValue())
-    this.props.onClose()
-  }
-
   render () {
     const {onClose, message, onSubmit, messageRect} = this.props
     // The setImmediate is due to some timing issues when injecting the portal using the unsafe method, TODO clean that up soon
@@ -74,8 +69,18 @@ class EditPopup extends Component<void, Props, void> {
             width: messageRect.width,
           }} />
         <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
-          <Button type='Secondary' label='Cancel' onClick={() => { setImmediate(onClose) }} />
-          <Button type='Primary' label='Save' onClick={() => { setImmediate(this._onSave) }} />
+          <Button type='Secondary' label='Cancel' onClick={e => {
+            e.preventDefault()
+            setImmediate(onClose)
+          }} />
+          <Button type='Primary' label='Save' onClick={e => {
+            e.preventDefault()
+            const value = this._input && this._input.getValue()
+            setImmediate(() => {
+              this.props.onSubmit(value)
+              this.props.onClose()
+            })
+          }} />
         </Box>
       </Box>
     </PopupDialog>

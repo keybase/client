@@ -94,7 +94,7 @@ class GlobalError extends Component<void, Props, State> {
           <Text type='BodySemibold' style={{color: globalColors.white, textAlign: 'center'}}>{message}</Text>
         </Box>
         <Box style={{...overlayFillStyle}}>
-          <Icon type='icon-loader-connecting-112' />
+          <Icon type='icon-loader-connecting-266' />
         </Box>
       </Box>
     )
@@ -189,7 +189,7 @@ const overlayFillStyle = {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  backgroundColor: globalColors.white_75,
+  backgroundColor: globalColors.white,
 }
 
 export default HOCTimers(GlobalError)
