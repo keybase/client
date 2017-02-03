@@ -1156,7 +1156,7 @@ func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 func (mr *MerkleRoot) ToInfo() chat1.MerkleRoot {
 	return chat1.MerkleRoot{
 		Seqno: int64(*mr.Seqno()),
-		Hash:  mr.RootHash().bytes(),
+		Hash:  mr.payload.shortHash().bytes(),
 	}
 }
 
