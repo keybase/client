@@ -108,17 +108,20 @@ function ShowInFileUi ({downloadedPath, onOpenInFileUI}) {
 function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void, onOpenInPopup: () => void}) {
   const {downloadedPath, messageState} = message
 
-  const progressBarStyle = {
-    ...(messageState === 'uploading' ? {position: 'absolute', bottom: 0, left: 0} : {}),
+  const overlayProgressBarStyle = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
   }
+  const isOverlayProgress = messageState === 'uploading'
 
   return (
     <Box style={{position: 'relative'}}>
       <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
-      <Box style={{marginTop: globalMargins.xtiny}}>
+      <Box style={!isOverlayProgress ? {marginTop: globalMargins.xtiny} : {}}>
         {_showProgressBar(messageState, message.progress) && !!message.progress &&
           <ProgressBar
-            style={progressBarStyle}
+            style={isOverlayProgress ? overlayProgressBarStyle : {}}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}
         {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
