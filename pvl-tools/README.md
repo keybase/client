@@ -4,4 +4,13 @@ The proof verification language describes how clients should check remote proofs
 
 This directory contains tools for converting pvl from cson into a useable form.
 
-Try `./reader.iced --help`
+To load `pvl.cson` into hardcoded Go, do this:
+```sh
+yarn
+yarn run build
+```
+
+For other stuff try:
+```sh
+./reader.iced --help
+```

@@ -566,3 +566,62 @@ func TestDeletionHeaders(t *testing.T) {
 		t.Fatalf("expected message #%d to be deleted", editID)
 	}
 }
+
+func TestPrevPointerAddition(t *testing.T) {
+	world, ri, _, blockingSender, _, secretUI, tlf := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := userTc(t, world, u)
+	trip := newConvTriple(t, tlf, u.Username)
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple: trip,
+		TLFMessage: chat1.MessageBoxed{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
+				TlfName:   u.Username,
+				TlfPublic: false,
+			},
+			KeyGeneration: 1,
+		},
+	})
+	require.NoError(t, err)
+
+	// Send a bunch of messages on this convo
+	for i := 0; i < 10; i++ {
+		_, _, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      uid,
+				TlfName:     u.Username,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+		}, 0)
+		require.NoError(t, err)
+	}
+
+	// Nuke the body cache
+	require.NoError(t, storage.New(tc.G, secretUI).MaybeNuke(true, nil, res.ConvID, uid))
+
+	// Fetch a subset into the cache
+	_, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, &chat1.Pagination{
+		Num: 2,
+	})
+	require.NoError(t, err)
+
+	// Prepare a message and make sure it gets prev pointers
+	boxed, err := blockingSender.Prepare(context.TODO(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      uid,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
+	}, &res.ConvID)
+	require.NoError(t, err)
+	require.NotEmpty(t, boxed.ClientHeader.Prev, "empty prev pointers")
+
+}

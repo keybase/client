@@ -76,7 +76,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
-		// transient error
+		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
@@ -344,7 +344,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError(msg, false)
 	}
 
-	boxed, err := b.boxMessageWithKeysV1(msg, recentKey, signingKeyPair)
+	boxed, err := b.boxMessageWithKeys(msg, recentKey, signingKeyPair)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
@@ -352,9 +352,9 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	return boxed, nil
 }
 
-// boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a
+// boxMessageWithKeys encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *Boxer) boxMessageWithKeysV1(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
+func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 
 	body := chat1.BodyPlaintextV1{

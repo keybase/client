@@ -246,7 +246,7 @@ class ConversationList extends Component<void, Props, State> {
             you={this.props.you}
             message={message}
             onDeleteMessage={this.props.onDeleteMessage}
-            onDownloadAttachment={() => { messageID && this.props.onLoadAttachment(messageID, filename) }}
+            onDownloadAttachment={() => { messageID && filename && this.props.onLoadAttachment(messageID, filename) }}
             onOpenInFileUI={() => { downloadedPath && this.props.onOpenInFileUI(downloadedPath) }}
             onHidden={this._hidePopup}
             style={style}

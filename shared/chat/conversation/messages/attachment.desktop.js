@@ -12,7 +12,7 @@ function _showProgressBar (messageState, progress) {
   return !!progress && (messageState === 'uploading' || messageState === 'downloading')
 }
 
-function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: string}) {
+function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: ?string}) {
   let style = {}
   switch (messageState) {
     case 'uploading':
@@ -108,17 +108,24 @@ function ShowInFileUi ({downloadedPath, onOpenInFileUI}) {
 function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void, onOpenInPopup: () => void}) {
   const {downloadedPath, messageState} = message
 
-  const progressBarStyle = {
-    ...(messageState === 'uploading' ? {position: 'absolute', bottom: 0, left: 0} : {}),
+  const overlayProgressBarStyle = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    paddingLeft: globalMargins.xtiny,
+    paddingRight: globalMargins.tiny,
+    paddingTop: globalMargins.xtiny,
+    paddingBottom: globalMargins.xtiny,
   }
+  const isOverlayProgress = messageState === 'uploading'
 
   return (
     <Box style={{position: 'relative'}}>
       <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
-      <Box style={{marginTop: globalMargins.xtiny}}>
+      <Box style={!isOverlayProgress ? {marginTop: globalMargins.xtiny} : {}}>
         {_showProgressBar(messageState, message.progress) && !!message.progress &&
           <ProgressBar
-            style={progressBarStyle}
+            style={isOverlayProgress ? overlayProgressBarStyle : {}}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}
         {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
@@ -187,7 +194,7 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
 
   _onLoadAttachment = () => {
     const {messageID, filename} = this.props.message
-    messageID && this.props.onLoadAttachment(messageID, filename)
+    messageID && filename && this.props.onLoadAttachment(messageID, filename)
   }
 
   render () {

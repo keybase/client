@@ -75,6 +75,13 @@ func trackAlice(tc libkb.TestContext, fu *FakeUser) {
 	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI())
 }
 
+func trackUser(tc libkb.TestContext, fu *FakeUser, un libkb.NormalizedUsername) {
+	_, _, err := runTrackWithOptions(tc, fu, un.String(), keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI(), false)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+}
+
 func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions, secretUI libkb.SecretUI) {
 	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options, secretUI, false)
 	if err != nil {
