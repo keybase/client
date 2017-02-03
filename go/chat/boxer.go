@@ -108,7 +108,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 	if err != nil {
 		b.Debug(ctx, "unable to fetch sender and device informaton: UID: %s deviceID: %s",
 			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
-		// try to jsut get username
+		// try to just get username
 		username, err = b.getSenderUsername(ctx, pt.ClientHeader)
 		if err != nil {
 			b.Debug(ctx, "failed to fetch sender username after initial error: err: %s", err.Error())
