@@ -26,7 +26,7 @@ func newCmdChatMute(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cmd := &CmdChatMute{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "mute", c)
 		},
-		Flags: append(getConversationResolverFlags(), mustGetChatFlags("unhide")...),
+		Flags: append(getConversationResolverFlags(), mustGetChatFlags("unmute")...),
 	}
 }
 
@@ -47,10 +47,10 @@ func (c *CmdChatMute) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
-	unhide := ctx.Bool("unhide")
+	unmute := ctx.Bool("unmute")
 
 	c.status = chat1.ConversationStatus_MUTED
-	if unhide {
+	if unmute {
 		c.status = chat1.ConversationStatus_UNFILED
 	}
 

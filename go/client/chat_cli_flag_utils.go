@@ -86,6 +86,10 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "u, unhide",
 		Usage: "Unhide/unblock the conversation",
 	},
+	"unmute": cli.BoolFlag{
+		Name:  "u, unmute",
+		Usage: "Unmute the conversation",
+	},
 	"async": cli.BoolFlag{
 		Name:  "async",
 		Usage: "Fetch inbox and unbox asynchronously",
