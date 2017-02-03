@@ -21,18 +21,6 @@
       ]
     },
     {
-      "type": "record",
-      "name": "LocalPath",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "KBFSPath",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
       "type": "variant",
       "name": "Path",
       "switch": {
@@ -45,14 +33,14 @@
             "name": "LOCAL",
             "def": false
           },
-          "body": "LocalPath"
+          "body": "string"
         },
         {
           "label": {
             "name": "KBFS",
             "def": false
           },
-          "body": "KBFSPath"
+          "body": "string"
         }
       ]
     },
@@ -60,10 +48,10 @@
       "type": "enum",
       "name": "DirentType",
       "symbols": [
-        "FILE",
-        "DIR",
-        "SYM",
-        "EXEC"
+        "FILE_0",
+        "DIR_1",
+        "SYM_2",
+        "EXEC_3"
       ]
     },
     {
@@ -110,14 +98,14 @@
     },
     {
       "type": "record",
-      "name": "ListResult",
+      "name": "SfListResult",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "KBFSPath"
+            "items": "Path"
           },
-          "name": "Paths"
+          "name": "paths"
         },
         {
           "type": "Progress",
@@ -141,26 +129,6 @@
     },
     {
       "type": "enum",
-      "name": "PathType",
-      "symbols": [
-        "LOCAL_0",
-        "KBFS_1"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "LocalPath",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "KBFSPath",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "enum",
       "name": "AsyncOps",
       "symbols": [
         "LIST_0",
@@ -181,7 +149,7 @@
           "name": "opID"
         },
         {
-          "type": "KBFSPath",
+          "type": "Path",
           "name": "path"
         }
       ]
@@ -195,7 +163,7 @@
           "name": "opID"
         },
         {
-          "type": "KBFSPath",
+          "type": "Path",
           "name": "path"
         },
         {
@@ -235,14 +203,14 @@
             "name": "LIST",
             "def": false
           },
-          "body": "ListArgs"
+          "body": "ListRemoveArgs"
         },
         {
           "label": {
             "name": "LIST_RECURSIVE",
             "def": false
           },
-          "body": "ListArgs"
+          "body": "ListRemoveArgs"
         },
         {
           "label": {
@@ -283,7 +251,7 @@
     }
   ],
   "messages": {
-    "list": {
+    "sfList": {
       "request": [
         {
           "name": "opID",
@@ -291,13 +259,13 @@
         },
         {
           "name": "path",
-          "type": "KBFSPath"
+          "type": "Path"
         }
       ],
       "response": null,
       "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
     },
-    "listRecursive": {
+    "sfListRecursive": {
       "request": [
         {
           "name": "opID",
@@ -305,23 +273,23 @@
         },
         {
           "name": "path",
-          "type": "KBFSPath"
+          "type": "Path"
         }
       ],
       "response": null,
       "doc": "Begin recursive list of items in directory at path"
     },
-    "readList": {
+    "sfReadList": {
       "request": [
         {
           "name": "opID",
           "type": "OpID"
         }
       ],
-      "response": "ListResult",
+      "response": "SfListResult",
       "doc": "Get list of Paths in progress. Can indicate status of pending\n   to get more entries."
     },
-    "copy": {
+    "sfCopy": {
       "request": [
         {
           "name": "opID",
@@ -339,7 +307,7 @@
       "response": null,
       "doc": "Begin copy of file or directory"
     },
-    "copyRecursive": {
+    "sfCopyRecursive": {
       "request": [
         {
           "name": "opID",
@@ -357,7 +325,7 @@
       "response": null,
       "doc": "Begin recursive copy of directory"
     },
-    "move": {
+    "sfMove": {
       "request": [
         {
           "name": "opID",
@@ -365,31 +333,31 @@
         },
         {
           "name": "src",
-          "type": "KBFSPath"
+          "type": "Path"
         },
         {
           "name": "dest",
-          "type": "KBFSPath"
+          "type": "Path"
         }
       ],
       "response": null,
       "doc": "Begin move of file or directory, from/to KBFS only"
     },
-    "rename": {
+    "sfRename": {
       "request": [
         {
           "name": "src",
-          "type": "KBFSPath"
+          "type": "Path"
         },
         {
           "name": "dest",
-          "type": "KBFSPath"
+          "type": "Path"
         }
       ],
       "response": null,
       "doc": "Rename file or directory, KBFS side only"
     },
-    "open": {
+    "sfOpen": {
       "request": [
         {
           "name": "opID",
@@ -397,7 +365,7 @@
         },
         {
           "name": "dest",
-          "type": "KBFSPath"
+          "type": "Path"
         },
         {
           "name": "flags",
@@ -407,7 +375,7 @@
       "response": null,
       "doc": "Create/open a file and leave it open\n   or create a directory\n   or set the executable bit on an existing file.\n   Files must be closed afterwards."
     },
-    "read": {
+    "sfRead": {
       "request": [
         {
           "name": "opID",
@@ -425,7 +393,7 @@
       "response": "FileContent",
       "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   Repeat until zero bytes are returned or error.\n   If size is zero, read an arbitrary amount."
     },
-    "write": {
+    "sfWrite": {
       "request": [
         {
           "name": "opID",
@@ -443,7 +411,7 @@
       "response": null,
       "doc": "Append content to opened file.\n   May be repeated until OpID is closed."
     },
-    "remove": {
+    "sfRemove": {
       "request": [
         {
           "name": "opID",
@@ -451,28 +419,28 @@
         },
         {
           "name": "path",
-          "type": "KBFSPath"
+          "type": "Path"
         }
       ],
       "response": null,
       "doc": "Remove file or directory from filesystem"
     },
-    "stat": {
+    "sfStat": {
       "request": [
         {
           "name": "path",
-          "type": "KBFSPath"
+          "type": "Path"
         }
       ],
       "response": "Dirent",
       "doc": "Get info about file"
     },
-    "makeOpID": {
+    "sfMakeOpid": {
       "request": [],
       "response": "OpID",
       "doc": "Convenience helper for generating new random value"
     },
-    "close": {
+    "sfClose": {
       "request": [
         {
           "name": "opID",
@@ -482,7 +450,7 @@
       "response": null,
       "doc": "Close OpID, cancels any pending operation.\n   Must be called after list/copy/remove"
     },
-    "check": {
+    "sfCheck": {
       "request": [
         {
           "name": "opID",
@@ -492,7 +460,7 @@
       "response": "Progress",
       "doc": "Check progress of pending operation"
     },
-    "getOps": {
+    "sfGetOps": {
       "request": [],
       "response": {
         "type": "array",
@@ -500,7 +468,7 @@
       },
       "doc": "Get all the outstanding operations"
     },
-    "wait": {
+    "sfWait": {
       "request": [
         {
           "name": "opID",

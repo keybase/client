@@ -8,18 +8,18 @@ protocol SimpleFS {
   File manipulation interface
   
   Caller provides OpID to one of these methods to begin an operation:
-    list
-    listRecursive
-    copy
-    open
-    move
-    remove
+    sfList
+    sfListRecursive
+    sfCopy
+    sfOpen
+    sfMove
+    sfRemove
   then calls one of the following until until status is no longer pending
   or operation is cancelled:
-    readList (after list or listRecursive)
-    read (after open)
-    write (after open)
-    check (after copy, move or remove)
+    sfReadList (after list or listRecursive)
+    sfRead (after open)
+    sfWrite (after open)
+    sfCheck (after copy, move or remove)
   Caller can optionally block by calling wait()
   Operation must be closed by calling close
 */
@@ -32,24 +32,16 @@ protocol SimpleFS {
     KBFS_1
   }  
 
-  @typedef("string")
-  record LocalPath {}
-
-  // TODO: do we want to separately specify public/private, 
-  // or leave it as part of the string?
-  @typedef("string")
-  record KBFSPath {}
-  
   variant Path switch (PathType PathType) {
-    case LOCAL: LocalPath;
-    case KBFS: KBFSPath;
+    case LOCAL: string;
+    case KBFS: string;
   }
 
   enum DirentType {
-    FILE,
-    DIR,
-    SYM,
-    EXEC
+    FILE_0,
+    DIR_1,
+    SYM_2,
+    EXEC_3
   }
   
   record Dirent {
@@ -73,8 +65,8 @@ protocol SimpleFS {
   @typedef("int")
   record Progress {}
 
-  record ListResult {
-    array<KBFSPath> Paths;
+  record SfListResult {
+    array<Path> paths;
     Progress progress;
   }
   
@@ -82,18 +74,7 @@ protocol SimpleFS {
     bytes data;         // Zero bytes when read is complete
     Progress progress;  // Amount of data copied so far during this and previous reads
   }                     // (TBD: should this be percentage?)
-  
-  enum PathType {
-    LOCAL_0,
-    KBFS_1
-  }  
 
-  @typedef("string")
-  record LocalPath {}
-
-  @typedef("string")
-  record KBFSPath {}
-  
   enum AsyncOps {
     LIST_0,
     LIST_RECURSIVE_1,
@@ -106,12 +87,12 @@ protocol SimpleFS {
 
   record ListRemoveArgs {
     OpID opID;
-    KBFSPath path;
+    Path path;
   }
 
   record ReadWriteArgs {
     OpID opID;
-    KBFSPath path;
+    Path path;
     int offset;
   }
 
@@ -122,8 +103,8 @@ protocol SimpleFS {
   }
 
   variant OpDescription switch (AsyncOps asyncOp) {
-    case LIST: ListArgs;
-    case LIST_RECURSIVE: ListArgs;
+    case LIST: ListRemoveArgs;
+    case LIST_RECURSIVE: ListRemoveArgs;
     case READ: ReadWriteArgs;
     case WRITE: ReadWriteArgs;
     case COPY: CopyMoveArgs;
@@ -136,38 +117,38 @@ protocol SimpleFS {
    Retrieve results with readList()
    Can be a single file to get flags/status
    */
-  void list(OpID opID, KBFSPath path);
+  void sfList(OpID opID, Path path);
 
   /**
    Begin recursive list of items in directory at path
    */
-  void listRecursive(OpID opID, KBFSPath path);
+  void sfListRecursive(OpID opID, Path path);
 
   /**
    Get list of Paths in progress. Can indicate status of pending
    to get more entries.
    */
-  ListResult readList(OpID opID);
+  SfListResult sfReadList(OpID opID);
 
   /**
    Begin copy of file or directory 
    */
-  void copy(OpID opID, Path src, Path dest);
+  void sfCopy(OpID opID, Path src, Path dest);
 
   /**
    Begin recursive copy of directory 
    */
-  void copyRecursive(OpID opID, Path src, Path dest);
+  void sfCopyRecursive(OpID opID, Path src, Path dest);
 
   /**
    Begin move of file or directory, from/to KBFS only
    */
-  void move(OpID opID, KBFSPath src, KBFSPath dest);
+  void sfMove(OpID opID, Path src, Path dest);
 
   /**
    Rename file or directory, KBFS side only
    */
-  void rename(KBFSPath src, KBFSPath dest);
+  void sfRename(Path src, Path dest);
 
   /**
    Create/open a file and leave it open
@@ -175,7 +156,7 @@ protocol SimpleFS {
    or set the executable bit on an existing file.
    Files must be closed afterwards.
    */
-  void open(OpID opID, KBFSPath dest, OpenFlags flags);
+  void sfOpen(OpID opID, Path dest, OpenFlags flags);
 
   /**
    Read (possibly partial) contents of open file,
@@ -183,47 +164,47 @@ protocol SimpleFS {
    Repeat until zero bytes are returned or error.
    If size is zero, read an arbitrary amount.
    */
-  FileContent read(OpID opID, int offset, int size);
+  FileContent sfRead(OpID opID, int offset, int size);
 
   /**
    Append content to opened file.
    May be repeated until OpID is closed.
    */
-  void write(OpID opID, int offset, bytes content);
+  void sfWrite(OpID opID, int offset, bytes content);
 
   /**
    Remove file or directory from filesystem
    */
-  void remove(OpID opID, KBFSPath path);
+  void sfRemove(OpID opID, Path path);
 
   /**
    Get info about file
    */
-  Dirent stat(KBFSPath path);
+  Dirent sfStat(Path path);
 
   /**
    Convenience helper for generating new random value
    */
-  OpID makeOpID();
+  OpID sfMakeOpid();
 
   /**
    Close OpID, cancels any pending operation.
    Must be called after list/copy/remove
    */
-  void close(OpID opID);
+  void sfClose(OpID opID);
 
   /**
    Check progress of pending operation
    */
-  Progress check(OpID opID);
+  Progress sfCheck(OpID opID);
 
   /**
    Get all the outstanding operations
    */
-  array<OpDescription> getOps();
+  array<OpDescription> sfGetOps();
 
   /**
    Blocking wait for the pending operation to finish
    */
-  void wait(OpID opID);
+  void sfWait(OpID opID);
 }
