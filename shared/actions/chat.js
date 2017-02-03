@@ -615,6 +615,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     case NotifyChatChatActivityType.setStatus:
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
+        _updateInbox(setStatus.conv)
         const conversationIDKey = conversationIDToKey(setStatus.convID)
         const muted = setStatus.status === CommonConversationStatus.muted
         yield put(({
@@ -668,11 +669,6 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             }: CreatePendingFailure))
           }
         }
-      }
-      return
-    case NotifyChatChatActivityType.setStatus:
-      if (action.payload.activity.setStatus) {
-        _updateInbox(action.payload.activity.setStatus.conv)
       }
       return
     case NotifyChatChatActivityType.readMessage:

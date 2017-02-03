@@ -6,7 +6,7 @@ import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord} = Constants
+const {StateRecord, ConversationStateRecord, MetaDataRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -160,7 +160,6 @@ function reducer (state: State = initialState, action: Actions) {
       const appendAction: AppendMessages = action
       const appendMessages = appendAction.payload.messages
       const isSelected = action.payload.isSelected
-      const message: ServerMessage = appendMessages[appendMessages.length - 1]
       const conversationIDKey = appendAction.payload.conversationIDKey
 
       const {messages, deletedIDs} = _filterTypes(appendMessages)
