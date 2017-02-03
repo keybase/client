@@ -5,11 +5,13 @@ import {List} from 'immutable'
 import type {MetaDataMap, FollowingMap} from '../../../constants/chat'
 
 export type Props = {
-  onAddParticipant: () => void,
-  participants: List<string>,
-  onShowProfile: (username: string) => void,
-  metaDataMap: MetaDataMap,
   followingMap: FollowingMap,
+  metaDataMap: MetaDataMap,
+  muted: boolean,
+  onAddParticipant: () => void,
+  onMuteConversation: (muted: boolean) => void,
+  onShowProfile: (username: string) => void,
+  participants: List<string>,
   you: string,
 }
 
