@@ -3545,7 +3545,8 @@ export type NotifySessionLoggedInRpcParam = Exact<{
 
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
   uid: UID,
-  username: string
+  username: string,
+  isTracking: boolean
 }>
 
 export type NotifyUsersUserChangedRpcParam = Exact<{
@@ -5201,7 +5202,8 @@ export type trackDismissWithTokenRpcParam = Exact<{
 }>
 
 export type trackFakeTrackingChangedRpcParam = Exact<{
-  username: string
+  username: string,
+  isTracking: boolean
 }>
 
 export type trackTrackRpcParam = Exact<{
@@ -6055,7 +6057,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyTracking.trackingChanged'?: (
     params: Exact<{
       uid: UID,
-      username: string
+      username: string,
+      isTracking: boolean
     }> /* ,
     response: {} // Notify call
     */
