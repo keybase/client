@@ -118,6 +118,12 @@ export const LocalHeaderPlaintextVersion = {
   v1: 1,
 }
 
+export const LocalMessageUnboxedErrorType = {
+  misc: 0,
+  badversion: 1,
+  identify: 2,
+}
+
 export const LocalMessageUnboxedState = {
   valid: 1,
   error: 2,
@@ -1080,10 +1086,16 @@ export type MessageUnboxed =
   | { state: 3, outbox: ?OutboxRecord }
 
 export type MessageUnboxedError = {
+  errType: MessageUnboxedErrorType,
   errMsg: string,
   messageID: MessageID,
   messageType: MessageType,
 }
+
+export type MessageUnboxedErrorType =
+    0 // MISC_0
+  | 1 // BADVERSION_1
+  | 2 // IDENTIFY_2
 
 export type MessageUnboxedState =
     1 // VALID_1

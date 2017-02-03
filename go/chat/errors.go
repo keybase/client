@@ -11,6 +11,7 @@ type UnboxingError interface {
 	Error() string
 	Inner() error
 	IsPermanent() bool
+	ExportType() chat1.MessageUnboxedErrorType
 }
 
 var _ error = (UnboxingError)(nil)
@@ -29,6 +30,15 @@ func (e PermanentUnboxingError) IsPermanent() bool { return true }
 
 func (e PermanentUnboxingError) Inner() error { return e.inner }
 
+func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
+	switch e.inner.(type) {
+	case VersionError:
+		return chat1.MessageUnboxedErrorType_BADVERSION
+	default:
+		return chat1.MessageUnboxedErrorType_MISC
+	}
+}
+
 func NewTransientUnboxingError(inner error) UnboxingError {
 	return &TransientUnboxingError{inner}
 }
@@ -42,6 +52,10 @@ func (e TransientUnboxingError) Error() string {
 func (e TransientUnboxingError) IsPermanent() bool { return false }
 
 func (e TransientUnboxingError) Inner() error { return e.inner }
+
+func (e TransientUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
+	return chat1.MessageUnboxedErrorType_MISC
+}
 
 //=============================================================================
 

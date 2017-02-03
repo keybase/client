@@ -681,9 +681,22 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MessageUnboxedErrorType",
+      "symbols": [
+        "MISC_0",
+        "BADVERSION_1",
+        "IDENTIFY_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "MessageUnboxedError",
       "fields": [
+        {
+          "type": "MessageUnboxedErrorType",
+          "name": "errType"
+        },
         {
           "type": "string",
           "name": "errMsg"

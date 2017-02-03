@@ -701,10 +701,38 @@ type MessageUnboxedValid struct {
 	SenderDeviceRevokedAt *gregor1.Time       `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
 }
 
+type MessageUnboxedErrorType int
+
+const (
+	MessageUnboxedErrorType_MISC       MessageUnboxedErrorType = 0
+	MessageUnboxedErrorType_BADVERSION MessageUnboxedErrorType = 1
+	MessageUnboxedErrorType_IDENTIFY   MessageUnboxedErrorType = 2
+)
+
+var MessageUnboxedErrorTypeMap = map[string]MessageUnboxedErrorType{
+	"MISC":       0,
+	"BADVERSION": 1,
+	"IDENTIFY":   2,
+}
+
+var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
+	0: "MISC",
+	1: "BADVERSION",
+	2: "IDENTIFY",
+}
+
+func (e MessageUnboxedErrorType) String() string {
+	if v, ok := MessageUnboxedErrorTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type MessageUnboxedError struct {
-	ErrMsg      string      `codec:"errMsg" json:"errMsg"`
-	MessageID   MessageID   `codec:"messageID" json:"messageID"`
-	MessageType MessageType `codec:"messageType" json:"messageType"`
+	ErrType     MessageUnboxedErrorType `codec:"errType" json:"errType"`
+	ErrMsg      string                  `codec:"errMsg" json:"errMsg"`
+	MessageID   MessageID               `codec:"messageID" json:"messageID"`
+	MessageType MessageType             `codec:"messageType" json:"messageType"`
 }
 
 type MessageUnboxed struct {

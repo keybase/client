@@ -57,8 +57,9 @@ func (b *Boxer) log() logger.Logger {
 	return b.G().GetLog()
 }
 
-func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageUnboxed {
+func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+		ErrType:     err.ExportType(),
 		ErrMsg:      err.Error(),
 		MessageID:   msg.GetMessageID(),
 		MessageType: msg.GetMessageType(),
@@ -98,7 +99,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
 		if ierr.IsPermanent() {
-			return b.makeErrorMessage(boxed, ierr.Inner()), nil
+			return b.makeErrorMessage(boxed, ierr), nil
 		}
 		return chat1.MessageUnboxed{}, ierr
 	}

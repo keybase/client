@@ -222,7 +222,14 @@ protocol local {
     union {null, gregor1.Time} senderDeviceRevokedAt;
   }
 
+  enum MessageUnboxedErrorType {
+    MISC_0,
+    BADVERSION_1,
+    IDENTIFY_2
+  }
+
   record MessageUnboxedError {
+    MessageUnboxedErrorType errType;
     string errMsg;
     MessageID messageID;
     MessageType messageType;
