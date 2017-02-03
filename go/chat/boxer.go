@@ -76,7 +76,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
-		// transient error
+		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
@@ -95,7 +95,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 
 	umwkr, ierr := b.unboxMessageWithKey(ctx, boxed, matchKey)
 	if ierr != nil {
-		b.log().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
+		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
 		if ierr.IsPermanent() {
 			return b.makeErrorMessage(boxed, ierr.Inner()), nil
@@ -106,9 +106,13 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 
 	username, deviceName, deviceType, err := b.getSenderInfoLocal(ctx, pt.ClientHeader)
 	if err != nil {
-		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
+		b.Debug(ctx, "unable to fetch sender and device informaton: UID: %s deviceID: %s",
 			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
-		// ignore non-fatal error
+		// try to just get username
+		username, err = b.getSenderUsername(ctx, pt.ClientHeader)
+		if err != nil {
+			b.Debug(ctx, "failed to fetch sender username after initial error: err: %s", err.Error())
+		}
 	}
 
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
@@ -268,6 +272,14 @@ func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, devi
 	return nun.String(), devName, devType, nil
 }
 
+func (b *Boxer) getSenderUsername(ctx context.Context, clientHeader chat1.MessageClientHeader) (string, error) {
+	name, err := b.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(clientHeader.Sender.String()))
+	if err != nil {
+		return "", err
+	}
+	return name.String(), nil
+}
+
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
 	uid := keybase1.UID(clientHeader.Sender.String())
 	did := keybase1.DeviceID(clientHeader.SenderDevice.String())
@@ -344,7 +356,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError(msg, false)
 	}
 
-	boxed, err := b.boxMessageWithKeysV1(msg, recentKey, signingKeyPair)
+	boxed, err := b.boxMessageWithKeys(msg, recentKey, signingKeyPair)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
@@ -352,9 +364,9 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	return boxed, nil
 }
 
-// boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a
+// boxMessageWithKeys encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *Boxer) boxMessageWithKeysV1(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
+func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 
 	body := chat1.BodyPlaintextV1{
@@ -563,9 +575,11 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	}
 
 	if deleted {
-		// XXX something else to flag as a deleted key?
-		b.log().Warning("sender %s key %s was deleted", kbSender, kid)
-		return true, true, nil, nil
+		b.Debug(ctx, "sender %s key %s was deleted", kbSender, kid)
+		// Set the key as being revoked since the beginning of time, so all messages will get labeled
+		// as suspect
+		zeroTime := gregor1.Time(0)
+		return true, true, &zeroTime, nil
 	}
 
 	validAtCtime := true

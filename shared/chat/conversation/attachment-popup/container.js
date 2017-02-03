@@ -53,8 +53,8 @@ export default compose(
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: AttachmentMessage) => {
         const messageID = message.messageID
-        if (!messageID) {
-          throw new Error('Cannot download attachment with missing messageID')
+        if (!messageID || !message.filename) {
+          throw new Error('Cannot download attachment with missing messageID or filename')
         }
         dispatch(({
           type: 'chat:loadAttachment',

@@ -21,6 +21,7 @@ const (
 	ProofState_DELETED          ProofState = 8
 	ProofState_UNKNOWN_TYPE     ProofState = 9
 	ProofState_SIG_HINT_MISSING ProofState = 10
+	ProofState_UNCHECKED        ProofState = 11
 )
 
 var ProofStateMap = map[string]ProofState{
@@ -35,6 +36,7 @@ var ProofStateMap = map[string]ProofState{
 	"DELETED":          8,
 	"UNKNOWN_TYPE":     9,
 	"SIG_HINT_MISSING": 10,
+	"UNCHECKED":        11,
 }
 
 var ProofStateRevMap = map[ProofState]string{
@@ -49,6 +51,7 @@ var ProofStateRevMap = map[ProofState]string{
 	8:  "DELETED",
 	9:  "UNKNOWN_TYPE",
 	10: "SIG_HINT_MISSING",
+	11: "UNCHECKED",
 }
 
 func (e ProofState) String() string {
@@ -59,7 +62,9 @@ func (e ProofState) String() string {
 }
 
 // 3: It's been found in the hunt, but not proven yet
-// 1xx: Retryable soft errors
+// 1xx: Retryable soft errors; note that this will be put in the proof_cache, but won't
+// be returned from the proof cache in most cases. Their freshness will always be
+// RANCID.
 // 2xx: Will likely result in a hard error, if repeated enough
 // 3xx: Hard final errors
 type ProofStatus int
@@ -79,6 +84,7 @@ const (
 	ProofStatus_HTTP_500          ProofStatus = 150
 	ProofStatus_TIMEOUT           ProofStatus = 160
 	ProofStatus_INTERNAL_ERROR    ProofStatus = 170
+	ProofStatus_UNCHECKED         ProofStatus = 171
 	ProofStatus_BASE_HARD_ERROR   ProofStatus = 200
 	ProofStatus_NOT_FOUND         ProofStatus = 201
 	ProofStatus_CONTENT_FAILURE   ProofStatus = 202
@@ -120,6 +126,7 @@ var ProofStatusMap = map[string]ProofStatus{
 	"HTTP_500":          150,
 	"TIMEOUT":           160,
 	"INTERNAL_ERROR":    170,
+	"UNCHECKED":         171,
 	"BASE_HARD_ERROR":   200,
 	"NOT_FOUND":         201,
 	"CONTENT_FAILURE":   202,
@@ -161,6 +168,7 @@ var ProofStatusRevMap = map[ProofStatus]string{
 	150: "HTTP_500",
 	160: "TIMEOUT",
 	170: "INTERNAL_ERROR",
+	171: "UNCHECKED",
 	200: "BASE_HARD_ERROR",
 	201: "NOT_FOUND",
 	202: "CONTENT_FAILURE",

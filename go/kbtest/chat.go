@@ -568,7 +568,7 @@ func NewChatUI(cb chan NonblockInboxResult) *ChatUI {
 	}
 }
 
-func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata) error {
+func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error {
 	return nil
 }
 

@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import {Map} from 'immutable'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
@@ -7,7 +8,7 @@ import {participantFilter} from '../../constants/chat'
 import {shouldUpdate} from 'recompose'
 
 import type {Props} from './'
-import type {InboxState} from '../../constants/chat'
+import type {InboxState, RekeyInfo, ConversationIDKey} from '../../constants/chat'
 
 const AddNewRow = ({onNewChat}: Props) => (
   <div
@@ -36,52 +37,114 @@ function rowBorderColor (idx: number, isLastParticipant: boolean, hasUnread: boo
   return !idx && isLastParticipant ? undefined : rowBackground
 }
 
-type RowProps = Props & {conversation: InboxState, unreadCount: number}
+type RowProps = Props & {conversation: InboxState, unreadCount: number, rekeyInfos: Map<ConversationIDKey, RekeyInfo>}
 
-const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, unreadCount, you}: RowProps) => {
-  const participants = participantFilter(conversation.get('participants'), you)
-  const isSelected = selectedConversation === conversation.get('conversationIDKey')
-  const isMuted = conversation.get('muted')
+const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted, hasUnread, isSelected}) => {
   const avatarCount = Math.min(2, participants.count())
-  const hasUnread = !!unreadCount
+  const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor: rowBackgroundColor(hasUnread, isSelected),
     borderColor: rowBorderColor(idx, idx === (avatarCount - 1), hasUnread, isSelected),
     size: 24,
+    style: {
+      opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
+    },
     username,
   })).toArray()
-  const snippet = conversation.get('snippet')
-  const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
-  const backgroundColor = rowBackgroundColor(hasUnread, isSelected)
+
+  return (
+    <div style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4}}>
+      <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
+      {isMuted && <Icon type={shhIconType} style={shhStyle} />}
+    </div>
+  )
+}
+
+const TopLine = ({isSelected, hasUnread, boldOverride, participants, subColor, conversation, nowOverride}) => {
   const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
-  const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
-  const shhIconType = isSelected ? 'icon-shh-active-16' : 'icon-shh-16'
   const commaColor = isSelected ? globalColors.black_60 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
+
+  return (
+    <div style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
+      <div style={{...globalStyles.flexBoxRow, flex: 1, height: 17, position: 'relative'}}>
+        <div style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+          <Usernames
+            inline={true}
+            type='BodySemibold'
+            style={{...boldOverride, color: usernameColor}}
+            commaColor={commaColor}
+            containerStyle={{color: usernameColor, paddingRight: 7}}
+            users={participants.map(p => ({username: p})).toArray()}
+            title={participants.join(', ')} />
+        </div>
+      </div>
+      <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+      {hasUnread && <div style={unreadDotStyle} />}
+    </div>
+  )
+}
+
+const BottomLine = ({participantNeedToRekey, isMuted, boldOverride, subColor, conversation}) => {
+  const snippet = conversation.get('snippet')
+  let content
+
+  if (participantNeedToRekey) {
+    content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
+  } else if (snippet && !isMuted) {
+    content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>
+  } else {
+    return null
+  }
+
+  return (
+    <div style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative'}}>
+      <div style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+        {content}
+      </div>
+    </div>
+  )
+}
+
+const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, unreadCount, you, rekeyInfos}: RowProps) => {
+  const participants = participantFilter(conversation.get('participants'), you)
+  const conversationIDKey = conversation.get('conversationIDKey')
+  const isSelected = selectedConversation === conversationIDKey
+  const isMuted = conversation.get('muted')
+  const hasUnread = !!unreadCount
+  const rekeyInfo = selectedConversation && rekeyInfos.get(conversationIDKey)
+  const youNeedToRekey = rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
+  const participantNeedToRekey = rekeyInfo && rekeyInfo.get('rekeyParticipants').count()
+
+  const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
+  const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
+
   return (
     <div
-      onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
+      onClick={() => onSelectConversation(conversationIDKey)}
       title={`${unreadCount} unread`}
-      style={{...rowContainerStyle, backgroundColor}}>
-      <div style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, justifyContent: 'flex-start', maxWidth: 48, paddingLeft: 4}}>
-        <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
-        {isMuted && <Icon type={shhIconType} style={shhStyle} />}
-      </div>
-      <div style={{...globalStyles.flexBoxRow, ...conversationRowStyle, borderBottom: (!isSelected && !hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
-        <div style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
-          <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', bottom: 0, justifyContent: 'center', left: 0, position: 'absolute', right: 0, top: 0}}>
-            <Usernames
-              inline={true}
-              type='BodySemibold'
-              style={{...boldOverride, color: usernameColor}}
-              commaColor={commaColor}
-              containerStyle={{color: usernameColor, paddingRight: 7}}
-              users={participants.map(p => ({username: p})).toArray()}
-              title={participants.join(', ')} />
-            {snippet && !isMuted && <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>}
-          </div>
-        </div>
-        <Text type='BodySmall' style={{...boldOverride, alignSelf: (isMuted || !snippet) ? 'center' : 'flex-start', color: subColor, lineHeight: '17px', marginTop: globalMargins.xtiny}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
-        {hasUnread && <div style={unreadDotStyle} />}
+      style={{...rowContainerStyle, backgroundColor: rowBackgroundColor(hasUnread, isSelected)}}>
+      <Avatars
+        hasUnread={hasUnread}
+        isMuted={isMuted}
+        isSelected={isSelected}
+        participantNeedToRekey={participantNeedToRekey}
+        participants={participants}
+        youNeedToRekey={youNeedToRekey} />
+      <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!isSelected && !hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
+        <TopLine
+          hasUnread={hasUnread}
+          conversation={conversation}
+          boldOverride={boldOverride}
+          participants={participants}
+          nowOverride={nowOverride}
+          subColor={subColor}
+          isSelected={isSelected} />
+        <BottomLine
+          participantNeedToRekey={participantNeedToRekey}
+          conversation={conversation}
+          subColor={subColor}
+          boldOverride={boldOverride}
+          isMuted={isMuted} />
       </div>
     </div>
   )
@@ -89,11 +152,10 @@ const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverrid
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
-  height: 6,
-  width: 6,
   borderRadius: 3,
+  height: 6,
   marginLeft: 4,
-  marginTop: 10,
+  width: 6,
 }
 
 const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
@@ -112,6 +174,10 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
     return true
   }
 
+  if (props.rekeyInfos !== nextProps.rekeyInfos) {
+    return true
+  }
+
   return false
 })(_Row)
 
@@ -123,9 +189,8 @@ const shhStyle = {
 
 const conversationRowStyle = {
   flex: 1,
-  paddingBottom: 4,
+  justifyContent: 'center',
   paddingRight: 8,
-  paddingTop: 4,
 }
 
 const ConversationList = (props: Props) => (

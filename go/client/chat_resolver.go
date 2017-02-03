@@ -131,6 +131,7 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 		fcArg.TopicName = *arg.Query.TopicName
 	}
 	fcArg.IdentifyBehavior = identifyBehavior
+	fcArg.OneChatPerTLF = new(bool)
 
 	res, err := r.ChatClient.FindConversationsLocal(ctx, fcArg)
 	if err != nil {

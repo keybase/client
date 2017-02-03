@@ -6,7 +6,7 @@ import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment, retryAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment, retryAttachment} from '../../actions/chat'
 import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
@@ -79,6 +79,7 @@ export default connect(
       if (conversationState) {
         const inbox = state.chat.get('inbox')
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
+        const muted = selected && selected.get('muted')
         const participants = selected && selected.participants || List()
         const metaDataMap = state.chat.get('metaData')
 
@@ -91,6 +92,7 @@ export default connect(
           messages: conversationState.messages,
           metaDataMap,
           moreToLoad: conversationState.moreToLoad,
+          muted,
           participants,
           selectedConversation,
           validated: selected && selected.validated,
@@ -116,9 +118,10 @@ export default connect(
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, filename, title, type) => dispatch(selectAttachment(selectedConversation, filename, title, type)),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
+    onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
+    onMuteConversation: (conversationIDKey: ConversationIDKey, muted: boolean) => { dispatch(muteConversation(conversationIDKey, muted)) },
     onOpenFolder: () => dispatch(openFolder()),
     onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
     onOpenInPopup: (message: AttachmentMessage) => dispatch(({type: 'chat:openAttachmentPopup', payload: {message}}: OpenAttachmentPopup)),
@@ -159,6 +162,7 @@ export default connect(
       onAttach: (filename: string, title: string, type: AttachmentType) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title, type),
       onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
       onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
+      onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversation, muted),
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
       onRetryMessage: (outboxID: OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
     }

@@ -15,7 +15,7 @@ export type FollowingMap = {[key: string]: boolean}
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
-export type AttachmentMessageState = MessageState | 'downloading' | 'uploading' | 'downloaded'
+export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading' | 'uploading' | 'downloaded'
 export type AttachmentType = 'Image' | 'Other'
 
 export type ConversationID = RPCConversationID
@@ -27,7 +27,7 @@ export type OutboxIDKey = string
 export type MessageID = RPCMessageID
 
 export type ClientMessage = TimestampMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment
 
 export type Message = ClientMessage | ServerMessage
 
@@ -45,6 +45,7 @@ export type TextMessage = {
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
   key: any,
+  editedCount: number, // increase as we edit it
 }
 
 export type ErrorMessage = {
@@ -78,8 +79,8 @@ export type AttachmentMessage = {
   deviceName: string,
   deviceType: DeviceType,
   messageID?: MessageID,
-  filename: string,
-  title: string,
+  filename: ?string,
+  title: ?string,
   previewType: ?AttachmentType,
   previewPath: ?string,
   previewSize: ?AttachmentSize,
@@ -104,6 +105,31 @@ export type DeletedMessage = {
   key: any,
   messageID: MessageID,
   deletedIDs: Array<MessageID>,
+}
+
+export type EditingMessage = {
+  type: 'Edit',
+  key: any,
+  message: HiddenString,
+  messageID: MessageID,
+  outboxID?: ?OutboxIDKey,
+  targetMessageID: MessageID,
+  timestamp: number,
+}
+
+export type UpdatingAttachment = {
+  type: 'UpdateAttachment',
+  key: any,
+  messageID: MessageID,
+  targetMessageID: MessageID,
+  timestamp: number,
+  updates: {
+    filename: ?string,
+    messageState: 'sent',
+    previewType: ?AttachmentType,
+    previewSize: ?AttachmentSize,
+    title: ?string,
+  },
 }
 
 export type MaybeTimestamp = TimestampMessage | null
@@ -180,6 +206,16 @@ export const MetaDataRecord = Record({
   brokenTracker: false,
 })
 
+export const RekeyInfoRecord = Record({
+  rekeyParticipants: List(),
+  youCanRekey: false,
+})
+
+export type RekeyInfo = Record<{
+  rekeyParticipants: List<string>,
+  youCanRekey: boolean,
+}>
+
 export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
@@ -187,6 +223,7 @@ export const StateRecord = Record({
   metaData: Map(),
   pendingFailures: Set(),
   conversationUnreadCounts: Map(),
+  rekeyInfos: Map(),
 })
 
 export type State = Record<{
@@ -196,6 +233,7 @@ export type State = Record<{
   metaData: MetaDataMap,
   pendingFailures: Set<OutboxIDKey>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
+  rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -209,8 +247,9 @@ export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversa
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
+export type ConversationSetStatus = NoErrorTypedAction<'chat:conversationSetStatus', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
-export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
+export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDKey: ?ConversationIDKey}>
@@ -220,6 +259,7 @@ export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<In
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
+export type MuteConversation = NoErrorTypedAction<'chat:muteConversation', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
@@ -235,6 +275,7 @@ export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversati
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdateConversationUnreadCounts = NoErrorTypedAction<'chat:updateConversationUnreadCounts', Map<ConversationIDKey, number>>
+export type UpdateMessage = NoErrorTypedAction<'chat:updateMessage', {conversationIDKey: ConversationIDKey, message: $Shape<AttachmentMessage> | $Shape<TextMessage>, messageID: MessageID}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 
 // Pass an outboxID to specify that we are retrying an attachment
