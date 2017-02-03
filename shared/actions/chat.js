@@ -18,7 +18,7 @@ import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
 import {tmpFile, copy, exists} from '../util/file'
-import {usernameSelector} from '../constants/selectors'
+import {deviceNameSelector, usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType} from '../constants/types/more'
 import {showMainWindow} from './platform.specific'
@@ -1286,14 +1286,13 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   })
 }
 
-const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, username: string, title: string, filename: string, outboxID: Constants.OutboxIDKey, previewType: $PropertyType<Constants.AttachmentMessage, 'previewType'>) => ({
+const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, username: string, deviceName: string, title: string, filename: string, outboxID: Constants.OutboxIDKey, previewType: $PropertyType<Constants.AttachmentMessage, 'previewType'>) => ({
   type: 'Attachment',
   timestamp: Date.now(),
   conversationIDKey: convID,
   followState: 'You',
   author: username,
-  // TODO we should be able to fill this in
-  deviceName: '',
+  deviceName,
   deviceType: isMobile ? 'mobile' : 'desktop',
   filename,
   title,
@@ -1309,7 +1308,7 @@ const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, usernam
 function * _selectAttachment ({payload: {conversationIDKey, filename, title, type}}: Constants.SelectAttachment): SagaGenerator<any, any> {
   const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
   const username = yield select(usernameSelector)
-
+  const deviceName = yield select(deviceNameSelector)
   yield put({
     logTransformer: appendMessageActionTransformer,
     payload: {
@@ -1317,6 +1316,7 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
       messages: [_temporaryAttachmentMessageForUpload(
         conversationIDKey,
         username,
+        deviceName,
         title,
         filename,
         outboxID,
