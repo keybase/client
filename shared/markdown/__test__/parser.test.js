@@ -53,6 +53,35 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses quote blocks correctly', () => {
+    const ast = parser.parse(`
+> this is quoted
+> this is _italics_ inside of a quote. This is *bold* inside of a quote.
+> outside code: \`This is an inline block of code in a quote\` outside again
+> \`\`\`
+multi
+line
+code in quote
+\`\`\`
+`)
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('parses more code blocks correctly', () => {
+    const ast = parser.parse(`
+        \`\`\`this is a code block\`\`\`
+\`\`\`
+this is a code block that starts with a newline\`\`\`
+\`\`\`
+this is a code block that starts with a newline and ends with a newline
+\`\`\`
+\`\`\`
+
+this is a code block with two newline above\`\`\`
+`)
+    expect(ast).toMatchSnapshot()
+  })
+
   it('parses urls correctly', () => {
     const ast = parser.parse(`
   Ignore:

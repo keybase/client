@@ -14,7 +14,7 @@ export type Props = {
   moreToLoad: boolean,
   onAddParticipant: () => void,
   onDeleteMessage: (message: Message) => void,
-  onEditMessage: (message: Message) => void,
+  onEditMessage: (message: Message, body: string) => void,
   onFocusInput: () => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,

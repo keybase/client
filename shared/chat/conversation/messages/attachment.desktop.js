@@ -16,7 +16,7 @@ function _showPreviewProgress (messageState, progress) {
   return !!progress && (messageState === 'downloading-preview')
 }
 
-function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: string}) {
+function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: ?string}) {
   let style = {}
   switch (messageState) {
     case 'uploading':
@@ -206,7 +206,7 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
 
   _onLoadAttachment = () => {
     const {messageID, filename} = this.props.message
-    messageID && this.props.onLoadAttachment(messageID, filename)
+    messageID && filename && this.props.onLoadAttachment(messageID, filename)
   }
 
   render () {
