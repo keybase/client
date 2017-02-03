@@ -19,7 +19,6 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
-	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -263,8 +262,7 @@ func setupTLFJournalTest(
 
 	delegateBlockServer := NewBlockServerMemory(log)
 
-	diskLimitSemaphore := kbfssync.NewSemaphore()
-	diskLimitSemaphore.Release(math.MaxInt64)
+	diskLimitSemaphore := newSemaphoreDiskLimiter(math.MaxInt64)
 	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
 		tempdir, config.tlfID, config, delegateBlockServer,
 		bwStatus, delegate, nil, nil, diskLimitSemaphore)
@@ -482,8 +480,7 @@ func testTLFJournalBlockOpDiskLimit(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.ForceAcquire(math.MaxInt64)
-	tlfJournal.diskLimiter.Release(6)
+	tlfJournal.diskLimiter.onJournalEnable(math.MaxInt64 - 6)
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
 
@@ -518,7 +515,7 @@ func testTLFJournalBlockOpDiskLimitCancel(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.ForceAcquire(math.MaxInt64)
+	tlfJournal.diskLimiter.onJournalEnable(math.MaxInt64)
 
 	ctx2, cancel2 := context.WithCancel(ctx)
 	cancel2()
@@ -535,7 +532,7 @@ func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.ForceAcquire(math.MaxInt64)
+	tlfJournal.diskLimiter.onJournalEnable(math.MaxInt64)
 	config.dlTimeout = 3 * time.Microsecond
 
 	data := []byte{1, 2, 3, 4}
@@ -556,8 +553,7 @@ func testTLFJournalBlockOpDiskLimitPutFailure(t *testing.T, ver MetadataVer) {
 	defer teardownTLFJournalTest(
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
-	tlfJournal.diskLimiter.ForceAcquire(math.MaxInt64)
-	tlfJournal.diskLimiter.Release(6)
+	tlfJournal.diskLimiter.onJournalEnable(math.MaxInt64 - 6)
 
 	data := []byte{1, 2, 3, 4}
 	id, bCtx, serverHalf := config.makeBlock(data)

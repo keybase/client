@@ -365,19 +365,16 @@ func makeTLFJournal(
 
 	// Do this only once we're sure we won't error.
 	storedBytes := j.blockJournal.getStoredBytes()
-	if storedBytes > 0 {
-		availableBytes := j.diskLimiter.ForceAcquire(storedBytes)
-		j.log.CDebugf(ctx,
-			"Force-acquired %d bytes for %s: available=%d",
-			storedBytes, tlfID, availableBytes)
-	}
+	availableBytes := j.diskLimiter.onJournalEnable(storedBytes)
 
 	go j.doBackgroundWorkLoop(bws, backoff.NewExponentialBackOff())
 
 	// Signal work to pick up any existing journal entries.
 	j.signalWork()
 
-	j.log.CDebugf(ctx, "Enabled journal for %s with path %s", tlfID, dir)
+	j.log.CDebugf(ctx,
+		"Enabled journal for %s (stored bytes=%d, available bytes=%d) with path %s",
+		tlfID, storedBytes, availableBytes, dir)
 	return j, nil
 }
 
@@ -978,9 +975,7 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 		if err != nil {
 			return err
 		}
-		if removedBytes > 0 {
-			j.diskLimiter.Release(removedBytes)
-		}
+		j.diskLimiter.onBlockDelete(removedBytes)
 		if nextLastToRemove == 0 {
 			break
 		}
@@ -1371,9 +1366,7 @@ func (j *tlfJournal) shutdown() {
 	// time other than during shutdown, we should still count
 	// shut-down journals against the disk limit.
 	storedBytes := j.blockJournal.getStoredBytes()
-	if storedBytes > 0 {
-		j.diskLimiter.Release(storedBytes)
-	}
+	j.diskLimiter.onJournalDisable(storedBytes)
 
 	// Make further accesses error out.
 	j.blockJournal = nil
@@ -1466,8 +1459,14 @@ type ErrDiskLimitTimeout struct {
 }
 
 func (e ErrDiskLimitTimeout) Error() string {
-	return fmt.Sprintf("Disk limit timeout of %s reached; requested %d bytes, only %d bytes available: %+v",
-		e.timeout, e.requestedBytes, e.availableBytes, e.err)
+	var availableStr string
+	if e.availableBytes > 0 {
+		availableStr = fmt.Sprintf("%d bytes available", e.availableBytes)
+	} else {
+		availableStr = "0 bytes available (or unknown)"
+	}
+	return fmt.Sprintf("Disk limit timeout of %s reached; requested %d bytes, %s: %+v",
+		e.timeout, e.requestedBytes, availableStr, e.err)
 }
 
 func (j *tlfJournal) putBlockData(
@@ -1481,7 +1480,7 @@ func (j *tlfJournal) putBlockData(
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	availableBytes, err := j.diskLimiter.Acquire(acquireCtx, bufLen)
+	availableBytes, err := j.diskLimiter.beforeBlockPut(acquireCtx, bufLen)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.
@@ -1495,7 +1494,7 @@ func (j *tlfJournal) putBlockData(
 
 	defer func() {
 		if err != nil {
-			j.diskLimiter.Release(bufLen)
+			j.diskLimiter.onBlockPutFail(bufLen)
 		}
 	}()
 
