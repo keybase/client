@@ -803,7 +803,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
           const validInbox = inbox.find(i => i.get('validated'))
           if (validInbox) {
             const validInboxConvIDKey = validInbox.get('conversationIDKey')
-            yield put(selectConversation(validInbox.get('conversationIDKey'), false))
+            yield put(selectConversation(validInboxConvIDKey, false))
             yield put(loadMoreMessages(validInboxConvIDKey, true))
           }
         } else {

@@ -164,8 +164,6 @@ function reducer (state: State = initialState, action: Actions) {
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      // Update snippets / unread / participant order
-
       return state
         .set('conversationStates', newConversationStates)
     }
