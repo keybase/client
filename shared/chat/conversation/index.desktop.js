@@ -3,9 +3,10 @@ import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
 import List from './list.desktop'
-import ParticipantRekey from './participant-rekey.desktop'
 import NoConversation from './no-conversation.desktop'
+import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
+import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
@@ -193,7 +194,11 @@ export default branch(
   renderComponent(NoConversation),
   branch(
     (props: Props) => !!props.rekeyInfo,
-    renderComponent(ParticipantRekey),
+    branch(
+      (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
+      renderComponent(ParticipantRekey),
+      renderComponent(YouRekey)
+    ),
     withFocusHandlers
   )
 )(Conversation)
