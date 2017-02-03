@@ -173,12 +173,29 @@ protocol local {
   // HeaderPlaintext is a variant container for all the
   // versions of HeaderPlaintext.
   variant HeaderPlaintext switch (HeaderPlaintextVersion version) {
-    case V1: HeaderPlaintextV1;
-    default: HeaderPlaintextUnsupported;
+    case V1 : HeaderPlaintextV1;
+    case V2 : HeaderPlaintextUnsupported;
+    case V3 : HeaderPlaintextUnsupported;
+    case V4 : HeaderPlaintextUnsupported;
+    case V5 : HeaderPlaintextUnsupported;
+    case V6 : HeaderPlaintextUnsupported;
+    case V7 : HeaderPlaintextUnsupported;
+    case V8 : HeaderPlaintextUnsupported;
+    case V9 : HeaderPlaintextUnsupported;
+    case V10: HeaderPlaintextUnsupported;
   }
 
   enum BodyPlaintextVersion {
-    V1_1
+    V1_1,
+    V2_2,
+    V3_3,
+    V4_4,
+    V5_5,
+    V6_6,
+    V7_7,
+    V8_8,
+    V9_9,
+    V10_10
   }
 
   record BodyPlaintextMetaInfo {
