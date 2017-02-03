@@ -44,9 +44,9 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
 
   let icon
   if (isMuted) {
-    icon = <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarIconStyle} />
+    icon = <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarMutedIconStyle} />
   } else if (participantNeedToRekey || youNeedToRekey) {
-    icon = <Icon type='icon-folder-private-32-addon-locked' style={avatarIconStyle} />
+    icon = <Icon type={isSelected ? 'icon-chat-addon-lock-active-8' : 'icon-chat-addon-lock-8'} style={avatarLockIconStyle} />
   }
 
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
@@ -192,8 +192,14 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
   return false
 })(_Row)
 
-const avatarIconStyle = {
+const avatarMutedIconStyle = {
   marginLeft: -globalMargins.small,
+  marginTop: 20,
+  zIndex: 1,
+}
+
+const avatarLockIconStyle = {
+  marginLeft: -10,
   marginTop: 20,
   zIndex: 1,
 }
