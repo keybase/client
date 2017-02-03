@@ -328,9 +328,7 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 	}
 
 	ei := getExtendedIdentify(ctx)
-	if ei.behavior.WarningInsteadOfErrorOnBrokenTracks() {
-		arg.ChatGUIMode = true
-	}
+	arg.IdentifyBehavior = ei.behavior
 
 	res, err := k.identifyClient.Identify2(ctx, arg)
 	// Identify2 still returns keybase1.UserPlusKeys data (sans keys),
