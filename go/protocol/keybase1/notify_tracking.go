@@ -9,8 +9,9 @@ import (
 )
 
 type TrackingChangedArg struct {
-	Uid      UID    `codec:"uid" json:"uid"`
-	Username string `codec:"username" json:"username"`
+	Uid        UID    `codec:"uid" json:"uid"`
+	Username   string `codec:"username" json:"username"`
+	IsTracking bool   `codec:"isTracking" json:"isTracking"`
 }
 
 type NotifyTrackingInterface interface {

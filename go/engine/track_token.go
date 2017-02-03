@@ -131,8 +131,8 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		e.G().UserChanged(e.arg.Me.GetUID())
 
 		// Keep these:
-		e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetName())
-		e.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetName())
+		e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetName(), false)
+		e.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetName(), true)
 
 		// Dismiss any associated gregor item.
 		if outcome.ResponsibleGregorItem != nil {
