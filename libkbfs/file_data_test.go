@@ -484,12 +484,18 @@ func testFileDataOverwriteExistingFile(t *testing.T, maxBlockSize int64,
 		data[i] = byte(i)
 	}
 	holeShiftAfter := int64(0)
+	effectiveStartWrite := startWrite
 	for _, hole := range holes {
 		for i := hole.start; i < hole.end; i++ {
 			data[i] = byte(0)
 			if holeShiftAfter == 0 {
 				if startWrite <= i && i < endWrite {
 					holeShiftAfter = i
+					// If we're writing in a hole, we might extend the
+					// block on its left edge to its block boundary,
+					// which means that's effectively the start of the
+					// write.
+					effectiveStartWrite = hole.start
 				}
 			}
 		}
@@ -505,7 +511,7 @@ func testFileDataOverwriteExistingFile(t *testing.T, maxBlockSize int64,
 	t.Logf("holeShiftAfter=%d", holeShiftAfter)
 	expectedTopLevel := testFileDataLevelFromData(
 		t, maxBlockSize, maxPtrsPerBlock, levels, fullDataLen, finalHoles,
-		startWrite, endWrite, holeShiftAfter, false)
+		effectiveStartWrite, endWrite, holeShiftAfter, false)
 
 	// Round up to find out the number of dirty bytes.
 	writtenBytes := endWrite - startWrite
@@ -513,6 +519,12 @@ func testFileDataOverwriteExistingFile(t *testing.T, maxBlockSize int64,
 	dirtiedBytes := writtenBytes
 	if remainder > 0 {
 		dirtiedBytes += (maxBlockSize - remainder)
+	}
+	// Capture extending an existing block to its block boundary when
+	// writing in a hole.
+	if effectiveStartWrite != startWrite &&
+		effectiveStartWrite%maxBlockSize > 0 {
+		dirtiedBytes += maxBlockSize
 	}
 
 	// The extended bytes are the size of the new blocks that were
@@ -562,7 +574,7 @@ func TestFileDataWriteHole(t *testing.T) {
 
 	tests := []test{
 		{"Start", 5, 8, []testFileDataHole{{8, 10}}},
-		// The first final hole starts at a6, instead of 5, because a write
+		// The first final hole starts at 6, instead of 5, because a write
 		// extends the existing block.
 		{"End", 8, 10, []testFileDataHole{{6, 8}, {10, 10}}},
 		// The first final hole starts at 6, instead of 5, because a write
@@ -754,6 +766,90 @@ func TestFileDataTruncateShrink(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			testFileDataShrinkExistingFile(t, 2, 2, test.currLen, test.newSize)
+		})
+	}
+}
+
+func testFileDataWriteExtendExistingFileWithGap(t *testing.T,
+	maxBlockSize int64, maxPtrsPerBlock int, existingLen int64,
+	fullDataLen int64, startWrite int64, finalHoles []testFileDataHole) {
+	fd, cleanBcache, dirtyBcache, df := setupFileDataTest(
+		t, maxBlockSize, maxPtrsPerBlock)
+	data := make([]byte, fullDataLen)
+	for i := int64(0); i < fullDataLen; i++ {
+		if i < existingLen || i >= startWrite {
+			data[i] = byte(i)
+		}
+	}
+	topBlock, levels := testFileDataLevelExistingBlocks(
+		t, fd, maxBlockSize, maxPtrsPerBlock, data[:existingLen], nil,
+		cleanBcache)
+	de := DirEntry{
+		EntryInfo: EntryInfo{
+			Size: uint64(existingLen),
+		},
+	}
+	// The write starts at `existingLen`, instead of `startWrite`,
+	// because we need to account for any bytes dirtied when extending
+	// the block to the left of the gap.
+	expectedTopLevel := testFileDataLevelFromData(
+		t, maxBlockSize, maxPtrsPerBlock, levels, fullDataLen,
+		finalHoles, existingLen, fullDataLen, 0, false)
+
+	extendedBytes := fullDataLen - existingLen
+	// Round up to find out the number of dirty bytes.
+	dirtiedBytes := fullDataLen - startWrite
+	remainder := dirtiedBytes % maxBlockSize
+	if remainder > 0 {
+		dirtiedBytes += (maxBlockSize - remainder)
+	}
+	// Dirty the current last block as well, if needed.
+	if existingLen%maxBlockSize > 0 {
+		dirtiedBytes += maxBlockSize
+	}
+	// Add a block's worth of dirty bytes if we're extending past the
+	// first full level, because the original block still gets dirtied
+	// because it needs to be inserted under a new ID.
+	if existingLen == maxBlockSize {
+		dirtiedBytes += maxBlockSize
+	}
+	testFileDataCheckWrite(
+		t, fd, dirtyBcache, df, data[startWrite:], startWrite,
+		topBlock, de, uint64(fullDataLen),
+		nil, dirtiedBytes, extendedBytes, expectedTopLevel)
+
+	// Make sure we can read back the complete data.
+	gotData := make([]byte, fullDataLen)
+	nRead, err := fd.read(context.Background(), gotData, 0)
+	require.NoError(t, err)
+	require.Equal(t, nRead, fullDataLen)
+	require.True(t, bytes.Equal(data, gotData))
+}
+
+// Test that we can write past the end of the last block of a file,
+// leaving a gap.  Regression tests for KBFS-1915.
+func TestFileDataWriteExtendExistingFileWithGap(t *testing.T) {
+	type test struct {
+		name       string
+		currLen    int64
+		newSize    int64
+		startWrite int64
+		finalHoles []testFileDataHole
+	}
+
+	tests := []test{
+		{"SwitchToIndirect", 1, 16, 10, []testFileDataHole{{2, 10}}},
+		{"FullExistingBlock", 6, 16, 10, []testFileDataHole{{6, 10}}},
+		{"FillExistingBlock", 5, 16, 10, []testFileDataHole{{6, 10}}},
+	}
+
+	for _, test := range tests {
+		// capture range variable.
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			testFileDataWriteExtendExistingFileWithGap(
+				t, 2, 2, test.currLen, test.newSize, test.startWrite,
+				test.finalHoles)
 		})
 	}
 }

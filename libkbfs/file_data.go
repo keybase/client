@@ -1009,12 +1009,12 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 			newBlockOff := startOff + int64(len(block.Contents))
 			if nCopied == 0 {
 				if newBlockOff < off {
-					// We are writing somewhere inside a hole, not right
-					// at the start of it; all we have done so far it
-					// reached the end of an existing block (possibly
-					// zero-filling it out to its capacity).  Make sure
-					// the next block starts right at the offset we care
-					// about.
+					// We are writing past the end of a file, or
+					// somewhere inside a hole, not right at the start
+					// of it; all we have done so far it reached the
+					// end of an existing block (possibly zero-filling
+					// it out to its capacity).  Make sure the next
+					// block starts right at the offset we care about.
 					newBlockOff = off
 				}
 			} else if newBlockOff != off+nCopied {
@@ -1080,15 +1080,17 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 		// happen when trying to append to the contents of the file
 		// (i.e., either to the end of the file or right before the
 		// "hole"), and the last block is already full.
-		if nCopied == oldNCopied && !switchToIndirect {
+		if nCopied == oldNCopied && oldLen == len(block.Contents) &&
+			!switchToIndirect {
 			continue
 		}
 
 		// Only in the last block does the file size grow.
 		if oldLen != len(block.Contents) && nextBlockOff < 0 {
 			newDe.EncodedSize = 0
-			// update the file info
-			newDe.Size += uint64(len(block.Contents) - oldLen)
+			// Since this is the last block, the end of this block
+			// marks the file size.
+			newDe.Size = uint64(startOff + int64(len(block.Contents)))
 		}
 
 		// Calculate the amount of bytes we've newly-dirtied as part
