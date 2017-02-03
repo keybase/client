@@ -16,7 +16,6 @@ type Props = {
   onAction: (message: Constants.ServerMessage, event: any) => void,
   style: Object,
   isSelected: boolean,
-  index: number,
   children: React$Element<*>,
   message: Constants.TextMessage | Constants.AttachmentMessage,
   you: string,
