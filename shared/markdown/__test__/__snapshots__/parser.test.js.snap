@@ -358,13 +358,7 @@ Object {
       "children": Array [
         Object {
           "children": Array [
-            Object {
-              "children": Array [
-                "http://keybase.io",
-              ],
-              "href": "http://keybase.io",
-              "type": "link",
-            },
+            "http://keybase.io",
           ],
           "type": "italic",
         },
@@ -422,6 +416,15 @@ Object {
         "keybase.io/a/user/lookup?one=1&two=2",
       ],
       "href": "http://keybase.io/a/user/lookup?one=1&two=2",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "keybase.io/a/user/path_with_underscore",
+      ],
+      "href": "http://keybase.io/a/user/path_with_underscore",
       "type": "link",
     },
     "
