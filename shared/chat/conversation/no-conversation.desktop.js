@@ -14,7 +14,7 @@ const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   backgroundColor: globalColors.darkBlue4,
-  borderLeft: `1px solid ${globalColors.black_10}`,
+  borderLeft: `1px solid ${globalColors.black_20}`,
   flex: 1,
   justifyContent: 'center',
 }
