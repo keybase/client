@@ -337,14 +337,14 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
+      const {conversationIDKey, outboxID, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
         conversationIDKey,
-        item => !!item.messageID && item.messageID === messageID,
+        item => !!item.outboxID && item.outboxID === outboxID,
         m => ({
           ...m,
           messageState: 'uploading',

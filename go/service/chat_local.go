@@ -780,6 +780,127 @@ type postAttachmentArg struct {
 }
 
 func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
+	if os.Getenv("KEYBASE_CHAT_ATTACHMENT_ORDERED") == "1" {
+		return h.postAttachmentLocalInOrder(ctx, arg)
+	}
+
+	if os.Getenv("CHAT_S3_FAKE") == "1" {
+		ctx = s3.NewFakeS3Context(ctx)
+	}
+	chatUI := h.getChatUI(arg.SessionID)
+	progress := func(bytesComplete, bytesTotal int) {
+		parg := chat1.ChatAttachmentUploadProgressArg{
+			SessionID:     arg.SessionID,
+			BytesComplete: bytesComplete,
+			BytesTotal:    bytesTotal,
+		}
+		chatUI.ChatAttachmentUploadProgress(ctx, parg)
+	}
+
+	// preprocess asset (get content type, create preview if possible)
+	pre, err := h.preprocessAsset(ctx, arg.SessionID, arg.Attachment, arg.Preview)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	if pre.Preview != nil {
+		h.G().Log.Debug("created preview in preprocess")
+		arg.Preview = pre.Preview
+	}
+
+	// get s3 upload params from server
+	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+
+	// upload attachment and (optional) preview concurrently
+	var object chat1.Asset
+	var preview *chat1.Asset
+	var g errgroup.Group
+
+	g.Go(func() error {
+		chatUI.ChatAttachmentUploadStart(ctx, pre.BaseMetadata(), 0)
+		var err error
+		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
+		chatUI.ChatAttachmentUploadDone(ctx)
+		if err != nil {
+			h.G().Log.Debug("error uploading primary asset to s3: %s", err)
+		}
+		return err
+	})
+
+	if arg.Preview != nil {
+		g.Go(func() error {
+			chatUI.ChatAttachmentPreviewUploadStart(ctx, pre.PreviewMetadata())
+			// copy the params so as not to mess with the main params above
+			previewParams := params
+
+			// add preview suffix to object key (P in hex)
+			// the s3path in gregor is expecting hex here
+			previewParams.ObjectKey += "50"
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview, arg.ConversationID, nil)
+			chatUI.ChatAttachmentPreviewUploadDone(ctx)
+			if err == nil {
+				preview = &prev
+			} else {
+				h.G().Log.Debug("error uploading preview asset to s3: %s", err)
+			}
+			return err
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+
+	// note that we only want to set the Title to what the user entered,
+	// even if that is nothing.
+	object.Title = arg.Title
+	object.MimeType = pre.ContentType
+	object.Metadata = pre.BaseMetadata()
+
+	attachment := chat1.MessageAttachment{
+		Object:   object,
+		Metadata: arg.Metadata,
+	}
+	if preview != nil {
+		preview.Title = arg.Title
+		preview.MimeType = pre.PreviewContentType
+		preview.Metadata = pre.PreviewMetadata()
+		preview.Tag = chat1.AssetTag_PRIMARY
+		attachment.Previews = []chat1.Asset{*preview}
+		attachment.Preview = preview
+		attachment.Uploaded = true
+	}
+
+	// edit the placeholder  attachment message with the asset information
+	postArg := chat1.PostLocalArg{
+		ConversationID: arg.ConversationID,
+		Msg: chat1.MessagePlaintext{
+			MessageBody: chat1.NewMessageBodyWithAttachment(attachment),
+		},
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+
+	// set msg client header explicitly
+	postArg.Msg.ClientHeader.Conv = arg.ClientHeader.Conv
+	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENT
+	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
+	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic
+
+	h.G().Log.Debug("attachment assets uploaded, posting attachment message")
+	plres, err := h.PostLocal(ctx, postArg)
+	if err != nil {
+		h.G().Log.Debug("error posting attachment message: %s", err)
+	} else {
+		h.G().Log.Debug("posted attachment message successfully")
+	}
+
+	return plres, err
+}
+
+func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg postAttachmentArg) (res chat1.PostLocalRes, err error) {
+	h.G().Log.Info("using postAttachmentLocalInOrder flow to upload attachment")
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
@@ -995,11 +1116,14 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 
 	obj := attachment.Object
 	if arg.Preview {
-		if len(attachment.Previews) == 0 {
+		if len(attachment.Previews) > 0 {
+			obj = attachment.Previews[0]
+		} else if attachment.Preview != nil {
+			obj = *attachment.Preview
+		} else {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
 		h.G().Log.Debug("downloading preview attachment asset")
-		obj = attachment.Previews[0]
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {

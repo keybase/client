@@ -44,15 +44,19 @@ func (t *supersedesTransform) transformAttachment(msg chat1.MessageUnboxed, supe
 	clientHeader := msg.Valid().ClientHeader
 	clientHeader.MessageType = chat1.MessageType_ATTACHMENT
 	uploaded := superMsg.Valid().MessageBody.Attachmentuploaded()
+	attachment := chat1.MessageAttachment{
+		Object:   uploaded.Object,
+		Previews: uploaded.Previews,
+		Metadata: uploaded.Metadata,
+		Uploaded: true,
+	}
+	if len(uploaded.Previews) > 0 {
+		attachment.Preview = &uploaded.Previews[0]
+	}
 	newMsg := chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
-		ClientHeader: clientHeader,
-		ServerHeader: msg.Valid().ServerHeader,
-		MessageBody: chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
-			Object:   uploaded.Object,
-			Previews: uploaded.Previews,
-			Metadata: uploaded.Metadata,
-			Uploaded: true,
-		}),
+		ClientHeader:          clientHeader,
+		ServerHeader:          msg.Valid().ServerHeader,
+		MessageBody:           chat1.NewMessageBodyWithAttachment(attachment),
 		SenderUsername:        msg.Valid().SenderUsername,
 		SenderDeviceName:      msg.Valid().SenderDeviceName,
 		SenderDeviceType:      msg.Valid().SenderDeviceType,

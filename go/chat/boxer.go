@@ -232,24 +232,10 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	}
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
-		bodyUpgraded, err := chat1.ConvertMessageBodyV1ToV2(body.V1().MessageBody)
-		if err != nil {
-			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
-		}
 		return unboxMessageWithKeyRes{
 			messagePlaintext: chat1.MessagePlaintext{
 				ClientHeader: clientHeader,
-				MessageBody:  bodyUpgraded,
-			},
-			headerHash:            headerHash,
-			headerSignature:       headerSignature,
-			senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
-		}, nil
-	case chat1.BodyPlaintextVersion_V2:
-		return unboxMessageWithKeyRes{
-			messagePlaintext: chat1.MessagePlaintext{
-				ClientHeader: clientHeader,
-				MessageBody:  body.V2().MessageBody,
+				MessageBody:  body.V1().MessageBody,
 			},
 			headerHash:            headerHash,
 			headerSignature:       headerSignature,
@@ -366,15 +352,15 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	return boxed, nil
 }
 
-// boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a
+// boxMessageWithKeys encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
 func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 
-	body := chat1.BodyPlaintextV2{
+	body := chat1.BodyPlaintextV1{
 		MessageBody: msg.MessageBody,
 	}
-	plaintextBody := chat1.NewBodyPlaintextWithV2(body)
+	plaintextBody := chat1.NewBodyPlaintextWithV1(body)
 	encryptedBody, err := b.seal(plaintextBody, key)
 	if err != nil {
 		return nil, err

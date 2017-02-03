@@ -315,6 +315,7 @@ func (c Conversation) Includes(uid gregor1.UID) bool {
 	return false
 }
 
+/*
 func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 	t, err := v1.MessageType()
 	if err != nil {
@@ -348,3 +349,4 @@ func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 
 	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
 }
+*/
