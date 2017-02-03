@@ -112,6 +112,10 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
     position: 'absolute',
     bottom: 0,
     left: 0,
+    paddingLeft: globalMargins.xtiny,
+    paddingRight: globalMargins.tiny,
+    paddingTop: globalMargins.xtiny,
+    paddingBottom: globalMargins.xtiny,
   }
   const isOverlayProgress = messageState === 'uploading'
 
