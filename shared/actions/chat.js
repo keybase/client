@@ -765,7 +765,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       }
       break
     default:
-      console.warn('Unsupported incoming message type for Chat:', action.payload.activity)
+      console.warn('Unsupported incoming message type for Chat of type:', action.payload.activity.activityType)
   }
 }
 
