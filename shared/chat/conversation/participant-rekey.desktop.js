@@ -21,7 +21,7 @@ const ParticipantRekey = ({rekeyInfo, onUsernameClicked}: {rekeyInfo: RekeyInfo,
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
         <Text backgroundMode='Terminal' style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}} type='BodySemibold'>This conversation is waiting for a participant to open their Keybase app.</Text>
       </Box>
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', marginLeft: 8, overflow: 'auto'}}>
+      <Box style={{flex: 1, justifyContent: 'center', marginLeft: 8, overflow: 'auto'}}>
         <Box>
           {rekeyInfo.get('rekeyParticipants').map(username => <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />)}
         </Box>
