@@ -757,6 +757,12 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	return b == TLFIdentifyBehavior_CHAT_GUI
 }
 
+// All of the chat modes want to prevent tracker popups.
+func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
+	return b == TLFIdentifyBehavior_CHAT_GUI || b == TLFIdentifyBehavior_CHAT_CLI ||
+		b == TLFIdentifyBehavior_CHAT_GUI_STRICT
+}
+
 func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
 	if c.CanonicalName != r.CanonicalName {
 		return false
@@ -853,4 +859,8 @@ func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
 		}
 	}
 	return nil
+}
+
+func (s ChatConversationID) String() string {
+	return hex.EncodeToString(s)
 }

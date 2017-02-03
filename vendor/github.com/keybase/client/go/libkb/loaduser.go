@@ -37,6 +37,12 @@ type LoadUserArg struct {
 	NetContext context.Context
 }
 
+func (arg LoadUserArg) String() string {
+	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AllKeys:%v AbortIfSigchainUnchanged:%v}",
+		arg.UID, arg.Name, arg.PublicKeyOptional, arg.NoCacheResult, arg.Self, arg.ForceReload,
+		arg.ForcePoll, arg.StaleOK, arg.AllKeys, arg.AbortIfSigchainUnchanged)
+}
+
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 	return LoadUserArg{Contextified: NewContextified(g)}
 }
@@ -169,7 +175,7 @@ func LoadMeByUID(ctx context.Context, g *GlobalContext, uid keybase1.UID) (*User
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 
 	ctx := arg.WithLogTag()
-	defer arg.G().CTraceTimed(ctx, fmt.Sprintf("LoadUser(%+v)", arg), func() error { return err })()
+	defer arg.G().CTraceTimed(ctx, fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
 
 	var refresh bool
 
