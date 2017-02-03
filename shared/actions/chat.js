@@ -65,7 +65,6 @@ import type {
   StartConversation,
   UnhandledMessage,
   UpdateBadging,
-  UpdateInbox,
   UpdateLatestMessage,
   UpdateMetadata,
 } from '../constants/chat'
@@ -268,7 +267,7 @@ function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boo
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
 }
 
-function _inboxConversationToConversation (convo: ConversationLocal, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): ?InboxState {
+function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState {
   if (!convo || !convo.info || !convo.info.id) {
     return null
   }
@@ -601,11 +600,22 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
   }
 }
 
+function * _updateInbox (conv: ?ConversationLocal) {
+  const inboxState = _inboxConversationToInboxState(conv)
+  if (inboxState) {
+    yield put(({
+      payload: {conversation: inboxState},
+      type: 'chat:updateInbox',
+    }: Constants.UpdateInbox))
+  }
+}
+
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case NotifyChatChatActivityType.setStatus:
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
+        _updateInbox(setStatus.conv)
         const conversationIDKey = conversationIDToKey(setStatus.convID)
         const muted = setStatus.status === CommonConversationStatus.muted
         yield put(({
@@ -661,9 +671,16 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         }
       }
       return
+    case NotifyChatChatActivityType.readMessage:
+      if (action.payload.activity.readMessage) {
+        _updateInbox(action.payload.activity.readMessage.conv)
+      }
+      return
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
       if (incomingMessage) {
+        _updateInbox(incomingMessage.conv)
+
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(_devicenameSelector)
@@ -833,9 +850,8 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   yield put({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer})
   chatInboxUnverified.response.result()
 
-  // +1 for the finish call
-  const total = inbox.conversationsUnverified && inbox.conversationsUnverified.length + 1 || 0
-  for (let i = 0; i < total; ++i) {
+  let finishedCalled = false
+  while (!finishedCalled) {
     const incoming: {[key: string]: any} = yield race({
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
@@ -845,25 +861,36 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
-      if (conversation && action && action.payload && action.payload.newConversationIDKey) {
+      let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
+      if (conversation && action && action.payload && action.payload.newConversationIDKey && action.payload.newConversationIDKey === conversation.get('conversationIDKey')) {
         conversation = conversation.set('youCreated', true)
       }
-      if (conversation && (!conversation.get('isEmpty') || conversation.get('youCreated'))) {
-        yield put({type: 'chat:updateInbox', payload: {conversation}})
+      if (conversation) {
+        yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
       }
       // find it
     } else if (incoming.chatInboxFailed) {
+      console.warn('ignoring chatInboxFailed', incoming.chatInboxFailed)
       incoming.chatInboxFailed.response.result()
     } else if (incoming.finished) {
+      finishedCalled = true
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       // check valid selected
       const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
       const inbox = yield select(inboxSelector)
       if (inbox.count()) {
         const conversationIDKey = yield select(_selectedSelector)
+
+        // Is the currently selected one not validated?
         if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
-          yield put(selectConversation(inbox.get(0).get('conversationIDKey'), false))
+          const validInbox = inbox.find(i => i.get('validated'))
+          if (validInbox) {
+            const validInboxConvIDKey = validInbox.get('conversationIDKey')
+            yield put(selectConversation(validInboxConvIDKey, false))
+            yield put(loadMoreMessages(validInboxConvIDKey, true))
+          }
+        } else {
+          yield put(loadMoreMessages(conversationIDKey, true))
         }
       }
       break
@@ -883,13 +910,6 @@ function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
       const mostRecentConversation = action.payload.inbox.get(0)
       yield put(selectConversation(mostRecentConversation.get('conversationIDKey'), false))
     }
-  }
-}
-
-function * _onUpdateInbox (action: UpdateInbox): SagaGenerator<any, any> {
-  const conversationIDKey = yield select(_selectedSelector)
-  if (action.payload.conversation.get('conversationIDKey') === conversationIDKey) {
-    yield put(loadMoreMessages(conversationIDKey, true))
   }
 }
 
@@ -1625,7 +1645,6 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:openAttachmentPopup', _openAttachmentPopup),
     safeTakeLatest('chat:openFolder', _openFolder),
     safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
-    safeTakeLatest('chat:updateInbox', _onUpdateInbox),
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery('chat:deleteMessage', _deleteMessage),
   ]
