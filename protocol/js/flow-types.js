@@ -2854,7 +2854,7 @@ export type BlockReferenceCount = {
   liveCount: int,
 }
 
-export type BlockType = 
+export type BlockType =
     0 // DATA_0
   | 1 // MD_1
 
