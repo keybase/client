@@ -329,6 +329,14 @@ Object {
     ftp://blah.com,
     gopher://blah.com,
     mailto:blah@blah.com
+    ",
+    Object {
+      "children": Array [
+        "http://keybase.io",
+      ],
+      "type": "italic",
+    },
+    "
   Include:
     ",
     Object {
@@ -348,19 +356,6 @@ Object {
           ],
           "href": "http://keybase.io",
           "type": "link",
-        },
-      ],
-      "type": "bold",
-    },
-    "
-    ",
-    Object {
-      "children": Array [
-        Object {
-          "children": Array [
-            "http://keybase.io",
-          ],
-          "type": "italic",
         },
       ],
       "type": "bold",

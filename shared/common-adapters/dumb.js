@@ -846,16 +846,17 @@ else echo "bar";
     ftp://blah.com,
     gopher://blah.com,
     mailto:blah@blah.com
+    _http://keybase.io_
   Include:
     http://keybase.io
     *http://keybase.io*
-    *_http://keybase.io_*
     \`http://keybase.io\`
     https://keybase.io
     HTTP://cnn.com
     http://twitter.com
     google.com
     keybase.io/a/user/lookup?one=1&two=2
+    keybase.io/a/user/path_with_underscore
     keybase.io?blah=true
     http://keybase.io/blah/../up-one/index.html
   These should have the trailing punctuation outside the link:
