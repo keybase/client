@@ -142,7 +142,24 @@ protocol local {
   }
 
   enum HeaderPlaintextVersion {
-    V1_1
+    V1_1,
+    V2_2,
+    V3_3,
+    V4_4,
+    V5_5,
+    V6_6,
+    V7_7,
+    V8_8,
+    V9_9,
+    V10_10
+  }
+
+  record HeaderPlaintextMetaInfo {
+    boolean crit; // whether it is critical to support this message
+  }
+
+  record HeaderPlaintextUnsupported {
+    HeaderPlaintextMetaInfo mi;
   }
 
   // HeaderPlaintextV1 is version 1 of HeaderPlaintext.
@@ -165,12 +182,29 @@ protocol local {
   // HeaderPlaintext is a variant container for all the
   // versions of HeaderPlaintext.
   variant HeaderPlaintext switch (HeaderPlaintextVersion version) {
-    case V1: HeaderPlaintextV1;
+    case V1 : HeaderPlaintextV1;
+    case V2 : HeaderPlaintextUnsupported;
+    case V3 : HeaderPlaintextUnsupported;
+    case V4 : HeaderPlaintextUnsupported;
+    case V5 : HeaderPlaintextUnsupported;
+    case V6 : HeaderPlaintextUnsupported;
+    case V7 : HeaderPlaintextUnsupported;
+    case V8 : HeaderPlaintextUnsupported;
+    case V9 : HeaderPlaintextUnsupported;
+    case V10: HeaderPlaintextUnsupported;
   }
 
   enum BodyPlaintextVersion {
     V1_1,
-    V2_2
+    V2_2,
+    V3_3,
+    V4_4,
+    V5_5,
+    V6_6,
+    V7_7,
+    V8_8,
+    V9_9,
+    V10_10
   }
 
   record BodyPlaintextMetaInfo {
@@ -193,7 +227,15 @@ protocol local {
   // versions of BodyPlaintext.
   variant BodyPlaintext switch (BodyPlaintextVersion version) {
     case V1: BodyPlaintextV1;
-    default: BodyPlaintextUnsupported;
+    case V2 : BodyPlaintextUnsupported;
+    case V3 : BodyPlaintextUnsupported;
+    case V4 : BodyPlaintextUnsupported;
+    case V5 : BodyPlaintextUnsupported;
+    case V6 : BodyPlaintextUnsupported;
+    case V7 : BodyPlaintextUnsupported;
+    case V8 : BodyPlaintextUnsupported;
+    case V9 : BodyPlaintextUnsupported;
+    case V10: BodyPlaintextUnsupported;
   }
 
   record MessagePlaintext {
@@ -222,7 +264,15 @@ protocol local {
     union {null, gregor1.Time} senderDeviceRevokedAt;
   }
 
+  enum MessageUnboxedErrorType {
+    MISC_0,
+    BADVERSION_CRITICAL_1,
+    BADVERSION_2,
+    IDENTIFY_3
+  }
+
   record MessageUnboxedError {
+    MessageUnboxedErrorType errType;
     string errMsg;
     MessageID messageID;
     MessageType messageType;

@@ -103,6 +103,14 @@ export const LocalAssetTag = {
 export const LocalBodyPlaintextVersion = {
   v1: 1,
   v2: 2,
+  v3: 3,
+  v4: 4,
+  v5: 5,
+  v6: 6,
+  v7: 7,
+  v8: 8,
+  v9: 9,
+  v10: 10,
 }
 
 export const LocalConversationErrorType = {
@@ -116,6 +124,22 @@ export const LocalConversationErrorType = {
 
 export const LocalHeaderPlaintextVersion = {
   v1: 1,
+  v2: 2,
+  v3: 3,
+  v4: 4,
+  v5: 5,
+  v6: 6,
+  v7: 7,
+  v8: 8,
+  v9: 9,
+  v10: 10,
+}
+
+export const LocalMessageUnboxedErrorType = {
+  misc: 0,
+  badversionCritical: 1,
+  badversion: 2,
+  identify: 3,
 }
 
 export const LocalMessageUnboxedState = {
@@ -625,7 +649,15 @@ export type AssetTag =
 
 export type BodyPlaintext =
     { version: 1, v1: ?BodyPlaintextV1 }
-  | { version: any, 'default': ?BodyPlaintextUnsupported }
+  | { version: 2, v2: ?BodyPlaintextUnsupported }
+  | { version: 3, v3: ?BodyPlaintextUnsupported }
+  | { version: 4, v4: ?BodyPlaintextUnsupported }
+  | { version: 5, v5: ?BodyPlaintextUnsupported }
+  | { version: 6, v6: ?BodyPlaintextUnsupported }
+  | { version: 7, v7: ?BodyPlaintextUnsupported }
+  | { version: 8, v8: ?BodyPlaintextUnsupported }
+  | { version: 9, v9: ?BodyPlaintextUnsupported }
+  | { version: 10, v10: ?BodyPlaintextUnsupported }
 
 export type BodyPlaintextMetaInfo = {
   crit: boolean,
@@ -642,6 +674,14 @@ export type BodyPlaintextV1 = {
 export type BodyPlaintextVersion =
     1 // V1_1
   | 2 // V2_2
+  | 3 // V3_3
+  | 4 // V4_4
+  | 5 // V5_5
+  | 6 // V6_6
+  | 7 // V7_7
+  | 8 // V8_8
+  | 9 // V9_9
+  | 10 // V10_10
 
 export type ChatActivity =
     { activityType: 1, incomingMessage: ?IncomingMessage }
@@ -911,6 +951,23 @@ export type Hash = bytes
 
 export type HeaderPlaintext =
     { version: 1, v1: ?HeaderPlaintextV1 }
+  | { version: 2, v2: ?HeaderPlaintextUnsupported }
+  | { version: 3, v3: ?HeaderPlaintextUnsupported }
+  | { version: 4, v4: ?HeaderPlaintextUnsupported }
+  | { version: 5, v5: ?HeaderPlaintextUnsupported }
+  | { version: 6, v6: ?HeaderPlaintextUnsupported }
+  | { version: 7, v7: ?HeaderPlaintextUnsupported }
+  | { version: 8, v8: ?HeaderPlaintextUnsupported }
+  | { version: 9, v9: ?HeaderPlaintextUnsupported }
+  | { version: 10, v10: ?HeaderPlaintextUnsupported }
+
+export type HeaderPlaintextMetaInfo = {
+  crit: boolean,
+}
+
+export type HeaderPlaintextUnsupported = {
+  mi: HeaderPlaintextMetaInfo,
+}
 
 export type HeaderPlaintextV1 = {
   conv: ConversationIDTriple,
@@ -928,6 +985,15 @@ export type HeaderPlaintextV1 = {
 
 export type HeaderPlaintextVersion =
     1 // V1_1
+  | 2 // V2_2
+  | 3 // V3_3
+  | 4 // V4_4
+  | 5 // V5_5
+  | 6 // V6_6
+  | 7 // V7_7
+  | 8 // V8_8
+  | 9 // V9_9
+  | 10 // V10_10
 
 export type Inbox = {
   version: InboxVers,
@@ -1080,10 +1146,17 @@ export type MessageUnboxed =
   | { state: 3, outbox: ?OutboxRecord }
 
 export type MessageUnboxedError = {
+  errType: MessageUnboxedErrorType,
   errMsg: string,
   messageID: MessageID,
   messageType: MessageType,
 }
+
+export type MessageUnboxedErrorType =
+    0 // MISC_0
+  | 1 // BADVERSION_CRITICAL_1
+  | 2 // BADVERSION_2
+  | 3 // IDENTIFY_3
 
 export type MessageUnboxedState =
     1 // VALID_1
