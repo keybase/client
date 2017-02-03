@@ -121,6 +121,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
     paddingTop: globalMargins.xtiny,
     paddingBottom: globalMargins.xtiny,
   }
+  const showingProgressBar = _showProgressBar(messageState, message.progress)
   const isOverlayProgress = messageState === 'uploading'
 
   const previewProgressIndicatorStyle = {
@@ -134,21 +135,21 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
-      <Box style={{display: 'inline-flex', position: 'relative'}}>
+      <Box style={{display: 'inline-flex', alignSelf: 'flex-start', position: 'relative'}}>
         <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
         {_showPreviewProgress(messageState, message.progress) && !!message.progress &&
           <ProgressIndicator
             style={previewProgressIndicatorStyle}
           />}
       </Box>
-      <Box style={!isOverlayProgress ? {marginTop: globalMargins.xtiny} : {}}>
-        {_showProgressBar(messageState, message.progress) && !!message.progress &&
+      {showingProgressBar && <Box style={!isOverlayProgress ? {marginTop: globalMargins.xtiny} : {}}>
+        {!!message.progress &&
           <ProgressBar
             style={isOverlayProgress ? overlayProgressBarStyle : {}}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}
         {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
-      </Box>
+      </Box>}
     </Box>
   )
 }
