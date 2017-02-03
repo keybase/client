@@ -182,23 +182,25 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		// show the last TEXT message
 		var msg *chat1.MessageUnboxed
 		for _, m := range conv.MaxMessages {
-			if m.IsValid() {
-				if conv.ReaderInfo.ReadMsgid == m.GetMessageID() {
-					unread = ""
-				}
-				if m.GetMessageType() == chat1.MessageType_TEXT || m.GetMessageType() == chat1.MessageType_ATTACHMENT {
-					if msg == nil || m.GetMessageID() > msg.GetMessageID() {
-						mCopy := m
-						msg = &mCopy
-					}
+			if conv.ReaderInfo.ReadMsgid == m.GetMessageID() {
+				unread = ""
+			}
+			if m.GetMessageType() == chat1.MessageType_TEXT || m.GetMessageType() == chat1.MessageType_ATTACHMENT {
+				if msg == nil || m.GetMessageID() > msg.GetMessageID() {
+					mCopy := m
+					msg = &mCopy
 				}
 			}
 		}
 		if msg == nil {
-			// Skip conversations with no visible messages.
-			// This should never happen.
-			g.Log.Error("Skipped conversation with no visible messages: %s", conv.Info.Id)
-			continue
+			// Make a fake error in case we have a non-empty thread with no visible message
+			errMsg := chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+				ErrMsg:      "<no snippet available>",
+				MessageID:   0,
+				MessageType: chat1.MessageType_TEXT,
+			})
+			msg = &errMsg
+			unread = ""
 		}
 
 		mv, err := newMessageView(g, conv.Info.Id, *msg)
