@@ -1061,8 +1061,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
             throw new Error('empty attachment body')
           }
           const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
-          const previews = attachment && attachment.previews
-          const preview = previews && previews[0]
+          const preview = attachment && attachment.preview
           const mimeType = preview && preview.mimeType
           const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
 
