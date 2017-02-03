@@ -488,15 +488,13 @@ func testFileDataOverwriteExistingFile(t *testing.T, maxBlockSize int64,
 	for _, hole := range holes {
 		for i := hole.start; i < hole.end; i++ {
 			data[i] = byte(0)
-			if holeShiftAfter == 0 {
-				if startWrite <= i && i < endWrite {
-					holeShiftAfter = i
-					// If we're writing in a hole, we might extend the
-					// block on its left edge to its block boundary,
-					// which means that's effectively the start of the
-					// write.
-					effectiveStartWrite = hole.start
-				}
+			if holeShiftAfter == 0 && startWrite <= i && i < endWrite {
+				holeShiftAfter = i
+				// If we're writing in a hole, we might extend the
+				// block on its left edge to its block boundary,
+				// which means that's effectively the start of the
+				// write.
+				effectiveStartWrite = hole.start
 			}
 		}
 	}
