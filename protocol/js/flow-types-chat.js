@@ -623,11 +623,16 @@ export type AssetMetadataVideo = {
 export type AssetTag =
     0 // PRIMARY_0
 
-export type BodyPlaintext = 
-    { version : 1, v1 : ?BodyPlaintextV1 }
+export type BodyPlaintext =
+    { version: 1, v1: ?BodyPlaintextV1 }
+  | { version: any, 'default': ?BodyPlaintextUnsupported }
+
+export type BodyPlaintextMetaInfo = {
+  crit: boolean,
+}
 
 export type BodyPlaintextUnsupported = {
-  vi: BodyPlaintextVersionInfo,
+  mi: BodyPlaintextMetaInfo,
 }
 
 export type BodyPlaintextV1 = {
@@ -637,10 +642,6 @@ export type BodyPlaintextV1 = {
 export type BodyPlaintextVersion =
     1 // V1_1
   | 2 // V2_2
-
-export type BodyPlaintextVersionInfo = {
-  crit: boolean,
-}
 
 export type ChatActivity =
     { activityType: 1, incomingMessage: ?IncomingMessage }
@@ -991,23 +992,6 @@ export type MessageAttachmentUploaded = {
   metadata: bytes,
 }
 
-<<<<<<< HEAD
-export type MessageBody = 
-    { messageType : 1, text : ?MessageText }
-  | { messageType : 2, attachment : ?MessageAttachment }
-  | { messageType : 3, edit : ?MessageEdit }
-  | { messageType : 4, delete : ?MessageDelete }
-  | { messageType : 5, metadata : ?MessageConversationMetadata }
-  | { messageType : 7, headline : ?MessageHeadline }
-  | { messageType : 8, attachmentuploaded : ?MessageAttachmentUploaded }
-
-=======
-export type MessageAttachmentV1 = {
-  object: Asset,
-  preview?: ?Asset,
-  metadata: bytes,
-}
-
 export type MessageBody =
     { messageType: 1, text: ?MessageText }
   | { messageType: 2, attachment: ?MessageAttachment }
@@ -1017,15 +1001,6 @@ export type MessageBody =
   | { messageType: 7, headline: ?MessageHeadline }
   | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
 
-export type MessageBodyV1 =
-    { messageType: 1, text: ?MessageText }
-  | { messageType: 2, attachment: ?MessageAttachmentV1 }
-  | { messageType: 3, edit: ?MessageEdit }
-  | { messageType: 4, delete: ?MessageDelete }
-  | { messageType: 5, metadata: ?MessageConversationMetadata }
-  | { messageType: 7, headline: ?MessageHeadline }
-
->>>>>>> 3519660... support default variants (#5651)
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
   clientHeader: MessageClientHeader,

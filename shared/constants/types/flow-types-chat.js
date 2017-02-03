@@ -57,6 +57,7 @@ export const CommonConversationStatus = {
   favorite: 1,
   ignored: 2,
   blocked: 3,
+  muted: 4,
 }
 
 export const CommonInboxResType = {
@@ -624,28 +625,23 @@ export type AssetTag =
 
 export type BodyPlaintext =
     { version: 1, v1: ?BodyPlaintextV1 }
-  | { version: 2, v2: ?BodyPlaintextV2 }
   | { version: any, 'default': ?BodyPlaintextUnsupported }
 
+export type BodyPlaintextMetaInfo = {
+  crit: boolean,
+}
+
 export type BodyPlaintextUnsupported = {
-  vi: BodyPlaintextVersionInfo,
+  mi: BodyPlaintextMetaInfo,
 }
 
 export type BodyPlaintextV1 = {
-  messageBody: MessageBodyV1,
-}
-
-export type BodyPlaintextV2 = {
   messageBody: MessageBody,
 }
 
 export type BodyPlaintextVersion =
     1 // V1_1
   | 2 // V2_2
-
-export type BodyPlaintextVersionInfo = {
-  crit: boolean,
-}
 
 export type ChatActivity =
     { activityType: 1, incomingMessage: ?IncomingMessage }
@@ -756,6 +752,7 @@ export type ConversationStatus =
   | 1 // FAVORITE_1
   | 2 // IGNORED_2
   | 3 // BLOCKED_3
+  | 4 // MUTED_4
 
 export type DownloadAttachmentLocalRes = {
   rateLimits?: ?Array<RateLimit>,
@@ -982,6 +979,7 @@ export type MerkleRoot = {
 
 export type MessageAttachment = {
   object: Asset,
+  preview?: ?Asset,
   previews?: ?Array<Asset>,
   metadata: bytes,
   uploaded: boolean,
@@ -994,12 +992,6 @@ export type MessageAttachmentUploaded = {
   metadata: bytes,
 }
 
-export type MessageAttachmentV1 = {
-  object: Asset,
-  preview?: ?Asset,
-  metadata: bytes,
-}
-
 export type MessageBody =
     { messageType: 1, text: ?MessageText }
   | { messageType: 2, attachment: ?MessageAttachment }
@@ -1008,14 +1000,6 @@ export type MessageBody =
   | { messageType: 5, metadata: ?MessageConversationMetadata }
   | { messageType: 7, headline: ?MessageHeadline }
   | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
-
-export type MessageBodyV1 =
-    { messageType: 1, text: ?MessageText }
-  | { messageType: 2, attachment: ?MessageAttachmentV1 }
-  | { messageType: 3, edit: ?MessageEdit }
-  | { messageType: 4, delete: ?MessageDelete }
-  | { messageType: 5, metadata: ?MessageConversationMetadata }
-  | { messageType: 7, headline: ?MessageHeadline }
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
