@@ -471,6 +471,26 @@
     },
     {
       "type": "record",
+      "name": "HeaderPlaintextMetaInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "crit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HeaderPlaintextUnsupported",
+      "fields": [
+        {
+          "type": "HeaderPlaintextMetaInfo",
+          "name": "mi"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "HeaderPlaintextV1",
       "fields": [
         {
@@ -545,6 +565,12 @@
             "def": false
           },
           "body": "HeaderPlaintextV1"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": "HeaderPlaintextUnsupported"
         }
       ]
     },
@@ -552,8 +578,7 @@
       "type": "enum",
       "name": "BodyPlaintextVersion",
       "symbols": [
-        "V1_1",
-        "V2_2"
+        "V1_1"
       ]
     },
     {
@@ -685,8 +710,9 @@
       "name": "MessageUnboxedErrorType",
       "symbols": [
         "MISC_0",
-        "BADVERSION_1",
-        "IDENTIFY_2"
+        "BADVERSION_CRITICAL_1",
+        "BADVERSION_2",
+        "IDENTIFY_3"
       ]
     },
     {

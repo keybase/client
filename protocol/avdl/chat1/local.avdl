@@ -145,6 +145,14 @@ protocol local {
     V1_1
   }
 
+  record HeaderPlaintextMetaInfo {
+    boolean crit; // whether it is critical to support this message
+  }
+
+  record HeaderPlaintextUnsupported {
+    HeaderPlaintextMetaInfo mi;
+  }
+
   // HeaderPlaintextV1 is version 1 of HeaderPlaintext.
   // The fields here cannot change.  To modify,
   // create a new record type with a new version.
@@ -166,11 +174,11 @@ protocol local {
   // versions of HeaderPlaintext.
   variant HeaderPlaintext switch (HeaderPlaintextVersion version) {
     case V1: HeaderPlaintextV1;
+    default: HeaderPlaintextUnsupported;
   }
 
   enum BodyPlaintextVersion {
-    V1_1,
-    V2_2
+    V1_1
   }
 
   record BodyPlaintextMetaInfo {
@@ -224,8 +232,9 @@ protocol local {
 
   enum MessageUnboxedErrorType {
     MISC_0,
-    BADVERSION_1,
-    IDENTIFY_2
+    BADVERSION_CRITICAL_1,
+    BADVERSION_2,
+    IDENTIFY_3
   }
 
   record MessageUnboxedError {

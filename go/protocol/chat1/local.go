@@ -518,6 +518,14 @@ func (e HeaderPlaintextVersion) String() string {
 	return ""
 }
 
+type HeaderPlaintextMetaInfo struct {
+	Crit bool `codec:"crit" json:"crit"`
+}
+
+type HeaderPlaintextUnsupported struct {
+	Mi HeaderPlaintextMetaInfo `codec:"mi" json:"mi"`
+}
+
 type HeaderPlaintextV1 struct {
 	Conv            ConversationIDTriple     `codec:"conv" json:"conv"`
 	TlfName         string                   `codec:"tlfName" json:"tlfName"`
@@ -533,8 +541,9 @@ type HeaderPlaintextV1 struct {
 }
 
 type HeaderPlaintext struct {
-	Version__ HeaderPlaintextVersion `codec:"version" json:"version"`
-	V1__      *HeaderPlaintextV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+	Version__ HeaderPlaintextVersion      `codec:"version" json:"version"`
+	V1__      *HeaderPlaintextV1          `codec:"v1,omitempty" json:"v1,omitempty"`
+	Default__ *HeaderPlaintextUnsupported `codec:"default,omitempty" json:"default,omitempty"`
 }
 
 func (o *HeaderPlaintext) Version() (ret HeaderPlaintextVersion, err error) {
@@ -542,6 +551,11 @@ func (o *HeaderPlaintext) Version() (ret HeaderPlaintextVersion, err error) {
 	case HeaderPlaintextVersion_V1:
 		if o.V1__ == nil {
 			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	default:
+		if o.Default__ == nil {
+			err = errors.New("unexpected nil value for Default__")
 			return ret, err
 		}
 	}
@@ -558,6 +572,16 @@ func (o HeaderPlaintext) V1() HeaderPlaintextV1 {
 	return *o.V1__
 }
 
+func (o HeaderPlaintext) Default() HeaderPlaintextUnsupported {
+	if o.Version__ == HeaderPlaintextVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.Default__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.Default__
+}
+
 func NewHeaderPlaintextWithV1(v HeaderPlaintextV1) HeaderPlaintext {
 	return HeaderPlaintext{
 		Version__: HeaderPlaintextVersion_V1,
@@ -565,21 +589,25 @@ func NewHeaderPlaintextWithV1(v HeaderPlaintextV1) HeaderPlaintext {
 	}
 }
 
+func NewHeaderPlaintextDefault(version HeaderPlaintextVersion, v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: version,
+		Default__: &v,
+	}
+}
+
 type BodyPlaintextVersion int
 
 const (
 	BodyPlaintextVersion_V1 BodyPlaintextVersion = 1
-	BodyPlaintextVersion_V2 BodyPlaintextVersion = 2
 )
 
 var BodyPlaintextVersionMap = map[string]BodyPlaintextVersion{
 	"V1": 1,
-	"V2": 2,
 }
 
 var BodyPlaintextVersionRevMap = map[BodyPlaintextVersion]string{
 	1: "V1",
-	2: "V2",
 }
 
 func (e BodyPlaintextVersion) String() string {
@@ -704,21 +732,24 @@ type MessageUnboxedValid struct {
 type MessageUnboxedErrorType int
 
 const (
-	MessageUnboxedErrorType_MISC       MessageUnboxedErrorType = 0
-	MessageUnboxedErrorType_BADVERSION MessageUnboxedErrorType = 1
-	MessageUnboxedErrorType_IDENTIFY   MessageUnboxedErrorType = 2
+	MessageUnboxedErrorType_MISC                MessageUnboxedErrorType = 0
+	MessageUnboxedErrorType_BADVERSION_CRITICAL MessageUnboxedErrorType = 1
+	MessageUnboxedErrorType_BADVERSION          MessageUnboxedErrorType = 2
+	MessageUnboxedErrorType_IDENTIFY            MessageUnboxedErrorType = 3
 )
 
 var MessageUnboxedErrorTypeMap = map[string]MessageUnboxedErrorType{
-	"MISC":       0,
-	"BADVERSION": 1,
-	"IDENTIFY":   2,
+	"MISC":                0,
+	"BADVERSION_CRITICAL": 1,
+	"BADVERSION":          2,
+	"IDENTIFY":            3,
 }
 
 var MessageUnboxedErrorTypeRevMap = map[MessageUnboxedErrorType]string{
 	0: "MISC",
-	1: "BADVERSION",
-	2: "IDENTIFY",
+	1: "BADVERSION_CRITICAL",
+	2: "BADVERSION",
+	3: "IDENTIFY",
 }
 
 func (e MessageUnboxedErrorType) String() string {

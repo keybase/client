@@ -193,12 +193,6 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
 		headerSignature = header.V1().HeaderSignature
-	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
-	}
-
-	switch headerVersion {
-	case chat1.HeaderPlaintextVersion_V1:
 		hp := header.V1()
 		clientHeader = chat1.MessageClientHeader{
 			Conv:         hp.Conv,
@@ -212,7 +206,8 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			OutboxID:     hp.OutboxID,
 		}
 	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
+		return unboxMessageWithKeyRes{},
+			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion, header.Default()))
 	}
 
 	if skipBodyVerification {
@@ -226,7 +221,8 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 				senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 			}, nil
 		default:
-			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
+			return unboxMessageWithKeyRes{},
+				NewPermanentUnboxingError(NewHeaderVersionError(headerVersion, header.Default()))
 		}
 	}
 
@@ -247,7 +243,8 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 		}, nil
 	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewBodyVersionError(bodyVersion))
+		return unboxMessageWithKeyRes{},
+			NewPermanentUnboxingError(NewBodyVersionError(bodyVersion, body.Default()))
 	}
 }
 
@@ -496,7 +493,8 @@ func (b *Boxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext,
 	case chat1.HeaderPlaintextVersion_V1:
 		return b.verifyMessageHeaderV1(ctx, header.V1(), msg, skipBodyVerification)
 	default:
-		return verifyMessageRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
+		return verifyMessageRes{},
+			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion, header.Default()))
 	}
 }
 

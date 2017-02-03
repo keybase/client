@@ -102,7 +102,6 @@ export const LocalAssetTag = {
 
 export const LocalBodyPlaintextVersion = {
   v1: 1,
-  v2: 2,
 }
 
 export const LocalConversationErrorType = {
@@ -120,8 +119,9 @@ export const LocalHeaderPlaintextVersion = {
 
 export const LocalMessageUnboxedErrorType = {
   misc: 0,
-  badversion: 1,
-  identify: 2,
+  badversionCritical: 1,
+  badversion: 2,
+  identify: 3,
 }
 
 export const LocalMessageUnboxedState = {
@@ -647,7 +647,6 @@ export type BodyPlaintextV1 = {
 
 export type BodyPlaintextVersion =
     1 // V1_1
-  | 2 // V2_2
 
 export type ChatActivity =
     { activityType: 1, incomingMessage: ?IncomingMessage }
@@ -917,6 +916,15 @@ export type Hash = bytes
 
 export type HeaderPlaintext =
     { version: 1, v1: ?HeaderPlaintextV1 }
+  | { version: any, 'default': ?HeaderPlaintextUnsupported }
+
+export type HeaderPlaintextMetaInfo = {
+  crit: boolean,
+}
+
+export type HeaderPlaintextUnsupported = {
+  mi: HeaderPlaintextMetaInfo,
+}
 
 export type HeaderPlaintextV1 = {
   conv: ConversationIDTriple,
@@ -1094,8 +1102,9 @@ export type MessageUnboxedError = {
 
 export type MessageUnboxedErrorType =
     0 // MISC_0
-  | 1 // BADVERSION_1
-  | 2 // IDENTIFY_2
+  | 1 // BADVERSION_CRITICAL_1
+  | 2 // BADVERSION_2
+  | 3 // IDENTIFY_3
 
 export type MessageUnboxedState =
     1 // VALID_1
