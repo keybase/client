@@ -589,13 +589,22 @@ func (e BodyPlaintextVersion) String() string {
 	return ""
 }
 
+type BodyPlaintextMetaInfo struct {
+	Crit bool `codec:"crit" json:"crit"`
+}
+
+type BodyPlaintextUnsupported struct {
+	Mi BodyPlaintextMetaInfo `codec:"mi" json:"mi"`
+}
+
 type BodyPlaintextV1 struct {
 	MessageBody MessageBody `codec:"messageBody" json:"messageBody"`
 }
 
 type BodyPlaintext struct {
-	Version__ BodyPlaintextVersion `codec:"version" json:"version"`
-	V1__      *BodyPlaintextV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+	Version__ BodyPlaintextVersion      `codec:"version" json:"version"`
+	V1__      *BodyPlaintextV1          `codec:"v1,omitempty" json:"v1,omitempty"`
+	Default__ *BodyPlaintextUnsupported `codec:"default,omitempty" json:"default,omitempty"`
 }
 
 func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
@@ -603,6 +612,11 @@ func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
 	case BodyPlaintextVersion_V1:
 		if o.V1__ == nil {
 			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	default:
+		if o.Default__ == nil {
+			err = errors.New("unexpected nil value for Default__")
 			return ret, err
 		}
 	}
@@ -619,10 +633,27 @@ func (o BodyPlaintext) V1() BodyPlaintextV1 {
 	return *o.V1__
 }
 
+func (o BodyPlaintext) Default() BodyPlaintextUnsupported {
+	if o.Version__ == BodyPlaintextVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.Default__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.Default__
+}
+
 func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
 	return BodyPlaintext{
 		Version__: BodyPlaintextVersion_V1,
 		V1__:      &v,
+	}
+}
+
+func NewBodyPlaintextDefault(version BodyPlaintextVersion, v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: version,
+		Default__: &v,
 	}
 }
 

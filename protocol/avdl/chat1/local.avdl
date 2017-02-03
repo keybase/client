@@ -36,7 +36,7 @@ protocol local {
     int height;
     int durationMs;
   }
-  
+
   record AssetMetadataAudio {
     int durationMs;
   }
@@ -54,7 +54,7 @@ protocol local {
     case VIDEO: AssetMetadataVideo;
     case AUDIO: AssetMetadataAudio;
   }
-  
+
   @go("nostring")
   enum AssetTag {
     PRIMARY_0
@@ -173,6 +173,15 @@ protocol local {
     V2_2
   }
 
+  record BodyPlaintextMetaInfo {
+    boolean crit; // whether it's critical to support this message
+  }
+
+  // Every future BodyPlaintextVX needs to be a superset of this structure.
+  record BodyPlaintextUnsupported {
+    BodyPlaintextMetaInfo mi;
+  }
+
   // BodyPlaintextV1 is version 1 of BodyPlaintext.
   // The fields here cannot change.  To modify,
   // create a new record type with a new version.
@@ -184,6 +193,7 @@ protocol local {
   // versions of BodyPlaintext.
   variant BodyPlaintext switch (BodyPlaintextVersion version) {
     case V1: BodyPlaintextV1;
+    default: BodyPlaintextUnsupported;
   }
 
   record MessagePlaintext {
@@ -249,7 +259,7 @@ protocol local {
     string topicName;
     TLFVisibility visibility;
     ConversationStatus status;
-    
+
     // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;
     array<string> readerNames;
@@ -297,7 +307,7 @@ protocol local {
     array<ConversationID> supersededBy;
 
     array<MessageUnboxed> maxMessages; // the latest message for each message type
-	
+
     // Whether this conversation has no content-ful messages.
 	  boolean isEmpty;
 
@@ -316,7 +326,7 @@ protocol local {
     boolean markAsRead;
     array<MessageType> messageTypes;
     boolean disableResolveSupersedes;
-    
+
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
   }
@@ -366,7 +376,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetInboxNonblockLocalRes getInboxNonblockLocal(int sessionID, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior); 
+  GetInboxNonblockLocalRes getInboxNonblockLocal(int sessionID, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxNonblockLocalRes {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
     array<RateLimit> rateLimits;

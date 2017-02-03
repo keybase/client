@@ -558,6 +558,26 @@
     },
     {
       "type": "record",
+      "name": "BodyPlaintextMetaInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "crit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BodyPlaintextUnsupported",
+      "fields": [
+        {
+          "type": "BodyPlaintextMetaInfo",
+          "name": "mi"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BodyPlaintextV1",
       "fields": [
         {
@@ -580,6 +600,12 @@
             "def": false
           },
           "body": "BodyPlaintextV1"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": "BodyPlaintextUnsupported"
         }
       ]
     },
