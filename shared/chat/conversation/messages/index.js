@@ -12,7 +12,6 @@ import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMa
 type Options = {
   message: Message,
   includeHeader: boolean,
-  index: number,
   key: string,
   isFirstNewMessage: boolean,
   style: Object,

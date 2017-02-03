@@ -289,7 +289,7 @@ class ConversationList extends Component<void, Props, State> {
     const clientRect = event.target.getBoundingClientRect()
 
     const messageNode = this._findMessageFromDOMNode(event.target)
-    const messageRect = messageNode && messageNode.getClientRects()[0]
+    const messageRect = messageNode && this._domNodeToRect(messageNode)
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
     const x = clientRect.left - 205
@@ -407,6 +407,41 @@ class ConversationList extends Component<void, Props, State> {
   _handleListClick = () => {
     if (window.getSelection().isCollapsed) {
       this.props.onFocusInput()
+    }
+  }
+
+  _domNodeToRect (element) {
+    const bodyRect = document.body.getBoundingClientRect()
+    const elemRect = element.getBoundingClientRect()
+
+    return {
+      height: elemRect.height,
+      left: elemRect.left - bodyRect.left,
+      top: elemRect.top - bodyRect.top,
+      width: elemRect.width,
+    }
+  }
+
+  onEditLastMessage = () => {
+    if (!this._list) {
+      return
+    }
+
+    const entry: any = this.state.messages.findLastEntry(m => m.type === 'Text' && m.author === this.props.you)
+    if (entry) {
+      const idx: number = entry[0]
+      const message: TextMessage = entry[1]
+      this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: idx})
+      const listNode = ReactDOM.findDOMNode(this._list)
+      if (listNode) {
+        const messageNodes = listNode.querySelectorAll(`[data-message-key="${message.key}"]`)
+        if (messageNodes) {
+          const messageNode = messageNodes[0]
+          if (messageNode) {
+            this._showEditor(message, this._domNodeToRect(messageNode))
+          }
+        }
+      }
     }
   }
 
