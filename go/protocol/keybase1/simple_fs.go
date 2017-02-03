@@ -213,32 +213,50 @@ func (e AsyncOps) String() string {
 	return ""
 }
 
-type ListRemoveArgs struct {
+type ListArgs struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Path Path `codec:"path" json:"path"`
 }
 
-type ReadWriteArgs struct {
+type RemoveArgs struct {
+	OpID OpID `codec:"opID" json:"opID"`
+	Path Path `codec:"path" json:"path"`
+}
+
+type ReadArgs struct {
+	OpID   OpID `codec:"opID" json:"opID"`
+	Path   Path `codec:"path" json:"path"`
+	Offset int  `codec:"offset" json:"offset"`
+	Size   int  `codec:"size" json:"size"`
+}
+
+type WriteArgs struct {
 	OpID   OpID `codec:"opID" json:"opID"`
 	Path   Path `codec:"path" json:"path"`
 	Offset int  `codec:"offset" json:"offset"`
 }
 
-type CopyMoveArgs struct {
+type CopyArgs struct {
+	OpID OpID `codec:"opID" json:"opID"`
+	Src  Path `codec:"src" json:"src"`
+	Dest Path `codec:"dest" json:"dest"`
+}
+
+type MoveArgs struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Src  Path `codec:"src" json:"src"`
 	Dest Path `codec:"dest" json:"dest"`
 }
 
 type OpDescription struct {
-	AsyncOp__       AsyncOps        `codec:"asyncOp" json:"asyncOp"`
-	List__          *ListRemoveArgs `codec:"list,omitempty" json:"list,omitempty"`
-	ListRecursive__ *ListRemoveArgs `codec:"listRecursive,omitempty" json:"listRecursive,omitempty"`
-	Read__          *ReadWriteArgs  `codec:"read,omitempty" json:"read,omitempty"`
-	Write__         *ReadWriteArgs  `codec:"write,omitempty" json:"write,omitempty"`
-	Copy__          *CopyMoveArgs   `codec:"copy,omitempty" json:"copy,omitempty"`
-	Move__          *CopyMoveArgs   `codec:"move,omitempty" json:"move,omitempty"`
-	Remove__        *ListRemoveArgs `codec:"remove,omitempty" json:"remove,omitempty"`
+	AsyncOp__       AsyncOps    `codec:"asyncOp" json:"asyncOp"`
+	List__          *ListArgs   `codec:"list,omitempty" json:"list,omitempty"`
+	ListRecursive__ *ListArgs   `codec:"listRecursive,omitempty" json:"listRecursive,omitempty"`
+	Read__          *ReadArgs   `codec:"read,omitempty" json:"read,omitempty"`
+	Write__         *WriteArgs  `codec:"write,omitempty" json:"write,omitempty"`
+	Copy__          *CopyArgs   `codec:"copy,omitempty" json:"copy,omitempty"`
+	Move__          *MoveArgs   `codec:"move,omitempty" json:"move,omitempty"`
+	Remove__        *RemoveArgs `codec:"remove,omitempty" json:"remove,omitempty"`
 }
 
 func (o *OpDescription) AsyncOp() (ret AsyncOps, err error) {
@@ -282,204 +300,204 @@ func (o *OpDescription) AsyncOp() (ret AsyncOps, err error) {
 	return o.AsyncOp__, nil
 }
 
-func (o OpDescription) List() ListRemoveArgs {
+func (o OpDescription) List() ListArgs {
 	if o.AsyncOp__ != AsyncOps_LIST {
 		panic("wrong case accessed")
 	}
 	if o.List__ == nil {
-		return ListRemoveArgs{}
+		return ListArgs{}
 	}
 	return *o.List__
 }
 
-func (o OpDescription) ListRecursive() ListRemoveArgs {
+func (o OpDescription) ListRecursive() ListArgs {
 	if o.AsyncOp__ != AsyncOps_LIST_RECURSIVE {
 		panic("wrong case accessed")
 	}
 	if o.ListRecursive__ == nil {
-		return ListRemoveArgs{}
+		return ListArgs{}
 	}
 	return *o.ListRecursive__
 }
 
-func (o OpDescription) Read() ReadWriteArgs {
+func (o OpDescription) Read() ReadArgs {
 	if o.AsyncOp__ != AsyncOps_READ {
 		panic("wrong case accessed")
 	}
 	if o.Read__ == nil {
-		return ReadWriteArgs{}
+		return ReadArgs{}
 	}
 	return *o.Read__
 }
 
-func (o OpDescription) Write() ReadWriteArgs {
+func (o OpDescription) Write() WriteArgs {
 	if o.AsyncOp__ != AsyncOps_WRITE {
 		panic("wrong case accessed")
 	}
 	if o.Write__ == nil {
-		return ReadWriteArgs{}
+		return WriteArgs{}
 	}
 	return *o.Write__
 }
 
-func (o OpDescription) Copy() CopyMoveArgs {
+func (o OpDescription) Copy() CopyArgs {
 	if o.AsyncOp__ != AsyncOps_COPY {
 		panic("wrong case accessed")
 	}
 	if o.Copy__ == nil {
-		return CopyMoveArgs{}
+		return CopyArgs{}
 	}
 	return *o.Copy__
 }
 
-func (o OpDescription) Move() CopyMoveArgs {
+func (o OpDescription) Move() MoveArgs {
 	if o.AsyncOp__ != AsyncOps_MOVE {
 		panic("wrong case accessed")
 	}
 	if o.Move__ == nil {
-		return CopyMoveArgs{}
+		return MoveArgs{}
 	}
 	return *o.Move__
 }
 
-func (o OpDescription) Remove() ListRemoveArgs {
+func (o OpDescription) Remove() RemoveArgs {
 	if o.AsyncOp__ != AsyncOps_REMOVE {
 		panic("wrong case accessed")
 	}
 	if o.Remove__ == nil {
-		return ListRemoveArgs{}
+		return RemoveArgs{}
 	}
 	return *o.Remove__
 }
 
-func NewOpDescriptionWithList(v ListRemoveArgs) OpDescription {
+func NewOpDescriptionWithList(v ListArgs) OpDescription {
 	return OpDescription{
 		AsyncOp__: AsyncOps_LIST,
 		List__:    &v,
 	}
 }
 
-func NewOpDescriptionWithListRecursive(v ListRemoveArgs) OpDescription {
+func NewOpDescriptionWithListRecursive(v ListArgs) OpDescription {
 	return OpDescription{
 		AsyncOp__:       AsyncOps_LIST_RECURSIVE,
 		ListRecursive__: &v,
 	}
 }
 
-func NewOpDescriptionWithRead(v ReadWriteArgs) OpDescription {
+func NewOpDescriptionWithRead(v ReadArgs) OpDescription {
 	return OpDescription{
 		AsyncOp__: AsyncOps_READ,
 		Read__:    &v,
 	}
 }
 
-func NewOpDescriptionWithWrite(v ReadWriteArgs) OpDescription {
+func NewOpDescriptionWithWrite(v WriteArgs) OpDescription {
 	return OpDescription{
 		AsyncOp__: AsyncOps_WRITE,
 		Write__:   &v,
 	}
 }
 
-func NewOpDescriptionWithCopy(v CopyMoveArgs) OpDescription {
+func NewOpDescriptionWithCopy(v CopyArgs) OpDescription {
 	return OpDescription{
 		AsyncOp__: AsyncOps_COPY,
 		Copy__:    &v,
 	}
 }
 
-func NewOpDescriptionWithMove(v CopyMoveArgs) OpDescription {
+func NewOpDescriptionWithMove(v MoveArgs) OpDescription {
 	return OpDescription{
 		AsyncOp__: AsyncOps_MOVE,
 		Move__:    &v,
 	}
 }
 
-func NewOpDescriptionWithRemove(v ListRemoveArgs) OpDescription {
+func NewOpDescriptionWithRemove(v RemoveArgs) OpDescription {
 	return OpDescription{
 		AsyncOp__: AsyncOps_REMOVE,
 		Remove__:  &v,
 	}
 }
 
-type SfListArg struct {
+type SimpleFSListArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Path Path `codec:"path" json:"path"`
 }
 
-type SfListRecursiveArg struct {
+type SimpleFSListRecursiveArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Path Path `codec:"path" json:"path"`
 }
 
-type SfReadListArg struct {
+type SimpleFSReadListArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SfCopyArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Src  Path `codec:"src" json:"src"`
-	Dest Path `codec:"dest" json:"dest"`
-}
-
-type SfCopyRecursiveArg struct {
+type SimpleFSCopyArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Src  Path `codec:"src" json:"src"`
 	Dest Path `codec:"dest" json:"dest"`
 }
 
-type SfMoveArg struct {
+type SimpleFSCopyRecursiveArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Src  Path `codec:"src" json:"src"`
 	Dest Path `codec:"dest" json:"dest"`
 }
 
-type SfRenameArg struct {
+type SimpleFSMoveArg struct {
+	OpID OpID `codec:"opID" json:"opID"`
 	Src  Path `codec:"src" json:"src"`
 	Dest Path `codec:"dest" json:"dest"`
 }
 
-type SfOpenArg struct {
+type SimpleFSRenameArg struct {
+	Src  Path `codec:"src" json:"src"`
+	Dest Path `codec:"dest" json:"dest"`
+}
+
+type SimpleFSOpenArg struct {
 	OpID  OpID      `codec:"opID" json:"opID"`
 	Dest  Path      `codec:"dest" json:"dest"`
 	Flags OpenFlags `codec:"flags" json:"flags"`
 }
 
-type SfReadArg struct {
+type SimpleFSReadArg struct {
 	OpID   OpID `codec:"opID" json:"opID"`
 	Offset int  `codec:"offset" json:"offset"`
 	Size   int  `codec:"size" json:"size"`
 }
 
-type SfWriteArg struct {
+type SimpleFSWriteArg struct {
 	OpID    OpID   `codec:"opID" json:"opID"`
 	Offset  int    `codec:"offset" json:"offset"`
 	Content []byte `codec:"content" json:"content"`
 }
 
-type SfRemoveArg struct {
+type SimpleFSRemoveArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Path Path `codec:"path" json:"path"`
 }
 
-type SfStatArg struct {
+type SimpleFSStatArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
-type SfMakeOpidArg struct {
+type SimpleFSMakeOpidArg struct {
 }
 
-type SfCloseArg struct {
+type SimpleFSCloseArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SfCheckArg struct {
+type SimpleFSCheckArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
-type SfGetOpsArg struct {
+type SimpleFSGetOpsArg struct {
 }
 
-type SfWaitArg struct {
+type SimpleFSWaitArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
@@ -487,312 +505,312 @@ type SimpleFSInterface interface {
 	// Begin list of items in directory at path
 	// Retrieve results with readList()
 	// Can be a single file to get flags/status
-	SfList(context.Context, SfListArg) error
+	SimpleFSList(context.Context, SimpleFSListArg) error
 	// Begin recursive list of items in directory at path
-	SfListRecursive(context.Context, SfListRecursiveArg) error
+	SimpleFSListRecursive(context.Context, SimpleFSListRecursiveArg) error
 	// Get list of Paths in progress. Can indicate status of pending
 	// to get more entries.
-	SfReadList(context.Context, OpID) (SfListResult, error)
+	SimpleFSReadList(context.Context, OpID) (SfListResult, error)
 	// Begin copy of file or directory
-	SfCopy(context.Context, SfCopyArg) error
+	SimpleFSCopy(context.Context, SimpleFSCopyArg) error
 	// Begin recursive copy of directory
-	SfCopyRecursive(context.Context, SfCopyRecursiveArg) error
+	SimpleFSCopyRecursive(context.Context, SimpleFSCopyRecursiveArg) error
 	// Begin move of file or directory, from/to KBFS only
-	SfMove(context.Context, SfMoveArg) error
+	SimpleFSMove(context.Context, SimpleFSMoveArg) error
 	// Rename file or directory, KBFS side only
-	SfRename(context.Context, SfRenameArg) error
+	SimpleFSRename(context.Context, SimpleFSRenameArg) error
 	// Create/open a file and leave it open
 	// or create a directory
 	// or set the executable bit on an existing file.
 	// Files must be closed afterwards.
-	SfOpen(context.Context, SfOpenArg) error
+	SimpleFSOpen(context.Context, SimpleFSOpenArg) error
 	// Read (possibly partial) contents of open file,
 	// up to the amount specified by size.
 	// Repeat until zero bytes are returned or error.
 	// If size is zero, read an arbitrary amount.
-	SfRead(context.Context, SfReadArg) (FileContent, error)
+	SimpleFSRead(context.Context, SimpleFSReadArg) (FileContent, error)
 	// Append content to opened file.
 	// May be repeated until OpID is closed.
-	SfWrite(context.Context, SfWriteArg) error
+	SimpleFSWrite(context.Context, SimpleFSWriteArg) error
 	// Remove file or directory from filesystem
-	SfRemove(context.Context, SfRemoveArg) error
+	SimpleFSRemove(context.Context, SimpleFSRemoveArg) error
 	// Get info about file
-	SfStat(context.Context, Path) (Dirent, error)
+	SimpleFSStat(context.Context, Path) (Dirent, error)
 	// Convenience helper for generating new random value
-	SfMakeOpid(context.Context) (OpID, error)
+	SimpleFSMakeOpid(context.Context) (OpID, error)
 	// Close OpID, cancels any pending operation.
 	// Must be called after list/copy/remove
-	SfClose(context.Context, OpID) error
+	SimpleFSClose(context.Context, OpID) error
 	// Check progress of pending operation
-	SfCheck(context.Context, OpID) (Progress, error)
+	SimpleFSCheck(context.Context, OpID) (Progress, error)
 	// Get all the outstanding operations
-	SfGetOps(context.Context) ([]OpDescription, error)
+	SimpleFSGetOps(context.Context) ([]OpDescription, error)
 	// Blocking wait for the pending operation to finish
-	SfWait(context.Context, OpID) error
+	SimpleFSWait(context.Context, OpID) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.SimpleFS",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"sfList": {
+			"simpleFSList": {
 				MakeArg: func() interface{} {
-					ret := make([]SfListArg, 1)
+					ret := make([]SimpleFSListArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfListArg)
+					typedArgs, ok := args.(*[]SimpleFSListArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfListArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSListArg)(nil), args)
 						return
 					}
-					err = i.SfList(ctx, (*typedArgs)[0])
+					err = i.SimpleFSList(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfListRecursive": {
+			"simpleFSListRecursive": {
 				MakeArg: func() interface{} {
-					ret := make([]SfListRecursiveArg, 1)
+					ret := make([]SimpleFSListRecursiveArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfListRecursiveArg)
+					typedArgs, ok := args.(*[]SimpleFSListRecursiveArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfListRecursiveArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSListRecursiveArg)(nil), args)
 						return
 					}
-					err = i.SfListRecursive(ctx, (*typedArgs)[0])
+					err = i.SimpleFSListRecursive(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfReadList": {
+			"simpleFSReadList": {
 				MakeArg: func() interface{} {
-					ret := make([]SfReadListArg, 1)
+					ret := make([]SimpleFSReadListArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfReadListArg)
+					typedArgs, ok := args.(*[]SimpleFSReadListArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfReadListArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSReadListArg)(nil), args)
 						return
 					}
-					ret, err = i.SfReadList(ctx, (*typedArgs)[0].OpID)
+					ret, err = i.SimpleFSReadList(ctx, (*typedArgs)[0].OpID)
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfCopy": {
+			"simpleFSCopy": {
 				MakeArg: func() interface{} {
-					ret := make([]SfCopyArg, 1)
+					ret := make([]SimpleFSCopyArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfCopyArg)
+					typedArgs, ok := args.(*[]SimpleFSCopyArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfCopyArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSCopyArg)(nil), args)
 						return
 					}
-					err = i.SfCopy(ctx, (*typedArgs)[0])
+					err = i.SimpleFSCopy(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfCopyRecursive": {
+			"simpleFSCopyRecursive": {
 				MakeArg: func() interface{} {
-					ret := make([]SfCopyRecursiveArg, 1)
+					ret := make([]SimpleFSCopyRecursiveArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfCopyRecursiveArg)
+					typedArgs, ok := args.(*[]SimpleFSCopyRecursiveArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfCopyRecursiveArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSCopyRecursiveArg)(nil), args)
 						return
 					}
-					err = i.SfCopyRecursive(ctx, (*typedArgs)[0])
+					err = i.SimpleFSCopyRecursive(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfMove": {
+			"simpleFSMove": {
 				MakeArg: func() interface{} {
-					ret := make([]SfMoveArg, 1)
+					ret := make([]SimpleFSMoveArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfMoveArg)
+					typedArgs, ok := args.(*[]SimpleFSMoveArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfMoveArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSMoveArg)(nil), args)
 						return
 					}
-					err = i.SfMove(ctx, (*typedArgs)[0])
+					err = i.SimpleFSMove(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfRename": {
+			"simpleFSRename": {
 				MakeArg: func() interface{} {
-					ret := make([]SfRenameArg, 1)
+					ret := make([]SimpleFSRenameArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfRenameArg)
+					typedArgs, ok := args.(*[]SimpleFSRenameArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfRenameArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSRenameArg)(nil), args)
 						return
 					}
-					err = i.SfRename(ctx, (*typedArgs)[0])
+					err = i.SimpleFSRename(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfOpen": {
+			"simpleFSOpen": {
 				MakeArg: func() interface{} {
-					ret := make([]SfOpenArg, 1)
+					ret := make([]SimpleFSOpenArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfOpenArg)
+					typedArgs, ok := args.(*[]SimpleFSOpenArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfOpenArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSOpenArg)(nil), args)
 						return
 					}
-					err = i.SfOpen(ctx, (*typedArgs)[0])
+					err = i.SimpleFSOpen(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfRead": {
+			"simpleFSRead": {
 				MakeArg: func() interface{} {
-					ret := make([]SfReadArg, 1)
+					ret := make([]SimpleFSReadArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfReadArg)
+					typedArgs, ok := args.(*[]SimpleFSReadArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfReadArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSReadArg)(nil), args)
 						return
 					}
-					ret, err = i.SfRead(ctx, (*typedArgs)[0])
+					ret, err = i.SimpleFSRead(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfWrite": {
+			"simpleFSWrite": {
 				MakeArg: func() interface{} {
-					ret := make([]SfWriteArg, 1)
+					ret := make([]SimpleFSWriteArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfWriteArg)
+					typedArgs, ok := args.(*[]SimpleFSWriteArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfWriteArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSWriteArg)(nil), args)
 						return
 					}
-					err = i.SfWrite(ctx, (*typedArgs)[0])
+					err = i.SimpleFSWrite(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfRemove": {
+			"simpleFSRemove": {
 				MakeArg: func() interface{} {
-					ret := make([]SfRemoveArg, 1)
+					ret := make([]SimpleFSRemoveArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfRemoveArg)
+					typedArgs, ok := args.(*[]SimpleFSRemoveArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfRemoveArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSRemoveArg)(nil), args)
 						return
 					}
-					err = i.SfRemove(ctx, (*typedArgs)[0])
+					err = i.SimpleFSRemove(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfStat": {
+			"simpleFSStat": {
 				MakeArg: func() interface{} {
-					ret := make([]SfStatArg, 1)
+					ret := make([]SimpleFSStatArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfStatArg)
+					typedArgs, ok := args.(*[]SimpleFSStatArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfStatArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSStatArg)(nil), args)
 						return
 					}
-					ret, err = i.SfStat(ctx, (*typedArgs)[0].Path)
+					ret, err = i.SimpleFSStat(ctx, (*typedArgs)[0].Path)
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfMakeOpid": {
+			"simpleFSMakeOpid": {
 				MakeArg: func() interface{} {
-					ret := make([]SfMakeOpidArg, 1)
+					ret := make([]SimpleFSMakeOpidArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SfMakeOpid(ctx)
+					ret, err = i.SimpleFSMakeOpid(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfClose": {
+			"simpleFSClose": {
 				MakeArg: func() interface{} {
-					ret := make([]SfCloseArg, 1)
+					ret := make([]SimpleFSCloseArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfCloseArg)
+					typedArgs, ok := args.(*[]SimpleFSCloseArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfCloseArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSCloseArg)(nil), args)
 						return
 					}
-					err = i.SfClose(ctx, (*typedArgs)[0].OpID)
+					err = i.SimpleFSClose(ctx, (*typedArgs)[0].OpID)
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfCheck": {
+			"simpleFSCheck": {
 				MakeArg: func() interface{} {
-					ret := make([]SfCheckArg, 1)
+					ret := make([]SimpleFSCheckArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfCheckArg)
+					typedArgs, ok := args.(*[]SimpleFSCheckArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfCheckArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSCheckArg)(nil), args)
 						return
 					}
-					ret, err = i.SfCheck(ctx, (*typedArgs)[0].OpID)
+					ret, err = i.SimpleFSCheck(ctx, (*typedArgs)[0].OpID)
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfGetOps": {
+			"simpleFSGetOps": {
 				MakeArg: func() interface{} {
-					ret := make([]SfGetOpsArg, 1)
+					ret := make([]SimpleFSGetOpsArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SfGetOps(ctx)
+					ret, err = i.SimpleFSGetOps(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"sfWait": {
+			"simpleFSWait": {
 				MakeArg: func() interface{} {
-					ret := make([]SfWaitArg, 1)
+					ret := make([]SimpleFSWaitArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SfWaitArg)
+					typedArgs, ok := args.(*[]SimpleFSWaitArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SfWaitArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSWaitArg)(nil), args)
 						return
 					}
-					err = i.SfWait(ctx, (*typedArgs)[0].OpID)
+					err = i.SimpleFSWait(ctx, (*typedArgs)[0].OpID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -808,46 +826,46 @@ type SimpleFSClient struct {
 // Begin list of items in directory at path
 // Retrieve results with readList()
 // Can be a single file to get flags/status
-func (c SimpleFSClient) SfList(ctx context.Context, __arg SfListArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfList", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSList(ctx context.Context, __arg SimpleFSListArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSList", []interface{}{__arg}, nil)
 	return
 }
 
 // Begin recursive list of items in directory at path
-func (c SimpleFSClient) SfListRecursive(ctx context.Context, __arg SfListRecursiveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfListRecursive", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSListRecursive(ctx context.Context, __arg SimpleFSListRecursiveArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSListRecursive", []interface{}{__arg}, nil)
 	return
 }
 
 // Get list of Paths in progress. Can indicate status of pending
 // to get more entries.
-func (c SimpleFSClient) SfReadList(ctx context.Context, opID OpID) (res SfListResult, err error) {
-	__arg := SfReadListArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfReadList", []interface{}{__arg}, &res)
+func (c SimpleFSClient) SimpleFSReadList(ctx context.Context, opID OpID) (res SfListResult, err error) {
+	__arg := SimpleFSReadListArg{OpID: opID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReadList", []interface{}{__arg}, &res)
 	return
 }
 
 // Begin copy of file or directory
-func (c SimpleFSClient) SfCopy(ctx context.Context, __arg SfCopyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfCopy", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSCopy(ctx context.Context, __arg SimpleFSCopyArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopy", []interface{}{__arg}, nil)
 	return
 }
 
 // Begin recursive copy of directory
-func (c SimpleFSClient) SfCopyRecursive(ctx context.Context, __arg SfCopyRecursiveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfCopyRecursive", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSCopyRecursive(ctx context.Context, __arg SimpleFSCopyRecursiveArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCopyRecursive", []interface{}{__arg}, nil)
 	return
 }
 
 // Begin move of file or directory, from/to KBFS only
-func (c SimpleFSClient) SfMove(ctx context.Context, __arg SfMoveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfMove", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSMove(ctx context.Context, __arg SimpleFSMoveArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMove", []interface{}{__arg}, nil)
 	return
 }
 
 // Rename file or directory, KBFS side only
-func (c SimpleFSClient) SfRename(ctx context.Context, __arg SfRenameArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfRename", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSRename(ctx context.Context, __arg SimpleFSRenameArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRename", []interface{}{__arg}, nil)
 	return
 }
 
@@ -855,8 +873,8 @@ func (c SimpleFSClient) SfRename(ctx context.Context, __arg SfRenameArg) (err er
 // or create a directory
 // or set the executable bit on an existing file.
 // Files must be closed afterwards.
-func (c SimpleFSClient) SfOpen(ctx context.Context, __arg SfOpenArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfOpen", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSOpen(ctx context.Context, __arg SimpleFSOpenArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSOpen", []interface{}{__arg}, nil)
 	return
 }
 
@@ -864,61 +882,61 @@ func (c SimpleFSClient) SfOpen(ctx context.Context, __arg SfOpenArg) (err error)
 // up to the amount specified by size.
 // Repeat until zero bytes are returned or error.
 // If size is zero, read an arbitrary amount.
-func (c SimpleFSClient) SfRead(ctx context.Context, __arg SfReadArg) (res FileContent, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfRead", []interface{}{__arg}, &res)
+func (c SimpleFSClient) SimpleFSRead(ctx context.Context, __arg SimpleFSReadArg) (res FileContent, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRead", []interface{}{__arg}, &res)
 	return
 }
 
 // Append content to opened file.
 // May be repeated until OpID is closed.
-func (c SimpleFSClient) SfWrite(ctx context.Context, __arg SfWriteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfWrite", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSWrite(ctx context.Context, __arg SimpleFSWriteArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSWrite", []interface{}{__arg}, nil)
 	return
 }
 
 // Remove file or directory from filesystem
-func (c SimpleFSClient) SfRemove(ctx context.Context, __arg SfRemoveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfRemove", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSRemove(ctx context.Context, __arg SimpleFSRemoveArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRemove", []interface{}{__arg}, nil)
 	return
 }
 
 // Get info about file
-func (c SimpleFSClient) SfStat(ctx context.Context, path Path) (res Dirent, err error) {
-	__arg := SfStatArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfStat", []interface{}{__arg}, &res)
+func (c SimpleFSClient) SimpleFSStat(ctx context.Context, path Path) (res Dirent, err error) {
+	__arg := SimpleFSStatArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStat", []interface{}{__arg}, &res)
 	return
 }
 
 // Convenience helper for generating new random value
-func (c SimpleFSClient) SfMakeOpid(ctx context.Context) (res OpID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfMakeOpid", []interface{}{SfMakeOpidArg{}}, &res)
+func (c SimpleFSClient) SimpleFSMakeOpid(ctx context.Context) (res OpID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSMakeOpid", []interface{}{SimpleFSMakeOpidArg{}}, &res)
 	return
 }
 
 // Close OpID, cancels any pending operation.
 // Must be called after list/copy/remove
-func (c SimpleFSClient) SfClose(ctx context.Context, opID OpID) (err error) {
-	__arg := SfCloseArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfClose", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSClose(ctx context.Context, opID OpID) (err error) {
+	__arg := SimpleFSCloseArg{OpID: opID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSClose", []interface{}{__arg}, nil)
 	return
 }
 
 // Check progress of pending operation
-func (c SimpleFSClient) SfCheck(ctx context.Context, opID OpID) (res Progress, err error) {
-	__arg := SfCheckArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfCheck", []interface{}{__arg}, &res)
+func (c SimpleFSClient) SimpleFSCheck(ctx context.Context, opID OpID) (res Progress, err error) {
+	__arg := SimpleFSCheckArg{OpID: opID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheck", []interface{}{__arg}, &res)
 	return
 }
 
 // Get all the outstanding operations
-func (c SimpleFSClient) SfGetOps(ctx context.Context) (res []OpDescription, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfGetOps", []interface{}{SfGetOpsArg{}}, &res)
+func (c SimpleFSClient) SimpleFSGetOps(ctx context.Context) (res []OpDescription, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetOps", []interface{}{SimpleFSGetOpsArg{}}, &res)
 	return
 }
 
 // Blocking wait for the pending operation to finish
-func (c SimpleFSClient) SfWait(ctx context.Context, opID OpID) (err error) {
-	__arg := SfWaitArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.sfWait", []interface{}{__arg}, nil)
+func (c SimpleFSClient) SimpleFSWait(ctx context.Context, opID OpID) (err error) {
+	__arg := SimpleFSWaitArg{OpID: opID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSWait", []interface{}{__arg}, nil)
 	return
 }

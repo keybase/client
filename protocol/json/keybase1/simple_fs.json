@@ -142,7 +142,7 @@
     },
     {
       "type": "record",
-      "name": "ListRemoveArgs",
+      "name": "ListArgs",
       "fields": [
         {
           "type": "OpID",
@@ -156,7 +156,43 @@
     },
     {
       "type": "record",
-      "name": "ReadWriteArgs",
+      "name": "RemoveArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "int",
+          "name": "offset"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WriteArgs",
       "fields": [
         {
           "type": "OpID",
@@ -174,7 +210,25 @@
     },
     {
       "type": "record",
-      "name": "CopyMoveArgs",
+      "name": "CopyArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "src"
+        },
+        {
+          "type": "Path",
+          "name": "dest"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MoveArgs",
       "fields": [
         {
           "type": "OpID",
@@ -203,55 +257,55 @@
             "name": "LIST",
             "def": false
           },
-          "body": "ListRemoveArgs"
+          "body": "ListArgs"
         },
         {
           "label": {
             "name": "LIST_RECURSIVE",
             "def": false
           },
-          "body": "ListRemoveArgs"
+          "body": "ListArgs"
         },
         {
           "label": {
             "name": "READ",
             "def": false
           },
-          "body": "ReadWriteArgs"
+          "body": "ReadArgs"
         },
         {
           "label": {
             "name": "WRITE",
             "def": false
           },
-          "body": "ReadWriteArgs"
+          "body": "WriteArgs"
         },
         {
           "label": {
             "name": "COPY",
             "def": false
           },
-          "body": "CopyMoveArgs"
+          "body": "CopyArgs"
         },
         {
           "label": {
             "name": "MOVE",
             "def": false
           },
-          "body": "CopyMoveArgs"
+          "body": "MoveArgs"
         },
         {
           "label": {
             "name": "REMOVE",
             "def": false
           },
-          "body": "ListRemoveArgs"
+          "body": "RemoveArgs"
         }
       ]
     }
   ],
   "messages": {
-    "sfList": {
+    "simpleFSList": {
       "request": [
         {
           "name": "opID",
@@ -265,7 +319,7 @@
       "response": null,
       "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
     },
-    "sfListRecursive": {
+    "simpleFSListRecursive": {
       "request": [
         {
           "name": "opID",
@@ -279,7 +333,7 @@
       "response": null,
       "doc": "Begin recursive list of items in directory at path"
     },
-    "sfReadList": {
+    "simpleFSReadList": {
       "request": [
         {
           "name": "opID",
@@ -289,7 +343,7 @@
       "response": "SfListResult",
       "doc": "Get list of Paths in progress. Can indicate status of pending\n   to get more entries."
     },
-    "sfCopy": {
+    "simpleFSCopy": {
       "request": [
         {
           "name": "opID",
@@ -307,7 +361,7 @@
       "response": null,
       "doc": "Begin copy of file or directory"
     },
-    "sfCopyRecursive": {
+    "simpleFSCopyRecursive": {
       "request": [
         {
           "name": "opID",
@@ -325,7 +379,7 @@
       "response": null,
       "doc": "Begin recursive copy of directory"
     },
-    "sfMove": {
+    "simpleFSMove": {
       "request": [
         {
           "name": "opID",
@@ -343,7 +397,7 @@
       "response": null,
       "doc": "Begin move of file or directory, from/to KBFS only"
     },
-    "sfRename": {
+    "simpleFSRename": {
       "request": [
         {
           "name": "src",
@@ -357,7 +411,7 @@
       "response": null,
       "doc": "Rename file or directory, KBFS side only"
     },
-    "sfOpen": {
+    "simpleFSOpen": {
       "request": [
         {
           "name": "opID",
@@ -375,7 +429,7 @@
       "response": null,
       "doc": "Create/open a file and leave it open\n   or create a directory\n   or set the executable bit on an existing file.\n   Files must be closed afterwards."
     },
-    "sfRead": {
+    "simpleFSRead": {
       "request": [
         {
           "name": "opID",
@@ -393,7 +447,7 @@
       "response": "FileContent",
       "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   Repeat until zero bytes are returned or error.\n   If size is zero, read an arbitrary amount."
     },
-    "sfWrite": {
+    "simpleFSWrite": {
       "request": [
         {
           "name": "opID",
@@ -411,7 +465,7 @@
       "response": null,
       "doc": "Append content to opened file.\n   May be repeated until OpID is closed."
     },
-    "sfRemove": {
+    "simpleFSRemove": {
       "request": [
         {
           "name": "opID",
@@ -425,7 +479,7 @@
       "response": null,
       "doc": "Remove file or directory from filesystem"
     },
-    "sfStat": {
+    "simpleFSStat": {
       "request": [
         {
           "name": "path",
@@ -435,12 +489,12 @@
       "response": "Dirent",
       "doc": "Get info about file"
     },
-    "sfMakeOpid": {
+    "simpleFSMakeOpid": {
       "request": [],
       "response": "OpID",
       "doc": "Convenience helper for generating new random value"
     },
-    "sfClose": {
+    "simpleFSClose": {
       "request": [
         {
           "name": "opID",
@@ -450,7 +504,7 @@
       "response": null,
       "doc": "Close OpID, cancels any pending operation.\n   Must be called after list/copy/remove"
     },
-    "sfCheck": {
+    "simpleFSCheck": {
       "request": [
         {
           "name": "opID",
@@ -460,7 +514,7 @@
       "response": "Progress",
       "doc": "Check progress of pending operation"
     },
-    "sfGetOps": {
+    "simpleFSGetOps": {
       "request": [],
       "response": {
         "type": "array",
@@ -468,7 +522,7 @@
       },
       "doc": "Get all the outstanding operations"
     },
-    "sfWait": {
+    "simpleFSWait": {
       "request": [
         {
           "name": "opID",
