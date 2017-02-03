@@ -503,6 +503,6 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  FindConversationsLocalRes findConversationsLocal(string tlfName, TLFVisibility visibility, TopicType topicType, string topicName, keybase1.TLFIdentifyBehavior identifyBehavior);
+  FindConversationsLocalRes findConversationsLocal(string tlfName, TLFVisibility visibility, TopicType topicType, string topicName, union { null, bool } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 }
