@@ -62,6 +62,11 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	return nil
 }
 
+func (s *baseConversationSource) TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	transform := newSupersedesTransform(s.G())
+	return transform.run(ctx, convID, uid, msgs, finalizeInfo)
+}
+
 type RemoteConversationSource struct {
 	*baseConversationSource
 
@@ -299,7 +304,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				if err != nil {
 					return chat1.ThreadView{}, nil, err
 				}
-				if err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
+				if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
 					return chat1.ThreadView{}, nil, err
 				}
 
@@ -391,6 +396,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 	tv, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
 	if err != nil {
+		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
 	}
 

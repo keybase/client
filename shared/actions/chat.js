@@ -27,7 +27,7 @@ import * as ChatTypes from '../constants/types/flow-types-chat'
 
 import type {Action} from '../constants/types/flux'
 import type {ChangedFocus} from '../constants/window'
-import type {Asset, FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {FailedMessageInfo, IncomingMessage as IncomingMessageRPCType, MessageBody, MessageText, MessageUnboxed, OutboxRecord, ConversationLocal, GetInboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
@@ -80,6 +80,8 @@ const {
   localGetThreadLocalRpcPromise,
   localMarkAsReadLocalRpcPromise,
   localNewConversationLocalRpcPromise,
+  localPostDeleteNonblockRpcPromise,
+  localPostEditNonblockRpcPromise,
   localPostFileAttachmentLocalRpcChannelMap,
   localPostLocalNonblockRpcPromise,
   localRetryPostRpcPromise,
@@ -229,8 +231,8 @@ function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded:
   return {type: 'chat:loadMoreMessages', payload: {conversationIDKey, onlyIfUnloaded}}
 }
 
-function editMessage (message: Message): EditMessage {
-  return {type: 'chat:editMessage', payload: {message}}
+function editMessage (message: Message, text: HiddenString): EditMessage {
+  return {type: 'chat:editMessage', payload: {message, text}}
 }
 
 function deleteMessage (message: Message): DeleteMessage {
@@ -239,6 +241,9 @@ function deleteMessage (message: Message): DeleteMessage {
 
 function retryAttachment (message: Constants.AttachmentMessage): Constants.SelectAttachment {
   const {conversationIDKey, filename, title, previewType, outboxID} = message
+  if (!filename || !title || !previewType) {
+    throw new Error('attempted to retry attachment without filename')
+  }
   return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type: previewType || 'Other', outboxID}}
 }
 
@@ -399,6 +404,50 @@ function * _getPostingIdentifyBehavior (conversationIDKey: ConversationIDKey) {
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function * _editMessage (action: EditMessage): SagaGenerator<any, any> {
+  const {message} = action.payload
+  let messageID: ?MessageID
+  let conversationIDKey: ConversationIDKey = ''
+  switch (message.type) {
+    case 'Text':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+      break
+    case 'Attachment':
+      conversationIDKey = message.conversationIDKey
+      messageID = message.messageID
+      break
+  }
+
+  if (!messageID) {
+    console.warn('Editing unknown message type', message)
+    return
+  }
+
+  const clientHeader = yield call(_clientHeader, CommonMessageType.edit, conversationIDKey)
+  const conversationState = yield select(_conversationStateSelector, conversationIDKey)
+  let lastMessageID
+  if (conversationState) {
+    const message = conversationState.messages.findLast(m => !!m.messageID)
+    if (message) {
+      lastMessageID = message.messageID
+    }
+  }
+
+  yield call(localPostEditNonblockRpcPromise, {
+    param: {
+      body: action.payload.text.stringValue(),
+      clientPrev: lastMessageID,
+      conv: clientHeader.conv,
+      conversationID: keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      supersedes: messageID,
+      tlfName: clientHeader.tlfName,
+      tlfPublic: clientHeader.tlfPublic,
+    },
+  })
+}
+
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const clientHeader = yield call(_clientHeader, CommonMessageType.text, conversationIDKey)
@@ -435,6 +484,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     const message: Message = {
       type: 'Text',
       author,
+      editedCount: 0,
       outboxID,
       key: outboxID,
       timestamp: Date.now(),
@@ -499,17 +549,25 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
 
   if (messageID) {
     // Deleting a server message.
-    // TODO: Use delete message RPC call when it is available
     const clientHeader = yield call(_clientHeader, CommonMessageType.delete, conversationIDKey)
-    clientHeader.supersedes = messageID
+    const conversationState = yield select(_conversationStateSelector, conversationIDKey)
+    let lastMessageID
+    if (conversationState) {
+      const message = conversationState.messages.findLast(m => !!m.messageID)
+      if (message) {
+        lastMessageID = message.messageID
+      }
+    }
 
-    yield call(localPostLocalNonblockRpcPromise, {
+    yield call(localPostDeleteNonblockRpcPromise, {
       param: {
+        clientPrev: lastMessageID,
+        conv: clientHeader.conv,
         conversationID: keyToConversationID(conversationIDKey),
         identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        msg: {
-          clientHeader,
-        },
+        supersedes: messageID,
+        tlfName: clientHeader.tlfName,
+        tlfPublic: clientHeader.tlfPublic,
       },
     })
   } else {
@@ -644,8 +702,9 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           }
         } else {
           // How long was it between the previous message and this one?
-          if (conversationState && conversationState.messages !== null) {
+          if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
             const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
+
             const timestamp = _maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
@@ -659,6 +718,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               })
             }
           }
+
           yield put({
             logTransformer: appendMessageActionTransformer,
             payload: {
@@ -669,8 +729,12 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             type: 'chat:appendMessages',
           })
 
-          if (message.type === 'Attachment' && !message.previewPath && message.messageID) {
-            yield put(loadAttachment(conversationIDKey, message.messageID, true, false, tmpFile(_tmpFileName(false, message.conversationIDKey, message.messageID, message.filename))))
+          if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
+            const messageID = message.type === 'UpdateAttachment' ? message.targetMessageID : message.messageID
+            const filename = message.type === 'UpdateAttachment' ? message.updates.filename : message.filename
+            if (filename) {
+              yield put(loadAttachment(conversationIDKey, messageID, true, false, tmpFile(_tmpFileName(false, conversationIDKey, messageID, filename))))
+            }
           }
         }
       }
@@ -842,9 +906,15 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   yield put({type: 'chat:loadingMessages', payload: {conversationIDKey}})
 
+  // We receive the list with edit/delete/etc already applied so lets filter that out
+  const messageTypes = Object.keys(CommonMessageType).filter(k => !['edit', 'delete', 'tlfname', 'headline', 'attachmentuploaded'].includes(k)).map(k => CommonMessageType[k])
+
   const thread = yield call(localGetThreadLocalRpcPromise, {param: {
     conversationID,
-    query: {markAsRead: true},
+    query: {
+      markAsRead: true,
+      messageTypes,
+    },
     pagination: {
       next,
       num: Constants.maxMessagesToLoadAtATime,
@@ -896,7 +966,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage == null || prevMessage.type === 'Timestamp' || message.type === 'Timestamp' || message.type === 'Deleted' || message.type === 'Unhandled') {
+  if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'Edit'].includes(message.type)) {
     return null
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
@@ -911,26 +981,6 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   return null
 }
 
-const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, username: string, title: string, filename: string, outboxID: Constants.OutboxIDKey, previewType: $PropertyType<Constants.AttachmentMessage, 'previewType'>) => ({
-  type: 'Attachment',
-  timestamp: Date.now(),
-  conversationIDKey: convID,
-  followState: 'You',
-  author: username,
-  // TODO we should be able to fill this in
-  deviceName: '',
-  deviceType: isMobile ? 'mobile' : 'desktop',
-  filename,
-  title,
-  previewType,
-  previewPath: filename,
-  downloadedPath: null,
-  outboxID,
-  progress: 0, /* between 0 - 1 */
-  messageState: 'uploading',
-  key: `temp-${outboxID}`,
-})
-
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
   if (message && message.state === LocalMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
@@ -944,6 +994,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
       conversationIDKey,
       deviceName: yourDeviceName,
       deviceType: isMobile ? 'mobile' : 'desktop',
+      editedCount: 0,
       key: payload.outboxID,
       message: new HiddenString(messageText && messageText.body || ''),
       messageState,
@@ -974,25 +1025,35 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
           return {
             type: 'Text',
             ...common,
+            editedCount: payload.serverHeader.supersededBy ? 1 : 0, // mark it as edited if it's been superseded
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
             key: common.messageID,
           }
-        case CommonMessageType.attachment:
-          // $FlowIssue
-          const preview: Asset = payload.messageBody.attachment.preview
+        case CommonMessageType.attachment: {
+          if (!payload.messageBody.attachment) {
+            throw new Error('empty attachment body')
+          }
+          const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
+          const previews = attachment && attachment.previews
+          const preview = previews && previews[0]
           const mimeType = preview && preview.mimeType
           const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
+
+          let messageState
+          if (attachment.uploaded) {
+            messageState = 'sent'
+          } else {
+            messageState = common.author === common.you ? 'uploading' : 'placeholder'
+          }
 
           return {
             type: 'Attachment',
             ...common,
-            // $FlowIssue todo fix
-            filename: payload.messageBody.attachment.object.filename,
-            // $FlowIssue todo fix
-            title: payload.messageBody.attachment.object.title,
-            messageState: 'sent',
+            filename: attachment.object.filename,
+            title: attachment.object.title,
+            messageState,
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
             hdPreviewPath: null,
@@ -1000,6 +1061,32 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
             downloadedPath: null,
             key: common.messageID,
           }
+        }
+        case CommonMessageType.attachmentuploaded: {
+          if (!payload.messageBody.attachmentuploaded) {
+            throw new Error('empty attachmentuploaded body')
+          }
+          const attachmentUploaded: ChatTypes.MessageAttachmentUploaded = payload.messageBody.attachmentuploaded
+          const previews = attachmentUploaded && attachmentUploaded.previews
+          const preview = previews && previews[0]
+          const mimeType = preview && preview.mimeType
+          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
+
+          return {
+            key: common.messageID,
+            messageID: common.messageID,
+            targetMessageID: attachmentUploaded.messageID,
+            timestamp: common.timestamp,
+            type: 'UpdateAttachment',
+            updates: {
+              filename: attachmentUploaded.object.filename,
+              messageState: 'sent',
+              previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
+              previewSize,
+              title: attachmentUploaded.object.title,
+            },
+          }
+        }
         case CommonMessageType.delete:
           return {
             type: 'Deleted',
@@ -1008,6 +1095,18 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
             key: payload.serverHeader.messageID,
             deletedIDs: payload.messageBody.delete && payload.messageBody.delete.messageIDs || [],
           }
+        case CommonMessageType.edit: {
+          const outboxID = payload.clientHeader.outboxID && outboxIDToKey(payload.clientHeader.outboxID)
+          return {
+            key: common.messageID,
+            message: new HiddenString(payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body || ''),
+            messageID: common.messageID,
+            outboxID,
+            targetMessageID: payload.messageBody.edit ? payload.messageBody.edit.messageID : 0,
+            timestamp: payload.serverHeader.ctime,
+            type: 'Edit',
+          }
+        }
         default:
           const unhandled: UnhandledMessage = {
             ...common,
@@ -1187,7 +1286,59 @@ function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   })
 }
 
-function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: ChatTypes.localPostFileAttachmentLocalRpcParam, conversationIDKey: ConversationIDKey, outboxID: Constants.OutboxIDKey}) {
+const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, username: string, title: string, filename: string, outboxID: Constants.OutboxIDKey, previewType: $PropertyType<Constants.AttachmentMessage, 'previewType'>) => ({
+  type: 'Attachment',
+  timestamp: Date.now(),
+  conversationIDKey: convID,
+  followState: 'You',
+  author: username,
+  // TODO we should be able to fill this in
+  deviceName: '',
+  deviceType: isMobile ? 'mobile' : 'desktop',
+  filename,
+  title,
+  previewType,
+  previewPath: filename,
+  downloadedPath: null,
+  outboxID,
+  progress: 0,
+  messageState: 'uploading',
+  key: outboxID,
+})
+
+function * _selectAttachment ({payload: {conversationIDKey, filename, title, type}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+  const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
+  const username = yield select(usernameSelector)
+
+  yield put({
+    logTransformer: appendMessageActionTransformer,
+    payload: {
+      conversationIDKey,
+      messages: [_temporaryAttachmentMessageForUpload(
+        conversationIDKey,
+        username,
+        title,
+        filename,
+        outboxID,
+        type,
+      )],
+    },
+    type: 'chat:appendMessages',
+  })
+
+  const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
+  const attachment = {
+    filename,
+  }
+  const param = {
+    conversationID: keyToConversationID(conversationIDKey),
+    clientHeader,
+    attachment,
+    title,
+    metadata: null,
+    identifyBehavior: yield call(_getPostingIdentifyBehavior, conversationIDKey),
+  }
+
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatAttachmentUploadStart',
     'chat.1.chatUi.chatAttachmentPreviewUploadStart',
@@ -1199,11 +1350,20 @@ function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: Chat
 
   const channelMap = ((yield call(localPostFileAttachmentLocalRpcChannelMap, channelConfig, {param})): any)
 
+  const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
+  uploadStart.response.result()
+
   const finishedTask = yield fork(function * () {
     const finished = yield takeFromChannelMap(channelMap, 'finished')
     if (finished.error) {
-      console.warn('error here!!')
-      throw new Error('Error in uploading attachment ' + finished.error)
+      yield put(({
+        type: 'chat:updateTempMessage',
+        payload: {
+          conversationIDKey,
+          outboxID,
+          message: {messageState: 'failed'},
+        },
+      }: Constants.UpdateTempMessage))
     }
     return finished
   })
@@ -1217,9 +1377,6 @@ function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: Chat
     yield put(action)
     response.result()
   }), channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress')
-
-  const uploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
-  uploadStart.response.result()
 
   const previewTask = yield fork(function * () {
     const previewUploadStart = yield takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentPreviewUploadStart')
@@ -1246,49 +1403,12 @@ function * _uploadAttachment ({param, conversationIDKey, outboxID}: {param: Chat
   uploadDone.response.result()
 
   const finished = yield join(finishedTask)
-  const {params: {messageID}} = finished
   yield cancel(progressTask)
   yield cancel(previewTask)
   closeChannelMap(channelMap)
 
-  return messageID
-}
-
-function * _selectAttachment ({payload: {conversationIDKey, filename, title, type, outboxID = (Math.ceil(Math.random() * 1e9) + '')}}: Constants.SelectAttachment): SagaGenerator<any, any> {
-  const clientHeader = yield call(_clientHeader, CommonMessageType.attachment, conversationIDKey)
-  const attachment = {
-    filename,
-  }
-
-  const username = yield select(usernameSelector)
-
-  yield put({
-    logTransformer: appendMessageActionTransformer,
-    payload: {
-      conversationIDKey,
-      messages: [_temporaryAttachmentMessageForUpload(
-        conversationIDKey,
-        username,
-        title,
-        filename,
-        outboxID,
-        type,
-      )],
-    },
-    type: 'chat:appendMessages',
-  })
-
-  const param = {
-    conversationID: keyToConversationID(conversationIDKey),
-    clientHeader,
-    attachment,
-    title,
-    metadata: null,
-    identifyBehavior: yield call(_getPostingIdentifyBehavior, conversationIDKey),
-  }
-
-  try {
-    const messageID = yield call(_uploadAttachment, {param, conversationIDKey, outboxID})
+  if (!finished.error) {
+    const {params: {messageID}} = finished
     yield put(({
       type: 'chat:updateTempMessage',
       payload: {
@@ -1297,7 +1417,6 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
         message: {type: 'Attachment', messageState: 'sent', messageID, key: messageID},
       },
     }: Constants.UpdateTempMessage))
-
     yield put(({
       type: 'chat:markSeenMessage',
       payload: {
@@ -1305,16 +1424,6 @@ function * _selectAttachment ({payload: {conversationIDKey, filename, title, typ
         messageID: messageID,
       },
     }: Constants.MarkSeenMessage))
-  } catch (e) {
-    yield put(({
-      type: 'chat:updateTempMessage',
-      error: true,
-      payload: {
-        conversationIDKey,
-        outboxID,
-        error: e,
-      },
-    }: Constants.UpdateTempMessage))
   }
 }
 
@@ -1445,7 +1554,7 @@ function * _openAttachmentPopup (action: OpenAttachmentPopup): SagaGenerator<any
   }
 
   yield put(navigateAppend([{props: {messageID, conversationIDKey: message.conversationIDKey}, selected: 'attachment'}]))
-  if (!message.hdPreviewPath) {
+  if (!message.hdPreviewPath && message.filename) {
     yield put(loadAttachment(message.conversationIDKey, messageID, false, true, tmpFile(_tmpFileName(true, message.conversationIDKey, message.messageID, message.filename))))
   }
 }
@@ -1467,6 +1576,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
     safeTakeEvery('chat:newChat', _newChat),
     safeTakeEvery('chat:postMessage', _postMessage),
+    safeTakeEvery('chat:editMessage', _editMessage),
     safeTakeEvery('chat:retryMessage', _retryMessage),
     safeTakeEvery('chat:startConversation', _startConversation),
     safeTakeEvery('chat:updateMetadata', _updateMetadata),

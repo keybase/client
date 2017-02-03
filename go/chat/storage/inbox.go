@@ -22,7 +22,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 3
+const inboxVersion = 4
 
 type queryHash []byte
 
@@ -617,13 +617,13 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
 		conv.Metadata.ActiveList)
 
-	// If we are the sender, and the conv is blocked, set it back to unfiled
+	// If we are the sender, adjust the status.
 	if bytes.Equal(msg.ClientHeader.Sender.Bytes(), i.uid) &&
-		conv.Metadata.Status == chat1.ConversationStatus_BLOCKED {
+		utils.GetConversationStatusBehavior(conv.Metadata.Status).SendingRemovesStatus {
 		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
 	}
-	// If any message is posted to an ignored convo, then we set to unfiled
-	if conv.Metadata.Status == chat1.ConversationStatus_IGNORED {
+	// If we are a participant, adjust the status.
+	if utils.GetConversationStatusBehavior(conv.Metadata.Status).ActivityRemovesStatus {
 		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
 	}
 
@@ -672,8 +672,12 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 	}
 
 	// Update conv
-	conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-	conv.ReaderInfo.ReadMsgid = msgID
+	if conv.ReaderInfo.ReadMsgid < msgID {
+		i.Debug(ctx, "ReadMessage: updating mtime: readMsgID: %d msgID: %d", conv.ReaderInfo.ReadMsgid,
+			msgID)
+		conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
+		conv.ReaderInfo.ReadMsgid = msgID
+	}
 
 	// Write out to disk
 	ibox.InboxVersion = vers

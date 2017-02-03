@@ -86,11 +86,17 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 
 	var prevs []chat1.MessagePreviousPointer
 
-	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil, nil)
+	res, err := s.G().ConvSource.PullLocalOnly(ctx, convID, msg.ClientHeader.Sender, nil,
+		&chat1.Pagination{
+			Num: -1,
+		})
 	switch err.(type) {
 	case storage.MissError:
 		s.Debug(ctx, "No local messages; skipping prev pointers")
 	case nil:
+		if len(res.Messages) == 0 {
+			s.Debug(ctx, "no local messages found for prev pointers")
+		}
 		prevs, err = CheckPrevPointersAndGetUnpreved(&res)
 		if err != nil {
 			return chat1.MessagePlaintext{}, err
@@ -133,9 +139,21 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	// Get all affected edits
 	deletes := []chat1.MessageID{msg.ClientHeader.Supersedes}
 	for _, m := range tv.Messages {
-		if m.IsValid() && m.GetMessageType() == chat1.MessageType_EDIT &&
-			m.Valid().MessageBody.Edit().MessageID == msg.ClientHeader.Supersedes {
-			deletes = append(deletes, m.GetMessageID())
+		if m.IsValid() && m.GetMessageType() == chat1.MessageType_EDIT {
+			body := m.Valid().MessageBody
+			typ, err := body.MessageType()
+			if err != nil {
+				s.Debug(ctx, "getAllDeletedEdits: error getting message type: convID: %s msgID: %d err: %s", convID, m.GetMessageID(), err.Error())
+				continue
+			}
+			if typ != chat1.MessageType_EDIT {
+				s.Debug(ctx, "getAllDeletedEdits: unusual edit, mismatched types: convID: %s msgID: %d typ: %v", convID, m.GetMessageID(), typ)
+				continue
+			}
+
+			if body.Edit().MessageID == msg.ClientHeader.Supersedes {
+				deletes = append(deletes, m.GetMessageID())
+			}
 		}
 	}
 
@@ -235,7 +253,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
-	if err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
+	if _, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
 

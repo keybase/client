@@ -854,3 +854,7 @@ func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
 	}
 	return nil
 }
+
+func (s ChatConversationID) String() string {
+	return hex.EncodeToString(s)
+}

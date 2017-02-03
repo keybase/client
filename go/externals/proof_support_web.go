@@ -64,7 +64,11 @@ func (rc *WebChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.P
 		h.GetAPIURL())
 }
 
-func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, pcm libkb.ProofCheckerMode) libkb.ProofError {
+	if pcm != libkb.ProofCheckerModeActive {
+		ctx.GetLog().CDebugf(ctx.GetNetContext(), "Web check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
+		return libkb.ProofErrorUnchecked
+	}
 	if pvl.UsePvl {
 		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_GENERIC_WEB_SITE,
 			pvl.NewProofInfo(rc.proof, h))

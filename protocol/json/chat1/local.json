@@ -159,6 +159,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AssetTag",
+      "symbols": [
+        "PRIMARY_0"
+      ],
+      "go": "nostring"
+    },
+    {
       "type": "record",
       "name": "Asset",
       "fields": [
@@ -213,6 +221,10 @@
         {
           "type": "AssetMetadata",
           "name": "metadata"
+        },
+        {
+          "type": "AssetTag",
+          "name": "tag"
         }
       ]
     },
@@ -230,6 +242,42 @@
             "Asset"
           ],
           "name": "preview"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "previews"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
+        },
+        {
+          "type": "boolean",
+          "name": "uploaded"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageAttachmentUploaded",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Asset"
+          },
+          "name": "previews"
         },
         {
           "type": "bytes",
@@ -286,6 +334,13 @@
             "def": false
           },
           "body": "MessageHeadline"
+        },
+        {
+          "label": {
+            "name": "ATTACHMENTUPLOADED",
+            "def": false
+          },
+          "body": "MessageAttachmentUploaded"
         }
       ]
     },
@@ -497,7 +552,8 @@
       "type": "enum",
       "name": "BodyPlaintextVersion",
       "symbols": [
-        "V1_1"
+        "V1_1",
+        "V2_2"
       ]
     },
     {
@@ -720,9 +776,25 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ConversationErrorType",
+      "symbols": [
+        "MISC_0",
+        "MISSINGINFO_1",
+        "SELFREKEYNEEDED_2",
+        "OTHERREKEYNEEDED_3",
+        "IDENTIFY_4",
+        "LOCALMAXMESSAGENOTFOUND_5"
+      ]
+    },
+    {
       "type": "record",
       "name": "ConversationErrorLocal",
       "fields": [
+        {
+          "type": "ConversationErrorType",
+          "name": "typ"
+        },
         {
           "type": "string",
           "name": "message"
@@ -734,6 +806,48 @@
         {
           "type": "boolean",
           "name": "permanent"
+        },
+        {
+          "type": [
+            null,
+            "ConversationErrorRekey"
+          ],
+          "name": "rekeyInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationErrorRekey",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "boolean",
+          "name": "tlfPublic"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "rekeyers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writerNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "readerNames"
         }
       ]
     },
@@ -1648,6 +1762,10 @@
             "type": "array",
             "items": "MessageID"
           }
+        },
+        {
+          "name": "disableResolveSupersedes",
+          "type": "boolean"
         },
         {
           "name": "identifyBehavior",

@@ -91,14 +91,11 @@ const TopLine = ({isSelected, hasUnread, boldOverride, participants, subColor, c
   )
 }
 
-const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, boldOverride, subColor, conversation}) => {
+const BottomLine = ({participantNeedToRekey, isMuted, boldOverride, subColor, conversation}) => {
   const snippet = conversation.get('snippet')
-
   let content
 
-  if (youNeedToRekey) {
-    content = <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{alignSelf: 'flex-start', backgroundColor: globalColors.red, borderRadius: 2, color: globalColors.white, fontSize: 10, paddingLeft: 2, paddingRight: 2}}>REKEY NEEDED</Text>
-  } else if (participantNeedToRekey) {
+  if (participantNeedToRekey) {
     content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
   } else if (snippet && !isMuted) {
     content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>
@@ -181,13 +178,11 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
     return true
   }
 
-  // $FlowIssue dunno
   if (props.unreadCount !== nextProps.unreadCount) {
     return true
   }
 
-  // $FlowIssue dunno
-  if (props.rekeyInfo !== nextProps.rekeyInfo) {
+  if (props.rekeyInfos !== nextProps.rekeyInfos) {
     return true
   }
 

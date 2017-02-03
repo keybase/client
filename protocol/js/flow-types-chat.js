@@ -57,6 +57,7 @@ export const CommonConversationStatus = {
   favorite: 1,
   ignored: 2,
   blocked: 3,
+  muted: 4,
 }
 
 export const CommonInboxResType = {
@@ -73,6 +74,7 @@ export const CommonMessageType = {
   metadata: 5,
   tlfname: 6,
   headline: 7,
+  attachmentuploaded: 8,
 }
 
 export const CommonTLFVisibility = {
@@ -94,8 +96,22 @@ export const LocalAssetMetadataType = {
   audio: 3,
 }
 
+export const LocalAssetTag = {
+  primary: 0,
+}
+
 export const LocalBodyPlaintextVersion = {
   v1: 1,
+  v2: 2,
+}
+
+export const LocalConversationErrorType = {
+  misc: 0,
+  missinginfo: 1,
+  selfrekeyneeded: 2,
+  otherrekeyneeded: 3,
+  identify: 4,
+  localmaxmessagenotfound: 5,
 }
 
 export const LocalHeaderPlaintextVersion = {
@@ -575,6 +591,7 @@ export type Asset = {
   title: string,
   nonce: bytes,
   metadata: AssetMetadata,
+  tag: AssetTag,
 }
 
 export type AssetMetadata = 
@@ -603,6 +620,9 @@ export type AssetMetadataVideo = {
   durationMs: int,
 }
 
+export type AssetTag = 
+    0 // PRIMARY_0
+
 export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
 
@@ -612,6 +632,7 @@ export type BodyPlaintextV1 = {
 
 export type BodyPlaintextVersion = 
     1 // V1_1
+  | 2 // V2_2
 
 export type ChatActivity = 
     { activityType : 1, incomingMessage : ?IncomingMessage }
@@ -637,10 +658,28 @@ export type Conversation = {
 }
 
 export type ConversationErrorLocal = {
+  typ: ConversationErrorType,
   message: string,
   remoteConv: Conversation,
   permanent: boolean,
+  rekeyInfo?: ?ConversationErrorRekey,
 }
+
+export type ConversationErrorRekey = {
+  tlfName: string,
+  tlfPublic: boolean,
+  rekeyers?: ?Array<string>,
+  writerNames?: ?Array<string>,
+  readerNames?: ?Array<string>,
+}
+
+export type ConversationErrorType = 
+    0 // MISC_0
+  | 1 // MISSINGINFO_1
+  | 2 // SELFREKEYNEEDED_2
+  | 3 // OTHERREKEYNEEDED_3
+  | 4 // IDENTIFY_4
+  | 5 // LOCALMAXMESSAGENOTFOUND_5
 
 export type ConversationFinalizeInfo = {
   resetUser: string,
@@ -704,6 +743,7 @@ export type ConversationStatus =
   | 1 // FAVORITE_1
   | 2 // IGNORED_2
   | 3 // BLOCKED_3
+  | 4 // MUTED_4
 
 export type DownloadAttachmentLocalRes = {
   rateLimits?: ?Array<RateLimit>,
@@ -906,6 +946,7 @@ export type InboxViewFull = {
 export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
+  conv?: ?ConversationLocal,
 }
 
 export type LocalFileSource = {
@@ -930,6 +971,15 @@ export type MerkleRoot = {
 export type MessageAttachment = {
   object: Asset,
   preview?: ?Asset,
+  previews?: ?Array<Asset>,
+  metadata: bytes,
+  uploaded: boolean,
+}
+
+export type MessageAttachmentUploaded = {
+  messageID: MessageID,
+  object: Asset,
+  previews?: ?Array<Asset>,
   metadata: bytes,
 }
 
@@ -940,6 +990,7 @@ export type MessageBody =
   | { messageType : 4, delete : ?MessageDelete }
   | { messageType : 5, metadata : ?MessageConversationMetadata }
   | { messageType : 7, headline : ?MessageHeadline }
+  | { messageType : 8, attachmentuploaded : ?MessageAttachmentUploaded }
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
@@ -993,12 +1044,6 @@ export type MessagePreviousPointer = {
   hash: Hash,
 }
 
-export type MessageSentInfo = {
-  convID: ConversationID,
-  rateLimit: RateLimit,
-  outboxID: OutboxID,
-}
-
 export type MessageServerHeader = {
   messageID: MessageID,
   supersededBy: MessageID,
@@ -1018,6 +1063,7 @@ export type MessageType =
   | 5 // METADATA_5
   | 6 // TLFNAME_6
   | 7 // HEADLINE_7
+  | 8 // ATTACHMENTUPLOADED_8
 
 export type MessageUnboxed = 
     { state : 1, valid : ?MessageUnboxedValid }
@@ -1088,7 +1134,8 @@ export type NotifyChatChatInboxStaleRpcParam = Exact<{
 export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID,
-  finalizeInfo: ConversationFinalizeInfo
+  finalizeInfo: ConversationFinalizeInfo,
+  conv?: ?ConversationLocal
 }>
 
 export type NotifyChatChatTLFResolveRpcParam = Exact<{
@@ -1176,6 +1223,7 @@ export type RateLimit = {
 export type ReadMessageInfo = {
   convID: ConversationID,
   msgID: MessageID,
+  conv?: ?ConversationLocal,
 }
 
 export type ReadMessagePayload = {
@@ -1208,6 +1256,7 @@ export type SetConversationStatusRes = {
 export type SetStatusInfo = {
   convID: ConversationID,
   status: ConversationStatus,
+  conv?: ?ConversationLocal,
 }
 
 export type SetStatusPayload = {
@@ -1293,7 +1342,8 @@ export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
 }>
 
 export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
-  metadata: AssetMetadata
+  metadata: AssetMetadata,
+  placeholderMsgID: MessageID
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
@@ -1302,7 +1352,7 @@ export type chatUiChatInboxConversationRpcParam = Exact<{
 
 export type chatUiChatInboxFailedRpcParam = Exact<{
   convID: ConversationID,
-  error: string
+  error: ConversationErrorLocal
 }>
 
 export type chatUiChatInboxUnverifiedRpcParam = Exact<{
@@ -1360,6 +1410,7 @@ export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
 export type localGetMessagesLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageIDs?: ?Array<MessageID>,
+  disableResolveSupersedes: boolean,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -1639,7 +1690,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
       sessionID: int,
-      metadata: AssetMetadata
+      metadata: AssetMetadata,
+      placeholderMsgID: MessageID
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -1708,7 +1760,7 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       sessionID: int,
       convID: ConversationID,
-      error: string
+      error: ConversationErrorLocal
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -1731,7 +1783,8 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       convID: ConversationID,
-      finalizeInfo: ConversationFinalizeInfo
+      finalizeInfo: ConversationFinalizeInfo,
+      conv?: ?ConversationLocal
     }> /* ,
     response: {} // Notify call
     */

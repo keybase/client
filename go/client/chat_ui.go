@@ -133,7 +133,12 @@ func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedA
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "conversation unbox failure: convID: %s err: %s\n", arg.ConvID, arg.Error)
+	switch arg.Error.Typ {
+	case chat1.ConversationErrorType_SELFREKEYNEEDED, chat1.ConversationErrorType_OTHERREKEYNEEDED:
+		fmt.Fprintf(w, "conversation unbox failure: convID: %s err: [%s] %+v\n", arg.ConvID, arg.Error.Typ, arg.Error.RekeyInfo)
+	default:
+		fmt.Fprintf(w, "conversation unbox failure: convID: %s err: %s\n", arg.ConvID, arg.Error.Message)
+	}
 	return nil
 }
 
@@ -155,7 +160,7 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 		return chat1.ConversationLocal{}, fmt.Errorf("no text message found")
 	}
 
-	rnames, wnames, err := utils.ReorderParticipants(ctx, c.G().GetUPAKLoader(),
+	wnames, rnames, err := utils.ReorderParticipants(ctx, c.G().GetUPAKLoader(),
 		txtMsg.ClientHeader.TlfName, conv.Metadata.ActiveList)
 	if err != nil {
 		return chat1.ConversationLocal{}, err
