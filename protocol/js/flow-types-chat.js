@@ -594,10 +594,10 @@ export type Asset = {
   tag: AssetTag,
 }
 
-export type AssetMetadata = 
-    { assetType : 1, image : ?AssetMetadataImage }
-  | { assetType : 2, video : ?AssetMetadataVideo }
-  | { assetType : 3, audio : ?AssetMetadataAudio }
+export type AssetMetadata =
+    { assetType: 1, image: ?AssetMetadataImage }
+  | { assetType: 2, video: ?AssetMetadataVideo }
+  | { assetType: 3, audio: ?AssetMetadataAudio }
 
 export type AssetMetadataAudio = {
   durationMs: int,
@@ -608,7 +608,7 @@ export type AssetMetadataImage = {
   height: int,
 }
 
-export type AssetMetadataType = 
+export type AssetMetadataType =
     0 // NONE_0
   | 1 // IMAGE_1
   | 2 // VIDEO_2
@@ -620,7 +620,7 @@ export type AssetMetadataVideo = {
   durationMs: int,
 }
 
-export type AssetTag = 
+export type AssetTag =
     0 // PRIMARY_0
 
 export type BodyPlaintext = 
@@ -634,7 +634,7 @@ export type BodyPlaintextV1 = {
   messageBody: MessageBody,
 }
 
-export type BodyPlaintextVersion = 
+export type BodyPlaintextVersion =
     1 // V1_1
   | 2 // V2_2
 
@@ -642,14 +642,14 @@ export type BodyPlaintextVersionInfo = {
   crit: boolean,
 }
 
-export type ChatActivity = 
-    { activityType : 1, incomingMessage : ?IncomingMessage }
-  | { activityType : 2, readMessage : ?ReadMessageInfo }
-  | { activityType : 3, newConversation : ?NewConversationInfo }
-  | { activityType : 4, setStatus : ?SetStatusInfo }
-  | { activityType : 5, failedMessage : ?FailedMessageInfo }
+export type ChatActivity =
+    { activityType: 1, incomingMessage: ?IncomingMessage }
+  | { activityType: 2, readMessage: ?ReadMessageInfo }
+  | { activityType: 3, newConversation: ?NewConversationInfo }
+  | { activityType: 4, setStatus: ?SetStatusInfo }
+  | { activityType: 5, failedMessage: ?FailedMessageInfo }
 
-export type ChatActivityType = 
+export type ChatActivityType =
     0 // RESERVED_0
   | 1 // INCOMING_MESSAGE_1
   | 2 // READ_MESSAGE_2
@@ -681,7 +681,7 @@ export type ConversationErrorRekey = {
   readerNames?: ?Array<string>,
 }
 
-export type ConversationErrorType = 
+export type ConversationErrorType =
     0 // MISC_0
   | 1 // MISSINGINFO_1
   | 2 // SELFREKEYNEEDED_2
@@ -746,7 +746,7 @@ export type ConversationResolveInfo = {
   newTLFName: string,
 }
 
-export type ConversationStatus = 
+export type ConversationStatus =
     0 // UNFILED_0
   | 1 // FAVORITE_1
   | 2 // IGNORED_2
@@ -908,8 +908,8 @@ export type GetThreadRemoteRes = {
 
 export type Hash = bytes
 
-export type HeaderPlaintext = 
-    { version : 1, v1 : ?HeaderPlaintextV1 }
+export type HeaderPlaintext =
+    { version: 1, v1: ?HeaderPlaintextV1 }
 
 export type HeaderPlaintextV1 = {
   conv: ConversationIDTriple,
@@ -925,7 +925,7 @@ export type HeaderPlaintextV1 = {
   headerSignature?: ?SignatureInfo,
 }
 
-export type HeaderPlaintextVersion = 
+export type HeaderPlaintextVersion =
     1 // V1_1
 
 export type Inbox = {
@@ -935,15 +935,15 @@ export type Inbox = {
   pagination?: ?Pagination,
 }
 
-export type InboxResType = 
+export type InboxResType =
     0 // VERSIONHIT_0
   | 1 // FULL_1
 
 export type InboxVers = uint64
 
-export type InboxView = 
-    { rtype : 0 }
-  | { rtype : 1, full : ?InboxViewFull }
+export type InboxView =
+    { rtype: 0 }
+  | { rtype: 1, full: ?InboxViewFull }
 
 export type InboxViewFull = {
   vers: InboxVers,
@@ -991,6 +991,7 @@ export type MessageAttachmentUploaded = {
   metadata: bytes,
 }
 
+<<<<<<< HEAD
 export type MessageBody = 
     { messageType : 1, text : ?MessageText }
   | { messageType : 2, attachment : ?MessageAttachment }
@@ -1000,6 +1001,31 @@ export type MessageBody =
   | { messageType : 7, headline : ?MessageHeadline }
   | { messageType : 8, attachmentuploaded : ?MessageAttachmentUploaded }
 
+=======
+export type MessageAttachmentV1 = {
+  object: Asset,
+  preview?: ?Asset,
+  metadata: bytes,
+}
+
+export type MessageBody =
+    { messageType: 1, text: ?MessageText }
+  | { messageType: 2, attachment: ?MessageAttachment }
+  | { messageType: 3, edit: ?MessageEdit }
+  | { messageType: 4, delete: ?MessageDelete }
+  | { messageType: 5, metadata: ?MessageConversationMetadata }
+  | { messageType: 7, headline: ?MessageHeadline }
+  | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
+
+export type MessageBodyV1 =
+    { messageType: 1, text: ?MessageText }
+  | { messageType: 2, attachment: ?MessageAttachmentV1 }
+  | { messageType: 3, edit: ?MessageEdit }
+  | { messageType: 4, delete: ?MessageDelete }
+  | { messageType: 5, metadata: ?MessageConversationMetadata }
+  | { messageType: 7, headline: ?MessageHeadline }
+
+>>>>>>> 3519660... support default variants (#5651)
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
   clientHeader: MessageClientHeader,
@@ -1062,7 +1088,7 @@ export type MessageText = {
   body: string,
 }
 
-export type MessageType = 
+export type MessageType =
     0 // NONE_0
   | 1 // TEXT_1
   | 2 // ATTACHMENT_2
@@ -1073,10 +1099,10 @@ export type MessageType =
   | 7 // HEADLINE_7
   | 8 // ATTACHMENTUPLOADED_8
 
-export type MessageUnboxed = 
-    { state : 1, valid : ?MessageUnboxedValid }
-  | { state : 2, error : ?MessageUnboxedError }
-  | { state : 3, outbox : ?OutboxRecord }
+export type MessageUnboxed =
+    { state: 1, valid: ?MessageUnboxedValid }
+  | { state: 2, error: ?MessageUnboxedError }
+  | { state: 3, outbox: ?OutboxRecord }
 
 export type MessageUnboxedError = {
   errMsg: string,
@@ -1084,7 +1110,7 @@ export type MessageUnboxedError = {
   messageType: MessageType,
 }
 
-export type MessageUnboxedState = 
+export type MessageUnboxedState =
     1 // VALID_1
   | 2 // ERROR_2
   | 3 // OUTBOX_3
@@ -1162,7 +1188,7 @@ export type NotifyChatNewChatActivityRpcParam = Exact<{
   activity: ChatActivity
 }>
 
-export type OutboxErrorType = 
+export type OutboxErrorType =
     0 // MISC_0
   | 1 // OFFLINE_1
   | 2 // IDENTIFY_2
@@ -1184,16 +1210,16 @@ export type OutboxRecord = {
   identifyBehavior: keybase1.TLFIdentifyBehavior,
 }
 
-export type OutboxState = 
-    { state : 0, sending : ?int }
-  | { state : 1, error : ?OutboxStateError }
+export type OutboxState =
+    { state: 0, sending: ?int }
+  | { state: 1, error: ?OutboxStateError }
 
 export type OutboxStateError = {
   message: string,
   typ: OutboxErrorType,
 }
 
-export type OutboxStateType = 
+export type OutboxStateType =
     0 // SENDING_0
   | 1 // ERROR_1
 
@@ -1294,7 +1320,7 @@ export type TLFResolveUpdate = {
   inboxVers: InboxVers,
 }
 
-export type TLFVisibility = 
+export type TLFVisibility =
     0 // ANY_0
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
@@ -1313,7 +1339,7 @@ export type ThreadViewBoxed = {
 
 export type TopicID = bytes
 
-export type TopicType = 
+export type TopicType =
     0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2
