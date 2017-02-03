@@ -444,6 +444,39 @@ export const SaltpackUiSaltpackSenderType = {
   expired: 7,
 }
 
+export const SimpleFSAsyncOps = {
+  list: 0,
+  listRecursive: 1,
+  read: 2,
+  write: 3,
+  copy: 4,
+  move: 5,
+  remove: 6,
+}
+
+export const SimpleFSDirentType = {
+  : NaN,
+}
+
+export const SimpleFSOpenFlags = {
+  read: 0,
+  replace: 1,
+  existing: 2,
+  write: 4,
+  executable: 8,
+  directory: 16,
+}
+
+export const SimpleFSPathType = {
+  local: 0,
+  kbfs: 1,
+}
+
+export const SimpleFSPathType = {
+  local: 0,
+  kbfs: 1,
+}
+
 export const TlfKeysTLFIdentifyBehavior = {
   defaultKbfs: 0,
   chatCli: 1,
@@ -575,6 +608,210 @@ export function SecretKeysGetSecretKeysRpcChannelMap (channelConfig: ChannelConf
 
 export function SecretKeysGetSecretKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): Promise<SecretKeysGetSecretKeysResult> {
   return new Promise((resolve, reject) => { SecretKeysGetSecretKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSCheckRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSCheckResult) => void} & {param: SimpleFSCheckRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.check'})
+}
+
+export function SimpleFSCheckRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSCheckResult) => void} & {param: SimpleFSCheckRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSCheckRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSCheckRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSCheckResult) => void} & {param: SimpleFSCheckRpcParam}>): Promise<SimpleFSCheckResult> {
+  return new Promise((resolve, reject) => { SimpleFSCheckRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSCloseRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSCloseRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.close'})
+}
+
+export function SimpleFSCloseRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSCloseRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSCloseRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSCloseRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSCloseRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSCloseRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSCopyRecursiveRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSCopyRecursiveRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.copyRecursive'})
+}
+
+export function SimpleFSCopyRecursiveRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSCopyRecursiveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSCopyRecursiveRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSCopyRecursiveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSCopyRecursiveRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSCopyRecursiveRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSCopyRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSCopyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.copy'})
+}
+
+export function SimpleFSCopyRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSCopyRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSCopyRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSCopyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSCopyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSCopyRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSGetOpsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSGetOpsResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.getOps'})
+}
+
+export function SimpleFSGetOpsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSGetOpsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSGetOpsRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSGetOpsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSGetOpsResult) => void}>): Promise<SimpleFSGetOpsResult> {
+  return new Promise((resolve, reject) => { SimpleFSGetOpsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSListRecursiveRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSListRecursiveRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.listRecursive'})
+}
+
+export function SimpleFSListRecursiveRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSListRecursiveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSListRecursiveRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSListRecursiveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSListRecursiveRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSListRecursiveRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSListRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSListRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.list'})
+}
+
+export function SimpleFSListRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSListRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSListRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSListRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSMakeOpIDRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSMakeOpIDResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.makeOpID'})
+}
+
+export function SimpleFSMakeOpIDRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSMakeOpIDResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSMakeOpIDRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSMakeOpIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSMakeOpIDResult) => void}>): Promise<SimpleFSMakeOpIDResult> {
+  return new Promise((resolve, reject) => { SimpleFSMakeOpIDRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSMoveRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSMoveRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.move'})
+}
+
+export function SimpleFSMoveRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSMoveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSMoveRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSMoveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSMoveRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSMoveRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSOpenRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSOpenRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.open'})
+}
+
+export function SimpleFSOpenRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSOpenRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSOpenRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSOpenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSOpenRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSOpenRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSReadListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSReadListResult) => void} & {param: SimpleFSReadListRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.readList'})
+}
+
+export function SimpleFSReadListRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSReadListResult) => void} & {param: SimpleFSReadListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSReadListRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSReadListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSReadListResult) => void} & {param: SimpleFSReadListRpcParam}>): Promise<SimpleFSReadListResult> {
+  return new Promise((resolve, reject) => { SimpleFSReadListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSReadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSReadResult) => void} & {param: SimpleFSReadRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.read'})
+}
+
+export function SimpleFSReadRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSReadResult) => void} & {param: SimpleFSReadRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSReadRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSReadRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSReadResult) => void} & {param: SimpleFSReadRpcParam}>): Promise<SimpleFSReadResult> {
+  return new Promise((resolve, reject) => { SimpleFSReadRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSRemoveRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSRemoveRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.remove'})
+}
+
+export function SimpleFSRemoveRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSRemoveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSRemoveRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSRemoveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSRemoveRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSRemoveRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSRenameRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSRenameRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.rename'})
+}
+
+export function SimpleFSRenameRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSRenameRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSRenameRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSRenameRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSRenameRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSRenameRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSStatRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSStatResult) => void} & {param: SimpleFSStatRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.stat'})
+}
+
+export function SimpleFSStatRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSStatResult) => void} & {param: SimpleFSStatRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSStatRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSStatRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSStatResult) => void} & {param: SimpleFSStatRpcParam}>): Promise<SimpleFSStatResult> {
+  return new Promise((resolve, reject) => { SimpleFSStatRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSWaitRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSWaitRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.wait'})
+}
+
+export function SimpleFSWaitRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSWaitRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSWaitRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSWaitRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSWaitRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSWaitRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSWriteRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSWriteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.write'})
+}
+
+export function SimpleFSWriteRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSWriteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSWriteRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSWriteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSWriteRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSWriteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function accountEmailChangeRpc (request: Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>) {
@@ -2816,6 +3053,15 @@ export type APIRes = {
   appStatus: string,
 }
 
+export type AsyncOps = 
+    0 // LIST_0
+  | 1 // LIST_RECURSIVE_1
+  | 2 // READ_2
+  | 3 // WRITE_3
+  | 4 // COPY_4
+  | 5 // MOVE_5
+  | 6 // REMOVE_6
+
 export type BTCRegisterBTCRpcParam = Exact<{
   address: string,
   force: boolean
@@ -2962,6 +3208,12 @@ export type ConfirmResult = {
   expiringLocal: boolean,
 }
 
+export type CopyMoveArgs = {
+  opID: OpID,
+  src: Path,
+  dest: Path,
+}
+
 export type CryptKey = {
   KeyGeneration: int,
   Key: Bytes32,
@@ -3019,6 +3271,18 @@ export type DeviceType =
     0 // DESKTOP_0
   | 1 // MOBILE_1
 
+export type Dirent = {
+  time: Time,
+  size: int,
+  direntType: DirentType,
+}
+
+export type DirentType = 
+    NaN // FILE
+  | NaN // DIR
+  | NaN // SYM
+  | NaN // EXEC
+
 export type DismissReason = {
   type: DismissReasonType,
   reason: string,
@@ -3052,7 +3316,9 @@ export type Email = {
 
 export type EncryptedBytes32 = any
 
-export type ExitCode =
+export type ErrorNum = int
+
+export type ExitCode = 
     0 // OK_0
   | 2 // NOTOK_2
   | 4 // RESTART_4
@@ -3160,6 +3426,11 @@ export type Feature = {
 
 export type File = {
   path: string,
+}
+
+export type FileContent = {
+  data: bytes,
+  progress: Progress,
 }
 
 export type FileDescriptor = {
@@ -3366,6 +3637,8 @@ export type InstallStatus =
   | 2 // NOT_INSTALLED_2
   | 4 // INSTALLED_4
 
+export type KBFSPath = string
+
 export type KID = string
 
 export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
@@ -3434,6 +3707,11 @@ export type LinkCheckResult = {
 
 export type LinkID = string
 
+export type ListRemoveArgs = {
+  opID: OpID,
+  path: KBFSPath,
+}
+
 export type ListResult = {
   files?: ?Array<File>,
 }
@@ -3443,7 +3721,9 @@ export type LoadDeviceErr = {
   desc: string,
 }
 
-export type LogLevel =
+export type LocalPath = string
+
+export type LogLevel = 
     0 // NONE_0
   | 1 // DEBUG_1
   | 2 // INFO_2
@@ -3563,6 +3843,25 @@ export type NotifyUsersUserChangedRpcParam = Exact<{
   uid: UID
 }>
 
+export type OpDescription = 
+    { asyncOp : 0, list : ?ListArgs }
+  | { asyncOp : 1, listRecursive : ?ListArgs }
+  | { asyncOp : 2, read : ?ReadWriteArgs }
+  | { asyncOp : 3, write : ?ReadWriteArgs }
+  | { asyncOp : 4, copy : ?CopyMoveArgs }
+  | { asyncOp : 5, move : ?CopyMoveArgs }
+  | { asyncOp : 6, remove : ?ListRemoveArgs }
+
+export type OpID = any
+
+export type OpenFlags = 
+    0 // READ_0
+  | 1 // REPLACE_1
+  | 2 // EXISTING_2
+  | 4 // WRITE_4
+  | 8 // EXECUTABLE_8
+  | 16 // DIRECTORY_16
+
 export type OutOfDateInfo = {
   upgradeTo: string,
   upgradeURI: string,
@@ -3639,6 +3938,14 @@ export type PassphraseType =
   | 2 // PASS_PHRASE_2
   | 3 // VERIFY_PASS_PHRASE_3
 
+export type Path = 
+    { PathType : 0, local : ?LocalPath }
+  | { PathType : 1, kbfs : ?KBFSPath }
+
+export type PathType = 
+    0 // LOCAL_0
+  | 1 // KBFS_1
+
 export type PingResponse = {
   timestamp: Time,
 }
@@ -3673,7 +3980,9 @@ export type Process = {
   fileDescriptors?: ?Array<FileDescriptor>,
 }
 
-export type PromptDefault =
+export type Progress = int
+
+export type PromptDefault = 
     0 // NONE_0
   | 1 // YES_1
   | 2 // NO_2
@@ -3797,6 +4106,12 @@ export type Reachable =
     0 // UNKNOWN_0
   | 1 // YES_1
   | 2 // NO_2
+
+export type ReadWriteArgs = {
+  opID: OpID,
+  path: KBFSPath,
+  offset: int,
+}
 
 export type RegisterAddressRes = {
   type: string,
@@ -4037,6 +4352,82 @@ export type SignupRes = {
   postOk: boolean,
   writeOk: boolean,
 }
+
+export type SimpleFSCheckRpcParam = Exact<{
+  opID: OpID
+}>
+
+export type SimpleFSCloseRpcParam = Exact<{
+  opID: OpID
+}>
+
+export type SimpleFSCopyRecursiveRpcParam = Exact<{
+  opID: OpID,
+  src: Path,
+  dest: Path
+}>
+
+export type SimpleFSCopyRpcParam = Exact<{
+  opID: OpID,
+  src: Path,
+  dest: Path
+}>
+
+export type SimpleFSListRecursiveRpcParam = Exact<{
+  opID: OpID,
+  path: KBFSPath
+}>
+
+export type SimpleFSListRpcParam = Exact<{
+  opID: OpID,
+  path: KBFSPath
+}>
+
+export type SimpleFSMoveRpcParam = Exact<{
+  opID: OpID,
+  src: KBFSPath,
+  dest: KBFSPath
+}>
+
+export type SimpleFSOpenRpcParam = Exact<{
+  opID: OpID,
+  dest: KBFSPath,
+  flags: OpenFlags
+}>
+
+export type SimpleFSReadListRpcParam = Exact<{
+  opID: OpID
+}>
+
+export type SimpleFSReadRpcParam = Exact<{
+  opID: OpID,
+  offset: int,
+  size: int
+}>
+
+export type SimpleFSRemoveRpcParam = Exact<{
+  opID: OpID,
+  path: KBFSPath
+}>
+
+export type SimpleFSRenameRpcParam = Exact<{
+  src: KBFSPath,
+  dest: KBFSPath
+}>
+
+export type SimpleFSStatRpcParam = Exact<{
+  path: KBFSPath
+}>
+
+export type SimpleFSWaitRpcParam = Exact<{
+  opID: OpID
+}>
+
+export type SimpleFSWriteRpcParam = Exact<{
+  opID: OpID,
+  offset: int,
+  content: bytes
+}>
 
 export type SocialAssertion = {
   user: string,
@@ -5300,6 +5691,18 @@ type Kex2ProvisioneeHelloResult = HelloRes
 
 type SecretKeysGetSecretKeysResult = SecretKeys
 
+type SimpleFSCheckResult = Progress
+
+type SimpleFSGetOpsResult = ?Array<OpDescription>
+
+type SimpleFSMakeOpIDResult = OpID
+
+type SimpleFSReadListResult = ListResult
+
+type SimpleFSReadResult = FileContent
+
+type SimpleFSStatResult = Dirent
+
 type accountHasServerKeysResult = HasServerKeysRes
 
 type accountPassphrasePromptResult = GetPassphraseRes
@@ -5557,6 +5960,23 @@ export type rpc =
   | NotifyFSRequestFSSyncStatusRequestRpc
   | ScanProofsScanProofsRpc
   | SecretKeysGetSecretKeysRpc
+  | SimpleFSCheckRpc
+  | SimpleFSCloseRpc
+  | SimpleFSCopyRecursiveRpc
+  | SimpleFSCopyRpc
+  | SimpleFSGetOpsRpc
+  | SimpleFSListRecursiveRpc
+  | SimpleFSListRpc
+  | SimpleFSMakeOpIDRpc
+  | SimpleFSMoveRpc
+  | SimpleFSOpenRpc
+  | SimpleFSReadListRpc
+  | SimpleFSReadRpc
+  | SimpleFSRemoveRpc
+  | SimpleFSRenameRpc
+  | SimpleFSStatRpc
+  | SimpleFSWaitRpc
+  | SimpleFSWriteRpc
   | accountEmailChangeRpc
   | accountHasServerKeysRpc
   | accountPassphraseChangeRpc

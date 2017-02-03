@@ -1,0 +1,515 @@
+{
+  "protocol": "SimpleFS",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "fixed",
+      "name": "OpID",
+      "size": "16"
+    },
+    {
+      "type": "enum",
+      "name": "PathType",
+      "symbols": [
+        "LOCAL_0",
+        "KBFS_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LocalPath",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "variant",
+      "name": "Path",
+      "switch": {
+        "type": "PathType",
+        "name": "PathType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LOCAL",
+            "def": false
+          },
+          "body": "LocalPath"
+        },
+        {
+          "label": {
+            "name": "KBFS",
+            "def": false
+          },
+          "body": "KBFSPath"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "DirentType",
+      "symbols": [
+        "FILE",
+        "DIR",
+        "SYM",
+        "EXEC"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Dirent",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "DirentType",
+          "name": "direntType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ErrorNum",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "enum",
+      "name": "OpenFlags",
+      "symbols": [
+        "READ_0",
+        "REPLACE_1",
+        "EXISTING_2",
+        "WRITE_4",
+        "EXECUTABLE_8",
+        "DIRECTORY_16"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Progress",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "ListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "KBFSPath"
+          },
+          "name": "Paths"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FileContent",
+      "fields": [
+        {
+          "type": "bytes",
+          "name": "data"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PathType",
+      "symbols": [
+        "LOCAL_0",
+        "KBFS_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LocalPath",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "AsyncOps",
+      "symbols": [
+        "LIST_0",
+        "LIST_RECURSIVE_1",
+        "READ_2",
+        "WRITE_3",
+        "COPY_4",
+        "MOVE_5",
+        "REMOVE_6"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListRemoveArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "KBFSPath",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadWriteArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "KBFSPath",
+          "name": "path"
+        },
+        {
+          "type": "int",
+          "name": "offset"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CopyMoveArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "src"
+        },
+        {
+          "type": "Path",
+          "name": "dest"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "OpDescription",
+      "switch": {
+        "type": "AsyncOps",
+        "name": "asyncOp"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LIST",
+            "def": false
+          },
+          "body": "ListArgs"
+        },
+        {
+          "label": {
+            "name": "LIST_RECURSIVE",
+            "def": false
+          },
+          "body": "ListArgs"
+        },
+        {
+          "label": {
+            "name": "READ",
+            "def": false
+          },
+          "body": "ReadWriteArgs"
+        },
+        {
+          "label": {
+            "name": "WRITE",
+            "def": false
+          },
+          "body": "ReadWriteArgs"
+        },
+        {
+          "label": {
+            "name": "COPY",
+            "def": false
+          },
+          "body": "CopyMoveArgs"
+        },
+        {
+          "label": {
+            "name": "MOVE",
+            "def": false
+          },
+          "body": "CopyMoveArgs"
+        },
+        {
+          "label": {
+            "name": "REMOVE",
+            "def": false
+          },
+          "body": "ListRemoveArgs"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "list": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": null,
+      "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
+    },
+    "listRecursive": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive list of items in directory at path"
+    },
+    "readList": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "ListResult",
+      "doc": "Get list of Paths in progress. Can indicate status of pending\n   to get more entries."
+    },
+    "copy": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin copy of file or directory"
+    },
+    "copyRecursive": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive copy of directory"
+    },
+    "move": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "KBFSPath"
+        },
+        {
+          "name": "dest",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": null,
+      "doc": "Begin move of file or directory, from/to KBFS only"
+    },
+    "rename": {
+      "request": [
+        {
+          "name": "src",
+          "type": "KBFSPath"
+        },
+        {
+          "name": "dest",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": null,
+      "doc": "Rename file or directory, KBFS side only"
+    },
+    "open": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "dest",
+          "type": "KBFSPath"
+        },
+        {
+          "name": "flags",
+          "type": "OpenFlags"
+        }
+      ],
+      "response": null,
+      "doc": "Create/open a file and leave it open\n   or create a directory\n   or set the executable bit on an existing file.\n   Files must be closed afterwards."
+    },
+    "read": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "offset",
+          "type": "int"
+        },
+        {
+          "name": "size",
+          "type": "int"
+        }
+      ],
+      "response": "FileContent",
+      "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   Repeat until zero bytes are returned or error.\n   If size is zero, read an arbitrary amount."
+    },
+    "write": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "offset",
+          "type": "int"
+        },
+        {
+          "name": "content",
+          "type": "bytes"
+        }
+      ],
+      "response": null,
+      "doc": "Append content to opened file.\n   May be repeated until OpID is closed."
+    },
+    "remove": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": null,
+      "doc": "Remove file or directory from filesystem"
+    },
+    "stat": {
+      "request": [
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "Dirent",
+      "doc": "Get info about file"
+    },
+    "makeOpID": {
+      "request": [],
+      "response": "OpID",
+      "doc": "Convenience helper for generating new random value"
+    },
+    "close": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": null,
+      "doc": "Close OpID, cancels any pending operation.\n   Must be called after list/copy/remove"
+    },
+    "check": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "Progress",
+      "doc": "Check progress of pending operation"
+    },
+    "getOps": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "OpDescription"
+      },
+      "doc": "Get all the outstanding operations"
+    },
+    "wait": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": null,
+      "doc": "Blocking wait for the pending operation to finish"
+    }
+  },
+  "namespace": "keybase.1"
+}
