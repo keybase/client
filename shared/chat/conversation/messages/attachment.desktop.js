@@ -126,7 +126,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
   }
 
   return (
-    <Box style={{position: 'relative'}}>
+    <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
       <Box style={{display: 'inline-flex', position: 'relative'}}>
         <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
         {_showPreviewProgress(messageState, message.progress) && !!message.progress &&
