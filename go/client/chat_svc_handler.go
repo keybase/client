@@ -194,10 +194,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 				UID:      mv.ClientHeader.Sender.String(),
 				DeviceID: mv.ClientHeader.SenderDevice.String(),
 			},
-			SentAt:   mv.ServerHeader.Ctime.UnixSeconds(),
-			SentAtMs: mv.ServerHeader.Ctime.UnixMilliseconds(),
-			Prev:     prev,
-			Unread:   unread,
+			SentAt:        mv.ServerHeader.Ctime.UnixSeconds(),
+			SentAtMs:      mv.ServerHeader.Ctime.UnixMilliseconds(),
+			Prev:          prev,
+			Unread:        unread,
+			RevokedDevice: mv.SenderDeviceRevokedAt != nil,
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -946,14 +947,15 @@ type MsgContent struct {
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
-	ID       chat1.MessageID                `json:"id"`
-	Channel  ChatChannel                    `json:"channel"`
-	Sender   MsgSender                      `json:"sender"`
-	SentAt   int64                          `json:"sent_at"`
-	SentAtMs int64                          `json:"sent_at_ms"`
-	Content  MsgContent                     `json:"content"`
-	Prev     []chat1.MessagePreviousPointer `json:"prev"`
-	Unread   bool                           `json:"unread"`
+	ID            chat1.MessageID                `json:"id"`
+	Channel       ChatChannel                    `json:"channel"`
+	Sender        MsgSender                      `json:"sender"`
+	SentAt        int64                          `json:"sent_at"`
+	SentAtMs      int64                          `json:"sent_at_ms"`
+	Content       MsgContent                     `json:"content"`
+	Prev          []chat1.MessagePreviousPointer `json:"prev"`
+	Unread        bool                           `json:"unread"`
+	RevokedDevice bool                           `json:"revoked_device,omitempty"`
 }
 
 // Message contains eiter a MsgSummary or an Error.  Used for JSON output.
