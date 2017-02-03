@@ -300,8 +300,11 @@ func (fd *fileData) getBlocksForOffsetRange(ctx context.Context,
 			var blocks map[BlockPointer]*FileBlock
 			var nextBlockOffset int64
 			// We only need to fetch direct blocks if we've been asked
-			// to do so.
-			if getDirect || ptr.DirectType != DirectBlock {
+			// to do so.  If the direct type of the pointer is
+			// unknown, we can assume all the children are direct
+			// blocks, since there weren't multiple levels of
+			// indirection before the introduction of the flag.
+			if getDirect || ptr.DirectType == IndirectBlock {
 				block, _, err := fd.getter(
 					groupCtx, fd.kmd, ptr, fd.file, blockReadParallel)
 				if err != nil {
@@ -638,10 +641,11 @@ func (fd *fileData) createIndirectBlock(
 			{
 				BlockInfo: BlockInfo{
 					BlockPointer: BlockPointer{
-						ID:      newID,
-						KeyGen:  fd.kmd.LatestKeyGeneration(),
-						DataVer: dver,
-						Context: kbfsblock.MakeFirstContext(fd.uid),
+						ID:         newID,
+						KeyGen:     fd.kmd.LatestKeyGeneration(),
+						DataVer:    dver,
+						Context:    kbfsblock.MakeFirstContext(fd.uid),
+						DirectType: IndirectBlock,
 					},
 					EncodedSize: 0,
 				},
@@ -735,10 +739,15 @@ func (fd *fileData) newRightBlock(
 		}
 
 		newPtr := BlockPointer{
-			ID:      newRID,
-			KeyGen:  fd.kmd.LatestKeyGeneration(),
-			DataVer: dver,
-			Context: kbfsblock.MakeFirstContext(fd.uid),
+			ID:         newRID,
+			KeyGen:     fd.kmd.LatestKeyGeneration(),
+			DataVer:    dver,
+			Context:    kbfsblock.MakeFirstContext(fd.uid),
+			DirectType: IndirectBlock,
+		}
+
+		if i == len(parentBlocks)-1 {
+			newPtr.DirectType = DirectBlock
 		}
 
 		fd.log.CDebugf(ctx, "New right block for file %v, level %d, ptr %v",
@@ -1822,10 +1831,11 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 					// when readied, since the child block pointers
 					// will have changed.
 					newPtr := BlockPointer{
-						ID:      newID,
-						KeyGen:  fd.kmd.LatestKeyGeneration(),
-						DataVer: dataVer,
-						Context: kbfsblock.MakeFirstContext(fd.uid),
+						ID:         newID,
+						KeyGen:     fd.kmd.LatestKeyGeneration(),
+						DataVer:    dataVer,
+						Context:    kbfsblock.MakeFirstContext(fd.uid),
+						DirectType: IndirectBlock,
 					}
 					pblock.IPtrs[i].BlockPointer = newPtr
 					allChildPtrs = append(allChildPtrs, newPtr)
@@ -1857,6 +1867,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 			Creator:  fd.uid,
 			RefNonce: kbfsblock.ZeroRefNonce,
 		},
+		DirectType: IndirectBlock,
 	}
 	fd.log.CDebugf(ctx, "Deep copied indirect file %s: %v -> %v",
 		fd.file.tailName(), fd.rootBlockPointer(), newTopPtr)
