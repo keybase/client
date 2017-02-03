@@ -239,7 +239,7 @@ function editMessage (message: Message, text: HiddenString): EditMessage {
   return {type: 'chat:editMessage', payload: {message, text}}
 }
 
-function muteConversation (conversationIDKey: ConversationIDKey, muted: boolean) {
+function muteConversation (conversationIDKey: ConversationIDKey, muted: boolean): MuteConversation {
   return {payload: {conversationIDKey, muted}, type: 'chat:muteConversation'}
 }
 
@@ -1262,7 +1262,7 @@ function * _muteConversation (action: MuteConversation): SagaGenerator<any, any>
   const {conversationIDKey, muted} = action.payload
   const conversationID = keyToConversationID(conversationIDKey)
   const status = muted ? CommonConversationStatus.muted : CommonConversationStatus.unfiled
-  const identifyBehavior: TLFIdentifyBehavior = 2 // CHAT_GUI
+  const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
   yield call(localSetConversationStatusLocalRpcPromise, {
     param: {conversationID, identifyBehavior, status},
   })
