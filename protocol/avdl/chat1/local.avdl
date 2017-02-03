@@ -142,7 +142,16 @@ protocol local {
   }
 
   enum HeaderPlaintextVersion {
-    V1_1
+    V1_1,
+    V2_2,
+    V3_3,
+    V4_4,
+    V5_5,
+    V6_6,
+    V7_7,
+    V8_8,
+    V9_9,
+    V10_10
   }
 
   record HeaderPlaintextMetaInfo {
@@ -218,7 +227,15 @@ protocol local {
   // versions of BodyPlaintext.
   variant BodyPlaintext switch (BodyPlaintextVersion version) {
     case V1: BodyPlaintextV1;
-    default: BodyPlaintextUnsupported;
+    case V2 : BodyPlaintextUnsupported;
+    case V3 : BodyPlaintextUnsupported;
+    case V4 : BodyPlaintextUnsupported;
+    case V5 : BodyPlaintextUnsupported;
+    case V6 : BodyPlaintextUnsupported;
+    case V7 : BodyPlaintextUnsupported;
+    case V8 : BodyPlaintextUnsupported;
+    case V9 : BodyPlaintextUnsupported;
+    case V10: BodyPlaintextUnsupported;
   }
 
   record MessagePlaintext {

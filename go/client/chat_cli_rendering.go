@@ -515,12 +515,22 @@ func newMessageViewError(g *libkb.GlobalContext, conversationID chat1.Conversati
 	m chat1.MessageUnboxedError) (mv messageView, err error) {
 
 	mv.messageType = m.MessageType
-	mv.Body = fmt.Sprintf("<<chat read error: %s>>", m.ErrMsg)
 	mv.Renderable = true
 	mv.FromRevokedDevice = false
 	mv.MessageID = m.MessageID
 	mv.AuthorAndTime = "???"
 	mv.AuthorAndTimeWithDeviceName = "???"
+
+	critVersion := false
+	switch m.ErrType {
+	case chat1.MessageUnboxedErrorType_BADVERSION_CRITICAL:
+		critVersion = true
+		fallthrough
+	case chat1.MessageUnboxedErrorType_BADVERSION:
+		mv.Body = fmt.Sprintf("<<chat read error: invalid message version (critical: %v)>>", critVersion)
+	default:
+		mv.Body = fmt.Sprintf("<<chat read error: %s>>", m.ErrMsg)
+	}
 
 	return mv, nil
 }

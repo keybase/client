@@ -466,7 +466,16 @@
       "type": "enum",
       "name": "HeaderPlaintextVersion",
       "symbols": [
-        "V1_1"
+        "V1_1",
+        "V2_2",
+        "V3_3",
+        "V4_4",
+        "V5_5",
+        "V6_6",
+        "V7_7",
+        "V8_8",
+        "V9_9",
+        "V10_10"
       ]
     },
     {
@@ -568,7 +577,64 @@
         },
         {
           "label": {
-            "def": true
+            "name": "V2",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V3",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V4",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V5",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V6",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V7",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V8",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V9",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V10",
+            "def": false
           },
           "body": "HeaderPlaintextUnsupported"
         }
@@ -578,7 +644,16 @@
       "type": "enum",
       "name": "BodyPlaintextVersion",
       "symbols": [
-        "V1_1"
+        "V1_1",
+        "V2_2",
+        "V3_3",
+        "V4_4",
+        "V5_5",
+        "V6_6",
+        "V7_7",
+        "V8_8",
+        "V9_9",
+        "V10_10"
       ]
     },
     {
@@ -628,7 +703,64 @@
         },
         {
           "label": {
-            "def": true
+            "name": "V2",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V3",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V4",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V5",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V6",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V7",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V8",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V9",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V10",
+            "def": false
           },
           "body": "BodyPlaintextUnsupported"
         }

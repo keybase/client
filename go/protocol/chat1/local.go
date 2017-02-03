@@ -500,15 +500,42 @@ type Inbox struct {
 type HeaderPlaintextVersion int
 
 const (
-	HeaderPlaintextVersion_V1 HeaderPlaintextVersion = 1
+	HeaderPlaintextVersion_V1  HeaderPlaintextVersion = 1
+	HeaderPlaintextVersion_V2  HeaderPlaintextVersion = 2
+	HeaderPlaintextVersion_V3  HeaderPlaintextVersion = 3
+	HeaderPlaintextVersion_V4  HeaderPlaintextVersion = 4
+	HeaderPlaintextVersion_V5  HeaderPlaintextVersion = 5
+	HeaderPlaintextVersion_V6  HeaderPlaintextVersion = 6
+	HeaderPlaintextVersion_V7  HeaderPlaintextVersion = 7
+	HeaderPlaintextVersion_V8  HeaderPlaintextVersion = 8
+	HeaderPlaintextVersion_V9  HeaderPlaintextVersion = 9
+	HeaderPlaintextVersion_V10 HeaderPlaintextVersion = 10
 )
 
 var HeaderPlaintextVersionMap = map[string]HeaderPlaintextVersion{
-	"V1": 1,
+	"V1":  1,
+	"V2":  2,
+	"V3":  3,
+	"V4":  4,
+	"V5":  5,
+	"V6":  6,
+	"V7":  7,
+	"V8":  8,
+	"V9":  9,
+	"V10": 10,
 }
 
 var HeaderPlaintextVersionRevMap = map[HeaderPlaintextVersion]string{
-	1: "V1",
+	1:  "V1",
+	2:  "V2",
+	3:  "V3",
+	4:  "V4",
+	5:  "V5",
+	6:  "V6",
+	7:  "V7",
+	8:  "V8",
+	9:  "V9",
+	10: "V10",
 }
 
 func (e HeaderPlaintextVersion) String() string {
@@ -543,7 +570,15 @@ type HeaderPlaintextV1 struct {
 type HeaderPlaintext struct {
 	Version__ HeaderPlaintextVersion      `codec:"version" json:"version"`
 	V1__      *HeaderPlaintextV1          `codec:"v1,omitempty" json:"v1,omitempty"`
-	Default__ *HeaderPlaintextUnsupported `codec:"default,omitempty" json:"default,omitempty"`
+	V2__      *HeaderPlaintextUnsupported `codec:"v2,omitempty" json:"v2,omitempty"`
+	V3__      *HeaderPlaintextUnsupported `codec:"v3,omitempty" json:"v3,omitempty"`
+	V4__      *HeaderPlaintextUnsupported `codec:"v4,omitempty" json:"v4,omitempty"`
+	V5__      *HeaderPlaintextUnsupported `codec:"v5,omitempty" json:"v5,omitempty"`
+	V6__      *HeaderPlaintextUnsupported `codec:"v6,omitempty" json:"v6,omitempty"`
+	V7__      *HeaderPlaintextUnsupported `codec:"v7,omitempty" json:"v7,omitempty"`
+	V8__      *HeaderPlaintextUnsupported `codec:"v8,omitempty" json:"v8,omitempty"`
+	V9__      *HeaderPlaintextUnsupported `codec:"v9,omitempty" json:"v9,omitempty"`
+	V10__     *HeaderPlaintextUnsupported `codec:"v10,omitempty" json:"v10,omitempty"`
 }
 
 func (o *HeaderPlaintext) Version() (ret HeaderPlaintextVersion, err error) {
@@ -553,9 +588,49 @@ func (o *HeaderPlaintext) Version() (ret HeaderPlaintextVersion, err error) {
 			err = errors.New("unexpected nil value for V1__")
 			return ret, err
 		}
-	default:
-		if o.Default__ == nil {
-			err = errors.New("unexpected nil value for Default__")
+	case HeaderPlaintextVersion_V2:
+		if o.V2__ == nil {
+			err = errors.New("unexpected nil value for V2__")
+			return ret, err
+		}
+	case HeaderPlaintextVersion_V3:
+		if o.V3__ == nil {
+			err = errors.New("unexpected nil value for V3__")
+			return ret, err
+		}
+	case HeaderPlaintextVersion_V4:
+		if o.V4__ == nil {
+			err = errors.New("unexpected nil value for V4__")
+			return ret, err
+		}
+	case HeaderPlaintextVersion_V5:
+		if o.V5__ == nil {
+			err = errors.New("unexpected nil value for V5__")
+			return ret, err
+		}
+	case HeaderPlaintextVersion_V6:
+		if o.V6__ == nil {
+			err = errors.New("unexpected nil value for V6__")
+			return ret, err
+		}
+	case HeaderPlaintextVersion_V7:
+		if o.V7__ == nil {
+			err = errors.New("unexpected nil value for V7__")
+			return ret, err
+		}
+	case HeaderPlaintextVersion_V8:
+		if o.V8__ == nil {
+			err = errors.New("unexpected nil value for V8__")
+			return ret, err
+		}
+	case HeaderPlaintextVersion_V9:
+		if o.V9__ == nil {
+			err = errors.New("unexpected nil value for V9__")
+			return ret, err
+		}
+	case HeaderPlaintextVersion_V10:
+		if o.V10__ == nil {
+			err = errors.New("unexpected nil value for V10__")
 			return ret, err
 		}
 	}
@@ -572,14 +647,94 @@ func (o HeaderPlaintext) V1() HeaderPlaintextV1 {
 	return *o.V1__
 }
 
-func (o HeaderPlaintext) Default() HeaderPlaintextUnsupported {
-	if o.Version__ == HeaderPlaintextVersion_V1 {
+func (o HeaderPlaintext) V2() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V2 {
 		panic("wrong case accessed")
 	}
-	if o.Default__ == nil {
+	if o.V2__ == nil {
 		return HeaderPlaintextUnsupported{}
 	}
-	return *o.Default__
+	return *o.V2__
+}
+
+func (o HeaderPlaintext) V3() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V3 {
+		panic("wrong case accessed")
+	}
+	if o.V3__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.V3__
+}
+
+func (o HeaderPlaintext) V4() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V4 {
+		panic("wrong case accessed")
+	}
+	if o.V4__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.V4__
+}
+
+func (o HeaderPlaintext) V5() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V5 {
+		panic("wrong case accessed")
+	}
+	if o.V5__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.V5__
+}
+
+func (o HeaderPlaintext) V6() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V6 {
+		panic("wrong case accessed")
+	}
+	if o.V6__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.V6__
+}
+
+func (o HeaderPlaintext) V7() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V7 {
+		panic("wrong case accessed")
+	}
+	if o.V7__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.V7__
+}
+
+func (o HeaderPlaintext) V8() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V8 {
+		panic("wrong case accessed")
+	}
+	if o.V8__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.V8__
+}
+
+func (o HeaderPlaintext) V9() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V9 {
+		panic("wrong case accessed")
+	}
+	if o.V9__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.V9__
+}
+
+func (o HeaderPlaintext) V10() HeaderPlaintextUnsupported {
+	if o.Version__ != HeaderPlaintextVersion_V10 {
+		panic("wrong case accessed")
+	}
+	if o.V10__ == nil {
+		return HeaderPlaintextUnsupported{}
+	}
+	return *o.V10__
 }
 
 func NewHeaderPlaintextWithV1(v HeaderPlaintextV1) HeaderPlaintext {
@@ -589,25 +744,108 @@ func NewHeaderPlaintextWithV1(v HeaderPlaintextV1) HeaderPlaintext {
 	}
 }
 
-func NewHeaderPlaintextDefault(version HeaderPlaintextVersion, v HeaderPlaintextUnsupported) HeaderPlaintext {
+func NewHeaderPlaintextWithV2(v HeaderPlaintextUnsupported) HeaderPlaintext {
 	return HeaderPlaintext{
-		Version__: version,
-		Default__: &v,
+		Version__: HeaderPlaintextVersion_V2,
+		V2__:      &v,
+	}
+}
+
+func NewHeaderPlaintextWithV3(v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V3,
+		V3__:      &v,
+	}
+}
+
+func NewHeaderPlaintextWithV4(v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V4,
+		V4__:      &v,
+	}
+}
+
+func NewHeaderPlaintextWithV5(v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V5,
+		V5__:      &v,
+	}
+}
+
+func NewHeaderPlaintextWithV6(v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V6,
+		V6__:      &v,
+	}
+}
+
+func NewHeaderPlaintextWithV7(v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V7,
+		V7__:      &v,
+	}
+}
+
+func NewHeaderPlaintextWithV8(v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V8,
+		V8__:      &v,
+	}
+}
+
+func NewHeaderPlaintextWithV9(v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V9,
+		V9__:      &v,
+	}
+}
+
+func NewHeaderPlaintextWithV10(v HeaderPlaintextUnsupported) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V10,
+		V10__:     &v,
 	}
 }
 
 type BodyPlaintextVersion int
 
 const (
-	BodyPlaintextVersion_V1 BodyPlaintextVersion = 1
+	BodyPlaintextVersion_V1  BodyPlaintextVersion = 1
+	BodyPlaintextVersion_V2  BodyPlaintextVersion = 2
+	BodyPlaintextVersion_V3  BodyPlaintextVersion = 3
+	BodyPlaintextVersion_V4  BodyPlaintextVersion = 4
+	BodyPlaintextVersion_V5  BodyPlaintextVersion = 5
+	BodyPlaintextVersion_V6  BodyPlaintextVersion = 6
+	BodyPlaintextVersion_V7  BodyPlaintextVersion = 7
+	BodyPlaintextVersion_V8  BodyPlaintextVersion = 8
+	BodyPlaintextVersion_V9  BodyPlaintextVersion = 9
+	BodyPlaintextVersion_V10 BodyPlaintextVersion = 10
 )
 
 var BodyPlaintextVersionMap = map[string]BodyPlaintextVersion{
-	"V1": 1,
+	"V1":  1,
+	"V2":  2,
+	"V3":  3,
+	"V4":  4,
+	"V5":  5,
+	"V6":  6,
+	"V7":  7,
+	"V8":  8,
+	"V9":  9,
+	"V10": 10,
 }
 
 var BodyPlaintextVersionRevMap = map[BodyPlaintextVersion]string{
-	1: "V1",
+	1:  "V1",
+	2:  "V2",
+	3:  "V3",
+	4:  "V4",
+	5:  "V5",
+	6:  "V6",
+	7:  "V7",
+	8:  "V8",
+	9:  "V9",
+	10: "V10",
 }
 
 func (e BodyPlaintextVersion) String() string {
@@ -632,7 +870,15 @@ type BodyPlaintextV1 struct {
 type BodyPlaintext struct {
 	Version__ BodyPlaintextVersion      `codec:"version" json:"version"`
 	V1__      *BodyPlaintextV1          `codec:"v1,omitempty" json:"v1,omitempty"`
-	Default__ *BodyPlaintextUnsupported `codec:"default,omitempty" json:"default,omitempty"`
+	V2__      *BodyPlaintextUnsupported `codec:"v2,omitempty" json:"v2,omitempty"`
+	V3__      *BodyPlaintextUnsupported `codec:"v3,omitempty" json:"v3,omitempty"`
+	V4__      *BodyPlaintextUnsupported `codec:"v4,omitempty" json:"v4,omitempty"`
+	V5__      *BodyPlaintextUnsupported `codec:"v5,omitempty" json:"v5,omitempty"`
+	V6__      *BodyPlaintextUnsupported `codec:"v6,omitempty" json:"v6,omitempty"`
+	V7__      *BodyPlaintextUnsupported `codec:"v7,omitempty" json:"v7,omitempty"`
+	V8__      *BodyPlaintextUnsupported `codec:"v8,omitempty" json:"v8,omitempty"`
+	V9__      *BodyPlaintextUnsupported `codec:"v9,omitempty" json:"v9,omitempty"`
+	V10__     *BodyPlaintextUnsupported `codec:"v10,omitempty" json:"v10,omitempty"`
 }
 
 func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
@@ -642,9 +888,49 @@ func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
 			err = errors.New("unexpected nil value for V1__")
 			return ret, err
 		}
-	default:
-		if o.Default__ == nil {
-			err = errors.New("unexpected nil value for Default__")
+	case BodyPlaintextVersion_V2:
+		if o.V2__ == nil {
+			err = errors.New("unexpected nil value for V2__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V3:
+		if o.V3__ == nil {
+			err = errors.New("unexpected nil value for V3__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V4:
+		if o.V4__ == nil {
+			err = errors.New("unexpected nil value for V4__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V5:
+		if o.V5__ == nil {
+			err = errors.New("unexpected nil value for V5__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V6:
+		if o.V6__ == nil {
+			err = errors.New("unexpected nil value for V6__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V7:
+		if o.V7__ == nil {
+			err = errors.New("unexpected nil value for V7__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V8:
+		if o.V8__ == nil {
+			err = errors.New("unexpected nil value for V8__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V9:
+		if o.V9__ == nil {
+			err = errors.New("unexpected nil value for V9__")
+			return ret, err
+		}
+	case BodyPlaintextVersion_V10:
+		if o.V10__ == nil {
+			err = errors.New("unexpected nil value for V10__")
 			return ret, err
 		}
 	}
@@ -661,14 +947,94 @@ func (o BodyPlaintext) V1() BodyPlaintextV1 {
 	return *o.V1__
 }
 
-func (o BodyPlaintext) Default() BodyPlaintextUnsupported {
-	if o.Version__ == BodyPlaintextVersion_V1 {
+func (o BodyPlaintext) V2() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V2 {
 		panic("wrong case accessed")
 	}
-	if o.Default__ == nil {
+	if o.V2__ == nil {
 		return BodyPlaintextUnsupported{}
 	}
-	return *o.Default__
+	return *o.V2__
+}
+
+func (o BodyPlaintext) V3() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V3 {
+		panic("wrong case accessed")
+	}
+	if o.V3__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.V3__
+}
+
+func (o BodyPlaintext) V4() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V4 {
+		panic("wrong case accessed")
+	}
+	if o.V4__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.V4__
+}
+
+func (o BodyPlaintext) V5() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V5 {
+		panic("wrong case accessed")
+	}
+	if o.V5__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.V5__
+}
+
+func (o BodyPlaintext) V6() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V6 {
+		panic("wrong case accessed")
+	}
+	if o.V6__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.V6__
+}
+
+func (o BodyPlaintext) V7() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V7 {
+		panic("wrong case accessed")
+	}
+	if o.V7__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.V7__
+}
+
+func (o BodyPlaintext) V8() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V8 {
+		panic("wrong case accessed")
+	}
+	if o.V8__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.V8__
+}
+
+func (o BodyPlaintext) V9() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V9 {
+		panic("wrong case accessed")
+	}
+	if o.V9__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.V9__
+}
+
+func (o BodyPlaintext) V10() BodyPlaintextUnsupported {
+	if o.Version__ != BodyPlaintextVersion_V10 {
+		panic("wrong case accessed")
+	}
+	if o.V10__ == nil {
+		return BodyPlaintextUnsupported{}
+	}
+	return *o.V10__
 }
 
 func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
@@ -678,10 +1044,66 @@ func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
 	}
 }
 
-func NewBodyPlaintextDefault(version BodyPlaintextVersion, v BodyPlaintextUnsupported) BodyPlaintext {
+func NewBodyPlaintextWithV2(v BodyPlaintextUnsupported) BodyPlaintext {
 	return BodyPlaintext{
-		Version__: version,
-		Default__: &v,
+		Version__: BodyPlaintextVersion_V2,
+		V2__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV3(v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V3,
+		V3__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV4(v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V4,
+		V4__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV5(v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V5,
+		V5__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV6(v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V6,
+		V6__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV7(v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V7,
+		V7__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV8(v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V8,
+		V8__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV9(v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V9,
+		V9__:      &v,
+	}
+}
+
+func NewBodyPlaintextWithV10(v BodyPlaintextUnsupported) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V10,
+		V10__:     &v,
 	}
 }
 
