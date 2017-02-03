@@ -920,7 +920,6 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
 
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
-      let conversation: ?InboxState = _inboxConversationToConversation(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
       let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
 
       const supersedesState: Constants.SupersedesState = _inboxConversationToSupersedesState(incoming.chatInboxConversation.params.conv)
