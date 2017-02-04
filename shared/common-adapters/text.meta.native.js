@@ -169,6 +169,14 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 12,
     styleOverride: globalStyles.fontSemibold,
   },
+  'BodySmallSemiboldItalic': {
+    colorForBackgroundMode: {
+      'Normal': globalColors.black_40,
+      'Terminal': globalColors.white_40,
+    },
+    fontSize: 12,
+    styleOverride: {...globalStyles.fontSemibold, fontStyle: 'italic'},
+  },
   'BodySmallSemiboldInlineLink': {
     colorForBackgroundMode: {
       ..._blueLink,
