@@ -13,8 +13,6 @@ type State = {
   text: string,
 }
 
-const _cachedInput: {[key: ?string]: ?string} = { }
-
 class Conversation extends Component<void, Props, State> {
   _input: any;
   _fileInput: any;
@@ -27,7 +25,7 @@ class Conversation extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     const {emojiPickerOpen} = props
-    this.state = {emojiPickerOpen, text: _cachedInput[props.selectedConversation] || ''}
+    this.state = {emojiPickerOpen, text: this.props.defaultText}
   }
 
   componentDidMount () {
@@ -36,14 +34,6 @@ class Conversation extends Component<void, Props, State> {
 
   componentWillUnmount () {
     document.body.removeEventListener('keydown', this._globalKeyDownHandler)
-  }
-
-  componentWillReceiveProps (nextProps: Props) {
-    if (nextProps.selectedConversation !== this.props.selectedConversation) {
-      this.focusInput()
-      _cachedInput[this.props.selectedConversation] = this.state.text
-      this.setState({text: _cachedInput[nextProps.selectedConversation] || ''})
-    }
   }
 
   componentDidUpdate (prevProps: Props) {
@@ -95,6 +85,10 @@ class Conversation extends Component<void, Props, State> {
 
   focusInput = () => {
     this._input && this._input.focus()
+  }
+
+  getValue () {
+    return this._input ? this._input.getValue() : ''
   }
 
   _pickerOnClick = (emoji) => {
