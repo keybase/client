@@ -116,5 +116,7 @@ func (v *CmdVersion) runLocal() {
 }
 
 func (v *CmdVersion) GetUsage() libkb.Usage {
-	return libkb.Usage{}
+	return libkb.Usage{
+		VersionOnly: true,
+	}
 }
