@@ -25,8 +25,6 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	// Make a fake file.
 	ptr := BlockPointer{
 		ID:         kbfsblock.FakeID(42),
-		KeyGen:     1,
-		DataVer:    1,
 		DirectType: DirectBlock,
 	}
 	id := tlf.FakeID(1, false)
@@ -388,8 +386,6 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 				require.NoError(t, err)
 				ptr := BlockPointer{
 					ID:         id,
-					KeyGen:     1,
-					DataVer:    1,
 					DirectType: dt,
 				}
 				var off int64
