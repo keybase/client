@@ -24,7 +24,7 @@ function AttachmentTitle ({messageState, title}: {messageState: Constants.Attach
   return <Text type='BodySemibold' style={style}>{title}</Text>
 }
 
-function PreviewImage ({message: {previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: () => void}) {
+function PreviewImage ({message: {previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: ?() => void}) {
   if (previewType === 'Image') {
     let style = {
       ...globalStyles.flexBoxRow,
@@ -105,7 +105,7 @@ function ShowInFileUi ({downloadedPath, onOpenInFileUI}) {
   </Text>
 }
 
-function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void, onOpenInPopup: () => void}) {
+function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void, onOpenInPopup: ?() => void}) {
   const {downloadedPath, messageState} = message
 
   const overlayProgressBarStyle = {
@@ -174,10 +174,11 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: 
 }
 
 function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onOpenInPopup: () => void}) {
+  const canOpen = message.messageState !== 'uploading'
   return (
-    <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.clickable, flex: 1}}>
+    <Box style={{...globalStyles.flexBoxColumn, ...(canOpen ? globalStyles.clickable : {}), flex: 1}}>
       <AttachmentTitle {...message} />
-      <PreviewImageWithInfo message={message} onOpenInFileUI={onOpenInFileUI} onOpenInPopup={onOpenInPopup} />
+      <PreviewImageWithInfo message={message} onOpenInFileUI={onOpenInFileUI} onOpenInPopup={canOpen ? onOpenInPopup : null} />
     </Box>
   )
 }
