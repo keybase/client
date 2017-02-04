@@ -142,7 +142,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
             style={previewProgressIndicatorStyle}
           />}
       </Box>
-      {showingProgressBar && <Box style={!isOverlayProgress ? {marginTop: globalMargins.xtiny} : {}}>
+      {(showingProgressBar || downloadedPath) && <Box style={!isOverlayProgress ? {marginTop: globalMargins.xtiny} : {}}>
         {!!message.progress &&
           <ProgressBar
             style={isOverlayProgress ? overlayProgressBarStyle : {}}
