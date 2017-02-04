@@ -1513,7 +1513,10 @@ func (j *tlfJournal) putBlockData(
 
 	storedBytesAfter := j.blockJournal.getStoredBytes()
 
-	if storedBytesAfter != (storedBytesBefore + bufLen) {
+	// Either the stored bytes increased by `bufLen`, or stayed the
+	// same because the already existed.
+	if storedBytesAfter != (storedBytesBefore+bufLen) &&
+		storedBytesBefore != storedBytesAfter {
 		panic(fmt.Sprintf(
 			"storedBytes changed from %d to %d, but bufLen is %d",
 			storedBytesBefore, storedBytesAfter, bufLen))
