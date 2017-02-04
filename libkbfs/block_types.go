@@ -190,6 +190,12 @@ func (fb *FileBlock) DataVersion() DataVer {
 		return FirstValidDataVer
 	}
 
+	if len(fb.IPtrs) == 0 {
+		// This is a truncated file block that hasn't had its level of
+		// indirection removed.
+		return FirstValidDataVer
+	}
+
 	// If this is an indirect block, and none of its children are
 	// marked as direct blocks, then this must be a big file.  Note
 	// that we do it this way, rather than returning on the first
