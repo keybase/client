@@ -16,6 +16,7 @@ import (
 
 const (
 	defaultBlockRetrievalWorkerQueueSize int = 100
+	defaultNumPrefetchWorkers            int = 1
 	testBlockRetrievalWorkerQueueSize    int = 5
 	defaultOnDemandRequestPriority       int = 100
 )
@@ -107,11 +108,12 @@ var _ blockRetriever = (*blockRetrievalQueue)(nil)
 // (more than numWorkers will block).
 func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
-		config:      config,
-		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
-		heap:        &blockRetrievalHeap{},
-		workerQueue: make(chan chan *blockRetrieval, numWorkers),
-		doneCh:      make(chan struct{}),
+		config:              config,
+		ptrs:                make(map[blockPtrLookup]*blockRetrieval),
+		heap:                &blockRetrievalHeap{},
+		workerQueue:         make(chan chan *blockRetrieval, numWorkers),
+		prefetchWorkerQueue: make(chan chan *blockRetrieval, defaultNumPrefetchWorkers),
+		doneCh:              make(chan struct{}),
 	}
 	q.prefetcher = newBlockPrefetcher(q, config)
 	return q
@@ -128,18 +130,20 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker() {
-	go func() {
-		select {
-		case <-brq.doneCh:
-			retrieval := brq.popIfNotEmpty()
-			if retrieval != nil {
-				brq.FinalizeRequest(retrieval, nil, io.EOF)
-			}
-		// Get the next queued worker
-		case ch := <-brq.workerQueue:
-			ch <- brq.popIfNotEmpty()
+	retrieval := brq.popIfNotEmpty()
+	workerCh := brq.workerQueue
+	if retrieval.priority < defaultOnDemandRequestPriority {
+		workerCh = brq.prefetchWorkerQueue
+	}
+	select {
+	case <-brq.doneCh:
+		if retrieval != nil {
+			brq.FinalizeRequest(retrieval, nil, io.EOF)
 		}
-	}()
+	// Get the next queued worker
+	case ch := <-workerCh:
+		ch <- retrieval
+	}
 }
 
 // Request submits a block request to the queue.
@@ -206,7 +210,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			brq.insertionCount++
 			brq.ptrs[bpLookup] = br
 			heap.Push(brq.heap, br)
-			defer brq.notifyWorker()
+			go brq.notifyWorker()
 		} else {
 			err := br.ctx.AddContext(ctx)
 			if err == context.Canceled {
