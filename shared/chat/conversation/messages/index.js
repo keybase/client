@@ -4,6 +4,8 @@ import AttachmentMessageRender from './attachment'
 import MessageText from './text'
 import React from 'react'
 import Timestamp from './timestamp'
+import OldProfileResetNotice from '../notices/old-profile-reset-notice'
+import ProfileResetNotice from '../notices/profile-reset-notice'
 import {Box} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
 
@@ -66,6 +68,20 @@ const factory = (options: Options) => {
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
         onAction={onAction}
+        />
+    case 'SupersededBy':
+      return <OldProfileResetNotice
+        onOpenNewerConversation={() => {console.log('todo')}}
+        username={message.username}
+        style={style}
+        key={`supersededBy:${message.supersededBy}`}
+        />
+    case 'Supersedes':
+      return <ProfileResetNotice
+        onOpenOlderConversation={() => {console.log('todo')}}
+        username={message.username}
+        style={style}
+        key={`supersedes:${message.supersedes}`}
         />
     case 'Timestamp':
       return <Timestamp

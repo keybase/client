@@ -311,7 +311,7 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
   })
 }
 
-function _inboxConversationToSupersedesState (convo: ConversationLocal): ?Constants.SupersedesState {
+function _inboxConversationToSupersedesState (convo: ?ConversationLocal): Constants.SupersedesState {
   if (!convo || !convo.info || !convo.info.id || !convo.supersedes) {
     return Map()
   }
@@ -320,7 +320,7 @@ function _inboxConversationToSupersedesState (convo: ConversationLocal): ?Consta
   return Map([[conversationIDKey, Set((convo.supersedes || []).map(conversationIDToKey))]])
 }
 
-function _inboxConversationToSupersededByState (convo: ConversationLocal): ?Constants.SupersededByState {
+function _inboxConversationToSupersededByState (convo: ?ConversationLocal): Constants.SupersededByState {
   if (!convo || !convo.info || !convo.info.id || !convo.supersededBy) {
     return Map()
   }
@@ -1065,6 +1065,7 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   }
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
+  // $FlowIssue with checking messageID
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
       type: 'Timestamp',

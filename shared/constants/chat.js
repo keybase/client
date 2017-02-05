@@ -26,7 +26,7 @@ export type OutboxIDKey = string
 
 export type MessageID = RPCMessageID
 
-export type ClientMessage = TimestampMessage
+export type ClientMessage = TimestampMessage | SupersedesMessage | SupersededByMessage
 export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment
 
 export type Message = ClientMessage | ServerMessage
@@ -97,6 +97,27 @@ export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
   key: any,
+}
+
+export type SupersedesMessage = {
+  type: 'Supersedes',
+  username: string,
+  timestamp: number,
+  supersedes: ConversationIDKey,
+  key: any,
+}
+
+export type SupersededByMessage = {
+  type: 'SupersededBy',
+  username: string,
+  timestamp: number,
+  supersededBy: ConversationIDKey,
+  key: any,
+}
+
+export type SupersedeInfo = {
+  username: string,
+  conversationIDKey: ConversationIDKey,
 }
 
 export type DeletedMessage = {
@@ -453,9 +474,42 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
+function convSupersedesInfo (conversationID: ConversationIDKey, chat: State): Array<SupersedeInfo> {
+  const supersededConvIDs: Set<ConversationIDKey> = chat.get('supersedesState').get(conversationID)
+  if (supersededConvIDs) {
+    return supersededConvIDs.map(convID => {
+      const finalizeInfo: ?ConversationFinalizeInfo = chat.get('finalizedState').get(convID)
+      return {
+        conversationIDKey: convID,
+        username: finalizeInfo ? finalizeInfo.resetUser : '',
+      }
+    }).toArray()
+  }
+
+  return []
+}
+
+function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): Array<SupersedeInfo> {
+  // TODO maybe we have to sort by reset dates?
+  const newerConvos: ?Set<ConversationIDKey> = chat.get('supersededByState').get(conversationID)
+  const finalizeInfo: ?ConversationFinalizeInfo = chat.get('finalizedState').get(conversationID)
+  if (newerConvos) {
+    return newerConvos.map(convID => {
+      return {
+        conversationIDKey: convID,
+        username: finalizeInfo ? finalizeInfo.resetUser : '',
+      }
+    }).toArray()
+  }
+
+  return []
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
+  convSupersedesInfo,
+  convSupersededByInfo,
   keyToConversationID,
   keyToOutboxID,
   makeSnippet,

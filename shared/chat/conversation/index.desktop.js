@@ -1,4 +1,5 @@
 // @flow
+import * as Immutable from 'immutable'
 import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
@@ -10,7 +11,7 @@ import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
-import {nothingSelected} from '../../constants/chat'
+import * as Constants from '../../constants/chat'
 import {withHandlers, branch, renderComponent, compose} from 'recompose'
 
 import type {Props} from '.'
@@ -89,6 +90,44 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
     }
   }
 
+  _decorateSupersedes (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
+    const supersedesMessages: Array<Constants.SupersedesMessage> = this.props.supersedes.map(({username, conversationIDKey}) => (({
+      type: 'Supersedes',
+      supersedes: conversationIDKey,
+      username: username,
+      timestamp: Date.now(),
+      key: `supersedes-${conversationIDKey}-${username}`,
+    }: Constants.SupersedesMessage)))
+
+    if (supersedesMessages.length) {
+      return messages.unshift(...supersedesMessages)
+    }
+    return messages
+  }
+
+  _decorateSupersededBy (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
+    const supersededByMessages: Array<Constants.SupersededByMessage> = this.props.supersededBy.map(({username, conversationIDKey}) => (({
+      type: 'SupersededBy',
+      supersededBy: conversationIDKey,
+      username: username,
+      timestamp: Date.now(),
+      key: `supersededBy-${conversationIDKey}-${username}`,
+    }: Constants.SupersededByMessage)))
+
+    if (supersededByMessages.length) {
+      return messages.push(...supersededByMessages)
+    }
+    return messages
+  }
+
+  _decorateMessages (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
+    return this._decorateSupersedes(
+      this._decorateSupersededBy(
+        messages
+      )
+    )
+  }
+
   render () {
     const {
     // $FlowIssue with variants
@@ -133,6 +172,9 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
         <Icon type='icon-file-dropping-48' />
       </Box>
     )
+
+    const decoratedMesssages = this._decorateMessages(messages)
+
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         <Header
@@ -151,7 +193,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           followingMap={followingMap}
           firstNewMessageID={firstNewMessageID}
           listScrollDownState={listScrollDownState}
-          messages={messages}
+          messages={decoratedMesssages}
           moreToLoad={moreToLoad}
           muted={muted}
           onAddParticipant={onAddParticipant}
@@ -209,7 +251,7 @@ const dropOverlayStyle = {
 }
 
 export default branch(
-  (props: Props) => props.selectedConversation === nothingSelected,
+  (props: Props) => props.selectedConversation === Constants.nothingSelected,
   renderComponent(NoConversation),
   branch(
     (props: Props) => !!props.rekeyInfo,

@@ -7,7 +7,7 @@ import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment, retryAttachment} from '../../actions/chat'
-import {nothingSelected, getBrokenUsers} from '../../constants/chat'
+import * as ChatConstants from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
 
@@ -15,6 +15,8 @@ import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
 import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType, OpenAttachmentPopup, OutboxIDKey} from '../../constants/chat'
 import type {Props} from '.'
+
+const {nothingSelected, getBrokenUsers} = ChatConstants
 
 type OwnProps = {}
 type State = {
@@ -83,6 +85,9 @@ export default connect(
         const participants = selected && selected.participants || List()
         const metaDataMap = state.chat.get('metaData')
 
+        const supersedes = ChatConstants.convSupersedesInfo(selectedConversation, state.chat)
+        const supersededBy = ChatConstants.convSupersededByInfo(selectedConversation, state.chat)
+
         return {
           bannerMessage: null,
           emojiPickerOpen: false,
@@ -98,6 +103,8 @@ export default connect(
           selectedConversation,
           validated: selected && selected.validated,
           you,
+          supersedes,
+          supersededBy,
         }
       }
     }
@@ -113,6 +120,8 @@ export default connect(
       selectedConversation,
       validated: false,
       you,
+      supersedes: [],
+      supersededBy: [],
     }
   },
   (dispatch: Dispatch, {setRouteState}) => ({

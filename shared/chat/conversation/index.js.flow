@@ -3,7 +3,7 @@ import {Component} from 'react'
 import {List} from 'immutable'
 
 import type {Props as BannerMessage} from './banner'
-import type {AttachmentType, AttachmentMessage, ConversationIDKey, Message, MessageID, MetaDataMap, FollowingMap, RekeyInfo} from '../../constants/chat'
+import type {AttachmentType, AttachmentMessage, ConversationIDKey, Message, MessageID, MetaDataMap, FollowingMap, RekeyInfo, SupersedeInfo} from '../../constants/chat'
 
 export type Props = {
   bannerMessage: ?BannerMessage,
@@ -41,6 +41,8 @@ export type Props = {
   triggerListScrollDown: () => void,
   validated: boolean,
   you: string,
+  supersedes: Array<SupersedeInfo>,
+  supersededBy: Array<SupersedeInfo>,
 }
 
 export default class Conversation extends Component<void, Props, void> { }
