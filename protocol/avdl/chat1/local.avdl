@@ -353,8 +353,8 @@ protocol local {
     union { null, ConversationErrorLocal } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
-    array<ConversationID> supersedes;
-    array<ConversationID> supersededBy;
+    array<ConversationMetadata> supersedes;
+    array<ConversationMetadata> supersededBy;
 
     array<MessageUnboxed> maxMessages; // the latest message for each message type
 
