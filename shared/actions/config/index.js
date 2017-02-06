@@ -221,8 +221,8 @@ function getCurrentStatus (): AsyncAction {
   }
 }
 
-function updateFollowing (username: string): UpdateFollowing {
-  return {payload: {username}, type: Constants.updateFollowing}
+function updateFollowing (username: string, isTracking: boolean): UpdateFollowing {
+  return {payload: {username, isTracking}, type: Constants.updateFollowing}
 }
 
 export {

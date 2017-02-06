@@ -63,14 +63,8 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
       dispatch({type: pgpKeyInSecretStoreFile, payload: undefined})
     },
-    'keybase.1.NotifyTracking.trackingChanged': ({username}) => {
-      // hack as we get several of these quickly
-      if (!lastTimeTEMP || (Date.now() - lastTimeTEMP) > 2000) {
-        lastTimeTEMP = Date.now()
-        dispatch(updateFollowing(username))
-      }
+    'keybase.1.NotifyTracking.trackingChanged': ({username, isTracking}) => {
+      dispatch(updateFollowing(username, isTracking))
     },
   }
 }
-
-let lastTimeTEMP

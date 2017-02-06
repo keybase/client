@@ -32,7 +32,7 @@ export const MAX_BOOTSTRAP_TRIES = 3
 export const bootstrapRetryDelay = 10 * 1000
 
 export type DaemonError = NoErrorTypedAction<'config:daemonError', {daemonError: ?Error}>
-export type UpdateFollowing = NoErrorTypedAction<'config:updateFollowing', {username: string}>
+export type UpdateFollowing = NoErrorTypedAction<'config:updateFollowing', {username: string, isTracking: boolean}>
 
 export type BootStatus = 'bootStatusLoading'
   | 'bootStatusBootstrapped'

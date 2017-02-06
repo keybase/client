@@ -115,13 +115,12 @@ export default function (state: ConfigState = initialState, action: Action): Con
     }
 
     case Constants.updateFollowing: {
-      // TODO make call or recieve this info, for now just toggle what we have
-      const username = action.payload.username
+      const {username, isTracking} = action.payload
       return {
         ...state,
         following: {
           ...state.following,
-          [username]: !state.following[username],
+          [username]: isTracking,
         },
       }
     }
