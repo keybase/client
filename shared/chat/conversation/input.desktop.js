@@ -30,10 +30,12 @@ class Conversation extends Component<void, Props, State> {
 
   componentDidMount () {
     document.body.addEventListener('keydown', this._globalKeyDownHandler)
+    document.body.addEventListener('keypress', this._globalKeyDownHandler)
   }
 
   componentWillUnmount () {
     document.body.removeEventListener('keydown', this._globalKeyDownHandler)
+    document.body.removeEventListener('keypress', this._globalKeyDownHandler)
   }
 
   componentDidUpdate (prevProps: Props) {
@@ -53,9 +55,8 @@ class Conversation extends Component<void, Props, State> {
     }
 
     const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-    const isValidNormalKey = /^[a-z]$/.test(ev.key) && !ev.altKey && !ev.ctrlKey && !ev.metaKey
     const isValidSpecialKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].includes(ev.key)
-    if (isPasteKey || isValidNormalKey || isValidSpecialKey) {
+    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._input.focus()
     }
   }
