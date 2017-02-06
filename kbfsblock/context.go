@@ -70,15 +70,21 @@ type Context struct {
 
 // MakeFirstContext makes the initial context for a block with the
 // given creator.
-func MakeFirstContext(creator keybase1.UID) Context {
-	return Context{Creator: creator}
+func MakeFirstContext(creator keybase1.UID, bType keybase1.BlockType) Context {
+	return Context{Creator: creator, BlockType: bType}
 }
 
 // MakeContext makes a context with the given creator, writer, and
 // nonce, where the writer is not necessarily equal to the creator,
 // and the nonce is usually non-zero.
-func MakeContext(creator, writer keybase1.UID, nonce RefNonce) Context {
-	return Context{Creator: creator, Writer: writer, RefNonce: nonce}
+func MakeContext(creator, writer keybase1.UID, nonce RefNonce,
+	bType keybase1.BlockType) Context {
+	return Context{
+		Creator:   creator,
+		Writer:    writer,
+		RefNonce:  nonce,
+		BlockType: bType,
+	}
 }
 
 // GetCreator returns the creator of the associated block.

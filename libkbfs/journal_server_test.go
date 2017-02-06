@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -92,7 +93,7 @@ func TestJournalServerRestart(t *testing.T) {
 
 	// Put a block.
 
-	bCtx := kbfsblock.MakeFirstContext(uid)
+	bCtx := kbfsblock.MakeFirstContext(uid, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -164,7 +165,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	// Put a block.
 
-	bCtx := kbfsblock.MakeFirstContext(uid)
+	bCtx := kbfsblock.MakeFirstContext(uid, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -268,7 +269,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Put a block under user 1.
 
-	bCtx1 := kbfsblock.MakeFirstContext(uid1)
+	bCtx1 := kbfsblock.MakeFirstContext(uid1, keybase1.BlockType_DATA)
 	data1 := []byte{1, 2, 3, 4}
 	bID1, err := kbfsblock.MakePermanentID(data1)
 	require.NoError(t, err)
@@ -314,7 +315,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Put a block under user 2.
 
-	bCtx2 := kbfsblock.MakeFirstContext(uid2)
+	bCtx2 := kbfsblock.MakeFirstContext(uid2, keybase1.BlockType_DATA)
 	data2 := []byte{1, 2, 3, 4, 5}
 	bID2, err := kbfsblock.MakePermanentID(data2)
 	require.NoError(t, err)
@@ -417,7 +418,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	uid := h.ResolvedWriters()[0]
 
 	// Access a TLF, which should create a journal automatically.
-	bCtx := kbfsblock.MakeFirstContext(uid)
+	bCtx := kbfsblock.MakeFirstContext(uid, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)

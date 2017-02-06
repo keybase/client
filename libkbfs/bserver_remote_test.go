@@ -78,7 +78,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	b := newBlockServerRemoteWithClient(codec, nil, log, &fc)
 
 	tlfID := tlf.FakeID(2, false)
-	bCtx := kbfsblock.MakeFirstContext(currentUID)
+	bCtx := kbfsblock.MakeFirstContext(currentUID, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
 	bID, err := kbfsblock.MakePermanentID(data)
 	require.NoError(t, err)
@@ -99,7 +99,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
 	bCtx2 := kbfsblock.MakeContext(
-		currentUID, keybase1.MakeTestUID(2), nonce)
+		currentUID, keybase1.MakeTestUID(2), nonce, keybase1.BlockType_DATA)
 	err = b.AddBlockReference(ctx, tlfID, bID, bCtx2)
 	require.NoError(t, err)
 
@@ -122,7 +122,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	f := func(ctx context.Context) error {
 		bID := kbfsblock.FakeID(1)
 		tlfID := tlf.FakeID(2, false)
-		bCtx := kbfsblock.MakeFirstContext(currentUID)
+		bCtx := kbfsblock.MakeFirstContext(currentUID, keybase1.BlockType_DATA)
 		data := []byte{1, 2, 3, 4}
 		serverHalf := kbfscrypto.MakeBlockCryptKeyServerHalf(
 			[32]byte{0x1})

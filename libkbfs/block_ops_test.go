@@ -318,7 +318,8 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	id, _, readyBlockData, err := bops.Ready(ctx, kmd1, block)
 	require.NoError(t, err)
 
-	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	bCtx := kbfsblock.MakeFirstContext(
+		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)
@@ -347,7 +348,8 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 	id, _, _, err := bops.Ready(ctx, kmd, &FileBlock{})
 	require.NoError(t, err)
 
-	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	bCtx := kbfsblock.MakeFirstContext(
+		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
 		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
@@ -387,7 +389,8 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
 	require.NoError(t, err)
 
-	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	bCtx := kbfsblock.MakeFirstContext(
+		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)
@@ -414,7 +417,8 @@ func TestBlockOpsGetFailKeyGet(t *testing.T) {
 	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
 	require.NoError(t, err)
 
-	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	bCtx := kbfsblock.MakeFirstContext(
+		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)
@@ -482,7 +486,8 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 	decodeErr := errors.New("could not decode")
 	badDecoder.putError(readyBlockData.buf, decodeErr)
 
-	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	bCtx := kbfsblock.MakeFirstContext(
+		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)
@@ -519,7 +524,8 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 	id, _, readyBlockData, err := bops.Ready(ctx, kmd, &FileBlock{})
 	require.NoError(t, err)
 
-	bCtx := kbfsblock.MakeFirstContext(keybase1.MakeTestUID(1))
+	bCtx := kbfsblock.MakeFirstContext(
+		keybase1.MakeTestUID(1), keybase1.BlockType_DATA)
 	err = config.bserver.Put(ctx, tlfID, id, bCtx,
 		readyBlockData.buf, readyBlockData.serverHalf)
 	require.NoError(t, err)

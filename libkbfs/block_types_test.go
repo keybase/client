@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -18,6 +19,7 @@ func makeFakeBlockContext(t *testing.T) kbfsblock.Context {
 		"fake creator",
 		"fake writer",
 		kbfsblock.RefNonce{0xb},
+		keybase1.BlockType_DATA,
 	)
 }
 

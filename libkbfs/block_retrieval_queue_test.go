@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
@@ -64,6 +65,7 @@ func makeRandomBlockPointer(t *testing.T) BlockPointer {
 			"fake creator",
 			"fake writer",
 			kbfsblock.RefNonce{0xb},
+			keybase1.BlockType_DATA,
 		),
 	}
 }
