@@ -182,6 +182,7 @@ const onToggleShowIgnored = () => console.log('toggle')
 const commonFolders = {
   smallMode: false,
   onRekey: path => console.log(`open rekey page: ${path}`),
+  onChat: tlf => console.log(`open chat with tlf ${tlf}`),
   onToggleShowIgnored,
   username: 'cecileb',
   private: {tlfs, ignored, isPublic: false, parentProps, onToggleShowIgnored, showIgnored: true},
@@ -297,6 +298,7 @@ const commonFiles = (isPrivate): FilesProps => ({
   youCanUnlock: [],
   onBack: () => console.log('onBack:files'),
   openCurrentFolder: () => console.log('open current folder'),
+  openConversationFromFolder: () => console.log('open tlf in chat'),
   ignoreCurrentFolder: () => console.log('ignore current folder'),
   unIgnoreCurrentFolder: () => console.log('unignore current folder'),
   onTogglePopupMenu: () => console.log('onTogglePopupMenu'),

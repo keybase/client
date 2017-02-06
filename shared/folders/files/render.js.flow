@@ -19,6 +19,7 @@ export type Props = {
   recentFilesSection: Array<FileSection>,
   recentFilesEnabled: boolean, // TODO (AW): remove when recentFiles feature is finished
   openCurrentFolder: () => void,
+  openConversationFromFolder: () => void,
   ignoreCurrentFolder: () => void,
   unIgnoreCurrentFolder: () => void,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,

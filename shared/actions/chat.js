@@ -55,6 +55,7 @@ import type {
   NewChat,
   OpenAttachmentPopup,
   OpenFolder,
+  OpenTlfInChat,
   OutboxIDKey,
   PostMessage,
   RemoveOutboxMessage,
@@ -204,6 +205,10 @@ function badgeAppForChat (conversations: List<ConversationBadgeState>): BadgeApp
 
 function openFolder (): OpenFolder {
   return {type: 'chat:openFolder', payload: undefined}
+}
+
+function openTlfInChat (tlf: string): OpenTlfInChat {
+  return {type: 'chat:openTlfInChat', payload: tlf}
 }
 
 function startConversation (users: Array<string>): StartConversation {
@@ -1173,6 +1178,12 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
   }
 }
 
+function * _openTlfInChat (action: OpenTlfInChat): SagaGenerator<any, any> {
+  const tlf = action.payload
+  const users = tlf.split(',')
+  yield put(startConversation(users))
+}
+
 function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
   const result = yield call(localNewConversationLocalRpcPromise, {
     param: {
@@ -1647,6 +1658,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery('chat:deleteMessage', _deleteMessage),
+    safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
   ]
 }
 
@@ -1663,6 +1675,7 @@ export {
   newChat,
   selectAttachment,
   openFolder,
+  openTlfInChat,
   postMessage,
   retryAttachment,
   retryMessage,

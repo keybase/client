@@ -30,7 +30,7 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   )
 }
 
-const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onClick, onRekey, smallMode}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
+const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onChat, onClick, onRekey, smallMode}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
   <Box>
     {!!tlfs && tlfs.map((tlf) => (
       <Row
@@ -38,6 +38,7 @@ const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onClick, onRekey, smallMo
         key={rowKey(tlf.users)}
         isPublic={isPublic}
         ignored={isIgnored}
+        onChat={onChat}
         onClick={onClick}
         onRekey={onRekey}
         onOpen={onOpen}

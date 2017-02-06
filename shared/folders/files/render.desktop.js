@@ -106,6 +106,10 @@ class FilesRender extends Component<void, Props, void> {
         <Box style={styleRecentFilesNotEnabled}>
           <Button key='open' type='Primary' onClick={this.props.openCurrentFolder}
             label='Open folder' style={{marginBottom: globalMargins.small}} />
+          {isPrivate && <Button key='chat' type='Secondary' onClick={this.props.openConversationFromFolder}
+            label='Open in chat' style={{marginBottom: globalMargins.small, marginRight: 0}} />
+          }
+
           {ignored
           ? allowIgnore && <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' style={{marginRight: 0}} />
           : allowIgnore && <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' style={{marginRight: 0}} />}
