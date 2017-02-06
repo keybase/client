@@ -24,9 +24,8 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	maxPtrsPerBlock int) (*fileData, BlockCache, DirtyBlockCache, *dirtyFile) {
 	// Make a fake file.
 	ptr := BlockPointer{
-		ID:      kbfsblock.FakeID(42),
-		KeyGen:  1,
-		DataVer: 1,
+		ID:         kbfsblock.FakeID(42),
+		DirectType: DirectBlock,
 	}
 	id := tlf.FakeID(1, false)
 	file := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "file"}}}
@@ -378,13 +377,16 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 			children = prevChildren[prevChildIndex:newIndex]
 			fblock := NewFileBlock().(*FileBlock)
 			fblock.IsInd = true
+			dt := DirectBlock
+			if numLevels > 1 {
+				dt = IndirectBlock
+			}
 			for j, child := range children {
 				id, err := crypto.MakeTemporaryBlockID()
 				require.NoError(t, err)
 				ptr := BlockPointer{
-					ID:      id,
-					KeyGen:  1,
-					DataVer: 1,
+					ID:         id,
+					DirectType: dt,
 				}
 				var off int64
 				if child.IsInd {
@@ -405,6 +407,11 @@ func testFileDataLevelExistingBlocks(t *testing.T, fd *fileData,
 		prevChildren = level
 		numLevels++
 	}
+
+	if numLevels > 1 {
+		fd.file.path[len(fd.file.path)-1].DirectType = IndirectBlock
+	}
+
 	cleanBcache.Put(
 		fd.rootBlockPointer(), fd.file.Tlf, prevChildren[0], TransientEntry)
 	return prevChildren[0], numLevels
