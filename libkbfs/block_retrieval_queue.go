@@ -236,12 +236,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 	}
 }
 
-// WorkOnRequest returns a new channel for a worker to obtain a blockRetrieval.
-func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
-	ch := make(chan *blockRetrieval, 1)
+// Work accepts a worker's channel to assign work.
+func (brq *blockRetrievalQueue) Work(ch chan<- *blockRetrieval) {
 	brq.workerQueue <- ch
-
-	return ch
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has
