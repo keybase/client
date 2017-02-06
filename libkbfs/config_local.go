@@ -879,6 +879,15 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 	return nil
 }
 
+// defaultDiskLimitMaxDelay is the maximum amount to delay a block
+// put.
+const defaultDiskLimitMaxDelay = 10 * time.Second
+
+// defaultDiskLimitTimeout is how much of a delay will cause a block
+// put to give up and return. This should be slightly more than
+// maxDelay.
+const defaultDiskLimitTimeout = 11 * time.Second
+
 // EnableJournaling creates a JournalServer and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
@@ -898,16 +907,26 @@ func (c *ConfigLocal) EnableJournaling(
 	log := c.MakeLogger("")
 	branchListener := c.KBFSOps().(branchChangeListener)
 	flushListener := c.KBFSOps().(mdFlushListener)
+
 	// Set the journal disk limit to 10 GiB for now.
 	//
 	// TODO: Base this on the size of the disk, e.g. a quarter of
 	// the total size of the disk up to a maximum of 100 GB.
 	//
 	// TODO: Also keep track of and limit the inode count.
-	var journalDiskLimit int64 = 10 * 1024 * 1024 * 1024
-	// TODO: Use a diskLimiter implementation that applies
-	// backpressure.
-	diskLimitSemaphore := newSemaphoreDiskLimiter(journalDiskLimit)
+	const journalDiskLimit int64 = 10 * 1024 * 1024 * 1024
+
+	// Start backpressure when 50% of the disk limit has been
+	// reached.
+	const backpressureMinThreshold = journalDiskLimit / 2
+
+	// When 95% of the disk limit has been reached, just delay for
+	// the maximum duration.
+	const backpressureMaxThreshold = journalDiskLimit * 19 / 20
+
+	diskLimitSemaphore := newBackpressureDiskLimiter(
+		backpressureMinThreshold, backpressureMaxThreshold,
+		journalDiskLimit, defaultDiskLimitMaxDelay)
 	log.Debug("Setting journal byte limit to %v", journalDiskLimit)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,

@@ -62,8 +62,6 @@ func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
 	return ca.Config.KBPKI()
 }
 
-const defaultDiskLimitTimeout = 3 * time.Second
-
 func (ca tlfJournalConfigAdapter) diskLimitTimeout() time.Duration {
 	return defaultDiskLimitTimeout
 }
@@ -1480,7 +1478,8 @@ func (j *tlfJournal) putBlockData(
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	availableBytes, err := j.diskLimiter.beforeBlockPut(acquireCtx, bufLen)
+	availableBytes, err := j.diskLimiter.beforeBlockPut(
+		acquireCtx, bufLen, j.log)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.

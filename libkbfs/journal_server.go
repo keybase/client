@@ -77,7 +77,8 @@ type diskLimiter interface {
 	// ctx is cancelled. If the returned error is nil, the updated
 	// available byte count must be returned. Otherwise, the
 	// non-updated available byte count, or zero, may be returned.
-	beforeBlockPut(ctx context.Context, blockBytes int64) (int64, error)
+	beforeBlockPut(ctx context.Context, blockBytes int64,
+		log logger.Logger) (int64, error)
 
 	// onBlockPutFail is called if putting a block of the given
 	// size (which must be > 0) fails.
