@@ -708,10 +708,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		Status:     conversationRemote.Metadata.Status,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
-	for _, super := range conversationRemote.Supersedes {
+	for _, super := range conversationRemote.Metadata.Supersedes {
 		conversationLocal.Supersedes = append(conversationLocal.Supersedes, super)
 	}
-	for _, super := range conversationRemote.SupersededBy {
+	for _, super := range conversationRemote.Metadata.SupersededBy {
 		conversationLocal.SupersededBy = append(conversationLocal.SupersededBy, super)
 	}
 	if conversationRemote.ReaderInfo == nil {
