@@ -166,14 +166,16 @@ func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename 
 
 			// don't resize if multiple frames and < 5MB
 			bounds := g.Image[0].Bounds()
+			duration := gifDuration(g)
 			res := &PreviewRes{
-				Source:         newBufferSource(bytes.NewBuffer(raw), basename),
-				ContentType:    "image/gif",
-				BaseWidth:      bounds.Dx(),
-				BaseHeight:     bounds.Dy(),
-				PreviewWidth:   bounds.Dx(),
-				PreviewHeight:  bounds.Dy(),
-				BaseDurationMs: gifDuration(g),
+				Source:            newBufferSource(bytes.NewBuffer(raw), basename),
+				ContentType:       "image/gif",
+				BaseWidth:         bounds.Dx(),
+				BaseHeight:        bounds.Dy(),
+				PreviewWidth:      bounds.Dx(),
+				PreviewHeight:     bounds.Dy(),
+				BaseDurationMs:    duration,
+				PreviewDurationMs: duration,
 			}
 			return res, nil
 		}
