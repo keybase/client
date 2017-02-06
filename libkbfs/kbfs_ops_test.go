@@ -5615,3 +5615,34 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	// have MDOps do the handle check, that'll trigger first.
 	require.IsType(t, MDPrevRootMismatch{}, err)
 }
+
+// Test that if GetTLFCryptKeys fails to create a TLF, the second
+// attempt will also fail with the same error.  Regression test for
+// KBFS-1929.
+func TestGetTLFCryptKeysAfterFirstError(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "alice")
+	// TODO: Use kbfsTestShutdownNoMocks.
+	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
+
+	createErr := errors.New("Cannot create this TLF")
+	mdserver := &shimMDServer{
+		MDServer: config.MDServer(),
+		nextErr:  createErr,
+	}
+	config.SetMDServer(mdserver)
+
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+
+	_, _, err := config.KBFSOps().GetTLFCryptKeys(ctx, h)
+	if err != createErr {
+		t.Fatalf("Got unexpected error when creating TLF: %+v", err)
+	}
+
+	// Reset the error.
+	mdserver.nextErr = createErr
+	// Should get the same error, otherwise something's wrong.
+	_, _, err = config.KBFSOps().GetTLFCryptKeys(ctx, h)
+	if err != createErr {
+		t.Fatalf("Got unexpected error when creating TLF: %+v", err)
+	}
+}

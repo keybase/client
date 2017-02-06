@@ -1210,3 +1210,14 @@ type FileTooBigForCRError struct {
 func (e FileTooBigForCRError) Error() string {
 	return fmt.Sprintf("Cannot complete CR because the file %s is too big", e.p)
 }
+
+// NoMergedMDError indicates that no MDs for this folder have been
+// created yet.
+type NoMergedMDError struct {
+	tlf tlf.ID
+}
+
+// Error implements the error interface for NoMergedMDError.
+func (e NoMergedMDError) Error() string {
+	return fmt.Sprintf("No MD yet for TLF %s", e.tlf)
+}

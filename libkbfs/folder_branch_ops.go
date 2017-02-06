@@ -920,8 +920,8 @@ func (fbo *folderBranchOps) getMDLocked(
 	}
 
 	if mergedMD == (ImmutableRootMetadata{}) {
-		return ImmutableRootMetadata{}, errors.Errorf(
-			"Got nil RMD for %s", fbo.id())
+		return ImmutableRootMetadata{},
+			errors.WithStack(NoMergedMDError{fbo.id()})
 	}
 
 	if md == (ImmutableRootMetadata{}) {
@@ -1012,7 +1012,10 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentify(
 // code path (like chat) that might be accessing this folder for the
 // first time.  Other folderBranchOps methods like Lookup which know
 // the folder has already been accessed at least once (to get the root
-// node, for example) do not need to call this.
+// node, for example) do not need to call this.  Unlike other getMD
+// calls, this one may return a nil ImmutableRootMetadata along with a
+// nil error, to indicate that there isn't any MD for this TLF yet and
+// one must be created by the caller.
 func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 	ctx context.Context, lState *lockState) (ImmutableRootMetadata, error) {
 	irmd, err := fbo.getMDForReadHelper(ctx, lState, mdReadNeedIdentify)
@@ -1021,6 +1024,10 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
 		irmd, err = fbo.getMDForReadHelper(ctx, lState, mdWrite)
+	}
+
+	if _, noMD := errors.Cause(err).(NoMergedMDError); noMD {
+		return ImmutableRootMetadata{}, nil
 	}
 
 	return irmd, err
