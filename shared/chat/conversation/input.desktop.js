@@ -52,8 +52,18 @@ class Conversation extends Component<void, Props, State> {
       return
     }
 
+    // Arrow keys turn into % for some dumb reason
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(ev.key)) {
+      return
+    }
+
+    // No visible key
+    if (!String.fromCharCode(ev.keyCode).match(/^[a-z0-9!"#$%&'()*+,./:;<=>?@[\] ^_`{|}~-]*$/i)) {
+      return
+    }
+
     // Allow copy
-    if (ev.metaKey && ['Meta', 'c'].includes(ev.key)) {
+    if ((ev.metaKey || ev.ctrlKey) && ['Meta', 'c'].includes(ev.key)) {
       return
     }
 
