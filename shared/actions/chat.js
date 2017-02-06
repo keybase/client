@@ -884,7 +884,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
       finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
-      timeout: call(delay, 10000),
+      timeout: call(delay, 30000),
     })
 
     if (incoming.chatInboxConversation) {
