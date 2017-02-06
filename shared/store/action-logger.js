@@ -40,25 +40,25 @@ const actionStatSink: StatSink = {
   startTime: 0,
 }
 
-function makeActionToLog (action) {
+function makeActionToLog (action, oldState) {
   if (action.logTransformer) {
     try {
-      return action.logTransformer(action)
+      return action.logTransformer(action, oldState)
     } catch (e) {
       console.warn('Action logger error', e)
     }
   }
-  return noPayloadTransformer(action)
+  return noPayloadTransformer(action, oldState)
 }
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
-  const actionToLog = makeActionToLog(action)
-  const log1 = [`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(actionToLog) : actionToLog]
-
   const shouldRunActionStats = shouldRunStats(actionStatFrequency)
   const shouldRunLogStats = shouldRunStats(logStatFrequency)
 
   const oldState = store.getState()
+
+  const actionToLog = makeActionToLog(action, oldState)
+  const log1 = [`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(actionToLog) : actionToLog]
 
   startTiming(shouldRunActionStats, actionStatSink)
   const result = next(action)

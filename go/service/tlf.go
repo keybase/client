@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -16,6 +17,7 @@ import (
 
 type tlfHandler struct {
 	*BaseHandler
+	utils.DebugLabeler
 	libkb.Contextified
 }
 
@@ -23,6 +25,7 @@ func newTlfHandler(xp rpc.Transporter, g *libkb.GlobalContext) *tlfHandler {
 	return &tlfHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "TlfHandler", false),
 	}
 }
 
@@ -57,8 +60,8 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 	if ok {
 		arg.IdentifyBehavior = ident
 	}
-	defer h.G().CTrace(ctx, fmt.Sprintf("tlfHandler.CryptKeys(tlf=%s,mode=%v)", arg.TlfName,
-		arg.IdentifyBehavior), func() error { return err })()
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", arg.TlfName, arg.IdentifyBehavior))()
 
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
@@ -85,8 +88,10 @@ func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybas
 	if ok {
 		arg.IdentifyBehavior = ident
 	}
-	defer h.G().CTrace(ctx, fmt.Sprintf("tlfHandler.PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)",
-		arg.TlfName, arg.IdentifyBehavior), func() error { return err })()
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", arg.TlfName,
+			arg.IdentifyBehavior))()
+
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err

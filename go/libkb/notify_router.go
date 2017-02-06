@@ -244,7 +244,8 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 // HandleTrackingChanged is called whenever we have a new tracking or
 // untracking chain link related to a given user. It will broadcast the
 // messages to all curious listeners.
-func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string) {
+// isTracking is set to true if current user is tracking uid.
+func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string, isTracking bool) {
 	if n == nil {
 		return
 	}

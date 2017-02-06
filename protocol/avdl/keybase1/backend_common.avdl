@@ -3,10 +3,16 @@
 protocol backendCommon {
   import idl "common.avdl";
 
+  enum BlockType {
+    DATA_0,
+    MD_1
+  }
+
   @lint("ignore")
   record BlockIdCombo{
     string blockHash;
     UID chargedTo;
+    BlockType blockType;
   }
 
   record ChallengeInfo {

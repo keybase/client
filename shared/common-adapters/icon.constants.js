@@ -40,6 +40,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
   },
+  'icon-chat-addon-lock-8': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-chat-addon-lock-8.png'),
+  },
+  'icon-chat-addon-lock-active-8': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-chat-addon-lock-active-8.png'),
+  },
   'icon-coinbase-logo-16': {
     isFont: false,
     extension: 'png',
@@ -394,6 +404,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-folder-private-24.png'),
+  },
+  'icon-folder-private-32-addon-locked': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-private-32-addon-locked.png'),
   },
   'icon-folder-private-32': {
     isFont: false,

@@ -3,14 +3,15 @@ import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
 import List from './list.desktop'
-import ParticipantRekey from './participant-rekey.desktop'
 import NoConversation from './no-conversation.desktop'
+import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
+import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 import {nothingSelected} from '../../constants/chat'
-import {withHandlers, branch, renderComponent} from 'recompose'
+import {withHandlers, branch, renderComponent, compose} from 'recompose'
 
 import type {Props} from '.'
 
@@ -31,7 +32,20 @@ const withFocusHandlers = withHandlers(() => {
   }
 })
 
-class Conversation extends Component<void, Props & FocusHandlerProps, State> {
+type EditLastHandlerProps = {
+  onListRef: (list: React$Element<*>) => void,
+  onEditLastMessage: () => void,
+}
+
+const withEditLastHandlers = withHandlers(() => {
+  let _list
+  return {
+    onEditLastMessage: (props) => () => { _list && _list.onEditLastMessage() },
+    onListRef: (props) => (list) => { _list = list },
+  }
+})
+
+class Conversation extends Component<void, Props & FocusHandlerProps & EditLastHandlerProps, State> {
   state = {
     showDropOverlay: false,
   }
@@ -89,7 +103,9 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
       onDeleteMessage,
       onEditMessage,
       onFocusInput,
+      onEditLastMessage,
       onInputRef,
+      onListRef,
       onLoadAttachment,
       onLoadMoreMessages,
       onMuteConversation,
@@ -150,6 +166,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
           onRetryMessage={onRetryMessage}
           onShowProfile={onShowProfile}
           participants={participants}
+          ref={onListRef}
           selectedConversation={selectedConversation}
           sidePanelOpen={sidePanelOpen}
           validated={validated}
@@ -160,6 +177,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps, State> {
           emojiPickerOpen={emojiPickerOpen}
           isLoading={isLoading}
           onAttach={onAttach}
+          onEditLastMessage={onEditLastMessage}
           onPostMessage={onPostMessage}
           selectedConversation={selectedConversation}
         />
@@ -193,7 +211,11 @@ export default branch(
   renderComponent(NoConversation),
   branch(
     (props: Props) => !!props.rekeyInfo,
-    renderComponent(ParticipantRekey),
-    withFocusHandlers
+    branch(
+      (props: Props) => props.rekeyInfo && props.rekeyInfo.get('rekeyParticipants').count(),
+      renderComponent(ParticipantRekey),
+      renderComponent(YouRekey)
+    ),
+    compose(withFocusHandlers, withEditLastHandlers)
   )
 )(Conversation)
