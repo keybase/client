@@ -959,7 +959,6 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   }
 
   const rekeyInfoSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => {
-    console.log('aaaa', state.chat.get('rekeyInfos'))
     return state.chat.get('rekeyInfos').get(conversationIDKey)
   }
   const rekeyInfo = yield select(rekeyInfoSelector, conversationIDKey)
