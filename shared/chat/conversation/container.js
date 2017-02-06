@@ -118,7 +118,7 @@ export default connect(
   },
   (dispatch: Dispatch, {setRouteState}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
-    onAttach: (selectedConversation, input: AttachmentInput) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, input}, selected: 'attachmentInput'}])) },
+    onAttach: (selectedConversation, inputs: Array<AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
@@ -162,7 +162,7 @@ export default connect(
       ...ownProps,
       bannerMessage,
       onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => p !== stateProps.you).toArray()),
-      onAttach: (input: AttachmentInput) => dispatchProps.onAttach(stateProps.selectedConversation, input),
+      onAttach: (inputs: Array<AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversation, inputs),
       onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
       onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
       onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversation, muted),

@@ -41,21 +41,16 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
 
   _onDrop = e => {
     const fileList = e.dataTransfer.files
+    if (!this.props.selectedConversation) throw new Error('No conversation')
+    const conversationIDKey = this.props.selectedConversation
     // FileList, not an array
-    const files = Array.prototype.map.call(fileList, file => ({
-      name: file.name,
-      path: file.path,
+    const inputs = Array.prototype.map.call(fileList, file => ({
+      conversationIDKey,
+      filename: file.path,
+      title: file.name,
       type: file.type,
     }))
-    files.forEach(f => {
-      if (!this.props.selectedConversation) throw new Error('No conversation')
-      this.props.onAttach({
-        conversationIDKey: this.props.selectedConversation,
-        filename: f.path,
-        title: f.name,
-        type: f.type.includes('image/') ? 'Image' : 'Other',
-      })
-    })
+    this.props.onAttach(inputs)
     this.setState({showDropOverlay: false})
   }
 
@@ -77,12 +72,12 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       if (!this.props.selectedConversation) throw new Error('No conversation')
       if (clipboardData) {
         const {path, title} = clipboardData
-        this.props.onAttach({
+        this.props.onAttach([{
           conversationIDKey: this.props.selectedConversation,
           filename: path,
           title,
           type: 'Image',
-        })
+        }])
       }
     })
   }

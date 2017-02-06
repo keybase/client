@@ -1,10 +1,12 @@
 // @flow
 import {Component} from 'react'
 
+import type {AttachmentInput} from '../../../constants/chat'
+
 export type Props = {
-  title: string,
+  inputs: Array<AttachmentInput>,
   onClose: () => void,
-  onSelect: (title: string) => void,
+  onSelect: (input: AttachmentInput, title: string, close: boolean) => void,
 }
 
-export default class AttachmentInput extends Component<void, Props, void> {}
+export default class RenderAttachmentInput extends Component<void, Props, void> {}

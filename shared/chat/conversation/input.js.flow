@@ -7,7 +7,7 @@ export type Props = {
   defaultText: string,
   emojiPickerOpen: boolean,
   isLoading: boolean,
-  onAttach: (input: AttachmentInput) => void,
+  onAttach: (inputs: Array<AttachmentInput>) => void,
   onPostMessage: (text: string) => void,
   onEditLastMessage: () => void,
   selectedConversation: ?ConversationIDKey,

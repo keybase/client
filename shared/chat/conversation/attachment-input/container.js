@@ -8,40 +8,30 @@ import type {TypedState} from '../../../constants/reducer'
 import type {AttachmentInput, SelectAttachment} from '../../../constants/chat'
 
 type AttachmentInputRouteProps = RouteProps<{
-  input: AttachmentInput,
+  inputs: Array<AttachmentInput>,
 }, {}>
-type OwnProps = AttachmentInputRouteProps & {
-  title: string,
-}
+type OwnProps = AttachmentInputRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
-    const {input} = routeProps
+    const {inputs} = routeProps
     return {
-      input,
-      title: input.title,
+      inputs,
     }
   },
   (dispatch: Dispatch) => ({
     onClose: () => dispatch(navigateUp()),
-    onSelect: (input: AttachmentInput) => {
-      dispatch(navigateUp())
-      dispatch(({payload: {input}, type: 'chat:selectAttachment'}: SelectAttachment))
+    onSelect: (input: AttachmentInput, title: string, close: boolean) => {
+      if (close) {
+        dispatch(navigateUp())
+      }
+      const newInput = {
+        conversationIDKey: input.conversationIDKey,
+        filename: input.filename,
+        title,
+        type: input.type,
+      }
+      dispatch(({payload: {input: newInput}, type: 'chat:selectAttachment'}: SelectAttachment))
     },
-  }),
-  (stateProps, dispatchProps) => {
-    const {input} = stateProps
-    return {
-      ...stateProps,
-      ...dispatchProps,
-      onSelect: (title: string) => {
-        dispatchProps.onSelect({
-          conversationIDKey: input.conversationIDKey,
-          filename: input.filename,
-          title,
-          type: input.type,
-        })
-      },
-    }
-  },
+  })
 )(RenderAttachmentInput)
