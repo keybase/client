@@ -139,6 +139,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           onOpenFolder={onOpenFolder}
           onToggleSidePanel={onToggleSidePanel}
           participants={participants}
+          muted={muted}
           sidePanelOpen={sidePanelOpen}
           you={you}
           metaDataMap={metaDataMap}

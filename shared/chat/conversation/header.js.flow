@@ -8,6 +8,7 @@ export type Props = {
   participants: List<string>,
   metaDataMap: MetaDataMap,
   followingMap: FollowingMap,
+  muted: boolean,
   you: string,
   onOpenFolder: () => void,
   onToggleSidePanel: () => void,

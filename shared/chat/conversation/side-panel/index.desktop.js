@@ -8,7 +8,7 @@ import type {Props} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
 const SidePanel = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, flex: 1, borderLeft: border, borderRight: border, backgroundColor: globalColors.white, marginTop: -1, overflowY: 'auto'}}>
+  <Box style={{flex: 1, borderLeft: border, borderRight: border, backgroundColor: globalColors.white, marginTop: -1, overflowY: 'auto'}}>
     <Participants {...props} />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
