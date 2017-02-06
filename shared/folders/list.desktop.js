@@ -38,7 +38,7 @@ const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onChat, onClick, onRekey,
         {...tlf}
         key={rowKey(tlf.users)}
         isPublic={isPublic}
-        hasReaders={tlf.users && _.some(tlf.users, 'readOnly')}
+        hasReadOnlyUsers={tlf.users && _.some(tlf.users, 'readOnly')}
         ignored={isIgnored}
         onChat={onChat}
         onClick={onClick}
