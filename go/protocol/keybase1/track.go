@@ -36,8 +36,9 @@ type CheckTrackingArg struct {
 }
 
 type FakeTrackingChangedArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Username   string `codec:"username" json:"username"`
+	IsTracking bool   `codec:"isTracking" json:"isTracking"`
 }
 
 type TrackInterface interface {

@@ -8,6 +8,14 @@
   ],
   "types": [
     {
+      "type": "enum",
+      "name": "BlockType",
+      "symbols": [
+        "DATA_0",
+        "MD_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "BlockIdCombo",
       "fields": [
@@ -18,6 +26,10 @@
         {
           "type": "UID",
           "name": "chargedTo"
+        },
+        {
+          "type": "BlockType",
+          "name": "blockType"
         }
       ],
       "lint": "ignore"

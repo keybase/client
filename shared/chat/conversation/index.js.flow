@@ -3,7 +3,7 @@ import {Component} from 'react'
 import {List} from 'immutable'
 
 import type {Props as BannerMessage} from './banner'
-import type {AttachmentInput, AttachmentType, AttachmentMessage, ConversationIDKey, Message, MessageID, MetaDataMap, FollowingMap} from '../../constants/chat'
+import type {AttachmentInput, AttachmentType, AttachmentMessage, ConversationIDKey, Message, MessageID, MetaDataMap, FollowingMap, RekeyInfo} from '../../constants/chat'
 
 export type Props = {
   bannerMessage: ?BannerMessage,
@@ -16,12 +16,14 @@ export type Props = {
   messages: List<Message>,
   metaDataMap: MetaDataMap,
   moreToLoad: boolean,
+  muted: boolean,
   onAddParticipant: () => void,
   onAttach: (input: AttachmentInput) => void,
   onDeleteMessage: (message: Message) => void,
   onEditMessage: (message: Message, body: string) => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
+  onMuteConversation: (muted: boolean) => void,
   onOpenFolder: () => void,
   onOpenInFileUI: (filename: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
@@ -29,8 +31,10 @@ export type Props = {
   onRetryAttachment: (message: AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
   onShowProfile: (username: string) => void,
+  onStoreInputText: (inputText: string) => void,
   onToggleSidePanel: () => void,
   participants: List<string>,
+  rekeyInfo: ?RekeyInfo,
   selectedConversation: ?ConversationIDKey,
   setInputText: (text: string) => void,
   sidePanelOpen: boolean,

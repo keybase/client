@@ -20,7 +20,8 @@ class ConversationListContainer extends Component {
 export default connect(
   (state: TypedState, {routeSelected}) => ({
     conversationUnreadCounts: state.chat.get('conversationUnreadCounts'),
-    inbox: state.chat.get('inbox'),
+    inbox: state.chat.get('inbox').filter(i => !i.isEmpty || i.youCreated),
+    rekeyInfos: state.chat.get('rekeyInfos'),
     selectedConversation: routeSelected,
     you: state.config.username || '',
   }),

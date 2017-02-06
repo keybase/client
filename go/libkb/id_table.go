@@ -543,7 +543,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 
 func (l *TrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
 	g.Log.Debug("Post notification for new TrackChainLink")
-	g.NotifyRouter.HandleTrackingChanged(l.whomUID, l.whomUsername)
+	g.NotifyRouter.HandleTrackingChanged(l.whomUID, l.whomUsername, true)
 }
 
 //
@@ -805,7 +805,7 @@ func (u *UntrackChainLink) IsRevocationIsh() bool { return true }
 
 func (u *UntrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
 	g.Log.Debug("Post notification for new UntrackChainLink")
-	g.NotifyRouter.HandleTrackingChanged(u.whomUID, u.whomUsername)
+	g.NotifyRouter.HandleTrackingChanged(u.whomUID, u.whomUsername, false)
 }
 
 //

@@ -11,6 +11,7 @@ type UnboxingError interface {
 	Error() string
 	Inner() error
 	IsPermanent() bool
+	ExportType() chat1.MessageUnboxedErrorType
 }
 
 var _ error = (UnboxingError)(nil)
@@ -29,6 +30,15 @@ func (e PermanentUnboxingError) IsPermanent() bool { return true }
 
 func (e PermanentUnboxingError) Inner() error { return e.inner }
 
+func (e PermanentUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
+	switch err := e.inner.(type) {
+	case VersionError:
+		return err.ExportType()
+	default:
+		return chat1.MessageUnboxedErrorType_MISC
+	}
+}
+
 func NewTransientUnboxingError(inner error) UnboxingError {
 	return &TransientUnboxingError{inner}
 }
@@ -42,6 +52,10 @@ func (e TransientUnboxingError) Error() string {
 func (e TransientUnboxingError) IsPermanent() bool { return false }
 
 func (e TransientUnboxingError) Inner() error { return e.inner }
+
+func (e TransientUnboxingError) ExportType() chat1.MessageUnboxedErrorType {
+	return chat1.MessageUnboxedErrorType_MISC
+}
 
 //=============================================================================
 
@@ -140,24 +154,36 @@ func (e BodyHashInvalid) Error() string {
 }
 
 type VersionError struct {
-	Kind    string
-	Version int
+	Kind     string
+	Version  int
+	Critical bool
 }
 
 func (e VersionError) Error() string {
-	return fmt.Sprintf("chat version error: unhandled %s version %d", e.Kind, e.Version)
+	return fmt.Sprintf("chat version error: unhandled %s version %d critical: %v", e.Kind, e.Version,
+		e.Critical)
 }
 
-func NewHeaderVersionError(version chat1.HeaderPlaintextVersion) VersionError {
+func (e VersionError) ExportType() chat1.MessageUnboxedErrorType {
+	if e.Critical {
+		return chat1.MessageUnboxedErrorType_BADVERSION_CRITICAL
+	}
+	return chat1.MessageUnboxedErrorType_BADVERSION
+}
+
+func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
+	defaultHeader chat1.HeaderPlaintextUnsupported) VersionError {
 	return VersionError{
-		Kind:    "header",
-		Version: int(version),
+		Kind:     "header",
+		Version:  int(version),
+		Critical: defaultHeader.Mi.Crit,
 	}
 }
 
-func NewBodyVersionError(version chat1.BodyPlaintextVersion) VersionError {
+func NewBodyVersionError(version chat1.BodyPlaintextVersion, defaultBody chat1.BodyPlaintextUnsupported) VersionError {
 	return VersionError{
-		Kind:    "body",
-		Version: int(version),
+		Kind:     "body",
+		Version:  int(version),
+		Critical: defaultBody.Mi.Crit,
 	}
 }

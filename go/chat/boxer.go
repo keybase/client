@@ -57,8 +57,9 @@ func (b *Boxer) log() logger.Logger {
 	return b.G().GetLog()
 }
 
-func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageUnboxed {
+func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+		ErrType:     err.ExportType(),
 		ErrMsg:      err.Error(),
 		MessageID:   msg.GetMessageID(),
 		MessageType: msg.GetMessageType(),
@@ -95,10 +96,10 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 
 	umwkr, ierr := b.unboxMessageWithKey(ctx, boxed, matchKey)
 	if ierr != nil {
-		b.log().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
+		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
 		if ierr.IsPermanent() {
-			return b.makeErrorMessage(boxed, ierr.Inner()), nil
+			return b.makeErrorMessage(boxed, ierr), nil
 		}
 		return chat1.MessageUnboxed{}, ierr
 	}
@@ -106,9 +107,13 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 
 	username, deviceName, deviceType, err := b.getSenderInfoLocal(ctx, pt.ClientHeader)
 	if err != nil {
-		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
+		b.Debug(ctx, "unable to fetch sender and device informaton: UID: %s deviceID: %s",
 			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
-		// ignore non-fatal error
+		// try to just get username
+		username, err = b.getSenderUsername(ctx, pt.ClientHeader)
+		if err != nil {
+			b.Debug(ctx, "failed to fetch sender username after initial error: err: %s", err.Error())
+		}
 	}
 
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
@@ -130,6 +135,68 @@ type unboxMessageWithKeyRes struct {
 	headerHash            chat1.Hash
 	headerSignature       *chat1.SignatureInfo
 	senderDeviceRevokedAt *gregor1.Time
+}
+
+func (b *Boxer) headerUnsupported(ctx context.Context, headerVersion chat1.HeaderPlaintextVersion,
+	header chat1.HeaderPlaintext) chat1.HeaderPlaintextUnsupported {
+	switch headerVersion {
+	case chat1.HeaderPlaintextVersion_V2:
+		return header.V2()
+	case chat1.HeaderPlaintextVersion_V3:
+		return header.V3()
+	case chat1.HeaderPlaintextVersion_V4:
+		return header.V4()
+	case chat1.HeaderPlaintextVersion_V5:
+		return header.V5()
+	case chat1.HeaderPlaintextVersion_V6:
+		return header.V6()
+	case chat1.HeaderPlaintextVersion_V7:
+		return header.V7()
+	case chat1.HeaderPlaintextVersion_V8:
+		return header.V8()
+	case chat1.HeaderPlaintextVersion_V9:
+		return header.V9()
+	case chat1.HeaderPlaintextVersion_V10:
+		return header.V10()
+	default:
+		b.Debug(ctx, "headerUnsupported: unknown version: %v", headerVersion)
+		return chat1.HeaderPlaintextUnsupported{
+			Mi: chat1.HeaderPlaintextMetaInfo{
+				Crit: true,
+			},
+		}
+	}
+}
+
+func (b *Boxer) bodyUnsupported(ctx context.Context, bodyVersion chat1.BodyPlaintextVersion,
+	body chat1.BodyPlaintext) chat1.BodyPlaintextUnsupported {
+	switch bodyVersion {
+	case chat1.BodyPlaintextVersion_V2:
+		return body.V2()
+	case chat1.BodyPlaintextVersion_V3:
+		return body.V3()
+	case chat1.BodyPlaintextVersion_V4:
+		return body.V4()
+	case chat1.BodyPlaintextVersion_V5:
+		return body.V5()
+	case chat1.BodyPlaintextVersion_V6:
+		return body.V6()
+	case chat1.BodyPlaintextVersion_V7:
+		return body.V7()
+	case chat1.BodyPlaintextVersion_V8:
+		return body.V8()
+	case chat1.BodyPlaintextVersion_V9:
+		return body.V9()
+	case chat1.BodyPlaintextVersion_V10:
+		return body.V10()
+	default:
+		b.Debug(ctx, "bodyUnsupported: unknown version: %v", bodyVersion)
+		return chat1.BodyPlaintextUnsupported{
+			Mi: chat1.BodyPlaintextMetaInfo{
+				Crit: true,
+			},
+		}
+	}
 }
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
@@ -188,12 +255,6 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
 		headerSignature = header.V1().HeaderSignature
-	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
-	}
-
-	switch headerVersion {
-	case chat1.HeaderPlaintextVersion_V1:
 		hp := header.V1()
 		clientHeader = chat1.MessageClientHeader{
 			Conv:         hp.Conv,
@@ -207,7 +268,9 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			OutboxID:     hp.OutboxID,
 		}
 	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
+		return unboxMessageWithKeyRes{},
+			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
+				b.headerUnsupported(ctx, headerVersion, header)))
 	}
 
 	if skipBodyVerification {
@@ -221,7 +284,9 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 				senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 			}, nil
 		default:
-			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
+			return unboxMessageWithKeyRes{},
+				NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
+					b.headerUnsupported(ctx, headerVersion, header)))
 		}
 	}
 
@@ -232,31 +297,19 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	}
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
-		bodyUpgraded, err := chat1.ConvertMessageBodyV1ToV2(body.V1().MessageBody)
-		if err != nil {
-			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
-		}
 		return unboxMessageWithKeyRes{
 			messagePlaintext: chat1.MessagePlaintext{
 				ClientHeader: clientHeader,
-				MessageBody:  bodyUpgraded,
-			},
-			headerHash:            headerHash,
-			headerSignature:       headerSignature,
-			senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
-		}, nil
-	case chat1.BodyPlaintextVersion_V2:
-		return unboxMessageWithKeyRes{
-			messagePlaintext: chat1.MessagePlaintext{
-				ClientHeader: clientHeader,
-				MessageBody:  body.V2().MessageBody,
+				MessageBody:  body.V1().MessageBody,
 			},
 			headerHash:            headerHash,
 			headerSignature:       headerSignature,
 			senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 		}, nil
 	default:
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(NewBodyVersionError(bodyVersion))
+		return unboxMessageWithKeyRes{},
+			NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
+				b.bodyUnsupported(ctx, bodyVersion, body)))
 	}
 }
 
@@ -280,6 +333,14 @@ func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, devi
 		return "", "", "", err
 	}
 	return nun.String(), devName, devType, nil
+}
+
+func (b *Boxer) getSenderUsername(ctx context.Context, clientHeader chat1.MessageClientHeader) (string, error) {
+	name, err := b.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(clientHeader.Sender.String()))
+	if err != nil {
+		return "", err
+	}
+	return name.String(), nil
 }
 
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
@@ -366,15 +427,15 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	return boxed, nil
 }
 
-// boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a
+// boxMessageWithKeys encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
 func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 
-	body := chat1.BodyPlaintextV2{
+	body := chat1.BodyPlaintextV1{
 		MessageBody: msg.MessageBody,
 	}
-	plaintextBody := chat1.NewBodyPlaintextWithV2(body)
+	plaintextBody := chat1.NewBodyPlaintextWithV1(body)
 	encryptedBody, err := b.seal(plaintextBody, key)
 	if err != nil {
 		return nil, err
@@ -497,7 +558,9 @@ func (b *Boxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext,
 	case chat1.HeaderPlaintextVersion_V1:
 		return b.verifyMessageHeaderV1(ctx, header.V1(), msg, skipBodyVerification)
 	default:
-		return verifyMessageRes{}, NewPermanentUnboxingError(NewHeaderVersionError(headerVersion))
+		return verifyMessageRes{},
+			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
+				b.headerUnsupported(ctx, headerVersion, header)))
 	}
 }
 
@@ -577,9 +640,11 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	}
 
 	if deleted {
-		// XXX something else to flag as a deleted key?
-		b.log().Warning("sender %s key %s was deleted", kbSender, kid)
-		return true, true, nil, nil
+		b.Debug(ctx, "sender %s key %s was deleted", kbSender, kid)
+		// Set the key as being revoked since the beginning of time, so all messages will get labeled
+		// as suspect
+		zeroTime := gregor1.Time(0)
+		return true, true, &zeroTime, nil
 	}
 
 	validAtCtime := true

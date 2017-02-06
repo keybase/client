@@ -709,10 +709,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Supersedes {
-		conversationLocal.Supersedes = append(conversationLocal.Supersedes, super.ConversationID)
+		conversationLocal.Supersedes = append(conversationLocal.Supersedes, super)
 	}
 	for _, super := range conversationRemote.SupersededBy {
-		conversationLocal.SupersededBy = append(conversationLocal.SupersededBy, super.ConversationID)
+		conversationLocal.SupersededBy = append(conversationLocal.SupersededBy, super)
 	}
 	if conversationRemote.ReaderInfo == nil {
 		errMsg := "empty ReaderInfo from server?"
@@ -735,8 +735,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Set empty to an initial value before the real one in case we hit an error processing
-	// max messages
+	// Conversation is not empty as long as we have a visible message, even if they are
+	// errors
 	conversationLocal.IsEmpty = true
 	for _, maxMsg := range conversationRemote.MaxMsgs {
 		if utils.IsVisibleChatMessageType(maxMsg.GetMessageType()) {
@@ -786,9 +786,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 	}
 
-	// Set to true later if visible messages are in max messages.
-	conversationLocal.IsEmpty = true
-
 	var maxValidID chat1.MessageID
 	superXform := newSupersedesTransform(s.G())
 
@@ -804,9 +801,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 			if typ == chat1.MessageType_METADATA {
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
-			}
-			if utils.IsVisibleChatMessageType(typ) {
-				conversationLocal.IsEmpty = false
 			}
 
 			if mm.GetMessageID() >= maxValidID {

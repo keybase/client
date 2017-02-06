@@ -15,7 +15,7 @@ export type FollowingMap = {[key: string]: boolean}
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
-export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading' | 'uploading' | 'downloaded'
+export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading-preview' | 'downloading' | 'uploading' | 'downloaded'
 export type AttachmentType = 'Image' | 'Other'
 
 export type ConversationID = RPCConversationID
@@ -213,6 +213,16 @@ export const MetaDataRecord = Record({
   brokenTracker: false,
 })
 
+export const RekeyInfoRecord = Record({
+  rekeyParticipants: List(),
+  youCanRekey: false,
+})
+
+export type RekeyInfo = Record<{
+  rekeyParticipants: List<string>,
+  youCanRekey: boolean,
+}>
+
 export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
@@ -220,6 +230,7 @@ export const StateRecord = Record({
   metaData: Map(),
   pendingFailures: Set(),
   conversationUnreadCounts: Map(),
+  rekeyInfos: Map(),
 })
 
 export type State = Record<{
@@ -229,6 +240,7 @@ export type State = Record<{
   metaData: MetaDataMap,
   pendingFailures: Set<OutboxIDKey>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
+  rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -242,6 +254,7 @@ export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversa
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
+export type ConversationSetStatus = NoErrorTypedAction<'chat:conversationSetStatus', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
@@ -253,9 +266,11 @@ export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<In
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
+export type MuteConversation = NoErrorTypedAction<'chat:muteConversation', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type OpenAttachmentPopup = NoErrorTypedAction<'chat:openAttachmentPopup', {message: AttachmentMessage}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
+export type OpenTlfInChat = NoErrorTypedAction<'chat:openTlfInChat', string>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
@@ -274,7 +289,7 @@ export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: 
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
 export type UpdateBrokenTracker = NoErrorTypedAction<'chat:updateBrokenTracker', {userToBroken: {[username: string]: boolean}}>
 export type UploadProgress = NoErrorTypedAction<'chat:uploadProgress', {
-  messageID: MessageID,
+  outboxID: OutboxIDKey,
   bytesComplete: number,
   bytesTotal: number,
   conversationIDKey: ConversationIDKey,
@@ -283,6 +298,7 @@ export type DownloadProgress = NoErrorTypedAction<'chat:downloadProgress', {
   bytesComplete: number,
   bytesTotal: number,
   conversationIDKey: ConversationIDKey,
+  isPreview: boolean,
   messageID: MessageID,
 }>
 export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {

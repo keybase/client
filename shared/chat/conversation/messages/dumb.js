@@ -216,6 +216,16 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
       ...attachmentBaseMock,
       message: {...attachmentMessageWithImg, downloadedPath: null},
     },
+    'Basic - Preview Image. Downloading Preview': {
+      ...attachmentBaseMock,
+      message: {
+        ...attachmentMessageWithImg,
+        downloadedPath: null,
+        messageState: 'downloading-preview',
+        previewPath: null,
+        progress: 0.3,
+      },
+    },
     'Basic - Uploading': {
       ...attachmentBaseMock,
       message: {

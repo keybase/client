@@ -52,6 +52,11 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
   return channelMap
 }
 
+export const BackendCommonBlockType = {
+  data: 0,
+  md: 1,
+}
+
 export const CommonClientType = {
   none: 0,
   cli: 1,
@@ -2833,6 +2838,7 @@ export type BinaryKID = bytes
 export type BlockIdCombo = {
   blockHash: string,
   chargedTo: UID,
+  blockType: BlockType,
 }
 
 export type BlockRefNonce = any
@@ -2847,6 +2853,10 @@ export type BlockReferenceCount = {
   ref: BlockReference,
   liveCount: int,
 }
+
+export type BlockType =
+    0 // DATA_0
+  | 1 // MD_1
 
 export type BoxNonce = any
 
@@ -2882,12 +2892,12 @@ export type CheckResult = {
   freshness: CheckResultFreshness,
 }
 
-export type CheckResultFreshness = 
+export type CheckResultFreshness =
     0 // FRESH_0
   | 1 // AGED_1
   | 2 // RANCID_2
 
-export type ChooseType = 
+export type ChooseType =
     0 // EXISTING_DEVICE_0
   | 1 // NEW_DEVICE_1
 
@@ -2906,7 +2916,7 @@ export type ClientDetails = {
   version: string,
 }
 
-export type ClientType = 
+export type ClientType =
     0 // NONE_0
   | 1 // CLI_1
   | 2 // GUI_2
@@ -2974,7 +2984,7 @@ export type DbKey = {
   key: string,
 }
 
-export type DbType = 
+export type DbType =
     0 // MAIN_0
   | 1 // CHAT_1
 
@@ -3005,7 +3015,7 @@ export type DeviceDetail = {
 
 export type DeviceID = string
 
-export type DeviceType = 
+export type DeviceType =
     0 // DESKTOP_0
   | 1 // MOBILE_1
 
@@ -3015,7 +3025,7 @@ export type DismissReason = {
   resource: string,
 }
 
-export type DismissReasonType = 
+export type DismissReasonType =
     0 // NONE_0
   | 1 // HANDLED_ELSEWHERE_1
 
@@ -3042,7 +3052,7 @@ export type Email = {
 
 export type EncryptedBytes32 = any
 
-export type ExitCode = 
+export type ExitCode =
     0 // OK_0
   | 2 // NOTOK_2
   | 4 // RESTART_4
@@ -3073,7 +3083,7 @@ export type FSEditListRequest = {
   requestID: int,
 }
 
-export type FSErrorType = 
+export type FSErrorType =
     0 // ACCESS_DENIED_0
   | 1 // USER_NOT_FOUND_1
   | 2 // REVOKED_DATA_DETECTED_2
@@ -3099,7 +3109,7 @@ export type FSNotification = {
   localTime: Time,
 }
 
-export type FSNotificationType = 
+export type FSNotificationType =
     0 // ENCRYPTING_0
   | 1 // DECRYPTING_1
   | 2 // SIGNING_2
@@ -3120,7 +3130,7 @@ export type FSPathSyncStatus = {
   syncedBytes: int64,
 }
 
-export type FSStatusCode = 
+export type FSStatusCode =
     0 // START_0
   | 1 // FINISH_1
   | 2 // ERROR_2
@@ -3157,7 +3167,7 @@ export type FileDescriptor = {
   type: FileType,
 }
 
-export type FileType = 
+export type FileType =
     0 // UNKNOWN_0
   | 1 // DIRECTORY_1
   | 2 // FILE_2
@@ -3173,7 +3183,7 @@ export type Folder = {
   created: boolean,
 }
 
-export type ForkType = 
+export type ForkType =
     0 // NONE_0
   | 1 // AUTO_1
   | 2 // WATCHDOG_2
@@ -3205,7 +3215,7 @@ export type GPGKey = {
   identities?: ?Array<PGPIdentity>,
 }
 
-export type GPGMethod = 
+export type GPGMethod =
     0 // GPG_NONE_0
   | 1 // GPG_IMPORT_1
   | 2 // GPG_SIGN_2
@@ -3299,7 +3309,7 @@ export type IdentifyReason = {
   resource: string,
 }
 
-export type IdentifyReasonType = 
+export type IdentifyReasonType =
     0 // NONE_0
   | 1 // ID_1
   | 2 // TRACK_2
@@ -3337,7 +3347,7 @@ export type Identity = {
   breaksTracking: boolean,
 }
 
-export type InstallAction = 
+export type InstallAction =
     0 // UNKNOWN_0
   | 1 // NONE_1
   | 2 // UPGRADE_2
@@ -3350,7 +3360,7 @@ export type InstallResult = {
   fatal: boolean,
 }
 
-export type InstallStatus = 
+export type InstallStatus =
     0 // UNKNOWN_0
   | 1 // ERROR_1
   | 2 // NOT_INSTALLED_2
@@ -3433,7 +3443,7 @@ export type LoadDeviceErr = {
   desc: string,
 }
 
-export type LogLevel = 
+export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
   | 2 // INFO_2
@@ -3454,7 +3464,7 @@ export type MerkleRoot = {
   root: bytes,
 }
 
-export type MerkleTreeID = 
+export type MerkleTreeID =
     0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
   | 2 // KBFS_PRIVATE_2
@@ -3545,7 +3555,8 @@ export type NotifySessionLoggedInRpcParam = Exact<{
 
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
   uid: UID,
-  username: string
+  username: string,
+  isTracking: boolean
 }>
 
 export type NotifyUsersUserChangedRpcParam = Exact<{
@@ -3559,7 +3570,7 @@ export type OutOfDateInfo = {
   criticalClockSkew: long,
 }
 
-export type Outcome = 
+export type Outcome =
     0 // NONE_0
   | 1 // FIXED_1
   | 2 // IGNORED_2
@@ -3622,7 +3633,7 @@ export type PassphraseStream = {
   generation: int,
 }
 
-export type PassphraseType = 
+export type PassphraseType =
     0 // NONE_0
   | 1 // PAPER_KEY_1
   | 2 // PASS_PHRASE_2
@@ -3662,12 +3673,12 @@ export type Process = {
   fileDescriptors?: ?Array<FileDescriptor>,
 }
 
-export type PromptDefault = 
+export type PromptDefault =
     0 // NONE_0
   | 1 // YES_1
   | 2 // NO_2
 
-export type PromptOverwriteType = 
+export type PromptOverwriteType =
     0 // SOCIAL_0
   | 1 // SITE_1
 
@@ -3677,7 +3688,7 @@ export type ProofResult = {
   desc: string,
 }
 
-export type ProofState = 
+export type ProofState =
     0 // NONE_0
   | 1 // OK_1
   | 2 // TEMP_FAILURE_2
@@ -3691,7 +3702,7 @@ export type ProofState =
   | 10 // SIG_HINT_MISSING_10
   | 11 // UNCHECKED_11
 
-export type ProofStatus = 
+export type ProofStatus =
     0 // NONE_0
   | 1 // OK_1
   | 2 // LOCAL_2
@@ -3732,7 +3743,7 @@ export type ProofStatus =
   | 307 // BAD_HINT_TEXT_307
   | 308 // INVALID_PVL_308
 
-export type ProofType = 
+export type ProofType =
     0 // NONE_0
   | 1 // KEYBASE_1
   | 2 // TWITTER_2
@@ -3752,7 +3763,7 @@ export type Proofs = {
   publicKeys?: ?Array<PublicKey>,
 }
 
-export type ProvisionMethod = 
+export type ProvisionMethod =
     0 // DEVICE_0
   | 1 // PAPER_KEY_1
   | 2 // PASSPHRASE_2
@@ -3773,7 +3784,7 @@ export type PublicKey = {
   eTime: Time,
 }
 
-export type PushReason = 
+export type PushReason =
     0 // NONE_0
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
@@ -3782,7 +3793,7 @@ export type Reachability = {
   reachable: Reachable,
 }
 
-export type Reachable = 
+export type Reachable =
     0 // UNKNOWN_0
   | 1 // YES_1
   | 2 // NO_2
@@ -3797,7 +3808,7 @@ export type RekeyEvent = {
   interruptType: int,
 }
 
-export type RekeyEventType = 
+export type RekeyEventType =
     0 // NONE_0
   | 1 // NOT_LOGGED_IN_1
   | 2 // API_ERROR_2
@@ -3870,7 +3881,7 @@ export type SaltpackSender = {
   senderType: SaltpackSenderType,
 }
 
-export type SaltpackSenderType = 
+export type SaltpackSenderType =
     0 // NOT_TRACKED_0
   | 1 // UNKNOWN_1
   | 2 // ANONYMOUS_2
@@ -4016,7 +4027,7 @@ export type SigTypes = {
   isSelf: boolean,
 }
 
-export type SignMode = 
+export type SignMode =
     0 // ATTACHED_0
   | 1 // DETACHED_1
   | 2 // CLEAR_2
@@ -4045,7 +4056,7 @@ export type Status = {
   fields?: ?Array<StringKVPair>,
 }
 
-export type StatusCode = 
+export type StatusCode =
     0 // SCOk_0
   | 100 // SCInputError_100
   | 201 // SCLoginRequired_201
@@ -4155,7 +4166,7 @@ export type TLFBreak = {
 
 export type TLFID = string
 
-export type TLFIdentifyBehavior = 
+export type TLFIdentifyBehavior =
     0 // DEFAULT_KBFS_0
   | 1 // CHAT_CLI_1
   | 2 // CHAT_GUI_2
@@ -4187,7 +4198,7 @@ export type TrackDiff = {
   displayMarkup: string,
 }
 
-export type TrackDiffType = 
+export type TrackDiffType =
     0 // NONE_0
   | 1 // ERROR_1
   | 2 // CLASH_2
@@ -4214,7 +4225,7 @@ export type TrackProof = {
   idString: string,
 }
 
-export type TrackStatus = 
+export type TrackStatus =
     1 // NEW_OK_1
   | 2 // NEW_ZERO_PROOFS_2
   | 3 // NEW_FAIL_PROOFS_3
@@ -4567,7 +4578,7 @@ export type identifyIdentify2RpcParam = Exact<{
   allowEmptySelfID?: boolean,
   noSkipSelf?: boolean,
   canSuppressUI?: boolean,
-  chatGUIMode?: boolean,
+  identifyBehavior?: TLFIdentifyBehavior,
   forceDisplay?: boolean
 }>
 
@@ -5201,7 +5212,8 @@ export type trackDismissWithTokenRpcParam = Exact<{
 }>
 
 export type trackFakeTrackingChangedRpcParam = Exact<{
-  username: string
+  username: string,
+  isTracking: boolean
 }>
 
 export type trackTrackRpcParam = Exact<{
@@ -6055,7 +6067,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyTracking.trackingChanged'?: (
     params: Exact<{
       uid: UID,
-      username: string
+      username: string,
+      isTracking: boolean
     }> /* ,
     response: {} // Notify call
     */

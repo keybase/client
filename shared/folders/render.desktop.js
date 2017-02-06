@@ -40,6 +40,7 @@ class FoldersRender extends Component<void, Props, void> {
       smallMode: this.props.smallMode,
       onRekey: this.props.onRekey,
       onOpen: this.props.onOpen,
+      onChat: this.props.onChat,
       onClick: this.props.onClick,
     }
 

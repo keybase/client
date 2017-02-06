@@ -31,8 +31,8 @@ const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
 
   return (
     <Box style={{...containerStyle, ...style}}>
-      <Avatar {...leftProps} style={leftAvatar} size={multiSize} />
-      <Avatar {...rightProps} style={rightAvatar} size={multiSize} />
+      <Avatar {...leftProps} style={{...leftAvatar, ...leftProps.style}} size={multiSize} />
+      <Avatar {...rightProps} style={{...rightAvatar, ...rightProps.style}} size={multiSize} />
     </Box>
   )
 }

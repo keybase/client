@@ -230,7 +230,7 @@
     },
     {
       "type": "record",
-      "name": "MessageAttachmentV1",
+      "name": "MessageAttachment",
       "fields": [
         {
           "type": "Asset",
@@ -242,20 +242,6 @@
             "Asset"
           ],
           "name": "preview"
-        },
-        {
-          "type": "bytes",
-          "name": "metadata"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "MessageAttachment",
-      "fields": [
-        {
-          "type": "Asset",
-          "name": "object"
         },
         {
           "type": {
@@ -296,58 +282,6 @@
         {
           "type": "bytes",
           "name": "metadata"
-        }
-      ]
-    },
-    {
-      "type": "variant",
-      "name": "MessageBodyV1",
-      "switch": {
-        "type": "MessageType",
-        "name": "messageType"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "TEXT",
-            "def": false
-          },
-          "body": "MessageText"
-        },
-        {
-          "label": {
-            "name": "ATTACHMENT",
-            "def": false
-          },
-          "body": "MessageAttachmentV1"
-        },
-        {
-          "label": {
-            "name": "EDIT",
-            "def": false
-          },
-          "body": "MessageEdit"
-        },
-        {
-          "label": {
-            "name": "DELETE",
-            "def": false
-          },
-          "body": "MessageDelete"
-        },
-        {
-          "label": {
-            "name": "METADATA",
-            "def": false
-          },
-          "body": "MessageConversationMetadata"
-        },
-        {
-          "label": {
-            "name": "HEADLINE",
-            "def": false
-          },
-          "body": "MessageHeadline"
         }
       ]
     },
@@ -532,7 +466,36 @@
       "type": "enum",
       "name": "HeaderPlaintextVersion",
       "symbols": [
-        "V1_1"
+        "V1_1",
+        "V2_2",
+        "V3_3",
+        "V4_4",
+        "V5_5",
+        "V6_6",
+        "V7_7",
+        "V8_8",
+        "V9_9",
+        "V10_10"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HeaderPlaintextMetaInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "crit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HeaderPlaintextUnsupported",
+      "fields": [
+        {
+          "type": "HeaderPlaintextMetaInfo",
+          "name": "mi"
+        }
       ]
     },
     {
@@ -611,6 +574,69 @@
             "def": false
           },
           "body": "HeaderPlaintextV1"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V3",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V4",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V5",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V6",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V7",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V8",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V9",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V10",
+            "def": false
+          },
+          "body": "HeaderPlaintextUnsupported"
         }
       ]
     },
@@ -619,22 +645,40 @@
       "name": "BodyPlaintextVersion",
       "symbols": [
         "V1_1",
-        "V2_2"
+        "V2_2",
+        "V3_3",
+        "V4_4",
+        "V5_5",
+        "V6_6",
+        "V7_7",
+        "V8_8",
+        "V9_9",
+        "V10_10"
       ]
     },
     {
       "type": "record",
-      "name": "BodyPlaintextV1",
+      "name": "BodyPlaintextMetaInfo",
       "fields": [
         {
-          "type": "MessageBodyV1",
-          "name": "messageBody"
+          "type": "boolean",
+          "name": "crit"
         }
       ]
     },
     {
       "type": "record",
-      "name": "BodyPlaintextV2",
+      "name": "BodyPlaintextUnsupported",
+      "fields": [
+        {
+          "type": "BodyPlaintextMetaInfo",
+          "name": "mi"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BodyPlaintextV1",
       "fields": [
         {
           "type": "MessageBody",
@@ -662,7 +706,63 @@
             "name": "V2",
             "def": false
           },
-          "body": "BodyPlaintextV2"
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V3",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V4",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V5",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V6",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V7",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V8",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V9",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
+        },
+        {
+          "label": {
+            "name": "V10",
+            "def": false
+          },
+          "body": "BodyPlaintextUnsupported"
         }
       ]
     },
@@ -738,9 +838,23 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MessageUnboxedErrorType",
+      "symbols": [
+        "MISC_0",
+        "BADVERSION_CRITICAL_1",
+        "BADVERSION_2",
+        "IDENTIFY_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "MessageUnboxedError",
       "fields": [
+        {
+          "type": "MessageUnboxedErrorType",
+          "name": "errType"
+        },
         {
           "type": "string",
           "name": "errMsg"
@@ -956,14 +1070,14 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMetadata"
           },
           "name": "supersedes"
         },
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMetadata"
           },
           "name": "supersededBy"
         },
@@ -2052,6 +2166,13 @@
         {
           "name": "topicName",
           "type": "string"
+        },
+        {
+          "name": "oneChatPerTLF",
+          "type": [
+            null,
+            "bool"
+          ]
         },
         {
           "name": "identifyBehavior",

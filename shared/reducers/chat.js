@@ -6,7 +6,7 @@ import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, makeSnippet, serverMessageToMessageBody, MetaDataRecord} = Constants
+const {StateRecord, ConversationStateRecord, MetaDataRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -160,7 +160,6 @@ function reducer (state: State = initialState, action: Actions) {
       const appendAction: AppendMessages = action
       const appendMessages = appendAction.payload.messages
       const isSelected = action.payload.isSelected
-      const message: ServerMessage = appendMessages[appendMessages.length - 1]
       const conversationIDKey = appendAction.payload.conversationIDKey
 
       const {messages, deletedIDs} = _filterTypes(appendMessages)
@@ -190,44 +189,8 @@ function reducer (state: State = initialState, action: Actions) {
             .set('deletedIDs', nextDeletedIDs)
         })
 
-      const snippet = makeSnippet(serverMessageToMessageBody(message))
-      const author = message.type === 'Text' && message.author
-      // Update snippets / unread / participant order
-
-      let newInboxStates = state.get('inbox').map((inbox, inboxIdx) => {
-        if (inbox.get('conversationIDKey') !== conversationIDKey) {
-          return inbox
-        }
-
-        let newInbox = inbox
-          .set('time', message.timestamp)
-
-        if (snippet) {
-          newInbox = newInbox.set('snippet', snippet).set('snippetKey', message.key)
-        } else {
-          const oldSnippetID = inbox.get('snippetKey')
-          // Deleted the current showing snippet
-          if (oldSnippetID && deletedIDs.includes(oldSnippetID)) {
-            newInbox = newInbox.set('snippet', '').set('snippetKey', null)
-          }
-        }
-
-        const oldParticipants = newInbox.get('participants')
-
-        if (author && oldParticipants.count() > 1) {
-          const idx = oldParticipants.findKey(p => p.username === author)
-          if (idx > 0) {
-            const newFirst = oldParticipants.get(idx)
-            newInbox = newInbox.set('participants', oldParticipants.delete(idx).unshift(newFirst))
-          }
-        }
-
-        return newInbox
-      })
-
       return state
         .set('conversationStates', newConversationStates)
-        .set('inbox', sortInbox(newInboxStates))
     }
     case 'chat:updateTempMessage': {
       if (action.error) {
@@ -321,7 +284,7 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case 'chat:downloadProgress': {
-      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
+      const {conversationIDKey, messageID, isPreview, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
 
       // $FlowIssue
@@ -331,20 +294,20 @@ function reducer (state: State = initialState, action: Actions) {
         item => !!item.messageID && item.messageID === messageID,
         m => ({
           ...m,
-          messageState: 'downloading',
+          messageState: isPreview ? 'downloading-preview' : 'downloading',
           progress,
         })
       ))
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
+      const {conversationIDKey, outboxID, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
 
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversationMessage(
         conversationStates,
         conversationIDKey,
-        item => !!item.messageID && item.messageID === messageID,
+        item => !!item.outboxID && item.outboxID === outboxID,
         m => ({
           ...m,
           messageState: 'uploading',
@@ -399,7 +362,8 @@ function reducer (state: State = initialState, action: Actions) {
       const toFind = convo.get('conversationIDKey')
       const oldInbox = state.get('inbox')
       const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
-      return state.set('inbox', sortInbox(oldInbox.set(existing ? existing[0] : -1, convo)))
+      const updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
+      return state.set('inbox', sortInbox(updatedInbox))
     case 'chat:updateBrokenTracker':
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')
@@ -411,6 +375,12 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('metaData', metaData)
     case 'chat:updateConversationUnreadCounts':
       return state.set('conversationUnreadCounts', action.payload)
+    case 'chat:conversationSetStatus':
+      const {conversationIDKey, muted} = action.payload
+      return state.set('inbox', state.get('inbox').update(state.get('inbox')
+        .findIndex(conv => conv.conversationIDKey === conversationIDKey),
+          entry => entry.set('muted', muted))
+      )
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
   }
