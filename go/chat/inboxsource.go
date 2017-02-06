@@ -709,10 +709,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Supersedes {
-		conversationLocal.Supersedes = append(conversationLocal.Supersedes, super.ConversationID)
+		conversationLocal.Supersedes = append(conversationLocal.Supersedes, super)
 	}
 	for _, super := range conversationRemote.SupersededBy {
-		conversationLocal.SupersededBy = append(conversationLocal.SupersededBy, super.ConversationID)
+		conversationLocal.SupersededBy = append(conversationLocal.SupersededBy, super)
 	}
 	if conversationRemote.ReaderInfo == nil {
 		errMsg := "empty ReaderInfo from server?"

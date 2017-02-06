@@ -1070,14 +1070,14 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMetadata"
           },
           "name": "supersedes"
         },
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMetadata"
           },
           "name": "supersededBy"
         },

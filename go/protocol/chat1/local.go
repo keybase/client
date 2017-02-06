@@ -1341,8 +1341,8 @@ type ConversationLocal struct {
 	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
-	Supersedes       []ConversationID              `codec:"supersedes" json:"supersedes"`
-	SupersededBy     []ConversationID              `codec:"supersededBy" json:"supersededBy"`
+	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
+	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
