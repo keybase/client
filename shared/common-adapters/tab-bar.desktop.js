@@ -75,7 +75,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
           <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
           {badgeNumber > 0 &&
             <Box style={{...styleBadgeNav}}>
-              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 8}} outlineColor={globalColors.midnightBlue} />
+              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}} outlineColor={globalColors.midnightBlue} />
             </Box>
           }
           {!!this.props.label &&
