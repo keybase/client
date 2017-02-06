@@ -105,11 +105,9 @@ type blockRetrievalQueue struct {
 	// This is a channel of channels to maximize the time that each request is
 	// in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
-	workerQueue         chan chan<- *blockRetrieval
-	prefetchWorkerQueue chan chan<- *blockRetrieval
+	workerQueue chan chan<- *blockRetrieval
 	// slices to store the workers so we can terminate them when we're done
-	workers         []*blockRetrievalWorker
-	prefetchWorkers []*blockRetrievalWorker
+	workers []*blockRetrievalWorker
 	// channel to be closed when we're done accepting requests
 	doneCh chan struct{}
 
@@ -124,25 +122,19 @@ var _ blockRetriever = (*blockRetrievalQueue)(nil)
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call Work (more than
 // numWorkers will block).
-func newBlockRetrievalQueue(numWorkers, numPrefetchWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
+func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
-		config:              config,
-		ptrs:                make(map[blockPtrLookup]*blockRetrieval),
-		heap:                &blockRetrievalHeap{},
-		workerQueue:         make(chan chan<- *blockRetrieval, numWorkers),
-		prefetchWorkerQueue: make(chan chan<- *blockRetrieval, numPrefetchWorkers),
-		workers:             make([]*blockRetrievalWorker, 0, numWorkers),
-		prefetchWorkers:     make([]*blockRetrievalWorker, 0, numPrefetchWorkers),
-		doneCh:              make(chan struct{}),
+		config:      config,
+		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
+		heap:        &blockRetrievalHeap{},
+		workerQueue: make(chan chan<- *blockRetrieval, numWorkers),
+		workers:     make([]*blockRetrievalWorker, 0, numWorkers),
+		doneCh:      make(chan struct{}),
 	}
 	q.prefetcher = newBlockPrefetcher(q, config)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers,
-			newBlockRetrievalWorker(config.blockGetter(), q, false))
-	}
-	for i := 0; i < numPrefetchWorkers; i++ {
-		q.prefetchWorkers = append(q.prefetchWorkers,
-			newBlockRetrievalWorker(config.blockGetter(), q, true))
+			newBlockRetrievalWorker(config.blockGetter(), q))
 	}
 	return q
 }
@@ -158,19 +150,15 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker() {
-	// FIXME: this defeats the prioritized queueing. Completely.
-	retrieval := brq.popIfNotEmpty()
-	workerCh := brq.workerQueue
-	if retrieval.priority < defaultOnDemandRequestPriority {
-		workerCh = brq.prefetchWorkerQueue
-	}
 	select {
 	case <-brq.doneCh:
+		retrieval := brq.popIfNotEmpty()
 		if retrieval != nil {
 			brq.FinalizeRequest(retrieval, nil, io.EOF)
 		}
 	// Get the next queued worker
-	case ch := <-workerCh:
+	case ch := <-brq.workerQueue:
+		retrieval := brq.popIfNotEmpty()
 		ch <- retrieval
 	}
 }
@@ -274,11 +262,6 @@ func (brq *blockRetrievalQueue) Work(ch chan<- *blockRetrieval) {
 	brq.workerQueue <- ch
 }
 
-// PrefetchWork accepts a prefetch worker's channel to assign work.
-func (brq *blockRetrievalQueue) PrefetchWork(ch chan<- *blockRetrieval) {
-	brq.prefetchWorkerQueue <- ch
-}
-
 // FinalizeRequest is the last step of a retrieval request once a block has
 // been obtained. It removes the request from the blockRetrievalQueue,
 // preventing more requests from mutating the retrieval, then notifies all
@@ -325,9 +308,6 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	case <-brq.doneCh:
 	default:
 		for _, w := range brq.workers {
-			w.Shutdown()
-		}
-		for _, w := range brq.prefetchWorkers {
 			w.Shutdown()
 		}
 		brq.prefetchMtx.Lock()

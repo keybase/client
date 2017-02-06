@@ -38,7 +38,7 @@ func NewBlockOpsStandard(config blockOpsConfig,
 		blockRetrievalParentConfig: config,
 		bg: bg,
 	}
-	q := newBlockRetrievalQueue(queueSize, defaultNumPrefetchWorkers, qConfig)
+	q := newBlockRetrievalQueue(queueSize, qConfig)
 	bops := &BlockOpsStandard{
 		config: config,
 		queue:  q,

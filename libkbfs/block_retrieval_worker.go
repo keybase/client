@@ -11,10 +11,9 @@ import (
 // blockRetrievalWorker processes blockRetrievalQueue requests
 type blockRetrievalWorker struct {
 	blockGetter
-	stopCh           chan struct{}
-	queue            *blockRetrievalQueue
-	workCh           chan *blockRetrieval
-	isPrefetchWorker bool
+	stopCh chan struct{}
+	queue  *blockRetrievalQueue
+	workCh chan *blockRetrieval
 }
 
 // run runs the worker loop until Shutdown is called
@@ -32,14 +31,13 @@ func (brw *blockRetrievalWorker) run() {
 // newBlockRetrievalWorker returns a blockRetrievalWorker for a given
 // blockRetrievalQueue, using the passed in blockGetter to obtain blocks for
 // requests.
-func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue,
-	isPrefetchWorker bool) *blockRetrievalWorker {
+func newBlockRetrievalWorker(bg blockGetter,
+	q *blockRetrievalQueue) *blockRetrievalWorker {
 	brw := &blockRetrievalWorker{
-		blockGetter:      bg,
-		stopCh:           make(chan struct{}),
-		queue:            q,
-		workCh:           make(chan *blockRetrieval, 1),
-		isPrefetchWorker: isPrefetchWorker,
+		blockGetter: bg,
+		stopCh:      make(chan struct{}),
+		queue:       q,
+		workCh:      make(chan *blockRetrieval, 1),
 	}
 	go brw.run()
 	return brw
@@ -50,11 +48,7 @@ func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue,
 // blockGetter.getBlock, and responds to the subscribed requestors with the
 // results.
 func (brw *blockRetrievalWorker) HandleRequest() (err error) {
-	if brw.isPrefetchWorker {
-		brw.queue.PrefetchWork(brw.workCh)
-	} else {
-		brw.queue.Work(brw.workCh)
-	}
+	brw.queue.Work(brw.workCh)
 	var retrieval *blockRetrieval
 	select {
 	case retrieval = <-brw.workCh:
