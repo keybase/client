@@ -72,6 +72,7 @@ const {
   CommonMessageType,
   CommonTLFVisibility,
   CommonTopicType,
+  LocalConversationErrorType
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
   localCancelPostRpcPromise,
@@ -830,6 +831,22 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       // find it
     } else if (incoming.chatInboxFailed) {
       incoming.chatInboxFailed.response.result()
+      const error = incoming.chatInboxFailed.params.error
+      const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
+      switch (error.typ) {
+        case LocalConversationErrorType.selfrekeyneeded:
+          yield put({type: 'chat:updateInboxSelf', payload: {conversationIDKey}})
+          break
+        case LocalConversationErrorType.otherrekeyneeded: {
+          const rekeyers = error.rekeyInfo.rekeyers
+          yield put({type: 'chat:updateInboxSelf', payload: {conversationIDKey, rekeyers}})
+          break
+        }
+        default:
+          if (__DEV__) {
+            console.warn('Inbox error:', error)
+          }
+      }
     } else if (incoming.finished) {
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
       // check valid selected
