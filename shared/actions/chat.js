@@ -2,6 +2,7 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
+import _ from 'lodash'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
@@ -55,6 +56,7 @@ import type {
   NewChat,
   OpenAttachmentPopup,
   OpenFolder,
+  OpenTlfInChat,
   OutboxIDKey,
   PostMessage,
   RemoveOutboxMessage,
@@ -204,6 +206,10 @@ function badgeAppForChat (conversations: List<ConversationBadgeState>): BadgeApp
 
 function openFolder (): OpenFolder {
   return {type: 'chat:openFolder', payload: undefined}
+}
+
+function openTlfInChat (tlf: string): OpenTlfInChat {
+  return {type: 'chat:openTlfInChat', payload: tlf}
 }
 
 function startConversation (users: Array<string>): StartConversation {
@@ -1173,6 +1179,18 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
   }
 }
 
+function * _openTlfInChat (action: OpenTlfInChat): SagaGenerator<any, any> {
+  const tlf = action.payload
+  const me = yield select(usernameSelector)
+  const userlist = parseFolderNameToUsers(me, tlf)
+  const users = userlist.map(u => u.username)
+  if (_.some(userlist, 'readOnly')) {
+    console.warn('Bug: openTlfToChat should never be called on a convo with readOnly members.')
+    return
+  }
+  yield put(startConversation(users))
+}
+
 function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
   const result = yield call(localNewConversationLocalRpcPromise, {
     param: {
@@ -1658,6 +1676,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery('chat:deleteMessage', _deleteMessage),
+    safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
   ]
 }
 
@@ -1674,6 +1693,7 @@ export {
   newChat,
   selectAttachment,
   openFolder,
+  openTlfInChat,
   postMessage,
   retryAttachment,
   retryMessage,

@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import Row from './row'
+import _ from 'lodash'
 import type {IconType} from '../common-adapters/icon'
 import type {Props, Folder} from './list'
 import {Box, Text, Icon} from '../common-adapters'
@@ -30,14 +31,16 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   )
 }
 
-const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onClick, onRekey, smallMode}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
+const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onChat, onClick, onRekey, smallMode}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
   <Box>
     {!!tlfs && tlfs.map((tlf) => (
       <Row
         {...tlf}
         key={rowKey(tlf.users)}
         isPublic={isPublic}
+        hasReadOnlyUsers={tlf.users && _.some(tlf.users, 'readOnly')}
         ignored={isIgnored}
+        onChat={onChat}
         onClick={onClick}
         onRekey={onRekey}
         onOpen={onOpen}

@@ -66,10 +66,10 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-type RowType = {smallMode: boolean, onOpen: (path: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
+type RowType = {hasReadOnlyUsers: boolean, smallMode: boolean, sortName: string, onOpen: (path: string) => void, onChat: (tlf: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
 
-const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
-  onOpen, onClick, groupAvatar, userAvatar, onRekey, path}: RowType & Folder) => {
+const Row = ({users, isPublic, hasReadOnlyUsers, ignored, meta, modified, hasData, smallMode,
+  onChat, onOpen, onClick, groupAvatar, userAvatar, onRekey, path, sortName}: RowType & Folder) => {
   const onOpenClick = event => {
     event.preventDefault()
     event.stopPropagation()
@@ -77,7 +77,13 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
       onOpen(path)
     }
   }
-
+  const onChatClick = event => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (onChat) {
+      onChat(sortName)
+    }
+  }
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   let backgroundColor = styles.rowContainer.backgroundColor
@@ -107,6 +113,10 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
         </Box>
+        {!smallMode && !isPublic && !hasReadOnlyUsers && meta !== 'rekey' && <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
+          <Text type='BodySmall' className='folder-row-hover-action' onClick={onChatClick} style={styles.action}>Chat</Text>
+        </Box>
+        }
         <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
           {!smallMode && meta !== 'rekey' && <Text
             type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={styles.action}>Open</Text>}
