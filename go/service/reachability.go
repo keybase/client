@@ -94,7 +94,7 @@ func (h *reachability) check() (k keybase1.Reachability) {
 	// notifications.
 	u, err := url.Parse(h.G().Env.GetGregorURI())
 	if err != nil {
-		h.G().Log.Errorf("Invalid URL for reachability check: %s", err)
+		h.G().Log.Errorf("Invalid URI for reachability check: %s", err)
 		return
 	}
 
