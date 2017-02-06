@@ -876,13 +876,26 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       incoming.chatInboxFailed.response.result()
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
+      const conversation = new InboxStateRecord({
+        info: null,
+        isEmpty: false,
+        conversationIDKey,
+        participants: List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)),
+        muted: false,
+        time: error.remoteConv.readerInfo.mtime,
+        snippet: null,
+        validated: true,
+      })
+      yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
+
       switch (error.typ) {
-        case LocalConversationErrorType.selfrekeyneeded:
-          yield put({type: 'chat:updateInboxSelf', payload: {conversationIDKey}})
+        case LocalConversationErrorType.selfrekeyneeded: {
+          yield put({type: 'chat:updateInboxRekeySelf', payload: {conversationIDKey}})
           break
+        }
         case LocalConversationErrorType.otherrekeyneeded: {
           const rekeyers = error.rekeyInfo.rekeyers
-          yield put({type: 'chat:updateInboxSelf', payload: {conversationIDKey, rekeyers}})
+          yield put({type: 'chat:updateInboxRekeyOthers', payload: {conversationIDKey, rekeyers}})
           break
         }
         default:
@@ -942,6 +955,17 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
   if (inboxConvo && !inboxConvo.validated) {
     __DEV__ && console.log('Bailing on not yet validated conversation')
+    return
+  }
+
+  const rekeyInfoSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => {
+    console.log('aaaa', state.chat.get('rekeyInfos'))
+    return state.chat.get('rekeyInfos').get(conversationIDKey)
+  }
+  const rekeyInfo = yield select(rekeyInfoSelector, conversationIDKey)
+
+  if (rekeyInfo) {
+    __DEV__ && console.log('Bailing on chat due to rekey info')
     return
   }
 
