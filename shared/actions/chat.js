@@ -676,7 +676,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
       if (incomingMessage) {
-         yield call(_updateInbox, incomingMessage.conv)
+        yield call(_updateInbox, incomingMessage.conv)
 
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
