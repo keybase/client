@@ -35,18 +35,20 @@ const (
 )
 
 type CommandLine struct {
-	app          *cli.App
-	ctx          *cli.Context
-	cmd          Command
-	name         string     // the name of the chosen command
-	service      bool       // The server is a special command
-	fork         ForkCmd    // If the command is to stop (then don't start the server)
-	noStandalone bool       // On if this command can't run in standalone mode
-	logForward   LogForward // What do to about log forwarding
-	defaultCmd   string
+	app                *cli.App
+	ctx                *cli.Context
+	cmd                Command
+	name               string     // the name of the chosen command
+	service            bool       // The server is a special command
+	fork               ForkCmd    // If the command is to stop (then don't start the server)
+	noStandalone       bool       // On if this command can't run in standalone mode
+	logForward         LogForward // What do to about log forwarding
+	skipOutOfDateCheck bool       // don't try to check for service being out of date
+	defaultCmd         string
 }
 
 func (p CommandLine) IsService() bool             { return p.service }
+func (p CommandLine) SkipOutOfDateCheck() bool    { return p.skipOutOfDateCheck }
 func (p *CommandLine) SetService()                { p.service = true }
 func (p CommandLine) GetForkCmd() ForkCmd         { return p.fork }
 func (p *CommandLine) SetForkCmd(v ForkCmd)       { p.fork = v }
@@ -54,6 +56,7 @@ func (p *CommandLine) SetNoStandalone()           { p.noStandalone = true }
 func (p CommandLine) IsNoStandalone() bool        { return p.noStandalone }
 func (p *CommandLine) SetLogForward(f LogForward) { p.logForward = f }
 func (p *CommandLine) GetLogForward() LogForward  { return p.logForward }
+func (p *CommandLine) SetSkipOutOfDateCheck()     { p.skipOutOfDateCheck = true }
 
 func (p CommandLine) GetNoAutoFork() (bool, bool) {
 	return p.GetBool("no-auto-fork", true)
