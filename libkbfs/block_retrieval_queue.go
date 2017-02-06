@@ -91,7 +91,8 @@ type blockRetrievalQueue struct {
 	// This is a channel of channels to maximize the time that each request is
 	// in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
-	workerQueue chan chan *blockRetrieval
+	workerQueue         chan chan<- *blockRetrieval
+	prefetchWorkerQueue chan chan<- *blockRetrieval
 	// channel to be closed when we're done accepting requests
 	doneCh chan struct{}
 
@@ -111,8 +112,8 @@ func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockR
 		config:              config,
 		ptrs:                make(map[blockPtrLookup]*blockRetrieval),
 		heap:                &blockRetrievalHeap{},
-		workerQueue:         make(chan chan *blockRetrieval, numWorkers),
-		prefetchWorkerQueue: make(chan chan *blockRetrieval, defaultNumPrefetchWorkers),
+		workerQueue:         make(chan chan<- *blockRetrieval, numWorkers),
+		prefetchWorkerQueue: make(chan chan<- *blockRetrieval, defaultNumPrefetchWorkers),
 		doneCh:              make(chan struct{}),
 	}
 	q.prefetcher = newBlockPrefetcher(q, config)
