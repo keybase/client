@@ -44,10 +44,10 @@ func NewBlockOpsStandard(config blockOpsConfig,
 	}
 	bg := &realBlockGetter{config: config}
 	for i := 0; i < queueSize; i++ {
-		bops.workers = append(bops.workers, newBlockRetrievalWorker(bg, bops.queue))
+		bops.workers = append(bops.workers, newBlockRetrievalWorker(bg, bops.queue, false))
 	}
 	for i := 0; i < defaultNumPrefetchWorkers; i++ {
-		bops.prefetchWorkers = append(bops.prefetchWorkers, newBlockRetrievalWorker(bg, bops.queue))
+		bops.prefetchWorkers = append(bops.prefetchWorkers, newBlockRetrievalWorker(bg, bops.queue, true))
 	}
 	return bops
 }

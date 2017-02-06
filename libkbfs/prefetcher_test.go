@@ -56,7 +56,8 @@ func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
 }
 
 func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue,
-	*blockRetrievalWorker, *fakeBlockGetter, *testBlockRetrievalConfig) {
+	*blockRetrievalWorker, *blockRetrievalWorker, *fakeBlockGetter,
+	*testBlockRetrievalConfig) {
 	config := newTestBlockRetrievalConfig(t)
 	q := newBlockRetrievalQueue(1, config)
 	require.NotNil(t, q)
@@ -65,15 +66,18 @@ func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue,
 	// <-q.Prefetcher().Shutdown() to represent whether the retrieval requests
 	// _actually_ completed.
 	bg := newFakeBlockGetter(false)
-	w := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, w)
+	w1 := newBlockRetrievalWorker(bg, q, true)
+	require.NotNil(t, w1)
+	w2 := newBlockRetrievalWorker(bg, q, false)
+	require.NotNil(t, w2)
 
-	return q, w, bg, config
+	return q, w1, w2, bg, config
 }
 
-func shutdownPrefetcherTest(q *blockRetrievalQueue, w *blockRetrievalWorker) {
+func shutdownPrefetcherTest(q *blockRetrievalQueue, w1, w2 *blockRetrievalWorker) {
 	q.Shutdown()
-	w.Shutdown()
+	w1.Shutdown()
+	w2.Shutdown()
 }
 
 func testPrefetcherCheckGet(t *testing.T, bcache BlockCache,
@@ -92,8 +96,8 @@ func testPrefetcherCheckGet(t *testing.T, bcache BlockCache,
 
 func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	t.Log("Test indirect file block prefetching.")
-	q, w, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q, w)
+	q, w1, w2, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q, w1, w2)
 
 	t.Log("Initialize an indirect file block pointing to 2 file data blocks.")
 	ptrs := []IndirectFilePtr{
@@ -135,8 +139,8 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	t.Log("Test indirect dir block prefetching.")
-	q, w, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q, w)
+	q, w1, w2, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q, w1, w2)
 
 	t.Log("Initialize an indirect dir block pointing to 2 dir data blocks.")
 	ptrs := []IndirectDirPtr{
@@ -178,8 +182,8 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 
 func TestPrefetcherDirectDirBlock(t *testing.T) {
 	t.Log("Test direct dir block prefetching.")
-	q, w, bg, config := initPrefetcherTest(t)
-	defer shutdownPrefetcherTest(q, w)
+	q, w1, w2, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q, w1, w2)
 
 	t.Log("Initialize a direct dir block with entries pointing to 3 files.")
 	file1 := makeFakeFileBlock(t, true)
@@ -235,9 +239,9 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 
 func TestPrefetcherAlreadyCached(t *testing.T) {
 	t.Log("Test direct dir block prefetching when the dir block is cached.")
-	q, w, bg, config := initPrefetcherTest(t)
+	q, w1, w2, bg, config := initPrefetcherTest(t)
 	cache := config.BlockCache()
-	defer shutdownPrefetcherTest(q, w)
+	defer shutdownPrefetcherTest(q, w1, w2)
 
 	t.Log("Initialize a direct dir block with an entry pointing to 1 folder, which in turn points to 1 file.")
 	file1 := makeFakeFileBlock(t, true)
@@ -319,10 +323,10 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 
 func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
 	t.Log("Test that prefetches aren't triggered when the cache is full with permanent entries.")
-	q, w, bg, config := initPrefetcherTest(t)
+	q, w1, w2, bg, config := initPrefetcherTest(t)
 	cache := NewBlockCacheStandard(1, uint64(1))
 	config.testCache = cache
-	defer shutdownPrefetcherTest(q, w)
+	defer shutdownPrefetcherTest(q, w1, w2)
 
 	t.Log("Initialize a direct dir block with an entry pointing to 1 file.")
 	file1 := makeFakeFileBlock(t, true)
@@ -362,9 +366,9 @@ func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
 
 func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	t.Log("Test that prefetches are only triggered once for a given block.")
-	q, w, bg, config := initPrefetcherTest(t)
+	q, w1, w2, bg, config := initPrefetcherTest(t)
 	cache := config.BlockCache().(*BlockCacheStandard)
-	defer shutdownPrefetcherTest(q, w)
+	defer shutdownPrefetcherTest(q, w1, w2)
 
 	t.Log("Initialize a direct dir block with an entry pointing to 1 file.")
 	file1 := makeFakeFileBlock(t, true)

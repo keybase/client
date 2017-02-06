@@ -105,7 +105,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	defer q.Shutdown()
 
 	bg := newFakeBlockGetter(false)
-	w := newBlockRetrievalWorker(bg, q)
+	w := newBlockRetrievalWorker(bg, q, true)
 	require.NotNil(t, w)
 	defer w.Shutdown()
 
@@ -128,7 +128,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	defer q.Shutdown()
 
 	bg := newFakeBlockGetter(false)
-	w1, w2 := newBlockRetrievalWorker(bg, q), newBlockRetrievalWorker(bg, q)
+	w1, w2 := newBlockRetrievalWorker(bg, q, true), newBlockRetrievalWorker(bg, q, true)
 	require.NotNil(t, w1)
 	require.NotNil(t, w2)
 	defer w1.Shutdown()
@@ -171,7 +171,7 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	defer q.Shutdown()
 
 	bg := newFakeBlockGetter(false)
-	w1 := newBlockRetrievalWorker(bg, q)
+	w1 := newBlockRetrievalWorker(bg, q, true)
 	require.NotNil(t, w1)
 	defer w1.Shutdown()
 
@@ -222,7 +222,7 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	defer q.Shutdown()
 
 	bg := newFakeBlockGetter(true)
-	w := newBlockRetrievalWorker(bg, q)
+	w := newBlockRetrievalWorker(bg, q, true)
 	require.NotNil(t, w)
 	defer w.Shutdown()
 
@@ -245,7 +245,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	defer q.Shutdown()
 
 	bg := newFakeBlockGetter(false)
-	w := newBlockRetrievalWorker(bg, q)
+	w := newBlockRetrievalWorker(bg, q, true)
 	require.NotNil(t, w)
 
 	ptr1 := makeRandomBlockPointer(t)
@@ -278,7 +278,7 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	defer q.Shutdown()
 
 	bg := newFakeBlockGetter(false)
-	w1 := newBlockRetrievalWorker(bg, q)
+	w1 := newBlockRetrievalWorker(bg, q, true)
 	require.NotNil(t, w1)
 	defer w1.Shutdown()
 
