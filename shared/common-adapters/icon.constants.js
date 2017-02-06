@@ -750,6 +750,11 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-loader-uploading-16.gif'),
   },
+  'icon-loader-uploading-static-16': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-loader-uploading-static-16.gif'),
+  },
   'icon-no-gpg': {
     isFont: false,
     extension: 'png',
