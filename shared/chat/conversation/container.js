@@ -68,7 +68,7 @@ class ConversationContainer extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state: TypedState, {routePath}) => {
+  (state: TypedState, {routePath, routeState}) => {
     const selectedConversation = routePath.last()
 
     const you = state.config.username || ''
@@ -88,6 +88,7 @@ export default connect(
           emojiPickerOpen: false,
           firstNewMessageID: conversationState.firstNewMessageID,
           followingMap,
+          inputText: routeState.inputText,
           isLoading: conversationState.isLoading,
           messages: conversationState.messages,
           metaDataMap,
@@ -114,7 +115,7 @@ export default connect(
       you,
     }
   },
-  (dispatch: Dispatch) => ({
+  (dispatch: Dispatch, {setRouteState}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, filename, title, type) => dispatch(selectAttachment(selectedConversation, filename, title, type)),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
@@ -128,6 +129,7 @@ export default connect(
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
     onRetryMessage: (conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => dispatch(retryMessage(conversationIDKey, outboxID)),
+    onStoreInputText: (inputText: string) => setRouteState({inputText}),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
   }),

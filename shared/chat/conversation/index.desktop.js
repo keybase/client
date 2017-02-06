@@ -19,19 +19,6 @@ type State = {
   showDropOverlay: boolean,
 }
 
-type FocusHandlerProps = {
-  onInputRef: (input: React$Element<*>) => void,
-  onFocusInput: () => void,
-}
-
-const withFocusHandlers = withHandlers(() => {
-  let _input
-  return {
-    onInputRef: (props) => (input) => { _input = input },
-    onFocusInput: (props) => () => { _input && _input.focusInput() },
-  }
-})
-
 type EditLastHandlerProps = {
   onListRef: (list: React$Element<*>) => void,
   onEditLastMessage: () => void,
@@ -45,7 +32,9 @@ const withEditLastHandlers = withHandlers(() => {
   }
 })
 
-class Conversation extends Component<void, Props & FocusHandlerProps & EditLastHandlerProps, State> {
+class Conversation extends Component<void, Props & EditLastHandlerProps, State> {
+  _input: Input
+
   state = {
     showDropOverlay: false,
   }
@@ -86,6 +75,20 @@ class Conversation extends Component<void, Props & FocusHandlerProps & EditLastH
     })
   }
 
+  _onInputRef = (input) => {
+    this._input = input
+  }
+
+  _onFocusInput = () => {
+    this._input && this._input.focusInput()
+  }
+
+  componentWillUnmount () {
+    if (this._input) {
+      this.props.onStoreInputText(this._input.getValue())
+    }
+  }
+
   render () {
     const {
     // $FlowIssue with variants
@@ -102,9 +105,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps & EditLastH
       onAttach,
       onDeleteMessage,
       onEditMessage,
-      onFocusInput,
       onEditLastMessage,
-      onInputRef,
       onListRef,
       onLoadAttachment,
       onLoadMoreMessages,
@@ -156,7 +157,7 @@ class Conversation extends Component<void, Props & FocusHandlerProps & EditLastH
           onAddParticipant={onAddParticipant}
           onDeleteMessage={onDeleteMessage}
           onEditMessage={onEditMessage}
-          onFocusInput={onFocusInput}
+          onFocusInput={this._onFocusInput}
           onLoadAttachment={onLoadAttachment}
           onLoadMoreMessages={onLoadMoreMessages}
           onMuteConversation={onMuteConversation}
@@ -173,7 +174,8 @@ class Conversation extends Component<void, Props & FocusHandlerProps & EditLastH
         />
         {banner}
         <Input
-          ref={onInputRef}
+          ref={this._onInputRef}
+          defaultText={this.props.inputText}
           emojiPickerOpen={emojiPickerOpen}
           isLoading={isLoading}
           onAttach={onAttach}
@@ -216,6 +218,6 @@ export default branch(
       renderComponent(ParticipantRekey),
       renderComponent(YouRekey)
     ),
-    compose(withFocusHandlers, withEditLastHandlers)
+    compose(withEditLastHandlers)
   )
 )(Conversation)
