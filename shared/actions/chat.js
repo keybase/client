@@ -612,7 +612,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     case NotifyChatChatActivityType.setStatus:
       const setStatus: ?SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
-        _updateInbox(setStatus.conv)
+        yield call(_updateInbox, setStatus.conv)
         const conversationIDKey = conversationIDToKey(setStatus.convID)
         const muted = setStatus.status === CommonConversationStatus.muted
         yield put(({
@@ -670,13 +670,13 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       return
     case NotifyChatChatActivityType.readMessage:
       if (action.payload.activity.readMessage) {
-        _updateInbox(action.payload.activity.readMessage.conv)
+        yield call(_updateInbox, action.payload.activity.readMessage.conv)
       }
       return
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
       if (incomingMessage) {
-        _updateInbox(incomingMessage.conv)
+        yield call(_updateInbox, incomingMessage.conv)
 
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)

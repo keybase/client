@@ -2,14 +2,15 @@ package engine
 
 import (
 	"errors"
-	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	jsonw "github.com/keybase/go-jsonw"
-	require "github.com/stretchr/testify/require"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	libkb "github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
+	require "github.com/stretchr/testify/require"
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
@@ -410,7 +411,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	runChatGUI := func() {
 		// Now run the engine again, but in normal mode, and check that we don't hit
 		// the cached broken gy.
-		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, ChatGUIMode: true})
+		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
 			noMe:  true,
@@ -951,7 +952,7 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 
 	alice := CreateAndSignupFakeUser(tc, "a")
 
-	runTest := func(chatGUImode bool, returnUnchecked bool, shouldCheck bool, wantedMode libkb.ProofCheckerMode) {
+	runTest := func(identifyBehavior keybase1.TLFIdentifyBehavior, returnUnchecked bool, shouldCheck bool, wantedMode libkb.ProofCheckerMode) {
 
 		i := newIdentify2WithUIDTester(tc.G)
 		checked := false
@@ -972,9 +973,9 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 
 		tc.G.Services = i
 		arg := &keybase1.Identify2Arg{
-			Uid:          eve.UID(),
-			ChatGUIMode:  chatGUImode,
-			NeedProofSet: true,
+			Uid:              eve.UID(),
+			IdentifyBehavior: identifyBehavior,
+			NeedProofSet:     true,
 		}
 		eng := NewIdentify2WithUID(tc.G, arg)
 		eng.testArgs = &Identify2WithUIDTestArgs{
@@ -982,7 +983,7 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 		}
 		ctx := Context{IdentifyUI: i}
 		var waiter func()
-		if !chatGUImode {
+		if !identifyBehavior.ShouldSuppressTrackerPopups() {
 			waiter = launchWaiter(t, i.finishCh)
 		}
 		err = eng.Run(&ctx)
@@ -993,25 +994,25 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 		}
 	}
 
-	// Alice ID's Eve, in ChatGUIMode, without a track. Assert that we get a
+	// Alice ID's Eve, in chat mode, without a track. Assert that we get a
 	// PASSIVE proof checker mode for rooter.
-	runTest(true, true, true, libkb.ProofCheckerModePassive)
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModePassive)
 
 	// Alice ID's Eve, in standard ID mode, without a track. Assert that we get a
-	// ACTIVE proof checker more for the rooter
-	runTest(false, false, true, libkb.ProofCheckerModeActive)
+	// ACTIVE proof checker mode for the rooter
+	runTest(keybase1.TLFIdentifyBehavior_DEFAULT_KBFS, false, true, libkb.ProofCheckerModeActive)
 
-	// Alice ID's Eve in ChatGUIMode, without a track. But she should hit the proof cache
+	// Alice ID's Eve in chat mode, without a track. But she should hit the proof cache
 	// from right above.
-	runTest(true, false, false, libkb.ProofCheckerModePassive)
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, false, false, libkb.ProofCheckerModePassive)
 
 	trackUser(tc, alice, eve.NormalizedUsername())
 
 	tc.G.ProofCache.Reset()
 
-	// Alice ID's Eve, in ChatGUIMode, with a track. Assert that we get an
+	// Alice ID's Eve, in chat mode, with a track. Assert that we get an
 	// Active proof checker mode for rooter.
-	runTest(true, true, true, libkb.ProofCheckerModeActive)
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModeActive)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

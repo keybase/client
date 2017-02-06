@@ -142,7 +142,7 @@ func (b *BackgroundIdentifier) RequiredUIs() []libkb.UIKind {
 func (b *BackgroundIdentifier) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&Identify2WithUID{
-			arg: &keybase1.Identify2Arg{ChatGUIMode: true},
+			arg: &keybase1.Identify2Arg{IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI},
 		},
 	}
 }
@@ -334,8 +334,8 @@ func (b *BackgroundIdentifier) runOne(ctx *Context, u keybase1.UID) (err error) 
 		Reason: keybase1.IdentifyReason{
 			Type: keybase1.IdentifyReasonType_BACKGROUND,
 		},
-		AlwaysBlock: true,
-		ChatGUIMode: true,
+		AlwaysBlock:      true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	}
 	eng := NewIdentify2WithUID(b.G(), &arg)
 	if b.testArgs != nil {

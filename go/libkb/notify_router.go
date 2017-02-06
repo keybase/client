@@ -250,8 +250,9 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string, 
 		return
 	}
 	arg := keybase1.TrackingChangedArg{
-		Uid:      uid,
-		Username: username,
+		Uid:        uid,
+		Username:   username,
+		IsTracking: isTracking,
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
