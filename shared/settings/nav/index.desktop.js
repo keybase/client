@@ -16,7 +16,7 @@ export function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsIt
   return (
     <ClickableBox onClick={onClick} style={selected ? selectedStyle : itemStyle}>
       <Text type={'BodySmallSemibold'} style={selected ? selectedTextStyle : itemTextStyle}>{text}</Text>
-      {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} outlineColor={null} />}
+      {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
     </ClickableBox>
   )
 }
