@@ -62,6 +62,10 @@ type Context struct {
 	// RefNonce (it can't be a monotonically increasing number because
 	// that would require coordination among clients).
 	RefNonce RefNonce `codec:"r,omitempty"`
+	// BlockType indicates the type of the block (data
+	// vs. metadata). This is used, for example, when deciding how the
+	// block affects quotas.
+	BlockType keybase1.BlockType `codec:"b,omitempty"`
 }
 
 // MakeFirstContext makes the initial context for a block with the
@@ -104,6 +108,11 @@ func (c *Context) SetWriter(newWriter keybase1.UID) {
 // GetRefNonce returns the ref nonce of the associated block.
 func (c Context) GetRefNonce() RefNonce {
 	return c.RefNonce
+}
+
+// GetBlockType returns the block type of the associated block.
+func (c Context) GetBlockType() keybase1.BlockType {
+	return c.BlockType
 }
 
 // IsFirstRef returns whether or not p represents the first reference
