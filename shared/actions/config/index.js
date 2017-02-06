@@ -5,7 +5,7 @@ import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, config
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login'
-import {registerGregorListeners, registerReachability} from '../../actions/gregor'
+import {checkReachabilityOnConnect, registerGregorListeners, registerReachability} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
 import type {AsyncAction, Action} from '../../constants/types/flux'
@@ -160,6 +160,7 @@ export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
       console.log('[bootstrap] registered bootstrap')
       engine().listenOnConnect('bootstrap', () => {
         dispatch(daemonError(null))
+        dispatch(checkReachabilityOnConnect())
         console.log('[bootstrap] bootstrapping on connect')
         dispatch(bootstrap())
       })
@@ -219,4 +220,3 @@ function getCurrentStatus (): AsyncAction {
     })
   }
 }
-
