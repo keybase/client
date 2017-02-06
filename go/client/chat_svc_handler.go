@@ -54,9 +54,10 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 
 	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			Status:     utils.VisibleChatConversationStatuses(),
-			TopicType:  &topicType,
-			UnreadOnly: opts.UnreadOnly,
+			Status:            utils.VisibleChatConversationStatuses(),
+			TopicType:         &topicType,
+			UnreadOnly:        opts.UnreadOnly,
+			OneChatTypePerTLF: new(bool),
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
@@ -94,6 +95,13 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 				}
 				maxID = msg.GetMessageID()
 			}
+		}
+
+		for _, super := range conv.Supersedes {
+			cl.Conversations[i].Supersedes = append(cl.Conversations[i].Supersedes, super.String())
+		}
+		for _, super := range conv.SupersededBy {
+			cl.Conversations[i].SupersededBy = append(cl.Conversations[i].SupersededBy, super.String())
 		}
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
@@ -186,10 +194,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 				UID:      mv.ClientHeader.Sender.String(),
 				DeviceID: mv.ClientHeader.SenderDevice.String(),
 			},
-			SentAt:   mv.ServerHeader.Ctime.UnixSeconds(),
-			SentAtMs: mv.ServerHeader.Ctime.UnixMilliseconds(),
-			Prev:     prev,
-			Unread:   unread,
+			SentAt:        mv.ServerHeader.Ctime.UnixSeconds(),
+			SentAtMs:      mv.ServerHeader.Ctime.UnixMilliseconds(),
+			Prev:          prev,
+			Unread:        unread,
+			RevokedDevice: mv.SenderDeviceRevokedAt != nil,
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -938,14 +947,15 @@ type MsgContent struct {
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
-	ID       chat1.MessageID                `json:"id"`
-	Channel  ChatChannel                    `json:"channel"`
-	Sender   MsgSender                      `json:"sender"`
-	SentAt   int64                          `json:"sent_at"`
-	SentAtMs int64                          `json:"sent_at_ms"`
-	Content  MsgContent                     `json:"content"`
-	Prev     []chat1.MessagePreviousPointer `json:"prev"`
-	Unread   bool                           `json:"unread"`
+	ID            chat1.MessageID                `json:"id"`
+	Channel       ChatChannel                    `json:"channel"`
+	Sender        MsgSender                      `json:"sender"`
+	SentAt        int64                          `json:"sent_at"`
+	SentAtMs      int64                          `json:"sent_at_ms"`
+	Content       MsgContent                     `json:"content"`
+	Prev          []chat1.MessagePreviousPointer `json:"prev"`
+	Unread        bool                           `json:"unread"`
+	RevokedDevice bool                           `json:"revoked_device,omitempty"`
 }
 
 // Message contains eiter a MsgSummary or an Error.  Used for JSON output.
@@ -968,6 +978,8 @@ type ConvSummary struct {
 	ActiveAt     int64                           `json:"active_at"`
 	ActiveAtMs   int64                           `json:"active_at_ms"`
 	FinalizeInfo *chat1.ConversationFinalizeInfo `json:"finalize_info,omitempty"`
+	Supersedes   []string                        `json:"supersedes,omitempty"`
+	SupersededBy []string                        `json:"superseded_by,omitempty"`
 }
 
 // ChatList is a list of conversations in the inbox.

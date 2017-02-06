@@ -85,7 +85,7 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
-  _pickFile () {
+  _pickFile = () => {
     if (this._fileInput && this._fileInput.files && this._fileInput.files[0]) {
       const {path, name, type} = this._fileInput.files[0]
       this.props.onAttach(path, name, type.indexOf('image') >= 0 ? 'Image' : 'Other')
@@ -102,11 +102,37 @@ class Conversation extends Component<void, Props, State> {
     this._onClickEmoji()
   }
 
+  _onKeyDown = (e: SyntheticKeyboardEvent) => {
+    if (e.key === 'ArrowUp' && !this.state.text) {
+      this.props.onEditLastMessage()
+    }
+  }
+
+  _onEnterKeyDown = (e: SyntheticKeyboardEvent) => {
+    e.preventDefault()
+    if (this.state.text) {
+      this.props.onPostMessage(this.state.text)
+      this.setState({text: ''})
+    }
+  }
+
+  _onChangeText = text => {
+    this.setState({text})
+  }
+
+  _setFileInputRef = r => {
+    this._fileInput = r
+  }
+
+  _closePicker = () => {
+    this.setState({emojiPickerOpen: false})
+  }
+
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-          <input type='file' style={{display: 'none'}} ref={r => { this._fileInput = r }} onChange={() => this._pickFile()} />
+          <input type='file' style={{display: 'none'}} ref={this._setFileInputRef} onChange={this._pickFile} />
           <Input
             autoFocus={true}
             small={true}
@@ -114,22 +140,17 @@ class Conversation extends Component<void, Props, State> {
             ref={this._setRef}
             hintText='Write a message'
             hideUnderline={true}
-            onChangeText={text => this.setState({text})}
+            onChangeText={this._onChangeText}
             value={this.state.text}
             multiline={true}
             rowsMin={1}
             rowsMax={5}
-            onEnterKeyDown={(e) => {
-              e.preventDefault()
-              if (this.state.text) {
-                this.props.onPostMessage(this.state.text)
-                this.setState({text: ''})
-              }
-            }}
+            onKeyDown={this._onKeyDown}
+            onEnterKeyDown={this._onEnterKeyDown}
           />
           {this.state.emojiPickerOpen && (
             <Box>
-              <Box style={{position: 'absolute', right: 0, bottom: 0, top: 0, left: 0}} onClick={() => this.setState({emojiPickerOpen: false})} />
+              <Box style={{position: 'absolute', right: 0, bottom: 0, top: 0, left: 0}} onClick={this._closePicker} />
               <Box style={{position: 'relative'}}>
                 <Box style={{position: 'absolute', right: 0, bottom: 0}}>
                   <Picker onClick={this._pickerOnClick} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />

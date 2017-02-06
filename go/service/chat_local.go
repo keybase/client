@@ -374,6 +374,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 
 	var queryBase chat1.GetInboxLocalQuery
 	queryBase.ComputeActiveList = true
+	queryBase.OneChatTypePerTLF = new(bool)
 	if !after.IsZero() {
 		gafter := gregor1.ToTime(after)
 		queryBase.After = &gafter
@@ -1481,10 +1482,11 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 
 	// First look in the local user inbox
 	query := chat1.GetInboxLocalQuery{
-		TlfName:       &arg.TlfName,
-		TlfVisibility: &arg.Visibility,
-		TopicType:     &arg.TopicType,
-		TopicName:     &arg.TopicName,
+		TlfName:           &arg.TlfName,
+		TlfVisibility:     &arg.Visibility,
+		TopicType:         &arg.TopicType,
+		TopicName:         &arg.TopicName,
+		OneChatTypePerTLF: arg.OneChatPerTLF,
 	}
 	inbox, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query:            &query,

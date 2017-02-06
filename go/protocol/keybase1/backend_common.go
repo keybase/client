@@ -7,9 +7,34 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+type BlockType int
+
+const (
+	BlockType_DATA BlockType = 0
+	BlockType_MD   BlockType = 1
+)
+
+var BlockTypeMap = map[string]BlockType{
+	"DATA": 0,
+	"MD":   1,
+}
+
+var BlockTypeRevMap = map[BlockType]string{
+	0: "DATA",
+	1: "MD",
+}
+
+func (e BlockType) String() string {
+	if v, ok := BlockTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type BlockIdCombo struct {
-	BlockHash string `codec:"blockHash" json:"blockHash"`
-	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
+	BlockHash string    `codec:"blockHash" json:"blockHash"`
+	ChargedTo UID       `codec:"chargedTo" json:"chargedTo"`
+	BlockType BlockType `codec:"blockType" json:"blockType"`
 }
 
 type ChallengeInfo struct {
