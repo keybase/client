@@ -92,7 +92,7 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 }
 
 func BenchmarkCryptoSignED25519(b *testing.B) {
-	tc := SetupEngineTest(b, "crypto")
+	tc := SetupEngineTestBenchmark(b, "crypto")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "fu")
