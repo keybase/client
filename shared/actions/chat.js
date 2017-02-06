@@ -74,6 +74,7 @@ const {
   CommonMessageType,
   CommonTLFVisibility,
   CommonTopicType,
+  LocalMessageUnboxedErrorType,
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
   localCancelPostRpcPromise,
@@ -1011,6 +1012,8 @@ function _threadToPagination (thread) {
   }
 }
 
+// enforce no key collisions
+let timestampCounter = 1
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
   if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'Edit'].includes(message.type)) {
     return null
@@ -1018,14 +1021,18 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
+    timestampCounter++
     return {
       type: 'Timestamp',
       timestamp: message.timestamp,
-      key: message.timestamp,
+      key: `timestamp:${message.timestamp}:${timestampCounter}`,
     }
   }
   return null
 }
+
+// used to key errors
+let errorIdx = 1
 
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
   if (message && message.state === LocalMessageUnboxedState.outbox && message.outbox) {
@@ -1051,6 +1058,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
       you: yourName,
     }
   }
+
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
@@ -1163,13 +1171,43 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
     }
   }
 
+  if (message.state === LocalMessageUnboxedState.error) {
+    const error = message.error
+    if (error) {
+      switch (error.errType) {
+        case LocalMessageUnboxedErrorType.misc:
+        case LocalMessageUnboxedErrorType.badversionCritical: // fallthrough
+        case LocalMessageUnboxedErrorType.identify: // fallthrough
+          return {
+            conversationIDKey,
+            key: idx,
+            messageID: error.messageID,
+            reason: error.errMsg || '',
+            timestamp: Date.now(),
+            type: 'Error',
+          }
+        case LocalMessageUnboxedErrorType.badversion:
+          return {
+            conversationIDKey,
+            key: idx,
+            data: message,
+            messageID: idx,
+            timestamp: Date.now(),
+            type: 'InvisibleError',
+          }
+      }
+    }
+  }
+
+  errorIdx++
+
   return {
-    type: 'Error', // TODO
+    type: 'Error',
     messageID: idx,
-    key: idx,
+    key: `error:${errorIdx}`,
     timestamp: Date.now(),
-    reason: 'temp',
-    conversationIDKey: conversationIDKey,
+    reason: "The message couldn't be loaded",
+    conversationIDKey,
   }
 }
 
