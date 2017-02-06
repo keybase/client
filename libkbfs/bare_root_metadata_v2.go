@@ -43,11 +43,17 @@ type WriterMetadataV2 struct {
 	WFlags WriterFlags
 	// Estimated disk usage at this revision
 	DiskUsage uint64
+	// Estimated MD disk usage at this revision (for testing only --
+	// real v2 MDs in the wild won't ever have this set).
+	MDDiskUsage uint64 `codec:",omitempty"`
 
-	// The total number of bytes in new blocks
+	// The total number of bytes in new data blocks
 	RefBytes uint64
 	// The total number of bytes in unreferenced blocks
 	UnrefBytes uint64
+	// The total number of bytes in new MD blocks (for testing only --
+	// real v2 MDs in the wild won't ever have this set).
+	MDRefBytes uint64 `codec:",omitempty"`
 
 	Extra WriterMetadataExtraV2 `codec:"x,omitempty,omitemptycheckstruct"`
 }
@@ -66,8 +72,10 @@ func (wmdV2 *WriterMetadataV2) ToWriterMetadataV3() WriterMetadataV3 {
 	wmdV3.BID = wmdV2.BID
 	wmdV3.WFlags = wmdV2.WFlags
 	wmdV3.DiskUsage = wmdV2.DiskUsage
+	wmdV3.MDDiskUsage = wmdV2.MDDiskUsage
 	wmdV3.RefBytes = wmdV2.RefBytes
 	wmdV3.UnrefBytes = wmdV2.UnrefBytes
+	wmdV3.MDRefBytes = wmdV2.MDRefBytes
 
 	if wmdV2.ID.IsPublic() {
 		wmdV3.LatestKeyGen = PublicKeyGen
@@ -491,6 +499,16 @@ func (md *BareRootMetadataV2) CheckValidSuccessor(
 			actualDiskUsage:   nextMd.DiskUsage(),
 		}
 	}
+	expectedMDUsage := md.MDDiskUsage()
+	if !nextMd.IsWriterMetadataCopiedSet() {
+		expectedMDUsage += nextMd.MDRefBytes()
+	}
+	if nextMd.MDDiskUsage() != expectedMDUsage {
+		return MDDiskUsageMismatch{
+			expectedDiskUsage: expectedMDUsage,
+			actualDiskUsage:   nextMd.MDDiskUsage(),
+		}
+	}
 
 	// TODO: Check that the successor (bare) TLF handle is the
 	// same or more resolved.
@@ -858,9 +876,19 @@ func (md *BareRootMetadataV2) UnrefBytes() uint64 {
 	return md.WriterMetadataV2.UnrefBytes
 }
 
+// MDRefBytes implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) MDRefBytes() uint64 {
+	return md.WriterMetadataV2.MDRefBytes
+}
+
 // DiskUsage implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) DiskUsage() uint64 {
 	return md.WriterMetadataV2.DiskUsage
+}
+
+// MDDiskUsage implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) MDDiskUsage() uint64 {
+	return md.WriterMetadataV2.MDDiskUsage
 }
 
 // SetRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV2.
@@ -873,9 +901,19 @@ func (md *BareRootMetadataV2) SetUnrefBytes(unrefBytes uint64) {
 	md.WriterMetadataV2.UnrefBytes = unrefBytes
 }
 
+// SetMDRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) SetMDRefBytes(mdRefBytes uint64) {
+	md.WriterMetadataV2.MDRefBytes = mdRefBytes
+}
+
 // SetDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) SetDiskUsage(diskUsage uint64) {
 	md.WriterMetadataV2.DiskUsage = diskUsage
+}
+
+// SetMDDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) SetMDDiskUsage(mdDiskUsage uint64) {
+	md.WriterMetadataV2.MDDiskUsage = mdDiskUsage
 }
 
 // AddRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV2.
@@ -888,9 +926,19 @@ func (md *BareRootMetadataV2) AddUnrefBytes(unrefBytes uint64) {
 	md.WriterMetadataV2.UnrefBytes += unrefBytes
 }
 
+// AddMDRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) AddMDRefBytes(mdRefBytes uint64) {
+	md.WriterMetadataV2.MDRefBytes += mdRefBytes
+}
+
 // AddDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) AddDiskUsage(diskUsage uint64) {
 	md.WriterMetadataV2.DiskUsage += diskUsage
+}
+
+// AddMDDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) AddMDDiskUsage(mdDiskUsage uint64) {
+	md.WriterMetadataV2.MDDiskUsage += mdDiskUsage
 }
 
 // RevisionNumber implements the BareRootMetadata interface for BareRootMetadataV2.

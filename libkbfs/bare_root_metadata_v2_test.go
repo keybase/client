@@ -205,8 +205,10 @@ func makeFakeWriterMetadataV2Future(t *testing.T) writerMetadataV2Future {
 		NullBranchID,
 		0xa,
 		100,
+		0,
 		99,
 		101,
+		0,
 		WriterMetadataExtraV2{},
 	}
 	wkb := makeFakeTLFWriterKeyBundleV2Future(t)

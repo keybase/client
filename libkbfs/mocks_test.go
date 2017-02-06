@@ -5171,6 +5171,16 @@ func (_mr *_MockBareRootMetadataRecorder) UnrefBytes() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnrefBytes")
 }
 
+func (_m *MockBareRootMetadata) MDRefBytes() uint64 {
+	ret := _m.ctrl.Call(_m, "MDRefBytes")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) MDRefBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MDRefBytes")
+}
+
 func (_m *MockBareRootMetadata) DiskUsage() uint64 {
 	ret := _m.ctrl.Call(_m, "DiskUsage")
 	ret0, _ := ret[0].(uint64)
@@ -5179,6 +5189,16 @@ func (_m *MockBareRootMetadata) DiskUsage() uint64 {
 
 func (_mr *_MockBareRootMetadataRecorder) DiskUsage() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DiskUsage")
+}
+
+func (_m *MockBareRootMetadata) MDDiskUsage() uint64 {
+	ret := _m.ctrl.Call(_m, "MDDiskUsage")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) MDDiskUsage() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MDDiskUsage")
 }
 
 func (_m *MockBareRootMetadata) RevisionNumber() MetadataRevision {
@@ -5587,6 +5607,16 @@ func (_mr *_MockMutableBareRootMetadataRecorder) UnrefBytes() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnrefBytes")
 }
 
+func (_m *MockMutableBareRootMetadata) MDRefBytes() uint64 {
+	ret := _m.ctrl.Call(_m, "MDRefBytes")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) MDRefBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MDRefBytes")
+}
+
 func (_m *MockMutableBareRootMetadata) DiskUsage() uint64 {
 	ret := _m.ctrl.Call(_m, "DiskUsage")
 	ret0, _ := ret[0].(uint64)
@@ -5595,6 +5625,16 @@ func (_m *MockMutableBareRootMetadata) DiskUsage() uint64 {
 
 func (_mr *_MockMutableBareRootMetadataRecorder) DiskUsage() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DiskUsage")
+}
+
+func (_m *MockMutableBareRootMetadata) MDDiskUsage() uint64 {
+	ret := _m.ctrl.Call(_m, "MDDiskUsage")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) MDDiskUsage() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MDDiskUsage")
 }
 
 func (_m *MockMutableBareRootMetadata) RevisionNumber() MetadataRevision {
@@ -5746,12 +5786,28 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetUnrefBytes(arg0 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetUnrefBytes", arg0)
 }
 
+func (_m *MockMutableBareRootMetadata) SetMDRefBytes(mdRefBytes uint64) {
+	_m.ctrl.Call(_m, "SetMDRefBytes", mdRefBytes)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetMDRefBytes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMDRefBytes", arg0)
+}
+
 func (_m *MockMutableBareRootMetadata) SetDiskUsage(diskUsage uint64) {
 	_m.ctrl.Call(_m, "SetDiskUsage", diskUsage)
 }
 
 func (_mr *_MockMutableBareRootMetadataRecorder) SetDiskUsage(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetDiskUsage", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetMDDiskUsage(mdDiskUsage uint64) {
+	_m.ctrl.Call(_m, "SetMDDiskUsage", mdDiskUsage)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetMDDiskUsage(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMDDiskUsage", arg0)
 }
 
 func (_m *MockMutableBareRootMetadata) AddRefBytes(refBytes uint64) {
@@ -5770,12 +5826,28 @@ func (_mr *_MockMutableBareRootMetadataRecorder) AddUnrefBytes(arg0 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddUnrefBytes", arg0)
 }
 
+func (_m *MockMutableBareRootMetadata) AddMDRefBytes(mdRefBytes uint64) {
+	_m.ctrl.Call(_m, "AddMDRefBytes", mdRefBytes)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) AddMDRefBytes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddMDRefBytes", arg0)
+}
+
 func (_m *MockMutableBareRootMetadata) AddDiskUsage(diskUsage uint64) {
 	_m.ctrl.Call(_m, "AddDiskUsage", diskUsage)
 }
 
 func (_mr *_MockMutableBareRootMetadataRecorder) AddDiskUsage(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddDiskUsage", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) AddMDDiskUsage(mdDiskUsage uint64) {
+	_m.ctrl.Call(_m, "AddMDDiskUsage", mdDiskUsage)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) AddMDDiskUsage(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddMDDiskUsage", arg0)
 }
 
 func (_m *MockMutableBareRootMetadata) ClearRekeyBit() {

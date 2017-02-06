@@ -5105,7 +5105,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 		AnyTimes().Return(false)
 
 	// sync block
-	refBytes := uint64(1) // 1 new block changes block
+	refBytes := uint64(0) // block changes block don't count toward refBytes
 	var newRmd ImmutableRootMetadata
 	blocks := make([]kbfsblock.ID, 2)
 	expectedPath, lastCall := expectSyncBlock(t, config, nil, uid, id, "", p,

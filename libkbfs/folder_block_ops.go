@@ -1886,6 +1886,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 		md.SetRefBytes(si.refBytes)
 		md.AddDiskUsage(si.refBytes)
 		md.SetUnrefBytes(si.unrefBytes)
+		md.SetMDRefBytes(0) // this will be calculated a-new
 		md.SetDiskUsage(md.DiskUsage() - si.unrefBytes)
 		syncState.newIndirectFileBlockPtrs = append(
 			syncState.newIndirectFileBlockPtrs, si.op.Refs()...)

@@ -46,10 +46,14 @@ type WriterMetadataV3 struct {
 
 	// Estimated disk usage at this revision
 	DiskUsage uint64
-	// The total number of bytes in new blocks
+	// Estimated MD disk usage at this revision
+	MDDiskUsage uint64 `codec:",omitempty"`
+	// The total number of bytes in new data blocks
 	RefBytes uint64
 	// The total number of bytes in unreferenced blocks
 	UnrefBytes uint64
+	// The total number of bytes in new MD blocks
+	MDRefBytes uint64 `codec:",omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -486,6 +490,16 @@ func (md *BareRootMetadataV3) CheckValidSuccessor(
 			actualDiskUsage:   nextMd.DiskUsage(),
 		}
 	}
+	expectedMDUsage := md.MDDiskUsage()
+	if !nextMd.IsWriterMetadataCopiedSet() {
+		expectedMDUsage += nextMd.MDRefBytes()
+	}
+	if nextMd.MDDiskUsage() != expectedMDUsage {
+		return MDDiskUsageMismatch{
+			expectedDiskUsage: expectedMDUsage,
+			actualDiskUsage:   nextMd.MDDiskUsage(),
+		}
+	}
 
 	// TODO: Check that the successor (bare) TLF handle is the
 	// same or more resolved.
@@ -864,9 +878,19 @@ func (md *BareRootMetadataV3) UnrefBytes() uint64 {
 	return md.WriterMetadata.UnrefBytes
 }
 
+// MDRefBytes implements the BareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) MDRefBytes() uint64 {
+	return md.WriterMetadata.MDRefBytes
+}
+
 // DiskUsage implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) DiskUsage() uint64 {
 	return md.WriterMetadata.DiskUsage
+}
+
+// MDDiskUsage implements the BareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) MDDiskUsage() uint64 {
+	return md.WriterMetadata.MDDiskUsage
 }
 
 // SetRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
@@ -879,9 +903,19 @@ func (md *BareRootMetadataV3) SetUnrefBytes(unrefBytes uint64) {
 	md.WriterMetadata.UnrefBytes = unrefBytes
 }
 
+// SetMDRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) SetMDRefBytes(mdRefBytes uint64) {
+	md.WriterMetadata.MDRefBytes = mdRefBytes
+}
+
 // SetDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) SetDiskUsage(diskUsage uint64) {
 	md.WriterMetadata.DiskUsage = diskUsage
+}
+
+// SetMDDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) SetMDDiskUsage(mdDiskUsage uint64) {
+	md.WriterMetadata.MDDiskUsage = mdDiskUsage
 }
 
 // AddRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
@@ -894,9 +928,19 @@ func (md *BareRootMetadataV3) AddUnrefBytes(unrefBytes uint64) {
 	md.WriterMetadata.UnrefBytes += unrefBytes
 }
 
+// AddMDRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) AddMDRefBytes(mdRefBytes uint64) {
+	md.WriterMetadata.MDRefBytes += mdRefBytes
+}
+
 // AddDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) AddDiskUsage(diskUsage uint64) {
 	md.WriterMetadata.DiskUsage += diskUsage
+}
+
+// AddMDDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) AddMDDiskUsage(mdDiskUsage uint64) {
+	md.WriterMetadata.MDDiskUsage += mdDiskUsage
 }
 
 // RevisionNumber implements the BareRootMetadata interface for BareRootMetadataV3.

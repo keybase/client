@@ -1751,12 +1751,16 @@ type BareRootMetadata interface {
 	LastModifyingWriter() keybase1.UID
 	// LastModifyingUser return the UID of the last user to modify the any of the metadata.
 	GetLastModifyingUser() keybase1.UID
-	// RefBytes returns the number of newly referenced bytes introduced by this revision of metadata.
+	// RefBytes returns the number of newly referenced bytes of data blocks introduced by this revision of metadata.
 	RefBytes() uint64
 	// UnrefBytes returns the number of newly unreferenced bytes introduced by this revision of metadata.
 	UnrefBytes() uint64
+	// MDRefBytes returns the number of newly referenced bytes of MD blocks introduced by this revision of metadata.
+	MDRefBytes() uint64
 	// DiskUsage returns the estimated disk usage for the folder as of this revision of metadata.
 	DiskUsage() uint64
+	// MDDiskUsage returns the estimated MD disk usage for the folder as of this revision of metadata.
+	MDDiskUsage() uint64
 	// RevisionNumber returns the revision number associated with this metadata structure.
 	RevisionNumber() MetadataRevision
 	// BID returns the per-device branch ID associated with this metadata revision.
@@ -1798,18 +1802,26 @@ type BareRootMetadata interface {
 type MutableBareRootMetadata interface {
 	BareRootMetadata
 
-	// SetRefBytes sets the number of newly referenced bytes introduced by this revision of metadata.
+	// SetRefBytes sets the number of newly referenced bytes of data blocks introduced by this revision of metadata.
 	SetRefBytes(refBytes uint64)
 	// SetUnrefBytes sets the number of newly unreferenced bytes introduced by this revision of metadata.
 	SetUnrefBytes(unrefBytes uint64)
+	// SetMDRefBytes sets the number of newly referenced bytes of MD blocks introduced by this revision of metadata.
+	SetMDRefBytes(mdRefBytes uint64)
 	// SetDiskUsage sets the estimated disk usage for the folder as of this revision of metadata.
 	SetDiskUsage(diskUsage uint64)
-	// AddRefBytes increments the number of newly referenced bytes introduced by this revision of metadata.
+	// SetMDDiskUsage sets the estimated MD disk usage for the folder as of this revision of metadata.
+	SetMDDiskUsage(mdDiskUsage uint64)
+	// AddRefBytes increments the number of newly referenced bytes of data blocks introduced by this revision of metadata.
 	AddRefBytes(refBytes uint64)
 	// AddUnrefBytes increments the number of newly unreferenced bytes introduced by this revision of metadata.
 	AddUnrefBytes(unrefBytes uint64)
+	// AddMDRefBytes increments the number of newly referenced bytes of MD blocks introduced by this revision of metadata.
+	AddMDRefBytes(mdRefBytes uint64)
 	// AddDiskUsage increments the estimated disk usage for the folder as of this revision of metadata.
 	AddDiskUsage(diskUsage uint64)
+	// AddMDDiskUsage increments the estimated MD disk usage for the folder as of this revision of metadata.
+	AddMDDiskUsage(mdDiskUsage uint64)
 	// ClearRekeyBit unsets any set rekey bit.
 	ClearRekeyBit()
 	// ClearWriterMetadataCopiedBit unsets any set writer metadata copied bit.

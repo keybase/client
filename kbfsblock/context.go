@@ -138,6 +138,9 @@ func (c Context) String() string {
 	if c.RefNonce != ZeroRefNonce {
 		s += fmt.Sprintf(", RefNonce: %s", c.RefNonce)
 	}
+	if c.BlockType != keybase1.BlockType_DATA {
+		s += ", BlockType: MD"
+	}
 	s += "}"
 	return s
 }

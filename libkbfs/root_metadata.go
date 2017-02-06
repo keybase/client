@@ -379,6 +379,7 @@ func (md *RootMetadata) AddOp(o op) {
 func (md *RootMetadata) ClearBlockChanges() {
 	md.SetRefBytes(0)
 	md.SetUnrefBytes(0)
+	md.SetMDRefBytes(0)
 	md.data.Changes.sizeEstimate = 0
 	md.data.Changes.Info = BlockInfo{}
 	md.data.Changes.Ops = nil
@@ -548,9 +549,19 @@ func (md *RootMetadata) UnrefBytes() uint64 {
 	return md.bareMd.UnrefBytes()
 }
 
+// MDRefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) MDRefBytes() uint64 {
+	return md.bareMd.MDRefBytes()
+}
+
 // DiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) DiskUsage() uint64 {
 	return md.bareMd.DiskUsage()
+}
+
+// MDDiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) MDDiskUsage() uint64 {
+	return md.bareMd.MDDiskUsage()
 }
 
 // SetRefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
@@ -563,9 +574,19 @@ func (md *RootMetadata) SetUnrefBytes(unrefBytes uint64) {
 	md.bareMd.SetUnrefBytes(unrefBytes)
 }
 
+// SetMDRefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetMDRefBytes(mdRefBytes uint64) {
+	md.bareMd.SetMDRefBytes(mdRefBytes)
+}
+
 // SetDiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) SetDiskUsage(diskUsage uint64) {
 	md.bareMd.SetDiskUsage(diskUsage)
+}
+
+// SetMDDiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetMDDiskUsage(mdDiskUsage uint64) {
+	md.bareMd.SetMDDiskUsage(mdDiskUsage)
 }
 
 // AddRefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
@@ -578,9 +599,19 @@ func (md *RootMetadata) AddUnrefBytes(unrefBytes uint64) {
 	md.bareMd.AddUnrefBytes(unrefBytes)
 }
 
+// AddMDRefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) AddMDRefBytes(mdRefBytes uint64) {
+	md.bareMd.AddMDRefBytes(mdRefBytes)
+}
+
 // AddDiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) AddDiskUsage(diskUsage uint64) {
 	md.bareMd.AddDiskUsage(diskUsage)
+}
+
+// AddMDDiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) AddMDDiskUsage(mdDiskUsage uint64) {
+	md.bareMd.AddMDDiskUsage(mdDiskUsage)
 }
 
 // IsWriterMetadataCopiedSet wraps the respective method of the underlying BareRootMetadata for convenience.

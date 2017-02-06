@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -143,6 +144,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 	// Build the expected block list.
 	expectedLiveBlocks := make(map[BlockPointer]bool)
 	expectedRef := uint64(0)
+	expectedMDRef := uint64(0)
 	archivedBlocks := make(map[BlockPointer]bool)
 	actualLiveBlocks := make(map[BlockPointer]uint32)
 
@@ -170,7 +172,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 		if rmd.IsWriterMetadataCopiedSet() {
 			continue
 		}
-		// Any unembedded block changes also count towards the actual size
+		// Unembedded block changes count towards the MD size.
 		if info := rmd.data.cachedChanges.Info; info.BlockPointer != zeroPtr {
 			sc.log.CDebugf(ctx, "Unembedded block change: %v, %d",
 				info.BlockPointer, info.EncodedSize)
@@ -234,6 +236,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 		}
 		expectedRef += rmd.RefBytes()
 		expectedRef -= rmd.UnrefBytes()
+		expectedMDRef += rmd.MDRefBytes()
 
 		if len(rmd.data.Changes.Ops) == 1 && hasGCOp {
 			// Don't check GC status for GC revisions
@@ -253,14 +256,20 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 				lastGCRev, gcRevision)
 		}
 	}
-	sc.log.CDebugf(ctx, "Folder %v has %d expected live blocks, total %d bytes",
-		tlf, len(expectedLiveBlocks), expectedRef)
+	sc.log.CDebugf(ctx, "Folder %v has %d expected live blocks, "+
+		"total %d bytes (%d MD bytes)", tlf, len(expectedLiveBlocks),
+		expectedRef, expectedMDRef)
 
 	currMD := rmds[len(rmds)-1]
 	expectedUsage := currMD.DiskUsage()
 	if expectedUsage != expectedRef {
 		return fmt.Errorf("Expected ref bytes %d doesn't match latest disk "+
 			"usage %d", expectedRef, expectedUsage)
+	}
+	expectedMDUsage := currMD.MDDiskUsage()
+	if expectedMDUsage != expectedMDRef {
+		return fmt.Errorf("Expected MD ref bytes %d doesn't match latest disk "+
+			"MD usage %d", expectedMDRef, expectedMDUsage)
 	}
 
 	// Then, using the current MD head, start at the root of the FS
@@ -287,8 +296,13 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 	// reflect.DeepEqual so we can print out exactly what's wrong.
 	var extraBlocks []BlockPointer
 	actualSize := uint64(0)
+	actualMDSize := uint64(0)
 	for ptr, size := range actualLiveBlocks {
-		actualSize += uint64(size)
+		if ptr.GetBlockType() == keybase1.BlockType_MD {
+			actualMDSize += uint64(size)
+		} else {
+			actualSize += uint64(size)
+		}
 		if !expectedLiveBlocks[ptr] {
 			extraBlocks = append(extraBlocks, ptr)
 		}
@@ -313,6 +327,10 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 	if actualSize != expectedRef {
 		return fmt.Errorf("Actual size %d doesn't match expected size %d",
 			actualSize, expectedRef)
+	}
+	if actualMDSize != expectedMDRef {
+		return fmt.Errorf("Actual MD size %d doesn't match expected MD size %d",
+			actualMDSize, expectedMDRef)
 	}
 
 	// Check that the set of referenced blocks matches exactly what

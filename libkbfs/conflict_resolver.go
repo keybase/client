@@ -2921,7 +2921,9 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	blocksToDelete []kbfsblock.ID, err error) {
 	md.SetRefBytes(0)
 	md.SetUnrefBytes(0)
+	md.SetMDRefBytes(0)
 	md.SetDiskUsage(mostRecentMergedMD.DiskUsage())
+	md.SetMDDiskUsage(mostRecentMergedMD.MDDiskUsage())
 
 	// Track the refs and unrefs in a set, to ensure no duplicates
 	refs := make(map[BlockPointer]bool)
