@@ -25,6 +25,7 @@ export type Props = {
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,
   onClickPaperkey: (device: Device) => void,
+  hasReaders: boolean,
 }
 
 export default class Render extends Component<void, Props, void> { }

@@ -66,9 +66,9 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-type RowType = {smallMode: boolean, sortName: string, onOpen: (path: string) => void, onChat: (tlf: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
+type RowType = {hasReaders: boolean, smallMode: boolean, sortName: string, onOpen: (path: string) => void, onChat: (tlf: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
 
-const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
+const Row = ({users, isPublic, hasReaders, ignored, meta, modified, hasData, smallMode,
   onChat, onOpen, onClick, groupAvatar, userAvatar, onRekey, path, sortName}: RowType & Folder) => {
   const onOpenClick = event => {
     event.preventDefault()
@@ -113,7 +113,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
         </Box>
-        {!smallMode && !isPublic && meta !== 'rekey' && <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
+        {!smallMode && !isPublic && !hasReaders && meta !== 'rekey' && <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
           <Text type='BodySmall' className='folder-row-hover-action' onClick={onChatClick} style={styles.action}>Chat</Text>
         </Box>
         }

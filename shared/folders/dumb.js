@@ -288,6 +288,7 @@ const commonFiles = (isPrivate): FilesProps => ({
   theme: isPrivate ? 'private' : 'public',
   ignored: false,
   allowIgnore: true,
+  hasReaders: false,
   visiblePopupMenu: false,
   popupMenuItems: filesMenuItems,
   selfUsername: 'cecileb',

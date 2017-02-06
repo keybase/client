@@ -78,6 +78,7 @@ class Files extends Component<void, Props, State> {
         selfUsername={username}
         allowIgnore={allowIgnore}
         users={folder.users}
+        hasReaders={folder.users && _.some(folder.users, 'readOnly')}
         waitingForParticipantUnlock={folder.waitingForParticipantUnlock}
         youCanUnlock={folder.youCanUnlock}
         onBack={() => this.props.navigateUp()}

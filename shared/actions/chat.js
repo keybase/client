@@ -1180,7 +1180,9 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
 
 function * _openTlfInChat (action: OpenTlfInChat): SagaGenerator<any, any> {
   const tlf = action.payload
-  const users = tlf.split(',')
+  const me = yield select(usernameSelector)
+  const userlist = parseFolderNameToUsers(me, tlf)
+  const users = userlist.map(u => u.username)
   yield put(startConversation(users))
 }
 

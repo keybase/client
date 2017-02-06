@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import Row from './row'
+import _ from 'lodash'
 import type {IconType} from '../common-adapters/icon'
 import type {Props, Folder} from './list'
 import {Box, Text, Icon} from '../common-adapters'
@@ -37,6 +38,7 @@ const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onChat, onClick, onRekey,
         {...tlf}
         key={rowKey(tlf.users)}
         isPublic={isPublic}
+        hasReaders={tlf.users && _.some(tlf.users, 'readOnly')}
         ignored={isIgnored}
         onChat={onChat}
         onClick={onClick}
