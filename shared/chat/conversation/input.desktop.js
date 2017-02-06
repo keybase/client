@@ -54,7 +54,7 @@ class Conversation extends Component<void, Props, State> {
 
     const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
     const isValidNormalKey = /^[a-z]$/.test(ev.key) && !ev.altKey && !ev.ctrlKey && !ev.metaKey
-    const isValidSpecialKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(ev.key)
+    const isValidSpecialKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].includes(ev.key)
     if (isPasteKey || isValidNormalKey || isValidSpecialKey) {
       this._input.focus()
     }
