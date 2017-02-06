@@ -158,6 +158,7 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker() {
+	// FIXME: this defeats the prioritized queueing. Completely.
 	retrieval := brq.popIfNotEmpty()
 	workerCh := brq.workerQueue
 	if retrieval.priority < defaultOnDemandRequestPriority {
