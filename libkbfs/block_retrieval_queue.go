@@ -105,8 +105,8 @@ type blockRetrievalQueue struct {
 var _ blockRetriever = (*blockRetrievalQueue)(nil)
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
-// parameter determines how many workers can concurrently call WorkOnRequest
-// (more than numWorkers will block).
+// parameter determines how many workers can concurrently call Work (more than
+// numWorkers will block).
 func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
 		config:              config,
@@ -244,6 +244,11 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 // Work accepts a worker's channel to assign work.
 func (brq *blockRetrievalQueue) Work(ch chan<- *blockRetrieval) {
 	brq.workerQueue <- ch
+}
+
+// PrefetchWork accepts a prefetch worker's channel to assign work.
+func (brq *blockRetrievalQueue) PrefetchWork(ch chan<- *blockRetrieval) {
+	brq.prefetchWorkerQueue <- ch
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has

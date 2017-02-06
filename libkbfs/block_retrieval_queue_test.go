@@ -80,7 +80,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 
 	t.Log("Begin working on the request.")
 	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br := <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
@@ -107,7 +107,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 
 	t.Log("Begin working on the preempted ptr2 request.")
 	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br := <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
@@ -115,7 +115,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	require.Equal(t, uint64(1), br.insertionOrder)
 
 	t.Log("Begin working on the ptr1 request.")
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br = <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
@@ -139,7 +139,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 	t.Log("Begin working on the ptr1 request.")
 	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br := <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
@@ -151,7 +151,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	_ = q.Request(ctx, 2, makeKMD(), ptr3, block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr3 request.")
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br = <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr3, br.blockPtr)
@@ -159,7 +159,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	require.Equal(t, uint64(2), br.insertionOrder)
 
 	t.Log("Begin working on the ptr2 request.")
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br = <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
@@ -182,7 +182,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 2 requests and that the queue is now empty.")
 	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br := <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
@@ -213,7 +213,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 
 	t.Log("Begin working on the ptr3 retrieval.")
 	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br := <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr3, br.blockPtr)
@@ -224,7 +224,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	_ = q.Request(ctx, 3, makeKMD(), ptr1, block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has increased in priority and has 2 requests.")
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br = <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
@@ -233,7 +233,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	require.Len(t, br.requests, 2)
 
 	t.Log("Begin working on the ptr2 retrieval.")
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br = <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
@@ -255,7 +255,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 1 request.")
 	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br := <-ch
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, -1, br.index)
@@ -276,7 +276,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	q.FinalizeRequest(br, &FileBlock{}, nil)
 	t.Log("Make another request for the same block. Verify that this is a new request.")
 	_ = q.Request(ctx, 2, makeKMD(), ptr1, block, NoCacheEntry)
-	q.Work(ch)
+	q.PrefetchWork(ch)
 	br = <-ch
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, 2, br.priority)
