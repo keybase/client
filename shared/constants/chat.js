@@ -15,7 +15,7 @@ export type FollowingMap = {[key: string]: boolean}
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
-export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading' | 'uploading' | 'downloaded'
+export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading-preview' | 'downloading' | 'uploading' | 'downloaded'
 export type AttachmentType = 'Image' | 'Other'
 
 export type ConversationID = RPCConversationID
@@ -291,6 +291,7 @@ export type DownloadProgress = NoErrorTypedAction<'chat:downloadProgress', {
   bytesComplete: number,
   bytesTotal: number,
   conversationIDKey: ConversationIDKey,
+  isPreview: boolean,
   messageID: MessageID,
 }>
 export type LoadAttachment = NoErrorTypedAction<'chat:loadAttachment', {

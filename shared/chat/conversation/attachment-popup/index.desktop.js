@@ -17,6 +17,8 @@ const AttachmentStatusFooter = ({message, onDownloadAttachment, onOpenInFileUI}:
     contents = <AttachmentProgressBar text='Downloading' progress={message.progress} />
   } else if (messageState === 'downloaded') {
     contents = <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={onOpenInFileUI}>Show in {fileUIName}</Text>
+  } else {
+    contents = <Text type='BodySmall' style={{color: globalColors.black_60, cursor: 'pointer'}} onClick={onDownloadAttachment}>Download</Text>
   }
 
   return (
