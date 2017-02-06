@@ -21,10 +21,24 @@ const (
 	defaultOnDemandRequestPriority       int = 100
 )
 
-type blockRetrievalConfig interface {
+type blockRetrievalParentConfig interface {
 	dataVersioner
 	logMaker
 	blockCacher
+}
+
+type blockRetrievalConfig interface {
+	blockRetrievalParentConfig
+	blockGetter() blockGetter
+}
+
+type realBlockRetrievalConfig struct {
+	blockRetrievalParentConfig
+	bg blockGetter
+}
+
+func (c *realBlockRetrievalConfig) blockGetter() blockGetter {
+	return c.bg
 }
 
 // blockRetrievalRequest represents one consumer's request for a block.
@@ -93,6 +107,9 @@ type blockRetrievalQueue struct {
 	// request only exits the heap once a worker is ready.
 	workerQueue         chan chan<- *blockRetrieval
 	prefetchWorkerQueue chan chan<- *blockRetrieval
+	// slices to store the workers so we can terminate them when we're done
+	workers         []*blockRetrievalWorker
+	prefetchWorkers []*blockRetrievalWorker
 	// channel to be closed when we're done accepting requests
 	doneCh chan struct{}
 
@@ -107,16 +124,26 @@ var _ blockRetriever = (*blockRetrievalQueue)(nil)
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call Work (more than
 // numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
+func newBlockRetrievalQueue(numWorkers, numPrefetchWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
 		config:              config,
 		ptrs:                make(map[blockPtrLookup]*blockRetrieval),
 		heap:                &blockRetrievalHeap{},
 		workerQueue:         make(chan chan<- *blockRetrieval, numWorkers),
-		prefetchWorkerQueue: make(chan chan<- *blockRetrieval, defaultNumPrefetchWorkers),
+		prefetchWorkerQueue: make(chan chan<- *blockRetrieval, numPrefetchWorkers),
+		workers:             make([]*blockRetrievalWorker, 0, numWorkers),
+		prefetchWorkers:     make([]*blockRetrievalWorker, 0, numPrefetchWorkers),
 		doneCh:              make(chan struct{}),
 	}
 	q.prefetcher = newBlockPrefetcher(q, config)
+	for i := 0; i < numWorkers; i++ {
+		q.workers = append(q.workers,
+			newBlockRetrievalWorker(config.blockGetter(), q, false))
+	}
+	for i := 0; i < numPrefetchWorkers; i++ {
+		q.prefetchWorkers = append(q.prefetchWorkers,
+			newBlockRetrievalWorker(config.blockGetter(), q, true))
+	}
 	return q
 }
 
@@ -296,6 +323,12 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	select {
 	case <-brq.doneCh:
 	default:
+		for _, w := range brq.workers {
+			w.Shutdown()
+		}
+		for _, w := range brq.prefetchWorkers {
+			w.Shutdown()
+		}
 		brq.prefetchMtx.Lock()
 		defer brq.prefetchMtx.Unlock()
 		brq.prefetcher.Shutdown()

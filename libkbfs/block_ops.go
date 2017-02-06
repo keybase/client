@@ -24,10 +24,8 @@ type blockOpsConfig interface {
 // BlockOpsStandard implements the BlockOps interface by relaying
 // requests to the block server.
 type BlockOpsStandard struct {
-	config          blockOpsConfig
-	queue           *blockRetrievalQueue
-	workers         []*blockRetrievalWorker
-	prefetchWorkers []*blockRetrievalWorker
+	config blockOpsConfig
+	queue  *blockRetrievalQueue
 }
 
 var _ BlockOps = (*BlockOpsStandard)(nil)
@@ -35,19 +33,15 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 // NewBlockOpsStandard creates a new BlockOpsStandard
 func NewBlockOpsStandard(config blockOpsConfig,
 	queueSize int) *BlockOpsStandard {
-	q := newBlockRetrievalQueue(queueSize, config)
-	bops := &BlockOpsStandard{
-		config:          config,
-		queue:           q,
-		workers:         make([]*blockRetrievalWorker, 0, queueSize),
-		prefetchWorkers: make([]*blockRetrievalWorker, 0, defaultNumPrefetchWorkers),
-	}
 	bg := &realBlockGetter{config: config}
-	for i := 0; i < queueSize; i++ {
-		bops.workers = append(bops.workers, newBlockRetrievalWorker(bg, bops.queue, false))
+	qConfig := &realBlockRetrievalConfig{
+		blockRetrievalParentConfig: config,
+		bg: bg,
 	}
-	for i := 0; i < defaultNumPrefetchWorkers; i++ {
-		bops.prefetchWorkers = append(bops.prefetchWorkers, newBlockRetrievalWorker(bg, bops.queue, true))
+	q := newBlockRetrievalQueue(queueSize, defaultNumPrefetchWorkers, qConfig)
+	bops := &BlockOpsStandard{
+		config: config,
+		queue:  q,
 	}
 	return bops
 }
@@ -156,10 +150,4 @@ func (b *BlockOpsStandard) Prefetcher() Prefetcher {
 // Shutdown implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Shutdown() {
 	b.queue.Shutdown()
-	for _, w := range b.workers {
-		w.Shutdown()
-	}
-	for _, w := range b.prefetchWorkers {
-		w.Shutdown()
-	}
 }
