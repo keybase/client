@@ -8,8 +8,8 @@
 
 ### Building the Installer
 
-You probably want to bump the version of the installer in both the "Bundle version"
-and the "Bundle version string, short" in [Installer/Info.plist](/osx/Installer/Info.plist).
+You probably want to bump the version of the installer in both the "Bundle version" (CFBundleVersion)
+and the "Bundle version string, short" (CFBundleShortVersionString) in [Installer/Info.plist](/osx/Installer/Info.plist).
 
 ```sh
 ./build_installer.sh
