@@ -6,7 +6,7 @@
  * xcpretty (`gem install xcpretty`)
  * Xcode command line tools
 
-### Build Installer
+### Building the Installer
 
 You probably want to bump the version of the installer in both the "Bundle version"
 and the "Bundle version string, short" in [Installer/Info.plist](osx/Installer/Info.plist).
