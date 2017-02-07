@@ -916,7 +916,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
         info: null,
         isEmpty: false,
         conversationIDKey,
-        participants: List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)),
+        participants: List([].concat(error.rekeyInfo ? error.rekeyInfo.writerNames : [], error.rekeyInfo ? error.rekeyInfo.readerNames : []).filter(Boolean)),
         muted: false,
         time: error.remoteConv.readerInfo.mtime,
         snippet: null,
