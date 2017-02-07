@@ -1150,6 +1150,7 @@ export type MessageUnboxedError = {
   errMsg: string,
   messageID: MessageID,
   messageType: MessageType,
+  ctime: gregor1.Time,
 }
 
 export type MessageUnboxedErrorType =

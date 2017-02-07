@@ -276,6 +276,7 @@ protocol local {
     string errMsg;
     MessageID messageID;
     MessageType messageType;
+    gregor1.Time ctime;
   }
 
   variant MessageUnboxed switch (MessageUnboxedState state) {
