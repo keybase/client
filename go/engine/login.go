@@ -73,7 +73,8 @@ func (e *Login) Run(ctx *Context) error {
 		if err == nil {
 			// login successful
 			e.G().Log.Debug("LoginProvisionedDevice.Run() was successful")
-			e.sendNotification()
+			// Note:  LoginProvisionedDevice Run() will send login notifications, no need to
+			// send here.
 			return nil
 		}
 
@@ -114,6 +115,7 @@ func (e *Login) Run(ctx *Context) error {
 		return err
 	}
 
+	e.G().Log.Debug("Login provisioning success, sending login notification")
 	e.sendNotification()
 	return nil
 }
