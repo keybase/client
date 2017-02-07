@@ -42,13 +42,18 @@ class Conversation extends Component<void, Props, State> {
     }
   }
 
-  _globalKeyDownHandler = (ev: Event) => {
+  _globalKeyDownHandler = (ev: KeyboardEvent) => {
     if (!this._input) {
       return
     }
 
     const target = ev.target
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      return
+    }
+
+    // Allow copy
+    if (ev.metaKey && ['Meta', 'c'].includes(ev.key)) {
       return
     }
 

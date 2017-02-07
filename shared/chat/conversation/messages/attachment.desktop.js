@@ -2,7 +2,7 @@
 import * as Constants from '../../../constants/chat'
 import MessageComponent from './shared.desktop'
 import React, {PureComponent} from 'react'
-import {Box, Icon, Text} from '../../../common-adapters'
+import {Box, Icon, ProgressIndicator, Text} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
@@ -10,6 +10,10 @@ import type {Props, ProgressBarProps, ImageIconProps} from './attachment'
 
 function _showProgressBar (messageState, progress) {
   return !!progress && (messageState === 'uploading' || messageState === 'downloading')
+}
+
+function _showPreviewProgress (messageState, progress) {
+  return !!progress && (messageState === 'downloading-preview')
 }
 
 function AttachmentTitle ({messageState, title}: {messageState: Constants.AttachmentMessageState, title: ?string}) {
@@ -24,7 +28,7 @@ function AttachmentTitle ({messageState, title}: {messageState: Constants.Attach
   return <Text type='BodySemibold' style={style}>{title}</Text>
 }
 
-function PreviewImage ({message: {previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: () => void}) {
+function PreviewImage ({message: {previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: ?() => void}) {
   if (previewType === 'Image') {
     let style = {
       ...globalStyles.flexBoxRow,
@@ -105,27 +109,41 @@ function ShowInFileUi ({downloadedPath, onOpenInFileUI}) {
   </Text>
 }
 
-function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void, onOpenInPopup: () => void}) {
+function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: (path: string) => void, onOpenInPopup: ?() => void}) {
   const {downloadedPath, messageState} = message
 
   const overlayProgressBarStyle = {
     position: 'absolute',
-    bottom: 0,
+    bottom: globalMargins.xtiny,
     left: 0,
     paddingLeft: globalMargins.xtiny,
     paddingRight: globalMargins.tiny,
     paddingTop: globalMargins.xtiny,
     paddingBottom: globalMargins.xtiny,
   }
-  const isOverlayProgress = messageState === 'uploading'
+
+  const previewProgressIndicatorStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 32,
+    marginLeft: -16,
+    marginTop: -16,
+  }
 
   return (
-    <Box style={{position: 'relative'}}>
-      <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
-      <Box style={!isOverlayProgress ? {marginTop: globalMargins.xtiny} : {}}>
+    <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
+      <Box style={{display: 'inline-flex', alignSelf: 'flex-start', position: 'relative'}}>
+        <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
+        {_showPreviewProgress(messageState, message.progress) && !!message.progress &&
+          <ProgressIndicator
+            style={previewProgressIndicatorStyle}
+          />}
+      </Box>
+      <Box style={{marginTop: globalMargins.xtiny}}>
         {_showProgressBar(messageState, message.progress) && !!message.progress &&
           <ProgressBar
-            style={isOverlayProgress ? overlayProgressBarStyle : {}}
+            style={messageState === 'uploading' ? overlayProgressBarStyle : {}}
             text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
             progress={message.progress} />}
         {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
@@ -174,10 +192,11 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: 
 }
 
 function AttachmentMessagePreviewImage ({message, onOpenInFileUI, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onOpenInPopup: () => void}) {
+  const canOpen = message.messageState !== 'uploading'
   return (
-    <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.clickable, flex: 1}}>
+    <Box style={{...globalStyles.flexBoxColumn, ...(canOpen ? globalStyles.clickable : {}), flex: 1}}>
       <AttachmentTitle {...message} />
-      <PreviewImageWithInfo message={message} onOpenInFileUI={onOpenInFileUI} onOpenInPopup={onOpenInPopup} />
+      <PreviewImageWithInfo message={message} onOpenInFileUI={onOpenInFileUI} onOpenInPopup={canOpen ? onOpenInPopup : null} />
     </Box>
   )
 }

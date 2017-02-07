@@ -9,7 +9,7 @@ class Intro extends Component<void, IntroProps, void> {
   _renderSplash () {
     return (
       <Box style={stylesLoginForm}>
-        <Icon type='icon-keybase-logo-160' />
+        <Icon type='icon-keybase-logo-128' />
         <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
         <Text style={stylesHeaderSub} type='BodySmall'>Loading…</Text>
       </Box>
@@ -19,7 +19,7 @@ class Intro extends Component<void, IntroProps, void> {
   _renderFailure () {
     return (
       <Box style={stylesLoginForm}>
-        <Icon type='icon-keybase-logo-160' />
+        <Icon type='icon-keybase-logo-128' />
         <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
         <Text style={stylesMessage} type='Body'>
           Oops, we had a problem communicating with our services.<br />
@@ -46,7 +46,7 @@ class Intro extends Component<void, IntroProps, void> {
         {!!this.props.justLoginFromRevokedDevice && <Box style={{...stylesRevoked, backgroundColor: globalColors.blue}}>
           <Text type='BodySemibold' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>
         </Box>}
-        <Icon type='icon-keybase-logo-160' />
+        <Icon type='icon-keybase-logo-128' />
         <Text style={stylesHeader} type='HeaderBig'>Join Keybase</Text>
         <Text style={stylesHeaderSub} type='BodySemibold'>Public key crypto for everyone</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />

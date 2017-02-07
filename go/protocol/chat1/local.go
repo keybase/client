@@ -1186,6 +1186,7 @@ type MessageUnboxedError struct {
 	ErrMsg      string                  `codec:"errMsg" json:"errMsg"`
 	MessageID   MessageID               `codec:"messageID" json:"messageID"`
 	MessageType MessageType             `codec:"messageType" json:"messageType"`
+	Ctime       gregor1.Time            `codec:"ctime" json:"ctime"`
 }
 
 type MessageUnboxed struct {
