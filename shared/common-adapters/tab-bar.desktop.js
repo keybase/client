@@ -6,7 +6,7 @@ import Text from './text'
 import Badge from './badge'
 import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class TabBarItem extends Component<void, ItemProps, void> {
   render () {
@@ -51,13 +51,13 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
           {this.props.source.avatar}
           {badgeNumber > 0 &&
             <Box style={{width: 0, display: 'flex'}}>
-              <Box style={{...styleBadgeOutline}}>
-                <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
+              <Box style={{...styleBadgeAvatar}}>
+                <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} outlineColor={globalColors.midnightBlue} />
               </Box>
             </Box>}
         </Box>
         {!!this.props.label &&
-          <Text type='BodySmall' style={{color, fontSize: 11, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel}}>
+          <Text type='BodySmallSemiboldItalic' style={{color, fontSize: 11, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel, marginTop: 3}}>
             {this.props.label}
           </Text>
         }
@@ -72,12 +72,12 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
       <Box onClick={this.props.onClick}>
         <style>{navRealCSS}</style>
         <Box style={{...stylesTabBarNavIcon, ...this.props.style}} className='nav-item'>
+          <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
           {badgeNumber > 0 &&
             <Box style={{...styleBadgeNav}}>
-              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
+              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}} outlineColor={globalColors.midnightBlue} />
             </Box>
           }
-          <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
           {!!this.props.label &&
             <Text type='BodySmall' style={{...stylesNavText, ...this.props.styleLabel}}>
               <span className={'title' + (this.props.selected ? ' selected' : '')}>
@@ -106,7 +106,6 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
             <Badge badgeNumber={badgeNumber} badgeStyle={this.props.styleBadge} badgeNumberStyle={this.props.styleBadgeNumber} />
           </Box>
         }
-
       </Box>
     )
   }
@@ -125,16 +124,6 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         return this._renderIcon(color, badgeNumber)
     }
   }
-}
-
-const styleBadgeOutline = {
-  ...globalStyles.flexBoxRow,
-  borderWidth: 2,
-  borderRadius: 10,
-  borderStyle: 'solid',
-  position: 'relative',
-  right: 10,
-  bottom: 10,
 }
 
 class TabBar extends Component {
@@ -213,6 +202,7 @@ const navRealCSS = `
 
 const stylesNavText = {
   fontSize: 11,
+  marginTop: 1,
 }
 
 const stylesNavIcon = {
@@ -223,10 +213,16 @@ const stylesNavIconSelected = {
   color: globalColors.white,
 }
 
+const styleBadgeAvatar = {
+  position: 'absolute',
+  left: 45,
+  top: -5,
+}
+
 const styleBadgeNav = {
   position: 'absolute',
-  right: 13,
-  top: 10,
+  left: 45,
+  top: 5,
 }
 
 const styleBadgeIcon = {

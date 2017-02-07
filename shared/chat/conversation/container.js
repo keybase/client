@@ -1,15 +1,16 @@
 // @flow
 import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
-import {downloadFilePath} from '../../util/file'
 import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment, retryAttachment} from '../../actions/chat'
+import {downloadFilePath} from '../../util/file'
+import {getProfile} from '../../actions/tracker'
 import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
-import {getProfile} from '../../actions/tracker'
+import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
@@ -82,6 +83,7 @@ export default connect(
         const muted = selected && selected.get('muted')
         const participants = selected && selected.participants || List()
         const metaDataMap = state.chat.get('metaData')
+        const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
 
         return {
           bannerMessage: null,
@@ -95,6 +97,7 @@ export default connect(
           moreToLoad: conversationState.moreToLoad,
           muted,
           participants,
+          rekeyInfo,
           selectedConversation,
           validated: selected && selected.validated,
           you,
@@ -110,6 +113,7 @@ export default connect(
       metaDataMap: Map(),
       moreToLoad: false,
       participants: List(),
+      rekeyInfo: null,
       selectedConversation,
       validated: false,
       you,
@@ -132,6 +136,7 @@ export default connect(
     onStoreInputText: (inputText: string) => setRouteState({inputText}),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
+    onRekey: () => dispatch(openRekeyDialog()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let bannerMessage

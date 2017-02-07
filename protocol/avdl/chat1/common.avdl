@@ -120,6 +120,9 @@ protocol common {
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;
 
+    array<ConversationMetadata> supersedes; // metadata about the conversations this supersedes from a TLF finalize (if any).
+    array<ConversationMetadata> supersededBy; // metadata about the conversations that superseded this conversation from a TLF finalize.
+
     // List of users sorted by recency of last [intentional] post.
     // Most recent first. May be incomplete or empty.
     array<gregor1.UID> activeList;
@@ -133,9 +136,7 @@ protocol common {
 
   record Conversation {
     ConversationMetadata metadata;
-    union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
-    array<ConversationMetadata> supersedes; // metadata about the conversations this supersedes from a TLF finalize (if any).
-    array<ConversationMetadata> supersededBy; // metadata about the conversations that superseded this conversation from a TLF finalize.
+    union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective 
 
     // maxMsgs is the maximum message for each messageType in the conversation
     array<MessageBoxed> maxMsgs;

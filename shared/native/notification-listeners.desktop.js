@@ -1,13 +1,13 @@
 // @flow
-import {remote} from 'electron'
-import {List} from 'immutable'
-import {bootstrap} from '../actions/config'
-import {logoutDone} from '../actions/login'
-import {badgeApp} from '../actions/notifications'
-import {badgeAppForChat} from '../actions/chat'
-import {kbfsNotification} from '../util/kbfs-notifications'
-import {pgpKeyInSecretStoreFile} from '../constants/pgp'
 import {ConversationBadgeStateRecord} from '../constants/chat'
+import {List} from 'immutable'
+import {badgeAppForChat} from '../actions/chat'
+import {badgeApp} from '../actions/notifications'
+import {bootstrap, updateFollowing} from '../actions/config'
+import {kbfsNotification} from '../util/kbfs-notifications'
+import {logoutDone} from '../actions/login'
+import {pgpKeyInSecretStoreFile} from '../constants/pgp'
+import {remote} from 'electron'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
@@ -62,6 +62,9 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
       dispatch({type: pgpKeyInSecretStoreFile, payload: undefined})
+    },
+    'keybase.1.NotifyTracking.trackingChanged': ({username, isTracking}) => {
+      dispatch(updateFollowing(username, isTracking))
     },
   }
 }

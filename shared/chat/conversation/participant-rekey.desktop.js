@@ -10,12 +10,12 @@ const Row = ({username, onUsernameClicked}) => (
     <Avatar username={username} size={40} style={{marginRight: 12, padding: 4}} />
     <Box style={innerRowStyle}>
       <Usernames inline={true} backgroundMode='Terminal' type='BodySemibold' users={[{username}]} />
-      <Text type='BodySmall' backgroundMode='Terminal' style={{lineHeight: '17px'}}>Can rekey this chat by opening the Keybase app.</Text>
+      <Text type='BodySmall' backgroundMode='Terminal' style={{lineHeight: '17px', color: globalColors.blue3_40}}>Can rekey this chat by opening the Keybase app.</Text>
     </Box>
   </Box>
 )
 
-const ParticipantRekey = ({rekeyInfo, onUsernameClicked}: {rekeyInfo: RekeyInfo, onUsernameClicked: (username: string) => void}) => {
+const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: {rekeyInfo: RekeyInfo, onShowProfile: (username: string) => void}) => {
   return (
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
@@ -34,6 +34,7 @@ const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
   backgroundColor: globalColors.darkBlue4,
+  borderLeft: `1px solid ${globalColors.black_20}`,
   flex: 1,
   justifyContent: 'flex-start',
 }

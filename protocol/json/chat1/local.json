@@ -866,6 +866,10 @@
         {
           "type": "MessageType",
           "name": "messageType"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
         }
       ]
     },

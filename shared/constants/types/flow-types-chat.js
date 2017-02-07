@@ -701,8 +701,6 @@ export type ChatActivityType =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
-  supersedes?: ?Array<ConversationMetadata>,
-  supersededBy?: ?Array<ConversationMetadata>,
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
@@ -774,6 +772,8 @@ export type ConversationMetadata = {
   visibility: TLFVisibility,
   status: ConversationStatus,
   finalizeInfo?: ?ConversationFinalizeInfo,
+  supersedes?: ?Array<ConversationMetadata>,
+  supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
 }
 
@@ -1150,6 +1150,7 @@ export type MessageUnboxedError = {
   errMsg: string,
   messageID: MessageID,
   messageType: MessageType,
+  ctime: gregor1.Time,
 }
 
 export type MessageUnboxedErrorType =
