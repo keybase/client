@@ -75,7 +75,7 @@ class Engine {
   }
 
   _setupIgnoredHandlers () {
-    this.setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', () => {})
+    // Any messages we want to ignore go here
   }
 
   _onDisconnect () {

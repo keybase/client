@@ -21,7 +21,8 @@ export const bootstrapAttemptFailed = 'config:bootstrapAttemptFailed'
 export const bootstrapFailed = 'config:bootstrapFailed'
 export const bootstrapRetry = 'config:bootstrapRetry'
 export const updateFollowing = 'config:updateFollowing'
-export const updateFollowers = 'config:updateFollowers'
+export const setFollowing = 'config:setFollowing'
+export const setFollowers = 'config:setFollowers'
 
 export const readAppVersion = 'config:readAppVersion'
 
@@ -31,6 +32,7 @@ export const MAX_BOOTSTRAP_TRIES = 3
 export const bootstrapRetryDelay = 10 * 1000
 
 export type DaemonError = NoErrorTypedAction<'config:daemonError', {daemonError: ?Error}>
+export type UpdateFollowing = NoErrorTypedAction<'config:updateFollowing', {username: string, isTracking: boolean}>
 
 export type BootStatus = 'bootStatusLoading'
   | 'bootStatusBootstrapped'
