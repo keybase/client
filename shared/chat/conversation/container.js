@@ -6,7 +6,7 @@ import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment, retryAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, selectConversation, loadAttachment, retryAttachment} from '../../actions/chat'
 import * as ChatConstants from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
@@ -120,8 +120,8 @@ export default connect(
       selectedConversation,
       validated: false,
       you,
-      supersedes: [],
-      supersededBy: [],
+      supersedes: null,
+      supersededBy: null,
     }
   },
   (dispatch: Dispatch, {setRouteState}) => ({
@@ -133,6 +133,10 @@ export default connect(
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onMuteConversation: (conversationIDKey: ConversationIDKey, muted: boolean) => { dispatch(muteConversation(conversationIDKey, muted)) },
     onOpenFolder: () => dispatch(openFolder()),
+    onOpenConversation: (conversationIDKey: ConversationIDKey) => {
+      dispatch(loadMoreMessages(conversationIDKey, false))
+      dispatch(selectConversation(conversationIDKey, true))
+    },
     onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
     onOpenInPopup: (message: AttachmentMessage) => dispatch(({type: 'chat:openAttachmentPopup', payload: {message}}: OpenAttachmentPopup)),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),

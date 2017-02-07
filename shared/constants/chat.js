@@ -115,11 +115,6 @@ export type SupersededByMessage = {
   key: any,
 }
 
-export type SupersedeInfo = {
-  username: string,
-  conversationIDKey: ConversationIDKey,
-}
-
 export type DeletedMessage = {
   type: 'Deleted',
   timestamp: number,
@@ -215,10 +210,15 @@ export type InboxState = Record<{
   validated: boolean,
 }>
 
+export type SupersedeInfo = {
+  conversationIDKey: ConversationID,
+  finalizeInfo: ConversationFinalizeInfo,
+}
+
 export type FinalizedState = Map<ConversationIDKey, ConversationFinalizeInfo>
 
-export type SupersedesState = Map<ConversationIDKey, Set<ConversationIDKey>>
-export type SupersededByState = Map<ConversationIDKey, Set<ConversationIDKey>>
+export type SupersedesState = Map<ConversationIDKey, SupersedeInfo>
+export type SupersededByState = Map<ConversationIDKey, SupersedeInfo>
 
 export type MetaData = Record<{
   fullname: string,
@@ -474,35 +474,12 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
-function convSupersedesInfo (conversationID: ConversationIDKey, chat: State): Array<SupersedeInfo> {
-  const supersededConvIDs: Set<ConversationIDKey> = chat.get('supersedesState').get(conversationID)
-  if (supersededConvIDs) {
-    return supersededConvIDs.map(convID => {
-      const finalizeInfo: ?ConversationFinalizeInfo = chat.get('finalizedState').get(convID)
-      return {
-        conversationIDKey: convID,
-        username: finalizeInfo ? finalizeInfo.resetUser : '',
-      }
-    }).toArray()
-  }
-
-  return []
+function convSupersedesInfo (conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
+  return chat.get('supersedesState').get(conversationID)
 }
 
-function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): Array<SupersedeInfo> {
-  // TODO maybe we have to sort by reset dates?
-  const newerConvos: ?Set<ConversationIDKey> = chat.get('supersededByState').get(conversationID)
-  const finalizeInfo: ?ConversationFinalizeInfo = chat.get('finalizedState').get(conversationID)
-  if (newerConvos) {
-    return newerConvos.map(convID => {
-      return {
-        conversationIDKey: convID,
-        username: finalizeInfo ? finalizeInfo.resetUser : '',
-      }
-    }).toArray()
-  }
-
-  return []
+function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
+  return chat.get('supersededByState').get(conversationID)
 }
 
 export {

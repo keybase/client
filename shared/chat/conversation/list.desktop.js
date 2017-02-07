@@ -363,6 +363,7 @@ class ConversationList extends Component<void, Props, State> {
       onAction: this._onAction,
       onLoadAttachment: this.props.onLoadAttachment,
       onRetryAttachment: () => { message.type === 'Attachment' && this.props.onRetryAttachment(message) },
+      onOpenConversation: this.props.onOpenConversation,
       onOpenInFileUI: this.props.onOpenInFileUI,
       onOpenInPopup: this.props.onOpenInPopup,
       onRetry: this.props.onRetryMessage,

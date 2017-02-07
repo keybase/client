@@ -4,6 +4,7 @@ import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
 import List from './list.desktop'
+import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import NoConversation from './no-conversation.desktop'
 import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
@@ -91,41 +92,23 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
   }
 
   _decorateSupersedes (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
-    const supersedesMessages: Array<Constants.SupersedesMessage> = this.props.supersedes.map(({username, conversationIDKey}) => (({
-      type: 'Supersedes',
-      supersedes: conversationIDKey,
-      username: username,
-      timestamp: Date.now(),
-      key: `supersedes-${conversationIDKey}-${username}`,
-    }: Constants.SupersedesMessage)))
-
-    if (supersedesMessages.length) {
-      return messages.unshift(...supersedesMessages)
+    if (this.props.supersedes) {
+      const {conversationIDKey, finalizeInfo: {resetUser}} = this.props.supersedes
+      const supersedesMessage: Constants.SupersedesMessage = {
+        type: 'Supersedes',
+        supersedes: conversationIDKey,
+        username: resetUser,
+        timestamp: Date.now(),
+        key: `supersedes-${conversationIDKey}-${resetUser}`,
+      }
+      return messages.unshift(supersedesMessage)
     }
-    return messages
-  }
 
-  _decorateSupersededBy (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
-    const supersededByMessages: Array<Constants.SupersededByMessage> = this.props.supersededBy.map(({username, conversationIDKey}) => (({
-      type: 'SupersededBy',
-      supersededBy: conversationIDKey,
-      username: username,
-      timestamp: Date.now(),
-      key: `supersededBy-${conversationIDKey}-${username}`,
-    }: Constants.SupersededByMessage)))
-
-    if (supersededByMessages.length) {
-      return messages.push(...supersededByMessages)
-    }
     return messages
   }
 
   _decorateMessages (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
-    return this._decorateSupersedes(
-      this._decorateSupersededBy(
-        messages
-      )
-    )
+    return this._decorateSupersedes(messages)
   }
 
   render () {
@@ -149,6 +132,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       onLoadAttachment,
       onLoadMoreMessages,
       onMuteConversation,
+      onOpenConversation,
       onOpenFolder,
       onOpenInFileUI,
       onOpenInPopup,
@@ -163,6 +147,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       sidePanelOpen,
       validated,
       you,
+      supersededBy,
     } = this.props
 
     const banner = bannerMessage && <Banner {...bannerMessage} />
@@ -203,6 +188,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           onLoadAttachment={onLoadAttachment}
           onLoadMoreMessages={onLoadMoreMessages}
           onMuteConversation={onMuteConversation}
+          onOpenConversation={onOpenConversation}
           onOpenInFileUI={onOpenInFileUI}
           onOpenInPopup={onOpenInPopup}
           onRetryAttachment={onRetryAttachment}
@@ -215,16 +201,21 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           validated={validated}
         />
         {banner}
-        <Input
-          ref={this._onInputRef}
-          defaultText={this.props.inputText}
-          emojiPickerOpen={emojiPickerOpen}
-          isLoading={isLoading}
-          onAttach={onAttach}
-          onEditLastMessage={onEditLastMessage}
-          onPostMessage={onPostMessage}
-          selectedConversation={selectedConversation}
-        />
+        {supersededBy
+          ? <OldProfileResetNotice
+            onOpenNewerConversation={() => onOpenConversation(supersededBy.conversationIDKey)}
+            username={supersededBy.finalizeInfo.resetUser}
+          />
+          : <Input
+            ref={this._onInputRef}
+            defaultText={this.props.inputText}
+            emojiPickerOpen={emojiPickerOpen}
+            isLoading={isLoading}
+            onAttach={onAttach}
+            onEditLastMessage={onEditLastMessage}
+            onPostMessage={onPostMessage}
+            selectedConversation={selectedConversation}
+          /> }
         {dropOverlay}
       </Box>
     )

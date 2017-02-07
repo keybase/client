@@ -9,7 +9,7 @@ import ProfileResetNotice from '../notices/profile-reset-notice'
 import {Box} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
 
-import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMap, OutboxIDKey} from '../../../constants/chat'
+import type {Message, AttachmentMessage, ConversationIDKey, ServerMessage, MetaDataMap, FollowingMap, OutboxIDKey} from '../../../constants/chat'
 
 type Options = {
   message: Message,
@@ -21,6 +21,7 @@ type Options = {
   onAction: (message: ServerMessage, event: any) => void,
   isSelected: boolean,
   onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,
+  onOpenConversation: (conversationIDKey: ConversationIDKey) => void,
   onOpenInFileUI: (path: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
   onRetry: (outboxID: OutboxIDKey) => void,
@@ -40,6 +41,7 @@ const factory = (options: Options) => {
     onAction,
     isSelected,
     onLoadAttachment,
+    onOpenConversation,
     onOpenInFileUI,
     onOpenInPopup,
     onRetry,
@@ -71,14 +73,14 @@ const factory = (options: Options) => {
         />
     case 'SupersededBy':
       return <OldProfileResetNotice
-        onOpenNewerConversation={() => {console.log('todo')}}
+        onOpenNewerConversation={() => {console.log('todo', message.supersededBy); onOpenConversation(message.supersededBy)}}
         username={message.username}
         style={style}
         key={`supersededBy:${message.supersededBy}`}
         />
     case 'Supersedes':
       return <ProfileResetNotice
-        onOpenOlderConversation={() => {console.log('todo')}}
+        onOpenOlderConversation={() => {console.log('todo', message.supersedes); onOpenConversation(message.supersedes)}}
         username={message.username}
         style={style}
         key={`supersedes:${message.supersedes}`}

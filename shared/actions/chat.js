@@ -3,7 +3,6 @@ import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
 import _ from 'lodash'
-import {List, Map} from 'immutable'
 import {Set, List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
@@ -311,22 +310,35 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
   })
 }
 
-function _inboxConversationToSupersedesState (convo: ?ConversationLocal): Constants.SupersedesState {
-  if (!convo || !convo.info || !convo.info.id || !convo.supersedes) {
+function _inboxConversationToSupersedesState (convo: ?ChatTypes.Conversation): Constants.SupersedesState {
+  // TODO deep supersedes checking
+  if (!convo || !convo.metadata || !convo.metadata.supersedes) {
     return Map()
   }
 
-  const conversationIDKey = conversationIDToKey(convo.info.id)
-  return Map([[conversationIDKey, Set((convo.supersedes || []).map(conversationIDToKey))]])
+  const conversationIDKey = conversationIDToKey(convo.metadata.conversationID)
+  const supersedes = (convo.metadata.supersedes || [])
+    .filter(md => md.idTriple.topicType === CommonTopicType.chat)
+    .map(md => ({
+      conversationIDKey: conversationIDToKey(md.conversationID),
+      finalizeInfo: md.finalizeInfo,
+    }))
+  return supersedes[0] ? Map([[conversationIDKey, supersedes[0]]]) : Map()
 }
 
-function _inboxConversationToSupersededByState (convo: ?ConversationLocal): Constants.SupersededByState {
-  if (!convo || !convo.info || !convo.info.id || !convo.supersededBy) {
+function _inboxConversationToSupersededByState (convo: ?ChatTypes.Conversation): Constants.SupersededByState {
+  if (!convo || !convo.metadata || !convo.metadata.supersededBy) {
     return Map()
   }
 
-  const conversationIDKey = conversationIDToKey(convo.info.id)
-  return Map([[conversationIDKey, Set((convo.supersededBy || []).map(conversationIDToKey))]])
+  const conversationIDKey = conversationIDToKey(convo.metadata.conversationID)
+  const supersededBy = (convo.metadata.supersededBy || [])
+    .filter(md => md.idTriple.topicType === CommonTopicType.chat)
+    .map(md => ({
+      conversationIDKey: conversationIDToKey(md.conversationID),
+      finalizeInfo: md.finalizeInfo,
+    }))
+  return supersededBy[0] ? Map([[conversationIDKey, supersededBy[0]]]) : Map()
 }
 
 function _inboxToFinalized (inbox: GetInboxLocalRes): FinalizedState {
@@ -903,6 +915,10 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   const following = yield select(followingSelector)
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
   const finalizedState: FinalizedState = _inboxToFinalized(inbox)
+  const supersedesState = Map().merge(...(inbox.conversationsUnverified || []).map(_inboxConversationToSupersedesState))
+  const supersededByState = Map().merge(...(inbox.conversationsUnverified || []).map(_inboxConversationToSupersededByState))
+  yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+  yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
 
   yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
   yield put(({type: 'chat:finalizedStateUpdate', payload: {finalizedState}}: Constants.UpdateFinalizedState))
@@ -922,10 +938,10 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       incoming.chatInboxConversation.response.result()
       let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
 
-      const supersedesState: Constants.SupersedesState = _inboxConversationToSupersedesState(incoming.chatInboxConversation.params.conv)
-      const supersededByState: Constants.SupersededByState = _inboxConversationToSupersededByState(incoming.chatInboxConversation.params.conv)
-      yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
-      yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+      // const supersedesState: Constants.SupersedesState = _inboxConversationToSupersedesState(incoming.chatInboxConversation.params.conv)
+      // const supersededByState: Constants.SupersededByState = _inboxConversationToSupersededByState(incoming.chatInboxConversation.params.conv)
+      // yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+      // yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
 
       if (conversation && action && action.payload && action.payload.newConversationIDKey && action.payload.newConversationIDKey === conversation.get('conversationIDKey')) {
         conversation = conversation.set('youCreated', true)
@@ -973,7 +989,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
   if (inboxConvo && !inboxConvo.validated) {
     __DEV__ && console.log('Bailing on not yet validated conversation')
-    return
+    // return
   }
 
   const oldConversationState = yield select(_conversationStateSelector, conversationIDKey)

@@ -24,6 +24,7 @@ export type Props = {
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
   onMuteConversation: (muted: boolean) => void,
+  onOpenConversation: (conversationIDKey: ConversationIDKey) => void,
   onOpenFolder: () => void,
   onOpenInFileUI: (filename: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
@@ -41,8 +42,8 @@ export type Props = {
   triggerListScrollDown: () => void,
   validated: boolean,
   you: string,
-  supersedes: Array<SupersedeInfo>,
-  supersededBy: Array<SupersedeInfo>,
+  supersedes: ?SupersedeInfo,
+  supersededBy: ?SupersedeInfo,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

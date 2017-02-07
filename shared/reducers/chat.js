@@ -389,11 +389,11 @@ function reducer (state: State = initialState, action: Actions) {
     }
     case 'chat:updateSupersedesState': {
       // $FlowIssue doesn't recognize updates
-      return state.update('supersedesState', supersedesState => supersedesState.mergeDeep(action.payload.supersedesState))
+      return state.update('supersedesState', supersedesState => supersedesState.merge(action.payload.supersedesState))
     }
     case 'chat:updateSupersededByState': {
       // $FlowIssue doesn't recognize updates
-      return state.update('supersededByState', supersededByState => supersededByState.mergeDeep(action.payload.supersededByState))
+      return state.update('supersededByState', supersededByState => supersededByState.merge(action.payload.supersededByState))
     }
   }
 
