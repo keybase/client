@@ -27,7 +27,7 @@ export type OutboxIDKey = string
 export type MessageID = RPCMessageID
 
 export type ClientMessage = TimestampMessage
-export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment
+export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
 
 export type Message = ClientMessage | ServerMessage
 
@@ -53,8 +53,17 @@ export type ErrorMessage = {
   reason: string,
   timestamp: number,
   conversationIDKey: ConversationIDKey,
+  messageID?: MessageID,
+  key: any,
+}
+
+export type InvisibleErrorMessage = {
+  type: 'InvisibleError',
+  timestamp: number,
+  conversationIDKey: ConversationIDKey,
   messageID: MessageID,
   key: any,
+  data: any,
 }
 
 export type UnhandledMessage = {
