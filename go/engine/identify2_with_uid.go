@@ -847,7 +847,7 @@ func (e *Identify2WithUID) loadUsers(ctx *Context) error {
 
 func (e *Identify2WithUID) checkFastCacheHit() (hit bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkFastCacheHit(%s)", e.arg.Uid)
-	defer e.G().TraceOK(prfx, func() bool { return hit })()
+	defer e.G().ExitTraceOK(prfx, func() bool { return hit })()
 	if e.getCache() == nil {
 		return false
 	}
@@ -876,7 +876,7 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 }
 
 func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
-	defer e.G().TraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
+	defer e.G().ExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
 	var ktm keybase1.Time
 	key := e.dbKey(e.them.GetUID())
 	found, err := e.G().LocalDb.GetInto(&ktm, key)
@@ -903,7 +903,7 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 // Thus, after a cold boot, we don't start up with a cold identify cache.
 func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
 	prfx := fmt.Sprintf("Identify2WithUID#storeSlowCacheToDB(%s)", e.them.GetUID())
-	defer e.G().Trace(prfx, func() error { return err })()
+	defer e.G().ExitTrace(prfx, func() error { return err })()
 	if e.me == nil {
 		e.G().Log.Debug("not storing to persistent slow cache since no me user")
 		return nil
@@ -930,7 +930,7 @@ func (e *Identify2WithUID) removeSlowCacheFromDB() (err error) {
 
 func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkSlowCacheHit(%s)", e.them.GetUID())
-	defer e.G().TraceOK(prfx, func() bool { return ret })()
+	defer e.G().ExitTraceOK(prfx, func() bool { return ret })()
 
 	if e.getCache() == nil {
 		return false
