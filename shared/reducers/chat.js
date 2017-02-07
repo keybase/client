@@ -284,7 +284,7 @@ function reducer (state: State = initialState, action: Actions) {
       ))
     }
     case 'chat:downloadProgress': {
-      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
+      const {conversationIDKey, messageID, isPreview, bytesComplete, bytesTotal} = action.payload
       const progress = bytesComplete / bytesTotal
 
       // $FlowIssue
@@ -294,7 +294,7 @@ function reducer (state: State = initialState, action: Actions) {
         item => !!item.messageID && item.messageID === messageID,
         m => ({
           ...m,
-          messageState: 'downloading',
+          messageState: isPreview ? 'downloading-preview' : 'downloading',
           progress,
         })
       ))

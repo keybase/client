@@ -1,7 +1,7 @@
 // @flow
 import type {TypedState} from '../reducer'
 
-export type LogTransformer = (action: TypedAction<*, *, *>) => Object
+export type LogTransformer = (action: TypedAction<*, *, *>, oldState: TypedState) => Object
 
 export type TypedAction<T, P, E> = {
   error?: false,

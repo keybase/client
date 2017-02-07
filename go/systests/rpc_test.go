@@ -196,16 +196,16 @@ func testIdentify2(t *testing.T, g *libkb.GlobalContext) {
 	}
 
 	_, err = cli.Identify2(context.TODO(), keybase1.Identify2Arg{
-		UserAssertion: "t_alice",
-		ChatGUIMode:   true,
+		UserAssertion:    "t_alice",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	})
 	if err != nil {
 		t.Fatalf("Identify2 failed: %v\n", err)
 	}
 
 	_, err = cli.Identify2(context.TODO(), keybase1.Identify2Arg{
-		UserAssertion: "t_weriojweroi",
-		ChatGUIMode:   true,
+		UserAssertion:    "t_weriojweroi",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	})
 	if _, ok := err.(libkb.NotFoundError); !ok {
 		t.Fatalf("Expected a not-found error, but got: %v (%T)", err, err)

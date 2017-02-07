@@ -81,7 +81,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
 }
 
 class FilesRender extends Component<void, Props, void> {
-  _renderContents (isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
+  _renderContents (hasReadOnlyUsers: boolean, isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
 
     if (this.props.youCanUnlock.length) {
@@ -106,6 +106,10 @@ class FilesRender extends Component<void, Props, void> {
         <Box style={styleRecentFilesNotEnabled}>
           <Button key='open' type='Primary' onClick={this.props.openCurrentFolder}
             label='Open folder' style={{marginBottom: globalMargins.small}} />
+          {isPrivate && !hasReadOnlyUsers && <Button key='chat' type='Secondary' onClick={this.props.openConversationFromFolder}
+            label='Open in chat' style={{marginBottom: globalMargins.small, marginRight: 0}} />
+          }
+
           {ignored
           ? allowIgnore && <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' style={{marginRight: 0}} />
           : allowIgnore && <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' style={{marginRight: 0}} />}
@@ -157,7 +161,7 @@ class FilesRender extends Component<void, Props, void> {
           </Box>
         </Box>
         {this.props.visiblePopupMenu && <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} onHidden={this.props.onTogglePopupMenu} />}
-        {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
+        {this._renderContents(this.props.hasReadOnlyUsers, isPrivate, this.props.ignored, this.props.allowIgnore)}
       </Box>
     )
   }

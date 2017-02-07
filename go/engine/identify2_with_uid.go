@@ -274,14 +274,6 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 	return k == libkb.IdentifyUIKind && e.arg.UseDelegateUI
 }
 
-func (e *Identify2WithUID) calledFromChatGUI() bool {
-	return e.arg.ChatGUIMode
-}
-
-func (e *Identify2WithUID) canSucceedWithTrackBreaks() bool {
-	return e.calledFromChatGUI()
-}
-
 func (e *Identify2WithUID) resetError(err error) error {
 
 	if err == nil {
@@ -295,7 +287,7 @@ func (e *Identify2WithUID) resetError(err error) error {
 		return err
 	}
 
-	if e.canSucceedWithTrackBreaks() {
+	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
 		e.G().Log.Debug("| Reset err from %v -> nil since caller is 'CHAT_GUI'", err)
 		return nil
 	}
@@ -475,7 +467,7 @@ func (e *Identify2WithUID) exportToResult() *keybase1.Identify2Res {
 func (e *Identify2WithUID) maybeCacheResult() {
 
 	isOK := e.state.Result().IsOK()
-	canCacheFailures := e.canSucceedWithTrackBreaks()
+	canCacheFailures := e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks()
 
 	e.G().Log.Debug("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
 	defer e.G().Log.Debug("- maybeCacheResult")
@@ -626,7 +618,7 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 }
 
 func (e *Identify2WithUID) displayUserCardAsync(iui libkb.IdentifyUI) <-chan error {
-	if e.canSucceedWithTrackBreaks() {
+	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
 		return nil
 	}
 	return displayUserCardAsync(e.G(), iui, e.them.GetUID(), (e.me != nil))
@@ -641,7 +633,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.remotesReceived = e.them.BaseProofSet()
 
 	iui := ctx.IdentifyUI
-	if e.calledFromChatGUI() {
+	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
 		e.G().Log.Debug("| using the loopback identify UI")
 		iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
 	} else if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
@@ -678,7 +670,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	}
 
 	itm := libkb.IdentifyTableModeActive
-	if e.calledFromChatGUI() {
+	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
 		itm = libkb.IdentifyTableModePassive
 	}
 
@@ -770,7 +762,7 @@ func (e *Identify2WithUID) createIdentifyState(ctx *Context) (err error) {
 // RequiredUIs returns the required UIs.
 func (e *Identify2WithUID) RequiredUIs() []libkb.UIKind {
 	ret := []libkb.UIKind{}
-	if e.arg == nil || !e.arg.ChatGUIMode {
+	if e.arg == nil || !e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
 		ret = append(ret, libkb.IdentifyUIKind)
 	}
 	return ret
@@ -864,7 +856,7 @@ func (e *Identify2WithUID) checkFastCacheHit() (hit bool) {
 	dfn := func(u keybase1.Identify2Res) time.Duration {
 		return libkb.Identify2CacheShortTimeout
 	}
-	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.canSucceedWithTrackBreaks())
+	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
 
 	if err != nil {
 		e.G().Log.Debug("| fast cache error for %s: %s", e.arg.Uid, err)
@@ -951,7 +943,7 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 		}
 		return libkb.Identify2CacheLongTimeout
 	}
-	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.canSucceedWithTrackBreaks())
+	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
 
 	trackBrokenError := false
 	if err != nil {

@@ -701,8 +701,6 @@ export type ChatActivityType =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
-  supersedes?: ?Array<ConversationMetadata>,
-  supersededBy?: ?Array<ConversationMetadata>,
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
@@ -761,8 +759,8 @@ export type ConversationLocal = {
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
-  supersedes?: ?Array<ConversationID>,
-  supersededBy?: ?Array<ConversationID>,
+  supersedes?: ?Array<ConversationMetadata>,
+  supersededBy?: ?Array<ConversationMetadata>,
   maxMessages?: ?Array<MessageUnboxed>,
   isEmpty: boolean,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
@@ -774,6 +772,8 @@ export type ConversationMetadata = {
   visibility: TLFVisibility,
   status: ConversationStatus,
   finalizeInfo?: ?ConversationFinalizeInfo,
+  supersedes?: ?Array<ConversationMetadata>,
+  supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
 }
 

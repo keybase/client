@@ -4,10 +4,12 @@ import {Component} from 'react'
 import type {ConversationIDKey, AttachmentType} from '../../constants/chat'
 
 export type Props = {
+  defaultText: string,
   emojiPickerOpen: boolean,
   isLoading: boolean,
   onAttach: (filename: string, title: string, type: AttachmentType) => void,
   onPostMessage: (text: string) => void,
+  onEditLastMessage: () => void,
   selectedConversation: ?ConversationIDKey,
 }
 

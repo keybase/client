@@ -98,10 +98,12 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		}
 
 		for _, super := range conv.Supersedes {
-			cl.Conversations[i].Supersedes = append(cl.Conversations[i].Supersedes, super.String())
+			cl.Conversations[i].Supersedes = append(cl.Conversations[i].Supersedes,
+				super.ConversationID.String())
 		}
 		for _, super := range conv.SupersededBy {
-			cl.Conversations[i].SupersededBy = append(cl.Conversations[i].SupersededBy, super.String())
+			cl.Conversations[i].SupersededBy = append(cl.Conversations[i].SupersededBy,
+				super.ConversationID.String())
 		}
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)

@@ -10,6 +10,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"io/ioutil"
 
 	"golang.org/x/net/context"
 
@@ -91,12 +92,12 @@ type PreviewRes struct {
 
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
-func Preview(ctx context.Context, log logger.Logger, src io.Reader, contentType, basename string) (*PreviewRes, error) {
+func Preview(ctx context.Context, log logger.Logger, src io.Reader, contentType, basename string, fileSize int) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png":
 		return previewImage(ctx, log, src, basename, contentType)
 	case "image/gif":
-		return previewGIF(ctx, log, src, basename)
+		return previewGIF(ctx, log, src, basename, fileSize)
 	}
 
 	return nil, nil
@@ -141,8 +142,12 @@ func previewImage(ctx context.Context, log logger.Logger, src io.Reader, basenam
 
 // previewGIF handles resizing multiple frames in an animated gif.
 // Based on code in https://github.com/dpup/go-scratch/blob/master/gif-resize/gif-resize.go
-func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename string) (*PreviewRes, error) {
-	g, err := gif.DecodeAll(src)
+func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename string, fileSize int) (*PreviewRes, error) {
+	raw, err := ioutil.ReadAll(src)
+	if err != nil {
+		return nil, err
+	}
+	g, err := gif.DecodeAll(bytes.NewReader(raw))
 	if err != nil {
 		return nil, err
 	}
@@ -155,8 +160,27 @@ func previewGIF(ctx context.Context, log logger.Logger, src io.Reader, basename 
 	log.Debug("previewGIF: number of frames = %d", frames)
 
 	var baseDuration int
-	if frames > 40 {
-		log.Debug("previewGif: too many frames in gif for preview: %d, just using frame 0", frames)
+	if frames > 1 {
+		if fileSize < 5*1024*1024 {
+			log.Debug("previewGif: not resizing because multiple-frame original < 5MB")
+
+			// don't resize if multiple frames and < 5MB
+			bounds := g.Image[0].Bounds()
+			duration := gifDuration(g)
+			res := &PreviewRes{
+				Source:            newBufferSource(bytes.NewBuffer(raw), basename),
+				ContentType:       "image/gif",
+				BaseWidth:         bounds.Dx(),
+				BaseHeight:        bounds.Dy(),
+				PreviewWidth:      bounds.Dx(),
+				PreviewHeight:     bounds.Dy(),
+				BaseDurationMs:    duration,
+				PreviewDurationMs: duration,
+			}
+			return res, nil
+		}
+
+		log.Debug("previewGif: large multiple-frame gif: %d, just using frame 0", fileSize)
 		baseDuration = gifDuration(g)
 		g.Image = g.Image[:1]
 		g.Delay = g.Delay[:1]

@@ -22,7 +22,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 4
+const inboxVersion = 5
 
 type queryHash []byte
 
@@ -284,7 +284,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		// If we are finalized and are superseded, then don't return this
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
-			if conv.Metadata.FinalizeInfo != nil && len(conv.SupersededBy) > 0 && query.ConvID == nil {
+			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && query.ConvID == nil {
 				ok = false
 			}
 		}
@@ -508,11 +508,11 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 			if iconv.Metadata.FinalizeInfo == nil {
 				continue
 			}
-			for _, super := range conv.Supersedes {
+			for _, super := range conv.Metadata.Supersedes {
 				if iconv.GetConvID().Eq(super.ConversationID) {
 					i.Debug(ctx, "NewConversation: setting supersededBy: target: %s superseder: %s",
 						iconv.GetConvID(), conv.GetConvID())
-					iconv.SupersededBy = append(iconv.SupersededBy, conv.Metadata)
+					iconv.Metadata.SupersededBy = append(iconv.Metadata.SupersededBy, conv.Metadata)
 				}
 			}
 		}
