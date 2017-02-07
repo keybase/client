@@ -44,9 +44,10 @@ protocol SimpleFS {
     EXEC_3
   }
   
-  record Dirent {
+  variant Dirent {
     Time time;
     int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
+    string name;
     DirentType direntType;
   }
 
@@ -58,7 +59,7 @@ protocol SimpleFS {
     REPLACE_1,      // overwrite
     EXISTING_2,     // fail if not present already
     WRITE_4,        // read is implied if not write, executable, or directory
-    EXECUTABLE_8,
+    APPEND_8,
     DIRECTORY_16
   }
 
@@ -66,7 +67,7 @@ protocol SimpleFS {
   record Progress {}
 
   record SfListResult {
-    array<Path> paths;
+    array<Dirent> entries;
     Progress progress;
   }
   
@@ -171,10 +172,14 @@ protocol SimpleFS {
   /**
    Create/open a file and leave it open
    or create a directory
-   or set the executable bit on an existing file.
    Files must be closed afterwards.
    */
   void simpleFSOpen(OpID opID, Path dest, OpenFlags flags);
+
+  /**
+   Set/clear file bits - only executable for now
+   */
+  void simpleFSSetStat(Path dest, DirentType flag)
 
   /**
    Read (possibly partial) contents of open file,
