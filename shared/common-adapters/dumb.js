@@ -103,6 +103,7 @@ backgroundModes.forEach(backgroundMode => {
     'BodySuccess',
     'BodySmall',
     'BodySmallSemibold',
+    'BodySmallSemiboldItalic',
     'BodySmallPrimaryLink',
     'BodySmallSecondaryLink',
     'BodySmallError',
