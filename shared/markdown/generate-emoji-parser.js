@@ -49,7 +49,7 @@ function buildParser () {
 
   const generatedSource = source
     .replace('__EMOJI_CHARACTERS__', emojiCharacterClass)
-    .replace(/__INLINE_MACRO__<([^>]*)>/g, '($1 InlineStart ((WhiteSpace+ $1 InlineStart) / ($1 InlineCont))*)')
+    .replace(/__INLINE_MACRO__<([^>]*)>/g, '($1 InlineDelimiter* InlineStart ((InlineDelimiter+ $1 InlineStart) / ($1 InlineCont))*)')
 
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
   // $FlowIssue flow doesn't accept this tagged template literal
