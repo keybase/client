@@ -14,7 +14,7 @@ export type Props = {
 }
 
 const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
-  if (avatarProps.length < 0) {
+  if (avatarProps.length <= 0) {
     return null
   }
   if (avatarProps.length > 2) {
