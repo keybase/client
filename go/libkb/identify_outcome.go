@@ -230,7 +230,7 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 	}
 
 	if len(probs) > 0 {
-		err = IdentifySummaryError{probs}
+		err = IdentifySummaryError{i.Username, probs}
 	}
 
 	return warnings, err

@@ -287,8 +287,13 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
 	case SCIdentifySummaryError:
 		ret := IdentifySummaryError{}
-		for _, problem := range s.Fields {
-			ret.problems = append(ret.problems, problem.Value)
+		for _, pair := range s.Fields {
+			if pair.Key == "username" {
+				ret.username = pair.Value
+			} else {
+				// The other keys are expected to be "problem_%d".
+				ret.problems = append(ret.problems, pair.Value)
+			}
 		}
 		return ret
 	case SCTrackingBroke:
@@ -1266,10 +1271,12 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 }
 
 func (e IdentifySummaryError) ToStatus() keybase1.Status {
-	var kvpairs []keybase1.StringKVPair
+	kvpairs := []keybase1.StringKVPair{
+		keybase1.StringKVPair{Key: "username", Value: e.username},
+	}
 	for index, problem := range e.problems {
 		kvpairs = append(kvpairs, keybase1.StringKVPair{
-			Key:   fmt.Sprintf("%d", index),
+			Key:   fmt.Sprintf("problem_%d", index),
 			Value: problem,
 		})
 	}

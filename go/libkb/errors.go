@@ -1266,6 +1266,7 @@ func (e IdentifyFailedError) Error() string {
 //=============================================================================
 
 type IdentifySummaryError struct {
+	username string
 	problems []string
 }
 
