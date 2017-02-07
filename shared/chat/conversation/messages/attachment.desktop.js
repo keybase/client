@@ -144,7 +144,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
         {_showProgressBar(messageState, message.progress) && !!message.progress &&
           <ProgressBar
             style={messageState === 'uploading' ? overlayProgressBarStyle : {}}
-            text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
+            text={messageState === 'downloading' ? 'Downloading' : 'Encrypting'}
             progress={message.progress} />}
         {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
       </Box>
@@ -173,7 +173,7 @@ function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMess
 function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onLoadAttachment: () => void}) {
   const {downloadedPath, messageState, progress} = message
   return (
-    <Box style={{...globalStyles.flexBoxRow, ...(!message.downloadedPath ? globalStyles.clickable : {}), alignItems: 'center', marginTop: globalMargins.tiny}} onClick={!message.downloadedPath ? onLoadAttachment : undefined}>
+    <Box style={{...globalStyles.flexBoxRow, ...(!message.downloadedPath ? globalStyles.clickable : {}), alignItems: 'center'}} onClick={!message.downloadedPath ? onLoadAttachment : undefined}>
       <AttachmentIcon messageState={messageState} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
         <AttachmentTitle {...message} />
@@ -182,7 +182,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: 
           <Box style={{height: 14}}>
             {_showProgressBar(messageState, progress) && !!progress &&
               <ProgressBar
-                text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
+                text={messageState === 'downloading' ? 'Downloading' : 'Encrypting'}
                 progress={progress} />}
             {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
           </Box>}
