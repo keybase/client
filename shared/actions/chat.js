@@ -1368,8 +1368,6 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 
   if (conversationIDKey) {
     yield put(loadMoreMessages(conversationIDKey, true))
-  }
-  if (conversationIDKey) {
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
