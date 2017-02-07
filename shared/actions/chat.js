@@ -1256,7 +1256,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
   }
 
   return {
-    type: 'InvisibleError',
+    type: 'Error',
     key: `error:${errorIdx++}`,
     data: message,
     timestamp: Date.now(),
