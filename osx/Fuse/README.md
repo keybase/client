@@ -9,7 +9,7 @@ of relying on 3rd party binaries shipped from other developers.
 #### Build from Xcode 7
 
 - Move any existing /Applications/Xcode.app somewhere else (out of /Applications), otherwise the build scripts will use it instead
-- Download Xcode 7 from the private Keybase group folder on KBFS (Xcode7.app.zip)
+- Download Xcode 7 from the private Keybase group folder on KBFS (macos/Xcode7.app.zip)
 - Place in /Applications and rename to Xcode.app
 
 You'll also need the Keybase signing certificate from someone at Keybase.
