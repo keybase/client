@@ -27,10 +27,7 @@ func newSemaphoreDiskLimiter(byteLimit int64) semaphoreDiskLimiter {
 
 func (s semaphoreDiskLimiter) onJournalEnable(journalBytes int64) int64 {
 	if journalBytes == 0 {
-		// TODO: This is a bit weird. Add a function to get
-		// the current semaphore count, or let ForceAcquire
-		// take 0.
-		return 0
+		return s.s.Count()
 	}
 	return s.s.ForceAcquire(journalBytes)
 }
@@ -46,9 +43,8 @@ func (s semaphoreDiskLimiter) beforeBlockPut(
 	log logger.Logger) (int64, error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in Acquire.
-		//
-		// TODO: Return current semaphore count.
-		return 0, errors.New("beforeBlockPut called with 0 blockBytes")
+		return s.s.Count(), errors.New(
+			"beforeBlockPut called with 0 blockBytes")
 	}
 
 	return s.s.Acquire(ctx, blockBytes)

@@ -30,9 +30,8 @@ func NewSemaphore() *Semaphore {
 	}
 }
 
-// countForTest returns the current resource count. It should be used
-// only for testing.
-func (s *Semaphore) countForTest() int64 {
+// Count returns the current resource count.
+func (s *Semaphore) Count() int64 {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	return s.count

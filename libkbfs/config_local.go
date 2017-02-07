@@ -924,13 +924,13 @@ func (c *ConfigLocal) EnableJournaling(
 	// the maximum duration.
 	const backpressureMaxThreshold = journalDiskLimit * 19 / 20
 
-	diskLimitSemaphore := newBackpressureDiskLimiter(
+	bdl := newBackpressureDiskLimiter(
 		backpressureMinThreshold, backpressureMaxThreshold,
 		journalDiskLimit, defaultDiskLimitMaxDelay)
 	log.Debug("Setting journal byte limit to %v", journalDiskLimit)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
-		flushListener, diskLimitSemaphore)
+		flushListener, bdl)
 
 	c.SetBlockServer(jServer.blockServer())
 	c.SetMDOps(jServer.mdOps())

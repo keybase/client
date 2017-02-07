@@ -78,10 +78,7 @@ func newBackpressureDiskLimiter(
 
 func (s backpressureDiskLimiter) onJournalEnable(journalBytes int64) int64 {
 	if journalBytes == 0 {
-		// TODO: This is a bit weird. Add a function to get
-		// the current semaphore count, or let ForceAcquire
-		// take 0.
-		return 0
+		return s.s.Count()
 	}
 	return s.s.ForceAcquire(journalBytes)
 }
@@ -93,13 +90,7 @@ func (s backpressureDiskLimiter) onJournalDisable(journalBytes int64) {
 }
 
 func (s backpressureDiskLimiter) getDelay() time.Duration {
-	// Slight hack to get backpressure value.
-	//
-	// TODO: Add a way to get the semaphore value without doing
-	// this.
-	s.s.ForceAcquire(1)
-	availBytes := s.s.Release(1)
-
+	availBytes := s.s.Count()
 	usedBytes := s.byteLimit - availBytes
 	if usedBytes <= s.backpressureMinThreshold {
 		return 0
@@ -120,20 +111,18 @@ func (s backpressureDiskLimiter) beforeBlockPut(
 	log logger.Logger) (int64, error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in Acquire.
-		//
-		// TODO: Return current semaphore count.
-		return 0, errors.New("beforeBlockPut called with 0 blockBytes")
+		return s.s.Count(), errors.New(
+			"beforeBlockPut called with 0 blockBytes")
 	}
 
 	delay := s.getDelay()
 	if delay > 0 {
-		log.CDebugf(ctx, "Delaying block put of %d bytes by %d s",
-			delay.Seconds())
+		log.CDebugf(ctx, "Delaying block put of %d bytes by %f s",
+			blockBytes, delay.Seconds())
 	}
 	err := s.delayFn(ctx, delay)
 	if err != nil {
-		// TODO: Return current semaphore count.
-		return 0, err
+		return s.s.Count(), err
 	}
 
 	return s.s.Acquire(ctx, blockBytes)

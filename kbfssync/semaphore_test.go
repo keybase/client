@@ -48,7 +48,7 @@ func TestSimple(t *testing.T) {
 	var n int64 = 10
 
 	s := NewSemaphore()
-	require.Equal(t, int64(0), s.countForTest())
+	require.Equal(t, int64(0), s.Count())
 
 	callCh := make(chan acquireCall, 1)
 	go func() {
@@ -59,7 +59,7 @@ func TestSimple(t *testing.T) {
 
 	count := s.Release(n - 1)
 	require.Equal(t, n-1, count)
-	require.Equal(t, n-1, s.countForTest())
+	require.Equal(t, n-1, s.Count())
 
 	requireNoCall(t, callCh)
 
@@ -73,7 +73,7 @@ func TestSimple(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	require.Equal(t, int64(0), s.countForTest())
+	require.Equal(t, int64(0), s.Count())
 }
 
 // TestForceAcquire tests that ForceAcquire works in a simple two-goroutine
@@ -85,7 +85,7 @@ func TestForceAcquire(t *testing.T) {
 	var n int64 = 10
 
 	s := NewSemaphore()
-	require.Equal(t, int64(0), s.countForTest())
+	require.Equal(t, int64(0), s.Count())
 
 	callCh := make(chan acquireCall, 1)
 	go func() {
@@ -96,13 +96,13 @@ func TestForceAcquire(t *testing.T) {
 
 	count := s.Release(n - 1)
 	require.Equal(t, n-1, count)
-	require.Equal(t, n-1, s.countForTest())
+	require.Equal(t, n-1, s.Count())
 
 	requireNoCall(t, callCh)
 
 	count = s.ForceAcquire(n)
 	require.Equal(t, int64(-1), count)
-	require.Equal(t, int64(-1), s.countForTest())
+	require.Equal(t, int64(-1), s.Count())
 
 	count = s.Release(n + 1)
 	require.Equal(t, n, count)
@@ -114,7 +114,7 @@ func TestForceAcquire(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	require.Equal(t, int64(0), s.countForTest())
+	require.Equal(t, int64(0), s.Count())
 }
 
 // TestCancel tests that cancelling the context passed into Acquire
@@ -129,13 +129,13 @@ func TestCancel(t *testing.T) {
 	var n int64 = 10
 
 	s := NewSemaphore()
-	require.Equal(t, int64(0), s.countForTest())
+	require.Equal(t, int64(0), s.Count())
 
 	// Do this before spawning the goroutine, so that
 	// callAcquire() will always return a count of n-1.
 	count := s.Release(n - 1)
 	require.Equal(t, n-1, count)
-	require.Equal(t, n-1, s.countForTest())
+	require.Equal(t, n-1, s.Count())
 
 	callCh := make(chan acquireCall, 1)
 	go func() {
@@ -145,7 +145,7 @@ func TestCancel(t *testing.T) {
 	requireNoCall(t, callCh)
 
 	cancel2()
-	require.Equal(t, n-1, s.countForTest())
+	require.Equal(t, n-1, s.Count())
 
 	select {
 	case call := <-callCh:
@@ -155,7 +155,7 @@ func TestCancel(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	require.Equal(t, n-1, s.countForTest())
+	require.Equal(t, n-1, s.Count())
 }
 
 // TestSerialRelease tests that Release(1) causes exactly one waiting
@@ -192,7 +192,7 @@ func TestSerialRelease(t *testing.T) {
 
 		requireNoCall(t, callCh)
 
-		require.Equal(t, int64(0), s.countForTest())
+		require.Equal(t, int64(0), s.Count())
 	}
 
 	// acquireCount should have been incremented race-free.
@@ -223,11 +223,11 @@ func TestAcquireDifferentSizes(t *testing.T) {
 		requireNoCall(t, callCh)
 
 		if i == 0 {
-			require.Equal(t, int64(0), s.countForTest())
+			require.Equal(t, int64(0), s.Count())
 		} else {
 			count := s.Release(int64(i))
 			require.Equal(t, int64(i), count)
-			require.Equal(t, int64(i), s.countForTest())
+			require.Equal(t, int64(i), s.Count())
 		}
 
 		requireNoCall(t, callCh)
@@ -244,7 +244,7 @@ func TestAcquireDifferentSizes(t *testing.T) {
 
 		requireNoCall(t, callCh)
 
-		require.Equal(t, int64(0), s.countForTest())
+		require.Equal(t, int64(0), s.Count())
 	}
 
 	// acquireCount should have been incremented race-free.
