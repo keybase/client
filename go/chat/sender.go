@@ -123,37 +123,74 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	if msg.ClientHeader.MessageType != chat1.MessageType_DELETE {
 		return msg, nil
 	}
-	if msg.ClientHeader.Supersedes == 0 {
+
+	deleteTargetID := msg.ClientHeader.Supersedes
+	if deleteTargetID == 0 {
 		return msg, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
 	}
 
-	// Grab all the edits (!)
+	// Get the message to be deleted.
+	var uid gregor1.UID = s.G().Env.GetUID().ToBytes()
+	deleteTargets, err := s.G().ConvSource.GetMessages(ctx, convID, uid, []chat1.MessageID{deleteTargetID}, nil)
+	if err != nil {
+		return msg, err
+	}
+	if len(deleteTargets) != 1 {
+		return msg, fmt.Errorf("getAllDeletedEdits: no delete target found (%v)", len(deleteTargets))
+	}
+	deleteTarget := deleteTargets[0]
+	state, err := deleteTarget.State()
+	switch state {
+	case chat1.MessageUnboxedState_VALID:
+		// pass
+	case chat1.MessageUnboxedState_ERROR:
+		return msg, fmt.Errorf("getAllDeletedEdits: delete target: %s", deleteTarget.Error().ErrMsg)
+	case chat1.MessageUnboxedState_OUTBOX:
+		// TODO You should be able to delete messages that haven't been sent yet. But through a different mechanism.
+		return msg, fmt.Errorf("getAllDeletedEdits: delete target still in outbox")
+	default:
+		return msg, fmt.Errorf("getAllDeletedEdits: delete target invalid (state:%v)", state)
+	}
+
+	// Time of the first message to be deleted.
+	timeOfFirst := gregor1.FromTime(deleteTarget.Valid().ServerHeader.Ctime)
+	// Time a couple seconds before that, because After querying is exclusive.
+	timeBeforeFirst := gregor1.ToTime(timeOfFirst.Add(-2 * time.Second))
+
+	// Get all the affected edits/AUs since just before the delete target
 	tv, _, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender, &chat1.GetThreadQuery{
 		MarkAsRead:   false,
-		MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT},
+		MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
+		After:        &timeBeforeFirst,
 	}, nil)
 	if err != nil {
 		return msg, err
 	}
 
-	// Get all affected edits
-	deletes := []chat1.MessageID{msg.ClientHeader.Supersedes}
+	// Get all affected messages to be deleted
+	deletes := []chat1.MessageID{deleteTargetID}
 	for _, m := range tv.Messages {
-		if m.IsValid() && m.GetMessageType() == chat1.MessageType_EDIT {
-			body := m.Valid().MessageBody
-			typ, err := body.MessageType()
-			if err != nil {
-				s.Debug(ctx, "getAllDeletedEdits: error getting message type: convID: %s msgID: %d err: %s", convID, m.GetMessageID(), err.Error())
-				continue
-			}
-			if typ != chat1.MessageType_EDIT {
-				s.Debug(ctx, "getAllDeletedEdits: unusual edit, mismatched types: convID: %s msgID: %d typ: %v", convID, m.GetMessageID(), typ)
-				continue
-			}
-
-			if body.Edit().MessageID == msg.ClientHeader.Supersedes {
+		if !m.IsValid() {
+			continue
+		}
+		body := m.Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil {
+			s.Debug(ctx, "getAllDeletedEdits: error getting message type: convID: %s msgID: %d err: %s", convID, m.GetMessageID(), err.Error())
+			continue
+		}
+		switch typ {
+		case chat1.MessageType_EDIT:
+			if body.Edit().MessageID == deleteTargetID {
 				deletes = append(deletes, m.GetMessageID())
 			}
+		case chat1.MessageType_ATTACHMENTUPLOADED:
+			if body.Attachmentuploaded().MessageID == deleteTargetID {
+				deletes = append(deletes, m.GetMessageID())
+			}
+		default:
+			s.Debug(ctx, "getAllDeletedEdits: unexpected message type: convID: %s msgID: %d typ: %v", convID, m.GetMessageID(), typ)
+			continue
 		}
 	}
 

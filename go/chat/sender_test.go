@@ -514,7 +514,7 @@ func TestDeletionHeaders(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Send a message and an edit.
+	// Send a message and two edits.
 	_, firstMessageID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
@@ -534,6 +534,17 @@ func TestDeletionHeaders(t *testing.T) {
 			Supersedes:  firstMessageID,
 		},
 		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: firstMessageID, Body: "bar"}),
+	}, 0)
+	require.NoError(t, err)
+	_, editID2, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_EDIT,
+			Supersedes:  firstMessageID,
+		},
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: firstMessageID, Body: "baz"}),
 	}, 0)
 	require.NoError(t, err)
 
@@ -556,14 +567,17 @@ func TestDeletionHeaders(t *testing.T) {
 	for _, id := range preparedDeletion.ClientHeader.Deletes {
 		deletedIDs[id] = true
 	}
-	if len(deletedIDs) != 2 {
-		t.Fatalf("expected 2 deleted IDs, found %d", len(deletedIDs))
+	if len(deletedIDs) != 3 {
+		t.Fatalf("expected 3 deleted IDs, found %d", len(deletedIDs))
 	}
 	if !deletedIDs[firstMessageID] {
 		t.Fatalf("expected message #%d to be deleted", firstMessageID)
 	}
-	if !deletedIDs[3] {
+	if !deletedIDs[editID] {
 		t.Fatalf("expected message #%d to be deleted", editID)
+	}
+	if !deletedIDs[editID2] {
+		t.Fatalf("expected message #%d to be deleted", editID2)
 	}
 }
 
