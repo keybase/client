@@ -120,7 +120,7 @@ function reducer (state: State = initialState, action: Actions) {
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
       if (!origConversationState) {
         console.warn('Attempted to clear conversation state that doesn\'t exist')
-        return
+        return state
       }
       // $FlowIssue
       const clearedConversationState = initialConversation.merge({
