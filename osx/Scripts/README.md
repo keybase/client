@@ -17,7 +17,9 @@ and the "Bundle version string, short" (CFBundleShortVersionString) in [Installe
 
 ### Test Installer
 
+```sh
 ./build/KeybaseInstaller.app/Contents/MacOS/Keybase --app-path=/Applications/Keybase.app --run-mode=prod --timeout=10
+```
 
 ### Releasing Installer
 
