@@ -430,12 +430,25 @@ func (g *GlobalContext) Trace(msg string, f func() error) func() {
 	return Trace(g.Log, msg, f)
 }
 
+func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
+	return func() { g.Log.Debug("| %s -> %s", msg, ErrToOk(f())) }
+}
+
 func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
 	return CTrace(ctx, g.Log, msg, f)
 }
 
+func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
+	g.VDL.CLogf(ctx, lev, "+ %s", msg)
+	return func() { g.VDL.CLogf(ctx, lev, "- %s -> %v", msg, ErrToOk(f())) }
+}
+
 func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
 	return CTraceTimed(ctx, g.Log, msg, f, g.Clock())
+}
+
+func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
+	return func() { g.Log.Debug("| %s -> %v", msg, f()) }
 }
 
 func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
@@ -444,6 +457,12 @@ func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
 
 func (g *GlobalContext) CTraceOK(ctx context.Context, msg string, f func() bool) func() {
 	return CTraceOK(ctx, g.Log, msg, f)
+}
+
+func (g *GlobalContext) CVTraceOK(ctx context.Context, lev VDebugLevel, msg string, f func() bool) func() {
+	g.VDL.CLogf(ctx, lev, "+ %s", msg)
+	return func() { g.VDL.CLogf(ctx, lev, "- %s -> %v", msg, f()) }
+
 }
 
 // SplitByRunes splits string by runes
