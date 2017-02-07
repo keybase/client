@@ -225,7 +225,7 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 
 	if ntf := i.NumTrackFailures(); ntf > 0 {
 		probs = append(probs,
-			fmt.Sprintf("%d track component%s failed",
+			fmt.Sprintf("%d tracked proof%s failed",
 				ntf, GiveMeAnS(ntf)))
 	}
 
