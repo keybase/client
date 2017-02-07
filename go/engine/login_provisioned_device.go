@@ -51,6 +51,19 @@ func (e *LoginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *LoginProvisionedDevice) Run(ctx *Context) error {
+	if err := e.run(ctx); err != nil {
+		return err
+	}
+
+	e.G().Log.Debug("LoginProvisionedDevice success, sending login notification")
+	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+	e.G().Log.Debug("LoginProvisionedDevice success, calling login hooks")
+	e.G().CallLoginHooks()
+
+	return nil
+}
+
+func (e *LoginProvisionedDevice) run(ctx *Context) error {
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {
