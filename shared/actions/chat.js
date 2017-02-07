@@ -683,7 +683,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(_devicenameSelector)
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
-        const message = _unboxedToMessage(messageUnboxed, 0, yourName, yourDeviceName, conversationIDKey)
+        const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
 
         // Is this message for the currently selected and focused conversation?
         // And is the Chat tab the currently displayed route? If all that is
@@ -971,7 +971,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   const yourName = yield select(usernameSelector)
   const yourDeviceName = yield select(_devicenameSelector)
-  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, yourDeviceName, conversationIDKey)).reverse()
+  const messages = (thread && thread.thread && thread.thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
   let newMessages = []
   messages.forEach((message, idx) => {
     if (idx > 0) {
@@ -1034,7 +1034,7 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
 // used to key errors
 let errorIdx = 1
 
-function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
+function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
   if (message && message.state === LocalMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: OutboxRecord = message.outbox
@@ -1180,7 +1180,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
         case LocalMessageUnboxedErrorType.identify: // fallthrough
           return {
             conversationIDKey,
-            key: idx,
+            key: `error:${errorIdx++}`,
             messageID: error.messageID,
             reason: error.errMsg || '',
             timestamp: Date.now(),
@@ -1189,9 +1189,9 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
         case LocalMessageUnboxedErrorType.badversion:
           return {
             conversationIDKey,
-            key: idx,
+            key: `error:${errorIdx++}`,
             data: message,
-            messageID: idx,
+            messageID: error.messageID,
             timestamp: Date.now(),
             type: 'InvisibleError',
           }
@@ -1199,12 +1199,9 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
     }
   }
 
-  errorIdx++
-
   return {
     type: 'Error',
-    messageID: idx,
-    key: `error:${errorIdx}`,
+    key: `error:${errorIdx++}`,
     timestamp: Date.now(),
     reason: "The message couldn't be loaded",
     conversationIDKey,

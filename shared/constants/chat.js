@@ -53,7 +53,7 @@ export type ErrorMessage = {
   reason: string,
   timestamp: number,
   conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
+  messageID?: MessageID,
   key: any,
 }
 
