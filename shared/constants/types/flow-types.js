@@ -466,7 +466,7 @@ export const SimpleFSOpenFlags = {
   replace: 1,
   existing: 2,
   write: 4,
-  executable: 8,
+  append: 8,
   directory: 16,
 }
 
@@ -774,6 +774,18 @@ export function SimpleFSSimpleFSRenameRpcChannelMap (channelConfig: ChannelConfi
 
 export function SimpleFSSimpleFSRenameRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSRenameRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { SimpleFSSimpleFSRenameRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSSimpleFSSetStatRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSSetStatRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.simpleFSSetStat'})
+}
+
+export function SimpleFSSimpleFSSetStatRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSSetStatRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSSimpleFSSetStatRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSSimpleFSSetStatRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSSetStatRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { SimpleFSSimpleFSSetStatRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function SimpleFSSimpleFSStatRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSStatResult) => void} & {param: SimpleFSSimpleFSStatRpcParam}>) {
@@ -3051,7 +3063,7 @@ export type APIRes = {
   appStatus: string,
 }
 
-export type AsyncOps = 
+export type AsyncOps =
     0 // LIST_0
   | 1 // LIST_RECURSIVE_1
   | 2 // READ_2
@@ -3272,10 +3284,11 @@ export type DeviceType =
 export type Dirent = {
   time: Time,
   size: int,
+  name: string,
   direntType: DirentType,
 }
 
-export type DirentType = 
+export type DirentType =
     0 // FILE_0
   | 1 // DIR_1
   | 2 // SYM_2
@@ -3316,7 +3329,7 @@ export type EncryptedBytes32 = any
 
 export type ErrorNum = int
 
-export type ExitCode = 
+export type ExitCode =
     0 // OK_0
   | 2 // NOTOK_2
   | 4 // RESTART_4
@@ -3717,7 +3730,7 @@ export type LoadDeviceErr = {
   desc: string,
 }
 
-export type LogLevel = 
+export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
   | 2 // INFO_2
@@ -3843,23 +3856,23 @@ export type NotifyUsersUserChangedRpcParam = Exact<{
   uid: UID
 }>
 
-export type OpDescription = 
-    { asyncOp : 0, list : ?ListArgs }
-  | { asyncOp : 1, listRecursive : ?ListArgs }
-  | { asyncOp : 2, read : ?ReadArgs }
-  | { asyncOp : 3, write : ?WriteArgs }
-  | { asyncOp : 4, copy : ?CopyArgs }
-  | { asyncOp : 5, move : ?MoveArgs }
-  | { asyncOp : 6, remove : ?RemoveArgs }
+export type OpDescription =
+    { asyncOp: 0, list: ?ListArgs }
+  | { asyncOp: 1, listRecursive: ?ListArgs }
+  | { asyncOp: 2, read: ?ReadArgs }
+  | { asyncOp: 3, write: ?WriteArgs }
+  | { asyncOp: 4, copy: ?CopyArgs }
+  | { asyncOp: 5, move: ?MoveArgs }
+  | { asyncOp: 6, remove: ?RemoveArgs }
 
 export type OpID = any
 
-export type OpenFlags = 
+export type OpenFlags =
     0 // READ_0
   | 1 // REPLACE_1
   | 2 // EXISTING_2
   | 4 // WRITE_4
-  | 8 // EXECUTABLE_8
+  | 8 // APPEND_8
   | 16 // DIRECTORY_16
 
 export type OutOfDateInfo = {
@@ -3938,11 +3951,11 @@ export type PassphraseType =
   | 2 // PASS_PHRASE_2
   | 3 // VERIFY_PASS_PHRASE_3
 
-export type Path = 
-    { PathType : 0, local : ?string }
-  | { PathType : 1, kbfs : ?string }
+export type Path =
+    { PathType: 0, local: ?string }
+  | { PathType: 1, kbfs: ?string }
 
-export type PathType = 
+export type PathType =
     0 // LOCAL_0
   | 1 // KBFS_1
 
@@ -3982,7 +3995,7 @@ export type Process = {
 
 export type Progress = int
 
-export type PromptDefault = 
+export type PromptDefault =
     0 // NONE_0
   | 1 // YES_1
   | 2 // NO_2
@@ -4311,7 +4324,7 @@ export type SessionStatus = {
 export type SessionToken = string
 
 export type SfListResult = {
-  paths?: ?Array<Path>,
+  entries?: ?Array<Dirent>,
   progress: Progress,
 }
 
@@ -4424,6 +4437,11 @@ export type SimpleFSSimpleFSRemoveRpcParam = Exact<{
 export type SimpleFSSimpleFSRenameRpcParam = Exact<{
   src: Path,
   dest: Path
+}>
+
+export type SimpleFSSimpleFSSetStatRpcParam = Exact<{
+  dest: Path,
+  flag: DirentType
 }>
 
 export type SimpleFSSimpleFSStatRpcParam = Exact<{
@@ -5991,6 +6009,7 @@ export type rpc =
   | SimpleFSSimpleFSReadRpc
   | SimpleFSSimpleFSRemoveRpc
   | SimpleFSSimpleFSRenameRpc
+  | SimpleFSSimpleFSSetStatRpc
   | SimpleFSSimpleFSStatRpc
   | SimpleFSSimpleFSWaitRpc
   | SimpleFSSimpleFSWriteRpc

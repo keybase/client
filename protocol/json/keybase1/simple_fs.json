@@ -67,6 +67,10 @@
           "name": "size"
         },
         {
+          "type": "string",
+          "name": "name"
+        },
+        {
           "type": "DirentType",
           "name": "direntType"
         }
@@ -86,7 +90,7 @@
         "REPLACE_1",
         "EXISTING_2",
         "WRITE_4",
-        "EXECUTABLE_8",
+        "APPEND_8",
         "DIRECTORY_16"
       ]
     },
@@ -103,9 +107,9 @@
         {
           "type": {
             "type": "array",
-            "items": "Path"
+            "items": "Dirent"
           },
-          "name": "paths"
+          "name": "entries"
         },
         {
           "type": "Progress",
@@ -427,7 +431,21 @@
         }
       ],
       "response": null,
-      "doc": "Create/open a file and leave it open\n   or create a directory\n   or set the executable bit on an existing file.\n   Files must be closed afterwards."
+      "doc": "Create/open a file and leave it open\n   or create a directory\n   Files must be closed afterwards."
+    },
+    "simpleFSSetStat": {
+      "request": [
+        {
+          "name": "dest",
+          "type": "Path"
+        },
+        {
+          "name": "flag",
+          "type": "DirentType"
+        }
+      ],
+      "response": null,
+      "doc": "Set/clear file bits - only executable for now"
     },
     "simpleFSRead": {
       "request": [

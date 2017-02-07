@@ -123,6 +123,7 @@ func (e DirentType) String() string {
 type Dirent struct {
 	Time       Time       `codec:"time" json:"time"`
 	Size       int        `codec:"size" json:"size"`
+	Name       string     `codec:"name" json:"name"`
 	DirentType DirentType `codec:"direntType" json:"direntType"`
 }
 
@@ -130,21 +131,21 @@ type ErrorNum int
 type OpenFlags int
 
 const (
-	OpenFlags_READ       OpenFlags = 0
-	OpenFlags_REPLACE    OpenFlags = 1
-	OpenFlags_EXISTING   OpenFlags = 2
-	OpenFlags_WRITE      OpenFlags = 4
-	OpenFlags_EXECUTABLE OpenFlags = 8
-	OpenFlags_DIRECTORY  OpenFlags = 16
+	OpenFlags_READ      OpenFlags = 0
+	OpenFlags_REPLACE   OpenFlags = 1
+	OpenFlags_EXISTING  OpenFlags = 2
+	OpenFlags_WRITE     OpenFlags = 4
+	OpenFlags_APPEND    OpenFlags = 8
+	OpenFlags_DIRECTORY OpenFlags = 16
 )
 
 var OpenFlagsMap = map[string]OpenFlags{
-	"READ":       0,
-	"REPLACE":    1,
-	"EXISTING":   2,
-	"WRITE":      4,
-	"EXECUTABLE": 8,
-	"DIRECTORY":  16,
+	"READ":      0,
+	"REPLACE":   1,
+	"EXISTING":  2,
+	"WRITE":     4,
+	"APPEND":    8,
+	"DIRECTORY": 16,
 }
 
 var OpenFlagsRevMap = map[OpenFlags]string{
@@ -152,7 +153,7 @@ var OpenFlagsRevMap = map[OpenFlags]string{
 	1:  "REPLACE",
 	2:  "EXISTING",
 	4:  "WRITE",
-	8:  "EXECUTABLE",
+	8:  "APPEND",
 	16: "DIRECTORY",
 }
 
@@ -165,7 +166,7 @@ func (e OpenFlags) String() string {
 
 type Progress int
 type SfListResult struct {
-	Paths    []Path   `codec:"paths" json:"paths"`
+	Entries  []Dirent `codec:"entries" json:"entries"`
 	Progress Progress `codec:"progress" json:"progress"`
 }
 
@@ -462,6 +463,11 @@ type SimpleFSOpenArg struct {
 	Flags OpenFlags `codec:"flags" json:"flags"`
 }
 
+type SimpleFSSetStatArg struct {
+	Dest Path       `codec:"dest" json:"dest"`
+	Flag DirentType `codec:"flag" json:"flag"`
+}
+
 type SimpleFSReadArg struct {
 	OpID   OpID `codec:"opID" json:"opID"`
 	Offset int  `codec:"offset" json:"offset"`
@@ -521,9 +527,10 @@ type SimpleFSInterface interface {
 	SimpleFSRename(context.Context, SimpleFSRenameArg) error
 	// Create/open a file and leave it open
 	// or create a directory
-	// or set the executable bit on an existing file.
 	// Files must be closed afterwards.
 	SimpleFSOpen(context.Context, SimpleFSOpenArg) error
+	// Set/clear file bits - only executable for now
+	SimpleFSSetStat(context.Context, SimpleFSSetStatArg) error
 	// Read (possibly partial) contents of open file,
 	// up to the amount specified by size.
 	// Repeat until zero bytes are returned or error.
@@ -677,6 +684,22 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						return
 					}
 					err = i.SimpleFSOpen(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"simpleFSSetStat": {
+				MakeArg: func() interface{} {
+					ret := make([]SimpleFSSetStatArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SimpleFSSetStatArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SimpleFSSetStatArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSSetStat(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -871,10 +894,15 @@ func (c SimpleFSClient) SimpleFSRename(ctx context.Context, __arg SimpleFSRename
 
 // Create/open a file and leave it open
 // or create a directory
-// or set the executable bit on an existing file.
 // Files must be closed afterwards.
 func (c SimpleFSClient) SimpleFSOpen(ctx context.Context, __arg SimpleFSOpenArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSOpen", []interface{}{__arg}, nil)
+	return
+}
+
+// Set/clear file bits - only executable for now
+func (c SimpleFSClient) SimpleFSSetStat(ctx context.Context, __arg SimpleFSSetStatArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetStat", []interface{}{__arg}, nil)
 	return
 }
 
