@@ -279,7 +279,7 @@ function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Consta
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
-function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
+function selectConversation (conversationIDKey: ?ConversationIDKey, fromUser: boolean): SelectConversation {
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
 }
 
@@ -835,14 +835,16 @@ function * selectValidConversation () {
   const inbox = yield select(inboxSelector)
   if (inbox.count()) {
     const conversationIDKey = yield select(_selectedSelector)
-
-    // Is the currently selected one not validated?
-    if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
-      const validInbox = inbox.find(i => i.get('validated'))
+    // Is the currently selected one not validated? or empty
+    if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey &&
+          c.get('validated') && (!c.get('isEmpty') || c.get('youCreated')))) {
+      const validInbox = inbox.find(i => i.get('validated') && (!i.get('isEmpty') || i.get('youCreated')))
       if (validInbox) {
         const validInboxConvIDKey = validInbox.get('conversationIDKey')
         yield put(selectConversation(validInboxConvIDKey, false))
         yield put(loadMoreMessages(validInboxConvIDKey, true))
+      } else {
+        yield put(selectConversation(null, false))
       }
     } else {
       yield put(loadMoreMessages(conversationIDKey, true))
@@ -1363,8 +1365,15 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   if (oldConversationState && oldConversationState.get('isStale')) {
     yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
   }
-  yield put(loadMoreMessages(conversationIDKey, true))
-  yield put(navigateTo([conversationIDKey], [chatTab]))
+
+  if (conversationIDKey) {
+    yield put(loadMoreMessages(conversationIDKey, true))
+  }
+  if (conversationIDKey) {
+    yield put(navigateTo([conversationIDKey], [chatTab]))
+  } else {
+    yield put(navigateTo([], [chatTab]))
+  }
 
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox) {
@@ -1375,7 +1384,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
     return
   }
 
-  if (fromUser) {
+  if (fromUser && conversationIDKey) {
     yield put(updateBadging(conversationIDKey))
     yield put(updateLatestMessage(conversationIDKey))
   }

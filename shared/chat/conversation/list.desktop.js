@@ -155,6 +155,10 @@ class ConversationList extends Component<void, Props, State> {
     if (willScrollDown) {
       this.setState({isLockedToBottom: true})
     }
+
+    if (this.props.moreToLoad !== nextProps.moreToLoad) {
+      this._shouldForceUpdateGrid = true
+    }
   }
 
   _invalidateChangedMessages (props: Props) {
