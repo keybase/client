@@ -22,7 +22,7 @@ This should generate a kbfuse.bundle (and fsbundle.tgz, that includes debug symb
 which you can submit for PR.
 
 This bundle is included in the KeybaseInstaller.app, so you'll need to build a new
-installer, see [Building the Installer](osx/Scripts/README.md).
+installer, see [Building the Installer](/osx/Scripts/README.md).
 
 Be sure to switch back to latest Xcode after you build.
 
