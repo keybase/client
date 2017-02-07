@@ -303,6 +303,20 @@
         {
           "type": {
             "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersededBy"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "gregor1.UID"
           },
           "name": "activeList"
@@ -341,20 +355,6 @@
             "ConversationReaderInfo"
           ],
           "name": "readerInfo"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationMetadata"
-          },
-          "name": "supersedes"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationMetadata"
-          },
-          "name": "supersededBy"
         },
         {
           "type": {

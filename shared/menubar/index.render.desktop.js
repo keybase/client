@@ -202,7 +202,7 @@ const BadgeIcon = ({type, countMap, openApp}: {type: BadgeIconType, countMap: Me
   return (
     <Box style={{...globalStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}} onClick={() => openApp(tab)}>
       <Icon style={{color: count ? globalColors.blue : globalColors.lightGrey2}} type={iconType} />
-      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -4, bottom: -4, margin: 0, border: `2px solid ${globalColors.white}`}} />}
+      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', left: 14, bottom: -3}} outlineColor={globalColors.white} />}
     </Box>
   )
 }

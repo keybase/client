@@ -39,6 +39,7 @@ class PassphraseRender extends Component<void, Props, void> {
 const stylesContainer = {
   flex: 1,
   alignItems: 'center',
+  justifyContent: 'center',
   marginTop: 40,
 }
 const stylesInput = {

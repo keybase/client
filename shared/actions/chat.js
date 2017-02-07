@@ -2,6 +2,7 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
+import _ from 'lodash'
 import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
@@ -55,6 +56,7 @@ import type {
   NewChat,
   OpenAttachmentPopup,
   OpenFolder,
+  OpenTlfInChat,
   OutboxIDKey,
   PostMessage,
   RemoveOutboxMessage,
@@ -204,6 +206,10 @@ function badgeAppForChat (conversations: List<ConversationBadgeState>): BadgeApp
 
 function openFolder (): OpenFolder {
   return {type: 'chat:openFolder', payload: undefined}
+}
+
+function openTlfInChat (tlf: string): OpenTlfInChat {
+  return {type: 'chat:openTlfInChat', payload: tlf}
 }
 
 function startConversation (users: Array<string>): StartConversation {
@@ -813,6 +819,27 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
   })
 }
 
+const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
+
+function * selectValidConversation () {
+  const inbox = yield select(inboxSelector)
+  if (inbox.count()) {
+    const conversationIDKey = yield select(_selectedSelector)
+
+    // Is the currently selected one not validated?
+    if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
+      const validInbox = inbox.find(i => i.get('validated'))
+      if (validInbox) {
+        const validInboxConvIDKey = validInbox.get('conversationIDKey')
+        yield put(selectConversation(validInboxConvIDKey, false))
+        yield put(loadMoreMessages(validInboxConvIDKey, true))
+      }
+    } else {
+      yield put(loadMoreMessages(conversationIDKey, true))
+    }
+  }
+}
+
 const followingSelector = (state: TypedState) => state.config.following
 
 function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
@@ -857,7 +884,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
       finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
-      timeout: call(delay, 5000),
+      timeout: call(delay, 30000),
     })
 
     if (incoming.chatInboxConversation) {
@@ -876,28 +903,12 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
     } else if (incoming.finished) {
       finishedCalled = true
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
-      // check valid selected
-      const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
-      const inbox = yield select(inboxSelector)
-      if (inbox.count()) {
-        const conversationIDKey = yield select(_selectedSelector)
-
-        // Is the currently selected one not validated?
-        if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
-          const validInbox = inbox.find(i => i.get('validated'))
-          if (validInbox) {
-            const validInboxConvIDKey = validInbox.get('conversationIDKey')
-            yield put(selectConversation(validInboxConvIDKey, false))
-            yield put(loadMoreMessages(validInboxConvIDKey, true))
-          }
-        } else {
-          yield put(loadMoreMessages(conversationIDKey, true))
-        }
-      }
+      yield selectValidConversation()
       break
     } else if (incoming.timeout) {
       console.warn('Inbox loading timed out')
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      yield selectValidConversation()
       break
     }
   }
@@ -1171,6 +1182,18 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
     reason: 'temp',
     conversationIDKey: conversationIDKey,
   }
+}
+
+function * _openTlfInChat (action: OpenTlfInChat): SagaGenerator<any, any> {
+  const tlf = action.payload
+  const me = yield select(usernameSelector)
+  const userlist = parseFolderNameToUsers(me, tlf)
+  const users = userlist.map(u => u.username)
+  if (_.some(userlist, 'readOnly')) {
+    console.warn('Bug: openTlfToChat should never be called on a convo with readOnly members.')
+    return
+  }
+  yield put(startConversation(users))
 }
 
 function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
@@ -1658,6 +1681,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
     safeTakeEvery(changedFocus, _changedFocus),
     safeTakeEvery('chat:deleteMessage', _deleteMessage),
+    safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
   ]
 }
 
@@ -1674,6 +1698,7 @@ export {
   newChat,
   selectAttachment,
   openFolder,
+  openTlfInChat,
   postMessage,
   retryAttachment,
   retryMessage,

@@ -1320,7 +1320,7 @@ func (h *chatLocalHandler) preprocessAsset(ctx context.Context, sessionID int, a
 	if preview == nil {
 		h.G().Log.Debug("no attachment preview included by client, seeing if possible to generate")
 		src.Reset()
-		previewRes, err := chat.Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename())
+		previewRes, err := chat.Preview(ctx, h.G().Log, src, p.ContentType, attachment.Basename(), attachment.FileSize())
 		if err != nil {
 			h.G().Log.Debug("error making preview: %s", err)
 			return nil, err

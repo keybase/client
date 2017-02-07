@@ -27,6 +27,7 @@ type TextType =
 | 'BodySmallPrimaryLink'
 | 'BodySmallSecondaryLink'
 | 'BodySmallSemibold'
+| 'BodySmallSemiboldItalic'
 | 'BodySmallSemiboldInlineLink'
 | 'BodySmallSuccess'
 | 'BodySuccess'

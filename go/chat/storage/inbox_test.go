@@ -150,8 +150,8 @@ func TestInboxQueries(t *testing.T) {
 	convs[6].Metadata.FinalizeInfo = &chat1.ConversationFinalizeInfo{
 		ResetFull: "reset",
 	}
-	convs[6].SupersededBy = append(convs[6].SupersededBy, convs[17].Metadata)
-	convs[17].Supersedes = append(convs[17].Supersedes, convs[6].Metadata)
+	convs[6].Metadata.SupersededBy = append(convs[6].Metadata.SupersededBy, convs[17].Metadata)
+	convs[17].Metadata.Supersedes = append(convs[17].Metadata.Supersedes, convs[6].Metadata)
 	for i := len(convs) - 1; i >= 0; i-- {
 		if i == 6 {
 			continue
@@ -324,7 +324,7 @@ func TestInboxNewConversation(t *testing.T) {
 
 	t.Logf("supersede newconv")
 	newConv = makeConvo(gregor1.Time(12), 1, 1)
-	newConv.Supersedes = append(newConv.Supersedes, convs[6].Metadata)
+	newConv.Metadata.Supersedes = append(newConv.Metadata.Supersedes, convs[6].Metadata)
 	require.NoError(t, inbox.NewConversation(context.TODO(), 4, newConv))
 	_, res, _, err = inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
