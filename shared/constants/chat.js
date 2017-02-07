@@ -51,7 +51,7 @@ export type TextMessage = {
 export type ErrorMessage = {
   type: 'Error',
   reason: string,
-  timestamp: number,
+  timestamp?: number,
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
   key: any,

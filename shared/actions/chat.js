@@ -1074,9 +1074,14 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'Edit'].includes(message.type)) {
+  if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
     return null
   }
+
+  if (!message.timestamp || !prevMessage.timestamp) {
+    return null
+  }
+
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
@@ -1241,7 +1246,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
             key: `error:${errorIdx++}`,
             messageID: error.messageID,
             reason: error.errMsg || '',
-            timestamp: Date.now(),
+            timestamp: error.ctime,
             type: 'Error',
           }
         case LocalMessageUnboxedErrorType.badversion:
@@ -1250,7 +1255,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
             key: `error:${errorIdx++}`,
             data: message,
             messageID: error.messageID,
-            timestamp: Date.now(),
+            timestamp: error.ctime,
             type: 'InvisibleError',
           }
       }
@@ -1260,7 +1265,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
   return {
     type: 'Error',
     key: `error:${errorIdx++}`,
-    timestamp: Date.now(),
+    data: message,
     reason: "The message couldn't be loaded",
     conversationIDKey,
   }
