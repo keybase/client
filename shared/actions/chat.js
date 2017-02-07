@@ -1012,7 +1012,6 @@ function _threadToPagination (thread) {
   }
 }
 
-// enforce no key collisions
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
   if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'Edit'].includes(message.type)) {
     return null
