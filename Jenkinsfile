@@ -119,7 +119,7 @@ helpers.rootLinuxNode(env, {
                         //dir("protocol") {
                         //    sh "./diff_test.sh"
                         //}
-                        //parallel (
+                        parallel (
                             test_linux_go: { withEnv([
                                 "PATH=${env.PATH}:${env.GOPATH}/bin",
                                 "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
@@ -179,7 +179,7 @@ helpers.rootLinuxNode(env, {
                             //        }}}
                             //    }
                             //}},
-                        //)
+                        )
                     },
                     //test_windows: {
                     //    helpers.nodeWithCleanup('windows', {}, {}) {

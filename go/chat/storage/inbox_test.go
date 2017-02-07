@@ -14,7 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupInboxTest(t testing.TB, name string) (libkb.TestContext, *Inbox, gregor1.UID) {
+func setupInboxTest(t *testing.T, name string) (libkb.TestContext, *Inbox, gregor1.UID) {
+	t.Parallel()
 	tc := externals.SetupTest(t, name, 2)
 	u, err := kbtest.CreateAndSignupFakeUser("ib", tc.G)
 	require.NoError(t, err)

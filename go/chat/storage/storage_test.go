@@ -16,7 +16,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func setupStorageTest(t testing.TB, name string) (libkb.TestContext, *Storage, gregor1.UID) {
+func setupStorageTestBenchmark(t testing.TB, name string) (libkb.TestContext, *Storage, gregor1.UID) {
 	tc := externals.SetupTest(t, name, 2)
 	u, err := kbtest.CreateAndSignupFakeUser("cs", tc.G)
 	require.NoError(t, err)
@@ -24,6 +24,10 @@ func setupStorageTest(t testing.TB, name string) (libkb.TestContext, *Storage, g
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
 	return tc, New(tc.G, f), gregor1.UID(u.User.GetUID().ToBytes())
+}
+
+func setupStorageTest(t *testing.T, name string) (libkb.TestContext, *Storage, gregor1.UID) {
+	return setupStorageTestBenchmark(t, name)
 }
 
 func randBytes(n int) []byte {
@@ -192,49 +196,49 @@ func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int
 }
 
 func BenchmarkStorageSimpleBlockEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
+	tc, storage, uid := setupStorageTestBenchmark(b, "basic")
 	storage.setEngine(newBlockEngine(tc.G))
 	doSimpleBench(b, storage, uid)
 }
 
 func BenchmarkStorageSimpleMsgEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
+	tc, storage, uid := setupStorageTestBenchmark(b, "basic")
 	storage.setEngine(newMsgEngine(tc.G))
 	doSimpleBench(b, storage, uid)
 }
 
 func BenchmarkStorageCommonBlockEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
+	tc, storage, uid := setupStorageTestBenchmark(b, "basic")
 	storage.setEngine(newBlockEngine(tc.G))
 	doCommonBench(b, storage, uid)
 }
 
 func BenchmarkStorageCommonMsgEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
+	tc, storage, uid := setupStorageTestBenchmark(b, "basic")
 	storage.setEngine(newMsgEngine(tc.G))
 	doCommonBench(b, storage, uid)
 }
 
 func BenchmarkStorageRandomBlockEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
+	tc, storage, uid := setupStorageTestBenchmark(b, "basic")
 	storage.setEngine(newBlockEngine(tc.G))
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
 func BenchmarkStorageRandomMsgEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
+	tc, storage, uid := setupStorageTestBenchmark(b, "basic")
 	storage.setEngine(newMsgEngine(tc.G))
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
 func BenchmarkStorageRandomLongBlockEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
+	tc, storage, uid := setupStorageTestBenchmark(b, "basic")
 	storage.setEngine(newBlockEngine(tc.G))
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
 func BenchmarkStorageRandomLongMsgEngine(b *testing.B) {
-	tc, storage, uid := setupStorageTest(b, "basic")
+	tc, storage, uid := setupStorageTestBenchmark(b, "basic")
 	storage.setEngine(newMsgEngine(tc.G))
 	doRandomBench(b, storage, uid, 1757, 50)
 }
