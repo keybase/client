@@ -1075,6 +1075,11 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
     return null
   }
+
+  if (!message.timestamp || !prevMessage.timestamp) {
+    return null
+  }
+
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
@@ -1259,7 +1264,6 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
     type: 'Error',
     key: `error:${errorIdx++}`,
     data: message,
-    timestamp: Date.now(),
     reason: "The message couldn't be loaded",
     conversationIDKey,
   }
