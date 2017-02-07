@@ -27,7 +27,6 @@ class FoldersRender extends Component<void, Props, void> {
           : (isSelected ? globalColors.white : globalColors.black_60),
         fontSize: 12,
       }}
-      styleBadgeNumber={styleBadgeNumber}
       selected={isSelected}
       label={isPublic ? 'public/' : 'private/'}
       badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
@@ -75,14 +74,8 @@ const stylesContainer = {
 }
 
 const styleBadge = {
-  borderWidth: 0,
-  minWidth: 13,
-  minHeight: 13,
-  borderRadius: 20,
-  flex: 'initial',
-  justifyContent: 'center',
   marginRight: 2,
-  marginLeft: 4,
+  marginLeft: 2,
 }
 
 const styleIcon = {
@@ -97,11 +90,6 @@ const styleItem = {
   paddingRight: globalMargins.medium,
   justifyContent: 'flex-start',
   backgroundColor: globalColors.transparent,
-}
-
-const styleBadgeNumber = {
-  lineHeight: '12px',
-  fontSize: 10,
 }
 
 const itemContainerStyle = {

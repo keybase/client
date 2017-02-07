@@ -77,6 +77,7 @@ const {
   CommonMessageType,
   CommonTLFVisibility,
   CommonTopicType,
+  LocalConversationErrorType,
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
   localCancelPostRpcPromise,
@@ -827,6 +828,27 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
   })
 }
 
+const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
+
+function * selectValidConversation () {
+  const inbox = yield select(inboxSelector)
+  if (inbox.count()) {
+    const conversationIDKey = yield select(_selectedSelector)
+
+    // Is the currently selected one not validated?
+    if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
+      const validInbox = inbox.find(i => i.get('validated'))
+      if (validInbox) {
+        const validInboxConvIDKey = validInbox.get('conversationIDKey')
+        yield put(selectConversation(validInboxConvIDKey, false))
+        yield put(loadMoreMessages(validInboxConvIDKey, true))
+      }
+    } else {
+      yield put(loadMoreMessages(conversationIDKey, true))
+    }
+  }
+}
+
 const followingSelector = (state: TypedState) => state.config.following
 
 function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
@@ -871,7 +893,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       chatInboxConversation: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxConversation'),
       chatInboxFailed: takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxFailed'),
       finished: takeFromChannelMap(loadInboxChanMap, 'finished'),
-      timeout: call(delay, 5000),
+      timeout: call(delay, 30000),
     })
 
     if (incoming.chatInboxConversation) {
@@ -887,31 +909,44 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
     } else if (incoming.chatInboxFailed) {
       console.warn('ignoring chatInboxFailed', incoming.chatInboxFailed)
       incoming.chatInboxFailed.response.result()
+      const error = incoming.chatInboxFailed.params.error
+      const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
+      const conversation = new InboxStateRecord({
+        info: null,
+        isEmpty: false,
+        conversationIDKey,
+        participants: List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean)),
+        muted: false,
+        time: error.remoteConv.readerInfo.mtime,
+        snippet: null,
+        validated: true,
+      })
+      yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
+
+      switch (error.typ) {
+        case LocalConversationErrorType.selfrekeyneeded: {
+          yield put({type: 'chat:updateInboxRekeySelf', payload: {conversationIDKey}})
+          break
+        }
+        case LocalConversationErrorType.otherrekeyneeded: {
+          const rekeyers = error.rekeyInfo.rekeyers
+          yield put({type: 'chat:updateInboxRekeyOthers', payload: {conversationIDKey, rekeyers}})
+          break
+        }
+        default:
+          if (__DEV__) {
+            console.warn('Inbox error:', error)
+          }
+      }
     } else if (incoming.finished) {
       finishedCalled = true
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
-      // check valid selected
-      const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
-      const inbox = yield select(inboxSelector)
-      if (inbox.count()) {
-        const conversationIDKey = yield select(_selectedSelector)
-
-        // Is the currently selected one not validated?
-        if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
-          const validInbox = inbox.find(i => i.get('validated'))
-          if (validInbox) {
-            const validInboxConvIDKey = validInbox.get('conversationIDKey')
-            yield put(selectConversation(validInboxConvIDKey, false))
-            yield put(loadMoreMessages(validInboxConvIDKey, true))
-          }
-        } else {
-          yield put(loadMoreMessages(conversationIDKey, true))
-        }
-      }
+      yield selectValidConversation()
       break
     } else if (incoming.timeout) {
       console.warn('Inbox loading timed out')
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
+      yield selectValidConversation()
       break
     }
   }
@@ -939,6 +974,16 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
   if (inboxConvo && !inboxConvo.validated) {
     __DEV__ && console.log('Bailing on not yet validated conversation')
+    return
+  }
+
+  const rekeyInfoSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => {
+    return state.chat.get('rekeyInfos').get(conversationIDKey)
+  }
+  const rekeyInfo = yield select(rekeyInfoSelector, conversationIDKey)
+
+  if (rekeyInfo) {
+    __DEV__ && console.log('Bailing on chat due to rekey info')
     return
   }
 

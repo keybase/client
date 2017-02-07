@@ -2090,9 +2090,6 @@ function peg$parse(input, options) {
       s0 = peg$parseStrikeMarker();
       if (s0 === peg$FAILED) {
         s0 = peg$parseBoldMarker();
-        if (s0 === peg$FAILED) {
-          s0 = peg$parseItalicMarker();
-        }
       }
     }
 
