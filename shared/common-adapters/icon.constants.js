@@ -380,6 +380,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-file-txt-64.png'),
   },
+  'icon-file-uploading-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-uploading-48.png'),
+  },
   'icon-files-private-delete-48': {
     isFont: false,
     extension: 'png',

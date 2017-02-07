@@ -34,6 +34,7 @@ import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
+  AttachmentInput,
   BadgeAppForChat,
   ConversationBadgeState,
   ConversationIDKey,
@@ -258,11 +259,18 @@ function retryAttachment (message: Constants.AttachmentMessage): Constants.Selec
   if (!filename || !title || !previewType) {
     throw new Error('attempted to retry attachment without filename')
   }
-  return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type: previewType || 'Other', outboxID}}
+  const input = {
+    conversationIDKey,
+    filename,
+    outboxID,
+    title,
+    type: previewType || 'Other',
+  }
+  return {type: 'chat:selectAttachment', payload: {input}}
 }
 
-function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string, type: Constants.AttachmentType): Constants.SelectAttachment {
-  return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type}}
+function selectAttachment (input: AttachmentInput): Constants.SelectAttachment {
+  return {type: 'chat:selectAttachment', payload: {input}}
 }
 
 function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, isHdPreview: boolean, filename: string): Constants.LoadAttachment {
@@ -1424,7 +1432,8 @@ const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, usernam
   key: outboxID,
 })
 
-function * _selectAttachment ({payload: {conversationIDKey, filename, title, type}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+  const {conversationIDKey, title, filename, type} = input
   const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
   const username = yield select(usernameSelector)
 
