@@ -42,13 +42,16 @@ BlankLine
  = WhiteSpace* LineTerminatorSequence { return text() }
 
 Line
- = (WhiteSpace* __INLINE_MACRO__<> / WhiteSpace+) LineTerminatorSequence?
+ = (__INLINE_MACRO__<> / WhiteSpace+) LineTerminatorSequence?
 
 InlineStart
  = CodeBlock / InlineCode / Italic / Bold / Strike / Link / InlineCont
 
 InlineCont
  = Text / Emoji / EscapedChar / NativeEmoji / SpecialChar
+
+InlineDelimiter
+ = WhiteSpace / PunctuationMarker
 
 Ticks1 = "`"
 Ticks3 = "```"
@@ -59,8 +62,11 @@ ItalicMarker = "_"
 EmojiMarker = ":"
 QuoteBlockMarker = ">"
 
+// Can mark the beginning of a link
+PunctuationMarker = [()[\].,!?]
+
 SpecialChar
- = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 { return text() }
+ = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
 
 EscapedChar
  = EscapeMarker char:SpecialChar { return char }
