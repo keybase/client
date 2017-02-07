@@ -1239,7 +1239,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
             key: `error:${errorIdx++}`,
             messageID: error.messageID,
             reason: error.errMsg || '',
-            timestamp: Date.now(),
+            timestamp: error.ctime,
             type: 'Error',
           }
         case LocalMessageUnboxedErrorType.badversion:
@@ -1248,7 +1248,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
             key: `error:${errorIdx++}`,
             data: message,
             messageID: error.messageID,
-            timestamp: Date.now(),
+            timestamp: error.ctime,
             type: 'InvisibleError',
           }
       }
