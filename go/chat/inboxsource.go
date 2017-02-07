@@ -251,9 +251,34 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 	return res, nil
 }
 
+type baseInboxSource struct {
+	libkb.Contextified
+	utils.DebugLabeler
+}
+
+func newBaseInboxSource(g *libkb.GlobalContext) *baseInboxSource {
+	return &baseInboxSource{
+		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "baseInboxSource", false),
+	}
+}
+
+func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string) {
+	// Let the rest of the system know this user has changed
+	finalizeUser, err := libkb.LoadUser(libkb.LoadUserArg{
+		Name: username,
+	})
+	if err != nil {
+		b.Debug(ctx, "notifyTlfFinalize: failed to load finalize user, skipping user changed notification: err: %s", err.Error())
+	} else {
+		b.G().UserChanged(finalizeUser.GetUID())
+	}
+}
+
 type RemoteInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
+	*baseInboxSource
 
 	getTlfInterface  func() keybase1.TlfInterface
 	getChatInterface func() chat1.RemoteInterface
@@ -264,6 +289,7 @@ func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterfac
 	return &RemoteInboxSource{
 		Contextified:     libkb.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g, "RemoteInboxSource", false),
+		baseInboxSource:  newBaseInboxSource(g),
 		getTlfInterface:  tlf,
 		getChatInterface: ri,
 	}
@@ -350,12 +376,15 @@ func (s *RemoteInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 
 func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error) {
+	// Notify rest of system about reset
+	s.notifyTlfFinalize(ctx, finalizeInfo.ResetUser)
 	return nil, nil
 }
 
 type HybridInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
+	*baseInboxSource
 
 	syncer           *Syncer
 	getSecretUI      func() libkb.SecretUI
@@ -371,6 +400,7 @@ func NewHybridInboxSource(g *libkb.GlobalContext,
 	return &HybridInboxSource{
 		Contextified:     libkb.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g, "HybridInboxSource", false),
+		baseInboxSource:  newBaseInboxSource(g),
 		getSecretUI:      getSecretUI,
 		getTlfInterface:  getTlfInterface,
 		getChatInterface: getChatInterface,
@@ -594,6 +624,7 @@ func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
+
 	if cerr := storage.NewInbox(s.G(), uid, s.getSecretUI).TlfFinalize(ctx, vers, convIDs, finalizeInfo); cerr != nil {
 		err = s.handleInboxError(cerr, uid)
 		return convs, err
@@ -607,6 +638,10 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 			convs = append(convs, *conv)
 		}
 	}
+
+	// Notify rest of system about finalize
+	s.notifyTlfFinalize(ctx, finalizeInfo.ResetUser)
+
 	return convs, nil
 }
 
