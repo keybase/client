@@ -1013,7 +1013,6 @@ function _threadToPagination (thread) {
 }
 
 // enforce no key collisions
-let timestampCounter = 1
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
   if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'Edit'].includes(message.type)) {
     return null
@@ -1021,11 +1020,10 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
-    timestampCounter++
     return {
       type: 'Timestamp',
       timestamp: message.timestamp,
-      key: `timestamp:${message.timestamp}:${timestampCounter}`,
+      key: `timestamp:${message.timestamp}`,
     }
   }
   return null
