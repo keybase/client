@@ -1256,8 +1256,9 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
   }
 
   return {
-    type: 'Error',
+    type: 'InvisibleError',
     key: `error:${errorIdx++}`,
+    data: message,
     timestamp: Date.now(),
     reason: "The message couldn't be loaded",
     conversationIDKey,
