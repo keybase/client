@@ -804,6 +804,16 @@ type DirtyBlockCache interface {
 	Shutdown() error
 }
 
+// DiskBlockCache caches blocks to the disk.
+type DiskBlockCache interface {
+	// Get gets a block from the disk cache.
+	Get(tlfID tlf.ID, blockID kbfsblock.ID) (Block, error)
+	// Put puts a block to the disk cache.
+	Put(tlfID tlf.ID, blockID kbfsblock.ID, block Block) error
+	// Delete deletes a block from the disk cache.
+	Delete(tlfID tlf.ID, blockID kbfsblock.ID) error
+}
+
 // cryptoPure contains all methods of Crypto that don't depend on
 // implicit state, i.e. they're pure functions of the input.
 type cryptoPure interface {
