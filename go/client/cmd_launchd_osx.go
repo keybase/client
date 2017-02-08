@@ -156,6 +156,10 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "f, format",
 				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
 			},
+			cli.DurationFlag{
+				Name:  "t, timeout",
+				Usage: "Timeout as duration, such as '10s' or '1m'.",
+			},
 		},
 		Action: func(c *cli.Context) {
 			// This is to bypass the logui protocol registration in main.go which is
@@ -241,8 +245,9 @@ func (v *CmdLaunchdList) showServices(filters []string, name string) (err error)
 
 type CmdLaunchdStatus struct {
 	libkb.Contextified
-	format string
-	label  install.ServiceLabel
+	format  string
+	label   install.ServiceLabel
+	timeout time.Duration
 }
 
 func NewCmdLaunchdStatusRunner(g *libkb.GlobalContext) *CmdLaunchdStatus {
@@ -279,11 +284,15 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 	v.label = label
 
 	v.format = ctx.String("format")
+	v.timeout = ctx.Duration("timeout")
+	if v.timeout == 0 {
+		v.timeout = defaultLaunchdWait
+	}
 	return nil
 }
 
 func (v *CmdLaunchdStatus) Run() error {
-	serviceStatus, err := install.ServiceStatus(v.G(), v.label, defaultLaunchdWait, v.G().Log)
+	serviceStatus, err := install.ServiceStatus(v.G(), v.label, v.timeout, v.G().Log)
 	if err != nil {
 		return err
 	}
