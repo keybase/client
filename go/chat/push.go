@@ -171,7 +171,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		pmsgs = append(pmsgs, nm.Message)
 		page, err := pager.MakePage(pmsgs, 1)
 		if err != nil {
-			g.Debug(ctx, "chat activity: error making pagge: %s", err.Error())
+			g.Debug(ctx, "chat activity: error making page: %s", err.Error())
 		}
 
 		activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
