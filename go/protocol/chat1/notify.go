@@ -47,9 +47,10 @@ func (e ChatActivityType) String() string {
 }
 
 type IncomingMessage struct {
-	Message MessageUnboxed     `codec:"message" json:"message"`
-	ConvID  ConversationID     `codec:"convID" json:"convID"`
-	Conv    *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	Message    MessageUnboxed     `codec:"message" json:"message"`
+	ConvID     ConversationID     `codec:"convID" json:"convID"`
+	Conv       *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	Pagination *Pagination        `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type ReadMessageInfo struct {
