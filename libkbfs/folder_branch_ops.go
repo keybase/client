@@ -235,6 +235,8 @@ type folderBranchOps struct {
 	head     ImmutableRootMetadata
 	// latestMergedRevision tracks the latest heard merged revision on server
 	latestMergedRevision MetadataRevision
+	// Has this folder ever been cleared?
+	hasBeenCleared bool
 
 	blocks folderBlockOps
 
@@ -5554,6 +5556,11 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 	defer fbo.mdWriterLock.Unlock(lState)
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
+	if fbo.head == (ImmutableRootMetadata{}) {
+		// Nothing to clear.
+		return
+	}
+
 	fbo.log.CDebugf(ctx, "Clearing folder MD")
 
 	// First cancel the background goroutine that's registered for
@@ -5575,6 +5582,7 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 
 	fbo.head = ImmutableRootMetadata{}
 	fbo.latestMergedRevision = MetadataRevisionUninitialized
+	fbo.hasBeenCleared = true
 }
 
 // ForceFastForward implements the KBFSOps interface for
@@ -5587,6 +5595,11 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		// We're already up to date.
 		return
 	}
+	if !fbo.hasBeenCleared {
+		// No reason to fast-forward here if it hasn't ever been
+		// cleared.
+		return
+	}
 
 	go func() {
 		ctx, cancelFunc := fbo.newCtxWithFBOID()
@@ -5596,6 +5609,10 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id())
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Fast-forward failed: %v", err)
+			return
+		}
+		if currHead == (ImmutableRootMetadata{}) {
+			fbo.log.CDebugf(ctx, "No MD yet")
 			return
 		}
 		fbo.log.CDebugf(ctx, "Current head is revision %d", currHead.Revision())
