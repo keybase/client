@@ -150,18 +150,6 @@ func (fs *KBFSOpsStandard) ClearPrivateFolderMD(ctx context.Context) {
 	}
 }
 
-// ForceFastForward implements the KBFSOps interface for
-// KBFSOpsStandard.
-func (fs *KBFSOpsStandard) ForceFastForward(ctx context.Context) {
-	fs.opsLock.Lock()
-	defer fs.opsLock.Unlock()
-
-	fs.log.CDebugf(ctx, "Forcing fast-forwards for %d folders", len(fs.ops))
-	for _, fbo := range fs.ops {
-		fbo.ForceFastForward(ctx)
-	}
-}
-
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (

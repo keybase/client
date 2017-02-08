@@ -781,14 +781,6 @@ func (_mr *_MockKBFSOpsRecorder) ClearPrivateFolderMD(arg0 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ClearPrivateFolderMD", arg0)
 }
 
-func (_m *MockKBFSOps) ForceFastForward(ctx context.Context) {
-	_m.ctrl.Call(_m, "ForceFastForward", ctx)
-}
-
-func (_mr *_MockKBFSOpsRecorder) ForceFastForward(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ForceFastForward", arg0)
-}
-
 // Mock of KeybaseService interface
 type MockKeybaseService struct {
 	ctrl     *gomock.Controller
