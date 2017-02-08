@@ -34,7 +34,7 @@ export default class MessageTextComponent extends PureComponent<void, Props & {o
 
 const editedStyle = {
   alignSelf: 'flex-start',
-  color: globalMargins.black_20,
+  color: globalColors.black_20,
 }
 
 const _messageTextStyle = {
