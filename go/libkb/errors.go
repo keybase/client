@@ -1266,11 +1266,14 @@ func (e IdentifyFailedError) Error() string {
 //=============================================================================
 
 type IdentifySummaryError struct {
+	username string
 	problems []string
 }
 
 func (e IdentifySummaryError) Error() string {
-	return fmt.Sprintf("%s", strings.Join(e.problems, "; "))
+	return fmt.Sprintf("failed to identify %q: %s",
+		e.username,
+		strings.Join(e.problems, "; "))
 }
 
 func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
