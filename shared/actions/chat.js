@@ -732,13 +732,6 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           })
         }
 
-        // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
-        const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
-
-        if (!inboxConvo) {
-          yield put(loadInbox())
-        }
-
         const conversationState = yield select(_conversationStateSelector, conversationIDKey)
         if (message.type === 'Text' && message.outboxID && message.deviceName === yourDeviceName && yourName === message.author) {
           // If the message has an outboxID and came from our device, then we
