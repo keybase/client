@@ -700,6 +700,17 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
 
+        const pagination = incomingMessage.pagination
+        if (pagination) {
+          yield put(({
+            type: 'chat:updatePaginationNext',
+            payload: {
+              conversationIDKey,
+              paginationNext: pagination.next,
+            },
+          }: Constants.UpdatePaginationNext))
+        }
+
         // Is this message for the currently selected and focused conversation?
         // And is the Chat tab the currently displayed route? If all that is
         // true, mark it as read ASAP to avoid badging it -- we don't need to
@@ -994,7 +1005,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   let next
   if (oldConversationState) {
-    if (action.payload.onlyIfUnloaded && oldConversationState.get('paginationNext')) {
+    if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
       __DEV__ && console.log('Bailing on chat load more due to already has initial load')
       return
     }

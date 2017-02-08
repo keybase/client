@@ -154,6 +154,7 @@ export const ConversationStateRecord = Record({
   messages: List(),
   seenMessages: Set(),
   moreToLoad: true,
+  isLoaded: false,
   isRequesting: false,
   isStale: false,
   paginationNext: undefined,
@@ -272,6 +273,7 @@ export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDK
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
+export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext', {conversationIDKey: ConversationIDKey, paginationNext: Buffer}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
 export type MuteConversation = NoErrorTypedAction<'chat:muteConversation', {conversationIDKey: ConversationIDKey, muted: boolean}>
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>

@@ -150,6 +150,7 @@ function reducer (state: State = initialState, action: Actions) {
             .set('paginationNext', paginationNext)
             .set('deletedIDs', nextDeletedIDs)
             .set('isRequesting', false)
+            .set('isLoaded', true)
         })
 
       return state
@@ -343,6 +344,15 @@ function reducer (state: State = initialState, action: Actions) {
         initialConversation,
         conversation => conversation.set('isRequesting', true))
 
+      return state.set('conversationStates', newConversationStates)
+    }
+    case 'chat:updatePaginationNext': {
+      const {conversationIDKey, paginationNext} = action.payload
+      const newConversationStates = state.get('conversationStates').update(
+        conversationIDKey,
+        initialConversation,
+        conversation => conversation.get('paginationNext') ? conversation : conversation.set('paginationNext', paginationNext)
+      )
       return state.set('conversationStates', newConversationStates)
     }
     case 'chat:updatedMetadata':
