@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // Badger keeps a BadgeState up to date and broadcasts it to electron.
@@ -78,11 +79,35 @@ func (b *Badger) Send() error {
 	if err != nil {
 		return err
 	}
-	b.G().Log.Debug("Badger send: %+v", state)
+	b.log(state)
 	b.G().NotifyRouter.HandleBadgeState(state)
 	return nil
 }
 
 func (b *Badger) State() *BadgeState {
 	return b.badgeState
+}
+
+// Log a copy of the badgestate with some zeros stripped off for brevity.
+func (b *Badger) log(state1 keybase1.BadgeState) {
+	var state2 keybase1.BadgeState
+	state2 = state1
+	state2.Conversations = nil
+	for _, c1 := range state1.Conversations {
+		if c1.UnreadMessages == 0 {
+			continue
+		}
+		c2id := c1.ConvID
+		if len(c1.ConvID) >= chat1.DbShortFormLen {
+			// This is the db short form for logging brevity only.
+			// Don't let this leave this method.
+			c2id = chat1.ConversationID([]byte(c1.ConvID)).DbShortForm()
+		}
+		c2 := keybase1.BadgeConversationInfo{
+			ConvID:         c2id,
+			UnreadMessages: c1.UnreadMessages,
+		}
+		state2.Conversations = append(state2.Conversations, c2)
+	}
+	b.G().Log.Debug("Badger send: %+v", state2)
 }
