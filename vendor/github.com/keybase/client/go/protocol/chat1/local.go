@@ -1186,6 +1186,7 @@ type MessageUnboxedError struct {
 	ErrMsg      string                  `codec:"errMsg" json:"errMsg"`
 	MessageID   MessageID               `codec:"messageID" json:"messageID"`
 	MessageType MessageType             `codec:"messageType" json:"messageType"`
+	Ctime       gregor1.Time            `codec:"ctime" json:"ctime"`
 }
 
 type MessageUnboxed struct {
@@ -1322,11 +1323,12 @@ func (e ConversationErrorType) String() string {
 }
 
 type ConversationErrorLocal struct {
-	Typ        ConversationErrorType   `codec:"typ" json:"typ"`
-	Message    string                  `codec:"message" json:"message"`
-	RemoteConv Conversation            `codec:"remoteConv" json:"remoteConv"`
-	Permanent  bool                    `codec:"permanent" json:"permanent"`
-	RekeyInfo  *ConversationErrorRekey `codec:"rekeyInfo,omitempty" json:"rekeyInfo,omitempty"`
+	Typ               ConversationErrorType   `codec:"typ" json:"typ"`
+	Message           string                  `codec:"message" json:"message"`
+	RemoteConv        Conversation            `codec:"remoteConv" json:"remoteConv"`
+	Permanent         bool                    `codec:"permanent" json:"permanent"`
+	UnverifiedTLFName string                  `codec:"unverifiedTLFName" json:"unverifiedTLFName"`
+	RekeyInfo         *ConversationErrorRekey `codec:"rekeyInfo,omitempty" json:"rekeyInfo,omitempty"`
 }
 
 type ConversationErrorRekey struct {
@@ -1341,8 +1343,8 @@ type ConversationLocal struct {
 	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
-	Supersedes       []ConversationID              `codec:"supersedes" json:"supersedes"`
-	SupersededBy     []ConversationID              `codec:"supersededBy" json:"supersededBy"`
+	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
+	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`

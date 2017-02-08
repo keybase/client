@@ -10,7 +10,7 @@ import (
 
 type NamedLock struct {
 	sync.Mutex
-	lctx   LogContext
+	lctx   VLogContext
 	refs   int
 	name   string
 	parent *LockTable
@@ -25,12 +25,12 @@ func (l *NamedLock) decref() {
 }
 
 func (l *NamedLock) Release(ctx context.Context) {
-	l.lctx.GetLog().CDebugf(ctx, "+ LockTable.Release(%s)", l.name)
+	l.lctx.GetVDebugLog().CLogf(ctx, VLog1, "+ LockTable.Release(%s)", l.name)
 	l.Unlock()
 	l.parent.Lock()
 	l.decref()
 	if l.refs == 0 {
-		l.lctx.GetLog().CDebugf(ctx, "| LockTable.unref(%s)", l.name)
+		l.lctx.GetVDebugLog().CLogf(ctx, VLog1, "| LockTable.unref(%s)", l.name)
 		delete(l.parent.locks, l.name)
 	}
 	l.parent.Unlock()
@@ -48,7 +48,7 @@ func (t *LockTable) init() {
 	}
 }
 
-func (t *LockTable) AcquireOnName(ctx context.Context, g LogContext, s string) (ret *NamedLock) {
+func (t *LockTable) AcquireOnName(ctx context.Context, g VLogContext, s string) (ret *NamedLock) {
 	g.GetLog().CDebugf(ctx, "+ LockTable.Lock(%s)", s)
 	t.Lock()
 	t.init()
@@ -59,6 +59,6 @@ func (t *LockTable) AcquireOnName(ctx context.Context, g LogContext, s string) (
 	ret.incref()
 	t.Unlock()
 	ret.Lock()
-	g.GetLog().CDebugf(ctx, "- LockTable.Lock(%s)", s)
+	g.GetVDebugLog().CLogf(ctx, VLog1, "- LockTable.Lock(%s)", s)
 	return ret
 }
