@@ -731,10 +731,24 @@ func (s *localizerPipeline) isErrPermanent(err error) bool {
 	return false
 }
 
+func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string {
+	var tlfName string
+	var latestMsgID chat1.MessageID
+	for _, msg := range conversationRemote.MaxMsgs {
+		if msg.GetMessageID() > latestMsgID {
+			latestMsgID = msg.GetMessageID()
+			tlfName = msg.ClientHeader.TLFNameExpanded(conversationRemote.Metadata.FinalizeInfo)
+		}
+	}
+	return tlfName
+}
+
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
 	s.Debug(ctx, "localizing %d msgs", len(conversationRemote.MaxMsgs))
+
+	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:         conversationRemote.Metadata.ConversationID,
@@ -752,9 +766,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if conversationRemote.ReaderInfo == nil {
 		errMsg := "empty ReaderInfo from server?"
 		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:    errMsg,
-			RemoteConv: conversationRemote,
-			Permanent:  false,
+			Message:           errMsg,
+			RemoteConv:        conversationRemote,
+			Permanent:         false,
+			UnverifiedTLFName: unverifiedTLFName,
 		}
 		return conversationLocal
 	}
@@ -763,9 +778,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if len(conversationRemote.MaxMsgs) == 0 {
 		errMsg := "conversation has an empty MaxMsgs field"
 		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:    errMsg,
-			RemoteConv: conversationRemote,
-			Permanent:  false,
+			Message:           errMsg,
+			RemoteConv:        conversationRemote,
+			Permanent:         false,
+			UnverifiedTLFName: unverifiedTLFName,
 		}
 		return conversationLocal
 	}
@@ -794,10 +810,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 
 			conversationLocal.Error = &chat1.ConversationErrorLocal{
-				Message:    gmRes.err.Error(),
-				RemoteConv: conversationRemote,
-				Permanent:  s.isErrPermanent(gmRes.err),
-				Typ:        gmRes.errTyp,
+				Message:           gmRes.err.Error(),
+				RemoteConv:        conversationRemote,
+				Permanent:         s.isErrPermanent(gmRes.err),
+				UnverifiedTLFName: unverifiedTLFName,
+				Typ:               gmRes.errTyp,
 			}
 			return conversationLocal
 		}
@@ -813,9 +830,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 
 			conversationLocal.Error = &chat1.ConversationErrorLocal{
-				Message:    err.Error(),
-				RemoteConv: conversationRemote,
-				Permanent:  s.isErrPermanent(err),
+				Message:           err.Error(),
+				RemoteConv:        conversationRemote,
+				Permanent:         s.isErrPermanent(err),
+				UnverifiedTLFName: unverifiedTLFName,
 			}
 			return conversationLocal
 		}
@@ -862,9 +880,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if len(conversationLocal.Info.TlfName) == 0 {
 		errMsg := "no valid message in the conversation"
 		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:    errMsg,
-			RemoteConv: conversationRemote,
-			Permanent:  false,
+			Message:           errMsg,
+			RemoteConv:        conversationRemote,
+			Permanent:         false,
+			UnverifiedTLFName: unverifiedTLFName,
 		}
 		return conversationLocal
 	}
@@ -874,9 +893,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		errMsg := fmt.Sprintf("unexpected response from server: conversation ID is not derivable from conversation triple. triple: %#+v; Id: %x",
 			conversationLocal.Info.Triple, conversationLocal.Info.Id)
 		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:    errMsg,
-			RemoteConv: conversationRemote,
-			Permanent:  false,
+			Message:           errMsg,
+			RemoteConv:        conversationRemote,
+			Permanent:         false,
+			UnverifiedTLFName: unverifiedTLFName,
 		}
 		return conversationLocal
 	}
@@ -887,9 +907,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		if err != nil {
 			errMsg := err.Error()
 			conversationLocal.Error = &chat1.ConversationErrorLocal{
-				Message:    errMsg,
-				RemoteConv: conversationRemote,
-				Permanent:  s.isErrPermanent(err),
+				Message:           errMsg,
+				RemoteConv:        conversationRemote,
+				Permanent:         s.isErrPermanent(err),
+				UnverifiedTLFName: unverifiedTLFName,
 			}
 			return conversationLocal
 		}
@@ -905,9 +926,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if err != nil {
 		errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
 		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:    errMsg,
-			RemoteConv: conversationRemote,
-			Permanent:  s.isErrPermanent(err),
+			Message:           errMsg,
+			RemoteConv:        conversationRemote,
+			Permanent:         s.isErrPermanent(err),
+			UnverifiedTLFName: unverifiedTLFName,
 		}
 		return conversationLocal
 	}
@@ -916,9 +938,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {
 		errMsg := "server header conversation triple does not match client header triple"
 		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:    errMsg,
-			RemoteConv: conversationRemote,
-			Permanent:  false,
+			Message:           errMsg,
+			RemoteConv:        conversationRemote,
+			Permanent:         false,
+			UnverifiedTLFName: unverifiedTLFName,
 		}
 		return conversationLocal
 	}

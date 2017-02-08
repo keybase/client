@@ -709,6 +709,7 @@ export type ConversationErrorLocal = {
   message: string,
   remoteConv: Conversation,
   permanent: boolean,
+  unverifiedTLFName: string,
   rekeyInfo?: ?ConversationErrorRekey,
 }
 

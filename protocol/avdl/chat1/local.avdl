@@ -332,6 +332,7 @@ protocol local {
     string message;
     Conversation remoteConv;
     boolean permanent;
+    string unverifiedTLFName;
     // Only set if typ is for rekeying.
     union { null, ConversationErrorRekey} rekeyInfo;
   }

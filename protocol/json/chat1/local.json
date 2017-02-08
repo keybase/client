@@ -1009,6 +1009,10 @@
           "name": "permanent"
         },
         {
+          "type": "string",
+          "name": "unverifiedTLFName"
+        },
+        {
           "type": [
             null,
             "ConversationErrorRekey"

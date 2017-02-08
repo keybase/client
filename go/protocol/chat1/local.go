@@ -1323,11 +1323,12 @@ func (e ConversationErrorType) String() string {
 }
 
 type ConversationErrorLocal struct {
-	Typ        ConversationErrorType   `codec:"typ" json:"typ"`
-	Message    string                  `codec:"message" json:"message"`
-	RemoteConv Conversation            `codec:"remoteConv" json:"remoteConv"`
-	Permanent  bool                    `codec:"permanent" json:"permanent"`
-	RekeyInfo  *ConversationErrorRekey `codec:"rekeyInfo,omitempty" json:"rekeyInfo,omitempty"`
+	Typ               ConversationErrorType   `codec:"typ" json:"typ"`
+	Message           string                  `codec:"message" json:"message"`
+	RemoteConv        Conversation            `codec:"remoteConv" json:"remoteConv"`
+	Permanent         bool                    `codec:"permanent" json:"permanent"`
+	UnverifiedTLFName string                  `codec:"unverifiedTLFName" json:"unverifiedTLFName"`
+	RekeyInfo         *ConversationErrorRekey `codec:"rekeyInfo,omitempty" json:"rekeyInfo,omitempty"`
 }
 
 type ConversationErrorRekey struct {
