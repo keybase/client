@@ -1271,7 +1271,7 @@ type IdentifySummaryError struct {
 }
 
 func (e IdentifySummaryError) Error() string {
-	return fmt.Sprintf("failed to identify \"%s\": %s",
+	return fmt.Sprintf("failed to identify %q: %s",
 		e.username,
 		strings.Join(e.problems, "; "))
 }
