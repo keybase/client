@@ -35,6 +35,7 @@ import type {SagaGenerator, ChannelMap} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 import type {
   AppendMessages,
+  AttachmentInput,
   BadgeAppForChat,
   ConversationBadgeState,
   ConversationIDKey,
@@ -78,6 +79,8 @@ const {
   CommonMessageType,
   CommonTLFVisibility,
   CommonTopicType,
+  LocalMessageUnboxedErrorType,
+  LocalConversationErrorType,
   LocalMessageUnboxedState,
   NotifyChatChatActivityType,
   localCancelPostRpcPromise,
@@ -259,11 +262,18 @@ function retryAttachment (message: Constants.AttachmentMessage): Constants.Selec
   if (!filename || !title || !previewType) {
     throw new Error('attempted to retry attachment without filename')
   }
-  return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type: previewType || 'Other', outboxID}}
+  const input = {
+    conversationIDKey,
+    filename,
+    outboxID,
+    title,
+    type: previewType || 'Other',
+  }
+  return {type: 'chat:selectAttachment', payload: {input}}
 }
 
-function selectAttachment (conversationIDKey: ConversationIDKey, filename: string, title: string, type: Constants.AttachmentType): Constants.SelectAttachment {
-  return {type: 'chat:selectAttachment', payload: {conversationIDKey, filename, title, type}}
+function selectAttachment (input: AttachmentInput): Constants.SelectAttachment {
+  return {type: 'chat:selectAttachment', payload: {input}}
 }
 
 function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Constants.MessageID, loadPreview: boolean, isHdPreview: boolean, filename: string): Constants.LoadAttachment {
@@ -271,7 +281,7 @@ function loadAttachment (conversationIDKey: ConversationIDKey, messageID: Consta
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
-function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
+function selectConversation (conversationIDKey: ?ConversationIDKey, fromUser: boolean): SelectConversation {
   return {type: 'chat:selectConversation', payload: {conversationIDKey, fromUser}}
 }
 
@@ -746,7 +756,18 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(_devicenameSelector)
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
-        const message = _unboxedToMessage(messageUnboxed, 0, yourName, yourDeviceName, conversationIDKey)
+        const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
+
+        const pagination = incomingMessage.pagination
+        if (pagination) {
+          yield put(({
+            type: 'chat:updatePaginationNext',
+            payload: {
+              conversationIDKey,
+              paginationNext: pagination.next,
+            },
+          }: Constants.UpdatePaginationNext))
+        }
 
         // Is this message for the currently selected and focused conversation?
         // And is the Chat tab the currently displayed route? If all that is
@@ -887,14 +908,16 @@ function * selectValidConversation () {
   const inbox = yield select(inboxSelector)
   if (inbox.count()) {
     const conversationIDKey = yield select(_selectedSelector)
-
-    // Is the currently selected one not validated?
-    if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))) {
-      const validInbox = inbox.find(i => i.get('validated'))
+    // Is the currently selected one not validated? or empty
+    if (!inbox.find(c => c.get('conversationIDKey') === conversationIDKey &&
+          c.get('validated') && (!c.get('isEmpty') || c.get('youCreated')))) {
+      const validInbox = inbox.find(i => i.get('validated') && (!i.get('isEmpty') || i.get('youCreated')))
       if (validInbox) {
         const validInboxConvIDKey = validInbox.get('conversationIDKey')
         yield put(selectConversation(validInboxConvIDKey, false))
         yield put(loadMoreMessages(validInboxConvIDKey, true))
+      } else {
+        yield put(selectConversation(null, false))
       }
     } else {
       yield put(loadMoreMessages(conversationIDKey, true))
@@ -978,6 +1001,35 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
     } else if (incoming.chatInboxFailed) {
       console.warn('ignoring chatInboxFailed', incoming.chatInboxFailed)
       incoming.chatInboxFailed.response.result()
+      const error = incoming.chatInboxFailed.params.error
+      const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
+      const conversation = new InboxStateRecord({
+        info: null,
+        isEmpty: false,
+        conversationIDKey,
+        participants: List([].concat(error.rekeyInfo ? error.rekeyInfo.writerNames : [], error.rekeyInfo ? error.rekeyInfo.readerNames : []).filter(Boolean)),
+        muted: false,
+        time: error.remoteConv.readerInfo.mtime,
+        snippet: null,
+        validated: true,
+      })
+      yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
+
+      switch (error.typ) {
+        case LocalConversationErrorType.selfrekeyneeded: {
+          yield put({type: 'chat:updateInboxRekeySelf', payload: {conversationIDKey}})
+          break
+        }
+        case LocalConversationErrorType.otherrekeyneeded: {
+          const rekeyers = error.rekeyInfo.rekeyers
+          yield put({type: 'chat:updateInboxRekeyOthers', payload: {conversationIDKey, rekeyers}})
+          break
+        }
+        default:
+          if (__DEV__) {
+            console.warn('Inbox error:', error)
+          }
+      }
     } else if (incoming.finished) {
       finishedCalled = true
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
@@ -1017,11 +1069,21 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
     // return
   }
 
+  const rekeyInfoSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => {
+    return state.chat.get('rekeyInfos').get(conversationIDKey)
+  }
+  const rekeyInfo = yield select(rekeyInfoSelector, conversationIDKey)
+
+  if (rekeyInfo) {
+    __DEV__ && console.log('Bailing on chat due to rekey info')
+    return
+  }
+
   const oldConversationState = yield select(_conversationStateSelector, conversationIDKey)
 
   let next
   if (oldConversationState) {
-    if (action.payload.onlyIfUnloaded && oldConversationState.get('paginationNext')) {
+    if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
       __DEV__ && console.log('Bailing on chat load more due to already has initial load')
       return
     }
@@ -1059,7 +1121,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
 
   const yourName = yield select(usernameSelector)
   const yourDeviceName = yield select(_devicenameSelector)
-  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, yourDeviceName, conversationIDKey)).reverse()
+  const messages = (thread && thread.thread && thread.thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
   let newMessages = []
   messages.forEach((message, idx) => {
     if (idx > 0) {
@@ -1101,9 +1163,14 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'Edit'].includes(message.type)) {
+  if (prevMessage == null || prevMessage.type === 'Timestamp' || ['Timestamp', 'Deleted', 'Unhandled', 'InvisibleError', 'Edit'].includes(message.type)) {
     return null
   }
+
+  if (!message.timestamp || !prevMessage.timestamp) {
+    return null
+  }
+
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
   // $FlowIssue with checking messageID
@@ -1111,13 +1178,16 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
     return {
       type: 'Timestamp',
       timestamp: message.timestamp,
-      key: message.timestamp,
+      key: `timestamp:${message.timestamp}`,
     }
   }
   return null
 }
 
-function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
+// used to key errors
+let errorIdx = 1
+
+function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
   if (message && message.state === LocalMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: OutboxRecord = message.outbox
@@ -1141,6 +1211,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
       you: yourName,
     }
   }
+
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
@@ -1253,13 +1324,40 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, your
     }
   }
 
+  if (message.state === LocalMessageUnboxedState.error) {
+    const error = message.error
+    if (error) {
+      switch (error.errType) {
+        case LocalMessageUnboxedErrorType.misc:
+        case LocalMessageUnboxedErrorType.badversionCritical: // fallthrough
+        case LocalMessageUnboxedErrorType.identify: // fallthrough
+          return {
+            conversationIDKey,
+            key: `error:${errorIdx++}`,
+            messageID: error.messageID,
+            reason: error.errMsg || '',
+            timestamp: error.ctime,
+            type: 'Error',
+          }
+        case LocalMessageUnboxedErrorType.badversion:
+          return {
+            conversationIDKey,
+            key: `error:${errorIdx++}`,
+            data: message,
+            messageID: error.messageID,
+            timestamp: error.ctime,
+            type: 'InvisibleError',
+          }
+      }
+    }
+  }
+
   return {
-    type: 'Error', // TODO
-    messageID: idx,
-    key: idx,
-    timestamp: Date.now(),
-    reason: 'temp',
-    conversationIDKey: conversationIDKey,
+    type: 'Error',
+    key: `error:${errorIdx++}`,
+    data: message,
+    reason: "The message couldn't be loaded",
+    conversationIDKey,
   }
 }
 
@@ -1362,8 +1460,13 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   if (oldConversationState && oldConversationState.get('isStale')) {
     yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
   }
-  yield put(loadMoreMessages(conversationIDKey, true))
-  yield put(navigateTo([conversationIDKey], [chatTab]))
+
+  if (conversationIDKey) {
+    yield put(loadMoreMessages(conversationIDKey, true))
+    yield put(navigateTo([conversationIDKey], [chatTab]))
+  } else {
+    yield put(navigateTo([], [chatTab]))
+  }
 
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox) {
@@ -1374,7 +1477,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
     return
   }
 
-  if (fromUser) {
+  if (fromUser && conversationIDKey) {
     yield put(updateBadging(conversationIDKey))
     yield put(updateLatestMessage(conversationIDKey))
   }
@@ -1463,7 +1566,8 @@ const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, usernam
   key: outboxID,
 })
 
-function * _selectAttachment ({payload: {conversationIDKey, filename, title, type}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): SagaGenerator<any, any> {
+  const {conversationIDKey, title, filename, type} = input
   const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
   const username = yield select(usernameSelector)
 

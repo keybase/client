@@ -40,7 +40,8 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
-		return chat1.ConversationLocal{}, nil, fmt.Errorf("resolving conversation error: %v\n", err)
+		// Resolver errors should already by human readable.
+		return chat1.ConversationLocal{}, nil, err
 	}
 	if conversation == nil {
 		return chat1.ConversationLocal{}, nil, nil

@@ -449,6 +449,11 @@ type LogContext interface {
 	GetLog() logger.Logger
 }
 
+type VLogContext interface {
+	LogContext
+	GetVDebugLog() *VDebugLog
+}
+
 // APIContext defines methods for accessing API server
 type APIContext interface {
 	GetAPI() API

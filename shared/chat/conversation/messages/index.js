@@ -4,10 +4,10 @@ import AttachmentMessageRender from './attachment'
 import MessageText from './text'
 import React from 'react'
 import Timestamp from './timestamp'
-import OldProfileResetNotice from '../notices/old-profile-reset-notice'
 import ProfileResetNotice from '../notices/profile-reset-notice'
-import {Box} from '../../../common-adapters'
+import {Box, Text} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
+import {globalStyles, globalColors} from '../../../styles'
 
 import type {Message, AttachmentMessage, ConversationIDKey, ServerMessage, MetaDataMap, FollowingMap, OutboxIDKey} from '../../../constants/chat'
 
@@ -54,7 +54,6 @@ const factory = (options: Options) => {
   if (!message) {
     return <Box key={key} style={style} />
   }
-  // TODO hook up messageState and onRetry
 
   switch (message.type) {
     case 'Text':
@@ -71,13 +70,6 @@ const factory = (options: Options) => {
         isSelected={isSelected}
         onAction={onAction}
         />
-    case 'SupersededBy':
-      return <OldProfileResetNotice
-        onOpenNewerConversation={() => {console.log('todo', message.supersededBy); onOpenConversation(message.supersededBy)}}
-        username={message.username}
-        style={style}
-        key={`supersededBy:${message.supersededBy}`}
-        />
     case 'Supersedes':
       return <ProfileResetNotice
         onOpenOlderConversation={() => {console.log('todo', message.supersedes); onOpenConversation(message.supersedes)}}
@@ -88,7 +80,7 @@ const factory = (options: Options) => {
     case 'Timestamp':
       return <Timestamp
         timestamp={formatTimeForMessages(message.timestamp)}
-        key={message.timestamp}
+        key={message.key}
         style={style}
         />
     case 'Attachment':
@@ -108,9 +100,23 @@ const factory = (options: Options) => {
         messageID={message.messageID}
         onAction={onAction}
         />
+    case 'Error':
+      return (
+        <Box key={key} style={{...style, ...errorStyle}}>
+          <Text type='BodySmallItalic' key={key} style={{color: globalColors.red}}>{message.reason}</Text>
+        </Box>
+      )
+    case 'InvisibleError':
+      return <Box key={key} style={style} data-msgType={message.type} />
     default:
       return <Box key={key} style={style} data-msgType={message.type} />
   }
+}
+
+const errorStyle = {
+  ...globalStyles.flexBoxRow,
+  justifyContent: 'center',
+  padding: 5,
 }
 
 export default factory

@@ -8,6 +8,7 @@ import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import NoConversation from './no-conversation.desktop'
 import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
+import SidePanel from './side-panel'
 import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
@@ -43,15 +44,16 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
 
   _onDrop = e => {
     const fileList = e.dataTransfer.files
+    if (!this.props.selectedConversation) throw new Error('No conversation')
+    const conversationIDKey = this.props.selectedConversation
     // FileList, not an array
-    const files = Array.prototype.map.call(fileList, file => ({
-      name: file.name,
-      path: file.path,
+    const inputs = Array.prototype.map.call(fileList, file => ({
+      conversationIDKey,
+      filename: file.path,
+      title: file.name,
       type: file.type,
     }))
-    files.forEach(f => {
-      this.props.onAttach(f.path, f.name, f.type.includes('image/') ? 'Image' : 'Other')
-    })
+    this.props.onAttach(inputs)
     this.setState({showDropOverlay: false})
   }
 
@@ -70,9 +72,15 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       this.setState({showDropOverlay: true})
     }).then(clipboardData => {
       this.setState({showDropOverlay: false})
+      if (!this.props.selectedConversation) throw new Error('No conversation')
       if (clipboardData) {
         const {path, title} = clipboardData
-        this.props.onAttach(path, title, 'Image')
+        this.props.onAttach([{
+          conversationIDKey: this.props.selectedConversation,
+          filename: path,
+          title,
+          type: 'Image',
+        }])
       }
     })
   }
@@ -175,6 +183,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           onOpenFolder={onOpenFolder}
           onToggleSidePanel={onToggleSidePanel}
           participants={participants}
+          muted={muted}
           sidePanelOpen={sidePanelOpen}
           you={you}
           metaDataMap={metaDataMap}
@@ -190,20 +199,16 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           messages={decoratedMesssages}
           moreToLoad={moreToLoad}
           muted={muted}
-          onAddParticipant={onAddParticipant}
           onDeleteMessage={onDeleteMessage}
           onEditMessage={onEditMessage}
           onFocusInput={this._onFocusInput}
           onLoadAttachment={onLoadAttachment}
           onLoadMoreMessages={onLoadMoreMessages}
-          onMuteConversation={onMuteConversation}
           onOpenConversation={onOpenConversation}
           onOpenInFileUI={onOpenInFileUI}
           onOpenInPopup={onOpenInPopup}
           onRetryAttachment={onRetryAttachment}
           onRetryMessage={onRetryMessage}
-          onShowProfile={onShowProfile}
-          participants={participants}
           ref={onListRef}
           selectedConversation={selectedConversation}
           sidePanelOpen={sidePanelOpen}
@@ -225,6 +230,17 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
             onPostMessage={onPostMessage}
             selectedConversation={selectedConversation}
           /> }
+        {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
+          <SidePanel
+            you={you}
+            metaDataMap={metaDataMap}
+            followingMap={followingMap}
+            muted={muted}
+            onAddParticipant={onAddParticipant}
+            onMuteConversation={onMuteConversation}
+            onShowProfile={onShowProfile}
+            participants={participants} />
+        </div>}
         {dropOverlay}
       </Box>
     )

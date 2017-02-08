@@ -17,6 +17,7 @@ protocol NotifyChat {
     MessageUnboxed message;
     ConversationID convID;
     union { null, ConversationLocal } conv;
+    union { null, Pagination } pagination;
   }
 
   record ReadMessageInfo {

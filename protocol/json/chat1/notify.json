@@ -38,6 +38,13 @@
             "ConversationLocal"
           ],
           "name": "conv"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
         }
       ]
     },

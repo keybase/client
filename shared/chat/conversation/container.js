@@ -1,19 +1,21 @@
 // @flow
 import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
-import {downloadFilePath} from '../../util/file'
 import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, selectConversation, startConversation, loadAttachment, retryAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectConversation, startConversation, loadAttachment, retryAttachment} from '../../actions/chat'
 import * as ChatConstants from '../../constants/chat'
-import {onUserClick} from '../../actions/profile'
+import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
+import {navigateAppend} from '../../actions/route-tree'
+import {onUserClick} from '../../actions/profile'
+import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
-import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType, OpenAttachmentPopup, OutboxIDKey} from '../../constants/chat'
+import type {ConversationIDKey, Message, AttachmentInput, AttachmentMessage, OpenAttachmentPopup, OutboxIDKey} from '../../constants/chat'
 import type {Props} from '.'
 
 const {nothingSelected, getBrokenUsers} = ChatConstants
@@ -84,6 +86,7 @@ export default connect(
         const muted = selected && selected.get('muted')
         const participants = selected && selected.participants || List()
         const metaDataMap = state.chat.get('metaData')
+        const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
 
         const supersedes = ChatConstants.convSupersedesInfo(selectedConversation, state.chat)
         const supersededBy = ChatConstants.convSupersededByInfo(selectedConversation, state.chat)
@@ -101,6 +104,7 @@ export default connect(
           moreToLoad: conversationState.moreToLoad,
           muted,
           participants,
+          rekeyInfo,
           selectedConversation,
           validated: selected && selected.validated,
           you,
@@ -119,6 +123,7 @@ export default connect(
       metaDataMap: Map(),
       moreToLoad: false,
       participants: List(),
+      rekeyInfo: null,
       selectedConversation,
       validated: false,
       you,
@@ -128,7 +133,7 @@ export default connect(
   },
   (dispatch: Dispatch, {setRouteState}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
-    onAttach: (selectedConversation, filename, title, type) => dispatch(selectAttachment(selectedConversation, filename, title, type)),
+    onAttach: (selectedConversation, inputs: Array<AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
@@ -150,6 +155,7 @@ export default connect(
     onStoreInputText: (inputText: string) => setRouteState({inputText}),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
+    onRekey: () => dispatch(openRekeyDialog()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let bannerMessage
@@ -179,7 +185,7 @@ export default connect(
       ...ownProps,
       bannerMessage,
       onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => p !== stateProps.you).toArray()),
-      onAttach: (filename: string, title: string, type: AttachmentType) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title, type),
+      onAttach: (inputs: Array<AttachmentInput>) => dispatchProps.onAttach(stateProps.selectedConversation, inputs),
       onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
       onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
       onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversation, muted),

@@ -5,7 +5,7 @@ import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import type {Props} from './timestamp'
 
 const Timestamp = ({timestamp, style}: Props) => (
-  <div key={timestamp} style={{...globalStyles.flexBoxRow, ...style}}>
+  <div style={{...globalStyles.flexBoxRow, ...style}}>
     <Text style={styleText} type='BodySmallSemibold'>{timestamp}</Text>
   </div>
 )

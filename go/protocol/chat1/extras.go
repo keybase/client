@@ -350,3 +350,21 @@ func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
 }
 */
+
+func NewConversationErrorLocal(
+	message string,
+	remoteConv Conversation,
+	permanent bool,
+	unverifiedTLFName string,
+	typ ConversationErrorType,
+	rekeyInfo *ConversationErrorRekey,
+) *ConversationErrorLocal {
+	return &ConversationErrorLocal{
+		Typ:               typ,
+		Message:           message,
+		RemoteConv:        remoteConv,
+		Permanent:         permanent,
+		UnverifiedTLFName: unverifiedTLFName,
+		RekeyInfo:         rekeyInfo,
+	}
+}

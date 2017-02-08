@@ -6,7 +6,7 @@ import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, MetaDataRecord} = Constants
+const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -150,6 +150,7 @@ function reducer (state: State = initialState, action: Actions) {
             .set('paginationNext', paginationNext)
             .set('deletedIDs', nextDeletedIDs)
             .set('isRequesting', false)
+            .set('isLoaded', true)
         })
 
       return state
@@ -345,16 +346,26 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state.set('conversationStates', newConversationStates)
     }
+    case 'chat:updatePaginationNext': {
+      const {conversationIDKey, paginationNext} = action.payload
+      const newConversationStates = state.get('conversationStates').update(
+        conversationIDKey,
+        initialConversation,
+        conversation => conversation.get('paginationNext') ? conversation : conversation.set('paginationNext', paginationNext)
+      )
+      return state.set('conversationStates', newConversationStates)
+    }
     case 'chat:updatedMetadata':
       return state.set('metaData', state.get('metaData').merge(action.payload))
     case 'chat:loadedInbox':
       // Don't overwrite existing verified inbox data
       const existingRows = state.get('inbox')
-      return state.set('inbox', sortInbox(action.payload.inbox.map(newRow => {
+      const newInbox = sortInbox(action.payload.inbox.map(newRow => {
         const id = newRow.get('conversationIDKey')
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
         return existingRow || newRow
-      })))
+      }))
+      return state.set('inbox', newInbox).set('rekeyInfos', Map())
     case 'chat:updateInboxComplete':
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
     case 'chat:updateInbox':
@@ -381,6 +392,14 @@ function reducer (state: State = initialState, action: Actions) {
         .findIndex(conv => conv.conversationIDKey === conversationIDKey),
           entry => entry.set('muted', muted))
       )
+    case 'chat:updateInboxRekeyOthers': {
+      const {conversationIDKey, rekeyers} = action.payload
+      return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({rekeyParticipants: List(rekeyers)})))
+    }
+    case 'chat:updateInboxRekeySelf': {
+      const {conversationIDKey} = action.payload
+      return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({youCanRekey: true})))
+    }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
     case 'chat:finalizedStateUpdate': {

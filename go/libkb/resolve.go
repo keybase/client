@@ -89,7 +89,7 @@ func (r *Resolver) ResolveFullExpressionWithBody(ctx context.Context, input stri
 }
 
 func (r *Resolver) resolveFullExpression(ctx context.Context, input string, withBody bool, needUsername bool) (res ResolveResult) {
-	defer r.G().CTrace(ctx, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
+	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
 
 	var expr AssertionExpression
 	expr, res.err = AssertionParseAndOnly(r.G().MakeAssertionContext(), input)
@@ -105,7 +105,7 @@ func (r *Resolver) resolveFullExpression(ctx context.Context, input string, with
 }
 
 func (r *Resolver) getFromDiskCache(ctx context.Context, key string) (ret *ResolveResult) {
-	defer r.G().CTraceOK(ctx, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
+	defer r.G().CVTraceOK(ctx, VLog1, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
 	var uid keybase1.UID
 	found, err := r.G().LocalDb.GetInto(&uid, resolveDbKey(key))
 	r.Stats.diskGets++
@@ -154,7 +154,7 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 }
 
 func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
-	defer r.G().CTrace(ctx, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
+	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	var key, val string
 	var ares *APIRes
@@ -270,7 +270,7 @@ func (r *Resolver) Shutdown() {
 }
 
 func (r *Resolver) getFromMemCache(ctx context.Context, key string) (ret *ResolveResult) {
-	defer r.G().CTraceOK(ctx, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
+	defer r.G().CVTraceOK(ctx, VLog1, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
 	if r.cache == nil {
 		return nil
 	}
