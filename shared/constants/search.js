@@ -5,7 +5,7 @@ import type {OnClickFollowers, OnClickFollowing, OnClickAvatar} from './profile'
 
 export type SearchPlatforms = 'Keybase'
 | 'Twitter'
-| 'Github'
+| 'GitHub'
 | 'Reddit'
 | 'Coinbase'
 | 'Hackernews'
@@ -112,7 +112,7 @@ export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
     'Keybase': 'iconfont-identity-devices',
     'Twitter': 'iconfont-identity-twitter',
-    'Github': 'iconfont-identity-github',
+    'GitHub': 'iconfont-identity-github',
     'Reddit': 'iconfont-identity-reddit',
     'Coinbase': 'iconfont-identity-bitcoin',
     'Hackernews': 'iconfont-identity-hn',
@@ -125,7 +125,7 @@ export function platformToLogo32 (platform: SearchPlatforms): IconType {
   return {
     'Keybase': 'icon-keybase-logo-32',
     'Twitter': 'icon-twitter-logo-32',
-    'Github': 'icon-github-logo-32',
+    'GitHub': 'icon-github-logo-32',
     'Reddit': 'icon-reddit-logo-32',
     'Coinbase': 'icon-coinbase-logo-32',
     'Hackernews': 'icon-hacker-news-logo-32',
@@ -138,7 +138,7 @@ export function platformToLogo24 (platform: SearchPlatforms): IconType {
   return {
     'Keybase': 'icon-keybase-logo-24',
     'Twitter': 'icon-twitter-logo-24',
-    'Github': 'icon-github-logo-24',
+    'GitHub': 'icon-github-logo-24',
     'Reddit': 'icon-reddit-logo-24',
     'Coinbase': 'icon-coinbase-logo-24',
     'Hackernews': 'icon-hacker-news-logo-24',
@@ -151,7 +151,7 @@ export function platformToLogo16 (platform: SearchPlatforms): IconType {
   return {
     'Keybase': 'icon-keybase-logo-16',
     'Twitter': 'icon-twitter-logo-16',
-    'Github': 'icon-github-logo-16',
+    'GitHub': 'icon-github-logo-16',
     'Reddit': 'icon-reddit-logo-16',
     'Coinbase': 'icon-coinbase-logo-16',
     'Hackernews': 'icon-hacker-news-logo-16',
