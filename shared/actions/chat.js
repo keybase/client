@@ -1738,6 +1738,9 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
   const selectedConversation = yield select(_selectedSelector)
+  if (!selectedConversation) {
+    return
+  }
   yield put({type: 'chat:clearMessages', payload: {conversationIDKey: selectedConversation}})
   yield put(loadMoreMessages(selectedConversation, false))
 }
