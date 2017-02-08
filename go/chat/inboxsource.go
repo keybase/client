@@ -765,24 +765,16 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 	if conversationRemote.ReaderInfo == nil {
 		errMsg := "empty ReaderInfo from server?"
-		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:           errMsg,
-			RemoteConv:        conversationRemote,
-			Permanent:         false,
-			UnverifiedTLFName: unverifiedTLFName,
-		}
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 
 	if len(conversationRemote.MaxMsgs) == 0 {
 		errMsg := "conversation has an empty MaxMsgs field"
-		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:           errMsg,
-			RemoteConv:        conversationRemote,
-			Permanent:         false,
-			UnverifiedTLFName: unverifiedTLFName,
-		}
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
 	}
 
@@ -803,19 +795,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		gmRes := s.getMessages(ctx, conversationRemote.GetConvID(),
 			uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
 		if gmRes.err != nil {
-			convErr := s.checkRekeyError(ctx, gmRes.err, conversationRemote)
+			convErr := s.checkRekeyError(ctx, gmRes.err, conversationRemote, unverifiedTLFName)
 			if convErr != nil {
 				conversationLocal.Error = convErr
 				return conversationLocal
 			}
 
-			conversationLocal.Error = &chat1.ConversationErrorLocal{
-				Message:           gmRes.err.Error(),
-				RemoteConv:        conversationRemote,
-				Permanent:         s.isErrPermanent(gmRes.err),
-				UnverifiedTLFName: unverifiedTLFName,
-				Typ:               gmRes.errTyp,
-			}
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				gmRes.err.Error(), conversationRemote, s.isErrPermanent(gmRes.err), unverifiedTLFName, gmRes.errTyp, nil)
 			return conversationLocal
 		}
 		conversationLocal.MaxMessages = gmRes.msgs
@@ -823,18 +810,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessagesWithRemotes(ctx,
 			conversationRemote.Metadata.ConversationID, uid, conversationRemote.MaxMsgs, conversationRemote.Metadata.FinalizeInfo)
 		if err != nil {
-			convErr := s.checkRekeyError(ctx, err, conversationRemote)
+			convErr := s.checkRekeyError(ctx, err, conversationRemote, unverifiedTLFName)
 			if convErr != nil {
 				conversationLocal.Error = convErr
 				return conversationLocal
 			}
 
-			conversationLocal.Error = &chat1.ConversationErrorLocal{
-				Message:           err.Error(),
-				RemoteConv:        conversationRemote,
-				Permanent:         s.isErrPermanent(err),
-				UnverifiedTLFName: unverifiedTLFName,
-			}
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				err.Error(), conversationRemote, s.isErrPermanent(err), unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 			return conversationLocal
 		}
 	}
@@ -879,12 +862,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.MaxMessages = newMaxMsgs
 	if len(conversationLocal.Info.TlfName) == 0 {
 		errMsg := "no valid message in the conversation"
-		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:           errMsg,
-			RemoteConv:        conversationRemote,
-			Permanent:         false,
-			UnverifiedTLFName: unverifiedTLFName,
-		}
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
 	}
 
@@ -892,12 +871,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if !conversationLocal.Info.Triple.Derivable(conversationLocal.Info.Id) {
 		errMsg := fmt.Sprintf("unexpected response from server: conversation ID is not derivable from conversation triple. triple: %#+v; Id: %x",
 			conversationLocal.Info.Triple, conversationLocal.Info.Id)
-		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:           errMsg,
-			RemoteConv:        conversationRemote,
-			Permanent:         false,
-			UnverifiedTLFName: unverifiedTLFName,
-		}
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
 	}
 
@@ -906,12 +881,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TLFNameExpanded(), conversationLocal.Info.Visibility)
 		if err != nil {
 			errMsg := err.Error()
-			conversationLocal.Error = &chat1.ConversationErrorLocal{
-				Message:           errMsg,
-				RemoteConv:        conversationRemote,
-				Permanent:         s.isErrPermanent(err),
-				UnverifiedTLFName: unverifiedTLFName,
-			}
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				errMsg, conversationRemote, s.isErrPermanent(err), unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 			return conversationLocal
 		}
 		// Not sure about the utility of this TlfName assignment, but the previous code did this:
@@ -925,24 +896,16 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationRemote.Metadata.ActiveList)
 	if err != nil {
 		errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
-		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:           errMsg,
-			RemoteConv:        conversationRemote,
-			Permanent:         s.isErrPermanent(err),
-			UnverifiedTLFName: unverifiedTLFName,
-		}
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, s.isErrPermanent(err), unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
 	}
 
 	// verify Conv matches ConversationIDTriple in MessageClientHeader
 	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {
 		errMsg := "server header conversation triple does not match client header triple"
-		conversationLocal.Error = &chat1.ConversationErrorLocal{
-			Message:           errMsg,
-			RemoteConv:        conversationRemote,
-			Permanent:         false,
-			UnverifiedTLFName: unverifiedTLFName,
-		}
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
 	}
 
@@ -952,19 +915,16 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 // Checks fromErr to see if it is a rekey error.
 // Returns a ConversationErrorLocal if it is a rekey error.
 // Returns nil otherwise.
-func (s *localizerPipeline) checkRekeyError(ctx context.Context, fromErr error, conversationRemote chat1.Conversation) *chat1.ConversationErrorLocal {
+func (s *localizerPipeline) checkRekeyError(ctx context.Context, fromErr error, conversationRemote chat1.Conversation, unverifiedTLFName string) *chat1.ConversationErrorLocal {
 	if fromErr == nil {
 		return nil
 	}
-	convErr, err2 := s.checkRekeyErrorInner(ctx, fromErr, conversationRemote)
+	convErr, err2 := s.checkRekeyErrorInner(ctx, fromErr, conversationRemote, unverifiedTLFName)
 	if err2 != nil {
 		errMsg := fmt.Sprintf("failed to get rekey info: convID: %s: %s",
 			conversationRemote.Metadata.ConversationID, err2.Error())
-		return &chat1.ConversationErrorLocal{
-			Message:    errMsg,
-			RemoteConv: conversationRemote,
-			Permanent:  false,
-		}
+		return chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 	}
 	if convErr != nil {
 		return convErr
@@ -976,7 +936,7 @@ func (s *localizerPipeline) checkRekeyError(ctx context.Context, fromErr error, 
 // Returns (ConversationErrorRekey, nil) if it is
 // Returns (nil, nil) if it is a different kind of error
 // Returns (nil, err) if there is an error building the ConversationErrorRekey
-func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr error, conversationRemote chat1.Conversation) (*chat1.ConversationErrorLocal, error) {
+func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr error, conversationRemote chat1.Conversation, unverifiedTLFName string) (*chat1.ConversationErrorLocal, error) {
 	convErrTyp := chat1.ConversationErrorType_MISC
 	var rekeyInfo *chat1.ConversationErrorRekey
 
@@ -1032,13 +992,9 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 		rekeyInfo.Rekeyers = append(rekeyInfo.Rekeyers, w)
 	}
 
-	return &chat1.ConversationErrorLocal{
-		Typ:        convErrTyp,
-		Message:    fromErr.Error(),
-		RemoteConv: conversationRemote,
-		Permanent:  s.isErrPermanent(err),
-		RekeyInfo:  rekeyInfo,
-	}, nil
+	convErrorLocal := chat1.NewConversationErrorLocal(
+		fromErr.Error(), conversationRemote, s.isErrPermanent(err), unverifiedTLFName, convErrTyp, rekeyInfo)
+	return convErrorLocal, nil
 }
 
 func readRemote(ctx context.Context, ri chat1.RemoteInterface, uid gregor1.UID,
