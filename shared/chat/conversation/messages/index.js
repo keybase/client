@@ -72,7 +72,7 @@ const factory = (options: Options) => {
         />
     case 'Supersedes':
       return <ProfileResetNotice
-        onOpenOlderConversation={() => {console.log('todo', message.supersedes); onOpenConversation(message.supersedes)}}
+        onOpenOlderConversation={() => onOpenConversation(message.supersedes)}
         username={message.username}
         style={style}
         key={`supersedes:${message.supersedes}`}

@@ -123,14 +123,6 @@ export type SupersedesMessage = {
   key: any,
 }
 
-export type SupersededByMessage = {
-  type: 'SupersededBy',
-  username: string,
-  timestamp: number,
-  supersededBy: ConversationIDKey,
-  key: any,
-}
-
 export type DeletedMessage = {
   type: 'Deleted',
   timestamp: number,

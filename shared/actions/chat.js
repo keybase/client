@@ -7,7 +7,7 @@ import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
+import {call, put, take, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {delay} from 'redux-saga'
 import {getPath} from '../route-tree'
@@ -18,11 +18,10 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {safeTakeEvery, safeTakeLatest, safeTakeSerially, singleFixedChannelConfig, cancelWhen, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {searchTab, chatTab} from '../constants/tabs'
-import {unsafeUnwrap} from '../constants/types/more'
 import {tmpFile, copy, exists} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
-import {toDeviceType} from '../constants/types/more'
+import {toDeviceType, unsafeUnwrap} from '../constants/types/more'
 import {showMainWindow} from './platform.specific'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
@@ -322,14 +321,13 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
 }
 
 function _toSupersedeInfo (conversationIDKey: ConversationIDKey, supersedeData: Array<ChatTypes.ConversationMetadata>): ?Constants.SupersedeInfo {
-
   const parsed = supersedeData
-    .filter(md => md.idTriple.topicType === CommonTopicType.chat)
+    .filter(md => md.idTriple.topicType === CommonTopicType.chat && md.finalizeInfo)
     .map(md => ({
       conversationIDKey: conversationIDToKey(md.conversationID),
       finalizeInfo: unsafeUnwrap(md && md.finalizeInfo),
     }))
-  return parsed[0]
+  return parsed.length ? parsed[0] : null
 }
 
 function _inboxConversationLocalToSupersedesState (convo: ?ChatTypes.ConversationLocal): Constants.SupersedesState {
@@ -984,8 +982,6 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       const supersedesState: Constants.SupersedesState = _inboxConversationLocalToSupersedesState(incoming.chatInboxConversation.params.conv)
       const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(incoming.chatInboxConversation.params.conv)
       const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(incoming.chatInboxConversation.params.conv)
-
-
 
       yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
       yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
@@ -1858,17 +1854,16 @@ function * _getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInbox
   }
 }
 
-function * _openConversation (action: Constants.OpenConversation, callLimit = 2): SagaGenerator<any, any> {
-  const {payload: {conversationIDKey}} = action
+function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {
   const inbox = yield select(inboxSelector)
   const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))
-
   if (!validInbox) {
     yield put(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKey}}: Constants.GetInboxAndUnbox))
-    yield call(_openConversation, action, callLimit - 1)
+    yield take(a => a.type === 'chat:updateInbox' && a.payload.conversation && a.payload.conversation.conversationIDKey === conversationIDKey)
+    yield put(selectConversation(conversationIDKey, false))
     return
   } else {
-    yield put(selectConversation(action.payload.conversationIDKey, true))
+    yield put(selectConversation(conversationIDKey, false))
   }
 }
 
