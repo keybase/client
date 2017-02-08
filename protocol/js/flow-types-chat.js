@@ -1022,6 +1022,7 @@ export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
   conv?: ?ConversationLocal,
+  pagination?: ?Pagination,
 }
 
 export type LocalFileSource = {
