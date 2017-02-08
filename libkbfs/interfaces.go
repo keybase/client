@@ -317,10 +317,6 @@ type KBFSOps interface {
 	// ClearPrivateFolderMD clears any cached private folder metadata,
 	// e.g. on a logout.
 	ClearPrivateFolderMD(ctx context.Context)
-	// ForceFastForward forwards the nodes of all folders to their
-	// newest version, if the folder is not currently receiving
-	// updates.  It works asynchronously, so no error is returned.
-	ForceFastForward(ctx context.Context)
 }
 
 // KeybaseService is an interface for communicating with the keybase

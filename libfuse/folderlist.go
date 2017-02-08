@@ -328,7 +328,7 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 }
 
 // update things after user changed.
-func (fl *FolderList) userChanged(ctx context.Context, _, newUser libkb.NormalizedUsername) {
+func (fl *FolderList) userChanged(ctx context.Context, _, _ libkb.NormalizedUsername) {
 	var fs []*Folder
 	func() {
 		fl.mu.Lock()
@@ -339,8 +339,5 @@ func (fl *FolderList) userChanged(ctx context.Context, _, newUser libkb.Normaliz
 	}()
 	for _, f := range fs {
 		f.TlfHandleChange(ctx, nil)
-	}
-	if newUser != libkb.NormalizedUsername("") {
-		fl.fs.config.KBFSOps().ForceFastForward(ctx)
 	}
 }

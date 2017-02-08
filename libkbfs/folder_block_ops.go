@@ -2788,6 +2788,8 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	lState *lockState, md ReadOnlyRootMetadata) (
 	changes []NodeChange, err error) {
+	defer func() { fbo.log.CDebugf(ctx, "Fast-forward complete: %v", err) }()
+
 	// Take a hard lock through this whole process.  TODO: is there
 	// any way to relax this?  It could lead to file system operation
 	// timeouts, even on reads, if we hold it too long.
@@ -2800,7 +2802,6 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 		return nil, nil
 	}
 	fbo.log.CDebugf(ctx, "Fast-forwarding %d nodes", len(nodes))
-	defer func() { fbo.log.CDebugf(ctx, "Fast-forward complete: %v", err) }()
 
 	// Build a "tree" representation for each interesting path prefix.
 	children := make(map[string]map[pathNode]bool)
