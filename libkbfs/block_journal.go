@@ -830,7 +830,8 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 }
 
 func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
-	idsToIgnore map[kbfsblock.ID]bool, dj diskJournal) error {
+	idsToIgnore map[kbfsblock.ID]bool, rev MetadataRevision,
+	dj diskJournal) error {
 	first, err := dj.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
 		return nil
@@ -847,6 +848,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 	// Iterate backwards since the blocks to ignore are likely to be
 	// at the end of the journal.
 	ignored := 0
+	ignoredRev := false
 	// i is unsigned, so make sure to handle overflow when `first` is
 	// 0 by checking that it's less than `last`.  TODO: handle
 	// first==0 and last==maxuint?
@@ -894,12 +896,6 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 				}
 			}
 
-			// If we've ignored all of the block IDs in `idsToIgnore`,
-			// we can avoid iterating through the rest of the journal.
-			if len(idsToIgnore) == ignored {
-				return nil
-			}
-
 		case mdRevMarkerOp:
 			if e.Unignorable {
 				continue
@@ -910,6 +906,21 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 			if err != nil {
 				return err
 			}
+
+			// We must ignore all the way up to the MD marker that
+			// matches the revision of the squash, otherwise we may
+			// put the new squash MD before all the blocks have been
+			// put.
+			if e.Revision == rev {
+				ignoredRev = true
+			}
+		}
+
+		// If we've ignored all of the block IDs in `idsToIgnore`, and
+		// the earliest md marker we care about, we can avoid
+		// iterating through the rest of the journal.
+		if len(idsToIgnore) == ignored && ignoredRev {
+			return nil
 		}
 	}
 
@@ -917,13 +928,13 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkersInJournal(ctx context.Context,
 }
 
 func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
-	blocksToIgnore []kbfsblock.ID) error {
+	blocksToIgnore []kbfsblock.ID, rev MetadataRevision) error {
 	idsToIgnore := make(map[kbfsblock.ID]bool)
 	for _, id := range blocksToIgnore {
 		idsToIgnore[id] = true
 	}
 
-	err := j.ignoreBlocksAndMDRevMarkersInJournal(ctx, idsToIgnore, j.j)
+	err := j.ignoreBlocksAndMDRevMarkersInJournal(ctx, idsToIgnore, rev, j.j)
 	if err != nil {
 		return err
 	}
@@ -933,7 +944,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 	}
 
 	return j.ignoreBlocksAndMDRevMarkersInJournal(
-		ctx, idsToIgnore, *j.saveUntilMDFlush)
+		ctx, idsToIgnore, rev, *j.saveUntilMDFlush)
 }
 
 func (j *blockJournal) saveBlocksUntilNextMDFlush() error {
