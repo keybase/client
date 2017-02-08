@@ -49,7 +49,7 @@ func TempDir(dir, prefix string) (name string, err error) {
 	if err != nil {
 		return "", errors.Wrapf(err,
 			"failed to make temp dir in %q with prefix %q",
-			name, err)
+			dir, prefix)
 	}
 	return name, nil
 }

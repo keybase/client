@@ -10,6 +10,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+// OpenFile wraps OpenFile from "os".
+func OpenFile(name string, flag int, perm os.FileMode) (*os.File, error) {
+	f, err := os.OpenFile(name, flag, perm)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to open %q", name)
+	}
+
+	return f, nil
+}
+
 // Lstat wraps Lstat from "os".
 func Lstat(name string) (os.FileInfo, error) {
 	info, err := os.Lstat(name)

@@ -6,6 +6,8 @@ package libkbfs
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -98,7 +100,22 @@ func (j diskJournal) readOrdinal(path string) (journalOrdinal, error) {
 
 func (j diskJournal) writeOrdinal(
 	path string, o journalOrdinal) error {
-	return ioutil.WriteFile(path, []byte(o.String()), 0600)
+	// Don't use ioutil.WriteFile because it truncates the file first,
+	// and if there's a crash it will leave the journal in an unknown
+	// state.
+	f, err := ioutil.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close() // capture the error?
+	// Overwrite whatever data is there.  This works as long as the
+	// ordinals are a constant size.
+	data := []byte(o.String())
+	n, err := f.Write(data)
+	if err == nil && n < len(data) {
+		return errors.WithStack(io.ErrShortWrite)
+	}
+	return nil
 }
 
 func (j diskJournal) readEarliestOrdinal() (
