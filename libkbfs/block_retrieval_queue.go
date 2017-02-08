@@ -16,14 +16,29 @@ import (
 
 const (
 	defaultBlockRetrievalWorkerQueueSize int = 100
+	defaultNumPrefetchWorkers            int = 1
 	testBlockRetrievalWorkerQueueSize    int = 5
 	defaultOnDemandRequestPriority       int = 100
 )
 
-type blockRetrievalConfig interface {
+type blockRetrievalPartialConfig interface {
 	dataVersioner
 	logMaker
 	blockCacher
+}
+
+type blockRetrievalConfig interface {
+	blockRetrievalPartialConfig
+	blockGetter() blockGetter
+}
+
+type realBlockRetrievalConfig struct {
+	blockRetrievalPartialConfig
+	bg blockGetter
+}
+
+func (c *realBlockRetrievalConfig) blockGetter() blockGetter {
+	return c.bg
 }
 
 // blockRetrievalRequest represents one consumer's request for a block.
@@ -90,7 +105,9 @@ type blockRetrievalQueue struct {
 	// This is a channel of channels to maximize the time that each request is
 	// in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
-	workerQueue chan chan *blockRetrieval
+	workerQueue chan chan<- *blockRetrieval
+	// slices to store the workers so we can terminate them when we're done
+	workers []*blockRetrievalWorker
 	// channel to be closed when we're done accepting requests
 	doneCh chan struct{}
 
@@ -103,17 +120,22 @@ type blockRetrievalQueue struct {
 var _ blockRetriever = (*blockRetrievalQueue)(nil)
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
-// parameter determines how many workers can concurrently call WorkOnRequest
-// (more than numWorkers will block).
+// parameter determines how many workers can concurrently call Work (more than
+// numWorkers will block).
 func newBlockRetrievalQueue(numWorkers int, config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
 		config:      config,
 		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
-		workerQueue: make(chan chan *blockRetrieval, numWorkers),
+		workerQueue: make(chan chan<- *blockRetrieval, numWorkers),
+		workers:     make([]*blockRetrievalWorker, 0, numWorkers),
 		doneCh:      make(chan struct{}),
 	}
 	q.prefetcher = newBlockPrefetcher(q, config)
+	for i := 0; i < numWorkers; i++ {
+		q.workers = append(q.workers,
+			newBlockRetrievalWorker(config.blockGetter(), q))
+	}
 	return q
 }
 
@@ -128,18 +150,17 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker() {
-	go func() {
-		select {
-		case <-brq.doneCh:
-			retrieval := brq.popIfNotEmpty()
-			if retrieval != nil {
-				brq.FinalizeRequest(retrieval, nil, io.EOF)
-			}
-		// Get the next queued worker
-		case ch := <-brq.workerQueue:
-			ch <- brq.popIfNotEmpty()
+	select {
+	case <-brq.doneCh:
+		retrieval := brq.popIfNotEmpty()
+		if retrieval != nil {
+			brq.FinalizeRequest(retrieval, nil, io.EOF)
 		}
-	}()
+	// Get the next queued worker
+	case ch := <-brq.workerQueue:
+		retrieval := brq.popIfNotEmpty()
+		ch <- retrieval
+	}
 }
 
 // Request submits a block request to the queue.
@@ -206,7 +227,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			brq.insertionCount++
 			brq.ptrs[bpLookup] = br
 			heap.Push(brq.heap, br)
-			defer brq.notifyWorker()
+			go brq.notifyWorker()
 		} else {
 			err := br.ctx.AddContext(ctx)
 			if err == context.Canceled {
@@ -236,12 +257,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 	}
 }
 
-// WorkOnRequest returns a new channel for a worker to obtain a blockRetrieval.
-func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
-	ch := make(chan *blockRetrieval, 1)
+// Work accepts a worker's channel to assign work.
+func (brq *blockRetrievalQueue) Work(ch chan<- *blockRetrieval) {
 	brq.workerQueue <- ch
-
-	return ch
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has
@@ -289,6 +307,9 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	select {
 	case <-brq.doneCh:
 	default:
+		for _, w := range brq.workers {
+			w.Shutdown()
+		}
 		brq.prefetchMtx.Lock()
 		defer brq.prefetchMtx.Unlock()
 		brq.prefetcher.Shutdown()

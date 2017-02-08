@@ -100,11 +100,11 @@ func makeFakeFileBlock(t *testing.T, doHash bool) *FileBlock {
 
 func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	t.Log("Test the basic ability of a worker to return a block.")
-	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
+	bg := newFakeBlockGetter(false)
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t, bg))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter(false)
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 	defer w.Shutdown()
@@ -123,16 +123,10 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 
 func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	t.Log("Test the ability of multiple workers to retrieve concurrently.")
-	q := newBlockRetrievalQueue(2, newTestBlockRetrievalConfig(t))
+	bg := newFakeBlockGetter(false)
+	q := newBlockRetrievalQueue(2, newTestBlockRetrievalConfig(t, bg))
 	require.NotNil(t, q)
 	defer q.Shutdown()
-
-	bg := newFakeBlockGetter(false)
-	w1, w2 := newBlockRetrievalWorker(bg, q), newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, w1)
-	require.NotNil(t, w2)
-	defer w1.Shutdown()
-	defer w2.Shutdown()
 
 	ptr1, ptr2 := makeRandomBlockPointer(t), makeRandomBlockPointer(t)
 	block1, block2 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
@@ -166,14 +160,10 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 
 func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	t.Log("Test the ability of a worker and queue to work correctly together.")
-	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
+	bg := newFakeBlockGetter(false)
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t, bg))
 	require.NotNil(t, q)
 	defer q.Shutdown()
-
-	bg := newFakeBlockGetter(false)
-	w1 := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, w1)
-	defer w1.Shutdown()
 
 	ptr1, ptr2, ptr3 := makeRandomBlockPointer(t), makeRandomBlockPointer(t), makeRandomBlockPointer(t)
 	block1, block2, block3 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
@@ -217,11 +207,11 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 
 func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	t.Log("Test the ability of a worker to handle a request cancelation.")
-	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
+	bg := newFakeBlockGetter(true)
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t, bg))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter(true)
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 	defer w.Shutdown()
@@ -240,11 +230,11 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 
 func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	t.Log("Test that worker shutdown works.")
-	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
+	bg := newFakeBlockGetter(false)
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t, bg))
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	bg := newFakeBlockGetter(false)
 	w := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w)
 
@@ -273,14 +263,10 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	t.Log("Test that we can retrieve the same block into different block types.")
 	codec := kbfscodec.NewMsgpack()
-	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t))
+	bg := newFakeBlockGetter(false)
+	q := newBlockRetrievalQueue(1, newTestBlockRetrievalConfig(t, bg))
 	require.NotNil(t, q)
 	defer q.Shutdown()
-
-	bg := newFakeBlockGetter(false)
-	w1 := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, w1)
-	defer w1.Shutdown()
 
 	t.Log("Setup source blocks")
 	ptr1 := makeRandomBlockPointer(t)
