@@ -968,7 +968,6 @@ func (g *gregorHandler) pingLoop() {
 	for {
 		select {
 		case <-g.G().Clock().After(duration):
-
 			var err error
 			ctx := context.Background()
 			if g.IsConnected() {
@@ -998,9 +997,6 @@ func (g *gregorHandler) pingLoop() {
 					}
 				}
 			}
-
-		case <-g.shutdownCh:
-			return
 		}
 	}
 
