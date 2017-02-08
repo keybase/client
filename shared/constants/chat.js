@@ -215,6 +215,8 @@ export type SupersedeInfo = {
   finalizeInfo: ConversationFinalizeInfo,
 }
 
+export type FinalizeInfo = ConversationFinalizeInfo
+
 export type FinalizedState = Map<ConversationIDKey, ConversationFinalizeInfo>
 
 export type SupersedesState = Map<ConversationIDKey, SupersedeInfo>
@@ -307,6 +309,8 @@ export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure
 export type RemoveOutboxMessage = NoErrorTypedAction<'chat:removeOutboxMessage', {conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
+export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conversationIDKey: ConversationIDKey}>
+export type GetInboxAndUnbox = NoErrorTypedAction<'chat:getInboxAndUnbox', {conversationIDKey: ConversationIDKey}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
@@ -482,6 +486,15 @@ function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): 
   return chat.get('supersededByState').get(conversationID)
 }
 
+function newestConversationIDKey (conversationIDKey: ConversationIDKey, chat: State): ConversationIDKey {
+  const supersededBy = chat.get('supersededByState').get(conversationIDKey)
+  if (!supersededBy) {
+    return conversationIDKey
+  }
+
+  return newestConversationIDKey(supersededBy.conversationIDKey, chat)
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -495,5 +508,6 @@ export {
   serverMessageToMessageBody,
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
+  newestConversationIDKey,
   parseMetadataPreviewSize,
 }

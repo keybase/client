@@ -3,7 +3,7 @@ import {Component} from 'react'
 import {List} from 'immutable'
 
 import type {Props as BannerMessage} from './banner'
-import type {AttachmentType, AttachmentMessage, ConversationIDKey, Message, MessageID, MetaDataMap, FollowingMap, RekeyInfo, SupersedeInfo} from '../../constants/chat'
+import type {AttachmentType, AttachmentMessage, ConversationIDKey, FinalizeInfo, Message, MessageID, MetaDataMap, FollowingMap, RekeyInfo, SupersedeInfo} from '../../constants/chat'
 
 export type Props = {
   bannerMessage: ?BannerMessage,
@@ -38,12 +38,14 @@ export type Props = {
   rekeyInfo: ?RekeyInfo,
   selectedConversation: ?ConversationIDKey,
   setInputText: (text: string) => void,
+  restartConversation: () => void,
   sidePanelOpen: boolean,
   triggerListScrollDown: () => void,
   validated: boolean,
   you: string,
   supersedes: ?SupersedeInfo,
   supersededBy: ?SupersedeInfo,
+  finalizeInfo: ?FinalizeInfo
 }
 
 export default class Conversation extends Component<void, Props, void> { }

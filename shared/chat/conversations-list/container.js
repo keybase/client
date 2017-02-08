@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import ConversationList from './index'
 import {connect} from 'react-redux'
 import {loadInbox, selectConversation, newChat} from '../../actions/chat'
+import {newestConversationIDKey} from '../../constants/chat'
 
 import type {ConversationIDKey} from '../../constants/chat'
 import type {TypedState} from '../../constants/reducer'
@@ -20,9 +21,10 @@ class ConversationListContainer extends Component {
 export default connect(
   (state: TypedState, {routeSelected}) => ({
     conversationUnreadCounts: state.chat.get('conversationUnreadCounts'),
-    inbox: state.chat.get('inbox').filter(i => !i.isEmpty || i.youCreated),
+    inbox: state.chat.get('inbox').filter(i => !i.isEmpty || i.youCreated)
+      .filter(i => !state.chat.get('supersededByState').get(i.conversationIDKey)),
     rekeyInfos: state.chat.get('rekeyInfos'),
-    selectedConversation: routeSelected,
+    selectedConversation: newestConversationIDKey(routeSelected, state.chat),
     you: state.config.username || '',
   }),
   (dispatch: Dispatch) => ({

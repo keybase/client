@@ -92,7 +92,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
   }
 
   _decorateSupersedes (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
-    if (this.props.supersedes) {
+    if (this.props.supersedes && !this.props.moreToLoad) {
       const {conversationIDKey, finalizeInfo: {resetUser}} = this.props.supersedes
       const supersedesMessage: Constants.SupersedesMessage = {
         type: 'Supersedes',
@@ -109,6 +109,15 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
 
   _decorateMessages (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
     return this._decorateSupersedes(messages)
+  }
+
+  _openNewerConversation = () => {
+    if (this.props.supersededBy) {
+      this.props.onOpenConversation(this.props.supersededBy.conversationIDKey)
+    } else {
+      // Open new conversation
+      this.props.restartConversation()
+    }
   }
 
   render () {
@@ -147,7 +156,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       sidePanelOpen,
       validated,
       you,
-      supersededBy,
+      finalizeInfo,
     } = this.props
 
     const banner = bannerMessage && <Banner {...bannerMessage} />
@@ -201,10 +210,10 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           validated={validated}
         />
         {banner}
-        {supersededBy
+        {finalizeInfo
           ? <OldProfileResetNotice
-            onOpenNewerConversation={() => onOpenConversation(supersededBy.conversationIDKey)}
-            username={supersededBy.finalizeInfo.resetUser}
+            onOpenNewerConversation={this._openNewerConversation}
+            username={finalizeInfo.resetUser}
           />
           : <Input
             ref={this._onInputRef}
