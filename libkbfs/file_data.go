@@ -1872,11 +1872,8 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 		ID:      newID,
 		KeyGen:  fd.kmd.LatestKeyGeneration(),
 		DataVer: dataVer,
-		Context: kbfsblock.Context{
-			Creator:   fd.uid,
-			RefNonce:  kbfsblock.ZeroRefNonce,
-			BlockType: fd.rootBlockPointer().GetBlockType(),
-		},
+		Context: kbfsblock.MakeFirstContext(
+			fd.uid, fd.rootBlockPointer().GetBlockType()),
 		DirectType: IndirectBlock,
 	}
 	fd.log.CDebugf(ctx, "Deep copied indirect file %s: %v -> %v",

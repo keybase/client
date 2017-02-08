@@ -1777,11 +1777,7 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 			KeyGen:     kmd.LatestKeyGeneration(),
 			DataVer:    block.DataVersion(),
 			DirectType: directType,
-			Context: kbfsblock.Context{
-				Creator:   uid,
-				RefNonce:  kbfsblock.ZeroRefNonce,
-				BlockType: bType,
-			},
+			Context:    kbfsblock.MakeFirstContext(uid, bType),
 		}
 	}
 
@@ -1886,7 +1882,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 		md.SetRefBytes(si.refBytes)
 		md.AddDiskUsage(si.refBytes)
 		md.SetUnrefBytes(si.unrefBytes)
-		md.SetMDRefBytes(0) // this will be calculated a-new
+		md.SetMDRefBytes(0) // this will be calculated anew
 		md.SetDiskUsage(md.DiskUsage() - si.unrefBytes)
 		syncState.newIndirectFileBlockPtrs = append(
 			syncState.newIndirectFileBlockPtrs, si.op.Refs()...)

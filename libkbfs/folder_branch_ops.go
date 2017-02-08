@@ -1805,11 +1805,7 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		KeyGen:     md.LatestKeyGeneration(),
 		DataVer:    fbo.config.DataVersion(),
 		DirectType: DirectBlock,
-		Context: kbfsblock.Context{
-			Creator:   uid,
-			RefNonce:  kbfsblock.ZeroRefNonce,
-			BlockType: keybase1.BlockType_MD,
-		},
+		Context:    kbfsblock.MakeFirstContext(uid, keybase1.BlockType_MD),
 	}
 	file := path{fbo.folderBranch,
 		[]pathNode{{ptr, fmt.Sprintf("<MD rev %d>", md.Revision())}}}
