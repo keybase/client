@@ -35,7 +35,7 @@ func NewBlockOpsStandard(config blockOpsConfig,
 	queueSize int) *BlockOpsStandard {
 	bg := &realBlockGetter{config: config}
 	qConfig := &realBlockRetrievalConfig{
-		blockRetrievalParentConfig: config,
+		blockRetrievalPartialConfig: config,
 		bg: bg,
 	}
 	q := newBlockRetrievalQueue(queueSize, qConfig)

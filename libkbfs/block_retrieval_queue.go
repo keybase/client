@@ -21,19 +21,19 @@ const (
 	defaultOnDemandRequestPriority       int = 100
 )
 
-type blockRetrievalParentConfig interface {
+type blockRetrievalPartialConfig interface {
 	dataVersioner
 	logMaker
 	blockCacher
 }
 
 type blockRetrievalConfig interface {
-	blockRetrievalParentConfig
+	blockRetrievalPartialConfig
 	blockGetter() blockGetter
 }
 
 type realBlockRetrievalConfig struct {
-	blockRetrievalParentConfig
+	blockRetrievalPartialConfig
 	bg blockGetter
 }
 
