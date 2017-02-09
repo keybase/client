@@ -373,7 +373,7 @@ func (b *BlockServerMemory) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 }
 
 // Shutdown implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) Shutdown() {
+func (b *BlockServerMemory) Shutdown(ctx context.Context) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 	// Make further accesses error out.

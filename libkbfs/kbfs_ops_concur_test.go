@@ -1185,7 +1185,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 
 	// give it a remote block server with a fake client
 	log := config.MakeLogger("")
-	config.BlockServer().Shutdown()
+	config.BlockServer().Shutdown(ctx)
 	b := newStallingBServer(log)
 	config.SetBlockServer(b)
 
@@ -1301,7 +1301,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	//
 	// Create new objects to avoid racing with goroutines from the
 	// first sync.
-	config.BlockServer().Shutdown()
+	config.BlockServer().Shutdown(ctx)
 	b = newStallingBServer(log)
 	config.SetBlockServer(b)
 	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
@@ -1328,7 +1328,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	defer mockCtrl.Finish()
 	defer ctr.CheckForFailures()
 	b := NewMockBlockServer(mockCtrl)
-	config.BlockServer().Shutdown()
+	config.BlockServer().Shutdown(ctx)
 	config.SetBlockServer(b)
 
 	// from the folder creation, then 2 for file creation
@@ -1387,7 +1387,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			<-proceedChan
 		}).After(c).Return(nil)
-	b.EXPECT().Shutdown().AnyTimes()
+	b.EXPECT().Shutdown(gomock.Any()).AnyTimes()
 
 	var errPtr BlockPointer
 	go func() {

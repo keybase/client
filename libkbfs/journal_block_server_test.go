@@ -77,7 +77,7 @@ func teardownJournalBlockServerTest(
 
 type shutdownOnlyBlockServer struct{ BlockServer }
 
-func (shutdownOnlyBlockServer) Shutdown() {}
+func (shutdownOnlyBlockServer) Shutdown(context.Context) {}
 
 func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	tempdir, ctx, cancel, config, jServer := setupJournalBlockServerTest(t)

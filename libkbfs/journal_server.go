@@ -64,12 +64,12 @@ type diskLimiter interface {
 	// with that journal's current disk usage. journalSize must be
 	// >= 0. If the argument is non-zero, the updated available
 	// byte count must be returned.
-	onJournalEnable(journalSize int64) int64
+	onJournalEnable(ctx context.Context, journalSize int64) int64
 
 	// onJournalDisable is called when shutting down a TLF journal
 	// with that journal's current disk usage. journalSize must be
 	// >= 0.
-	onJournalDisable(journalSize int64)
+	onJournalDisable(ctx context.Context, journalSize int64)
 
 	// beforeBlockPut is called before putting a block of the
 	// given size, which must be > 0. It may block, but must
@@ -77,21 +77,20 @@ type diskLimiter interface {
 	// ctx is cancelled. If the returned error is nil, the updated
 	// available byte count must be returned. Otherwise, the
 	// non-updated available byte count, or zero, may be returned.
-	beforeBlockPut(ctx context.Context, blockBytes int64,
-		log logger.Logger) (int64, error)
+	beforeBlockPut(ctx context.Context, blockBytes int64) (int64, error)
 
 	// afterBlockPut is called after putting a block of the given
 	// size (which must match the corresponding call to
 	// beforeBlockPut). putData reflects whether or not the data
 	// was actually put; if it's false, it's either because of an
 	// error or because the block already existed.
-	afterBlockPut(blockBytes int64, putData bool)
+	afterBlockPut(ctx context.Context, blockBytes int64, putData bool)
 
 	// onBlockDelete is called after deleting a block of the given
 	// number of bytes of disk space, which must be >=
 	// 0. (Deleting a zero-sized block shouldn't happen, but may
 	// as well let it go through.)
-	onBlockDelete(blockBytes int64)
+	onBlockDelete(ctx context.Context, blockBytes int64)
 }
 
 // TODO: JournalServer isn't really a server, although it can create
@@ -663,7 +662,7 @@ func (j *JournalServer) shutdownExistingJournalsLocked(ctx context.Context) {
 	j.log.CDebugf(ctx, "Shutting down existing journals")
 
 	for _, tlfJournal := range j.tlfJournals {
-		tlfJournal.shutdown()
+		tlfJournal.shutdown(ctx)
 	}
 
 	j.tlfJournals = make(map[tlf.ID]*tlfJournal)
@@ -682,12 +681,12 @@ func (j *JournalServer) shutdownExistingJournals(ctx context.Context) {
 	j.shutdownExistingJournalsLocked(ctx)
 }
 
-func (j *JournalServer) shutdown() {
-	j.log.CDebugf(context.Background(), "Shutting down journal")
+func (j *JournalServer) shutdown(ctx context.Context) {
+	j.log.CDebugf(ctx, "Shutting down journal")
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	for _, tlfJournal := range j.tlfJournals {
-		tlfJournal.shutdown()
+		tlfJournal.shutdown(ctx)
 	}
 
 	// Leave all the tlfJournals in j.tlfJournals, so that any

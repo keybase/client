@@ -359,7 +359,7 @@ func (b *BlockServerDisk) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 }
 
 // Shutdown implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) Shutdown() {
+func (b *BlockServerDisk) Shutdown(ctx context.Context) {
 	tlfStorage := func() map[tlf.ID]*blockServerDiskTlfStorage {
 		b.tlfStorageLock.Lock()
 		defer b.tlfStorageLock.Unlock()

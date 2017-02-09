@@ -539,7 +539,7 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblo
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Shutdown() {
+func (b *BlockServerRemote) Shutdown(ctx context.Context) {
 	if b.shutdownFn != nil {
 		b.shutdownFn()
 	}

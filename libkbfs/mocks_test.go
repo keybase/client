@@ -3601,12 +3601,12 @@ func (_mr *_MockBlockServerRecorder) IsUnflushed(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsUnflushed", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockServer) Shutdown() {
-	_m.ctrl.Call(_m, "Shutdown")
+func (_m *MockBlockServer) Shutdown(ctx context.Context) {
+	_m.ctrl.Call(_m, "Shutdown", ctx)
 }
 
-func (_mr *_MockBlockServerRecorder) Shutdown() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+func (_mr *_MockBlockServerRecorder) Shutdown(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown", arg0)
 }
 
 func (_m *MockBlockServer) GetUserQuotaInfo(ctx context.Context) (*kbfsblock.UserQuotaInfo, error) {
@@ -3713,12 +3713,12 @@ func (_mr *_MockblockServerLocalRecorder) IsUnflushed(arg0, arg1, arg2 interface
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsUnflushed", arg0, arg1, arg2)
 }
 
-func (_m *MockblockServerLocal) Shutdown() {
-	_m.ctrl.Call(_m, "Shutdown")
+func (_m *MockblockServerLocal) Shutdown(ctx context.Context) {
+	_m.ctrl.Call(_m, "Shutdown", ctx)
 }
 
-func (_mr *_MockblockServerLocalRecorder) Shutdown() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+func (_mr *_MockblockServerLocalRecorder) Shutdown(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown", arg0)
 }
 
 func (_m *MockblockServerLocal) GetUserQuotaInfo(ctx context.Context) (*kbfsblock.UserQuotaInfo, error) {

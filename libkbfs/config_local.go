@@ -831,7 +831,7 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseService().Shutdown()
-	c.BlockServer().Shutdown()
+	c.BlockServer().Shutdown(ctx)
 	c.Crypto().Shutdown()
 	c.Reporter().Shutdown()
 	err = c.DirtyBlockCache().Shutdown()
@@ -925,7 +925,7 @@ func (c *ConfigLocal) EnableJournaling(
 	const backpressureMaxThreshold = journalDiskLimit * 19 / 20
 
 	bdl := newBackpressureDiskLimiter(
-		backpressureMinThreshold, backpressureMaxThreshold,
+		log, backpressureMinThreshold, backpressureMaxThreshold,
 		journalDiskLimit, defaultDiskLimitMaxDelay)
 	log.Debug("Setting journal byte limit to %v", journalDiskLimit)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),

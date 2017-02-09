@@ -110,8 +110,8 @@ func (b BlockServerMeasured) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 
 // Shutdown implements the BlockServer interface for
 // BlockServerMeasured.
-func (b BlockServerMeasured) Shutdown() {
-	b.delegate.Shutdown()
+func (b BlockServerMeasured) Shutdown(ctx context.Context) {
+	b.delegate.Shutdown(ctx)
 }
 
 // RefreshAuthToken implements the BlockServer interface for

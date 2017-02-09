@@ -1309,7 +1309,7 @@ type BlockServer interface {
 	IsUnflushed(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (bool, error)
 
 	// Shutdown is called to shutdown a BlockServer connection.
-	Shutdown()
+	Shutdown(ctx context.Context)
 
 	// GetUserQuotaInfo returns the quota for the user.
 	GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error)
