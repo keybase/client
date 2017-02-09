@@ -5,8 +5,10 @@ import (
 	"sync"
 
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/syndtr/goleveldb/leveldb"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -49,19 +51,21 @@ func newDiskBlockCacheStandard(dirPath string, maxBytes uint64) (
 }
 
 // Get implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Get(tlfID tlf.ID, blockID kbfsblock.ID) (
-	Block, error) {
+func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
+	blockID kbfsblock.ID) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.isClosed {
-		return nil, DiskCacheClosedError{"Get"}
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			DiskCacheClosedError{"Get"}
 	}
-	return nil, NoSuchBlockError{blockID}
+	return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoSuchBlockError{blockID}
 }
 
 // Put implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Put(tlfID tlf.ID, blockID kbfsblock.ID,
-	block Block) error {
+func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
+	blockID kbfsblock.ID, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.isClosed {
@@ -71,8 +75,8 @@ func (cache *DiskBlockCacheStandard) Put(tlfID tlf.ID, blockID kbfsblock.ID,
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Delete(tlfID tlf.ID, blockID kbfsblock.ID,
-) error {
+func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
+	blockID kbfsblock.ID) error {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.isClosed {
@@ -82,7 +86,8 @@ func (cache *DiskBlockCacheStandard) Delete(tlfID tlf.ID, blockID kbfsblock.ID,
 }
 
 // Evict implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Evict(tlfID tlf.ID, numBlocks int) error {
+func (cache *DiskBlockCacheStandard) Evict(ctx context.Context, tlfID tlf.ID,
+	numBlocks int) error {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.isClosed {

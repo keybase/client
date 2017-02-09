@@ -807,13 +807,17 @@ type DirtyBlockCache interface {
 // DiskBlockCache caches blocks to the disk.
 type DiskBlockCache interface {
 	// Get gets a block from the disk cache.
-	Get(tlfID tlf.ID, blockID kbfsblock.ID) (Block, error)
+	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
+		[]byte, kbfscrypto.BlockCryptKeyServerHalf, error)
 	// Put puts a block to the disk cache.
-	Put(tlfID tlf.ID, blockID kbfsblock.ID, block Block) error
+	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
+		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 	// Delete deletes a block from the disk cache.
-	Delete(tlfID tlf.ID, blockID kbfsblock.ID) error
+	Delete(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) error
 	// Evict evicts some number of blocks from the disk cache.
-	Evict(tlfID tlf.ID, numBlocks int) error
+	Evict(ctx context.Context, tlfID tlf.ID, numBlocks int) error
+	// Shutdown cleanly shuts down the disk block cache.
+	Shutdown()
 }
 
 // cryptoPure contains all methods of Crypto that don't depend on
