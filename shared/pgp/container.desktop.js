@@ -8,7 +8,7 @@ import type {Props} from './purge-message.desktop'
 const connector: TypedConnector<{}, any, {}, Props> = new TypedConnector()
 
 export default connector.connect(
-  ({unlockFolders: {devices, phase, paperkeyError, waiting}}, dispatch, ownProps) => ({
+  ({}, dispatch, ownProps) => ({
     onClose: () => { dispatch({type: Constants.pgpAckedMessage, payload: {hitOk: false}}) },
     onOk: () => { dispatch({type: Constants.pgpAckedMessage, payload: {hitOk: true}}) },
   }))(PurgeMessage)
