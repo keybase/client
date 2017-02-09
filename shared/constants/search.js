@@ -113,6 +113,7 @@ export function platformToIcon (platform: SearchPlatforms): IconType {
     'Keybase': 'iconfont-identity-devices',
     'Twitter': 'iconfont-identity-twitter',
     'GitHub': 'iconfont-identity-github',
+    'Github': 'iconfont-identity-github',
     'Reddit': 'iconfont-identity-reddit',
     'Coinbase': 'iconfont-identity-bitcoin',
     'Hackernews': 'iconfont-identity-hn',
