@@ -439,16 +439,14 @@ function getBrokenUsers (participants: Array<string>, you: string, metaDataMap: 
 }
 
 function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
-  const ratio = width / height
-
   if (height > width) {
     return {
       height: clamp(height, maxAttachmentPreviewSize),
-      width: clamp(height, maxAttachmentPreviewSize) * ratio,
+      width: clamp(height, maxAttachmentPreviewSize) * width / height,
     }
   } else {
     return {
-      height: clamp(width, maxAttachmentPreviewSize) / ratio,
+      height: clamp(width, maxAttachmentPreviewSize) * height / width,
       width: clamp(width, maxAttachmentPreviewSize),
     }
   }
