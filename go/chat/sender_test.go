@@ -110,7 +110,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
-	baseSender := NewBlockingSender(tc.G, boxer, func() chat1.RemoteInterface { return ri }, f)
+	baseSender := NewBlockingSender(tc.G, boxer, nil, func() chat1.RemoteInterface { return ri }, f)
 	sender := NewNonblockingSender(tc.G, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int),
@@ -329,8 +329,8 @@ func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	return chat1.OutboxID{}, 0, nil, fmt.Errorf("I always fail!!!!")
 }
 
-func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
-	return nil, nil
+func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []chat1.Asset, error) {
+	return nil, nil, nil
 }
 
 func TestFailingSender(t *testing.T) {
@@ -559,7 +559,7 @@ func TestDeletionHeaders(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, err := blockingSender.Prepare(context.TODO(), deletion, &res.ConvID)
+	preparedDeletion, _, err := blockingSender.Prepare(context.TODO(), deletion, &res.ConvID)
 	require.NoError(t, err)
 
 	// Assert that the deletion gets the edit too.
@@ -626,7 +626,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	require.NoError(t, err)
 
 	// Prepare a message and make sure it gets prev pointers
-	boxed, err := blockingSender.Prepare(context.TODO(), chat1.MessagePlaintext{
+	boxed, pendingAssetDeletes, err := blockingSender.Prepare(context.TODO(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      uid,
@@ -636,6 +636,175 @@ func TestPrevPointerAddition(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 	}, &res.ConvID)
 	require.NoError(t, err)
+	require.Empty(t, pendingAssetDeletes)
 	require.NotEmpty(t, boxed.ClientHeader.Prev, "empty prev pointers")
 
+}
+
+// Test a DELETE attempts to delete all associated assets.
+// func TestDeletionHeaders(t *testing.T) { // <- TODO delete this line
+func TestDeletionAssets(t *testing.T) {
+	world, ri, _, blockingSender, _, _, tlf := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	trip := newConvTriple(t, tlf, u.Username)
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple: trip,
+		TLFMessage: chat1.MessageBoxed{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
+				TlfName:   u.Username,
+				TlfPublic: false,
+			},
+			KeyGeneration: 1,
+		},
+	})
+	require.NoError(t, err)
+
+	var doomedAssets []chat1.Asset
+	mkAsset := func() chat1.Asset {
+		asset := chat1.Asset{
+			Path: fmt.Sprintf("test-asset-%v", len(doomedAssets)),
+			Size: 8,
+		}
+		doomedAssets = append(doomedAssets, asset)
+		return asset
+	}
+
+	// Send an attachment message and 3 MessageAttachUploaded's.
+	tmp1 := mkAsset()
+	_, firstMessageID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_ATTACHMENT,
+		},
+		MessageBody: chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+			Object: mkAsset(),
+			// Use v1 and v2 assets for fuller coverage. These would never both exist in a real message.
+			Preview:  &tmp1,
+			Previews: []chat1.Asset{mkAsset(), mkAsset()},
+		}),
+	}, 0)
+	require.NoError(t, err)
+	editHeader := chat1.MessageClientHeader{
+		Conv:        trip,
+		Sender:      u.User.GetUID().ToBytes(),
+		TlfName:     u.Username,
+		MessageType: chat1.MessageType_ATTACHMENTUPLOADED,
+		Supersedes:  firstMessageID,
+	}
+	_, edit1ID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: editHeader,
+		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
+			MessageID: firstMessageID,
+			Object:    mkAsset(),
+			Previews:  []chat1.Asset{mkAsset(), mkAsset()},
+		}),
+	}, 0)
+	require.NoError(t, err)
+	_, edit2ID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: editHeader,
+		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
+			MessageID: firstMessageID,
+			Object:    mkAsset(),
+			Previews:  []chat1.Asset{mkAsset(), mkAsset()},
+		}),
+	}, 0)
+	_, edit3ID, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: editHeader,
+		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
+			MessageID: firstMessageID,
+			Object:    chat1.Asset{},
+			Previews:  nil,
+		}),
+	}, 0)
+	require.NoError(t, err)
+
+	require.Equal(t, len(doomedAssets), 10, "wrong number of assets created")
+
+	// Now prepare a deletion.
+	deletion := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_DELETE,
+			Supersedes:  firstMessageID,
+		},
+		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
+	}
+	preparedDeletion, pendingAssetDeletes, err := blockingSender.Prepare(context.TODO(), deletion, &res.ConvID)
+	require.NoError(t, err)
+
+	assertAssetSetsEqual(t, pendingAssetDeletes, doomedAssets)
+	require.Equal(t, len(doomedAssets), len(pendingAssetDeletes), "wrong number of assets pending deletion")
+
+	// Assert that the deletion gets the MessageAttachmentUploaded's too.
+	deletedIDs := map[chat1.MessageID]bool{}
+	for _, id := range preparedDeletion.ClientHeader.Deletes {
+		deletedIDs[id] = true
+	}
+	if len(deletedIDs) != 4 {
+		t.Fatalf("expected 4 deleted IDs, found %d", len(deletedIDs))
+	}
+	if !deletedIDs[firstMessageID] {
+		t.Fatalf("expected message #%d to be deleted", firstMessageID)
+	}
+	if !deletedIDs[edit1ID] {
+		t.Fatalf("expected message #%d to be deleted", edit1ID)
+	}
+	if !deletedIDs[edit2ID] {
+		t.Fatalf("expected message #%d to be deleted", edit2ID)
+	}
+	if !deletedIDs[edit3ID] {
+		t.Fatalf("expected message #%d to be deleted", edit3ID)
+	}
+}
+
+func assertAssetSetsEqual(t *testing.T, got []chat1.Asset, expected []chat1.Asset) {
+	if !compareAssetLists(t, got, expected, false) {
+		compareAssetLists(t, got, expected, true)
+		t.Fatalf("asset lists not equal")
+	}
+}
+
+// compareAssetLists compares two unordered sets of assets based on Path only.
+func compareAssetLists(t *testing.T, got []chat1.Asset, expected []chat1.Asset, verbose bool) bool {
+	match := true
+	gMap := make(map[string]chat1.Asset)
+	eMap := make(map[string]chat1.Asset)
+	for _, a := range got {
+		gMap[a.Path] = a
+	}
+	for _, a := range expected {
+		eMap[a.Path] = a
+		if gMap[a.Path].Path != a.Path {
+			match = false
+			if verbose {
+				t.Logf("expected: %v", a.Path)
+			}
+		}
+	}
+	for _, a := range got {
+		if eMap[a.Path].Path != a.Path {
+			match = false
+			if verbose {
+				t.Logf("got unexpected: %v", a.Path)
+			}
+		}
+	}
+	if match && len(got) != len(expected) {
+		if verbose {
+			t.Logf("list contains duplicates or compareAssetLists has a bug")
+			for i, a := range got {
+				t.Logf("[%v] %v", i, a.Path)
+			}
+		}
+		return false
+	}
+
+	return match
 }
