@@ -3771,7 +3771,11 @@ outer:
 		return err
 	}
 
-	handle := cr.fbo.getTrustedHead(lState).GetTlfHandle()
+	head := cr.fbo.getTrustedHead(lState)
+	if head == (ImmutableRootMetadata{}) {
+		panic("maybeUnstageAfterFailure: head is nil (should be impossible)")
+	}
+	handle := head.GetTlfHandle()
 	cr.config.Reporter().ReportErr(ctx,
 		handle.GetCanonicalName(), handle.IsPublic(),
 		WriteMode, reportedError)
@@ -3795,7 +3799,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	defer func() {
 		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
 		if err != nil {
-			handle := cr.fbo.getTrustedHead(lState).GetTlfHandle()
+			head := cr.fbo.getTrustedHead(lState)
+			if head == (ImmutableRootMetadata{}) {
+				panic("doResolve: head is nil (should be impossible)")
+			}
+			handle := head.GetTlfHandle()
 			cr.config.Reporter().ReportErr(ctx,
 				handle.GetCanonicalName(), handle.IsPublic(),
 				WriteMode, CRWrapError{err})
