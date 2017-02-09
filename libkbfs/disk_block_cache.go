@@ -93,6 +93,14 @@ func (cache *DiskBlockCacheStandard) Evict(ctx context.Context, tlfID tlf.ID,
 	if cache.isClosed {
 		return DiskCacheClosedError{"Evict"}
 	}
+	// Use kbfscrypto.MakeTemporaryID() to create a random hash ID. Then begin
+	// an interator into cache.lruDb.Range(b, nil) and iterate from there to
+	// get numBlocks * evictionConsiderationFactor block IDs.  We sort the
+	// resulting blocks by value (LRU time) and pick the minimum numBlocks. We
+	// put those block IDs into a leveldb.Batch for cache.blockDb via
+	// Batch.Delete(), then Write() that batch.
+	// NOTE: It is important that we store LRU times using a monotonic clock
+	// for this device. Use runtime.nanotime() for now.
 	return nil
 }
 
