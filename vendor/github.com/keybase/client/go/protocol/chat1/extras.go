@@ -46,10 +46,12 @@ func (cid ConversationID) Less(c ConversationID) bool {
 	return bytes.Compare(cid, c) < 0
 }
 
+const DbShortFormLen = 10
+
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
 func (cid ConversationID) DbShortForm() []byte {
-	return cid[:10]
+	return cid[:DbShortFormLen]
 }
 
 func MakeTLFID(val string) (TLFID, error) {
