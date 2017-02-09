@@ -15,7 +15,7 @@ const Row = ({username, onUsernameClicked}) => (
   </Box>
 )
 
-const ParticipantRekey = ({rekeyInfo, onUsernameClicked}: {rekeyInfo: RekeyInfo, onUsernameClicked: (username: string) => void}) => {
+const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: {rekeyInfo: RekeyInfo, onShowProfile: (username: string) => void}) => {
   return (
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>

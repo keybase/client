@@ -30,7 +30,7 @@ Internally, we track our progress using Jira, but all PRs come through GitHub fo
 If you're having problems with the command line `keybase` client, take a
 look at [the troubleshooting doc](go/doc/troubleshooting.md).
 
-If you're having problem with our Website, try the
+If you're having problems with our Website, try the
 [keybase-issues](https://github.com/keybase/keybase-issues) issue tracker.
 
 We check and update both frequently.

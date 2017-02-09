@@ -865,7 +865,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 }
 
 func (g *gregorHandler) Shutdown() {
-	g.G().Log.Debug("gregor shutdown")
+	g.Debug("shutdown")
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
@@ -920,8 +920,9 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 	// Check to see if we have been shutdown,
 	select {
 	case <-g.shutdownCh:
-		g.Debug("server is dead, not authenticating")
-		return errors.New("server is dead, not authenticating")
+		msg := "not logged in, not attempting authentication"
+		g.Debug(msg)
+		return errors.New(msg)
 	default:
 		// if we were going to block, then that means we are still alive
 	}
@@ -968,7 +969,6 @@ func (g *gregorHandler) pingLoop() {
 	for {
 		select {
 		case <-g.G().Clock().After(duration):
-
 			var err error
 			ctx := context.Background()
 			if g.IsConnected() {
@@ -998,9 +998,6 @@ func (g *gregorHandler) pingLoop() {
 					}
 				}
 			}
-
-		case <-g.shutdownCh:
-			return
 		}
 	}
 

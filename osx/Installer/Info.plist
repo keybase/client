@@ -15,11 +15,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.46</string>
+	<string>1.1.47</string>
 	<key>CFBundleSignature</key>
 	<string>KEYB</string>
 	<key>CFBundleVersion</key>
-	<string>1.1.46</string>
+	<string>1.1.47</string>
 	<key>KBFuseBuild</key>
 	<string>3.5.2</string>
 	<key>KBFuseVersion</key>

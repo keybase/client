@@ -28,7 +28,7 @@ func (h *KBFSMountHandler) GetCurrentMountDir(ctx context.Context) (res string, 
 	if drive != "" && err == nil {
 		// Drive icon repairman: RemoteSettingsRepairman forgot about this, so let's set
 		// the registry again here for a few releases
-		doMountChange("", drive)
+		libkb.ChangeMountIcon("", drive)
 	}
 	return drive, err
 }
@@ -45,6 +45,6 @@ func (h *KBFSMountHandler) SetCurrentMountDir(_ context.Context, drive string) (
 		return err
 	}
 	h.G().ConfigReload()
-	doMountChange(oldMount, drive)
+	libkb.ChangeMountIcon(oldMount, drive)
 	return nil
 }

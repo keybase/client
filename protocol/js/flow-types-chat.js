@@ -709,6 +709,7 @@ export type ConversationErrorLocal = {
   message: string,
   remoteConv: Conversation,
   permanent: boolean,
+  unverifiedTLFName: string,
   rekeyInfo?: ?ConversationErrorRekey,
 }
 
@@ -1022,6 +1023,7 @@ export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
   conv?: ?ConversationLocal,
+  pagination?: ?Pagination,
 }
 
 export type LocalFileSource = {
@@ -1150,6 +1152,7 @@ export type MessageUnboxedError = {
   errMsg: string,
   messageID: MessageID,
   messageType: MessageType,
+  ctime: gregor1.Time,
 }
 
 export type MessageUnboxedErrorType =

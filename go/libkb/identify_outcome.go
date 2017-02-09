@@ -225,12 +225,12 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 
 	if ntf := i.NumTrackFailures(); ntf > 0 {
 		probs = append(probs,
-			fmt.Sprintf("%d track component%s failed",
+			fmt.Sprintf("%d followed proof%s failed",
 				ntf, GiveMeAnS(ntf)))
 	}
 
 	if len(probs) > 0 {
-		err = IdentifySummaryError{probs}
+		err = IdentifySummaryError{i.Username, probs}
 	}
 
 	return warnings, err

@@ -63,6 +63,7 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 		ErrMsg:      err.Error(),
 		MessageID:   msg.GetMessageID(),
 		MessageType: msg.GetMessageType(),
+		Ctime:       msg.ServerHeader.Ctime,
 	})
 }
 

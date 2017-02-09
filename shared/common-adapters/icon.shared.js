@@ -53,6 +53,8 @@ export function typeToIconMapper (type: IconType): IconType {
       return __SCREENSHOT__ ? 'icon-securing-static-266' : 'icon-securing-266'
     case 'icon-connecting-266':
       return __SCREENSHOT__ ? 'icon-loader-connecting-266-static' : 'icon-loader-connecting-266'
+    case 'icon-loader-uploading-16':
+      return __SCREENSHOT__ ? 'icon-loader-uploading-16-static' : 'icon-loader-uploading-16'
     default:
       return type
   }

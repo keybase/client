@@ -89,7 +89,7 @@ func (r *Resolver) ResolveFullExpressionWithBody(ctx context.Context, input stri
 }
 
 func (r *Resolver) resolveFullExpression(ctx context.Context, input string, withBody bool, needUsername bool) (res ResolveResult) {
-	defer r.G().CTrace(ctx, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
+	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
 
 	var expr AssertionExpression
 	expr, res.err = AssertionParseAndOnly(r.G().MakeAssertionContext(), input)
@@ -104,8 +104,14 @@ func (r *Resolver) resolveFullExpression(ctx context.Context, input string, with
 	return r.resolveURL(ctx, u, input, withBody, needUsername)
 }
 
-func (r *Resolver) getFromDiskCache(ctx context.Context, key string) (ret *ResolveResult) {
-	defer r.G().CTraceOK(ctx, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
+func (res *ResolveResult) addKeybaseNameIfKnown(au AssertionURL) {
+	if au.IsKeybase() && len(res.resolvedKbUsername) == 0 {
+		res.resolvedKbUsername = au.GetValue()
+	}
+}
+
+func (r *Resolver) getFromDiskCache(ctx context.Context, key string, au AssertionURL) (ret *ResolveResult) {
+	defer r.G().CVTraceOK(ctx, VLog1, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
 	var uid keybase1.UID
 	found, err := r.G().LocalDb.GetInto(&uid, resolveDbKey(key))
 	r.Stats.diskGets++
@@ -121,6 +127,10 @@ func (r *Resolver) getFromDiskCache(ctx context.Context, key string) (ret *Resol
 	return &ResolveResult{uid: uid}
 }
 
+func isMutable(au AssertionURL) bool {
+	return !(au.IsUID() || au.IsKeybase())
+}
+
 func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) ResolveResult {
 
 	// A standard keybase UID, so it's already resolved... unless we explicitly
@@ -133,12 +143,12 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 
 	ck := au.CacheKey()
 
-	if p := r.getFromMemCache(ctx, ck); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+	if p := r.getFromMemCache(ctx, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
 		return *p
 	}
 
-	if p := r.getFromDiskCache(ctx, ck); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
-		p.mutable = !au.IsKeybase()
+	if p := r.getFromDiskCache(ctx, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+		p.mutable = isMutable(au)
 		r.putToMemCache(ck, *p)
 		return *p
 	}
@@ -146,15 +156,20 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 	res := r.resolveURLViaServerLookup(ctx, au, input, withBody)
 
 	// Cache for a shorter period of time if it's not a Keybase identity
-	res.mutable = !au.IsKeybase()
+	res.mutable = isMutable(au)
 	r.putToMemCache(ck, res)
-	r.putToDiskCache(ck, res)
+
+	// We only put to disk cache if it's a Keybase-type assertion. In particular, UIDs
+	// are **not** stored to disk.
+	if au.IsKeybase() {
+		r.putToDiskCache(ctx, ck, res)
+	}
 
 	return res
 }
 
 func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
-	defer r.G().CTrace(ctx, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
+	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	var key, val string
 	var ares *APIRes
@@ -247,6 +262,10 @@ func (s ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
 	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h)
 }
 
+func (s ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
+	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h) && (s.diskGetHits == dh)
+}
+
 func NewResolver(g *GlobalContext) *Resolver {
 	return &Resolver{
 		Contextified: NewContextified(g),
@@ -269,8 +288,8 @@ func (r *Resolver) Shutdown() {
 	r.cache.Shutdown()
 }
 
-func (r *Resolver) getFromMemCache(ctx context.Context, key string) (ret *ResolveResult) {
-	defer r.G().CTraceOK(ctx, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
+func (r *Resolver) getFromMemCache(ctx context.Context, key string, au AssertionURL) (ret *ResolveResult) {
+	defer r.G().CVTraceOK(ctx, VLog1, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
 	if r.cache == nil {
 		return nil
 	}
@@ -298,6 +317,7 @@ func (r *Resolver) getFromMemCache(ctx context.Context, key string) (ret *Resolv
 		return nil
 	}
 	r.Stats.hits++
+	rres.addKeybaseNameIfKnown(au)
 	return rres
 }
 
@@ -308,7 +328,8 @@ func resolveDbKey(key string) DbKey {
 	}
 }
 
-func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
+func (r *Resolver) putToDiskCache(ctx context.Context, key string, res ResolveResult) {
+	r.G().VDL.CLogf(ctx, VLog1, "| Resolver#putToDiskCache (attempt) %+v", res)
 	// Only cache immutable resolutions to disk
 	if res.mutable {
 		return
@@ -317,6 +338,7 @@ func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
 	if res.err != nil {
 		return
 	}
+	r.G().VDL.CLogf(ctx, VLog1, "| Resolver#putToDiskCache (not short-circuited)")
 	r.Stats.diskPuts++
 	err := r.G().LocalDb.PutObj(resolveDbKey(key), nil, res.uid)
 	if err != nil {

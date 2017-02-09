@@ -19,7 +19,7 @@ typedef void (^KBOnServiceStatuses)(NSError *error, NSArray *serviceStatuses);
 
 + (void)list:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatuses)completion;
 
-+ (void)status:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatus)completion;
++ (void)status:(NSString *)binPath name:(NSString *)name timeout:(NSTimeInterval)timeout completion:(KBOnServiceStatus)completion;
 
 + (void)run:(NSString *)binPath args:(NSArray *)args completion:(KBCompletion)completion;
 

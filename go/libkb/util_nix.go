@@ -64,3 +64,7 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 func isUnicodeMark(b []byte) bool {
 	return false
 }
+
+func ChangeMountIcon(oldMount string, newMount string) error {
+	return nil
+}

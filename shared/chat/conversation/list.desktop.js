@@ -7,7 +7,6 @@ import EditPopup from './edit-popup.desktop'
 import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import SidePanel from './side-panel/index.desktop'
 import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
@@ -75,22 +74,6 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _indexToID = index => {
-    if (index === 0) {
-      return 'header'
-    } else if (index === 1) {
-      return 'loading'
-    } else {
-      const messageIndex = index - cellMessageStartIndex
-      const message = this.state.messages.get(messageIndex)
-      const id = message && message.key
-      if (id == null) {
-        console.warn('id is null for index:', messageIndex)
-      }
-      return id
-    }
-  }
-
   shouldComponentUpdate (nextProps: Props, nextState: State) {
     return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
   }
@@ -155,6 +138,10 @@ class ConversationList extends Component<void, Props, State> {
 
     if (willScrollDown) {
       this.setState({isLockedToBottom: true})
+    }
+
+    if (this.props.moreToLoad !== nextProps.moreToLoad) {
+      this._shouldForceUpdateGrid = true
     }
   }
 
@@ -488,9 +475,6 @@ class ConversationList extends Component<void, Props, State> {
                   columnWidth={width}
                   rowRenderer={this._rowRenderer} />)}</CellMeasurer>)}
         </AutoSizer>
-        {this.props.sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 0, width: 320}}>
-          <SidePanel {...this.props} />
-        </div>}
       </div>
     )
   }

@@ -8,6 +8,7 @@ import {navBasedOnLoginState} from '../../actions/login'
 import {registerGregorListeners, registerReachability} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
+import type {UpdateFollowing} from '../../constants/config'
 import type {AsyncAction, Action} from '../../constants/types/flux'
 
 isMobile && module.hot && module.hot.accept(() => {
@@ -32,7 +33,7 @@ function getConfig (): AsyncAction {
   }
 }
 
-export function isFollower (getState: any, username: string): boolean {
+function isFollower (getState: any, username: string): boolean {
   return !!getState().config.followers[username]
 }
 
@@ -56,7 +57,7 @@ function getMyFollowers (username: string): AsyncAction {
               summaries && summaries.forEach(s => { followers[s.username] = true })
               dispatch({
                 payload: {followers},
-                type: Constants.updateFollowers,
+                type: Constants.setFollowers,
               })
             },
             param: {uids},
@@ -68,7 +69,7 @@ function getMyFollowers (username: string): AsyncAction {
   }
 }
 
-export function isFollowing (getState: () => any, username: string) : boolean {
+function isFollowing (getState: () => any, username: string) : boolean {
   return !!getState().config.following[username]
 }
 
@@ -84,7 +85,7 @@ function getMyFollowing (username: string): AsyncAction {
         summaries && summaries.forEach(s => { following[s.username] = true })
         dispatch({
           payload: {following},
-          type: Constants.updateFollowing,
+          type: Constants.setFollowing,
         })
       },
       param: {assertion: username, filter: ''},
@@ -92,7 +93,7 @@ function getMyFollowing (username: string): AsyncAction {
   }
 }
 
-export function waitForKBFS (): AsyncAction {
+function waitForKBFS (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       configWaitForClientRpc({
@@ -113,7 +114,7 @@ export function waitForKBFS (): AsyncAction {
   }
 }
 
-export function getExtendedStatus (): AsyncAction {
+function getExtendedStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       configGetExtendedStatusRpc({
@@ -140,7 +141,7 @@ function registerListeners (): AsyncAction {
   }
 }
 
-export function retryBootstrap (): AsyncAction {
+function retryBootstrap (): AsyncAction {
   return (dispatch, getState) => {
     dispatch({payload: null, type: Constants.bootstrapRetry})
     dispatch(bootstrap())
@@ -153,7 +154,7 @@ function daemonError (error: ?string): Action {
 
 let bootstrapSetup = false
 type BootstrapOptions = {isReconnect?: boolean}
-export function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
+function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
   return (dispatch, getState) => {
     if (!bootstrapSetup) {
       bootstrapSetup = true
@@ -220,3 +221,16 @@ function getCurrentStatus (): AsyncAction {
   }
 }
 
+function updateFollowing (username: string, isTracking: boolean): UpdateFollowing {
+  return {payload: {username, isTracking}, type: Constants.updateFollowing}
+}
+
+export {
+  bootstrap,
+  getExtendedStatus,
+  isFollower,
+  isFollowing,
+  retryBootstrap,
+  updateFollowing,
+  waitForKBFS,
+}

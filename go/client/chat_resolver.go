@@ -66,7 +66,9 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 		cname, err = r.TlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, query)
 	}
 	if err != nil {
-		return fmt.Errorf("completing TLF name error: %v", err)
+		// When a recipient's proofs are failing, this is the error a CLI user
+		// will see. It needs to be human readable.
+		return fmt.Errorf("failed to open chat conversation: %v", err)
 	}
 	if string(cname.CanonicalName) != tlfName {
 		// If we auto-complete TLF name, we should let users know.

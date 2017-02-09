@@ -117,6 +117,7 @@ type GlobalTestOptions struct {
 }
 
 func (g *GlobalContext) GetLog() logger.Logger          { return g.Log }
+func (g *GlobalContext) GetVDebugLog() *VDebugLog       { return g.VDL }
 func (g *GlobalContext) GetAPI() API                    { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI    { return g.XAPI }
 func (g *GlobalContext) GetServerURI() string           { return g.Env.GetServerURI() }

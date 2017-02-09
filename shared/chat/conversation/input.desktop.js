@@ -30,10 +30,12 @@ class Conversation extends Component<void, Props, State> {
 
   componentDidMount () {
     document.body.addEventListener('keydown', this._globalKeyDownHandler)
+    document.body.addEventListener('keypress', this._globalKeyDownHandler)
   }
 
   componentWillUnmount () {
     document.body.removeEventListener('keydown', this._globalKeyDownHandler)
+    document.body.removeEventListener('keypress', this._globalKeyDownHandler)
   }
 
   componentDidUpdate (prevProps: Props) {
@@ -52,12 +54,11 @@ class Conversation extends Component<void, Props, State> {
       return
     }
 
-    // Allow copy
-    if (ev.metaKey && ['Meta', 'c'].includes(ev.key)) {
-      return
+    const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
+    const isValidSpecialKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].includes(ev.key)
+    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+      this._input.focus()
     }
-
-    this._input.focus()
   }
 
   _insertEmoji (emojiColons: string) {
@@ -81,9 +82,20 @@ class Conversation extends Component<void, Props, State> {
   }
 
   _pickFile = () => {
-    if (this._fileInput && this._fileInput.files && this._fileInput.files[0]) {
-      const {path, name, type} = this._fileInput.files[0]
-      this.props.onAttach(path, name, type.indexOf('image') >= 0 ? 'Image' : 'Other')
+    if (!this.props.selectedConversation) throw new Error('No conversation')
+    const conversationIDKey = this.props.selectedConversation
+    if (this._fileInput && this._fileInput.files && this._fileInput.files.length > 0) {
+      const inputs = Array.prototype.map.call(this._fileInput.files, file => {
+        const {path, name, type} = file
+        return {
+          conversationIDKey,
+          filename: path,
+          title: name,
+          type: type.indexOf('image') >= 0 ? 'Image' : 'Other',
+        }
+      })
+
+      this.props.onAttach(inputs)
       this._fileInput.value = null
     }
   }
@@ -131,7 +143,7 @@ class Conversation extends Component<void, Props, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-          <input type='file' style={{display: 'none'}} ref={this._setFileInputRef} onChange={this._pickFile} />
+          <input type='file' style={{display: 'none'}} ref={this._setFileInputRef} onChange={this._pickFile} multiple={true} />
           <Input
             autoFocus={true}
             small={true}

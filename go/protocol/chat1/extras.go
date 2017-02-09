@@ -46,10 +46,12 @@ func (cid ConversationID) Less(c ConversationID) bool {
 	return bytes.Compare(cid, c) < 0
 }
 
+const DbShortFormLen = 10
+
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
 func (cid ConversationID) DbShortForm() []byte {
-	return cid[:10]
+	return cid[:DbShortFormLen]
 }
 
 func MakeTLFID(val string) (TLFID, error) {
@@ -350,3 +352,21 @@ func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
 	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
 }
 */
+
+func NewConversationErrorLocal(
+	message string,
+	remoteConv Conversation,
+	permanent bool,
+	unverifiedTLFName string,
+	typ ConversationErrorType,
+	rekeyInfo *ConversationErrorRekey,
+) *ConversationErrorLocal {
+	return &ConversationErrorLocal{
+		Typ:               typ,
+		Message:           message,
+		RemoteConv:        remoteConv,
+		Permanent:         permanent,
+		UnverifiedTLFName: unverifiedTLFName,
+		RekeyInfo:         rekeyInfo,
+	}
+}
