@@ -823,7 +823,7 @@ if (var == "foo")
   echo "foo";
 else echo "bar";\`\`\`How about *bold* and _italic?_ nice.
 Now youre thinking with ~portals~ crypto.
-how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_`,
+how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
     },
     'emoji': {
       children: 'hello there :santa::skin-tone-3: 🌸😎👍🏿!',
@@ -852,6 +852,7 @@ else echo "bar";
     http://keybase.io
     *http://keybase.io*
     \`http://keybase.io\`
+    (https://keybase.io)
     https://keybase.io
     HTTP://cnn.com
     http://twitter.com
