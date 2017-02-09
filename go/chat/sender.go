@@ -116,6 +116,10 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 	return updated, nil
 }
 
+// Get all messages to be deleted.
+// If the entire conversation is cached locally, this will find all messages that should be deleted.
+// If the conversation is not cached, this relies on the server to get old messages, so the server
+// could omit messages. Those messages would then not be signed into the `Deletes` list.
 func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.MessagePlaintext,
 	convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
 
@@ -129,14 +133,14 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 		return msg, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
 	}
 
-	// Get the message to be deleted.
+	// Get the one message to be deleted by ID.
 	var uid gregor1.UID = s.G().Env.GetUID().ToBytes()
 	deleteTargets, err := s.G().ConvSource.GetMessages(ctx, convID, uid, []chat1.MessageID{deleteTargetID}, nil)
 	if err != nil {
 		return msg, err
 	}
 	if len(deleteTargets) != 1 {
-		return msg, fmt.Errorf("getAllDeletedEdits: no delete target found (%v)", len(deleteTargets))
+		return msg, fmt.Errorf("getAllDeletedEdits: wrong number of delete targets found (%v but expected 1)", len(deleteTargets))
 	}
 	deleteTarget := deleteTargets[0]
 	state, err := deleteTarget.State()
@@ -157,7 +161,10 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	// Time a couple seconds before that, because After querying is exclusive.
 	timeBeforeFirst := gregor1.ToTime(timeOfFirst.Add(-2 * time.Second))
 
-	// Get all the affected edits/AUs since just before the delete target
+	// Get all the affected edits/AUs since just before the delete target.
+	// Use ConvSource with an `After` which query. Fetches from a combination of local cache
+	// and the server. This is an opportunity for the server to retain messages that should
+	// have been deleted without getting caught.
 	tv, _, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender, &chat1.GetThreadQuery{
 		MarkAsRead:   false,
 		MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
