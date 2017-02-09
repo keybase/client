@@ -678,14 +678,21 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	}
 	uid := h.G().Env.GetUID()
 
+	// Sanity check that we have a TLF name here
+	if len(arg.Msg.ClientHeader.TlfName) == 0 {
+		h.Debug(ctx, "PostLocalNonblock: no TLF name specified: convID: %s uid: %s",
+			arg.ConversationID, uid)
+		return chat1.PostLocalNonblockRes{}, fmt.Errorf("no TLF name specified")
+	}
+
 	// Add outbox information
 	var prevMsgID chat1.MessageID
 	if arg.ClientPrev == 0 {
-		h.G().Log.Debug("PostLocalNonblock: ClientPrev not specified using local storage")
+		h.Debug(ctx, "PostLocalNonblock: ClientPrev not specified using local storage")
 		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid.ToBytes(), nil,
 			&chat1.Pagination{Num: 1})
 		if err != nil || len(thread.Messages) == 0 {
-			h.G().Log.Debug("PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
+			h.Debug(ctx, "PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
 			prevMsgID = 1
 		} else {
 			prevMsgID = thread.Messages[0].GetMessageID()
@@ -693,7 +700,7 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	} else {
 		prevMsgID = arg.ClientPrev
 	}
-	h.G().Log.Debug("PostLocalNonblock: using prevMsgID: %d", prevMsgID)
+	h.Debug(ctx, "PostLocalNonblock: using prevMsgID: %d", prevMsgID)
 	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
 		Prev: prevMsgID,
 	}
