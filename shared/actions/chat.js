@@ -288,6 +288,10 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
     return null
   }
 
+  if (convo.info.visibility !== ChatTypes.CommonTLFVisibility.private) {
+    return null
+  }
+
   // We don't support mixed reader/writers
   if (convo.info.tlfName.includes('#')) {
     return null
