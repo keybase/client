@@ -307,8 +307,9 @@ type folderBranchOps struct {
 
 	editHistory *TlfEditHistory
 
-	branchChanges kbfssync.RepeatedWaitGroup
-	mdFlushes     kbfssync.RepeatedWaitGroup
+	branchChanges      kbfssync.RepeatedWaitGroup
+	mdFlushes          kbfssync.RepeatedWaitGroup
+	forcedFastForwards kbfssync.RepeatedWaitGroup
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -5601,7 +5602,9 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		return
 	}
 
+	fbo.forcedFastForwards.Add(1)
 	go func() {
+		defer fbo.forcedFastForwards.Done()
 		ctx, cancelFunc := fbo.newCtxWithFBOID()
 		defer cancelFunc()
 
