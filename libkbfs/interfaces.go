@@ -812,6 +812,8 @@ type DiskBlockCache interface {
 	Put(tlfID tlf.ID, blockID kbfsblock.ID, block Block) error
 	// Delete deletes a block from the disk cache.
 	Delete(tlfID tlf.ID, blockID kbfsblock.ID) error
+	// Evict evicts some number of blocks from the disk cache.
+	Evict(tlfID tlf.ID, numBlocks int) error
 }
 
 // cryptoPure contains all methods of Crypto that don't depend on
