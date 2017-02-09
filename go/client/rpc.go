@@ -333,3 +333,12 @@ func GetSessionClient(g *libkb.GlobalContext) (keybase1.SessionClient, error) {
 	}
 	return keybase1.SessionClient{Cli: rcli}, nil
 }
+
+func GetSimpleFSClient(g *libkb.GlobalContext) (cli keybase1.SimpleFSClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.SimpleFSClient{Cli: rcli}
+	return cli, nil
+}
