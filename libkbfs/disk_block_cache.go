@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -17,8 +18,18 @@ const (
 	lruDbFilename               string = "diskCacheLRU.leveldb"
 )
 
+type diskBlockCacheEntry struct {
+	buf        []byte
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf
+}
+
+type diskBlockCacheConfig interface {
+	codecGetter
+}
+
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
 type DiskBlockCacheStandard struct {
+	config   diskBlockCacheConfig
 	maxBytes uint64
 	// protects everything below
 	lock     sync.RWMutex
@@ -29,8 +40,8 @@ type DiskBlockCacheStandard struct {
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
 
-func newDiskBlockCacheStandard(dirPath string, maxBytes uint64) (
-	*DiskBlockCacheStandard, error) {
+func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
+	maxBytes uint64) (*DiskBlockCacheStandard, error) {
 	blockDbPath := filepath.Join(dirPath, blockDbFilename)
 	blockDb, err := leveldb.OpenFile(blockDbPath, leveldbOptions)
 	if err != nil {
@@ -44,10 +55,41 @@ func newDiskBlockCacheStandard(dirPath string, maxBytes uint64) (
 		return nil, err
 	}
 	return &DiskBlockCacheStandard{
+		config:   config,
+		maxBytes: maxBytes,
 		blockDb:  blockDb,
 		lruDb:    lruDb,
-		maxBytes: maxBytes,
 	}, nil
+}
+
+func (cache *DiskBlockCacheStandard) updateLruLocked(tlfID tlf.ID,
+	blockBytes []byte) error {
+	key := append(tlfID.Bytes(), blockBytes...)
+	val, err := time.Now().MarshalBinary()
+	if err != nil {
+		return err
+	}
+	cache.lruDb.Put(key, val, nil)
+	return nil
+}
+
+func (cache *DiskBlockCacheStandard) decodeBlockCacheEntry(buf []byte) ([]byte,
+	kbfscrypto.BlockCryptKeyServerHalf, error) {
+	entry := diskBlockCacheEntry{}
+	err := cache.config.Codec().Decode(buf, &entry)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+	}
+	return entry.buf, entry.serverHalf, nil
+}
+
+func (cache *DiskBlockCacheStandard) encodeBlockCacheEntry(buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) ([]byte, error) {
+	entry := diskBlockCacheEntry{
+		buf:        buf,
+		serverHalf: serverHalf,
+	}
+	return cache.config.Codec().Encode(&entry)
 }
 
 // Get implements the DiskBlockCache interface for DiskBlockCacheStandard.
@@ -59,7 +101,13 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			DiskCacheClosedError{"Get"}
 	}
-	return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoSuchBlockError{blockID}
+	key := blockID.Bytes()
+	buf, err := cache.blockDb.Get(key, nil)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoSuchBlockError{blockID}
+	}
+	cache.updateLruLocked(tlfID, key)
+	return cache.decodeBlockCacheEntry(buf)
 }
 
 // Put implements the DiskBlockCache interface for DiskBlockCacheStandard.
