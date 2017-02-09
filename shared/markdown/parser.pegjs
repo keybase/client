@@ -36,13 +36,10 @@
 }
 
 start
- = children:(QuoteBlock / Line / BlankLine)* { return {type: 'text', children: flatten(children)} }
-
-BlankLine
- = WhiteSpace* LineTerminatorSequence { return text() }
+ = children:((Line LineTerminatorSequence)* Line?) { return {type: 'text', children: flatten(children)} }
 
 Line
- = (__INLINE_MACRO__<> / WhiteSpace+) LineTerminatorSequence?
+ = (QuoteBlock / __INLINE_MACRO__<> / WhiteSpace)*
 
 InlineStart
  = CodeBlock / InlineCode / Italic / Bold / Strike / Link / InlineCont
