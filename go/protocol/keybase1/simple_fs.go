@@ -165,7 +165,7 @@ func (e OpenFlags) String() string {
 }
 
 type Progress int
-type SfListResult struct {
+type SimpleFSListResult struct {
 	Entries  []Dirent `codec:"entries" json:"entries"`
 	Progress Progress `codec:"progress" json:"progress"`
 }
@@ -225,16 +225,16 @@ type RemoveArgs struct {
 }
 
 type ReadArgs struct {
-	OpID   OpID `codec:"opID" json:"opID"`
-	Path   Path `codec:"path" json:"path"`
-	Offset int  `codec:"offset" json:"offset"`
-	Size   int  `codec:"size" json:"size"`
+	OpID   OpID  `codec:"opID" json:"opID"`
+	Path   Path  `codec:"path" json:"path"`
+	Offset int64 `codec:"offset" json:"offset"`
+	Size   int   `codec:"size" json:"size"`
 }
 
 type WriteArgs struct {
-	OpID   OpID `codec:"opID" json:"opID"`
-	Path   Path `codec:"path" json:"path"`
-	Offset int  `codec:"offset" json:"offset"`
+	OpID   OpID  `codec:"opID" json:"opID"`
+	Path   Path  `codec:"path" json:"path"`
+	Offset int64 `codec:"offset" json:"offset"`
 }
 
 type CopyArgs struct {
@@ -516,7 +516,7 @@ type SimpleFSInterface interface {
 	SimpleFSListRecursive(context.Context, SimpleFSListRecursiveArg) error
 	// Get list of Paths in progress. Can indicate status of pending
 	// to get more entries.
-	SimpleFSReadList(context.Context, OpID) (SfListResult, error)
+	SimpleFSReadList(context.Context, OpID) (SimpleFSListResult, error)
 	// Begin copy of file or directory
 	SimpleFSCopy(context.Context, SimpleFSCopyArg) error
 	// Begin recursive copy of directory
@@ -862,7 +862,7 @@ func (c SimpleFSClient) SimpleFSListRecursive(ctx context.Context, __arg SimpleF
 
 // Get list of Paths in progress. Can indicate status of pending
 // to get more entries.
-func (c SimpleFSClient) SimpleFSReadList(ctx context.Context, opID OpID) (res SfListResult, err error) {
+func (c SimpleFSClient) SimpleFSReadList(ctx context.Context, opID OpID) (res SimpleFSListResult, err error) {
 	__arg := SimpleFSReadListArg{OpID: opID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReadList", []interface{}{__arg}, &res)
 	return

@@ -102,7 +102,7 @@
     },
     {
       "type": "record",
-      "name": "SfListResult",
+      "name": "SimpleFSListResult",
       "fields": [
         {
           "type": {
@@ -185,7 +185,7 @@
           "name": "path"
         },
         {
-          "type": "int",
+          "type": "long",
           "name": "offset"
         },
         {
@@ -207,7 +207,7 @@
           "name": "path"
         },
         {
-          "type": "int",
+          "type": "long",
           "name": "offset"
         }
       ]
@@ -344,7 +344,7 @@
           "type": "OpID"
         }
       ],
-      "response": "SfListResult",
+      "response": "SimpleFSListResult",
       "doc": "Get list of Paths in progress. Can indicate status of pending\n   to get more entries."
     },
     "simpleFSCopy": {

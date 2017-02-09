@@ -4123,7 +4123,7 @@ export type Reachable =
 export type ReadArgs = {
   opID: OpID,
   path: Path,
-  offset: int,
+  offset: long,
   size: int,
 }
 
@@ -4323,11 +4323,6 @@ export type SessionStatus = {
 
 export type SessionToken = string
 
-export type SfListResult = {
-  entries?: ?Array<Dirent>,
-  progress: Progress,
-}
-
 export type Sig = {
   seqno: int,
   sigID: SigID,
@@ -4375,6 +4370,11 @@ export type SignupRes = {
   passphraseOk: boolean,
   postOk: boolean,
   writeOk: boolean,
+}
+
+export type SimpleFSListResult = {
+  entries?: ?Array<Dirent>,
+  progress: Progress,
 }
 
 export type SimpleFSSimpleFSCheckRpcParam = Exact<{
@@ -4774,7 +4774,7 @@ export type WebProof = {
 export type WriteArgs = {
   opID: OpID,
   path: Path,
-  offset: int,
+  offset: long,
 }
 
 export type accountEmailChangeRpcParam = Exact<{
@@ -5732,7 +5732,7 @@ type SimpleFSSimpleFSGetOpsResult = ?Array<OpDescription>
 
 type SimpleFSSimpleFSMakeOpidResult = OpID
 
-type SimpleFSSimpleFSReadListResult = SfListResult
+type SimpleFSSimpleFSReadListResult = SimpleFSListResult
 
 type SimpleFSSimpleFSReadResult = FileContent
 
