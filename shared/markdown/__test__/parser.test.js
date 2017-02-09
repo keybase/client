@@ -53,6 +53,11 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses native zwj emoji correctly', () => {
+    const ast = parser.parse('👩‍❤️‍💋‍👩 👩‍👩‍👧‍👧!')
+    expect(ast).toMatchSnapshot()
+  })
+
   it('parses quote blocks correctly', () => {
     const ast = parser.parse(`
 > this is quoted

@@ -288,6 +288,10 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
     return null
   }
 
+  if (convo.info.visibility !== ChatTypes.CommonTLFVisibility.private) {
+    return null
+  }
+
   // We don't support mixed reader/writers
   if (convo.info.tlfName.includes('#')) {
     return null
@@ -692,6 +696,13 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
       if (incomingMessage) {
+        // If it's a public chat, the GUI (currently) wants no part of it. We
+        // especially don't want to surface the conversation as if it were a
+        // private one, which is what we were doing before this change.
+        if (incomingMessage.conv && incomingMessage.conv.info && incomingMessage.conv.info.visibility !== CommonTLFVisibility.private) {
+          return
+        }
+
         yield call(_updateInbox, incomingMessage.conv)
 
         const messageUnboxed: MessageUnboxed = incomingMessage.message
@@ -730,13 +741,6 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               msgID: message.messageID,
             },
           })
-        }
-
-        // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
-        const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
-
-        if (!inboxConvo) {
-          yield put(loadInbox())
         }
 
         const conversationState = yield select(_conversationStateSelector, conversationIDKey)
@@ -1714,9 +1718,10 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
   const appFocused = yield select(_focusedSelector)
   const selectedTab = yield select(_routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
+  const convoIsSelected = action.payload.isSelected
 
   // Only send if you're not looking at it
-  if (!action.isSelected || !appFocused || !chatTabSelected) {
+  if (!convoIsSelected || !appFocused || !chatTabSelected) {
     const me = yield select(usernameSelector)
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     // Is this message part of a muted conversation? If so don't notify.
@@ -1738,6 +1743,9 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
   const selectedConversation = yield select(_selectedSelector)
+  if (!selectedConversation) {
+    return
+  }
   yield put({type: 'chat:clearMessages', payload: {conversationIDKey: selectedConversation}})
   yield put(loadMoreMessages(selectedConversation, false))
 }

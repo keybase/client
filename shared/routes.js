@@ -11,7 +11,6 @@ import Nav from './nav'
 import {
   chatTab,
   loginTab,
-  peopleTab,
   profileTab,
   folderTab,
   devicesTab,
@@ -28,8 +27,7 @@ const routeTree = new RouteDefNode({
     [folderTab]: foldersRoutes,
     [devicesTab]: devicesRoutes,
     [profileTab]: profileRoutes,
-    [peopleTab]: searchRoutes,  // native
-    [searchTab]: searchRoutes,  // desktop
+    [searchTab]: searchRoutes,
     [settingsTab]: settingsRoutes,
   },
 })

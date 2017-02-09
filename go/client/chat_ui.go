@@ -160,8 +160,9 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 		return chat1.ConversationLocal{}, fmt.Errorf("no text message found")
 	}
 
+	// Don't bother with activelist, to avoid loading users from the client.
 	wnames, rnames, err := utils.ReorderParticipants(ctx, c.G().GetUPAKLoader(),
-		txtMsg.ClientHeader.TlfName, conv.Metadata.ActiveList)
+		txtMsg.ClientHeader.TlfName, nil)
 	if err != nil {
 		return chat1.ConversationLocal{}, err
 	}

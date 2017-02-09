@@ -74,22 +74,6 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _indexToID = index => {
-    if (index === 0) {
-      return 'header'
-    } else if (index === 1) {
-      return 'loading'
-    } else {
-      const messageIndex = index - cellMessageStartIndex
-      const message = this.state.messages.get(messageIndex)
-      const id = message && message.key
-      if (id == null) {
-        console.warn('id is null for index:', messageIndex)
-      }
-      return id
-    }
-  }
-
   shouldComponentUpdate (nextProps: Props, nextState: State) {
     return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
   }
