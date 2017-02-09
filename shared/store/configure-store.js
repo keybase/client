@@ -1,18 +1,18 @@
 // @flow
 import createLogger from 'redux-logger'
-import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import rootReducer from '../reducers'
 import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
 import {Iterable} from 'immutable'
 import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
-import {createStore} from 'redux'
+import {convertToError} from '../util/errors'
+import {createWrappedStore} from '../util/dev'
 import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
 import {requestIdleCallback} from '../util/idle-callback'
-import {convertToError} from '../util/errors'
+import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -85,20 +85,20 @@ const errorCatching = store => next => action => {
   }
 }
 
-let middlewares = [errorCatching, createSagaMiddleware(crashHandler), thunkMiddleware]
-
-if (enableStoreLogging) {
-  middlewares.push(loggerMiddleware)
-} else if (enableActionLogging) {
-  middlewares.push(actionLogger)
-}
-
-if (closureStoreCheck) {
-  middlewares.push(closureCheck)
-}
-
 export default function configureStore (initialState: any) {
-  const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
+  let middlewares = [errorCatching, createSagaMiddleware(crashHandler), thunkMiddleware]
+
+  // if (enableStoreLogging) {
+    // middlewares.push(loggerMiddleware)
+  // } else if (enableActionLogging) {
+    // middlewares.push(actionLogger)
+  // }
+
+  // if (closureStoreCheck) {
+    // middlewares.push(closureCheck)
+  // }
+
+  const store = createWrappedStore()(rootReducer, initialState, storeEnhancer(middlewares))
   theStore = store
 
   if (module.hot && !isMobile) {
