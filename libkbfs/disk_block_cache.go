@@ -101,13 +101,27 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			DiskCacheClosedError{"Get"}
 	}
-	key := blockID.Bytes()
-	buf, err := cache.blockDb.Get(key, nil)
+	var entry []byte
+	err := runUnlessCanceled(ctx, func() error {
+		blockBytes := blockID.Bytes()
+		buf, err := cache.blockDb.Get(blockBytes, nil)
+		if err != nil {
+			return NoSuchBlockError{blockID}
+		}
+		err = cache.updateLruLocked(tlfID, blockBytes)
+		if err != nil {
+			return err
+		}
+		entry = buf
+		return nil
+	})
 	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+	}
+	if entry == nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoSuchBlockError{blockID}
 	}
-	cache.updateLruLocked(tlfID, key)
-	return cache.decodeBlockCacheEntry(buf)
+	return cache.decodeBlockCacheEntry(entry)
 }
 
 // Put implements the DiskBlockCache interface for DiskBlockCacheStandard.
@@ -119,7 +133,13 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	if cache.isClosed {
 		return DiskCacheClosedError{"Put"}
 	}
-	return nil
+	entry, err := cache.encodeBlockCacheEntry(buf, serverHalf)
+	blockBytes := blockID.Bytes()
+	err = cache.blockDb.Put(blockBytes, entry, nil)
+	if err != nil {
+		return err
+	}
+	return cache.updateLruLocked(tlfID, blockBytes)
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
@@ -130,7 +150,13 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	if cache.isClosed {
 		return DiskCacheClosedError{"Delete"}
 	}
-	return nil
+	blockBytes := blockID.Bytes()
+	err := cache.blockDb.Delete(blockBytes, nil)
+	if err != nil {
+		return err
+	}
+	lruKey := append(tlfID.Bytes(), blockBytes...)
+	return cache.lruDb.Delete(lruKey, nil)
 }
 
 // Evict implements the DiskBlockCache interface for DiskBlockCacheStandard.
