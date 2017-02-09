@@ -14,29 +14,14 @@ for asynchronous server updates, and will serve several clients, like the comman
 utility, the graphical desktop app ([see `electron`](../electron)), and the Keybase
 FUSE-mounted file system.
 
-For now, the only client ready for production is the command-line utility.
-
-### Status
-
-The Keybase service/client is approaching a release-ready state on OSX and Linux,
-with Windows shortly behind.  Code in this repository is safe to run against either
-our [production site](https://keybase.io) or our [staging server](https://stage0.keybase.io).
+Code in this repository can run against either our [production
+site](https://keybase.io) or our [staging
+server](https://stage0.keybase.io).
 
 ### Install production client
 
-#### Mac
-
-See [Download for mac OS](https://keybase.io/docs/the_app/install_macos)
-
-#### Linux
-
-Download the appropriate package:
-
-* [64-bit .deb](https://dist.keybase.io/linux/deb/keybase-latest-amd64.deb)
-* [32-bit .deb](https://dist.keybase.io/linux/deb/keybase-latest-i386.deb)
-* [64-bit .rpm](https://dist.keybase.io/linux/rpm/keybase-latest-x86_64.rpm)
-* [32-bit .rpm](https://dist.keybase.io/linux/rpm/keybase-latest-i386.rpm)
-* [Arch Linux](https://aur.archlinux.org/packages/keybase-release/)
+If you're not building Keybase yourself, follow our [usual install
+instructions](https://keybase.io/download).
 
 ### Building
 

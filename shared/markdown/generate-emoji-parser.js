@@ -34,6 +34,8 @@ function genEmojiData () {
     addEmojiLiteral(emoji.unified, emoji.short_name)
   })
 
+  emojiLiterals.sort((a, b) => b.length - a.length)
+
   return {emojiIndex, emojiLiterals, emojiCharacters}
 }
 

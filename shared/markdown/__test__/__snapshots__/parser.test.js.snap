@@ -227,6 +227,28 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses native zwj emoji correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        ":woman-kiss-woman:",
+      ],
+      "type": "native-emoji",
+    },
+    " ",
+    Object {
+      "children": Array [
+        ":woman-woman-girl-girl:",
+      ],
+      "type": "native-emoji",
+    },
+    "!",
+  ],
+  "type": "text",
+}
+`;
+
 exports[`Markdown parser parses numbers and some symbols emoji 1`] = `
 Object {
   "children": Array [

@@ -1,0 +1,233 @@
+@namespace("keybase.1")
+
+protocol SimpleFS {
+
+  import idl "common.avdl";
+
+/*
+  File manipulation interface
+  
+  Caller provides OpID to one of these methods to begin an operation:
+    simpleFSList
+    simpleFSListRecursive
+    simpleFSCopy
+    simpleFSOpen
+    simpleFSMove
+    simpleFSRemove
+  then calls one of the following until until status is no longer pending
+  or operation is cancelled:
+    simpleFSReadList (after list or listRecursive)
+    simpleFSRead (after open)
+    simpleFSWrite (after open)
+    simpleFSCheck (after copy, move or remove)
+  Caller can optionally block by calling wait()
+  Operation must be closed by calling close
+*/
+
+  // Random GUID provided by caller 
+  fixed OpID(16);
+  
+  enum PathType {
+    LOCAL_0,
+    KBFS_1
+  }  
+
+  variant Path switch (PathType PathType) {
+    case LOCAL: string;
+    case KBFS: string;
+  }
+
+  enum DirentType {
+    FILE_0,
+    DIR_1,
+    SYM_2,
+    EXEC_3
+  }
+  
+  record Dirent {
+    Time time;
+    int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
+    string name;
+    DirentType direntType;
+  }
+
+  @typedef("int")
+  record ErrorNum {}
+
+  enum OpenFlags {
+    READ_0,         // exclusive of other flags
+    REPLACE_1,      // overwrite
+    EXISTING_2,     // fail if not present already
+    WRITE_4,        // read is implied if not write, executable, or directory
+    APPEND_8,
+    DIRECTORY_16
+  }
+
+  @typedef("int")
+  record Progress {}
+
+  record SimpleFSListResult {
+    array<Dirent> entries;
+    Progress progress;
+  }
+  
+  record FileContent {
+    bytes data;         // Zero bytes when read is complete
+    Progress progress;  // Amount of data copied so far during this and previous reads
+  }                     // (TBD: should this be percentage?)
+
+  enum AsyncOps {
+    LIST_0,
+    LIST_RECURSIVE_1,
+    READ_2,
+    WRITE_3,
+    COPY_4,
+    MOVE_5,
+    REMOVE_6
+  }
+
+  record ListArgs {
+    OpID opID;
+    Path path;
+  }
+
+  record RemoveArgs {
+    OpID opID;
+    Path path;
+  }
+
+  record ReadArgs {
+    OpID opID;
+    Path path;
+    long offset;
+    int size;
+  }
+
+  record WriteArgs {
+    OpID opID;
+    Path path;
+    long offset;
+  }
+
+  record CopyArgs {
+    OpID opID;
+    Path src;
+    Path dest;
+  }
+
+  record MoveArgs {
+    OpID opID;
+    Path src;
+    Path dest;
+  }
+
+  variant OpDescription switch (AsyncOps asyncOp) {
+    case LIST: ListArgs;
+    case LIST_RECURSIVE: ListArgs;
+    case READ: ReadArgs;
+    case WRITE: WriteArgs;
+    case COPY: CopyArgs;
+    case MOVE: MoveArgs;
+    case REMOVE: RemoveArgs;
+  }
+
+  /**
+   Begin list of items in directory at path
+   Retrieve results with readList()
+   Can be a single file to get flags/status
+   */
+  void simpleFSList(OpID opID, Path path);
+
+  /**
+   Begin recursive list of items in directory at path
+   */
+  void simpleFSListRecursive(OpID opID, Path path);
+
+  /**
+   Get list of Paths in progress. Can indicate status of pending
+   to get more entries.
+   */
+  SimpleFSListResult simpleFSReadList(OpID opID);
+
+  /**
+   Begin copy of file or directory 
+   */
+  void simpleFSCopy(OpID opID, Path src, Path dest);
+
+  /**
+   Begin recursive copy of directory 
+   */
+  void simpleFSCopyRecursive(OpID opID, Path src, Path dest);
+
+  /**
+   Begin move of file or directory, from/to KBFS only
+   */
+  void simpleFSMove(OpID opID, Path src, Path dest);
+
+  /**
+   Rename file or directory, KBFS side only
+   */
+  void simpleFSRename(Path src, Path dest);
+
+  /**
+   Create/open a file and leave it open
+   or create a directory
+   Files must be closed afterwards.
+   */
+  void simpleFSOpen(OpID opID, Path dest, OpenFlags flags);
+
+  /**
+   Set/clear file bits - only executable for now
+  */
+  void simpleFSSetStat(Path dest, DirentType flag);
+
+  /**
+   Read (possibly partial) contents of open file,
+   up to the amount specified by size.
+   Repeat until zero bytes are returned or error.
+   If size is zero, read an arbitrary amount.
+   */
+  FileContent simpleFSRead(OpID opID, int offset, int size);
+
+  /**
+   Append content to opened file.
+   May be repeated until OpID is closed.
+   */
+  void simpleFSWrite(OpID opID, int offset, bytes content);
+
+  /**
+   Remove file or directory from filesystem
+   */
+  void simpleFSRemove(OpID opID, Path path);
+
+  /**
+   Get info about file
+   */
+  Dirent simpleFSStat(Path path);
+
+  /**
+   Convenience helper for generating new random value
+   */
+  OpID simpleFSMakeOpid();
+
+  /**
+   Close OpID, cancels any pending operation.
+   Must be called after list/copy/remove
+   */
+  void simpleFSClose(OpID opID);
+
+  /**
+   Check progress of pending operation
+   */
+  Progress simpleFSCheck(OpID opID);
+
+  /**
+   Get all the outstanding operations
+   */
+  array<OpDescription> simpleFSGetOps();
+
+  /**
+   Blocking wait for the pending operation to finish
+   */
+  void simpleFSWait(OpID opID);
+}

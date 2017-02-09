@@ -7,7 +7,7 @@ import openURL from '../../util/open-url'
 import {RPCError} from '../../util/errors'
 import {bootstrap} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
-import {devicesTab, loginTab} from '../../constants/tabs'
+import {devicesTab, loginTab, profileTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {loadDevices} from '../devices'
 import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
@@ -58,7 +58,7 @@ export function navBasedOnLoginState (): AsyncAction {
           console.log('Loading overridden logged in tab')
           dispatch(navigateTo([overrideLoggedInTab]))
         } else {
-          dispatch(navigateTo([devicesTab]))
+          dispatch(navigateTo([profileTab]))
         }
       } else if (status.registered) { // relogging in
         dispatch(getAccounts())
