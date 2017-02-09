@@ -1145,11 +1145,12 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 		arg.Sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
-	chatUI.ChatAttachmentDownloadDone(ctx)
 
 	if err := arg.Sink.Close(); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
+
+	chatUI.ChatAttachmentDownloadDone(ctx)
 
 	return chat1.DownloadAttachmentLocalRes{
 		RateLimits:       limits,
