@@ -230,7 +230,7 @@ type folderBranchOps struct {
 	// should only be taken in the following order to avoid deadlock:
 	mdWriterLock leveledMutex // taken by any method making MD modifications
 
-	// protects access to head and latestMergedRevision.
+	// protects access to head, latestMergedRevision and hasBeenCleared.
 	headLock leveledRWMutex
 	head     ImmutableRootMetadata
 	// latestMergedRevision tracks the latest heard merged revision on server
