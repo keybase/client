@@ -1491,10 +1491,9 @@ func (j *tlfJournal) putBlockData(
 		return err
 	}
 
+	var putData bool
 	defer func() {
-		if err != nil {
-			j.diskLimiter.onBlockPutFail(bufLen)
-		}
+		j.diskLimiter.afterBlockPut(bufLen, putData)
 	}()
 
 	j.journalLock.Lock()
@@ -1505,20 +1504,22 @@ func (j *tlfJournal) putBlockData(
 
 	storedBytesBefore := j.blockJournal.getStoredBytes()
 
-	err = j.blockJournal.putData(ctx, id, blockCtx, buf, serverHalf)
+	putData, err = j.blockJournal.putData(
+		ctx, id, blockCtx, buf, serverHalf)
 	if err != nil {
 		return err
 	}
 
 	storedBytesAfter := j.blockJournal.getStoredBytes()
 
-	// Either the stored bytes increased by `bufLen`, or stayed the
-	// same because the already existed.
-	if storedBytesAfter != (storedBytesBefore+bufLen) &&
-		storedBytesBefore != storedBytesAfter {
+	if putData && storedBytesAfter != (storedBytesBefore+bufLen) {
 		panic(fmt.Sprintf(
-			"storedBytes changed from %d to %d, but bufLen is %d",
+			"storedBytes changed from %d to %d, but %d bytes of data was put",
 			storedBytesBefore, storedBytesAfter, bufLen))
+	} else if !putData && storedBytesBefore != storedBytesAfter {
+		panic(fmt.Sprintf(
+			"storedBytes changed from %d to %d, but data was not put",
+			storedBytesBefore, storedBytesAfter))
 	}
 
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{

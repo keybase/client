@@ -80,9 +80,12 @@ type diskLimiter interface {
 	beforeBlockPut(ctx context.Context, blockBytes int64,
 		log logger.Logger) (int64, error)
 
-	// onBlockPutFail is called if putting a block of the given
-	// size (which must be > 0) fails.
-	onBlockPutFail(blockBytes int64)
+	// afterBlockPut is called after putting a block of the given
+	// size (which must match the corresponding call to
+	// beforeBlockPut). putData reflects whether or not the data
+	// was actually put; if it's false, it's either because of an
+	// error or because the block already existed.
+	afterBlockPut(blockBytes int64, putData bool)
 
 	// onBlockDelete is called after deleting a block of the given
 	// number of bytes of disk space, which must be >=

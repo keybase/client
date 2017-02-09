@@ -351,9 +351,12 @@ func (j *blockJournal) getUnflushedBytes() int64 {
 	return j.aggregateInfo.UnflushedBytes
 }
 
+// putData puts the given block data. If err is non-nil, putData will
+// always be false.
 func (j *blockJournal) putData(
-	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	ctx context.Context, id kbfsblock.ID, context kbfsblock.Context,
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (
+	putData bool, err error) {
 	j.log.CDebugf(ctx, "Putting %d bytes of data for block %s with context %v",
 		len(buf), id, context)
 	defer func() {
@@ -366,18 +369,18 @@ func (j *blockJournal) putData(
 
 	next, err := j.end()
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	putData, err := j.s.put(id, context, buf, serverHalf, next.String())
+	putData, err = j.s.put(id, context, buf, serverHalf, next.String())
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if putData {
 		err = j.accumulateBytes(int64(len(buf)))
 		if err != nil {
-			return err
+			return false, err
 		}
 	}
 
@@ -386,10 +389,10 @@ func (j *blockJournal) putData(
 		Contexts: kbfsblock.ContextMap{id: {context}},
 	})
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return putData, nil
 }
 
 func (j *blockJournal) addReference(

@@ -128,8 +128,10 @@ func (s backpressureDiskLimiter) beforeBlockPut(
 	return s.s.Acquire(ctx, blockBytes)
 }
 
-func (s backpressureDiskLimiter) onBlockPutFail(blockBytes int64) {
-	s.s.Release(blockBytes)
+func (s backpressureDiskLimiter) afterBlockPut(blockBytes int64, putData bool) {
+	if !putData {
+		s.s.Release(blockBytes)
+	}
 }
 
 func (s backpressureDiskLimiter) onBlockDelete(blockBytes int64) {
