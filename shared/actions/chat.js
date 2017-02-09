@@ -1718,9 +1718,10 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
   const appFocused = yield select(_focusedSelector)
   const selectedTab = yield select(_routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
+  const convoIsSelected = action.payload.isSelected
 
   // Only send if you're not looking at it
-  if (!action.isSelected || !appFocused || !chatTabSelected) {
+  if (!convoIsSelected || !appFocused || !chatTabSelected) {
     const me = yield select(usernameSelector)
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     // Is this message part of a muted conversation? If so don't notify.
