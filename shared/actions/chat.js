@@ -692,6 +692,13 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
       if (incomingMessage) {
+        // If it's a public chat, the GUI (currently) wants no part of it. We
+        // especially don't want to surface the conversation as if it were a
+        // private one, which is what we were doing before this change.
+        if (incomingMessage.conv && incomingMessage.conv.info && incomingMessage.conv.info.visibility !== CommonTLFVisibility.private) {
+          return
+        }
+
         yield call(_updateInbox, incomingMessage.conv)
 
         const messageUnboxed: MessageUnboxed = incomingMessage.message
