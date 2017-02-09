@@ -404,6 +404,15 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 		uids = append(uids, u)
 	}
 	kbpki := km.config.KBPKI()
+
+	// Let the service know that we're doing the identifies because of
+	// a rekey, so they can suppress popups in some cases.
+	ctx, err := makeExtendedIdentify(
+		ctx, keybase1.TLFIdentifyBehavior_KBFS_REKEY)
+	if err != nil {
+		return err
+	}
+
 	return identifyUserList(ctx, kbpki, kbpki, uids, tlfID.IsPublic())
 }
 
