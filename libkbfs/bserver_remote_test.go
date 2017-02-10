@@ -67,6 +67,31 @@ func (fc *fakeBServerClient) AddReference(ctx context.Context, arg keybase1.AddR
 	return nil
 }
 
+type testBlockServerRemoteConfig struct {
+	log           logger.Logger
+	codec         kbfscodec.Codec
+	signer        kbfscrypto.Signer
+	sessionGetter currentSessionGetter
+}
+
+var _ blockServerRemoteConfig = (*testBlockServerRemoteConfig)(nil)
+
+func (c testBlockServerRemoteConfig) MakeLogger(_ string) logger.Logger {
+	return c.log
+}
+
+func (c testBlockServerRemoteConfig) Codec() kbfscodec.Codec {
+	return c.codec
+}
+
+func (c testBlockServerRemoteConfig) Signer() kbfscrypto.Signer {
+	return c.signer
+}
+
+func (c testBlockServerRemoteConfig) currentSessionGetter() currentSessionGetter {
+	return c.sessionGetter
+}
+
 // Test that putting a block, and getting it back, works
 func TestBServerRemotePutAndGet(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
@@ -75,7 +100,8 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	fc := fakeBServerClient{
 		entries: make(map[keybase1.BlockIdCombo]fakeBlockEntry),
 	}
-	b := newBlockServerRemoteWithClient(codec, nil, log, &fc)
+	config := testBlockServerRemoteConfig{log, codec, nil, nil}
+	b := newBlockServerRemoteWithClient(config, &fc)
 
 	tlfID := tlf.FakeID(2, false)
 	bCtx := kbfsblock.MakeFirstContext(currentUID, keybase1.BlockType_DATA)
@@ -116,7 +142,8 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	currentUID := keybase1.MakeTestUID(1)
 	serverConn, conn := rpc.MakeConnectionForTest(t)
 	log := logger.NewTestLogger(t)
-	b := newBlockServerRemoteWithClient(codec, nil, log,
+	config := testBlockServerRemoteConfig{log, codec, nil, nil}
+	b := newBlockServerRemoteWithClient(config,
 		keybase1.BlockClient{Cli: conn.GetClient()})
 
 	f := func(ctx context.Context) error {

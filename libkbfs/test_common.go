@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/pkg/errors"
@@ -65,26 +64,24 @@ func newConfigForTest(loggerFn func(module string) logger.Logger) *ConfigLocal {
 
 // MakeTestBlockServerOrBust makes a block server from the given
 // arguments and environment variables.
-func MakeTestBlockServerOrBust(t logger.TestLogBackend, codec kbfscodec.Codec,
-	signer kbfscrypto.Signer, csg currentSessionGetter,
-	rpcLogFactory *libkb.RPCLogFactory, log logger.Logger) BlockServer {
+func MakeTestBlockServerOrBust(t logger.TestLogBackend,
+	config blockServerRemoteConfig, rpcLogFactory *libkb.RPCLogFactory) BlockServer {
 	// see if a local remote server is specified
 	bserverAddr := os.Getenv(EnvTestBServerAddr)
 	switch {
 	case bserverAddr == TempdirServerAddr:
 		var err error
-		blockServer, err := NewBlockServerTempDir(codec, log)
+		blockServer, err := NewBlockServerTempDir(config.Codec(), config.MakeLogger(""))
 		if err != nil {
 			t.Fatal(err)
 		}
 		return blockServer
 
 	case len(bserverAddr) != 0:
-		return NewBlockServerRemote(codec, signer, csg,
-			log, bserverAddr, rpcLogFactory)
+		return NewBlockServerRemote(config, bserverAddr, rpcLogFactory)
 
 	default:
-		return NewBlockServerMemory(log)
+		return NewBlockServerMemory(config.MakeLogger(""))
 	}
 }
 
@@ -119,9 +116,8 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	blockServer := MakeTestBlockServerOrBust(t, config.Codec(),
-		config.Crypto(), config.KBPKI(),
-		env.NewContext().NewRPCLogFactory(), log)
+	blockServer := MakeTestBlockServerOrBust(t, config,
+		env.NewContext().NewRPCLogFactory())
 	config.SetBlockServer(blockServer)
 
 	// see if a local remote server is specified
@@ -232,9 +228,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.noBGFlush = config.noBGFlush
 
 	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
-		bserverLog := config.MakeLogger("BSR")
-		blockServer := NewBlockServerRemote(c.Codec(), c.Crypto(),
-			c.KBPKI(), bserverLog, s.RemoteAddress(),
+		blockServer := NewBlockServerRemote(c, s.RemoteAddress(),
 			env.NewContext().NewRPCLogFactory())
 		c.SetBlockServer(blockServer)
 	} else {

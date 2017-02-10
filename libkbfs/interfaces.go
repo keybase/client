@@ -47,6 +47,18 @@ type cryptoPureGetter interface {
 	cryptoPure() cryptoPure
 }
 
+type cryptoGetter interface {
+	Crypto() Crypto
+}
+
+type currentSessionGetterGetter interface {
+	currentSessionGetter() currentSessionGetter
+}
+
+type signerGetter interface {
+	Signer() kbfscrypto.Signer
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -1466,6 +1478,9 @@ type Config interface {
 	codecGetter
 	cryptoPureGetter
 	keyGetterGetter
+	cryptoGetter
+	signerGetter
+	currentSessionGetterGetter
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -1483,7 +1498,6 @@ type Config interface {
 	SetBlockCache(BlockCache)
 	DirtyBlockCache() DirtyBlockCache
 	SetDirtyBlockCache(DirtyBlockCache)
-	Crypto() Crypto
 	SetCrypto(Crypto)
 	SetCodec(kbfscodec.Codec)
 	MDOps() MDOps
