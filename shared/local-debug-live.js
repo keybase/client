@@ -8,10 +8,10 @@ import {envVarDebugJson, isTesting} from './local-debug'
 
 // Shared settings
 const dumbFilterJson = (envVarDebugJson() || {}).dumbFilter || ''
-const dumbFilterOverride = 'conversationslist' // Changing this will apply during a hot reload session
+const dumbFilterOverride = '' // Changing this will apply during a hot reload session
 
 export const dumbFilter = dumbFilterOverride || dumbFilterJson
 
 // Mobile only settings
-export const dumbIndex = 8
+export const dumbIndex = 0
 export const dumbFullscreen = isTesting
