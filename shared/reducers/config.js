@@ -20,14 +20,14 @@ export type ConfigState = {
   error: ?any,
   bootstrapTriesRemaining: number,
   bootStatus: BootStatus,
-  readyForConnect: boolean,
+  readyForBootstrap: boolean,
   followers: {[key: string]: true},
   following: {[key: string]: true},
 }
 
 // Mobile is ready for connect automatically, desktop needs to wait for
 // the installer.
-const readyForConnect = isMobile
+const readyForBootstrap = isMobile
 
 const initialState: ConfigState = {
   globalError: null,
@@ -42,7 +42,7 @@ const initialState: ConfigState = {
   error: null,
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   bootStatus: 'bootStatusLoading',
-  readyForConnect,
+  readyForBootstrap,
   followers: {},
   following: {},
 }
@@ -79,10 +79,10 @@ export default function (state: ConfigState = initialState, action: Action): Con
       }
       return state
 
-    case 'config:readyForConnect': {
+    case 'config:readyForBootstrap': {
       return {
         ...state,
-        readyForConnect: true,
+        readyForBootstrap: true,
       }
     }
     case Constants.statusLoaded:

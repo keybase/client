@@ -90,7 +90,7 @@ function setupApp (store) {
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {
-    store.dispatch({payload: undefined, type: 'config:readyForConnect'})
+    store.dispatch({payload: undefined, type: 'config:readyForBootstrap'})
     store.dispatch(bootstrap())
   })
   ipcRenderer.send('installer')
