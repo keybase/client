@@ -24,6 +24,7 @@
       <ComponentGroupRef Id="PrompterComponents" />
       <ComponentGroupRef Id="ApplicationShortcuts" />
       <ComponentGroupRef Id="StartupShortcuts" />
+      <ComponentGroupRef Id="GuiStartMenuTileColors" />
     </Feature>
 
 
@@ -174,8 +175,19 @@
           <RegistryValue Name="ShortCutStartUpGUI" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-    </ComponentGroup>
-    
+    </ComponentGroup>    
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="GuiStartMenuTileColors" Directory="GuiDir">
+      <Component Id="GUIShortcutVisualElementManifest" Guid="{CC9530CC-0A1B-4F92-829E-EBA66CA04FD8}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveGUIShortcutVisualElementManifest" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="GUIShortcutVisualElementManifest" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="GUIShortcutVisualElementManifest.xml" Source="$(env.GOPATH)\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\Keybase.visualelementsmanifest.xml" Checksum="yes"/>
+      </Component>
+    </ComponentGroup>    
   </Fragment>
   
   <Fragment>

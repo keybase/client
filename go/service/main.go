@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
@@ -38,7 +39,7 @@ type Service struct {
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
 	messageDeliverer     *chat.Deliverer
-	badger               *Badger
+	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
 }
@@ -55,7 +56,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:       make(chan keybase1.ExitCode),
 		logForwarder: newLogFwd(),
 		rekeyMaster:  newRekeyMaster(g),
-		badger:       newBadger(g),
+		badger:       badges.NewBadger(g),
 		reachability: newReachability(g),
 	}
 }
@@ -103,6 +104,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
 		chat1.LocalProtocol(newChatLocalHandler(xp, g, d.gregor)),
+		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -242,10 +244,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configureRekey(uir)
 	d.tryLogin()
 	d.runBackgroundIdentifier()
-
-	// Add a tlfHandler into the user changed handler group so we can keep identify info
-	// fresh
-	d.G().AddUserChangedHandler(newTlfHandler(nil, d.G()))
 }
 
 func (d *Service) createMessageDeliverer() {
@@ -274,8 +272,13 @@ func (d *Service) createChatSources() {
 		ri, si, func() keybase1.TlfInterface { return tlf })
 
 	d.G().ConvSource = chat.NewConversationSource(d.G(), d.G().Env.GetConvSourceType(),
-		boxer, storage.New(d.G(), si), ri)
+		boxer, storage.New(d.G(), si), ri, si)
 
+	// Add a tlfHandler into the user changed handler group so we can keep identify info
+	// fresh
+	d.G().AddUserChangedHandler(chat.NewIdentifyChangedHandler(d.G(), func() keybase1.TlfInterface {
+		return tlf
+	}))
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {

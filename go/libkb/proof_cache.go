@@ -89,10 +89,23 @@ type ProofCache struct {
 	capac int
 	lru   *lru.Cache
 	sync.RWMutex
+	noDisk bool
 }
 
 func NewProofCache(g *GlobalContext, capac int) *ProofCache {
 	return &ProofCache{Contextified: NewContextified(g), capac: capac}
+}
+
+func (pc *ProofCache) DisableDisk() {
+	pc.Lock()
+	defer pc.Unlock()
+	pc.noDisk = true
+}
+
+func (pc *ProofCache) Reset() error {
+	pc.Lock()
+	defer pc.Unlock()
+	return pc.initCache()
 }
 
 func (pc *ProofCache) setup() error {
@@ -101,6 +114,10 @@ func (pc *ProofCache) setup() error {
 	if pc.lru != nil {
 		return nil
 	}
+	return pc.initCache()
+}
+
+func (pc *ProofCache) initCache() error {
 	lru, err := lru.New(pc.capac)
 	if err != nil {
 		return err
@@ -170,6 +187,11 @@ func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 		pc.G().Log.Debug("- ProofCache.dbGet(%s) -> %v", sidstr, (cr != nil))
 	}()
 
+	if pc.noDisk {
+		pc.G().Log.Debug("| disk proof cache disabled")
+		return nil
+	}
+
 	jw, err := pc.G().LocalDb.Get(dbkey)
 	if err != nil {
 		pc.G().Log.Errorf("Error lookup up proof check in DB: %s", err)
@@ -198,6 +220,10 @@ func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 }
 
 func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
+	if pc.noDisk {
+		return nil
+	}
+
 	dbkey, _ := pc.dbKey(sid)
 	jw := cr.Pack()
 	return pc.G().LocalDb.Put(dbkey, []DbKey{}, jw)

@@ -1,7 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {Component} from 'react'
-
+import type {Component} from 'react'
 import type {ConnectedComponent} from 'react-redux'
 import type {ConnectedComponent as TypedConnectedComponent} from '../util/typed-connect'
 

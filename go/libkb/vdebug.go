@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/logger"
+	"golang.org/x/net/context"
 )
 
 // VDebugLog is a "Verbose" debug logger; enable it if you really
@@ -36,6 +37,14 @@ func (v *VDebugLog) Log(lev VDebugLevel, fs string, args ...interface{}) {
 		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
 		fs = prfx + fs
 		v.log.Debug(fs, args...)
+	}
+}
+
+func (v *VDebugLog) CLogf(ctx context.Context, lev VDebugLevel, fs string, args ...interface{}) {
+	if lev <= v.lev {
+		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
+		fs = prfx + fs
+		v.log.CDebugf(ctx, fs, args...)
 	}
 }
 

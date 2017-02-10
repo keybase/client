@@ -120,6 +120,36 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 	return engine.RunEngine(eng, ectx)
 }
 
+func (h *LoginHandler) LoginProvisionedDevice(ctx context.Context, arg keybase1.LoginProvisionedDeviceArg) error {
+	eng := engine.NewLoginProvisionedDevice(h.G(), arg.Username)
+
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(arg.SessionID),
+		NetContext: ctx,
+		SessionID:  arg.SessionID,
+	}
+
+	if arg.NoPassphrasePrompt {
+		eng.SecretStoreOnly = true
+	} else {
+		ectx.LoginUI = h.getLoginUI(arg.SessionID)
+		ectx.SecretUI = h.getSecretUI(arg.SessionID, h.G())
+	}
+
+	return engine.RunEngine(eng, ectx)
+}
+
+func (h *LoginHandler) LoginWithPaperKey(ctx context.Context, sessionID int) error {
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(sessionID),
+		SecretUI:   h.getSecretUI(sessionID, h.G()),
+		NetContext: ctx,
+		SessionID:  sessionID,
+	}
+	eng := engine.NewLoginWithPaperKey(h.G())
+	return engine.RunEngine(eng, ectx)
+}
+
 func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisionArg) error {
 	if h.G().Env.GetRunMode() == libkb.ProductionRunMode {
 		return errors.New("PGPProvision is a devel-only RPC")

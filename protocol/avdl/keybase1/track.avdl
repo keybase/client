@@ -25,6 +25,6 @@ protocol track {
 
   void checkTracking(int sessionID);
 
-  void fakeTrackingChanged(int sessionID, string username);
+  void fakeTrackingChanged(int sessionID, string username, boolean isTracking);
 }
 

@@ -4,28 +4,28 @@ import * as Constants from '../constants/profile'
 import type {Actions, State} from '../constants/profile'
 
 const initialState: State = {
-  errorText: null,
   errorCode: null,
-  waiting: false,
-  username: '',
-  platform: null,
-  usernameValid: true,
-  revoke: {},
-  proofFound: false,
-  proofStatus: null,
-  sigID: null,
+  errorText: null,
   pgpInfo: {
-    fullName: null,
-    errorText: null,
     email1: null,
     email2: null,
     email3: null,
     errorEmail1: false,
     errorEmail2: false,
     errorEmail3: false,
+    errorText: null,
+    fullName: null,
   },
   pgpPublicKey: null,
+  platform: null,
+  proofFound: false,
+  proofStatus: null,
   proofText: null,
+  revoke: {},
+  sigID: null,
+  username: '',
+  usernameValid: true,
+  waiting: false,
 }
 
 // A simple check, the server does a fuller check
@@ -132,8 +132,8 @@ export default function (state: State = initialState, action: Actions) {
       if (action.error) { break }
       return {
         ...state,
-        errorText: action.payload.errorText,
         errorCode: action.payload.errorCode,
+        errorText: action.payload.errorText,
       }
     case Constants.updateSigID:
       if (action.error) { break }

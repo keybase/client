@@ -69,6 +69,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	}
 	h := newChatLocalHandler(nil, tc.G, nil)
 	mockRemote := kbtest.NewChatRemoteMock(c.world)
+	mockRemote.SetCurrentUser(user.User.GetUID().ToBytes())
+
 	h.tlf = kbtest.NewTlfMock(c.world)
 	h.boxer = chat.NewBoxer(tc.G, h.tlf)
 	f := func() libkb.SecretUI {
@@ -76,7 +78,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	}
 	storage := storage.New(tc.G, f)
 	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage,
-		func() chat1.RemoteInterface { return mockRemote })
+		func() chat1.RemoteInterface { return mockRemote },
+		func() libkb.SecretUI { return &libkb.TestSecretUI{} })
 	tc.G.InboxSource = chat.NewHybridInboxSource(tc.G,
 		func() keybase1.TlfInterface { return h.tlf },
 		func() chat1.RemoteInterface { return mockRemote },
@@ -99,12 +102,6 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 }
 
 func (c *chatTestContext) cleanup() {
-	for _, u := range c.users() {
-		deliverer := c.world.Tcs[u.Username].G.MessageDeliverer
-		if deliverer != nil {
-			deliverer.Stop(context.TODO())
-		}
-	}
 	c.world.Cleanup()
 }
 
@@ -115,18 +112,26 @@ func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
 	return users
 }
 
-func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
-	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType, others...)
+func mustCreatePublicConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType,
+		chat1.TLFVisibility_PUBLIC, others...)
 	ctc.advanceFakeClock(time.Second)
 	return created
 }
 
-func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType,
+		chat1.TLFVisibility_PRIVATE, others...)
+	ctc.advanceFakeClock(time.Second)
+	return created
+}
+
+func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, visibility chat1.TLFVisibility, others ...string) (created chat1.ConversationInfoLocal) {
 	var err error
 	ncres, err := ctc.as(t, creator).chatLocalHandler().NewConversationLocal(context.Background(), chat1.NewConversationLocalArg{
 		TlfName:       strings.Join(others, ",") + "," + creator.Username,
 		TopicType:     topicType,
-		TlfVisibility: chat1.TLFVisibility_PRIVATE,
+		TlfVisibility: visibility,
 	})
 	if err != nil {
 		t.Fatalf("NewConversationLocal error: %v\n", err)
@@ -249,18 +254,69 @@ func TestGetInboxNonblock(t *testing.T) {
 	ui := kbtest.NewChatUI(cb)
 	ctc.as(t, users[0]).h.mockChatUI = ui
 
+	// Create a bunch of blank convos
 	convs := make(map[string]bool)
 	for i := 0; i < numconvs; i++ {
 		convs[mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[i+1]).user().Username).Id.String()] = true
 	}
 
+	t.Logf("blank convos test")
+	// Get inbox (should be blank)
 	_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
 		chat1.GetInboxNonblockLocalArg{
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		},
 	)
 	require.NoError(t, err)
-	// Get inbox
+	select {
+	case ibox := <-cb:
+		require.NotNil(t, ibox.InboxRes, "nil inbox")
+		require.Zero(t, len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox received")
+	}
+	// Get all convos
+	for i := 0; i < numconvs; i++ {
+		select {
+		case conv := <-cb:
+			require.NotNil(t, conv.ConvRes, "no conv")
+			delete(convs, conv.ConvID.String())
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no conv received")
+		}
+	}
+	require.Equal(t, 0, len(convs), "didnt get all convs")
+
+	// Send a bunch of messages
+	t.Logf("messages in convos test")
+	convs = make(map[string]bool)
+	for i := 0; i < numconvs; i++ {
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[i+1]).user().Username)
+		convs[conv.Id.String()] = true
+
+		_, err := ctc.as(t, users[0]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     conv.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "HI",
+				}),
+			},
+		})
+		require.NoError(t, err)
+	}
+
+	// Get inbox (should be blank)
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(context.TODO(),
+		chat1.GetInboxNonblockLocalArg{
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		},
+	)
+	require.NoError(t, err)
 	select {
 	case ibox := <-cb:
 		require.NotNil(t, ibox.InboxRes, "nil inbox")
@@ -268,7 +324,6 @@ func TestGetInboxNonblock(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox received")
 	}
-
 	// Get all convos
 	for i := 0; i < numconvs; i++ {
 		select {
@@ -719,7 +774,7 @@ func TestGetOutbox(t *testing.T) {
 	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
 	outbox := storage.NewOutbox(tc.G, users[0].User.GetUID().ToBytes(), h.getSecretUI)
 
-	obid, err := outbox.PushMessage(context.TODO(), created.Id, chat1.MessagePlaintext{
+	obr, err := outbox.PushMessage(context.TODO(), created.Id, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
@@ -738,7 +793,7 @@ func TestGetOutbox(t *testing.T) {
 
 	routbox := extractOutbox(t, thread.Thread.Messages)
 	require.Equal(t, 1, len(routbox), "wrong size outbox")
-	require.Equal(t, obid, routbox[0].Outbox().OutboxID, "wrong outbox ID")
+	require.Equal(t, obr.OutboxID, routbox[0].Outbox().OutboxID, "wrong outbox ID")
 
 	thread, err = h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created2.Id,
@@ -849,6 +904,8 @@ func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)             
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
 func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
+func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
+}
 func (n *chatListener) ChatInboxStale(uid keybase1.UID)                                {}
 func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
@@ -936,4 +993,70 @@ func TestPostLocalNonblock(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no event received")
 	}
+}
+
+func TestFindConversations(t *testing.T) {
+	ctc := makeChatTestContext(t, "FindConversations", 3)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	t.Logf("basic test")
+	created := mustCreatePublicConversationForTest(t, ctc, users[2], chat1.TopicType_CHAT,
+		users[1].Username)
+	convRemote := ctc.world.GetConversationByID(created.Id)
+	require.NotNil(t, convRemote)
+	convRemote.Metadata.Visibility = chat1.TLFVisibility_PUBLIC
+	convRemote.Metadata.ActiveList =
+		[]gregor1.UID{users[2].User.GetUID().ToBytes(), users[1].User.GetUID().ToBytes()}
+
+	res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(context.TODO(),
+		chat1.FindConversationsLocalArg{
+			TlfName:          created.TlfName,
+			Visibility:       chat1.TLFVisibility_PUBLIC,
+			TopicType:        chat1.TopicType_CHAT,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res.Conversations), "no conv found")
+	require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
+
+	t.Logf("test topic name")
+	_, err = ctc.as(t, users[2]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
+		ConversationID:   created.Id,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        created.Triple,
+				MessageType: chat1.MessageType_METADATA,
+				TlfName:     created.TlfName,
+				TlfPublic:   true,
+			},
+			MessageBody: chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+				ConversationTitle: "MIKE",
+			}),
+		},
+	})
+	require.NoError(t, err)
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(context.TODO(),
+		chat1.FindConversationsLocalArg{
+			TlfName:          created.TlfName,
+			Visibility:       chat1.TLFVisibility_PUBLIC,
+			TopicType:        chat1.TopicType_CHAT,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+	require.Equal(t, 0, len(res.Conversations), "conv found")
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(context.TODO(),
+		chat1.FindConversationsLocalArg{
+			TlfName:          created.TlfName,
+			Visibility:       chat1.TLFVisibility_PUBLIC,
+			TopicType:        chat1.TopicType_CHAT,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			TopicName:        "MIKE",
+		})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res.Conversations), "conv found")
+	require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
 }

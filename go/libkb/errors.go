@@ -35,11 +35,17 @@ func ProofErrorToState(pe ProofError) keybase1.ProofState {
 		return keybase1.ProofState_OK
 	}
 
-	if s := pe.GetProofStatus(); s == keybase1.ProofStatus_NO_HINT || s == keybase1.ProofStatus_UNKNOWN_TYPE {
-		return keybase1.ProofState_NONE
+	switch pe.GetProofStatus() {
+	case keybase1.ProofStatus_NO_HINT:
+		return keybase1.ProofState_SIG_HINT_MISSING
+	case keybase1.ProofStatus_UNKNOWN_TYPE:
+		return keybase1.ProofState_UNKNOWN_TYPE
+	case keybase1.ProofStatus_UNCHECKED:
+		return keybase1.ProofState_UNCHECKED
+	default:
+		return keybase1.ProofState_TEMP_FAILURE
 	}
 
-	return keybase1.ProofState_TEMP_FAILURE
 }
 
 type ProofErrorImpl struct {
@@ -76,6 +82,11 @@ var ProofErrorDNSOverTor = &ProofErrorImpl{
 var ProofErrorHTTPOverTor = &ProofErrorImpl{
 	Status: keybase1.ProofStatus_TOR_SKIPPED,
 	Desc:   "HTTP proofs aren't reliable over Tor",
+}
+
+var ProofErrorUnchecked = &ProofErrorImpl{
+	Status: keybase1.ProofStatus_UNCHECKED,
+	Desc:   "Proof unchecked due to privacy concerns",
 }
 
 type TorSessionRequiredError struct{}
@@ -1255,11 +1266,14 @@ func (e IdentifyFailedError) Error() string {
 //=============================================================================
 
 type IdentifySummaryError struct {
+	username string
 	problems []string
 }
 
 func (e IdentifySummaryError) Error() string {
-	return fmt.Sprintf("%s", strings.Join(e.problems, "; "))
+	return fmt.Sprintf("failed to identify %q: %s",
+		e.username,
+		strings.Join(e.problems, "; "))
 }
 
 func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
@@ -1711,6 +1725,36 @@ func (e DBError) Error() string {
 
 func NewDBError(s string) DBError {
 	return DBError{Msg: s}
+}
+
+//=============================================================================
+
+// These rekey types are not-exact duplicates of the libkbfs errors of the same name.
+
+// NeedSelfRekeyError indicates that the folder in question needs to
+// be rekeyed for the local device, and can be done so by one of the
+// other user's devices.
+type NeedSelfRekeyError struct {
+	// Canonical tlf name
+	Tlf string
+	Msg string
+}
+
+func (e NeedSelfRekeyError) Error() string {
+	return e.Msg
+}
+
+// NeedOtherRekeyError indicates that the folder in question needs to
+// be rekeyed for the local device, and can only done so by one of the
+// other users.
+type NeedOtherRekeyError struct {
+	// Canonical tlf name
+	Tlf string
+	Msg string
+}
+
+func (e NeedOtherRekeyError) Error() string {
+	return e.Msg
 }
 
 //=============================================================================

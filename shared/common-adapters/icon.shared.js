@@ -47,6 +47,14 @@ export function typeToIconMapper (type: IconType): IconType {
       return __SCREENSHOT__ ? 'icon-loader-infinity-static-80' : 'icon-loader-infinity-80'
     case 'icon-facebook-visibility':
       return __SCREENSHOT__ ? 'icon-facebook-visibility-static' : 'icon-facebook-visibility'
+    case 'icon-secure-266':
+      return __SCREENSHOT__ ? 'icon-secure-static-266' : 'icon-secure-266'
+    case 'icon-securing-266':
+      return __SCREENSHOT__ ? 'icon-securing-static-266' : 'icon-securing-266'
+    case 'icon-connecting-266':
+      return __SCREENSHOT__ ? 'icon-loader-connecting-266-static' : 'icon-loader-connecting-266'
+    case 'icon-loader-uploading-16':
+      return __SCREENSHOT__ ? 'icon-loader-uploading-16-static' : 'icon-loader-uploading-16'
     default:
       return type
   }

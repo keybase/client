@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	require "github.com/stretchr/testify/require"
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
@@ -55,11 +56,12 @@ type Identify2WithUIDTester struct {
 	libkb.BaseServiceType
 	finishCh        chan struct{}
 	startCh         chan struct{}
-	checkStatusHook func(libkb.SigHint) libkb.ProofError
+	checkStatusHook func(libkb.SigHint, libkb.ProofCheckerMode) libkb.ProofError
 	cache           identify2testCache
 	slowStats       cacheStats
 	fastStats       cacheStats
 	now             time.Time
+	card            keybase1.UserCard
 	userLoads       map[keybase1.UID]int
 }
 
@@ -101,9 +103,9 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
 
-func (i *Identify2WithUIDTester) CheckStatus(_ libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(_ libkb.ProofContext, h libkb.SigHint, pcm libkb.ProofCheckerMode) libkb.ProofError {
 	if i.checkStatusHook != nil {
-		return i.checkStatusHook(h)
+		return i.checkStatusHook(h, pcm)
 	}
 	i.G().Log.Debug("Check status rubber stamp: %+v", h)
 	return nil
@@ -143,7 +145,8 @@ func (i *Identify2WithUIDTester) ReportTrackToken(keybase1.TrackToken) (err erro
 func (i *Identify2WithUIDTester) SetStrict(b bool) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayUserCard(keybase1.UserCard) error {
+func (i *Identify2WithUIDTester) DisplayUserCard(card keybase1.UserCard) error {
+	i.card = card
 	return nil
 }
 
@@ -333,7 +336,7 @@ func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Ident
 		cache: i,
 		tcl:   importTrackingLink(t, tc.G),
 	}
-	i.checkStatusHook = func(l libkb.SigHint) libkb.ProofError {
+	i.checkStatusHook = func(l libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 		if strings.Contains(l.GetHumanURL(), "twitter") {
 			tc.G.Log.Debug("failing twitter proof %s", l.GetHumanURL())
 			return libkb.NewProofError(keybase1.ProofStatus_DELETED, "gone!")
@@ -373,7 +376,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	defer tc.Cleanup()
 	tester := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = tester
-	tester.checkStatusHook = func(l libkb.SigHint) libkb.ProofError {
+	tester.checkStatusHook = func(l libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 		if strings.Contains(l.GetHumanURL(), "twitter") {
 			tc.G.Log.Debug("failing twitter proof %s", l.GetHumanURL())
 			return libkb.NewProofError(keybase1.ProofStatus_DELETED, "gone!")
@@ -381,7 +384,8 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		return nil
 	}
 
-	var origUI libkb.IdentifyUI = tester
+	var origUI libkb.IdentifyUI
+	origUI = tester
 
 	checkBrokenRes := func(res *keybase1.Identify2Res) {
 		if !res.Upk.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
@@ -407,7 +411,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	runChatGUI := func() {
 		// Now run the engine again, but in normal mode, and check that we don't hit
 		// the cached broken gy.
-		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, ChatGUIMode: true})
+		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
 			noMe:  true,
@@ -620,7 +624,7 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 		wg.Done()
 	}()
 
-	i.checkStatusHook = func(l libkb.SigHint) libkb.ProofError {
+	i.checkStatusHook = func(l libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 		if strings.Contains(l.GetHumanURL(), "twitter") {
 			tc.G.Log.Debug("failing twitter proof %s", l.GetHumanURL())
 			return libkb.NewProofError(keybase1.ProofStatus_DELETED, "gone!")
@@ -663,7 +667,7 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	i.checkStatusHook = func(l libkb.SigHint) libkb.ProofError {
+	i.checkStatusHook = func(l libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 		switch {
 		case strings.Contains(l.GetHumanURL(), "twitter"):
 			wg.Done()
@@ -934,6 +938,81 @@ func TestIdentifyAfterDbNuke(t *testing.T) {
 	}
 	tc.G.Log.Debug("------------ ID Alice Iteration 1 ---------------")
 	runIDAlice()
+}
+
+func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+
+	eve := CreateAndSignupFakeUser(tc, "e")
+	_, _, err := proveRooter(tc.G, eve)
+	tc.G.ProofCache.DisableDisk()
+	require.NoError(t, err)
+	Logout(tc)
+
+	alice := CreateAndSignupFakeUser(tc, "a")
+
+	runTest := func(identifyBehavior keybase1.TLFIdentifyBehavior, returnUnchecked bool, shouldCheck bool, wantedMode libkb.ProofCheckerMode) {
+
+		i := newIdentify2WithUIDTester(tc.G)
+		checked := false
+		i.checkStatusHook = func(l libkb.SigHint, pcm libkb.ProofCheckerMode) libkb.ProofError {
+			checked = true
+			if strings.Contains(l.GetHumanURL(), "rooter") {
+				if !shouldCheck {
+					t.Fatalf("should not have gotten a check; should have hit cache")
+				}
+				require.Equal(t, pcm, wantedMode, "we get a passive ID in GUI mode")
+				if returnUnchecked {
+					return libkb.ProofErrorUnchecked
+				}
+			}
+			tc.G.Log.Debug("proof rubber-stamped: %s", l.GetHumanURL())
+			return nil
+		}
+
+		tc.G.Services = i
+		arg := &keybase1.Identify2Arg{
+			Uid:              eve.UID(),
+			IdentifyBehavior: identifyBehavior,
+			NeedProofSet:     true,
+		}
+		eng := NewIdentify2WithUID(tc.G, arg)
+		eng.testArgs = &Identify2WithUIDTestArgs{
+			noMe: false,
+		}
+		ctx := Context{IdentifyUI: i}
+		var waiter func()
+		if !identifyBehavior.ShouldSuppressTrackerPopups() {
+			waiter = launchWaiter(t, i.finishCh)
+		}
+		err = eng.Run(&ctx)
+		require.NoError(t, err)
+		require.Equal(t, checked, shouldCheck)
+		if waiter != nil {
+			waiter()
+		}
+	}
+
+	// Alice ID's Eve, in chat mode, without a track. Assert that we get a
+	// PASSIVE proof checker mode for rooter.
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModePassive)
+
+	// Alice ID's Eve, in standard ID mode, without a track. Assert that we get a
+	// ACTIVE proof checker mode for the rooter
+	runTest(keybase1.TLFIdentifyBehavior_DEFAULT_KBFS, false, true, libkb.ProofCheckerModeActive)
+
+	// Alice ID's Eve in chat mode, without a track. But she should hit the proof cache
+	// from right above.
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, false, false, libkb.ProofCheckerModePassive)
+
+	trackUser(tc, alice, eve.NormalizedUsername())
+
+	tc.G.ProofCache.Reset()
+
+	// Alice ID's Eve, in chat mode, with a track. Assert that we get an
+	// Active proof checker mode for rooter.
+	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModeActive)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

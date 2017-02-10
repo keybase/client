@@ -7,6 +7,7 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 type resolveTestClock struct {
@@ -83,5 +84,54 @@ func TestResolveSimple(t *testing.T) {
 		t.Fatal("wrong error type")
 	} else if !strings.Contains(terr.Msg, "ambiguous") {
 		t.Fatal("didn't get ambiguous error")
+	}
+}
+
+func TestResolveNeedUsername(t *testing.T) {
+	ctx := context.Background()
+	tc := libkb.SetupTest(t, "resolveSimple", 1)
+	tc.G.Services = GetServices()
+	r, clock := newTestResolverCache(tc.G)
+	goodResolve := func(s string) {
+		lctx := libkb.WithLogTag(ctx, "RSLV")
+		res := r.ResolveFullExpressionNeedUsername(lctx, s)
+		if err := res.GetError(); err != nil {
+			t.Fatal(err)
+		}
+		if res.GetUID() != tracyUID {
+			t.Fatalf("Got wrong UID; wanted %s but got %s", tracyUID, res.GetUID())
+		}
+	}
+	goodResolve("t_tracy")
+	if !r.Stats.Eq(1, 0, 0, 0, 0) {
+		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
+	}
+	goodResolve("t_tracy")
+	if !r.Stats.Eq(1, 0, 0, 0, 1) {
+		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
+	}
+	clock.tick(libkb.ResolveCacheMaxAge * 10)
+	goodResolve("t_tracy")
+	if !r.Stats.EqWithDiskHits(1, 1, 0, 0, 1, 1) {
+		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
+	}
+
+	goodResolve("uid:" + string(tracyUID))
+	if !r.Stats.EqWithDiskHits(2, 1, 0, 0, 1, 1) {
+		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
+	}
+	goodResolve("uid:" + string(tracyUID))
+	if !r.Stats.EqWithDiskHits(2, 1, 0, 0, 2, 1) {
+		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
+	}
+
+	clock.tick(libkb.ResolveCacheMaxAge * 10)
+
+	// At this point, the uid resolution is out of memory cache,
+	// and we don't write it to disk. So we're going to totally miss
+	// the cache here.
+	goodResolve("uid:" + string(tracyUID))
+	if !r.Stats.EqWithDiskHits(2, 2, 0, 0, 2, 1) {
+		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
 	}
 }

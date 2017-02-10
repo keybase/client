@@ -8,6 +8,7 @@ import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/typ
 
 export type ConfigState = {
   globalError: ?Error,
+  daemonError: ?Error,
   status: ?GetCurrentStatusRes,
   config: ?Config,
   extendedConfig: ?ExtendedStatus,
@@ -24,6 +25,7 @@ export type ConfigState = {
 
 const initialState: ConfigState = {
   globalError: null,
+  daemonError: null,
   status: null,
   config: null,
   extendedConfig: null,
@@ -113,12 +115,23 @@ export default function (state: ConfigState = initialState, action: Action): Con
     }
 
     case Constants.updateFollowing: {
+      const {username, isTracking} = action.payload
+      return {
+        ...state,
+        following: {
+          ...state.following,
+          [username]: isTracking,
+        },
+      }
+    }
+
+    case Constants.setFollowing: {
       return {
         ...state,
         following: action.payload.following,
       }
     }
-    case Constants.updateFollowers: {
+    case Constants.setFollowers: {
       return {
         ...state,
         followers: action.payload.followers,
@@ -134,6 +147,12 @@ export default function (state: ConfigState = initialState, action: Action): Con
       return {
         ...state,
         globalError: action.payload,
+      }
+    }
+    case Constants.daemonError: {
+      return {
+        ...state,
+        daemonError: action.payload.daemonError,
       }
     }
 

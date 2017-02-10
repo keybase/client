@@ -8,6 +8,7 @@ import type {TypedState} from '../constants/reducer'
 export default connect(
   (state: TypedState) => ({
     error: state.config.globalError,
+    daemonError: state.config.daemonError,
     reachability: state.gregor.reachability,
   }),
   (dispatch: any) => ({

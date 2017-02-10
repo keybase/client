@@ -1,8 +1,8 @@
 // @flow
 import {Component} from 'react'
-import {List} from 'immutable'
+import {List, Map} from 'immutable'
 
-import type {InboxState, ConversationIDKey} from '../../constants/chat'
+import type {InboxState, ConversationIDKey, RekeyInfo} from '../../constants/chat'
 
 export type Props = {
   nowOverride?: number, // just for dumb rendering
@@ -11,7 +11,9 @@ export type Props = {
   selectedConversation: ConversationIDKey,
   onNewChat: () => void,
   children?: React$Element<*>,
+  conversationUnreadCounts: Map<ConversationIDKey, number>,
   you: string,
+  rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
 }
 
 export default class ConversationList extends Component<void, Props, void> { }

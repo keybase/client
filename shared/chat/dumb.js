@@ -1,12 +1,14 @@
 // @flow
+import ConversationBanner from './conversation/banner'
 import ConversationHeader from './conversation/header.desktop'
 import ConversationInput from './conversation/input.desktop'
 import ConversationList from './conversation/list.desktop'
-import ConversationBanner from './conversation/banner'
 import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
 import HiddenString from '../util/hidden-string'
-import {InboxStateRecord, MetaDataRecord} from '../constants/chat'
+import ParticipantRekey from './conversation/participant-rekey.desktop'
+import YouRekey from './conversation/you-rekey.desktop'
+import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 
@@ -148,13 +150,23 @@ const inbox = [
   }),
 ]
 
+const conversationUnreadCounts = {
+  convo1: 3,
+  convo2: 0,
+  convo3: 0,
+  convo5: 0,
+  convo6: 1,
+}
+
 const commonConversationsProps = {
   nowOverride: now,
   inbox: List(inbox),
+  conversationUnreadCounts: Map(conversationUnreadCounts),
   onSelectConversation: (key: ConversationIDKey) => console.log('selected', key),
   selectedConversation: null,
   onNewChat: () => console.log('new chat'),
   you: 'chris',
+  rekeyInfos: Map(),
 }
 
 const emptyConversationsProps = {
@@ -201,15 +213,53 @@ const listParentProps = {
   },
 }
 
-const list = {
-  component: ConversationList,
+const rekeyConvo = (youCanRekey) => ({
+  ...commonConversationsProps,
+  rekeyInfos: Map({
+    convo1: new RekeyInfoRecord({
+      rekeyParticipants: List(youCanRekey ? [] : ['jzila']),
+      youCanRekey,
+    }),
+    convo3: new RekeyInfoRecord({
+      rekeyParticipants: List(youCanRekey ? [] : ['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
+      youCanRekey,
+    }),
+  }),
+})
+
+const participantRekey = {
+  component: ParticipantRekey,
   mocks: {
     'Normal': {
       ...commonConvoProps,
+      onUsernameClicked: (user: string) => { console.log(user, 'clicked') },
       parentProps: listParentProps,
+      rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
     },
+  },
+}
+
+const youRekey = {
+  component: YouRekey,
+  mocks: {
+    'Normal': {
+      ...commonConvoProps,
+      onRekey: () => { console.log('Reykey clicked') },
+      parentProps: listParentProps,
+      rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
+    },
+  },
+}
+
+const list = {
+  component: ConversationList,
+  mocks: {
     'Empty': {
       ...emptyConvoProps,
+      parentProps: listParentProps,
+    },
+    'Normal': {
+      ...commonConvoProps,
       parentProps: listParentProps,
     },
   },
@@ -254,6 +304,50 @@ const conversationsList = {
     'Empty': {
       ...emptyConversationsProps,
     },
+    'PartRekey': {
+      ...rekeyConvo(false),
+      selectedConversation: 'convo3',
+    },
+    'PartRekeySelected': {
+      ...rekeyConvo(false),
+      selectedConversation: 'convo1',
+    },
+    'YouRekey': {
+      ...rekeyConvo(true),
+      selectedConversation: 'convo3',
+    },
+    'YouRekeySelected': {
+      ...rekeyConvo(true),
+      selectedConversation: 'convo1',
+    },
+    'LongTop': {
+      ...commonConversationsProps,
+      inbox: List([
+        new InboxStateRecord({
+          conversationIDKey: 'convo1',
+          info: null,
+          muted: false,
+          participants: List(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
+          snippet: 'look up!',
+          time: now,
+          unreadCount: 3,
+        }),
+      ]),
+    },
+    'LongBottom': {
+      ...commonConversationsProps,
+      inbox: List([
+        new InboxStateRecord({
+          conversationIDKey: 'convo1',
+          info: null,
+          muted: false,
+          participants: List(['look down!']),
+          snippet: 'one two three four five six seven eight nine ten',
+          time: now,
+          unreadCount: 3,
+        }),
+      ]),
+    },
   },
 }
 
@@ -266,7 +360,7 @@ const conversationBanner = {
     },
     'Invite': {
       type: 'Invite',
-      username: 'malg@twitter',
+      users: ['malg@twitter'],
       inviteLink: 'keybase.io/inv/9999999999',
       onClickInviteLink: () => { console.log('Clicked the invite link') },
     },
@@ -301,4 +395,6 @@ export default {
   'ChatSidePanel': sidePanel,
   'ChatConversationsList': conversationsList,
   'ChatBanner': conversationBanner,
+  'ChatParticipantRekey': participantRekey,
+  'YouRekey': youRekey,
 }

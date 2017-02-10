@@ -50,6 +50,7 @@ func NewCmdVersion(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cl.ChooseCommand(NewCmdVersionRunner(g), "version", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetSkipOutOfDateCheck()
 		},
 	}
 }

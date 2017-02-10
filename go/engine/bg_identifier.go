@@ -4,10 +4,11 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type bgiUser struct {
@@ -63,6 +64,14 @@ type IdentifyJob struct {
 	lastError error // the error from the last run of the loop
 }
 
+func NewIdentifyJob(uid keybase1.UID, err, lastError error) IdentifyJob {
+	return IdentifyJob{
+		uid:       uid,
+		err:       err,
+		lastError: lastError,
+	}
+}
+
 func (ij IdentifyJob) ErrorChanged() bool {
 	return (ij.err == nil) != (ij.lastError == nil)
 }
@@ -102,7 +111,7 @@ var BackgroundIdentifierDefaultSettings = BackgroundIdentifierSettings{
 	WaitClean:       4 * time.Hour,
 	WaitHardFailure: 90 * time.Minute,
 	WaitSoftFailure: 10 * time.Minute,
-	DelaySlot:       30 * time.Second,
+	DelaySlot:       3 * time.Minute,
 }
 
 func NewBackgroundIdentifier(g *libkb.GlobalContext, untilCh chan struct{}) *BackgroundIdentifier {
@@ -133,7 +142,7 @@ func (b *BackgroundIdentifier) RequiredUIs() []libkb.UIKind {
 func (b *BackgroundIdentifier) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&Identify2WithUID{
-			arg: &keybase1.Identify2Arg{ChatGUIMode: true},
+			arg: &keybase1.Identify2Arg{IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI},
 		},
 	}
 }
@@ -325,8 +334,8 @@ func (b *BackgroundIdentifier) runOne(ctx *Context, u keybase1.UID) (err error) 
 		Reason: keybase1.IdentifyReason{
 			Type: keybase1.IdentifyReasonType_BACKGROUND,
 		},
-		AlwaysBlock: true,
-		ChatGUIMode: true,
+		AlwaysBlock:      true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	}
 	eng := NewIdentify2WithUID(b.G(), &arg)
 	if b.testArgs != nil {

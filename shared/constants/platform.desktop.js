@@ -107,6 +107,17 @@ function logFileName (): string {
   return paths[process.platform]
 }
 
+const jsonDebugFileName = (function () {
+  const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
+  const paths = {
+    'darwin': `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.debug`,
+    'linux': `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/keybase.app.debug`,
+    'win32': `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.debug`,
+  }
+
+  return paths[process.platform]
+})()
+
 const socketPath = findSocketDialPath()
 const dataRoot = findDataRoot()
 const cacheRoot = findCacheRoot()
@@ -123,6 +134,7 @@ export {
   isMobile,
   isWindows,
   logFileName,
+  jsonDebugFileName,
   runMode,
   socketPath,
 }

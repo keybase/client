@@ -21,6 +21,7 @@ import {changedFocus} from '../../actions/window'
 import {devEditAction} from '../../reducers/dev-edit'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImage, loadUserImage} from '../../util/pictures'
+import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {merge, throttle} from 'lodash'
@@ -149,12 +150,14 @@ function render (store, MainComponent) {
   ReactDOM.render((
     <AppContainer>
       <Root store={store}>
-        <div style={{display: 'flex', flex: 1}}>
-          <RemoteManager />
-          <FontLoader />
-          <MainComponent />
-          {dt}
-        </div>
+        <GlobalEscapeHandler>
+          <div style={{display: 'flex', flex: 1}}>
+            <RemoteManager />
+            <FontLoader />
+            <MainComponent />
+            {dt}
+          </div>
+        </GlobalEscapeHandler>
       </Root>
     </AppContainer>), document.getElementById('root'))
 }

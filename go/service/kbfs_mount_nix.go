@@ -12,7 +12,3 @@ import (
 func getMountDirs() ([]string, error) {
 	return []string{}, errors.New("getMountDirs is Windows only")
 }
-
-func doMountChange(oldMount string, newMount string) error {
-	return nil
-}

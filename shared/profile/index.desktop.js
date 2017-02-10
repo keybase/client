@@ -1,7 +1,6 @@
 // @flow
 import * as shared from './index.shared'
 import Friendships from './friendships'
-import ProfileHelp from './help.desktop'
 import React, {PureComponent} from 'react'
 import _ from 'lodash'
 import moment from 'moment'
@@ -44,10 +43,6 @@ class ProfileRender extends PureComponent<void, Props, State> {
       proofMenuIndex: null,
       popupMenuPosition: {},
     }
-  }
-
-  _renderComingSoon () {
-    return <ProfileHelp username={this.props.username} />
   }
 
   _proofMenuContent (proof: Proof) {
@@ -148,10 +143,6 @@ class ProfileRender extends PureComponent<void, Props, State> {
   }
 
   render () {
-    if (this.props.showComingSoon === true) {
-      return this._renderComingSoon()
-    }
-
     const {loading} = this.props
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 

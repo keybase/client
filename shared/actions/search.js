@@ -45,40 +45,41 @@ function parseExtraInfo (platform: SearchPlatforms, rr: RawResult, isFollowing: 
   if (platform === 'Keybase') {
     if (rr.service) {
       return {
-        service: 'external',
-        icon: serviceName && platformToLogo16(serviceName),
-        serviceUsername: userName,
-        serviceAvatar: '',
         fullNameOnService: rr.service.full_name || (rr.keybase && rr.keybase.full_name) || '',
+        icon: serviceName && platformToLogo16(serviceName),
+        service: 'external',
+        serviceAvatar: '',
+        serviceUsername: userName,
       }
     } else if (rr.keybase) {
       return {
-        service: 'none',
         fullName: rr.keybase.full_name || '',
+        service: 'none',
       }
     }
   } else {
     if (rr.keybase) {
+      const {username, full_name: fullName} = rr.keybase
       return {
+        fullName: fullName || '',
+        isFollowing: isFollowing(username),
         service: 'keybase',
-        username: rr.keybase.username,
-        fullName: rr.keybase.full_name || '',
-        isFollowing: isFollowing(rr.keybase.username),
+        username,
       }
     } else if (rr.service) {
       return {
-        service: 'external',
-        icon: null,
-        serviceUsername: userName,
-        serviceAvatar: rr.service.picture_url || '',
         fullNameOnService: rr.service.full_name || '',
+        icon: null,
+        service: 'external',
+        serviceAvatar: rr.service.picture_url || '',
+        serviceUsername: userName,
       }
     }
   }
 
   return {
-    service: 'none',
     fullName: '',
+    service: 'none',
   }
 }
 
@@ -89,23 +90,23 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: 
   let searchResult = null
   if (platform === 'Keybase' && rr.keybase) {
     searchResult = {
+      extraInfo,
+      isFollowing: rr.keybase.is_followee,
       service: 'keybase',
       username: rr.keybase.username,
-      isFollowing: rr.keybase.is_followee,
-      extraInfo,
     }
   } else if (serviceName) {
     const toUpgrade = {...rr}
     delete toUpgrade.service
     searchResult = {
-      service: 'external',
+      extraInfo,
       icon: platformToLogo32(serviceName),
-      username: rr.service && rr.service.username || '',
+      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', toUpgrade, isFollowing, {}) : null,
+      profileUrl: 'TODO',
+      service: 'external',
       serviceAvatar: rr.service && rr.service.picture_url || '',
       serviceName,
-      profileUrl: 'TODO',
-      extraInfo,
-      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', toUpgrade, isFollowing, {}) : null,
+      username: rr.service && rr.service.username || '',
     }
   } else {
     return null
@@ -123,22 +124,22 @@ function rawResults (term: string, platform: SearchPlatforms, rresults: Array<Ra
   const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, added)))
 
   return {
+    payload: {requestTimestamp, results, term},
     type: Constants.results,
-    payload: {term, results, requestTimestamp},
   }
 }
 
-export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results | Waiting> {
+function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results | Waiting> {
   return (dispatch, getState) => {
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'
 
     dispatch({
-      type: Constants.search,
       payload: {
-        term,
         error: false,
+        term,
       },
+      type: Constants.search,
     })
 
     if (trim(term) === '') {
@@ -146,29 +147,20 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
     }
 
     const service = {
-      'Keybase': '',
-      'Twitter': 'twitter',
-      'Reddit': 'reddit',
-      'Hackernews': 'hackernews',
       'Coinbase': 'coinbase',
-      'Github': 'github',
-      'Pgp': 'pgp',
       'Facebook': 'facebook',
+      'Github': 'github',
+      'Hackernews': 'hackernews',
+      'Keybase': '',
+      'Pgp': 'pgp',
+      'Reddit': 'reddit',
+      'Twitter': 'twitter',
     }[platform]
 
     const limit = 20
 
     const requestTimestamp = new Date()
     apiserverGetRpc({
-      param: {
-        endpoint: 'user/user_search',
-        args: [
-          {key: 'q', value: term},
-          {key: 'num_wanted', value: String(limit)},
-          {key: 'service', value: service},
-        ],
-      },
-      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: (error, results) => {
         if (error) {
           console.log('Error searching. Not handling this error')
@@ -187,55 +179,74 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
           }
         }
       },
+      param: {
+        args: [
+          {key: 'q', value: term},
+          {key: 'num_wanted', value: String(limit)},
+          {key: 'service', value: service},
+        ],
+        endpoint: 'user/user_search',
+      },
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
     })
   }
 }
 
 function waiting (waiting: boolean): Waiting {
   return {
-    type: Constants.waiting,
     payload: {waiting},
+    type: Constants.waiting,
   }
 }
 
-export function selectPlatform (platform: SearchPlatforms): SelectPlatform {
+function selectPlatform (platform: SearchPlatforms): SelectPlatform {
   return {
-    type: Constants.selectPlatform,
     payload: {platform},
+    type: Constants.selectPlatform,
   }
 }
 
-export function selectUserForInfo (user: SearchResult): SelectUserForInfo {
+function selectUserForInfo (user: SearchResult): SelectUserForInfo {
   return {
+    payload: {user},
     type: Constants.selectUserForInfo,
-    payload: {user},
   }
 }
 
-export function addUsersToGroup (users: Array<SearchResult>): AddUsersToGroup {
+function addUsersToGroup (users: Array<SearchResult>): AddUsersToGroup {
   return {
-    type: Constants.addUsersToGroup,
     payload: {users},
+    type: Constants.addUsersToGroup,
   }
 }
 
-export function removeUserFromGroup (user: SearchResult): RemoveUserFromGroup {
+function removeUserFromGroup (user: SearchResult): RemoveUserFromGroup {
   return {
-    type: Constants.removeUserFromGroup,
     payload: {user},
+    type: Constants.removeUserFromGroup,
   }
 }
 
-export function hideUserGroup (): ToggleUserGroup {
+function hideUserGroup (): ToggleUserGroup {
   return {
-    type: Constants.toggleUserGroup,
     payload: {show: false},
+    type: Constants.toggleUserGroup,
   }
 }
 
-export function reset (): Reset {
+function reset (): Reset {
   return {
-    type: Constants.reset,
     payload: {},
+    type: Constants.reset,
   }
+}
+
+export {
+  addUsersToGroup,
+  hideUserGroup,
+  removeUserFromGroup,
+  reset,
+  search,
+  selectPlatform,
+  selectUserForInfo,
 }

@@ -3,7 +3,7 @@ import React from 'react'
 import {Box, Avatar} from '../common-adapters'
 import {TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
-import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
+import {profileTab, folderTab, chatTab, settingsTab, searchTab} from '../constants/tabs'
 
 import type {Props} from './index.render'
 
@@ -24,13 +24,6 @@ export default function TabBarRender ({selectedTab, onTabClick, username, badgeN
         style={stylesTabButton}
       />
       <TabBarButton
-        selected={selectedTab === peopleTab}
-        onClick={() => onTabClick(peopleTab)}
-        badgeNumber={badgeNumbers[peopleTab]}
-        source={{type: 'icon', icon: 'iconfont-people'}}
-        style={stylesTabButton}
-      />
-      <TabBarButton
         selected={selectedTab === folderTab}
         onClick={() => onTabClick(folderTab)}
         badgeNumber={badgeNumbers[folderTab]}
@@ -38,10 +31,17 @@ export default function TabBarRender ({selectedTab, onTabClick, username, badgeN
         style={stylesTabButton}
       />
       <TabBarButton
-        selected={selectedTab === devicesTab}
-        onClick={() => onTabClick(devicesTab)}
-        badgeNumber={badgeNumbers[devicesTab]}
-        source={{type: 'icon', icon: 'iconfont-device'}}
+        selected={selectedTab === searchTab}
+        onClick={() => onTabClick(searchTab)}
+        badgeNumber={badgeNumbers[searchTab]}
+        source={{type: 'icon', icon: 'iconfont-nav-search'}}
+        style={stylesTabButton}
+      />
+      <TabBarButton
+        selected={selectedTab === chatTab}
+        onClick={() => onTabClick(chatTab)}
+        badgeNumber={badgeNumbers[chatTab]}
+        source={{type: 'icon', icon: 'iconfont-chat'}}
         style={stylesTabButton}
       />
       <TabBarButton

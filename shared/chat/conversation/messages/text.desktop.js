@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Markdown} from '../../../common-adapters'
+import {Markdown, Text} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
 import MessageComponent from './shared.desktop'
 
@@ -26,9 +26,15 @@ export default class MessageTextComponent extends PureComponent<void, Props & {o
     return (
       <MessageComponent {...this.props}>
         <MessageText message={message} />
+        {message.editedCount > 0 && <Text type='BodySmall' style={editedStyle}>EDITED</Text>}
       </MessageComponent>
     )
   }
+}
+
+const editedStyle = {
+  alignSelf: 'flex-start',
+  color: globalColors.black_20,
 }
 
 const _messageTextStyle = {

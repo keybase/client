@@ -3,8 +3,13 @@ import {Component} from 'react'
 
 export type Props = {
   onClose: () => void,
+  allowClipBubbling?: boolean,
   fill?: boolean,
   children?: React$Element<*>,
+  styleCover?: Object,
+  styleContainer?: Object,
+  styleClose?: Object,
+  styleClipContainer?: Object,
 }
 
 export default class PopupDialog extends Component<void, Props, void> {}

@@ -334,7 +334,7 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
-	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata) error
+	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error
 	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
 	ChatAttachmentUploadDone(context.Context) error
 	ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error
@@ -449,6 +449,11 @@ type LogContext interface {
 	GetLog() logger.Logger
 }
 
+type VLogContext interface {
+	LogContext
+	GetVDebugLog() *VDebugLog
+}
+
 // APIContext defines methods for accessing API server
 type APIContext interface {
 	GetAPI() API
@@ -472,9 +477,17 @@ type AssertionContext interface {
 }
 
 // ProofChecker is an interface for performing a remote check for a proof
+
+type ProofCheckerMode int
+
+const (
+	ProofCheckerModePassive ProofCheckerMode = iota
+	ProofCheckerModeActive  ProofCheckerMode = iota
+)
+
 type ProofChecker interface {
 	CheckHint(ctx ProofContext, h SigHint) ProofError
-	CheckStatus(ctx ProofContext, h SigHint) ProofError
+	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode) ProofError
 	GetTorError() ProofError
 }
 
@@ -525,17 +538,18 @@ type ConversationSource interface {
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
-	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
-		pagination *chat1.Pagination) (chat1.ThreadView, error)
+	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		query *chat1.GetThreadQuery, p *chat1.Pagination) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
+	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 }
 
 type MessageDeliverer interface {
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxID, error)
+		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
 	Start(ctx context.Context, uid gregor1.UID)
 	Stop(ctx context.Context) chan struct{}
 	ForceDeliverLoop(ctx context.Context)
@@ -553,18 +567,19 @@ type InboxSource interface {
 		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
 	ReadNoCache(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer,
 		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
-	ReadRemote(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.Conversation, *chat1.RateLimit, error)
+	ReadRemote(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxLocalQuery,
+		p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
 	NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		msg chat1.MessageBoxed) error
+		msg chat1.MessageBoxed) (*chat1.ConversationLocal, error)
 	ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		msgID chat1.MessageID) error
+		msgID chat1.MessageID) (*chat1.ConversationLocal, error)
 	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
-		status chat1.ConversationStatus) error
+		status chat1.ConversationStatus) (*chat1.ConversationLocal, error)
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) error
+		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

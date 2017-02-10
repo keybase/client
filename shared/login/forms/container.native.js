@@ -18,12 +18,12 @@ const Container = ({children, onBack, style, outerStyle}: Props) => {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    flex: 1,
+    flexGrow: 1,
   },
   innerContainer: {
     ...globalStyles.flexBoxColumn,
     marginTop: 30,
-    flex: 1,
+    flexGrow: 1,
   },
   button: {
     position: 'absolute',

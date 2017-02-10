@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Icon} from './'
+import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
 import type {Props} from './popup-dialog'
@@ -9,20 +10,22 @@ function stopBubbling (ev) {
   ev.stopPropagation()
 }
 
-export function PopupDialog ({children, onClose, fill}: Props) {
+export function PopupDialog ({children, onClose, fill, styleCover, styleContainer, styleClose, styleClipContainer, allowClipBubbling}: Props) {
   return (
-    <Box style={styleCover} onClick={onClose}>
-      <Box style={{...styleContainer, ...(fill ? styleContainerFill : null)}}>
-        <Icon type='iconfont-close' style={styleClose} />
-        <Box style={styleClipContainer} onClick={stopBubbling}>
-          {children}
+    <EscapeHandler onESC={onClose}>
+      <Box style={{...coverStyle, ...styleCover}} onClick={onClose}>
+        <Box style={{...containerStyle, ...(fill ? containerFillStyle : null), ...styleContainer}}>
+          <Icon type='iconfont-close' style={{...closeStyle, ...styleClose}} />
+          <Box style={{...clipContainerStyle, ...styleClipContainer}} onClick={allowClipBubbling ? undefined : stopBubbling}>
+            {children}
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </EscapeHandler>
   )
 }
 
-const styleCover = {
+const coverStyle = {
   ...globalStyles.flexBoxColumn,
   background: globalColors.midnightBlue_75,
   justifyContent: 'center',
@@ -38,19 +41,19 @@ const styleCover = {
   paddingBottom: globalMargins.small,
 }
 
-const styleContainer = {
+const containerStyle = {
   ...globalStyles.flexBoxRow,
   position: 'relative',
   maxWidth: '100%',
   maxHeight: '100%',
 }
 
-const styleContainerFill = {
+const containerFillStyle = {
   width: '100%',
   height: '100%',
 }
 
-const styleClipContainer = {
+const clipContainerStyle = {
   ...globalStyles.flexBoxColumn,
   position: 'relative',
   flex: 1,
@@ -60,7 +63,7 @@ const styleClipContainer = {
   maxWidth: '100%',
 }
 
-const styleClose = {
+const closeStyle = {
   position: 'absolute',
   right: -16 - globalMargins.tiny + 2,  // FIXME: 2px fudge since icon isn't sized to 16px extents
   color: globalColors.white,

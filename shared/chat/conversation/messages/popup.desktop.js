@@ -5,7 +5,6 @@ import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
 import {fileUIName} from '../../../constants/platform'
-import flags from '../../../util/feature-flags'
 
 import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
@@ -54,18 +53,13 @@ const stylePopup = {
   width: 196,
 }
 
-export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden, style, you}: TextProps) => {
+export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style, you}: TextProps) => {
   let items = []
   if (message.author === you) {
     items = [
-      {onClick: () => onEditMessage(message), title: 'Edit'},
+      {onClick: () => onShowEditor(message), title: 'Edit'},
       {danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'},
     ]
-
-    if (!flags.chatAdminOnly) {
-      // remote edit
-      items.shift()
-    }
 
     if (!message.senderDeviceRevokedAt) {
       items.unshift('Divider')
@@ -81,9 +75,8 @@ export const TextPopupMenu = ({message, onEditMessage, onDeleteMessage, onHidden
 export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style, you}: AttachmentProps) => {
   const items = [
     'Divider',
-    message.downloadedPath
-      ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`}
-      : {onClick: onDownloadAttachment, title: 'Download'},
+      (message.downloadedPath ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`} : null),
+      {onClick: onDownloadAttachment, title: 'Download'},
   ]
   if (message.author === you) {
     items.push({danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'})

@@ -191,3 +191,9 @@ func (h *UserHandler) ListTrackers2(_ context.Context, arg keybase1.ListTrackers
 	}
 	return res, err
 }
+
+func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEditArg) error {
+	eng := engine.NewProfileEdit(h.G(), arg)
+	ctx := &engine.Context{NetContext: nctx}
+	return engine.RunEngine(eng, ctx)
+}

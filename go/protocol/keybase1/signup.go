@@ -44,11 +44,16 @@ type CheckInvitationCodeArg struct {
 	InvitationCode string `codec:"invitationCode" json:"invitationCode"`
 }
 
+type GetInvitationCodeArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type SignupInterface interface {
 	CheckUsernameAvailable(context.Context, CheckUsernameAvailableArg) error
 	Signup(context.Context, SignupArg) (SignupRes, error)
 	InviteRequest(context.Context, InviteRequestArg) error
 	CheckInvitationCode(context.Context, CheckInvitationCodeArg) error
+	GetInvitationCode(context.Context, int) (string, error)
 }
 
 func SignupProtocol(i SignupInterface) rpc.Protocol {
@@ -119,6 +124,22 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getInvitationCode": {
+				MakeArg: func() interface{} {
+					ret := make([]GetInvitationCodeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetInvitationCodeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetInvitationCodeArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInvitationCode(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -144,5 +165,11 @@ func (c SignupClient) InviteRequest(ctx context.Context, __arg InviteRequestArg)
 
 func (c SignupClient) CheckInvitationCode(ctx context.Context, __arg CheckInvitationCodeArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.signup.checkInvitationCode", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SignupClient) GetInvitationCode(ctx context.Context, sessionID int) (res string, err error) {
+	__arg := GetInvitationCodeArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.signup.getInvitationCode", []interface{}{__arg}, &res)
 	return
 }

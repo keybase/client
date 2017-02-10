@@ -17,6 +17,8 @@ type resultCollector interface {
 	push(msg chat1.MessageUnboxed)
 	done() bool
 	result() []chat1.MessageUnboxed
+	error(err Error) Error
+
 	String() string
 }
 
@@ -88,6 +90,9 @@ func (s *simpleResultCollector) push(msg chat1.MessageUnboxed) {
 }
 
 func (s *simpleResultCollector) done() bool {
+	if s.target < 0 {
+		return false
+	}
 	return len(s.res) >= s.target
 }
 
@@ -96,7 +101,17 @@ func (s *simpleResultCollector) result() []chat1.MessageUnboxed {
 }
 
 func (s *simpleResultCollector) String() string {
-	return fmt.Sprintf("[ simple: t: %d c: %d]", s.target, len(s.res))
+	return fmt.Sprintf("[ simple: t: %d c: %d ]", s.target, len(s.res))
+}
+
+func (s *simpleResultCollector) error(err Error) Error {
+	if s.target < 0 {
+		// Swallow this error if we are not looking for a target
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+	}
+	return err
 }
 
 func newSimpleResultCollector(num int) *simpleResultCollector {
@@ -131,6 +146,9 @@ func (t *typedResultCollector) push(msg chat1.MessageUnboxed) {
 }
 
 func (t *typedResultCollector) done() bool {
+	if t.target < 0 {
+		return false
+	}
 	return t.cur >= t.target
 }
 
@@ -140,6 +158,16 @@ func (t *typedResultCollector) result() []chat1.MessageUnboxed {
 
 func (t *typedResultCollector) String() string {
 	return fmt.Sprintf("[ typed: t: %d c: %d (%d types) ]", t.target, t.cur, len(t.typmap))
+}
+
+func (t *typedResultCollector) error(err Error) Error {
+	if t.target < 0 {
+		// Swallow this error if we are not looking for a target
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+	}
+	return err
 }
 
 func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, uid gregor1.UID) Error {
@@ -207,25 +235,6 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	return nil
 }
 
-// getSupersedes must be called with a valid msg
-func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, Error) {
-	body := msg.Valid().MessageBody
-	typ, err := body.MessageType()
-	if err != nil {
-		return nil, NewInternalError(s.DebugLabeler, "invalid msg: %s", err.Error())
-	}
-
-	// We use the message ID in the body over the field in the client header to avoid server trust.
-	switch typ {
-	case chat1.MessageType_EDIT:
-		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
-	case chat1.MessageType_DELETE:
-		return msg.Valid().MessageBody.Delete().MessageIDs, nil
-	default:
-		return nil, nil
-	}
-}
-
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
 
@@ -239,8 +248,8 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			continue
 		}
 
-		superIDs, err := s.getSupersedes(msg)
-		if err != nil {
+		superIDs, ierr := utils.GetSupersedes(msg)
+		if ierr != nil {
 			continue
 		}
 		s.Debug(ctx, "updateSupersededBy: supersedes: %v", superIDs)
@@ -251,7 +260,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			// Read super msg
 			var superMsgs []chat1.MessageUnboxed
 			rc := newSimpleResultCollector(1)
-			err = s.engine.readMessages(ctx, rc, convID, uid, superID)
+			err := s.engine.readMessages(ctx, rc, convID, uid, superID)
 			if err != nil {
 				// If we don't have the message, just keep going
 				if _, ok := err.(MissError); ok {
@@ -335,6 +344,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	// Figure out how to determine we are done seeking
 	var rc resultCollector
 	if query != nil && len(query.MessageTypes) > 0 {
+		s.Debug(ctx, "Fetch: types: %v", query.MessageTypes)
 		rc = newTypedResultCollector(num, query.MessageTypes)
 	} else {
 		rc = newSimpleResultCollector(num)
@@ -374,6 +384,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
+	s.Debug(ctx, "FetchUpToLocalMaxMsgID: using max msgID: %d", maxMsgID)
 
 	return s.fetchUpToMsgIDLocked(ctx, convID, uid, maxMsgID, query, pagination)
 }
@@ -422,21 +433,4 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	}
 
 	return res, nil
-}
-
-func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery) (res []chat1.MessageUnboxed) {
-	if query != nil && len(query.MessageTypes) > 0 {
-		typmap := make(map[chat1.MessageType]bool)
-		for _, mt := range query.MessageTypes {
-			typmap[mt] = true
-		}
-		for _, msg := range msgs {
-			if _, ok := typmap[msg.GetMessageType()]; ok {
-				res = append(res, msg)
-			}
-		}
-	} else {
-		res = msgs
-	}
-	return res
 }

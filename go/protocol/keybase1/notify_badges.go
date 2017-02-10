@@ -10,13 +10,10 @@ import (
 
 type ChatConversationID []byte
 type BadgeState struct {
-	Total                   int                     `codec:"total" json:"total"`
-	NewTlfs                 int                     `codec:"newTlfs" json:"newTlfs"`
-	RekeysNeeded            int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
-	NewFollowers            int                     `codec:"newFollowers" json:"newFollowers"`
-	UnreadChatMessages      int                     `codec:"unreadChatMessages" json:"unreadChatMessages"`
-	UnreadChatConversations int                     `codec:"unreadChatConversations" json:"unreadChatConversations"`
-	Conversations           []BadgeConversationInfo `codec:"conversations" json:"conversations"`
+	NewTlfs       int                     `codec:"newTlfs" json:"newTlfs"`
+	RekeysNeeded  int                     `codec:"rekeysNeeded" json:"rekeysNeeded"`
+	NewFollowers  int                     `codec:"newFollowers" json:"newFollowers"`
+	Conversations []BadgeConversationInfo `codec:"conversations" json:"conversations"`
 }
 
 type BadgeConversationInfo struct {

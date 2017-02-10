@@ -79,11 +79,7 @@ class Icon extends Component<void, Exact<Props>, void> {
 
 const imgName = (type, ext, mult) => `${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
 const imgPath = (type, ext) => {
-  if (ext === 'gif') {
-    return `${resolveImageAsURL('icons', type)}.${ext}`
-  } else {
-    return [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
-  }
+  return [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
 }
 
 export const styles = {

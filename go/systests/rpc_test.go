@@ -87,6 +87,14 @@ func testIdentifyResolve2(t *testing.T, g *libkb.GlobalContext) {
 	} else if _, ok := err.(libkb.ResolutionError); !ok {
 		t.Fatalf("Wrong error: wanted type %T but got (%v, %T)", libkb.ResolutionError{}, err, err)
 	}
+
+	if res, err := cli.Resolve2(context.TODO(), "t_tracy"); err != nil {
+		t.Fatalf("Resolve2 failed: %v\n", err)
+	} else if res.Username != "t_tracy" {
+		t.Fatalf("Wrong name: %s != 't_tracy", res.Username)
+	} else if !res.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
+		t.Fatalf("Wrong uid for tracy: %s\n", res.Uid)
+	}
 }
 
 func testCheckInvitationCode(t *testing.T, g *libkb.GlobalContext) {
@@ -196,16 +204,16 @@ func testIdentify2(t *testing.T, g *libkb.GlobalContext) {
 	}
 
 	_, err = cli.Identify2(context.TODO(), keybase1.Identify2Arg{
-		UserAssertion: "t_alice",
-		ChatGUIMode:   true,
+		UserAssertion:    "t_alice",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	})
 	if err != nil {
 		t.Fatalf("Identify2 failed: %v\n", err)
 	}
 
 	_, err = cli.Identify2(context.TODO(), keybase1.Identify2Arg{
-		UserAssertion: "t_weriojweroi",
-		ChatGUIMode:   true,
+		UserAssertion:    "t_weriojweroi",
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	})
 	if _, ok := err.(libkb.NotFoundError); !ok {
 		t.Fatalf("Expected a not-found error, but got: %v (%T)", err, err)

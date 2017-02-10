@@ -14,7 +14,7 @@ export type Props = {
 }
 
 const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
-  if (avatarProps.length < 0) {
+  if (avatarProps.length <= 0) {
     return null
   }
   if (avatarProps.length > 2) {
@@ -22,17 +22,17 @@ const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
     return null
   }
 
-  const leftProps: AvatarProps = avatarProps[0]
-  const rightProps: AvatarProps = avatarProps[1]
+  const leftProps: AvatarProps = avatarProps[1]
+  const rightProps: AvatarProps = avatarProps[0]
 
   if (avatarProps.length === 1) {
-    return <Avatar {...leftProps} size={singleSize} />
+    return <Avatar {...rightProps} size={singleSize} />
   }
 
   return (
     <Box style={{...containerStyle, ...style}}>
-      <Avatar {...leftProps} style={leftAvatar} size={multiSize} />
-      <Avatar {...rightProps} style={rightAvatar} size={multiSize} />
+      <Avatar {...leftProps} style={{...leftAvatar, ...leftProps.style}} size={multiSize} />
+      <Avatar {...rightProps} style={{...rightAvatar, ...rightProps.style}} size={multiSize} />
     </Box>
   )
 }

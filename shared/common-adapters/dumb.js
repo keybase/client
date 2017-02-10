@@ -103,6 +103,7 @@ backgroundModes.forEach(backgroundMode => {
     'BodySuccess',
     'BodySmall',
     'BodySmallSemibold',
+    'BodySmallSemiboldItalic',
     'BodySmallPrimaryLink',
     'BodySmallSecondaryLink',
     'BodySmallError',
@@ -817,19 +818,79 @@ const markdownDumbMap: DumbComponentMap<Markdown> = {
   component: Markdown,
   mocks: {
     'Normal': {
-      children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";``` How about *bold* and _italic?_ nice.\n Now youre thinking with ~portals~ crypto.\n how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_',
+      children: `I think we should try to use \`if else\` statements \`\`\`
+if (var == "foo")
+  echo "foo";
+else echo "bar";\`\`\`How about *bold* and _italic?_ nice.
+Now youre thinking with ~portals~ crypto.
+how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
     },
     'emoji': {
-      children: 'hello there :santa::skin-tone-3:!',
+      children: 'hello there :santa::skin-tone-3: 🌸😎👍🏿!',
     },
     'special chars in code block': {
-      children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";\n// this should be *asterisk* ```',
+      children: `I think we should try to use \`if else\` statements \`\`\`if (var == "foo")
+  echo "foo";
+else echo "bar";
+  // this should be *asterisk* \`\`\``,
     },
     'Messed up': {
       children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";`` I think I *missed something**',
     },
     'Escaped chars': {
       children: '\\*foo\\* I should see asterisks',
+    },
+    'links': {
+      children: `
+  Ignore:
+    a...b,
+    ftp://blah.com,
+    gopher://blah.com,
+    mailto:blah@blah.com
+    _http://keybase.io_
+  Include:
+    http://keybase.io
+    *http://keybase.io*
+    \`http://keybase.io\`
+    (https://keybase.io)
+    https://keybase.io
+    HTTP://cnn.com
+    http://twitter.com
+    google.com
+    keybase.io/a/user/lookup?one=1&two=2
+    keybase.io/a/user/path_with_underscore
+    keybase.io?blah=true
+    http://keybase.io/blah/../up-one/index.html
+  These should have the trailing punctuation outside the link:
+    amazon.co.uk.
+    keybase.io,
+    keybase.io.
+    keybase.io?
+`,
+    },
+    'Quotes': {
+      children: `> this is quoted
+> this is _italics_ inside of a quote. This is *bold* inside of a quote.
+> outside code: \`This is an inline block of code in a quote\` outside again
+> \`\`\`
+multi
+line
+code in quote
+\`\`\`
+`,
+    },
+    'Code block': {
+      children: `
+        \`\`\`this is a code block\`\`\`
+\`\`\`
+this is a code block that starts with a newline\`\`\`
+\`\`\`
+this is a code block that starts with a newline and ends with a newline
+\`\`\`
+\`\`\`
+
+this is a code block with two newline above\`\`\`
+`,
     },
   },
 }
@@ -846,7 +907,7 @@ const popupDialogMap: DumbComponentMap<PopupDialog> = {
           height: 200,
           justifyContent: 'center',
           alignItems: 'center',
-          background: globalColors.white,
+          backgroundColor: globalColors.white,
         }}>
           <Text type='Body'>Hello, world!</Text>
         </Box>
