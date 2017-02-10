@@ -81,3 +81,7 @@ export default connect(
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
   })
 )(ConversationListContainer)
+
+export {
+  ConversationListContainer,
+}
