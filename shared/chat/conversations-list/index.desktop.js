@@ -154,6 +154,18 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
   return different
 })(_Row)
 
+const ConversationList = (props: Props) => (
+  <div style={{...globalStyles.flexBoxRow, flex: 1}}>
+    <div style={containerStyle}>
+      <AddNewRow onNewChat={props.onNewChat} />
+      <div style={scrollableStyle}>
+        {props.rows.map(rowProps => <Row {...rowProps} key={rowProps.conversationIDKey} />)}
+      </div>
+    </div>
+    {props.children}
+  </div>
+)
+
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 3,
@@ -179,18 +191,6 @@ const conversationRowStyle = {
   justifyContent: 'center',
   paddingRight: 8,
 }
-
-const ConversationList = (props: Props) => (
-  <div style={{...globalStyles.flexBoxRow, flex: 1}}>
-    <div style={containerStyle}>
-      <AddNewRow onNewChat={props.onNewChat} />
-      <div style={scrollableStyle}>
-        {props.rows.map(rowProps => <Row {...rowProps} key={rowProps.conversationIDKey} />)}
-      </div>
-    </div>
-    {props.children}
-  </div>
-)
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
