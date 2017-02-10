@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -20,18 +21,20 @@ const (
 )
 
 type diskBlockCacheEntry struct {
-	buf        []byte
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf
+	Buf        []byte
+	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
 }
 
 type diskBlockCacheConfig interface {
 	codecGetter
+	logMaker
 }
 
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
 type DiskBlockCacheStandard struct {
 	config   diskBlockCacheConfig
 	maxBytes uint64
+	log      logger.Logger
 	// protects everything below
 	lock     sync.RWMutex
 	isClosed bool
@@ -43,6 +46,7 @@ var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
 
 func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 	maxBytes uint64) (*DiskBlockCacheStandard, error) {
+	log := config.MakeLogger("DBC")
 	blockDbPath := filepath.Join(dirPath, blockDbFilename)
 	blockDb, err := leveldb.OpenFile(blockDbPath, leveldbOptions)
 	if err != nil {
@@ -58,6 +62,7 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 	return &DiskBlockCacheStandard{
 		config:   config,
 		maxBytes: maxBytes,
+		log:      log,
 		blockDb:  blockDb,
 		lruDb:    lruDb,
 	}, nil
@@ -81,14 +86,14 @@ func (cache *DiskBlockCacheStandard) decodeBlockCacheEntry(buf []byte) ([]byte,
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
-	return entry.buf, entry.serverHalf, nil
+	return entry.Buf, entry.ServerHalf, nil
 }
 
 func (cache *DiskBlockCacheStandard) encodeBlockCacheEntry(buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) ([]byte, error) {
 	entry := diskBlockCacheEntry{
-		buf:        buf,
-		serverHalf: serverHalf,
+		Buf:        buf,
+		ServerHalf: serverHalf,
 	}
 	return cache.config.Codec().Encode(&entry)
 }
@@ -102,6 +107,7 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			DiskCacheClosedError{"Get"}
 	}
+	cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s", blockID, tlfID)
 	var entry []byte
 	err := runUnlessCanceled(ctx, func() error {
 		blockBytes := blockID.Bytes()
@@ -134,8 +140,14 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	if cache.isClosed {
 		return DiskCacheClosedError{"Put"}
 	}
+	blockLen := len(buf)
 	// TODO: accounting
 	entry, err := cache.encodeBlockCacheEntry(buf, serverHalf)
+	encodeLen := len(entry)
+	cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d err=%+v", blockID, tlfID, blockLen, encodeLen, err)
+	if err != nil {
+		return err
+	}
 	blockBytes := blockID.Bytes()
 	err = cache.blockDb.Put(blockBytes, entry, nil)
 	if err != nil {
@@ -146,19 +158,28 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
-	blockID kbfsblock.ID) error {
+	blockIDs []kbfsblock.ID) error {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.isClosed {
 		return DiskCacheClosedError{"Delete"}
 	}
-	blockBytes := blockID.Bytes()
-	err := cache.blockDb.Delete(blockBytes, nil)
+	if len(blockIDs) == 0 {
+		return nil
+	}
+	blockBatch := new(leveldb.Batch)
+	lruBatch := new(leveldb.Batch)
+	for _, id := range blockIDs {
+		blockKey := id.Bytes()
+		blockBatch.Delete(blockKey)
+		lruKey := append(tlfID.Bytes(), blockKey...)
+		lruBatch.Delete(lruKey)
+	}
+	err := cache.blockDb.Write(blockBatch, nil)
 	if err != nil {
 		return err
 	}
-	lruKey := append(tlfID.Bytes(), blockBytes...)
-	return cache.lruDb.Delete(lruKey, nil)
+	return cache.lruDb.Write(lruBatch, nil)
 }
 
 // Evict implements the DiskBlockCache interface for DiskBlockCacheStandard.

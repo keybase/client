@@ -828,8 +828,8 @@ type DiskBlockCache interface {
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
-	// Delete deletes a block from the disk cache.
-	Delete(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) error
+	// Delete deletes some blocks from the disk cache.
+	Delete(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) error
 	// Evict evicts some number of blocks from the disk cache.
 	Evict(ctx context.Context, tlfID tlf.ID, numBlocks int) error
 	// Shutdown cleanly shuts down the disk block cache.

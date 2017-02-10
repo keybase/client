@@ -27,6 +27,7 @@ const (
 )
 
 type blockServerRemoteConfig interface {
+	diskBlockCacheGetter
 	codecGetter
 	signerGetter
 	currentSessionGetterGetter
@@ -296,6 +297,13 @@ func makeBlockReference(id kbfsblock.ID, context kbfsblock.Context) keybase1.Blo
 func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	// TODO: do this in parallel.
+	if b.config.DiskBlockCache() != nil {
+		buf, serverHalf, err = b.config.DiskBlockCache().Get(ctx, tlfID, id)
+		if err == nil {
+			return
+		}
+	}
 	size := -1
 	defer func() {
 		if err != nil {
@@ -329,23 +337,26 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 
 // Put implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
-	context kbfsblock.Context, buf []byte,
+	bContext kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	if b.config.DiskBlockCache() != nil {
+		go b.config.DiskBlockCache().Put(context.TODO(), tlfID, id, buf, serverHalf)
+	}
 	size := len(buf)
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(
 				ctx, "Put id=%s tlf=%s context=%s sz=%d err=%v",
-				id, tlfID, context, size, err)
+				id, tlfID, bContext, size, err)
 		} else {
 			b.deferLog.CDebugf(
 				ctx, "Put id=%s tlf=%s context=%s sz=%d",
-				id, tlfID, context, size)
+				id, tlfID, bContext, size)
 		}
 	}()
 
 	arg := keybase1.PutBlockArg{
-		Bid: makeBlockIDCombo(id, context),
+		Bid: makeBlockIDCombo(id, bContext),
 		// BlockKey is misnamed -- it contains just the server
 		// half.
 		BlockKey: serverHalf.String(),
