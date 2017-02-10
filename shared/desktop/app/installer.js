@@ -5,6 +5,11 @@ import {appInstallerPath, appBundlePath} from './paths'
 import {quit} from './ctl'
 import {runMode} from '../../constants/platform.desktop'
 
+// Runs the installer.
+//
+// To test the installer from dev, you can point KEYBASE_GET_APP_PATH to
+// a place where the installer is bundled, for example:
+//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start-hot
 export default (callback: (err: any) => void): void => {
   const installerPath = appInstallerPath()
   if (!installerPath) {

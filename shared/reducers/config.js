@@ -2,6 +2,7 @@
 import * as Constants from '../constants/config'
 import type {BootStatus} from '../constants/config'
 import * as CommonConstants from '../constants/common'
+import {isMobile} from '../constants/platform'
 
 import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
@@ -19,9 +20,14 @@ export type ConfigState = {
   error: ?any,
   bootstrapTriesRemaining: number,
   bootStatus: BootStatus,
+  readyForConnect: boolean,
   followers: {[key: string]: true},
   following: {[key: string]: true},
 }
+
+// Mobile is ready for connect automatically, desktop needs to wait for
+// the installer.
+const readyForConnect = isMobile
 
 const initialState: ConfigState = {
   globalError: null,
@@ -36,6 +42,7 @@ const initialState: ConfigState = {
   error: null,
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   bootStatus: 'bootStatusLoading',
+  readyForConnect,
   followers: {},
   following: {},
 }
@@ -72,6 +79,12 @@ export default function (state: ConfigState = initialState, action: Action): Con
       }
       return state
 
+    case 'config:readyForConnect': {
+      return {
+        ...state,
+        readyForConnect: true,
+      }
+    }
     case Constants.statusLoaded:
       if (action.payload && action.payload.status) {
         const status = action.payload.status

@@ -88,6 +88,13 @@ function setupApp (store) {
     })
   })
 
+  // Run installer
+  ipcRenderer.on('installed', (event, message) => {
+    store.dispatch({payload: undefined, type: 'config:readyForConnect'})
+    store.dispatch(bootstrap())
+  })
+  ipcRenderer.send('installer')
+
   const currentWindow = electron.remote.getCurrentWindow()
   currentWindow.on('focus', () => { store.dispatch(changedFocus(true)) })
   currentWindow.on('blur', () => { store.dispatch(changedFocus(false)) })
@@ -124,7 +131,6 @@ function setupApp (store) {
   hello(process.pid, 'Main Renderer', process.argv, __VERSION__) // eslint-disable-line no-undef
 
   store.dispatch(updateDebugConfig(require('../../local-debug-live')))
-  store.dispatch(bootstrap())
 }
 
 const FontLoader = () => (
