@@ -16,7 +16,7 @@ class Text extends Component<void, Props, void> {
   }
 
   _urlClick = () => {
-    this.props.onClickURL && openURL(this.props.onClickURL)
+    openURL(this.props.onClickURL)
   }
 
   render () {
@@ -29,7 +29,7 @@ class Text extends Component<void, Props, void> {
       ref={ref => { this._nativeText = ref }}
       style={style}
       {...lineClamp(this.props.lineClamp)}
-      onPress={this.props.onClick || this._urlClick}>{this.props.children}</NativeText>
+      onPress={this.props.onClick || (this.props.onClickURL && this._urlClick)}>{this.props.children}</NativeText>
   }
 }
 
