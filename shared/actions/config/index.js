@@ -156,6 +156,12 @@ let bootstrapSetup = false
 type BootstrapOptions = {isReconnect?: boolean}
 function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
   return (dispatch, getState) => {
+    const readyForBootstrap = getState().config.readyForBootstrap
+    if (!readyForBootstrap) {
+      console.warn('Not ready for bootstrap/connect')
+      return
+    }
+
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('[bootstrap] registered bootstrap')

@@ -10,7 +10,7 @@ import splash from '../../util/splash.desktop'
 import storeHelper from './store-helper'
 import urlHelper from './url-helper'
 import windowHelper from './window-helper'
-import {BrowserWindow, app, dialog} from 'electron'
+import {BrowserWindow, app, ipcMain, dialog} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {setupTarget} from '../../util/forward-logs'
 
@@ -64,16 +64,19 @@ function start () {
 
   console.log('Version:', app.getVersion())
 
-  installer(err => {
-    if (err) {
-      console.log('Error: ', err)
-    }
-    splash()
-  })
-
   app.once('ready', () => {
     mainWindow = MainWindow()
     storeHelper(mainWindow)
+  })
+
+  ipcMain.on('install-check', (event, arg) => {
+    installer(err => {
+      if (err) {
+        console.log('Error: ', err)
+      }
+      splash()
+      event.sender.send('installed')
+    })
   })
 
   // Called when the user clicks the dock icon
