@@ -4134,6 +4134,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	case *GCOp:
 		// Unreferenced blocks in a GCOp mean that we shouldn't cache
 		// them anymore
+		fbo.log.CDebugf(ctx, "notifyOneOp: GCOp with latest rev %d and %d unref'd blocks", realOp.LatestRev, len(realOp.Unrefs()))
 		bcache := fbo.config.BlockCache()
 		idsToDelete := make([]kbfsblock.ID, 0, len(realOp.Unrefs()))
 		for _, ptr := range realOp.Unrefs() {
@@ -4143,8 +4144,9 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 					"Couldn't delete transient entry for %v: %v", ptr, err)
 			}
 		}
-		if fbo.config.DiskBlockCache() != nil {
-			go fbo.config.DiskBlockCache().Delete(ctx, md.TlfID(), idsToDelete)
+		diskCache := fbo.config.DiskBlockCache()
+		if diskCache != nil {
+			go diskCache.Delete(ctx, md.TlfID(), idsToDelete)
 		}
 	case *resolutionOp:
 		// If there are any unrefs of blocks that have a node, this is an

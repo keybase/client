@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 )
 
@@ -46,7 +47,7 @@ var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
 
 func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 	maxBytes uint64) (*DiskBlockCacheStandard, error) {
-	log := config.MakeLogger("DBC")
+	log := config.MakeLogger("KBC")
 	blockDbPath := filepath.Join(dirPath, blockDbFilename)
 	blockDb, err := leveldb.OpenFile(blockDbPath, leveldbOptions)
 	if err != nil {
@@ -66,6 +67,27 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 		blockDb:  blockDb,
 		lruDb:    lruDb,
 	}, nil
+}
+
+// TODO: Fix getSizes(), where leveldb.DB.SizeOf() currently doesn't work for
+// the full range.
+func (cache *DiskBlockCacheStandard) getSizes() (blockSize int64, lruSize int64, err error) {
+	blockSizes, err := cache.blockDb.SizeOf([]util.Range{{}})
+	if err != nil {
+		return -1, -1, err
+	}
+	lruSizes, err := cache.lruDb.SizeOf([]util.Range{{}})
+	if err != nil {
+		return -1, -1, err
+	}
+	return blockSizes[0], lruSizes[0], nil
+}
+
+func (cache *DiskBlockCacheStandard) compactCaches(ctx context.Context) {
+	cache.blockDb.CompactRange(util.Range{})
+	cache.lruDb.CompactRange(util.Range{})
+	bSize, lruSize, err := cache.getSizes()
+	cache.log.CDebugf(ctx, "Disk Cache bSize=%d lruSize=%d err=%+v", bSize, lruSize, err)
 }
 
 func (cache *DiskBlockCacheStandard) updateLruLocked(tlfID tlf.ID,
@@ -167,6 +189,7 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	if len(blockIDs) == 0 {
 		return nil
 	}
+	cache.log.CDebugf(ctx, "Cache Delete tlf=%s numBlocks=%d", tlfID, len(blockIDs))
 	blockBatch := new(leveldb.Batch)
 	lruBatch := new(leveldb.Batch)
 	for _, id := range blockIDs {
@@ -175,11 +198,16 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 		lruKey := append(tlfID.Bytes(), blockKey...)
 		lruBatch.Delete(lruKey)
 	}
-	err := cache.blockDb.Write(blockBatch, nil)
-	if err != nil {
+	if err := cache.blockDb.Write(blockBatch, nil); err != nil {
 		return err
 	}
-	return cache.lruDb.Write(lruBatch, nil)
+	if err := cache.lruDb.Write(lruBatch, nil); err != nil {
+		return err
+	}
+
+	cache.compactCaches(ctx)
+
+	return nil
 }
 
 // Evict implements the DiskBlockCache interface for DiskBlockCacheStandard.
