@@ -12,6 +12,7 @@ import profileSaga from '../actions/profile'
 import settingsSaga from '../actions/settings'
 import pushSaga from '../actions/push'
 import {call} from 'redux-saga/effects'
+import {createSagaMonitor} from '../util/dev'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -36,7 +37,9 @@ function create (crashHandler: (err: any) => void) {
   if (middleWare) {
     throw new Error('Only create one saga middleware!')
   }
-  middleWare = createSagaMiddleware({onError: crashHandler})
+
+  const sagaMonitor = createSagaMonitor()
+  middleWare = createSagaMiddleware({...sagaMonitor, onError: crashHandler})
   return middleWare
 }
 

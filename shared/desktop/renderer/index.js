@@ -16,12 +16,12 @@ import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../../util/load-perf'
 import routeDefs from '../../routes'
 import {AppContainer} from 'react-hot-loader'
+import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {bootstrap} from '../../actions/config'
 import {changedFocus} from '../../actions/window'
 import {devEditAction} from '../../reducers/dev-edit'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImage, loadUserImage} from '../../util/pictures'
-import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {merge, throttle} from 'lodash'
@@ -33,8 +33,13 @@ import {selector as unlockFoldersSelector} from '../../unlock-folders'
 import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
+import {startReactotron} from '../../util/dev'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
+
+if (__DEV__) {
+  startReactotron()
+}
 
 let _store
 function setupStore () {
