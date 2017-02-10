@@ -1,8 +1,9 @@
 // @flow
 import React, {Component} from 'react'
+import openURL from '../util/open-url'
+import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
 import {globalStyles} from '../styles'
-import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 
 import type {Props, TextType, Background} from './text'
 
@@ -31,6 +32,7 @@ class Text extends Component<void, Props, void> {
 
   shouldComponentUpdate (nextProps: Props): boolean {
     if (
+      this.props.onClickURL === nextProps.onClickURL &&
       this.props.onClick === nextProps.onClick &&
       this.props.title === nextProps.title &&
       this.props.children === nextProps.children &&
@@ -60,6 +62,10 @@ class Text extends Component<void, Props, void> {
     return className
   }
 
+  _urlClick = () => {
+    this.props.onClickURL && openURL(this.props.onClickURL)
+  }
+
   render () {
     const style = this._style(this.props)
     const className = this._className(this.props)
@@ -69,7 +75,7 @@ class Text extends Component<void, Props, void> {
       ref={this._setRef}
       className={className}
       style={style}
-      onClick={this.props.onClick}>{this.props.children}</span>
+      onClick={this.props.onClick || this._urlClick}>{this.props.children}</span>
   }
 }
 

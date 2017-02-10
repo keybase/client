@@ -54,9 +54,10 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 
 	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			Status:     utils.VisibleChatConversationStatuses(),
-			TopicType:  &topicType,
-			UnreadOnly: opts.UnreadOnly,
+			Status:            utils.VisibleChatConversationStatuses(),
+			TopicType:         &topicType,
+			UnreadOnly:        opts.UnreadOnly,
+			OneChatTypePerTLF: new(bool),
 		},
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
@@ -94,6 +95,15 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 				}
 				maxID = msg.GetMessageID()
 			}
+		}
+
+		for _, super := range conv.Supersedes {
+			cl.Conversations[i].Supersedes = append(cl.Conversations[i].Supersedes,
+				super.ConversationID.String())
+		}
+		for _, super := range conv.SupersededBy {
+			cl.Conversations[i].SupersededBy = append(cl.Conversations[i].SupersededBy,
+				super.ConversationID.String())
 		}
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
@@ -186,10 +196,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 				UID:      mv.ClientHeader.Sender.String(),
 				DeviceID: mv.ClientHeader.SenderDevice.String(),
 			},
-			SentAt:   mv.ServerHeader.Ctime.UnixSeconds(),
-			SentAtMs: mv.ServerHeader.Ctime.UnixMilliseconds(),
-			Prev:     prev,
-			Unread:   unread,
+			SentAt:        mv.ServerHeader.Ctime.UnixSeconds(),
+			SentAtMs:      mv.ServerHeader.Ctime.UnixMilliseconds(),
+			Prev:          prev,
+			Unread:        unread,
+			RevokedDevice: mv.SenderDeviceRevokedAt != nil,
 		}
 
 		msg.Content = c.convertMsgBody(mv.MessageBody)
@@ -239,11 +250,13 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 	arg := sendArgV1{
 		conversationID: convID,
 		channel:        opts.Channel,
-		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messages}),
 		mtype:          chat1.MessageType_DELETE,
 		supersedes:     opts.MessageID,
 		deletes:        messages,
 		response:       "message deleted",
+
+		// NOTE: The service will fill in the IDs of edit messages that also need to be deleted.
+		body: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messages}),
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -267,6 +280,7 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
+	var rl []chat1.RateLimit
 	if opts.NoStream {
 		return c.attachV1NoStream(ctx, opts)
 	}
@@ -279,14 +293,17 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 		channel:        opts.Channel,
 		mtype:          chat1.MessageType_ATTACHMENT,
 	}
-	query, err := c.getInboxLocalQuery(ctx, sarg.conversationID, sarg.channel)
+
+	existing, existingRl, err := c.getExistingConvs(ctx, sarg.conversationID, sarg.channel)
 	if err != nil {
 		return c.errReply(err)
 	}
-	header, err := c.makePostHeader(ctx, sarg, query)
+	rl = append(rl, existingRl...)
+	header, err := c.makePostHeader(ctx, sarg, existing)
 	if err != nil {
 		return c.errReply(err)
 	}
+	rl = append(rl, header.rateLimits...)
 
 	info, fsource, err := c.fileInfo(opts.Filename)
 	if err != nil {
@@ -342,12 +359,12 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 	if err != nil {
 		return c.errReply(err)
 	}
-	header.rateLimits = append(header.rateLimits, pres.RateLimits...)
+	rl = append(rl, pres.RateLimits...)
 
 	res := SendRes{
 		Message: "attachment sent",
 		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(header.rateLimits),
+			RateLimits: c.aggRateLimits(rl),
 		},
 	}
 
@@ -356,6 +373,7 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 
 // attachV1NoStream uses PostFileAttachmentLocal instead of PostAttachmentLocal.
 func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOptionsV1) Reply {
+	var rl []chat1.RateLimit
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
@@ -365,14 +383,17 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 		channel:        opts.Channel,
 		mtype:          chat1.MessageType_ATTACHMENT,
 	}
-	query, err := c.getInboxLocalQuery(ctx, sarg.conversationID, sarg.channel)
+	existing, existingRl, err := c.getExistingConvs(ctx, sarg.conversationID, sarg.channel)
 	if err != nil {
 		return c.errReply(err)
 	}
-	header, err := c.makePostHeader(ctx, sarg, query)
+	rl = append(rl, existingRl...)
+
+	header, err := c.makePostHeader(ctx, sarg, existing)
 	if err != nil {
 		return c.errReply(err)
 	}
+	rl = append(rl, header.rateLimits...)
 
 	arg := chat1.PostFileAttachmentLocalArg{
 		ConversationID: header.conversationID,
@@ -411,12 +432,12 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	if err != nil {
 		return c.errReply(err)
 	}
-	header.rateLimits = append(header.rateLimits, pres.RateLimits...)
+	rl = append(rl, pres.RateLimits...)
 
 	res := SendRes{
 		Message: "attachment sent",
 		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(header.rateLimits),
+			RateLimits: c.aggRateLimits(rl),
 		},
 	}
 
@@ -613,15 +634,18 @@ type sendArgV1 struct {
 }
 
 func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
-	query, err := c.getInboxLocalQuery(ctx, arg.conversationID, arg.channel)
+	var rl []chat1.RateLimit
+	existing, existingRl, err := c.getExistingConvs(ctx, arg.conversationID, arg.channel)
 	if err != nil {
 		return c.errReply(err)
 	}
+	rl = append(rl, existingRl...)
 
-	header, err := c.makePostHeader(ctx, arg, query)
+	header, err := c.makePostHeader(ctx, arg, existing)
 	if err != nil {
 		return c.errReply(err)
 	}
+	rl = append(rl, header.rateLimits...)
 
 	postArg := chat1.PostLocalArg{
 		ConversationID: header.conversationID,
@@ -645,19 +669,19 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
 		if err != nil {
 			return c.errReply(err)
 		}
-		header.rateLimits = append(header.rateLimits, plres.RateLimits...)
+		rl = append(rl, plres.RateLimits...)
 	} else {
 		plres, err := client.PostLocal(ctx, postArg)
 		if err != nil {
 			return c.errReply(err)
 		}
-		header.rateLimits = append(header.rateLimits, plres.RateLimits...)
+		rl = append(rl, plres.RateLimits...)
 	}
 
 	res := SendRes{
 		Message: arg.response,
 		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(header.rateLimits),
+			RateLimits: c.aggRateLimits(rl),
 		},
 	}
 
@@ -670,33 +694,32 @@ type postHeader struct {
 	rateLimits     []chat1.RateLimit
 }
 
-func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, query chat1.GetInboxLocalQuery) (*postHeader, error) {
+func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, existing []chat1.ConversationLocal) (*postHeader, error) {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return nil, err
 	}
 
-	// find the conversation
-	gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{Query: &query})
-	if err != nil {
-		c.G().Log.Warning("GetInboxLocal error: %s", err)
-		return nil, err
-	}
 	var header postHeader
-	header.rateLimits = append(header.rateLimits, gilres.RateLimits...)
-
 	var convTriple chat1.ConversationIDTriple
 	var tlfName string
 	var visibility chat1.TLFVisibility
-	existing := gilres.Conversations
 	switch len(existing) {
 	case 0:
+		visibility = chat1.TLFVisibility_PRIVATE
+		if arg.channel.Public {
+			visibility = chat1.TLFVisibility_PUBLIC
+		}
+		tt, err := TopicTypeFromStrDefault(arg.channel.TopicType)
+		if err != nil {
+			return nil, err
+		}
 
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
-			TlfName:       *query.TlfName,
-			TlfVisibility: *query.TlfVisibility,
-			TopicName:     query.TopicName,
-			TopicType:     *query.TopicType,
+			TlfName:       arg.channel.Name,
+			TlfVisibility: visibility,
+			TopicName:     &arg.channel.TopicName,
+			TopicType:     tt,
 		})
 		if err != nil {
 			return nil, err
@@ -727,15 +750,28 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	return &header, nil
 }
 
-func (c *chatServiceHandler) getInboxLocalQuery(ctx context.Context, id chat1.ConversationID, channel ChatChannel) (chat1.GetInboxLocalQuery, error) {
-	if !id.IsNil() {
-		return chat1.GetInboxLocalQuery{ConvID: &id}, nil
+func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.ConversationID, channel ChatChannel) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return nil, nil, err
 	}
 
-	// canonicalize the tlf name (no visibility necessary?)
+	if !id.IsNil() {
+		gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvID: &id,
+			},
+		})
+		if err != nil {
+			c.G().Log.Warning("GetInboxLocal error: %s", err)
+			return nil, nil, err
+		}
+		return gilres.Conversations, gilres.RateLimits, nil
+	}
+
 	tlfClient, err := GetTlfClient(c.G())
 	if err != nil {
-		return chat1.GetInboxLocalQuery{}, err
+		return nil, nil, err
 	}
 
 	var tlfName string
@@ -746,13 +782,13 @@ func (c *chatServiceHandler) getInboxLocalQuery(ctx context.Context, id chat1.Co
 	if channel.Public {
 		cname, err := tlfClient.PublicCanonicalTLFNameAndID(ctx, tlfQ)
 		if err != nil {
-			return chat1.GetInboxLocalQuery{}, err
+			return nil, nil, err
 		}
 		tlfName = cname.CanonicalName.String()
 	} else {
 		cname, err := tlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQ)
 		if err != nil {
-			return chat1.GetInboxLocalQuery{}, err
+			return nil, nil, err
 		}
 		tlfName = cname.CanonicalName.String()
 	}
@@ -763,25 +799,32 @@ func (c *chatServiceHandler) getInboxLocalQuery(ctx context.Context, id chat1.Co
 	}
 	tt, err := TopicTypeFromStrDefault(channel.TopicType)
 	if err != nil {
-		return chat1.GetInboxLocalQuery{}, err
+		return nil, nil, err
 	}
-	return chat1.GetInboxLocalQuery{
-		TlfName:       &tlfName,
-		TlfVisibility: &vis,
-		TopicType:     &tt,
-		TopicName:     &channel.TopicName,
-	}, nil
+
+	findRes, err := client.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
+		TlfName:    tlfName,
+		Visibility: vis,
+		TopicType:  tt,
+		TopicName:  channel.TopicName,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return findRes.Conversations, findRes.RateLimits, nil
 }
 
 // need this to get message type name
 func (c *chatServiceHandler) convertMsgBody(mb chat1.MessageBody) MsgContent {
 	return MsgContent{
-		TypeName:   strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
-		Text:       mb.Text__,
-		Attachment: mb.Attachment__,
-		Edit:       mb.Edit__,
-		Delete:     mb.Delete__,
-		Metadata:   mb.Metadata__,
+		TypeName:           strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
+		Text:               mb.Text__,
+		Attachment:         mb.Attachment__,
+		Edit:               mb.Edit__,
+		Delete:             mb.Delete__,
+		Metadata:           mb.Metadata__,
+		AttachmentUploaded: mb.Attachmentuploaded__,
 	}
 }
 
@@ -856,22 +899,12 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 		}
 	}
 
-	client, err := GetChatLocalClient(c.G())
+	existing, existingRl, err := c.getExistingConvs(ctx, convID, channel)
 	if err != nil {
 		return conv, rlimits, err
 	}
-	query, err := c.getInboxLocalQuery(ctx, convID, channel)
-	if err != nil {
-		return conv, rlimits, err
-	}
-	gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-		Query: &query,
-	})
-	if err != nil {
-		return conv, rlimits, err
-	}
-	rlimits = append(rlimits, gilres.RateLimits...)
-	existing := gilres.Conversations
+	rlimits = append(rlimits, existingRl...)
+
 	if len(existing) > 1 {
 		return conv, rlimits, fmt.Errorf("multiple conversations matched %q", channel.Name)
 	}
@@ -905,24 +938,26 @@ type MsgSender struct {
 // Text, Attachment, Edit, Delete, Metadata depending on the type of message.
 // It is included in MsgSummary.
 type MsgContent struct {
-	TypeName   string                             `json:"type"`
-	Text       *chat1.MessageText                 `json:"text,omitempty"`
-	Attachment *chat1.MessageAttachment           `json:"attachment,omitempty"`
-	Edit       *chat1.MessageEdit                 `json:"edit,omitempty"`
-	Delete     *chat1.MessageDelete               `json:"delete,omitempty"`
-	Metadata   *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
+	TypeName           string                             `json:"type"`
+	Text               *chat1.MessageText                 `json:"text,omitempty"`
+	Attachment         *chat1.MessageAttachment           `json:"attachment,omitempty"`
+	Edit               *chat1.MessageEdit                 `json:"edit,omitempty"`
+	Delete             *chat1.MessageDelete               `json:"delete,omitempty"`
+	Metadata           *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
+	AttachmentUploaded *chat1.MessageAttachmentUploaded   `json:"attachment_uploaded,omitempty"`
 }
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
-	ID       chat1.MessageID                `json:"id"`
-	Channel  ChatChannel                    `json:"channel"`
-	Sender   MsgSender                      `json:"sender"`
-	SentAt   int64                          `json:"sent_at"`
-	SentAtMs int64                          `json:"sent_at_ms"`
-	Content  MsgContent                     `json:"content"`
-	Prev     []chat1.MessagePreviousPointer `json:"prev"`
-	Unread   bool                           `json:"unread"`
+	ID            chat1.MessageID                `json:"id"`
+	Channel       ChatChannel                    `json:"channel"`
+	Sender        MsgSender                      `json:"sender"`
+	SentAt        int64                          `json:"sent_at"`
+	SentAtMs      int64                          `json:"sent_at_ms"`
+	Content       MsgContent                     `json:"content"`
+	Prev          []chat1.MessagePreviousPointer `json:"prev"`
+	Unread        bool                           `json:"unread"`
+	RevokedDevice bool                           `json:"revoked_device,omitempty"`
 }
 
 // Message contains eiter a MsgSummary or an Error.  Used for JSON output.
@@ -945,6 +980,8 @@ type ConvSummary struct {
 	ActiveAt     int64                           `json:"active_at"`
 	ActiveAtMs   int64                           `json:"active_at_ms"`
 	FinalizeInfo *chat1.ConversationFinalizeInfo `json:"finalize_info,omitempty"`
+	Supersedes   []string                        `json:"supersedes,omitempty"`
+	SupersededBy []string                        `json:"superseded_by,omitempty"`
 }
 
 // ChatList is a list of conversations in the inbox.

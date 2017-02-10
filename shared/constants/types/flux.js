@@ -1,7 +1,7 @@
 // @flow
 import type {TypedState} from '../reducer'
 
-export type LogTransformer = (action: TypedAction<*, *, *>) => Object
+export type LogTransformer = (action: TypedAction<*, *, *>, oldState: TypedState) => Object
 
 export type TypedAction<T, P, E> = {
   error?: false,
@@ -26,5 +26,5 @@ export type TypedAsyncAction<A> = (dispatch: TypedDispatch<A>, getState: GetStat
 export type TypedDispatch<-A> = (action: TypedAsyncAction<A> | A) => ?Promise<*>
 
 export const noPayloadTransformer: LogTransformer = (action) => {
-  return {...action, payload: null}
+  return {...action, payload: undefined}
 }

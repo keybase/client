@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -415,7 +416,7 @@ func TestStorageTypeFilter(t *testing.T) {
 	res, err := storage.Fetch(context.TODO(), conv, uid, &query, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
-	restexts := FilterByType(res.Messages, &query)
+	restexts := utils.FilterByType(res.Messages, &query)
 	require.Equal(t, len(textmsgs), len(restexts), "wrong amount of text messages")
 	for i := 0; i < len(restexts); i++ {
 		require.Equal(t, textmsgs[i].GetMessageID(), restexts[i].GetMessageID(), "msg mismatch")

@@ -432,6 +432,11 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
       if (getState().tracker.pendingIdentifies[username]) {
         console.log('Bailing on idenitifies in time window', username)
         alreadyPending = true
+
+        // Display anyways
+        if (forceDisplay) {
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
         return
       }
 
@@ -688,13 +693,13 @@ function _parseFriendship ({is_followee, is_follower, username, uid, full_name, 
   }
 }
 
-function _listTrackersOrTracking (uid: string, listTrackers: boolean): Promise<Array<FriendshipUserInfo>> {
+function _listTrackersOrTracking (username: string, listTrackers: boolean): Promise<Array<FriendshipUserInfo>> {
   return new Promise((resolve, reject) => {
     apiserverGetRpc({
       param: {
         endpoint: 'user/list_followers_for_display',
         args: [
-          {key: 'uid', value: uid},
+          {key: 'username', value: username},
           {key: 'reverse', value: String(!listTrackers)},
         ],
       },
@@ -711,8 +716,8 @@ function _listTrackersOrTracking (uid: string, listTrackers: boolean): Promise<A
   })
 }
 
-const listTrackers = uid => _listTrackersOrTracking(uid, true)
-const listTracking = uid => _listTrackersOrTracking(uid, false)
+const listTrackers = username => _listTrackersOrTracking(username, true)
+const listTracking = username => _listTrackersOrTracking(username, false)
 
 function _fillFolders (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
@@ -735,9 +740,9 @@ function _fillFolders (username: string): TrackerActionCreator {
   }
 }
 
-function updateTrackers (username: string, uid: string): TrackerActionCreator {
+function updateTrackers (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    Promise.all([listTrackers(uid), listTracking(uid)]).then(([trackers, tracking]) => {
+    Promise.all([listTrackers(username), listTracking(username)]).then(([trackers, tracking]) => {
       dispatch({
         type: Constants.updateTrackers,
         payload: {username, trackers, tracking},

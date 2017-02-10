@@ -274,14 +274,6 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 	return k == libkb.IdentifyUIKind && e.arg.UseDelegateUI
 }
 
-func (e *Identify2WithUID) calledFromChatGUI() bool {
-	return e.arg.ChatGUIMode
-}
-
-func (e *Identify2WithUID) canSucceedWithTrackBreaks() bool {
-	return e.calledFromChatGUI()
-}
-
 func (e *Identify2WithUID) resetError(err error) error {
 
 	if err == nil {
@@ -295,7 +287,7 @@ func (e *Identify2WithUID) resetError(err error) error {
 		return err
 	}
 
-	if e.canSucceedWithTrackBreaks() {
+	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
 		e.G().Log.Debug("| Reset err from %v -> nil since caller is 'CHAT_GUI'", err)
 		return nil
 	}
@@ -475,7 +467,7 @@ func (e *Identify2WithUID) exportToResult() *keybase1.Identify2Res {
 func (e *Identify2WithUID) maybeCacheResult() {
 
 	isOK := e.state.Result().IsOK()
-	canCacheFailures := e.canSucceedWithTrackBreaks()
+	canCacheFailures := e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks()
 
 	e.G().Log.Debug("+ maybeCacheResult (ok=%v; canCacheFailures=%v)", isOK, canCacheFailures)
 	defer e.G().Log.Debug("- maybeCacheResult")
@@ -626,7 +618,7 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 }
 
 func (e *Identify2WithUID) displayUserCardAsync(iui libkb.IdentifyUI) <-chan error {
-	if e.canSucceedWithTrackBreaks() {
+	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
 		return nil
 	}
 	return displayUserCardAsync(e.G(), iui, e.them.GetUID(), (e.me != nil))
@@ -641,7 +633,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.remotesReceived = e.them.BaseProofSet()
 
 	iui := ctx.IdentifyUI
-	if e.calledFromChatGUI() {
+	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
 		e.G().Log.Debug("| using the loopback identify UI")
 		iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
 	} else if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
@@ -677,9 +669,14 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
+	itm := libkb.IdentifyTableModeActive
+	if e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
+		itm = libkb.IdentifyTableModePassive
+	}
+
 	if them.IDTable() == nil {
 		e.G().Log.Debug("| No IDTable for user")
-	} else if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e); err != nil {
+	} else if err = them.IDTable().Identify(ctx.GetNetContext(), e.state, e.forceRemoteCheck(), iui, e, itm); err != nil {
 		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
@@ -765,7 +762,7 @@ func (e *Identify2WithUID) createIdentifyState(ctx *Context) (err error) {
 // RequiredUIs returns the required UIs.
 func (e *Identify2WithUID) RequiredUIs() []libkb.UIKind {
 	ret := []libkb.UIKind{}
-	if e.arg == nil || !e.arg.ChatGUIMode {
+	if e.arg == nil || !e.arg.IdentifyBehavior.ShouldSuppressTrackerPopups() {
 		ret = append(ret, libkb.IdentifyUIKind)
 	}
 	return ret
@@ -850,7 +847,7 @@ func (e *Identify2WithUID) loadUsers(ctx *Context) error {
 
 func (e *Identify2WithUID) checkFastCacheHit() (hit bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkFastCacheHit(%s)", e.arg.Uid)
-	defer e.G().TraceOK(prfx, func() bool { return hit })()
+	defer e.G().ExitTraceOK(prfx, func() bool { return hit })()
 	if e.getCache() == nil {
 		return false
 	}
@@ -859,7 +856,7 @@ func (e *Identify2WithUID) checkFastCacheHit() (hit bool) {
 	dfn := func(u keybase1.Identify2Res) time.Duration {
 		return libkb.Identify2CacheShortTimeout
 	}
-	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.canSucceedWithTrackBreaks())
+	u, err := e.getCache().Get(e.arg.Uid, fn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
 
 	if err != nil {
 		e.G().Log.Debug("| fast cache error for %s: %s", e.arg.Uid, err)
@@ -879,7 +876,7 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 }
 
 func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
-	defer e.G().TraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
+	defer e.G().ExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
 	var ktm keybase1.Time
 	key := e.dbKey(e.them.GetUID())
 	found, err := e.G().LocalDb.GetInto(&ktm, key)
@@ -906,7 +903,7 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 // Thus, after a cold boot, we don't start up with a cold identify cache.
 func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
 	prfx := fmt.Sprintf("Identify2WithUID#storeSlowCacheToDB(%s)", e.them.GetUID())
-	defer e.G().Trace(prfx, func() error { return err })()
+	defer e.G().ExitTrace(prfx, func() error { return err })()
 	if e.me == nil {
 		e.G().Log.Debug("not storing to persistent slow cache since no me user")
 		return nil
@@ -933,7 +930,7 @@ func (e *Identify2WithUID) removeSlowCacheFromDB() (err error) {
 
 func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 	prfx := fmt.Sprintf("Identify2WithUID#checkSlowCacheHit(%s)", e.them.GetUID())
-	defer e.G().TraceOK(prfx, func() bool { return ret })()
+	defer e.G().ExitTraceOK(prfx, func() bool { return ret })()
 
 	if e.getCache() == nil {
 		return false
@@ -946,7 +943,7 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 		}
 		return libkb.Identify2CacheLongTimeout
 	}
-	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.canSucceedWithTrackBreaks())
+	u, err := e.getCache().Get(e.them.GetUID(), tfn, dfn, e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks())
 
 	trackBrokenError := false
 	if err != nil {

@@ -512,7 +512,10 @@ function stateToColor (state: SimpleProofState): string {
   return 'gray'
 }
 
-function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): ?SimpleProofState {
+function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff, breaksTracking: boolean): ?SimpleProofState {
+  if (breaksTracking) {
+    return error
+  }
   // If there is no difference in what we've tracked from the server or remote resource it's good.
   if (diff && remoteDiff && diff.type === IdentifyCommonTrackDiffType.none && remoteDiff.type === IdentifyCommonTrackDiffType.none) {
     return normal
@@ -667,7 +670,7 @@ function revokedProofToProof (rv: RevokedProof): Proof {
 }
 
 function remoteProofToProof (username: string, oldProofState: SimpleProofState, rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
-  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || oldProofState
+  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff, lcr.breaksTracking) || oldProofState
   const isTracked = !!(lcr && lcr.diff && lcr.diff.type === IdentifyCommonTrackDiffType.none && !lcr.breaksTracking)
   const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult, isTracked)
   const humanUrl = ((rp.key !== 'dns') && lcr && lcr.hint && lcr.hint.humanUrl) || `https://keybase.io/${username}/sigchain#${rp.sigID}`

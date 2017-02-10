@@ -1,0 +1,560 @@
+exports[`Markdown parser parses a line with just whitespace correctly 1`] = `
+Object {
+  "children": Array [
+    "    ",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses an empty line correctly 1`] = `
+Object {
+  "children": Array [],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses escaped chars correctly 1`] = `
+Object {
+  "children": Array [
+    "I *should* see asterisks",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses formatting adjacent to punctuation 1`] = `
+Object {
+  "children": Array [
+    "thisis(",
+    Object {
+      "children": Array [
+        "bold",
+      ],
+      "type": "bold",
+    },
+    ") and(",
+    Object {
+      "children": Array [
+        "italic",
+      ],
+      "type": "italic",
+    },
+    ") and,",
+    Object {
+      "children": Array [
+        "striked",
+      ],
+      "type": "strike",
+    },
+    "! (",
+    Object {
+      "children": Array [
+        "woot",
+      ],
+      "type": "bold",
+    },
+    ") another.",
+    Object {
+      "children": Array [
+        "test",
+      ],
+      "type": "bold",
+    },
+    ".case",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses invalid bold correctly 1`] = `
+Object {
+  "children": Array [
+    "*not bold**",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses invalid emoji fragments correctly 1`] = `
+Object {
+  "children": Array [
+    "one::
+::two
+:three?::
+:",
+    Object {
+      "children": Array [
+        ":four:",
+      ],
+      "type": "emoji",
+    },
+    "
+::",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses kitchen sink demo correctly 1`] = `
+Object {
+  "children": Array [
+    "I think we should try to use ",
+    Object {
+      "children": Array [
+        "if else",
+      ],
+      "type": "inline-code",
+    },
+    " statements ",
+    Object {
+      "children": Array [
+        "if (var == \"foo\")
+  echo \"foo\";
+else echo \"bar\";",
+      ],
+      "type": "code-block",
+    },
+    " How about ",
+    Object {
+      "children": Array [
+        "bold",
+      ],
+      "type": "bold",
+    },
+    " and ",
+    Object {
+      "children": Array [
+        "italic?",
+      ],
+      "type": "italic",
+    },
+    " nice.
+ Now youre thinking with ",
+    Object {
+      "children": Array [
+        "portals",
+      ],
+      "type": "strike",
+    },
+    " crypto.
+ how about ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "bold and italic and strike through?",
+              ],
+              "type": "bold",
+            },
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "strike",
+    },
+    " - now - ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "some bold",
+          ],
+          "type": "bold",
+        },
+        " and just italic",
+      ],
+      "type": "italic",
+    },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses more code blocks correctly 1`] = `
+Object {
+  "children": Array [
+    "
+        ",
+    Object {
+      "children": Array [
+        "this is a code block",
+      ],
+      "type": "code-block",
+    },
+    "
+",
+    Object {
+      "children": Array [
+        "this is a code block that starts with a newline",
+      ],
+      "type": "code-block",
+    },
+    "
+",
+    Object {
+      "children": Array [
+        "this is a code block that starts with a newline and ends with a newline
+",
+      ],
+      "type": "code-block",
+    },
+    "
+",
+    Object {
+      "children": Array [
+        "
+this is a code block with two newline above",
+      ],
+      "type": "code-block",
+    },
+    "
+",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses multiple adjacent emoji correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        ":ok_hand::skin-tone-2:",
+      ],
+      "type": "emoji",
+    },
+    Object {
+      "children": Array [
+        ":smile:",
+      ],
+      "type": "emoji",
+    },
+    Object {
+      "children": Array [
+        ":wink:",
+      ],
+      "type": "emoji",
+    },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses native emoji correctly 1`] = `
+Object {
+  "children": Array [
+    "hello there ",
+    Object {
+      "children": Array [
+        ":cherry_blossom:",
+      ],
+      "type": "native-emoji",
+    },
+    Object {
+      "children": Array [
+        ":sunglasses:",
+      ],
+      "type": "native-emoji",
+    },
+    Object {
+      "children": Array [
+        ":+1::skin-tone-5:",
+      ],
+      "type": "native-emoji",
+    },
+    "!",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses native zwj emoji correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        ":woman-kiss-woman:",
+      ],
+      "type": "native-emoji",
+    },
+    " ",
+    Object {
+      "children": Array [
+        ":woman-woman-girl-girl:",
+      ],
+      "type": "native-emoji",
+    },
+    "!",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses numbers and some symbols emoji 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        ":+1:",
+      ],
+      "type": "emoji",
+    },
+    " ",
+    Object {
+      "children": Array [
+        ":100:",
+      ],
+      "type": "emoji",
+    },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses quote blocks correctly 1`] = `
+Object {
+  "children": Array [
+    "
+",
+    Object {
+      "children": Array [
+        "this is quoted",
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        "this is ",
+        Object {
+          "children": Array [
+            "italics",
+          ],
+          "type": "italic",
+        },
+        " inside of a quote. This is ",
+        Object {
+          "children": Array [
+            "bold",
+          ],
+          "type": "bold",
+        },
+        " inside of a quote.",
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        "outside code: ",
+        Object {
+          "children": Array [
+            "This is an inline block of code in a quote",
+          ],
+          "type": "inline-code",
+        },
+        " outside again",
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "multi
+line
+code in quote
+",
+          ],
+          "type": "code-block",
+        },
+      ],
+      "type": "quote-block",
+    },
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses special characters within words correctly 1`] = `
+Object {
+  "children": Array [
+    "not*bolded* *also*notbolded",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses urls correctly 1`] = `
+Object {
+  "children": Array [
+    "
+  Ignore:
+    a...b,
+    ftp://blah.com,
+    gopher://blah.com,
+    mailto:blah@blah.com
+    ",
+    Object {
+      "children": Array [
+        "http://keybase.io",
+      ],
+      "type": "italic",
+    },
+    "
+  Include:
+    ",
+    Object {
+      "children": Array [
+        "http://keybase.io",
+      ],
+      "href": "http://keybase.io",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "http://keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+      ],
+      "type": "bold",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "http://keybase.io",
+      ],
+      "type": "inline-code",
+    },
+    "
+    (",
+    Object {
+      "children": Array [
+        "https://keybase.io",
+      ],
+      "href": "https://keybase.io",
+      "type": "link",
+    },
+    ")
+    ",
+    Object {
+      "children": Array [
+        "https://keybase.io",
+      ],
+      "href": "https://keybase.io",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "HTTP://cnn.com",
+      ],
+      "href": "HTTP://cnn.com",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "http://twitter.com",
+      ],
+      "href": "http://twitter.com",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "google.com",
+      ],
+      "href": "http://google.com",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "keybase.io/a/user/lookup?one=1&two=2",
+      ],
+      "href": "http://keybase.io/a/user/lookup?one=1&two=2",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "keybase.io/a/user/path_with_underscore",
+      ],
+      "href": "http://keybase.io/a/user/path_with_underscore",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "keybase.io?blah=true",
+      ],
+      "href": "http://keybase.io?blah=true",
+      "type": "link",
+    },
+    "
+    ",
+    Object {
+      "children": Array [
+        "http://keybase.io/blah/../up-one/index.html",
+      ],
+      "href": "http://keybase.io/blah/../up-one/index.html",
+      "type": "link",
+    },
+    "
+  These should have the trailing punctuation outside the link:
+    ",
+    Object {
+      "children": Array [
+        "amazon.co.uk",
+      ],
+      "href": "http://amazon.co.uk",
+      "type": "link",
+    },
+    ".
+    ",
+    Object {
+      "children": Array [
+        "keybase.io",
+      ],
+      "href": "http://keybase.io",
+      "type": "link",
+    },
+    ",
+    ",
+    Object {
+      "children": Array [
+        "keybase.io",
+      ],
+      "href": "http://keybase.io",
+      "type": "link",
+    },
+    ".
+    ",
+    Object {
+      "children": Array [
+        "keybase.io",
+      ],
+      "href": "http://keybase.io",
+      "type": "link",
+    },
+    "?
+",
+  ],
+  "type": "text",
+}
+`;

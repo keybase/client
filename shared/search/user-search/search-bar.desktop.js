@@ -41,32 +41,49 @@ class ServiceIcon extends Component<void, ServiceIconProps, ServiceIconState> {
   }
 }
 
-class SearchBar extends Component<void, Props, void> {
-  _onDebouncedSearch: (overridePlatform?: SearchPlatforms) => void;
+type State = {
+  overridePlatform: ?SearchPlatforms,
+}
 
-  constructor (props: Props) {
-    super(props)
-    this._onDebouncedSearch = _.debounce(this._onSearch, 500)
+class SearchBar extends Component<void, Props, State> {
+  _search: any
+  state: State = {
+    overridePlatform: null,
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
-      this.refs && this.refs.searchBox && this.refs.searchBox.clearValue()
+    if (this.props.searchTextClearTrigger !== nextProps.searchTextClearTrigger) {
+      this._clear()
     }
   }
 
-  _onSearch (overridePlatform?: SearchPlatforms) {
-    this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '', overridePlatform || null)
+  _onSearch = () => {
+    const term = this._searchTerm()
+    this.props.onSearch(term, this.state.overridePlatform)
   }
 
-  _onClickService (platform: SearchPlatforms) {
-    this.props.onClickService(platform)
-    if (this.refs.searchBox) {
-      if (this.refs.searchBox.getValue()) {
-        this._onSearch(platform)
+  _onDebouncedSearch = _.debounce(this._onSearch, 500)
+
+  _onClickService = (overridePlatform: SearchPlatforms) => {
+    this.setState({overridePlatform}, () => {
+      this._onSearch()
+      if (this._search) {
+        this._search.focus()
       }
-      this.refs.searchBox.focus()
-    }
+    })
+    this.props.onClickService(overridePlatform)
+  }
+
+  _searchTerm = () => {
+    return this._search ? this._search.getValue() : ''
+  }
+
+  _clear = () => {
+    this._search && this._search.clearValue()
+  }
+
+  _setSearchRef = r => {
+    this._search = r
   }
 
   render () {
@@ -83,7 +100,7 @@ class SearchBar extends Component<void, Props, void> {
               tooltip={tooltips[s] || s}
               iconType={platformToLogo24(s)}
               selected={this.props.selectedService === s}
-              onClickService={p => this._onClickService(p)}
+              onClickService={this._onClickService}
               />
           ))}
         </Box>
@@ -93,16 +110,15 @@ class SearchBar extends Component<void, Props, void> {
             hideUnderline={true}
             type='text'
             autoFocus={true}
-            ref='searchBox'
+            ref={this._setSearchRef}
             onEnterKeyDown={() => this._onSearch()}
             onChangeText={() => this._onDebouncedSearch()}
-            value={this.props.searchText}
             hintText={this.props.searchHintText}
             style={{paddingLeft: 20}}
             inputStyle={stylesInput}
           />
           <Icon type='iconfont-remove' style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}
-            onClick={() => this.refs.searchBox.clearValue()} />
+            onClick={this._clear} />
         </Box>
       </Box>
     )

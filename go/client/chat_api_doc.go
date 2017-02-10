@@ -40,6 +40,6 @@ List inbox by topic type:
 Send a message to a public channel:
     {"method": "send", "params": {"options": {"channel": {"name": "you", "public": true}, "message": {"body": "Still going..."}}}}
 
-Ignore a conversation:
-    {"method": "setstatus", "params": {"options": {"channel": {"name": "you,them"}, "status": "ignored"}}}
+Mute a conversation:
+    {"method": "setstatus", "params": {"options": {"channel": {"name": "you,them"}, "status": "muted"}}}
 `

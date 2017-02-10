@@ -46,7 +46,7 @@ func (rc *GithubChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libk
 		"Bad hint from server; URL start with either '%s' OR '%s'", ok1, ok2)
 }
 
-func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 	if pvl.UsePvl {
 		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_GITHUB,
 			pvl.NewProofInfo(rc.proof, h))

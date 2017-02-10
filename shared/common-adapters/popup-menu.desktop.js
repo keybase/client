@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import type {Props, HeaderTextProps} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
+import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
 class PopupMenu extends Component<void, Props, void> {
@@ -18,31 +19,33 @@ class PopupMenu extends Component<void, Props, void> {
     `
 
     return (
-      <Box style={{...stylesMenuCatcher}} onClick={e => {
-        this.props.onHidden()
-        e.stopPropagation()
-      }}>
-        <style>{realCSS}</style>
-        <Box style={{...stylesMenu, ...this.props.style}}>
-          {this.props.header && this.props.header.view}
-          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: globalMargins.tiny, paddingBottom: globalMargins.tiny}}>
-            {
-              this.props.items.map((i, idx) => {
-                if (i === 'Divider') {
-                  return <Divider key={idx} />
-                }
+      <EscapeHandler onESC={this.props.onHidden}>
+        <Box style={{...stylesMenuCatcher}} onClick={e => {
+          this.props.onHidden()
+          e.stopPropagation()
+        }}>
+          <style>{realCSS}</style>
+          <Box style={{...stylesMenu, ...this.props.style}}>
+            {this.props.header && this.props.header.view}
+            <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: globalMargins.tiny, paddingBottom: globalMargins.tiny}}>
+              {
+                this.props.items.filter(Boolean).map((i, idx) => {
+                  if (i === 'Divider') {
+                    return <Divider key={idx} />
+                  }
 
-                return (
-                  <Box key={i.title} className={i.danger ? 'menu-hover-danger' : 'menu-hover'} style={stylesRow} onClick={i.onClick}>
-                    <Text className='title' type='Body' style={{...stylesMenuText, ...i.style}}>{i.title}</Text>
-                    {i.subTitle && <Text className='subtitle' key={i.subTitle} type='BodySmall' style={{...stylesMenuText, ...i.style}}>{i.subTitle}</Text>}
-                  </Box>
-                )
-              })
-            }
+                  return (
+                    <Box key={i.title} className={i.danger ? 'menu-hover-danger' : 'menu-hover'} style={stylesRow} onClick={i.onClick}>
+                      <Text className='title' type='Body' style={{...stylesMenuText, ...i.style}}>{i.title}</Text>
+                      {i.subTitle && <Text className='subtitle' key={i.subTitle} type='BodySmall' style={{...stylesMenuText, ...i.style}}>{i.subTitle}</Text>}
+                    </Box>
+                  )
+                })
+              }
+            </Box>
           </Box>
         </Box>
-      </Box>
+      </EscapeHandler>
     )
   }
 }

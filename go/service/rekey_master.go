@@ -6,13 +6,14 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 const TLFRekeyGregorCategory = "kbfs_tlf_rekey_needed"
@@ -223,7 +224,7 @@ func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) 
 		return r.resumeSleep(), nil
 	}
 
-	if ri != RekeyInterruptSyncForce {
+	if ri != RekeyInterruptSyncForce && ri != RekeyInterruptShowUI {
 		if ret = r.continueSleep(ri); ret > 0 {
 			r.G().Log.Debug("| Skipping compute and act due to sleep state")
 			return ret, nil

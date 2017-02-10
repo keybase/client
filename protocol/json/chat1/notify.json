@@ -31,24 +31,20 @@
         {
           "type": "ConversationID",
           "name": "convID"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "MessageSentInfo",
-      "fields": [
-        {
-          "type": "ConversationID",
-          "name": "convID"
         },
         {
-          "type": "RateLimit",
-          "name": "rateLimit"
+          "type": [
+            null,
+            "ConversationLocal"
+          ],
+          "name": "conv"
         },
         {
-          "type": "OutboxID",
-          "name": "outboxID"
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
         }
       ]
     },
@@ -63,6 +59,13 @@
         {
           "type": "MessageID",
           "name": "msgID"
+        },
+        {
+          "type": [
+            null,
+            "ConversationLocal"
+          ],
+          "name": "conv"
         }
       ]
     },
@@ -87,6 +90,13 @@
         {
           "type": "ConversationStatus",
           "name": "status"
+        },
+        {
+          "type": [
+            null,
+            "ConversationLocal"
+          ],
+          "name": "conv"
         }
       ]
     },
@@ -189,6 +199,32 @@
         {
           "name": "finalizeInfo",
           "type": "ConversationFinalizeInfo"
+        },
+        {
+          "name": "conv",
+          "type": [
+            null,
+            "ConversationLocal"
+          ]
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatTLFResolve": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "resolveInfo",
+          "type": "ConversationResolveInfo"
         }
       ],
       "response": null,

@@ -6,6 +6,7 @@ export type Props = {
   selectedService: ?SearchPlatforms,
   onSearch: (term: string, platform?: ?SearchPlatforms) => void,
   searchText: ?string,
+  searchTextClearTrigger: number,
   searchHintText: string,
   onClickService: (service: SearchPlatforms) => void,
 }

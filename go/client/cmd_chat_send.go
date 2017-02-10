@@ -58,7 +58,7 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	ctx := context.TODO()
-	conversationInfo, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
+	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: true,
 		Interactive:       c.hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -66,6 +66,7 @@ func (c *cmdChatSend) Run() (err error) {
 	if err != nil {
 		return err
 	}
+	conversationInfo := conversation.Info
 
 	var args chat1.PostLocalArg
 	args.ConversationID = conversationInfo.Id
@@ -75,6 +76,7 @@ func (c *cmdChatSend) Run() (err error) {
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
 	msg.ClientHeader.Conv = conversationInfo.Triple
 	msg.ClientHeader.TlfName = conversationInfo.TlfName
+	msg.ClientHeader.TlfPublic = (conversationInfo.Visibility == chat1.TLFVisibility_PUBLIC)
 
 	// Whether the user is really sure they want to send to the selected conversation.
 	// We require an additional confirmation if the choose menu was used.

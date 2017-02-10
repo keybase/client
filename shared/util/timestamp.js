@@ -11,7 +11,7 @@ export function formatTimeForConversationList (time: number, nowOverride?: numbe
   if (m.isSame(today, 'd')) {
     return m.format('h:mm A')
   } else if (m.isAfter(weekOld)) {
-    return m.format('dddd')
+    return m.format('ddd')
   }
 
   return m.format('MMM D')

@@ -103,6 +103,6 @@ func (h *TrackHandler) FakeTrackingChanged(_ context.Context, arg keybase1.FakeT
 	if err != nil {
 		return err
 	}
-	h.G().NotifyRouter.HandleTrackingChanged(user.GetUID(), user.GetName())
+	h.G().NotifyRouter.HandleTrackingChanged(user.GetUID(), user.GetName(), arg.IsTracking)
 	return nil
 }

@@ -93,6 +93,8 @@ const (
 	StatusCode_SCChatTLFFinalized       StatusCode = 2509
 	StatusCode_SCChatCollision          StatusCode = 2510
 	StatusCode_SCIdentifySummaryError   StatusCode = 2511
+	StatusCode_SCNeedSelfRekey          StatusCode = 2512
+	StatusCode_SCNeedOtherRekey         StatusCode = 2513
 )
 
 var StatusCodeMap = map[string]StatusCode{
@@ -179,6 +181,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatTLFFinalized":       2509,
 	"SCChatCollision":          2510,
 	"SCIdentifySummaryError":   2511,
+	"SCNeedSelfRekey":          2512,
+	"SCNeedOtherRekey":         2513,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -265,6 +269,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2509: "SCChatTLFFinalized",
 	2510: "SCChatCollision",
 	2511: "SCIdentifySummaryError",
+	2512: "SCNeedSelfRekey",
+	2513: "SCNeedOtherRekey",
 }
 
 func (e StatusCode) String() string {

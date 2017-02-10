@@ -47,19 +47,16 @@ func (e ChatActivityType) String() string {
 }
 
 type IncomingMessage struct {
-	Message MessageUnboxed `codec:"message" json:"message"`
-	ConvID  ConversationID `codec:"convID" json:"convID"`
-}
-
-type MessageSentInfo struct {
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	RateLimit RateLimit      `codec:"rateLimit" json:"rateLimit"`
-	OutboxID  OutboxID       `codec:"outboxID" json:"outboxID"`
+	Message    MessageUnboxed     `codec:"message" json:"message"`
+	ConvID     ConversationID     `codec:"convID" json:"convID"`
+	Conv       *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	Pagination *Pagination        `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type ReadMessageInfo struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	ConvID ConversationID     `codec:"convID" json:"convID"`
+	MsgID  MessageID          `codec:"msgID" json:"msgID"`
+	Conv   *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 type NewConversationInfo struct {
@@ -69,6 +66,7 @@ type NewConversationInfo struct {
 type SetStatusInfo struct {
 	ConvID ConversationID     `codec:"convID" json:"convID"`
 	Status ConversationStatus `codec:"status" json:"status"`
+	Conv   *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 type FailedMessageInfo struct {
@@ -213,6 +211,13 @@ type ChatTLFFinalizeArg struct {
 	Uid          keybase1.UID             `codec:"uid" json:"uid"`
 	ConvID       ConversationID           `codec:"convID" json:"convID"`
 	FinalizeInfo ConversationFinalizeInfo `codec:"finalizeInfo" json:"finalizeInfo"`
+	Conv         *ConversationLocal       `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
+type ChatTLFResolveArg struct {
+	Uid         keybase1.UID            `codec:"uid" json:"uid"`
+	ConvID      ConversationID          `codec:"convID" json:"convID"`
+	ResolveInfo ConversationResolveInfo `codec:"resolveInfo" json:"resolveInfo"`
 }
 
 type ChatInboxStaleArg struct {
@@ -228,6 +233,7 @@ type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
 	ChatTLFFinalize(context.Context, ChatTLFFinalizeArg) error
+	ChatTLFResolve(context.Context, ChatTLFResolveArg) error
 	ChatInboxStale(context.Context, keybase1.UID) error
 	ChatThreadsStale(context.Context, ChatThreadsStaleArg) error
 }
@@ -280,6 +286,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatTLFFinalize(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"ChatTLFResolve": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatTLFResolveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatTLFResolveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatTLFResolveArg)(nil), args)
+						return
+					}
+					err = i.ChatTLFResolve(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -337,6 +359,11 @@ func (c NotifyChatClient) ChatIdentifyUpdate(ctx context.Context, update keybase
 
 func (c NotifyChatClient) ChatTLFFinalize(ctx context.Context, __arg ChatTLFFinalizeArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFFinalize", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatTLFResolve(ctx context.Context, __arg ChatTLFResolveArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFResolve", []interface{}{__arg})
 	return
 }
 

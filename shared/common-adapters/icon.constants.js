@@ -40,6 +40,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
   },
+  'icon-chat-addon-lock-8': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-chat-addon-lock-8.png'),
+  },
+  'icon-chat-addon-lock-active-8': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-chat-addon-lock-active-8.png'),
+  },
   'icon-coinbase-logo-16': {
     isFont: false,
     extension: 'png',
@@ -155,16 +165,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-dns-64.png'),
   },
-  'icon-doggy-crying-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-doggy-crying-48.png'),
-  },
-  'icon-doggy-crying-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-doggy-crying-64.png'),
-  },
   'icon-facebook-logo-16': {
     isFont: false,
     extension: 'png',
@@ -204,6 +204,16 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-bubbles-123-x-64.png'),
+  },
+  'icon-fancy-chat-103-x-75': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-chat-103-x-75.png'),
+  },
+  'icon-fancy-chat-72-x-52': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-chat-72-x-52.png'),
   },
   'icon-fancy-email-sent-144-x-48': {
     isFont: false,
@@ -370,6 +380,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-file-txt-64.png'),
   },
+  'icon-file-uploading-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-file-uploading-48.png'),
+  },
   'icon-files-private-delete-48': {
     isFont: false,
     extension: 'png',
@@ -394,6 +409,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-folder-private-24.png'),
+  },
+  'icon-folder-private-32-addon-locked': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-folder-private-32-addon-locked.png'),
   },
   'icon-folder-private-32': {
     isFont: false,
@@ -685,15 +705,25 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-64.png'),
   },
-  'icon-loader-connected-112': {
+  'icon-keybase-logo-80': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-loader-connected-112.png'),
+    require: require('../images/icons/icon-keybase-logo-80.png'),
   },
-  'icon-loader-connecting-112': {
+  'icon-keybase-logo-logged-out-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-keybase-logo-logged-out-64.png'),
+  },
+  'icon-loader-connecting-266-static': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-connecting-266-static.png'),
+  },
+  'icon-loader-connecting-266': {
     isFont: false,
     extension: 'gif',
-    require: require('../images/icons/icon-loader-connecting-112.gif'),
+    require: require('../images/icons/icon-loader-connecting-266.gif'),
   },
   'icon-loader-infinity-64': {
     isFont: false,
@@ -995,15 +1025,15 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-reddit-logo-64.png'),
   },
-  'icon-secured-266': {
+  'icon-secure-266': {
     isFont: false,
     extension: 'gif',
-    require: require('../images/icons/icon-secured-266.gif'),
+    require: require('../images/icons/icon-secure-266.gif'),
   },
-  'icon-secured-static-266': {
+  'icon-secure-static-266': {
     isFont: false,
     extension: 'png',
-    require: require('../images/icons/icon-secured-static-266.png'),
+    require: require('../images/icons/icon-secure-static-266.png'),
   },
   'icon-securing-266': {
     isFont: false,

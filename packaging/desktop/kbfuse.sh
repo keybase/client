@@ -15,7 +15,7 @@ cd $dir
 client_dir="$dir/../.."
 fuse_dir="$client_dir/osx/Fuse"
 tmp_dir="/tmp/desktop-kbfuse"
-installer_url="https://github.com/keybase/client/releases/download/v1.0.18/KeybaseInstaller-1.1.46-darwin.tgz"
+installer_url="https://github.com/keybase/client/releases/download/v1.0.18/KeybaseInstaller-1.1.47-darwin.tgz"
 
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"

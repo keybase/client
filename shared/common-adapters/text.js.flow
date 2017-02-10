@@ -27,6 +27,7 @@ type TextType =
 | 'BodySmallPrimaryLink'
 | 'BodySmallSecondaryLink'
 | 'BodySmallSemibold'
+| 'BodySmallSemiboldItalic'
 | 'BodySmallSemiboldInlineLink'
 | 'BodySmallSuccess'
 | 'BodySuccess'
@@ -44,6 +45,7 @@ type Props = {
   className?: string,
   lineClamp?: number,
   onClick?: ?(e: SyntheticEvent) => void,
+  onClickURL?: ?string,
   onPress?: void,
   style?: Object,
   type: TextType,

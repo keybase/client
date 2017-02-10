@@ -19,23 +19,23 @@ isMobile && module.hot && module.hot.accept(() => {
 })
 
 export function loadDevices (): LoadDevices {
-  return {type: Constants.loadDevices, payload: undefined}
+  return {payload: undefined, type: Constants.loadDevices}
 }
 
 export function loadingDevices (): LoadingDevices {
-  return {type: Constants.loadingDevices, payload: undefined}
+  return {payload: undefined, type: Constants.loadingDevices}
 }
 
 export function removeDevice (deviceID: string, name: string, currentDevice: boolean): RemoveDevice {
-  return {type: Constants.removeDevice, payload: {deviceID, name, currentDevice}}
+  return {payload: {currentDevice, deviceID, name}, type: Constants.removeDevice}
 }
 
 export function showRemovePage (device: Device): ShowRemovePage {
-  return {type: Constants.showRemovePage, payload: {device}}
+  return {payload: {device}, type: Constants.showRemovePage}
 }
 
 export function generatePaperKey (): GeneratePaperKey {
-  return {type: Constants.generatePaperKey, payload: undefined}
+  return {payload: undefined, type: Constants.generatePaperKey}
 }
 
 function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): SagaGenerator<any, any> {
@@ -46,7 +46,10 @@ function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): Sag
   } catch (e) {
     console.warn('Error getting endangered TLFs:', e)
   }
-  yield put(navigateTo([devicesTab, {selected: 'devicePage', props: {device, endangeredTLFs}}, {selected: 'removeDevice', props: {device, endangeredTLFs}}]))
+  yield put(navigateTo([devicesTab,
+    {props: {device, endangeredTLFs}, selected: 'devicePage'},
+    {props: {device, endangeredTLFs}, selected: 'removeDevice'},
+  ]))
 }
 
 function * _deviceListSaga (): SagaGenerator<any, any> {
@@ -54,14 +57,14 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
   try {
     const devices = yield call(deviceDeviceHistoryListRpcPromise)
     yield put(({
-      type: Constants.showDevices,
       payload: devices,
+      type: Constants.showDevices,
     }: ShowDevices))
   } catch (e) {
     yield put(({
-      type: Constants.showDevices,
-      payload: {errorText: e.desc + e.name, errorObj: e},
       error: true,
+      payload: {errorObj: e, errorText: e.desc + e.name},
+      type: Constants.showDevices,
     }: ShowDevices))
   }
 }
@@ -79,24 +82,24 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
         const error = {errorText: 'No username in removeDevice'}
         console.warn(error)
         yield put(({
-          type: Constants.deviceRemoved,
-          payload: error,
           error: true,
+          payload: error,
+          type: Constants.deviceRemoved,
         }: DeviceRemoved))
       }
-      yield call(loginDeprovisionRpcPromise, {param: {username, doRevoke: true}})
+      yield call(loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
       yield put(navigateTo([loginTab]))
       yield put(setRevokedSelf(name))
       yield put(({
-        type: Constants.deviceRemoved,
         payload: undefined,
+        type: Constants.deviceRemoved,
       }: DeviceRemoved))
     } catch (e) {
       console.warn('Error removing the current device:', e)
       yield put(({
-        type: Constants.deviceRemoved,
-        payload: {errorText: e.desc + e.name, errorObj: e},
         error: true,
+        payload: {errorObj: e, errorText: e.desc + e.name},
+        type: Constants.deviceRemoved,
       }: DeviceRemoved))
     }
   } else {
@@ -106,15 +109,15 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
         param: {deviceID, force: false},
       })
       yield put(({
-        type: Constants.deviceRemoved,
         payload: undefined,
+        type: Constants.deviceRemoved,
       }: DeviceRemoved))
     } catch (e) {
       console.warn('Error removing a device:', e)
       yield put(({
-        type: Constants.deviceRemoved,
-        payload: {errorText: e.desc + e.name, errorObj: e},
         error: true,
+        payload: {errorObj: e, errorText: e.desc + e.name},
+        type: Constants.deviceRemoved,
       }: DeviceRemoved))
     }
   }
@@ -136,8 +139,8 @@ function * _handlePromptRevokePaperKeys (chanMap): SagaGenerator<any, any> {
 
 function * _devicePaperKeySaga (): SagaGenerator<any, any> {
   yield put(({
-    type: Constants.paperKeyLoading,
     payload: undefined,
+    type: Constants.paperKeyLoading,
   }: PaperKeyLoading))
 
   const channelConfig = singleFixedChannelConfig(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'])
@@ -151,24 +154,24 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
       const error = {errorText: 'no displayPaperKeyPhrase response'}
       console.warn(error.errorText)
       yield put(({
-        type: Constants.paperKeyLoaded,
-        payload: error,
         error: true,
+        payload: error,
+        type: Constants.paperKeyLoaded,
       }: PaperKeyLoaded))
       return
     }
     yield put(({
-      type: Constants.paperKeyLoaded,
       payload: new HiddenString(displayPaperKeyPhrase.params.phrase),
+      type: Constants.paperKeyLoaded,
     }: PaperKeyLoaded))
     displayPaperKeyPhrase.response.result()
   } catch (e) {
     closeChannelMap(generatePaperKeyChanMap)
     console.warn('error in generating paper key', e)
     yield put(({
-      type: Constants.paperKeyLoaded,
-      payload: {errorText: e.desc + e.name, errorObj: e},
       error: true,
+      payload: {errorObj: e, errorText: e.desc + e.name},
+      type: Constants.paperKeyLoaded,
     }: PaperKeyLoaded))
   }
 }

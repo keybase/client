@@ -586,7 +586,7 @@ func (e *Env) GetGregorDisabled() bool {
 }
 
 func (e *Env) GetBGIdentifierDisabled() bool {
-	return e.GetBool(false,
+	return e.GetBool(true,
 		func() (bool, bool) { return e.cmd.GetBGIdentifierDisabled() },
 		func() (bool, bool) { return getEnvBool("KEYBASE_BG_IDENTIFIER_DISABLED") },
 		func() (bool, bool) { return e.config.GetBGIdentifierDisabled() },

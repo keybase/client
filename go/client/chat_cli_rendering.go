@@ -14,6 +14,8 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
+const publicConvNamePrefix = "(public) "
+
 type conversationInfoListView []chat1.ConversationLocal
 
 func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
@@ -73,7 +75,7 @@ type conversationListView []chat1.ConversationLocal
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	var name string
 	if conv.Info.Visibility == chat1.TLFVisibility_PUBLIC {
-		name = "(public) " + strings.Join(conv.Info.WriterNames, ",")
+		name = publicConvNamePrefix + strings.Join(conv.Info.WriterNames, ",")
 	} else {
 		name = strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
 		if len(conv.Info.WriterNames) == 1 && conv.Info.WriterNames[0] == myUsername {
@@ -90,6 +92,44 @@ func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.Conver
 	}
 
 	return name
+}
+
+// Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
+// This is the less featureful version for convs that can't be unboxed.
+func (v conversationListView) convNameLite(g *libkb.GlobalContext, convErr chat1.ConversationErrorRekey, myUsername string) string {
+	var name string
+	if convErr.TlfPublic {
+		name = publicConvNamePrefix + strings.Join(convErr.WriterNames, ",")
+	} else {
+		name = strings.Join(v.without(g, convErr.WriterNames, myUsername), ",")
+		if len(convErr.WriterNames) == 1 && convErr.WriterNames[0] == myUsername {
+			// The user is the only writer.
+			name = myUsername
+		}
+	}
+	if len(convErr.ReaderNames) > 0 {
+		name += "#" + strings.Join(convErr.ReaderNames, ",")
+	}
+
+	return name
+}
+
+// When we hit identify failures looking up a conversation, we short-circuit
+// before we get to parsing out readers and writers (which itself does more
+// identifying). Instead we get an untrusted TLF name string, and we have the
+// visiblity. Cobble together a poor man's conversation name from those, by
+// hacking out the current user's name. This should only be displayed next to
+// an indication that it's unverified.
+func formatUnverifiedConvName(unverifiedTLFName string, visibility chat1.TLFVisibility, myUsername string) string {
+	// Strip the user's name out if it's got a comma next to it. (Two cases to
+	// handle: leading and trailing.) This both takes care of dangling commas,
+	// and preserves the user's name if it's by itself.
+	strippedTLFName := strings.Replace(unverifiedTLFName, ","+myUsername, "", -1)
+	strippedTLFName = strings.Replace(strippedTLFName, myUsername+",", "", -1)
+	if visibility == chat1.TLFVisibility_PUBLIC {
+		return publicConvNamePrefix + strippedTLFName
+	}
+	return strippedTLFName
 }
 
 func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el string) (res []string) {
@@ -113,7 +153,8 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	for i, conv := range v {
 
 		if conv.Error != nil {
-			table.Insert(flexibletable.Row{
+			unverifiedConvName := formatUnverifiedConvName(conv.Error.UnverifiedTLFName, conv.Info.Visibility, myUsername)
+			row := flexibletable.Row{
 				flexibletable.Cell{
 					Frame:     [2]string{"[", "]"},
 					Alignment: flexibletable.Right,
@@ -125,7 +166,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				},
 				flexibletable.Cell{
 					Alignment: flexibletable.Left,
-					Content:   flexibletable.SingleCell{Item: "???"},
+					Content:   flexibletable.SingleCell{Item: "(unverified) " + unverifiedConvName},
 				},
 				flexibletable.Cell{
 					Frame:     [2]string{"[", "]"},
@@ -136,7 +177,20 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 					Alignment: flexibletable.Left,
 					Content:   flexibletable.SingleCell{Item: conv.Error.Message},
 				},
-			})
+			}
+
+			if conv.Error.RekeyInfo != nil {
+				row[2].Content = flexibletable.SingleCell{Item: v.convNameLite(g, *conv.Error.RekeyInfo, myUsername)}
+				row[3].Content = flexibletable.SingleCell{Item: ""}
+				switch conv.Error.Typ {
+				case chat1.ConversationErrorType_SELFREKEYNEEDED:
+					row[4].Content = flexibletable.SingleCell{Item: "Rekey needed. Waiting for a participant to open their Keybase app."}
+				case chat1.ConversationErrorType_OTHERREKEYNEEDED:
+					row[4].Content = flexibletable.SingleCell{Item: "Rekey needed. Waiting for another participant to open their Keybase app."}
+				}
+			}
+
+			table.Insert(row)
 			continue
 		}
 
@@ -145,27 +199,29 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			continue
 		}
 
-		unread := "*"
+		unread := ""
 		// show the last TEXT message
 		var msg *chat1.MessageUnboxed
 		for _, m := range conv.MaxMessages {
-			if m.IsValid() {
-				if conv.ReaderInfo.ReadMsgid == m.GetMessageID() {
-					unread = ""
-				}
-				if m.GetMessageType() == chat1.MessageType_TEXT || m.GetMessageType() == chat1.MessageType_ATTACHMENT {
-					if msg == nil || m.GetMessageID() > msg.GetMessageID() {
-						mCopy := m
-						msg = &mCopy
-					}
+			if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
+				unread = "*"
+			}
+			if m.GetMessageType() == chat1.MessageType_TEXT || m.GetMessageType() == chat1.MessageType_ATTACHMENT {
+				if msg == nil || m.GetMessageID() > msg.GetMessageID() {
+					mCopy := m
+					msg = &mCopy
 				}
 			}
 		}
 		if msg == nil {
-			// Skip conversations with no visible messages.
-			// This should never happen.
-			g.Log.Error("Skipped conversation with no visible messages: %s", conv.Info.Id)
-			continue
+			// Make a fake error in case we have a non-empty thread with no visible message
+			errMsg := chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+				ErrMsg:      "<no snippet available>",
+				MessageID:   0,
+				MessageType: chat1.MessageType_TEXT,
+			})
+			msg = &errMsg
+			unread = ""
 		}
 
 		mv, err := newMessageView(g, conv.Info.Id, *msg)
@@ -359,21 +415,6 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	mv.MessageID = m.ServerHeader.MessageID
 	mv.FromRevokedDevice = m.SenderDeviceRevokedAt != nil
 
-	// Check what message supersedes this one.
-	var mvsup *messageView
-	supersededBy := m.ServerHeader.SupersededBy
-	if supersededBy != 0 {
-		msup, err := fetchOneMessage(g, conversationID, supersededBy)
-		if err != nil {
-			return mv, err
-		}
-		mvsupInner, err := newMessageView(g, conversationID, msup)
-		if err != nil {
-			return mv, err
-		}
-		mvsup = &mvsupInner
-	}
-
 	body := m.MessageBody
 	typ, err := body.MessageType()
 	mv.messageType = typ
@@ -384,33 +425,11 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_NONE:
 		// NONE is what you get when a message has been deleted.
 		mv.Renderable = true
-		if mvsup != nil {
-			switch mvsup.messageType {
-			case chat1.MessageType_EDIT:
-				// Use the edited body
-				mv.Body = mvsup.Body
-			case chat1.MessageType_DELETE:
-				mv.Body = deletedTextCLI
-			default:
-				// Some unknown supersedeer type
-			}
-		}
 	case chat1.MessageType_TEXT:
 		mv.Renderable = true
 		mv.Body = body.Text().Body
-		if mvsup != nil {
-			if mvsup.FromRevokedDevice {
-				mv.FromRevokedDevice = true
-			}
-			switch mvsup.messageType {
-			case chat1.MessageType_EDIT:
-				mv.Body = mvsup.Body
-			case chat1.MessageType_DELETE:
-				// This is unlikely because deleted messages are usually NONE
-				mv.Body = deletedTextCLI
-			default:
-				// Some unknown supersedeer type
-			}
+		if m.ServerHeader.SupersededBy > 0 {
+			mv.Body += " (edited)"
 		}
 	case chat1.MessageType_ATTACHMENT:
 		mv.Renderable = true
@@ -420,21 +439,13 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 			title = filepath.Base(att.Object.Filename)
 		}
 		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.ServerHeader.MessageID)
-		if att.Preview != nil {
+		if len(att.Previews) > 0 {
 			mv.Body += " [preview available]"
 		}
-		if mvsup != nil {
-			if mvsup.FromRevokedDevice {
-				mv.FromRevokedDevice = true
-			}
-			switch mvsup.messageType {
-			case chat1.MessageType_EDIT:
-				// Editing attachments is not supported, ignore the edit
-			case chat1.MessageType_DELETE:
-				mv.Body = deletedTextCLI
-			default:
-				// Some unknown supersedeer type
-			}
+		if att.Uploaded {
+			mv.Body += " (uploaded)"
+		} else {
+			mv.Body += " (...)"
 		}
 	case chat1.MessageType_EDIT:
 		mv.Renderable = false
@@ -447,6 +458,8 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_TLFNAME:
 		mv.Renderable = false
 	case chat1.MessageType_HEADLINE:
+		mv.Renderable = false
+	case chat1.MessageType_ATTACHMENTUPLOADED:
 		mv.Renderable = false
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
@@ -519,6 +532,30 @@ func newMessageViewOutbox(g *libkb.GlobalContext, conversationID chat1.Conversat
 	return mv, nil
 }
 
+func newMessageViewError(g *libkb.GlobalContext, conversationID chat1.ConversationID,
+	m chat1.MessageUnboxedError) (mv messageView, err error) {
+
+	mv.messageType = m.MessageType
+	mv.Renderable = true
+	mv.FromRevokedDevice = false
+	mv.MessageID = m.MessageID
+	mv.AuthorAndTime = "???"
+	mv.AuthorAndTimeWithDeviceName = "???"
+
+	critVersion := false
+	switch m.ErrType {
+	case chat1.MessageUnboxedErrorType_BADVERSION_CRITICAL:
+		critVersion = true
+		fallthrough
+	case chat1.MessageUnboxedErrorType_BADVERSION:
+		mv.Body = fmt.Sprintf("<<chat read error: invalid message version (critical: %v)>>", critVersion)
+	default:
+		mv.Body = fmt.Sprintf("<<chat read error: %s>>", m.ErrMsg)
+	}
+
+	return mv, nil
+}
+
 // newMessageView extracts from a message the parts for display
 // It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
 func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (mv messageView, err error) {
@@ -527,14 +564,13 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 	if err != nil {
 		return mv, fmt.Errorf("unexpected empty message")
 	}
-	if st == chat1.MessageUnboxedState_ERROR {
-		return mv, fmt.Errorf("<%s>", m.Error().ErrMsg)
-	}
 
+	if st == chat1.MessageUnboxedState_ERROR {
+		return newMessageViewError(g, conversationID, m.Error())
+	}
 	if st == chat1.MessageUnboxedState_OUTBOX {
 		return newMessageViewOutbox(g, conversationID, m.Outbox())
 	}
-
 	return newMessageViewValid(g, conversationID, m.Valid())
 }
 

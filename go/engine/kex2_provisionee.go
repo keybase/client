@@ -570,7 +570,8 @@ func (e *Kex2Provisionee) saveKeys() error {
 }
 
 // cacheKeys caches the device keys in the Account object.
-func (e *Kex2Provisionee) cacheKeys() error {
+func (e *Kex2Provisionee) cacheKeys() (err error) {
+	defer e.G().Trace("Kex2Provisionee.cacheKeys", func() error { return err })()
 	if e.eddsa == nil {
 		return errors.New("cacheKeys called, but eddsa key is nil")
 	}
@@ -578,11 +579,11 @@ func (e *Kex2Provisionee) cacheKeys() error {
 		return errors.New("cacheKeys called, but dh key is nil")
 	}
 
-	if err := e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.eddsa); err != nil {
+	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.eddsa); err != nil {
 		return err
 	}
 
-	if err := e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh); err != nil {
+	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh); err != nil {
 		return err
 	}
 

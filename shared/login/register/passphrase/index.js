@@ -33,6 +33,7 @@ class Passphrase extends Component<void, Props, State> {
 
   render () {
     return <RenderPassphrase
+      error={this.props.error}
       onBack={this.props.onBack}
       prompt={this.props.prompt}
       username={this.props.username}

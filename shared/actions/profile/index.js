@@ -1,40 +1,30 @@
 // @flow
 import * as Constants from '../../constants/profile'
-import flags from '../../util/feature-flags'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, proofsSaga, submitZcashAddress} from './proofs'
-import {apiserverPostRpcPromise, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../actions/route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
+import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
 import {safeTakeEvery} from '../../util/saga'
 
 import type {BackToProfile, EditProfile, FinishRevokeProof, FinishRevoking, OnClickAvatar, OnClickFollowers, OnClickFollowing, OnUserClick, OutputInstructionsActionLink, State, SubmitRevokeProof, UpdateUsername, WaitingRevokeProof} from '../../constants/profile'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-function editProfile (bio: string, fullname: string, location: string): EditProfile {
-  return {payload: {bio, fullname, location}, type: Constants.editProfile}
+function editProfile (bio: string, fullName: string, location: string): EditProfile {
+  return {payload: {bio, fullName, location}, type: Constants.editProfile}
 }
 
 function * _editProfile (action: EditProfile): SagaGenerator<any, any> {
-  try {
-    yield call(apiserverPostRpcPromise, {
-      param: {
-        args: [
-          {key: 'bio', value: action.payload.bio},
-          {key: 'full_name', value: action.payload.fullname},
-          {key: 'location', value: action.payload.location},
-        ],
-        endpoint: 'profile-edit',
-      },
-    })
-
-    yield put(navigateUp())
-  } catch (_) { }
+  const {bio, fullName, location} = action.payload
+  yield call(userProfileEditRpcPromise, {
+    param: {bio, fullName, location},
+  })
+  yield put(navigateUp())
 }
 
 function updateUsername (username: string): UpdateUsername {
@@ -63,21 +53,20 @@ function * _finishRevoking (): SagaGenerator<any, any> {
   yield put(navigateUp())
 }
 
-function onUserClick (username: string, uid: string): OnUserClick {
-  return {payload: {uid, username}, type: Constants.onUserClick}
+function onUserClick (username: string): OnUserClick {
+  return {payload: {username}, type: Constants.onUserClick}
 }
 
 function * _onUserClick (action: OnUserClick): SagaGenerator<any, any> {
-  const {username, uid} = action.payload
+  const {username} = action.payload
   yield put(switchTo([profileTab]))
-  yield put(navigateAppend([{props: {uid, username}, selected: 'profile'}], [profileTab]))
+  yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
 }
 
-function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): OnClickAvatar {
+function onClickAvatar (username: string, openWebsite?: boolean): OnClickAvatar {
   return {
     payload: {
       openWebsite,
-      uid,
       username,
     },
     type: Constants.onClickAvatar,
@@ -89,19 +78,18 @@ function * _onClickAvatar (action: OnClickFollowers): SagaGenerator<any, any> {
     return
   }
 
-  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+  if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username, action.payload.uid))
+    yield put(onUserClick(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}`)
   }
 }
 
-function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowers {
+function onClickFollowers (username: string, openWebsite?: boolean): OnClickFollowers {
   return {
     payload: {
       openWebsite,
-      uid,
       username,
     },
     type: Constants.onClickFollowers,
@@ -113,19 +101,18 @@ function * _onClickFollowers (action: OnClickFollowers): SagaGenerator<any, any>
     return
   }
 
-  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+  if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username, action.payload.uid))
+    yield put(onUserClick(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
-function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowing {
+function onClickFollowing (username: string, openWebsite?: boolean): OnClickFollowing {
   return {
     payload: {
       openWebsite,
-      uid,
       username,
     },
     type: Constants.onClickFollowing,
@@ -137,9 +124,9 @@ function * _onClickFollowing (action: OnClickFollowing): SagaGenerator<any, any>
     return
   }
 
-  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+  if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username, action.payload.uid))
+    yield put(onUserClick(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }

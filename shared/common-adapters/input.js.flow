@@ -13,6 +13,7 @@ export type Props = Exact<{
   hintText?: ?string,
   inputStyle?: Object,
   multiline?: bool,
+  onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
   onKeyDown?: (event: Object) => void,

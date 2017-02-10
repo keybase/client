@@ -57,6 +57,7 @@ export const CommonConversationStatus = {
   favorite: 1,
   ignored: 2,
   blocked: 3,
+  muted: 4,
 }
 
 export const CommonInboxResType = {
@@ -73,6 +74,7 @@ export const CommonMessageType = {
   metadata: 5,
   tlfname: 6,
   headline: 7,
+  attachmentuploaded: 8,
 }
 
 export const CommonTLFVisibility = {
@@ -94,12 +96,50 @@ export const LocalAssetMetadataType = {
   audio: 3,
 }
 
+export const LocalAssetTag = {
+  primary: 0,
+}
+
 export const LocalBodyPlaintextVersion = {
   v1: 1,
+  v2: 2,
+  v3: 3,
+  v4: 4,
+  v5: 5,
+  v6: 6,
+  v7: 7,
+  v8: 8,
+  v9: 9,
+  v10: 10,
+}
+
+export const LocalConversationErrorType = {
+  misc: 0,
+  missinginfo: 1,
+  selfrekeyneeded: 2,
+  otherrekeyneeded: 3,
+  identify: 4,
+  localmaxmessagenotfound: 5,
 }
 
 export const LocalHeaderPlaintextVersion = {
   v1: 1,
+  v2: 2,
+  v3: 3,
+  v4: 4,
+  v5: 5,
+  v6: 6,
+  v7: 7,
+  v8: 8,
+  v9: 9,
+  v10: 10,
+}
+
+export const LocalMessageUnboxedErrorType = {
+  misc: 0,
+  badversionCritical: 1,
+  badversion: 2,
+  identify: 3,
 }
 
 export const LocalMessageUnboxedState = {
@@ -163,6 +203,18 @@ export function localDownloadFileAttachmentLocalRpcChannelMap (channelConfig: Ch
 
 export function localDownloadFileAttachmentLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadFileAttachmentLocalResult) => void} & {param: localDownloadFileAttachmentLocalRpcParam}>): Promise<localDownloadFileAttachmentLocalResult> {
   return new Promise((resolve, reject) => { localDownloadFileAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function localFindConversationsLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsLocalResult) => void} & {param: localFindConversationsLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.findConversationsLocal'})
+}
+
+export function localFindConversationsLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsLocalResult) => void} & {param: localFindConversationsLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localFindConversationsLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localFindConversationsLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localFindConversationsLocalResult) => void} & {param: localFindConversationsLocalRpcParam}>): Promise<localFindConversationsLocalResult> {
+  return new Promise((resolve, reject) => { localFindConversationsLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
@@ -405,6 +457,18 @@ export function remoteGetMessagesRemoteRpcPromise (request: $Exact<requestCommon
   return new Promise((resolve, reject) => { remoteGetMessagesRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteGetPublicConversationsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetPublicConversationsResult) => void} & {param: remoteGetPublicConversationsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.getPublicConversations'})
+}
+
+export function remoteGetPublicConversationsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetPublicConversationsResult) => void} & {param: remoteGetPublicConversationsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetPublicConversationsRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteGetPublicConversationsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetPublicConversationsResult) => void} & {param: remoteGetPublicConversationsRpcParam}>): Promise<remoteGetPublicConversationsResult> {
+  return new Promise((resolve, reject) => { remoteGetPublicConversationsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteGetS3ParamsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3ParamsResult) => void} & {param: remoteGetS3ParamsRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.getS3Params'})
 }
@@ -551,12 +615,13 @@ export type Asset = {
   title: string,
   nonce: bytes,
   metadata: AssetMetadata,
+  tag: AssetTag,
 }
 
-export type AssetMetadata = 
-    { assetType : 1, image : ?AssetMetadataImage }
-  | { assetType : 2, video : ?AssetMetadataVideo }
-  | { assetType : 3, audio : ?AssetMetadataAudio }
+export type AssetMetadata =
+    { assetType: 1, image: ?AssetMetadataImage }
+  | { assetType: 2, video: ?AssetMetadataVideo }
+  | { assetType: 3, audio: ?AssetMetadataAudio }
 
 export type AssetMetadataAudio = {
   durationMs: int,
@@ -567,7 +632,7 @@ export type AssetMetadataImage = {
   height: int,
 }
 
-export type AssetMetadataType = 
+export type AssetMetadataType =
     0 // NONE_0
   | 1 // IMAGE_1
   | 2 // VIDEO_2
@@ -579,24 +644,53 @@ export type AssetMetadataVideo = {
   durationMs: int,
 }
 
-export type BodyPlaintext = 
-    { version : 1, v1 : ?BodyPlaintextV1 }
+export type AssetTag =
+    0 // PRIMARY_0
+
+export type BodyPlaintext =
+    { version: 1, v1: ?BodyPlaintextV1 }
+  | { version: 2, v2: ?BodyPlaintextUnsupported }
+  | { version: 3, v3: ?BodyPlaintextUnsupported }
+  | { version: 4, v4: ?BodyPlaintextUnsupported }
+  | { version: 5, v5: ?BodyPlaintextUnsupported }
+  | { version: 6, v6: ?BodyPlaintextUnsupported }
+  | { version: 7, v7: ?BodyPlaintextUnsupported }
+  | { version: 8, v8: ?BodyPlaintextUnsupported }
+  | { version: 9, v9: ?BodyPlaintextUnsupported }
+  | { version: 10, v10: ?BodyPlaintextUnsupported }
+
+export type BodyPlaintextMetaInfo = {
+  crit: boolean,
+}
+
+export type BodyPlaintextUnsupported = {
+  mi: BodyPlaintextMetaInfo,
+}
 
 export type BodyPlaintextV1 = {
   messageBody: MessageBody,
 }
 
-export type BodyPlaintextVersion = 
+export type BodyPlaintextVersion =
     1 // V1_1
+  | 2 // V2_2
+  | 3 // V3_3
+  | 4 // V4_4
+  | 5 // V5_5
+  | 6 // V6_6
+  | 7 // V7_7
+  | 8 // V8_8
+  | 9 // V9_9
+  | 10 // V10_10
 
-export type ChatActivity = 
-    { activityType : 1, incomingMessage : ?IncomingMessage }
-  | { activityType : 2, readMessage : ?ReadMessageInfo }
-  | { activityType : 3, newConversation : ?NewConversationInfo }
-  | { activityType : 4, setStatus : ?SetStatusInfo }
-  | { activityType : 5, failedMessage : ?FailedMessageInfo }
+export type ChatActivity =
+    { activityType: 1, incomingMessage: ?IncomingMessage }
+  | { activityType: 2, readMessage: ?ReadMessageInfo }
+  | { activityType: 3, newConversation: ?NewConversationInfo }
+  | { activityType: 4, setStatus: ?SetStatusInfo }
+  | { activityType: 5, failedMessage: ?FailedMessageInfo }
 
-export type ChatActivityType = 
+export type ChatActivityType =
     0 // RESERVED_0
   | 1 // INCOMING_MESSAGE_1
   | 2 // READ_MESSAGE_2
@@ -607,16 +701,33 @@ export type ChatActivityType =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
-  supersedes?: ?Array<ConversationMetadata>,
-  supersededBy?: ?Array<ConversationMetadata>,
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
 export type ConversationErrorLocal = {
+  typ: ConversationErrorType,
   message: string,
   remoteConv: Conversation,
   permanent: boolean,
+  unverifiedTLFName: string,
+  rekeyInfo?: ?ConversationErrorRekey,
 }
+
+export type ConversationErrorRekey = {
+  tlfName: string,
+  tlfPublic: boolean,
+  rekeyers?: ?Array<string>,
+  writerNames?: ?Array<string>,
+  readerNames?: ?Array<string>,
+}
+
+export type ConversationErrorType =
+    0 // MISC_0
+  | 1 // MISSINGINFO_1
+  | 2 // SELFREKEYNEEDED_2
+  | 3 // OTHERREKEYNEEDED_3
+  | 4 // IDENTIFY_4
+  | 5 // LOCALMAXMESSAGENOTFOUND_5
 
 export type ConversationFinalizeInfo = {
   resetUser: string,
@@ -649,8 +760,8 @@ export type ConversationLocal = {
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
-  supersedes?: ?Array<ConversationID>,
-  supersededBy?: ?Array<ConversationID>,
+  supersedes?: ?Array<ConversationMetadata>,
+  supersededBy?: ?Array<ConversationMetadata>,
   maxMessages?: ?Array<MessageUnboxed>,
   isEmpty: boolean,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
@@ -662,6 +773,8 @@ export type ConversationMetadata = {
   visibility: TLFVisibility,
   status: ConversationStatus,
   finalizeInfo?: ?ConversationFinalizeInfo,
+  supersedes?: ?Array<ConversationMetadata>,
+  supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
 }
 
@@ -671,11 +784,16 @@ export type ConversationReaderInfo = {
   maxMsgid: MessageID,
 }
 
-export type ConversationStatus = 
+export type ConversationResolveInfo = {
+  newTLFName: string,
+}
+
+export type ConversationStatus =
     0 // UNFILED_0
   | 1 // FAVORITE_1
   | 2 // IGNORED_2
   | 3 // BLOCKED_3
+  | 4 // MUTED_4
 
 export type DownloadAttachmentLocalRes = {
   rateLimits?: ?Array<RateLimit>,
@@ -692,6 +810,12 @@ export type FailedMessageInfo = {
   outboxRecords?: ?Array<OutboxRecord>,
 }
 
+export type FindConversationsLocalRes = {
+  conversations?: ?Array<ConversationLocal>,
+  rateLimits?: ?Array<RateLimit>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
+}
+
 export type GenericPayload = {
   Action: string,
 }
@@ -701,7 +825,7 @@ export type GetConversationForCLILocalQuery = {
   MessageTypes?: ?Array<MessageType>,
   Since?: ?string,
   limit: UnreadFirstNumLimit,
-  conversationId: ConversationID,
+  conv: ConversationLocal,
 }
 
 export type GetConversationForCLILocalRes = {
@@ -800,6 +924,11 @@ export type GetMessagesRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type GetPublicConversationsRes = {
+  conversations?: ?Array<Conversation>,
+  rateLimit?: ?RateLimit,
+}
+
 export type GetThreadLocalRes = {
   thread: ThreadView,
   rateLimits?: ?Array<RateLimit>,
@@ -809,6 +938,7 @@ export type GetThreadLocalRes = {
 export type GetThreadQuery = {
   markAsRead: boolean,
   messageTypes?: ?Array<MessageType>,
+  disableResolveSupersedes: boolean,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
 }
@@ -820,8 +950,25 @@ export type GetThreadRemoteRes = {
 
 export type Hash = bytes
 
-export type HeaderPlaintext = 
-    { version : 1, v1 : ?HeaderPlaintextV1 }
+export type HeaderPlaintext =
+    { version: 1, v1: ?HeaderPlaintextV1 }
+  | { version: 2, v2: ?HeaderPlaintextUnsupported }
+  | { version: 3, v3: ?HeaderPlaintextUnsupported }
+  | { version: 4, v4: ?HeaderPlaintextUnsupported }
+  | { version: 5, v5: ?HeaderPlaintextUnsupported }
+  | { version: 6, v6: ?HeaderPlaintextUnsupported }
+  | { version: 7, v7: ?HeaderPlaintextUnsupported }
+  | { version: 8, v8: ?HeaderPlaintextUnsupported }
+  | { version: 9, v9: ?HeaderPlaintextUnsupported }
+  | { version: 10, v10: ?HeaderPlaintextUnsupported }
+
+export type HeaderPlaintextMetaInfo = {
+  crit: boolean,
+}
+
+export type HeaderPlaintextUnsupported = {
+  mi: HeaderPlaintextMetaInfo,
+}
 
 export type HeaderPlaintextV1 = {
   conv: ConversationIDTriple,
@@ -837,8 +984,17 @@ export type HeaderPlaintextV1 = {
   headerSignature?: ?SignatureInfo,
 }
 
-export type HeaderPlaintextVersion = 
+export type HeaderPlaintextVersion =
     1 // V1_1
+  | 2 // V2_2
+  | 3 // V3_3
+  | 4 // V4_4
+  | 5 // V5_5
+  | 6 // V6_6
+  | 7 // V7_7
+  | 8 // V8_8
+  | 9 // V9_9
+  | 10 // V10_10
 
 export type Inbox = {
   version: InboxVers,
@@ -847,15 +1003,15 @@ export type Inbox = {
   pagination?: ?Pagination,
 }
 
-export type InboxResType = 
+export type InboxResType =
     0 // VERSIONHIT_0
   | 1 // FULL_1
 
 export type InboxVers = uint64
 
-export type InboxView = 
-    { rtype : 0 }
-  | { rtype : 1, full : ?InboxViewFull }
+export type InboxView =
+    { rtype: 0 }
+  | { rtype: 1, full: ?InboxViewFull }
 
 export type InboxViewFull = {
   vers: InboxVers,
@@ -866,6 +1022,8 @@ export type InboxViewFull = {
 export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
+  conv?: ?ConversationLocal,
+  pagination?: ?Pagination,
 }
 
 export type LocalFileSource = {
@@ -890,16 +1048,26 @@ export type MerkleRoot = {
 export type MessageAttachment = {
   object: Asset,
   preview?: ?Asset,
+  previews?: ?Array<Asset>,
+  metadata: bytes,
+  uploaded: boolean,
+}
+
+export type MessageAttachmentUploaded = {
+  messageID: MessageID,
+  object: Asset,
+  previews?: ?Array<Asset>,
   metadata: bytes,
 }
 
-export type MessageBody = 
-    { messageType : 1, text : ?MessageText }
-  | { messageType : 2, attachment : ?MessageAttachment }
-  | { messageType : 3, edit : ?MessageEdit }
-  | { messageType : 4, delete : ?MessageDelete }
-  | { messageType : 5, metadata : ?MessageConversationMetadata }
-  | { messageType : 7, headline : ?MessageHeadline }
+export type MessageBody =
+    { messageType: 1, text: ?MessageText }
+  | { messageType: 2, attachment: ?MessageAttachment }
+  | { messageType: 3, edit: ?MessageEdit }
+  | { messageType: 4, delete: ?MessageDelete }
+  | { messageType: 5, metadata: ?MessageConversationMetadata }
+  | { messageType: 7, headline: ?MessageHeadline }
+  | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
@@ -953,12 +1121,6 @@ export type MessagePreviousPointer = {
   hash: Hash,
 }
 
-export type MessageSentInfo = {
-  convID: ConversationID,
-  rateLimit: RateLimit,
-  outboxID: OutboxID,
-}
-
 export type MessageServerHeader = {
   messageID: MessageID,
   supersededBy: MessageID,
@@ -969,7 +1131,7 @@ export type MessageText = {
   body: string,
 }
 
-export type MessageType = 
+export type MessageType =
     0 // NONE_0
   | 1 // TEXT_1
   | 2 // ATTACHMENT_2
@@ -978,19 +1140,28 @@ export type MessageType =
   | 5 // METADATA_5
   | 6 // TLFNAME_6
   | 7 // HEADLINE_7
+  | 8 // ATTACHMENTUPLOADED_8
 
-export type MessageUnboxed = 
-    { state : 1, valid : ?MessageUnboxedValid }
-  | { state : 2, error : ?MessageUnboxedError }
-  | { state : 3, outbox : ?OutboxRecord }
+export type MessageUnboxed =
+    { state: 1, valid: ?MessageUnboxedValid }
+  | { state: 2, error: ?MessageUnboxedError }
+  | { state: 3, outbox: ?OutboxRecord }
 
 export type MessageUnboxedError = {
+  errType: MessageUnboxedErrorType,
   errMsg: string,
   messageID: MessageID,
   messageType: MessageType,
+  ctime: gregor1.Time,
 }
 
-export type MessageUnboxedState = 
+export type MessageUnboxedErrorType =
+    0 // MISC_0
+  | 1 // BADVERSION_CRITICAL_1
+  | 2 // BADVERSION_2
+  | 3 // IDENTIFY_3
+
+export type MessageUnboxedState =
     1 // VALID_1
   | 2 // ERROR_2
   | 3 // OUTBOX_3
@@ -1048,7 +1219,14 @@ export type NotifyChatChatInboxStaleRpcParam = Exact<{
 export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID,
-  finalizeInfo: ConversationFinalizeInfo
+  finalizeInfo: ConversationFinalizeInfo,
+  conv?: ?ConversationLocal
+}>
+
+export type NotifyChatChatTLFResolveRpcParam = Exact<{
+  uid: keybase1.UID,
+  convID: ConversationID,
+  resolveInfo: ConversationResolveInfo
 }>
 
 export type NotifyChatChatThreadsStaleRpcParam = Exact<{
@@ -1061,7 +1239,7 @@ export type NotifyChatNewChatActivityRpcParam = Exact<{
   activity: ChatActivity
 }>
 
-export type OutboxErrorType = 
+export type OutboxErrorType =
     0 // MISC_0
   | 1 // OFFLINE_1
   | 2 // IDENTIFY_2
@@ -1083,16 +1261,16 @@ export type OutboxRecord = {
   identifyBehavior: keybase1.TLFIdentifyBehavior,
 }
 
-export type OutboxState = 
-    { state : 0, sending : ?int }
-  | { state : 1, error : ?OutboxStateError }
+export type OutboxState =
+    { state: 0, sending: ?int }
+  | { state: 1, error: ?OutboxStateError }
 
 export type OutboxStateError = {
   message: string,
   typ: OutboxErrorType,
 }
 
-export type OutboxStateType = 
+export type OutboxStateType =
     0 // SENDING_0
   | 1 // ERROR_1
 
@@ -1130,6 +1308,7 @@ export type RateLimit = {
 export type ReadMessageInfo = {
   convID: ConversationID,
   msgID: MessageID,
+  conv?: ?ConversationLocal,
 }
 
 export type ReadMessagePayload = {
@@ -1162,6 +1341,7 @@ export type SetConversationStatusRes = {
 export type SetStatusInfo = {
   convID: ConversationID,
   status: ConversationStatus,
+  conv?: ?ConversationLocal,
 }
 
 export type SetStatusPayload = {
@@ -1191,7 +1371,7 @@ export type TLFResolveUpdate = {
   inboxVers: InboxVers,
 }
 
-export type TLFVisibility = 
+export type TLFVisibility =
     0 // ANY_0
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
@@ -1210,7 +1390,7 @@ export type ThreadViewBoxed = {
 
 export type TopicID = bytes
 
-export type TopicType = 
+export type TopicType =
     0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2
@@ -1247,7 +1427,8 @@ export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
 }>
 
 export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
-  metadata: AssetMetadata
+  metadata: AssetMetadata,
+  placeholderMsgID: MessageID
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
@@ -1256,7 +1437,7 @@ export type chatUiChatInboxConversationRpcParam = Exact<{
 
 export type chatUiChatInboxFailedRpcParam = Exact<{
   convID: ConversationID,
-  error: string
+  error: ConversationErrorLocal
 }>
 
 export type chatUiChatInboxUnverifiedRpcParam = Exact<{
@@ -1283,6 +1464,15 @@ export type localDownloadFileAttachmentLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localFindConversationsLocalRpcParam = Exact<{
+  tlfName: string,
+  visibility: TLFVisibility,
+  topicType: TopicType,
+  topicName: string,
+  oneChatPerTLF?: ?bool,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
 export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
@@ -1306,6 +1496,7 @@ export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
 export type localGetMessagesLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageIDs?: ?Array<MessageID>,
+  disableResolveSupersedes: boolean,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -1418,6 +1609,11 @@ export type remoteGetMessagesRemoteRpcParam = Exact<{
   messageIDs?: ?Array<MessageID>
 }>
 
+export type remoteGetPublicConversationsRpcParam = Exact<{
+  tlfID: TLFID,
+  topicType: TopicType
+}>
+
 export type remoteGetS3ParamsRpcParam = Exact<{
   conversationID: ConversationID
 }>
@@ -1479,6 +1675,8 @@ type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
 
+type localFindConversationsLocalResult = FindConversationsLocalRes
+
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
@@ -1517,6 +1715,8 @@ type remoteGetInboxVersionResult = InboxVers
 
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
 
+type remoteGetPublicConversationsResult = GetPublicConversationsRes
+
 type remoteGetS3ParamsResult = S3Params
 
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
@@ -1539,6 +1739,7 @@ export type rpc =
     localCancelPostRpc
   | localDownloadAttachmentLocalRpc
   | localDownloadFileAttachmentLocalRpc
+  | localFindConversationsLocalRpc
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxNonblockLocalRpc
@@ -1559,6 +1760,7 @@ export type rpc =
   | remoteGetInboxRemoteRpc
   | remoteGetInboxVersionRpc
   | remoteGetMessagesRemoteRpc
+  | remoteGetPublicConversationsRpc
   | remoteGetS3ParamsRpc
   | remoteGetThreadRemoteRpc
   | remoteGetUnreadUpdateFullRpc
@@ -1574,7 +1776,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (
     params: Exact<{
       sessionID: int,
-      metadata: AssetMetadata
+      metadata: AssetMetadata,
+      placeholderMsgID: MessageID
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -1643,7 +1846,7 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       sessionID: int,
       convID: ConversationID,
-      error: string
+      error: ConversationErrorLocal
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -1666,7 +1869,17 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       convID: ConversationID,
-      finalizeInfo: ConversationFinalizeInfo
+      finalizeInfo: ConversationFinalizeInfo,
+      conv?: ?ConversationLocal
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatTLFResolve'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convID: ConversationID,
+      resolveInfo: ConversationResolveInfo
     }> /* ,
     response: {} // Notify call
     */

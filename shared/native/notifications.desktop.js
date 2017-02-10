@@ -1,9 +1,10 @@
 // @flow
+/* global Notification */ // tell lint this exists
 import moment from 'moment'
 
 const rateLimit: {[key: string]: Object} = {}
 
-export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds: number = -1): void {
+export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds: number = -1, onClick: ?() => void): void {
   if (rateLimitSeconds > 0) {
     const now = moment()
     if (rateLimit[title] && now.isBefore(rateLimit[title])) {
@@ -14,5 +15,6 @@ export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds: num
     rateLimit[title] = now.add(rateLimitSeconds, 's')
   }
 
-  new Notification(title, {...opts, silent: true}) //eslint-disable-line
+  const notification: any = new Notification(title, {...opts, silent: true})
+  notification.onclick = onClick
 }

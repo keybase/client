@@ -21,7 +21,8 @@ protocol common {
     DELETE_4,
     METADATA_5,
     TLFNAME_6, // Only used as the very first message in conversations whose topic name is not set when created
-    HEADLINE_7
+    HEADLINE_7,
+    ATTACHMENTUPLOADED_8  // sent after upload completes to modify ATTACHMENT message
   }
 
   @go("nostring")
@@ -32,10 +33,10 @@ protocol common {
   }
 
   enum ConversationStatus {
-    // default status of the conversation
+    // Default status of the conversation
     UNFILED_0,
 
-    // ???
+    // Not used yet.
     FAVORITE_1,
 
     // This status is useful for temporarily muting a conversation. Unless told
@@ -45,10 +46,14 @@ protocol common {
     // status, it's automatically changed back to UNFILED.
     IGNORED_2,
 
-    // The conversation is muted (i.e. not included in GetInboxRemote results
+    // The conversation is blocked (i.e. not included in GetInboxRemote results
     // by default), until SetConversationStatus is called with a different
     // status.
-    BLOCKED_3
+    BLOCKED_3,
+
+    // The conversation appears in the inbox with no snippet,
+    // and does not emit notifications nor badges.
+    MUTED_4
   }
 
   record Pagination {
@@ -102,6 +107,10 @@ protocol common {
     gregor1.Time resetTimestamp;
   }
 
+  record ConversationResolveInfo {
+    string newTLFName;
+  }
+
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
@@ -110,6 +119,9 @@ protocol common {
 
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;
+
+    array<ConversationMetadata> supersedes; // metadata about the conversations this supersedes from a TLF finalize (if any).
+    array<ConversationMetadata> supersededBy; // metadata about the conversations that superseded this conversation from a TLF finalize.
 
     // List of users sorted by recency of last [intentional] post.
     // Most recent first. May be incomplete or empty.
@@ -124,9 +136,7 @@ protocol common {
 
   record Conversation {
     ConversationMetadata metadata;
-    union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
-    array<ConversationMetadata> supersedes; // metadata about the conversations this supersedes from a TLF finalize (if any).
-    array<ConversationMetadata> supersededBy; // metadata about the conversations that superseded this conversation from a TLF finalize.
+    union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective 
 
     // maxMsgs is the maximum message for each messageType in the conversation
     array<MessageBoxed> maxMsgs;

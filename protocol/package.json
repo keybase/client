@@ -21,6 +21,7 @@
     "avdl2json": "2.2.3",
     "bluebird": "^2.10.0",
     "camelcase": "^4.0.0",
+    "colors": "^1.1.2",
     "iced-coffee-script": "^108.0.9",
     "iced-error": "0.0.9",
     "iced-logger": "^0.0.6",

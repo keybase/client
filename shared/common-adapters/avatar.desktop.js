@@ -139,7 +139,7 @@ class Avatar extends Component<void, Props, State> {
         {this.props.backgroundColor &&
           <div
             style={{...avatarStyle,
-              ...borderStyle,
+              borderRadius: '50%',
               backgroundColor: this.props.backgroundColor,
               backgroundSize: 'cover',
             }} />}

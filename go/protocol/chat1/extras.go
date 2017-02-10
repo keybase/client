@@ -46,10 +46,12 @@ func (cid ConversationID) Less(c ConversationID) bool {
 	return bytes.Compare(cid, c) < 0
 }
 
+const DbShortFormLen = 10
+
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
 func (cid ConversationID) DbShortForm() []byte {
-	return cid[:10]
+	return cid[:DbShortFormLen]
 }
 
 func MakeTLFID(val string) (TLFID, error) {
@@ -82,6 +84,8 @@ func (t MessageType) String() string {
 		return "DELETE"
 	case MessageType_METADATA:
 		return "METADATA"
+	case MessageType_ATTACHMENTUPLOADED:
+		return "ATTACHMENTUPLOADED"
 	default:
 		return "UNKNOWN"
 	}
@@ -162,6 +166,7 @@ var ConversationStatusGregorMap = map[ConversationStatus]string{
 	ConversationStatus_FAVORITE: "favorite",
 	ConversationStatus_IGNORED:  "ignored",
 	ConversationStatus_BLOCKED:  "blocked",
+	ConversationStatus_MUTED:    "muted",
 }
 
 var ConversationStatusGregorRevMap = map[string]ConversationStatus{
@@ -169,6 +174,7 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 	"favorite": ConversationStatus_FAVORITE,
 	"ignored":  ConversationStatus_IGNORED,
 	"blocked":  ConversationStatus_BLOCKED,
+	"muted":    ConversationStatus_MUTED,
 }
 
 func (t ConversationIDTriple) Hash() []byte {
@@ -300,4 +306,67 @@ func (c Conversation) GetMaxMessage(typ MessageType) (MessageBoxed, error) {
 		}
 	}
 	return MessageBoxed{}, fmt.Errorf("max message not found: %v", typ)
+}
+
+func (c Conversation) Includes(uid gregor1.UID) bool {
+	for _, auid := range c.Metadata.ActiveList {
+		if uid.Eq(auid) {
+			return true
+		}
+	}
+	return false
+}
+
+/*
+func ConvertMessageBodyV1ToV2(v1 MessageBodyV1) (MessageBody, error) {
+	t, err := v1.MessageType()
+	if err != nil {
+		return MessageBody{}, err
+	}
+	switch t {
+	case MessageType_TEXT:
+		return NewMessageBodyWithText(v1.Text()), nil
+	case MessageType_ATTACHMENT:
+		previous := v1.Attachment()
+		upgraded := MessageAttachment{
+			Object:   previous.Object,
+			Metadata: previous.Metadata,
+			Uploaded: true,
+		}
+		if previous.Preview != nil {
+			upgraded.Previews = []Asset{*previous.Preview}
+		}
+		return NewMessageBodyWithAttachment(upgraded), nil
+	case MessageType_EDIT:
+		return NewMessageBodyWithEdit(v1.Edit()), nil
+	case MessageType_DELETE:
+		return NewMessageBodyWithDelete(v1.Delete()), nil
+	case MessageType_METADATA:
+		return NewMessageBodyWithMetadata(v1.Metadata()), nil
+	case MessageType_HEADLINE:
+		return NewMessageBodyWithHeadline(v1.Headline()), nil
+	case MessageType_NONE:
+		return MessageBody{MessageType__: MessageType_NONE}, nil
+	}
+
+	return MessageBody{}, fmt.Errorf("ConvertMessageBodyV1ToV2: unhandled message type %v", t)
+}
+*/
+
+func NewConversationErrorLocal(
+	message string,
+	remoteConv Conversation,
+	permanent bool,
+	unverifiedTLFName string,
+	typ ConversationErrorType,
+	rekeyInfo *ConversationErrorRekey,
+) *ConversationErrorLocal {
+	return &ConversationErrorLocal{
+		Typ:               typ,
+		Message:           message,
+		RemoteConv:        remoteConv,
+		Permanent:         permanent,
+		UnverifiedTLFName: unverifiedTLFName,
+		RekeyInfo:         rekeyInfo,
+	}
 }

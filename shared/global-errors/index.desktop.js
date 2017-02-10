@@ -86,13 +86,15 @@ class GlobalError extends Component<void, Props, State> {
       console.warn('Ignoring disconnect overlay')
       return null
     }
+
+    const message = this.props.daemonError && this.props.daemonError.message || 'Keybase is currently unreachable. Trying to reconnect you…'
     return (
       <Box style={{...containerOverlayStyle}}>
         <Box style={{...overlayRowStyle}}>
-          <Text type='BodyBig' style={{color: globalColors.white, textAlign: 'center'}}>Keybase is currently unreachable. Trying to reconnect you…</Text>
+          <Text type='BodySemibold' style={{color: globalColors.white, textAlign: 'center'}}>{message}</Text>
         </Box>
         <Box style={{...overlayFillStyle}}>
-          <Icon type='icon-loader-connecting-112' />
+          <Icon type='icon-loader-connecting-266' />
         </Box>
       </Box>
     )
@@ -118,6 +120,8 @@ class GlobalError extends Component<void, Props, State> {
 
   render () {
     if (this.props.reachability && this.props.reachability.reachable === ReachabilityReachable.no) {
+      return this.renderReachability()
+    } else if (this.props.daemonError) {
       return this.renderReachability()
     }
     return this.renderError()
@@ -185,7 +189,7 @@ const overlayFillStyle = {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  backgroundColor: globalColors.white_75,
+  backgroundColor: globalColors.white,
 }
 
 export default HOCTimers(GlobalError)

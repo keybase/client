@@ -19,12 +19,16 @@ class Engine {
   _rpcClient: createClientType
   // All incoming call handlers
   _incomingHandler: {[key: MethodKey]: (param: Object, response: ?Object) => void} = {}
+  // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
+  _onDisconnectHandlers: ?{[key: string]: () => void} = {}
   // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
   _onConnectHandlers: ?{[key: string]: () => void} = {}
   // Set to true to throw on errors. Used in testing
   _failOnError: boolean = false
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
+  // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
+  _hasConnected: boolean = false
 
   constructor () {
     this._setupClient()
@@ -36,7 +40,8 @@ class Engine {
   _setupClient () {
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),
-      () => this._onConnected()
+      () => this._onConnected(),
+      () => this._onDisconnect()
     )
   }
 
@@ -70,12 +75,24 @@ class Engine {
   }
 
   _setupIgnoredHandlers () {
-    this.setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', () => {})
+    // Any messages we want to ignore go here
+  }
+
+  _onDisconnect () {
+    if (!this._onDisconnectHandlers) {
+      return
+    }
+
+    const handlers = this._onDisconnectHandlers
+    // Don't allow mutation while we're handling the handlers
+    this._onDisconnectHandlers = null
+    Object.keys(handlers).forEach(k => handlers[k]())
+    this._onDisconnectHandlers = handlers
   }
 
   // Called when we reconnect to the server
   _onConnected () {
-    // This should be impossible but makes flow happy
+    this._hasConnected = true
     if (!this._onConnectHandlers) {
       return
     }
@@ -247,6 +264,26 @@ class Engine {
     this._failOnError = true
   }
 
+  // Register a named callback when we disconnect from the server. Call if we're already disconnected
+  listenOnDisconnect (key: string, f: () => void) {
+    if (!this._onDisconnectHandlers) {
+      throw new Error('Calling listenOnDisconnect while in the middle of _onDisconnect')
+    }
+
+    if (!f) {
+      throw new Error('Null callback sent to listenOnDisconnect')
+    }
+
+    // If we've actually connected and are now disconnected lets call this immediately
+    if (this._hasConnected && this._rpcClient.transport.needsConnect) {
+      f()
+    }
+
+    // Regardless if we were connected or not, we'll add this to the callback fns
+    // that should be called when we disconnect.
+    this._onDisconnectHandlers[key] = f
+  }
+
   // Register a named callback when we reconnect to the server. Call if we're already connected
   listenOnConnect (key: string, f: () => void) {
     if (!this._onConnectHandlers) {
@@ -281,6 +318,7 @@ class FakeEngine {
   rpc () {}
   setFailOnError () {}
   listenOnConnect () {}
+  listenOnDisconnect () {}
   setIncomingHandler () {}
   createSession () {
     return new Session(0, {}, null, () => {}, () => {})
