@@ -204,8 +204,7 @@ helpers.rootLinuxNode(env, {
                                             def testlist = readFile('testlist.txt')
                                             def tests = testlist.tokenize()
                                             for (test in tests) {
-                                                // TEMP
-                                                // bat "go test -timeout 10m ${test}"
+                                                bat "go test -timeout 10m ${test}"
                                             }
                                         }
                                     },
