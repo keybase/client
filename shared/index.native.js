@@ -1,8 +1,5 @@
 // @flow
 import 'core-js/es6/reflect'  // required for babel-plugin-transform-builtin-extend in RN iOS and Android
-import 'core-js/es6/object'  // required for babel-plugin-transform-builtin-extend in RN Android
-import 'core-js/es6/array'  // required for emoji-mart in RN Android
-import 'core-js/es6/string'  // required for emoji-mart in RN Android
 import './globals.native'
 import DumbSheet from './dev/dumb-sheet'
 import Main from './main'
