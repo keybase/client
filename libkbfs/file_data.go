@@ -645,7 +645,7 @@ func (fd *fileData) createIndirectBlock(
 						KeyGen:     fd.kmd.LatestKeyGeneration(),
 						DataVer:    dver,
 						Context:    kbfsblock.MakeFirstContext(fd.uid),
-						DirectType: IndirectBlock,
+						DirectType: fd.rootBlockPointer().DirectType,
 					},
 					EncodedSize: 0,
 				},
@@ -709,6 +709,11 @@ func (fd *fileData) newRightBlock(
 		// The old top block needs to be cached under its new ID if it
 		// was indirect.
 		if len(parentBlocks) > 0 {
+			dType := DirectBlock
+			if parentBlocks[0].pblock.IsInd {
+				dType = IndirectBlock
+			}
+			newTopBlock.IPtrs[0].DirectType = dType
 			ptr := newTopBlock.IPtrs[0].BlockPointer
 			err = fd.cacher(ptr, parentBlocks[0].pblock)
 			if err != nil {
