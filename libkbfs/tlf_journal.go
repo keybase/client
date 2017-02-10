@@ -63,7 +63,9 @@ func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
 }
 
 func (ca tlfJournalConfigAdapter) diskLimitTimeout() time.Duration {
-	return defaultDiskLimitTimeout
+	// Set this to slightly larger than the max delay, so that we
+	// don't start failing writes when we hit the max delay.
+	return defaultDiskLimitMaxDelay + time.Second
 }
 
 const (

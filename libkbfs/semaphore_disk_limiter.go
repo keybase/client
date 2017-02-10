@@ -24,42 +24,42 @@ func newSemaphoreDiskLimiter(byteLimit int64) semaphoreDiskLimiter {
 	return semaphoreDiskLimiter{s}
 }
 
-func (s semaphoreDiskLimiter) onJournalEnable(
+func (sdl semaphoreDiskLimiter) onJournalEnable(
 	ctx context.Context, journalBytes int64) int64 {
 	if journalBytes == 0 {
-		return s.s.Count()
+		return sdl.s.Count()
 	}
-	return s.s.ForceAcquire(journalBytes)
+	return sdl.s.ForceAcquire(journalBytes)
 }
 
-func (s semaphoreDiskLimiter) onJournalDisable(
+func (sdl semaphoreDiskLimiter) onJournalDisable(
 	ctx context.Context, journalBytes int64) {
 	if journalBytes > 0 {
-		s.s.Release(journalBytes)
+		sdl.s.Release(journalBytes)
 	}
 }
 
-func (s semaphoreDiskLimiter) beforeBlockPut(
+func (sdl semaphoreDiskLimiter) beforeBlockPut(
 	ctx context.Context, blockBytes int64) (int64, error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in Acquire.
-		return s.s.Count(), errors.New(
-			"beforeBlockPut called with 0 blockBytes")
+		return sdl.s.Count(), errors.New(
+			"semaphore.DiskLimiter.beforeBlockPut called with 0 blockBytes")
 	}
 
-	return s.s.Acquire(ctx, blockBytes)
+	return sdl.s.Acquire(ctx, blockBytes)
 }
 
-func (s semaphoreDiskLimiter) afterBlockPut(
+func (sdl semaphoreDiskLimiter) afterBlockPut(
 	ctx context.Context, blockBytes int64, putData bool) {
 	if !putData {
-		s.s.Release(blockBytes)
+		sdl.s.Release(blockBytes)
 	}
 }
 
-func (s semaphoreDiskLimiter) onBlockDelete(
+func (sdl semaphoreDiskLimiter) onBlockDelete(
 	ctx context.Context, blockBytes int64) {
 	if blockBytes > 0 {
-		s.s.Release(blockBytes)
+		sdl.s.Release(blockBytes)
 	}
 }

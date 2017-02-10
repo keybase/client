@@ -254,6 +254,10 @@ func (j *JournalServer) EnableExistingJournals(
 		}
 	}()
 
+	// TODO: We should also look up journals from other
+	// users/devices so that we can take into account their
+	// journal usage.
+
 	j.lock.Lock()
 	defer j.lock.Unlock()
 

@@ -227,7 +227,7 @@ func setupTLFJournalTest(
 	config = &testTLFJournalConfig{
 		t, log, tlf.FakeID(1, false), bsplitter, codec, crypto,
 		nil, nil, NewMDCacheStandard(10), ver,
-		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver, defaultDiskLimitTimeout,
+		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver, defaultDiskLimitMaxDelay + time.Second,
 	}
 
 	ctx, cancel = context.WithTimeout(

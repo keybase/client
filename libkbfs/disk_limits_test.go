@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,4 +19,19 @@ func TestDiskLimits(t *testing.T) {
 	availableBytes, err := getDiskLimits("/")
 	require.NoError(t, err)
 	require.NotEqual(t, uint64(0), availableBytes)
+}
+
+// TestDiskLimitsNonExistentFile checks that getDiskLimits() returns
+// an error for which ioutil.IsNotExist holds if its given file
+// doesn't exist.
+func TestDiskLimitsNonExistentFile(t *testing.T) {
+	// Of course, we're assuming this file doesn't exist.
+	_, err := getDiskLimits("/non-existent-file")
+	require.True(t, ioutil.IsNotExist(err))
+}
+
+func BenchmarkDiskLimits(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		getDiskLimits("/")
+	}
 }

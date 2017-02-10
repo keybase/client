@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
@@ -883,11 +884,6 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 // put.
 const defaultDiskLimitMaxDelay = 10 * time.Second
 
-// defaultDiskLimitTimeout is how much of a delay will cause a block
-// put to give up and return. This should be slightly more than
-// maxDelay.
-const defaultDiskLimitTimeout = 11 * time.Second
-
 // EnableJournaling creates a JournalServer and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
@@ -908,25 +904,25 @@ func (c *ConfigLocal) EnableJournaling(
 	branchListener := c.KBFSOps().(branchChangeListener)
 	flushListener := c.KBFSOps().(mdFlushListener)
 
-	// Set the journal disk limit to 10 GiB for now.
-	//
-	// TODO: Base this on the size of the disk, e.g. a quarter of
-	// the total size of the disk up to a maximum of 100 GB.
+	// The backpressure disk limiter needs the dir to exist first.
+	err = ioutil.MkdirAll(journalRoot, 0700)
+	if err != nil {
+		return err
+	}
+
+	// Set the absolute journal disk limit to 50 GiB for now.
 	//
 	// TODO: Also keep track of and limit the inode count.
-	const journalDiskLimit int64 = 10 * 1024 * 1024 * 1024
-
-	// Start backpressure when 50% of the disk limit has been
-	// reached.
-	const backpressureMinThreshold = journalDiskLimit / 2
-
-	// When 95% of the disk limit has been reached, just delay for
-	// the maximum duration.
-	const backpressureMaxThreshold = journalDiskLimit * 19 / 20
-
-	bdl := newBackpressureDiskLimiter(
+	const journalDiskLimit int64 = 50 * 1024 * 1024 * 1024
+	const backpressureMinThreshold = 0.5
+	const backpressureMaxThreshold = 0.95
+	bdl, err := newBackpressureDiskLimiter(
 		log, backpressureMinThreshold, backpressureMaxThreshold,
-		journalDiskLimit, defaultDiskLimitMaxDelay)
+		journalDiskLimit, defaultDiskLimitMaxDelay, journalRoot)
+	if err != nil {
+		return err
+	}
+
 	log.Debug("Setting journal byte limit to %v", journalDiskLimit)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
