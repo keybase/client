@@ -6,7 +6,7 @@ import {quit} from './ctl'
 import {runMode} from '../../constants/platform.desktop'
 
 // Runs the installer (on MacOS).
-// For other platforms, this immediately returns that there is installer.
+// For other platforms, this immediately returns that there is no installer.
 //
 // To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
 // to a place where the installer is bundled, for example:
