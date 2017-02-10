@@ -59,6 +59,10 @@ type signerGetter interface {
 	Signer() kbfscrypto.Signer
 }
 
+type diskBlockCacheGetter interface {
+	DiskBlockCache() DiskBlockCache
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -1481,6 +1485,7 @@ type Config interface {
 	cryptoGetter
 	signerGetter
 	currentSessionGetterGetter
+	diskBlockCacheGetter
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI

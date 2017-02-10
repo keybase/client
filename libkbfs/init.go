@@ -77,6 +77,10 @@ type InitParams struct {
 	// CreateSimpleFSInstance creates a SimpleFSInterface from config.
 	// If this is nil then simplefs will be omitted in the rpc api.
 	CreateSimpleFSInstance func(Config) keybase1.SimpleFSInterface
+
+	// DiskCacheRoot, if non-empty, points to a path to a local directory to
+	// put the block cache database. If non-empty, enables disk caching.
+	DiskCacheRoot string
 }
 
 // defaultBServer returns the default value for the -bserver flag.
@@ -141,6 +145,8 @@ func DefaultInitParams(ctx Context) InitParams {
 		TLFJournalBackgroundWorkStatus: TLFJournalBackgroundWorkEnabled,
 		WriteJournalRoot: filepath.Join(
 			ctx.GetDataDir(), "kbfs_journal"),
+		DiskCacheRoot: filepath.Join(
+			ctx.GetDataDir(), "kbfs_block_cache"),
 	}
 }
 
@@ -189,6 +195,9 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 		defaultParams.CleanBlockCacheCapacity,
 		"If non-zero, specify the capacity of clean block cache. If zero, "+
 			"the capacity is set based on system RAM.")
+	flags.StringVar(&params.DiskCacheRoot, "disk-cache-root",
+		defaultParams.DiskCacheRoot, "(EXPERIMENTAL) If non-empty, permits "+
+			"a block database to be saved in the specified directory.")
 
 	// No real need to enable setting
 	// params.TLFJournalBackgroundWorkStatus via a flag.
@@ -556,6 +565,13 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
 			log.Warning("Could not initialize journal server: %+v", err)
+		}
+	}
+	if len(params.DiskCacheRoot) != 0 {
+		err := config.EnableDiskBlockCache(context.TODO(),
+			params.DiskCacheRoot)
+		if err != nil {
+			log.Warning("Could not initialize disk cache: %+v", err)
 		}
 	}
 

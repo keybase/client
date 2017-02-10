@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	evictionConsiderationFactor uint   = 3
-	blockDbFilename             string = "diskCacheBlocks.leveldb"
-	lruDbFilename               string = "diskCacheLRU.leveldb"
+	defaultDiskBlockCacheMaxBytes uint64 = 10 * (1 << 30)
+	evictionConsiderationFactor   uint   = 3
+	blockDbFilename               string = "diskCacheBlocks.leveldb"
+	lruDbFilename                 string = "diskCacheLRU.leveldb"
 )
 
 type diskBlockCacheEntry struct {
@@ -133,6 +134,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	if cache.isClosed {
 		return DiskCacheClosedError{"Put"}
 	}
+	// TODO: accounting
 	entry, err := cache.encodeBlockCacheEntry(buf, serverHalf)
 	blockBytes := blockID.Bytes()
 	err = cache.blockDb.Put(blockBytes, entry, nil)
