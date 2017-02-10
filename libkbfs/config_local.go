@@ -916,9 +916,12 @@ func (c *ConfigLocal) EnableJournaling(
 	const journalDiskLimit int64 = 50 * 1024 * 1024 * 1024
 	const backpressureMinThreshold = 0.5
 	const backpressureMaxThreshold = 0.95
+	// Cap journal usage to a quarter of the free space.
+	const maxJournalByteFrac = 0.25
 	bdl, err := newBackpressureDiskLimiter(
 		log, backpressureMinThreshold, backpressureMaxThreshold,
-		journalDiskLimit, defaultDiskLimitMaxDelay, journalRoot)
+		maxJournalByteFrac, journalDiskLimit,
+		defaultDiskLimitMaxDelay, journalRoot)
 	if err != nil {
 		return err
 	}
