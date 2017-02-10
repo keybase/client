@@ -6,7 +6,10 @@
  * xcpretty (`gem install xcpretty`)
  * Xcode command line tools
 
-### Build Installer
+### Building the Installer
+
+You probably want to bump the version of the installer in both the "Bundle version" (CFBundleVersion)
+and the "Bundle version string, short" (CFBundleShortVersionString) in [Installer/Info.plist](/osx/Installer/Info.plist).
 
 ```sh
 ./build_installer.sh
@@ -14,7 +17,9 @@
 
 ### Test Installer
 
+```sh
 ./build/KeybaseInstaller.app/Contents/MacOS/Keybase --app-path=/Applications/Keybase.app --run-mode=prod --timeout=10
+```
 
 ### Releasing Installer
 

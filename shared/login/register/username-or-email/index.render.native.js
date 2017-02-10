@@ -60,7 +60,7 @@ const stylesContainer = {
   flex: 1,
 }
 const stylesInput = {
-  flex: 1,
+  flexGrow: 1,
   marginTop: 25,
   marginBottom: 55,
 }

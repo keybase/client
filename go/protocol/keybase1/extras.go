@@ -754,7 +754,28 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 }
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
+	// The chat GUI (in non-strict mode) is specifically exempted from broken
+	// track errors, because people need to be able to use it to ask each other
+	// about the fact that proofs are broken.
 	return b == TLFIdentifyBehavior_CHAT_GUI
+}
+
+// All of the chat modes want to prevent tracker popups.
+func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
+	switch b {
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_CHAT_GUI_STRICT,
+		TLFIdentifyBehavior_CHAT_CLI,
+		TLFIdentifyBehavior_KBFS_REKEY:
+		// These are identifies that either happen without user interaction at
+		// all, or happen while you're staring at some Keybase UI that can
+		// report errors on its own. No popups needed.
+		return true
+	default:
+		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
+		// doesn't have any other UI to report errors with.
+		return false
+	}
 }
 
 func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
@@ -853,4 +874,8 @@ func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
 		}
 	}
 	return nil
+}
+
+func (s ChatConversationID) String() string {
+	return hex.EncodeToString(s)
 }

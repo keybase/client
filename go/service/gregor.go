@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/cenkalti/backoff"
+	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
@@ -21,7 +22,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -101,7 +101,8 @@ type gregorHandler struct {
 	ibmHandlers      []libkb.GregorInBandMessageHandler
 	gregorCli        *grclient.Client
 	firehoseHandlers []libkb.GregorFirehoseHandler
-	badger           *Badger
+	badger           *badges.Badger
+	chatHandler      *chat.PushHandler
 
 	// This mutex protects the con object
 	connMutex     sync.Mutex
@@ -115,8 +116,7 @@ type gregorHandler struct {
 	skipRetryConnect bool
 	freshReplay      bool
 
-	identNotifier *chat.IdentifyNotifier
-	chatSync      *chat.Syncer
+	chatSync *chat.Syncer
 
 	transportForTesting *connTransport
 
@@ -157,8 +157,8 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 		freshReplay:     true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
 		badger:          nil,
-		identNotifier:   chat.NewIdentifyNotifier(g),
 		chatSync:        chat.NewSyncer(g),
+		chatHandler:     chat.NewPushHandler(g),
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -506,7 +506,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Sync badge state in the background
 	if g.badger != nil {
-		go func(badger *Badger) {
+		go func(badger *badges.Badger) {
 			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli})
 		}(g.badger)
 	}
@@ -851,9 +851,11 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	case "kbfs.favorites":
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
-		return g.newChatActivity(ctx, obm)
+		return g.chatHandler.Activity(ctx, obm, g.badger)
 	case "chat.tlffinalize":
-		return g.chatTlfFinalize(ctx, obm)
+		return g.chatHandler.TlfFinalize(ctx, obm)
+	case "chat.tlfresolve":
+		return g.chatHandler.TlfResolve(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -863,7 +865,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 }
 
 func (g *gregorHandler) Shutdown() {
-	g.G().Log.Debug("gregor shutdown")
+	g.Debug("shutdown")
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
@@ -911,199 +913,6 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 	return nil
 }
 
-func (g *gregorHandler) chatTlfFinalize(ctx context.Context, m gregor.OutOfBandMessage) error {
-	if m.Body() == nil {
-		return errors.New("gregor handler for chat.tlffinalize: nil message body")
-	}
-
-	g.G().Log.Debug("push handler: tlf finalize received")
-
-	var update chat1.TLFFinalizeUpdate
-	reader := bytes.NewReader(m.Body().Bytes())
-	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err := dec.Decode(&update)
-	if err != nil {
-		return err
-	}
-
-	// Update inbox
-	if err := g.G().InboxSource.TlfFinalize(ctx, m.UID().Bytes(), update.InboxVers, update.ConvIDs,
-		update.FinalizeInfo); err != nil {
-		g.G().Log.Error("push handler: tlf finalize: unable to update inbox: %s", err.Error())
-	}
-
-	// Send notify for each conversation ID
-	uid := m.UID().String()
-	for _, convID := range update.ConvIDs {
-		g.G().NotifyRouter.HandleChatTLFFinalize(context.Background(), keybase1.UID(uid),
-			convID, update.FinalizeInfo)
-	}
-
-	return nil
-}
-
-func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandMessage) error {
-	if m.Body() == nil {
-		return errors.New("gregor handler for chat.activity: nil message body")
-	}
-
-	var activity chat1.ChatActivity
-	var gm chat1.GenericPayload
-	reader := bytes.NewReader(m.Body().Bytes())
-	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err := dec.Decode(&gm)
-	if err != nil {
-		return err
-	}
-
-	g.G().Log.Debug("push handler: chat activity: action %s", gm.Action)
-
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, g.identNotifier)
-
-	action := gm.Action
-	reader.Reset(m.Body().Bytes())
-	switch action {
-	case "newMessage":
-		var nm chat1.NewMessagePayload
-		err = dec.Decode(&nm)
-		if err != nil {
-			g.G().Log.Error("push handler: chat activity: error decoding newMessage: %s", err.Error())
-			return err
-		}
-
-		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %s sender: %s",
-			nm.ConvID, nm.Message.ClientHeader.Sender)
-		if nm.Message.ClientHeader.OutboxID != nil {
-			g.G().Log.Debug("push handler: chat activity: newMessage: outboxID: %s",
-				hex.EncodeToString(*nm.Message.ClientHeader.OutboxID))
-		} else {
-			g.G().Log.Debug("push handler: chat activity: newMessage: outboxID is empty")
-		}
-		uid := m.UID().Bytes()
-
-		decmsg, append, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
-		if err != nil {
-			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
-		}
-		if err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.Message); err != nil {
-			g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
-		}
-
-		activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: decmsg,
-			ConvID:  nm.ConvID,
-		})
-
-		// If this message was not "appended", meaning there is a hole between what we have in cache,
-		// and this message, then we send out a notification that this thread should be considered
-		// stale
-		if !append {
-			g.G().Log.Debug("push handler: chat activity: newMessage: non-append message, alerting")
-			kuid := keybase1.UID(m.UID().String())
-			g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid,
-				[]chat1.ConversationID{nm.ConvID})
-		}
-
-		if g.badger != nil && nm.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-		}
-	case "readMessage":
-		var nm chat1.ReadMessagePayload
-		err = dec.Decode(&nm)
-		if err != nil {
-			g.G().Log.Error("push handler: chat activity: error decoding: %s", err.Error())
-			return err
-		}
-		g.G().Log.Debug("push handler: chat activity: readMessage: convID: %s msgID: %d",
-			nm.ConvID, nm.MsgID)
-
-		uid := m.UID().Bytes()
-		if err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
-			g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
-		}
-
-		activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
-			MsgID:  nm.MsgID,
-			ConvID: nm.ConvID,
-		})
-
-		if g.badger != nil && nm.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-		}
-	case "setStatus":
-		var nm chat1.SetStatusPayload
-		err = dec.Decode(&nm)
-		if err != nil {
-			g.G().Log.Error("push handler: chat activity: error decoding: %s", err.Error())
-			return err
-		}
-		g.G().Log.Debug("push handler: chat activity: setStatus: convID: %s status: %d",
-			nm.ConvID, nm.Status)
-
-		uid := m.UID().Bytes()
-		if err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
-			g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
-		}
-		activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
-			ConvID: nm.ConvID,
-			Status: nm.Status,
-		})
-
-		if g.badger != nil && nm.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-		}
-	case "newConversation":
-		var nm chat1.NewConversationPayload
-		err = dec.Decode(&nm)
-		if err != nil {
-			g.G().Log.Error("push handler: chat activity: error decoding: %s", err.Error())
-			return err
-		}
-		g.G().Log.Debug("push handler: chat activity: newConversation: convID: %s ", nm.ConvID)
-
-		uid := m.UID().Bytes()
-
-		// We need to get this conversation and then localize it
-		var inbox chat1.Inbox
-		if inbox, _, err = g.G().InboxSource.ReadNoCache(ctx, uid, nil, &chat1.GetInboxLocalQuery{
-			ConvID: &nm.ConvID,
-		}, nil); err != nil {
-			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
-			return err
-		}
-		if len(inbox.Convs) != 1 {
-			g.G().Log.Error("push handler: chat activity: unable to find conversation")
-			return fmt.Errorf("unable to find conversation")
-		}
-		updateConv := inbox.ConvsUnverified[0]
-		if err = g.G().InboxSource.NewConversation(ctx, uid, nm.InboxVers, updateConv); err != nil {
-			g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
-		}
-
-		activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-			Conv: inbox.Convs[0],
-		})
-
-		if g.badger != nil && nm.UnreadUpdate != nil {
-			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
-		}
-	default:
-		return fmt.Errorf("unhandled chat.activity action %q", action)
-	}
-
-	return g.notifyNewChatActivity(ctx, m.UID(), &activity)
-}
-
-func (g *gregorHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID, activity *chat1.ChatActivity) error {
-	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
-	if err != nil {
-		return err
-	}
-	g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
-	return nil
-}
-
 func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err error) {
 	var token string
 	var uid keybase1.UID
@@ -1111,8 +920,9 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 	// Check to see if we have been shutdown,
 	select {
 	case <-g.shutdownCh:
-		g.Debug("server is dead, not authenticating")
-		return errors.New("server is dead, not authenticating")
+		msg := "not logged in, not attempting authentication"
+		g.Debug(msg)
+		return errors.New(msg)
 	default:
 		// if we were going to block, then that means we are still alive
 	}
@@ -1159,7 +969,6 @@ func (g *gregorHandler) pingLoop() {
 	for {
 		select {
 		case <-g.G().Clock().After(duration):
-
 			var err error
 			ctx := context.Background()
 			if g.IsConnected() {
@@ -1189,9 +998,6 @@ func (g *gregorHandler) pingLoop() {
 					}
 				}
 			}
-
-		case <-g.shutdownCh:
-			return
 		}
 	}
 

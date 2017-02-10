@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -16,6 +17,7 @@ import (
 
 type tlfHandler struct {
 	*BaseHandler
+	utils.DebugLabeler
 	libkb.Contextified
 }
 
@@ -23,6 +25,7 @@ func newTlfHandler(xp rpc.Transporter, g *libkb.GlobalContext) *tlfHandler {
 	return &tlfHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "TlfHandler", false),
 	}
 }
 
@@ -57,8 +60,8 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 	if ok {
 		arg.IdentifyBehavior = ident
 	}
-	defer h.G().CTrace(ctx, fmt.Sprintf("tlfHandler.CryptKeys(tlf=%s,mode=%v)", arg.TlfName,
-		arg.IdentifyBehavior), func() error { return err })()
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", arg.TlfName, arg.IdentifyBehavior))()
 
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
@@ -85,8 +88,10 @@ func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybas
 	if ok {
 		arg.IdentifyBehavior = ident
 	}
-	defer h.G().CTrace(ctx, fmt.Sprintf("tlfHandler.PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)",
-		arg.TlfName, arg.IdentifyBehavior), func() error { return err })()
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", arg.TlfName,
+			arg.IdentifyBehavior))()
+
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
@@ -128,48 +133,4 @@ func (h *tlfHandler) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, 
 	}
 
 	return resp.NameIDBreaks, nil
-}
-
-func (h *tlfHandler) HandleUserChanged(uid keybase1.UID) (err error) {
-	defer h.G().Trace(fmt.Sprintf("tlfHandler.HandleUserChanged(uid=%s)", uid),
-		func() error { return err })()
-
-	// If this is about us we don't care
-	me := h.G().Env.GetUID()
-	if me.Equal(uid) {
-		return nil
-	}
-
-	// Form TLF name of ourselves plus the user that changed
-	us := h.G().Env.GetUsername()
-	them, err := h.G().GetUPAKLoader().LookupUsername(context.Background(), uid)
-	if err != nil {
-		h.G().Log.Debug("tlfHandler: HandleUserChanged(): unable to get username: uid: %s err: %s",
-			uid, err.Error())
-		return err
-	}
-	tlfName := fmt.Sprintf("%s,%s", us, them)
-
-	// Make a new chat context
-	var breaks []keybase1.TLFIdentifyFailure
-	ident := keybase1.TLFIdentifyBehavior_CHAT_GUI
-	notifier := chat.NewIdentifyNotifier(h.G())
-	ctx := chat.Context(context.Background(), ident, &breaks, notifier)
-
-	// Take this guy out of the cache, we want this to run fresh
-	if err = h.G().Identify2Cache.Delete(uid); err != nil {
-		h.G().Log.Debug("tlfHandler: HandleUserChanged(): unable to delete cache entry: uid: %s: err: %s", uid, err.Error())
-		return err
-	}
-
-	// Run against CryptKeys to generate notifications if necessary
-	_, err = h.CryptKeys(ctx, keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: ident,
-	})
-	if err != nil {
-		h.G().Log.Debug("tlfHandler: HandleUserChanged(): failed to run CryptKeys: %s", err.Error())
-	}
-
-	return nil
 }

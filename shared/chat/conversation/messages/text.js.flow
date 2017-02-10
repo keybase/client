@@ -1,13 +1,13 @@
 // @flow
 import {Component} from 'react'
 
-import type {TextMessage, ServerMessage, FollowingMap, MetaDataMap} from '../../../constants/chat'
+import type {TextMessage, ServerMessage, FollowingMap, MetaDataMap, OutboxIDKey} from '../../../constants/chat'
 
 export type Props = {
   message: TextMessage,
   includeHeader: boolean,
   isFirstNewMessage: boolean,
-  onRetry: (outboxID: string) => void,
+  onRetry: (outboxID: OutboxIDKey) => void,
   onAction: (message: ServerMessage, event: any) => void,
   style: Object,
   isSelected: boolean,

@@ -40,16 +40,25 @@ const actionStatSink: StatSink = {
   startTime: 0,
 }
 
+function makeActionToLog (action, oldState) {
+  if (action.logTransformer) {
+    try {
+      return action.logTransformer(action, oldState)
+    } catch (e) {
+      console.warn('Action logger error', e)
+    }
+  }
+  return noPayloadTransformer(action, oldState)
+}
+
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
-  const actionLogTransformer = action.logTransformer || noPayloadTransformer
-
-  const actionToLog = actionLogTransformer(action)
-  const log1 = [`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(actionToLog) : actionToLog]
-
   const shouldRunActionStats = shouldRunStats(actionStatFrequency)
   const shouldRunLogStats = shouldRunStats(logStatFrequency)
 
   const oldState = store.getState()
+
+  const actionToLog = makeActionToLog(action, oldState)
+  const log1 = [`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(actionToLog) : actionToLog]
 
   startTiming(shouldRunActionStats, actionStatSink)
   const result = next(action)
@@ -60,15 +69,15 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
   startTiming(shouldRunLogStats, loggingStatSink)
   const transformer = s => objToJS(stateLogTransformer(s))
   const diff = deep.diff(transformer(oldState), transformer(newState))
-  const log2 = ['Diff: ', forwardLogs ? JSON.stringify(diff) : diff]
+  const log2 = diff ? ['Diff: ', forwardLogs ? JSON.stringify(diff) : diff] : null
   endTiming(shouldRunLogStats, loggingStatSink)
 
   requestIdleCallback(() => {
     console.groupCollapsed && console.groupCollapsed(`Dispatching action: ${action.type}`)
     console.log.apply(console, log1)
-    console.log.apply(console, log2)
+    log2 && console.log.apply(console, log2)
     console.groupEnd && console.groupEnd()
-  }, {timeout: 1e3})
+  }, {timeout: 5e3})
 
   // Make sure to print these after the groupEnd
   printTimingStats(shouldRunLogStats, loggingStatSink, true, 3)

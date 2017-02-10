@@ -154,7 +154,7 @@ class Input extends Component<void, Props, State> {
       ? {textAlign: 'left'}
       : {
         textAlign: 'center',
-        minWidth: 333,
+        minWidth: 200,
       }),
     }
 

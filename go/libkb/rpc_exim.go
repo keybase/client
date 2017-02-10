@@ -287,8 +287,13 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
 	case SCIdentifySummaryError:
 		ret := IdentifySummaryError{}
-		for _, problem := range s.Fields {
-			ret.problems = append(ret.problems, problem.Value)
+		for _, pair := range s.Fields {
+			if pair.Key == "username" {
+				ret.username = pair.Value
+			} else {
+				// The other keys are expected to be "problem_%d".
+				ret.problems = append(ret.problems, pair.Value)
+			}
 		}
 		return ret
 	case SCTrackingBroke:
@@ -472,6 +477,24 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return InvalidAddressError{Msg: s.Desc}
 	case SCChatCollision:
 		return ChatCollisionError{}
+	case SCNeedSelfRekey:
+		ret := NeedSelfRekeyError{Msg: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Tlf":
+				ret.Tlf = field.Value
+			}
+		}
+		return ret
+	case SCNeedOtherRekey:
+		ret := NeedOtherRekeyError{Msg: s.Desc}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Tlf":
+				ret.Tlf = field.Value
+			}
+		}
+		return ret
 
 	default:
 		ase := AppStatusError{
@@ -1248,10 +1271,12 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 }
 
 func (e IdentifySummaryError) ToStatus() keybase1.Status {
-	var kvpairs []keybase1.StringKVPair
+	kvpairs := []keybase1.StringKVPair{
+		keybase1.StringKVPair{Key: "username", Value: e.username},
+	}
 	for index, problem := range e.problems {
 		kvpairs = append(kvpairs, keybase1.StringKVPair{
-			Key:   fmt.Sprintf("%d", index),
+			Key:   fmt.Sprintf("problem_%d", index),
 			Value: problem,
 		})
 	}
@@ -1562,6 +1587,22 @@ func (e InvalidAddressError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCInvalidAddress,
 		Name: "SC_INVALID_ADDRESS",
+		Desc: e.Error(),
+	}
+}
+
+func (e NeedSelfRekeyError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNeedSelfRekey,
+		Name: "SC_NEED_SELF_REKEY",
+		Desc: e.Error(),
+	}
+}
+
+func (e NeedOtherRekeyError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNeedOtherRekey,
+		Name: "SC_NEED_OTHER_REKEY",
 		Desc: e.Error(),
 	}
 }

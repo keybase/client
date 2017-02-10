@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/route-tree'
+import {getPath} from '../route-tree'
 import type {RouteDefNode, Path, PropsPath} from '../route-tree'
 import type {
   SetRouteDef,
@@ -10,6 +11,20 @@ import type {
   SetRouteState,
   ResetRoute,
 } from '../constants/route-tree'
+
+const pathActionTransformer = (action, oldState) => {
+  const prevPath = getPath(oldState.routeTree.routeState)
+  const path = Array.from(action.payload.path.map(p => typeof p === 'string' ? p : p.selected))
+  const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
+  return {
+    payload: {
+      prevPath,
+      path,
+      parentPath,
+    },
+    type: action.type,
+  }
+}
 
 // Set (or update) the tree of route definitions. Dispatched at initialization
 // time and when route definitions update through HMR.
@@ -34,6 +49,7 @@ export function switchTo (path: Path, parentPath?: Path): SwitchTo {
   return {
     type: Constants.switchTo,
     payload: {path, parentPath},
+    logTransformer: pathActionTransformer,
   }
 }
 
@@ -55,6 +71,7 @@ export function navigateTo (path: PropsPath<*>, parentPath?: Path): NavigateTo {
   return {
     type: Constants.navigateTo,
     payload: {path, parentPath},
+    logTransformer: pathActionTransformer,
   }
 }
 
@@ -65,6 +82,7 @@ export function navigateAppend (path: PropsPath<*>, parentPath?: Path): Navigate
   return {
     type: Constants.navigateAppend,
     payload: {path, parentPath},
+    logTransformer: pathActionTransformer,
   }
 }
 
@@ -81,6 +99,7 @@ export function setRouteState (path: Path, partialState: {}): SetRouteState {
   return {
     type: Constants.setRouteState,
     payload: {path, partialState},
+    logTransformer: pathActionTransformer,
   }
 }
 
@@ -89,5 +108,6 @@ export function resetRoute (path: Path): ResetRoute {
   return {
     type: Constants.resetRoute,
     payload: {path},
+    logTransformer: pathActionTransformer,
   }
 }

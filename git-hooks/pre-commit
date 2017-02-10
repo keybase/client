@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2012 The Go Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
@@ -40,14 +40,26 @@ check_go_fmt() {
 		echo >&2 "  gofmt -w $PWD/$fn"
 	done
 
-	exit 1
+	return 1
+}
+
+my_dirname() {
+    for file in $*
+    do
+        dirname $file
+    done
 }
 
 check_go_vet() {
 	gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/)
 	[ -z "$gofiles" ] && return 0
 
-	warnings=$(go vet $(go list ./... 2>/dev/null | grep -v vendor) 2>&1)
+	# change from file names to a list of unique paths
+	godirs=$(my_dirname $gofiles | sort -u | xargs)
+
+	# Allow this one vet warning on Windows
+	warnings=$(go tool vet $godirs | grep -E -v 'go\\libkb\\util_windows\.go:[[:digit:]]+: possible misuse of unsafe\.Pointer' 2>&1)
+
 	[ -z "$warnings" ] && return 0
 
 	# go vet found issues
@@ -55,13 +67,13 @@ check_go_vet() {
 	echo >&2 "go vet found issues:"
 	echo >&2 $warnings
 
-	exit 1
+	return 1
 }
 
 check_make_lint() {
     if ! which golint > /dev/null 2>&1 ; then
       echo >&2 "golint is not installed"
-      exit 1
+      return 1
     fi
     # Try the root dir.  If that doesn't work, see if there's a go subdir.
     lint=$(make -s lint 2> /dev/null)
@@ -74,7 +86,7 @@ check_make_lint() {
     echo >&2 "go lint found issues:"
     echo >&2 "$lint"
 
-    exit 1
+    return 1
 }
 
 #
@@ -89,16 +101,21 @@ check_path_Join()
           echo >&2 "path.Join() does not work on all platforms. Use filepath.Join instead." 
           echo >&2 "$file"
           echo "$pathjoins"          
-          exit 1
+          return 1
       fi
     done
+    return 0
 }
 
 
 #-----------------------------------------------------------------------------
 
 check_go_fmt
+result=$?
 check_go_vet
+((result |= $?))
 check_make_lint
+((result |= $?))
 # removed call to check_path_Join here because path.Join is
 # completely valid and useful to make URL paths, for example.
+exit $result

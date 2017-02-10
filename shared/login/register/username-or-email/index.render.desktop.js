@@ -58,6 +58,7 @@ class UsernameOrEmailRender extends Component<void, Props, State> {
 const stylesContainer = {
   flex: 1,
   alignItems: 'center',
+  justifyContent: 'center',
 }
 const stylesInput = {
   marginBottom: 48,

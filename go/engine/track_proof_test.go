@@ -339,11 +339,11 @@ func TestTrackProofRooterFail(t *testing.T) {
 	trackUser := CreateAndSignupFakeUser(tc, "track")
 
 	// proveRooterFail posts a bad sig id, so it won't be found.
-	// thus the state is ProofState_NONE
+	// thus the state is ProofState_SIG_HINT_MISSING
 	rbl := sb{
 		social:     true,
 		id:         proofUser.Username + "@rooter",
-		proofState: keybase1.ProofState_NONE,
+		proofState: keybase1.ProofState_SIG_HINT_MISSING,
 	}
 	outcome := keybase1.IdentifyOutcome{
 		NumProofFailures: 1,

@@ -34,21 +34,22 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 
 	hasTTY := isatty.IsTerminal(os.Stdout.Fd())
 
-	conversationInfo, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
+	conversation, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		Interactive:       hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
-		return chat1.ConversationLocal{}, nil, fmt.Errorf("resolving conversation error: %v\n", err)
+		// Resolver errors should already by human readable.
+		return chat1.ConversationLocal{}, nil, err
 	}
-	if conversationInfo == nil {
+	if conversation == nil {
 		return chat1.ConversationLocal{}, nil, nil
 	}
-	f.query.ConversationId = conversationInfo.Id
+	f.query.Conv = *conversation
 
-	if conversationInfo.Id == nil || len(conversationInfo.Id) == 0 {
-		return chat1.ConversationLocal{}, nil, fmt.Errorf("empty conversationInfo.Id: %+v", conversationInfo)
+	if conversation.Info.Id == nil || len(conversation.Info.Id) == 0 {
+		return chat1.ConversationLocal{}, nil, fmt.Errorf("empty conversationInfo.Id: %+v", conversation.Info)
 	}
 
 	gcfclres, err := chatClient.GetConversationForCLILocal(ctx, f.query)
@@ -99,26 +100,4 @@ func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) 
 	}
 
 	return convs, nil
-}
-
-func fetchOneMessage(g *libkb.GlobalContext, conversationID chat1.ConversationID, messageID chat1.MessageID) (chat1.MessageUnboxed, error) {
-	deflt := chat1.MessageUnboxed{}
-
-	chatClient, err := GetChatLocalClient(g)
-	if err != nil {
-		return deflt, err
-	}
-
-	arg := chat1.GetMessagesLocalArg{
-		ConversationID: conversationID,
-		MessageIDs:     []chat1.MessageID{messageID},
-	}
-	res, err := chatClient.GetMessagesLocal(context.TODO(), arg)
-	if err != nil {
-		return deflt, err
-	}
-	if len(res.Messages) < 0 {
-		return deflt, fmt.Errorf("empty messages list")
-	}
-	return res.Messages[0], nil
 }

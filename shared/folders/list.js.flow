@@ -10,6 +10,7 @@ export type Props = {
   isPublic: boolean,
   style?: any,
   smallMode?: boolean,
+  onChat?: (tlf: string) => void,
   onClick?: (path: string) => void,
   onRekey?: (path: string) => void,
   onOpen?: (path: string) => void,

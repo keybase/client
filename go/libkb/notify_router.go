@@ -44,6 +44,8 @@ type NotifyListener interface {
 	ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)
 	ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
 		finalizeInfo chat1.ConversationFinalizeInfo)
+	ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID,
+		resolveInfo chat1.ConversationResolveInfo)
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
@@ -160,7 +162,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending login notfication, as user %q", u)
+	n.G().Log.Debug("+ Sending login notification, as user %q", u)
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type
@@ -188,7 +190,7 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg s
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending client-out-of-date notfication")
+	n.G().Log.Debug("+ Sending client-out-of-date notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type
@@ -242,13 +244,15 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 // HandleTrackingChanged is called whenever we have a new tracking or
 // untracking chain link related to a given user. It will broadcast the
 // messages to all curious listeners.
-func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string) {
+// isTracking is set to true if current user is tracking uid.
+func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string, isTracking bool) {
 	if n == nil {
 		return
 	}
 	arg := keybase1.TrackingChangedArg{
-		Uid:      uid,
-		Username: username,
+		Uid:        uid,
+		Username:   username,
+		IsTracking: isTracking,
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
@@ -275,7 +279,7 @@ func (n *NotifyRouter) HandleBadgeState(badgeState keybase1.BadgeState) {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("Sending BadgeState notfication: %v", badgeState.Total)
+	n.G().Log.Debug("Sending BadgeState notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Badges` notification type
@@ -446,7 +450,7 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 		return
 	}
 
-	n.G().Log.Debug("+ Sending favorites changed notfication")
+	n.G().Log.Debug("+ Sending favorites changed notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Favorites` notification type
@@ -464,7 +468,7 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 	if n.listener != nil {
 		n.listener.FavoritesChanged(uid)
 	}
-	n.G().Log.Debug("- Sent favorites changed notfication")
+	n.G().Log.Debug("- Sent favorites changed notification")
 }
 
 func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID, activity *chat1.ChatActivity) {
@@ -474,7 +478,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 
 	var wg sync.WaitGroup
 
-	n.G().Log.Debug("+ Sending NewChatActivity notfication")
+	n.G().Log.Debug("+ Sending NewChatActivity notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Chat` notification type
@@ -499,7 +503,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	if n.listener != nil {
 		n.listener.NewChatActivity(uid, *activity)
 	}
-	n.G().Log.Debug("- Sent NewChatActivity notfication")
+	n.G().Log.Debug("- Sent NewChatActivity notification")
 }
 
 func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) {
@@ -507,7 +511,7 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatIdentifyUpdate notfication")
+	n.G().Log.Debug("+ Sending ChatIdentifyUpdate notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -524,15 +528,15 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	if n.listener != nil {
 		n.listener.ChatIdentifyUpdate(update)
 	}
-	n.G().Log.Debug("- Sent ChatIdentifyUpdate notfication")
+	n.G().Log.Debug("- Sent ChatIdentifyUpdate notification")
 }
 
-func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) {
+func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.ConversationLocal) {
 	if n == nil {
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatTLFFinalize notfication")
+	n.G().Log.Debug("+ Sending ChatTLFFinalize notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -543,6 +547,7 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 					Uid:          uid,
 					ConvID:       convID,
 					FinalizeInfo: finalizeInfo,
+					Conv:         conv,
 				})
 				wg.Done()
 			}()
@@ -553,7 +558,36 @@ func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.U
 	if n.listener != nil {
 		n.listener.ChatTLFFinalize(uid, convID, finalizeInfo)
 	}
-	n.G().Log.Debug("- Sent ChatTLFFinalize notfication")
+	n.G().Log.Debug("- Sent ChatTLFFinalize notification")
+}
+
+func (n *NotifyRouter) HandleChatTLFResolve(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, resolveInfo chat1.ConversationResolveInfo) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.Debug("+ Sending ChatTLFResolve notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).ChatTLFResolve(context.Background(), chat1.ChatTLFResolveArg{
+					Uid:         uid,
+					ConvID:      convID,
+					ResolveInfo: resolveInfo,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatTLFResolve(uid, convID, resolveInfo)
+	}
+	n.G().Log.Debug("- Sent ChatTLFResolve notification")
 }
 
 func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UID) {
@@ -561,7 +595,7 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatInboxStale notfication")
+	n.G().Log.Debug("+ Sending ChatInboxStale notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -578,7 +612,7 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 	if n.listener != nil {
 		n.listener.ChatInboxStale(uid)
 	}
-	n.G().Log.Debug("- Sent ChatInboxStale notfication")
+	n.G().Log.Debug("- Sent ChatInboxStale notification")
 }
 
 func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.UID,
@@ -587,7 +621,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.Debug("+ Sending ChatThreadsStale notfication")
+	n.G().Log.Debug("+ Sending ChatThreadsStale notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Chat {
 			wg.Add(1)
@@ -607,7 +641,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 	if n.listener != nil {
 		n.listener.ChatThreadsStale(uid, threads)
 	}
-	n.G().Log.Debug("- Sent ChatThreadsStale notfication")
+	n.G().Log.Debug("- Sent ChatThreadsStale notification")
 }
 
 // HandlePaperKeyCached is called whenever a paper key is cached
@@ -617,7 +651,7 @@ func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KI
 		return
 	}
 
-	n.G().Log.Debug("+ Sending paperkey cached notfication")
+	n.G().Log.Debug("+ Sending paperkey cached notification")
 	arg := keybase1.PaperKeyCachedArg{
 		Uid:    uid,
 		EncKID: encKID,
@@ -644,7 +678,7 @@ func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KI
 	if n.listener != nil {
 		n.listener.PaperKeyCached(uid, encKID, sigKID)
 	}
-	n.G().Log.Debug("- Sent paperkey cached notfication")
+	n.G().Log.Debug("- Sent paperkey cached notification")
 }
 
 // HandleKeyfamilyChanged is called whenever a user's keyfamily changes.
@@ -653,7 +687,7 @@ func (n *NotifyRouter) HandleKeyfamilyChanged(uid keybase1.UID) {
 		return
 	}
 
-	n.G().Log.Debug("+ Sending keyfamily changed notfication")
+	n.G().Log.Debug("+ Sending keyfamily changed notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Favorites` notification type
@@ -670,7 +704,7 @@ func (n *NotifyRouter) HandleKeyfamilyChanged(uid keybase1.UID) {
 	if n.listener != nil {
 		n.listener.KeyfamilyChanged(uid)
 	}
-	n.G().Log.Debug("- Sent keyfamily changed notfication")
+	n.G().Log.Debug("- Sent keyfamily changed notification")
 }
 
 // HandleServiceShutdown is called whenever the service shuts down.
@@ -679,7 +713,7 @@ func (n *NotifyRouter) HandleServiceShutdown() {
 		return
 	}
 
-	n.G().Log.Debug("+ Sending service shutdown notfication")
+	n.G().Log.Debug("+ Sending service shutdown notification")
 
 	var wg sync.WaitGroup
 
@@ -712,7 +746,7 @@ func (n *NotifyRouter) HandleServiceShutdown() {
 		n.G().Log.Warning("Timed out sending service shutdown notifications, proceeding to shutdown")
 	}
 
-	n.G().Log.Debug("- Sent service shutdown notfication")
+	n.G().Log.Debug("- Sent service shutdown notification")
 }
 
 // HandleAppExit is called whenever an app exit command is issued
@@ -731,7 +765,7 @@ func (n *NotifyRouter) HandleAppExit() {
 		}
 		return true
 	})
-	n.G().Log.Debug("- Sent app exit notfication")
+	n.G().Log.Debug("- Sent app exit notification")
 }
 
 // HandlePGPKeyInSecretStoreFile is called to notify a user that they have a PGP

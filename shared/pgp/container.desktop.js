@@ -1,17 +1,15 @@
 // @flow
-import {TypedConnector} from '../util/typed-connect'
 import PurgeMessage from './purge-message.desktop'
+import {connect} from 'react-redux'
 import * as Constants from '../constants/pgp'
 
-import type {Props} from './purge-message.desktop'
-
-const connector: TypedConnector<{}, any, {}, Props> = new TypedConnector()
-
-export default connector.connect(
-  ({unlockFolders: {devices, phase, paperkeyError, waiting}}, dispatch, ownProps) => ({
+export default connect(
+  (state: any) => ({}),
+  (dispatch: any) => ({
     onClose: () => { dispatch({type: Constants.pgpAckedMessage, payload: {hitOk: false}}) },
     onOk: () => { dispatch({type: Constants.pgpAckedMessage, payload: {hitOk: true}}) },
-  }))(PurgeMessage)
+  })
+)(PurgeMessage)
 
 export function selector (): (store: Object) => ?Object {
   return () => ({})

@@ -14,6 +14,7 @@ export type Props = {
   listStyle?: any,
   smallMode?: boolean,
   onClick?: (path: string) => void,
+  onChat?: (tlf: string) => void,
   onOpen?: (path: string) => void,
   onRekey: (path: string) => void,
   onToggleShowIgnored: () => void,

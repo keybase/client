@@ -133,7 +133,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	}
 
 	err = cmd.Run()
-	if !cl.IsService() {
+	if !cl.IsService() && !cl.SkipOutOfDateCheck() {
 		// Errors that come up in printing this warning are logged but ignored.
 		client.PrintOutOfDateWarnings(g)
 	}

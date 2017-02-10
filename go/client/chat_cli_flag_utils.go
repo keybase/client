@@ -17,7 +17,7 @@ var chatFlags = map[string]cli.Flag{
 	"topic-type": cli.StringFlag{
 		Name:  "topic-type",
 		Value: "chat",
-		Usage: `Specify topic name of the conversation. Has to be chat or dev`,
+		Usage: `Specify topic type of the conversation. Has to be chat or dev`,
 	},
 	"topic-name": cli.StringFlag{
 		Name:  "topic-name",
@@ -85,6 +85,10 @@ var chatFlags = map[string]cli.Flag{
 	"unhide": cli.BoolFlag{
 		Name:  "u, unhide",
 		Usage: "Unhide/unblock the conversation",
+	},
+	"unmute": cli.BoolFlag{
+		Name:  "u, unmute",
+		Usage: "Unmute the conversation",
 	},
 	"async": cli.BoolFlag{
 		Name:  "async",

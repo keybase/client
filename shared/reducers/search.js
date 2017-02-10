@@ -12,6 +12,7 @@ export type State = {
   searchText: ?string,
   searchIcon: IconType,
   searchPlatform: SearchPlatforms,
+  searchTextClearTrigger: number,
   results: Array<SearchResult>,
   requestTimestamp: ?Date,
   selectedUsers: Array<SearchResult>,
@@ -33,6 +34,7 @@ const initialState: State = {
   searchHintText: searchHintText('Keybase', []),
   searchText: '',
   searchIcon: 'icon-keybase-logo-24',
+  searchTextClearTrigger: 1,
   searchPlatform: 'Keybase',
   selectedUsers: [],
   results: [],
@@ -92,6 +94,7 @@ export default function (state: State = initialState, action: SearchActions): St
           searchHintText: searchHintText(state.searchPlatform, selectedUsers),
           results: [],
           searchText: null,
+          searchTextClearTrigger: state.searchTextClearTrigger + 1,
         }
       }
       break

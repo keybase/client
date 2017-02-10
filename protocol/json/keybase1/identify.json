@@ -177,9 +177,9 @@
           "default": false
         },
         {
-          "name": "chatGUIMode",
-          "type": "boolean",
-          "default": false
+          "name": "identifyBehavior",
+          "type": "TLFIdentifyBehavior",
+          "default": 0
         },
         {
           "name": "forceDisplay",

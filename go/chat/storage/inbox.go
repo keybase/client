@@ -22,7 +22,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-const inboxVersion = 3
+const inboxVersion = 6
 
 type queryHash []byte
 
@@ -284,7 +284,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		// If we are finalized and are superseded, then don't return this
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
-			if conv.Metadata.FinalizeInfo != nil && len(conv.SupersededBy) > 0 {
+			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && query.ConvID == nil {
 				ok = false
 			}
 		}
@@ -381,7 +381,7 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 		i.Debug(ctx, "Read: queryExists: error hashing query: %s", err.Error())
 		return false
 	}
-	i.Debug(ctx, "Read: queryExists: query hash: %s", hquery)
+	i.Debug(ctx, "Read: queryExists: query hash: %s p: %v", hquery, p)
 
 	qp := inboxDiskQuery{QueryHash: hquery, Pagination: p}
 	for _, q := range ibox.Queries {
@@ -390,6 +390,22 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 		}
 	}
 	return false
+}
+
+func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []chat1.Conversation, err Error) {
+	i.Lock()
+	defer i.Unlock()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			i.Debug(ctx, "Read: miss: no inbox found")
+		}
+		return 0, nil, err
+	}
+
+	return ibox.InboxVersion, ibox.Conversations, nil
 }
 
 func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.Pagination) (vers chat1.InboxVers, res []chat1.Conversation, pagination *chat1.Pagination, err Error) {
@@ -464,6 +480,9 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 	i.Debug(ctx, "NewConversation: vers: %d convID: %s", vers, conv.GetConvID())
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
 		return err
 	}
 
@@ -489,11 +508,11 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 			if iconv.Metadata.FinalizeInfo == nil {
 				continue
 			}
-			for _, super := range conv.Supersedes {
+			for _, super := range conv.Metadata.Supersedes {
 				if iconv.GetConvID().Eq(super.ConversationID) {
 					i.Debug(ctx, "NewConversation: setting supersededBy: target: %s superseder: %s",
 						iconv.GetConvID(), conv.GetConvID())
-					iconv.SupersededBy = append(iconv.SupersededBy, conv.Metadata)
+					iconv.Metadata.SupersededBy = append(iconv.Metadata.SupersededBy, conv.Metadata)
 				}
 			}
 		}
@@ -553,6 +572,9 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	i.Debug(ctx, "NewMessage: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
 		return err
 	}
 
@@ -595,9 +617,13 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
 		conv.Metadata.ActiveList)
 
-	// If we are the sender, and the conv is ignored, set it back to unfiled
+	// If we are the sender, adjust the status.
 	if bytes.Equal(msg.ClientHeader.Sender.Bytes(), i.uid) &&
-		conv.Metadata.Status == chat1.ConversationStatus_IGNORED {
+		utils.GetConversationStatusBehavior(conv.Metadata.Status).SendingRemovesStatus {
+		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
+	}
+	// If we are a participant, adjust the status.
+	if utils.GetConversationStatusBehavior(conv.Metadata.Status).ActivityRemovesStatus {
 		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
 	}
 
@@ -626,6 +652,9 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 	i.Debug(ctx, "ReadMessage: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
 		return err
 	}
 
@@ -643,8 +672,12 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 	}
 
 	// Update conv
-	conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-	conv.ReaderInfo.ReadMsgid = msgID
+	if conv.ReaderInfo.ReadMsgid < msgID {
+		i.Debug(ctx, "ReadMessage: updating mtime: readMsgID: %d msgID: %d", conv.ReaderInfo.ReadMsgid,
+			msgID)
+		conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
+		conv.ReaderInfo.ReadMsgid = msgID
+	}
 
 	// Write out to disk
 	ibox.InboxVersion = vers
@@ -664,6 +697,9 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
 		return err
 	}
 
@@ -701,6 +737,9 @@ func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs [
 	i.Debug(ctx, "TlfFinalize: vers: %d convIDs: %v finalizeInfo: %v", vers, convIDs, finalizeInfo)
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
 		return err
 	}
 

@@ -9,6 +9,7 @@ import {connect} from 'react-redux'
 import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
 import {openInKBFS} from '../../actions/kbfs'
+import {openTlfInChat} from '../../actions/chat'
 
 type Props = $Shape<{
   folder: ?Folder,
@@ -20,6 +21,7 @@ type Props = $Shape<{
   ignoreFolder: (path: string) => void,
   favoriteFolder: (path: string) => void,
   openInKBFS: (path: string) => void,
+  openTlfInChat: (tlf: string) => void,
 }>
 
 type State = {
@@ -55,6 +57,10 @@ class Files extends Component<void, Props, State> {
     const {folder, username} = this.props
     if (!folder) return null // Protect from state where the folder to be displayed was removed
     const openCurrentFolder = () => { this.props.openInKBFS(this.props.path) }
+    const openConversationFromFolder = () => {
+      const tlf = this.props && this.props.folder && this.props.folder.sortName
+      tlf && this.props.openTlfInChat(tlf)
+    }
     const ignoreCurrentFolder = () => { this.props.ignoreFolder(this.props.path) }
     const unIgnoreCurrentFolder = () => { this.props.favoriteFolder(this.props.path) }
     const allowIgnore = folder.users.some(f => !f.you)
@@ -72,10 +78,12 @@ class Files extends Component<void, Props, State> {
         selfUsername={username}
         allowIgnore={allowIgnore}
         users={folder.users}
+        hasReadOnlyUsers={folder.users && _.some(folder.users, 'readOnly')}
         waitingForParticipantUnlock={folder.waitingForParticipantUnlock}
         youCanUnlock={folder.youCanUnlock}
         onBack={() => this.props.navigateUp()}
         openCurrentFolder={openCurrentFolder}
+        openConversationFromFolder={openConversationFromFolder}
         onClickPaperkey={device => this.props.navigateAppend([{selected: 'paperkey', name: device.name}])}  // FIXME: does this name route prop get used anywhere?
         ignoreCurrentFolder={ignoreCurrentFolder}
         unIgnoreCurrentFolder={unIgnoreCurrentFolder}
@@ -103,7 +111,7 @@ const ConnectedFiles = connect(
       username: state.config && state.config.username,
     }
   },
-  (dispatch: any) => bindActionCreators({favoriteFolder, ignoreFolder, navigateUp, openInKBFS, navigateAppend}, dispatch)
+  (dispatch: any) => bindActionCreators({favoriteFolder, ignoreFolder, navigateAppend, navigateUp, openInKBFS, openTlfInChat}, dispatch)
 )(Files)
 
 export default ConnectedFiles

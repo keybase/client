@@ -117,7 +117,7 @@ func (rc *RedditChecker) CheckData(h libkb.SigHint, dat *jsonw.Wrapper) libkb.Pr
 	return nil
 }
 
-func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 	if pvl.UsePvl {
 		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_REDDIT,
 			pvl.NewProofInfo(rc.proof, h))

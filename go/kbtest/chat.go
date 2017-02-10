@@ -19,11 +19,22 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type ChatTestContext struct {
+	libkb.TestContext
+}
+
+func (c ChatTestContext) Cleanup() {
+	if c.G.MessageDeliverer != nil {
+		<-c.G.MessageDeliverer.Stop(context.TODO())
+	}
+	c.TestContext.Cleanup()
+}
+
 type ChatMockWorld struct {
 	Fc clockwork.FakeClock
 
-	Tcs     map[string]*libkb.TestContext
-	TcsByID map[string]*libkb.TestContext
+	Tcs     map[string]*ChatTestContext
+	TcsByID map[string]*ChatTestContext
 	Users   map[string]*FakeUser
 	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
 	tlfKeys map[keybase1.CanonicalTlfName][]keybase1.CryptKey
@@ -38,15 +49,18 @@ type ChatMockWorld struct {
 func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockWorld) {
 	world = &ChatMockWorld{
 		Fc:      clockwork.NewFakeClockAt(time.Now()),
-		Tcs:     make(map[string]*libkb.TestContext),
-		TcsByID: make(map[string]*libkb.TestContext),
+		Tcs:     make(map[string]*ChatTestContext),
+		TcsByID: make(map[string]*ChatTestContext),
 		Users:   make(map[string]*FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
 		Msgs:    make(map[string][]*chat1.MessageBoxed),
 	}
 	for i := 0; i < numUsers; i++ {
-		tc := externals.SetupTest(t, "chat_"+name, 0)
+		kbTc := externals.SetupTest(t, "chat_"+name, 0)
+		tc := ChatTestContext{
+			TestContext: kbTc,
+		}
 		tc.G.SetClock(world.Fc)
 		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
@@ -74,6 +88,26 @@ func (w *ChatMockWorld) GetConversationByID(convID chat1.ConversationID) *chat1.
 		}
 	}
 	return nil
+}
+
+type ByUsername []*FakeUser
+
+func (m ByUsername) Len() int      { return len(m) }
+func (m ByUsername) Swap(i, j int) { m[i], m[j] = m[j], m[i] }
+func (m ByUsername) Less(i, j int) bool {
+	res := strings.Compare(m[i].Username, m[j].Username)
+	if res < 0 {
+		return true
+	}
+	return false
+}
+
+func (w *ChatMockWorld) GetUsers() (res []*FakeUser) {
+	for _, v := range w.Users {
+		res = append(res, v)
+	}
+	sort.Sort(ByUsername(res))
+	return res
 }
 
 func mustDecodeHex(h string) (b []byte) {
@@ -169,6 +203,7 @@ func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.T
 type ChatRemoteMock struct {
 	world     *ChatMockWorld
 	readMsgid map[string]chat1.MessageID
+	uid       *gregor1.UID
 }
 
 var _ chat1.RemoteInterface = (*ChatRemoteMock)(nil)
@@ -193,10 +228,24 @@ func (m *ChatRemoteMock) makeReaderInfo(convID chat1.ConversationID) (ri *chat1.
 	return ri
 }
 
+func (m *ChatRemoteMock) SetCurrentUser(uid gregor1.UID) {
+	m.uid = &uid
+}
+
+func (m *ChatRemoteMock) inConversation(conv *chat1.Conversation) bool {
+	if m.uid != nil && len(conv.Metadata.ActiveList) > 0 {
+		return conv.Includes(*m.uid)
+	}
+	return true
+}
+
 func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxRemoteArg) (res chat1.GetInboxRemoteRes, err error) {
 	// TODO: add pagination support
 	var ibfull chat1.InboxViewFull
 	for _, conv := range m.world.conversations {
+		if !m.inConversation(conv) {
+			continue
+		}
 		if arg.Query != nil {
 			if arg.Query.ConvID != nil && !conv.Metadata.ConversationID.Eq(*arg.Query.ConvID) {
 				continue
@@ -213,7 +262,9 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 			if arg.Query.ReadOnly && m.readMsgid[conv.Metadata.ConversationID.String()] != m.makeReaderInfo(conv.Metadata.ConversationID).MaxMsgid {
 				continue
 			}
-			// TODO: check arg.Query.TlfVisibility
+			if arg.Query.TlfVisibility != nil && conv.Metadata.Visibility != *arg.Query.TlfVisibility {
+				continue
+			}
 			if arg.Query.After != nil && m.makeReaderInfo(conv.Metadata.ConversationID).Mtime < *arg.Query.After {
 				continue
 			}
@@ -232,6 +283,23 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 	return chat1.GetInboxRemoteRes{
 		Inbox: chat1.NewInboxViewWithFull(ibfull),
 	}, nil
+}
+
+func (m *ChatRemoteMock) GetPublicConversations(ctx context.Context, arg chat1.GetPublicConversationsArg) (res chat1.GetPublicConversationsRes, err error) {
+
+	for _, conv := range m.world.conversations {
+		if conv.Metadata.Visibility == chat1.TLFVisibility_PUBLIC &&
+			conv.Metadata.IdTriple.Tlfid.Eq(arg.TlfID) &&
+			conv.Metadata.IdTriple.TopicType == arg.TopicType {
+
+			convToAppend := *conv
+			convToAppend.ReaderInfo = m.makeReaderInfo(convToAppend.Metadata.ConversationID)
+			res.Conversations = append(res.Conversations, convToAppend)
+
+		}
+	}
+
+	return res, nil
 }
 
 func (m *ChatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.TLFID) (res chat1.GetInboxByTLFIDRemoteRes, err error) {
@@ -462,6 +530,16 @@ func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1
 	}
 	m.world.Msgs[convID.String()] = append(m.world.Msgs[convID.String()], &msg)
 	sort.Sort(msgByMessageIDDesc{world: m.world, convID: convID})
+
+	// If this message supersedes something, track it down and set supersededBy
+	if msg.ClientHeader.Supersedes > 0 {
+		for _, wmsg := range m.world.Msgs[convID.String()] {
+			if wmsg.GetMessageID() == msg.ClientHeader.Supersedes {
+				wmsg.ServerHeader.SupersededBy = msg.GetMessageID()
+			}
+		}
+	}
+
 	return msg
 }
 
@@ -490,7 +568,7 @@ func NewChatUI(cb chan NonblockInboxResult) *ChatUI {
 	}
 }
 
-func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata) error {
+func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error {
 	return nil
 }
 
@@ -532,7 +610,7 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 
 func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
 	c.cb <- NonblockInboxResult{
-		Err: fmt.Errorf("%s", arg.Error),
+		Err: fmt.Errorf("%s", arg.Error.Message),
 	}
 	return nil
 }

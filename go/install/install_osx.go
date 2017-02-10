@@ -428,6 +428,14 @@ func Install(context Context, binPath string, components []string, force bool, t
 		}
 	}
 
+	if libkb.IsIn(string(ComponentNameFuse), components, false) {
+		err = installFuse(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
+		if err != nil {
+			log.Errorf("Error installing KBFuse: %s", err)
+		}
+	}
+
 	if libkb.IsIn(string(ComponentNameMountDir), components, false) {
 		err = installMountDir(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameMountDir), err))
@@ -700,6 +708,11 @@ func uninstallApp(runMode libkb.RunMode, log Log) error {
 func installMountDir(runMode libkb.RunMode, log Log) error {
 	log.Info("Creating mount directory")
 	return execNativeInstallerWithArg("--install-mountdir", runMode, log)
+}
+
+func installFuse(runMode libkb.RunMode, log Log) error {
+	log.Info("Installing KBFuse")
+	return execNativeInstallerWithArg("--install-fuse", runMode, log)
 }
 
 func execNativeInstallerWithArg(arg string, runMode libkb.RunMode, log Log) error {

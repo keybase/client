@@ -9,23 +9,23 @@ export type Props = {
   listScrollDownState: number,
   messages: List<Message>,
   metaDataMap: MetaDataMap,
+  muted: boolean,
   you: string,
   followingMap: FollowingMap,
   moreToLoad: boolean,
-  onAddParticipant: () => void,
   onDeleteMessage: (message: Message) => void,
-  onEditMessage: (message: Message) => void,
+  onEditMessage: (message: Message, body: string) => void,
+  onFocusInput: () => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
   onOpenInFileUI: (filename: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
   onRetryAttachment: (message: AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
-  onShowProfile: (username: string) => void,
-  participants: List<string>,
   selectedConversation: ?ConversationIDKey,
-  sidePanelOpen: boolean,
   validated: boolean,
 }
 
-export default class ConversationList extends Component<void, Props, void> { }
+export default class ConversationList extends Component<void, Props, void> {
+  onEditLastMessage: () => void
+}

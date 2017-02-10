@@ -12,7 +12,7 @@ export type MenuItem = {
 }
 
 export type Props = {
-  items: Array<MenuItem | 'Divider'>, // Divider is not used on native
+  items: Array<MenuItem | 'Divider' | null>, // Divider is not used on native
   header?: MenuItem,
   onHidden: () => void,
   style?: Object,

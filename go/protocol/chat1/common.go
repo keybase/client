@@ -20,25 +20,27 @@ type OutboxID []byte
 type MessageType int
 
 const (
-	MessageType_NONE       MessageType = 0
-	MessageType_TEXT       MessageType = 1
-	MessageType_ATTACHMENT MessageType = 2
-	MessageType_EDIT       MessageType = 3
-	MessageType_DELETE     MessageType = 4
-	MessageType_METADATA   MessageType = 5
-	MessageType_TLFNAME    MessageType = 6
-	MessageType_HEADLINE   MessageType = 7
+	MessageType_NONE               MessageType = 0
+	MessageType_TEXT               MessageType = 1
+	MessageType_ATTACHMENT         MessageType = 2
+	MessageType_EDIT               MessageType = 3
+	MessageType_DELETE             MessageType = 4
+	MessageType_METADATA           MessageType = 5
+	MessageType_TLFNAME            MessageType = 6
+	MessageType_HEADLINE           MessageType = 7
+	MessageType_ATTACHMENTUPLOADED MessageType = 8
 )
 
 var MessageTypeMap = map[string]MessageType{
-	"NONE":       0,
-	"TEXT":       1,
-	"ATTACHMENT": 2,
-	"EDIT":       3,
-	"DELETE":     4,
-	"METADATA":   5,
-	"TLFNAME":    6,
-	"HEADLINE":   7,
+	"NONE":               0,
+	"TEXT":               1,
+	"ATTACHMENT":         2,
+	"EDIT":               3,
+	"DELETE":             4,
+	"METADATA":           5,
+	"TLFNAME":            6,
+	"HEADLINE":           7,
+	"ATTACHMENTUPLOADED": 8,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -50,6 +52,7 @@ var MessageTypeRevMap = map[MessageType]string{
 	5: "METADATA",
 	6: "TLFNAME",
 	7: "HEADLINE",
+	8: "ATTACHMENTUPLOADED",
 }
 
 type TopicType int
@@ -79,6 +82,7 @@ const (
 	ConversationStatus_FAVORITE ConversationStatus = 1
 	ConversationStatus_IGNORED  ConversationStatus = 2
 	ConversationStatus_BLOCKED  ConversationStatus = 3
+	ConversationStatus_MUTED    ConversationStatus = 4
 )
 
 var ConversationStatusMap = map[string]ConversationStatus{
@@ -86,6 +90,7 @@ var ConversationStatusMap = map[string]ConversationStatus{
 	"FAVORITE": 1,
 	"IGNORED":  2,
 	"BLOCKED":  3,
+	"MUTED":    4,
 }
 
 var ConversationStatusRevMap = map[ConversationStatus]string{
@@ -93,6 +98,7 @@ var ConversationStatusRevMap = map[ConversationStatus]string{
 	1: "FAVORITE",
 	2: "IGNORED",
 	3: "BLOCKED",
+	4: "MUTED",
 }
 
 func (e ConversationStatus) String() string {
@@ -170,12 +176,18 @@ type ConversationFinalizeInfo struct {
 	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
 }
 
+type ConversationResolveInfo struct {
+	NewTLFName string `codec:"newTLFName" json:"newTLFName"`
+}
+
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
 	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
 	Status         ConversationStatus        `codec:"status" json:"status"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
+	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
 }
 
@@ -186,11 +198,9 @@ type ConversationReaderInfo struct {
 }
 
 type Conversation struct {
-	Metadata     ConversationMetadata    `codec:"metadata" json:"metadata"`
-	ReaderInfo   *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	Supersedes   []ConversationMetadata  `codec:"supersedes" json:"supersedes"`
-	SupersededBy []ConversationMetadata  `codec:"supersededBy" json:"supersededBy"`
-	MaxMsgs      []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
+	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
+	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	MaxMsgs    []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
 }
 
 type MessageServerHeader struct {

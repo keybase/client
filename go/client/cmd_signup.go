@@ -48,7 +48,12 @@ type PromptFields struct {
 }
 
 func (pf PromptFields) ToList() []*Field {
-	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry, pf.deviceName}
+	fields := []*Field{pf.email}
+	if pf.code.Defval == "" {
+		fields = append(fields, pf.code)
+	}
+	fields = append(fields, pf.username, pf.passphraseRetry, pf.deviceName)
+	return fields
 }
 
 type CmdSignup struct {
@@ -150,6 +155,11 @@ func (s *CmdSignup) Run() (err error) {
 
 	if err = s.checkRegistered(); err != nil {
 		return err
+	}
+
+	if s.code == "" {
+		// Eat the error here - we prompt the user in that case
+		s.requestInvitationCode()
 	}
 
 	if err = s.trySignup(); err != nil {
@@ -323,6 +333,9 @@ func (s *CmdSignup) MakePrompter() {
 			}
 			return nil
 		}
+	} else {
+		// we omit this prompt if populated
+		code.Value = &s.code
 	}
 
 	passphraseRetry := &Field{
@@ -420,6 +433,18 @@ func (s *CmdSignup) postInviteRequest() (err error) {
 		s.G().Log.Info("Success! You're on our list, thanks for your interest.")
 	}
 	return
+}
+
+func (s *CmdSignup) requestInvitationCode() error {
+
+	code, err := s.scli.GetInvitationCode(context.TODO(), 0)
+	if err != nil {
+		s.G().Log.Debug("Error getting new code: %v", err)
+	} else {
+		s.G().Log.Debug("Success! You got new code %s", code)
+	}
+	s.code = code
+	return err
 }
 
 func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {

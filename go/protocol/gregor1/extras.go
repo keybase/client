@@ -8,12 +8,17 @@ import (
 	"strings"
 	"time"
 
+	"bytes"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/go-codec/codec"
 )
 
-func (u UID) Bytes() []byte                   { return []byte(u) }
-func (u UID) String() string                  { return hex.EncodeToString(u) }
+func (u UID) Bytes() []byte  { return []byte(u) }
+func (u UID) String() string { return hex.EncodeToString(u) }
+func (u UID) Eq(other UID) bool {
+	return bytes.Equal(u.Bytes(), other.Bytes())
+}
 func (d DeviceID) Bytes() []byte              { return []byte(d) }
 func (d DeviceID) String() string             { return hex.EncodeToString(d) }
 func (m MsgID) Bytes() []byte                 { return []byte(m) }

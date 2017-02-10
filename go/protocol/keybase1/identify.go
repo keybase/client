@@ -41,20 +41,20 @@ type IdentifyArg struct {
 }
 
 type Identify2Arg struct {
-	SessionID             int            `codec:"sessionID" json:"sessionID"`
-	Uid                   UID            `codec:"uid" json:"uid"`
-	UserAssertion         string         `codec:"userAssertion" json:"userAssertion"`
-	Reason                IdentifyReason `codec:"reason" json:"reason"`
-	UseDelegateUI         bool           `codec:"useDelegateUI" json:"useDelegateUI"`
-	AlwaysBlock           bool           `codec:"alwaysBlock" json:"alwaysBlock"`
-	NoErrorOnTrackFailure bool           `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
-	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
-	NeedProofSet          bool           `codec:"needProofSet" json:"needProofSet"`
-	AllowEmptySelfID      bool           `codec:"allowEmptySelfID" json:"allowEmptySelfID"`
-	NoSkipSelf            bool           `codec:"noSkipSelf" json:"noSkipSelf"`
-	CanSuppressUI         bool           `codec:"canSuppressUI" json:"canSuppressUI"`
-	ChatGUIMode           bool           `codec:"chatGUIMode" json:"chatGUIMode"`
-	ForceDisplay          bool           `codec:"forceDisplay" json:"forceDisplay"`
+	SessionID             int                 `codec:"sessionID" json:"sessionID"`
+	Uid                   UID                 `codec:"uid" json:"uid"`
+	UserAssertion         string              `codec:"userAssertion" json:"userAssertion"`
+	Reason                IdentifyReason      `codec:"reason" json:"reason"`
+	UseDelegateUI         bool                `codec:"useDelegateUI" json:"useDelegateUI"`
+	AlwaysBlock           bool                `codec:"alwaysBlock" json:"alwaysBlock"`
+	NoErrorOnTrackFailure bool                `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
+	ForceRemoteCheck      bool                `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	NeedProofSet          bool                `codec:"needProofSet" json:"needProofSet"`
+	AllowEmptySelfID      bool                `codec:"allowEmptySelfID" json:"allowEmptySelfID"`
+	NoSkipSelf            bool                `codec:"noSkipSelf" json:"noSkipSelf"`
+	CanSuppressUI         bool                `codec:"canSuppressUI" json:"canSuppressUI"`
+	IdentifyBehavior      TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+	ForceDisplay          bool                `codec:"forceDisplay" json:"forceDisplay"`
 }
 
 type IdentifyInterface interface {
