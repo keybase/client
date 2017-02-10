@@ -81,28 +81,27 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
 }
 
 const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, subColor, snippet}) => {
-  return null
-  // const boldOverride = showBold ? globalStyles.fontBold : null
+  const boldOverride = showBold ? globalStyles.fontBold : null
 
-  // let content
+  let content
 
-  // if (youNeedToRekey) {
-    // content = <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{alignSelf: 'flex-start', backgroundColor: globalColors.red, borderRadius: 2, color: globalColors.white, fontSize: 10, paddingLeft: 2, paddingRight: 2}}>REKEY NEEDED</Text>
-  // } else if (participantNeedToRekey) {
-    // content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
-  // } else if (snippet && !isMuted) {
-    // content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: 15, minHeight: 15}}>{snippet}</Markdown>
-  // } else {
-    // return null
-  // }
+  if (youNeedToRekey) {
+    content = <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{alignSelf: 'flex-start', backgroundColor: globalColors.red, borderRadius: 2, color: globalColors.white, fontSize: 10, paddingLeft: 2, paddingRight: 2}}>REKEY NEEDED</Text>
+  } else if (participantNeedToRekey) {
+    content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
+  } else if (snippet && !isMuted) {
+    content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: 15, minHeight: 15}}>{snippet}</Markdown>
+  } else {
+    return null
+  }
 
-  // return (
-    // <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative'}}>
-      // <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
-        // {content}
-      // </Box>
-    // </Box>
-  // )
+  return (
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative'}}>
+      <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+        {content}
+      </Box>
+    </Box>
+  )
 }
 
 const _Row = (props: RowProps) => {
