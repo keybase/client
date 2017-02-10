@@ -553,6 +553,30 @@ export function remotePostRemoteRpcPromise (request: $Exact<requestCommon & {cal
   return new Promise((resolve, reject) => { remotePostRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remotePublishReadMessageRpc (request: Exact<requestCommon & requestErrorCallback & {param: remotePublishReadMessageRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.publishReadMessage'})
+}
+
+export function remotePublishReadMessageRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remotePublishReadMessageRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remotePublishReadMessageRpc({...request, incomingCallMap, callback}))
+}
+
+export function remotePublishReadMessageRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remotePublishReadMessageRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { remotePublishReadMessageRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function remotePublishSetConversationStatusRpc (request: Exact<requestCommon & requestErrorCallback & {param: remotePublishSetConversationStatusRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.publishSetConversationStatus'})
+}
+
+export function remotePublishSetConversationStatusRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remotePublishSetConversationStatusRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remotePublishSetConversationStatusRpc({...request, incomingCallMap, callback}))
+}
+
+export function remotePublishSetConversationStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remotePublishSetConversationStatusRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { remotePublishSetConversationStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteS3SignRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.s3Sign'})
 }
@@ -1647,6 +1671,18 @@ export type remotePostRemoteRpcParam = Exact<{
   messageBoxed: MessageBoxed
 }>
 
+export type remotePublishReadMessageRpcParam = Exact<{
+  uid: gregor1.UID,
+  convID: ConversationID,
+  msgID: MessageID
+}>
+
+export type remotePublishSetConversationStatusRpcParam = Exact<{
+  uid: gregor1.UID,
+  convID: ConversationID,
+  status: ConversationStatus
+}>
+
 export type remoteS3SignRpcParam = Exact<{
   version: int,
   payload: bytes
@@ -1768,6 +1804,8 @@ export type rpc =
   | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
+  | remotePublishReadMessageRpc
+  | remotePublishSetConversationStatusRpc
   | remoteS3SignRpc
   | remoteSetConversationStatusRpc
   | remoteTlfFinalizeRpc
