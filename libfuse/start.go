@@ -37,74 +37,51 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 		}
 	}
 
+	log.Debug("Initializing")
+	interruptFn := func() {}
+	config, err := libkbfs.Init(
+		kbCtx, options.KbfsParams, nil, func() { interruptFn() }, log)
+	if err != nil {
+		return libfs.InitError(err.Error())
+	}
+	defer libkbfs.Shutdown()
+
 	log.Debug("Mounting: %s", mounter.Dir())
 	c, err := mounter.Mount()
 	if err != nil {
 		return libfs.MountError(err.Error())
 	}
-	var doneChan <-chan struct{}
-	var onInterruptFn func()
+	defer mounter.Unmount()
 
-	if c != nil {
-		defer c.Close()
-
-		doneChan = c.Ready
-		onInterruptFn = func() {
-			select {
-			case <-c.Ready:
-				// Was mounted, so try to unmount if it was successful.
-				if c.MountError == nil {
-					err = mounter.Unmount()
-					if err != nil {
-						return
-					}
-				}
-
-			default:
-				// Was not mounted successfully yet, so do nothing. Note that the mount
-				// could still happen, but that's a rare enough edge case.
-			}
-			libkbfs.Shutdown()
+	done := make(chan struct{})
+	if c != nil { // c can be nil for NoopMounter
+		interruptFn = func() {
+			mounter.Unmount()
 		}
 	} else {
-		// When there's no mount, declare ourselves done when we get
-		// an interrupt.
-		ch := make(chan struct{}, 1)
-		doneChan = ch
-		onInterruptFn = func() {
-			select {
-			case ch <- struct{}{}:
-				libkbfs.Shutdown()
-			default:
-			}
+		interruptFn = func() {
+			close(done)
 		}
 	}
 
-	log.Debug("Initializing")
-
-	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, onInterruptFn, log)
-	if err != nil {
-		return libfs.InitError(err.Error())
-	}
-
-	defer libkbfs.Shutdown()
-
 	if c != nil {
+		<-c.Ready
+		err = c.MountError
+		if err != nil {
+			return libfs.MountError(err.Error())
+		}
+
 		log.Debug("Creating filesystem")
 		fs := NewFS(config, c, options.KbfsParams.Debug, options.PlatformParams)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
 		log.Debug("Serving filesystem")
-		fs.Serve(ctx)
-	}
-
-	<-doneChan
-	if c != nil {
-		err = c.MountError
-		if err != nil {
+		if err = fs.Serve(ctx); err != nil {
 			return libfs.MountError(err.Error())
 		}
+	} else {
+		<-done
 	}
 
 	log.Debug("Ending")

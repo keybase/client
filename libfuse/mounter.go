@@ -39,7 +39,7 @@ func (m DefaultMounter) Mount() (*fuse.Conn, error) {
 
 // Unmount uses default unmount
 func (m DefaultMounter) Unmount() error {
-	return fuse.Unmount(m.dir)
+	return doUnmount(m.dir, false)
 }
 
 // Dir returns mount directory.
@@ -76,23 +76,36 @@ func (m ForceMounter) Mount() (*fuse.Conn, error) {
 // Unmount tries to unmount normally and then force if unsuccessful
 func (m ForceMounter) Unmount() (err error) {
 	// Try unmount
-	err = fuse.Unmount(m.dir)
+	err = doUnmount(m.dir, false)
 	if err != nil {
 		// Unmount failed, so let's try and force it.
-		err = m.forceUnmount()
+		err = doUnmount(m.dir, true)
 	}
 	return
 }
 
-func (m ForceMounter) forceUnmount() (err error) {
-	if runtime.GOOS == "darwin" {
-		_, err = exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", m.dir).Output()
-	} else if runtime.GOOS == "linux" {
-		_, err = exec.Command("umount", "-l", m.dir).Output()
-	} else {
-		err = errors.New("Forced unmount is not supported on this platform yet")
+func doUnmount(dir string, force bool) (err error) {
+	switch runtime.GOOS {
+	case "darwin":
+		if force {
+			_, err = exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
+		} else {
+			_, err = exec.Command("/sbin/umount", dir).Output()
+		}
+	case "linux":
+		if force {
+			_, err = exec.Command("fusermount", "-ul", dir).Output()
+		} else {
+			_, err = exec.Command("fusermount", "-u", dir).Output()
+		}
+	default:
+		if force {
+			err = errors.New("Forced unmount is not supported on this platform yet")
+		} else {
+			fuse.Unmount(dir)
+		}
 	}
-	return
+	return err
 }
 
 // Dir returns mount directory.

@@ -345,7 +345,7 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // The keybaseServiceCn argument is to specify a custom service and
 // crypto (for non-RPC environments) like mobile. If this is nil, we'll
 // use the default RPC implementation.
-func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onInterruptFn func(), log logger.Logger) (Config, error) {
+func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onInterruptFn func(), log logger.Logger) (cfg Config, err error) {
 
 	if params.CPUProfile != "" {
 		// Let the GC/OS clean up the file handle.
@@ -356,6 +356,7 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 		pprof.StartCPUProfile(f)
 	}
 
+	done := make(chan struct{})
 	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, os.Interrupt)
 	go func() {
@@ -365,9 +366,30 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 			onInterruptFn()
 		}
 
-		os.Exit(1)
+		close(done)
 	}()
 
+	// Spawn a new goroutine for `doInit` so that we can `select` on `done` and
+	// `errCh` below. This is particularly for the situation where a SIGINT comes
+	// in while `doInit` is still not finished (because e.g. service daemon is
+	// not up), where the process can fail to exit while being stuck in `doInit`.
+	// This allows us to not call `os.Exit()` in the interrupt handler.
+	errCh := make(chan error)
+	go func() {
+		var er error
+		cfg, er = doInit(ctx, params, keybaseServiceCn, log)
+		errCh <- er
+	}()
+
+	select {
+	case <-done:
+		return nil, errors.New(os.Interrupt.String())
+	case err = <-errCh:
+		return cfg, err
+	}
+}
+
+func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, log logger.Logger) (Config, error) {
 	config := NewConfigLocal(func(module string) logger.Logger {
 		mname := "kbfs"
 		if module != "" {
