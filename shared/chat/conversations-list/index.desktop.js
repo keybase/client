@@ -110,6 +110,7 @@ const _Row = (props: RowProps) => {
       title={`${props.unreadCount} unread`}
     >
       <Avatars
+        backgroundColor={props.backgroundColor}
         hasUnread={props.hasUnread}
         isMuted={props.isMuted}
         isSelected={props.isSelected}
