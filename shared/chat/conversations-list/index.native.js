@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeScrollView} from '../../common-adapters/index.native'
+import {Text, MultiAvatar, Icon, /* Usernames, Markdown, */ Box, ClickableBox, NativeScrollView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {shouldUpdate} from 'recompose'
 
@@ -119,7 +119,7 @@ const _Row = (props: RowProps) => {
         participants={props.participants}
         youNeedToRekey={props.youNeedToRekey}
       />
-      <Box style={{...globalStyles.flexBoxColumn, ...conversationRowStyle/*, borderBottom: (!props.isSelected && !props.hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'*/}}>
+      <Box style={{...globalStyles.flexBoxColumn, ...conversationRowStyle}}>
         <TopLine
           commaColor={props.commaColor}
           hasUnread={props.hasUnread}
@@ -171,13 +171,13 @@ const ConversationList = (props: Props) => (
   </Box>
 )
 
-const unreadDotStyle = {
-  backgroundColor: globalColors.orange,
-  borderRadius: 3,
-  height: 6,
-  marginLeft: 4,
-  width: 6,
-}
+// const unreadDotStyle = {
+  // backgroundColor: globalColors.orange,
+  // borderRadius: 3,
+  // height: 6,
+  // marginLeft: 4,
+  // width: 6,
+// }
 
 const avatarMutedIconStyle = {
   marginLeft: -globalMargins.small,
@@ -211,12 +211,12 @@ const conversationRowStyle = {
   // willChange: 'transform',
 // }
 
-const noWrapStyle = {
+// const noWrapStyle = {
   // display: 'block',
   // overflow: 'hidden',
   // textOverflow: 'ellipsis',
   // whiteSpace: 'nowrap',
-}
+// }
 
 const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
