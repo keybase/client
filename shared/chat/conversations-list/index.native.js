@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Text, MultiAvatar, Icon, /* Usernames, Markdown, */ Box, ClickableBox, NativeScrollView} from '../../common-adapters/index.native'
+import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeScrollView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {shouldUpdate} from 'recompose'
 
@@ -90,7 +90,7 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
   } else if (participantNeedToRekey) {
     content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
   } else if (snippet && !isMuted) {
-    content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: 15, minHeight: 15}}>{snippet}</Markdown>
+    content = <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 11, lineHeight: 15, minHeight: 15}}>{snippet}</Markdown>
   } else {
     return null
   }
@@ -156,14 +156,8 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
   return different
 })(_Row)
 
-// type RowProps = Props & {conversation: InboxState, unreadCount: number, rekeyInfos: Map<ConversationIDKey, RekeyInfo>}
-
-// const Row = (props: RowProps) => (
-  // <Text type='Body'>{props.conversation.get('participants').toArray()}</Text>
-// )
-
 const ConversationList = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.darkBlue4}}>
+  <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.darkBlue4, flex: 1}}>
     <AddNewRow {...props} />
     <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
       {props.rows.map(rowProps => <Row {...rowProps} key={rowProps.conversationIDKey} />)}
@@ -171,13 +165,13 @@ const ConversationList = (props: Props) => (
   </Box>
 )
 
-// const unreadDotStyle = {
-  // backgroundColor: globalColors.orange,
-  // borderRadius: 3,
-  // height: 6,
-  // marginLeft: 4,
-  // width: 6,
-// }
+const unreadDotStyle = {
+  backgroundColor: globalColors.orange,
+  borderRadius: 3,
+  height: 6,
+  marginLeft: 4,
+  width: 6,
+}
 
 const avatarMutedIconStyle = {
   marginLeft: -globalMargins.small,
@@ -196,27 +190,6 @@ const conversationRowStyle = {
   justifyContent: 'center',
   paddingRight: 8,
 }
-
-// const containerStyle = {
-  // ...globalStyles.flexBoxColumn,
-  // backgroundColor: globalColors.darkBlue4,
-  // flex: 1,
-  // maxWidth: 240,
-// }
-
-// const scrollableStyle = {
-  // ...globalStyles.flexBoxColumn,
-  // flex: 1,
-  // overflowY: 'auto',
-  // willChange: 'transform',
-// }
-
-// const noWrapStyle = {
-  // display: 'block',
-  // overflow: 'hidden',
-  // textOverflow: 'ellipsis',
-  // whiteSpace: 'nowrap',
-// }
 
 const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
