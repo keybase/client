@@ -59,26 +59,25 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
 }
 
 const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor, commaColor}) => {
-  return null
-  // const boldOverride = showBold ? globalStyles.fontBold : null
-  // return (
-    // <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
-      // <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 17, position: 'relative'}}>
-        // <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
-          // <Usernames
-            // inline={true}
-            // type='BodySemibold'
-            // style={{...boldOverride, color: usernameColor}}
-            // commaColor={commaColor}
-            // containerStyle={{color: usernameColor, paddingRight: 7}}
-            // users={participants.map(p => ({username: p})).toArray()}
-            // title={participants.join(', ')} />
-        // </Box>
-      // </Box>
-      // <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: 17}}>{timestamp}</Text>
-      // {hasUnread && <Box style={unreadDotStyle} />}
-    // </Box>
-  // )
+  const boldOverride = showBold ? globalStyles.fontBold : null
+  return (
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 17, position: 'relative'}}>
+        <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+          <Usernames
+            inline={true}
+            type='BodySemibold'
+            style={{...boldOverride, color: usernameColor}}
+            commaColor={commaColor}
+            containerStyle={{color: usernameColor, paddingRight: 7}}
+            users={participants.map(p => ({username: p})).toArray()}
+            title={participants.join(', ')} />
+        </Box>
+      </Box>
+      <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: 17}}>{timestamp}</Text>
+      {hasUnread && <Box style={unreadDotStyle} />}
+    </Box>
+  )
 }
 
 const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, subColor, snippet}) => {
