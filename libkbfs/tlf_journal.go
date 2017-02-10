@@ -365,7 +365,9 @@ func makeTLFJournal(
 
 	// Do this only once we're sure we won't error.
 	storedBytes := j.blockJournal.getStoredBytes()
-	availableBytes := j.diskLimiter.onJournalEnable(ctx, storedBytes)
+	storedFiles := j.blockJournal.getStoredFiles()
+	availableBytes, availableFiles := j.diskLimiter.onJournalEnable(
+		ctx, storedBytes, storedFiles)
 
 	go j.doBackgroundWorkLoop(bws, backoff.NewExponentialBackOff())
 
@@ -373,8 +375,8 @@ func makeTLFJournal(
 	j.signalWork()
 
 	j.log.CDebugf(ctx,
-		"Enabled journal for %s (stored bytes=%d, available bytes=%d) with path %s",
-		tlfID, storedBytes, availableBytes, dir)
+		"Enabled journal for %s (stored bytes=%d/files=%d, available bytes=%d/files=%d) with path %s",
+		tlfID, storedBytes, storedFiles, availableBytes, availableFiles, dir)
 	return j, nil
 }
 
@@ -808,11 +810,14 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 	storedBytesBefore := j.blockJournal.getStoredBytes()
 
-	removedBytes, err := j.blockJournal.removeFlushedEntries(
+	// TODO: Check storedFiles also.
+
+	removedBytes, removedFiles, err := j.blockJournal.removeFlushedEntries(
 		ctx, entries, j.tlfID, j.config.Reporter())
 	if err != nil {
 		return err
 	}
+	_ = removedFiles
 
 	storedBytesAfter := j.blockJournal.getStoredBytes()
 
@@ -944,21 +949,21 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 	// system operations that need the lock for too long.
 	var lastToRemove journalOrdinal
 	for {
-		nextLastToRemove, removedBytes, err := func() (journalOrdinal, int64, error) {
+		nextLastToRemove, removedBytes, removedFiles, err := func() (journalOrdinal, int64, int64, error) {
 			j.journalLock.Lock()
 			defer j.journalLock.Unlock()
 			if err := j.checkEnabledLocked(); err != nil {
-				return 0, 0, err
+				return 0, 0, 0, err
 			}
 
 			storedBytesBefore := j.blockJournal.getStoredBytes()
 
-			nextLastToRemove, removedBytes, err :=
+			nextLastToRemove, removedBytes, removedFiles, err :=
 				j.blockJournal.onMDFlush(
 					ctx, maxSavedBlockRemovalsAtATime,
 					rmds.MD.RevisionNumber(), lastToRemove)
 			if err != nil {
-				return 0, 0, err
+				return 0, 0, 0, err
 			}
 
 			storedBytesAfter := j.blockJournal.getStoredBytes()
@@ -970,12 +975,12 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 					removedBytes))
 			}
 
-			return nextLastToRemove, removedBytes, nil
+			return nextLastToRemove, removedBytes, removedFiles, nil
 		}()
 		if err != nil {
 			return err
 		}
-		j.diskLimiter.onBlockDelete(ctx, removedBytes)
+		j.diskLimiter.onBlockDelete(ctx, removedBytes, removedFiles)
 		if nextLastToRemove == 0 {
 			break
 		}
@@ -1366,7 +1371,8 @@ func (j *tlfJournal) shutdown(ctx context.Context) {
 	// time other than during shutdown, we should still count
 	// shut-down journals against the disk limit.
 	storedBytes := j.blockJournal.getStoredBytes()
-	j.diskLimiter.onJournalDisable(ctx, storedBytes)
+	storedFiles := j.blockJournal.getStoredFiles()
+	j.diskLimiter.onJournalDisable(ctx, storedBytes, storedFiles)
 
 	// Make further accesses error out.
 	j.blockJournal = nil
@@ -1454,19 +1460,16 @@ func (j *tlfJournal) getBlockData(id kbfsblock.ID) (
 type ErrDiskLimitTimeout struct {
 	timeout        time.Duration
 	requestedBytes int64
+	requestedFiles int64
 	availableBytes int64
+	availableFiles int64
 	err            error
 }
 
 func (e ErrDiskLimitTimeout) Error() string {
-	var availableStr string
-	if e.availableBytes > 0 {
-		availableStr = fmt.Sprintf("%d bytes available", e.availableBytes)
-	} else {
-		availableStr = "0 bytes available (or unknown)"
-	}
-	return fmt.Sprintf("Disk limit timeout of %s reached; requested %d bytes, %s: %+v",
-		e.timeout, e.requestedBytes, availableStr, e.err)
+	return fmt.Sprintf("Disk limit timeout of %s reached; requested %d bytes and %d files, %d bytes and %d files available: %+v",
+		e.timeout, e.requestedBytes, e.requestedFiles,
+		e.availableBytes, e.availableFiles, e.err)
 }
 
 func (j *tlfJournal) putBlockData(
@@ -1480,13 +1483,15 @@ func (j *tlfJournal) putBlockData(
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	availableBytes, err := j.diskLimiter.beforeBlockPut(acquireCtx, bufLen)
+	availableBytes, availableFiles, err := j.diskLimiter.beforeBlockPut(
+		acquireCtx, bufLen, filesPerBlockMax)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.
 	case context.DeadlineExceeded:
 		return errors.WithStack(ErrDiskLimitTimeout{
-			timeout, bufLen, availableBytes, err,
+			timeout, bufLen, filesPerBlockMax,
+			availableBytes, availableFiles, err,
 		})
 	default:
 		return err
@@ -1494,7 +1499,8 @@ func (j *tlfJournal) putBlockData(
 
 	var putData bool
 	defer func() {
-		j.diskLimiter.afterBlockPut(ctx, bufLen, putData)
+		j.diskLimiter.afterBlockPut(
+			ctx, bufLen, filesPerBlockMax, putData)
 	}()
 
 	j.journalLock.Lock()

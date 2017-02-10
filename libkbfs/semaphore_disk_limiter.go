@@ -5,13 +5,19 @@
 package libkbfs
 
 import (
+	"math"
+
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
+const defaultAvailableFiles = math.MaxInt64
+
 // semaphoreDiskLimiter is an implementation of diskLimiter that uses
 // a semaphore.
+//
+// TODO: Also do limiting based on file counts.
 type semaphoreDiskLimiter struct {
 	s *kbfssync.Semaphore
 }
@@ -25,40 +31,44 @@ func newSemaphoreDiskLimiter(byteLimit int64) semaphoreDiskLimiter {
 }
 
 func (sdl semaphoreDiskLimiter) onJournalEnable(
-	ctx context.Context, journalBytes int64) int64 {
+	ctx context.Context, journalBytes, journalFiles int64) (
+	availableBytes, availableFiles int64) {
 	if journalBytes == 0 {
-		return sdl.s.Count()
+		return sdl.s.Count(), defaultAvailableFiles
 	}
-	return sdl.s.ForceAcquire(journalBytes)
+	availableBytes = sdl.s.ForceAcquire(journalBytes)
+	return availableBytes, defaultAvailableFiles
 }
 
 func (sdl semaphoreDiskLimiter) onJournalDisable(
-	ctx context.Context, journalBytes int64) {
+	ctx context.Context, journalBytes, journalFiles int64) {
 	if journalBytes > 0 {
 		sdl.s.Release(journalBytes)
 	}
 }
 
 func (sdl semaphoreDiskLimiter) beforeBlockPut(
-	ctx context.Context, blockBytes int64) (int64, error) {
+	ctx context.Context, blockBytes, blockFiles int64) (
+	availableBytes, availableFiles int64, err error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in Acquire.
-		return sdl.s.Count(), errors.New(
+		return sdl.s.Count(), defaultAvailableFiles, errors.New(
 			"semaphore.DiskLimiter.beforeBlockPut called with 0 blockBytes")
 	}
 
-	return sdl.s.Acquire(ctx, blockBytes)
+	availableBytes, err = sdl.s.Acquire(ctx, blockBytes)
+	return availableBytes, defaultAvailableFiles, err
 }
 
 func (sdl semaphoreDiskLimiter) afterBlockPut(
-	ctx context.Context, blockBytes int64, putData bool) {
+	ctx context.Context, blockBytes, blockFiles int64, putData bool) {
 	if !putData {
 		sdl.s.Release(blockBytes)
 	}
 }
 
 func (sdl semaphoreDiskLimiter) onBlockDelete(
-	ctx context.Context, blockBytes int64) {
+	ctx context.Context, blockBytes, blockFiles int64) {
 	if blockBytes > 0 {
 		sdl.s.Release(blockBytes)
 	}

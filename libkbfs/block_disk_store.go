@@ -74,6 +74,12 @@ type blockDiskStore struct {
 	dir   string
 }
 
+// filesPerBlockMax is an upper bound for the number of files
+// (including directories) to store one block: 4 for the regular
+// files, 2 for the (splayed) directories, and 1 for the journal
+// entry.
+const filesPerBlockMax = 7
+
 // makeBlockDiskStore returns a new blockDiskStore for the given
 // directory.
 func makeBlockDiskStore(codec kbfscodec.Codec, dir string) *blockDiskStore {

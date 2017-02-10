@@ -34,6 +34,8 @@ import (
 // which is equivalent to
 //
 //   m <= J/min(k(J+F), L) <= M.
+//
+// TODO: Also do limiting based on file counts.
 type backpressureDiskLimiter struct {
 	log logger.Logger
 	// backpressureMinThreshold is m in the above.
@@ -191,19 +193,21 @@ func (bdl *backpressureDiskLimiter) updateBytesSemaphoreMaxLocked() {
 }
 
 func (bdl *backpressureDiskLimiter) onJournalEnable(
-	ctx context.Context, journalBytes int64) int64 {
+	ctx context.Context, journalBytes, journalFiles int64) (
+	availableBytes, availableFiles int64) {
 	bdl.bytesLock.Lock()
 	defer bdl.bytesLock.Unlock()
 	bdl.journalBytes += journalBytes
 	bdl.updateBytesSemaphoreMaxLocked()
-	if journalBytes > 0 {
-		bdl.bytesSemaphore.ForceAcquire(journalBytes)
+	if journalBytes == 0 {
+		return bdl.bytesSemaphore.Count(), defaultAvailableFiles
 	}
-	return bdl.bytesSemaphore.Count()
+	availableBytes = bdl.bytesSemaphore.ForceAcquire(journalBytes)
+	return availableBytes, defaultAvailableFiles
 }
 
 func (bdl *backpressureDiskLimiter) onJournalDisable(
-	ctx context.Context, journalBytes int64) {
+	ctx context.Context, journalBytes, journalFiles int64) {
 	bdl.bytesLock.Lock()
 	defer bdl.bytesLock.Unlock()
 	bdl.journalBytes -= journalBytes
@@ -239,10 +243,11 @@ func (bdl *backpressureDiskLimiter) calculateDelay(
 }
 
 func (bdl *backpressureDiskLimiter) beforeBlockPut(
-	ctx context.Context, blockBytes int64) (int64, error) {
+	ctx context.Context, blockBytes, blockFiles int64) (
+	availableBytes, availableFiles int64, err error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in Acquire.
-		return bdl.bytesSemaphore.Count(), errors.New(
+		return bdl.bytesSemaphore.Count(), defaultAvailableFiles, errors.New(
 			"backpressureDiskLimiter.beforeBlockPut called with 0 blockBytes")
 	}
 
@@ -260,7 +265,7 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 		return bdl.journalBytes, bdl.freeBytes, nil
 	}()
 	if err != nil {
-		return bdl.bytesSemaphore.Count(), err
+		return bdl.bytesSemaphore.Count(), defaultAvailableFiles, err
 	}
 
 	delay := bdl.calculateDelay(ctx, journalBytes, freeBytes, time.Now())
@@ -272,14 +277,15 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 	// suddenly free up a lot of space).
 	err = bdl.delayFn(ctx, delay)
 	if err != nil {
-		return bdl.bytesSemaphore.Count(), err
+		return bdl.bytesSemaphore.Count(), defaultAvailableFiles, err
 	}
 
-	return bdl.bytesSemaphore.Acquire(ctx, blockBytes)
+	availableFiles, err = bdl.bytesSemaphore.Acquire(ctx, blockBytes)
+	return availableFiles, defaultAvailableFiles, err
 }
 
 func (bdl *backpressureDiskLimiter) afterBlockPut(
-	ctx context.Context, blockBytes int64, putData bool) {
+	ctx context.Context, blockBytes, blockFiles int64, putData bool) {
 	if putData {
 		bdl.bytesLock.Lock()
 		defer bdl.bytesLock.Unlock()
@@ -291,7 +297,7 @@ func (bdl *backpressureDiskLimiter) afterBlockPut(
 }
 
 func (bdl *backpressureDiskLimiter) onBlockDelete(
-	ctx context.Context, blockBytes int64) {
+	ctx context.Context, blockBytes, blockFiles int64) {
 	if blockBytes == 0 {
 		return
 	}
