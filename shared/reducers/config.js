@@ -25,7 +25,7 @@ export type ConfigState = {
   following: {[key: string]: true},
 }
 
-// Mobile is ready for connect automatically, desktop needs to wait for
+// Mobile is ready for bootstrap automatically, desktop needs to wait for
 // the installer.
 const readyForBootstrap = isMobile
 
