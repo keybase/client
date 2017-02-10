@@ -1768,6 +1768,8 @@ func ReadyBlock(ctx context.Context, bcache BlockCache, bops BlockOps,
 			return
 		}
 		ptr.SetWriter(uid)
+		// In case we're deduping an old pointer with an unknown block type.
+		ptr.DirectType = directType
 	} else {
 		ptr = BlockPointer{
 			ID:         id,
