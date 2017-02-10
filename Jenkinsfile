@@ -168,7 +168,7 @@ helpers.rootLinuxNode(env, {
                                         }
                                     }}}
                                 }
-                            }}
+                            }},
                         )
                     },
                     test_windows: {
