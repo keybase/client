@@ -29,7 +29,7 @@ RCT_EXPORT_METHOD(reset) {
 }
 
 - (NSDictionary *)constantsToExport {
-  return @{ @"eventName": eventName, @"test": @"1"};
+  return @{ @"eventName": eventName, @"test": @"1" };
 }
 
 @end
