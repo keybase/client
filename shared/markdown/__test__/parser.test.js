@@ -23,6 +23,11 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses formatting adjacent to punctuation', () => {
+    const ast = parser.parse('thisis(*bold*) and(_italic_) and,~striked~! (*woot*) another.*test*.case')
+    expect(ast).toMatchSnapshot()
+  })
+
   it('parses invalid emoji fragments correctly', () => {
     const ast = parser.parse('one::\n::two\n:three?::\n::four:\n::')
     expect(ast).toMatchSnapshot()
@@ -99,6 +104,7 @@ this is a code block with two newline above\`\`\`
     http://keybase.io
     *http://keybase.io*
     \`http://keybase.io\`
+    (https://keybase.io)
     https://keybase.io
     HTTP://cnn.com
     http://twitter.com
