@@ -59,49 +59,51 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
 }
 
 const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor, commaColor}) => {
-  const boldOverride = showBold ? globalStyles.fontBold : null
-  return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 17, position: 'relative'}}>
-        <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
-          <Usernames
-            inline={true}
-            type='BodySemibold'
-            style={{...boldOverride, color: usernameColor}}
-            commaColor={commaColor}
-            containerStyle={{color: usernameColor, paddingRight: 7}}
-            users={participants.map(p => ({username: p})).toArray()}
-            title={participants.join(', ')} />
-        </Box>
-      </Box>
-      <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: '17px'}}>{timestamp}</Text>
-      {hasUnread && <Box style={unreadDotStyle} />}
-    </Box>
-  )
+  return null
+  // const boldOverride = showBold ? globalStyles.fontBold : null
+  // return (
+    // <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
+      // <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 17, position: 'relative'}}>
+        // <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+          // <Usernames
+            // inline={true}
+            // type='BodySemibold'
+            // style={{...boldOverride, color: usernameColor}}
+            // commaColor={commaColor}
+            // containerStyle={{color: usernameColor, paddingRight: 7}}
+            // users={participants.map(p => ({username: p})).toArray()}
+            // title={participants.join(', ')} />
+        // </Box>
+      // </Box>
+      // <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: 17}}>{timestamp}</Text>
+      // {hasUnread && <Box style={unreadDotStyle} />}
+    // </Box>
+  // )
 }
 
 const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, subColor, snippet}) => {
-  const boldOverride = showBold ? globalStyles.fontBold : null
+  return null
+  // const boldOverride = showBold ? globalStyles.fontBold : null
 
-  let content
+  // let content
 
-  if (youNeedToRekey) {
-    content = <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{alignSelf: 'flex-start', backgroundColor: globalColors.red, borderRadius: 2, color: globalColors.white, fontSize: 10, paddingLeft: 2, paddingRight: 2}}>REKEY NEEDED</Text>
-  } else if (participantNeedToRekey) {
-    content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
-  } else if (snippet && !isMuted) {
-    content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: '15px', minHeight: 15}}>{snippet}</Markdown>
-  } else {
-    return null
-  }
+  // if (youNeedToRekey) {
+    // content = <Text type='BodySmallSemibold' backgroundMode='Terminal' style={{alignSelf: 'flex-start', backgroundColor: globalColors.red, borderRadius: 2, color: globalColors.white, fontSize: 10, paddingLeft: 2, paddingRight: 2}}>REKEY NEEDED</Text>
+  // } else if (participantNeedToRekey) {
+    // content = <Text type='BodySmall' backgroundMode='Terminal' style={{color: subColor}}>Waiting for participants to rekey</Text>
+  // } else if (snippet && !isMuted) {
+    // content = <Markdown preview={true} style={{...noWrapStyle, ...boldOverride, color: subColor, fontSize: 11, lineHeight: 15, minHeight: 15}}>{snippet}</Markdown>
+  // } else {
+    // return null
+  // }
 
-  return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative'}}>
-      <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
-        {content}
-      </Box>
-    </Box>
-  )
+  // return (
+    // <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17, position: 'relative'}}>
+      // <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
+        // {content}
+      // </Box>
+    // </Box>
+  // )
 }
 
 const _Row = (props: RowProps) => {
@@ -119,7 +121,7 @@ const _Row = (props: RowProps) => {
         participants={props.participants}
         youNeedToRekey={props.youNeedToRekey}
       />
-      <Box style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!props.isSelected && !props.hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
+      <Box style={{...globalStyles.flexBoxColumn, ...conversationRowStyle/*, borderBottom: (!props.isSelected && !props.hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'*/}}>
         <TopLine
           commaColor={props.commaColor}
           hasUnread={props.hasUnread}
@@ -212,11 +214,10 @@ const conversationRowStyle = {
 // }
 
 const noWrapStyle = {
-  display: 'block',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  width: '100%',
+  // display: 'block',
+  // overflow: 'hidden',
+  // textOverflow: 'ellipsis',
+  // whiteSpace: 'nowrap',
 }
 
 const rowContainerStyle = {
