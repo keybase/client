@@ -975,6 +975,15 @@ func (fbm *folderBlockManager) isQRNecessary(
 		}
 	}
 
+	// If the head includes a single gcOp that covers everything up to
+	// the previous head, we can skip QR.
+	if len(head.data.Changes.Ops) == 1 {
+		gcOp, isGCOp := head.data.Changes.Ops[0].(*GCOp)
+		if isGCOp && gcOp.LatestRev == head.Revision()-1 {
+			return false
+		}
+	}
+
 	// Do QR if:
 	//   * The head has changed since last time, OR
 	//   * The last QR did not completely clean every available thing
@@ -1101,7 +1110,10 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	}
 	if len(ptrs) == 0 && !shortened {
 		complete = true
-		return nil
+
+		// Add a new gcOp to show other clients that they don't need
+		// to explore this range again.
+		return fbm.finalizeReclamation(ctx, nil, nil, latestRev)
 	}
 
 	zeroRefCounts, err := fbm.deleteBlockRefs(ctx, head.TlfID(), ptrs)

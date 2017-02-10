@@ -670,3 +670,85 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 			pre, post)
 	}
 }
+
+// Test that quota reclamation makes GCOps to account for other GCOps,
+// to make sure clients don't waste time scanning over a bunch of old
+// GCOps when there is nothing to be done.
+func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
+	var userName libkb.NormalizedUsername = "test_user"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	clock := newTestClockNow()
+	config.SetClock(clock)
+
+	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
+	kbfsOps := config.KBFSOps()
+	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
+	// This threshold isn't exact; in this case it works out to 3
+	// pointers per GC.
+	ops.fbm.numPointersPerGCThreshold = 1
+
+	numCycles := 4
+	for i := 0; i < numCycles; i++ {
+		_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
+		if err != nil {
+			t.Fatalf("Couldn't create dir: %+v", err)
+		}
+		err = kbfsOps.RemoveDir(ctx, rootNode, "a")
+		if err != nil {
+			t.Fatalf("Couldn't remove dir: %+v", err)
+		}
+	}
+	clock.Add(2 * config.QuotaReclamationMinUnrefAge())
+
+	// Make sure the head has a GCOp that doesn't point to just the
+	// previous revision.
+	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't get MD: %+v", err)
+	}
+
+	// Run reclamation until the head doesn't change anymore, which
+	// should cover revision #3, as well as the two subsequent GCops.
+	lastRev := md.Revision()
+	count := 0
+	for {
+		ops.fbm.forceQuotaReclamation()
+		err = ops.fbm.waitForQuotaReclamations(ctx)
+		if err != nil {
+			t.Fatalf("Couldn't wait for QR: %+v", err)
+		}
+
+		md, err = config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf)
+		if err != nil {
+			t.Fatalf("Couldn't get MD: %+v", err)
+		}
+
+		if md.Revision() == lastRev {
+			break
+		}
+		lastRev = md.Revision()
+		count++
+		if count == numCycles {
+			// Increase the clock so now we can GC all those GCOps.
+			clock.Add(2 * config.QuotaReclamationMinUnrefAge())
+		}
+	}
+
+	if g, e := count, numCycles+1; g != e {
+		t.Fatalf("Wrong number of forced QRs: %d vs %d", g, e)
+	}
+
+	if g, e := len(md.data.Changes.Ops), 1; g != e {
+		t.Fatalf("Unexpected number of ops: %d vs %d", g, e)
+	}
+
+	gcOp, ok := md.data.Changes.Ops[0].(*GCOp)
+	if !ok {
+		t.Fatalf("No GCOp: %s", md.data.Changes.Ops[0])
+	}
+
+	if g, e := gcOp.LatestRev, md.Revision()-1; g != e {
+		t.Fatalf("Last GCOp revision was unexpected: %d vs %d", g, e)
+	}
+}
