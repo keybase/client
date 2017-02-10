@@ -158,7 +158,7 @@ function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
   return (dispatch, getState) => {
     const readyForBootstrap = getState().config.readyForBootstrap
     if (!readyForBootstrap) {
-      console.log('Not ready for bootstrap/connect')
+      console.warn('Not ready for bootstrap/connect')
       return
     }
 

@@ -93,7 +93,7 @@ function setupApp (store) {
     store.dispatch({payload: undefined, type: 'config:readyForBootstrap'})
     store.dispatch(bootstrap())
   })
-  ipcRenderer.send('installer')
+  ipcRenderer.send('install-check')
 
   const currentWindow = electron.remote.getCurrentWindow()
   currentWindow.on('focus', () => { store.dispatch(changedFocus(true)) })

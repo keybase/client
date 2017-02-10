@@ -69,7 +69,7 @@ function start () {
     storeHelper(mainWindow)
   })
 
-  ipcMain.on('installer', (event, arg) => {
+  ipcMain.on('install-check', (event, arg) => {
     installer(err => {
       if (err) {
         console.log('Error: ', err)
