@@ -7,11 +7,9 @@ package libkbfs
 import (
 	"testing"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
@@ -68,22 +66,14 @@ func (fc *fakeBServerClient) AddReference(ctx context.Context, arg keybase1.AddR
 }
 
 type testBlockServerRemoteConfig struct {
-	log            logger.Logger
-	codec          kbfscodec.Codec
+	codecGetter
+	logMaker
 	signer         kbfscrypto.Signer
 	sessionGetter  currentSessionGetter
 	diskBlockCache DiskBlockCache
 }
 
 var _ blockServerRemoteConfig = (*testBlockServerRemoteConfig)(nil)
-
-func (c testBlockServerRemoteConfig) MakeLogger(_ string) logger.Logger {
-	return c.log
-}
-
-func (c testBlockServerRemoteConfig) Codec() kbfscodec.Codec {
-	return c.codec
-}
 
 func (c testBlockServerRemoteConfig) Signer() kbfscrypto.Signer {
 	return c.signer
@@ -99,13 +89,12 @@ func (c testBlockServerRemoteConfig) DiskBlockCache() DiskBlockCache {
 
 // Test that putting a block, and getting it back, works
 func TestBServerRemotePutAndGet(t *testing.T) {
-	codec := kbfscodec.NewMsgpack()
 	currentUID := keybase1.MakeTestUID(1)
-	log := logger.NewTestLogger(t)
 	fc := fakeBServerClient{
 		entries: make(map[keybase1.BlockIdCombo]fakeBlockEntry),
 	}
-	config := testBlockServerRemoteConfig{log, codec, nil, nil, nil}
+	config := testBlockServerRemoteConfig{newTestCodecGetter(),
+		newTestLogMaker(t), nil, nil, nil}
 	b := newBlockServerRemoteWithClient(config, &fc)
 
 	tlfID := tlf.FakeID(2, false)
@@ -143,11 +132,10 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 
 // If we cancel the RPC before the RPC returns, the call should error quickly.
 func TestBServerRemotePutCanceled(t *testing.T) {
-	codec := kbfscodec.NewMsgpack()
 	currentUID := keybase1.MakeTestUID(1)
 	serverConn, conn := rpc.MakeConnectionForTest(t)
-	log := logger.NewTestLogger(t)
-	config := testBlockServerRemoteConfig{log, codec, nil, nil, nil}
+	config := testBlockServerRemoteConfig{newTestCodecGetter(),
+		newTestLogMaker(t), nil, nil, nil}
 	b := newBlockServerRemoteWithClient(config,
 		keybase1.BlockClient{Cli: conn.GetClient()})
 
