@@ -143,7 +143,7 @@ func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
 
 // lruKey generates an LRU cache key from a tlf.ID and a binary-encoded block
 // ID.
-func (_ *DiskBlockCacheStandard) lruKey(tlfID tlf.ID, blockKey []byte) []byte {
+func (*DiskBlockCacheStandard) lruKey(tlfID tlf.ID, blockKey []byte) []byte {
 	return append(tlfID.Bytes(), blockKey...)
 }
 
@@ -161,7 +161,7 @@ func (cache *DiskBlockCacheStandard) updateLruLocked(tlfID tlf.ID,
 }
 
 // timeFromBytes converts a value from the LRU cache into a time.Time.
-func (_ *DiskBlockCacheStandard) timeFromBytes(b []byte) (t time.Time, err error) {
+func (*DiskBlockCacheStandard) timeFromBytes(b []byte) (t time.Time, err error) {
 	err = t.UnmarshalBinary(b)
 	return t, err
 }
