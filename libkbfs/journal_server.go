@@ -18,8 +18,43 @@ import (
 	"golang.org/x/net/context"
 )
 
+// TODO: Expand this list to the whole team.
+var journalingBetaList = map[keybase1.UID]bool{
+	"ef2e49961eddaa77094b45ed635cfc00": true, // Jeremy Stribling, "strib"
+	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
+}
+
 type journalServerConfig struct {
+	// EnableAuto, if true, means the user has explicitly set its
+	// value. If false, then either the user turned it on and then
+	// off, or the user hasn't turned it on at all.
 	EnableAuto bool
+
+	// EnableAutoSetByUser means the user has explicitly set the
+	// value of EnableAuto (after this field was added).
+	EnableAutoSetByUser bool
+}
+
+func (jsc journalServerConfig) getEnableAuto(currentUID keybase1.UID) (
+	enableAuto, enableAutoSetByUser bool) {
+	// If EnableAuto is true, the user has explicitly set its value.
+	if jsc.EnableAuto {
+		return true, true
+	}
+
+	// Otherwise, if EnableAutoSetByUser is true, it means the
+	// user has explicitly set the value of EnableAuto (after that
+	// field was added).
+	if jsc.EnableAutoSetByUser {
+		return false, true
+	}
+
+	// Otherwise, either the user turned on journaling and then
+	// turned it off before that field was added, or the user
+	// hasn't touched the field. In either case, determine the
+	// value based on whether the current UID is in the
+	// journaling beta list.
+	return journalingBetaList[currentUID], false
 }
 
 // JournalServerStatus represents the overall status of the
@@ -31,6 +66,7 @@ type JournalServerStatus struct {
 	CurrentUID          keybase1.UID
 	CurrentVerifyingKey kbfscrypto.VerifyingKey
 	EnableAuto          bool
+	EnableAutoSetByUser bool
 	JournalCount        int
 	// The byte counters below are signed because
 	// os.FileInfo.Size() is signed.
@@ -211,23 +247,30 @@ func (j *JournalServer) tlfJournalPathLocked(tlfID tlf.ID) string {
 	return filepath.Join(j.rootPath(), dir)
 }
 
+func (j *JournalServer) getEnableAutoLocked() (
+	enableAuto, enableAutoSetByUser bool) {
+	return j.serverConfig.getEnableAuto(j.currentUID)
+}
+
 func (j *JournalServer) getTLFJournal(tlfID tlf.ID) (*tlfJournal, bool) {
-	getJournalFn := func() (*tlfJournal, bool, bool) {
+	getJournalFn := func() (*tlfJournal, bool, bool, bool) {
 		j.lock.RLock()
 		defer j.lock.RUnlock()
 		tlfJournal, ok := j.tlfJournals[tlfID]
-		return tlfJournal, j.serverConfig.EnableAuto, ok
+		enableAuto, enableAutoSetByUser := j.getEnableAutoLocked()
+		return tlfJournal, enableAuto, enableAutoSetByUser, ok
 	}
-	tlfJournal, enableAuto, ok := getJournalFn()
+	tlfJournal, enableAuto, enableAutoSetByUser, ok := getJournalFn()
 	if !ok && enableAuto {
 		ctx := context.TODO() // plumb through from callers
-		j.log.CDebugf(ctx, "Enabling a new journal for %s", tlfID)
+		j.log.CDebugf(ctx, "Enabling a new journal for %s (enableAuto=%t, set by user=%t)",
+			tlfID, enableAuto, enableAutoSetByUser)
 		err := j.Enable(ctx, tlfID, TLFJournalBackgroundWorkEnabled)
 		if err != nil {
 			j.log.CWarningf(ctx, "Couldn't enable journal for %s: %+v", tlfID, err)
 			return nil, false
 		}
-		tlfJournal, _, ok = getJournalFn()
+		tlfJournal, _, _, ok = getJournalFn()
 	}
 	return tlfJournal, ok
 }
@@ -446,6 +489,7 @@ func (j *JournalServer) EnableAuto(ctx context.Context) error {
 
 	j.log.CDebugf(ctx, "Enabling auto-journaling")
 	j.serverConfig.EnableAuto = true
+	j.serverConfig.EnableAutoSetByUser = true
 	return j.writeConfig()
 }
 
@@ -462,6 +506,7 @@ func (j *JournalServer) DisableAuto(ctx context.Context) error {
 
 	j.log.CDebugf(ctx, "Disabling auto-journaling")
 	j.serverConfig.EnableAuto = false
+	j.serverConfig.EnableAutoSetByUser = true
 	return j.writeConfig()
 }
 
@@ -617,12 +662,14 @@ func (j *JournalServer) Status(
 		totalUnflushedBytes += unflushedBytes
 		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
 	}
+	enableAuto, enableAutoSetByUser := j.getEnableAutoLocked()
 	return JournalServerStatus{
 		RootDir:             j.rootPath(),
 		Version:             1,
 		CurrentUID:          j.currentUID,
 		CurrentVerifyingKey: j.currentVerifyingKey,
-		EnableAuto:          j.serverConfig.EnableAuto,
+		EnableAuto:          enableAuto,
+		EnableAutoSetByUser: enableAutoSetByUser,
 		JournalCount:        len(tlfIDs),
 		StoredBytes:         totalStoredBytes,
 		UnflushedBytes:      totalUnflushedBytes,
