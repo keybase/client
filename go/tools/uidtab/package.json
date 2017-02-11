@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "iced-utils": "^0.1.25"
+  }
+}
