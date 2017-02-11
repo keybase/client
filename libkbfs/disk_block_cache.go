@@ -27,11 +27,16 @@ const (
 	lruDbFilename                 string = "diskCacheLRU.leveldb"
 )
 
+// diskBlockCacheEntry packages an encoded block and serverHalf into one data
+// structure, allowing us to encode it as one set of bytes.
 type diskBlockCacheEntry struct {
 	Buf        []byte
 	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
 }
 
+// diskBlockCacheConfig specifies the interfaces that a DiskBlockCacheStandard
+// needs to perform its functions. This adheres to the standard libkbfs Config
+// API.
 type diskBlockCacheConfig interface {
 	codecGetter
 	logMaker
@@ -52,10 +57,8 @@ type DiskBlockCacheStandard struct {
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
 
-func levelDbStorageFromFile(path string) (storage.Storage, error) {
-	return storage.OpenFile(path, false)
-}
-
+// openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
+// as its underlying storage layer.
 func openLevelDB(stor storage.Storage) (db *leveldb.DB, err error) {
 	db, err = leveldb.Open(stor, leveldbOptions)
 	if _, isErrCorrupted := err.(*storage.ErrCorrupted); isErrCorrupted {
@@ -64,6 +67,9 @@ func openLevelDB(stor storage.Storage) (db *leveldb.DB, err error) {
 	return db, err
 }
 
+// newDiskBlockCacheStandardFromStorage creates a new *DiskBlockCacheStandard
+// with the passed-in storage.Storage interfaces as storage layers for each
+// cache.
 func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	blockStorage, lruStorage storage.Storage, maxBytes uint64) (
 	*DiskBlockCacheStandard, error) {
@@ -87,15 +93,17 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	}, nil
 }
 
+// newDiskBlockCacheStandard creates a new *DiskBlockCacheStandard with a
+// specified directory on the filesystem as storage.
 func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 	maxBytes uint64) (*DiskBlockCacheStandard, error) {
 	blockDbPath := filepath.Join(dirPath, blockDbFilename)
-	blockStorage, err := levelDbStorageFromFile(blockDbPath)
+	blockStorage, err := storage.OpenFile(blockDbPath, false)
 	if err != nil {
 		return nil, err
 	}
 	lruDbPath := filepath.Join(dirPath, lruDbFilename)
-	lruStorage, err := levelDbStorageFromFile(lruDbPath)
+	lruStorage, err := storage.OpenFile(lruDbPath, false)
 	if err != nil {
 		blockStorage.Close()
 		return nil, err
@@ -124,6 +132,8 @@ func (cache *DiskBlockCacheStandard) getSizesLocked() (blockSize int64,
 	return blockSizes[0], lruSizes[0], nil
 }
 
+// compactCachesLocked manually forces both the block cache and LRU cache to
+// compact their underlying data.
 func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
 	cache.blockDb.CompactRange(util.Range{})
 	cache.lruDb.CompactRange(util.Range{})
@@ -131,10 +141,14 @@ func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
 	cache.log.CDebugf(ctx, "Disk Cache bSize=%d lruSize=%d err=%+v", bSize, lruSize, err)
 }
 
-func (DiskBlockCacheStandard) lruKey(tlfID tlf.ID, blockKey []byte) []byte {
+// lruKey generates an LRU cache key from a tlf.ID and a binary-encoded block
+// ID.
+func (_ *DiskBlockCacheStandard) lruKey(tlfID tlf.ID, blockKey []byte) []byte {
 	return append(tlfID.Bytes(), blockKey...)
 }
 
+// updateLruLocked updates the LRU time of a block in the LRU cache to
+// time.Now().
 func (cache *DiskBlockCacheStandard) updateLruLocked(tlfID tlf.ID,
 	blockKey []byte) error {
 	key := cache.lruKey(tlfID, blockKey)
@@ -146,11 +160,14 @@ func (cache *DiskBlockCacheStandard) updateLruLocked(tlfID tlf.ID,
 	return nil
 }
 
-func (DiskBlockCacheStandard) timeFromBytes(b []byte) (t time.Time, err error) {
+// timeFromBytes converts a value from the LRU cache into a time.Time.
+func (_ *DiskBlockCacheStandard) timeFromBytes(b []byte) (t time.Time, err error) {
 	err = t.UnmarshalBinary(b)
 	return t, err
 }
 
+// getLru retrieves the LRU time for a block in the cache, or returns
+// leveldb.ErrNotFound and a zero-valued time.Time otherwise.
 func (cache *DiskBlockCacheStandard) getLru(tlfID tlf.ID,
 	blockID kbfsblock.ID) (time.Time, error) {
 	lruKey := cache.lruKey(tlfID, blockID.Bytes())
@@ -161,6 +178,8 @@ func (cache *DiskBlockCacheStandard) getLru(tlfID tlf.ID,
 	return cache.timeFromBytes(lruBytes)
 }
 
+// decodeBlockCacheEntry decodes a disk block cache entry buffer into an
+// encoded block and server half.
 func (cache *DiskBlockCacheStandard) decodeBlockCacheEntry(buf []byte) ([]byte,
 	kbfscrypto.BlockCryptKeyServerHalf, error) {
 	entry := diskBlockCacheEntry{}
@@ -171,6 +190,8 @@ func (cache *DiskBlockCacheStandard) decodeBlockCacheEntry(buf []byte) ([]byte,
 	return entry.Buf, entry.ServerHalf, nil
 }
 
+// encodeBlockCacheEntry encodes an encoded block and serverHalf into a single
+// buffer.
 func (cache *DiskBlockCacheStandard) encodeBlockCacheEntry(buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) ([]byte, error) {
 	entry := diskBlockCacheEntry{
@@ -274,7 +295,7 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	tlfID tlf.ID, numBlocks int) error {
 	// Use kbfscrypto.MakeTemporaryID() to create a random hash ID. Then begin
-	// an interator into cache.lruDb.Range(tlfID + b, tlfID + MaxBlockID) and
+	// an iterator into cache.lruDb.Range(tlfID + b, tlfID + MaxBlockID) and
 	// iterate from there to get numBlocks * evictionConsiderationFactor block
 	// IDs.  We sort the resulting blocks by value (LRU time) and pick the
 	// minimum numBlocks. We then call cache.Delete() on that list of block
