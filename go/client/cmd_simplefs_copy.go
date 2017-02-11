@@ -4,7 +4,7 @@
 package client
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"time"
 
@@ -25,30 +25,26 @@ type CmdSimpleFSCopy struct {
 	src     keybase1.Path
 	dest    keybase1.Path
 	recurse bool
-	async   bool
 	argOpid bool // set when -o is used
 }
 
 // NewCmdSimpleFSCopy creates a new cli.Command.
 func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "copy",
-		Usage: "Copy directory elements",
+		Name:         "cp",
+		ArgumentHelp: "<source> [dest]",
+		Usage:        "copy directory elements",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "copy", c)
+			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "cp", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "r, recursive",
 				Usage: "Recurse into subdirectories",
 			},
-			cli.BoolFlag{
-				Name:  "a, async",
-				Usage: "Run asynchronously, get results with -o opid",
-			},
 			cli.StringFlag{
 				Name:  "o, opid",
-				Usage: "Retrieve results of asynchronous request",
+				Usage: "retrieve results",
 			},
 		},
 	}
@@ -82,13 +78,6 @@ func (c *CmdSimpleFSCopy) Run() error {
 		if err != nil {
 			return err
 		}
-		// For async, print out the opid here and quit
-		if c.async {
-			w := GlobUI.DefaultTabWriter()
-			fmt.Fprintf(w, "%s", hex.EncodeToString(c.opid[:]))
-			w.Flush()
-			return nil
-		}
 	}
 
 	for {
@@ -96,7 +85,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 		if err != nil {
 			break
 		}
-		// break if we're done or the async opid was provided
+		// break if we're done or the opid was provided
 		if progress == 100 || c.argOpid {
 			break // TODO: ???
 		}
@@ -112,20 +101,19 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	c.recurse = ctx.Bool("recurse")
-	c.async = ctx.Bool("async")
 	if ctx.String("opid") != "" {
 		opid, err := hex.DecodeString(ctx.String("opid"))
 		if err != nil {
 			return err
 		}
 		if copy(c.opid[:], opid) != len(c.opid) {
-			return fmt.Errorf("bad opid")
+			return errors.New("bad opid")
 		}
 		c.argOpid = true
 	}
 
 	if nargs < 1 || nargs > 2 {
-		return fmt.Errorf("Copy requires a source path (and optional destination) argument.")
+		return errors.New("cp requires a source path (and optional destination) argument")
 	}
 
 	c.src = MakeSimpleFSPath(ctx.Args()[0])
@@ -133,13 +121,13 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 		c.dest = MakeSimpleFSPath(ctx.Args()[1])
 	} else {
 		// use the current local directory as a default
-		path, _ := os.Getwd()
-		c.dest = keybase1.NewPathWithLocal(path)
+		wd, _ := os.Getwd()
+		c.dest = MakeSimpleFSPath(wd)
 	}
 	srcType, _ := c.src.PathType()
 	destType, _ := c.dest.PathType()
 	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
-		return fmt.Errorf("Copy reaquires KBFS source and/or destination")
+		return errors.New("cp reaquires KBFS source and/or destination")
 	}
 
 	return err

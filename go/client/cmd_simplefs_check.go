@@ -25,8 +25,9 @@ type CmdSimpleFSCheck struct {
 // NewCmdSimpleFSCheck creates a new cli.Command.
 func NewCmdSimpleFSCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "check",
-		Usage: "check pending operation",
+		Name:         "check",
+		ArgumentHelp: "<opid>",
+		Usage:        "check pending operation",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "check", c)
 		},
@@ -60,7 +61,7 @@ func (c *CmdSimpleFSCheck) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	if copy(c.opid[:], opid) != len(c.opid) {
-		return errors.New("bad opid")
+		return errors.New("bad or missing opid")
 	}
 
 	return err

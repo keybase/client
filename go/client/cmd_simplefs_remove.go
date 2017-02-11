@@ -4,7 +4,7 @@
 package client
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"golang.org/x/net/context"
@@ -22,26 +22,22 @@ type CmdSimpleFSRemove struct {
 	libkb.Contextified
 	opid    keybase1.OpID
 	path    keybase1.Path
-	async   bool
 	argOpid bool // set when -o is used
 }
 
 // NewCmdSimpleFSRemove creates a new cli.Command.
 func NewCmdSimpleFSRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "rm",
-		Usage: "Remove directory elements",
+		Name:         "rm",
+		ArgumentHelp: "<path>",
+		Usage:        "remove directory elements",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "rm", c)
 		},
 		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "a, async",
-				Usage: "Run asynchronously, get results with -o opid",
-			},
 			cli.StringFlag{
 				Name:  "o, opid",
-				Usage: "Retrieve results of asynchronous request",
+				Usage: "retrieve results",
 			},
 		},
 	}
@@ -67,13 +63,6 @@ func (c *CmdSimpleFSRemove) Run() error {
 		if err != nil {
 			return err
 		}
-		// For async, print out the opid here and quit
-		if c.async {
-			w := GlobUI.DefaultTabWriter()
-			fmt.Fprintf(w, "%s", hex.EncodeToString(c.opid[:]))
-			w.Flush()
-			return nil
-		}
 	}
 
 	for {
@@ -81,7 +70,7 @@ func (c *CmdSimpleFSRemove) Run() error {
 		if err != nil {
 			break
 		}
-		// break if we're done or the async opid was provided
+		// break if we're done or the opid was provided
 		if progress == 100 || c.argOpid {
 			break // TODO: ???
 		}
@@ -96,14 +85,13 @@ func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	c.async = ctx.Bool("async")
 	if ctx.String("opid") != "" {
 		opid, err := hex.DecodeString(ctx.String("opid"))
 		if err != nil {
 			return err
 		}
 		if copy(c.opid[:], opid) != len(c.opid) {
-			return fmt.Errorf("bad opid")
+			return errors.New("bad opid")
 		}
 		c.argOpid = true
 	}
@@ -113,7 +101,7 @@ func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if pathType, _ := c.path.PathType(); pathType != keybase1.PathType_KBFS {
-		err = fmt.Errorf("Remove requires a KBFS path argument.")
+		err = errors.New("rm requires a KBFS path argument")
 	}
 
 	return err

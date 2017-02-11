@@ -27,6 +27,8 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSMkdir(cl, g),
 			NewCmdSimpleFSStat(cl, g),
 			NewCmdSimpleFSCheck(cl, g),
+			NewCmdSimpleFSClose(cl, g),
+			NewCmdSimpleFSPs(cl, g),
 		},
 	}
 }
