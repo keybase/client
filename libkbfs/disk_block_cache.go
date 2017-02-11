@@ -104,14 +104,6 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 		lruStorage, maxBytes)
 }
 
-func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
-	maxBytes uint64) (*DiskBlockCacheStandard, error) {
-	blockStorage := storage.NewMemStorage()
-	lruStorage := storage.NewMemStorage()
-	return newDiskBlockCacheStandardFromStorage(config, blockStorage,
-		lruStorage, maxBytes)
-}
-
 // TODO: Fix getSizesLocked(), where leveldb.DB.SizeOf() currently doesn't work
 // for the full range. As it is right now, this is a very cheap operation,
 // since it just takes the beginning and end offsets from levelDB and returns
