@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 )
@@ -45,17 +46,28 @@ type DiskBlockCacheStandard struct {
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
 
-func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
-	maxBytes uint64) (*DiskBlockCacheStandard, error) {
+func levelDbStorageFromFile(path string) (storage.Storage, error) {
+	return storage.OpenFile(path, false)
+}
+
+func openLevelDB(stor storage.Storage) (db *leveldb.DB, err error) {
+	db, err = leveldb.Open(stor, leveldbOptions)
+	if _, isErrCorrupted := err.(*storage.ErrCorrupted); isErrCorrupted {
+		return leveldb.Recover(stor, leveldbOptions)
+	}
+	return db, err
+}
+
+func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
+	blockStorage, lruStorage storage.Storage, maxBytes uint64) (
+	*DiskBlockCacheStandard, error) {
 	log := config.MakeLogger("KBC")
-	blockDbPath := filepath.Join(dirPath, blockDbFilename)
-	blockDb, err := leveldb.OpenFile(blockDbPath, leveldbOptions)
+	blockDb, err := openLevelDB(blockStorage)
 	if err != nil {
 		return nil, err
 	}
 
-	lruDbPath := filepath.Join(dirPath, lruDbFilename)
-	lruDb, err := leveldb.OpenFile(lruDbPath, leveldbOptions)
+	lruDb, err := openLevelDB(lruStorage)
 	if err != nil {
 		blockDb.Close()
 		return nil, err
@@ -67,6 +79,31 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 		blockDb:  blockDb,
 		lruDb:    lruDb,
 	}, nil
+}
+
+func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
+	maxBytes uint64) (*DiskBlockCacheStandard, error) {
+	blockDbPath := filepath.Join(dirPath, blockDbFilename)
+	blockStorage, err := levelDbStorageFromFile(blockDbPath)
+	if err != nil {
+		return nil, err
+	}
+	lruDbPath := filepath.Join(dirPath, lruDbFilename)
+	lruStorage, err := levelDbStorageFromFile(lruDbPath)
+	if err != nil {
+		blockStorage.Close()
+		return nil, err
+	}
+	return newDiskBlockCacheStandardFromStorage(config, blockStorage,
+		lruStorage, maxBytes)
+}
+
+func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
+	maxBytes uint64) (*DiskBlockCacheStandard, error) {
+	blockStorage := storage.NewMemStorage()
+	lruStorage := storage.NewMemStorage()
+	return newDiskBlockCacheStandardFromStorage(config, blockStorage,
+		lruStorage, maxBytes)
 }
 
 // TODO: Fix getSizes(), where leveldb.DB.SizeOf() currently doesn't work for
