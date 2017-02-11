@@ -131,15 +131,34 @@ func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
 	cache.log.CDebugf(ctx, "Disk Cache bSize=%d lruSize=%d err=%+v", bSize, lruSize, err)
 }
 
+func (DiskBlockCacheStandard) lruKey(tlfID tlf.ID, blockKey []byte) []byte {
+	return append(tlfID.Bytes(), blockKey...)
+}
+
 func (cache *DiskBlockCacheStandard) updateLruLocked(tlfID tlf.ID,
-	blockBytes []byte) error {
-	key := append(tlfID.Bytes(), blockBytes...)
+	blockKey []byte) error {
+	key := cache.lruKey(tlfID, blockKey)
 	val, err := time.Now().MarshalBinary()
 	if err != nil {
 		return err
 	}
 	cache.lruDb.Put(key, val, nil)
 	return nil
+}
+
+func (DiskBlockCacheStandard) timeFromBytes(b []byte) (t time.Time, err error) {
+	err = t.UnmarshalBinary(b)
+	return t, err
+}
+
+func (cache *DiskBlockCacheStandard) getLru(tlfID tlf.ID,
+	blockID kbfsblock.ID) (time.Time, error) {
+	lruKey := cache.lruKey(tlfID, blockID.Bytes())
+	lruBytes, err := cache.lruDb.Get(lruKey, nil)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return cache.timeFromBytes(lruBytes)
 }
 
 func (cache *DiskBlockCacheStandard) decodeBlockCacheEntry(buf []byte) ([]byte,
@@ -176,12 +195,12 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	}()
 	var entry []byte
 	err = runUnlessCanceled(ctx, func() error {
-		blockBytes := blockID.Bytes()
-		buf, err := cache.blockDb.Get(blockBytes, nil)
+		blockKey := blockID.Bytes()
+		buf, err := cache.blockDb.Get(blockKey, nil)
 		if err != nil {
 			return NoSuchBlockError{blockID}
 		}
-		err = cache.updateLruLocked(tlfID, blockBytes)
+		err = cache.updateLruLocked(tlfID, blockKey)
 		if err != nil {
 			return err
 		}
@@ -211,12 +230,12 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	if err != nil {
 		return err
 	}
-	blockBytes := blockID.Bytes()
-	err = cache.blockDb.Put(blockBytes, entry, nil)
+	blockKey := blockID.Bytes()
+	err = cache.blockDb.Put(blockKey, entry, nil)
 	if err != nil {
 		return err
 	}
-	return cache.updateLruLocked(tlfID, blockBytes)
+	return cache.updateLruLocked(tlfID, blockKey)
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
@@ -236,7 +255,7 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	for _, id := range blockIDs {
 		blockKey := id.Bytes()
 		blockBatch.Delete(blockKey)
-		lruKey := append(tlfID.Bytes(), blockKey...)
+		lruKey := cache.lruKey(tlfID, blockKey)
 		lruBatch.Delete(lruKey)
 	}
 	if err := cache.blockDb.Write(blockBatch, nil); err != nil {
