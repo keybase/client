@@ -95,8 +95,10 @@ type TLFJournalStatus struct {
 	BranchID      string
 	BlockOpCount  uint64
 	// The byte counters below are signed because
-	// os.FileInfo.Size() is signed.
+	// os.FileInfo.Size() is signed. The file counter is signed
+	// for consistency.
 	StoredBytes    int64
+	StoredFiles    int64
 	UnflushedBytes int64
 	UnflushedPaths []string
 	LastFlushErr   string `json:",omitempty"`
@@ -186,7 +188,8 @@ type tlfJournal struct {
 	onMDFlush           mdFlushListener
 
 	// Invariant: this tlfJournal acquires exactly
-	// blockJournal.getStoredBytes() until shutdown.
+	// blockJournal.getStoredBytes() and
+	// blockJournal.getStoredFiles() until shutdown.
 	diskLimiter diskLimiter
 
 	// All the channels below are used as simple on/off
@@ -1138,6 +1141,7 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 		lastFlushErr = j.lastFlushErr.Error()
 	}
 	storedBytes := j.blockJournal.getStoredBytes()
+	storedFiles := j.blockJournal.getStoredFiles()
 	unflushedBytes := j.blockJournal.getUnflushedBytes()
 	return TLFJournalStatus{
 		Dir:            j.dir,
@@ -1146,6 +1150,7 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 		RevisionEnd:    latestRevision,
 		BlockOpCount:   blockEntryCount,
 		StoredBytes:    storedBytes,
+		StoredFiles:    storedFiles,
 		UnflushedBytes: unflushedBytes,
 		LastFlushErr:   lastFlushErr,
 	}, nil
@@ -1337,14 +1342,14 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 }
 
 func (j *tlfJournal) getByteCounts() (
-	storedBytes, unflushedBytes int64, err error) {
+	storedBytes, storedFiles, unflushedBytes int64, err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
 
-	return j.blockJournal.getStoredBytes(),
+	return j.blockJournal.getStoredBytes(), j.blockJournal.getStoredFiles(),
 		j.blockJournal.getUnflushedBytes(), nil
 }
 

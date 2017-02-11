@@ -69,10 +69,13 @@ type JournalServerStatus struct {
 	EnableAutoSetByUser bool
 	JournalCount        int
 	// The byte counters below are signed because
-	// os.FileInfo.Size() is signed.
-	StoredBytes    int64
-	UnflushedBytes int64
-	UnflushedPaths []string
+	// os.FileInfo.Size() is signed. The file counter is signed
+	// for consistency.
+	StoredBytes       int64
+	StoredFiles       int64
+	UnflushedBytes    int64
+	UnflushedPaths    []string
+	DiskLimiterStatus interface{}
 }
 
 // branchChangeListener describes a caller that will get updates via
@@ -132,6 +135,10 @@ type diskLimiter interface {
 	// a block with either zero byte or zero file count shouldn't
 	// happen, but may as well let it go through.)
 	onBlockDelete(ctx context.Context, blockBytes, blockFiles int64)
+
+	// getStatus returns an object that's marshallable into JSON
+	// for use in displaying status.
+	getStatus() interface{}
 }
 
 // TODO: JournalServer isn't really a server, although it can create
@@ -649,16 +656,18 @@ func (j *JournalServer) Status(
 	ctx context.Context) (JournalServerStatus, []tlf.ID) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
-	var totalStoredBytes, totalUnflushedBytes int64
+	var totalStoredBytes, totalStoredFiles, totalUnflushedBytes int64
 	tlfIDs := make([]tlf.ID, 0, len(j.tlfJournals))
 	for _, tlfJournal := range j.tlfJournals {
-		storedBytes, unflushedBytes, err := tlfJournal.getByteCounts()
+		storedBytes, storedFiles, unflushedBytes, err :=
+			tlfJournal.getByteCounts()
 		if err != nil {
 			j.log.CWarningf(ctx,
-				"Couldn't calculate stored/unflushed bytes for %s: %+v",
+				"Couldn't calculate stored bytes/stored files/unflushed bytes for %s: %+v",
 				tlfJournal.tlfID, err)
 		}
 		totalStoredBytes += storedBytes
+		totalStoredFiles += storedFiles
 		totalUnflushedBytes += unflushedBytes
 		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
 	}
@@ -672,7 +681,9 @@ func (j *JournalServer) Status(
 		EnableAutoSetByUser: enableAutoSetByUser,
 		JournalCount:        len(tlfIDs),
 		StoredBytes:         totalStoredBytes,
+		StoredFiles:         totalStoredFiles,
 		UnflushedBytes:      totalUnflushedBytes,
+		DiskLimiterStatus:   j.diskLimiter.getStatus(),
 	}, tlfIDs
 }
 
