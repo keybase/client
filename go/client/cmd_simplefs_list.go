@@ -28,25 +28,26 @@ type CmdSimpleFSList struct {
 // NewCmdDeviceList creates a new cli.Command.
 func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "list",
-		Usage: "List directory contents",
+		Name:         "ls",
+		ArgumentHelp: "<path>",
+		Usage:        "list directory contents",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "list", c)
+			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "ls", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "r, recursive",
-				Usage: "Recurse into subdirectories",
+				Usage: "recurse into subdirectories",
 			},
 			cli.StringFlag{
 				Name:  "o, opid",
-				Usage: "Retrieve results of asynchronous request",
+				Usage: "retrieve results",
 			},
 		},
 	}
 }
 
-// RunClient runs the command in client/server mode.
+// Run runs the command in client/server mode.
 func (c *CmdSimpleFSList) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
@@ -104,7 +105,6 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	c.recurse = ctx.Bool("recurse")
-	c.async = ctx.Bool("async")
 	if ctx.String("opid") != "" {
 		opid, err := hex.DecodeString(ctx.String("opid"))
 		if err != nil {

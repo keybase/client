@@ -4,7 +4,7 @@
 package client
 
 import (
-	"fmt"
+	"errors"
 
 	"golang.org/x/net/context"
 
@@ -24,8 +24,9 @@ type CmdSimpleFSMkdir struct {
 // NewCmdSimpleFSMkdir creates a new cli.Command.
 func NewCmdSimpleFSMkdir(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "mkdir",
-		Usage: "Remove directory elements",
+		Name:         "mkdir",
+		ArgumentHelp: "<path>",
+		Usage:        "create directory",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "mkdir", c)
 		},
@@ -62,7 +63,7 @@ func (c *CmdSimpleFSMkdir) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	if nargs != 1 {
-		err = fmt.Errorf("mkdir requires a KBFS path argument.")
+		err = errors.New("mkdir requires a KBFS path argument")
 	} else {
 		c.path = MakeSimpleFSPath(ctx.Args()[0])
 	}

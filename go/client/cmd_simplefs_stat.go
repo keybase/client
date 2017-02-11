@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -24,8 +25,9 @@ type CmdSimpleFSStat struct {
 // NewCmdSimpleFSStat creates a new cli.Command.
 func NewCmdSimpleFSStat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "stat",
-		Usage: "stat directory elements",
+		Name:         "stat",
+		ArgumentHelp: "<path>",
+		Usage:        "stat directory element",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "stat", c)
 		},
@@ -57,7 +59,7 @@ func (c *CmdSimpleFSStat) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	if nargs != 1 {
-		err = fmt.Errorf("stat requires a KBFS path argument.")
+		err = errors.New("stat requires a KBFS path argument")
 	} else {
 		c.path = MakeSimpleFSPath(ctx.Args()[0])
 	}
