@@ -1,3 +1,7 @@
+// Copyright 2017 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
 package libkbfs
 
 import (
@@ -16,6 +20,7 @@ import (
 )
 
 const (
+	// 10 GB maximum storage by default
 	defaultDiskBlockCacheMaxBytes uint64 = 10 * (1 << 30)
 	evictionConsiderationFactor   uint   = 3
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
@@ -37,7 +42,8 @@ type DiskBlockCacheStandard struct {
 	config   diskBlockCacheConfig
 	maxBytes uint64
 	log      logger.Logger
-	// protects everything below
+	// protects the disk caches from being shutdown while they're being
+	// accessed
 	lock     sync.RWMutex
 	isClosed bool
 	blockDb  *leveldb.DB
@@ -106,9 +112,15 @@ func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
 		lruStorage, maxBytes)
 }
 
-// TODO: Fix getSizes(), where leveldb.DB.SizeOf() currently doesn't work for
-// the full range.
-func (cache *DiskBlockCacheStandard) getSizes() (blockSize int64, lruSize int64, err error) {
+// TODO: Fix getSizesLocked(), where leveldb.DB.SizeOf() currently doesn't work
+// for the full range. As it is right now, this is a very cheap operation,
+// since it just takes the beginning and end offsets from levelDB and returns
+// the difference.
+func (cache *DiskBlockCacheStandard) getSizesLocked() (blockSize int64,
+	lruSize int64, err error) {
+	// a util.Range{nil, nil} is supposed to work for the full range based on
+	// other methods, but it appears not to work for SizeOf. Need to implement
+	// by querying the files in the LevelDB directory instead. Ugh.
 	blockSizes, err := cache.blockDb.SizeOf([]util.Range{{}})
 	if err != nil {
 		return -1, -1, err
@@ -120,10 +132,10 @@ func (cache *DiskBlockCacheStandard) getSizes() (blockSize int64, lruSize int64,
 	return blockSizes[0], lruSizes[0], nil
 }
 
-func (cache *DiskBlockCacheStandard) compactCaches(ctx context.Context) {
+func (cache *DiskBlockCacheStandard) compactCachesLocked(ctx context.Context) {
 	cache.blockDb.CompactRange(util.Range{})
 	cache.lruDb.CompactRange(util.Range{})
-	bSize, lruSize, err := cache.getSizes()
+	bSize, lruSize, err := cache.getSizesLocked()
 	cache.log.CDebugf(ctx, "Disk Cache bSize=%d lruSize=%d err=%+v", bSize, lruSize, err)
 }
 
@@ -159,16 +171,19 @@ func (cache *DiskBlockCacheStandard) encodeBlockCacheEntry(buf []byte,
 
 // Get implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
-	blockID kbfsblock.ID) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+	blockID kbfsblock.ID) (buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.isClosed {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			DiskCacheClosedError{"Get"}
 	}
-	cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s", blockID, tlfID)
+	defer func() {
+		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d err=%+v", blockID, tlfID, len(buf), err)
+	}()
 	var entry []byte
-	err := runUnlessCanceled(ctx, func() error {
+	err = runUnlessCanceled(ctx, func() error {
 		blockBytes := blockID.Bytes()
 		buf, err := cache.blockDb.Get(blockBytes, nil)
 		if err != nil {
@@ -183,9 +198,6 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	})
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-	if entry == nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoSuchBlockError{blockID}
 	}
 	return cache.decodeBlockCacheEntry(entry)
 }
@@ -242,27 +254,20 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 
-	cache.compactCaches(ctx)
+	cache.compactCachesLocked(ctx)
 
 	return nil
 }
 
-// Evict implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Evict(ctx context.Context, tlfID tlf.ID,
-	numBlocks int) error {
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
-	if cache.isClosed {
-		return DiskCacheClosedError{"Evict"}
-	}
+// evictLocked evicts a number of blocks from the cache.
+func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
+	tlfID tlf.ID, numBlocks int) error {
 	// Use kbfscrypto.MakeTemporaryID() to create a random hash ID. Then begin
-	// an interator into cache.lruDb.Range(b, nil) and iterate from there to
-	// get numBlocks * evictionConsiderationFactor block IDs.  We sort the
-	// resulting blocks by value (LRU time) and pick the minimum numBlocks. We
-	// put those block IDs into a leveldb.Batch for cache.blockDb via
-	// Batch.Delete(), then Write() that batch.
-	// NOTE: It is important that we store LRU times using a monotonic clock
-	// for this device. Use runtime.nanotime() for now.
+	// an interator into cache.lruDb.Range(tlfID + b, tlfID + MaxBlockID) and
+	// iterate from there to get numBlocks * evictionConsiderationFactor block
+	// IDs.  We sort the resulting blocks by value (LRU time) and pick the
+	// minimum numBlocks. We then call cache.Delete() on that list of block
+	// IDs.
 	return nil
 }
 
