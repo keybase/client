@@ -8,9 +8,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
@@ -23,23 +21,15 @@ const (
 )
 
 type testDiskBlockCacheConfig struct {
-	codec kbfscodec.Codec
-	log   logger.Logger
+	codecGetter
+	logMaker
 }
 
 func newTestDiskBlockCacheConfig(t *testing.T) testDiskBlockCacheConfig {
 	return testDiskBlockCacheConfig{
-		codec: kbfscodec.NewMsgpack(),
-		log:   logger.NewTestLogger(t),
+		newTestCodecGetter(),
+		newTestLogMaker(t),
 	}
-}
-
-func (c testDiskBlockCacheConfig) Codec() kbfscodec.Codec {
-	return c.codec
-}
-
-func (c testDiskBlockCacheConfig) MakeLogger(_ string) logger.Logger {
-	return c.log
 }
 
 func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
