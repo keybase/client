@@ -11,6 +11,7 @@
 #import "KBKext.h"
 #import "KBLogger.h"
 #import <MPMessagePack/MPXPCProtocol.h>
+#include <sys/sysctl.h>
 
 @implementation KBHelper
 
@@ -94,6 +95,8 @@
     [self addToPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else if ([method isEqualToString:@"removeFromPath"]) {
     [self removeFromPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
+  } else if ([method isEqualToString:@"sysctl"]) {
+    [self sysctl:args[@"name"] value:args[@"value"] completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
@@ -125,7 +128,7 @@
     NSURL *directoryURL = [NSURL fileURLWithPath:directory];
     OSStatus status = CSBackupSetItemExcluded((__bridge CFURLRef)directoryURL, YES, YES);
     if (status != noErr) {
-      completion(KBMakeError(status, @"Error trying to exclude from backup"), nil);
+      completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Error trying to exclude from backup: %@", @(status)), nil);
       return;
     }
   }
@@ -233,12 +236,12 @@
   for (NSString *path in removePaths) {
     NSError *error = nil;
     if (![NSFileManager.defaultManager removeItemAtPath:path error:&error]) {
-      [errors addObject:KBMakeError(error.code, @"Failed to remove path: %@", path)];
+      [errors addObject:KBMakeError(MPXPCErrorCodeInvalidRequest, @"Failed to remove path: %@ (%@)", path, @(error.code))];
     }
   }
 
   if ([errors count] > 0) {
-    completion(KBMakeError(-1, @"%@", [errors componentsJoinedByString:@". "]), @{@"paths": removePaths});
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"%@", [errors componentsJoinedByString:@". "]), @{@"paths": removePaths});
   } else {
     completion(nil, @{@"paths": removePaths});
   }
@@ -272,6 +275,55 @@
     return;
   }
   completion(nil, @{});
+}
+
+- (void)sysctl:(NSString *)name value:(id)value completion:(void (^)(NSError *error, id value))completion {
+  if ([value isKindOfClass:[NSNumber class]]) {
+    [self sysctl:name numberValue:value completion:completion];
+    return;
+  }
+
+  if ([value isKindOfClass:[NSString class]]) {
+    [self sysctl:name stringValue:value completion:completion];
+    return;
+  }
+
+  completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Unsupported value type for sysctl"), nil);
+}
+
+- (void)sysctl:(NSString *)name numberValue:(NSNumber *)numberValue completion:(void (^)(NSError *error, id value))completion {
+  int intValue = [numberValue intValue];
+  int oldValue = 0;
+  size_t oldValueLen = sizeof(oldValue);
+  int retval = sysctlbyname([name UTF8String], &oldValue, &oldValueLen, NULL, 0);
+  if (retval != 0) {
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Sysctl get error: %@", @(retval)), nil);
+    return;
+  }
+  if (oldValue == intValue) {
+    completion(nil, nil);
+    return;
+  }
+  size_t valueLen = sizeof(intValue);
+  int retvalSet = sysctlbyname([name UTF8String], NULL, 0, &intValue, valueLen);
+  if (retvalSet != 0) {
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Sysctl set (int) error: %@", @(retvalSet)), nil);
+    return;
+  }
+  completion(nil, numberValue);
+  return;
+}
+
+- (void)sysctl:(NSString *)name stringValue:(NSString *)stringValue completion:(void (^)(NSError *error, id value))completion {
+  const char *value = [name UTF8String];
+  size_t valueLen = sizeof(value);
+  int retvalSet = sysctlbyname([name UTF8String], NULL, 0, &value, valueLen);
+  if (retvalSet != 0) {
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Sysctl set (string) error: %@", @(retvalSet)), nil);
+    return;
+  }
+  completion(nil, stringValue);
+  return;
 }
 
 @end

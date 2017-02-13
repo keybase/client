@@ -131,6 +131,16 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
+  [self _checkAndInstallFuse:^(NSError *error) {
+    if (error) {
+      completion(error);
+      return;
+    }
+    [self setFuseAdminGroup:completion];
+  }];
+}
+
+- (void)_checkAndInstallFuse:(KBCompletion)completion {
   [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
     // Upgrades currently unsupported for Fuse if there are mounts
     if (cs.installAction == KBRInstallActionUpgrade && [self hasKBFuseMounts:fuseStatus]) {
@@ -159,7 +169,29 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   NSDictionary *params = @{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath};
   DDLogDebug(@"Helper: kextInstall(%@)", params);
   [self.helperTool.helper sendRequest:@"kextInstall" params:@[params] completion:^(NSError *error, id value) {
-    completion(error);
+    if (error) {
+      completion(error);
+      return;
+    }
+  }];
+}
+
+// Set admin group to 20 (staff) so non-admin users can use KBFS.
+// See https://github.com/osxfuse/osxfuse/wiki/Mount-options#allow_root
+// sysctl is only available for helper tool build >= 3, otherwise we'll skip it
+- (void)setFuseAdminGroup:(KBCompletion)completion {
+  [self.helperTool version:^(NSError *error, KBSemVersion *version, NSNumber *buildNumber) {
+    DDLogDebug(@"Checking helper tool build number: %@", buildNumber);
+    if ([buildNumber integerValue] >= 3) {
+      NSNumber *adminGroup = @(20); // staff
+      DDLogDebug(@"Setting kbfuse admin group: %@", adminGroup);
+      NSDictionary *sysctlParams = @{@"name": @"vfs.generic.kbfuse.tunables.admin_group", @"value": adminGroup};
+      [self.helperTool.helper sendRequest:@"sysctl" params:@[sysctlParams] completion:^(NSError *error, id value) {
+        completion(error);
+      }];
+    } else {
+      completion(nil);
+    }
   }];
 }
 

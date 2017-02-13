@@ -20,4 +20,6 @@
 
 + (MPXPCClient *)helper;
 
+- (void)version:(void (^)(NSError *error, KBSemVersion *version, NSNumber *buildNumber))completion;
+
 @end

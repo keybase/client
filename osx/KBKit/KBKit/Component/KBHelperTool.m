@@ -16,6 +16,7 @@
 
 #import "KBSemVersion.h"
 #import "KBFormatter.h"
+#include <unistd.h>
 
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 
@@ -74,6 +75,18 @@
   va_end(args);
 }
 
+- (void)version:(void (^)(NSError *error, KBSemVersion *version, NSNumber *buildNumber))completion {
+  [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
+    if (error) {
+      completion(error, nil, nil);
+      return;
+    }
+    KBSemVersion *version = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:nil];
+    NSNumber *buildNumber = KBIfNull(versions[@"build"], @(0));
+    completion(nil, version, buildNumber);
+  }];
+}
+
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   KBSemVersion *bundleVersion = [self bundleVersion];
@@ -110,7 +123,11 @@
     if ([cs needsInstallOrUpgrade]) {
       [self _install:completion];
     } else {
-      completion(nil);
+      [self needsUpgrade:^(BOOL needsUpgrade) {
+        if (needsUpgrade) [self _install:completion];
+        else completion(nil);
+      }];
+
     }
   }];
 }
@@ -201,6 +218,38 @@
   } else {
     completion(nil);
   }
+}
+
+- (BOOL)isInGroup:(int)groupId {
+  NSString *userName = NSUserName();
+  int size = 40;
+  int groups[40];
+  struct group *pgrp;
+
+  getgrouplist([userName UTF8String], -1, groups, &size);
+  for (int i = 0; i < size; i++) {
+    if (groups[i] == groupId) return true;
+  }
+  return false;
+}
+
+- (void)needsUpgrade:(void (^)(BOOL needsUpgrade))completion {
+  // Check if we need to upgrade helper tool for non-admin users
+  BOOL adminUser = [self isInGroup:80];
+  DDLogDebug(@"Is admin user? %@", @(adminUser));
+
+  if (adminUser) {
+    completion(NO);
+    return;
+  }
+
+  [self version:^(NSError *error, KBSemVersion *version, NSNumber *buildNumber) {
+    if ([buildNumber integerValue] <= 2) {
+      completion(YES);
+      return;
+    }
+    completion(NO);
+  }];
 }
 
 /*
