@@ -438,6 +438,10 @@ func lookupMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, l
 	return
 }
 
-func LoadUserPlusKeys(ctx context.Context, g *GlobalContext, uid keybase1.UID, kid keybase1.KID) (keybase1.UserPlusKeys, error) {
-	return g.GetUPAKLoader().LoadUserPlusKeys(ctx, uid, kid)
+// LoadUserPlusKeys loads user and keys for the given UID.  If `pollForKID` is provided, we'll request
+// this user potentially twice: the first time can hit the cache for the UID, but will force a repoll
+// unless the pollForKID is found for the user.  If pollForKID is empty, then just access the cache as
+// normal.
+func LoadUserPlusKeys(ctx context.Context, g *GlobalContext, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error) {
+	return g.GetUPAKLoader().LoadUserPlusKeys(ctx, uid, pollForKID)
 }
