@@ -116,7 +116,7 @@ func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByN
 }
 
 func (h *UserHandler) LoadUserPlusKeys(ctx context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
-	return libkb.LoadUserPlusKeys(ctx, h.G(), arg.Uid)
+	return libkb.LoadUserPlusKeys(ctx, h.G(), arg.Uid, arg.PollForKID)
 }
 
 func (h *UserHandler) Search(_ context.Context, arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {

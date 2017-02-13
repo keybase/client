@@ -16,7 +16,7 @@ type UPAKLoader interface {
 	ClearMemory()
 	Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
-	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (keybase1.UserPlusKeys, error)
+	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upk *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
@@ -319,7 +319,7 @@ func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID,
 	return found, revokedAt, deleted, nil
 }
 
-func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (keybase1.UserPlusKeys, error) {
+func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error) {
 	var up keybase1.UserPlusKeys
 	if uid.IsNil() {
 		return up, NoUIDError{}
@@ -330,17 +330,25 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 	arg.PublicKeyOptional = true
 	arg.NetContext = ctx
 
-	// We need to force a reload to make KBFS tests pass
-	arg.ForcePoll = (u.G().Env.GetRunMode() == DevelRunMode)
+	forcePollValues := []bool{false, true}
 
-	upak, _, err := u.Load(arg)
-	if err != nil {
-		return up, err
+	for _, fp := range forcePollValues {
+		// We need to force a reload to make KBFS tests pass
+		arg.ForcePoll = fp || (u.G().Env.GetRunMode() == DevelRunMode)
+
+		upak, _, err := u.Load(arg)
+		if err != nil {
+			return up, err
+		}
+		if upak == nil {
+			return up, fmt.Errorf("Nil user, nil error from LoadUser")
+		}
+		up = upak.Base
+		if pollForKID.IsNil() || up.FindKID(pollForKID) != nil {
+			break
+		}
+
 	}
-	if upak == nil {
-		return up, fmt.Errorf("Nil user, nil error from LoadUser")
-	}
-	up = upak.Base
 	return up, nil
 }
 

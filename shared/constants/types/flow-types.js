@@ -5705,7 +5705,8 @@ export type userLoadUserByNameRpcParam = Exact<{
 }>
 
 export type userLoadUserPlusKeysRpcParam = Exact<{
-  uid: UID
+  uid: UID,
+  pollForKID: KID
 }>
 
 export type userLoadUserRpcParam = Exact<{
