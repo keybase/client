@@ -438,6 +438,6 @@ func lookupMerkleLeaf(ctx context.Context, g *GlobalContext, uid keybase1.UID, l
 	return
 }
 
-func LoadUserPlusKeys(ctx context.Context, g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys, error) {
-	return g.GetUPAKLoader().LoadUserPlusKeys(ctx, uid)
+func LoadUserPlusKeys(ctx context.Context, g *GlobalContext, uid keybase1.UID, kid keybase1.KID) (keybase1.UserPlusKeys, error) {
+	return g.GetUPAKLoader().LoadUserPlusKeys(ctx, uid, kid)
 }

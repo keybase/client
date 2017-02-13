@@ -876,6 +876,15 @@ func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
 	return nil
 }
 
+func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
+	for _, k := range u.DeviceKeys {
+		if k.KID.Equal(needle) {
+			return &k
+		}
+	}
+	return nil
+}
+
 func (s ChatConversationID) String() string {
 	return hex.EncodeToString(s)
 }
