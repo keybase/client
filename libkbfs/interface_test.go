@@ -34,3 +34,21 @@ func newTestLogMaker(t *testing.T) testLogMaker {
 func (lm testLogMaker) MakeLogger(_ string) logger.Logger {
 	return lm.log
 }
+
+type testClockGetter struct {
+	clock *TestClock
+}
+
+var _ clockGetter = (*testClockGetter)(nil)
+
+func newTestClockGetter() *testClockGetter {
+	return &testClockGetter{newTestClockNow()}
+}
+
+func (cg *testClockGetter) Clock() Clock {
+	return cg.clock
+}
+
+func (cg *testClockGetter) TestClock() *TestClock {
+	return cg.clock
+}

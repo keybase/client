@@ -40,6 +40,7 @@ type diskBlockCacheEntry struct {
 type diskBlockCacheConfig interface {
 	codecGetter
 	logMaker
+	clockGetter
 }
 
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
@@ -47,8 +48,8 @@ type DiskBlockCacheStandard struct {
 	config   diskBlockCacheConfig
 	maxBytes uint64
 	log      logger.Logger
-	// protects the disk caches from being shutdown while they're being
-	// accessed
+	// This protects the disk caches from being shutdown while they're being
+	// accessed.
 	lock     sync.RWMutex
 	isClosed bool
 	blockDb  *leveldb.DB
@@ -62,6 +63,11 @@ var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
 func openLevelDB(stor storage.Storage) (db *leveldb.DB, err error) {
 	db, err = leveldb.Open(stor, leveldbOptions)
 	if _, isErrCorrupted := err.(*storage.ErrCorrupted); isErrCorrupted {
+		// There's a possibility that if the leveldb wasn't closed properly
+		// last time while it was being written, then the manifest is corrupt.
+		// This means leveldb must rebuild its manifest, which takes longer
+		// than a simple `Open`.
+		// TODO: log here
 		return leveldb.Recover(stor, leveldbOptions)
 	}
 	return db, err
@@ -148,11 +154,11 @@ func (*DiskBlockCacheStandard) lruKey(tlfID tlf.ID, blockKey []byte) []byte {
 }
 
 // updateLruLocked updates the LRU time of a block in the LRU cache to
-// time.Now().
+// the current time.
 func (cache *DiskBlockCacheStandard) updateLruLocked(tlfID tlf.ID,
 	blockKey []byte) error {
 	key := cache.lruKey(tlfID, blockKey)
-	val, err := time.Now().MarshalBinary()
+	val, err := cache.config.Clock().Now().MarshalBinary()
 	if err != nil {
 		return err
 	}

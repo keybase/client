@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -23,12 +24,14 @@ const (
 type testDiskBlockCacheConfig struct {
 	codecGetter
 	logMaker
+	*testClockGetter
 }
 
 func newTestDiskBlockCacheConfig(t *testing.T) testDiskBlockCacheConfig {
 	return testDiskBlockCacheConfig{
 		newTestCodecGetter(),
 		newTestLogMaker(t),
+		newTestClockGetter(),
 	}
 }
 
@@ -80,6 +83,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	require.NoError(t, err)
 	putTime, err := cache.getLru(tlf1, block1Id)
 	require.NoError(t, err)
+	config.TestClock().Add(time.Second)
 
 	t.Log("Get that block from the cache. Verify that it's the same.")
 	buf, serverHalf, err := cache.Get(ctx, tlf1, block1Id)
