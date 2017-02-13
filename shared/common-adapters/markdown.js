@@ -116,7 +116,14 @@ function process (ast, createComponent) {
 
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    return <Text type='Body' style={this.props.style}>{process(parser.parse(this.props.children || ''), this.props.preview ? previewCreateComponent : messageCreateComponent)}</Text>
+    let content
+    try {
+      content = process(parser.parse(this.props.children || ''), this.props.preview ? previewCreateComponent : messageCreateComponent)
+    } catch (err) {
+      console.warn('Markdown parsing failed:', err)
+      content = this.props.children
+    }
+    return <Text type='Body' style={this.props.style}>{content}</Text>
   }
 }
 
