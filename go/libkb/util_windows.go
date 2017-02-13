@@ -136,6 +136,8 @@ func copyFile(src string, dest string) error {
 	return err
 }
 
+// These are the really important ones, so we'll copy first and then delete the old ones,
+// undoing on failure.
 func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) error {
 	var err error
 	files, _ := filepath.Glob(filepath.Join(oldHome, "*.mpack"))
