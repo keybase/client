@@ -7,6 +7,7 @@ package libkb
 
 import (
 	"errors"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -113,9 +114,61 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return err
 }
 
+func copyFile(src string, dest string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	destFile, err := os.Create(dest) // creates if file doesn't exist
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, srcFile) // check first var for number of bytes copied
+	if err != nil {
+		return err
+	}
+
+	err = destFile.Sync()
+	return err
+}
+
+func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) error {
+	var err error
+	files, _ := filepath.Glob(filepath.Join(oldHome, "*.mpack"))
+	files = append(files, filepath.Join(oldHome, "config.json"))
+	var newFiles []string
+	for _, oldPathName := range files {
+		_, name := filepath.Split(oldPathName)
+		newPathName := filepath.Join(currentHome, name)
+		err = copyFile(oldPathName, newPathName)
+		newFiles = append(newFiles, newPathName)
+		if err != nil {
+			g.Log.Error("RemoteSettingsRepairman fatal error moving %s to %s - %s", oldPathName, newPathName, err)
+			break
+		}
+	}
+	if err != nil {
+		// Undo any of the new copies and quit
+		for _, newPathName := range newFiles {
+			os.Remove(newPathName)
+		}
+		return err
+	}
+	// Now that we've successfully copied, delete the old ones
+	for _, oldPathName := range files {
+		err = os.Remove(oldPathName)
+	}
+
+	return err
+}
+
 // helper for RemoteSettingsRepairman
 func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) error {
-	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
+
 	files, _ := filepath.Glob(filepath.Join(oldHome, "*"))
 	for _, oldPathName := range files {
 		_, name := filepath.Split(oldPathName)
@@ -183,6 +236,10 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 	oldConfig := filepath.Join(oldHome, configName)
 	if oldExists, _ := FileExists(oldConfig); oldExists {
 		if currentExists, _ := FileExists(currentConfig); !currentExists {
+			g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
+			if err = moveKeyFiles(g, oldHome, currentHome); err != nil {
+				return err
+			}
 			return moveNonChromiumFiles(g, oldHome, currentHome)
 		}
 	}
