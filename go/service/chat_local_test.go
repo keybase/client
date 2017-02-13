@@ -67,7 +67,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	if !ok {
 		t.Fatalf("user %s is not found", user.Username)
 	}
-	h := newChatLocalHandler(nil, tc.G, nil)
+	h := newChatLocalHandler(nil, tc.G, nil, nil)
 	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	mockRemote.SetCurrentUser(user.User.GetUID().ToBytes())
 
@@ -87,7 +87,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	h.setTestRemoteClient(mockRemote)
 	h.gh, _ = newGregorHandler(tc.G)
 
-	baseSender := chat.NewBlockingSender(tc.G, h.boxer,
+	baseSender := chat.NewBlockingSender(tc.G, h.boxer, nil,
 		func() chat1.RemoteInterface { return mockRemote }, f)
 	tc.G.MessageDeliverer = chat.NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.Start(context.TODO(), user.User.GetUID().ToBytes())
