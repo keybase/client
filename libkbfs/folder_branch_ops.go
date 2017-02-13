@@ -2241,6 +2241,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		return ExclOnUnmergedError{}
 	}
 
+	doResolve := false
+	resolveMergedRev := mergedRev
 	if doUnmergedPut {
 		// We're out of date, and this is not an exclusive write, so put it as an
 		// unmerged MD.
@@ -2254,7 +2256,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 		bid := md.BID()
 		fbo.setBranchIDLocked(lState, bid)
-		fbo.cr.Resolve(md.Revision(), mergedRev)
+		doResolve = true
 	} else {
 		fbo.setBranchIDLocked(lState, NullBranchID)
 
@@ -2282,7 +2284,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	if rebased {
 		bid := md.BID()
 		fbo.setBranchIDLocked(lState, bid)
-		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
+		doResolve = true
+		resolveMergedRev = MetadataRevisionUninitialized
 	}
 
 	key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
@@ -2305,6 +2308,12 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	}
 
 	fbo.notifyBatchLocked(ctx, lState, irmd)
+
+	// Call Resolve() after the head is set, to make sure it fetches
+	// the correct unmerged MD range during resolution.
+	if doResolve {
+		fbo.cr.Resolve(md.Revision(), resolveMergedRev)
+	}
 	return nil
 }
 
