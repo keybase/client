@@ -39,7 +39,7 @@ start
  = children:((Line LineTerminatorSequence)* Line?) { return {type: 'text', children: flatten(children)} }
 
 Line
- = (QuoteBlock / __INLINE_MACRO__<> / WhiteSpace)*
+ = (QuoteBlock / __INLINE_MACRO__<> / InlineDelimiter)*
 
 InlineStart
  = CodeBlock / InlineCode / Italic / Bold / Strike / Link / InlineCont

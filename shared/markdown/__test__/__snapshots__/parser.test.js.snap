@@ -7,6 +7,15 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses a single delimiter correctly 1`] = `
+Object {
+  "children": Array [
+    ".",
+  ],
+  "type": "text",
+}
+`;
+
 exports[`Markdown parser parses an empty line correctly 1`] = `
 Object {
   "children": Array [],
