@@ -28,7 +28,7 @@ function AttachmentTitle ({messageState, title}: {messageState: Constants.Attach
   return <Text type='BodySemibold' style={style}>{title}</Text>
 }
 
-function PreviewImage ({message: {previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: ?() => void}) {
+function PreviewImage ({message: {previewDurationMs, previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: ?() => void}) {
   if (previewType === 'Image') {
     let style = {
       ...globalStyles.flexBoxRow,
@@ -54,6 +54,11 @@ function PreviewImage ({message: {previewPath, previewType, previewSize, message
           <ImageIcon
             style={{position: 'relative', right: 19, top: 3}}
             type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
+        {previewDurationMs &&
+          <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
+            <Icon type='icon-play-64' />
+          </Box>
+        }
       </Box>
     )
   }

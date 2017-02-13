@@ -45,6 +45,7 @@ function attachmentMessageMock (messageState: MessageState, author: string, you:
     title: 'Yosemite!',
     previewType: 'Image',
     previewPath: require('../../../images/mock/yosemite-preview.jpg'),
+    previewDurationMs: null,
     downloadedPath: require('../../../images/mock/yosemite.jpg'),
     hdPreviewPath: require('../../../images/mock/yosemite.jpg'),
     previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
@@ -132,6 +133,7 @@ const attachmentBaseMessage = {
   messageID: 0,
   filename: '/tmp/Yosemite.jpg',
   title: 'Half Dome, Merced River, Winter',
+  previewDurationMs: null,
   previewType: 'Image',
   previewPath: null,
   downloadedPath: null,
@@ -153,6 +155,7 @@ const attachmentMessageWithImg = {
   messageID: 0,
   filename: '/tmp/Yosemite.jpg',
   title: 'Half Dome, Merced River, Winter',
+  previewDurationMs: null,
   previewType: 'Image',
   previewPath: require('../../../images/mock/yosemite-preview.jpg'),
   downloadedPath: require('../../../images/mock/yosemite-preview.jpg'),
@@ -162,6 +165,11 @@ const attachmentMessageWithImg = {
   you: 'cecileb',
   senderDeviceRevokedAt: null,
   previewSize: clampAttachmentPreviewSize({width: 375, height: 320}),
+}
+
+const attachmentMessageWithDuration = {
+  ...attachmentMessageWithImg,
+  previewDurationMs: 14000,
 }
 
 const attachmentMessageGeneric = {
@@ -174,6 +182,7 @@ const attachmentMessageGeneric = {
   messageID: 0,
   filename: '/tmp/The Nose - Topo.pdf',
   title: 'seattle-map.pdf',
+  previewDurationMs: null,
   previewType: 'Other',
   downloadedPath: '/tmp/somewhere', // eslint-disable-line
   hdPreviewPath: null,
@@ -225,6 +234,10 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
         previewPath: null,
         progress: 0.3,
       },
+    },
+    'Basic - Preview Image w/ Duration': {
+      ...attachmentBaseMock,
+      message: {...attachmentMessageWithDuration},
     },
     'Basic - Uploading': {
       ...attachmentBaseMock,

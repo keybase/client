@@ -100,6 +100,7 @@ export type AttachmentMessage = {
   previewType: ?AttachmentType,
   previewPath: ?string,
   previewSize: ?AttachmentSize,
+  previewDurationMs: ?number,
   hdPreviewPath: ?string,
   downloadedPath: ?string,
   outboxID?: OutboxIDKey,
