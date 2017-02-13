@@ -119,8 +119,8 @@ func (lfw *logFileWriter) Write(bs []byte) (int, error) {
 	lfw.file.Close()
 	lfw.file = nil
 	now := time.Now()
-	start := lfw.currentStart.Format("20060102T150405")
-	end := now.Format("20060102T150405")
+	start := lfw.currentStart.Format("20060102T150405Z0700")
+	end := now.Format("20060102T150405Z0700")
 	tgt := fmt.Sprintf("%s-%s-%s", lfw.config.Path, start, end)
 	// Handle the error further down
 	err = os.Rename(lfw.config.Path, tgt)
