@@ -36,6 +36,16 @@ func IDFromString(idStr string) (ID, error) {
 	return ID{h}, nil
 }
 
+// IDFromBytes creates a ID from the given bytes. If the returned error is nil,
+// the returned ID is valid.
+func IDFromBytes(idBytes []byte) (ID, error) {
+	h, err := kbfshash.HashFromBytes(idBytes)
+	if err != nil {
+		return ID{}, err
+	}
+	return ID{h}, nil
+}
+
 // IsValid returns whether the block ID is valid. A zero block ID is
 // considered invalid.
 func (id ID) IsValid() bool {
