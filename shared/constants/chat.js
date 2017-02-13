@@ -16,7 +16,7 @@ export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
 export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading-preview' | 'downloading' | 'uploading' | 'downloaded'
-export type AttachmentType = 'Image' | 'Other'
+export type AttachmentType = 'Image' | 'Video' | 'Other'
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string

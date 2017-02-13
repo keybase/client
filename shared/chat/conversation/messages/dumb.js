@@ -239,6 +239,10 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
       ...attachmentBaseMock,
       message: {...attachmentMessageWithDuration},
     },
+    'Basic - Preview Video w/ Duration': {
+      ...attachmentBaseMock,
+      message: {...attachmentMessageWithDuration, previewType: 'Video'},
+    },
     'Basic - Uploading': {
       ...attachmentBaseMock,
       message: {

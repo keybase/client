@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import MessageComponent from './shared.desktop'
+import moment from 'moment'
 import React, {PureComponent} from 'react'
 import {Box, Icon, ProgressIndicator, Text} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
@@ -29,7 +30,7 @@ function AttachmentTitle ({messageState, title}: {messageState: Constants.Attach
 }
 
 function PreviewImage ({message: {previewDurationMs, previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: ?() => void}) {
-  if (previewType === 'Image') {
+  if (previewType === 'Image' || previewType === 'Video') {
     let style = {
       ...globalStyles.flexBoxRow,
       marginTop: globalMargins.xtiny,
@@ -58,6 +59,12 @@ function PreviewImage ({message: {previewDurationMs, previewPath, previewType, p
           <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
             <Icon type='icon-play-64' />
           </Box>
+        }
+        {previewDurationMs && previewType === 'Video' &&
+          <Text
+            type='BodySemibold'
+            style={{position: 'absolute', color: 'white', fontSize: 12, right: globalMargins.tiny, bottom: globalMargins.xtiny}}
+          >{moment.utc(previewDurationMs).format('m:ss')}</Text>
         }
       </Box>
     )
@@ -227,6 +234,7 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
     let attachment
     switch (message.previewType) {
       case 'Image':
+      case 'Video':
         attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={this._onOpenInPopup} onOpenInFileUI={this._onOpenInFileUI} />
         break
       default:
