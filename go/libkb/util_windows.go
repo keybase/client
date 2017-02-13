@@ -141,6 +141,8 @@ func copyFile(src string, dest string) error {
 func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) error {
 	var err error
 	files, _ := filepath.Glob(filepath.Join(oldHome, "*.mpack"))
+	ssfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
+	files = append(files, ssfiles...)
 	files = append(files, filepath.Join(oldHome, "config.json"))
 	var newFiles []string
 	for _, oldPathName := range files {
