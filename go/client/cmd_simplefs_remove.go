@@ -97,7 +97,7 @@ func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if nargs == 1 {
-		c.path = MakeSimpleFSPath(ctx.Args()[0])
+		c.path = MakeSimpleFSPath(c.G(), ctx.Args()[0])
 	}
 
 	if pathType, _ := c.path.PathType(); pathType != keybase1.PathType_KBFS {
