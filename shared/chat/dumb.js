@@ -288,41 +288,60 @@ const sidePanel = {
   },
 }
 
+
+const inboxParentProps = {
+  style: {
+    ...globalStyles.flexBoxColumn,
+    minWidth: 240,
+    height: 300,
+  },
+}
+
+
 const conversationsList = {
   component: ConversationListContainer,
   mocks: {
     'Normal': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
     },
     'Selected Normal': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'SelectedMuted': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'Empty': {
       ...emptyConversationsProps,
+      parentProps: inboxParentProps,
     },
     'PartRekey': {
       ...rekeyConvo(false),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'PartRekeySelected': {
       ...rekeyConvo(false),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'YouRekey': {
       ...rekeyConvo(true),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'YouRekeySelected': {
       ...rekeyConvo(true),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'LongTop': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       inbox: List([
         new InboxStateRecord({
           conversationIDKey: 'convo1',
@@ -337,6 +356,7 @@ const conversationsList = {
     },
     'LongBottom': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       inbox: List([
         new InboxStateRecord({
           conversationIDKey: 'convo1',
