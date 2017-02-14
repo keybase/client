@@ -3,6 +3,7 @@ import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
 
+import {clamp} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
@@ -438,10 +439,16 @@ function getBrokenUsers (participants: Array<string>, you: string, metaDataMap: 
 }
 
 function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
-  const maxSize = Math.max(width, height)
-  return {
-    width: maxAttachmentPreviewSize * (width / maxSize),
-    height: maxAttachmentPreviewSize * (height / maxSize),
+  if (height > width) {
+    return {
+      height: clamp(height, maxAttachmentPreviewSize),
+      width: clamp(height, maxAttachmentPreviewSize) * width / height,
+    }
+  } else {
+    return {
+      height: clamp(width, maxAttachmentPreviewSize) * height / width,
+      width: clamp(width, maxAttachmentPreviewSize),
+    }
   }
 }
 
