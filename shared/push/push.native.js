@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Clipboard, Image, PushNotificationIOS} from 'react-native'
+import {Clipboard, Image, PushNotificationIOS, NativeModules} from 'react-native'
 import {connect} from 'react-redux'
 import {Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
@@ -11,9 +11,14 @@ import type {Props} from './push'
 import * as Constants from '../constants/push'
 import type {TokenType} from '../constants/push'
 
-class Push extends Component<void, Props, void> {
+const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
+class Push extends Component<void, Props, void> {
   componentDidMount () {
+    if (nativeBridge.usingSimulator === '1') {
+      console.log('Skipping push config due to simulator')
+      return
+    }
     this.configurePush()
   }
 
