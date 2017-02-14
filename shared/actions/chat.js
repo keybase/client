@@ -928,7 +928,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       }
       // find it
     } else if (incoming.chatInboxFailed) {
-      console.warn('ignoring chatInboxFailed', incoming.chatInboxFailed)
+      console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
       incoming.chatInboxFailed.response.result()
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)

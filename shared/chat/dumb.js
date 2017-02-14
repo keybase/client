@@ -343,7 +343,7 @@ const conversationsList = {
           info: null,
           muted: false,
           participants: List(['look down!']),
-          snippet: 'one two three four five six seven eight nine ten',
+          snippet: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
           time: now,
           unreadCount: 3,
         }),
