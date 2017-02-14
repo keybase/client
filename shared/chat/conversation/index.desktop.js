@@ -11,7 +11,7 @@ import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
-import {nothingSelected} from '../../constants/chat'
+import {nothingSelected, participantFilter, usernamesToUserListItem} from '../../constants/chat'
 import {withHandlers, branch, renderComponent, compose} from 'recompose'
 
 import type {Props} from '.'
@@ -135,7 +135,6 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
     } = this.props
 
     const banner = bannerMessage && <Banner {...bannerMessage} />
-
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type='icon-file-dropping-48' />
