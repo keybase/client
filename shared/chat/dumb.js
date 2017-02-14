@@ -176,7 +176,7 @@ const header = {
     'Muted': {
       ...commonConvoProps,
       muted: true,
-    }
+    },
   },
 }
 
