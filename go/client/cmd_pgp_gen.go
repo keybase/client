@@ -184,7 +184,7 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
    'keybase pgp export -s | gpg --import'.)
 
    On subsequent secret key accesses --- say for PGP decryption or
-   for signing --- access to the local GnuGP keyring is not required.
+   for signing --- access to the local GnuPG keyring is not required.
    Rather, keybase will access the secret PGP key in its own local keychain.
 
    By default, the secret half of the PGP key is never exported off
