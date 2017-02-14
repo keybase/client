@@ -847,6 +847,9 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
 function * selectValidConversation () {
+  if (isMobile) {
+    return // Mobile doens't auto select a conversation
+  }
   const inbox = yield select(inboxSelector)
   if (inbox.count()) {
     const conversationIDKey = yield select(_selectedSelector)
@@ -925,7 +928,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       }
       // find it
     } else if (incoming.chatInboxFailed) {
-      console.warn('ignoring chatInboxFailed', incoming.chatInboxFailed)
+      console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
       incoming.chatInboxFailed.response.result()
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)

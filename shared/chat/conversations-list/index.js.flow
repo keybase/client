@@ -1,19 +1,35 @@
 // @flow
 import {Component} from 'react'
-import {List, Map} from 'immutable'
+import {List} from 'immutable'
 
-import type {InboxState, ConversationIDKey, RekeyInfo} from '../../constants/chat'
+import type {ConversationIDKey} from '../../constants/chat'
+
+export type RowProps = {
+  backgroundColor: string,
+  commaColor: string,
+  conversationIDKey: ConversationIDKey,
+  hasUnread: boolean,
+  isMuted: boolean,
+  isSelected: boolean,
+  onSelectConversation: (key: ConversationIDKey) => void,
+  participantNeedToRekey: boolean,
+  participants: any,
+  rekeyInfo: any,
+  showBold: boolean,
+  snippet: string,
+  subColor: string,
+  timestamp: string,
+  unreadCount: number,
+  usernameColor: string,
+  youNeedToRekey: boolean,
+}
 
 export type Props = {
   nowOverride?: number, // just for dumb rendering
-  inbox: List<InboxState>,
+  rows: List<RowProps>,
   onSelectConversation: (key: ConversationIDKey) => void,
-  selectedConversation: ConversationIDKey,
   onNewChat: () => void,
   children?: React$Element<*>,
-  conversationUnreadCounts: Map<ConversationIDKey, number>,
-  you: string,
-  rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
 }
 
 export default class ConversationList extends Component<void, Props, void> { }

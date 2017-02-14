@@ -114,8 +114,16 @@ RCT_EXPORT_METHOD(reset) {
 
 - (NSDictionary *)constantsToExport {
   NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
+  NSString * simulatorVal =
+#if TARGET_IPHONE_SIMULATOR
+  @"1";
+#else
+  @"";
+#endif
+
   return @{ @"eventName": eventName,
-            @"test": testVal, 
+            @"test": testVal,
+            @"usingSimulator": simulatorVal,
             @"version": GoKeybaseVersion()};
 }
 

@@ -1,16 +1,12 @@
 // @flow
 import React from 'react'
-import {Map} from 'immutable'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
-import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {participantFilter} from '../../constants/chat'
 import {shouldUpdate} from 'recompose'
 
-import type {Props} from './'
-import type {InboxState, RekeyInfo, ConversationIDKey} from '../../constants/chat'
+import type {Props, RowProps} from './'
 
-const AddNewRow = ({onNewChat}: Props) => (
+const AddNewRow = ({onNewChat}: {onNewChat: () => void}) => (
   <div
     style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
     <div style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, alignItems: 'center', justifyContent: 'center'}} onClick={onNewChat}>
@@ -20,26 +16,19 @@ const AddNewRow = ({onNewChat}: Props) => (
   </div>
 )
 
-function rowBackgroundColor (hasUnread: boolean, isSelected: boolean) {
-  return isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
-}
-
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
-function rowBorderColor (idx: number, isLastParticipant: boolean, hasUnread: boolean, isSelected: boolean) {
+function rowBorderColor (idx: number, isLastParticipant: boolean, backgroundColor: string) {
   // Only color the foreground items
   if (isLastParticipant) {
     return undefined
   }
 
-  const rowBackground = rowBackgroundColor(hasUnread, isSelected)
   // We don't want a border if we're a single avatar
-  return !idx && isLastParticipant ? undefined : rowBackground
+  return !idx && isLastParticipant ? undefined : backgroundColor
 }
 
-type RowProps = Props & {conversation: InboxState, unreadCount: number, rekeyInfos: Map<ConversationIDKey, RekeyInfo>}
-
-const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted, hasUnread, isSelected}) => {
+const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted, hasUnread, isSelected, backgroundColor}) => {
   const avatarCount = Math.min(2, participants.count())
 
   let icon
@@ -50,8 +39,8 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   }
 
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-    backgroundColor: rowBackgroundColor(hasUnread, isSelected),
-    borderColor: rowBorderColor(idx, idx === (avatarCount - 1), hasUnread, isSelected),
+    backgroundColor,
+    borderColor: rowBorderColor(idx, idx === (avatarCount - 1), backgroundColor),
     size: 24,
     style: {
       opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
@@ -67,10 +56,8 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   )
 }
 
-const TopLine = ({isSelected, hasUnread, boldOverride, participants, subColor, conversation, nowOverride}) => {
-  const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
-  const commaColor = isSelected ? globalColors.black_60 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
-
+const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor, commaColor}) => {
+  const boldOverride = showBold ? globalStyles.fontBold : null
   return (
     <div style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
       <div style={{...globalStyles.flexBoxRow, flex: 1, height: 17, position: 'relative'}}>
@@ -85,14 +72,14 @@ const TopLine = ({isSelected, hasUnread, boldOverride, participants, subColor, c
             title={participants.join(', ')} />
         </div>
       </div>
-      <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: '17px'}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+      <Text type='BodySmall' style={{...boldOverride, color: subColor, lineHeight: '17px'}}>{timestamp}</Text>
       {hasUnread && <div style={unreadDotStyle} />}
     </div>
   )
 }
 
-const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, boldOverride, subColor, conversation}) => {
-  const snippet = conversation.get('snippet')
+const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, subColor, snippet}) => {
+  const boldOverride = showBold ? globalStyles.fontBold : null
 
   let content
 
@@ -115,51 +102,70 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, boldOverri
   )
 }
 
-const _Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation, unreadCount, you, rekeyInfos}: RowProps) => {
-  const participants = participantFilter(conversation.get('participants'), you)
-  const conversationIDKey = conversation.get('conversationIDKey')
-  const isSelected = selectedConversation === conversationIDKey
-  const isMuted = conversation.get('muted')
-  const hasUnread = !!unreadCount
-  const rekeyInfo = selectedConversation && rekeyInfos.get(conversationIDKey)
-  const youNeedToRekey = rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
-  const participantNeedToRekey = rekeyInfo && rekeyInfo.get('rekeyParticipants').count()
-
-  const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
-  const boldOverride = !isSelected && hasUnread ? globalStyles.fontBold : null
-
+const _Row = (props: RowProps) => {
   return (
     <div
-      onClick={() => onSelectConversation(conversationIDKey)}
-      title={`${unreadCount} unread`}
-      style={{...rowContainerStyle, backgroundColor: rowBackgroundColor(hasUnread, isSelected)}}>
+      onClick={() => props.onSelectConversation(props.conversationIDKey)}
+      style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
+      title={`${props.unreadCount} unread`}
+    >
       <Avatars
-        hasUnread={hasUnread}
-        isMuted={isMuted}
-        isSelected={isSelected}
-        participantNeedToRekey={participantNeedToRekey}
-        participants={participants}
-        youNeedToRekey={youNeedToRekey} />
-      <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!isSelected && !hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
+        backgroundColor={props.backgroundColor}
+        hasUnread={props.hasUnread}
+        isMuted={props.isMuted}
+        isSelected={props.isSelected}
+        participantNeedToRekey={props.participantNeedToRekey}
+        participants={props.participants}
+        youNeedToRekey={props.youNeedToRekey}
+      />
+      <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!props.isSelected && !props.hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
         <TopLine
-          hasUnread={hasUnread}
-          conversation={conversation}
-          boldOverride={boldOverride}
-          participants={participants}
-          nowOverride={nowOverride}
-          subColor={subColor}
-          isSelected={isSelected} />
+          commaColor={props.commaColor}
+          hasUnread={props.hasUnread}
+          participants={props.participants}
+          showBold={props.showBold}
+          subColor={props.subColor}
+          timestamp={props.timestamp}
+          usernameColor={props.usernameColor}
+        />
         <BottomLine
-          participantNeedToRekey={participantNeedToRekey}
-          youNeedToRekey={youNeedToRekey}
-          conversation={conversation}
-          subColor={subColor}
-          boldOverride={boldOverride}
-          isMuted={isMuted} />
+          isMuted={props.isMuted}
+          participantNeedToRekey={props.participantNeedToRekey}
+          showBold={props.showBold}
+          snippet={props.snippet}
+          subColor={props.subColor}
+          youNeedToRekey={props.youNeedToRekey}
+        />
       </div>
     </div>
   )
 }
+
+const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
+  const different =
+    props.conversationIDKey !== nextProps.conversationIDKey ||
+    props.unreadCount !== nextProps.unreadCount ||
+    props.isSelected !== nextProps.isSelected ||
+    props.isMuted !== nextProps.isMuted ||
+    props.youNeedToRekey !== nextProps.youNeedToRekey ||
+    props.participantNeedToRekey !== nextProps.participantNeedToRekey ||
+    props.timestamp !== nextProps.timestamp ||
+    props.snippet !== nextProps.snippet ||
+    !props.participants.equals(nextProps.participants)
+  return different
+})(_Row)
+
+const ConversationList = (props: Props) => (
+  <div style={{...globalStyles.flexBoxRow, flex: 1}}>
+    <div style={containerStyle}>
+      <AddNewRow onNewChat={props.onNewChat} />
+      <div style={scrollableStyle}>
+        {props.rows.map(rowProps => <Row {...rowProps} key={rowProps.conversationIDKey} />)}
+      </div>
+    </div>
+    {props.children}
+  </div>
+)
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
@@ -168,29 +174,6 @@ const unreadDotStyle = {
   marginLeft: 4,
   width: 6,
 }
-
-const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
-  if (props.conversation !== nextProps.conversation) {
-    return true
-  }
-
-  const oldIsSelected = props.selectedConversation === props.conversation.get('conversationIDKey')
-  const newIsSelected = nextProps.selectedConversation === nextProps.conversation.get('conversationIDKey')
-
-  if (oldIsSelected !== newIsSelected) {
-    return true
-  }
-
-  if (props.unreadCount !== nextProps.unreadCount) {
-    return true
-  }
-
-  if (props.rekeyInfos !== nextProps.rekeyInfos) {
-    return true
-  }
-
-  return false
-})(_Row)
 
 const avatarMutedIconStyle = {
   marginLeft: -globalMargins.small,
@@ -209,18 +192,6 @@ const conversationRowStyle = {
   justifyContent: 'center',
   paddingRight: 8,
 }
-
-const ConversationList = (props: Props) => (
-  <div style={{...globalStyles.flexBoxRow, flex: 1}}>
-    <div style={containerStyle}>
-      <AddNewRow {...props} />
-      <div style={scrollableStyle}>
-        {props.inbox.map(conversation => <Row {...props} unreadCount={props.conversationUnreadCounts.get(conversation.get('conversationIDKey'))} key={conversation.get('conversationIDKey')} conversation={conversation} />)}
-      </div>
-    </div>
-    {props.children}
-  </div>
-)
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,

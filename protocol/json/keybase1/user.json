@@ -352,6 +352,10 @@
         {
           "name": "uid",
           "type": "UID"
+        },
+        {
+          "name": "pollForKID",
+          "type": "KID"
         }
       ],
       "response": "UserPlusKeys",

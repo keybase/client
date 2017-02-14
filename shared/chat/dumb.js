@@ -1,13 +1,13 @@
 // @flow
 import ConversationBanner from './conversation/banner'
-import ConversationHeader from './conversation/header.desktop'
-import ConversationInput from './conversation/input.desktop'
-import ConversationList from './conversation/list.desktop'
-import ConversationSidePanel from './conversation/side-panel/index.desktop'
-import ConversationsList from './conversations-list'
+import ConversationHeader from './conversation/header'
+import ConversationInput from './conversation/input'
+import ConversationList from './conversation/list'
+import ConversationSidePanel from './conversation/side-panel'
 import HiddenString from '../util/hidden-string'
-import ParticipantRekey from './conversation/participant-rekey.desktop'
-import YouRekey from './conversation/you-rekey.desktop'
+import ParticipantRekey from './conversation/participant-rekey'
+import YouRekey from './conversation/you-rekey'
+import {ConversationListContainer} from './conversations-list/container'
 import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
@@ -71,6 +71,12 @@ const messages = [
   },
 ]
 
+const users = [
+  {broken: false, following: false, username: 'chrisnojima', you: false},
+  {broken: false, following: true, username: 'oconnor663', you: false},
+  {broken: true, following: false, username: 'cjb', you: false},
+]
+
 const metaData = {
   'cjb': MetaDataRecord({fullname: 'Chris Ball', brokenTracker: true}),
   'chris': MetaDataRecord({fullname: 'Chris Coyne'}),
@@ -85,16 +91,13 @@ const followingMap = {
 const commonConvoProps = {
   loadMoreMessages: () => console.log('load more'),
   messages: List(messages),
-  participants: List(participants),
+  users: users,
   moreToLoad: false,
   isRequesting: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
   emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
-  metaDataMap: Map(metaData),
-  followingMap,
-  you: 'chris',
 }
 
 const emptyConvoProps = {
@@ -167,6 +170,7 @@ const commonConversationsProps = {
   onNewChat: () => console.log('new chat'),
   you: 'chris',
   rekeyInfos: Map(),
+  loadInbox: () => {},
 }
 
 const emptyConversationsProps = {
@@ -180,8 +184,9 @@ const header = {
     'Normal': {
       ...commonConvoProps,
     },
-    'Empty': {
-      ...emptyConvoProps,
+    'Muted': {
+      ...commonConvoProps,
+      muted: true,
     },
   },
 }
@@ -266,11 +271,15 @@ const list = {
 }
 
 const commonSidePanel = {
+  followingMap,
+  metaDataMap: Map(metaData),
   parentProps: {
     style: {
       width: 320,
     },
   },
+  participants: List(participants),
+  you: 'chris',
 }
 
 const sidePanel = {
@@ -280,48 +289,66 @@ const sidePanel = {
       ...commonConvoProps,
       ...commonSidePanel,
     },
-    'Empty': {
+    'Muted': {
       ...emptyConvoProps,
       ...commonSidePanel,
+      muted: true,
     },
   },
 }
 
+const inboxParentProps = {
+  style: {
+    ...globalStyles.flexBoxColumn,
+    minWidth: 240,
+    height: 300,
+  },
+}
+
 const conversationsList = {
-  component: ConversationsList,
+  component: ConversationListContainer,
   mocks: {
     'Normal': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
     },
     'Selected Normal': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'SelectedMuted': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'Empty': {
       ...emptyConversationsProps,
+      parentProps: inboxParentProps,
     },
     'PartRekey': {
       ...rekeyConvo(false),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'PartRekeySelected': {
       ...rekeyConvo(false),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'YouRekey': {
       ...rekeyConvo(true),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'YouRekeySelected': {
       ...rekeyConvo(true),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'LongTop': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       inbox: List([
         new InboxStateRecord({
           conversationIDKey: 'convo1',
@@ -336,13 +363,14 @@ const conversationsList = {
     },
     'LongBottom': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       inbox: List([
         new InboxStateRecord({
           conversationIDKey: 'convo1',
           info: null,
           muted: false,
           participants: List(['look down!']),
-          snippet: 'one two three four five six seven eight nine ten',
+          snippet: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
           time: now,
           unreadCount: 3,
         }),
