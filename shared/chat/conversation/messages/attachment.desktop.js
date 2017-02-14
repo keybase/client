@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import MessageComponent from './shared.desktop'
+import MessageWrapper from './wrapper'
 import moment from 'moment'
 import React, {PureComponent} from 'react'
 import {Box, Icon, ProgressIndicator, Text} from '../../../common-adapters'
@@ -242,9 +242,9 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
     }
 
     return (
-      <MessageComponent {...this.props}>
+      <MessageWrapper {...this.props}>
         {attachment}
-      </MessageComponent>
+      </MessageWrapper>
     )
   }
 }
