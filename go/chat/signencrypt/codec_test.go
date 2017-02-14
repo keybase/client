@@ -565,6 +565,14 @@ func TestCoverageHacks(t *testing.T) {
 	})
 }
 
+func TestNullInPrefix(t *testing.T) {
+	encoder := NewEncoder(zeroSecretboxKey(), zeroSignKey(), libkb.SignaturePrefix("Keybase-bad-prefix\x00"), zeroNonce())
+	encoder.Write([]byte("kaboom"))
+	shouldPanic(t, func() {
+		encoder.Finish()
+	})
+}
+
 func TestPrefixDifference(t *testing.T) {
 	// Test that different prefixes fail verification
 	for index, input := range plaintextInputs {

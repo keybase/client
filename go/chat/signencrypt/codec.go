@@ -122,6 +122,7 @@
 package signencrypt
 
 import (
+	"bytes"
 	"crypto/sha512"
 	"encoding/binary"
 	"fmt"
@@ -157,6 +158,11 @@ func makeChunkNonce(nonce Nonce, chunkNum uint64) SecretboxNonce {
 }
 
 func makeSignatureInput(plaintext []byte, encKey SecretboxKey, signaturePrefix libkb.SignaturePrefix, chunkNonce SecretboxNonce) []byte {
+	// Check that the prefix does not include any null bytes.
+	if bytes.IndexByte([]byte(signaturePrefix), 0x00) != -1 {
+		panic(fmt.Sprintf("signature prefix contains null byte: %q", signaturePrefix))
+	}
+
 	chunkHash := sha512.Sum512(plaintext)
 	var ret []byte
 	ret = append(ret, signaturePrefix...)
