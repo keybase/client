@@ -8,7 +8,7 @@ import HiddenString from '../util/hidden-string'
 import ParticipantRekey from './conversation/participant-rekey'
 import YouRekey from './conversation/you-rekey'
 import {ConversationListContainer} from './conversations-list/container'
-import {InboxStateRecord, RekeyInfoRecord} from '../constants/chat'
+import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 
@@ -76,6 +76,17 @@ const users = [
   {broken: false, following: true, username: 'oconnor663', you: false},
   {broken: true, following: false, username: 'cjb', you: false},
 ]
+
+const metaData = {
+  'cjb': MetaDataRecord({fullname: 'Chris Ball', brokenTracker: true}),
+  'chris': MetaDataRecord({fullname: 'Chris Coyne'}),
+  'chrisnojima': MetaDataRecord({fullname: 'Chris Nojima'}),
+  'oconnor663': MetaDataRecord({fullname: `Jack O'Connor`}),
+}
+
+const followingMap = {
+  oconnor663: true,
+}
 
 const commonConvoProps = {
   loadMoreMessages: () => console.log('load more'),
@@ -260,11 +271,15 @@ const list = {
 }
 
 const commonSidePanel = {
+  followingMap,
+  metaDataMap: Map(metaData),
   parentProps: {
     style: {
       width: 320,
     },
   },
+  participants: List(participants),
+  you: 'chris',
 }
 
 const sidePanel = {
@@ -274,9 +289,10 @@ const sidePanel = {
       ...commonConvoProps,
       ...commonSidePanel,
     },
-    'Empty': {
+    'Muted': {
       ...emptyConvoProps,
       ...commonSidePanel,
+      muted: true,
     },
   },
 }
