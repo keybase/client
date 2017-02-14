@@ -78,7 +78,7 @@ protocol local {
   }
 
   record MessageAttachment {
-    Asset object;                // the primary attachment object
+    Asset object;                // the primary attachment object (can be empty)
     union {null, Asset} preview; // the (optional) preview of object    (V1)
     array<Asset> previews;       // the previews of object              (V2)
     bytes metadata;              // generic metadata (msgpack)

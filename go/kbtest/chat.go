@@ -393,6 +393,15 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	return
 }
 
+func (m *ChatRemoteMock) PublishReadMessage(ctx context.Context, arg chat1.PublishReadMessageArg) error {
+	return nil
+}
+
+func (m *ChatRemoteMock) PublishSetConversationStatus(ctx context.Context,
+	arg chat1.PublishSetConversationStatusArg) error {
+	return nil
+}
+
 func (m *ChatRemoteMock) NewConversationRemote(ctx context.Context, arg chat1.ConversationIDTriple) (res chat1.NewConversationRemoteRes, err error) {
 	return res, errors.New("not implemented anymore")
 }

@@ -1,5 +1,6 @@
 // @flow
 import {app} from 'electron'
+import getenv from 'getenv'
 import path from 'path'
 import os from 'os'
 
@@ -8,6 +9,10 @@ function appPath () {
   // return '/Applications/Keybase.app/Contents/Resources/app/'
   // For testing running from DMG
   // return '/Volumes/Keybase/Keybase.app/Contents/Resources/app/'
+  const appPath = getenv.string('KEYBASE_GET_APP_PATH', '')
+  if (appPath !== '') {
+    return appPath
+  }
   return app.getAppPath()
 }
 

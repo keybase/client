@@ -23,50 +23,6 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses formatting adjacent to punctuation 1`] = `
-Object {
-  "children": Array [
-    "thisis(",
-    Object {
-      "children": Array [
-        "bold",
-      ],
-      "type": "bold",
-    },
-    ") and(",
-    Object {
-      "children": Array [
-        "italic",
-      ],
-      "type": "italic",
-    },
-    ") and,",
-    Object {
-      "children": Array [
-        "striked",
-      ],
-      "type": "strike",
-    },
-    "! (",
-    Object {
-      "children": Array [
-        "woot",
-      ],
-      "type": "bold",
-    },
-    ") another.",
-    Object {
-      "children": Array [
-        "test",
-      ],
-      "type": "bold",
-    },
-    ".case",
-  ],
-  "type": "text",
-}
-`;
-
 exports[`Markdown parser parses invalid bold correctly 1`] = `
 Object {
   "children": Array [
@@ -435,15 +391,6 @@ Object {
       "type": "inline-code",
     },
     "
-    (",
-    Object {
-      "children": Array [
-        "https://keybase.io",
-      ],
-      "href": "https://keybase.io",
-      "type": "link",
-    },
-    ")
     ",
     Object {
       "children": Array [

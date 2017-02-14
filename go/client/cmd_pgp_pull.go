@@ -51,7 +51,7 @@ func NewCmdPGPPull(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Description: `"keybase pgp pull" pulls down all of the PGP keys for the people
    you track. On success, it imports those keys into your local GnuPG keychain.
    For existing keys, this means the local GnuPG keyring will get an updated,
-   merged copy, via GnuGP's default key merging strategy. For new keys, it
+   merged copy, via GnuPG's default key merging strategy. For new keys, it
    will be a plain import.
 
    If usernames (or user assertions) are supplied, only those tracked users

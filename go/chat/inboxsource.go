@@ -504,7 +504,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 
 		// Write out to local storage
 		if cerr := inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, rquery, p); cerr != nil {
-			return chat1.Inbox{}, rl, cerr
+			s.Debug(ctx, "Read: failed to write inbox to local storage: %s", cerr.Error())
 		}
 	} else {
 		s.Debug(ctx, "Read: hit local storage: uid: %s convs: %d", uid, len(convs))

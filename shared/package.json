@@ -127,7 +127,7 @@
     "express": "4.14.1",
     "file-loader": "0.10.0",
     "flow-bin": "0.36.0",
-    "fs-extra": "2.0.0",
+    "fs-extra": "1.0.0",
     "jest": "18.1.0",
     "minimist": "1.2.0",
     "mocha": "3.2.0",

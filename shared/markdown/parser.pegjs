@@ -36,19 +36,19 @@
 }
 
 start
- = children:((Line LineTerminatorSequence)* Line?) { return {type: 'text', children: flatten(children)} }
+ = children:(QuoteBlock / Line / BlankLine)* { return {type: 'text', children: flatten(children)} }
+
+BlankLine
+ = WhiteSpace* LineTerminatorSequence { return text() }
 
 Line
- = (QuoteBlock / __INLINE_MACRO__<> / WhiteSpace)*
+ = (WhiteSpace* __INLINE_MACRO__<> / WhiteSpace+) LineTerminatorSequence?
 
 InlineStart
  = CodeBlock / InlineCode / Italic / Bold / Strike / Link / InlineCont
 
 InlineCont
  = Text / Emoji / EscapedChar / NativeEmoji / SpecialChar
-
-InlineDelimiter
- = WhiteSpace / PunctuationMarker
 
 Ticks1 = "`"
 Ticks3 = "```"
@@ -59,11 +59,8 @@ ItalicMarker = "_"
 EmojiMarker = ":"
 QuoteBlockMarker = ">"
 
-// Can mark the beginning of a link
-PunctuationMarker = [()[\].,!?]
-
 SpecialChar
- = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
+ = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 { return text() }
 
 EscapedChar
  = EscapeMarker char:SpecialChar { return char }
