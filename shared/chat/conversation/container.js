@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, loadAttachment, retryAttachment} from '../../actions/chat'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
-import {navigateAppend} from '../../actions/route-tree'
+import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {nothingSelected, getBrokenUsers} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
@@ -123,6 +123,7 @@ export default connect(
   (dispatch: Dispatch, {setRouteState}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, inputs: Array<AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
+    onBack: () => dispatch(navigateUp()),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),

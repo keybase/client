@@ -1,13 +1,16 @@
 // @flow
 import React from 'react'
-import {Box, Icon, Usernames} from '../../common-adapters'
+import {BackButton, Box, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './header'
 
-const Header = ({muted, onOpenFolder, onShowProfile, onToggleSidePanel, sidePanelOpen, users}: Props) => (
+const Header = ({muted, onBack, onOpenFolder, onShowProfile, onToggleSidePanel, sidePanelOpen, users}: Props) => (
   <Box style={containerStyle}>
-    <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
+    <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-start'}}>
+      <BackButton title={null} onClick={onBack} iconStyle={{color: globalColors.blue}} textStyle={{color: globalColors.blue}} />
+    </Box>
+    <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
       <Usernames
         colorFollowing={true}
         inline={false}
@@ -18,15 +21,15 @@ const Header = ({muted, onOpenFolder, onShowProfile, onToggleSidePanel, sidePane
         onUsernameClicked={onShowProfile} />
       {muted && <Icon type='iconfont-shh' style={styleLeft} />}
     </Box>
-    <Icon type='iconfont-folder-private' style={styleLeft} onClick={onOpenFolder} />
-    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={styleLeft} onClick={onToggleSidePanel} />
+    <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end'}}>
+      <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={styleLeft} onClick={onToggleSidePanel} />
+    </Box>
   </Box>
 )
 
 const containerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  borderBottom: `solid 1px ${globalColors.black_05}`,
   justifyContent: 'center',
   minHeight: 32,
   padding: globalMargins.tiny,
