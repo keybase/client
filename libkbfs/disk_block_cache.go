@@ -5,7 +5,11 @@
 package libkbfs
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
@@ -25,6 +29,8 @@ const (
 	evictionConsiderationFactor   uint   = 3
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
 	lruDbFilename                 string = "diskCacheLRU.leveldb"
+	versionFilename               string = "version"
+	initialDiskCacheVersion       uint64 = 1
 )
 
 // diskBlockCacheEntry packages an encoded block and serverHalf into one data
@@ -99,16 +105,58 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	}, nil
 }
 
+func versionPathFromVersion(dirPath string, version uint64) string {
+	return filepath.Join(dirPath, fmt.Sprintf("v%d", version))
+}
+
+func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
+	err error) {
+	// Read the version file
+	versionFilepath := filepath.Join(dirPath, versionFilename)
+	versionBytes, err := ioutil.ReadFile(versionFilepath)
+	// We expect the file to open successfully or not exist. Anything else is a
+	// problem.
+	if err != nil && !os.IsNotExist(err) {
+		return "", err
+	}
+	// We expect a successfully opened version file to parse a single unsigned
+	// integer representing the version. Anything else is a corrupted version
+	// file. However, this we can solve by deleting everything in the cache.
+	version, err := strconv.ParseUint(string(versionBytes), 10, strconv.IntSize)
+	if err != nil {
+		return "", err
+	}
+	if version < initialDiskCacheVersion {
+		return "", fmt.Errorf("New disk cache version."+
+			" Delete the existing disk cache at path: %s", dirPath)
+	}
+	// Disk cache version is newer than we expect for this client. This is an
+	// error, and we shouldn't initialize the disk cache.
+	if version > initialDiskCacheVersion {
+		return "", OutdatedVersionError{}
+	}
+	versionString := strconv.FormatUint(version, 10)
+	err = ioutil.WriteFile(versionFilepath, []byte(versionString), 0600)
+	if err != nil {
+		return "", err
+	}
+	return versionPathFromVersion(dirPath, version), nil
+}
+
 // newDiskBlockCacheStandard creates a new *DiskBlockCacheStandard with a
 // specified directory on the filesystem as storage.
 func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 	maxBytes uint64) (*DiskBlockCacheStandard, error) {
-	blockDbPath := filepath.Join(dirPath, blockDbFilename)
+	versionPath, err := getVersionedPathForDiskCache(dirPath)
+	if err != nil {
+		return nil, err
+	}
+	blockDbPath := filepath.Join(versionPath, blockDbFilename)
 	blockStorage, err := storage.OpenFile(blockDbPath, false)
 	if err != nil {
 		return nil, err
 	}
-	lruDbPath := filepath.Join(dirPath, lruDbFilename)
+	lruDbPath := filepath.Join(versionPath, lruDbFilename)
 	lruStorage, err := storage.OpenFile(lruDbPath, false)
 	if err != nil {
 		blockStorage.Close()

@@ -582,6 +582,8 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			params.DiskCacheRoot)
 		if err != nil {
 			log.Warning("Could not initialize disk cache: %+v", err)
+			// TODO: Make this error less fatal later.
+			return nil, err
 		}
 	}
 
