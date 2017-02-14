@@ -564,4 +564,25 @@ func TestCoverageHacks(t *testing.T) {
 	})
 }
 
-// TODO test different prefixes
+func TestPrefixDifference(t *testing.T) {
+	// Test that different prefixes fail verification
+	for index, input := range plaintextInputs {
+		// Vary the chunk number, just for fun.
+		chunkNum := uint64(index)
+		sealed := sealPacket(
+			[]byte(input),
+			zeroSecretboxKey(),
+			zeroSignKey(),
+			testingPrefix(),
+			zeroChunkNonce(chunkNum))
+
+		_, err := openPacket(
+			sealed,
+			zeroSecretboxKey(),
+			zeroVerifyKey(),
+			testingPrefix()+"other",
+			zeroChunkNonce(chunkNum))
+
+		assertErrorType(t, err, BadSignature)
+	}
+}
