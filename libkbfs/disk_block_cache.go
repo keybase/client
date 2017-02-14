@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"encoding/hex"
 	"fmt"
+	"math"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -203,10 +204,10 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 }
 
 func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
-	// This lock is unnecessary because we don't allow concurrent access until
-	// it's done. But can't hurt.
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
+	// We do a write lock for this to prevent any reads from happening while
+	// we're syncing the block counts.
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
 
 	tlfIDLen := len(tlf.NullID.Bytes())
 	tlfCounts := make(map[tlf.ID]int)
@@ -416,26 +417,30 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	return cache.deleteLocked(ctx, tlfID, blockIDs)
 }
 
-// evictLocked evicts a number of blocks from the cache.
+// evictLocked evicts a number of blocks from the cache.  We choose a pivot
+// variable b randomly. Then begin an iterator into cache.lruDb.Range(tlfID +
+// b, tlfID + MaxBlockID) and iterate from there to get numBlocks *
+// evictionConsiderationFactor block IDs.  We sort the resulting blocks by
+// value (LRU time) and pick the minimum numBlocks. We then call cache.Delete()
+// on that list of block IDs.
 func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	tlfID tlf.ID, numBlocks int) (numRemoved int, err error) {
-	// Use kbfscrypto.MakeTemporaryID() to create a random hash ID. Then begin
-	// an iterator into cache.lruDb.Range(tlfID + b, tlfID + MaxBlockID) and
-	// iterate from there to get numBlocks * evictionConsiderationFactor block
-	// IDs.  We sort the resulting blocks by value (LRU time) and pick the
-	// minimum numBlocks. We then call cache.Delete() on that list of block
-	// IDs.
 	tlfBytes := tlfID.Bytes()
-	// We actually need a random range, not a random block ID. so, we pick a
-	// point to start our range, based on the proportion of the TLF space taken
-	// up by numBlocks/cache.tlfCounts[tlfID]. E.g. if we need to remove 100
-	// out of 400 blocks, and we assume that the block IDs are uniformly
-	// distributed, then our random start point should be in the [0,0.75)
-	// interval on the [0,1.0) block ID space. This means that if we need to
-	// remove all the blocks for the TLF, we can consider the whole range.
+	numElements := numBlocks * evictionConsiderationFactor
+	// We need a random range, not a random block ID. So, we pick a point to
+	// start our range, based on the proportion of the TLF space taken up by
+	// numBlocks/cache.tlfCounts[tlfID]. E.g. if we need to consider 100 out of
+	// 400 blocks, and we assume that the block IDs are uniformly distributed,
+	// then our random start point should be in the [0,0.75) interval on the
+	// [0,1.0) block ID space. If the iterator reaches the end of the TLF, we
+	// simply stop and return the number of blocks removed.
 	var rng *util.Range
-	if numBlocks > cache.tlfCounts[tlfID] {
-		randomBlockID, err := kbfsblock.MakeTemporaryID()
+	if numElements < cache.tlfCounts[tlfID] {
+		pivot := uint64(
+			float64(math.MaxUint64) *
+				(1.0 -
+					(float64(numElements) / float64(cache.tlfCounts[tlfID]))))
+		randomBlockID, err := kbfsblock.MakeRandomIDInRange(0, pivot)
 		if err != nil {
 			return 0, err
 		}
@@ -446,7 +451,6 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	}
 	iter := cache.lruDb.NewIterator(rng, nil)
 
-	numElements := numBlocks * evictionConsiderationFactor
 	blockIDs := make(blockIDsByTime, 0, numElements)
 
 	for i := 0; i < numElements; i++ {
