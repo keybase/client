@@ -295,6 +295,24 @@ func testMDJournalGetNextEntry(t *testing.T, ver MetadataVer) {
 	require.Equal(t, md.bareMd, rmds.MD)
 }
 
+// Putting the same md twice should return the same MD ID.  Regression
+// for KBFS-1955.
+func testMDJournalPutEntryTwice(t *testing.T, ver MetadataVer) {
+	_, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, ver, id, MetadataRevision(10), j.uid, signer,
+		fakeMdID(1))
+	id1, err := j.put(ctx, signer, ekg, bsplit, md, false)
+	require.NoError(t, err)
+
+	id2, err := j.putMD(md.bareMd)
+	require.NoError(t, err)
+
+	require.Equal(t, id1, id2)
+}
+
 func testMDJournalPutCase1Empty(t *testing.T, ver MetadataVer) {
 	_, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
@@ -957,6 +975,7 @@ func TestMDJournal(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
 		testMDJournalBasic,
 		testMDJournalGetNextEntry,
+		testMDJournalPutEntryTwice,
 		testMDJournalPutCase1Empty,
 		testMDJournalPutCase1Conflict,
 		testMDJournalPutCase1ReplaceHead,

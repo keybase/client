@@ -481,7 +481,7 @@ func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
 		return MdID{}, err
 	} else {
 		// Entry exists, so nothing else to do.
-		return MdID{}, nil
+		return id, nil
 	}
 
 	err = kbfscodec.SerializeToFileIfNotExist(
