@@ -6,6 +6,7 @@ import Emoji from './emoji'
 import React, {PureComponent} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import parser from '../markdown/parser'
+import {isMobile} from '../constants/platform'
 
 import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
@@ -56,7 +57,7 @@ class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
       <Text
         type='Body'
         style={this.props.preview ? neutralPreviewStyle : neutralStyle}
-        lineClamp={this.props.preview ? 1 : undefined}>
+        lineClamp={this.props.preview && isMobile ? 1 : undefined}>
         {emoji}
       </Text>
     )
@@ -70,7 +71,7 @@ function previewCreateComponent (type, key, children, options) {
     case 'native-emoji':
       return <Emoji size={16} key={key}>{children}</Emoji>
     default:
-      return <Text type='BodySmall' key={key} style={neutralPreviewStyle} lineClamp={1}>{children}</Text>
+      return <Text type='BodySmall' key={key} style={neutralPreviewStyle} lineClamp={isMobile ? 1 : undefined}>{children}</Text>
   }
 }
 
@@ -122,7 +123,7 @@ function process (ast, createComponent) {
 
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    return <Text type='Body' style={this.props.style} lineClamp={this.props.preview ? 1 : undefined}>{process(parser.parse(this.props.children || ''), this.props.preview ? previewCreateComponent : messageCreateComponent)}</Text>
+    return <Text type='Body' style={this.props.style} lineClamp={this.props.preview && isMobile ? 1 : undefined}>{process(parser.parse(this.props.children || ''), this.props.preview ? previewCreateComponent : messageCreateComponent)}</Text>
   }
 }
 
