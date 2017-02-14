@@ -13,7 +13,7 @@ function usernameText ({type, users, style, commaColor, inline, redColor, backgr
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
       ...((colorFollowing && !u.you) ? {color: u.following ? globalColors.green2 : globalColors.blue} : null),
       ...((colorBroken && u.broken && !u.you) ? {color: redColor || globalColors.red} : null),
-      ...(inline ? {display: 'inline'} : null),
+      ...((inline && !isMobile) ? {display: 'inline'} : null),
       ...(u.you ? globalStyles.italic : null),
     }
 
@@ -35,24 +35,27 @@ function usernameText ({type, users, style, commaColor, inline, redColor, backgr
   })
 }
 
+const inlineStyle = isMobile ? { } : {
+  display: 'inline',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  width: '100%',
+}
+const inlineProps = isMobile ? {lineClamp: 1} : { }
+
 class Usernames extends Component<void, Props, void> {
   shouldComponentUpdate (nextProps: Props) {
     return JSON.stringify(this.props) !== JSON.stringify(nextProps)
   }
 
   render () {
-    const containerStyle = this.props.inline ? {
-      display: 'inline',
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-      width: '100%',
-      overflow: 'hidden',
-    } : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
+    const containerStyle = this.props.inline ? inlineStyle : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
     return (
-      <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'}), ...this.props.containerStyle}} title={this.props.title}>
+      <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'}), ...this.props.containerStyle}} title={this.props.title} {...(this.props.inline ? inlineProps : { })}>
         {!!this.props.prefix && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>{this.props.prefix}</Text>}
         {usernameText({...this.props, users: rwers})}
         {!!readers.length && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...this.props.style, marginRight: 1}}>#</Text>}

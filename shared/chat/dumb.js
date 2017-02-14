@@ -1,13 +1,13 @@
 // @flow
 import ConversationBanner from './conversation/banner'
-import ConversationHeader from './conversation/header.desktop'
-import ConversationInput from './conversation/input.desktop'
-import ConversationList from './conversation/list.desktop'
-import ConversationSidePanel from './conversation/side-panel/index.desktop'
-import ConversationsList from './conversations-list'
+import ConversationHeader from './conversation/header'
+import ConversationInput from './conversation/input'
+import ConversationList from './conversation/list'
+import ConversationSidePanel from './conversation/side-panel'
 import HiddenString from '../util/hidden-string'
-import ParticipantRekey from './conversation/participant-rekey.desktop'
-import YouRekey from './conversation/you-rekey.desktop'
+import ParticipantRekey from './conversation/participant-rekey'
+import YouRekey from './conversation/you-rekey'
+import {ConversationListContainer} from './conversations-list/container'
 import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
@@ -167,6 +167,7 @@ const commonConversationsProps = {
   onNewChat: () => console.log('new chat'),
   you: 'chris',
   rekeyInfos: Map(),
+  loadInbox: () => {},
 }
 
 const emptyConversationsProps = {
@@ -287,41 +288,58 @@ const sidePanel = {
   },
 }
 
+const inboxParentProps = {
+  style: {
+    ...globalStyles.flexBoxColumn,
+    minWidth: 240,
+    height: 300,
+  },
+}
+
 const conversationsList = {
-  component: ConversationsList,
+  component: ConversationListContainer,
   mocks: {
     'Normal': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
     },
     'Selected Normal': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'SelectedMuted': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'Empty': {
       ...emptyConversationsProps,
+      parentProps: inboxParentProps,
     },
     'PartRekey': {
       ...rekeyConvo(false),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'PartRekeySelected': {
       ...rekeyConvo(false),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'YouRekey': {
       ...rekeyConvo(true),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo3',
     },
     'YouRekeySelected': {
       ...rekeyConvo(true),
+      parentProps: inboxParentProps,
       selectedConversation: 'convo1',
     },
     'LongTop': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       inbox: List([
         new InboxStateRecord({
           conversationIDKey: 'convo1',
@@ -336,13 +354,14 @@ const conversationsList = {
     },
     'LongBottom': {
       ...commonConversationsProps,
+      parentProps: inboxParentProps,
       inbox: List([
         new InboxStateRecord({
           conversationIDKey: 'convo1',
           info: null,
           muted: false,
           participants: List(['look down!']),
-          snippet: 'one two three four five six seven eight nine ten',
+          snippet: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
           time: now,
           unreadCount: 3,
         }),
