@@ -5,16 +5,9 @@ import {Avatar, Icon, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {withHandlers} from 'recompose'
 import {marginColor, colorForAuthor} from './shared'
+import Retry from './retry'
 
 import type {Props} from './wrapper'
-
-const Retry = ({onRetry}: {onRetry: () => void}) => (
-  <div>
-    <Text type='BodySmall' style={{fontSize: 9, color: globalColors.red}}>{'┏(>_<)┓'}</Text>
-    <Text type='BodySmall' style={{color: globalColors.red}}> Failed to send. </Text>
-    <Text type='BodySmall' style={{color: globalColors.red, textDecoration: 'underline'}} onClick={onRetry}>Retry</Text>
-  </div>
-)
 
 type MessageProps = Props & {onIconClick: (event: any) => void, onRetry: () => void}
 
