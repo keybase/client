@@ -288,7 +288,6 @@ const sidePanel = {
   },
 }
 
-
 const inboxParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
@@ -296,7 +295,6 @@ const inboxParentProps = {
     height: 300,
   },
 }
-
 
 const conversationsList = {
   component: ConversationListContainer,
