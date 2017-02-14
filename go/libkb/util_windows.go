@@ -140,10 +140,20 @@ func copyFile(src string, dest string) error {
 // undoing on failure.
 func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) error {
 	var err error
+
+	currentConfig := g.Env.GetConfigFilename()
+	_, configName := filepath.Split(currentConfig)
+
+	// See if any secret key files are in the new location. If so, don't repair.
+	if ssfiles, _ := filepath.Glob(filepath.Join(currentHome, "*.ss")); len(ssfiles) > 0 {
+		return nil
+	}
+	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
+
 	files, _ := filepath.Glob(filepath.Join(oldHome, "*.mpack"))
 	ssfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
 	files = append(files, ssfiles...)
-	files = append(files, filepath.Join(oldHome, "config.json"))
+	files = append(files, filepath.Join(oldHome, configName))
 	var newFiles []string
 	for _, oldPathName := range files {
 		_, name := filepath.Split(oldPathName)
@@ -230,24 +240,16 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 
 	currentHome := w.Home(false)
 	kbDir := filepath.Base(currentHome)
-	currentConfig := g.Env.GetConfigFilename()
 	oldDir, err := AppDataDir()
 	if err != nil {
 		return err
 	}
-	_, configName := filepath.Split(currentConfig)
 	oldHome := filepath.Join(oldDir, kbDir)
-	oldConfig := filepath.Join(oldHome, configName)
-	if oldExists, _ := FileExists(oldConfig); oldExists {
-		if currentExists, _ := FileExists(currentConfig); !currentExists {
-			g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
-			if err = moveKeyFiles(g, oldHome, currentHome); err != nil {
-				return err
-			}
-			return moveNonChromiumFiles(g, oldHome, currentHome)
-		}
+
+	if err = moveKeyFiles(g, oldHome, currentHome); err != nil {
+		return err
 	}
-	return nil
+	return moveNonChromiumFiles(g, oldHome, currentHome)
 }
 
 // Notify the shell that the thing located at path has changed
