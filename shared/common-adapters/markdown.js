@@ -52,13 +52,14 @@ class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
   render () {
     const emoji = (this.props.children && this.props.children.join('')) || ''
     const exists = emojiIndex.emojis.hasOwnProperty(emoji.split(':')[1])
-    return exists
-      ? <Emoji {...this.props} />
-      : <Text
+    return exists ? <Emoji {...this.props} /> : (
+      <Text
         type='Body'
         style={this.props.preview ? neutralPreviewStyle : neutralStyle}
-        lineClamp={this.props.preview ? 1 : undefined}
-        >{emoji}</Text>
+        lineClamp={this.props.preview ? 1 : undefined}>
+        {emoji}
+      </Text>
+    )
   }
 }
 
