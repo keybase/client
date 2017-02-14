@@ -141,18 +141,17 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
         <Icon type='icon-file-dropping-48' />
       </Box>
     )
+    const users = usernamesToUserListItem(participantFilter(participants, you).toArray(), you, metaDataMap, followingMap)
+
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         <Header
-          onOpenFolder={onOpenFolder}
-          onToggleSidePanel={onToggleSidePanel}
-          participants={participants}
           muted={muted}
-          sidePanelOpen={sidePanelOpen}
-          you={you}
-          metaDataMap={metaDataMap}
-          followingMap={followingMap}
+          onOpenFolder={onOpenFolder}
           onShowProfile={onShowProfile}
+          onToggleSidePanel={onToggleSidePanel}
+          sidePanelOpen={sidePanelOpen}
+          users={users}
         />
         <List
           you={you}

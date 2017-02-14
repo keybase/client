@@ -72,10 +72,9 @@ const messages = [
 ]
 
 const users = [
-  {broken: false, following: false, username: 'chris', you: true},
   {broken: false, following: false, username: 'chrisnojima', you: false},
-  {broken: true, following: false, username: 'cjb', you: false},
   {broken: false, following: true, username: 'oconnor663', you: false},
+  {broken: true, following: false, username: 'cjb', you: false},
 ]
 
 const commonConvoProps = {
