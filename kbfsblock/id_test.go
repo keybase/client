@@ -5,6 +5,8 @@
 package kbfsblock
 
 import (
+	"encoding/binary"
+	"math"
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
@@ -59,4 +61,20 @@ func TestTemporaryIDRandom(t *testing.T) {
 	require.NotEqual(t, ID{}, b2)
 
 	require.NotEqual(t, b1, b2)
+}
+
+// Test that MakeRandomIDInRange returns items in the range specified.
+func TestRandomIDInRange(t *testing.T) {
+	var i uint64
+	var j uint64
+	for i = 0x1000; i < (math.MaxUint64 / 4); i *= 2 {
+		for j = i * 2; j < (math.MaxUint64 / 2); j *= 2 {
+			id, err := MakeRandomIDInRange(i, j)
+			require.NoError(t, err)
+			idBytes := id.Bytes()[1:9]
+			asInt := binary.BigEndian.Uint64(idBytes)
+			require.True(t, asInt >= i)
+			require.True(t, asInt < j)
+		}
+	}
 }

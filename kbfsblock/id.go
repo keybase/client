@@ -6,6 +6,9 @@ package kbfsblock
 
 import (
 	"encoding"
+	"encoding/binary"
+	"errors"
+	"math"
 
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
@@ -94,6 +97,37 @@ func MakeTemporaryID() (ID, error) {
 	if err != nil {
 		return ID{}, err
 	}
+	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
+	if err != nil {
+		return ID{}, err
+	}
+	return ID{h}, nil
+}
+
+// MakeRandomIDInRange generates a random block ID using a CSPRNG, distributing
+// the random variable over the interval [start, end), where the full range is
+// [0, MaxUint64). This corresponds to a normalized representation of the
+// range [kbfshash.RawDefaultHash{}, kbfshash.MaxDefaultHash).
+func MakeRandomIDInRange(start, end uint64) (ID, error) {
+	if start >= end {
+		return ID{}, errors.New("Invalid range for random ID")
+	}
+	rangeSize := float64(end - start)
+	randBuf := make([]byte, 8)
+	err := kbfscrypto.RandRead(randBuf)
+	if err != nil {
+		return ID{}, err
+	}
+	// Generate a random unsigned int. Endianness doesn't matter here because
+	// the bytes are random.
+	randUint := binary.BigEndian.Uint64(randBuf)
+	randFloat := float64(randUint) / float64(math.MaxUint64)
+	// This forms the start. We fill in the rest with zeroes.
+	scaledRandomUint := uint64(rangeSize*randFloat) + start
+	// Now endianness matters, because we are relying on how the system
+	// represented integers while doing the calculation.
+	var dh kbfshash.RawDefaultHash
+	binary.BigEndian.PutUint64(dh[:], scaledRandomUint)
 	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
 	if err != nil {
 		return ID{}, err
