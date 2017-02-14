@@ -340,7 +340,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	bContext kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	if b.config.DiskBlockCache() != nil {
-		go b.config.DiskBlockCache().Put(context.TODO(), tlfID, id, buf, serverHalf)
+		go b.config.DiskBlockCache().Put(ctx, tlfID, id, buf, serverHalf)
 	}
 	size := len(buf)
 	defer func() {

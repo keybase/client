@@ -56,10 +56,9 @@ type DiskBlockCacheStandard struct {
 	log      logger.Logger
 	// This protects the disk caches from being shutdown while they're being
 	// accessed.
-	lock     sync.RWMutex
-	isClosed bool
-	blockDb  *leveldb.DB
-	lruDb    *leveldb.DB
+	lock    sync.RWMutex
+	blockDb *leveldb.DB
+	lruDb   *leveldb.DB
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
@@ -201,16 +200,19 @@ func (*DiskBlockCacheStandard) lruKey(tlfID tlf.ID, blockKey []byte) []byte {
 	return append(tlfID.Bytes(), blockKey...)
 }
 
-// updateLruLocked updates the LRU time of a block in the LRU cache to
+// updateLRULocked updates the LRU time of a block in the LRU cache to
 // the current time.
-func (cache *DiskBlockCacheStandard) updateLruLocked(tlfID tlf.ID,
-	blockKey []byte) error {
+func (cache *DiskBlockCacheStandard) updateLRULocked(ctx context.Context,
+	tlfID tlf.ID, blockKey []byte) error {
 	key := cache.lruKey(tlfID, blockKey)
 	val, err := cache.config.Clock().Now().MarshalBinary()
 	if err != nil {
 		return err
 	}
-	cache.lruDb.Put(key, val, nil)
+	err = cache.lruDb.Put(key, val, nil)
+	if err != nil {
+		cache.log.CWarningf(ctx, "Error writing to LRU cache database: %+v", err)
+	}
 	return nil
 }
 
@@ -220,9 +222,9 @@ func (*DiskBlockCacheStandard) timeFromBytes(b []byte) (t time.Time, err error) 
 	return t, err
 }
 
-// getLru retrieves the LRU time for a block in the cache, or returns
+// getLRU retrieves the LRU time for a block in the cache, or returns
 // leveldb.ErrNotFound and a zero-valued time.Time otherwise.
-func (cache *DiskBlockCacheStandard) getLru(tlfID tlf.ID,
+func (cache *DiskBlockCacheStandard) getLRU(tlfID tlf.ID,
 	blockID kbfsblock.ID) (time.Time, error) {
 	lruKey := cache.lruKey(tlfID, blockID.Bytes())
 	lruBytes, err := cache.lruDb.Get(lruKey, nil)
@@ -261,27 +263,21 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
-	if cache.isClosed {
+	if cache.blockDb == nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			DiskCacheClosedError{"Get"}
 	}
 	defer func() {
-		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d err=%+v", blockID, tlfID, len(buf), err)
+		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d err=%+v",
+			blockID, tlfID, len(buf), err)
 	}()
-	var entry []byte
-	err = runUnlessCanceled(ctx, func() error {
-		blockKey := blockID.Bytes()
-		buf, err := cache.blockDb.Get(blockKey, nil)
-		if err != nil {
-			return NoSuchBlockError{blockID}
-		}
-		err = cache.updateLruLocked(tlfID, blockKey)
-		if err != nil {
-			return err
-		}
-		entry = buf
-		return nil
-	})
+	blockKey := blockID.Bytes()
+	entry, err := cache.blockDb.Get(blockKey, nil)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			NoSuchBlockError{blockID}
+	}
+	err = cache.updateLRULocked(ctx, tlfID, blockKey)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -294,7 +290,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
-	if cache.isClosed {
+	if cache.blockDb == nil {
 		return DiskCacheClosedError{"Put"}
 	}
 	blockLen := len(buf)
@@ -310,7 +306,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	if err != nil {
 		return err
 	}
-	return cache.updateLruLocked(tlfID, blockKey)
+	return cache.updateLRULocked(ctx, tlfID, blockKey)
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
@@ -318,7 +314,7 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	blockIDs []kbfsblock.ID) error {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
-	if cache.isClosed {
+	if cache.blockDb == nil {
 		return DiskCacheClosedError{"Delete"}
 	}
 	if len(blockIDs) == 0 {
@@ -358,13 +354,20 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Shutdown() {
+func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
-	if cache.isClosed {
+	if cache.blockDb == nil {
 		return
 	}
-	cache.isClosed = true
-	cache.blockDb.Close()
-	cache.lruDb.Close()
+	err := cache.blockDb.Close()
+	if err != nil {
+		cache.log.CWarningf(ctx, "Error closing blockDb: %+v", err)
+	}
+	cache.blockDb = nil
+	err = cache.lruDb.Close()
+	if err != nil {
+		cache.log.CWarningf(ctx, "Error closing blockDb: %+v", err)
+	}
+	cache.lruDb = nil
 }

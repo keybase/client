@@ -863,7 +863,7 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 		errorList = append(errorList, err)
 	}
 	if c.DiskBlockCache() != nil {
-		c.DiskBlockCache().Shutdown()
+		c.DiskBlockCache().Shutdown(ctx)
 	}
 
 	if len(errorList) == 1 {

@@ -835,7 +835,7 @@ type DiskBlockCache interface {
 	// Delete deletes some blocks from the disk cache.
 	Delete(ctx context.Context, tlfID tlf.ID, blockIDs []kbfsblock.ID) error
 	// Shutdown cleanly shuts down the disk block cache.
-	Shutdown()
+	Shutdown(ctx context.Context)
 }
 
 // cryptoPure contains all methods of Crypto that don't depend on

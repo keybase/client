@@ -53,7 +53,7 @@ func initDiskBlockCacheTest(t *testing.T) (*DiskBlockCacheStandard,
 }
 
 func shutdownDiskBlockCacheTest(cache DiskBlockCache) {
-	cache.Shutdown()
+	cache.Shutdown(context.Background())
 }
 
 func setupBlockForDiskCache(t *testing.T, config diskBlockCacheConfig) (
@@ -81,7 +81,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	t.Log("Put a block into the cache.")
 	err := cache.Put(ctx, tlf1, block1Id, block1Encoded, block1ServerHalf)
 	require.NoError(t, err)
-	putTime, err := cache.getLru(tlf1, block1Id)
+	putTime, err := cache.getLRU(tlf1, block1Id)
 	require.NoError(t, err)
 	config.TestClock().Add(time.Second)
 
@@ -92,7 +92,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	require.Equal(t, block1Encoded, buf)
 
 	t.Log("Verify that the Get updated the LRU time for the block.")
-	getTime, err := cache.getLru(tlf1, block1Id)
+	getTime, err := cache.getLRU(tlf1, block1Id)
 	require.NoError(t, err)
 	require.True(t, getTime.After(putTime))
 
@@ -105,7 +105,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	require.Nil(t, buf)
 
 	t.Log("Verify that the cache returns no LRU time for the missing block.")
-	_, err = cache.getLru(tlf1, ptr2.ID)
+	_, err = cache.getLRU(tlf1, ptr2.ID)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
 }
 
@@ -144,8 +144,8 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Verify that the cache returns no LRU time for the missing blocks.")
-	_, err = cache.getLru(tlf1, block1Id)
+	_, err = cache.getLRU(tlf1, block1Id)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
-	_, err = cache.getLru(tlf1, block2Id)
+	_, err = cache.getLRU(tlf1, block2Id)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
 }
