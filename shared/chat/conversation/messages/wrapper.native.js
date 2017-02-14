@@ -26,6 +26,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
               <Box style={_textContainerStyle}>
                 <Box style={_childrenWrapStyle}>
                   {children}
+                  {message.type === 'Text' && message.editedCount > 0 && <Text type='BodySmall' style={_editedStyle}>EDITED</Text>}
                 </Box>
                 <Box className='action-button'>
                   {message.senderDeviceRevokedAt && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
@@ -80,6 +81,10 @@ const _noHeaderStyle = {
 
 const _avatarStyle = {
   marginRight: globalMargins.tiny,
+}
+
+const _editedStyle = {
+  color: globalColors.black_20,
 }
 
 export default withHandlers({
