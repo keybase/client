@@ -77,6 +77,7 @@ const {
   CommonMessageType,
   CommonTLFVisibility,
   CommonTopicType,
+  LocalAssetMetadataType,
   LocalMessageUnboxedErrorType,
   LocalConversationErrorType,
   LocalMessageUnboxedState,
@@ -1173,7 +1174,16 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
           const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
           const preview = attachment && attachment.preview
           const mimeType = preview && preview.mimeType
-          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
+          const previewMetadata = preview && preview.metadata
+          const previewSize = previewMetadata && Constants.parseMetadataPreviewSize(previewMetadata)
+
+          const objectMetadata = attachment && attachment.object && attachment.object.metadata
+          const objectIsVideo = objectMetadata && objectMetadata.assetType === LocalAssetMetadataType.video
+          let previewDurationMs = null
+          if (objectIsVideo) {
+            const objectVideoMetadata = objectMetadata && objectMetadata.assetType === LocalAssetMetadataType.video && objectMetadata.video
+            previewDurationMs = objectVideoMetadata ? objectVideoMetadata.durationMs : null
+          }
 
           let messageState
           if (attachment.uploaded) {
@@ -1188,6 +1198,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
             filename: attachment.object.filename,
             title: attachment.object.title,
             messageState,
+            previewDurationMs,
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
             hdPreviewPath: null,
