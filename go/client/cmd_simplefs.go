@@ -4,7 +4,10 @@
 package client
 
 import (
+	"context"
+	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -23,18 +26,30 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSList(cl, g),
 			NewCmdSimpleFSCopy(cl, g),
 			NewCmdSimpleFSMove(cl, g),
+			NewCmdSimpleFSRead(cl, g),
 			NewCmdSimpleFSRemove(cl, g),
 			NewCmdSimpleFSMkdir(cl, g),
 			NewCmdSimpleFSStat(cl, g),
 			NewCmdSimpleFSCheck(cl, g),
 			NewCmdSimpleFSClose(cl, g),
 			NewCmdSimpleFSPs(cl, g),
+			NewCmdSimpleFSWrite(cl, g),
 		},
 	}
 }
 
-func MakeSimpleFSPath(path string) keybase1.Path {
+func MakeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
+	cli, err := GetKBFSMountClient(g)
+	var mountDir string
+	if err == nil {
+		mountDir, _ = cli.GetCurrentMountDir(context.TODO())
+	}
 
+	path = filepath.Clean(path)
+
+	if mountDir != "" && strings.HasPrefix(path, mountDir) {
+		return keybase1.NewPathWithKbfs(path)
+	}
 	if matched, err := regexp.MatchString("[\\/]keybase[\\/](public)|(private).+", path); matched && err == nil {
 		return keybase1.NewPathWithKbfs(path)
 	}

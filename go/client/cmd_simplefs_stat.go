@@ -61,7 +61,7 @@ func (c *CmdSimpleFSStat) ParseArgv(ctx *cli.Context) error {
 	if nargs != 1 {
 		err = errors.New("stat requires a KBFS path argument")
 	} else {
-		c.path = MakeSimpleFSPath(ctx.Args()[0])
+		c.path = MakeSimpleFSPath(c.G(), ctx.Args()[0])
 	}
 
 	return err

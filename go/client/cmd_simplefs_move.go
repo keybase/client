@@ -105,13 +105,13 @@ func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
 		return errors.New("mv requires a source path (and optional destination) argument")
 	}
 
-	c.src = MakeSimpleFSPath(ctx.Args()[0])
+	c.src = MakeSimpleFSPath(c.G(), ctx.Args()[0])
 	if nargs == 2 {
-		c.dest = MakeSimpleFSPath(ctx.Args()[1])
+		c.dest = MakeSimpleFSPath(c.G(), ctx.Args()[1])
 	} else {
 		// use the current local directory as a default
 		wd, _ := os.Getwd()
-		c.dest = MakeSimpleFSPath(wd)
+		c.dest = MakeSimpleFSPath(c.G(), wd)
 	}
 	srcType, _ := c.src.PathType()
 	destType, _ := c.dest.PathType()

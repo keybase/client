@@ -119,7 +119,7 @@ func (c *CmdSimpleFSPs) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if nargs == 1 {
-		c.path = MakeSimpleFSPath(ctx.Args()[0])
+		c.path = MakeSimpleFSPath(c.G(), ctx.Args()[0])
 	} else {
 		err = fmt.Errorf("List requires a path argument.")
 	}
