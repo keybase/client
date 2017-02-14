@@ -471,6 +471,7 @@ const (
 	SignaturePrefixChat           SignaturePrefix = "Keybase-Chat-1"
 	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
 	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
+	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
 )
 
 const (

@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 
 	"github.com/agl/ed25519"
+	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,6 +32,10 @@ func zeroNonce() Nonce {
 	return &nonce
 }
 
+func zeroChunkNonce(chunkNum uint64) SecretboxNonce {
+	return makeChunkNonce(zeroNonce(), chunkNum)
+}
+
 func zeroVerifyKey() VerifyKey {
 	var key [ed25519.PublicKeySize]byte
 	// Generated from libsodium's crypto_sign_seed_keypair with a zero seed.
@@ -45,20 +50,24 @@ func zeroSignKey() SignKey {
 	return &key
 }
 
+func testingPrefix() libkb.SignaturePrefix {
+	return libkb.SignaturePrefixTesting
+}
+
 func zeroEncoder() *Encoder {
-	return NewEncoder(zeroSecretboxKey(), zeroSignKey(), zeroNonce())
+	return NewEncoder(zeroSecretboxKey(), zeroSignKey(), testingPrefix(), zeroNonce())
 }
 
 func zeroDecoder() *Decoder {
-	return NewDecoder(zeroSecretboxKey(), zeroVerifyKey(), zeroNonce())
+	return NewDecoder(zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroNonce())
 }
 
 func zeroSealWhole(plaintext []byte) []byte {
-	return SealWhole(plaintext, zeroSecretboxKey(), zeroSignKey(), zeroNonce())
+	return SealWhole(plaintext, zeroSecretboxKey(), zeroSignKey(), testingPrefix(), zeroNonce())
 }
 
 func zeroOpenWhole(plaintext []byte) ([]byte, error) {
-	return OpenWhole(plaintext, zeroSecretboxKey(), zeroVerifyKey(), zeroNonce())
+	return OpenWhole(plaintext, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroNonce())
 }
 
 func assertErrorType(t *testing.T, err error, expectedType ErrorType) {
@@ -80,17 +89,17 @@ func TestPacketRoundtrips(t *testing.T) {
 		chunkNum := uint64(index)
 		sealed := sealPacket(
 			[]byte(input),
-			chunkNum,
 			zeroSecretboxKey(),
 			zeroSignKey(),
-			zeroNonce())
+			testingPrefix(),
+			zeroChunkNonce(chunkNum))
 
 		opened, err := openPacket(
 			sealed,
-			chunkNum,
 			zeroSecretboxKey(),
 			zeroVerifyKey(),
-			zeroNonce())
+			testingPrefix(),
+			zeroChunkNonce(chunkNum))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -162,6 +171,7 @@ func TestReaderWrapperRoundtrips(t *testing.T) {
 		encodingReader := NewEncodingReader(
 			zeroSecretboxKey(),
 			zeroSignKey(),
+			testingPrefix(),
 			zeroNonce(),
 			inputBuffer)
 		encoded, err := ioutil.ReadAll(encodingReader)
@@ -172,6 +182,7 @@ func TestReaderWrapperRoundtrips(t *testing.T) {
 		decodingReader := NewDecodingReader(
 			zeroSecretboxKey(),
 			zeroVerifyKey(),
+			testingPrefix(),
 			zeroNonce(),
 			encodedBuffer)
 		decoded, err := ioutil.ReadAll(decodingReader)
@@ -191,7 +202,7 @@ func TestBadSecretbox(t *testing.T) {
 	// Test several different cases. First, a secretbox that's too short to even
 	// contain an authenticator (just one byte for the secretbox).
 	shortPacket := []byte{0xc6, 0, 0, 0, 1, 42}
-	_, err := openPacket(shortPacket, 0, zeroSecretboxKey(), zeroVerifyKey(), zeroNonce())
+	_, err := openPacket(shortPacket, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroChunkNonce(0))
 	assertErrorType(t, err, BadSecretbox)
 
 	// Then also test a secretbox that's long enough to be real, but has an
@@ -200,14 +211,14 @@ func TestBadSecretbox(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		badAuthenticatorPacket = append(badAuthenticatorPacket, 42)
 	}
-	_, err = openPacket(badAuthenticatorPacket, 0, zeroSecretboxKey(), zeroVerifyKey(), zeroNonce())
+	_, err = openPacket(badAuthenticatorPacket, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroChunkNonce(0))
 	assertErrorType(t, err, BadSecretbox)
 
 	// Test a correct packet opened with the wrong chunk number.
 	var rightChunkNum uint64 = 5
 	var wrongChunkNum uint64 = 6
-	correctPacket := sealPacket([]byte{}, rightChunkNum, zeroSecretboxKey(), zeroSignKey(), zeroNonce())
-	_, err = openPacket(correctPacket, wrongChunkNum, zeroSecretboxKey(), zeroVerifyKey(), zeroNonce())
+	correctPacket := sealPacket([]byte{}, zeroSecretboxKey(), zeroSignKey(), testingPrefix(), zeroChunkNonce(rightChunkNum))
+	_, err = openPacket(correctPacket, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroChunkNonce(wrongChunkNum))
 	assertErrorType(t, err, BadSecretbox)
 }
 
@@ -217,7 +228,7 @@ func TestShortSignature(t *testing.T) {
 	var chunkNum uint64 = 999
 	chunkNonce := makeChunkNonce(zeroNonce(), chunkNum)
 	packet := secretbox.Seal(nil, shortSignedChunk, chunkNonce, zeroSecretboxKey())
-	_, err := openPacket(packet, chunkNum, zeroSecretboxKey(), zeroVerifyKey(), zeroNonce())
+	_, err := openPacket(packet, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroChunkNonce(chunkNum))
 	assertErrorType(t, err, ShortSignature)
 }
 
@@ -228,7 +239,7 @@ func TestInvalidSignature(t *testing.T) {
 	var chunkNum uint64 = 999
 	chunkNonce := makeChunkNonce(zeroNonce(), chunkNum)
 	packet := secretbox.Seal(nil, invalidSignedChunk, chunkNonce, zeroSecretboxKey())
-	_, err := openPacket(packet, chunkNum, zeroSecretboxKey(), zeroVerifyKey(), zeroNonce())
+	_, err := openPacket(packet, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), zeroChunkNonce(chunkNum))
 	assertErrorType(t, err, BadSignature)
 }
 
@@ -276,6 +287,7 @@ func TestErrorsReturnedFromDecodingReader(t *testing.T) {
 	reader := NewDecodingReader(
 		zeroSecretboxKey(),
 		zeroVerifyKey(),
+		testingPrefix(),
 		zeroNonce(),
 		bytes.NewBuffer(badPacket))
 	n, err := reader.Read(throwawayBuffer())
@@ -297,6 +309,7 @@ func TestErrorsReturnedFromReadingDecoderDuringFinish(t *testing.T) {
 	reader := NewDecodingReader(
 		zeroSecretboxKey(),
 		zeroVerifyKey(),
+		testingPrefix(),
 		zeroNonce(),
 		bytes.NewBuffer(badSealed))
 	n, err := reader.Read(throwawayBuffer())
@@ -317,7 +330,7 @@ func TestReencryptedPacketFails(t *testing.T) {
 	originalEncryptionKey := zeroSecretboxKey()
 	originalSignKey := zeroSignKey()
 	originalVerifyKey := zeroVerifyKey()
-	packet := sealPacket([]byte("foo"), originalChunkNum, originalEncryptionKey, originalSignKey, originalNonce)
+	packet := sealPacket([]byte("foo"), originalEncryptionKey, originalSignKey, testingPrefix(), makeChunkNonce(originalNonce, originalChunkNum))
 
 	// Now strip off the outer layer of encryption, as a recipient would.
 	originalChunkNonce := makeChunkNonce(originalNonce, originalChunkNum)
@@ -333,21 +346,21 @@ func TestReencryptedPacketFails(t *testing.T) {
 
 	// This new packet will have a bad secretbox if someone tries to decrypt it
 	// with the old key, of course.
-	_, err := openPacket(rekeyedPacket, originalChunkNum, originalEncryptionKey, originalVerifyKey, originalNonce)
+	_, err := openPacket(rekeyedPacket, originalEncryptionKey, originalVerifyKey, testingPrefix(), makeChunkNonce(originalNonce, originalChunkNum))
 	assertErrorType(t, err, BadSecretbox)
 
 	// And here's the part we really care about: If someone tries to decrypt
 	// the packet with the *new* key, unboxing will succeed, but it should now
 	// give a bad *signature* error. This is the whole point of asserting the
 	// symmetric key inside the sig.
-	_, err = openPacket(rekeyedPacket, originalChunkNum, newEncryptionKey, originalVerifyKey, originalNonce)
+	_, err = openPacket(rekeyedPacket, newEncryptionKey, originalVerifyKey, testingPrefix(), makeChunkNonce(originalNonce, originalChunkNum))
 	assertErrorType(t, err, BadSignature)
 
 	// Another test along the same lines: it should also be a signature error if the chunk number changes.
 	var newChunkNum uint64 = 1
 	newChunkNumNonce := makeChunkNonce(originalNonce, newChunkNum)
 	renumberedPacket := secretbox.Seal(nil, unboxedSig, newChunkNumNonce, originalEncryptionKey)
-	_, err = openPacket(renumberedPacket, newChunkNum, originalEncryptionKey, originalVerifyKey, originalNonce)
+	_, err = openPacket(renumberedPacket, originalEncryptionKey, originalVerifyKey, testingPrefix(), makeChunkNonce(originalNonce, newChunkNum))
 	assertErrorType(t, err, BadSignature)
 
 	// And: it should be a signature error if the caller's nonce changes.
@@ -355,7 +368,7 @@ func TestReencryptedPacketFails(t *testing.T) {
 	newNonce[0] = 42
 	newChunkNonce := makeChunkNonce(newNonce, originalChunkNum)
 	renoncedPacket := secretbox.Seal(nil, unboxedSig, newChunkNonce, originalEncryptionKey)
-	_, err = openPacket(renoncedPacket, originalChunkNum, originalEncryptionKey, originalVerifyKey, newNonce)
+	_, err = openPacket(renoncedPacket, originalEncryptionKey, originalVerifyKey, testingPrefix(), makeChunkNonce(newNonce, originalChunkNum))
 	assertErrorType(t, err, BadSignature)
 }
 
@@ -415,7 +428,7 @@ func TestPacketSwapBetweenMessagesFails(t *testing.T) {
 	plaintext2 := bytes.Repeat([]byte{2}, DefaultPlaintextChunkLength+42)
 	var nonce2 [16]byte
 	nonce2[0] = 42
-	sealed2 := SealWhole(plaintext2, zeroSecretboxKey(), zeroSignKey(), &nonce2)
+	sealed2 := SealWhole(plaintext2, zeroSecretboxKey(), zeroSignKey(), testingPrefix(), &nonce2)
 
 	// Swap the first packet between them. Make sure to make *copies* and not
 	// just slices, or else the second swap will be a no-op.
@@ -428,7 +441,7 @@ func TestPacketSwapBetweenMessagesFails(t *testing.T) {
 	// This should break both messages.
 	_, err := zeroOpenWhole(sealed1)
 	assertErrorType(t, err, BadSecretbox)
-	_, err = OpenWhole(sealed2, zeroSecretboxKey(), zeroVerifyKey(), &nonce2)
+	_, err = OpenWhole(sealed2, zeroSecretboxKey(), zeroVerifyKey(), testingPrefix(), &nonce2)
 	assertErrorType(t, err, BadSecretbox)
 }
 
@@ -464,6 +477,7 @@ func TestTransientIOErrorsInReaderWrappers(t *testing.T) {
 	encodingReader := NewEncodingReader(
 		zeroSecretboxKey(),
 		zeroSignKey(),
+		testingPrefix(),
 		zeroNonce(),
 		fakePlaintextErrorReader)
 
@@ -488,6 +502,7 @@ func TestTransientIOErrorsInReaderWrappers(t *testing.T) {
 	decodingReader := NewDecodingReader(
 		zeroSecretboxKey(),
 		zeroVerifyKey(),
+		testingPrefix(),
 		zeroNonce(),
 		fakeCiphertextErrorReader)
 
@@ -548,3 +563,5 @@ func TestCoverageHacks(t *testing.T) {
 		decoder.Finish()
 	})
 }
+
+// TODO test different prefixes
