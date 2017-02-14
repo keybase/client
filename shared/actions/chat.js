@@ -1298,22 +1298,22 @@ function * _openTlfInChat (action: OpenTlfInChat): SagaGenerator<any, any> {
   yield put(startConversation(users))
 }
 
-function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
-  const result = yield call(localNewConversationLocalRpcPromise, {
-    param: {
-      tlfName: action.payload.users.join(','),
-      topicType: CommonTopicType.chat,
-      tlfVisibility: CommonTLFVisibility.private,
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-    }})
-  if (result) {
-    const conversationIDKey = conversationIDToKey(result.conv.info.id)
+// function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
+  // const result = yield call(localNewConversationLocalRpcPromise, {
+    // param: {
+      // tlfName: action.payload.users.join(','),
+      // topicType: CommonTopicType.chat,
+      // tlfVisibility: CommonTLFVisibility.private,
+      // identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    // }})
+  // if (result) {
+    // const conversationIDKey = conversationIDToKey(result.conv.info.id)
 
-    yield put(loadInbox(conversationIDKey))
-    yield put(selectConversation(conversationIDKey, false))
-    yield put(switchTo([chatTab]))
-  }
-}
+    // yield put(loadInbox(conversationIDKey))
+    // yield put(selectConversation(conversationIDKey, false))
+    // yield put(switchTo([chatTab]))
+  // }
+// }
 
 function * _openFolder (): SagaGenerator<any, any> {
   const conversationIDKey = yield select(_selectedSelector)

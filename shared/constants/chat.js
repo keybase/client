@@ -243,6 +243,16 @@ export const StateRecord = Record({
   rekeyInfos: Map(),
 })
 
+export type PendingConversation = Record<{
+  participants: List<string>,
+  timestamp: number,
+}>
+
+export const PendingConversationRecord = Record({
+  participants: List(),
+  timestamp: 0,
+})
+
 export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
@@ -251,6 +261,7 @@ export type State = Record<{
   pendingFailures: Set<OutboxIDKey>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
+  pendingConversations: List<PendingConversation>,
 }>
 
 export const maxAttachmentPreviewSize = 320

@@ -6,7 +6,7 @@ import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord} = Constants
+const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord, PendingConversationRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -399,6 +399,10 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:updateInboxRekeySelf': {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({youCanRekey: true})))
+    }
+    case 'chat:startConversation': {
+      const {users} = action.payload
+      return state.set('pendingConversations', state.get('pendingConversations').unshift(new PendingConversationRecord({participants: List(users), timestamp: Date.now()})))
     }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
