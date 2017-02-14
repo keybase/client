@@ -2443,6 +2443,9 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	md.AddOp(gco)
+	// TODO: if the revision number of this new commit is sequential
+	// with `LatestRev`, we can probably change this to
+	// `gco.LatestRev+1`.
 	md.SetLastGCRevision(gco.LatestRev)
 
 	bps, err := fbo.maybeUnembedAndPutBlocks(ctx, md)
