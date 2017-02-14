@@ -1860,8 +1860,13 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
   const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))
   if (!validInbox) {
     yield put(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKey}}: Constants.GetInboxAndUnbox))
-    yield take(a => a.type === 'chat:updateInbox' && a.payload.conversation && a.payload.conversation.conversationIDKey === conversationIDKey)
-    yield put(selectConversation(conversationIDKey, false))
+    const raceResult: {[key: string]: any} = yield race({
+      updateInbox: take(a => a.type === 'chat:updateInbox' && a.payload.conversation && a.payload.conversation.conversationIDKey === conversationIDKey),
+      timeout: call(delay, 10e3),
+    })
+    if (raceResult.updateInbox) {
+      yield put(selectConversation(conversationIDKey, false))
+    }
     return
   } else {
     yield put(selectConversation(conversationIDKey, false))
