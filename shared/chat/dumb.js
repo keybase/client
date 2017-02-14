@@ -71,30 +71,23 @@ const messages = [
   },
 ]
 
-const metaData = {
-  'cjb': MetaDataRecord({fullname: 'Chris Ball', brokenTracker: true}),
-  'chris': MetaDataRecord({fullname: 'Chris Coyne'}),
-  'chrisnojima': MetaDataRecord({fullname: 'Chris Nojima'}),
-  'oconnor663': MetaDataRecord({fullname: `Jack O'Connor`}),
-}
-
-const followingMap = {
-  oconnor663: true,
-}
+const users = [
+  {broken: false, following: false, username: 'chris', you: true},
+  {broken: false, following: false, username: 'chrisnojima', you: false},
+  {broken: true, following: false, username: 'cjb', you: false},
+  {broken: false, following: true, username: 'oconnor663', you: false},
+]
 
 const commonConvoProps = {
   loadMoreMessages: () => console.log('load more'),
   messages: List(messages),
-  participants: List(participants),
+  users: users,
   moreToLoad: false,
   isRequesting: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
   emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
-  metaDataMap: Map(metaData),
-  followingMap,
-  you: 'chris',
 }
 
 const emptyConvoProps = {
