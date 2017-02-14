@@ -8,7 +8,7 @@ import HiddenString from '../util/hidden-string'
 import ParticipantRekey from './conversation/participant-rekey'
 import YouRekey from './conversation/you-rekey'
 import {ConversationListContainer} from './conversations-list/container'
-import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
+import {InboxStateRecord, RekeyInfoRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 
@@ -173,9 +173,10 @@ const header = {
     'Normal': {
       ...commonConvoProps,
     },
-    'Empty': {
-      ...emptyConvoProps,
-    },
+    'Muted': {
+      ...commonConvoProps,
+      muted: true,
+    }
   },
 }
 
