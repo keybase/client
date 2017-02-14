@@ -25,7 +25,7 @@ func (cr WriterDeviceDateConflictRenamer) ConflictRename(
 	ctx context.Context, op op, original string) (string, error) {
 	now := cr.config.Clock().Now()
 	winfo := op.getWriterInfo()
-	ui, err := cr.config.KeybaseService().LoadUserPlusKeys(ctx, winfo.uid)
+	ui, err := cr.config.KeybaseService().LoadUserPlusKeys(ctx, winfo.uid, "")
 	if err != nil {
 		return "", err
 	}

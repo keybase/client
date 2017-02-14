@@ -138,68 +138,68 @@
 		{
 			"checksumSHA1": "5FZdIGpE5Mi16d6cIDiZb4x50Xo=",
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "804b64589ed62d7e5530153c4434a2fc0caccbac",
-			"revisionTime": "2017-02-08T16:43:02Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
 			"checksumSHA1": "XLuIsEwolQy0HYCl0qkqcgCkSFQ=",
 			"path": "github.com/keybase/client/go/externals",
-			"revision": "804b64589ed62d7e5530153c4434a2fc0caccbac",
-			"revisionTime": "2017-02-08T16:43:02Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
 			"checksumSHA1": "wXT+Sk5B8Al1PyMczAzCrzYwZAc=",
 			"path": "github.com/keybase/client/go/gregor",
-			"revision": "804b64589ed62d7e5530153c4434a2fc0caccbac",
-			"revisionTime": "2017-02-08T16:43:02Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
 			"checksumSHA1": "YqnSB+btAlX7OQRnlTe6fnbn0fw=",
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "804b64589ed62d7e5530153c4434a2fc0caccbac",
-			"revisionTime": "2017-02-08T16:43:02Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "J9apl3RyroeLg+6sHuH9n5eNkKc=",
+			"checksumSHA1": "iCQM0dov+82oscLvOAhMcNRjbvM=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "804b64589ed62d7e5530153c4434a2fc0caccbac",
-			"revisionTime": "2017-02-08T16:43:02Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
 			"checksumSHA1": "DGSCu+EW6bPzcHprU3palqTgmAE=",
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "5cf3cce2bcf06b8496825b804ad374dd09b732e1",
-			"revisionTime": "2017-02-13T16:37:42Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
 			"checksumSHA1": "O1Q0NBB6o1mj4A+1uk1xgf7nw+c=",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "017410751cc0a91b90d4a01c1362e172f283aef3",
-			"revisionTime": "2017-02-09T01:08:27Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "KpJP1uQTGQAi1jgt/K8nphM8ZuE=",
+			"checksumSHA1": "F+XotFFBuPOg2oHYkD4TOBxGE7M=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "017410751cc0a91b90d4a01c1362e172f283aef3",
-			"revisionTime": "2017-02-09T01:08:27Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
 			"checksumSHA1": "uGXPG5Atdb80jZ/5cg+CkWlHlt8=",
 			"path": "github.com/keybase/client/go/protocol/gregor1",
-			"revision": "804b64589ed62d7e5530153c4434a2fc0caccbac",
-			"revisionTime": "2017-02-08T16:43:02Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
-			"checksumSHA1": "7jJRy1XuzlXv4dD7Yhd23mdNWfg=",
+			"checksumSHA1": "v0Y2LL76kJAXNP4ifz602tYUZvQ=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "017410751cc0a91b90d4a01c1362e172f283aef3",
-			"revisionTime": "2017-02-09T01:08:27Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
 			"checksumSHA1": "aUMkkGW8nO2sf+UxAMxnmVbDbzU=",
 			"path": "github.com/keybase/client/go/pvl",
-			"revision": "804b64589ed62d7e5530153c4434a2fc0caccbac",
-			"revisionTime": "2017-02-08T16:43:02Z"
+			"revision": "19e0d7ac1a781b4d23a9f386f8c2cd0057bab914",
+			"revisionTime": "2017-02-13T21:07:17Z"
 		},
 		{
 			"checksumSHA1": "qtfSDF71FbCm7kTNKdraxOpU7wY=",
@@ -560,6 +560,12 @@
 			"path": "golang.org/x/sys/windows",
 			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
 			"revisionTime": "2016-04-14T16:31:22+03:00"
+		},
+		{
+			"checksumSHA1": "ZdFZFaXmCgEEaEhVPkyXrnhKhsg=",
+			"path": "golang.org/x/sys/windows/registry",
+			"revision": "d75a52659825e75fff6158388dddc6a5b04f9ba5",
+			"revisionTime": "2016-12-14T18:38:57Z"
 		},
 		{
 			"path": "h12.me/socks",

@@ -73,10 +73,10 @@ func (k KeybaseServiceMeasured) Identify(ctx context.Context, assertion, reason 
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
-	userInfo UserInfo, err error) {
+func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context,
+	uid keybase1.UID, pollForKID keybase1.KID) (userInfo UserInfo, err error) {
 	k.loadUserPlusKeysTimer.Time(func() {
-		userInfo, err = k.delegate.LoadUserPlusKeys(ctx, uid)
+		userInfo, err = k.delegate.LoadUserPlusKeys(ctx, uid, pollForKID)
 	})
 	return userInfo, err
 }

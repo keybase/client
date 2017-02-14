@@ -227,7 +227,8 @@ func (k *KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason str
 }
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error) {
+func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
+	uid keybase1.UID, _ keybase1.KID) (UserInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return UserInfo{}, err
 	}

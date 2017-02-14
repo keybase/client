@@ -34,7 +34,9 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 		AnyTimes().Return(libkb.NormalizedUsername("mockUser"), nil)
 
 	mockDaemon := NewMockKeybaseService(mockCtrl)
-	mockDaemon.EXPECT().LoadUserPlusKeys(gomock.Any(), gomock.Any()).AnyTimes().Return(UserInfo{Name: "mockUser"}, nil)
+	mockDaemon.EXPECT().LoadUserPlusKeys(
+		gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(
+		UserInfo{Name: "mockUser"}, nil)
 	config.SetKeybaseService(mockDaemon)
 
 	timeoutCtx, cancel := context.WithTimeout(

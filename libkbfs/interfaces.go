@@ -350,7 +350,13 @@ type KeybaseService interface {
 	// If you have the UID for a user and don't require Identify to
 	// validate an assertion or the identity of a user, use this to
 	// get UserInfo structs as it is much cheaper than Identify.
-	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error)
+	//
+	// pollForKID, if non empty, causes `PollForKID` field to be populated, which
+	// causes the service to poll for the given KID. This is useful during
+	// provisioning where the provisioner needs to get the MD revision that the
+	// provisionee has set the rekey bit on.
+	LoadUserPlusKeys(ctx context.Context,
+		uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error)
 
 	// LoadUnverifiedKeys returns a list of unverified public keys.  They are the union
 	// of all known public keys associated with the account and the currently verified

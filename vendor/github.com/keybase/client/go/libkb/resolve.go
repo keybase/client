@@ -10,6 +10,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
+	"runtime/debug"
 	"stathat.com/c/ramcache"
 )
 
@@ -22,6 +23,10 @@ type ResolveResult struct {
 	resolvedKbUsername string
 	cachedAt           time.Time
 	mutable            bool
+}
+
+func (res ResolveResult) String() string {
+	return fmt.Sprintf("{uid:%s err:%s mutable:%v}", res.uid, ErrToOk(res.err), res.mutable)
 }
 
 const (
@@ -104,7 +109,13 @@ func (r *Resolver) resolveFullExpression(ctx context.Context, input string, with
 	return r.resolveURL(ctx, u, input, withBody, needUsername)
 }
 
-func (r *Resolver) getFromDiskCache(ctx context.Context, key string) (ret *ResolveResult) {
+func (res *ResolveResult) addKeybaseNameIfKnown(au AssertionURL) {
+	if au.IsKeybase() && len(res.resolvedKbUsername) == 0 {
+		res.resolvedKbUsername = au.GetValue()
+	}
+}
+
+func (r *Resolver) getFromDiskCache(ctx context.Context, key string, au AssertionURL) (ret *ResolveResult) {
 	defer r.G().CVTraceOK(ctx, VLog1, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
 	var uid keybase1.UID
 	found, err := r.G().LocalDb.GetInto(&uid, resolveDbKey(key))
@@ -117,38 +128,61 @@ func (r *Resolver) getFromDiskCache(ctx context.Context, key string) (ret *Resol
 		r.Stats.diskGetMisses++
 		return nil
 	}
+	if uid.IsNil() {
+		r.G().Log.CWarningf(ctx, "nil UID found in disk cache")
+		return nil
+	}
 	r.Stats.diskGetHits++
 	return &ResolveResult{uid: uid}
 }
 
-func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) ResolveResult {
+func isMutable(au AssertionURL) bool {
+	return !(au.IsUID() || au.IsKeybase())
+}
+
+func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
+	ck := au.CacheKey()
+
+	// Debug succintly what happened in the resolution
+	var trace string
+	defer func() {
+		r.G().Log.CDebugf(ctx, "| Resolver#resolveURL(%s) -> %s [trace:%s]", ck, res, trace)
+	}()
 
 	// A standard keybase UID, so it's already resolved... unless we explicitly
 	// need it!
 	if !needUsername {
 		if tmp := au.ToUID(); tmp.Exists() {
+			trace += "u"
 			return ResolveResult{uid: tmp}
 		}
 	}
 
-	ck := au.CacheKey()
-
-	if p := r.getFromMemCache(ctx, ck); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+	if p := r.getFromMemCache(ctx, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+		trace += "m"
 		return *p
 	}
 
-	if p := r.getFromDiskCache(ctx, ck); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
-		p.mutable = !au.IsKeybase()
+	if p := r.getFromDiskCache(ctx, ck, au); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
+		p.mutable = isMutable(au)
 		r.putToMemCache(ck, *p)
+		trace += "d"
 		return *p
 	}
 
-	res := r.resolveURLViaServerLookup(ctx, au, input, withBody)
+	trace += "s"
+	res = r.resolveURLViaServerLookup(ctx, au, input, withBody)
 
 	// Cache for a shorter period of time if it's not a Keybase identity
-	res.mutable = !au.IsKeybase()
+	res.mutable = isMutable(au)
 	r.putToMemCache(ck, res)
-	r.putToDiskCache(ck, res)
+
+	// We only put to disk cache if it's a Keybase-type assertion. In particular, UIDs
+	// are **not** stored to disk.
+	if au.IsKeybase() {
+		trace += "p"
+		r.putToDiskCache(ctx, ck, res)
+	}
 
 	return res
 }
@@ -247,6 +281,10 @@ func (s ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
 	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h)
 }
 
+func (s ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
+	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h) && (s.diskGetHits == dh)
+}
+
 func NewResolver(g *GlobalContext) *Resolver {
 	return &Resolver{
 		Contextified: NewContextified(g),
@@ -269,7 +307,7 @@ func (r *Resolver) Shutdown() {
 	r.cache.Shutdown()
 }
 
-func (r *Resolver) getFromMemCache(ctx context.Context, key string) (ret *ResolveResult) {
+func (r *Resolver) getFromMemCache(ctx context.Context, key string, au AssertionURL) (ret *ResolveResult) {
 	defer r.G().CVTraceOK(ctx, VLog1, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
 	if r.cache == nil {
 		return nil
@@ -282,6 +320,11 @@ func (r *Resolver) getFromMemCache(ctx context.Context, key string) (ret *Resolv
 	rres, ok := res.(*ResolveResult)
 	if !ok {
 		r.Stats.misses++
+		return nil
+	}
+	// Should never happen, but don't corrupt application state if it does
+	if rres.uid.IsNil() {
+		r.G().Log.CInfof(ctx, "Resolver#getFromMemCache: nil UID in cache")
 		return nil
 	}
 	now := r.NowFunc()
@@ -298,6 +341,7 @@ func (r *Resolver) getFromMemCache(ctx context.Context, key string) (ret *Resolv
 		return nil
 	}
 	r.Stats.hits++
+	rres.addKeybaseNameIfKnown(au)
 	return rres
 }
 
@@ -308,7 +352,8 @@ func resolveDbKey(key string) DbKey {
 	}
 }
 
-func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
+func (r *Resolver) putToDiskCache(ctx context.Context, key string, res ResolveResult) {
+	r.G().VDL.CLogf(ctx, VLog1, "| Resolver#putToDiskCache (attempt) %+v", res)
 	// Only cache immutable resolutions to disk
 	if res.mutable {
 		return
@@ -317,11 +362,20 @@ func (r *Resolver) putToDiskCache(key string, res ResolveResult) {
 	if res.err != nil {
 		return
 	}
+	if res.uid.IsNil() {
+		r.G().Log.CWarningf(ctx, "Mistaken UID put to disk cache")
+		if r.G().Env.GetDebug() {
+			debug.PrintStack()
+		}
+		return
+	}
 	r.Stats.diskPuts++
 	err := r.G().LocalDb.PutObj(resolveDbKey(key), nil, res.uid)
 	if err != nil {
-		r.G().Log.Warning("Cannot put resolve result to disk: %s", err)
+		r.G().Log.CWarningf(ctx, "Cannot put resolve result to disk: %s", err)
+		return
 	}
+	r.G().Log.CDebugf(ctx, "| Resolver#putToDiskCache(%s) -> %v", key, res)
 }
 
 // Put receives a copy of a ResolveResult, clears out the body
@@ -332,6 +386,13 @@ func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 	}
 	// Don't cache errors
 	if res.err != nil {
+		return
+	}
+	if res.uid.IsNil() {
+		r.G().Log.Warning("Mistaken UID put to mem cache")
+		if r.G().Env.GetDebug() {
+			debug.PrintStack()
+		}
 		return
 	}
 	res.cachedAt = r.NowFunc()

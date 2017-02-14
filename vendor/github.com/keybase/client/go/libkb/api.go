@@ -196,9 +196,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| doRequestShared(%s) for %s", s, arg.Endpoint))
 	}
 
-	dbg("fixHeaders")
 	api.fixHeaders(arg, req)
-	dbg("getCli")
 	cli := api.getCli(arg.NeedSession)
 
 	// Actually send the request via Go's libraries
@@ -214,11 +212,11 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	timer := api.G().Timers.Start(timerType)
+
 	dbg("Do")
-
 	internalResp, err := doRetry(api, arg, cli, req)
-
 	dbg("Done")
+
 	defer func() {
 		if internalResp != nil && err != nil {
 			DiscardAndCloseBody(internalResp)

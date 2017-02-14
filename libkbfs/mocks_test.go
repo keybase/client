@@ -833,15 +833,15 @@ func (_mr *_MockKeybaseServiceRecorder) Identify(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1, arg2)
 }
 
-func (_m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error) {
-	ret := _m.ctrl.Call(_m, "LoadUserPlusKeys", ctx, uid)
+func (_m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
+	ret := _m.ctrl.Call(_m, "LoadUserPlusKeys", ctx, uid, pollForKID)
 	ret0, _ := ret[0].(UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeybaseServiceRecorder) LoadUserPlusKeys(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUserPlusKeys", arg0, arg1)
+func (_mr *_MockKeybaseServiceRecorder) LoadUserPlusKeys(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUserPlusKeys", arg0, arg1, arg2)
 }
 
 func (_m *MockKeybaseService) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) ([]keybase1.PublicKey, error) {

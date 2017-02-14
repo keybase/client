@@ -51,7 +51,7 @@ func mdDumpGetReplacements(ctx context.Context, codec kbfscodec.Codec,
 				printError("md dump", err)
 			}
 
-			ui, err := service.LoadUserPlusKeys(ctx, u)
+			ui, err := service.LoadUserPlusKeys(ctx, u, "")
 			if err != nil {
 				continue
 			}

@@ -51,7 +51,7 @@ func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (U
 }
 
 func (d *daemonKBPKI) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
-	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, uid)
+	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, uid, "")
 	if err != nil {
 		return libkb.NormalizedUsername(""), err
 	}
