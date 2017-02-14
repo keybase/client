@@ -160,6 +160,8 @@ func makeSignatureInput(plaintext []byte, encKey SecretboxKey, signaturePrefix l
 	chunkHash := sha512.Sum512(plaintext)
 	var ret []byte
 	ret = append(ret, signaturePrefix...)
+	// We follow the "prefix signatures with an ASCII context string and a null byte" recommendation from
+	// https://www.ietf.org/mail-archive/web/tls/current/msg14734.html.
 	ret = append(ret, 0x00)
 	ret = append(ret, encKey[:]...)
 	ret = append(ret, chunkNonce[:]...)
@@ -171,16 +173,16 @@ func getPacketLen(plaintextChunkLen int) int {
 	return plaintextChunkLen + secretbox.Overhead + ed25519.SignatureSize
 }
 
-func sealPacket(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, chunkNonce SecretboxNonce) []byte {
-	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, chunkNonce)
+func sealPacket(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) []byte {
+	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
 	signature := ed25519.Sign(signKey, signatureInput)
 	signedChunk := append(signature[:], plaintext...)
-	packet := secretbox.Seal(nil, signedChunk, chunkNonce, encKey)
+	packet := secretbox.Seal(nil, signedChunk, nonce, encKey)
 	return packet
 }
 
-func openPacket(packet []byte, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, chunkNonce SecretboxNonce) ([]byte, error) {
-	signedChunk, secretboxValid := secretbox.Open(nil, packet, chunkNonce, encKey)
+func openPacket(packet []byte, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) ([]byte, error) {
+	signedChunk, secretboxValid := secretbox.Open(nil, packet, nonce, encKey)
 	if !secretboxValid {
 		return nil, NewError(BadSecretbox, "secretbox failed to open")
 	}
@@ -191,7 +193,7 @@ func openPacket(packet []byte, encKey SecretboxKey, verifyKey VerifyKey, signatu
 	var signature [ed25519.SignatureSize]byte
 	copy(signature[:], signedChunk[0:ed25519.SignatureSize])
 	plaintext := signedChunk[ed25519.SignatureSize:]
-	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, chunkNonce)
+	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
 	signatureValid := ed25519.Verify(verifyKey, signatureInput, &signature)
 	if !signatureValid {
 		return nil, NewError(BadSignature, "signature failed to verify")
@@ -454,6 +456,13 @@ func (r *codecReadWrapper) Read(callerBuf []byte) (int, error) {
 	return 0, io.EOF
 }
 
+// NewEncodingReader creates a new streaming encoder.
+// The signaturePrefix argument is prepended before signing anything.
+// It should usually be something like the name of your application.
+// The sender and recipient must use the same prefix for a signature to be valid.
+// This prevents an attacker from replaying signatures from one application in another application,
+// when the two applications are using shared keys but have different rules about what a signature means.
+// A prefix must not contain the null character.
 func NewEncodingReader(encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce, innerReader io.Reader) io.Reader {
 	return &codecReadWrapper{
 		innerReader: innerReader,

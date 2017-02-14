@@ -113,8 +113,10 @@ func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, sign
 
 func main() {
 	usage := `Usage:
-    example seal [--enckey=<enckey>] [--signkey=<signkey>] [--sigprefix=<sigprefix>] [--nonce=<nonce>] [--chunklen=<chunklen>]
-    example open [--enckey=<enckey>] [--verifykey=<signkey>] [--sigprefix=<sigprefix>] [--nonce=<nonce>] [--chunklen=<chunklen>]
+    example seal [--enckey=<enckey>] [--signkey=<signkey>]
+                 [--sigprefix=<sigprefix>] [--nonce=<nonce>] [--chunklen=<chunklen>]
+    example open [--enckey=<enckey>] [--verifykey=<signkey>]
+                 [--sigprefix=<sigprefix>] [--nonce=<nonce>] [--chunklen=<chunklen>]
 
 Options:
     --enckey=<enckey>        the 32-byte encryption key (in hex)
