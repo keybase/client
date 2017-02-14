@@ -338,7 +338,7 @@ function _inboxConversationLocalToSupersedesState (convo: ?ChatTypes.Conversatio
 
   const conversationIDKey = conversationIDToKey(convo.info.id)
   const supersedes = _toSupersedeInfo(conversationIDKey, (convo.supersedes || []))
-  return supersedes ? Map([[conversationIDKey, supersedes]]) : Map()
+  return supersedes ? Map({[conversationIDKey]: supersedes}) : Map()
 }
 
 function _inboxConversationLocalToSupersededByState (convo: ?ChatTypes.ConversationLocal): Constants.SupersededByState {
@@ -348,7 +348,7 @@ function _inboxConversationLocalToSupersededByState (convo: ?ChatTypes.Conversat
 
   const conversationIDKey = conversationIDToKey(convo.info.id)
   const supersededBy = _toSupersedeInfo(conversationIDKey, (convo.supersededBy || []))
-  return supersededBy ? Map([[conversationIDKey, supersededBy]]) : Map()
+  return supersededBy ? Map({[conversationIDKey]: supersededBy}) : Map()
 }
 
 function _inboxToFinalized (inbox: GetInboxLocalRes): FinalizedState {
@@ -669,7 +669,7 @@ function * _updateInbox (conv: ?ConversationLocal) {
 
   yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
   yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-  yield put(({type: 'chat:finalizedStateUpdate', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
 
   if (inboxState) {
     yield put(({
@@ -961,7 +961,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   const finalizedState: FinalizedState = _inboxToFinalized(inbox)
 
   yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
-  yield put(({type: 'chat:finalizedStateUpdate', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
 
   chatInboxUnverified.response.result()
 
@@ -979,13 +979,14 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
 
       // TODO this is ugly, ideally we should just call _updateInbox here
-      const supersedesState: Constants.SupersedesState = _inboxConversationLocalToSupersedesState(incoming.chatInboxConversation.params.conv)
-      const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(incoming.chatInboxConversation.params.conv)
-      const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(incoming.chatInboxConversation.params.conv)
+      const conv = incoming.chatInboxConversation.params.conv
+      const supersedesState: Constants.SupersedesState = _inboxConversationLocalToSupersedesState(conv)
+      const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
+      const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
 
       yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
       yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-      yield put(({type: 'chat:finalizedStateUpdate', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+      yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
 
       if (conversation && action && action.payload && action.payload.newConversationIDKey && action.payload.newConversationIDKey === conversation.get('conversationIDKey')) {
         conversation = conversation.set('youCreated', true)
@@ -1062,7 +1063,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
   if (inboxConvo && !inboxConvo.validated) {
     __DEV__ && console.log('Bailing on not yet validated conversation')
-    // return
+    return
   }
 
   const rekeyInfoSelector = (state: TypedState, conversationIDKey: ConversationIDKey) => {
