@@ -65,16 +65,35 @@ func TestTemporaryIDRandom(t *testing.T) {
 
 // Test that MakeRandomIDInRange returns items in the range specified.
 func TestRandomIDInRange(t *testing.T) {
-	var i uint64
-	var j uint64
-	for i = 0x1000; i < (math.MaxUint64 / 4); i *= 2 {
-		for j = i * 2; j < (math.MaxUint64 / 2); j *= 2 {
+	idToInt := func(id ID) uint64 {
+		idBytes := id.Bytes()[1:9]
+		return binary.BigEndian.Uint64(idBytes)
+	}
+	t.Log("Test that the random IDs are within the range specified.")
+	for i := uint64(0x1000); i < (math.MaxUint64 / 4); i *= 2 {
+		for j := i * 2; j < (math.MaxUint64 / 2); j *= 2 {
 			id, err := MakeRandomIDInRange(i, j)
 			require.NoError(t, err)
-			idBytes := id.Bytes()[1:9]
-			asInt := binary.BigEndian.Uint64(idBytes)
+			asInt := idToInt(id)
 			require.True(t, asInt >= i)
 			require.True(t, asInt < j)
 		}
+	}
+
+	t.Log("Test that the distribution of IDs is roughly uniform.")
+	buckets := make([]int, 16)
+	for i := 0; i < 100000; i++ {
+		id, err := MakeRandomIDInRange(0, math.MaxUint64)
+		require.NoError(t, err)
+		asInt := idToInt(id)
+		buckets[asInt>>60] += 1
+	}
+	t.Log("Buckets:")
+	for i, v := range buckets {
+		t.Logf("Bucket %x: %d", i, v)
+		// They should all be around 100,000/16 = 6250. This tests that they're
+		// within 10% in either direction.
+		require.True(t, v > 5625)
+		require.True(t, v < 6875)
 	}
 }
