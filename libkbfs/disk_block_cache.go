@@ -5,8 +5,10 @@
 package libkbfs
 
 import (
+	"encoding/hex"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -27,7 +29,7 @@ import (
 const (
 	// 10 GB maximum storage by default
 	defaultDiskBlockCacheMaxBytes uint64 = 10 * (1 << 30)
-	evictionConsiderationFactor   uint   = 3
+	evictionConsiderationFactor   int    = 3
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
 	lruDbFilename                 string = "diskCacheLRU.leveldb"
 	versionFilename               string = "version"
@@ -56,7 +58,7 @@ type DiskBlockCacheStandard struct {
 	config     diskBlockCacheConfig
 	maxBytes   uint64
 	maxBlockID []byte
-	tlfCounts  map[tlf.ID]uint
+	tlfCounts  map[tlf.ID]int
 	log        logger.Logger
 	// protects the disk caches from being shutdown while they're being
 	// accessed
@@ -95,7 +97,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 	}
 	defer func() {
 		if err != nil {
-			blockDB.Close()
+			cache.blockDb.Close()
 		}
 	}()
 
@@ -108,7 +110,8 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 			lruDb.Close()
 		}
 	}()
-	maxBlockID, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, kbfshash.MaxDefaultHash)
+	maxBlockID, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType,
+		kbfshash.MaxDefaultHash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +119,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		config:     config,
 		maxBytes:   maxBytes,
 		maxBlockID: maxBlockID.Bytes(),
-		tlfCounts:  map[tlf.ID]uint{},
+		tlfCounts:  map[tlf.ID]int{},
 		log:        log,
 		blockDb:    blockDb,
 		lruDb:      lruDb,
@@ -192,12 +195,34 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 	if err != nil {
 		return nil, err
 	}
-	cache.syncBlockCountsFromDb()
+	err = cache.syncBlockCountsFromDb()
+	if err != nil {
+		return nil, err
+	}
 	return cache, nil
 }
 
-func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() {
-	// TODO: Implement this.
+func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
+	// This lock is unnecessary because we don't allow concurrent access until
+	// it's done. But can't hurt.
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+
+	tlfIDLen := len(tlf.NullID.Bytes())
+	tlfCounts := make(map[tlf.ID]int)
+	iter := cache.lruDb.NewIterator(nil, nil)
+	for iter.Next() {
+		key := iter.Key()
+		tlfIDBytes := key[:tlfIDLen]
+		tlfID := tlf.NullID
+		err := tlfID.UnmarshalBinary(tlfIDBytes)
+		if err != nil {
+			return err
+		}
+		tlfCounts[tlfID] += 1
+	}
+	cache.tlfCounts = tlfCounts
+	return nil
 }
 
 // TODO: Fix getSizesLocked(), where leveldb.DB.SizeOf() currently doesn't work
@@ -339,21 +364,22 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d err=%+v", blockID, tlfID, blockLen, encodeLen, err)
 	}()
 	blockKey := blockID.Bytes()
+	hasKey, err := cache.blockDb.Has(blockKey, nil)
+	if err != nil {
+		return err
+	}
 	err = cache.blockDb.Put(blockKey, entry, nil)
 	if err != nil {
 		return err
 	}
+	if !hasKey {
+		cache.tlfCounts[tlfID] += 1
+	}
 	return cache.updateLRULocked(ctx, tlfID, blockKey)
 }
 
-// Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
-	blockIDs []kbfsblock.ID) error {
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
-	if cache.blockDb == nil {
-		return errors.WithStack(DiskCacheClosedError{"Delete"})
-	}
+func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
+	tlfID tlf.ID, blockIDs []kbfsblock.ID) error {
 	if len(blockIDs) == 0 {
 		return nil
 	}
@@ -374,8 +400,20 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	}
 
 	cache.compactCachesLocked(ctx)
+	cache.tlfCounts[tlfID] -= len(blockIDs)
 
 	return nil
+}
+
+// Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
+func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
+	blockIDs []kbfsblock.ID) error {
+	cache.lock.RLock()
+	defer cache.lock.RUnlock()
+	if cache.blockDb == nil {
+		return errors.WithStack(DiskCacheClosedError{"Delete"})
+	}
+	return cache.deleteLocked(ctx, tlfID, blockIDs)
 }
 
 // evictLocked evicts a number of blocks from the cache.
@@ -388,18 +426,28 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	// minimum numBlocks. We then call cache.Delete() on that list of block
 	// IDs.
 	tlfBytes := tlfID.Bytes()
-	randomBlockID := kbfscrypto.MakeTemporaryID().Bytes()
-	rng := util.Range{
-		append(tlfBytes, randomBlockID...),
-		append(tlfBytes, cache.maxBlockID...),
+	// We actually need a random range, not a random block ID. so, we pick a
+	// point to start our range, based on the proportion of the TLF space taken
+	// up by numBlocks/cache.tlfCounts[tlfID]. E.g. if we need to remove 100
+	// out of 400 blocks, and we assume that the block IDs are uniformly
+	// distributed, then our random start point should be in the [0,0.75)
+	// interval on the [0,1.0) block ID space. This means that if we need to
+	// remove all the blocks for the TLF, we can consider the whole range.
+	var rng *util.Range
+	if numBlocks > cache.tlfCounts[tlfID] {
+		randomBlockID, err := kbfsblock.MakeTemporaryID()
+		if err != nil {
+			return 0, err
+		}
+		rng = &util.Range{
+			append(tlfBytes, randomBlockID.Bytes()...),
+			append(tlfBytes, cache.maxBlockID...),
+		}
 	}
 	iter := cache.lruDb.NewIterator(rng, nil)
 
 	numElements := numBlocks * evictionConsiderationFactor
-	blockIDs := make(blockIDsByTime, 0, len(numElements))
-
-	// FIXME: currently our algorithm isn't properly random in where it chooses
-	// elements. We need a random _range_, not a random start.
+	blockIDs := make(blockIDsByTime, 0, numElements)
 
 	for i := 0; i < numElements; i++ {
 		if !iter.Next() {
@@ -411,20 +459,27 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 		blockIDBytes := key[len(tlfBytes):]
 		blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
 		if err != nil {
-			cache.log.CWarningf("Error decoding block ID %s", hex.Dump(blockIDBytes))
+			cache.log.CWarningf(ctx, "Error decoding block ID %s", hex.Dump(blockIDBytes))
 			continue
 		}
 		lru, err := cache.timeFromBytes(value)
 		if err != nil {
-			cache.log.CWarningf("Error decoding LRU time for block %s", blockID)
+			cache.log.CWarningf(ctx, "Error decoding LRU time for block %s", blockID)
 		}
 		blockIDs = append(blockIDs, lruEntry{blockID, lru})
 	}
 
-	// Remove all blocks in this TLF
-	if len(blockIDs) < numBlocks {
+	// Remove all blocks in this TLF.
+	if len(blockIDs) <= numBlocks {
+		cache.deleteLocked(ctx, tlfID, blockIDs.ToBlockIDSlice(len(blockIDs)))
+		return len(blockIDs), nil
 	}
-	return nil
+
+	// Only sort if we need to grab a subset of blocks.
+	sort.Sort(blockIDs)
+	// Remove the first numBlocks.
+	cache.deleteLocked(ctx, tlfID, blockIDs.ToBlockIDSlice(numBlocks))
+	return numBlocks, nil
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
