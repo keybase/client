@@ -145,25 +145,31 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) error {
 	_, configName := filepath.Split(currentConfig)
 
 	// See if any secret key files are in the new location. If so, don't repair.
-	if ssfiles, _ := filepath.Glob(filepath.Join(currentHome, "*.ss")); len(ssfiles) > 0 {
+	if newSecretKeyfiles, _ := filepath.Glob(filepath.Join(currentHome, "*.ss")); len(newSecretKeyfiles) > 0 {
 		return nil
 	}
 	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
 
 	files, _ := filepath.Glob(filepath.Join(oldHome, "*.mpack"))
-	ssfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
-	files = append(files, ssfiles...)
+	oldSecretKeyfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
+	files = append(files, oldSecretKeyfiles...)
 	files = append(files, filepath.Join(oldHome, configName))
 	var newFiles []string
 	for _, oldPathName := range files {
 		_, name := filepath.Split(oldPathName)
 		newPathName := filepath.Join(currentHome, name)
-		err = copyFile(oldPathName, newPathName)
-		newFiles = append(newFiles, newPathName)
-		if err != nil {
-			g.Log.Error("RemoteSettingsRepairman fatal error moving %s to %s - %s", oldPathName, newPathName, err)
-			break
+
+		// If both copies exist, skip
+		if exists, _ := FileExists(newPathName); !exists {
+			err = copyFile(oldPathName, newPathName)
+			if err != nil {
+				g.Log.Error("RemoteSettingsRepairman fatal error copying %s to %s - %s", oldPathName, newPathName, err)
+				break
+			} else {
+				newFiles = append(newFiles, newPathName)
+			}
 		}
+
 	}
 	if err != nil {
 		// Undo any of the new copies and quit
@@ -172,9 +178,9 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) error {
 		}
 		return err
 	}
-	// Now that we've successfully copied, delete the old ones
+	// Now that we've successfully copied, delete the old ones - BUT don't bail out on error here
 	for _, oldPathName := range files {
-		err = os.Remove(oldPathName)
+		os.Remove(oldPathName)
 	}
 
 	return err
@@ -221,8 +227,7 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 			}
 		}
 		if err != nil {
-			g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
-			return err
+			g.Log.Error("RemoteSettingsRepairman error moving %s to %s (continuing) - %s", oldPathName, newPathName, err)
 		}
 	}
 	return nil
@@ -249,7 +254,9 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 	if err = moveKeyFiles(g, oldHome, currentHome); err != nil {
 		return err
 	}
-	return moveNonChromiumFiles(g, oldHome, currentHome)
+	// Don't fail the repairmain if these others can't be moved
+	moveNonChromiumFiles(g, oldHome, currentHome)
+	return nil
 }
 
 // Notify the shell that the thing located at path has changed
