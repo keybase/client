@@ -88,7 +88,24 @@ func (k *SimpleFS) SimpleFSReadList(ctx context.Context, opid keybase1.OpID) (ke
 
 // SimpleFSCopy - Begin copy of file or directory
 func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyArg) error {
-	return errors.New("not implemented")
+	src, err := k.pathIO(ctx, arg.Src, keybase1.OpenFlags_READ|keybase1.OpenFlags_EXISTING)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	dst, err := k.pathIO(ctx, arg.Dest, keybase1.OpenFlags_WRITE|keybase1.OpenFlags_REPLACE)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	_, err = io.Copy(dst, src)
+
+	// TODO: async handling could be better.
+	k.lock.Lock()
+	k.handles[arg.OpID] = &handle{async: err}
+	k.lock.Unlock()
+
+	return err
 }
 
 // SimpleFSCopyRecursive - Begin recursive copy of directory
@@ -110,7 +127,7 @@ func (k *SimpleFS) SimpleFSRename(_ context.Context, arg keybase1.SimpleFSRename
 // or create a directory
 // Files must be closed afterwards.
 func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenArg) error {
-	node, err := k.open(ctx, arg.Dest, arg.Flags)
+	node, _, err := k.open(ctx, arg.Dest, arg.Flags)
 
 	if err != nil {
 		return err
@@ -244,24 +261,26 @@ func remotePath(path keybase1.Path) (ps []string, public bool, err error) {
 }
 
 func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.OpenFlags) (
-	libkbfs.Node, error) {
+	libkbfs.Node, libkbfs.EntryInfo, error) {
+	var node libkbfs.Node
+	var ei libkbfs.EntryInfo
+
 	parent, name, err := k.getRemoteNodeParent(ctx, dest)
 	if err != nil {
-		return nil, err
+		return node, ei, err
 	}
 
 	// TODO: OpenFlags_REPLACE
-	var node libkbfs.Node
 	switch {
 	case (f&keybase1.OpenFlags_EXISTING == 0) && (f&keybase1.OpenFlags_DIRECTORY == keybase1.OpenFlags_DIRECTORY):
-		node, _, err = k.config.KBFSOps().CreateDir(ctx, parent, name)
+		node, ei, err = k.config.KBFSOps().CreateDir(ctx, parent, name)
 	case f&keybase1.OpenFlags_EXISTING == 0:
-		node, _, err = k.config.KBFSOps().CreateFile(ctx, parent, name, false, false)
+		node, ei, err = k.config.KBFSOps().CreateFile(ctx, parent, name, false, false)
 	default:
-		node, _, err = k.config.KBFSOps().Lookup(ctx, parent, name)
+		node, ei, err = k.config.KBFSOps().Lookup(ctx, parent, name)
 	}
 
-	return node, err
+	return node, ei, err
 }
 
 // getRemoteRootNode
@@ -336,17 +355,27 @@ func wrapStat(ei libkbfs.EntryInfo, err error) (keybase1.Dirent, error) {
 
 func setStat(de *keybase1.Dirent, ei *libkbfs.EntryInfo) {
 	de.Time = keybase1.Time(ei.Mtime)
-	de.Size = int(de.Size) // TODO: FIX protocol
+	de.Size = int(ei.Size) // TODO: FIX protocol
+	de.DirentType = deTy2Ty(ei)
+}
+
+func deTy2Ty(ei *libkbfs.EntryInfo) keybase1.DirentType {
 	switch ei.Type {
 	case libkbfs.Exec:
-		de.DirentType = keybase1.DirentType_EXEC
+		return keybase1.DirentType_EXEC
 	case libkbfs.File:
-		de.DirentType = keybase1.DirentType_FILE
+		return keybase1.DirentType_FILE
 	case libkbfs.Dir:
-		de.DirentType = keybase1.DirentType_DIR
+		return keybase1.DirentType_DIR
 	case libkbfs.Sym:
-		de.DirentType = keybase1.DirentType_SYM
+		return keybase1.DirentType_SYM
 	}
+	panic("deTy2Ty unreachable")
+}
+
+type ioer interface {
+	io.ReadWriteCloser
+	Type() keybase1.DirentType
 }
 
 func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
@@ -357,17 +386,41 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
-		node, err := k.open(ctx, path, flags)
+		node, ei, err := k.open(ctx, path, flags)
 		if err != nil {
 			return nil, err
 		}
-		return &kbfsIO{ctx, k, node, 0}, nil
+		return &kbfsIO{ctx, k, node, 0, deTy2Ty(&ei)}, nil
 	case keybase1.PathType_LOCAL:
-		f, err := os.OpenFile(path.Local(), os.O_RDWR, 0644)
+		var cflags = os.O_RDWR
+		if flags&keybase1.OpenFlags_EXISTING == 0 {
+			cflags |= os.O_CREATE
+		}
+		if flags&keybase1.OpenFlags_REPLACE == 1 {
+			cflags |= os.O_TRUNC
+		}
+		f, err := os.OpenFile(path.Local(), cflags, 0644)
 		if err != nil {
 			return nil, err
 		}
-		return f, nil
+		st, err := f.Stat()
+		if err != nil {
+			f.Close()
+			return nil, err
+		}
+		var det keybase1.DirentType
+		mode := st.Mode()
+		switch {
+		case mode&os.ModeSymlink != 0:
+			det = keybase1.DirentType_SYM
+		case mode.IsDir():
+			det = keybase1.DirentType_DIR
+		case mode&0100 == 0100:
+			det = keybase1.DirentType_EXEC
+		default:
+			det = keybase1.DirentType_FILE
+		}
+		return &localIO{f, det}, nil
 	}
 	return nil, errors.New("Invalid path type")
 }
@@ -377,10 +430,14 @@ type kbfsIO struct {
 	sfs    *SimpleFS
 	node   libkbfs.Node
 	offset int64
+	deType keybase1.DirentType
 }
 
 func (r *kbfsIO) Read(bs []byte) (int, error) {
 	n, err := r.sfs.config.KBFSOps().Read(r.ctx, r.node, bs, r.offset)
+	if n == 0 && err == nil {
+		return 0, io.EOF
+	}
 	r.offset += n
 	return int(n), err
 }
@@ -391,7 +448,20 @@ func (r *kbfsIO) Write(bs []byte) (int, error) {
 	return len(bs), err
 }
 
-func (r *kbfsIO) Close() error { return nil }
+func (r *kbfsIO) Close() error {
+	return r.sfs.config.KBFSOps().Sync(r.ctx, r.node)
+}
+
+func (r *kbfsIO) Type() keybase1.DirentType {
+	return r.deType
+}
+
+type localIO struct {
+	*os.File
+	deType keybase1.DirentType
+}
+
+func (r *localIO) Type() keybase1.DirentType { return r.deType }
 
 var errOnlyRemotePathSupported = errors.New("Only remote paths are supported for this operation")
 var errInvalidRemotePath = errors.New("Invalid remote path")
