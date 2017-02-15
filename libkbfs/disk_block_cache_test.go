@@ -172,22 +172,24 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 
 	previousAvgDuration := 50 * time.Second
 	averageDifference := float64(0)
+	totalRemoved := 0
+	numEvictionDifferences := 0
 
 	t.Log("Incrementally evict all the blocks in the cache.")
 	// Because the eviction algorithm is probabilistic, we can't rely on the
 	// same number of blocks being evicted every time. So we have to be smart
 	// about our measurement assertions.
-	for i := 1; i <= 10; i++ {
+	for totalRemoved != 100 {
 		t.Log("Evict 10 blocks from the cache.")
 		numRemoved, err := cache.evictLocked(ctx, tlf1, 10)
 		require.NoError(t, err)
-		require.Equal(t, 10, numRemoved)
+		totalRemoved += numRemoved
 
-		expectedCount := int64(100 - (10 * i))
+		expectedCount := 100 - totalRemoved
 		t.Logf("Verify that there are %d blocks in the cache.", expectedCount)
 		iter := cache.lruDb.NewIterator(nil, nil)
 		defer iter.Release()
-		blockCount := int64(0)
+		blockCount := 0
 		var avgDuration time.Duration
 		for iter.Next() {
 			putTime, err := cache.timeFromBytes(iter.Value())
@@ -204,9 +206,12 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 			averageDifference += avgDuration.Seconds() -
 				previousAvgDuration.Seconds()
 			previousAvgDuration = avgDuration
+			numEvictionDifferences++
 		}
 	}
-	averageDifference /= 9.0
-	t.Logf("Average overall LRU delta: %.2f", averageDifference)
-	require.True(t, averageDifference > 3.0)
+	t.Log("Verify that, on average, the LRU time of the blocks remaining in" +
+		" the queue keeps going up.")
+	averageDifference /= float64(numEvictionDifferences)
+	require.True(t, averageDifference > 3.0,
+		"Average overall LRU delta from an eviction: %.2f", averageDifference)
 }
