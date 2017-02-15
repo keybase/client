@@ -176,6 +176,8 @@ protocol local {
     Hash bodyHash;
     union { null, OutboxInfo } outboxInfo;
     union { null, OutboxID } outboxID;
+    // MessageBoxed.V1: Signature over the serialized HeaderPlaintextV1 (with headerSignature set to null).
+    // MessageBoxed.V2: Null (because the header is signencrypted outside)
     union {null, SignatureInfo} headerSignature;
   }
 
@@ -256,8 +258,22 @@ protocol local {
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
+
+    // MessageBoxed.V1: Hash of the encrypted header ciphertext.
+    // MessageBoxed.V2: Hash of MessageBoxed.headerSealed (.v || .n || .b)
     Hash headerHash;
+
+    // TOOD Maybe get rid of this field in favor of verificationKey.
+    //      If so, bump-nuke the caches in storage_blockengine and any other persistent
+    //      storage of MessageUnboxedValid.
+    // MessageBoxed.V1: Header signature. Included for the verification key.
+    // MessageBoxed.V2: Null
     union {null, SignatureInfo} headerSignature;
+
+    // MessageBoxed.V1: Null
+    // MessageBoxed.V2: The verification key used to unbox.
+    union {null, bytes} verificationKey;
+
     // Whether the message was sent by a device that is now revoked.
     // We aren't sure whether the device was revoked when the message was sent.
     // Re-evaluated when unboxed or pulled from the cache.

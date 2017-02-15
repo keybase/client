@@ -169,6 +169,12 @@ export const NotifyChatChatActivityType = {
   failedMessage: 5,
 }
 
+export const RemoteMessageBoxedVersion = {
+  vnone: 0,
+  v1: 1,
+  v2: 2,
+}
+
 export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.CancelPost'})
 }
@@ -1102,12 +1108,20 @@ export type MessageBody =
   | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
 
 export type MessageBoxed = {
+  version: MessageBoxedVersion,
   serverHeader?: ?MessageServerHeader,
   clientHeader: MessageClientHeader,
   headerCiphertext: EncryptedData,
+  headerSealed: SignEncryptedData,
   bodyCiphertext: EncryptedData,
+  headerVerificationKey: bytes,
   keyGeneration: int,
 }
+
+export type MessageBoxedVersion =
+    0 // VNONE_0
+  | 1 // V1_1
+  | 2 // V2_2
 
 export type MessageClientHeader = {
   conv: ConversationIDTriple,
@@ -1207,6 +1221,7 @@ export type MessageUnboxedValid = {
   senderDeviceType: string,
   headerHash: Hash,
   headerSignature?: ?SignatureInfo,
+  verificationKey?: ?bytes,
   senderDeviceRevokedAt?: ?gregor1.Time,
 }
 
@@ -1382,6 +1397,12 @@ export type SetStatusPayload = {
   status: ConversationStatus,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
+}
+
+export type SignEncryptedData = {
+  v: int,
+  b: bytes,
+  n: bytes,
 }
 
 export type SignatureInfo = {
