@@ -1141,16 +1141,12 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
     return
   }
 
-  const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
-  if (inboxConvo && inboxConvo.isPending) {
-    __DEV__ && console.log('Bailing on selected pending conversation')
-    return
-  }
-
   if (isPendingConversationIDKey(conversationIDKey)) {
     __DEV__ && console.log('Bailing on selected pending conversation no matching inbox')
     return
   }
+
+  const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
 
   if (inboxConvo && !inboxConvo.validated) {
     __DEV__ && console.log('Bailing on not yet validated conversation')
