@@ -129,8 +129,9 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 			return "", err
 		}
 		if version < initialDiskCacheVersion {
-			return "", errors.Errorf("New disk cache version."+
-				" Delete the existing disk cache at path: %s", dirPath)
+			return "", errors.WithStack(
+				InvalidVersionError{fmt.Sprintf("New disk cache version."+
+					" Delete the existing disk cache at path: %s", dirPath)})
 		}
 		// Disk cache version is newer than we expect for this client. This is an
 		// error, and we shouldn't initialize the disk cache.
