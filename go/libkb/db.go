@@ -191,6 +191,7 @@ const (
 	DBChatInbox               = 0xf9
 	DBIdentify                = 0xfa
 	DBResolveUsernameToUID    = 0xfb
+	DBChatBodyHashIndex       = 0xfc
 )
 
 const (

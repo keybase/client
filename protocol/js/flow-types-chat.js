@@ -1231,6 +1231,7 @@ export type MessageUnboxedValid = {
   senderUsername: string,
   senderDeviceName: string,
   senderDeviceType: string,
+  bodyHash: Hash,
   headerHash: Hash,
   headerSignature?: ?SignatureInfo,
   verificationKey?: ?bytes,

@@ -57,7 +57,8 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 
 func setupChatTest(t *testing.T, name string) (libkb.TestContext, *Boxer) {
 	tc := externals.SetupTest(t, name, 2)
-	return tc, NewBoxer(tc.G, nil)
+	emptyTlfInterfaceClosure := func() keybase1.TlfInterface { return nil }
+	return tc, NewBoxer(tc.G, emptyTlfInterfaceClosure)
 }
 
 func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.FakeUser) libkb.NaclSigningKeyPair {
@@ -259,8 +260,11 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 		// put original hash fn back
 		boxer.hashV1 = origHashFn
 
+		// NOTE: this is hashing a lot of zero values, and it might break when we add more checks
+		convID := header.Conv.ToConversationID([2]byte{0, 0})
+
 		// This should produce a permanent error. So err will be nil, but the decmsg will be state=error.
-		decmsg, err := boxer.UnboxMessage(ctx, *boxed, nil /* finalizeInfo */)
+		decmsg, err := boxer.UnboxMessage(ctx, *boxed, convID, nil /* finalizeInfo */)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -305,9 +309,12 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 			Ctime: gregor1.ToTime(time.Now()),
 		}
 
+		// NOTE: this is hashing a lot of zero values, and it might break when we add more checks
+		convID := header.Conv.ToConversationID([2]byte{0, 0})
+
 		// This should produce a non-permanent error. So err will be set.
-		bctx := context.WithValue(ctx, kfKey, NewKeyFinderMock())
-		decmsg, ierr := boxer.UnboxMessage(bctx, *boxed, nil /* finalizeInfo */)
+		bctx := context.WithValue(ctx, kfKey, NewKeyFinderMock(nil))
+		decmsg, ierr := boxer.UnboxMessage(bctx, *boxed, convID, nil /* finalizeInfo */)
 		if !strings.Contains(ierr.Error(), "no key found") {
 			t.Fatalf("error should contain 'no key found': %v", ierr)
 		}
@@ -574,7 +581,10 @@ func TestChatMessagePublic(t *testing.T) {
 			Ctime: gregor1.ToTime(time.Now()),
 		}
 
-		decmsg, err := boxer.UnboxMessage(ctx, *boxed, nil /* finalizeInfo */)
+		// NOTE: this is hashing a lot of zero values, and it might break when we add more checks
+		convID := header.Conv.ToConversationID([2]byte{0, 0})
+
+		decmsg, err := boxer.UnboxMessage(ctx, *boxed, convID, nil /* finalizeInfo */)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -827,12 +837,162 @@ func modifyBoxerForTesting(t *testing.T, boxer *Boxer, canned *cannedMessage) {
 	}
 }
 
-type KeyFinderMock struct{}
+func TestChatMessageBodyHashReplay(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		text := "hi"
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
 
-func NewKeyFinderMock() KeyFinder {
-	return &KeyFinderMock{}
+		// need a real user
+		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+
+		// Generate an encryption key and create a fake finder to fetch it.
+		key := cryptKey(t)
+		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
+		boxerContext := context.WithValue(context.Background(), kfKey, finder)
+
+		// This message has an all zeros ConversationIDTriple, but that's fine. We
+		// can still extract the ConvID from it.
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
+		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Need to give it a server header...
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime:     gregor1.ToTime(time.Now()),
+			MessageID: 1,
+		}
+
+		// Unbox the message once.
+		_, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Unbox it again. This should be fine.
+		_, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Now try to unbox it again with a different MessageID. This must fail.
+		boxed.ServerHeader.MessageID = 2
+		_, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		if err == nil {
+			t.Fatal("replay must be detected")
+		}
+	})
+}
+
+func TestChatMessagePrevPointerInconsistency(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
+
+		// need a real user
+		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+
+		// Generate an encryption key and create a fake finder to fetch it.
+		key := cryptKey(t)
+		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
+		boxerContext := context.WithValue(context.Background(), kfKey, finder)
+
+		// Everything below will use the zero convID.
+		convID := chat1.ConversationIDTriple{}.ToConversationID([2]byte{0, 0})
+
+		makeMsg := func(id chat1.MessageID, prevs []chat1.MessagePreviousPointer) *chat1.MessageBoxed {
+			msg := textMsgWithSender(t, "foo text", gregor1.UID(u.User.GetUID().ToBytes()))
+			msg.ClientHeader.Prev = prevs
+			boxed, err := boxer.box(msg, key, signKP, mbVersion)
+			if err != nil {
+				t.Fatal(err)
+			}
+			boxed.ServerHeader = &chat1.MessageServerHeader{
+				Ctime:     gregor1.ToTime(time.Now()),
+				MessageID: id,
+			}
+			return boxed
+		}
+
+		// Generate a couple of initial messages, with no prev pointers of their own.
+		boxed1 := makeMsg(1, nil)
+		boxed2 := makeMsg(2, nil)
+
+		// Now unbox the first message. That caches its header hash. Leave the
+		// second one out of the cache for now though. (We'll use it to cause an
+		// error later.)
+		unboxed1, err := boxer.UnboxMessage(boxerContext, *boxed1, convID, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Create two more messages, which both have bad prev pointers. Msg3 has a
+		// bad prev for msg1, and must fail to unbox, because we've already unboxed
+		// msg1. Msg4 has a bad prev for msg2 (which we haven't unboxed yet)
+		// and a good prev for msg1. Msg4 will therefore succeed at unboxing now,
+		// and we will check that msg2 fails later.
+		boxed3 := makeMsg(3, []chat1.MessagePreviousPointer{
+			chat1.MessagePreviousPointer{
+				Id: 1,
+				// Bad pointer for msg1. This will cause an immediate unboxing failure.
+				Hash: []byte("BAD PREV POINTER HERE"),
+			},
+		})
+		boxed4 := makeMsg(4, []chat1.MessagePreviousPointer{
+			chat1.MessagePreviousPointer{
+				Id: 1,
+				// Good pointer for msg1.
+				Hash: unboxed1.Valid().HeaderHash,
+			},
+			chat1.MessagePreviousPointer{
+				Id: 2,
+				// Bad pointer for msg2. Because we've never unboxed message 2
+				// before, though, we'll cache this bad prev pointer, and it's msg2
+				// that will fail to unbox.
+				Hash: []byte("ANOTHER BAD PREV POINTER OMG"),
+			},
+		})
+		_, err = boxer.UnboxMessage(boxerContext, *boxed3, convID, nil)
+		if err == nil {
+			t.Fatal("msg3 has a known bad prev pointer and must fail to unbox")
+			t.Fatal(err)
+		}
+		_, err = boxer.UnboxMessage(boxerContext, *boxed4, convID, nil)
+		if err != nil {
+			t.Fatalf("we expected msg4 to succeed: %s", err)
+		}
+
+		// Now try to unbox msg2. Because of msg4's bad pointer, this should fail.
+		_, err = boxer.UnboxMessage(boxerContext, *boxed2, convID, nil)
+		if err == nil {
+			t.Fatalf("msg2 should fail to unbox, because of msg4's bad pointer")
+		}
+	})
+}
+
+type KeyFinderMock struct {
+	cryptKeys []keybase1.CryptKey
+}
+
+var _ KeyFinder = (*KeyFinderMock)(nil)
+
+func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
+	return &KeyFinderMock{cryptKeys}
 }
 
 func (k *KeyFinderMock) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
-	return keybase1.GetTLFCryptKeysRes{}, nil
+	return keybase1.GetTLFCryptKeysRes{CryptKeys: k.cryptKeys}, nil
 }

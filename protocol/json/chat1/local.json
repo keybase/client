@@ -819,6 +819,10 @@
         },
         {
           "type": "Hash",
+          "name": "bodyHash"
+        },
+        {
+          "type": "Hash",
           "name": "headerHash"
         },
         {
