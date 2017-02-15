@@ -397,12 +397,20 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 	}
 }
 
-// Install installs all keybase components
-func Install(context Context, binPath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
+// Install installs specified components
+func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
 
 	log.Debug("Installing components: %s", components)
+
+	if libkb.IsIn(string(ComponentNameApp), components, false) {
+		err = installAppBundle(context, sourcePath, log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
+		if err != nil {
+			log.Errorf("Error installing app bundle: %s", err)
+		}
+	}
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
 		err = InstallUpdater(context, binPath, force, timeout, log)
@@ -687,42 +695,49 @@ func nativeInstallerAppBundleExecPath(appPath string) string {
 
 func uninstallMountDir(runMode libkb.RunMode, log Log) error {
 	// We need the installer to remove the mount directory (since it's in the root, only the helper tool can do it)
-	return execNativeInstallerWithArg("--uninstall-mountdir", runMode, log)
+	return execNativeInstallerWithArg([]string{"--uninstall-mountdir"}, runMode, log)
 }
 
 func uninstallFuse(runMode libkb.RunMode, log Log) error {
 	log.Info("Removing KBFuse")
-	return execNativeInstallerWithArg("--uninstall-fuse", runMode, log)
+	return execNativeInstallerWithArg([]string{"--uninstall-fuse"}, runMode, log)
 }
 
 func uninstallHelper(runMode libkb.RunMode, log Log) error {
 	log.Info("Removing privileged helper tool")
-	return execNativeInstallerWithArg("--uninstall-helper", runMode, log)
+	return execNativeInstallerWithArg([]string{"--uninstall-helper"}, runMode, log)
 }
 
 func uninstallApp(runMode libkb.RunMode, log Log) error {
 	log.Info("Removing app")
-	return execNativeInstallerWithArg("--uninstall-app", runMode, log)
+	return execNativeInstallerWithArg([]string{"--uninstall-app"}, runMode, log)
 }
 
 func installMountDir(runMode libkb.RunMode, log Log) error {
 	log.Info("Creating mount directory")
-	return execNativeInstallerWithArg("--install-mountdir", runMode, log)
+	return execNativeInstallerWithArg([]string{"--install-mountdir"}, runMode, log)
 }
 
 func installFuse(runMode libkb.RunMode, log Log) error {
 	log.Info("Installing KBFuse")
-	return execNativeInstallerWithArg("--install-fuse", runMode, log)
+	return execNativeInstallerWithArg([]string{"--install-fuse"}, runMode, log)
 }
 
-func execNativeInstallerWithArg(arg string, runMode libkb.RunMode, log Log) error {
+func installAppBundle(context Context, sourcePath string, log Log) error {
+	log.Info("Install app bundle")
+	return execNativeInstallerWithArg([]string{"--install-app-bundle", fmt.Sprintf("--source-path=%s", sourcePath)}, context.GetRunMode(), log)
+}
+
+func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) error {
 	appPath, err := AppBundleForPath()
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10"), arg)
+	includeArgs := []string{fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10")}
+	args = append(includeArgs, args...)
+	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), args...)
 	output, err := cmd.CombinedOutput()
-	log.Debug("Output (%s): %s", arg, string(output))
+	log.Debug("Output (%s): %s", args, string(output))
 	return err
 }
 

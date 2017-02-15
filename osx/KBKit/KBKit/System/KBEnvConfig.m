@@ -23,7 +23,8 @@
 @property BOOL installDisabled;
 @property KBInstallOptions installOptions;
 @property NSTimeInterval installTimeout;
-
+@property NSString *appPath;
+@property NSString *sourcePath;
 @end
 
 @implementation KBEnvConfig
@@ -65,7 +66,7 @@
   return self;
 }
 
-+ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout {
++ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath {
   KBEnvConfig *envConfig;
   if ([runModeString isEqualToString:@"prod"]) {
     envConfig = [KBEnvConfig envConfigWithRunMode:KBRunModeProd];
@@ -78,6 +79,8 @@
   }
   envConfig.installOptions = installOptions;
   envConfig.installTimeout = installTimeout;
+  envConfig.appPath = appPath;
+  envConfig.sourcePath = sourcePath;
   return envConfig;
 }
 
