@@ -45,8 +45,7 @@ func MakeRandomRequestID() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// TODO: go1.5 has RawURLEncoding which leaves off the padding entirely
-	return strings.TrimSuffix(base64.URLEncoding.EncodeToString(buf), "=="), nil
+	return base64.RawURLEncoding.EncodeToString(buf), nil
 }
 
 // LogTagsFromContextToMap parses log tags from the context into a map of strings.
