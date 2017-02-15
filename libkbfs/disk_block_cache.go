@@ -6,17 +6,17 @@ package libkbfs
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -115,24 +115,28 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 	versionBytes, err := ioutil.ReadFile(versionFilepath)
 	// We expect the file to open successfully or not exist. Anything else is a
 	// problem.
-	if err != nil && !os.IsNotExist(err) {
+	version := initialDiskCacheVersion
+	if ioutil.IsNotExist(err) {
+		// Do nothing, meaning that we will create the version file below.
+	} else if err != nil {
 		return "", err
-	}
-	// We expect a successfully opened version file to parse a single unsigned
-	// integer representing the version. Anything else is a corrupted version
-	// file. However, this we can solve by deleting everything in the cache.
-	version, err := strconv.ParseUint(string(versionBytes), 10, strconv.IntSize)
-	if err != nil {
-		return "", err
-	}
-	if version < initialDiskCacheVersion {
-		return "", fmt.Errorf("New disk cache version."+
-			" Delete the existing disk cache at path: %s", dirPath)
-	}
-	// Disk cache version is newer than we expect for this client. This is an
-	// error, and we shouldn't initialize the disk cache.
-	if version > initialDiskCacheVersion {
-		return "", OutdatedVersionError{}
+	} else {
+		// We expect a successfully opened version file to parse a single unsigned
+		// integer representing the version. Anything else is a corrupted version
+		// file. However, this we can solve by deleting everything in the cache.
+		version, err = strconv.ParseUint(string(versionBytes), 10, strconv.IntSize)
+		if err != nil {
+			return "", err
+		}
+		if version < initialDiskCacheVersion {
+			return "", errors.Errorf("New disk cache version."+
+				" Delete the existing disk cache at path: %s", dirPath)
+		}
+		// Disk cache version is newer than we expect for this client. This is an
+		// error, and we shouldn't initialize the disk cache.
+		if version > initialDiskCacheVersion {
+			return "", OutdatedVersionError{}
+		}
 	}
 	versionString := strconv.FormatUint(version, 10)
 	err = ioutil.WriteFile(versionFilepath, []byte(versionString), 0600)
@@ -265,7 +269,7 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	defer cache.lock.RUnlock()
 	if cache.blockDb == nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
-			DiskCacheClosedError{"Get"}
+			errors.WithStack(DiskCacheClosedError{"Get"})
 	}
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d err=%+v",
@@ -291,16 +295,18 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.blockDb == nil {
-		return DiskCacheClosedError{"Put"}
+		return errors.WithStack(DiskCacheClosedError{"Put"})
 	}
 	blockLen := len(buf)
 	// TODO: accounting
 	entry, err := cache.encodeBlockCacheEntry(buf, serverHalf)
-	encodeLen := len(entry)
-	cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d err=%+v", blockID, tlfID, blockLen, encodeLen, err)
 	if err != nil {
 		return err
 	}
+	encodeLen := len(entry)
+	defer func() {
+		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d err=%+v", blockID, tlfID, blockLen, encodeLen, err)
+	}()
 	blockKey := blockID.Bytes()
 	err = cache.blockDb.Put(blockKey, entry, nil)
 	if err != nil {
@@ -315,7 +321,7 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
 	if cache.blockDb == nil {
-		return DiskCacheClosedError{"Delete"}
+		return errors.WithStack(DiskCacheClosedError{"Delete"})
 	}
 	if len(blockIDs) == 0 {
 		return nil

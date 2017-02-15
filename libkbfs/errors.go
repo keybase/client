@@ -514,6 +514,20 @@ func (e OutdatedVersionError) Error() string {
 		"Please use `keybase update check` to upgrade your software."
 }
 
+// InvalidVersionError indicates that we have encountered some new data version
+// we don't understand, and we don't know how to handle it.
+type InvalidVersionError struct {
+	msg string
+}
+
+// Error implements the error interface for InvalidVersionError.
+func (e InvalidVersionError) Error() string {
+	if e.msg != "" {
+		return e.msg
+	}
+	return "The version provided is not valid."
+}
+
 // InvalidKeyGenerationError indicates that an invalid key generation
 // was used.
 type InvalidKeyGenerationError struct {
