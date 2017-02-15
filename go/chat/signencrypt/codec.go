@@ -26,8 +26,10 @@
 // 3) Concatenate the 16-byte nonce above with the 8-byte unsigned big-endian
 //    chunk number, where the first chunk is zero. This is the 24-byte chunk
 //    nonce.
-// 4) Concatenate four things:
-//    - "Keybase-Chat-Attachment-1\0" (that's a null byte at the end)
+// 4) Concatenate five things:
+//    - a signature prefix string which must contain no null bytes.
+//      for example "Keybase-Chat-Attachment-1"
+//    - a null byte terminator for the prefix string
 //    - the encryption key (why?! read below)
 //    - the chunk nonce from #3
 //    - the hash from #2.
