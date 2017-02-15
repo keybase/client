@@ -157,13 +157,25 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 	cache, config := initDiskBlockCacheTest(t)
 	defer shutdownDiskBlockCacheTest(cache)
 
-	tlf1 := tlf.FakeID(0, false)
+	tlf1 := tlf.FakeID(3, false)
 	ctx := context.Background()
 	clock := config.TestClock()
 	initialTime := clock.Now()
+	cache.log = logger.NewNull()
+	t.Log("Seed the cache with some other TLFs")
+	fakeTlfs := []byte{0, 1, 2, 4, 5}
+	for _, f := range fakeTlfs {
+		tlf := tlf.FakeID(f, false)
+		blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
+		err := cache.Put(ctx, tlf, blockId, blockEncoded, serverHalf)
+		require.NoError(t, err)
+		clock.Add(time.Second)
+	}
+	tlf1NumBlocks := 100
+	totalBlocks := tlf1NumBlocks + len(fakeTlfs)
 	t.Log("Put 100 blocks into the cache.")
 	cache.log = logger.NewNull()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < tlf1NumBlocks; i++ {
 		blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
 		err := cache.Put(ctx, tlf1, blockId, blockEncoded, serverHalf)
 		require.NoError(t, err)
@@ -175,39 +187,42 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 	totalRemoved := 0
 	numEvictionDifferences := 0
 
-	t.Log("Incrementally evict all the blocks in the cache.")
+	t.Log("Incrementally evict all the tlf1 blocks in the cache.")
 	// Because the eviction algorithm is probabilistic, we can't rely on the
 	// same number of blocks being evicted every time. So we have to be smart
 	// about our measurement assertions.
-	for totalRemoved != 100 {
+	for totalRemoved != tlf1NumBlocks {
 		t.Log("Evict 10 blocks from the cache.")
 		numRemoved, err := cache.evictLocked(ctx, tlf1, 10)
 		require.NoError(t, err)
 		totalRemoved += numRemoved
 
-		expectedCount := 100 - totalRemoved
+		expectedCount := totalBlocks - totalRemoved
 		t.Logf("Verify that there are %d blocks in the cache.", expectedCount)
-		iter := cache.lruDb.NewIterator(nil, nil)
-		defer iter.Release()
-		blockCount := 0
-		var avgDuration time.Duration
-		for iter.Next() {
-			putTime, err := cache.timeFromBytes(iter.Value())
-			duration := putTime.Sub(initialTime)
-			avgDuration += duration
-			require.NoError(t, err)
-			blockCount++
-		}
-		require.Equal(t, expectedCount, blockCount)
-		if expectedCount > 0 {
-			avgDuration /= time.Duration(expectedCount)
-			t.Logf("Average LRU time of remaining blocks: %.2f",
-				avgDuration.Seconds())
-			averageDifference += avgDuration.Seconds() -
-				previousAvgDuration.Seconds()
-			previousAvgDuration = avgDuration
-			numEvictionDifferences++
-		}
+		func() {
+			iter := cache.lruDb.NewIterator(nil, nil)
+			defer iter.Release()
+			blockCount := 0
+			var avgDuration time.Duration
+			for iter.Next() {
+				putTime, err := cache.timeFromBytes(iter.Value())
+				require.NoError(t, err)
+				duration := putTime.Sub(initialTime)
+				avgDuration += duration
+				blockCount++
+			}
+			require.Equal(t, expectedCount, blockCount,
+				"Removed %d blocks this round.", numRemoved)
+			if expectedCount > 0 {
+				avgDuration /= time.Duration(expectedCount)
+				t.Logf("Average LRU time of remaining blocks: %.2f",
+					avgDuration.Seconds())
+				averageDifference += avgDuration.Seconds() -
+					previousAvgDuration.Seconds()
+				previousAvgDuration = avgDuration
+				numEvictionDifferences++
+			}
+		}()
 	}
 	t.Log("Verify that, on average, the LRU time of the blocks remaining in" +
 		" the queue keeps going up.")
