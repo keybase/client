@@ -13,6 +13,8 @@
 //
 // This file has 100% test coverage. Please keep it that way :-)
 //
+// Streaming inteface:
+//
 // Seal inputs:
 // - plaintext bytes (streaming is fine)
 // - a crypto_secretbox symmetric key
@@ -26,8 +28,9 @@
 // 3) Concatenate the 16-byte nonce above with the 8-byte unsigned big-endian
 //    chunk number, where the first chunk is zero. This is the 24-byte chunk
 //    nonce.
-// 4) Concatenate four things:
-//    - "Keybase-Chat-Attachment-1\0" (that's a null byte at the end)
+// 4) Concatenate five things:
+//    - a signature prefix string. For example "Keybase-Chat-Attachment-1"
+//    - a null byte terminator for the prefix string
 //    - the encryption key (why?! read below)
 //    - the chunk nonce from #3
 //    - the hash from #2.
@@ -56,6 +59,22 @@
 // 4) Hash that plaintext and make the concatenation from seal step #4.
 // 5) Verify the signature against that concatenation.
 // 6) Emit each verified plaintext chunk as output.
+//
+// Non-streaming interface:
+// The non-streaming interface (SealPacket, OpenPacket) works the same way with
+// two exceptions:
+// - No chunking occurs. There is only one packet, any plaintext length is ok.
+// - There is no chunk number. The supplied nonce is the single chunk nonce.
+//
+// And one nonce-reuse warning:
+// - If you are using both the streaming and single-packet interface
+//   with the same key then be wary of nonce reuse. A nonce for streaming
+//   combined with the chunk number (step #3 above) may end up being
+//   the same as a nonce for non-streaming. Which could result in encrypting
+//   using the same nonce with the same key on different plaintexts (bad).
+//   If possible avoid using both interfaces with the same keys.
+//   If you must, then at least always use random nonces on at least one
+//   of the interfaces to minimize the chance of collision.
 //
 // Design Notes:
 //
@@ -482,7 +501,7 @@ func NewDecodingReader(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix
 // all-at-once wrapper functions
 // =============================
 
-func GetSealedSize(plaintextLen int) int {
+func GetSealedStreamSize(plaintextLen int) int {
 	// All the full packets.
 	fullChunks := plaintextLen / DefaultPlaintextChunkLength
 	totalLen := fullChunks * getPacketLen(DefaultPlaintextChunkLength)
@@ -493,14 +512,14 @@ func GetSealedSize(plaintextLen int) int {
 }
 
 // SealWhole seals all at once using the streaming encoding.
-func SealWhole(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) []byte {
+func SealWholeStream(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) []byte {
 	encoder := NewEncoder(encKey, signKey, signaturePrefix, nonce)
 	output := encoder.Write(plaintext)
 	output = append(output, encoder.Finish()...)
 	return output
 }
 
-func OpenWhole(sealed []byte, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) ([]byte, error) {
+func OpenWholeStream(sealed []byte, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) ([]byte, error) {
 	decoder := NewDecoder(encKey, verifyKey, signaturePrefix, nonce)
 	output, err := decoder.Write(sealed)
 	if err != nil {
@@ -511,6 +530,20 @@ func OpenWhole(sealed []byte, encKey SecretboxKey, verifyKey VerifyKey, signatur
 		return nil, err
 	}
 	return append(output, moreOutput...), nil
+}
+
+func GetSealedSingleSize(plaintextLen int) int {
+	return getPacketLen(plaintextLen)
+}
+
+// Seal a single packet of any length without chunking. Takes a longer nonce because there is no chunk number.
+// See "nonce-reuse warning" above.
+func SealSingle(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) []byte {
+	return sealPacket(plaintext, encKey, signKey, signaturePrefix, nonce)
+}
+
+func OpenSingle(sealed []byte, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) ([]byte, error) {
+	return openPacket(sealed, encKey, verifyKey, signaturePrefix, nonce)
 }
 
 // ======

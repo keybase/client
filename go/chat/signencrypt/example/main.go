@@ -4,9 +4,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/agl/ed25519"
 	docopt "github.com/docopt/docopt-go"
@@ -37,6 +39,11 @@ func zeroNonce() signencrypt.Nonce {
 	return &nonce
 }
 
+func zeroSecretboxNonce() signencrypt.SecretboxNonce {
+	var nonce [signencrypt.SecretboxNonceSize]byte // all zeroes
+	return &nonce
+}
+
 func zeroVerifyKey() signencrypt.VerifyKey {
 	var key [ed25519.PublicKeySize]byte
 	// Generated from libsodium's crypto_sign_seed_keypair with a zero seed.
@@ -51,7 +58,7 @@ func zeroSignKey() signencrypt.SignKey {
 	return &key
 }
 
-func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int) error {
+func sealStream(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int) error {
 	encoder := signencrypt.NewEncoder(enckey, signkey, signaturePrefix, nonce)
 	if chunklen != 0 {
 		encoder.ChangePlaintextChunkLenForTesting(chunklen)
@@ -78,7 +85,20 @@ func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signatur
 	return nil
 }
 
-func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int) error {
+func sealSingle(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.SecretboxNonce, chunklen int) error {
+	plaintext, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return err
+	}
+	encoded := signencrypt.SealSingle(plaintext, enckey, signkey, signaturePrefix, nonce)
+	_, err = os.Stdout.Write(encoded)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func openStream(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int) error {
 	decoder := signencrypt.NewDecoder(enckey, verifykey, signaturePrefix, nonce)
 	if chunklen != 0 {
 		decoder.ChangePlaintextChunkLenForTesting(chunklen)
@@ -111,12 +131,34 @@ func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, sign
 	return nil
 }
 
+func openSingle(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.SecretboxNonce, chunklen int) error {
+	sealed, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return err
+	}
+	decoded, err := signencrypt.OpenSingle(sealed, enckey, verifykey, signaturePrefix, nonce)
+	_, err = os.Stdout.Write(decoded)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
 	usage := `Usage:
-    example seal [--enckey=<enckey>] [--signkey=<signkey>]
-                 [--sigprefix=<sigprefix>] [--nonce=<nonce>] [--chunklen=<chunklen>]
-    example open [--enckey=<enckey>] [--verifykey=<signkey>]
-                 [--sigprefix=<sigprefix>] [--nonce=<nonce>] [--chunklen=<chunklen>]
+    example seal [--enckey=<enckey>] [--signkey=<signkey>] [--sigprefix=<sigprefix>]
+                 [--nonce=<nonce>] [--chunklen=<chunklen>] [--stream=false]
+    example open [--enckey=<enckey>] [--verifykey=<signkey>] [--sigprefix=<sigprefix>]
+                 [--nonce=<nonce>] [--chunklen=<chunklen>] [--stream=false]
 
 Options:
     --enckey=<enckey>        the 32-byte encryption key (in hex)
@@ -149,9 +191,11 @@ Options:
 		signaturePrefix = libkb.SignaturePrefix(signaturePrefixStr)
 	}
 
-	nonce := zeroNonce()
+	nonceForStream := zeroNonce()
+	nonceForSingle := zeroSecretboxNonce()
 	if arguments["--nonce"] != nil {
-		copy(nonce[:], decodeHexArg(arguments["--nonce"].(string)))
+		copy(nonceForSingle[:], decodeHexArg(arguments["--nonce"].(string)))
+		copy(nonceForStream[:], decodeHexArg(arguments["--nonce"].(string)))
 	}
 
 	chunklen := 0
@@ -163,11 +207,25 @@ Options:
 		chunklen = parsed
 	}
 
+	stream := true
+	if arguments["--stream"] != nil {
+		parsed := arguments["--stream"].(string)
+		stream = stringInSlice(strings.ToLower(parsed), []string{"", "yes", "true", "t", "y"})
+	}
+
 	var err error
 	if arguments["seal"].(bool) {
-		err = seal(enckey, signkey, signaturePrefix, nonce, chunklen)
+		if stream {
+			err = sealStream(enckey, signkey, signaturePrefix, nonceForStream, chunklen)
+		} else {
+			err = sealSingle(enckey, signkey, signaturePrefix, nonceForSingle, chunklen)
+		}
 	} else {
-		err = open(enckey, verifykey, signaturePrefix, nonce, chunklen)
+		if stream {
+			err = openStream(enckey, verifykey, signaturePrefix, nonceForStream, chunklen)
+		} else {
+			err = openSingle(enckey, verifykey, signaturePrefix, nonceForSingle, chunklen)
+		}
 	}
 	if err != nil {
 		fail(err)
