@@ -500,7 +500,6 @@ function * _editMessage (action: EditMessage): SagaGenerator<any, any> {
 
 // Actually start a new conversation
 function * _startNewConversation (conversationIDKey: ConversationIDKey) {
-  console.log('aaaa post on pending', conversationIDKey)
   const oldConversationIDKey = conversationIDKey
   // Find the participants
   const tlfName = pendingConversationIDKeyToTlfName(conversationIDKey)
@@ -514,7 +513,6 @@ function * _startNewConversation (conversationIDKey: ConversationIDKey) {
         topicType: CommonTopicType.chat,
       }})
     const newConversationIDKey = result ? conversationIDToKey(result.conv.info.id) : null
-    console.log('aaaa post on pending new convoid', conversationIDKey)
     if (!newConversationIDKey) {
       console.warn('No convoid from newConvoRPC')
       return null
@@ -539,7 +537,6 @@ function * _startNewConversation (conversationIDKey: ConversationIDKey) {
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   let {conversationIDKey} = action.payload
 
-  console.log('aaaa post ')
   if (isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
     conversationIDKey = yield call(_startNewConversation, conversationIDKey)
@@ -938,9 +935,6 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
     if (current && (!current.get('isEmpty') || alwaysShow.has(conversationIDKey))) {
       return
     }
-
-    // console.log('aaaa', inbox)
-    // debugger
 
     const firstGood = inbox.find(i => !i.get('isEmpty') || alwaysShow.has(i.get('conversationIDKey')))
     if (firstGood) {
@@ -1399,49 +1393,12 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
     yield put(selectConversation(existing.get('conversationIDKey'), false))
     yield put(switchTo([chatTab]))
   } else {
-    // const newRow = new InboxStateRecord({
-      // conversationIDKey: pendingConversationIDKey(tlfName),
-      // info: {
-        // id: new Buffer([]),
-        // status: 0,
-        // tlfName,
-        // topicName: '',
-        // triple: {
-          // tlfid: new Buffer([]),
-          // topicID: new Buffer([]),
-          // topicType: CommonTopicType.chat,
-        // },
-        // visibility: CommonTLFVisibility.private,
-      // },
-      // isEmpty: true,
-      // isPending: true,
-      // muted: false,
-      // participants: List(users),
-      // snippet: '',
-      // snippetKey: '',
-      // time: Date.now(),
-      // validated: false,
-    // })
-    //
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = pendingConversationIDKey(tlfName)
     yield put(addPending(users))
     yield put(selectConversation(conversationIDKey, false))
     yield put(switchTo([chatTab]))
   }
-
-  // const result = yield call(localNewConversationLocalRpcPromise, {
-    // param: {
-      // tlfName: action.payload.users.join(','),
-      // topicType: CommonTopicType.chat,
-      // tlfVisibility: CommonTLFVisibility.private,
-      // identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-    // }})
-  // if (result) {
-    // const conversationIDKey = conversationIDToKey(result.conv.info.id)
-
-    // yield put(loadInbox(conversationIDKey))
-  // }
 }
 
 function * _openFolder (): SagaGenerator<any, any> {
@@ -1515,8 +1472,6 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
     yield put({type: 'chat:clearMessages', payload: {conversationIDKey}})
   }
 
-  // console.log('aaa', conversationIDKey)
-    // debugger
   if (conversationIDKey) {
     yield put(loadMoreMessages(conversationIDKey, true))
     yield put(navigateTo([conversationIDKey], [chatTab]))
@@ -1925,7 +1880,6 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:deleteMessage', _deleteMessage),
     safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
     safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true),
-    safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat),
     safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat),
   ]
 }

@@ -3,11 +3,10 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
-import {CommonTopicType, CommonTLFVisibility} from '../constants/types/flow-types-chat'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord, pendingConversationIDKey, InboxStateRecord} = Constants
+const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord, pendingConversationIDKey} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -338,13 +337,6 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:selectConversation': {
       //  ensure selected converations are visible if they exist
       const {conversationIDKey} = action.payload
-      // const oldInbox = state.get('inbox')
-      // const existing = oldInbox.findEntry(inbox => inbox.get('conversationIDKey') === conversationIDKey)
-      // if (existing) {
-        // const newRow = existing[1].set('alwaysShow', true)
-        // console.log('aaaa set due to select', newRow,state.set('inbox', oldInbox.set(existing[0], newRow)))
-        // return state.set('inbox', oldInbox.set(existing[0], newRow))
-      // }
       return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
     }
     case 'chat:loadingMessages': {
