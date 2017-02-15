@@ -866,6 +866,21 @@ func (j *tlfJournal) flushBlockEntries(
 
 	// TODO: fill this in for logging/error purposes.
 	var tlfName CanonicalTlfName
+
+	// TODO: launch this in a goroutine. Alongside make another
+	// goroutine that listens for MD puts and checks the size of the
+	// MD journal, and converts to a local squash branch if it gets
+	// too large.  While the 2nd goroutine is waiting, it should exit
+	// immediately as soon as the 1st one finishes, but if it is
+	// already working on a conversion it should finish that work.
+	//
+	// If the 2nd goroutine makes a branch, foreground writes could
+	// trigger CR while blocks are still being flushed.  This can't
+	// usually happen, because flushing is paused while CR is
+	// happening.  flush() has to make sure to restart its loop if a
+	// branch conversion happened during the block flushing, in order
+	// to get the new MD journal end, but I can't think of anything
+	// else that could go wrong...
 	err = flushBlockEntries(ctx, j.log, j.delegateBlockServer,
 		j.config.BlockCache(), j.config.Reporter(),
 		j.tlfID, tlfName, entries)
