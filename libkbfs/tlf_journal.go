@@ -237,6 +237,7 @@ type tlfJournal struct {
 	// An estimate of how many bytes have been written since the last
 	// squash.
 	unsquashedBytes uint64
+	flushingBlocks  map[kbfsblock.ID]bool
 
 	bwDelegate tlfJournalBWDelegate
 }
@@ -355,6 +356,7 @@ func makeTLFJournal(
 		backgroundShutdownCh: make(chan struct{}),
 		blockJournal:         blockJournal,
 		mdJournal:            mdJournal,
+		flushingBlocks:       make(map[kbfsblock.ID]bool),
 		bwDelegate:           bwDelegate,
 	}
 
@@ -774,12 +776,6 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			maxMDRevToFlush = mdEnd
 		}
 
-		// If there are no MDs to flush yet, go back to the top to
-		// flush more blocks.
-		if maxMDRevToFlush == MetadataRevisionUninitialized {
-			continue
-		}
-
 		// TODO: Flush MDs in batch.
 
 		for {
@@ -891,6 +887,18 @@ func (j *tlfJournal) flushBlockEntries(
 	j.log.CDebugf(ctx, "Flushing %d blocks, up to rev %d",
 		len(entries.puts.blockStates), maxMDRevToFlush)
 
+	// Mark these blocks as flushing, and clear when done.
+	err = j.markFlushingBlockIDs(entries)
+	if err != nil {
+		return 0, MetadataRevisionUninitialized, false, err
+	}
+	cleared := false
+	defer func() {
+		if !cleared {
+			_ = j.clearFlushingBlockIDs(entries)
+		}
+	}()
+
 	// TODO: fill this in for logging/error purposes.
 	var tlfName CanonicalTlfName
 
@@ -940,6 +948,12 @@ func (j *tlfJournal) flushBlockEntries(
 	})
 
 	err = eg.Wait()
+	if err != nil {
+		return 0, MetadataRevisionUninitialized, false, err
+	}
+
+	err = j.clearFlushingBlockIDs(entries)
+	cleared = true
 	if err != nil {
 		return 0, MetadataRevisionUninitialized, false, err
 	}
@@ -1751,7 +1765,36 @@ func (j *tlfJournal) isBlockUnflushed(id kbfsblock.ID) (bool, error) {
 		return false, err
 	}
 
+	// Conservatively assume that a block that's on its way to the
+	// server _has_ been flushed, so that the caller will try to clean
+	// it up if it's not needed anymore.
+	if j.flushingBlocks[id] {
+		return true, nil
+	}
+
 	return j.blockJournal.isUnflushed(id)
+}
+
+func (j *tlfJournal) markFlushingBlockIDs(entries blockEntriesToFlush) error {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return err
+	}
+
+	entries.markFlushingBlockIDs(j.flushingBlocks)
+	return nil
+}
+
+func (j *tlfJournal) clearFlushingBlockIDs(entries blockEntriesToFlush) error {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return err
+	}
+
+	entries.clearFlushingBlockIDs(j.flushingBlocks)
+	return nil
 }
 
 func (j *tlfJournal) getBranchID() (BranchID, error) {

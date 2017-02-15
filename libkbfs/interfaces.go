@@ -1311,8 +1311,12 @@ type BlockServer interface {
 		contexts kbfsblock.ContextMap) error
 
 	// IsUnflushed returns whether a given block is being queued
-	// locally for later flushing to another block server.
-	IsUnflushed(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (bool, error)
+	// locally for later flushing to another block server.  If the
+	// block is currently being flushed to the server, this should
+	// return `true`, so that the caller will try to clean it up from
+	// the server if it's no longer needed.
+	IsUnflushed(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID) (
+		bool, error)
 
 	// Shutdown is called to shutdown a BlockServer connection.
 	Shutdown(ctx context.Context)

@@ -590,6 +590,18 @@ func (be blockEntriesToFlush) revIsLocalSquash(rev MetadataRevision) bool {
 	return false
 }
 
+func (be blockEntriesToFlush) markFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
+	for _, bs := range be.puts.blockStates {
+		ids[bs.blockPtr.ID] = true
+	}
+}
+
+func (be blockEntriesToFlush) clearFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
+	for _, bs := range be.puts.blockStates {
+		delete(ids, bs.blockPtr.ID)
+	}
+}
+
 // Only entries with ordinals less than the given ordinal (assumed to
 // be <= latest ordinal + 1) are returned.  Also returns the maximum
 // MD revision that can be merged after the returned entries are
