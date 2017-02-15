@@ -3,10 +3,11 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
+import {CommonTopicType, CommonTLFVisibility} from '../constants/types/flow-types-chat'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord, PendingConversationRecord} = Constants
+const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord, pendingConversationIDKey, InboxStateRecord} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -153,9 +154,7 @@ function reducer (state: State = initialState, action: Actions) {
             .set('isLoaded', true)
         })
 
-      return state
-        .set('conversationStates', newConversationStates)
-        .set('inbox', sortInbox(state.get('inbox')))
+      return state.set('conversationStates', newConversationStates)
     }
     case 'chat:appendMessages': {
       const appendAction: AppendMessages = action
@@ -336,8 +335,17 @@ function reducer (state: State = initialState, action: Actions) {
         conversation => conversation.set('firstNewMessageID', null))
       state = state.set('conversationStates', newConversationStates)
       return state
-    case 'chat:selectConversation':
+    case 'chat:selectConversation': {
+      //  ensure selected converations are visible if they exist
+      const {conversationIDKey} = action.payload
+      const oldInbox = state.get('inbox')
+      const existing = oldInbox.findEntry(inbox => inbox.get('conversationIDKey') === conversationIDKey)
+      if (existing) {
+        const newRow = existing[1].set('alwaysShow', true)
+        return state.set('inbox', oldInbox.set(existing[0], newRow))
+      }
       return state
+    }
     case 'chat:loadingMessages': {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
@@ -360,11 +368,18 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:loadedInbox':
       // Don't overwrite existing verified inbox data
       const existingRows = state.get('inbox')
-      const newInbox = sortInbox(action.payload.inbox.map(newRow => {
+      const rows = action.payload.inbox.map(newRow => {
         const id = newRow.get('conversationIDKey')
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
         return existingRow || newRow
-      }))
+      })
+
+      // Re-add any always show inbox items that aren't already there
+      const pending = existingRows.filter(row => {
+        const id = row.get('conversationIDKey')
+        return row.get('alwaysShow') && !rows.find(r => r.get('conversationIDKey') === id)
+      })
+      const newInbox = sortInbox(rows.concat(pending))
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
     case 'chat:updateInboxComplete':
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
@@ -399,10 +414,6 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:updateInboxRekeySelf': {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({youCanRekey: true})))
-    }
-    case 'chat:startConversation': {
-      const {users} = action.payload
-      return state.set('pendingConversations', state.get('pendingConversations').unshift(new PendingConversationRecord({participants: List(users), timestamp: Date.now()})))
     }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)

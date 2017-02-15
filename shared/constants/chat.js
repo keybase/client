@@ -188,7 +188,7 @@ export const ConversationBadgeStateRecord = Record({
 export const InboxStateRecord = Record({
   info: null,
   isEmpty: false,
-  youCreated: false,
+  alwaysShow: false,
   participants: List(),
   conversationIDKey: '',
   muted: false,
@@ -201,7 +201,7 @@ export const InboxStateRecord = Record({
 export type InboxState = Record<{
   info: ConversationInfoLocal,
   isEmpty: boolean,
-  youCreated: boolean, // true if you made it this session
+  alwaysShow: boolean,
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
@@ -243,16 +243,6 @@ export const StateRecord = Record({
   rekeyInfos: Map(),
 })
 
-export type PendingConversation = Record<{
-  participants: List<string>,
-  timestamp: number,
-}>
-
-export const PendingConversationRecord = Record({
-  participants: List(),
-  timestamp: 0,
-})
-
 export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
@@ -261,7 +251,6 @@ export type State = Record<{
   pendingFailures: Set<OutboxIDKey>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
-  pendingConversations: List<PendingConversation>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -283,6 +272,7 @@ export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activi
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDKey: ?ConversationIDKey}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
+export type AddPendingInbox = NoErrorTypedAction<'chat:addPendingInbox', {item: InboxState}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext', {conversationIDKey: ConversationIDKey, paginationNext: Buffer}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
@@ -354,7 +344,8 @@ export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   messageID: MessageID,
 }>
 
-export type Actions = AppendMessages
+export type Actions = AddPendingInbox
+  | AppendMessages
   | DeleteMessage
   | EditMessage
   | LoadInbox
@@ -464,6 +455,14 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
+function pendingConversationIDKey (tlfName: string) {
+  return `PendingConversation:${tlfName}`
+}
+
+function isPendingConversationIDKey (conversationIDKey: string) {
+  return conversationIDKey.startsWith('PendingConversation:')
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -476,4 +475,6 @@ export {
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
   parseMetadataPreviewSize,
+  pendingConversationIDKey,
+  isPendingConversationIDKey,
 }
