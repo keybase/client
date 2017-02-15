@@ -4,18 +4,48 @@ protocol remote {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   record MessageBoxed {
-    // Only set when returned from the server; on the way up to the
+    // This was not present in most V1 messages.
+    MessageBoxedVersion version;
+
+    // [V1, V2]: Only set when returned from the server; on the way up to the
     // server, they are null.
     union { null, MessageServerHeader } serverHeader;
 
-    // MessageClientHeader is needed by clients to get keys via TLF name.
+    // [V1, V2]: MessageClientHeader is needed by clients to get keys via TLF name.
     // The server needs it as well for sender uid, device id.
     MessageClientHeader clientHeader;
 
+    // V1: Encrypted HeaderPlaintext
+    // V2: Empty
     EncryptedData headerCiphertext;
+
+    // V1: Missing
+    // V2: SignEncrypted HeaderPlaintext
+    SignEncryptedData headerSealed;
+
+    // [V1, V2]: Encrypted BodyPlaintext
     EncryptedData bodyCiphertext;
 
+    // V1: Missing
+    // V2: Public half of the signing key used on headerSealed
+    bytes headerVerificationKey;
+
+    // [V1, V2]: Key generation of the encryption key
     int keyGeneration;
+  }
+
+  enum MessageBoxedVersion {
+    // 0 exists from before the version field. It means V1.
+    VNONE_0,
+
+    // V1: Encrypted header and body.
+    // Hash of body inside header.
+    // Sig of header inside header.
+    V1_1,
+
+    // V2: SignEncrypted header, encrypted body.
+    // Hash of body inside header.
+    V2_2
   }
 
   record ThreadViewBoxed {

@@ -518,6 +518,24 @@
     },
     {
       "type": "record",
+      "name": "SignEncryptedData",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "b"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MerkleRoot",
       "fields": [
         {

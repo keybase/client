@@ -1148,6 +1148,7 @@ type MessageUnboxedValid struct {
 	SenderDeviceType      string              `codec:"senderDeviceType" json:"senderDeviceType"`
 	HeaderHash            Hash                `codec:"headerHash" json:"headerHash"`
 	HeaderSignature       *SignatureInfo      `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	VerificationKey       *[]byte             `codec:"verificationKey,omitempty" json:"verificationKey,omitempty"`
 	SenderDeviceRevokedAt *gregor1.Time       `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
 }
 

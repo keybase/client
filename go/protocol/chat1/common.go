@@ -246,6 +246,12 @@ type SignatureInfo struct {
 	K []byte `codec:"k" json:"k"`
 }
 
+type SignEncryptedData struct {
+	V int    `codec:"v" json:"v"`
+	B []byte `codec:"b" json:"b"`
+	N []byte `codec:"n" json:"n"`
+}
+
 type MerkleRoot struct {
 	Seqno int64  `codec:"seqno" json:"seqno"`
 	Hash  []byte `codec:"hash" json:"hash"`
