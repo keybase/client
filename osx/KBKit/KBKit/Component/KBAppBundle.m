@@ -15,24 +15,13 @@
 @implementation KBAppBundle
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool {
-  if ((self = [self initWithConfig:config name:@"App" info:@"App bundle" image:[NSImage imageNamed:@"Fuse.icns"]])) {
+  if ((self = [self initWithConfig:config name:@"App" info:@"App bundle" image:nil])) {
     _helperTool = helperTool;
   }
   return self;
 }
 
-- (void)install:(KBCompletion)completion {
-  NSString *sourcePath = self.config.sourcePath;
-  if (!sourcePath || ![NSFileManager.defaultManager fileExistsAtPath:sourcePath]) {
-    completion(KBMakeError(-1, @"Invalid source path"));
-    return;
-  }
-  NSString *destinationPath = self.config.appPath;
-  if (!destinationPath) {
-    completion(KBMakeError(-1, @"Invalid destination path"));
-    return;
-  }
-
+- (void)validate:(NSString *)sourcePath completion:(KBCompletion)completion {
   // Check bundle security/requirement (for source path)
   CFURLRef fileRef = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, [sourcePath UTF8String], [sourcePath length], YES);
   SecStaticCodeRef staticCodeRef = NULL;
@@ -55,11 +44,33 @@
   }
   if (staticCodeRef) CFRelease(staticCodeRef);
   if (requirementRef) CFRelease(requirementRef);
+  completion(nil);
+}
 
-  DDLogInfo(@"Copying app bundle %@ to %@", sourcePath, destinationPath);
-  NSDictionary *params = @{@"source": sourcePath, @"destination": destinationPath};
-  [self.helperTool.helper sendRequest:@"move" params:@[params] completion:^(NSError *error, id value) {
-    completion(error);
+- (void)install:(KBCompletion)completion {
+  NSString *sourcePath = self.config.sourcePath;
+  if (!sourcePath || ![NSFileManager.defaultManager fileExistsAtPath:sourcePath]) {
+    completion(KBMakeError(-1, @"Invalid source path"));
+    return;
+  }
+
+  NSString *destinationPath = self.config.appPath;
+  if (!destinationPath) {
+    completion(KBMakeError(-1, @"Invalid destination path"));
+    return;
+  }
+
+  [self validate:sourcePath completion:^(NSError *error) {
+    if (error) {
+      completion(error);
+      return;
+    }
+
+    DDLogInfo(@"Copying app bundle %@ to %@", sourcePath, destinationPath);
+    NSDictionary *params = @{@"source": sourcePath, @"destination": destinationPath};
+    [self.helperTool.helper sendRequest:@"move" params:@[params] completion:^(NSError *error, id value) {
+      completion(error);
+    }];
   }];
 }
 
