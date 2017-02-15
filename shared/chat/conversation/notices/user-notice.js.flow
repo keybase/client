@@ -5,6 +5,7 @@ export type Props = {
   bgColor: string,
   username: string,
   children?: React$Element<*>,
+  style?: ?Object,
 }
 
 export default class UserNotice extends Component<void, Props, void> {}

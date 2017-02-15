@@ -7,7 +7,7 @@ import {List, Map} from 'immutable'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {call, put, select, race, cancel, fork, join} from 'redux-saga/effects'
+import {call, put, take, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {delay} from 'redux-saga'
 import {getPath} from '../route-tree'
@@ -21,7 +21,7 @@ import {searchTab, chatTab} from '../constants/tabs'
 import {tmpFile, copy, exists} from '../util/file'
 import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
-import {toDeviceType} from '../constants/types/more'
+import {toDeviceType, unsafeUnwrap} from '../constants/types/more'
 import {showMainWindow} from './platform.specific'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
@@ -42,6 +42,7 @@ import type {
   CreatePendingFailure,
   DeleteMessage,
   EditMessage,
+  FinalizedState,
   InboxState,
   IncomingMessage,
   LoadInbox,
@@ -322,6 +323,53 @@ function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState
     snippet,
     validated: true,
   })
+}
+
+function _toSupersedeInfo (conversationIDKey: ConversationIDKey, supersedeData: Array<ChatTypes.ConversationMetadata>): ?Constants.SupersedeInfo {
+  const parsed = supersedeData
+    .filter(md => md.idTriple.topicType === CommonTopicType.chat && md.finalizeInfo)
+    .map(md => ({
+      conversationIDKey: conversationIDToKey(md.conversationID),
+      finalizeInfo: unsafeUnwrap(md && md.finalizeInfo),
+    }))
+  return parsed.length ? parsed[0] : null
+}
+
+function _inboxConversationLocalToSupersedesState (convo: ?ChatTypes.ConversationLocal): Constants.SupersedesState {
+  // TODO deep supersedes checking
+  if (!convo || !convo.info || !convo.info.id || !convo.supersedes) {
+    return Map()
+  }
+
+  const conversationIDKey = conversationIDToKey(convo.info.id)
+  const supersedes = _toSupersedeInfo(conversationIDKey, (convo.supersedes || []))
+  return supersedes ? Map({[conversationIDKey]: supersedes}) : Map()
+}
+
+function _inboxConversationLocalToSupersededByState (convo: ?ChatTypes.ConversationLocal): Constants.SupersededByState {
+  if (!convo || !convo.info || !convo.info.id || !convo.supersededBy) {
+    return Map()
+  }
+
+  const conversationIDKey = conversationIDToKey(convo.info.id)
+  const supersededBy = _toSupersedeInfo(conversationIDKey, (convo.supersededBy || []))
+  return supersededBy ? Map({[conversationIDKey]: supersededBy}) : Map()
+}
+
+function _inboxToFinalized (inbox: GetInboxLocalRes): FinalizedState {
+  return Map((inbox.conversationsUnverified || []).map(convoUnverified => [
+    conversationIDToKey(convoUnverified.metadata.conversationID),
+    convoUnverified.metadata.finalizeInfo,
+  ]))
+}
+
+function _conversationLocalToFinalized (convo: ?ChatTypes.ConversationLocal): FinalizedState {
+  if (convo && convo.info.id && convo.info.finalizeInfo) {
+    return Map({
+      [conversationIDToKey(convo.info.id)]: convo.info.finalizeInfo,
+    })
+  }
+  return Map()
 }
 
 function _inboxToConversations (inbox: GetInboxLocalRes, author: ?string, following: {[key: string]: boolean}, metaData: MetaData): List<InboxState> {
@@ -620,6 +668,14 @@ function * _deleteMessage (action: DeleteMessage): SagaGenerator<any, any> {
 
 function * _updateInbox (conv: ?ConversationLocal) {
   const inboxState = _inboxConversationToInboxState(conv)
+  const supersedesState: Constants.SupersedesState = _inboxConversationLocalToSupersedesState(conv)
+  const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
+  const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
+
+  yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+  yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+
   if (inboxState) {
     yield put(({
       payload: {conversation: inboxState},
@@ -831,6 +887,10 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
       dispatch({type: 'chat:updateBrokenTracker', payload: {userToBroken}})
     })
 
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) => {
+      dispatch(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKey: conversationIDToKey(convID)}}: Constants.GetInboxAndUnbox))
+    })
+
     engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
       dispatch({type: 'chat:inboxStale', payload: undefined})
     })
@@ -906,7 +966,11 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   const following = yield select(followingSelector)
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
-  yield put({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer})
+  const finalizedState: FinalizedState = _inboxToFinalized(inbox)
+
+  yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
+  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+
   chatInboxUnverified.response.result()
 
   let finishedCalled = false
@@ -921,6 +985,17 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
     if (incoming.chatInboxConversation) {
       incoming.chatInboxConversation.response.result()
       let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
+
+      // TODO this is ugly, ideally we should just call _updateInbox here
+      const conv = incoming.chatInboxConversation.params.conv
+      const supersedesState: Constants.SupersedesState = _inboxConversationLocalToSupersedesState(conv)
+      const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
+      const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
+
+      yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+      yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+      yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+
       if (conversation && action && action.payload && action.payload.newConversationIDKey && action.payload.newConversationIDKey === conversation.get('conversationIDKey')) {
         conversation = conversation.set('youCreated', true)
       }
@@ -1103,6 +1178,7 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
 
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
+  // $FlowIssue with checking messageID
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
       type: 'Timestamp',
@@ -1781,6 +1857,44 @@ function _threadIsCleared (originalAction: Action, checkAction: Action): boolean
   return originalAction.type === 'chat:loadMoreMessages' && checkAction.type === 'chat:clearMessages' && originalAction.conversationIDKey === checkAction.conversationIDKey
 }
 
+function * _getInboxAndUnbox ({payload: {conversationIDKey}}: Constants.GetInboxAndUnbox) {
+  const param: ChatTypes.localGetInboxAndUnboxLocalRpcParam = {
+    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    query: {
+      convID: keyToConversationID(conversationIDKey),
+      computeActiveList: true,
+      tlfVisibility: CommonTLFVisibility.private,
+      topicType: CommonTopicType.chat,
+      unreadOnly: false,
+      readOnly: true,
+    },
+  }
+
+  const result: ChatTypes.GetInboxAndUnboxLocalRes = yield call(ChatTypes.localGetInboxAndUnboxLocalRpcPromise, {param})
+  const {conversations} = result
+  if (conversations && conversations[0]) {
+    yield call(_updateInbox, conversations[0])
+  }
+}
+
+function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {
+  const inbox = yield select(inboxSelector)
+  const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('validated'))
+  if (!validInbox) {
+    yield put(({type: 'chat:getInboxAndUnbox', payload: {conversationIDKey}}: Constants.GetInboxAndUnbox))
+    const raceResult: {[key: string]: any} = yield race({
+      updateInbox: take(a => a.type === 'chat:updateInbox' && a.payload.conversation && a.payload.conversation.conversationIDKey === conversationIDKey),
+      timeout: call(delay, 10e3),
+    })
+    if (raceResult.updateInbox) {
+      yield put(selectConversation(conversationIDKey, false))
+    }
+    return
+  } else {
+    yield put(selectConversation(conversationIDKey, false))
+  }
+}
+
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
     safeTakeSerially('chat:loadInbox', _loadInbox),
@@ -1801,6 +1915,8 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery('chat:updateMetadata', _updateMetadata),
     safeTakeEvery('chat:appendMessages', _sendNotifications),
     safeTakeEvery('chat:selectAttachment', _selectAttachment),
+    safeTakeEvery('chat:openConversation', _openConversation),
+    safeTakeEvery('chat:getInboxAndUnbox', _getInboxAndUnbox),
     safeTakeEvery('chat:loadAttachment', _loadAttachment),
     safeTakeEvery('chat:openAttachmentPopup', _openAttachmentPopup),
     safeTakeLatest('chat:openFolder', _openFolder),

@@ -69,6 +69,15 @@ export function toDeviceType (s: string): DeviceType {
   }
 }
 
+// Try to unwrap the maybe, print error if fails
+// $FlowIssue
+export function unsafeUnwrap<T> (t: ?T): T {
+  if (t == null) {
+    console.error('Got null, expected non null')
+  }
+  return t
+}
+
 export type _PropsOf<Props, C: Component<*, Props, *>> = Props // eslint-disable-line
 export type PropsOf<C> = _PropsOf<*, C>
 
