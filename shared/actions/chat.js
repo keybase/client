@@ -999,7 +999,6 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
     if (firstGood) {
       const conversationIDKey = firstGood.get('conversationIDKey')
       yield put(selectConversation(conversationIDKey, false))
-      // yield put(loadMoreMessages(validInboxConvIDKey, true))
     } else {
       yield put(selectConversation(null, false))
     }
