@@ -70,7 +70,14 @@
     DDLogInfo(@"Copying app bundle %@ to %@", sourcePath, destinationPath);
     NSDictionary *params = @{@"source": sourcePath, @"destination": destinationPath};
     [self.helperTool.helper sendRequest:@"move" params:@[params] completion:^(NSError *error, id value) {
-      completion(error);
+      if (error) {
+        completion(error);
+        return;
+      }
+
+      // Re-verify destination
+      DDLogInfo(@"Checking destination");
+      [self validate:destinationPath completion:completion];
     }];
   }];
 }
