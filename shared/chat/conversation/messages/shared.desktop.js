@@ -84,9 +84,17 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
                 <div style={_childrenWrapStyle}>
                   {children}
                 </div>
+                { /*
+                  It's important to use image icons here instead of icon fonts for the action button elements
+                  otherwise Chrome will pick up the custom icon characters on selection.
+                  While {visibility: hidden} can prevent selection when selecting multiple rows, it doesn't
+                  work when using double and triple click for single line selection.
+                  The user-select CSS value doesn't work properly on Chrome for copy/paste.
+                  https://bugs.chromium.org/p/chromium/issues/detail?id=147490
+                  */ }
                 <div className='action-button'>
-                  {message.senderDeviceRevokedAt && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
-                  <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
+                  {message.senderDeviceRevokedAt && <Icon type='icon-message-action-exclamation-10' style={_exclamationStyle} />}
+                  <Icon type='icon-message-action-ellipsis-13' style={_ellipsisStyle} onClick={onIconClick} />
                 </div>
               </div>
               {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
@@ -114,12 +122,14 @@ const _stylesSelected = {
 const _exclamationStyle = {
   fontSize: 10,
   color: globalColors.blue,
+  marginTop: 2,
 }
 
 const _ellipsisStyle = {
   fontSize: 16,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.xtiny,
+  marginTop: 2,
 }
 
 const _textContainerStyle = {
