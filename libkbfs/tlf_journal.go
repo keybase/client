@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 // tlfJournalConfig is the subset of the Config interface needed by
@@ -205,6 +206,7 @@ type tlfJournal struct {
 	needPauseCh    chan struct{}
 	needResumeCh   chan struct{}
 	needShutdownCh chan struct{}
+	checkMDLenCh   chan struct{}
 
 	// Track the ways in which the journal is paused.  We don't allow
 	// work to resume unless a resume has come in corresponding to
@@ -349,6 +351,7 @@ func makeTLFJournal(
 		needPauseCh:          make(chan struct{}, 1),
 		needResumeCh:         make(chan struct{}, 1),
 		needShutdownCh:       make(chan struct{}, 1),
+		checkMDLenCh:         make(chan struct{}, 1),
 		backgroundShutdownCh: make(chan struct{}),
 		blockJournal:         blockJournal,
 		mdJournal:            mdJournal,
@@ -717,10 +720,16 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 		if isConflict {
 			j.log.CDebugf(ctx, "Ignoring flush while on conflict branch")
+			// It's safe to send a pause signal here, because even if
+			// CR has already resolved the conflict and send the
+			// resume signal, we know the background work loop is
+			// still waiting for this flush() loop to finish before it
+			// processes either the pause or the resume channel.
+			j.pause(journalPauseConflict)
 			return nil
 		}
 
-		converted, err := j.convertMDsToBranchIfOverThreshold(ctx)
+		converted, err := j.convertMDsToBranchIfOverThreshold(ctx, true)
 		if err != nil {
 			return err
 		}
@@ -742,16 +751,33 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			blockEnd, mdEnd)
 
 		// Flush the block journal ops in parallel.
-		numFlushed, maxMDRevToFlush, err := j.flushBlockEntries(ctx, blockEnd)
+		numFlushed, maxMDRevToFlush, converted, err :=
+			j.flushBlockEntries(ctx, blockEnd)
 		if err != nil {
 			return err
 		}
 		flushedBlockEntries += numFlushed
 
+		// If we ever switched branches while flushing block entries,
+		// we need to make sure `mdEnd` still reflects reality, since
+		// the number of md entries could have shrunk.
+		if converted {
+			_, mdEnd, err = j.getJournalEnds(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
 		if numFlushed == 0 {
 			// There were no blocks to flush, so we can flush all of
 			// the remaining MDs.
 			maxMDRevToFlush = mdEnd
+		}
+
+		// If there are no MDs to flush yet, go back to the top to
+		// flush more blocks.
+		if maxMDRevToFlush == MetadataRevisionUninitialized {
+			continue
 		}
 
 		// TODO: Flush MDs in batch.
@@ -851,14 +877,15 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 }
 
 func (j *tlfJournal) flushBlockEntries(
-	ctx context.Context, end journalOrdinal) (int, MetadataRevision, error) {
+	ctx context.Context, end journalOrdinal) (
+	int, MetadataRevision, bool, error) {
 	entries, maxMDRevToFlush, err := j.getNextBlockEntriesToFlush(ctx, end)
 	if err != nil {
-		return 0, MetadataRevisionUninitialized, err
+		return 0, MetadataRevisionUninitialized, false, err
 	}
 
 	if entries.length() == 0 {
-		return 0, maxMDRevToFlush, nil
+		return 0, maxMDRevToFlush, false, nil
 	}
 
 	j.log.CDebugf(ctx, "Flushing %d blocks, up to rev %d",
@@ -867,7 +894,10 @@ func (j *tlfJournal) flushBlockEntries(
 	// TODO: fill this in for logging/error purposes.
 	var tlfName CanonicalTlfName
 
-	// TODO: launch this in a goroutine. Alongside make another
+	eg, groupCtx := errgroup.WithContext(ctx)
+	convertCtx, convertCancel := context.WithCancel(groupCtx)
+
+	// Flush the blocks in a goroutine. Alongside make another
 	// goroutine that listens for MD puts and checks the size of the
 	// MD journal, and converts to a local squash branch if it gets
 	// too large.  While the 2nd goroutine is waiting, it should exit
@@ -877,23 +907,59 @@ func (j *tlfJournal) flushBlockEntries(
 	// If the 2nd goroutine makes a branch, foreground writes could
 	// trigger CR while blocks are still being flushed.  This can't
 	// usually happen, because flushing is paused while CR is
-	// happening.  flush() has to make sure to restart its loop if a
-	// branch conversion happened during the block flushing, in order
-	// to get the new MD journal end, but I can't think of anything
-	// else that could go wrong...
-	err = flushBlockEntries(ctx, j.log, j.delegateBlockServer,
-		j.config.BlockCache(), j.config.Reporter(),
-		j.tlfID, tlfName, entries)
+	// happening.  flush() has to make sure to get the new MD journal
+	// end, and we need to make sure `maxMDRevToFlush` is still valid.
+	eg.Go(func() error {
+		defer convertCancel()
+		return flushBlockEntries(groupCtx, j.log, j.delegateBlockServer,
+			j.config.BlockCache(), j.config.Reporter(),
+			j.tlfID, tlfName, entries)
+	})
+	converted := false
+	eg.Go(func() error {
+		for {
+			select {
+			case <-j.checkMDLenCh:
+				// Don't signal a pause when doing this conversion in
+				// a separate goroutine, because it ends up canceling
+				// the flush context, which means all the block puts
+				// would get canceled and we don't want that.
+				// Instead, let the current iteration of the flush
+				// finish, and then signal at the top of the next
+				// iteration.
+				convertedNow, err :=
+					j.convertMDsToBranchIfOverThreshold(groupCtx, false)
+				if err != nil {
+					return err
+				}
+				converted = converted || convertedNow
+			case <-convertCtx.Done():
+				return nil // Canceled because the block puts finished
+			}
+		}
+	})
+
+	err = eg.Wait()
 	if err != nil {
-		return 0, MetadataRevisionUninitialized, err
+		return 0, MetadataRevisionUninitialized, false, err
 	}
 
 	err = j.removeFlushedBlockEntries(ctx, entries)
 	if err != nil {
-		return 0, MetadataRevisionUninitialized, err
+		return 0, MetadataRevisionUninitialized, false, err
 	}
 
-	return entries.length(), maxMDRevToFlush, nil
+	// If a conversion happened, the original `maxMDRevToFlush` only
+	// applies for sure if its mdRevMarker entry was unignorable
+	// (i.e., the MD was already a local squash).  TODO: conversion
+	// might not have actually happened yet, in which case it's still
+	// ok to flush maxMDRevToFlush.
+	if converted && maxMDRevToFlush != MetadataRevisionUninitialized &&
+		!entries.revIsLocalSquash(maxMDRevToFlush) {
+		maxMDRevToFlush = MetadataRevisionUninitialized
+	}
+
+	return entries.length(), maxMDRevToFlush, converted, nil
 }
 
 func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
@@ -908,7 +974,7 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 }
 
 func (j *tlfJournal) convertMDsToBranchLocked(
-	ctx context.Context, bid BranchID) error {
+	ctx context.Context, bid BranchID, doSignal bool) error {
 	err := j.mdJournal.convertToBranch(
 		ctx, bid, j.config.Crypto(), j.config.Codec(), j.tlfID,
 		j.config.MDCache())
@@ -918,7 +984,9 @@ func (j *tlfJournal) convertMDsToBranchLocked(
 	j.unsquashedBytes = 0
 
 	// Pause while on a conflict branch.
-	j.pause(journalPauseConflict)
+	if doSignal {
+		j.pause(journalPauseConflict)
+	}
 
 	if j.onBranchChange != nil {
 		j.onBranchChange.onTLFBranchChange(j.tlfID, bid)
@@ -939,15 +1007,21 @@ func (j *tlfJournal) convertMDsToBranch(ctx context.Context) error {
 		return err
 	}
 
-	return j.convertMDsToBranchLocked(ctx, bid)
+	return j.convertMDsToBranchLocked(ctx, bid, true)
 }
 
-func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
+func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
+	doSignal bool) (
 	bool, error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return false, err
+	}
+
+	if j.mdJournal.getBranchID() != NullBranchID {
+		// Already on a conflict branch, so nothing to do.
+		return false, nil
 	}
 
 	atLeastOneRev, err := j.mdJournal.atLeastNNonLocalSquashes(1)
@@ -1000,7 +1074,7 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
 		}
 	}
 
-	err = j.convertMDsToBranchLocked(ctx, PendingLocalSquashBranchID)
+	err = j.convertMDsToBranchLocked(ctx, PendingLocalSquashBranchID, doSignal)
 	if err != nil {
 		return false, err
 	}
@@ -1744,6 +1818,11 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	}
 
 	j.signalWork()
+
+	select {
+	case j.checkMDLenCh <- struct{}{}:
+	default:
+	}
 
 	return mdID, false, nil
 }

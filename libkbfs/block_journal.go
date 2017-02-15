@@ -581,6 +581,15 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 	return be.length() > 0
 }
 
+func (be blockEntriesToFlush) revIsLocalSquash(rev MetadataRevision) bool {
+	for _, entry := range be.other {
+		if entry.Op == mdRevMarkerOp && entry.Revision == rev {
+			return entry.Unignorable
+		}
+	}
+	return false
+}
+
 // Only entries with ordinals less than the given ordinal (assumed to
 // be <= latest ordinal + 1) are returned.  Also returns the maximum
 // MD revision that can be merged after the returned entries are
