@@ -8,6 +8,11 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses a single delimiter correctly', () => {
+    const ast = parser.parse('.')
+    expect(ast).toMatchSnapshot()
+  })
+
   it('parses a line with just whitespace correctly', () => {
     const ast = parser.parse('    ')
     expect(ast).toMatchSnapshot()
@@ -20,6 +25,11 @@ describe('Markdown parser', () => {
 
   it('parses invalid bold correctly', () => {
     const ast = parser.parse('*not bold**')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('parses formatting adjacent to punctuation', () => {
+    const ast = parser.parse('thisis(*bold*) and(_italic_) and,~striked~! (*woot*) another.*test*.case')
     expect(ast).toMatchSnapshot()
   })
 
@@ -99,6 +109,7 @@ this is a code block with two newline above\`\`\`
     http://keybase.io
     *http://keybase.io*
     \`http://keybase.io\`
+    (https://keybase.io)
     https://keybase.io
     HTTP://cnn.com
     http://twitter.com
