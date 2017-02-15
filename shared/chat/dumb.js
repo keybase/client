@@ -183,10 +183,12 @@ const header = {
   mocks: {
     'Normal': {
       ...commonConvoProps,
+      onBack: () => console.log('back clicked'),
     },
     'Muted': {
       ...commonConvoProps,
       muted: true,
+      onBack: () => console.log('back clicked'),
     },
   },
 }
@@ -204,9 +206,6 @@ const input = {
       parentProps: {style: {height: 370, paddingTop: 330}},
     },
     */
-    'Empty': {
-      ...emptyConvoProps,
-    },
   },
 }
 

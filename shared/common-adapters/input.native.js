@@ -186,6 +186,7 @@ class Input extends Component<void, Props, State> {
       onChangeText: this._onChangeText,
       onFocus: this._onFocus,
       onKeyDown: this._onKeyDown,
+      onSubmitEditing: this.props.onSubmitEditing,
       placeholder: this.props.hintText,
       ref: r => { this._input = r },
       returnKeyType: this.props.returnKeyType,
