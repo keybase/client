@@ -60,6 +60,7 @@
     return;
   }
 
+  DDLogInfo(@"Checking security requirements");
   [self validate:sourcePath completion:^(NSError *error) {
     if (error) {
       completion(error);
