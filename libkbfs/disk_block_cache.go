@@ -450,6 +450,7 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 		}
 	}
 	iter := cache.lruDb.NewIterator(rng, nil)
+	defer iter.Release()
 
 	blockIDs := make(blockIDsByTime, 0, numElements)
 
