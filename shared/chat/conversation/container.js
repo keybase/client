@@ -9,7 +9,7 @@ import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat,
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
 import {navigateAppend} from '../../actions/route-tree'
-import {nothingSelected, getBrokenUsers} from '../../constants/chat'
+import {nothingSelected, getBrokenUsers, pendingConversationIDKeyToTlfName, isPendingConversationIDKey} from '../../constants/chat'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 
@@ -75,6 +75,31 @@ export default connect(
 
     const you = state.config.username || ''
     const followingMap = state.config.following
+    const metaDataMap = state.chat.get('metaData')
+
+    if (isPendingConversationIDKey(selectedConversation)) {
+      const tlfName = pendingConversationIDKeyToTlfName(selectedConversation)
+      if (tlfName) {
+        const participants = List(tlfName.split(','))
+
+        return {
+          bannerMessage: null,
+          emojiPickerOpen: false,
+          followingMap,
+          inputText: routeState.inputText,
+          isLoading: false,
+          messages: List(),
+          metaDataMap,
+          moreToLoad: false,
+          muted: false,
+          participants,
+          rekeyInfo: null,
+          selectedConversation,
+          validated: true,
+          you,
+        }
+      }
+    }
 
     if (selectedConversation !== nothingSelected) {
       const conversationState = state.chat.get('conversationStates').get(selectedConversation)
@@ -83,7 +108,6 @@ export default connect(
         const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
         const muted = selected && selected.get('muted')
         const participants = selected && selected.participants || List()
-        const metaDataMap = state.chat.get('metaData')
         const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
 
         return {

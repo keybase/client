@@ -5,7 +5,7 @@ import {connect} from 'react-redux'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {loadInbox, selectConversation, newChat} from '../../actions/chat'
-import {participantFilter} from '../../constants/chat'
+import {participantFilter, pendingConversationIDKey} from '../../constants/chat'
 
 import type {ConversationIDKey} from '../../constants/chat'
 import type {TypedState} from '../../constants/reducer'
@@ -15,8 +15,55 @@ class ConversationListContainer extends Component {
     this.props.loadInbox()
   }
 
+  _derivedProps (rekeyInfo, unreadCount, isSelected) {
+    // Derived props
+    const youNeedToRekey = rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
+    const participantNeedToRekey = rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
+    const hasUnread = !!unreadCount
+    const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
+    const showBold = !isSelected && hasUnread
+    const backgroundColor = isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
+    const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
+    const commaColor = isSelected ? globalColors.black_60 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
+
+    return {
+      backgroundColor,
+      commaColor,
+      hasUnread,
+      participantNeedToRekey,
+      showBold,
+      subColor,
+      usernameColor,
+      youNeedToRekey,
+    }
+  }
+
   render () {
-    const rows = this.props.inbox.map(conversation => {
+    const pendingRows = this.props.pending.map(pending => {
+      const conversationIDKey: ConversationIDKey = pendingConversationIDKey(pending.sort().join(','))
+      const unreadCount = 0
+      const participants = participantFilter(pending, this.props.you)
+      const isSelected = this.props.selectedConversation === conversationIDKey
+      const isMuted = false
+      const rekeyInfo = null
+      const timestamp = formatTimeForConversationList(Date.now(), this.props.nowOverride)
+      const snippet = ''
+      const onSelectConversation = this.props.onSelectConversation
+
+      return {
+        conversationIDKey,
+        isMuted,
+        isSelected,
+        onSelectConversation,
+        participants,
+        rekeyInfo,
+        snippet,
+        timestamp,
+        unreadCount,
+      }
+    })
+
+    const realRows = this.props.inbox.map(conversation => {
       const conversationIDKey: ConversationIDKey = conversation.get('conversationIDKey')
       const unreadCount = this.props.conversationUnreadCounts.get(conversationIDKey)
       const participants = participantFilter(conversation.get('participants'), this.props.you)
@@ -27,36 +74,23 @@ class ConversationListContainer extends Component {
       const snippet = conversation.get('snippet')
       const onSelectConversation = this.props.onSelectConversation
 
-      // Derived props
-      const youNeedToRekey = rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
-      const participantNeedToRekey = rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
-      const hasUnread = !!unreadCount
-      const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
-      const showBold = !isSelected && hasUnread
-      const backgroundColor = isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
-      const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
-      const commaColor = isSelected ? globalColors.black_60 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
-
       return {
-        backgroundColor,
-        commaColor,
         conversationIDKey,
-        hasUnread,
         isMuted,
         isSelected,
         onSelectConversation,
-        participantNeedToRekey,
         participants,
         rekeyInfo,
-        showBold,
         snippet,
-        subColor,
         timestamp,
         unreadCount,
-        usernameColor,
-        youNeedToRekey,
       }
     })
+
+    const rows = pendingRows.concat(realRows).map(props => ({
+      ...props,
+      ...this._derivedProps(props.rekeyInfo, props.unreadCount, props.isSelected),
+    }))
 
     return <ConversationList
       children={this.props.children}
@@ -70,7 +104,8 @@ class ConversationListContainer extends Component {
 export default connect(
   (state: TypedState, {routeSelected}) => ({
     conversationUnreadCounts: state.chat.get('conversationUnreadCounts'),
-    inbox: state.chat.get('inbox').filter(i => !i.isEmpty || i.youCreated),
+    inbox: state.chat.get('inbox').filter(i => !i.isEmpty || state.chat.get('alwaysShow').has(i.conversationIDKey)),
+    pending: state.chat.get('pendingConversations'),
     rekeyInfos: state.chat.get('rekeyInfos'),
     selectedConversation: routeSelected,
     you: state.config.username || '',

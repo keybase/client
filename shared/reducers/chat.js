@@ -338,13 +338,14 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:selectConversation': {
       //  ensure selected converations are visible if they exist
       const {conversationIDKey} = action.payload
-      const oldInbox = state.get('inbox')
-      const existing = oldInbox.findEntry(inbox => inbox.get('conversationIDKey') === conversationIDKey)
-      if (existing) {
-        const newRow = existing[1].set('alwaysShow', true)
-        return state.set('inbox', oldInbox.set(existing[0], newRow))
-      }
-      return state
+      // const oldInbox = state.get('inbox')
+      // const existing = oldInbox.findEntry(inbox => inbox.get('conversationIDKey') === conversationIDKey)
+      // if (existing) {
+        // const newRow = existing[1].set('alwaysShow', true)
+        // console.log('aaaa set due to select', newRow,state.set('inbox', oldInbox.set(existing[0], newRow)))
+        // return state.set('inbox', oldInbox.set(existing[0], newRow))
+      // }
+      return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
     }
     case 'chat:loadingMessages': {
       const newConversationStates = state.get('conversationStates').update(
@@ -414,6 +415,21 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:updateInboxRekeySelf': {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({youCanRekey: true})))
+    }
+    case 'chat:addPendingConversation': {
+      const {participants} = action.payload
+      return state.set('pendingConversations', state.get('pendingConversations').unshift(List(participants)))
+    }
+    case 'chat:pendingToRealConversation': {
+      const {oldKey} = action.payload
+      const oldPending = state.get('pendingConversations')
+      const idx = oldPending.findIndex(p => pendingConversationIDKey(p.join(',')) === oldKey)
+      if (idx !== -1) {
+        return state.set('pendingConversations', oldPending.remove(idx))
+      } else {
+        console.warn("couldn't find pending to upgrade", oldKey)
+      }
+      break
     }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
