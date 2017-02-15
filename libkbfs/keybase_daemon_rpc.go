@@ -241,7 +241,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.NotifyPaperKeyProtocol(k),
 		keybase1.NotifyFSRequestProtocol(k),
 		keybase1.TlfKeysProtocol(k),
-//		keybase1.SimpleFSProtocol(&simplefs.SimpleFS{}),
+		//		keybase1.SimpleFSProtocol(&simplefs.SimpleFS{}),
 	}
 
 	if k.protocols != nil {
