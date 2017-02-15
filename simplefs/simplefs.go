@@ -110,22 +110,7 @@ func (k *SimpleFS) SimpleFSRename(_ context.Context, arg keybase1.SimpleFSRename
 // or create a directory
 // Files must be closed afterwards.
 func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenArg) error {
-	parent, name, err := k.getRemoteNodeParent(ctx, arg.Dest)
-	if err != nil {
-		return err
-	}
-
-	// TODO: OpenFlags_REPLACE
-	f := arg.Flags
-	var node libkbfs.Node
-	switch {
-	case (f&keybase1.OpenFlags_EXISTING == 0) && (f&keybase1.OpenFlags_DIRECTORY == keybase1.OpenFlags_DIRECTORY):
-		node, _, err = k.config.KBFSOps().CreateDir(ctx, parent, name)
-	case f&keybase1.OpenFlags_EXISTING == 0:
-		node, _, err = k.config.KBFSOps().CreateFile(ctx, parent, name, false, false)
-	default:
-		node, _, err = k.config.KBFSOps().Lookup(ctx, parent, name)
-	}
+	node, err := k.open(ctx, arg.Dest, arg.Flags)
 
 	if err != nil {
 		return err
@@ -156,7 +141,7 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 		return keybase1.FileContent{}, errNoSuchHandle
 	}
 	bs := make([]byte, arg.Size)
-	// TODO arg.Offset should be 64 bits.
+	// TODO fix offset
 	k.config.KBFSOps().Read(ctx, h.node, bs, int64(arg.Offset))
 	return keybase1.FileContent{
 		Data: bs,
@@ -172,7 +157,7 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 	if !ok {
 		return errNoSuchHandle
 	}
-	// TODO arg.Offset should be 64 bits.
+	// TODO fix offset
 	err := k.config.KBFSOps().Write(ctx, h.node, arg.Content, int64(arg.Offset))
 	return err
 }
@@ -202,14 +187,17 @@ func (k *SimpleFS) SimpleFSMakeOpid(_ context.Context) (keybase1.OpID, error) {
 
 // SimpleFSClose - Close OpID, cancels any pending operation.
 // Must be called after list/copy/remove
-func (k *SimpleFS) SimpleFSClose(_ context.Context, opid keybase1.OpID) error {
+func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) error {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	_, ok := k.handles[opid]
+	h, ok := k.handles[opid]
 	if !ok {
 		return errNoSuchHandle
 	}
 	delete(k.handles, opid)
+	if h.node != nil {
+		k.config.KBFSOps().Sync(ctx, h.node)
+	}
 	return nil
 }
 
@@ -253,6 +241,27 @@ func remotePath(path keybase1.Path) (ps []string, public bool, err error) {
 
 	}
 	return ps[1:], public, nil
+}
+
+func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.OpenFlags) (
+	libkbfs.Node, error) {
+	parent, name, err := k.getRemoteNodeParent(ctx, dest)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: OpenFlags_REPLACE
+	var node libkbfs.Node
+	switch {
+	case (f&keybase1.OpenFlags_EXISTING == 0) && (f&keybase1.OpenFlags_DIRECTORY == keybase1.OpenFlags_DIRECTORY):
+		node, _, err = k.config.KBFSOps().CreateDir(ctx, parent, name)
+	case f&keybase1.OpenFlags_EXISTING == 0:
+		node, _, err = k.config.KBFSOps().CreateFile(ctx, parent, name, false, false)
+	default:
+		node, _, err = k.config.KBFSOps().Lookup(ctx, parent, name)
+	}
+
+	return node, err
 }
 
 // getRemoteRootNode
@@ -341,14 +350,14 @@ func setStat(de *keybase1.Dirent, ei *libkbfs.EntryInfo) {
 }
 
 func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
-) (io.ReadWriteCloser, error) {
+	flags keybase1.OpenFlags) (io.ReadWriteCloser, error) {
 	pt, err := path.PathType()
 	if err != nil {
 		return nil, err
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
-		node, err := k.getRemoteNode(ctx, path)
+		node, err := k.open(ctx, path, flags)
 		if err != nil {
 			return nil, err
 		}
