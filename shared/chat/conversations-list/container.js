@@ -4,8 +4,9 @@ import ConversationList from './index'
 import {connect} from 'react-redux'
 import {loadInbox, selectConversation, newChat} from '../../actions/chat'
 import {newestConversationIDKey} from '../../constants/chat'
+import {List} from 'immutable'
 
-import type {ConversationIDKey} from '../../constants/chat'
+import type {ConversationIDKey, InboxState, SupersededByState} from '../../constants/chat'
 import type {TypedState} from '../../constants/reducer'
 
 class ConversationListContainer extends Component {
@@ -18,11 +19,15 @@ class ConversationListContainer extends Component {
   }
 }
 
+function _filterInboxes (inboxes: List<InboxState>, supersededByState: SupersededByState): List<InboxState> {
+  // $FlowIssue with records and accessing things inside them
+  return inboxes.filter(i => (!i.isEmpty || i.youCreated) && !supersededByState.get(i.conversationIDKey))
+}
+
 export default connect(
   (state: TypedState, {routeSelected}) => ({
     conversationUnreadCounts: state.chat.get('conversationUnreadCounts'),
-    inbox: state.chat.get('inbox').filter(i => !i.isEmpty || i.youCreated)
-      .filter(i => !state.chat.get('supersededByState').get(i.conversationIDKey)),
+    inbox: _filterInboxes(state.chat.get('inbox'), state.chat.get('supersededByState')),
     rekeyInfos: state.chat.get('rekeyInfos'),
     selectedConversation: newestConversationIDKey(routeSelected, state.chat),
     you: state.config.username || '',
