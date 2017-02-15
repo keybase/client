@@ -284,8 +284,9 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 
 	delay := bdl.calculateDelay(ctx, journalBytes, freeBytes, time.Now())
 	if delay > 0 {
-		bdl.log.CDebugf(ctx, "Delaying block put of %d bytes by %f s",
-			blockBytes, delay.Seconds())
+		bdl.log.CDebugf(ctx, "Delaying block put of %d bytes by %f s ("+
+			"journalBytes=%d freeBytes=%d)",
+			blockBytes, delay.Seconds(), journalBytes, freeBytes)
 	}
 	// TODO: Update delay if any variables change (i.e., we
 	// suddenly free up a lot of space).
