@@ -1,4 +1,5 @@
 // @flow
+import ChatMap from '../../chat/dumb'
 import CommonMap from '../../common-adapters/dumb'
 import RegisterMap from '../../login/register/dumb'
 import SignupMap from '../../login/signup/dumb.native'
@@ -13,6 +14,7 @@ import SearchMap from '../../search/dumb'
 import Tracker from '../../tracker/dumb.native'
 
 const map: any = {
+  ...ChatMap,
   ...CommonMap,
   ...QRMap,
   ...RegisterMap,

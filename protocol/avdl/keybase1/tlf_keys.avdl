@@ -10,7 +10,8 @@ protocol tlfKeys {
     DEFAULT_KBFS_0,
     CHAT_CLI_1,
     CHAT_GUI_2,
-    CHAT_GUI_STRICT_3
+    CHAT_GUI_STRICT_3,
+    KBFS_REKEY_4
   }
 
   @typedef("string")

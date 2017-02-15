@@ -45,7 +45,7 @@ type chatLocalHandler struct {
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
-func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
+func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, store *chat.AttachmentStore, gh *gregorHandler) *chatLocalHandler {
 	tlf := newTlfHandler(nil, g)
 	h := &chatLocalHandler{
 		BaseHandler:   NewBaseHandler(xp),
@@ -54,7 +54,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		gh:            gh,
 		tlf:           tlf,
 		boxer:         chat.NewBoxer(g, tlf),
-		store:         chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
+		store:         store,
 		identNotifier: chat.NewIdentifyNotifier(g),
 	}
 
@@ -345,8 +345,9 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 		}
 	}
 
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
-	return sender.Prepare(ctx, msg, nil)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient, h.getSecretUI)
+	mbox, _, err := sender.Prepare(ctx, msg, nil)
+	return mbox, err
 }
 
 func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
@@ -586,13 +587,20 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalRes{}, err
 	}
+	uid := h.G().Env.GetUID()
+
+	// Sanity check that we have a TLF name here
+	if len(arg.Msg.ClientHeader.TlfName) == 0 {
+		h.Debug(ctx, "PostLocal: no TLF name specified: convID: %s uid: %s",
+			arg.ConversationID, uid)
+		return chat1.PostLocalRes{}, fmt.Errorf("no TLF name specified")
+	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 
 	// Make sure sender is set
 	db := make([]byte, 16)
-	uid := h.G().Env.GetUID()
 	deviceID := h.G().Env.GetDeviceID()
 	if err = deviceID.ToBytes(db); err != nil {
 		return chat1.PostLocalRes{}, err
@@ -600,17 +608,12 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	arg.Msg.ClientHeader.Sender = uid.ToBytes()
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
-	// keep track of any assets that need to be deleted after deleting the message
-	pendingAssetDeletes := h.pendingAssetDeletes(ctx, arg)
-
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient, h.getSecretUI)
 
 	_, msgID, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
-
-	h.deleteAssets(ctx, arg.ConversationID, pendingAssetDeletes)
 
 	return chat1.PostLocalRes{
 		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
@@ -678,14 +681,21 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	}
 	uid := h.G().Env.GetUID()
 
+	// Sanity check that we have a TLF name here
+	if len(arg.Msg.ClientHeader.TlfName) == 0 {
+		h.Debug(ctx, "PostLocalNonblock: no TLF name specified: convID: %s uid: %s",
+			arg.ConversationID, uid)
+		return chat1.PostLocalNonblockRes{}, fmt.Errorf("no TLF name specified")
+	}
+
 	// Add outbox information
 	var prevMsgID chat1.MessageID
 	if arg.ClientPrev == 0 {
-		h.G().Log.Debug("PostLocalNonblock: ClientPrev not specified using local storage")
+		h.Debug(ctx, "PostLocalNonblock: ClientPrev not specified using local storage")
 		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid.ToBytes(), nil,
 			&chat1.Pagination{Num: 1})
 		if err != nil || len(thread.Messages) == 0 {
-			h.G().Log.Debug("PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
+			h.Debug(ctx, "PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
 			prevMsgID = 1
 		} else {
 			prevMsgID = thread.Messages[0].GetMessageID()
@@ -693,7 +703,7 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	} else {
 		prevMsgID = arg.ClientPrev
 	}
-	h.G().Log.Debug("PostLocalNonblock: using prevMsgID: %d", prevMsgID)
+	h.Debug(ctx, "PostLocalNonblock: using prevMsgID: %d", prevMsgID)
 	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
 		Prev: prevMsgID,
 	}
@@ -701,7 +711,7 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	// Create non block sender
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient, h.getSecretUI)
 	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
 
 	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev)
@@ -1131,11 +1141,12 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 		arg.Sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
-	chatUI.ChatAttachmentDownloadDone(ctx)
 
 	if err := arg.Sink.Close(); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
+
+	chatUI.ChatAttachmentDownloadDone(ctx)
 
 	return chat1.DownloadAttachmentLocalRes{
 		RateLimits:       limits,
@@ -1364,18 +1375,6 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	return h.store.UploadAsset(ctx, &task)
 }
 
-func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) ([]chat1.Asset, error) {
-	attachment, _, err := h.attachmentMessage(ctx, conversationID, msgID, idBehavior)
-	if err != nil {
-		return nil, err
-	}
-
-	assets := []chat1.Asset{attachment.Object}
-	assets = append(assets, attachment.Previews...)
-
-	return assets, nil
-}
-
 func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) (*chat1.MessageAttachment, []chat1.RateLimit, error) {
 	arg := chat1.GetMessagesLocalArg{
 		ConversationID:   conversationID,
@@ -1423,25 +1422,6 @@ func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID
 
 	return nil, msgs.RateLimits, errors.New("not an attachment message")
 
-}
-
-func (h *chatLocalHandler) pendingAssetDeletes(ctx context.Context, arg chat1.PostLocalArg) []chat1.Asset {
-	var pending []chat1.Asset
-	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_DELETE {
-		// check to see if deleting an attachment
-		md := arg.Msg.MessageBody.Delete()
-		for _, msgID := range md.MessageIDs {
-			assets, err := h.assetsForMessage(ctx, arg.ConversationID, msgID, arg.IdentifyBehavior)
-			if err != nil {
-				h.G().Log.Debug("error getting assets for message: %s", err)
-				// continue despite error?  Or return error and let user try again.
-			}
-			if len(assets) > 0 {
-				pending = append(pending, assets...)
-			}
-		}
-	}
-	return pending
 }
 
 func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat1.ConversationID, assets []chat1.Asset) {

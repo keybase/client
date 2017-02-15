@@ -1,0 +1,555 @@
+{
+  "protocol": "SimpleFS",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "fixed",
+      "name": "OpID",
+      "size": "16"
+    },
+    {
+      "type": "enum",
+      "name": "PathType",
+      "symbols": [
+        "LOCAL_0",
+        "KBFS_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "Path",
+      "switch": {
+        "type": "PathType",
+        "name": "PathType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LOCAL",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "KBFS",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "DirentType",
+      "symbols": [
+        "FILE_0",
+        "DIR_1",
+        "SYM_2",
+        "EXEC_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Dirent",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "DirentType",
+          "name": "direntType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ErrorNum",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "enum",
+      "name": "OpenFlags",
+      "symbols": [
+        "READ_0",
+        "REPLACE_1",
+        "EXISTING_2",
+        "WRITE_4",
+        "APPEND_8",
+        "DIRECTORY_16"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Progress",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Dirent"
+          },
+          "name": "entries"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FileContent",
+      "fields": [
+        {
+          "type": "bytes",
+          "name": "data"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AsyncOps",
+      "symbols": [
+        "LIST_0",
+        "LIST_RECURSIVE_1",
+        "READ_2",
+        "WRITE_3",
+        "COPY_4",
+        "MOVE_5",
+        "REMOVE_6"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoveArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "long",
+          "name": "offset"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WriteArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "long",
+          "name": "offset"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CopyArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "src"
+        },
+        {
+          "type": "Path",
+          "name": "dest"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MoveArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "src"
+        },
+        {
+          "type": "Path",
+          "name": "dest"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "OpDescription",
+      "switch": {
+        "type": "AsyncOps",
+        "name": "asyncOp"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LIST",
+            "def": false
+          },
+          "body": "ListArgs"
+        },
+        {
+          "label": {
+            "name": "LIST_RECURSIVE",
+            "def": false
+          },
+          "body": "ListArgs"
+        },
+        {
+          "label": {
+            "name": "READ",
+            "def": false
+          },
+          "body": "ReadArgs"
+        },
+        {
+          "label": {
+            "name": "WRITE",
+            "def": false
+          },
+          "body": "WriteArgs"
+        },
+        {
+          "label": {
+            "name": "COPY",
+            "def": false
+          },
+          "body": "CopyArgs"
+        },
+        {
+          "label": {
+            "name": "MOVE",
+            "def": false
+          },
+          "body": "MoveArgs"
+        },
+        {
+          "label": {
+            "name": "REMOVE",
+            "def": false
+          },
+          "body": "RemoveArgs"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "simpleFSList": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
+    },
+    "simpleFSListRecursive": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive list of items in directory at path"
+    },
+    "simpleFSReadList": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "SimpleFSListResult",
+      "doc": "Get list of Paths in progress. Can indicate status of pending\n   to get more entries."
+    },
+    "simpleFSCopy": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin copy of file or directory"
+    },
+    "simpleFSCopyRecursive": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive copy of directory"
+    },
+    "simpleFSMove": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin move of file or directory, from/to KBFS only"
+    },
+    "simpleFSRename": {
+      "request": [
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Rename file or directory, KBFS side only"
+    },
+    "simpleFSOpen": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        },
+        {
+          "name": "flags",
+          "type": "OpenFlags"
+        }
+      ],
+      "response": null,
+      "doc": "Create/open a file and leave it open\n   or create a directory\n   Files must be closed afterwards."
+    },
+    "simpleFSSetStat": {
+      "request": [
+        {
+          "name": "dest",
+          "type": "Path"
+        },
+        {
+          "name": "flag",
+          "type": "DirentType"
+        }
+      ],
+      "response": null,
+      "doc": "Set/clear file bits - only executable for now"
+    },
+    "simpleFSRead": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "offset",
+          "type": "int"
+        },
+        {
+          "name": "size",
+          "type": "int"
+        }
+      ],
+      "response": "FileContent",
+      "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   Repeat until zero bytes are returned or error.\n   If size is zero, read an arbitrary amount."
+    },
+    "simpleFSWrite": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "offset",
+          "type": "int"
+        },
+        {
+          "name": "content",
+          "type": "bytes"
+        }
+      ],
+      "response": null,
+      "doc": "Append content to opened file.\n   May be repeated until OpID is closed."
+    },
+    "simpleFSRemove": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Remove file or directory from filesystem"
+    },
+    "simpleFSStat": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "Dirent",
+      "doc": "Get info about file"
+    },
+    "simpleFSMakeOpid": {
+      "request": [],
+      "response": "OpID",
+      "doc": "Convenience helper for generating new random value"
+    },
+    "simpleFSClose": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": null,
+      "doc": "Close OpID, cancels any pending operation.\n   Must be called after list/copy/remove"
+    },
+    "simpleFSCheck": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "Progress",
+      "doc": "Check progress of pending operation"
+    },
+    "simpleFSGetOps": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "OpDescription"
+      },
+      "doc": "Get all the outstanding operations"
+    },
+    "simpleFSWait": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": null,
+      "doc": "Blocking wait for the pending operation to finish"
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -1,19 +1,16 @@
 // @flow
 import {Component} from 'react'
 import {List} from 'immutable'
-
-import type {MetaDataMap, FollowingMap} from '../../constants/chat'
+import type {UserList} from '../../common-adapters/usernames'
 
 export type Props = {
-  participants: List<string>,
-  metaDataMap: MetaDataMap,
-  followingMap: FollowingMap,
   muted: boolean,
-  you: string,
+  onBack?: () => void,
   onOpenFolder: () => void,
+  onShowProfile: (user: string) => void,
   onToggleSidePanel: () => void,
   sidePanelOpen: boolean,
-  onShowProfile: (user: string) => void,
+  users: UserList,
 }
 
 export default class Header extends Component<void, Props, void> { }

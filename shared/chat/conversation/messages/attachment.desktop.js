@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import MessageComponent from './shared.desktop'
+import moment from 'moment'
 import React, {PureComponent} from 'react'
 import {Box, Icon, ProgressIndicator, Text} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
@@ -28,8 +29,8 @@ function AttachmentTitle ({messageState, title}: {messageState: Constants.Attach
   return <Text type='BodySemibold' style={style}>{title}</Text>
 }
 
-function PreviewImage ({message: {previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: ?() => void}) {
-  if (previewType === 'Image') {
+function PreviewImage ({message: {previewDurationMs, previewPath, previewType, previewSize, messageState}, onOpenInPopup}: {message: Constants.AttachmentMessage, onOpenInPopup: ?() => void}) {
+  if (previewType === 'Image' || previewType === 'Video') {
     let style = {
       ...globalStyles.flexBoxRow,
       marginTop: globalMargins.xtiny,
@@ -54,6 +55,17 @@ function PreviewImage ({message: {previewPath, previewType, previewSize, message
           <ImageIcon
             style={{position: 'relative', right: 19, top: 3}}
             type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
+        {previewDurationMs &&
+          <Box style={{...globalStyles.flexBoxCenter, position: 'absolute', top: 0, left: 0, bottom: 0, right: 0}}>
+            <Icon type='icon-play-64' />
+          </Box>
+        }
+        {previewDurationMs && previewType === 'Video' &&
+          <Text
+            type='BodySemibold'
+            style={{position: 'absolute', color: 'white', fontSize: 12, right: globalMargins.tiny, bottom: globalMargins.xtiny}}
+          >{moment.utc(previewDurationMs).format('m:ss')}</Text>
+        }
       </Box>
     )
   }
@@ -144,7 +156,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
         {_showProgressBar(messageState, message.progress) && !!message.progress &&
           <ProgressBar
             style={messageState === 'uploading' ? overlayProgressBarStyle : {}}
-            text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
+            text={messageState === 'downloading' ? 'Downloading' : 'Encrypting'}
             progress={message.progress} />}
         {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
       </Box>
@@ -173,7 +185,7 @@ function AttachmentIcon ({messageState}: {messageState: Constants.AttachmentMess
 function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: {message: Constants.AttachmentMessage, onOpenInFileUI: () => void, onLoadAttachment: () => void}) {
   const {downloadedPath, messageState, progress} = message
   return (
-    <Box style={{...globalStyles.flexBoxRow, ...(!message.downloadedPath ? globalStyles.clickable : {}), alignItems: 'center', marginTop: globalMargins.tiny}} onClick={!message.downloadedPath ? onLoadAttachment : undefined}>
+    <Box style={{...globalStyles.flexBoxRow, ...(!message.downloadedPath ? globalStyles.clickable : {}), alignItems: 'center'}} onClick={!message.downloadedPath ? onLoadAttachment : undefined}>
       <AttachmentIcon messageState={messageState} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
         <AttachmentTitle {...message} />
@@ -182,7 +194,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: 
           <Box style={{height: 14}}>
             {_showProgressBar(messageState, progress) && !!progress &&
               <ProgressBar
-                text={messageState === 'downloading' ? 'Downloading' : 'Uploading'}
+                text={messageState === 'downloading' ? 'Downloading' : 'Encrypting'}
                 progress={progress} />}
             {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
           </Box>}
@@ -222,6 +234,7 @@ export default class AttachmentMessage extends PureComponent<void, Props, void> 
     let attachment
     switch (message.previewType) {
       case 'Image':
+      case 'Video':
         attachment = <AttachmentMessagePreviewImage message={message} onOpenInPopup={this._onOpenInPopup} onOpenInFileUI={this._onOpenInFileUI} />
         break
       default:

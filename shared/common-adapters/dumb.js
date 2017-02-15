@@ -906,7 +906,7 @@ const popupDialogMap: DumbComponentMap<PopupDialog> = {
           height: 200,
           justifyContent: 'center',
           alignItems: 'center',
-          background: globalColors.white,
+          backgroundColor: globalColors.white,
         }}>
           <Text type='Body'>Hello, world!</Text>
         </Box>

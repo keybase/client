@@ -78,6 +78,7 @@ const {
   CommonMessageType,
   CommonTLFVisibility,
   CommonTopicType,
+  LocalAssetMetadataType,
   LocalMessageUnboxedErrorType,
   LocalConversationErrorType,
   LocalMessageUnboxedState,
@@ -286,6 +287,10 @@ function selectConversation (conversationIDKey: ?ConversationIDKey, fromUser: bo
 
 function _inboxConversationToInboxState (convo: ?ConversationLocal): ?InboxState {
   if (!convo || !convo.info || !convo.info.id) {
+    return null
+  }
+
+  if (convo.info.visibility !== ChatTypes.CommonTLFVisibility.private) {
     return null
   }
 
@@ -748,6 +753,13 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
       if (incomingMessage) {
+        // If it's a public chat, the GUI (currently) wants no part of it. We
+        // especially don't want to surface the conversation as if it were a
+        // private one, which is what we were doing before this change.
+        if (incomingMessage.conv && incomingMessage.conv.info && incomingMessage.conv.info.visibility !== CommonTLFVisibility.private) {
+          return
+        }
+
         yield call(_updateInbox, incomingMessage.conv)
 
         const messageUnboxed: MessageUnboxed = incomingMessage.message
@@ -786,13 +798,6 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               msgID: message.messageID,
             },
           })
-        }
-
-        // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
-        const inboxConvo = yield select(_selectedInboxSelector, conversationIDKey)
-
-        if (!inboxConvo) {
-          yield put(loadInbox())
         }
 
         const conversationState = yield select(_conversationStateSelector, conversationIDKey)
@@ -903,6 +908,9 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
 function * selectValidConversation () {
+  if (isMobile) {
+    return // Mobile doens't auto select a conversation
+  }
   const inbox = yield select(inboxSelector)
   if (inbox.count()) {
     const conversationIDKey = yield select(_selectedSelector)
@@ -996,7 +1004,7 @@ function * _loadInbox (action: ?LoadInbox): SagaGenerator<any, any> {
       }
       // find it
     } else if (incoming.chatInboxFailed) {
-      console.warn('ignoring chatInboxFailed', incoming.chatInboxFailed)
+      console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
       incoming.chatInboxFailed.response.result()
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
@@ -1242,7 +1250,16 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
           const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
           const preview = attachment && attachment.preview
           const mimeType = preview && preview.mimeType
-          const previewSize = preview && preview.metadata && Constants.parseMetadataPreviewSize(preview.metadata)
+          const previewMetadata = preview && preview.metadata
+          const previewSize = previewMetadata && Constants.parseMetadataPreviewSize(previewMetadata)
+
+          const objectMetadata = attachment && attachment.object && attachment.object.metadata
+          const objectIsVideo = objectMetadata && objectMetadata.assetType === LocalAssetMetadataType.video
+          let previewDurationMs = null
+          if (objectIsVideo) {
+            const objectVideoMetadata = objectMetadata && objectMetadata.assetType === LocalAssetMetadataType.video && objectMetadata.video
+            previewDurationMs = objectVideoMetadata ? objectVideoMetadata.durationMs : null
+          }
 
           let messageState
           if (attachment.uploaded) {
@@ -1257,6 +1274,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
             filename: attachment.object.filename,
             title: attachment.object.title,
             messageState,
+            previewDurationMs,
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
             hdPreviewPath: null,
@@ -1790,9 +1808,10 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
   const appFocused = yield select(_focusedSelector)
   const selectedTab = yield select(_routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
+  const convoIsSelected = action.payload.isSelected
 
   // Only send if you're not looking at it
-  if (!action.isSelected || !appFocused || !chatTabSelected) {
+  if (!convoIsSelected || !appFocused || !chatTabSelected) {
     const me = yield select(usernameSelector)
     const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
     // Is this message part of a muted conversation? If so don't notify.
@@ -1814,6 +1833,9 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
   const selectedConversation = yield select(_selectedSelector)
+  if (!selectedConversation) {
+    return
+  }
   yield put({type: 'chat:clearMessages', payload: {conversationIDKey: selectedConversation}})
   yield put(loadMoreMessages(selectedConversation, false))
 }

@@ -18,6 +18,9 @@ import {withHandlers, branch, renderComponent, compose} from 'recompose'
 
 import type {Props} from '.'
 
+const {participantFilter, usernamesToUserListItem} = Constants
+
+
 type State = {
   showDropOverlay: boolean,
 }
@@ -168,7 +171,6 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
     } = this.props
 
     const banner = bannerMessage && <Banner {...bannerMessage} />
-
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type='icon-file-dropping-48' />
@@ -176,19 +178,16 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
     )
 
     const decoratedMesssages = this._decorateMessages(messages)
-
+    const users = usernamesToUserListItem(participantFilter(participants, you).toArray(), you, metaDataMap, followingMap)
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         <Header
-          onOpenFolder={onOpenFolder}
-          onToggleSidePanel={onToggleSidePanel}
-          participants={participants}
           muted={muted}
-          sidePanelOpen={sidePanelOpen}
-          you={you}
-          metaDataMap={metaDataMap}
-          followingMap={followingMap}
+          onOpenFolder={onOpenFolder}
           onShowProfile={onShowProfile}
+          onToggleSidePanel={onToggleSidePanel}
+          sidePanelOpen={sidePanelOpen}
+          users={users}
         />
         <List
           you={you}
