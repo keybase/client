@@ -976,8 +976,6 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
 function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
-  // yield call(delay, 1) // need this as we want the reducer etc to run first before we deal with this. TODO talk about this
-
   if (isMobile) {
     return // Mobile doens't auto select a conversation
   }
