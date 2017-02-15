@@ -20,7 +20,6 @@ import type {Props} from '.'
 
 const {participantFilter, usernamesToUserListItem} = Constants
 
-
 type State = {
   showDropOverlay: boolean,
 }
