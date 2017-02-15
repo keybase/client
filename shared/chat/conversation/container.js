@@ -5,11 +5,11 @@ import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, loadAttachment, retryAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, startConversation, loadAttachment, retryAttachment} from '../../actions/chat'
+import * as ChatConstants from '../../constants/chat'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
-import {navigateAppend} from '../../actions/route-tree'
-import {nothingSelected, getBrokenUsers, pendingConversationIDKeyToTlfName, isPendingConversationIDKey} from '../../constants/chat'
+import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 
@@ -17,6 +17,8 @@ import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
 import type {ConversationIDKey, Message, AttachmentInput, AttachmentMessage, OpenAttachmentPopup, OutboxIDKey} from '../../constants/chat'
 import type {Props} from '.'
+
+const {nothingSelected, getBrokenUsers, pendingConversationIDKeyToTlfName, isPendingConversationIDKey} = ChatConstants
 
 type OwnProps = {}
 type State = {
@@ -110,6 +112,10 @@ export default connect(
         const participants = selected && selected.participants || List()
         const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
 
+        const supersedes = ChatConstants.convSupersedesInfo(selectedConversation, state.chat)
+        const supersededBy = ChatConstants.convSupersededByInfo(selectedConversation, state.chat)
+        const finalizeInfo = state.chat.get('finalizedState').get(selectedConversation)
+
         return {
           bannerMessage: null,
           emojiPickerOpen: false,
@@ -126,6 +132,9 @@ export default connect(
           selectedConversation,
           validated: selected && selected.validated,
           you,
+          supersedes,
+          supersededBy,
+          finalizeInfo,
         }
       }
     }
@@ -142,22 +151,32 @@ export default connect(
       selectedConversation,
       validated: false,
       you,
+      supersedes: null,
+      supersededBy: null,
     }
   },
   (dispatch: Dispatch, {setRouteState}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
     onAttach: (selectedConversation, inputs: Array<AttachmentInput>) => { dispatch(navigateAppend([{props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'}])) },
+    onBack: () => dispatch(navigateUp()),
     onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
     onMuteConversation: (conversationIDKey: ConversationIDKey, muted: boolean) => { dispatch(muteConversation(conversationIDKey, muted)) },
     onOpenFolder: () => dispatch(openFolder()),
+    onOpenConversation: (conversationIDKey: ConversationIDKey) => {
+      dispatch(({
+        payload: {conversationIDKey},
+        type: 'chat:openConversation',
+      }: ChatConstants.OpenConversation))
+    },
     onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
     onOpenInPopup: (message: AttachmentMessage) => dispatch(({type: 'chat:openAttachmentPopup', payload: {message}}: OpenAttachmentPopup)),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
     onRetryMessage: (conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => dispatch(retryMessage(conversationIDKey, outboxID)),
+    startConversation: (users: Array<string>) => dispatch(startConversation(users)),
     onStoreInputText: (inputText: string) => setRouteState({inputText}),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
@@ -197,6 +216,7 @@ export default connect(
       onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversation, muted),
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
       onRetryMessage: (outboxID: OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
+      restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
     }
   },
 )(ConversationContainer)

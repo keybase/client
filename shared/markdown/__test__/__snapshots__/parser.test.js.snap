@@ -7,6 +7,15 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses a single delimiter correctly 1`] = `
+Object {
+  "children": Array [
+    ".",
+  ],
+  "type": "text",
+}
+`;
+
 exports[`Markdown parser parses an empty line correctly 1`] = `
 Object {
   "children": Array [],
@@ -18,6 +27,50 @@ exports[`Markdown parser parses escaped chars correctly 1`] = `
 Object {
   "children": Array [
     "I *should* see asterisks",
+  ],
+  "type": "text",
+}
+`;
+
+exports[`Markdown parser parses formatting adjacent to punctuation 1`] = `
+Object {
+  "children": Array [
+    "thisis(",
+    Object {
+      "children": Array [
+        "bold",
+      ],
+      "type": "bold",
+    },
+    ") and(",
+    Object {
+      "children": Array [
+        "italic",
+      ],
+      "type": "italic",
+    },
+    ") and,",
+    Object {
+      "children": Array [
+        "striked",
+      ],
+      "type": "strike",
+    },
+    "! (",
+    Object {
+      "children": Array [
+        "woot",
+      ],
+      "type": "bold",
+    },
+    ") another.",
+    Object {
+      "children": Array [
+        "test",
+      ],
+      "type": "bold",
+    },
+    ".case",
   ],
   "type": "text",
 }
@@ -391,6 +444,15 @@ Object {
       "type": "inline-code",
     },
     "
+    (",
+    Object {
+      "children": Array [
+        "https://keybase.io",
+      ],
+      "href": "https://keybase.io",
+      "type": "link",
+    },
+    ")
     ",
     Object {
       "children": Array [

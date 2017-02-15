@@ -425,6 +425,18 @@ function reducer (state: State = initialState, action: Actions) {
     }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
+    case 'chat:updateFinalizedState': {
+      // $FlowIssue doesn't recognize updates
+      return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))
+    }
+    case 'chat:updateSupersedesState': {
+      // $FlowIssue doesn't recognize updates
+      return state.update('supersedesState', supersedesState => supersedesState.merge(action.payload.supersedesState))
+    }
+    case 'chat:updateSupersededByState': {
+      // $FlowIssue doesn't recognize updates
+      return state.update('supersededByState', supersededByState => supersededByState.merge(action.payload.supersededByState))
+    }
   }
 
   return state

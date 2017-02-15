@@ -71,6 +71,12 @@ const messages = [
   },
 ]
 
+const users = [
+  {broken: false, following: false, username: 'chrisnojima', you: false},
+  {broken: false, following: true, username: 'oconnor663', you: false},
+  {broken: true, following: false, username: 'cjb', you: false},
+]
+
 const metaData = {
   'cjb': MetaDataRecord({fullname: 'Chris Ball', brokenTracker: true}),
   'chris': MetaDataRecord({fullname: 'Chris Coyne'}),
@@ -85,16 +91,13 @@ const followingMap = {
 const commonConvoProps = {
   loadMoreMessages: () => console.log('load more'),
   messages: List(messages),
-  participants: List(participants),
+  users: users,
   moreToLoad: false,
   isRequesting: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
   emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
-  metaDataMap: Map(metaData),
-  followingMap,
-  you: 'chris',
 }
 
 const emptyConvoProps = {
@@ -181,8 +184,9 @@ const header = {
     'Normal': {
       ...commonConvoProps,
     },
-    'Empty': {
-      ...emptyConvoProps,
+    'Muted': {
+      ...commonConvoProps,
+      muted: true,
     },
   },
 }
@@ -267,11 +271,15 @@ const list = {
 }
 
 const commonSidePanel = {
+  followingMap,
+  metaDataMap: Map(metaData),
   parentProps: {
     style: {
       width: 320,
     },
   },
+  participants: List(participants),
+  you: 'chris',
 }
 
 const sidePanel = {
@@ -281,9 +289,10 @@ const sidePanel = {
       ...commonConvoProps,
       ...commonSidePanel,
     },
-    'Empty': {
+    'Muted': {
       ...emptyConvoProps,
       ...commonSidePanel,
+      muted: true,
     },
   },
 }

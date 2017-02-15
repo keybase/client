@@ -5,9 +5,10 @@ import {connect} from 'react-redux'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {loadInbox, selectConversation, newChat} from '../../actions/chat'
-import {participantFilter, pendingConversationIDKey} from '../../constants/chat'
+import {participantFilter, pendingConversationIDKey, newestConversationIDKey} from '../../constants/chat'
+import {List} from 'immutable'
 
-import type {ConversationIDKey} from '../../constants/chat'
+import type {ConversationIDKey, InboxState, SupersededByState} from '../../constants/chat'
 import type {TypedState} from '../../constants/reducer'
 
 class ConversationListContainer extends Component {
@@ -101,13 +102,18 @@ class ConversationListContainer extends Component {
   }
 }
 
+function _filterInboxes (inboxes: List<InboxState>, supersededByState: SupersededByState, alwaysShow: Set<ConversationIDKey>): List<InboxState> {
+  // $FlowIssue with records and accessing things inside them
+  return inboxes.filter(i => (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) && !supersededByState.get(i.conversationIDKey))
+}
+
 export default connect(
   (state: TypedState, {routeSelected}) => ({
     conversationUnreadCounts: state.chat.get('conversationUnreadCounts'),
-    inbox: state.chat.get('inbox').filter(i => !i.isEmpty || state.chat.get('alwaysShow').has(i.conversationIDKey)),
+    inbox: _filterInboxes(state.chat.get('inbox'), state.chat.get('supersededByState'), state.chat.get('alwaysShow')),
     pending: state.chat.get('pendingConversations'),
     rekeyInfos: state.chat.get('rekeyInfos'),
-    selectedConversation: routeSelected,
+    selectedConversation: newestConversationIDKey(routeSelected, state.chat),
     you: state.config.username || '',
   }),
   (dispatch: Dispatch) => ({
