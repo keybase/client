@@ -463,12 +463,7 @@ func (r *codecReadWrapper) Read(callerBuf []byte) (int, error) {
 }
 
 // NewEncodingReader creates a new streaming encoder.
-// The signaturePrefix argument is prepended before signing anything.
-// It should usually be something like the name of your application.
-// The sender and recipient must use the same prefix for a signature to be valid.
-// This prevents an attacker from replaying signatures from one application in another application,
-// when the two applications are using shared keys but have different rules about what a signature means.
-// A prefix must not contain the null character.
+// The signaturePrefix argument must not contain the null container.
 func NewEncodingReader(encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce, innerReader io.Reader) io.Reader {
 	return &codecReadWrapper{
 		innerReader: innerReader,
