@@ -65,7 +65,7 @@ func NewSignEncrypter() *SignEncrypter {
 }
 
 func (s *SignEncrypter) EncryptedLen(size int) int {
-	return signencrypt.GetSealedSize(size)
+	return signencrypt.GetSealedStreamSize(size)
 }
 
 func (s *SignEncrypter) Encrypt(r io.Reader) (io.Reader, error) {
