@@ -28,8 +28,8 @@ func newSimpleFS(config libkbfs.Config) *SimpleFS {
 }
 
 func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
-	err := config.Shutdown(ctx)
-	require.NoError(err)
+	err := fs.config.Shutdown(ctx)
+	require.NoError(t, err)
 	libkbfs.CleanupCancellationDelayer(ctx)
 }
 
