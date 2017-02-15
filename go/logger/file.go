@@ -186,7 +186,7 @@ func scanOldLogFiles(path string) ([]string, error) {
 		return nil, err
 	}
 	var res []string
-	re, err := regexp.Compile(`^` + regexp.QuoteMeta(fname) + `-\d{8}T\d{6}-\d{8}T\d{6}$`)
+	re, err := regexp.Compile(`^` + regexp.QuoteMeta(fname) + `-\d{8}T\d{6}(?:[Z-]\d{4})?-\d{8}T\d{6}(?:[Z-]\d{4})?$`)
 	if err != nil {
 		return nil, err
 	}
