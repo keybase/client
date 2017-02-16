@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -289,9 +288,8 @@ func makeBlockIDCombo(id kbfsblock.ID, context kbfsblock.Context) keybase1.Block
 }
 
 func makeBlockReference(id kbfsblock.ID, context kbfsblock.Context) keybase1.BlockReference {
-	if context.GetBlockType() == keybase1.BlockType_MD {
-		panic(fmt.Sprintf("Can't make a reference for md block %s", id))
-	}
+	// Block references to MD blocks are allowed, because they can be
+	// deleted in the case of an MD put failing.
 	return keybase1.BlockReference{
 		Bid: makeBlockIDCombo(id, context),
 		// The actual writer to modify quota for.
