@@ -5,7 +5,7 @@ package client
 
 import (
 	"bufio"
-	"fmt"
+	"errors"
 	"io"
 	"os"
 
@@ -108,6 +108,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 	return err
 }
 
+// ParseArgv gets the arguments for this command.
 func (c *CmdSimpleFSWrite) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
@@ -123,7 +124,7 @@ func (c *CmdSimpleFSWrite) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	} else {
-		err = fmt.Errorf("write requires a path argument.")
+		err = errors.New("write requires a path argument")
 	}
 
 	return err

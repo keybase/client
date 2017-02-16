@@ -95,6 +95,7 @@ func (c *CmdSimpleFSPs) output(ops []keybase1.OpDescription) {
 	}
 }
 
+// ParseArgv gets the optional -r switch
 func (c *CmdSimpleFSPs) ParseArgv(ctx *cli.Context) error {
 
 	c.recurse = ctx.Bool("recurse")

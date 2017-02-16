@@ -15,7 +15,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSCopy is the 'simplefs list' command.
+// CmdSimpleFSCopy is the 'simplefs cp' command.
 type CmdSimpleFSCopy struct {
 	libkb.Contextified
 	src     keybase1.Path
@@ -41,7 +41,7 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
-// RunClient runs the command in client/server mode.
+// Run runs the command in client/server mode.
 func (c *CmdSimpleFSCopy) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
@@ -59,12 +59,13 @@ func (c *CmdSimpleFSCopy) Run() error {
 		err = cli.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
 			OpID: opid,
 			Src:  c.src,
-			Dest: c.src,
+			Dest: c.dest,
 		})
 	} else {
 		err = cli.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
 			OpID: opid,
-			Dest: c.src,
+			Src:  c.src,
+			Dest: c.dest,
 		})
 	}
 	if err != nil {
@@ -74,7 +75,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 	return err
 }
 
-// ParseArgv does nothing for this command.
+// ParseArgv gets the rquired arguments for this command.
 func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error

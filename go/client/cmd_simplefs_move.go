@@ -51,7 +51,8 @@ func (c *CmdSimpleFSMove) Run() error {
 
 	err = cli.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
 		OpID: opid,
-		Dest: c.src,
+		Src:  c.src,
+		Dest: c.dest,
 	})
 
 	if err != nil {

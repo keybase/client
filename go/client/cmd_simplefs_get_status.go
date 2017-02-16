@@ -32,7 +32,7 @@ func NewCmdSimpleFSGetStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	}
 }
 
-// RunClient runs the command in client/server mode.
+// Run runs the command in client/server mode.
 func (c *CmdSimpleFSGetStatus) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
@@ -50,7 +50,7 @@ func (c *CmdSimpleFSGetStatus) Run() error {
 	return err
 }
 
-// ParseArgv does nothing for this command.
+// ParseArgv gets the rquired path argument for this command.
 func (c *CmdSimpleFSGetStatus) ParseArgv(ctx *cli.Context) error {
 	var err error
 
@@ -58,7 +58,7 @@ func (c *CmdSimpleFSGetStatus) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		c.opid, err = stringToOpID(ctx.Args()[0])
 	} else {
-		err = fmt.Errorf("get-status requires a path argument.")
+		err = fmt.Errorf("get-status requires a path argument")
 	}
 
 	return err
