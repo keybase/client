@@ -21,7 +21,7 @@ type CmdSimpleFSPs struct {
 	recurse bool
 }
 
-// NewCmdDeviceList creates a new cli.Command.
+// NewCmdSimpleFSPs creates a new cli.Command.
 func NewCmdSimpleFSPs(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "ps",
@@ -32,7 +32,7 @@ func NewCmdSimpleFSPs(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 	}
 }
 
-// RunClient runs the command in client/server mode.
+// Run runs the command in client/server mode.
 func (c *CmdSimpleFSPs) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {

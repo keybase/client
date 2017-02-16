@@ -24,12 +24,12 @@ type CmdSimpleFSRead struct {
 	bufSize int
 }
 
-// NewCmdDeviceList creates a new cli.Command.
+// NewCmdSimpleFSRead creates a new cli.Command.
 func NewCmdSimpleFSRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "read",
 		ArgumentHelp: "<path>",
-		Usage:        "output file contents",
+		Usage:        "output file contents to standard output",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSRead{Contextified: libkb.NewContextified(g)}, "read", c)
 		},
