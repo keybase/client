@@ -203,7 +203,7 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string,
 }
 
 func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
-	// We do a write lock for this to prevent any reads from happening while
+	// We take a write lock for this to prevent any reads from happening while
 	// we're syncing the block counts.
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
@@ -433,7 +433,7 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	// then our random start point should be in the [0,0.75) interval on the
 	// [0,1.0) block ID space. If the iterator reaches the end of the TLF, we
 	// simply stop and return the number of blocks removed.
-	var rng *util.Range
+	rng := util.BytesPrefix(tlfBytes)
 	if numElements < cache.tlfCounts[tlfID] {
 		// Generate a random block ID to start the range.
 		pivot := uint64(
@@ -483,7 +483,8 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 		sort.Sort(blockIDs)
 	}
 
-	err = cache.deleteLocked(ctx, tlfID, blockIDs.ToBlockIDSlice(numBlocks))
+	blocksToDelete := blockIDs.ToBlockIDSlice(numBlocks)
+	err = cache.deleteLocked(ctx, tlfID, blocksToDelete)
 	if err != nil {
 		return 0, err
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/storage"
+	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 const (
@@ -114,13 +115,20 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	t.Log("Test that disk cache deletion works.")
 	cache, config := initDiskBlockCacheTest(t)
 	defer shutdownDiskBlockCacheTest(cache)
+	ctx := context.Background()
 
-	tlf1 := tlf.FakeID(0, false)
+	t.Log("Seed the cache with some other TLFs")
+	fakeTlfs := []byte{0, 1, 2, 4, 5}
+	for _, f := range fakeTlfs {
+		tlf := tlf.FakeID(f, false)
+		blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
+		err := cache.Put(ctx, tlf, blockId, blockEncoded, serverHalf)
+		require.NoError(t, err)
+	}
+	tlf1 := tlf.FakeID(3, false)
 	block1Id, block1Encoded, block1ServerHalf := setupBlockForDiskCache(t, config)
 	block2Id, block2Encoded, block2ServerHalf := setupBlockForDiskCache(t, config)
 	block3Id, block3Encoded, block3ServerHalf := setupBlockForDiskCache(t, config)
-
-	ctx := context.Background()
 
 	t.Log("Put three blocks into the cache.")
 	err := cache.Put(ctx, tlf1, block1Id, block1Encoded, block1ServerHalf)
@@ -163,7 +171,6 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 	t.Log("Seed the cache with some other TLFs")
 	//fakeTlfs := []byte{}
 	fakeTlfs := []byte{0, 1, 2, 4, 5}
-	fakeTlfs := []byte{0, 1, 4, 5}
 	for _, f := range fakeTlfs {
 		tlf := tlf.FakeID(f, false)
 		blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
@@ -172,7 +179,6 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 		clock.Add(time.Second)
 	}
 	tlf1NumBlocks := 100
-	totalBlocks := tlf1NumBlocks + len(fakeTlfs)
 	t.Log("Put 100 blocks into the cache.")
 	for i := 0; i < tlf1NumBlocks; i++ {
 		blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
@@ -183,34 +189,30 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 
 	previousAvgDuration := 50 * time.Second
 	averageDifference := float64(0)
-	totalRemoved := 0
 	numEvictionDifferences := 0
+	expectedCount := tlf1NumBlocks
 
 	t.Log("Incrementally evict all the tlf1 blocks in the cache.")
 	// Because the eviction algorithm is probabilistic, we can't rely on the
 	// same number of blocks being evicted every time. So we have to be smart
 	// about our measurement assertions.
-	for totalRemoved != tlf1NumBlocks {
+	for expectedCount != 0 {
 		t.Log("Evict 10 blocks from the cache.")
 		numRemoved, err := cache.evictLocked(ctx, tlf1, 10)
 		require.NoError(t, err)
-		totalRemoved += numRemoved
+		expectedCount -= numRemoved
 
-		expectedCount := totalBlocks - totalRemoved
 		blockCount := 0
 		var avgDuration time.Duration
 		func() {
-			iter := cache.lruDb.NewIterator(nil, nil)
+			tlf1Range := util.BytesPrefix(tlf1.Bytes())
+			iter := cache.lruDb.NewIterator(tlf1Range, nil)
 			defer iter.Release()
 			for iter.Next() {
 				putTime, err := cache.timeFromBytes(iter.Value())
 				require.NoError(t, err)
 				avgDuration += putTime.Sub(initialTime)
 				blockCount++
-				tlfID := tlf.ID{}
-				tlfID.UnmarshalBinary(iter.Key()[:len(tlf1.Bytes())])
-				blockID, _ := kbfsblock.IDFromBytes(iter.Key()[len(tlf1.Bytes()):])
-				t.Logf("tlf: %s, block: %s", tlfID, blockID)
 			}
 		}()
 		t.Logf("Verify that there are %d blocks in the cache.", expectedCount)
