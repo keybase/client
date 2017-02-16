@@ -4,7 +4,6 @@
 package client
 
 import (
-	"context"
 	"encoding/hex"
 	"errors"
 	"path/filepath"
@@ -39,16 +38,8 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	}
 }
 
-// SimpleFs will be expecting slashes, without the mount name
 func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
-	cli, err := GetKBFSMountClient(g)
-	var mountDir string
-	if err == nil {
-		mountDir, _ = cli.GetCurrentMountDir(context.TODO())
-	}
-	if mountDir == "" {
-		mountDir = "/keybase"
-	}
+	mountDir := "/keybase"
 
 	path = filepath.ToSlash(filepath.Clean(path))
 
