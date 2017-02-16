@@ -10,12 +10,14 @@ import "github.com/keybase/kbfs/kbfscodec"
 type UsageType int
 
 const (
-	// UsageWrite indicates a block is written (written blocks include archived blocks)
+	// UsageWrite indicates a data block is written (written blocks include archived blocks)
 	UsageWrite UsageType = iota
-	// UsageArchive indicates an existing block is archived
+	// UsageArchive indicates an existing (data) block is archived
 	UsageArchive
 	// UsageRead indicates a block is read
 	UsageRead
+	// UsageMDWrite indicates a MD block is written
+	UsageMDWrite
 	// NumUsage indicates the number of usage types
 	NumUsage
 )
