@@ -1656,7 +1656,17 @@ const _temporaryAttachmentMessageForUpload = (convID: ConversationIDKey, usernam
 })
 
 function * _selectAttachment ({payload: {input}}: Constants.SelectAttachment): SagaGenerator<any, any> {
-  const {conversationIDKey, title, filename, type} = input
+  const {title, filename, type} = input
+  let {conversationIDKey} = input
+
+  if (isPendingConversationIDKey(conversationIDKey)) {
+    // Get a real conversationIDKey
+    conversationIDKey = yield call(_startNewConversation, conversationIDKey)
+    if (!conversationIDKey) {
+      return
+    }
+  }
+
   const outboxID = `attachmentUpload-${Math.ceil(Math.random() * 1e9)}`
   const username = yield select(usernameSelector)
 
