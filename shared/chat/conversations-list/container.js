@@ -5,7 +5,7 @@ import {connect} from 'react-redux'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {loadInbox, selectConversation, newChat} from '../../actions/chat'
-import {participantFilter, pendingConversationIDKey, newestConversationIDKey} from '../../constants/chat'
+import {participantFilter, newestConversationIDKey} from '../../constants/chat'
 import {List} from 'immutable'
 
 import type {ConversationIDKey, InboxState, SupersededByState} from '../../constants/chat'
@@ -40,10 +40,9 @@ class ConversationListContainer extends Component {
   }
 
   render () {
-    const pendingRows = this.props.pending.map(pending => {
-      const conversationIDKey: ConversationIDKey = pendingConversationIDKey(pending.sort().join(','))
+    const pendingRows = this.props.pending.map((users, conversationIDKey) => {
       const unreadCount = 0
-      const participants = participantFilter(pending, this.props.you)
+      const participants = participantFilter(users, this.props.you)
       const isSelected = this.props.selectedConversation === conversationIDKey
       const isMuted = false
       const rekeyInfo = null
@@ -62,7 +61,7 @@ class ConversationListContainer extends Component {
         timestamp,
         unreadCount,
       }
-    })
+    }).toList()
 
     const realRows = this.props.inbox.map(conversation => {
       const conversationIDKey: ConversationIDKey = conversation.get('conversationIDKey')

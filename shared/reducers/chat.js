@@ -361,18 +361,12 @@ function reducer (state: State = initialState, action: Actions) {
     case 'chat:loadedInbox':
       // Don't overwrite existing verified inbox data
       const existingRows = state.get('inbox')
-      const rows = action.payload.inbox.map(newRow => {
+      const newInbox = sortInbox(action.payload.inbox.map(newRow => {
         const id = newRow.get('conversationIDKey')
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
         return existingRow || newRow
-      })
+      }))
 
-      // Re-add any always show inbox items that aren't already there
-      const pending = existingRows.filter(row => {
-        const id = row.get('conversationIDKey')
-        return row.get('alwaysShow') && !rows.find(r => r.get('conversationIDKey') === id)
-      })
-      const newInbox = sortInbox(rows.concat(pending))
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
     case 'chat:updateInboxComplete':
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
@@ -410,14 +404,15 @@ function reducer (state: State = initialState, action: Actions) {
     }
     case 'chat:addPendingConversation': {
       const {participants} = action.payload
-      return state.set('pendingConversations', state.get('pendingConversations').unshift(List(participants)))
+      const sorted = participants.sort()
+      const conversationIDKey = pendingConversationIDKey(sorted.join(','))
+      return state.set('pendingConversations', state.get('pendingConversations').set(conversationIDKey, List(sorted)))
     }
     case 'chat:pendingToRealConversation': {
       const {oldKey} = action.payload
       const oldPending = state.get('pendingConversations')
-      const idx = oldPending.findIndex(p => pendingConversationIDKey(p.join(',')) === oldKey)
-      if (idx !== -1) {
-        return state.set('pendingConversations', oldPending.remove(idx))
+      if (oldPending.get(oldKey)) {
+        return state.set('pendingConversations', oldPending.remove(oldKey))
       } else {
         console.warn("couldn't find pending to upgrade", oldKey)
       }

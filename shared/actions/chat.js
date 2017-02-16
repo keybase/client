@@ -256,8 +256,8 @@ function retryMessage (conversationIDKey: ConversationIDKey, outboxIDKey: string
   return {type: 'chat:retryMessage', payload: {conversationIDKey, outboxIDKey}, logTransformer: retryMessageActionTransformer}
 }
 
-function loadInbox (onlyLoad: ?ConversationIDKey): LoadInbox {
-  return {payload: {onlyLoad}, type: 'chat:loadInbox'}
+function loadInbox (): LoadInbox {
+  return {payload: undefined, type: 'chat:loadInbox'}
 }
 
 function loadMoreMessages (conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean): LoadMoreMessages {
@@ -575,7 +575,7 @@ function * _startNewConversation (conversationIDKey: ConversationIDKey) {
       yield put(selectConversation(newConversationIDKey, false))
     }
     // Load the inbox so we can post, we wait till this is done
-    yield call(_loadInbox, {payload: {onlyLoad: tlfName}, type: 'chat:loadInbox'})
+    yield call(_getInboxAndUnbox, {payload: {conversationIDKey: newConversationIDKey}, type: 'chat:getInboxAndUnbox'})
     return newConversationIDKey
   } else {
     console.warn('No tlf name off of ', conversationIDKey)
@@ -1007,7 +1007,7 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
 
 const followingSelector = (state: TypedState) => state.config.following
 
-function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
+function * _loadInbox (): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
     'chat.1.chatUi.chatInboxConversation',
@@ -1015,15 +1015,12 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
     'finished',
   ])
 
-  const singleLoad = action && !!action.payload.onlyLoad
-
   const loadInboxChanMap: ChannelMap<any> = localGetInboxNonblockLocalRpcChannelMap(channelConfig, {
     param: {
       query: {
         status: Object.keys(CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => CommonConversationStatus[k]),
         computeActiveList: true,
         tlfVisibility: CommonTLFVisibility.private,
-        tlfName: action && action.payload.onlyLoad || undefined,
         topicType: CommonTopicType.chat,
         unreadOnly: false,
         readOnly: false,
@@ -1045,10 +1042,8 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
   const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {}, metaData)
   const finalizedState: FinalizedState = _inboxToFinalized(inbox)
 
-  if (!singleLoad) {
-    yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
-    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
-  }
+  yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
+  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
 
   chatInboxUnverified.response.result()
 
@@ -1071,11 +1066,9 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
       const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
       const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
 
-      if (!singleLoad) {
-        yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
-        yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-        yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
-      }
+      yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+      yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+      yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
 
       if (conversation) {
         yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
@@ -1120,15 +1113,11 @@ function * _loadInbox (action: LoadInbox): SagaGenerator<any, any> {
       }
     } else if (incoming.finished) {
       finishedCalled = true
-      if (!singleLoad) {
-        yield put({type: 'chat:updateInboxComplete', payload: undefined})
-      }
+      yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
     } else if (incoming.timeout) {
       console.warn('Inbox loading timed out')
-      if (!singleLoad) {
-        yield put({type: 'chat:updateInboxComplete', payload: undefined})
-      }
+      yield put({type: 'chat:updateInboxComplete', payload: undefined})
       break
     }
   }

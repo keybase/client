@@ -171,6 +171,7 @@ const commonConversationsProps = {
   you: 'chris',
   rekeyInfos: Map(),
   loadInbox: () => {},
+  pending: List(),
 }
 
 const emptyConversationsProps = {

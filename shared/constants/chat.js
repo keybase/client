@@ -267,7 +267,7 @@ export const StateRecord = Record({
   conversationUnreadCounts: Map(),
   rekeyInfos: Map(),
   alwaysShow: Set(),
-  pendingConversations: List(),
+  pendingConversations: Map(),
 })
 
 export type State = Record<{
@@ -282,7 +282,7 @@ export type State = Record<{
   conversationUnreadCounts: Map<ConversationIDKey, number>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
-  pendingConversations: List<Participants>,
+  pendingConversations: Map<ConversationIDKey, Participants>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -301,7 +301,7 @@ export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: M
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {onlyLoad: ?ConversationIDKey}>
+export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
