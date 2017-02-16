@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSList is the 'simplefs list' command.
+// CmdSimpleFSList is the 'simplefs ls' command.
 type CmdSimpleFSList struct {
 	libkb.Contextified
 	opid    keybase1.OpID
@@ -22,7 +22,7 @@ type CmdSimpleFSList struct {
 	recurse bool
 }
 
-// NewCmdDeviceList creates a new cli.Command.
+// NewCmdSimpleFSList creates a new cli.Command.
 func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "ls",
@@ -91,7 +91,7 @@ func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) {
 	}
 }
 
-// ParseArgv does nothing for this command.
+// ParseArgv gets the required path argument for this command.
 func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
@@ -101,7 +101,7 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	} else {
-		err = fmt.Errorf("List requires a path argument.")
+		err = fmt.Errorf("ls requires a path argument")
 	}
 
 	return err

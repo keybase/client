@@ -6,6 +6,7 @@ package client
 import (
 	"encoding/hex"
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -40,6 +41,18 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	mountDir := "/keybase"
+
+	// make absolute
+	if !filepath.IsAbs(path) {
+		if wd, err := os.Getwd(); err == nil {
+			path = filepath.Join(wd, path)
+		}
+	}
+
+	// eval symlinks
+	if pathSym, err := filepath.EvalSymlinks(path); err == nil {
+		path = pathSym
+	}
 
 	path = filepath.ToSlash(filepath.Clean(path))
 

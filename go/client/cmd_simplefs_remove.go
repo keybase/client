@@ -32,7 +32,7 @@ func NewCmdSimpleFSRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	}
 }
 
-// RunClient runs the command in client/server mode.
+// Run runs the command in client/server mode.
 func (c *CmdSimpleFSRemove) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
@@ -60,7 +60,7 @@ func (c *CmdSimpleFSRemove) Run() error {
 	return err
 }
 
-// ParseArgv does nothing for this command.
+// ParseArgv gets the required path argument for this command.
 func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error

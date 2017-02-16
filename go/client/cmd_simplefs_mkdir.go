@@ -33,7 +33,7 @@ func NewCmdSimpleFSMkdir(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 	}
 }
 
-// RunClient runs the command in client/server mode.
+// Run runs the command in client/server mode.
 func (c *CmdSimpleFSMkdir) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
@@ -59,7 +59,7 @@ func (c *CmdSimpleFSMkdir) Run() error {
 	return err
 }
 
-// ParseArgv does nothing for this command.
+// ParseArgv gets the required path argument for this command.
 func (c *CmdSimpleFSMkdir) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
