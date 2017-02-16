@@ -47,7 +47,8 @@ const _childrenWrapStyle = {
 }
 
 const _stylesFirstNewMessage = {
-  borderTop: `solid 1px ${globalColors.orange}`,
+  borderTopColor: globalColors.orange,
+  borderTopWidth: 1,
 }
 
 const _stylesSelected = {

@@ -112,6 +112,7 @@ const mocks = followStates.reduce((outerAcc, followState) => (
 
 mocks['from revoked device'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'other', {senderDeviceRevokedAt: 123456}), you: 'other', followingMap: {cecileb: true}, metaDataMap}
 mocks['edited'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb', {editedCount: 1}), you: 'cecileb', followingMap: {}, metaDataMap}
+mocks['first new message'] = {...baseMock, message: textMessageMock('sent', 'cecileb', 'cecileb'), you: 'cecileb', isFirstNewMessage: true, followingMap: {}, metaDataMap}
 
 const StackedMessages = ({mock1, mock2}: any) => (
   <Box>
