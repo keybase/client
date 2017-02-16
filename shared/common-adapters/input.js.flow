@@ -16,7 +16,6 @@ export type Props = Exact<{
   onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
-  onSubmitEditing?: () => void,
   onKeyDown?: (event: Object) => void,
   rowsMax?: number,
   maxLength?: number,

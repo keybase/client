@@ -65,7 +65,7 @@ class ConversationInput extends Component<void, Props, State> {
             hintText='Write a message'
             hideUnderline={true}
             onChangeText={this._onChangeText}
-            onSubmitEditing={this._onSubmit}
+            onEnterKeyDown={this._onSubmit}
             value={this.state.text}
             multiline={false}
           />
