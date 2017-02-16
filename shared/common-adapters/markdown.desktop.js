@@ -1,12 +1,11 @@
 // @flow
+import React, {PureComponent} from 'react'
 import Text from './text'
 import Box from './box'
 import {emojiIndex} from 'emoji-mart'
 import Emoji from './emoji'
-import React, {PureComponent} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import parser from '../markdown/parser'
-import {isMobile} from '../constants/platform'
+import {parseMarkdown} from './markdown.shared'
 
 import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
@@ -56,8 +55,7 @@ class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
     return exists ? <Emoji {...this.props} /> : (
       <Text
         type='Body'
-        style={this.props.preview ? neutralPreviewStyle : neutralStyle}
-        lineClamp={this.props.preview && isMobile ? 1 : undefined}>
+        style={this.props.preview ? neutralPreviewStyle : neutralStyle}>
         {emoji}
       </Text>
     )
@@ -71,7 +69,7 @@ function previewCreateComponent (type, key, children, options) {
     case 'native-emoji':
       return <Emoji size={16} key={key}>{children}</Emoji>
     default:
-      return <Text type='BodySmall' key={key} style={neutralPreviewStyle} lineClamp={isMobile ? 1 : undefined}>{children}</Text>
+      return <Text type='BodySmall' key={key} style={neutralPreviewStyle}>{children}</Text>
   }
 }
 
@@ -100,37 +98,10 @@ function messageCreateComponent (type, key, children, options) {
   }
 }
 
-function process (ast, createComponent) {
-  const stack = [ast]
-
-  let index = 0
-  while (stack.length > 0) {
-    const top = stack[0]
-    if (top.type && top.seen) {
-      const childrenComponents = top.children.map(child => typeof child === 'string' ? child : child.component)
-      top.component = createComponent(top.type, index++, childrenComponents, top)
-      stack.shift()
-    } else if (top.type && !top.seen) {
-      top.seen = true
-      stack.unshift(...top.children)
-    } else {
-      stack.shift()
-    }
-  }
-
-  return ast.component
-}
-
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    let content
-    try {
-      content = process(parser.parse(this.props.children || ''), this.props.preview ? previewCreateComponent : messageCreateComponent)
-    } catch (err) {
-      console.warn('Markdown parsing failed:', err)
-      content = this.props.children
-    }
-    return <Text type='Body' style={this.props.style} lineClamp={this.props.preview && isMobile ? 1 : undefined}>{content}</Text>
+    const content = parseMarkdown(this.props.children, this.props.preview ? previewCreateComponent : messageCreateComponent)
+    return <Text type='Body' style={this.props.style}>{content}</Text>
   }
 }
 
