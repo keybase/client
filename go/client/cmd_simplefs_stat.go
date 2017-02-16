@@ -5,7 +5,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -15,10 +14,9 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSStat is the 'simplefs srar' command.
+// CmdSimpleFSStat is the 'simplefs stat' command.
 type CmdSimpleFSStat struct {
 	libkb.Contextified
-	opid keybase1.OpID
 	path keybase1.Path
 }
 
@@ -29,7 +27,7 @@ func NewCmdSimpleFSStat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		ArgumentHelp: "<path>",
 		Usage:        "stat directory element",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "stat", c)
+			cl.ChooseCommand(&CmdSimpleFSStat{Contextified: libkb.NewContextified(g)}, "stat", c)
 		},
 	}
 }
@@ -46,9 +44,8 @@ func (c *CmdSimpleFSStat) Run() error {
 		return err
 	}
 
-	w := GlobUI.DefaultTabWriter()
-	fmt.Fprintf(w, "%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
-	w.Flush()
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
 
 	return err
 }
@@ -61,7 +58,7 @@ func (c *CmdSimpleFSStat) ParseArgv(ctx *cli.Context) error {
 	if nargs != 1 {
 		err = errors.New("stat requires a KBFS path argument")
 	} else {
-		c.path = MakeSimpleFSPath(c.G(), ctx.Args()[0])
+		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	}
 
 	return err

@@ -4,8 +4,7 @@
 package client
 
 import (
-	"encoding/hex"
-	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -47,13 +46,12 @@ func (c *CmdSimpleFSClose) Run() error {
 
 // ParseArgv does nothing for this command.
 func (c *CmdSimpleFSClose) ParseArgv(ctx *cli.Context) error {
-
-	opid, err := hex.DecodeString(ctx.String("opid"))
-	if err != nil {
-		return err
-	}
-	if copy(c.opid[:], opid) != len(c.opid) {
-		return errors.New("bad or missing opid")
+	var err error
+	nargs := len(ctx.Args())
+	if nargs == 1 {
+		c.opid, err = stringToOpID(ctx.Args()[0])
+	} else {
+		err = fmt.Errorf("close requires an opid argument.")
 	}
 
 	return err
