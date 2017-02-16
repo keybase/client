@@ -309,23 +309,45 @@ func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterfac
 	}
 }
 
-func (s *RemoteInboxSource) ReadNoCache(ctx context.Context, uid gregor1.UID,
-	localizer interfaces.ChatLocalizer,
-	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
-	chat1.Inbox, *chat1.RateLimit, error) {
-	return s.Read(ctx, uid, localizer, query, p)
-}
-
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
-	localizer interfaces.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
-	chat1.Inbox, *chat1.RateLimit, error) {
+	localizer interfaces.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
+	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
+	inbox, rl, err := s.ReadUnverified(ctx, uid, useLocalData, query, p)
+	if err != nil {
+		return chat1.Inbox{}, rl, err
+	}
+
+	res, err := localizer.Localize(ctx, uid, inbox)
+	if err != nil {
+		return chat1.Inbox{}, rl, err
+	}
+
 	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	if err != nil {
+		return chat1.Inbox{}, nil, err
+	}
+	res, err = filterConvLocals(res, rquery, query, tlfInfo)
+	if err != nil {
+		return chat1.Inbox{}, rl, err
+	}
+
+	return chat1.Inbox{
+		Version:         inbox.Version,
+		Convs:           res,
+		ConvsUnverified: inbox.ConvsUnverified,
+		Pagination:      inbox.Pagination,
+	}, rl, nil
+}
+
+func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
+	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+	rquery, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
 		return chat1.Inbox{}, nil, err
 	}
@@ -337,35 +359,11 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		return chat1.Inbox{}, ib.RateLimit, err
 	}
 
-	res, err := localizer.Localize(ctx, uid, chat1.Inbox{
-		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: ib.Inbox.Full().Conversations,
-		Pagination:      ib.Inbox.Full().Pagination,
-	})
-	if err != nil {
-		return chat1.Inbox{}, ib.RateLimit, err
-	}
-
-	res, err = filterConvLocals(res, rquery, query, tlfInfo)
-	if err != nil {
-		return chat1.Inbox{}, ib.RateLimit, err
-	}
-
 	return chat1.Inbox{
 		Version:         ib.Inbox.Full().Vers,
-		Convs:           res,
 		ConvsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:      ib.Inbox.Full().Pagination,
 	}, ib.RateLimit, nil
-}
-
-func (s *RemoteInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
-	q *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
-	lq, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), q)
-	if err != nil {
-		return chat1.Inbox{}, nil, err
-	}
-	return readRemote(ctx, s.getChatInterface(), uid, lq, p)
 }
 
 func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
@@ -452,23 +450,16 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	}, ib.RateLimit, nil
 }
 
-func (s *HybridInboxSource) ReadNoCache(ctx context.Context, uid gregor1.UID,
-	localizer interfaces.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
+	localizer interfaces.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (inbox chat1.Inbox, rl *chat1.RateLimit, err error) {
 
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
 	}
-	s.Debug(ctx, "ReadNoCache: using localizer: %s", localizer.Name())
+	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
-	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
-	if err != nil {
-		return chat1.Inbox{}, nil, err
-	}
-
-	inbox, rl, err := s.fetchRemoteInbox(ctx, rquery, p)
-	if err != nil {
-		return inbox, rl, err
-	}
+	// Read unverified inbox
+	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, query, p)
 
 	// Localize
 	inbox.Convs, err = localizer.Localize(ctx, uid, inbox)
@@ -476,33 +467,47 @@ func (s *HybridInboxSource) ReadNoCache(ctx context.Context, uid gregor1.UID,
 		return inbox, rl, err
 	}
 
+	// Run post filters
+	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	if err != nil {
+		return inbox, rl, err
+	}
 	inbox.Convs, err = filterConvLocals(inbox.Convs, rquery, query, tlfInfo)
 	if err != nil {
 		return inbox, rl, err
 	}
 
-	return inbox, rl, err
+	return inbox, rl, nil
 }
 
-func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
-	localizer interfaces.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
+	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (res chat1.Inbox, rl *chat1.RateLimit, err error) {
 
-	if localizer == nil {
-		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
-	}
-	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
-
-	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
-		return chat1.Inbox{}, nil, err
+		return res, rl, err
 	}
 
-	// Try local storage
 	var inbox chat1.Inbox
-	var rl *chat1.RateLimit
+	var cerr storage.Error
 	inboxStore := storage.NewInbox(s.G(), uid, s.getSecretUI)
 
-	vers, convs, pagination, cerr := inboxStore.Read(ctx, rquery, p)
+	// Try local storage (if enabled)
+	if useLocalData {
+		vers, convs, pagination, cerr := inboxStore.Read(ctx, rquery, p)
+		if cerr == nil {
+			s.Debug(ctx, "Read: hit local storage: uid: %s convs: %d", uid, len(convs))
+			res = chat1.Inbox{
+				Version:         vers,
+				ConvsUnverified: convs,
+				Pagination:      pagination,
+			}
+		}
+	} else {
+		cerr = storage.MissError{}
+	}
+
+	// If we hit an error reading from storage, then read from remote
 	if cerr != nil {
 		if _, ok := cerr.(storage.MissError); !ok {
 			s.Debug(ctx, "Read: error fetching inbox: %s", cerr.Error())
@@ -513,43 +518,22 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		// Go to the remote on miss
 		inbox, rl, err = s.fetchRemoteInbox(ctx, rquery, p)
 		if err != nil {
-			return inbox, rl, err
+			return res, rl, err
 		}
 
 		// Write out to local storage
-		if cerr := inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, rquery, p); cerr != nil {
+		if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, rquery, p); cerr != nil {
 			s.Debug(ctx, "Read: failed to write inbox to local storage: %s", cerr.Error())
 		}
-	} else {
-		s.Debug(ctx, "Read: hit local storage: uid: %s convs: %d", uid, len(convs))
-		inbox = chat1.Inbox{
-			Version:         vers,
-			ConvsUnverified: convs,
-			Pagination:      pagination,
+
+		res = chat1.Inbox{
+			Version:         inbox.Version,
+			ConvsUnverified: inbox.ConvsUnverified,
+			Pagination:      inbox.Pagination,
 		}
 	}
 
-	// Localize
-	inbox.Convs, err = localizer.Localize(ctx, uid, inbox)
-	if err != nil {
-		return inbox, rl, err
-	}
-
-	inbox.Convs, err = filterConvLocals(inbox.Convs, rquery, query, tlfInfo)
-	if err != nil {
-		return inbox, rl, err
-	}
-
-	return inbox, rl, nil
-}
-
-func (s *HybridInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
-	q *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
-	lq, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), q)
-	if err != nil {
-		return chat1.Inbox{}, nil, err
-	}
-	return readRemote(ctx, s.getChatInterface(), uid, lq, p)
+	return res, rl, err
 }
 
 func (s *HybridInboxSource) handleInboxError(err storage.Error, uid gregor1.UID) error {
@@ -577,7 +561,7 @@ func (s *HybridInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
 	// Read back affected conversation so we can send it to the frontend
-	ib, _, err := s.Read(ctx, uid, nil, &chat1.GetInboxLocalQuery{
+	ib, _, err := s.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvID: &convID,
 	}, nil)
 	if err != nil {

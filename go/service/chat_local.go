@@ -88,7 +88,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
 	localizer := chat.NewNonblockingLocalizer(h.G(), localizeCb,
 		func() keybase1.TlfInterface { return h.tlf })
-	_, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, arg.Query, arg.Pagination)
+	_, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
 		return res, err
 	}
@@ -169,7 +169,8 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 
 	// Read inbox from the source
 	localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface { return h.tlf })
-	ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, arg.Query, arg.Pagination)
+	ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query,
+		arg.Pagination)
 	if err != nil {
 		return res, err
 	}
@@ -282,7 +283,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		// create succeeded; grabbing the conversation and returning
 		uid := h.G().Env.GetUID()
 
-		ib, rl, err := h.G().InboxSource.ReadNoCache(ctx, uid.ToBytes(), nil,
+		ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, false,
 			&chat1.GetInboxLocalQuery{
 				ConvID: &convID,
 			}, nil)
