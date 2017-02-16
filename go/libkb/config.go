@@ -377,7 +377,7 @@ func (f JSONConfigFile) GetDbFilename() string {
 	return f.GetTopLevelString("db")
 }
 func (f JSONConfigFile) GetChatDbFilename() string {
-	return f.GetTopLevelString("chat-db")
+	return f.GetTopLevelString("chat_db")
 }
 func (f JSONConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")

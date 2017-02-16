@@ -15,7 +15,7 @@ func StringToFeatureFlags(s string) (ret FeatureFlags) {
 	}
 	v := strings.Split(s, ",")
 	for _, f := range v {
-		ret = append(ret, Feature(f))
+		ret = append(ret, Feature(strings.TrimSpace(f)))
 	}
 	return ret
 }
