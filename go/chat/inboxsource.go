@@ -280,13 +280,13 @@ func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string
 }
 
 func (b *baseInboxSource) Connected(ctx context.Context) {
-	s.Debug(ctx, "connected")
-	s.offline = false
+	b.Debug(ctx, "connected")
+	b.offline = false
 }
 
 func (b *baseInboxSource) Disconnected(ctx context.Context) {
-	s.Debug(ctx, "disconnected")
-	s.offline = true
+	b.Debug(ctx, "disconnected")
+	b.offline = true
 }
 
 type RemoteInboxSource struct {
