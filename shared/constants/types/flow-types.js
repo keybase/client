@@ -4426,7 +4426,7 @@ export type SimpleFSSimpleFSReadListRpcParam = Exact<{
 
 export type SimpleFSSimpleFSReadRpcParam = Exact<{
   opID: OpID,
-  offset: int,
+  offset: long,
   size: int
 }>
 
@@ -4455,7 +4455,7 @@ export type SimpleFSSimpleFSWaitRpcParam = Exact<{
 
 export type SimpleFSSimpleFSWriteRpcParam = Exact<{
   opID: OpID,
-  offset: int,
+  offset: long,
   content: bytes
 }>
 
