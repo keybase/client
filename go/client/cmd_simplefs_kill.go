@@ -14,26 +14,26 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSClose is the 'simplefs srar' command.
-type CmdSimpleFSClose struct {
+// CmdSimpleFSKill is the 'simplefs kill' command.
+type CmdSimpleFSKill struct {
 	libkb.Contextified
 	opid keybase1.OpID
 }
 
-// NewCmdSimpleFSClose creates a new cli.Command.
-func NewCmdSimpleFSClose(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+// NewCmdSimpleFSKill creates a new cli.Command.
+func NewCmdSimpleFSKill(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "close",
+		Name:         "kill",
 		ArgumentHelp: "<opid>",
-		Usage:        "close operation",
+		Usage:        "kill operation",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "close", c)
+			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "kill", c)
 		},
 	}
 }
 
 // Run runs the command in client/server mode.
-func (c *CmdSimpleFSClose) Run() error {
+func (c *CmdSimpleFSKill) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (c *CmdSimpleFSClose) Run() error {
 }
 
 // ParseArgv gets the opid argument for this command.
-func (c *CmdSimpleFSClose) ParseArgv(ctx *cli.Context) error {
+func (c *CmdSimpleFSKill) ParseArgv(ctx *cli.Context) error {
 	var err error
 	nargs := len(ctx.Args())
 	if nargs == 1 {
@@ -58,7 +58,7 @@ func (c *CmdSimpleFSClose) ParseArgv(ctx *cli.Context) error {
 }
 
 // GetUsage says what this command needs to operate.
-func (c *CmdSimpleFSClose) GetUsage() libkb.Usage {
+func (c *CmdSimpleFSKill) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,
