@@ -43,10 +43,10 @@ func (c *CmdSimpleFSMkdir) Run() error {
 	ctx := context.TODO()
 
 	c.opid, err = cli.SimpleFSMakeOpid(ctx)
-	defer cli.SimpleFSClose(ctx, c.opid)
 	if err != nil {
 		return err
 	}
+	defer cli.SimpleFSClose(ctx, c.opid)
 	err = cli.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
 		OpID:  c.opid,
 		Dest:  c.path,

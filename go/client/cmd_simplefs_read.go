@@ -61,11 +61,11 @@ func (c *CmdSimpleFSRead) Run() error {
 		Dest:  c.path,
 		Flags: keybase1.OpenFlags_READ,
 	})
-	defer cli.SimpleFSClose(ctx, opid)
 	if err != nil {
 		return err
 	}
-	var offset = 0
+	defer cli.SimpleFSClose(ctx, opid)
+	var offset int64
 	for {
 		content, err := cli.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{
 			OpID:   opid,
@@ -76,7 +76,7 @@ func (c *CmdSimpleFSRead) Run() error {
 			return err
 		}
 		if len(content.Data) > 0 {
-			offset += len(content.Data)
+			offset += int64(len(content.Data))
 			c.output(content.Data)
 		} else {
 			break

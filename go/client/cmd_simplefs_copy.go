@@ -51,10 +51,10 @@ func (c *CmdSimpleFSCopy) Run() error {
 	ctx := context.TODO()
 
 	opid, err := cli.SimpleFSMakeOpid(ctx)
-	defer cli.SimpleFSClose(ctx, opid)
 	if err != nil {
 		return err
 	}
+	defer cli.SimpleFSClose(ctx, opid)
 	if c.recurse {
 		err = cli.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
 			OpID: opid,
@@ -91,7 +91,10 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 		c.dest = makeSimpleFSPath(c.G(), ctx.Args()[1])
 	} else {
 		// use the current local directory as a default
-		wd, _ := os.Getwd()
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
 		c.dest = makeSimpleFSPath(c.G(), wd)
 	}
 	srcType, _ := c.src.PathType()
