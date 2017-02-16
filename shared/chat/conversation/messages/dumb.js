@@ -7,7 +7,7 @@ import Text from './text'
 import {Box} from '../../../common-adapters'
 import {Map} from 'immutable'
 import {TextPopupMenu, AttachmentPopupMenu} from './popup'
-import {messageStates, MetaDataRecord, clampAttachmentPreviewSize} from '../../../constants/chat'
+import {messageStates, MetaDataRecord, clampAttachmentPreviewSize, messageKey} from '../../../constants/chat'
 
 import type {MessageState, TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {DumbComponentMap} from '../../../constants/types/more'
@@ -25,7 +25,7 @@ function messageMock (messageState: MessageState, author: string, you: string, e
     timestamp: 1479764890000,
     conversationIDKey: 'cid1',
     messageID: 1,
-    key: mockKey++,
+    key: messageKey('messageID', mockKey++),
     ...otherProps,
   }
 }

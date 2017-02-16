@@ -79,6 +79,7 @@ func (n NullConfiguration) IsAdmin() (bool, bool)                           { re
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetMountDir() string                             { return "" }
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
+func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { return FeatureFlags{}, nil }
 
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -800,6 +801,19 @@ func (e *Env) GetRunMode() RunMode {
 		return DevelRunMode
 	}
 
+	return ret
+}
+
+func (e *Env) GetFeatureFlags() FeatureFlags {
+	var ret FeatureFlags
+	pick := func(f FeatureFlags, err error) {
+		if ret.Empty() && err == nil {
+			ret = f
+		}
+	}
+	pick(e.cmd.GetFeatureFlags())
+	pick(StringToFeatureFlags(os.Getenv("KEYBASE_FEATURES")), nil)
+	pick(e.config.GetFeatureFlags())
 	return ret
 }
 
