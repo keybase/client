@@ -28,7 +28,7 @@ type CmdSimpleFSWrite struct {
 	bufSize int
 }
 
-// NewCmdDeviceList creates a new cli.Command.
+// NewCmdSimpleFSWrite creates a new cli.Command.
 func NewCmdSimpleFSWrite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "write",

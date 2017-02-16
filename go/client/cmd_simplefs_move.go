@@ -34,7 +34,7 @@ func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	}
 }
 
-// RunClient runs the command in client/server mode.
+// Run runs the command in client/server mode.
 func (c *CmdSimpleFSMove) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
