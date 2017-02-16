@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/interfaces"
@@ -115,12 +116,14 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	var rl []*chat1.RateLimit
 
-	conv, ratelim, err := utils.GetRemoteConv(ctx, s.G(), uid, convID)
+	// Get conversation metadata
+	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
 
+	// Fetch thread
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: convID,
 		Query:          query,
@@ -275,8 +278,11 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, ratelim, err := utils.GetRemoteConv(ctx, s.G(), uid, convID)
+	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
+	if err != nil {
+		return chat1.ThreadView{}, rl, fmt.Errorf("Pull(): error: %s", err.Error())
+	}
 
 	// Post process thread before returning
 	defer func() {
