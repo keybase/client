@@ -306,7 +306,7 @@ func (s *LKSec) LoadServerHalf(lctx LoginContext) (err error) {
 func (s *LKSec) LoadServerDetails(lctx LoginContext) (ret DeviceKeyMap, err error) {
 	defer s.G().Trace("LKSec#LoadServerDetails", func() error { return err })()
 
-	devid := s.G().Env.GetDeviceID()
+	devid := s.G().Env.GetDeviceIDForUID(s.uid)
 	if devid.IsNil() {
 		return ret, fmt.Errorf("lksec load: no device id set, thus can't fetch server half")
 	}

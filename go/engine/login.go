@@ -101,7 +101,9 @@ func (e *Login) Run(ctx *Context) error {
 	// make sure the user isn't already provisioned (can
 	// get here if usernameOrEmail is an email address
 	// for an already provisioned on this device user).
+	e.G().Log.Debug("=------ A----------")
 	if ueng.User().HasCurrentDeviceInCurrentInstall() {
+		e.G().Log.Debug("=------ B---- -----------")
 		return libkb.DeviceAlreadyProvisionedError{}
 	}
 
