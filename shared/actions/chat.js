@@ -1109,7 +1109,7 @@ function * _loadMoreMessages (action: LoadMoreMessages): SagaGenerator<any, any>
   yield put({type: 'chat:loadingMessages', payload: {conversationIDKey}})
 
   // We receive the list with edit/delete/etc already applied so lets filter that out
-  const messageTypes = Object.keys(CommonMessageType).filter(k => !['edit', 'delete', 'tlfname', 'headline', 'attachmentuploaded'].includes(k)).map(k => CommonMessageType[k])
+  const messageTypes = Object.keys(CommonMessageType).filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k)).map(k => CommonMessageType[k])
 
   const thread = yield call(localGetThreadLocalRpcPromise, {param: {
     conversationID,
