@@ -1,18 +1,19 @@
 package chat
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"strings"
 
+	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -297,14 +298,14 @@ func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterfac
 }
 
 func (s *RemoteInboxSource) ReadNoCache(ctx context.Context, uid gregor1.UID,
-	localizer libkb.ChatLocalizer,
+	localizer interfaces.ChatLocalizer,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
 	chat1.Inbox, *chat1.RateLimit, error) {
 	return s.Read(ctx, uid, localizer, query, p)
 }
 
-func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer libkb.ChatLocalizer,
-	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
+func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
+	localizer interfaces.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
 	chat1.Inbox, *chat1.RateLimit, error) {
 
 	if localizer == nil {
@@ -440,7 +441,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 }
 
 func (s *HybridInboxSource) ReadNoCache(ctx context.Context, uid gregor1.UID,
-	localizer libkb.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+	localizer interfaces.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
@@ -471,8 +472,8 @@ func (s *HybridInboxSource) ReadNoCache(ctx context.Context, uid gregor1.UID,
 	return inbox, rl, err
 }
 
-func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer libkb.ChatLocalizer,
-	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
+	localizer interfaces.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
@@ -1049,7 +1050,7 @@ func GetInboxQueryLocalToRemote(ctx context.Context,
 }
 
 func NewInboxSource(g *libkb.GlobalContext, typ string, ri func() chat1.RemoteInterface,
-	si func() libkb.SecretUI, ti func() keybase1.TlfInterface) libkb.InboxSource {
+	si func() libkb.SecretUI, ti func() keybase1.TlfInterface) interfaces.InboxSource {
 	remoteInbox := NewRemoteInboxSource(g, ri, ti)
 	switch typ {
 	case "hybrid":

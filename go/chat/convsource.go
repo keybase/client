@@ -1,15 +1,16 @@
 package chat
 
 import (
+	"context"
 	"errors"
 	"sort"
 
+	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"golang.org/x/net/context"
 )
 
 type baseConversationSource struct {
@@ -540,7 +541,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) libkb.ConversationSource {
+	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) interfaces.ConversationSource {
 	if typ == "hybrid" {
 		return NewHybridConversationSource(g, boxer, storage, ri, si)
 	}
