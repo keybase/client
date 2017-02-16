@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -161,9 +160,10 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 	ctx := context.Background()
 	clock := config.TestClock()
 	initialTime := clock.Now()
-	cache.log = logger.NewNull()
 	t.Log("Seed the cache with some other TLFs")
+	//fakeTlfs := []byte{}
 	fakeTlfs := []byte{0, 1, 2, 4, 5}
+	fakeTlfs := []byte{0, 1, 4, 5}
 	for _, f := range fakeTlfs {
 		tlf := tlf.FakeID(f, false)
 		blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
@@ -174,7 +174,6 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 	tlf1NumBlocks := 100
 	totalBlocks := tlf1NumBlocks + len(fakeTlfs)
 	t.Log("Put 100 blocks into the cache.")
-	cache.log = logger.NewNull()
 	for i := 0; i < tlf1NumBlocks; i++ {
 		blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
 		err := cache.Put(ctx, tlf1, blockId, blockEncoded, serverHalf)
@@ -198,31 +197,34 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 		totalRemoved += numRemoved
 
 		expectedCount := totalBlocks - totalRemoved
-		t.Logf("Verify that there are %d blocks in the cache.", expectedCount)
+		blockCount := 0
+		var avgDuration time.Duration
 		func() {
 			iter := cache.lruDb.NewIterator(nil, nil)
 			defer iter.Release()
-			blockCount := 0
-			var avgDuration time.Duration
 			for iter.Next() {
 				putTime, err := cache.timeFromBytes(iter.Value())
 				require.NoError(t, err)
-				duration := putTime.Sub(initialTime)
-				avgDuration += duration
+				avgDuration += putTime.Sub(initialTime)
 				blockCount++
-			}
-			require.Equal(t, expectedCount, blockCount,
-				"Removed %d blocks this round.", numRemoved)
-			if expectedCount > 0 {
-				avgDuration /= time.Duration(expectedCount)
-				t.Logf("Average LRU time of remaining blocks: %.2f",
-					avgDuration.Seconds())
-				averageDifference += avgDuration.Seconds() -
-					previousAvgDuration.Seconds()
-				previousAvgDuration = avgDuration
-				numEvictionDifferences++
+				tlfID := tlf.ID{}
+				tlfID.UnmarshalBinary(iter.Key()[:len(tlf1.Bytes())])
+				blockID, _ := kbfsblock.IDFromBytes(iter.Key()[len(tlf1.Bytes()):])
+				t.Logf("tlf: %s, block: %s", tlfID, blockID)
 			}
 		}()
+		t.Logf("Verify that there are %d blocks in the cache.", expectedCount)
+		require.Equal(t, expectedCount, blockCount,
+			"Removed %d blocks this round.", numRemoved)
+		if expectedCount > 0 {
+			avgDuration /= time.Duration(expectedCount)
+			t.Logf("Average LRU time of remaining blocks: %.2f",
+				avgDuration.Seconds())
+			averageDifference += avgDuration.Seconds() -
+				previousAvgDuration.Seconds()
+			previousAvgDuration = avgDuration
+			numEvictionDifferences++
+		}
 	}
 	t.Log("Verify that, on average, the LRU time of the blocks remaining in" +
 		" the queue keeps going up.")

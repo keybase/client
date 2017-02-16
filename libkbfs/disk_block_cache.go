@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"encoding/hex"
 	"fmt"
 	"math"
 	"path/filepath"
@@ -436,6 +435,7 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	// simply stop and return the number of blocks removed.
 	var rng *util.Range
 	if numElements < cache.tlfCounts[tlfID] {
+		// Generate a random block ID to start the range.
 		pivot := uint64(
 			float64(math.MaxUint64) *
 				(1.0 -
@@ -464,26 +464,29 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 		blockIDBytes := key[len(tlfBytes):]
 		blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
 		if err != nil {
-			cache.log.CWarningf(ctx, "Error decoding block ID %s", hex.Dump(blockIDBytes))
+			cache.log.CWarningf(ctx, "Error decoding block ID %x", blockIDBytes)
 			continue
 		}
 		lru, err := cache.timeFromBytes(value)
 		if err != nil {
 			cache.log.CWarningf(ctx, "Error decoding LRU time for block %s", blockID)
+			continue
 		}
 		blockIDs = append(blockIDs, lruEntry{blockID, lru})
 	}
 
 	// Remove all blocks in this TLF.
 	if len(blockIDs) <= numBlocks {
-		cache.deleteLocked(ctx, tlfID, blockIDs.ToBlockIDSlice(len(blockIDs)))
-		return len(blockIDs), nil
+		numBlocks = len(blockIDs)
+	} else {
+		// Only sort if we need to grab a subset of blocks.
+		sort.Sort(blockIDs)
 	}
 
-	// Only sort if we need to grab a subset of blocks.
-	sort.Sort(blockIDs)
-	// Remove the first numBlocks.
-	cache.deleteLocked(ctx, tlfID, blockIDs.ToBlockIDSlice(numBlocks))
+	err = cache.deleteLocked(ctx, tlfID, blockIDs.ToBlockIDSlice(numBlocks))
+	if err != nil {
+		return 0, err
+	}
 	return numBlocks, nil
 }
 
