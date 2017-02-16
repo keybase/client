@@ -377,7 +377,7 @@ func (f JSONConfigFile) GetDbFilename() string {
 	return f.GetTopLevelString("db")
 }
 func (f JSONConfigFile) GetChatDbFilename() string {
-	return f.GetTopLevelString("chat-db")
+	return f.GetTopLevelString("chat_db")
 }
 func (f JSONConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
@@ -414,8 +414,14 @@ func (f JSONConfigFile) GetGpgOptions() []string {
 func (f JSONConfigFile) GetRunMode() (RunMode, error) {
 	var err error
 	var ret RunMode = NoRunMode
-	if s, isSet := f.GetStringAtPath("run-mode"); isSet {
+	if s, isSet := f.GetStringAtPath("run_mode"); isSet {
 		ret, err = StringToRunMode(s)
+	}
+	return ret, err
+}
+func (f JSONConfigFile) GetFeatureFlags() (ret FeatureFlags, err error) {
+	if s, isSet := f.GetStringAtPath("features"); isSet {
+		ret = StringToFeatureFlags(s)
 	}
 	return ret, err
 }

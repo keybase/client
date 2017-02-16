@@ -72,6 +72,7 @@ type configGetter interface {
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
+	GetFeatureFlags() (FeatureFlags, error)
 }
 
 type CommandLine interface {
