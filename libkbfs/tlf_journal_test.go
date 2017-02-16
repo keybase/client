@@ -1088,6 +1088,127 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 	}
 	require.NotZero(t, md1Slot)
 	require.NotZero(t, md2Slot)
+
+}
+func testTLFJournalPauseBlocksAndConvertBranch(t *testing.T,
+	ctx context.Context, tlfJournal *tlfJournal, config *testTLFJournalConfig) (
+	firstRev MetadataRevision, firstRoot MdID,
+	retUnpauseBlockPutCh chan<- struct{}, retErrCh <-chan error,
+	blocksLeftAfterFlush uint64, mdsLeftAfterFlush uint64) {
+	var lock sync.Mutex
+	var puts []interface{}
+
+	unpauseBlockPutCh := make(chan struct{})
+	bserver := orderedBlockServer{
+		lock:      &lock,
+		puts:      &puts,
+		onceOnPut: func() { <-unpauseBlockPutCh },
+	}
+
+	tlfJournal.delegateBlockServer.Shutdown(ctx)
+	tlfJournal.delegateBlockServer = &bserver
+
+	// Revision 1
+	var bids []kbfsblock.ID
+	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
+	for i := 0; i < rev1BlockEnd; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		bids = append(bids, bid)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+	firstRev = MetadataRevision(10)
+	firstRoot = fakeMdID(1)
+	md1 := config.makeMD(firstRev, firstRoot)
+	prevRoot, err := tlfJournal.putMD(ctx, md1)
+	require.NoError(t, err)
+	rev := firstRev
+
+	// Now start the blocks flushing.  One of the block puts will be
+	// stuck.  During that time, put a lot more MD revisions, enough
+	// to trigger branch conversion.  However, no pause should be
+	// called.
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- tlfJournal.flush(ctx)
+	}()
+
+	markers := uint64(1)
+	for i := 0; i < ForcedBranchSquashRevThreshold+1; i++ {
+		rev++
+		md := config.makeMD(rev, prevRoot)
+		prevRoot, err = tlfJournal.putMD(ctx, md)
+		if isRevisionConflict(err) {
+			// Branch conversion is done, we can stop now.
+			break
+		}
+		require.NoError(t, err)
+		markers++
+	}
+
+	return firstRev, firstRoot, unpauseBlockPutCh, errCh,
+		maxJournalBlockFlushBatchSize + markers, markers
+}
+
+// testTLFJournalConvertWhileFlushing tests that we can do branch
+// conversion while blocks are still flushing.
+func testTLFJournalConvertWhileFlushing(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	_, _, unpauseBlockPutCh, errCh, blocksLeftAfterFlush, mdsLeftAfterFlush :=
+		testTLFJournalPauseBlocksAndConvertBranch(t, ctx, tlfJournal, config)
+
+	// Now finish the block put, and let the flush finish.  We should
+	// be on a local squash branch now.
+	unpauseBlockPutCh <- struct{}{}
+	err := <-errCh
+	require.NoError(t, err)
+
+	// Should be a full batch worth of blocks left, plus all the
+	// revision markers above.  No squash has actually happened yet,
+	// so all the revisions should be there now, just on a branch.
+	requireJournalEntryCounts(
+		t, tlfJournal, blocksLeftAfterFlush, mdsLeftAfterFlush)
+	require.Equal(
+		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+}
+
+// testTLFJournalSquashWhileFlushing tests that we can do journal
+// coalescing while blocks are still flushing.
+func testTLFJournalSquashWhileFlushing(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	firstRev, firstPrevRoot, unpauseBlockPutCh, errCh,
+		blocksLeftAfterFlush, _ :=
+		testTLFJournalPauseBlocksAndConvertBranch(t, ctx, tlfJournal, config)
+
+	// While it's paused, resolve the branch.
+	resolveMD := config.makeMD(firstRev, firstPrevRoot)
+	_, err := tlfJournal.resolveBranch(ctx,
+		tlfJournal.mdJournal.getBranchID(), []kbfsblock.ID{}, resolveMD, nil)
+	require.NoError(t, err)
+	requireJournalEntryCounts(
+		t, tlfJournal, blocksLeftAfterFlush+maxJournalBlockFlushBatchSize+1, 1)
+
+	// Now finish the block put, and let the flush finish.  We
+	// shouldn't be on a branch anymore.
+	unpauseBlockPutCh <- struct{}{}
+	err = <-errCh
+	require.NoError(t, err)
+
+	// Since flush() never saw the branch in conflict, it will finish
+	// flushing everything.
+	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
+	require.Equal(t, NullBranchID, tlfJournal.mdJournal.getBranchID())
 }
 
 type testImmediateBackOff struct {
@@ -1281,6 +1402,8 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalFlushMDConflict,
 		testTLFJournalFlushOrdering,
 		testTLFJournalFlushInterleaving,
+		testTLFJournalConvertWhileFlushing,
+		testTLFJournalSquashWhileFlushing,
 		testTLFJournalFlushRetry,
 		testTLFJournalResolveBranch,
 		testTLFJournalSquashByBytes,
