@@ -92,11 +92,20 @@ for blob in $dot_rpm_blobs ; do
 done
 
 # Make yet another copy of the .deb and .rpm packages we just made, in a
-# constant location for the friend-of-keybase instructions.
-s3cmd put --follow-symlinks "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$BUCKET_NAME/keybase_amd64.deb"
-s3cmd put --follow-symlinks "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$BUCKET_NAME/keybase_i386.deb"
-s3cmd put --follow-symlinks "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$BUCKET_NAME/keybase_amd64.rpm"
-s3cmd put --follow-symlinks "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$BUCKET_NAME/keybase_i386.rpm"
+# constant location for the friend-of-keybase instructions. Also make a
+# detached signature for each package, to make it easy to verify them by hand.
+# Note that these files have slightly different names on the server than they
+# do here in the build (x86_64 vs amd64).
+another_copy() {
+  s3cmd put --follow-symlinks "$1" "$2"
+  code_signing_fingerprint="$(cat "$here/code_signing_fingerprint")"
+  gpg --detach-sign --armor --use-agent --default-key "$code_signing_fingerprint" -o "$1.sig" "$1"
+  s3cmd put --follow-symlinks "$1.sig" "$2.sig"
+}
+another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$BUCKET_NAME/keybase_amd64.deb"
+another_copy "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$BUCKET_NAME/keybase_i386.deb"
+another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$BUCKET_NAME/keybase_amd64.rpm"
+another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$BUCKET_NAME/keybase_i386.rpm"
 
 json_tmp=`mktemp`
 echo "Writing version into JSON to $json_tmp"
