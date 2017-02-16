@@ -277,7 +277,9 @@ func (s Service) savePlist(p Plist) error {
 }
 
 func (s Service) install(p Plist, wait time.Duration) error {
-	s.savePlist(p)
+	if err := s.savePlist(p); err != nil {
+		return err
+	}
 	return s.Start(wait)
 }
 
