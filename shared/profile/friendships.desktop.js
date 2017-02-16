@@ -9,6 +9,7 @@ import type {Props, FriendshipUserInfo} from './friendships'
 
 type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void,
+  currentTab: string,
 }
 
 class UserEntry extends PureComponent<void, UserEntryProps, void> {
@@ -30,11 +31,11 @@ class UserEntry extends PureComponent<void, UserEntryProps, void> {
   }
 
   render () {
-    const {username, followsYou, following, thumbnailUrl} = this.props
+    const {currentTab, followsYou, following, thumbnailUrl, username} = this.props
 
     return <Box style={userEntryContainerStyle} onClick={this._onClick}>
       <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou, following, currentTab)}>{username}</Text>
     </Box>
   }
 }
@@ -54,15 +55,21 @@ const userEntryAvatarStyle = {
   marginBottom: 2,
 }
 
-const userEntryUsernameStyle = followsYou => ({
-  color: followsYou ? globalColors.green : globalColors.blue,
-  textAlign: 'center',
-})
+const userEntryUsernameStyle = (followsYou, following, currentTab) => {
+  const color = currentTab === 'Followers'
+    ? (following ? globalColors.green : globalColors.blue)
+    : (followsYou ? globalColors.green : globalColors.blue)
+
+  return {
+    color,
+    textAlign: 'center',
+  }
+}
 
 class FriendshipsRender extends Component<void, Props, void> {
   _itemRenderer (followers: boolean, index: number) {
     const user = followers ? this.props.followers[index] : this.props.following[index]
-    return <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+    return <UserEntry key={user.username} {...user} currentTab={this.props.currentTab} onClick={this.props.onUserClick} />
   }
 
   render () {

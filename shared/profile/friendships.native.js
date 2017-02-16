@@ -10,13 +10,14 @@ const ITEM_WIDTH = 105
 
 type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void,
+  currentTab: string,
 }
 
-const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: UserEntryProps) => (
+const UserEntry = ({currentTab, onClick, username, followsYou, following, thumbnailUrl}: UserEntryProps) => (
   <ClickableBox onClick={() => { onClick && onClick(username) }}>
     <Box style={userEntryContainerStyle}>
       <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou, following, currentTab)}>{username}</Text>
     </Box>
   </ClickableBox>
 )
@@ -44,10 +45,16 @@ const userEntryAvatarStyle = {
   marginTop: 2,
 }
 
-const userEntryUsernameStyle = followsYou => ({
-  color: followsYou ? globalColors.green : globalColors.blue,
-  textAlign: 'center',
-})
+const userEntryUsernameStyle = (followsYou, following, currentTab) => {
+  const color = currentTab === 'Followers'
+    ? (following ? globalColors.green : globalColors.blue)
+    : (followsYou ? globalColors.green : globalColors.blue)
+
+  return {
+    color,
+    textAlign: 'center',
+  }
+}
 
 class FriendshipsRender extends Component<void, Props, void> {
   render () {
@@ -61,7 +68,7 @@ class FriendshipsRender extends Component<void, Props, void> {
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
             <Box style={tabItemContainerUsers}>
-              {padGridEntries(this.props.followers.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
+              {padGridEntries(this.props.followers.map(user => <UserEntry key={user.username} currentTab={this.props.currentTab} {...user} onClick={this.props.onUserClick} />), 3)}
             </Box>
           </Box>
         </TabBarItem>
@@ -73,7 +80,7 @@ class FriendshipsRender extends Component<void, Props, void> {
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
             <Box style={tabItemContainerUsers}>
-              {padGridEntries(this.props.following.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
+              {padGridEntries(this.props.following.map(user => <UserEntry key={user.username} currentTab={this.props.currentTab} {...user} onClick={this.props.onUserClick} />), 3)}
             </Box>
           </Box>
         </TabBarItem>
