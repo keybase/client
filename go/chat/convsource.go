@@ -18,6 +18,7 @@ type baseConversationSource struct {
 	utils.DebugLabeler
 
 	getSecretUI func() libkb.SecretUI
+	offline     bool
 }
 
 func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *baseConversationSource {
@@ -26,6 +27,16 @@ func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.
 		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
 		getSecretUI:  getSecretUI,
 	}
+}
+
+func (s *baseConversationSource) Connected(ctx context.Context) {
+	s.Debug(ctx, "connected")
+	s.offline = false
+}
+
+func (s *baseConversationSource) Disconnected(ctx context.Context) {
+	s.Debug(ctx, "disconnected")
+	s.offline = true
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,

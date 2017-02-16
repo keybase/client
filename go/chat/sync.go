@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 
+	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -14,6 +15,8 @@ import (
 type Syncer struct {
 	libkb.Contextified
 	utils.DebugLabeler
+
+	offlinables []interfaces.Offlinable
 }
 
 func NewSyncer(g *libkb.GlobalContext) *Syncer {
@@ -55,8 +58,10 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 		s.Debug(ctx, "Connected: version sync success! version: %d", vers)
 	}
 
-	// Let the Deliverer know that we are back online
-	s.G().MessageDeliverer.Connected(ctx)
+	// Let the Offlinables know that we are back online
+	for _, o := range s.offlinables {
+		o.Connected(ctx)
+	}
 
 	return nil
 }
@@ -64,6 +69,12 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 func (s *Syncer) Disconnected(ctx context.Context) {
 	s.Debug(ctx, "Disconnected: running")
 
-	// Let the Deliverer know we are offline
-	s.G().MessageDeliverer.Disconnected(ctx)
+	// Let the Offlinables know of connection state change
+	for _, o := range s.offlinables {
+		o.Disconnected(ctx)
+	}
+}
+
+func (s *Syncer) RegisterOfflinable(offlinable interfaces.Offlinable) {
+	s.offlinables = append(s.offlinables, offlinable)
 }

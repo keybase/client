@@ -255,6 +255,8 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 type baseInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
+
+	offline bool
 }
 
 func newBaseInboxSource(g *libkb.GlobalContext) *baseInboxSource {
@@ -275,6 +277,16 @@ func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string
 	} else {
 		b.G().UserChanged(finalizeUser.GetUID())
 	}
+}
+
+func (b *baseInboxSource) Connected(ctx context.Context) {
+	s.Debug(ctx, "connected")
+	s.offline = false
+}
+
+func (b *baseInboxSource) Disconnected(ctx context.Context) {
+	s.Debug(ctx, "disconnected")
+	s.offline = true
 }
 
 type RemoteInboxSource struct {
@@ -878,6 +890,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
+	// verify Conv matches ConversationIDTriple in MessageClientHeader
+	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {
+		errMsg := "server header conversation triple does not match client header triple"
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
+		return conversationLocal
+	}
+
 	// Only do this check if there is a chance the TLF name might be an SBS name.
 	if s.needsCanonicalize(conversationLocal.Info.TlfName) {
 		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TLFNameExpanded(), conversationLocal.Info.Visibility)
@@ -900,14 +920,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
 			errMsg, conversationRemote, s.isErrPermanent(err), unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
-		return conversationLocal
-	}
-
-	// verify Conv matches ConversationIDTriple in MessageClientHeader
-	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {
-		errMsg := "server header conversation triple does not match client header triple"
-		conversationLocal.Error = chat1.NewConversationErrorLocal(
-			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
 	}
 
