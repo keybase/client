@@ -414,8 +414,14 @@ func (f JSONConfigFile) GetGpgOptions() []string {
 func (f JSONConfigFile) GetRunMode() (RunMode, error) {
 	var err error
 	var ret RunMode = NoRunMode
-	if s, isSet := f.GetStringAtPath("run-mode"); isSet {
+	if s, isSet := f.GetStringAtPath("run_mode"); isSet {
 		ret, err = StringToRunMode(s)
+	}
+	return ret, err
+}
+func (f JSONConfigFile) GetFeatureFlags() (ret FeatureFlags, err error) {
+	if s, isSet := f.GetStringAtPath("features"); isSet {
+		ret = StringToFeatureFlags(s)
 	}
 	return ret, err
 }

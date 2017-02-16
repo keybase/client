@@ -484,4 +484,4 @@ const (
 )
 
 // Eventually, this will be set to the first merkle root block with skip pointers.
-var FirstProdMerkleSeqnoWithSkips *Seqno
+var FirstProdMerkleSeqnoWithSkips = Seqno(835903)

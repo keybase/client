@@ -158,6 +158,9 @@ func (p CommandLine) GetChatDelivererInterval() (time.Duration, bool) {
 func (p CommandLine) GetRunMode() (libkb.RunMode, error) {
 	return libkb.StringToRunMode(p.GetGString("run-mode"))
 }
+func (p CommandLine) GetFeatureFlags() (libkb.FeatureFlags, error) {
+	return libkb.StringToFeatureFlags(p.GetGString("features")), nil
+}
 func (p CommandLine) GetPinentry() string {
 	return p.GetGString("pinentry")
 }
@@ -375,6 +378,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
+		},
+		cli.StringFlag{
+			Name:  "features",
+			Usage: "specify experimental feature flags",
 		},
 		cli.StringFlag{
 			Name:  "gpg",
