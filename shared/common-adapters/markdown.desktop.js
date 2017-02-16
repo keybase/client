@@ -2,12 +2,10 @@
 import React, {PureComponent} from 'react'
 import Text from './text'
 import Box from './box'
-import {emojiIndex} from 'emoji-mart'
 import Emoji from './emoji'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {parseMarkdown} from './markdown.shared'
+import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 
-import type {Props as EmojiProps} from './emoji'
 import type {Props} from './markdown'
 
 const wrapStyle = {
@@ -48,24 +46,10 @@ const italicStyle = {...wrapStyle, color: undefined, fontStyle: 'italic', fontWe
 const strikeStyle = {...wrapStyle, color: undefined, fontWeight: undefined, textDecoration: 'line-through'}
 const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 13}
 
-class EmojiIfExists extends PureComponent<void, EmojiProps, void> {
-  render () {
-    const emoji = (this.props.children && this.props.children.join('')) || ''
-    const exists = emojiIndex.emojis.hasOwnProperty(emoji.split(':')[1])
-    return exists ? <Emoji {...this.props} /> : (
-      <Text
-        type='Body'
-        style={this.props.preview ? neutralPreviewStyle : neutralStyle}>
-        {emoji}
-      </Text>
-    )
-  }
-}
-
 function previewCreateComponent (type, key, children, options) {
   switch (type) {
     case 'emoji':
-      return <EmojiIfExists preview={true} size={13} key={key}>{children}</EmojiIfExists>
+      return <EmojiIfExists preview={true} size={13} key={key} style={neutralPreviewStyle}>{children}</EmojiIfExists>
     case 'native-emoji':
       return <Emoji size={16} key={key}>{children}</Emoji>
     default:
@@ -90,7 +74,7 @@ function messageCreateComponent (type, key, children, options) {
     case 'strike':
       return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
     case 'emoji':
-      return <EmojiIfExists size={16} key={key}>{children}</EmojiIfExists>
+      return <EmojiIfExists size={16} key={key} style={neutralStyle}>{children}</EmojiIfExists>
     case 'native-emoji':
       return <Emoji size={16} key={key}>{children}</Emoji>
     case 'quote-block':
