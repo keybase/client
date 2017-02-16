@@ -4,8 +4,6 @@
 package client
 
 import (
-	"encoding/hex"
-	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -16,26 +14,26 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSCheck is the 'simplefs srar' command.
-type CmdSimpleFSCheck struct {
+// CmdSimpleFSGetStatus is the 'simplefs get-status' command.
+type CmdSimpleFSGetStatus struct {
 	libkb.Contextified
 	opid keybase1.OpID
 }
 
-// NewCmdSimpleFSCheck creates a new cli.Command.
-func NewCmdSimpleFSCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+// NewCmdSimpleFSGetStatus creates a new cli.Command.
+func NewCmdSimpleFSGetStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "check",
+		Name:         "get-status",
 		ArgumentHelp: "<opid>",
-		Usage:        "check pending operation",
+		Usage:        "get status of pending operation",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "check", c)
+			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "get-status", c)
 		},
 	}
 }
 
 // RunClient runs the command in client/server mode.
-func (c *CmdSimpleFSCheck) Run() error {
+func (c *CmdSimpleFSGetStatus) Run() error {
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
 		return err
@@ -46,29 +44,28 @@ func (c *CmdSimpleFSCheck) Run() error {
 		return err
 	}
 
-	w := GlobUI.DefaultTabWriter()
-	fmt.Fprintf(w, "progress: %d\n", progress)
-	w.Flush()
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("progress: %d\n", progress)
 
 	return err
 }
 
 // ParseArgv does nothing for this command.
-func (c *CmdSimpleFSCheck) ParseArgv(ctx *cli.Context) error {
+func (c *CmdSimpleFSGetStatus) ParseArgv(ctx *cli.Context) error {
+	var err error
 
-	opid, err := hex.DecodeString(ctx.String("opid"))
-	if err != nil {
-		return err
-	}
-	if copy(c.opid[:], opid) != len(c.opid) {
-		return errors.New("bad or missing opid")
+	nargs := len(ctx.Args())
+	if nargs == 1 {
+		c.opid, err = stringToOpID(ctx.Args()[0])
+	} else {
+		err = fmt.Errorf("get-status requires a path argument.")
 	}
 
 	return err
 }
 
 // GetUsage says what this command needs to operate.
-func (c *CmdSimpleFSCheck) GetUsage() libkb.Usage {
+func (c *CmdSimpleFSGetStatus) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,

@@ -5,8 +5,9 @@ package client
 
 import (
 	"context"
+	"encoding/hex"
+	"errors"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -30,7 +31,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSRemove(cl, g),
 			NewCmdSimpleFSMkdir(cl, g),
 			NewCmdSimpleFSStat(cl, g),
-			NewCmdSimpleFSCheck(cl, g),
+			NewCmdSimpleFSGetStatus(cl, g),
 			NewCmdSimpleFSClose(cl, g),
 			NewCmdSimpleFSPs(cl, g),
 			NewCmdSimpleFSWrite(cl, g),
@@ -38,20 +39,33 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	}
 }
 
-func MakeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
+// SimpleFs will be expecting slashes, without the mount name
+func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	cli, err := GetKBFSMountClient(g)
 	var mountDir string
 	if err == nil {
 		mountDir, _ = cli.GetCurrentMountDir(context.TODO())
 	}
-
-	path = filepath.Clean(path)
-
-	if mountDir != "" && strings.HasPrefix(path, mountDir) {
-		return keybase1.NewPathWithKbfs(path)
+	if mountDir == "" {
+		mountDir = "/keybase"
 	}
-	if matched, err := regexp.MatchString("[\\/]keybase[\\/](public)|(private).+", path); matched && err == nil {
-		return keybase1.NewPathWithKbfs(path)
+
+	path = filepath.ToSlash(filepath.Clean(path))
+
+	if strings.HasPrefix(path, mountDir) {
+		return keybase1.NewPathWithKbfs(path[len(mountDir):])
 	}
 	return keybase1.NewPathWithLocal(path)
+}
+
+func stringToOpID(arg string) (keybase1.OpID, error) {
+	var opid keybase1.OpID
+	bytes, err := hex.DecodeString(arg)
+	if err != nil {
+		return keybase1.OpID{}, err
+	}
+	if copy(opid[:], bytes) != len(opid) {
+		return keybase1.OpID{}, errors.New("bad or missing opid")
+	}
+	return opid, nil
 }

@@ -28,7 +28,7 @@ func NewCmdSimpleFSMkdir(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		ArgumentHelp: "<path>",
 		Usage:        "create directory",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "mkdir", c)
+			cl.ChooseCommand(&CmdSimpleFSMkdir{Contextified: libkb.NewContextified(g)}, "mkdir", c)
 		},
 	}
 }
@@ -40,12 +40,14 @@ func (c *CmdSimpleFSMkdir) Run() error {
 		return err
 	}
 
-	c.opid, err = cli.SimpleFSMakeOpid(context.TODO())
-	defer cli.SimpleFSClose(context.TODO(), c.opid)
+	ctx := context.TODO()
+
+	c.opid, err = cli.SimpleFSMakeOpid(ctx)
+	defer cli.SimpleFSClose(ctx, c.opid)
 	if err != nil {
 		return err
 	}
-	err = cli.SimpleFSOpen(context.TODO(), keybase1.SimpleFSOpenArg{
+	err = cli.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
 		OpID:  c.opid,
 		Dest:  c.path,
 		Flags: keybase1.OpenFlags_DIRECTORY,
@@ -65,7 +67,7 @@ func (c *CmdSimpleFSMkdir) ParseArgv(ctx *cli.Context) error {
 	if nargs != 1 {
 		err = errors.New("mkdir requires a KBFS path argument")
 	} else {
-		c.path = MakeSimpleFSPath(c.G(), ctx.Args()[0])
+		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	}
 
 	return err

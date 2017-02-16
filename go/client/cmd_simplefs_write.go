@@ -4,8 +4,9 @@
 package client
 
 import (
+	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"golang.org/x/net/context"
@@ -16,12 +17,15 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+const writeBufSizeDefault = 1600
+
 // CmdSimpleFSWrite is the 'simplefs write' command.
 type CmdSimpleFSWrite struct {
 	libkb.Contextified
-	path   keybase1.Path
-	flags  keybase1.OpenFlags
-	offset int
+	path    keybase1.Path
+	flags   keybase1.OpenFlags
+	offset  int
+	bufSize int
 }
 
 // NewCmdDeviceList creates a new cli.Command.
@@ -31,12 +35,17 @@ func NewCmdSimpleFSWrite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		ArgumentHelp: "<path>",
 		Usage:        "write input to file",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "write", c)
+			cl.ChooseCommand(&CmdSimpleFSWrite{Contextified: libkb.NewContextified(g)}, "write", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "a, append",
 				Usage: "add to existing file",
+			},
+			cli.IntFlag{
+				Name:  "b, buffersize",
+				Value: writeBufSizeDefault,
+				Usage: "write buffer size",
 			},
 		},
 	}
@@ -49,7 +58,9 @@ func (c *CmdSimpleFSWrite) Run() error {
 		return err
 	}
 
-	opid, err := cli.SimpleFSMakeOpid(context.TODO())
+	ctx := context.TODO()
+
+	opid, err := cli.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return err
 	}
@@ -73,24 +84,35 @@ func (c *CmdSimpleFSWrite) Run() error {
 		return err
 	}
 
-	bytes, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return err
+	bytes := make([]byte, 0, c.bufSize)
+	buf := bufio.NewReaderSize(os.Stdin, c.bufSize)
+	for {
+		count, err := buf.Read(bytes)
+		if err != nil {
+			if count == 0 && err == io.EOF {
+				err = nil
+			}
+			break
+		}
+		err = cli.SimpleFSWrite(context.TODO(), keybase1.SimpleFSWriteArg{
+			OpID:    opid,
+			Offset:  c.offset,
+			Content: bytes[:count],
+		})
+		if err != nil {
+			break
+		}
+		c.offset += count
 	}
-
-	err = cli.SimpleFSWrite(context.TODO(), keybase1.SimpleFSWriteArg{
-		OpID:    opid,
-		Offset:  c.offset,
-		Content: bytes,
-	})
 
 	return err
 }
 
-// ParseArgv does nothing for this command.
 func (c *CmdSimpleFSWrite) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
+
+	c.bufSize = ctx.Int("buffersize")
 
 	if ctx.Bool("append") {
 		c.flags = keybase1.OpenFlags_WRITE | keybase1.OpenFlags_APPEND
@@ -99,7 +121,7 @@ func (c *CmdSimpleFSWrite) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if nargs == 1 {
-		c.path = MakeSimpleFSPath(c.G(), ctx.Args()[0])
+		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	} else {
 		err = fmt.Errorf("write requires a path argument.")
 	}

@@ -15,10 +15,13 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+const readBufSizeDefault = 1600
+
 // CmdSimpleFSRead is the 'simplefs read' command.
 type CmdSimpleFSRead struct {
 	libkb.Contextified
-	path keybase1.Path
+	path    keybase1.Path
+	bufSize int
 }
 
 // NewCmdDeviceList creates a new cli.Command.
@@ -28,7 +31,14 @@ func NewCmdSimpleFSRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		ArgumentHelp: "<path>",
 		Usage:        "output file contents",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "read", c)
+			cl.ChooseCommand(&CmdSimpleFSRead{Contextified: libkb.NewContextified(g)}, "read", c)
+		},
+		Flags: []cli.Flag{
+			cli.IntFlag{
+				Name:  "b, buffersize",
+				Value: readBufSizeDefault,
+				Usage: "read buffer size",
+			},
 		},
 	}
 }
@@ -40,25 +50,27 @@ func (c *CmdSimpleFSRead) Run() error {
 		return err
 	}
 
-	opid, err := cli.SimpleFSMakeOpid(context.TODO())
+	ctx := context.TODO()
+
+	opid, err := cli.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return err
 	}
-	err = cli.SimpleFSOpen(context.TODO(), keybase1.SimpleFSOpenArg{
+	err = cli.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
 		OpID:  opid,
 		Dest:  c.path,
 		Flags: keybase1.OpenFlags_READ,
 	})
-	defer cli.SimpleFSClose(context.TODO(), opid)
+	defer cli.SimpleFSClose(ctx, opid)
 	if err != nil {
 		return err
 	}
 	var offset = 0
 	for {
-		content, err := cli.SimpleFSRead(context.TODO(), keybase1.SimpleFSReadArg{
+		content, err := cli.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{
 			OpID:   opid,
 			Offset: offset,
-			Size:   1024,
+			Size:   c.bufSize,
 		})
 		if err != nil {
 			return err
@@ -75,9 +87,8 @@ func (c *CmdSimpleFSRead) Run() error {
 }
 
 func (c *CmdSimpleFSRead) output(data []byte) {
-	w := GlobUI.DefaultTabWriter()
-	io.WriteString(w, string(data))
-	w.Flush()
+	ui := c.G().UI.GetTerminalUI()
+	io.WriteString(ui.OutputWriter(), string(data))
 }
 
 // ParseArgv does nothing for this command.
@@ -85,8 +96,10 @@ func (c *CmdSimpleFSRead) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
+	c.bufSize = ctx.Int("buffersize")
+
 	if nargs == 1 {
-		c.path = MakeSimpleFSPath(c.G(), ctx.Args()[0])
+		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	} else {
 		err = fmt.Errorf("read requires a path argument.")
 	}

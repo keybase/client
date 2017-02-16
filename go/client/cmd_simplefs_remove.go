@@ -5,11 +5,8 @@ package client
 
 import (
 	"errors"
-	"time"
 
 	"golang.org/x/net/context"
-
-	"encoding/hex"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -20,9 +17,7 @@ import (
 // CmdSimpleFSRemove is the 'simplefs rm' command.
 type CmdSimpleFSRemove struct {
 	libkb.Contextified
-	opid    keybase1.OpID
-	path    keybase1.Path
-	argOpid bool // set when -o is used
+	path keybase1.Path
 }
 
 // NewCmdSimpleFSRemove creates a new cli.Command.
@@ -32,13 +27,7 @@ func NewCmdSimpleFSRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		ArgumentHelp: "<path>",
 		Usage:        "remove directory elements",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "rm", c)
-		},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "o, opid",
-				Usage: "retrieve results",
-			},
+			cl.ChooseCommand(&CmdSimpleFSRemove{Contextified: libkb.NewContextified(g)}, "rm", c)
 		},
 	}
 }
@@ -50,32 +39,23 @@ func (c *CmdSimpleFSRemove) Run() error {
 		return err
 	}
 
-	if !c.argOpid {
-		c.opid, err = cli.SimpleFSMakeOpid(context.TODO())
-		defer cli.SimpleFSClose(context.TODO(), c.opid)
-		if err != nil {
-			return err
-		}
-		err = cli.SimpleFSRemove(context.TODO(), keybase1.SimpleFSRemoveArg{
-			OpID: c.opid,
-			Path: c.path,
-		})
-		if err != nil {
-			return err
-		}
+	ctx := context.TODO()
+
+	opid, err := cli.SimpleFSMakeOpid(ctx)
+	defer cli.SimpleFSClose(ctx, opid)
+	if err != nil {
+		return err
+	}
+	err = cli.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+		OpID: opid,
+		Path: c.path,
+	})
+
+	if err != nil {
+		return err
 	}
 
-	for {
-		progress, err := cli.SimpleFSCheck(context.TODO(), c.opid)
-		if err != nil {
-			break
-		}
-		// break if we're done or the opid was provided
-		if progress == 100 || c.argOpid {
-			break // TODO: ???
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
+	err = cli.SimpleFSWait(ctx, opid)
 
 	return err
 }
@@ -85,19 +65,8 @@ func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	if ctx.String("opid") != "" {
-		opid, err := hex.DecodeString(ctx.String("opid"))
-		if err != nil {
-			return err
-		}
-		if copy(c.opid[:], opid) != len(c.opid) {
-			return errors.New("bad opid")
-		}
-		c.argOpid = true
-	}
-
 	if nargs == 1 {
-		c.path = MakeSimpleFSPath(c.G(), ctx.Args()[0])
+		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	}
 
 	if pathType, _ := c.path.PathType(); pathType != keybase1.PathType_KBFS {
