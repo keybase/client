@@ -4,8 +4,6 @@
 package client
 
 import (
-	"fmt"
-
 	"golang.org/x/net/context"
 
 	"encoding/hex"
@@ -98,18 +96,10 @@ func (c *CmdSimpleFSPs) output(ops []keybase1.OpDescription) {
 }
 
 func (c *CmdSimpleFSPs) ParseArgv(ctx *cli.Context) error {
-	nargs := len(ctx.Args())
-	var err error
 
 	c.recurse = ctx.Bool("recurse")
 
-	if nargs == 1 {
-		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
-	} else {
-		err = fmt.Errorf("List requires a path argument.")
-	}
-
-	return err
+	return nil
 }
 
 // GetUsage says what this command needs to operate.
