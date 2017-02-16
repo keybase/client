@@ -469,14 +469,14 @@ type SimpleFSSetStatArg struct {
 }
 
 type SimpleFSReadArg struct {
-	OpID   OpID `codec:"opID" json:"opID"`
-	Offset int  `codec:"offset" json:"offset"`
-	Size   int  `codec:"size" json:"size"`
+	OpID   OpID  `codec:"opID" json:"opID"`
+	Offset int64 `codec:"offset" json:"offset"`
+	Size   int   `codec:"size" json:"size"`
 }
 
 type SimpleFSWriteArg struct {
 	OpID    OpID   `codec:"opID" json:"opID"`
-	Offset  int    `codec:"offset" json:"offset"`
+	Offset  int64  `codec:"offset" json:"offset"`
 	Content []byte `codec:"content" json:"content"`
 }
 
