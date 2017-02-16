@@ -34,7 +34,7 @@ class UserEntry extends PureComponent<void, UserEntryProps, void> {
 
     return <Box style={userEntryContainerStyle} onClick={this._onClick}>
       <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+      <Text type='BodySemibold' style={userEntryUsernameStyle(following)}>{username}</Text>
     </Box>
   }
 }
@@ -54,8 +54,8 @@ const userEntryAvatarStyle = {
   marginBottom: 2,
 }
 
-const userEntryUsernameStyle = followsYou => ({
-  color: followsYou ? globalColors.green : globalColors.blue,
+const userEntryUsernameStyle = following => ({
+  color: following ? globalColors.green : globalColors.blue,
   textAlign: 'center',
 })
 
