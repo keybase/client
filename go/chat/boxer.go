@@ -74,6 +74,11 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 // Permanent errors can be cached and must be treated as a value to deal with.
 // Whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) (chat1.MessageUnboxed, UnboxingError) {
+	fmt.Printf("@@@\n")
+	fmt.Printf("@@@\n")
+	fmt.Printf("@@@ ----------------\n")
+	fmt.Printf("@@@ msgID: %s\n", boxed.ServerHeader.MessageID)
+
 	tlfName := boxed.ClientHeader.TLFNameExpanded(finalizeInfo)
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, tlfPublic)
@@ -116,6 +121,11 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 			b.Debug(ctx, "failed to fetch sender username after initial error: err: %s", err.Error())
 		}
 	}
+
+	fmt.Printf("@@@ senderDeviceName: %s\n\n", deviceName)
+	fmt.Printf("@@@ senderDeviceType: %s\n\n", deviceType)
+
+	fmt.Printf("@@@ messageBody: %+v\n\n", pt.MessageBody)
 
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 		ClientHeader:          pt.ClientHeader,
@@ -208,8 +218,15 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
 
+	fmt.Printf("@@@ boxed: %+v\n\n", msg)
+	fmt.Printf("@@@ boxedHex: %x\n\n", b.marshalHarsh(msg))
+	fmt.Printf("@@@ encryptionKey.KeyGeneration: %x\n\n", key.KeyGeneration)
+	fmt.Printf("@@@ encryptionKey.Key: %x\n\n", key.Key)
+	fmt.Printf("@@@ senderUID: %s\n\n", msg.ClientHeader.Sender)
+
 	// compute the header hash
 	headerHash := b.hashV1(msg.HeaderCiphertext.E)
+	fmt.Printf("@@@ headerHash: %s\n\n", headerHash)
 
 	// decrypt body
 	var body chat1.BodyPlaintext
@@ -273,6 +290,8 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
 				b.headerUnsupported(ctx, headerVersion, header)))
 	}
+
+	fmt.Printf("@@@ senderDeviceID: %s\n\n", clientHeader.SenderDevice)
 
 	if skipBodyVerification {
 		// body was deleted, so return empty body that matches header version
@@ -586,6 +605,8 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.BadSigError{E: "header signature invalid"})
 	}
 
+	fmt.Printf("@@@ verifyKey: %x\n\n", header.HeaderSignature.K)
+
 	// check key validity
 	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
 	if ierr != nil {
@@ -677,6 +698,14 @@ func (b *Boxer) marshal(v interface{}) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func (b *Boxer) marshalHarsh(v interface{}) []byte {
+	bs, err := b.marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return bs
 }
 
 func (b *Boxer) unmarshal(data []byte, v interface{}) error {
