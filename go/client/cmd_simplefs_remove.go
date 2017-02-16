@@ -42,10 +42,10 @@ func (c *CmdSimpleFSRemove) Run() error {
 	ctx := context.TODO()
 
 	opid, err := cli.SimpleFSMakeOpid(ctx)
-	defer cli.SimpleFSClose(ctx, opid)
 	if err != nil {
 		return err
 	}
+	defer cli.SimpleFSClose(ctx, opid)
 	err = cli.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
 		OpID: opid,
 		Path: c.path,

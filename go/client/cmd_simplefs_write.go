@@ -24,7 +24,7 @@ type CmdSimpleFSWrite struct {
 	libkb.Contextified
 	path    keybase1.Path
 	flags   keybase1.OpenFlags
-	offset  int
+	offset  int64
 	bufSize int
 }
 
@@ -71,7 +71,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 		if err != nil {
 			return err
 		}
-		c.offset = e.Size
+		c.offset = int64(e.Size)
 	}
 
 	err = cli.SimpleFSOpen(context.TODO(), keybase1.SimpleFSOpenArg{
@@ -79,10 +79,10 @@ func (c *CmdSimpleFSWrite) Run() error {
 		Dest:  c.path,
 		Flags: c.flags,
 	})
-	defer cli.SimpleFSClose(context.TODO(), opid)
 	if err != nil {
 		return err
 	}
+	defer cli.SimpleFSClose(context.TODO(), opid)
 
 	bytes := make([]byte, 0, c.bufSize)
 	buf := bufio.NewReaderSize(os.Stdin, c.bufSize)
@@ -102,7 +102,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 		if err != nil {
 			break
 		}
-		c.offset += count
+		c.offset += int64(count)
 	}
 
 	return err

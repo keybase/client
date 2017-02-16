@@ -50,10 +50,10 @@ func (c *CmdSimpleFSList) Run() error {
 	ctx := context.TODO()
 
 	c.opid, err = cli.SimpleFSMakeOpid(ctx)
-	defer cli.SimpleFSClose(ctx, c.opid)
 	if err != nil {
 		return err
 	}
+	defer cli.SimpleFSClose(ctx, c.opid)
 	if c.recurse {
 		err = cli.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
 			OpID: c.opid,
