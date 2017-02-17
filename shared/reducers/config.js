@@ -157,15 +157,23 @@ export default function (state: ConfigState = initialState, action: Action): Con
       }
     }
     case Constants.globalError: {
+      const error = action.payload
+      if (error) {
+        console.warn('Error (global):', error)
+      }
       return {
         ...state,
-        globalError: action.payload,
+        globalError: error,
       }
     }
     case Constants.daemonError: {
+      const error = action.payload.daemonError
+      if (error) {
+        console.warn('Error (daemon):', error)
+      }
       return {
         ...state,
-        daemonError: action.payload.daemonError,
+        daemonError: error,
       }
     }
 
