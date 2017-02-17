@@ -1,8 +1,10 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as I from 'immutable'
+import Box from './box'
 import React, {Component} from 'react'
 import Render from './avatar.render.desktop'
+import {globalColors} from '../styles'
 import {isTesting} from '../local-debug'
 
 import type {Props, AvatarLookup, AvatarLoad} from './avatar'
@@ -118,7 +120,12 @@ class Avatar extends Component<void, Props, State> {
 
   render () {
     if (__SCREENSHOT__ || isTesting) {
-      return null
+      return <Box style={{
+        backgroundColor: globalColors.orange,
+        borderRadius: this.props.size / 2,
+        height: this.props.size,
+        width: this.props.size,
+      }} />
     }
 
     return <Render

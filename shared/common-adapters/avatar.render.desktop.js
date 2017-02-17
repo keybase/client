@@ -1,6 +1,6 @@
 // @flow
 import Icon from './icon'
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {NO_AVATAR} from './avatar'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../desktop/resolve-root'
@@ -11,11 +11,19 @@ import type {IconType} from './icon'
 // hoist to parent and get all sizes for srcset
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
 
+type ImageProps = {
+  url: ?string,
+  size: AvatarSize,
+  onLoad: () => void,
+  onError: () => void,
+  opacity: ?number,
+}
+
 type Props = {
   borderColor: ?string,
   children: any,
-  followIconType: ?IconType,
   followIconStyle: ?Object,
+  followIconType: ?IconType,
   loadingColor: ?string,
   onClick?: ?(() => void),
   opacity: ?number,
@@ -51,26 +59,31 @@ const NoAvatarPlaceholder = ({size}) => (
     }} />
 )
 
-const Image = ({url, size, onLoad, onError, opacity = 1}) => (
-  <object
-    data={url}
-    type='image/jpg'
-    onLoad={onLoad}
-    onError={onError}
-    style={{
-      borderRadius: '50%',
-      bottom: 0,
-      height: size,
-      left: 0,
-      opacity,
-      position: 'absolute',
-      right: 0,
-      top: 0,
-      width: size,
-    }}>
-    <NoAvatarPlaceholder size={size} />
-  </object>
-)
+class Image extends PureComponent<void, ImageProps, void> {
+  render () {
+    const {url, size, onLoad, onError, opacity = 1} = this.props
+    return (
+      <object
+        data={url}
+        type='image/jpg'
+        onLoad={onLoad}
+        onError={onError}
+        style={{
+          borderRadius: '50%',
+          bottom: 0,
+          height: size,
+          left: 0,
+          opacity,
+          position: 'absolute',
+          right: 0,
+          top: 0,
+          width: size,
+        }}>
+        <NoAvatarPlaceholder size={size} />
+      </object>
+    )
+  }
+}
 
 const borderOffset = 1
 const borderSize = 2
@@ -89,12 +102,18 @@ const Border = ({borderColor, size}) => (
   />
 )
 
-class AvatarRender extends Component<void, Props, State> {
+class AvatarRender extends PureComponent<void, Props, State> {
   state: State = {
     loaded: false,
   }
 
-  _onLoadOrError: ?(event: any) => void;
+  _mounted: boolean = false
+
+  _onLoadOrError = (event) => {
+    if (this._mounted) {
+      this.setState({loaded: true})
+    }
+  }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.url !== nextProps.url) {
@@ -103,18 +122,18 @@ class AvatarRender extends Component<void, Props, State> {
   }
 
   componentDidMount () {
-    this._onLoadOrError = (event) => {
-      this.setState({loaded: true})
-    }
+    this._mounted = true
   }
 
   componentWillUnmount () {
-    // Don't let the callback do anything if we've unmounted
-    this._onLoadOrError = null
+    this._mounted = false
   }
 
   render () {
     const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
+
+    console.log('aaa', this.props.size, this.props, this.state)
+
     return (
       <div
         onClick={onClick}
@@ -127,8 +146,8 @@ class AvatarRender extends Component<void, Props, State> {
         }}>
         <Background loaded={this.state.loaded} loadingColor={loadingColor} />
         {url && <Image
-          onLoad={e => this._onLoadOrError && this._onLoadOrError(e)}
-          onError={e => this._onLoadOrError && this._onLoadOrError(e)}
+          onLoad={this._onLoadOrError}
+          onError={this._onLoadOrError}
           size={size}
           opacity={opacity}
           url={url === NO_AVATAR ? noAvatar : url}
