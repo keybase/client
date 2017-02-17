@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSPs is the 'simplefs list' command.
+// CmdSimpleFSPs is the 'fs ps' command.
 type CmdSimpleFSPs struct {
 	libkb.Contextified
 	path    keybase1.Path

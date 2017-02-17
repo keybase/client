@@ -19,7 +19,7 @@ import (
 
 const writeBufSizeDefault = 1600
 
-// CmdSimpleFSWrite is the 'simplefs write' command.
+// CmdSimpleFSWrite is the 'fs write' command.
 type CmdSimpleFSWrite struct {
 	libkb.Contextified
 	path    keybase1.Path

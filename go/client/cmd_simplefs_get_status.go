@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSGetStatus is the 'simplefs get-status' command.
+// CmdSimpleFSGetStatus is the 'fs get-status' command.
 type CmdSimpleFSGetStatus struct {
 	libkb.Contextified
 	opid keybase1.OpID

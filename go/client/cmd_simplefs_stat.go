@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSStat is the 'simplefs stat' command.
+// CmdSimpleFSStat is the 'fs stat' command.
 type CmdSimpleFSStat struct {
 	libkb.Contextified
 	path keybase1.Path

@@ -16,7 +16,7 @@ import (
 
 const readBufSizeDefault = 1600
 
-// CmdSimpleFSRead is the 'simplefs read' command.
+// CmdSimpleFSRead is the 'fs read' command.
 type CmdSimpleFSRead struct {
 	libkb.Contextified
 	path    keybase1.Path
@@ -100,7 +100,7 @@ func (c *CmdSimpleFSRead) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	} else {
-		err = fmt.Errorf("read requires a path argument.")
+		err = fmt.Errorf("read requires a path argument")
 	}
 
 	return err

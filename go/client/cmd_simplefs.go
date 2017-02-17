@@ -16,11 +16,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// NewCmdDevice creates the device command, which is just a holder
+// NewCmdSimpleFS creates the device command, which is just a holder
 // for subcommands.
 func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "simplefs",
+		Name:         "fs",
 		Usage:        "Perform filesystem operations",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{

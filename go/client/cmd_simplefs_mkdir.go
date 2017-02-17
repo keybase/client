@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSMkdir is the 'simplefs mkdir' command.
+// CmdSimpleFSMkdir is the 'fs mkdir' command.
 type CmdSimpleFSMkdir struct {
 	libkb.Contextified
 	opid keybase1.OpID

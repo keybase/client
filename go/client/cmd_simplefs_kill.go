@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSKill is the 'simplefs kill' command.
+// CmdSimpleFSKill is the 'fs kill' command.
 type CmdSimpleFSKill struct {
 	libkb.Contextified
 	opid keybase1.OpID

@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSList is the 'simplefs ls' command.
+// CmdSimpleFSList is the 'fs ls' command.
 type CmdSimpleFSList struct {
 	libkb.Contextified
 	opid    keybase1.OpID
