@@ -7,10 +7,10 @@ import Render from './avatar.render.desktop'
 import {globalColors} from '../styles'
 import {isTesting} from '../local-debug'
 
-import type {Props, AvatarLookup, AvatarLoad} from './avatar'
+import type {Props, AvatarLookup, AvatarLoad, URLMap} from './avatar'
 
 type State = {
-  url: ?string,
+  urls: ?Array<string>, // 1x, 2x
 }
 
 const NO_AVATAR = 'NO_AVATAR'
@@ -48,10 +48,10 @@ const followSizeToStyle = {
 
 class Avatar extends Component<void, Props, State> {
   state: State = {
-    url: null,
+    urls: null,
   }
 
-  _onURLLoaded: ?(username: string, url: ?string) => void;
+  _onURLLoaded: ?(username: string, urlMap: ?{[key: string]: string}) => void;
 
   constructor (props: Props) {
     super(props)
@@ -62,20 +62,20 @@ class Avatar extends Component<void, Props, State> {
 
   componentWillMount () {
     if (this.props.url) {
-      this.setState({url: this.props.url})
+      this.setState({urls: [this.props.url]})
       // Just let it load the url, prefer this over username
     } else if (this.props.username) {
       this._loadUsername(this.props.username)
     } else { // Just show the no avatar state
-      this.setState({url: NO_AVATAR})
+      this.setState({urls: [NO_AVATAR]})
     }
   }
 
   componentDidMount () {
-    this._onURLLoaded = (username: string, url: ?string) => {
+    this._onURLLoaded = (username: string, urlMap: ?URLMap) => {
       // Still looking at the same username?
       if (this.props.username === username) {
-        this.setState({url: url || NO_AVATAR})
+        this.setState({urls: urlMap && [urlMap['200']] || [NO_AVATAR]})
       }
     }
   }
@@ -86,12 +86,13 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _loadUsername (username: string) {
-    const url = _avatarToURL ? _avatarToURL(username) : null
-    this.setState({url})
+    const urlMap = _avatarToURL ? _avatarToURL(username) : null
+    const urls = urlMap ? [urlMap['200']] : null
+    this.setState({urls})
 
-    if (!url) { // Have to load it
-      _loadAvatarToURL(username, (username: string, url: ?string) => {
-        this._onURLLoaded && this._onURLLoaded(username, url)
+    if (!urlMap) { // Have to load it
+      _loadAvatarToURL(username, (username: string, urlMap: ?URLMap) => {
+        this._onURLLoaded && this._onURLLoaded(username, urlMap)
       })
     }
   }
@@ -107,7 +108,7 @@ class Avatar extends Component<void, Props, State> {
     if (url !== nextUrl) {
       // Just show the url
       if (nextProps.url) {
-        this.setState({url: nextProps.url})
+        this.setState({urls: [nextProps.url]})
       } else if (nextProps.username) {  // We need to convert a username to a url
         this._loadUsername(nextProps.username)
       }
@@ -138,7 +139,7 @@ class Avatar extends Component<void, Props, State> {
       opacity={this.props.opacity}
       size={this.props.size}
       style={this.props.style}
-      url={this.state.url} />
+      urls={this.state.urls} />
   }
 }
 

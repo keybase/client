@@ -12,7 +12,7 @@ import type {IconType} from './icon'
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
 
 type ImageProps = {
-  url: ?string,
+  urls: Array<string>,
   size: AvatarSize,
   onLoad: () => void,
   onError: () => void,
@@ -29,7 +29,7 @@ type Props = {
   opacity: ?number,
   size: AvatarSize,
   style?: ?Object,
-  url: ?string,
+  urls: ?Array<string>,
 }
 
 type State = {
@@ -61,10 +61,10 @@ const NoAvatarPlaceholder = ({size}) => (
 
 class Image extends PureComponent<void, ImageProps, void> {
   render () {
-    const {url, size, onLoad, onError, opacity = 1} = this.props
+    const {urls, size, onLoad, onError, opacity = 1} = this.props
     return (
       <object
-        data={url}
+        data={urls[0]}
         type='image/jpg'
         onLoad={onLoad}
         onError={onError}
@@ -116,7 +116,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    if (this.props.url !== nextProps.url) {
+    if (this.props.urls !== nextProps.urls) {
       this.setState({loaded: false})
     }
   }
@@ -130,9 +130,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
   }
 
   render () {
-    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
-
-    console.log('aaa', this.props.size, this.props, this.state)
+    const {urls, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
 
     return (
       <div
@@ -145,12 +143,12 @@ class AvatarRender extends PureComponent<void, Props, State> {
           ...style,
         }}>
         <Background loaded={this.state.loaded} loadingColor={loadingColor} />
-        {url && <Image
+        {urls && <Image
           onLoad={this._onLoadOrError}
           onError={this._onLoadOrError}
           size={size}
           opacity={opacity}
-          url={url === NO_AVATAR ? noAvatar : url}
+          urls={urls[0] === NO_AVATAR ? [noAvatar] : urls}
         /> }
         {!!borderColor && <Border borderColor={borderColor} />}
         {followIconType && <Icon type={followIconType} style={followIconStyle} />}
