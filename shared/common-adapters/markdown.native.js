@@ -8,28 +8,20 @@ import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 
 import type {Props} from './markdown'
 
-const wrapStyle = {
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-word',
-}
-
 const codeSnippetStyle = {
   ...globalStyles.fontTerminal,
-  ...globalStyles.rounded,
-  ...wrapStyle,
-  backgroundColor: globalColors.beige,
   color: globalColors.blue,
   fontSize: 12,
-  paddingLeft: globalMargins.xtiny,
-  paddingRight: globalMargins.xtiny,
+  backgroundColor: globalColors.beige,
+  // FIXME not yet supported for nested <Text>:
+  //...globalStyles.rounded,
+  //paddingLeft: globalMargins.xtiny,
+  //paddingRight: globalMargins.xtiny,
 }
 
 const codeSnippetBlockStyle = {
-  ...codeSnippetStyle,
-  ...wrapStyle,
+  ...globalStyles.rounded,
   backgroundColor: globalColors.beige,
-  color: globalColors.black_75,
-  display: 'block',
   marginBottom: globalMargins.xtiny,
   marginTop: globalMargins.xtiny,
   paddingBottom: globalMargins.xtiny,
@@ -38,22 +30,27 @@ const codeSnippetBlockStyle = {
   paddingTop: globalMargins.xtiny,
 }
 
-const textBlockStyle = {display: 'block', ...wrapStyle, color: undefined, fontWeight: undefined}
-const linkStyle = {...wrapStyle, fontWeight: undefined}
-const neutralPreviewStyle = {color: undefined, fontWeight: undefined}
-const boldStyle = {...wrapStyle, color: undefined}
-const italicStyle = {...wrapStyle, color: undefined, fontStyle: 'italic', fontWeight: undefined}
-const strikeStyle = {...wrapStyle, color: undefined, fontWeight: undefined, textDecoration: 'line-through'}
-const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 13}
+const codeSnippetBlockTextStyle = {
+  ...globalStyles.fontTerminal,
+  color: globalColors.black_75,
+}
+
+const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8}
+
+const neutralStyle = {color: undefined, fontWeight: undefined}
+const linkStyle = {fontWeight: undefined}
+const boldStyle = {color: undefined}
+const italicStyle = {color: undefined, fontStyle: 'italic', fontWeight: undefined}
+const strikeStyle = {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'}
 
 function previewCreateComponent (type, key, children, options) {
   switch (type) {
     case 'emoji':
-      return <EmojiIfExists preview={true} size={13} key={key} style={neutralPreviewStyle}>{children}</EmojiIfExists>
+      return <EmojiIfExists preview={true} key={key}>{children}</EmojiIfExists>
     case 'native-emoji':
-      return <Emoji size={16} key={key}>{children}</Emoji>
+      return <Emoji key={key}>{children}</Emoji>
     default:
-      return <Text type='BodySmall' key={key} style={neutralPreviewStyle}>{children}</Text>
+      return <Text type='BodySmall' key={key} style={neutralStyle} numberOfLines={1}>{children}</Text>
   }
 }
 
@@ -64,11 +61,15 @@ function messageCreateComponent (type, key, children, options) {
     case 'inline-code':
       return <Text type='Body' key={key} style={codeSnippetStyle}>{children}</Text>
     case 'code-block':
-      return <Text type='Body' key={key} style={codeSnippetBlockStyle}>{children}</Text>
+      return (
+        <Box key={key} style={codeSnippetBlockStyle}>
+          <Text type='Body' style={codeSnippetBlockTextStyle}>{children}</Text>
+        </Box>
+      )
     case 'link':
       return <Text type='BodyPrimaryLink' key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
     case 'text-block':
-      return <Text type='Body' key={key} style={textBlockStyle}>{children}</Text>
+      return <Text type='Body' key={key} style={neutralStyle}>{children}</Text>
     case 'bold':
       return <Text type='BodySemibold' key={key} style={boldStyle}>{children}</Text>
     case 'italic':
@@ -76,18 +77,21 @@ function messageCreateComponent (type, key, children, options) {
     case 'strike':
       return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
     case 'emoji':
-      return <EmojiIfExists size={16} key={key}>{children}</EmojiIfExists>
+      return <EmojiIfExists key={key}>{children}</EmojiIfExists>
     case 'native-emoji':
-      return <Emoji size={16} key={key}>{children}</Emoji>
+      return <Emoji key={key}>{children}</Emoji>
     case 'quote-block':
-      return <Box key={key} style={quoteStyle}>{children}</Box>
+      return <Box key={key} style={quoteBlockStyle}>{children}</Box>
   }
 }
 
 class Markdown extends PureComponent<void, Props, void> {
   render () {
     const content = parseMarkdown(this.props.children, this.props.preview ? previewCreateComponent : messageCreateComponent)
-    return <Text type='Body' style={this.props.style}>{content}</Text>
+    if (typeof content === 'string') {
+      return <Text type='Body' style={this.props.style}>{content}</Text>
+    }
+    return content
   }
 }
 

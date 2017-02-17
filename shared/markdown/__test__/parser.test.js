@@ -97,6 +97,13 @@ this is a code block with two newline above\`\`\`
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses incomplete code blocks correctly', () => {
+    for (let i = 1; i <= 7; i++) {
+      const ast = parser.parse('`'.repeat(i))
+      expect(ast).toMatchSnapshot()
+    }
+  })
+
   it('parses urls correctly', () => {
     const ast = parser.parse(`
   Ignore:
