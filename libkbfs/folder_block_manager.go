@@ -1020,6 +1020,8 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	} else if head.MergedStatus() != Merged {
 		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
+	} else if head.IsFinal() {
+		return MetadataIsFinalError{}
 	}
 
 	// Make sure we're a writer
@@ -1143,10 +1145,12 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		}
 
 		err := fbm.doReclamation(timer)
-		if _, ok := err.(WriteAccessError); ok {
-			// If we got a write access error, don't bother with the
-			// timer anymore. Don't completely shut down, since we
-			// don't want forced reclamations to hang.
+		_, isWriteError := err.(WriteAccessError)
+		_, isFinalError := err.(MetadataIsFinalError)
+		if isWriteError || isFinalError {
+			// If we can't write the MD, don't bother with the timer
+			// anymore. Don't completely shut down, since we don't
+			// want forced reclamations to hang.
 			timer.Stop()
 			timerChan = make(chan time.Time)
 		}
