@@ -83,8 +83,8 @@ export function iconTypeToSrcSet (type: IconType) {
   return [1, 2].map(mult => imgName(type, ext, mult)).join(', ')
 }
 
-export function urlsToSrcSet (imgs: Array<{path: string, size: string}>): string {
-  return imgs.map(img => `${img.path} ${img.size}w`).join(', ')
+export function urlsToSrcSet (imgMap: {[size: string]: string}): string {
+  return Object.keys(imgMap).map(size => `${imgMap[size]} ${size}w`).join(', ')
 }
 
 export const styles = {
