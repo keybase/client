@@ -109,40 +109,7 @@ class Avatar extends Component<void, Props, State> {
       return null
     }
 
-    // always have a fallback for the sizes
-    // const low = 'https://s3.amazonaws.com/keybase_processed_uploads/c6c7e3ba37b373ff0fa939a94fffde05_40_40_square_40.jpeg'
-      // //urlMap['40'] || urlMap['200'] || urlMap['360']
-    // const medium = urlMap['200'] || urlMap['360'] || urlMap['40']
-    // const high = urlMap['360'] || urlMap['200'] || urlMap['40']
-
-    // let imgs = []
-    // switch (this.props.size) {
-      // case 176:
-      // case 112: // fallthrough
-        // imgs = [medium, high]
-        // break
-      // case 80:
-      // case 64: // fallthrough
-      // case 48: // fallthrough
-        // imgs = [medium, medium]
-        // break
-      // case 40:
-      // case 32: // fallthrough
-        // imgs = [low, medium]
-        // break
-      // case 24:
-      // case 16: // fallthrough
-        // imgs = [low, low]
-        // break
-    // }
-    //
-    const um: URLMap = urlMap
-    const imgs = Object.keys(um).filter(size => um[size]).map(size => ({
-      path: um[size],
-      size,
-    }))
-
-    return urlsToSrcSet(imgs) || this._noAvatar()
+    return urlsToSrcSet(urlMap) || this._noAvatar()
   }
 
   _loadUsername (username: string) {
