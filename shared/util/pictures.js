@@ -89,7 +89,7 @@ export function getUserImageMap (username: string): ?URLMap {
 export function loadUserImageMap (username: string, callback: (username: string, urlMap: ?URLMap) => void) {
   if (!validUsername(username)) {
     setImmediate(() => {
-      callback(username, null)
+      callback(username, {})
     })
     return
   }

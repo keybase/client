@@ -970,35 +970,70 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-112-x-112.png'),
   },
+  'icon-placeholder-avatar-112': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-avatar-112.png'),
+  },
   'icon-placeholder-avatar-176-x-176': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-176-x-176.png'),
+  },
+  'icon-placeholder-avatar-176': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-avatar-176.png'),
   },
   'icon-placeholder-avatar-24-x-24': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-24-x-24.png'),
   },
+  'icon-placeholder-avatar-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-avatar-24.png'),
+  },
   'icon-placeholder-avatar-32-x-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-32-x-32.png'),
+  },
+  'icon-placeholder-avatar-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-avatar-32.png'),
   },
   'icon-placeholder-avatar-48-x-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-48-x-48.png'),
   },
+  'icon-placeholder-avatar-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-avatar-48.png'),
+  },
   'icon-placeholder-avatar-64-x-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-64-x-64.png'),
   },
+  'icon-placeholder-avatar-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-avatar-64.png'),
+  },
   'icon-placeholder-avatar-80-x-80': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-80-x-80.png'),
+  },
+  'icon-placeholder-avatar-80': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-avatar-80.png'),
   },
   'icon-play-32': {
     isFont: false,

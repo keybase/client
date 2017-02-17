@@ -1,27 +1,24 @@
 // @flow
 import Icon from './icon'
 import React, {PureComponent} from 'react'
-import {NO_AVATAR} from './avatar'
 import {globalStyles, globalColors} from '../styles'
-import {resolveImageAsURL} from '../desktop/resolve-root'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
 
-// hoist to parent and get all sizes for srcset
-const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
-
 type ImageProps = {
-  urls: Array<string>,
-  size: AvatarSize,
-  onLoad: () => void,
+  fallback: string,
   onError: () => void,
+  onLoad: () => void,
   opacity: ?number,
+  size: AvatarSize,
+  url: string,
 }
 
 type Props = {
   borderColor: ?string,
   children: any,
+  fallback: string,
   followIconStyle: ?Object,
   followIconType: ?IconType,
   loadingColor: ?string,
@@ -29,7 +26,7 @@ type Props = {
   opacity: ?number,
   size: AvatarSize,
   style?: ?Object,
-  urls: ?Array<string>,
+  url: ?string,
 }
 
 type State = {
@@ -50,24 +47,28 @@ const Background = ({loaded, loadingColor}) => (
     }} />
 )
 
-const NoAvatarPlaceholder = ({size}) => (
-  <img
-    src={noAvatar}
-    style={{
-      height: size,
-      width: size,
-    }} />
-)
+type ImageState ={
+  errored: boolean,
+}
 
-class Image extends PureComponent<void, ImageProps, void> {
+class Image extends PureComponent<void, ImageProps, ImageState> {
+  state: ImageState = {
+    errored: false,
+  }
+
+  _onError = () => {
+    this.props.onError()
+    this.setState({errored: true})
+  }
+
   render () {
-    const {urls, size, onLoad, onError, opacity = 1} = this.props
+    const {url, size, onLoad, fallback, opacity = 1} = this.props
     return (
-      <object
-        data={urls[0]}
-        type='image/jpg'
+      <img
+        srcSet={this.state.errored ? fallback : url}
+        sizes={`${size}px`}
         onLoad={onLoad}
-        onError={onError}
+        onError={this._onError}
         style={{
           borderRadius: '50%',
           bottom: 0,
@@ -78,9 +79,8 @@ class Image extends PureComponent<void, ImageProps, void> {
           right: 0,
           top: 0,
           width: size,
-        }}>
-        <NoAvatarPlaceholder size={size} />
-      </object>
+        }}
+      />
     )
   }
 }
@@ -116,7 +116,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    if (this.props.urls !== nextProps.urls) {
+    if (this.props.url !== nextProps.url) {
       this.setState({loaded: false})
     }
   }
@@ -130,7 +130,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
   }
 
   render () {
-    const {urls, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
+    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children, fallback} = this.props
 
     return (
       <div
@@ -143,12 +143,13 @@ class AvatarRender extends PureComponent<void, Props, State> {
           ...style,
         }}>
         <Background loaded={this.state.loaded} loadingColor={loadingColor} />
-        {urls && <Image
-          onLoad={this._onLoadOrError}
+        {url && <Image
+          fallback={fallback}
           onError={this._onLoadOrError}
-          size={size}
+          onLoad={this._onLoadOrError}
           opacity={opacity}
-          urls={urls[0] === NO_AVATAR ? [noAvatar] : urls}
+          size={size}
+          url={url}
         /> }
         {!!borderColor && <Border borderColor={borderColor} />}
         {followIconType && <Icon type={followIconType} style={followIconStyle} />}

@@ -8,7 +8,7 @@ import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 
 import type {Exact} from '../constants/types/more'
-import type {Props} from './icon'
+import type {Props, IconType} from './icon'
 
 class Icon extends Component<void, Exact<Props>, void> {
   shouldComponentUpdate (nextProps: Exact<Props>, nextState: any): boolean {
@@ -38,7 +38,6 @@ class Icon extends Component<void, Exact<Props>, void> {
       hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.black_75)
     }
 
-    const ext = shared.typeExtension(iconType)
     const isFontIcon = iconType.startsWith('iconfont-')
     const fontSizeHint = shared.fontSize(iconType)
 
@@ -72,14 +71,20 @@ class Icon extends Component<void, Exact<Props>, void> {
         title={this.props.hint}
         style={{...globalStyles.noSelect, ...this.props.style, ...(this.props.onClick ? globalStyles.clickable : {})}}
         onClick={this.props.onClick}
-        srcSet={imgPath(iconType, ext)} />
+        srcSet={iconTypeToSrcSet(iconType)} />
     }
   }
 }
 
-const imgName = (type, ext, mult) => `${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
-const imgPath = (type, ext) => {
-  return [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
+const imgName = (type: IconType, ext: string, mult: number) => `${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
+
+export function iconTypeToSrcSet (type: IconType) {
+  const ext = shared.typeExtension(type)
+  return [1, 2].map(mult => imgName(type, ext, mult)).join(', ')
+}
+
+export function urlsToSrcSet (imgs: Array<{path: string, size: string}>): string {
+  return imgs.map(img => `${img.path} ${img.size}w`).join(', ')
 }
 
 export const styles = {

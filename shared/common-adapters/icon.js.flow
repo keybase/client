@@ -19,3 +19,5 @@ export type Props = {
 }
 
 declare export default class Icon extends Component<void, Exact<Props>, void> {}
+declare export function iconTypeToSrcSet (type: IconType): string;
+declare export function urlsToSrcSet (imgs: Array<{path: string, size: string}>): string;
