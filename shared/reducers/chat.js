@@ -245,12 +245,13 @@ function reducer (state: State = initialState, action: Actions) {
     }
     case 'chat:markSeenMessage': {
       const {messageID, conversationIDKey} = action.payload
+      const messageKey = Constants.messageKey('messageID', messageID)
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
         // $FlowIssue
-        conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageID))
+        conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageKey))
       ))
     }
     case 'chat:createPendingFailure': {
