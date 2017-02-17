@@ -6,6 +6,7 @@ import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login'
 import {registerGregorListeners, registerReachability} from '../../actions/gregor'
+import {registerMobilePinentryListener} from '../../actions/pinentry'
 import {resetSignup} from '../../actions/signup'
 
 import type {UpdateFollowing} from '../../constants/config'
@@ -137,6 +138,8 @@ function registerListeners (): AsyncAction {
     dispatch(registerGregorListeners())
     if (!isMobile) {
       dispatch(registerReachability())
+    } else {
+      dispatch(registerMobilePinentryListener())
     }
   }
 }

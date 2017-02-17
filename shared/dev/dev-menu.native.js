@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import engine from '../engine'
 import {connect} from 'react-redux'
 import {logout} from '../actions/login'
+import {loadInbox} from '../actions/chat'
 import {navigateAppend} from '../actions/route-tree'
 import {Box} from '../common-adapters'
 import {globalStyles} from '../styles'
@@ -15,6 +16,7 @@ class DevMenu extends Component {
       {name: 'Reset', onClick: this.props.onReset},
       {name: 'Sign Out', onClick: this.props.logout},
       {name: 'Log Send', onClick: this.props.onLogSend},
+      {name: 'Test Chat', onClick: this.props.testChat},
     ]
     return (
       <Box style={{...globalStyles.flexBoxRow}}>
@@ -31,4 +33,5 @@ export default connect(
     onReset: () => engine().reset(),
     onLogSend: () => dispatch(navigateAppend(['logSend'])),
     logout: () => dispatch(logout()),
+    testChat: () => dispatch(loadInbox()),
   }))(DevMenu)

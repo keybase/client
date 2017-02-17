@@ -88,3 +88,23 @@ function uglyResponse (sessionID: number, result: any, err: ?any): void {
 
   delete uglySessionIDResponseMapper[sessionID]
 }
+
+export function registerMobilePinentryListener (): AsyncAction {
+  return dispatch => {
+    engine().listenOnConnect('registerSecretUI', () => {
+      delegateUiCtlRegisterSecretUIRpc({
+        callback: (err, response) => {
+          if (err) {
+            console.warn('error in registering secret ui: ', err)
+          }
+        },
+      })
+    })
+
+    engine().setIncomingHandler('keybase.1.secretUi.getPassphrase', (payload, response) => {
+      // TODO: Fix login process so that we don't require a passphrase here, it
+      // should happen as part of login not via some UI callback
+      response && response.result({passphrase: 'PUTPASSWORDHERE', storeSecret: false})
+    })
+  }
+}
