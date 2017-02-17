@@ -283,14 +283,12 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 }
 
 func (g *GlobalContext) ConfigureConfig() error {
-	if !g.Env.Test.Devel {
-		err := RemoteSettingsRepairman(g)
-		if err != nil {
-			return err
-		}
+	err := RemoteSettingsRepairman(g)
+	if err != nil {
+		return err
 	}
 	c := NewJSONConfigFile(g, g.Env.GetConfigFilename())
-	err := c.Load(false)
+	err = c.Load(false)
 	if err != nil {
 		return err
 	}
