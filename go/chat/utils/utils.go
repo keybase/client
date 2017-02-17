@@ -325,7 +325,7 @@ func GetUnverifiedConv(ctx context.Context, g *libkb.GlobalContext, uid gregor1.
 	if err != nil {
 		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
 	}
-	if len(inbox.Convs) == 0 {
+	if len(inbox.ConvsUnverified) == 0 {
 		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: no conv found: %s", convID)
 	}
 	return inbox.ConvsUnverified[0], ratelim, nil

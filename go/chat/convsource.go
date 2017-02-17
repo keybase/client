@@ -299,12 +299,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
-			// Identify this TLF by running crypt keys
-			if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
-				s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
-				return chat1.ThreadView{}, nil, ierr
-			}
-
 			// Before returning the stuff, update SenderDeviceRevokedAt on each message.
 			updatedMessages, err := s.updateMessages(ctx, thread.Messages)
 			if err != nil {
@@ -496,12 +490,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		}
 	}
 
-	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
-		s.Debug(ctx, "GetMessages: identify failed: %s", ierr.Error())
-		return nil, ierr
-	}
-
 	return res, nil
 }
 
@@ -546,12 +534,6 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if err = s.storage.Merge(ctx, convID, uid, merges); err != nil {
 			return res, err
 		}
-	}
-
-	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
-		s.Debug(ctx, "GetMessagesWithRemotes: identify failed: %s", ierr.Error())
-		return nil, ierr
 	}
 
 	return res, nil

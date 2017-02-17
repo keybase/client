@@ -486,9 +486,12 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 
 	// Try local storage (if enabled)
 	if useLocalData {
-		vers, convs, pagination, cerr := inboxStore.Read(ctx, query, p)
+		var vers chat1.InboxVers
+		var convs []chat1.Conversation
+		var pagination *chat1.Pagination
+		vers, convs, pagination, cerr = inboxStore.Read(ctx, query, p)
 		if cerr == nil {
-			s.Debug(ctx, "Read: hit local storage: uid: %s convs: %d", uid, len(convs))
+			s.Debug(ctx, "ReadUnverified: hit local storage: uid: %s convs: %d", uid, len(convs))
 			res = chat1.Inbox{
 				Version:         vers,
 				ConvsUnverified: convs,
@@ -502,9 +505,9 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	// If we hit an error reading from storage, then read from remote
 	if cerr != nil {
 		if _, ok := cerr.(storage.MissError); !ok {
-			s.Debug(ctx, "Read: error fetching inbox: %s", cerr.Error())
+			s.Debug(ctx, "ReadUnverified: error fetching inbox: %s", cerr.Error())
 		} else {
-			s.Debug(ctx, "Read: storage miss")
+			s.Debug(ctx, "ReadUnverified: storage miss")
 		}
 
 		// Go to the remote on miss
@@ -515,7 +518,7 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 
 		// Write out to local storage
 		if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
-			s.Debug(ctx, "Read: failed to write inbox to local storage: %s", cerr.Error())
+			s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
 		}
 
 		res = chat1.Inbox{
