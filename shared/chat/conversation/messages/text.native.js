@@ -12,7 +12,7 @@ const MessageText = (props: Props) => {
   const textStyle = messageState === 'failed' || messageState === 'pending' ? pendingFailStyle : {}
   return (
     <MessageWrapper {...props}>
-      <Markdown type='Body' style={textStyle}>{message.message.stringValue()}</Markdown>
+      <Markdown style={textStyle}>{message.message.stringValue()}</Markdown>
     </MessageWrapper>
   )
 }

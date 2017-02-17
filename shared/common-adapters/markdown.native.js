@@ -43,51 +43,56 @@ const boldStyle = {color: undefined}
 const italicStyle = {color: undefined, fontStyle: 'italic', fontWeight: undefined}
 const strikeStyle = {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'}
 
-function previewCreateComponent (type, key, children, options) {
-  switch (type) {
-    case 'emoji':
-      return <EmojiIfExists preview={true} key={key}>{children}</EmojiIfExists>
-    case 'native-emoji':
-      return <Emoji key={key}>{children}</Emoji>
-    default:
-      return <Text type='BodySmall' key={key} style={neutralStyle} numberOfLines={1}>{children}</Text>
+function previewCreateComponent (style) {
+  return function (type, key, children, options, style) {
+    switch (type) {
+      case 'emoji':
+        return <EmojiIfExists preview={true} key={key}>{children}</EmojiIfExists>
+      case 'native-emoji':
+        return <Emoji key={key}>{children}</Emoji>
+      default:
+        return <Text type='BodySmall' key={key} style={{...neutralStyle, ...style}} numberOfLines={1}>{children}</Text>
+    }
   }
 }
 
-function messageCreateComponent (type, key, children, options) {
-  switch (type) {
-    case 'markup':
-      return <Box key={key}>{children}</Box>
-    case 'inline-code':
-      return <Text type='Body' key={key} style={codeSnippetStyle}>{children}</Text>
-    case 'code-block':
-      return (
-        <Box key={key} style={codeSnippetBlockStyle}>
-          <Text type='Body' style={codeSnippetBlockTextStyle}>{children}</Text>
-        </Box>
-      )
-    case 'link':
-      return <Text type='BodyPrimaryLink' key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
-    case 'text-block':
-      return <Text type='Body' key={key} style={neutralStyle}>{children}</Text>
-    case 'bold':
-      return <Text type='BodySemibold' key={key} style={boldStyle}>{children}</Text>
-    case 'italic':
-      return <Text type='Body' key={key} style={italicStyle}>{children}</Text>
-    case 'strike':
-      return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
-    case 'emoji':
-      return <EmojiIfExists key={key}>{children}</EmojiIfExists>
-    case 'native-emoji':
-      return <Emoji key={key}>{children}</Emoji>
-    case 'quote-block':
-      return <Box key={key} style={quoteBlockStyle}>{children}</Box>
+function messageCreateComponent (style) {
+  return function (type, key, children, options) {
+    switch (type) {
+      case 'markup':
+        return <Box key={key}>{children}</Box>
+      case 'inline-code':
+        return <Text type='Body' key={key} style={codeSnippetStyle}>{children}</Text>
+      case 'code-block':
+        return (
+          <Box key={key} style={codeSnippetBlockStyle}>
+            <Text type='Body' style={codeSnippetBlockTextStyle}>{children}</Text>
+          </Box>
+        )
+      case 'link':
+        return <Text type='BodyPrimaryLink' key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
+      case 'text-block':
+        return <Text type='Body' key={key} style={{...neutralStyle, ...style}}>{children}</Text>
+      case 'bold':
+        return <Text type='BodySemibold' key={key} style={boldStyle}>{children}</Text>
+      case 'italic':
+        return <Text type='Body' key={key} style={italicStyle}>{children}</Text>
+      case 'strike':
+        return <Text type='Body' key={key} style={strikeStyle}>{children}</Text>
+      case 'emoji':
+        return <EmojiIfExists key={key}>{children}</EmojiIfExists>
+      case 'native-emoji':
+        return <Emoji key={key}>{children}</Emoji>
+      case 'quote-block':
+        return <Box key={key} style={quoteBlockStyle}>{children}</Box>
+    }
   }
 }
 
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    const content = parseMarkdown(this.props.children, this.props.preview ? previewCreateComponent : messageCreateComponent)
+    const createComponent = this.props.preview ? previewCreateComponent(this.props.style) : messageCreateComponent(this.props.style)
+    const content = parseMarkdown(this.props.children, createComponent)
     if (typeof content === 'string') {
       return <Text type='Body' style={this.props.style}>{content}</Text>
     }
