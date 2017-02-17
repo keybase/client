@@ -1,5 +1,6 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
+import * as I from 'immutable'
 import React, {Component} from 'react'
 import Render from './avatar.render.desktop'
 import {isTesting} from '../local-debug'
@@ -11,6 +12,37 @@ type State = {
 }
 
 const NO_AVATAR = 'NO_AVATAR'
+
+const followStateToType = I.fromJS({
+  '112': {
+    'theyNo': {'youYes': 'icon-following-28'},
+    'theyYes': {'youNo': 'icon-follow-me-28', 'youYes': 'icon-mutual-follow-28'},
+  },
+  '176': {
+    'theyNo': {'youYes': 'icon-following-32'},
+    'theyYes': {'youNo': 'icon-follow-me-32', 'youYes': 'icon-mutual-follow-32'},
+  },
+  '48': {
+    'theyNo': {'youYes': 'icon-following-21'},
+    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+  },
+  '64': {
+    'theyNo': {'youYes': 'icon-following-21'},
+    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+  },
+  '80': {
+    'theyNo': {'youYes': 'icon-following-21'},
+    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+  },
+})
+
+const followSizeToStyle = {
+  '112': {bottom: 0, left: 80, position: 'absolute'},
+  '176': {bottom: 6, left: 132, position: 'absolute'},
+  '48': {bottom: 0, left: 32, position: 'absolute'},
+  '64': {bottom: 0, left: 45, position: 'absolute'},
+  '80': {bottom: 0, left: 57, position: 'absolute'},
+}
 
 class Avatar extends Component<void, Props, State> {
   state: State = {
@@ -79,14 +111,19 @@ class Avatar extends Component<void, Props, State> {
     }
   }
 
+  _followIconType () {
+    return followStateToType.getIn([String(this.props.size), `they${this.props.followsYou ? 'Yes' : 'No'}`, `you${this.props.following ? 'Yes' : 'No'}`])
+  }
+
   render () {
     if (__SCREENSHOT__ || isTesting) {
       return null
     }
+
     return <Render
       borderColor={this.props.borderColor}
-      following={this.props.following}
-      followsYou={this.props.followsYou}
+      followIconType={this._followIconType()}
+      followIconStyle={followSizeToStyle[this.props.size]}
       loadingColor={this.props.loadingColor}
       onClick={this.props.onClick}
       opacity={this.props.opacity}
