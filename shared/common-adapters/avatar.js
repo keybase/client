@@ -123,6 +123,7 @@ class Avatar extends Component<void, Props, State> {
 
     return <Render
       borderColor={this.props.borderColor}
+      children={this.props.children}
       followIconType={this._followIconType()}
       followIconStyle={followSizeToStyle[this.props.size]}
       loadingColor={this.props.loadingColor}
@@ -130,8 +131,7 @@ class Avatar extends Component<void, Props, State> {
       opacity={this.props.opacity}
       size={this.props.size}
       style={this.props.style}
-      url={this.state.url}
-    >{this.props.children}</Render>
+      url={this.state.url} />
   }
 }
 
