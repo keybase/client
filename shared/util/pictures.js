@@ -44,6 +44,7 @@ const _getUserImages = throttle(() => {
             info.done = true
             info.error = true
             info.callbacks.forEach(cb => cb(username, url))
+            info.callbacks = []
           }
         })
       } else {
@@ -55,6 +56,7 @@ const _getUserImages = throttle(() => {
             info.done = true
             info.url = url
             info.callbacks.forEach(cb => cb(username, url))
+            info.callbacks = []
           }
         })
       }
@@ -81,6 +83,9 @@ export function getUserImage (username: string): ?string {
 
 export function loadUserImage (username: string, callback: (username: string, url: ?string) => void) {
   if (!validUsername(username)) {
+    setImmediate(() => {
+      callback(username, null)
+    })
     return
   }
 
@@ -88,6 +93,10 @@ export function loadUserImage (username: string, callback: (username: string, ur
   if (info) {
     if (!info.done) {
       info.callbacks.push(callback)
+    } else {
+      setImmediate(() => {
+        callback(username, info.url)
+      })
     }
   } else {
     _pendingUsernameToURL[username] = {

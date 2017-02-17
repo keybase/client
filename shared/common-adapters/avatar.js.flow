@@ -11,17 +11,18 @@ export type Props = {
   size: AvatarSize,
   style?: ?Object,
   onClick?: ?(() => void),
-  onPress?: void,
-  // Use a solid color instead of a noAvatar image initially
+  // onPress?: void,
+  // // Use a solid color instead of a noAvatar image initially
   loadingColor?: string,
   borderColor?: string,
-  forceLoading?: boolean,
+  // forceLoading?: boolean,
   following?: ?boolean,
   followsYou?: ?boolean,
-  backgroundColor?: string,
+  // backgroundColor?: string,
   opacity?: number,
-  children?: any,
+  children?: void,
   onAvatarLoaded?: () => void,
+  // TODO flow type to allow one or the other, not both url and username
   url?: ?string,
   username?: ?string,
 }
@@ -30,3 +31,4 @@ export default class Avatar extends Component<void, Props, void> { }
 
 export function initLookup (lookup: AvatarLookup) { }
 export function initLoad (load: AvatarLoad) { }
+export const NO_AVATAR: string = ''

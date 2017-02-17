@@ -727,7 +727,8 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
   },
 }
 
-const mockAvatarSizes = (title, sizes, modifiers) => _.chain(sizes)
+const avatarSizes = [176, 112, 80, 64, 56, 48, 40, 32, 24, 16]
+const mockAvatarSizes = (title, modifiers) => _.chain(avatarSizes)
   .map(size => ({size, username: 'awendland', ...modifiers}))
   .keyBy(props => `${title} x${props.size}`)
   .value()
@@ -735,14 +736,14 @@ const mockAvatarSizes = (title, sizes, modifiers) => _.chain(sizes)
 const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,
   mocks: {
-    ...mockAvatarSizes('Normal', [32], {}),
-    ...mockAvatarSizes('Following', [48], {
+    ...mockAvatarSizes('Normal', {}),
+    ...mockAvatarSizes('Following', {
       following: true,
     }),
-    ...mockAvatarSizes('Follows You', [64], {
+    ...mockAvatarSizes('Follows You', {
       followsYou: true,
     }),
-    ...mockAvatarSizes('Mutual Follow', [112], {
+    ...mockAvatarSizes('Mutual Follow', {
       following: true,
       followsYou: true,
     }),
