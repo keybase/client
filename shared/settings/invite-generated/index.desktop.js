@@ -7,7 +7,7 @@ import {navigateUp} from '../../actions/route-tree'
 
 import type {Props} from './index'
 
-class InviteGenerated extends Component<void, Props, void> {
+class InviteGeneratedRender extends Component<void, Props, void> {
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', justifyContent: 'center', alignItems: 'center'}}>
@@ -59,4 +59,8 @@ export default connect(
       onClose: () => dispatch(navigateUp()),
     }
   },
-)(InviteGenerated)
+)(InviteGeneratedRender)
+
+export {
+  InviteGeneratedRender,
+}
