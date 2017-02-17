@@ -97,10 +97,10 @@ export class InvalidRouteError extends Error {}
 // Explicit list of iterable types to accept. We don't want to allow strings
 // since navigateTo('foo') instead of navigateTo(['foo']) is an easy mistake to
 // make.
-export type PathIterable<X> = I.IndexedSeq<X> | I.List<X> | Array<X>
+type PathIterable<X> = I.IndexedSeq<X> | I.List<X> | Array<X>
 export type Path = PathIterable<string>
-export type PropsPath<P> = PathIterable<string> | PathIterable<{selected: string | null, props: P}>
-type PathParam<P> = [] | Path | PropsPath<P>
+export type PropsPath<P> = PathIterable<string | {selected: string | null, props: P}>
+type PathParam<P> = [] | Path | PropsPath<P>  // Flow doesn't accept Path as a subtype of PropsPath, so be explicit here.
 type PathSetSpec<P> = I.IndexedIterable<{type: 'traverse' | 'navigate', next: string | null, props?: P}>
 
 // Traverse a routeState making changes according to the pathSpec. This is the
