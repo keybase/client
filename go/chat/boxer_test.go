@@ -629,6 +629,84 @@ func TestChatMessageSenderMismatch(t *testing.T) {
 	})
 }
 
+// Test a message with a deleted body
+func TestChatMessageDeleted(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		key := cryptKey(t)
+		text := "hi"
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
+
+		// need a real user
+		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		if err != nil {
+			t.Fatal(err)
+		}
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+
+		boxed, err := boxer.lock(msg, key, signKP, mbVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// need to give it a server header...
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime:        gregor1.ToTime(time.Now()),
+			SupersededBy: 4,
+		}
+
+		// Delete the body
+		boxed.BodyCiphertext.E = []byte{}
+
+		unboxed, err := boxer.unlock(context.TODO(), *boxed, key)
+		require.NoError(t, err, "deleted message should still unbox")
+		body := unboxed.MessageBody
+		typ, err := body.MessageType()
+		require.NoError(t, err)
+		require.Equal(t, typ, chat1.MessageType_NONE)
+		require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
+	})
+}
+
+// Test a message with a deleted body but missing a supersededby header
+func TestChatMessageDeletedNotSuperseded(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		key := cryptKey(t)
+		text := "hi"
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
+
+		// need a real user
+		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		if err != nil {
+			t.Fatal(err)
+		}
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+
+		boxed, err := boxer.lock(msg, key, signKP, mbVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// need to give it a server header...
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime: gregor1.ToTime(time.Now()),
+		}
+
+		// Delete the body
+		boxed.BodyCiphertext.E = []byte{}
+
+		_, err = boxer.unlock(context.TODO(), *boxed, key)
+		require.Error(t, err, "should not unbox with deleted but no supersededby")
+	})
+}
+
+// TODO add a test for message with deleted body
+
 // func TestV1Message() {
 // 	TODO
 // }
@@ -639,8 +717,6 @@ type testMessage struct {
 	verifyKey     string // hex
 	sender        string
 }
-
-// TODO add a test for message with deleted body
 
 type KeyFinderMock struct{}
 
