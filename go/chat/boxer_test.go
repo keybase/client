@@ -591,7 +591,56 @@ func TestChatMessagePublic(t *testing.T) {
 	})
 }
 
-// TODO add a test for deleted message
+// Test that you cannot unbox a message whose client header sender does not match.
+// This prevents one kind of misattribution within a tlf.
+// Device mismatches are probably tolerated.
+func TestChatMessageSenderMismatch(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		key := cryptKey(t)
+		text := "hi"
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
+
+		u2, err := kbtest.CreateAndSignupFakeUser("chat", tc.G)
+		require.NoError(t, err)
+
+		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		require.NoError(t, err)
+
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+
+		boxed, err := boxer.lock(msg, key, signKP, mbVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// need to give it a server header...
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime: gregor1.ToTime(time.Now()),
+		}
+
+		// Set the outer sender to something else
+		boxed.ClientHeader.Sender = gregor1.UID(gregor1.UID(u2.User.GetUID().ToBytes()))
+
+		_, err = boxer.unlock(context.TODO(), *boxed, key)
+		require.Error(t, err, "should not unbox with sender mismatch")
+	})
+}
+
+// func TestV1Message() {
+// 	TODO
+// }
+
+type testMessage struct {
+	boxed         string // hex
+	encryptionKey string // hex
+	verifyKey     string // hex
+	sender        string
+}
+
+// TODO add a test for message with deleted body
 
 type KeyFinderMock struct{}
 

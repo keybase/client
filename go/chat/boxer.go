@@ -4,6 +4,7 @@
 package chat
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -256,7 +257,13 @@ func (b *Boxer) unlockV1(ctx context.Context, boxed chat1.MessageBoxed, encrypti
 				b.headerUnsupported(ctx, headerVersion, header)))
 	}
 
-	// TODO check for inner outer match of sender?
+	// Check for sender match on the inner and outer header.
+	if !clientHeader.Sender.Eq(boxed.ClientHeader.Sender) {
+		return nil, NewPermanentUnboxingError(fmt.Errorf("sender does not match"))
+	}
+	if !bytes.Equal(clientHeader.SenderDevice.Bytes(), boxed.ClientHeader.SenderDevice.Bytes()) {
+		return nil, NewPermanentUnboxingError(fmt.Errorf("sender device does not match"))
+	}
 
 	senderUsername, senderDeviceName, senderDeviceType := b.getSenderInfoLocal(
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
