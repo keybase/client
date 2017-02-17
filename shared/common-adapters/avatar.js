@@ -147,14 +147,7 @@ class Avatar extends Component<void, Props, State> {
   }
 
   render () {
-    if (__SCREENSHOT__ || isTesting) {
-      return <Box style={{
-        backgroundColor: globalColors.orange,
-        borderRadius: this.props.size / 2,
-        height: this.props.size,
-        width: this.props.size,
-      }} />
-    }
+    const url = (__SCREENSHOT__ || isTesting) ? this.state.fallback : this.state.url
 
     return <Render
       borderColor={this.props.borderColor}
@@ -167,7 +160,7 @@ class Avatar extends Component<void, Props, State> {
       opacity={this.props.opacity}
       size={this.props.size}
       style={this.props.style}
-      url={this.state.url} />
+      url={url} />
   }
 }
 
