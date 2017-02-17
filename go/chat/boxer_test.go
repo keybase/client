@@ -705,17 +705,130 @@ func TestChatMessageDeletedNotSuperseded(t *testing.T) {
 	})
 }
 
-// TODO add a test for message with deleted body
+func TestV1Message1(t *testing.T) {
+	// Unbox a canned V1 message from before V2 was thought up.
 
-// func TestV1Message() {
-// 	TODO
-// }
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
 
-type testMessage struct {
-	boxed         string // hex
-	encryptionKey string // hex
-	verifyKey     string // hex
-	sender        string
+	canned := getCannedMessage(t, "alice25-bob25-1")
+	boxed := canned.AsBoxed(t)
+	modifyBoxerForTesting(t, boxer, &canned)
+
+	// Check some features before unboxing
+	require.Equal(t, chat1.MessageBoxedVersion_VNONE, boxed.Version)
+	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", boxed.ClientHeader.Conv.TopicID.String())
+	require.Equal(t, canned.encryptionKeyGeneration, boxed.KeyGeneration)
+
+	// Unbox
+	unboxed, err := boxer.unlock(context.TODO(), canned.AsBoxed(t), canned.EncryptionKey(t))
+	require.NoError(t, err)
+
+	// Check some features of the unboxed
+	// ClientHeader
+	require.Equal(t, "d1fec1a2287b473206e282f4d4f30116", unboxed.ClientHeader.Conv.Tlfid.String())
+	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", unboxed.ClientHeader.Conv.TopicID.String())
+	require.Equal(t, chat1.TopicType_CHAT, unboxed.ClientHeader.Conv.TopicType)
+	require.Equal(t, "alice25,bob25", unboxed.ClientHeader.TlfName)
+	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
+	require.Equal(t, chat1.MessageType_TLFNAME, unboxed.ClientHeader.MessageType)
+	require.Equal(t, chat1.MessageID(0), unboxed.ClientHeader.Supersedes)
+	require.Nil(t, unboxed.ClientHeader.Deletes)
+	require.Nil(t, unboxed.ClientHeader.Prev)
+	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
+	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
+	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	require.Nil(t, unboxed.ClientHeader.OutboxID)
+	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
+
+	// ServerHeader
+	require.Equal(t, chat1.MessageID(0), unboxed.ServerHeader.SupersededBy)
+	require.Equal(t, chat1.MessageID(1), unboxed.ServerHeader.MessageID)
+
+	// MessageBody
+	mTyp, err2 := unboxed.MessageBody.MessageType()
+	require.NoError(t, err2)
+	// MessageBody has no TLFNAME variant, so the type comes out as 0.
+	require.Equal(t, chat1.MessageType(0), mTyp)
+
+	// Other attributes of unboxed
+	require.Equal(t, canned.senderUsername, unboxed.SenderUsername)
+	require.Equal(t, canned.senderDeviceName, unboxed.SenderDeviceName)
+	require.Equal(t, canned.senderDeviceType, unboxed.SenderDeviceType)
+	require.Equal(t, canned.headerHash, unboxed.HeaderHash.String())
+	require.NotNil(t, unboxed.HeaderSignature)
+	require.Equal(t, canned.VerifyKey(t), unboxed.HeaderSignature.K)
+	require.Nil(t, unboxed.VerificationKey) // nil for MB.V1
+	require.Nil(t, unboxed.SenderDeviceRevokedAt)
+}
+
+func TestV1Message2(t *testing.T) {
+	// Unbox a canned V1 message from before V2 was thought up.
+
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	canned := getCannedMessage(t, "alice25-bob25-2")
+	boxed := canned.AsBoxed(t)
+	modifyBoxerForTesting(t, boxer, &canned)
+
+	// Check some features before unboxing
+	require.Equal(t, chat1.MessageBoxedVersion_VNONE, boxed.Version)
+	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", boxed.ClientHeader.Conv.TopicID.String())
+	require.Equal(t, canned.encryptionKeyGeneration, boxed.KeyGeneration)
+
+	// Unbox
+	unboxed, err := boxer.unlock(context.TODO(), canned.AsBoxed(t), canned.EncryptionKey(t))
+	require.NoError(t, err)
+
+	// Check some features of the unboxed
+	// ClientHeader
+	require.Equal(t, "d1fec1a2287b473206e282f4d4f30116", unboxed.ClientHeader.Conv.Tlfid.String())
+	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", unboxed.ClientHeader.Conv.TopicID.String())
+	require.Equal(t, chat1.TopicType_CHAT, unboxed.ClientHeader.Conv.TopicType)
+	require.Equal(t, "alice25,bob25", unboxed.ClientHeader.TlfName)
+	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
+	require.Equal(t, chat1.MessageType_TEXT, unboxed.ClientHeader.MessageType)
+	require.Equal(t, chat1.MessageID(0), unboxed.ClientHeader.Supersedes)
+	require.Nil(t, unboxed.ClientHeader.Deletes)
+	expectedPrevs := []chat1.MessagePreviousPointer{chat1.MessagePreviousPointer{Id: 0x1, Hash: chat1.Hash{0xc9, 0x6e, 0x28, 0x6d, 0x88, 0x2e, 0xfc, 0x44, 0xdb, 0x80, 0xe5, 0x1d, 0x8e, 0x8, 0xf1, 0xde, 0x28, 0xb4, 0x93, 0x4c, 0xc8, 0x49, 0x1f, 0xbe, 0x88, 0x42, 0xf, 0x31, 0x10, 0x65, 0x14, 0xbe}}}
+	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
+	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
+	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
+	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	require.Nil(t, unboxed.ClientHeader.OutboxID)
+	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
+
+	// ServerHeader
+	require.Equal(t, chat1.MessageID(0), unboxed.ServerHeader.SupersededBy)
+	require.Equal(t, chat1.MessageID(2), unboxed.ServerHeader.MessageID)
+
+	// MessageBody
+	require.Equal(t, "test1", unboxed.MessageBody.Text().Body)
+
+	// Other attributes of unboxed
+	require.Equal(t, canned.senderUsername, unboxed.SenderUsername)
+	require.Equal(t, canned.senderDeviceName, unboxed.SenderDeviceName)
+	require.Equal(t, canned.senderDeviceType, unboxed.SenderDeviceType)
+	require.Equal(t, canned.headerHash, unboxed.HeaderHash.String())
+	require.NotNil(t, unboxed.HeaderSignature)
+	require.Equal(t, canned.VerifyKey(t), unboxed.HeaderSignature.K)
+	require.Nil(t, unboxed.VerificationKey) // nil for MB.V1
+	require.Nil(t, unboxed.SenderDeviceRevokedAt)
+}
+
+func modifyBoxerForTesting(t *testing.T, boxer *Boxer, canned *cannedMessage) {
+	boxer.testingGetSenderInfoLocal = func(ctx context.Context, uid gregor1.UID, did gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
+		require.Equal(t, canned.SenderUID(t), uid)
+		require.Equal(t, canned.SenderDeviceID(t), did)
+		return canned.senderUsername, canned.senderDeviceName, canned.senderDeviceType
+	}
+	boxer.testingValidSenderKey = func(ctx context.Context, uid gregor1.UID, verifyKey []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr UnboxingError) {
+		require.Equal(t, canned.SenderUID(t), uid)
+		require.Equal(t, canned.VerifyKey(t), verifyKey)
+		// ignore ctime, always report the key as still valid
+		return true, true, nil, nil
+	}
 }
 
 type KeyFinderMock struct{}

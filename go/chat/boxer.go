@@ -38,9 +38,11 @@ func init() {
 type Boxer struct {
 	utils.DebugLabeler
 
-	tlf    func() keybase1.TlfInterface
-	hashV1 func(data []byte) chat1.Hash
-	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
+	tlf                       func() keybase1.TlfInterface
+	hashV1                    func(data []byte) chat1.Hash
+	sign                      func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
+	testingValidSenderKey     func(context.Context, gregor1.UID, []byte, gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr UnboxingError)
+	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
 	libkb.Contextified
 }
 
@@ -295,8 +297,8 @@ func (b *Boxer) unlockV1(ctx context.Context, boxed chat1.MessageBoxed, encrypti
 		SenderDeviceName:      senderDeviceName,
 		SenderDeviceType:      senderDeviceType,
 		HeaderHash:            headerHash,
-		HeaderSignature:       nil,
-		VerificationKey:       &headerSignature.K,
+		HeaderSignature:       headerSignature,
+		VerificationKey:       nil,
 		SenderDeviceRevokedAt: validity.senderDeviceRevokedAt,
 	}, nil
 }
@@ -337,6 +339,11 @@ func (b *Boxer) getUsername(ctx context.Context, uid keybase1.UID) (string, erro
 
 // Any of (senderUsername, senderDeviceName, senderDeviceType) could be empty strings because of non-critical failures.
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
+	if b.testingGetSenderInfoLocal != nil {
+		b.log().Warning("Using TESTING jig. Not suitable for normal use.")
+		return b.testingGetSenderInfoLocal(ctx, uid1, deviceID1)
+	}
+
 	uid := keybase1.UID(uid1.String())
 	did := keybase1.DeviceID(deviceID1.String())
 
@@ -641,6 +648,11 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Signatu
 // This trusts the server for ctime, so a colluding server could use a revoked key and this check wouldn't notice.
 // Returns (validAtCtime, revoked, err)
 func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr UnboxingError) {
+	if b.testingValidSenderKey != nil {
+		b.log().Warning("Using TESTING jig. Not suitable for normal use.")
+		return b.testingValidSenderKey(ctx, sender, key, ctime)
+	}
+
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
 		return false, false, nil, NewPermanentUnboxingError(err)
