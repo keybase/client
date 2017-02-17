@@ -1766,9 +1766,6 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		SecretUI:    users[2].NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	// If we changed this to users[2].Username, the test will work.
-	// Something about logging in with an email on an existing device
-	// causes login to reuse an existing device.
 	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
