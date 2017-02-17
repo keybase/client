@@ -1,8 +1,10 @@
 // @flow
+import * as I from 'immutable'
+import Icon from './icon'
 import React, {Component} from 'react'
+import {NO_AVATAR} from './avatar'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../desktop/resolve-root'
-import {NO_AVATAR} from './avatar'
 
 import type {AvatarSize} from './avatar'
 
@@ -10,10 +12,11 @@ const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2
 
 type Props = {
   borderColor: ?string,
-  followsYou: ?boolean,
   following: ?boolean,
+  followsYou: ?boolean,
   loadingColor: ?string,
   onClick?: ?(() => void),
+  opacity: ?number,
   size: AvatarSize,
   style?: ?Object,
   url: ?string,
@@ -84,43 +87,40 @@ const Border = ({borderColor, size}) => (
   />
 )
 
+const followStateToType = I.fromJS({
+  '112': {
+    'theyNo': {'youYes': 'icon-following-28'},
+    'theyYes': {'youNo': 'icon-follow-me-28', 'youYes': 'icon-mutual-follow-28'},
+  },
+  '176': {
+    'theyNo': {'youYes': 'icon-following-32'},
+    'theyYes': {'youNo': 'icon-follow-me-32', 'youYes': 'icon-mutual-follow-32'},
+  },
+  '48': {
+    'theyNo': {'youYes': 'icon-following-21'},
+    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+  },
+  '64': {
+    'theyNo': {'youYes': 'icon-following-21'},
+    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+  },
+  '80': {
+    'theyNo': {'youYes': 'icon-following-21'},
+    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+  },
+})
+
+const followSizeToStyle = {
+  '112': {bottom: 0, left: 80, position: 'absolute'},
+  '176': {bottom: 6, left: 132, position: 'absolute'},
+  '48': {bottom: 0, left: 32, position: 'absolute'},
+  '64': {bottom: 0, left: 45, position: 'absolute'},
+  '80': {bottom: 0, left: 57, position: 'absolute'},
+}
+
 const FollowDots = ({size, following, followsYou}) => {
-  const circleSize = Math.round(size / 8)
-  const outlineSize = Math.round(circleSize / 4)
-
-  const followingDot = <div
-    style={{
-      background: following ? globalColors.green : globalColors.grey,
-      borderRadius: '100%',
-      bottom: Math.round(size / 20),
-      boxShadow: `0px 0px 0px ${outlineSize}px ${globalColors.white}`,
-      height: circleSize,
-      position: 'absolute',
-      right: Math.round(size / 10),
-      width: circleSize,
-    }}
-  />
-
-  const followsYouDot = followsYou ? <div
-    style={{
-      background: globalColors.white,
-      borderRadius: '100%',
-      bottom: Math.round((size / 20 + circleSize / 1.5)),
-      boxShadow: `0px 0px 0px ${outlineSize}px ${globalColors.white},
-      inset 0px 0px 0px ${outlineSize}px ${globalColors.green}`,
-      height: circleSize,
-      position: 'absolute',
-      right: Math.round((size / 10 - circleSize / 1.5)),
-      width: circleSize,
-    }}
-  /> : null
-
-  return (
-    <div>
-      {followsYouDot}
-      {followingDot}
-    </div>
-  )
+  const type = followStateToType.getIn([String(size), `they${followsYou ? 'Yes' : 'No'}`, `you${following ? 'Yes' : 'No'}`])
+  return type ? <Icon type={type} style={followSizeToStyle[size]} /> : null
 }
 
 class AvatarRender extends Component<void, Props, State> {
@@ -168,7 +168,7 @@ class AvatarRender extends Component<void, Props, State> {
           url={url === NO_AVATAR ? noAvatar : url}
         /> }
         {!!borderColor && <Border borderColor={borderColor} />}
-        {size > 16 && (following || followsYou) && <FollowDots following={following} followsYou={followsYou} size={size} />}
+        <FollowDots following={following} followsYou={followsYou} size={size} />
       </div>
     )
   }

@@ -565,6 +565,36 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folders-private-success-48.png'),
   },
+  'icon-follow-me-21': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-follow-me-21.png'),
+  },
+  'icon-follow-me-28': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-follow-me-28.png'),
+  },
+  'icon-follow-me-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-follow-me-32.png'),
+  },
+  'icon-following-21': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-following-21.png'),
+  },
+  'icon-following-28': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-following-28.png'),
+  },
+  'icon-following-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-following-32.png'),
+  },
   'icon-github-logo-16': {
     isFont: false,
     extension: 'png',
@@ -754,6 +784,21 @@ const iconMeta_ = {
     isFont: false,
     extension: 'gif',
     require: require('../images/icons/icon-loader-uploading-16.gif'),
+  },
+  'icon-mutual-follow-21': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-mutual-follow-21.png'),
+  },
+  'icon-mutual-follow-28': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-mutual-follow-28.png'),
+  },
+  'icon-mutual-follow-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-mutual-follow-32.png'),
   },
   'icon-no-gpg': {
     isFont: false,
