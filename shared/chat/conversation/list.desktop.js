@@ -399,6 +399,9 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _domNodeToRect (element) {
+    if (!document.body) {
+      throw new Error('Body not ready')
+    }
     const bodyRect = document.body.getBoundingClientRect()
     const elemRect = element.getBoundingClientRect()
 

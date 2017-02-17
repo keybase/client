@@ -13,6 +13,8 @@ import {
   checkRouteState,
 } from '../route-tree'
 
+import type {PathIterable} from '../route-tree'
+
 export const State = I.Record({
   routeDef: null,
   routeState: null,
@@ -36,7 +38,7 @@ function routeStateReducer (routeDef, routeState, action) {
       return routeSetProps(routeDef, null, [])
 
     case Constants.setRouteDef:
-      return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
+      return routeNavigate(action.payload.routeDef, routeState, (getPath(routeState): PathIterable<string>))
 
     case Constants.switchTo:
       return routeSetProps(routeDef, routeState, action.payload.path, action.payload.parentPath)
