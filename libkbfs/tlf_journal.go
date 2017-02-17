@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"fmt"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"time"
 
@@ -835,33 +834,16 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 		return err
 	}
 
-	// Keep the flushed blocks around until we know for sure the MD
-	// flush will succeed; otherwise if we become unmerged, conflict
-	// resolution will be very expensive.
-	err := j.blockJournal.saveBlocksUntilNextMDFlush()
-	if err != nil {
-		return err
-	}
-
 	storedBytesBefore := j.blockJournal.getStoredBytes()
 
 	// TODO: Check storedFiles also.
 
-	removedBytes, removedFiles, err := j.blockJournal.removeFlushedEntries(
+	err := j.blockJournal.removeFlushedEntries(
 		ctx, entries, j.tlfID, j.config.Reporter())
 	if err != nil {
 		return err
 	}
-	_ = removedFiles
-
 	storedBytesAfter := j.blockJournal.getStoredBytes()
-
-	// removedBytes should be zero since we're always saving
-	// blocks.
-	if removedBytes != 0 {
-		panic(fmt.Sprintf("removedBytes=%d unexpectedly non-zero",
-			removedBytes))
-	}
 
 	// storedBytes shouldn't change since removedBytes is 0.
 	if storedBytesAfter != storedBytesBefore {
@@ -1115,52 +1097,37 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 			rmds.MD.RevisionNumber())
 	}
 
-	// Remove saved blocks in chunks to avoid starving foreground file
-	// system operations that need the lock for too long.
-	var lastToRemove journalOrdinal
-	for {
-		nextLastToRemove, removedBytes, removedFiles, err := func() (journalOrdinal, int64, int64, error) {
-			j.journalLock.Lock()
-			defer j.journalLock.Unlock()
-			if err := j.checkEnabledLocked(); err != nil {
-				return 0, 0, 0, err
-			}
-
-			storedBytesBefore := j.blockJournal.getStoredBytes()
-
-			nextLastToRemove, removedBytes, removedFiles, err :=
-				j.blockJournal.onMDFlush(
-					ctx, maxSavedBlockRemovalsAtATime,
-					rmds.MD.RevisionNumber(), lastToRemove)
-			if err != nil {
-				return 0, 0, 0, err
-			}
-
-			storedBytesAfter := j.blockJournal.getStoredBytes()
-
-			if storedBytesAfter != (storedBytesBefore - removedBytes) {
-				panic(fmt.Sprintf(
-					"storedBytes changed from %d to %d, but removedBytes is %d",
-					storedBytesBefore, storedBytesAfter,
-					removedBytes))
-			}
-
-			return nextLastToRemove, removedBytes, removedFiles, nil
-		}()
-		if err != nil {
-			return err
+	blockJournal, err := func() (*blockJournal, error) {
+		j.journalLock.Lock()
+		defer j.journalLock.Unlock()
+		if err := j.checkEnabledLocked(); err != nil {
+			return nil, err
 		}
-		j.diskLimiter.onBlockDelete(ctx, removedBytes, removedFiles)
-		if nextLastToRemove == 0 {
-			break
-		}
-		lastToRemove = nextLastToRemove
-		// Explicitly allow other goroutines (such as foreground file
-		// system operations) to grab the lock to avoid starvation.
-		// See https://github.com/golang/go/issues/13086.
-		runtime.Gosched()
+		return j.blockJournal, nil
+	}()
+	if err != nil {
+		return err
 	}
 
+	// onMDFlush() only needs to be called under the flushLock, not
+	// the journalLock, as it doesn't touch the actual journal, only
+	// the deferred GC journal.
+	removedBytes, removedFiles, err := blockJournal.onMDFlush(ctx)
+	if err != nil {
+		return err
+	}
+
+	j.diskLimiter.onBlockDelete(ctx, removedBytes, removedFiles)
+
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return err
+	}
+	// TODO: if we crash before calling this, the journal bytes/files
+	// counts will be inaccurate.  I think the only way to fix that is
+	// a periodic repair scan?
+	j.blockJournal.unstoreBlock(removedBytes, removedFiles)
 	return nil
 }
 
@@ -1997,10 +1964,6 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// Then go through and mark blocks and md rev markers for ignoring.
 	err = j.blockJournal.ignoreBlocksAndMDRevMarkers(ctx, blocksToDelete,
 		rmd.Revision())
-	if err != nil {
-		return MdID{}, false, err
-	}
-	err = j.blockJournal.saveBlocksUntilNextMDFlush()
 	if err != nil {
 		return MdID{}, false, err
 	}
