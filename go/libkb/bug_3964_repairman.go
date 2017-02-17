@@ -74,7 +74,7 @@ func (b *bug3964Repairman) saveRepairmanVisit(nun NormalizedUsername) (err error
 	return err
 }
 
-func (b *bug3964Repairman) postToServer(lctx LoginContext, serverHalfSet *LKSecServerHalfSet, ppgen PassphraseGeneration) (err error) {
+func (b *bug3964Repairman) postToServer(lctx LoginContext, serverHalfSet *LKSecServerHalfSet, ppgen PassphraseGeneration, nun NormalizedUsername) (err error) {
 	defer b.G().Trace("bug3964Repairman#postToServer", func() error { return err })()
 	if serverHalfSet == nil {
 		return errors.New("internal error --- had nil server half set")
@@ -83,7 +83,7 @@ func (b *bug3964Repairman) postToServer(lctx LoginContext, serverHalfSet *LKSecS
 		Endpoint:    "user/bug_3964_repair",
 		NeedSession: true,
 		Args: HTTPArgs{
-			"device_id":         S{Val: b.G().Env.GetDeviceID().String()},
+			"device_id":         S{Val: b.G().Env.GetDeviceIDForUsername(nun).String()},
 			"ppgen":             I{Val: int(ppgen)},
 			"lks_server_halves": S{Val: serverHalfSet.EncodeToHexList()},
 		},
@@ -218,7 +218,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 		b.saveRepairmanVisit(nun)
 	}
 
-	err = b.postToServer(lctx, serverHalfSet, pps.Generation())
+	err = b.postToServer(lctx, serverHalfSet, pps.Generation(), nun)
 
 	return err
 }

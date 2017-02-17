@@ -127,7 +127,7 @@ func (e *DeviceHistory) loadDevices(user *libkb.User) error {
 			}
 		}
 
-		if e.G().Env.GetDeviceID().Eq(d.ID) {
+		if e.G().Env.GetDeviceIDForUsername(user.GetNormalizedName()).Eq(d.ID) {
 			exp.CurrentDevice = true
 		}
 
