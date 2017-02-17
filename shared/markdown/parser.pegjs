@@ -115,7 +115,7 @@ NativeEmoji
    let idx = 0
    while ((match = emojiExp.exec(emojiText)) !== null) {
      results.push(emojiText.substring(idx, match.index))
-     results.push({type: 'native-emoji', children: [emojiIndex[match[0]]]})
+     results.push({type: 'native-emoji', children: [emojiIndexByChar[match[0]]]})
      idx = match.index + match[0].length
    }
    results.push(emojiText.substring(idx, emojiText.length))

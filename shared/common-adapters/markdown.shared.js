@@ -1,9 +1,8 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {emojiIndex} from 'emoji-mart'
 import Emoji from './emoji'
 import Text from './text'
-import parser from '../markdown/parser'
+import parser, {emojiIndexByName} from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
 import type {MarkdownCreateComponent} from './markdown'
@@ -40,8 +39,8 @@ export function parseMarkdown (markdown: string = '', markdownCreateComponent: M
 
 export class EmojiIfExists extends PureComponent<void, EmojiProps & {style?: Object}, void> {
   render () {
-    const emoji = (this.props.children && this.props.children.join('')) || ''
-    const exists = emojiIndex.emojis.hasOwnProperty(emoji.split(':')[1])
-    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={this.props.style}>{emoji}</Text>
+    const emojiName = (this.props.children && this.props.children.join('')) || ''
+    const exists = !!emojiIndexByName[emojiName]
+    return exists ? <Emoji {...this.props} /> : <Text type='Body' style={this.props.style}>{emojiName}</Text>
   }
 }
