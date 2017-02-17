@@ -60,6 +60,7 @@ class Avatar extends Component<void, Props, State> {
 
   componentWillMount () {
     if (this.props.url) {
+      this.setState({url: this.props.url})
       // Just let it load the url, prefer this over username
     } else if (this.props.username) {
       this._loadUsername(this.props.username)
@@ -130,7 +131,7 @@ class Avatar extends Component<void, Props, State> {
       size={this.props.size}
       style={this.props.style}
       url={this.state.url}
-    />
+    >{this.props.children}</Render>
   }
 }
 
@@ -139,6 +140,7 @@ let _avatarToURL
 let _loadAvatarToURL
 
 const initLookup = (lookup: AvatarLookup) => {
+  // TODO get multiple for srcset
   _avatarToURL = lookup
 }
 

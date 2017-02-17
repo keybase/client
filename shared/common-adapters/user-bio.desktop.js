@@ -19,7 +19,6 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
               style={globalStyles.clickable}
               url={''}
               loadingColor={globalColors.lightGrey}
-              forceLoading={true}
               size={this.props.avatarSize}
               following={false}
               followsYou={false} />
@@ -72,7 +71,6 @@ class BioRender extends Component<void, Props, void> {
               style={globalStyles.clickable}
               url={userInfo.avatar}
               size={avatarSize}
-              onAvatarLoaded={this.props.onAvatarLoaded}
               following={currentlyFollowing && !editFns}
               followsYou={followsYou && !editFns} />
             {editFns &&

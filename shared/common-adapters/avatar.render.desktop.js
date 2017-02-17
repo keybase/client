@@ -8,10 +8,12 @@ import {resolveImageAsURL} from '../desktop/resolve-root'
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
 
+// hoist to parent and get all sizes for srcset
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
 
 type Props = {
   borderColor: ?string,
+  children: any,
   followIconType: ?IconType,
   followIconStyle: ?Object,
   loadingColor: ?string,
@@ -112,7 +114,7 @@ class AvatarRender extends Component<void, Props, State> {
   }
 
   render () {
-    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle} = this.props
+    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
     return (
       <div
         onClick={onClick}
@@ -133,6 +135,7 @@ class AvatarRender extends Component<void, Props, State> {
         /> }
         {!!borderColor && <Border borderColor={borderColor} />}
         {followIconType && <Icon type={followIconType} style={followIconStyle} />}
+        {children}
       </div>
     )
   }
