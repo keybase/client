@@ -235,6 +235,7 @@ func (b *Boxer) unlockV1(ctx context.Context, boxed chat1.MessageBoxed, encrypti
 	headerHash := b.hashV1(boxed.HeaderCiphertext.E)
 
 	// decrypt body
+	// will reamin empty if the body was deleted
 	var bodyVersioned chat1.BodyPlaintext
 	skipBodyVerification := false
 	if len(boxed.BodyCiphertext.E) == 0 {
@@ -419,7 +420,7 @@ func (b *Boxer) latestMerkleRoot() (*chat1.MerkleRoot, error) {
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 	tlfName := msg.ClientHeader.TlfName
-	var recentKey *keybase1.CryptKey
+	var encryptionKey *keybase1.CryptKey
 
 	if len(tlfName) == 0 {
 		return nil, NewBoxingError("blank TLF name given", true)
@@ -431,13 +432,18 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	}
 	msg.ClientHeader.TlfName = string(cres.NameIDBreaks.CanonicalName)
 	if msg.ClientHeader.TlfPublic {
-		recentKey = &publicCryptKey
+		encryptionKey = &publicCryptKey
 	} else {
 		for _, key := range cres.CryptKeys {
-			if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {
-				recentKey = &key
+			if encryptionKey == nil || key.KeyGeneration > encryptionKey.KeyGeneration {
+				encryptionKey = &key
 			}
 		}
+	}
+
+	if encryptionKey == nil {
+		msg := fmt.Sprintf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)
+		return nil, NewBoxingError(msg, false)
 	}
 
 	merkleRoot, err := b.latestMerkleRoot()
@@ -452,12 +458,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError(msg, true)
 	}
 
-	if recentKey == nil {
-		msg := fmt.Sprintf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)
-		return nil, NewBoxingError(msg, false)
-	}
-
-	boxed, err := b.boxMessageWithKeys(msg, recentKey, signingKeyPair)
+	boxed, err := b.lock(msg, encryptionKey, signingKeyPair, chat1.MessageBoxedVersion_V1)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
@@ -465,13 +466,25 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	return boxed, nil
 }
 
+func (b *Boxer) lock(messagePlaintext chat1.MessagePlaintext, encryptionKey *keybase1.CryptKey,
+	signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
+	switch version {
+	case chat1.MessageBoxedVersion_V1:
+		return b.lockV1(messagePlaintext, encryptionKey, signingKeyPair)
+	case chat1.MessageBoxedVersion_V2:
+		return b.lockV2(messagePlaintext, encryptionKey, signingKeyPair)
+	default:
+		return nil, fmt.Errorf("invalid version for boxing: %v", version)
+	}
+}
+
 // boxMessageWithKeys encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
+func (b *Boxer) lockV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 
 	body := chat1.BodyPlaintextV1{
-		MessageBody: msg.MessageBody,
+		MessageBody: messagePlaintext.MessageBody,
 	}
 	plaintextBody := chat1.NewBodyPlaintextWithV1(body)
 	encryptedBody, err := b.seal(plaintextBody, key)
@@ -483,16 +496,16 @@ func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.Cry
 
 	// create the v1 header, adding hash
 	header := chat1.HeaderPlaintextV1{
-		Conv:         msg.ClientHeader.Conv,
-		TlfName:      msg.ClientHeader.TlfName,
-		TlfPublic:    msg.ClientHeader.TlfPublic,
-		MessageType:  msg.ClientHeader.MessageType,
-		Prev:         msg.ClientHeader.Prev,
-		Sender:       msg.ClientHeader.Sender,
-		SenderDevice: msg.ClientHeader.SenderDevice,
+		Conv:         messagePlaintext.ClientHeader.Conv,
+		TlfName:      messagePlaintext.ClientHeader.TlfName,
+		TlfPublic:    messagePlaintext.ClientHeader.TlfPublic,
+		MessageType:  messagePlaintext.ClientHeader.MessageType,
+		Prev:         messagePlaintext.ClientHeader.Prev,
+		Sender:       messagePlaintext.ClientHeader.Sender,
+		SenderDevice: messagePlaintext.ClientHeader.SenderDevice,
 		BodyHash:     bodyHash[:],
-		OutboxInfo:   msg.ClientHeader.OutboxInfo,
-		OutboxID:     msg.ClientHeader.OutboxID,
+		OutboxInfo:   messagePlaintext.ClientHeader.OutboxInfo,
+		OutboxID:     messagePlaintext.ClientHeader.OutboxID,
 	}
 
 	// sign the header and insert the signature
@@ -510,13 +523,18 @@ func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.Cry
 	}
 
 	boxed := &chat1.MessageBoxed{
-		ClientHeader:     msg.ClientHeader,
+		ClientHeader:     messagePlaintext.ClientHeader,
 		BodyCiphertext:   *encryptedBody,
 		HeaderCiphertext: *encryptedHeader,
 		KeyGeneration:    key.KeyGeneration,
 	}
 
 	return boxed, nil
+}
+
+func (b *Boxer) lockV2(messagePlaintext chat1.MessagePlaintext, key *keybase1.CryptKey,
+	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+	return nil, fmt.Errorf("lockV2 not implemented")
 }
 
 // seal encrypts data into chat1.EncryptedData.
