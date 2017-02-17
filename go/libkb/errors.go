@@ -209,7 +209,11 @@ type UserNotFoundError struct {
 }
 
 func (u UserNotFoundError) Error() string {
-	return fmt.Sprintf("User %s wasn't found (%s)", u.UID, u.Msg)
+	uid := ""
+	if !u.UID.IsNil() {
+		uid = " " + string(u.UID)
+	}
+	return fmt.Sprintf("User%s wasn't found (%s)", uid, u.Msg)
 }
 
 //=============================================================================
@@ -1755,6 +1759,22 @@ type NeedOtherRekeyError struct {
 
 func (e NeedOtherRekeyError) Error() string {
 	return e.Msg
+}
+
+//=============================================================================
+
+type DeviceNotFoundError struct {
+	Where  string
+	ID     keybase1.DeviceID
+	Loaded bool
+}
+
+func (e DeviceNotFoundError) Error() string {
+	loaded := ""
+	if !e.Loaded {
+		loaded = " (no device keys loaded)"
+	}
+	return fmt.Sprintf("%s: no device found for ID=%s%s", e.Where, e.ID, loaded)
 }
 
 //=============================================================================

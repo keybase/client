@@ -169,4 +169,5 @@ dependencies {
     debugCompile 'com.hanhuy.android:viewserver:1.0.3'
     compile project(':keybaselib')
     testCompile 'junit:junit:4.12'
+    compile project(':react-native-camera')
 }

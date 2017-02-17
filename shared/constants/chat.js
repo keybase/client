@@ -45,7 +45,7 @@ export type TextMessage = {
   messageState: MessageState,
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
-  key: any,
+  key: MessageKey,
   editedCount: number, // increase as we edit it
 }
 
@@ -55,7 +55,7 @@ export type ErrorMessage = {
   timestamp?: number,
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
-  key: any,
+  key: MessageKey,
 }
 
 export type InvisibleErrorMessage = {
@@ -63,7 +63,7 @@ export type InvisibleErrorMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
-  key: any,
+  key: MessageKey,
   data: any,
 }
 
@@ -72,7 +72,7 @@ export type UnhandledMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
-  key: any,
+  key: MessageKey,
 }
 
 export type AttachmentSize = {
@@ -108,13 +108,13 @@ export type AttachmentMessage = {
   progress?: number, /* between 0 - 1 */
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
-  key: any,
+  key: MessageKey,
 }
 
 export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
-  key: any,
+  key: MessageKey,
 }
 
 export type SupersedesMessage = {
@@ -128,14 +128,14 @@ export type SupersedesMessage = {
 export type DeletedMessage = {
   type: 'Deleted',
   timestamp: number,
-  key: any,
+  key: MessageKey,
   messageID: MessageID,
   deletedIDs: Array<MessageID>,
 }
 
 export type EditingMessage = {
   type: 'Edit',
-  key: any,
+  key: MessageKey,
   message: HiddenString,
   messageID: MessageID,
   outboxID?: ?OutboxIDKey,
@@ -145,7 +145,7 @@ export type EditingMessage = {
 
 export type UpdatingAttachment = {
   type: 'UpdateAttachment',
-  key: any,
+  key: MessageKey,
   messageID: MessageID,
   targetMessageID: MessageID,
   timestamp: number,
@@ -537,6 +537,12 @@ function newestConversationIDKey (conversationIDKey: ConversationIDKey, chat: St
   return newestConversationIDKey(supersededBy.conversationIDKey, chat)
 }
 
+type MessageKey = string
+type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
+function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
+  return `${kind}:${value}`
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -545,6 +551,7 @@ export {
   keyToConversationID,
   keyToOutboxID,
   makeSnippet,
+  messageKey,
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,

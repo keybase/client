@@ -175,7 +175,7 @@ func (u *User) GetActivePGPKIDs(sibkey bool) (ret []keybase1.KID) {
 }
 
 func (u *User) GetDeviceSibkey() (GenericKey, error) {
-	did := u.G().Env.GetDeviceID()
+	did := u.G().Env.GetDeviceIDForUsername(u.GetNormalizedName())
 	if did.IsNil() {
 		return nil, NotProvisionedError{}
 	}
@@ -192,7 +192,7 @@ func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 		err = KeyFamilyError{"no key family available"}
 		return
 	}
-	did := u.G().Env.GetDeviceID()
+	did := u.G().Env.GetDeviceIDForUsername(u.GetNormalizedName())
 	if did.IsNil() {
 		err = NotProvisionedError{}
 		return
@@ -628,7 +628,7 @@ func (u *User) HasDeviceInCurrentInstall(did keybase1.DeviceID) bool {
 }
 
 func (u *User) HasCurrentDeviceInCurrentInstall() bool {
-	did := u.G().Env.GetDeviceID()
+	did := u.G().Env.GetDeviceIDForUsername(u.GetNormalizedName())
 	if did.IsNil() {
 		return false
 	}

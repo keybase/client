@@ -6,6 +6,7 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
+import com.lwansbrough.RCTCamera.RCTCameraPackage;
 
 import java.io.File;
 import java.util.Arrays;
@@ -33,7 +34,8 @@ public class MainApplication extends Application implements ReactApplication {
       return Arrays.<ReactPackage>asList(
               new MainReactPackage(),
               new KBReactPackage(logFile.getAbsolutePath()),
-              new ReactNativePushNotificationPackage()
+              new ReactNativePushNotificationPackage(),
+              new RCTCameraPackage()
       );
     }
 
