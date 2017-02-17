@@ -250,15 +250,6 @@ func GetTlfClient(g *libkb.GlobalContext) (cli keybase1.TlfClient, err error) {
 	return cli, nil
 }
 
-func GetFSClient(g *libkb.GlobalContext) (cli keybase1.FsClient, err error) {
-	rcli, _, err := GetRPCClientWithContext(g)
-	if err != nil {
-		return cli, err
-	}
-	cli = keybase1.FsClient{Cli: rcli}
-	return cli, nil
-}
-
 func GetUpdateClient(g *libkb.GlobalContext) (cli keybase1.UpdateClient, err error) {
 	rcli, _, err := GetRPCClientWithContext(g)
 	if err != nil {
