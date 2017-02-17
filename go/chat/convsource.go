@@ -272,7 +272,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, rl []*chat1.RateLimit, err error) {
-
+	defer s.Trace(ctx, func() error { return err }, "Pull")()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
 	}

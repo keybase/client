@@ -301,15 +301,15 @@ func (d DebugLabeler) showLog() bool {
 
 func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
 	if d.showLog() {
-		d.G().Log.CDebugf(ctx, "++Chat: "+d.label+": "+msg, args...)
+		d.G().Log.CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
 	}
 }
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) func() {
 	if d.showLog() {
-		d.G().Log.CDebugf(ctx, "++Chat: %s: + %s", d.label, msg)
+		d.G().Log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.G().Log.CDebugf(ctx, "++Chat: %s: - %s -> %s", d.label, msg,
+			d.G().Log.CDebugf(ctx, "++Chat: - %s: %s -> %s", d.label, msg,
 				libkb.ErrToOk(f()))
 		}
 	}

@@ -755,6 +755,7 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 			Query: &chat1.GetInboxLocalQuery{
 				ConvID: &id,
 			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		if err != nil {
 			c.G().Log.Warning("GetInboxLocal error: %s", err)
@@ -797,10 +798,11 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 	}
 
 	findRes, err := client.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
-		TlfName:    tlfName,
-		Visibility: vis,
-		TopicType:  tt,
-		TopicName:  channel.TopicName,
+		TlfName:          tlfName,
+		Visibility:       vis,
+		TopicType:        tt,
+		TopicName:        channel.TopicName,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return nil, nil, err
