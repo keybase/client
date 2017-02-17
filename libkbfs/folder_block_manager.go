@@ -1163,6 +1163,8 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 			// want forced reclamations to hang.
 			timer.Stop()
 			timerChan = make(chan time.Time)
+			fbm.log.CDebugf(context.Background(),
+				"Permanently stopping QR due to error: %+v", err)
 		}
 	}
 }
