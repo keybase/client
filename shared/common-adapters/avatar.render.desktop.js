@@ -47,29 +47,15 @@ const Background = ({loaded, loadingColor}) => (
     }} />
 )
 
-type ImageState ={
-  errored: boolean,
-}
-
-class Image extends PureComponent<void, ImageProps, ImageState> {
-  state: ImageState = {
-    errored: false,
-  }
-
-  _onError = () => {
-    this.props.onError()
-    this.setState({errored: true})
-  }
-
+class Image extends PureComponent<void, ImageProps, void> {
   render () {
-    const {url, size, onLoad, fallback, opacity = 1} = this.props
+    const {url, size, fallback, opacity = 1} = this.props
+
     return (
-      <img
-        srcSet={this.state.errored ? fallback : url}
-        sizes={`${size}px`}
-        onLoad={onLoad}
-        onError={this._onError}
+      <div
         style={{
+          backgroundImage: url,
+          backgroundSize: 'cover',
           borderRadius: '50%',
           bottom: 0,
           height: size,

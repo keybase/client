@@ -5,7 +5,7 @@ import Box from './box'
 import React, {Component} from 'react'
 import Render from './avatar.render.desktop'
 import {globalColors} from '../styles'
-import {iconTypeToSrcSet, urlsToSrcSet} from './icon'
+import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
 
 import type {Props, AvatarLookup, AvatarLoad, URLMap} from './avatar'
@@ -101,7 +101,7 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _noAvatar () {
-    return iconTypeToSrcSet(placeHolders[String(this.props.size)])
+    return iconTypeToImgSet(placeHolders[String(this.props.size)])
   }
 
   _urlMapsToUrl (urlMap: ?URLMap) {
@@ -109,7 +109,39 @@ class Avatar extends Component<void, Props, State> {
       return null
     }
 
-    return urlsToSrcSet(urlMap) || this._noAvatar()
+    const low = urlMap['40'] || urlMap['200'] || urlMap['360']
+    const medium = urlMap['200'] || urlMap['360'] || urlMap['40']
+    const high = urlMap['360'] || urlMap['200'] || urlMap['40']
+
+    let imgs = []
+    switch (this.props.size) {
+      case 176:
+      case 112: // fallthrough
+        imgs = [medium, high]
+        break
+      case 80:
+      case 64: // fallthrough
+      case 48: // fallthrough
+        imgs = [medium, medium]
+        break
+      case 40:
+      case 32: // fallthrough
+        imgs = [low, medium]
+        break
+      case 24:
+      case 16: // fallthrough
+        imgs = [low, low]
+        break
+    }
+
+    const m = imgs.reduce((map, img, idx) => {
+      if (img) {
+        map[String(idx + 1)] = img
+      }
+      return map
+    }, {})
+
+    return urlsToImgSet(m) || this._noAvatar()
   }
 
   _loadUsername (username: string) {
@@ -169,7 +201,6 @@ let _avatarToURL
 let _loadAvatarToURL
 
 const initLookup = (lookup: AvatarLookup) => {
-  // TODO get multiple for srcset
   _avatarToURL = lookup
 }
 
