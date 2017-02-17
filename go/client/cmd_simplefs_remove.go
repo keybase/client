@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSRemove is the 'simplefs rm' command.
+// CmdSimpleFSRemove is the 'fs rm' command.
 type CmdSimpleFSRemove struct {
 	libkb.Contextified
 	path keybase1.Path

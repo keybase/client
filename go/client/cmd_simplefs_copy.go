@@ -15,7 +15,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// CmdSimpleFSCopy is the 'simplefs cp' command.
+// CmdSimpleFSCopy is the 'fs cp' command.
 type CmdSimpleFSCopy struct {
 	libkb.Contextified
 	src     keybase1.Path
