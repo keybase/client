@@ -265,6 +265,8 @@ func (e *loginProvision) paper(ctx *Context, device *libkb.Device) error {
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
 
+		lctx.EnsureUsername(e.arg.User.GetNormalizedName())
+
 		// need lksec to store device keys locally
 		if err := e.fetchLKS(ctx, kp.encKey); err != nil {
 			return err
@@ -329,6 +331,9 @@ func (e *loginProvision) pgpProvision(ctx *Context) error {
 	// It tries to get the pgp key and uses it to provision new device keys for this device.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
+
+		lctx.EnsureUsername(e.arg.User.GetNormalizedName())
+
 		signer, err := e.syncedPGPKey(ctx)
 		if err != nil {
 			return err
@@ -664,6 +669,9 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 	// It signs this new device with the selected gpg key.
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		ctx.LoginContext = lctx
+
+		lctx.EnsureUsername(e.arg.User.GetNormalizedName())
+
 		if err := e.makeDeviceKeysWithSigner(ctx, signingKey); err != nil {
 			return err
 		}
@@ -870,12 +878,24 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 	}
 	args.IsEldest = true
 
-	if err := e.makeDeviceKeys(ctx, args); err != nil {
+	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+		a.EnsureUsername(e.arg.User.GetNormalizedName())
+		ctx.LoginContext = a
+
+		if err = e.makeDeviceKeys(ctx, args); err != nil {
+			return
+		}
+
+		// save provisioned device id in the session
+		err = a.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID())
+	}, "makeEldestDevice")
+	if err != nil {
 		return err
 	}
-
-	// save provisioned device id in the session
-	return e.setSessionDeviceID(e.G().Env.GetDeviceID())
+	if aerr != nil {
+		return aerr
+	}
+	return nil
 }
 
 // ensurePaperKey checks to see if e.user has any paper keys.  If
@@ -955,16 +975,6 @@ func (e *loginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
 	}
 	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.arg.User.GetUID(), e.G())
 	return nil
-}
-
-func (e *loginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
-	var serr error
-	if err := e.G().LoginState().LocalSession(func(s *libkb.Session) {
-		serr = s.SetDeviceProvisioned(id)
-	}, "loginProvision - device"); err != nil {
-		return err
-	}
-	return serr
 }
 
 func (e *loginProvision) displaySuccess(ctx *Context) error {
