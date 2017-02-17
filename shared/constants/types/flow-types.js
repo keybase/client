@@ -1521,18 +1521,6 @@ export function favoriteGetFavoritesRpcPromise (request: $Exact<requestCommon & 
   return new Promise((resolve, reject) => { favoriteGetFavoritesRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function fsListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'keybase.1.fs.List'})
-}
-
-export function fsListRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => fsListRpc({...request, incomingCallMap, callback}))
-}
-
-export function fsListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>): Promise<fsListResult> {
-  return new Promise((resolve, reject) => { fsListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
 export function gregorGetStateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.gregor.getState'})
 }
@@ -3436,10 +3424,6 @@ export type Feature = {
   label: string,
 }
 
-export type File = {
-  path: string,
-}
-
 export type FileContent = {
   data: bytes,
   progress: Progress,
@@ -3720,10 +3704,6 @@ export type LinkID = string
 export type ListArgs = {
   opID: OpID,
   path: Path,
-}
-
-export type ListResult = {
-  files?: ?Array<File>,
 }
 
 export type LoadDeviceErr = {
@@ -4968,10 +4948,6 @@ export type favoriteFavoriteIgnoreRpcParam = Exact<{
   folder: Folder
 }>
 
-export type fsListRpcParam = Exact<{
-  path: string
-}>
-
 export type gpgUiSelectKeyAndPushOptionRpcParam = Exact<{
   keys?: ?Array<GPGKey>
 }>
@@ -5803,8 +5779,6 @@ type deviceDeviceListResult = ?Array<Device>
 
 type favoriteGetFavoritesResult = FavoritesResult
 
-type fsListResult = ListResult
-
 type gpgUiConfirmDuplicateKeyChosenResult = boolean
 
 type gpgUiGetTTYResult = string
@@ -6074,7 +6048,6 @@ export type rpc =
   | favoriteFavoriteAddRpc
   | favoriteFavoriteIgnoreRpc
   | favoriteGetFavoritesRpc
-  | fsListRpc
   | gregorGetStateRpc
   | identifyIdentify2Rpc
   | identifyIdentifyRpc
