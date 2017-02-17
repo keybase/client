@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Image, NativeModules} from 'react-native'
+import {NativeModules} from 'react-native'
 import {connect} from 'react-redux'
 import {Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
