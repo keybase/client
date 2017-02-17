@@ -82,20 +82,20 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
-	var matchKey *keybase1.CryptKey
+	var encryptionKey *keybase1.CryptKey
 	for _, key := range keys.CryptKeys {
 		if key.KeyGeneration == boxed.KeyGeneration {
-			matchKey = &key
+			encryptionKey = &key
 			break
 		}
 	}
 
-	if matchKey == nil {
+	if encryptionKey == nil {
 		err := fmt.Errorf("no key found for generation %d", boxed.KeyGeneration)
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
-	umwkr, ierr := b.unboxMessageWithKey(ctx, boxed, matchKey)
+	unboxed, ierr := b.unlock(ctx, boxed, encryptionKey)
 	if ierr != nil {
 		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
@@ -104,39 +104,62 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 		}
 		return chat1.MessageUnboxed{}, ierr
 	}
-	pt := umwkr.messagePlaintext
+	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
+}
 
-	username, deviceName, deviceType, err := b.getSenderInfoLocal(ctx, pt.ClientHeader)
+func (b *Boxer) unlock(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+	switch boxed.Version {
+	case chat1.MessageBoxedVersion_VNONE, chat1.MessageBoxedVersion_V1:
+		return b.unlockV1(ctx, boxed, encryptionKey)
+	case chat1.MessageBoxedVersion_V2:
+		return b.unlockV2(ctx, boxed, encryptionKey)
+	default:
+		return nil,
+			NewPermanentUnboxingError(NewMessageBoxedVersionError(boxed.Version))
+	}
+}
+
+// TODO probably remove this function
+// Check to run on the sender in the middle of unboxing
+// Returns an error if the verifyKey does not match
+/*
+func (b *Boxer) unboxCheck(ctx context.Context, arg SenderCheckArg) (SenderCheckResult, UnboxingError) {
+	res := SenderCheckResult{}
+
+	// Check the verify key
+	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, arg.Sender, arg.VerifyKey, arg.Ctime)
+	if ierr != nil {
+		return res, ierr
+	}
+	if !found {
+		return res,
+			NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
+	}
+	if !validAtCtime {
+		return res,
+			NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
+	}
+
+	// Get sender info
+	username, deviceName, deviceType, err := b.getSenderInfoLocal(ctx, arg.Sender, arg.SenderDevice)
 	if err != nil {
 		b.Debug(ctx, "unable to fetch sender and device informaton: UID: %s deviceID: %s",
-			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
+			arg.Sender, arg.SenderDevice)
 		// try to just get username
-		username, err = b.getSenderUsername(ctx, pt.ClientHeader)
+		username, err = b.getSenderUsername(ctx, arg.Sender)
 		if err != nil {
 			b.Debug(ctx, "failed to fetch sender username after initial error: err: %s", err.Error())
 		}
 	}
 
-	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
-		ClientHeader:          pt.ClientHeader,
-		ServerHeader:          *boxed.ServerHeader,
-		MessageBody:           pt.MessageBody,
+	return SenderCheckResult{
 		SenderUsername:        username,
 		SenderDeviceName:      deviceName,
 		SenderDeviceType:      deviceType,
-		HeaderHash:            umwkr.headerHash,
-		HeaderSignature:       umwkr.headerSignature,
-		SenderDeviceRevokedAt: umwkr.senderDeviceRevokedAt,
-	}), nil
-
+		SenderDeviceRevokedAt: revoked,
+	}, nil
 }
-
-type unboxMessageWithKeyRes struct {
-	messagePlaintext      chat1.MessagePlaintext
-	headerHash            chat1.Hash
-	headerSignature       *chat1.SignatureInfo
-	senderDeviceRevokedAt *gregor1.Time
-}
+*/
 
 func (b *Boxer) headerUnsupported(ctx context.Context, headerVersion chat1.HeaderPlaintextVersion,
 	header chat1.HeaderPlaintext) chat1.HeaderPlaintextUnsupported {
@@ -200,56 +223,56 @@ func (b *Boxer) bodyUnsupported(ctx context.Context, bodyVersion chat1.BodyPlain
 	}
 }
 
-// unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
+// unlockV1 unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
-func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed, key *keybase1.CryptKey) (unboxMessageWithKeyRes, UnboxingError) {
+func (b *Boxer) unlockV1(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
 	var err error
-	if msg.ServerHeader == nil {
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
+	if boxed.ServerHeader == nil {
+		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
 
 	// compute the header hash
-	headerHash := b.hashV1(msg.HeaderCiphertext.E)
+	headerHash := b.hashV1(boxed.HeaderCiphertext.E)
 
 	// decrypt body
-	var body chat1.BodyPlaintext
+	var bodyVersioned chat1.BodyPlaintext
 	skipBodyVerification := false
-	if len(msg.BodyCiphertext.E) == 0 {
-		if msg.ServerHeader.SupersededBy == 0 {
-			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(errors.New("empty body and not superseded in MessageBoxed"))
+	if len(boxed.BodyCiphertext.E) == 0 {
+		if boxed.ServerHeader.SupersededBy == 0 {
+			return nil, NewPermanentUnboxingError(errors.New("empty body and not superseded in MessageBoxed"))
 		}
 		skipBodyVerification = true
 	} else {
-		packedBody, err := b.open(msg.BodyCiphertext, key)
+		packedBody, err := b.open(boxed.BodyCiphertext, encryptionKey)
 		if err != nil {
-			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
+			return nil, NewPermanentUnboxingError(err)
 		}
-		if err := b.unmarshal(packedBody, &body); err != nil {
-			return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
+		if err := b.unmarshal(packedBody, &bodyVersioned); err != nil {
+			return nil, NewPermanentUnboxingError(err)
 		}
 	}
 
 	// decrypt header
-	packedHeader, err := b.open(msg.HeaderCiphertext, key)
+	packedHeader, err := b.open(boxed.HeaderCiphertext, encryptionKey)
 	if err != nil {
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
+		return nil, NewPermanentUnboxingError(err)
 	}
 	var header chat1.HeaderPlaintext
 	if err := b.unmarshal(packedHeader, &header); err != nil {
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
+		return nil, NewPermanentUnboxingError(err)
 	}
 
 	// verify the message
-	validity, ierr := b.verifyMessage(ctx, header, msg, skipBodyVerification)
+	validity, ierr := b.verifyMessage(ctx, header, boxed, skipBodyVerification)
 	if ierr != nil {
-		return unboxMessageWithKeyRes{}, ierr
+		return nil, ierr
 	}
 
 	// create a chat1.MessageClientHeader from versioned HeaderPlaintext
 	var clientHeader chat1.MessageClientHeader
 	headerVersion, err := header.Version()
 	if err != nil {
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
+		return nil, NewPermanentUnboxingError(err)
 	}
 
 	var headerSignature *chat1.SignatureInfo
@@ -269,49 +292,51 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			OutboxID:     hp.OutboxID,
 		}
 	default:
-		return unboxMessageWithKeyRes{},
+		return nil,
 			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
 				b.headerUnsupported(ctx, headerVersion, header)))
 	}
 
-	if skipBodyVerification {
-		// body was deleted, so return empty body that matches header version
-		switch headerVersion {
-		case chat1.HeaderPlaintextVersion_V1:
-			return unboxMessageWithKeyRes{
-				messagePlaintext:      chat1.MessagePlaintext{ClientHeader: clientHeader},
-				headerHash:            headerHash,
-				headerSignature:       headerSignature,
-				senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
-			}, nil
+	// TODO check for inner outer match of sender?
+
+	senderUsername, senderDeviceName, senderDeviceType := b.getSenderInfoLocal(
+		ctx, clientHeader.Sender, clientHeader.SenderDevice)
+
+	// create a chat1.MessageBody from versioned chat1.BodyPlaintext
+	// Will remain empty if the body was deleted.
+	var body chat1.MessageBody
+	if !skipBodyVerification {
+		bodyVersion, err := bodyVersioned.Version()
+		if err != nil {
+			return nil, NewPermanentUnboxingError(err)
+		}
+		switch bodyVersion {
+		case chat1.BodyPlaintextVersion_V1:
+			body = bodyVersioned.V1().MessageBody
 		default:
-			return unboxMessageWithKeyRes{},
-				NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
-					b.headerUnsupported(ctx, headerVersion, header)))
+			return nil,
+				NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
+					b.bodyUnsupported(ctx, bodyVersion, bodyVersioned)))
 		}
 	}
 
-	// create an unboxed message from versioned BodyPlaintext and clientHeader
-	bodyVersion, err := body.Version()
-	if err != nil {
-		return unboxMessageWithKeyRes{}, NewPermanentUnboxingError(err)
-	}
-	switch bodyVersion {
-	case chat1.BodyPlaintextVersion_V1:
-		return unboxMessageWithKeyRes{
-			messagePlaintext: chat1.MessagePlaintext{
-				ClientHeader: clientHeader,
-				MessageBody:  body.V1().MessageBody,
-			},
-			headerHash:            headerHash,
-			headerSignature:       headerSignature,
-			senderDeviceRevokedAt: validity.senderDeviceRevokedAt,
-		}, nil
-	default:
-		return unboxMessageWithKeyRes{},
-			NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
-				b.bodyUnsupported(ctx, bodyVersion, body)))
-	}
+	// create an unboxed message
+	return &chat1.MessageUnboxedValid{
+		ClientHeader:          clientHeader,
+		ServerHeader:          *boxed.ServerHeader,
+		MessageBody:           body,
+		SenderUsername:        senderUsername,
+		SenderDeviceName:      senderDeviceName,
+		SenderDeviceType:      senderDeviceType,
+		HeaderHash:            headerHash,
+		HeaderSignature:       nil,
+		VerificationKey:       &headerSignature.K,
+		SenderDeviceRevokedAt: validity.senderDeviceRevokedAt,
+	}, nil
+}
+
+func (b *Boxer) unlockV2(ctx context.Context, msg chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+	return nil, NewTransientUnboxingError(fmt.Errorf("unlockV2 not implemented"))
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
@@ -336,18 +361,30 @@ func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, devi
 	return nun.String(), devName, devType, nil
 }
 
-func (b *Boxer) getSenderUsername(ctx context.Context, clientHeader chat1.MessageClientHeader) (string, error) {
-	name, err := b.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(clientHeader.Sender.String()))
+func (b *Boxer) getUsername(ctx context.Context, uid keybase1.UID) (string, error) {
+	name, err := b.G().GetUPAKLoader().LookupUsername(ctx, uid)
 	if err != nil {
 		return "", err
 	}
 	return name.String(), nil
 }
 
-func (b *Boxer) getSenderInfoLocal(ctx context.Context, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
-	uid := keybase1.UID(clientHeader.Sender.String())
-	did := keybase1.DeviceID(clientHeader.SenderDevice.String())
-	return b.getUsernameAndDevice(ctx, uid, did)
+// Any of (senderUsername, senderDeviceName, senderDeviceType) coudl be empty strings because of non-critical failures.
+func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
+	uid := keybase1.UID(uid1.String())
+	did := keybase1.DeviceID(deviceID1.String())
+
+	username, deviceName, deviceType, err := b.getUsernameAndDevice(ctx, uid, did)
+	if err != nil {
+		b.Debug(ctx, "unable to fetch sender and device informaton: UID: %s deviceID: %s",
+			uid1, deviceID1)
+		// try to just get username
+		username, err = b.getUsername(ctx, uid)
+		if err != nil {
+			b.Debug(ctx, "failed to fetch sender username after initial error: err: %s", err.Error())
+		}
+	}
+	return username, deviceName, deviceType
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) (unboxed []chat1.MessageUnboxed, err error) {
