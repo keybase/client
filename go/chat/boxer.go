@@ -119,48 +119,6 @@ func (b *Boxer) unlock(ctx context.Context, boxed chat1.MessageBoxed, encryption
 	}
 }
 
-// TODO probably remove this function
-// Check to run on the sender in the middle of unboxing
-// Returns an error if the verifyKey does not match
-/*
-func (b *Boxer) unboxCheck(ctx context.Context, arg SenderCheckArg) (SenderCheckResult, UnboxingError) {
-	res := SenderCheckResult{}
-
-	// Check the verify key
-	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, arg.Sender, arg.VerifyKey, arg.Ctime)
-	if ierr != nil {
-		return res, ierr
-	}
-	if !found {
-		return res,
-			NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
-	}
-	if !validAtCtime {
-		return res,
-			NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
-	}
-
-	// Get sender info
-	username, deviceName, deviceType, err := b.getSenderInfoLocal(ctx, arg.Sender, arg.SenderDevice)
-	if err != nil {
-		b.Debug(ctx, "unable to fetch sender and device informaton: UID: %s deviceID: %s",
-			arg.Sender, arg.SenderDevice)
-		// try to just get username
-		username, err = b.getSenderUsername(ctx, arg.Sender)
-		if err != nil {
-			b.Debug(ctx, "failed to fetch sender username after initial error: err: %s", err.Error())
-		}
-	}
-
-	return SenderCheckResult{
-		SenderUsername:        username,
-		SenderDeviceName:      deviceName,
-		SenderDeviceType:      deviceType,
-		SenderDeviceRevokedAt: revoked,
-	}, nil
-}
-*/
-
 func (b *Boxer) headerUnsupported(ctx context.Context, headerVersion chat1.HeaderPlaintextVersion,
 	header chat1.HeaderPlaintext) chat1.HeaderPlaintextUnsupported {
 	switch headerVersion {
@@ -235,7 +193,7 @@ func (b *Boxer) unlockV1(ctx context.Context, boxed chat1.MessageBoxed, encrypti
 	headerHash := b.hashV1(boxed.HeaderCiphertext.E)
 
 	// decrypt body
-	// will reamin empty if the body was deleted
+	// will remain empty if the body was deleted
 	var bodyVersioned chat1.BodyPlaintext
 	skipBodyVerification := false
 	if len(boxed.BodyCiphertext.E) == 0 {
@@ -264,7 +222,7 @@ func (b *Boxer) unlockV1(ctx context.Context, boxed chat1.MessageBoxed, encrypti
 	}
 
 	// verify the message
-	validity, ierr := b.verifyMessage(ctx, header, boxed, skipBodyVerification)
+	validity, ierr := b.verifyMessageV1(ctx, header, boxed, skipBodyVerification)
 	if ierr != nil {
 		return nil, ierr
 	}
@@ -370,7 +328,7 @@ func (b *Boxer) getUsername(ctx context.Context, uid keybase1.UID) (string, erro
 	return name.String(), nil
 }
 
-// Any of (senderUsername, senderDeviceName, senderDeviceType) coudl be empty strings because of non-critical failures.
+// Any of (senderUsername, senderDeviceName, senderDeviceType) could be empty strings because of non-critical failures.
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
 	uid := keybase1.UID(uid1.String())
 	did := keybase1.DeviceID(deviceID1.String())
@@ -604,7 +562,8 @@ type verifyMessageRes struct {
 }
 
 // verifyMessage checks that a message is valid.
-func (b *Boxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext, msg chat1.MessageBoxed, skipBodyVerification bool) (verifyMessageRes, UnboxingError) {
+// Only works on MessageBoxedVersion_V1
+func (b *Boxer) verifyMessageV1(ctx context.Context, header chat1.HeaderPlaintext, msg chat1.MessageBoxed, skipBodyVerification bool) (verifyMessageRes, UnboxingError) {
 	headerVersion, err := header.Version()
 	if err != nil {
 		return verifyMessageRes{}, NewPermanentUnboxingError(err)
@@ -630,17 +589,6 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 		}
 	}
 
-	// check signature
-	hcopy := header
-	hcopy.HeaderSignature = nil
-	hpack, err := b.marshal(hcopy)
-	if err != nil {
-		return verifyMessageRes{}, NewPermanentUnboxingError(err)
-	}
-	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChat) {
-		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.BadSigError{E: "header signature invalid"})
-	}
-
 	// check key validity
 	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
 	if ierr != nil {
@@ -651,6 +599,17 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	}
 	if !validAtCtime {
 		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
+	}
+
+	// check signature
+	hcopy := header
+	hcopy.HeaderSignature = nil
+	hpack, err := b.marshal(hcopy)
+	if err != nil {
+		return verifyMessageRes{}, NewPermanentUnboxingError(err)
+	}
+	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChat) {
+		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.BadSigError{E: "header signature invalid"})
 	}
 
 	return verifyMessageRes{
