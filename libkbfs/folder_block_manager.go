@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/keybase/kbfs/tlf"
@@ -942,6 +943,15 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 	for _, id := range zeroRefCounts {
 		gco.AddUnrefBlock(BlockPointer{ID: id})
 	}
+
+	// For now, pretend to be a rekey so the service suppresses
+	// popups.  TODO: add a more specific behavior type for QR.
+	ctx, err := makeExtendedIdentify(
+		ctx, keybase1.TLFIdentifyBehavior_KBFS_REKEY)
+	if err != nil {
+		return err
+	}
+
 	fbm.log.CDebugf(ctx, "Finalizing reclamation %s with %d ptrs", gco,
 		len(ptrs))
 	// finalizeGCOp could wait indefinitely on locks, so run it in a
