@@ -97,7 +97,6 @@ class AvatarRender extends PureComponent<void, Props, State> {
 
   _onLoadOrError = (event) => {
     if (this._mounted) {
-      console.log('aaaaa', this.props.url, true)
       this.setState({loaded: true})
     }
     this._image = null
@@ -105,7 +104,6 @@ class AvatarRender extends PureComponent<void, Props, State> {
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.url !== nextProps.url) {
-      console.log('aaaaa', this.props.url, false)
       this.setState({loaded: false})
       this._internalLoad(nextProps.url)
     }
