@@ -36,10 +36,16 @@
 }
 
 start
- = children:((Line LineTerminatorSequence)* Line?) { return {type: 'markup', children: flatten(children)} }
+ = BlankLine* children:((Line LineTerminatorSequence / NonEndBlankLine)* Line?) BlankLine* WhiteSpace* { return {type: 'markup', children: flatten(children)} }
 
 Line
- = (QuoteBlock / CodeBlock / TextBlock)*
+ = (QuoteBlock / CodeBlock / TextBlock)+
+
+BlankLine
+ = children:WhiteSpace* LineTerminatorSequence { return {type: 'text-block', children} }
+
+NonEndBlankLine
+ = BlankLine !(BlankLine* WhiteSpace* !.)  // excludes groups of blank lines at the end of the input
 
 TextBlock
  = children:(__INLINE_MACRO__<> / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }

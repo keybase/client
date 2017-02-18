@@ -68,7 +68,7 @@ function messageCreateComponent (type, key, children, options) {
     case 'link':
       return <Text type='BodyPrimaryLink' key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
     case 'text-block':
-      return <Text type='Body' key={key} style={textBlockStyle}>{children}</Text>
+      return <Text type='Body' key={key} style={textBlockStyle}>{children.length ? children : '\u200b'}</Text>
     case 'bold':
       return <Text type='BodySemibold' key={key} style={boldStyle}>{children}</Text>
     case 'italic':

@@ -892,6 +892,17 @@ this is a code block that starts with a newline and ends with a newline
 this is a code block with two newline above\`\`\`
 `,
     },
+    'Blank lines': {
+      children: `
+
+        hello
+
+
+        world
+
+
+      `,
+    },
   },
 }
 

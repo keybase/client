@@ -1,3 +1,31 @@
+exports[`Markdown parser eats multiple empty lines at end 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "end",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser eats multiple empty lines at start 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "start",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses a line with just whitespace correctly 1`] = `
 Object {
   "children": Array [
@@ -867,6 +895,40 @@ Object {
           "type": "link",
         },
         "?",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser preserves multiple empty lines 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "be",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "   ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "tween",
       ],
       "type": "text-block",
     },

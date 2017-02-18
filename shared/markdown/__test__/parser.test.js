@@ -18,6 +18,21 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
+  it('eats multiple empty lines at start', () => {
+    const ast = parser.parse('    \n\n\n\nstart')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('eats multiple empty lines at end', () => {
+    const ast = parser.parse('end\n\n\n\n   ')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('preserves multiple empty lines', () => {
+    const ast = parser.parse('be\n\n   \n\ntween')
+    expect(ast).toMatchSnapshot()
+  })
+
   it('parses multiple adjacent emoji correctly', () => {
     const ast = parser.parse(':ok_hand::skin-tone-2::smile::wink:')
     expect(ast).toMatchSnapshot()
