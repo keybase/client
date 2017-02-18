@@ -49,7 +49,7 @@ const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingL
 function previewCreateComponent (type, key, children, options) {
   switch (type) {
     case 'emoji':
-      return <EmojiIfExists preview={true} size={13} key={key} style={neutralPreviewStyle}>{children}</EmojiIfExists>
+      return <EmojiIfExists size={13} key={key} style={neutralPreviewStyle}>{children}</EmojiIfExists>
     case 'native-emoji':
       return <Emoji size={16} key={key}>{children}</Emoji>
     default:

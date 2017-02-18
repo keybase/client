@@ -47,7 +47,7 @@ function previewCreateComponent (style) {
   return function (type, key, children, options, style) {
     switch (type) {
       case 'emoji':
-        return <EmojiIfExists preview={true} key={key}>{children}</EmojiIfExists>
+        return <EmojiIfExists key={key}>{children}</EmojiIfExists>
       case 'native-emoji':
         return <Emoji key={key}>{children}</Emoji>
       default:
