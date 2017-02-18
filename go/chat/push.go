@@ -157,7 +157,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		uid := m.UID().Bytes()
 
 		var conv *chat1.ConversationLocal
-		decmsg, appended, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
+		decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.Debug(ctx, "chat activity: unable to storage message: %s", err.Error())
 		}
@@ -165,26 +165,35 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 			g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 		}
 
-		// Make a pagination object so client can use it in GetThreadLocal
-		pmsgs := []pager.Message{nm.Message}
-		pager := pager.NewThreadPager()
-		page, err := pager.MakePage(pmsgs, 1)
-		if err != nil {
-			g.Debug(ctx, "chat activity: error making page: %s", err.Error())
+		// If we have no error on this message, then notify the frontend
+		if pushErr == nil {
+			// Make a pagination object so client can use it in GetThreadLocal
+			pmsgs := []pager.Message{nm.Message}
+			pager := pager.NewThreadPager()
+			page, err := pager.MakePage(pmsgs, 1)
+			if err != nil {
+				g.Debug(ctx, "chat activity: error making page: %s", err.Error())
+			}
+			activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
+				Message:    decmsg,
+				ConvID:     nm.ConvID,
+				Conv:       conv,
+				Pagination: page,
+			})
 		}
-
-		activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message:    decmsg,
-			ConvID:     nm.ConvID,
-			Conv:       conv,
-			Pagination: page,
-		})
 
 		// If this message was not "appended", meaning there is a hole between what we have in cache,
 		// and this message, then we send out a notification that this thread should be considered
-		// stale
-		if !appended {
-			g.Debug(ctx, "chat activity: newMessage: non-append message, alerting")
+		// stale.
+		// We also get here if we had an error unboxing the messages, it could be a temporal thing
+		// so the frontend should reload.
+		if !appended || pushErr != nil {
+			if !appended {
+				g.Debug(ctx, "chat activity: newMessage: non-append message, alerting")
+			}
+			if pushErr != nil {
+				g.Debug(ctx, "chat acitivity: newMessage: push error, alerting")
+			}
 			kuid := keybase1.UID(m.UID().String())
 			g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid,
 				[]chat1.ConversationID{nm.ConvID})

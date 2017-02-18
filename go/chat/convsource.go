@@ -192,6 +192,17 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	var err error
 	continuousUpdate := false
 
+	// Check to see if we are "appending" this message to the current record.
+	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
+	switch err.(type) {
+	case storage.MissError:
+		continuousUpdate = true
+	case nil:
+		continuousUpdate = maxMsgID >= msg.GetMessageID()-1
+	default:
+		return chat1.MessageUnboxed{}, continuousUpdate, err
+	}
+
 	// leaving this empty for message Push.
 	// In a rare case, this will result in an error if a push message
 	// coincides with an account reset.
@@ -212,16 +223,6 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		})
 	}
 
-	// Check to see if we are "appending" this message to the current record.
-	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
-	switch err.(type) {
-	case storage.MissError:
-		continuousUpdate = true
-	case nil:
-		continuousUpdate = maxMsgID >= decmsg.GetMessageID()-1
-	default:
-		return decmsg, continuousUpdate, err
-	}
 	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
