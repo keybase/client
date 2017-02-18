@@ -417,7 +417,9 @@ func (s *LoginState) ResetAccount(un string) (err error) {
 		}
 		pdpka.PopulateArgs(&arg.Args)
 		res, aerr := s.G().API.Post(arg)
-		s.G().Log.Info("NUKE Result: %+v\n", res.AppStatus)
+		if aerr == nil {
+			s.G().Log.Info("NUKE Result: %+v\n", res.AppStatus)
+		}
 		return aerr
 	}, nil, "ResetAccount")
 	if aerr != nil {

@@ -134,6 +134,17 @@ func (e *loginProvision) Run(ctx *Context) error {
 	return nil
 }
 
+func saveToSecretStoreWithPassphrase(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libkb.NormalizedUsername, uid keybase1.UID) (err error) {
+	lksec, err := lctx.PassphraseStreamCache().PassphraseStream().ToLKSec(g, uid)
+	if err != nil {
+		return err
+	}
+	if lksec == nil {
+		return errors.New("empty LKSec after login")
+	}
+	return saveToSecretStore(g, lctx, nun, lksec)
+}
+
 func saveToSecretStore(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libkb.NormalizedUsername, lks *libkb.LKSec) (err error) {
 	defer g.Trace(fmt.Sprintf("saveToSecretStore(%s)", nun), func() error { return err })()
 	var secret libkb.LKSecFullSecret
@@ -329,6 +340,13 @@ func (e *loginProvision) pgpProvision(ctx *Context) error {
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
 			e.G().Log.Warning("error saving session file: %s", err)
+			return err
+		}
+
+		u := e.arg.User
+		tmpErr := saveToSecretStoreWithPassphrase(e.G(), lctx, u.GetNormalizedName(), u.GetUID())
+		if tmpErr != nil {
+			e.G().Log.Warning("pgpProvision: %s", tmpErr)
 		}
 		return nil
 	}

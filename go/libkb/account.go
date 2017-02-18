@@ -59,6 +59,9 @@ type Account struct {
 	testPostCleanHook func() // for testing, call this hook after cleaning
 }
 
+// Account implements a LoginContext
+var _ LoginContext = (*Account)(nil)
+
 func NewAccount(g *GlobalContext) *Account {
 	return &Account{
 		localSession: newSession(g),
