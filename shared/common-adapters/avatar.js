@@ -1,10 +1,8 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as I from 'immutable'
-import Box from './box'
 import React, {Component} from 'react'
 import Render from './avatar.render.desktop'
-import {globalColors} from '../styles'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
 
@@ -13,7 +11,6 @@ import type {IconType} from './icon'
 
 type State = {
   url: ?string,
-  fallback: string,
 }
 
 const placeHolders: {[key: string]: IconType} = {
@@ -70,7 +67,6 @@ class Avatar extends Component<void, Props, State> {
     }
 
     this.state = {
-      fallback: this._noAvatar(), // we assume sizes don't change dynamically so we basically never update this. True so far so keep it simple
       url: null,
     }
   }
@@ -104,6 +100,7 @@ class Avatar extends Component<void, Props, State> {
     return iconTypeToImgSet(placeHolders[String(this.props.size)])
   }
 
+  // Figure out which 1x, 2x images to use for this size
   _urlMapsToUrl (urlMap: ?URLMap) {
     if (!urlMap) {
       return null
@@ -179,12 +176,11 @@ class Avatar extends Component<void, Props, State> {
   }
 
   render () {
-    const url = (__SCREENSHOT__ || isTesting) ? this.state.fallback : this.state.url
+    const url = (__SCREENSHOT__ || isTesting) ? this._noAvatar() : this.state.url
 
     return <Render
       borderColor={this.props.borderColor}
       children={this.props.children}
-      fallback={this.state.fallback}
       followIconType={this._followIconType()}
       followIconStyle={followSizeToStyle[this.props.size]}
       loadingColor={this.props.loadingColor}
@@ -196,7 +192,7 @@ class Avatar extends Component<void, Props, State> {
   }
 }
 
-// To convert usernames/uids to avatarurls
+// To convert usernames/uids to avatarurls. This is setup on app start
 let _avatarToURL
 let _loadAvatarToURL
 

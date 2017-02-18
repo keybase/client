@@ -7,9 +7,6 @@ import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
 
 type ImageProps = {
-  fallback: string,
-  onError: () => void,
-  onLoad: () => void,
   opacity: ?number,
   size: AvatarSize,
   url: string,
@@ -18,7 +15,6 @@ type ImageProps = {
 type Props = {
   borderColor: ?string,
   children: any,
-  fallback: string,
   followIconStyle: ?Object,
   followIconType: ?IconType,
   loadingColor: ?string,
@@ -33,6 +29,7 @@ type State = {
   loaded: boolean,
 }
 
+// The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
 const backgroundOffset = 1
 const Background = ({loaded, loadingColor}) => (
   <div
@@ -47,9 +44,10 @@ const Background = ({loaded, loadingColor}) => (
     }} />
 )
 
-class Image extends PureComponent<void, ImageProps, void> {
+// The actual image
+class UserImage extends PureComponent<void, ImageProps, void> {
   render () {
-    const {url, size, fallback, opacity = 1} = this.props
+    const {url, size, opacity = 1} = this.props
 
     return (
       <div
@@ -73,6 +71,7 @@ class Image extends PureComponent<void, ImageProps, void> {
 
 const borderOffset = 1
 const borderSize = 2
+// Layer on top to extend outside of the image
 const Border = ({borderColor, size}) => (
   <div
     style={{
@@ -94,21 +93,45 @@ class AvatarRender extends PureComponent<void, Props, State> {
   }
 
   _mounted: boolean = false
+  _image: any
 
   _onLoadOrError = (event) => {
     if (this._mounted) {
+      console.log('aaaaa', this.props.url, true)
       this.setState({loaded: true})
     }
+    this._image = null
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.url !== nextProps.url) {
+      console.log('aaaaa', this.props.url, false)
       this.setState({loaded: false})
+      this._internalLoad(nextProps.url)
+    }
+  }
+
+  _internalLoad (url: ?string) {
+    if (url) {
+      const match = url.match(/url\('([^']*)/)
+      if (match) {
+        const single = match[1]
+        if (!this._image) {
+          // $FlowIssue
+          this._image = new Image(single) // eslint-disable-line
+          this._image.onload = this._onLoadOrError
+          this._image.onerror = this._onLoadOrError
+        } else {
+          this._image.src = single
+        }
+        return
+      }
     }
   }
 
   componentDidMount () {
     this._mounted = true
+    this._internalLoad(this.props.url)
   }
 
   componentWillUnmount () {
@@ -116,7 +139,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
   }
 
   render () {
-    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children, fallback} = this.props
+    const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
 
     return (
       <div
@@ -129,10 +152,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
           ...style,
         }}>
         <Background loaded={this.state.loaded} loadingColor={loadingColor} />
-        {url && <Image
-          fallback={fallback}
-          onError={this._onLoadOrError}
-          onLoad={this._onLoadOrError}
+        {url && <UserImage
           opacity={opacity}
           size={size}
           url={url}

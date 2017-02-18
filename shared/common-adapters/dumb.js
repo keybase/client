@@ -737,7 +737,7 @@ const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,
   mocks: {
     ...mockAvatarSizes('Normal', {}),
-    ...mockAvatarSizes('Fallback', {username: ''}),
+    ...mockAvatarSizes('Fallback', {username: 'FALLBACK'}),
     ...mockAvatarSizes('Following', {
       following: true,
     }),
