@@ -15,7 +15,7 @@ import {
   getPath,
 } from '../'
 
-import type {PropsPath, Path} from '../'
+import type {PropsPath} from '../'
 
 jest.unmock('immutable')
 
