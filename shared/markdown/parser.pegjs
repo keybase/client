@@ -36,7 +36,7 @@
 }
 
 start
- = BlankLine* children:((Line LineTerminatorSequence / NonEndBlankLine)* Line?) BlankLine* WhiteSpace* { return {type: 'markup', children: flatten(children)} }
+ = BlankLine* WhiteSpace* children:((Line LineTerminatorSequence / NonEndBlankLine)* Line?) BlankLine* WhiteSpace* { return {type: 'markup', children: flatten(children)} }
 
 Line
  = (QuoteBlock / CodeBlock / TextBlock)+

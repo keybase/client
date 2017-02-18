@@ -28,14 +28,7 @@ Object {
 
 exports[`Markdown parser parses a line with just whitespace correctly 1`] = `
 Object {
-  "children": Array [
-    Object {
-      "children": Array [
-        "    ",
-      ],
-      "type": "text-block",
-    },
-  ],
+  "children": Array [],
   "type": "markup",
 }
 `;
@@ -382,12 +375,6 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "        ",
-      ],
-      "type": "text-block",
-    },
-    Object {
-      "children": Array [
         "this is a code block",
       ],
       "type": "code-block",
@@ -629,7 +616,7 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "  Ignore:",
+        "Ignore:",
       ],
       "type": "text-block",
     },
