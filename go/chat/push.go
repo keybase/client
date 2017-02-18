@@ -159,7 +159,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 		var conv *chat1.ConversationLocal
 		decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
-			g.Debug(ctx, "chat activity: unable to storage message: %s", err.Error())
+			g.Debug(ctx, "chat activity: unable to push message: %s", err.Error())
 		}
 		if conv, err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.Message); err != nil {
 			g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
@@ -192,7 +192,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 				g.Debug(ctx, "chat activity: newMessage: non-append message, alerting")
 			}
 			if pushErr != nil {
-				g.Debug(ctx, "chat acitivity: newMessage: push error, alerting")
+				g.Debug(ctx, "chat activity: newMessage: push error, alerting")
 			}
 			kuid := keybase1.UID(m.UID().String())
 			g.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid,
