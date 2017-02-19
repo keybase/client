@@ -123,7 +123,7 @@ func (c ChatMessage) Valid() bool {
 type listOptionsV1 struct {
 	UnreadOnly bool   `json:"unread_only,omitempty"`
 	TopicType  string `json:"topic_type,omitempty"`
-	ShowErrors bool   `json:"show_errors",omitempty`
+	ShowErrors bool   `json:"show_errors,omitempty"`
 }
 
 func (l listOptionsV1) Check() error {
