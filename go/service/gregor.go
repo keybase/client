@@ -571,7 +571,7 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return true
 }
 
-func (g *gregorHandler) broadtcastMessageOnce(ctx context.Context, m gregor1.Message) error {
+func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Message) error {
 	g.Lock()
 	defer g.Unlock()
 
@@ -629,8 +629,9 @@ func (g *gregorHandler) broadcastMessageHandler() {
 	ctx := context.Background()
 	for {
 		m := <-g.broadcastCh
-		err := g.broadtcastMessageOnce(ctx, m)
+		err := g.broadcastMessageOnce(ctx, m)
 
+		// Testing alerts
 		if g.testingEvents != nil {
 			g.testingEvents.broadcastSentCh <- err
 		}
