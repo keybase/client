@@ -46,7 +46,7 @@ dokan.dll           size: 53488 bytes         sha1: 5c4fc6b6e3083e575eed06de3115
 ### `C source files not allowed when not using cgo or SWIG: bridge.c`
 
 This is caused by cgo not being enabled (e.g. 64 bit windows go toolchain and GOARCH=386).
-Fix this by setting CGOENABLED=1 and recheck `go env`.
+Fix this by setting CGO_ENABLED=1 and recheck `go env`.
 
 ### `undefined reference to `_imp__DokanMain@8'`
 
