@@ -92,6 +92,16 @@ func (h *gregorFirehoseHandler) PushOutOfBandMessages(m []gregor1.OutOfBandMessa
 	}
 }
 
+type testingEvents struct {
+	broadcastSentCh chan error
+}
+
+func newTestingEvents() *testingEvents {
+	return &testingEvents{
+		broadcastSentCh: make(chan error),
+	}
+}
+
 type gregorHandler struct {
 	libkb.Contextified
 
@@ -103,6 +113,7 @@ type gregorHandler struct {
 	firehoseHandlers []libkb.GregorFirehoseHandler
 	badger           *badges.Badger
 	chatHandler      *chat.PushHandler
+	chatSync         *chat.Syncer
 
 	// This mutex protects the con object
 	connMutex     sync.Mutex
@@ -116,16 +127,16 @@ type gregorHandler struct {
 	skipRetryConnect bool
 	freshReplay      bool
 
-	chatSync *chat.Syncer
-
-	transportForTesting *connTransport
-
 	// Function for determining if a new BroadcastMessage should trigger
 	// a pushState call to firehose handlers
 	pushStateFilter func(m gregor.Message) bool
 
 	shutdownCh  chan struct{}
 	broadcastCh chan gregor1.Message
+
+	// Testing
+	testingEvents       *testingEvents
+	transportForTesting *connTransport
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -560,58 +571,69 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return true
 }
 
+func (g *gregorHandler) broadtcastMessageOnce(ctx context.Context, m gregor1.Message) error {
+	g.Lock()
+	defer g.Unlock()
+
+	// Handle the message
+	var obm gregor.OutOfBandMessage
+	ibm := m.ToInBandMessage()
+	if ibm != nil {
+		gcli, err := g.getGregorCli()
+		if err != nil {
+			g.Debug("BroadcastMessage: failed to get Gregor client: %s", err.Error())
+			return err
+		}
+		// Check to see if this is already in our state
+		msgID := ibm.Metadata().MsgID()
+		state, err := gcli.StateMachineState(nil)
+		if err != nil {
+			g.Debug("BroadcastMessage: no state machine available: %s", err.Error())
+			return err
+		}
+		if _, ok := state.GetItem(msgID); ok {
+			g.Debug("BroadcastMessage: msgID: %s already in state, ignoring", msgID)
+			return errors.New("ignored repeat message")
+		}
+
+		g.Debug("broadcast: in-band message: msgID: %s Ctime: %s", msgID, ibm.Metadata().CTime())
+		err = g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
+
+		// Send message to local state machine
+		gcli.StateMachineConsumeMessage(m)
+
+		// Forward to electron or whichever UI is listening for the new gregor state
+		if g.pushStateFilter(m) {
+			g.pushState(keybase1.PushReason_NEW_DATA)
+		}
+
+		return err
+	}
+
+	obm = m.ToOutOfBandMessage()
+	if obm != nil {
+		g.Debug("broadcast: out-of-band message: uid: %s",
+			m.ToOutOfBandMessage().UID())
+		if err := g.handleOutOfBandMessage(ctx, obm); err != nil {
+			g.Debug("BroadcastMessage: error handling oobm: %s", err.Error())
+			return err
+		}
+		return nil
+	}
+
+	g.Debug("BroadcastMessage: both in-band and out-of-band message nil")
+	return errors.New("invalid message, no ibm or oobm")
+}
+
 func (g *gregorHandler) broadcastMessageHandler() {
+	ctx := context.Background()
 	for {
 		m := <-g.broadcastCh
+		err := g.broadtcastMessageOnce(ctx, m)
 
-		g.Lock()
-		ctx := context.Background()
-
-		// Handle the message
-		ibm := m.ToInBandMessage()
-		if ibm != nil {
-			gcli, err := g.getGregorCli()
-			if err != nil {
-				g.Debug("BroadcastMessage: failed to get Gregor client: %s", err.Error())
-				continue
-			}
-			// Check to see if this is already in our state
-			msgID := ibm.Metadata().MsgID()
-			state, err := gcli.StateMachineState(nil)
-			if err != nil {
-				g.Debug("BroadcastMessage: no state machine available: %s", err.Error())
-				continue
-			}
-			if _, ok := state.GetItem(msgID); ok {
-				g.Debug("BroadcastMessage: msgID: %s already in state, ignoring", msgID)
-				continue
-			}
-
-			g.Debug("broadcast: in-band message: msgID: %s Ctime: %s", msgID, ibm.Metadata().CTime())
-			err = g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
-
-			// Send message to local state machine
-			gcli.StateMachineConsumeMessage(m)
-
-			// Forward to electron or whichever UI is listening for the new gregor state
-			if g.pushStateFilter(m) {
-				g.pushState(keybase1.PushReason_NEW_DATA)
-			}
-
-			continue
+		if g.testingEvents != nil {
+			g.testingEvents.broadcastSentCh <- err
 		}
-
-		obm := m.ToOutOfBandMessage()
-		if obm != nil {
-			g.Debug("broadcast: out-of-band message: uid: %s",
-				m.ToOutOfBandMessage().UID())
-			if err := g.handleOutOfBandMessage(ctx, obm); err != nil {
-				g.Debug("BroadcastMessage: error handling oobm: %s", err.Error())
-			}
-		}
-
-		g.Debug("BroadcastMessage: both in-band and out-of-band message nil")
-		g.Unlock()
 	}
 }
 
