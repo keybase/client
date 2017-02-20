@@ -318,7 +318,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
-			if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
+			if !s.offline && query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
 				readMsgID := thread.Messages[0].GetMessageID()
 				res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
 					ConversationID: convID,
@@ -535,7 +535,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	for _, msg := range msgs {
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
-		} else {
+		} else if !s.offline {
 			unboxed, err := s.boxer.UnboxMessage(ctx, msg, finalizeInfo)
 			if err != nil {
 				return res, err

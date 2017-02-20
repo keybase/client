@@ -1,13 +1,13 @@
 package libkb
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // UPAK Loader is a loader for UserPlusAllKeys. It's a thin user object that is

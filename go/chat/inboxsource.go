@@ -30,6 +30,7 @@ type localizerPipeline struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
+	offline         bool
 	getTlfInterface func() keybase1.TlfInterface
 	getMessages     getMessagesFunc
 }
@@ -62,6 +63,10 @@ func NewBlockingLocalizer(g *libkb.GlobalContext, getTlfInterface func() keybase
 		Contextified: libkb.NewContextified(g),
 		pipeline:     newLocalizerPipeline(g, getTlfInterface),
 	}
+}
+
+func (b *BlockingLocalizer) SetOffline() {
+	b.pipeline.offline = true
 }
 
 func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) (res []chat1.ConversationLocal, err error) {
@@ -101,6 +106,10 @@ func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInb
 		pipeline:     newLocalizerPipeline(g, getTlfInterface),
 		localizeCb:   localizeCb,
 	}
+}
+
+func (b *NonblockingLocalizer) SetOffline() {
+	b.pipeline.offline = true
 }
 
 func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.Inbox, uid gregor1.UID) chat1.Inbox {
@@ -289,6 +298,10 @@ func (b *baseInboxSource) Disconnected(ctx context.Context) {
 	b.offline = true
 }
 
+func (b *baseInboxSource) IsOffline() bool {
+	return b.offline
+}
+
 type RemoteInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
@@ -315,6 +328,9 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+	}
+	if s.IsOffline() {
+		localizer.SetOffline()
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
@@ -348,7 +364,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
 	rquery *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
-	if s.offline {
+	if s.IsOffline() {
 		return chat1.Inbox{}, nil, OfflineError{}
 	}
 
@@ -425,7 +441,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
 	// Insta fail if we are offline
-	if s.offline {
+	if s.IsOffline() {
 		return chat1.Inbox{}, nil, OfflineError{}
 	}
 
@@ -462,6 +478,9 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	defer s.Trace(ctx, func() error { return err }, "Read")()
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+	}
+	if s.IsOffline() {
+		localizer.SetOffline()
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
@@ -748,6 +767,13 @@ func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string
 	return tlfName
 }
 
+type nullUsernameSource struct {
+}
+
+func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
+	return "", errors.New("null username loader always fails")
+}
+
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
@@ -889,8 +915,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Only do this check if there is a chance the TLF name might be an SBS name.
-	if s.needsCanonicalize(conversationLocal.Info.TlfName) {
+	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
+	// this if we are online
+	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
 		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TLFNameExpanded(), conversationLocal.Info.Visibility)
 		if err != nil {
 			errMsg := err.Error()
@@ -902,9 +929,18 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.Info.TlfName = info.CanonicalName
 	}
 
+	// Pick a source of usernames based on offline status, if we are offline then just use a
+	// type that just returns errors all the time (this will just use TLF name as the ordering)
+	var uloader utils.ReorderUsernameSource
+	if s.offline {
+		uloader = nullUsernameSource{}
+	} else {
+		uloader = s.G().GetUPAKLoader()
+	}
+
 	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
 		ctx,
-		s.G().GetUPAKLoader(),
+		uloader,
 		conversationLocal.Info.TlfName,
 		conversationRemote.Metadata.ActiveList)
 	if err != nil {

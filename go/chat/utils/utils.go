@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -10,7 +12,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 )
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
@@ -95,10 +96,14 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 	return res
 }
 
+type ReorderUsernameSource interface {
+	LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
+}
+
 // Reorder participants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(ctx context.Context, upakLoader libkb.UPAKLoader, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
+func ReorderParticipants(ctx context.Context, uloader ReorderUsernameSource, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
 	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
 	if err != nil {
 		return writerNames, readerNames, err
@@ -114,7 +119,7 @@ func ReorderParticipants(ctx context.Context, upakLoader libkb.UPAKLoader, tlfna
 	// Fill from the active list first.
 	for _, uid := range activeList {
 		kbUID := keybase1.UID(uid.String())
-		normalizedUsername, err := upakLoader.LookupUsername(ctx, kbUID)
+		normalizedUsername, err := uloader.LookupUsername(ctx, kbUID)
 		if err != nil {
 			continue
 		}
@@ -169,6 +174,7 @@ func AllChatConversationStatuses() (res []chat1.ConversationStatus) {
 	for _, s := range chat1.ConversationStatusMap {
 		res = append(res, s)
 	}
+	sort.Sort(byConversationStatus(res))
 	return
 }
 
@@ -248,6 +254,12 @@ func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatu
 	}
 }
 
+type byConversationStatus []chat1.ConversationStatus
+
+func (c byConversationStatus) Len() int           { return len(c) }
+func (c byConversationStatus) Less(i, j int) bool { return c[i] < c[j] }
+func (c byConversationStatus) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+
 // Which convs show in the inbox.
 func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 	for _, s := range chat1.ConversationStatusMap {
@@ -255,6 +267,7 @@ func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 			res = append(res, s)
 		}
 	}
+	sort.Sort(byConversationStatus(res))
 	return
 }
 
