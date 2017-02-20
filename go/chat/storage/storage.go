@@ -252,7 +252,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		if ierr != nil {
 			continue
 		}
-		s.Debug(ctx, "updateSupersededBy: supersedes: %v", superIDs)
+		if len(superIDs) > 0 {
+			s.Debug(ctx, "updateSupersededBy: msgID: %d supersedes: %v", msgid, superIDs)
+		}
 
 		// Set all supersedes targets
 		for _, superID := range superIDs {
