@@ -357,7 +357,7 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(
 		t, config, rmd, fakeMdID(tlf.FakeIDByte(id)))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 	rmd.SetSerializedPrivateMetadata(make([]byte, 1))
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{{id, MasterBranch}}, config.observer)
@@ -593,7 +593,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(2))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	require.NoError(t, err)
@@ -775,7 +775,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 	expectedErr := NewReadAccessError(h, "alice", "/keybase/private/bob#alice")
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
@@ -819,7 +819,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 
@@ -863,7 +863,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 
@@ -908,7 +908,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -948,7 +948,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -985,7 +985,7 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -1028,7 +1028,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -5166,7 +5166,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -5188,7 +5188,7 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headTrusted = true
+	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
