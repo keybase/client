@@ -146,7 +146,7 @@ class Avatar extends Component<void, Props, State> {
     const url = this._urlMapsToUrl(urlMap)
     this.setState({url})
 
-    if (!urlMap) { // Have to load it
+    if (!urlMap && _loadAvatarToURL) { // Have to load it
       _loadAvatarToURL(username, (username: string, urlMap: ?URLMap) => {
         this._onURLLoaded && this._onURLLoaded(username, urlMap)
       })
