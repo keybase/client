@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Icon, Text, ListItem} from '../../common-adapters'
+import {Avatar, Box, Icon, Text, ListItem, NativeScrollView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './render'
@@ -88,15 +88,15 @@ function Result ({result, searchText, onClickResult}: {result: SearchResult, sea
       body={<Box style={{...globalStyles.flexBoxRow}}>{alignedBody}{extraInfo}</Box>}
       action={<Box />}
       onClick={onClickResult}
-      bodyContainerStyle={{marginBottom: 0, marginTop: 0}}
+      bodyContainerStyle={{marginBottom: 0, marginTop: 0, marginRight: 0}}
       />
   )
 }
 
 const UserSearchRender = ({results, onClickResult, searchText}: Props) => (
-  <Box style={globalStyles.flexBoxColumn}>
+  <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
     {results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} onClickResult={() => onClickResult(r)} searchText={searchText || ''} />)}
-  </Box>
+  </NativeScrollView>
 )
 
 export default UserSearchRender

@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Icon, Text, ClickableBox} from '../../common-adapters/index'
+import {Avatar, Box, Icon, Text, ClickableBox, NativeScrollView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon'
@@ -77,12 +77,12 @@ const GroupAction = ({icon, label, onClick, style}: {icon: IconType, label: stri
 
 export default function UserGroup ({selectedUsers, onRemoveUserFromGroup, onClickUserInGroup, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, onGroupChat, userForInfoPane}: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.lightGrey, flex: 1}}>
+    <NativeScrollView style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.lightGrey, flex: 1}}>
       {selectedUsers.map(u => <User key={u.service + u.username} selected={!!userForInfoPane && u.username === userForInfoPane.username} user={u} onRemove={onRemoveUserFromGroup} onClickUser={onClickUserInGroup} insertSpacing={true} />)}
       <GroupAction icon='icon-folder-private-open-32' label='Open private folder' onClick={onOpenPrivateGroupFolder} />
       {selectedUsers.length === 1 && <GroupAction onClick={onOpenPublicGroupFolder} icon='icon-folder-public-open-24' label='Open public folder' />}
       <GroupAction style={{color: globalColors.blue}} icon='iconfont-chat' label='Start a chat' onClick={onGroupChat} />
-    </Box>
+    </NativeScrollView>
   )
 }
 
