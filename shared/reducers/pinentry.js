@@ -31,8 +31,8 @@ export type RootPinentryState = {
 type EnabledFeatures = {[key: string]: Feature}
 
 const initialState: RootPinentryState = {
-  started: false,
   pinentryStates: {},
+  started: false,
 }
 
 export default function (state: RootPinentryState = initialState, action: PinentryActions): RootPinentryState {
@@ -46,8 +46,8 @@ export default function (state: RootPinentryState = initialState, action: Pinent
     case Constants.registerPinentryListener:
       if (action.payload && action.payload.started) {
         return {
-          started: true,
           pinentryStates: {},
+          started: true,
         }
       }
       return initialState
@@ -61,8 +61,8 @@ export default function (state: RootPinentryState = initialState, action: Pinent
         const enabledFeatures = Object.keys(features).filter((f: string) => features[f].allow).reduce(reducer, ({}: EnabledFeatures))
 
         const newPinentryState: PinentryState = {
-          closed: false,
           canceled: false,
+          closed: false,
           submitted: false,
           ...action.payload,
           features: enabledFeatures,
@@ -105,7 +105,7 @@ function updatePinentryState (state: PinentryState, action: PinentryActions): Pi
     case Constants.onCancel:
       return {...state, canceled: true, closed: true}
     case Constants.onSubmit:
-      return {...state, submitted: true, closed: true}
+      return {...state, closed: true, submitted: true}
     default:
       return state
   }

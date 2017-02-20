@@ -6,10 +6,10 @@ import type {BillingState, Actions} from '../constants/plan-billing'
 
 const initialState: BillingState = {
   availablePlans: null,
+  errorMessage: null,
+  paymentInfo: null,
   plan: null,
   usage: null,
-  paymentInfo: null,
-  errorMessage: null,
 }
 
 export default function (state: BillingState = initialState, action: Actions): BillingState {

@@ -8,13 +8,13 @@ import type {GregorActions, MsgMap} from '../constants/gregor'
 import type {Reachability} from '../constants/types/flow-types'
 
 export type State = {
-  seenMsgs: MsgMap,
   reachability: Reachability,
+  seenMsgs: MsgMap,
 }
 
 const initialState: State = {
-  seenMsgs: {},
   reachability: {reachable: ReachabilityReachable.unknown},
+  seenMsgs: {},
 }
 
 export default function (state: State = initialState, action: GregorActions): State {

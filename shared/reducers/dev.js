@@ -13,8 +13,8 @@ type DevState = {
 const initialState: DevState = {
   debugConfig: {
     dumbFilter: '',
-    dumbIndex: 0,
     dumbFullscreen: false,
+    dumbIndex: 0,
   },
   hmrReloading: false,
 }

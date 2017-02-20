@@ -13,11 +13,11 @@ const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnore
   normal, warning, error, checking} = Constants
 
 export type State = {
-  serverStarted: boolean,
-  trackers: {[key: string]: TrackerOrNonUserState},
-  pendingIdentifies: {[key: string]: boolean},
   cachedIdentifies: {[key: string]: number}, // good until unix timestamp
+  pendingIdentifies: {[key: string]: boolean},
+  serverStarted: boolean,
   timerActive: number,
+  trackers: {[key: string]: TrackerOrNonUserState},
   tracking: Array<{
     username: string,
     fullname: string,
@@ -29,20 +29,20 @@ export type State = {
 const initialProofState = checking
 
 const initialState: State = {
+  cachedIdentifies: {},
+  pendingIdentifies: {},
   serverStarted: false,
   timerActive: 0,
   trackers: {},
-  pendingIdentifies: {},
-  cachedIdentifies: {},
   tracking: [],
 }
 
 function initialTrackerState (username: string): TrackerState {
   return {
     closed: true,
-    error: null,
     currentlyFollowing: false,
     eldestKidChanged: false,
+    error: null,
     hidden: false,
     lastAction: null,
     needTrackTokenDismiss: false,
@@ -50,24 +50,24 @@ function initialTrackerState (username: string): TrackerState {
     reason: null,
     serverActive: true,
     shouldFollow: true,
+    tlfs: [],
     trackToken: null,
     trackerState: initialProofState,
-    type: 'tracker',
     trackers: [],
     tracking: [],
+    type: 'tracker',
     userInfo: {
-      fullname: '', // TODO get this info,
+      avatar: null,
+      bio: '',
       followersCount: -1,
       followingCount: -1,
       followsYou: false,
-      uid: '',
-      bio: '',
-      avatar: null,
+      fullname: '', // TODO get this info,
       location: '', // TODO: get this information
+      uid: '',
     },
     username,
     waiting: false,
-    tlfs: [],
   }
 }
 
@@ -161,8 +161,8 @@ function updateUserState (username: string, state: TrackerState, action: Action)
       return {
         ...state,
         lastAction: 'refollowed',
-        trackerState: 'normal',
         reason: `You have re-followed ${state.username}.`,
+        trackerState: 'normal',
       }
     case Constants.onUnfollow:
       return {
@@ -194,8 +194,8 @@ function updateUserState (username: string, state: TrackerState, action: Action)
       return {
         ...state,
         changed: proofsGeneralState.anyChanged,
-        shouldFollow: deriveShouldFollow(proofsGeneralState),
         reason,
+        shouldFollow: deriveShouldFollow(proofsGeneralState),
         trackerState: deriveSimpleProofState(state.eldestKidChanged, proofsGeneralState),
       }
 
@@ -230,17 +230,17 @@ function updateUserState (username: string, state: TrackerState, action: Action)
       }
       const url = `https://keybase.io/${state.username}/sigchain`
       const proof = {
-        state: 'normal',
-        id: action.payload.kid,
-        meta: null,
-        type: 'pgp',
-        mTime: 0,
         color: 'green',
-        name: action.payload.fingerPrint,
         // TODO: We don't currently get the sigID so we can't link to the actual sigChain statement. See https://keybase.atlassian.net/browse/CORE-3529
         humanUrl: url,
-        profileUrl: url,
+        id: action.payload.kid,
         isTracked: state.currentlyFollowing,
+        mTime: 0,
+        meta: null,
+        name: action.payload.fingerPrint,
+        profileUrl: url,
+        state: 'normal',
+        type: 'pgp',
       }
 
       return {
@@ -256,16 +256,16 @@ function updateUserState (username: string, state: TrackerState, action: Action)
 
       const url = `https://keybase.io/${state.username}/sigchain#${action.payload.sigID}`
       const proof = {
-        state: 'normal',
-        id: action.payload.sigID,
-        meta: null,
-        type: 'zcash',
-        mTime: 0,
         color: 'green',
-        name: action.payload.address,
         humanUrl: url,
-        profileUrl: url,
+        id: action.payload.sigID,
         isTracked: state.currentlyFollowing,
+        mTime: 0,
+        meta: null,
+        name: action.payload.address,
+        profileUrl: url,
+        state: 'normal',
+        type: 'zcash',
       }
 
       return {
@@ -281,16 +281,16 @@ function updateUserState (username: string, state: TrackerState, action: Action)
 
       const url = `https://keybase.io/${state.username}/sigchain#${action.payload.sigID}`
       const proof = {
-        state: 'normal',
-        id: action.payload.sigID,
-        meta: null,
-        type: 'btc',
-        mTime: 0,
         color: 'green',
-        name: action.payload.address,
         humanUrl: url,
-        profileUrl: url,
+        id: action.payload.sigID,
         isTracked: state.currentlyFollowing,
+        mTime: 0,
+        meta: null,
+        name: action.payload.address,
+        profileUrl: url,
+        state: 'normal',
+        type: 'btc',
       }
 
       return {
@@ -376,8 +376,8 @@ function updateUserState (username: string, state: TrackerState, action: Action)
         const error = action.payload.error
         return {
           ...state,
-          serverActive: false,
           error,
+          serverActive: false,
         }
       }
       return {...state, error: null}
@@ -656,16 +656,16 @@ function remoteProofToProofType (rp: RemoteProof): PlatformsExpandedType {
 
 function revokedProofToProof (rv: RevokedProof): Proof {
   return {
-    state: error,
-    id: rv.proof.sigID,
-    meta: metaDeleted,
-    type: remoteProofToProofType(rv.proof),
-    mTime: rv.proof.mTime,
     color: stateToColor(error),
-    name: rv.proof.displayMarkup,
     humanUrl: '',
-    profileUrl: '',
+    id: rv.proof.sigID,
     isTracked: false,
+    mTime: rv.proof.mTime,
+    meta: metaDeleted,
+    name: rv.proof.displayMarkup,
+    profileUrl: '',
+    state: error,
+    type: remoteProofToProofType(rv.proof),
   }
 }
 
@@ -676,16 +676,16 @@ function remoteProofToProof (username: string, oldProofState: SimpleProofState, 
   const humanUrl = ((rp.key !== 'dns') && lcr && lcr.hint && lcr.hint.humanUrl) || `https://keybase.io/${username}/sigchain#${rp.sigID}`
 
   return {
-    state: proofState,
-    id: rp.sigID,
-    meta: statusMeta || diffMeta,
-    type: remoteProofToProofType(rp),
-    mTime: rp.mTime,
     color: stateToColor(proofState),
-    name: rp.displayMarkup,
     humanUrl: humanUrl,
-    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl),
+    id: rp.sigID,
     isTracked,
+    mTime: rp.mTime,
+    meta: statusMeta || diffMeta,
+    name: rp.displayMarkup,
+    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl),
+    state: proofState,
+    type: remoteProofToProofType(rp),
   }
 }
 
@@ -711,7 +711,7 @@ export function overviewStateOfProofs (proofs: Array<Proof>): OverviewProofState
   const [anyWarnings, anyError, anyPending] = [warning, error, checking].map(s => proofs.some(p => p.state === s))
   const [anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs, anyPendingProofs] = [metaDeleted, metaUnreachable, metaUpgraded, metaNew, metaPending].map(m => proofs.some(p => p.meta === m))
   const anyChanged = proofs.some(proof => proof.meta && proof.meta !== metaNone)
-  return {allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs, anyChanged, anyPendingProofs}
+  return {allOk, anyChanged, anyDeletedProofs, anyError, anyNewProofs, anyPending, anyPendingProofs, anyUnreachableProofs, anyUpgradedProofs, anyWarnings}
 }
 
 export function deriveSimpleProofState (
