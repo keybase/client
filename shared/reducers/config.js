@@ -50,7 +50,10 @@ const initialState: ConfigState = {
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return {...initialState}
+      return {
+        ...initialState,
+        readyForBootstrap: state.readyForBootstrap,
+      }
 
     case Constants.configLoaded:
       if (action.payload && action.payload.config) {

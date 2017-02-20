@@ -1,6 +1,6 @@
 // @flow
 
-// import HiddenString from '../util/hidden-string'
+import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/plan-billing'
 import type {BillingState, Actions} from '../constants/plan-billing'
 
@@ -14,6 +14,8 @@ const initialState: BillingState = {
 
 export default function (state: BillingState = initialState, action: Actions): BillingState {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {...initialState}
     case Constants.updateBillingAndQuota:
       if (action.error) {
         console.warn('Error in action: ', action)
