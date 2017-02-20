@@ -61,7 +61,7 @@ class FriendshipsRender extends Component<void, Props, void> {
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
             <Box style={tabItemContainerUsers}>
-              {padGridEntries(this.props.followers.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
+              {padGridEntries((this.props.followers || []).map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
             </Box>
           </Box>
         </TabBarItem>
@@ -73,7 +73,7 @@ class FriendshipsRender extends Component<void, Props, void> {
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
             <Box style={tabItemContainerUsers}>
-              {padGridEntries(this.props.following.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
+              {padGridEntries((this.props.following || []).map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
             </Box>
           </Box>
         </TabBarItem>
