@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -265,13 +265,18 @@ type baseInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	offline bool
+	getChatInterface func() chat1.RemoteInterface
+	getTlfInterface  func() keybase1.TlfInterface
+	offline          bool
 }
 
-func newBaseInboxSource(g *libkb.GlobalContext) *baseInboxSource {
+func newBaseInboxSource(g *libkb.GlobalContext, getChatInterface func() chat1.RemoteInterface,
+	getTlfInterface func() keybase1.TlfInterface) *baseInboxSource {
 	return &baseInboxSource{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "baseInboxSource", false),
+		Contextified:     libkb.NewContextified(g),
+		DebugLabeler:     utils.NewDebugLabeler(g, "baseInboxSource", false),
+		getChatInterface: getChatInterface,
+		getTlfInterface:  getTlfInterface,
 	}
 }
 
@@ -302,23 +307,26 @@ func (b *baseInboxSource) IsOffline() bool {
 	return b.offline
 }
 
+func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
+	b.getChatInterface = ri
+}
+
+func (b *baseInboxSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
+	b.getTlfInterface = ti
+}
+
 type RemoteInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
-
-	getTlfInterface  func() keybase1.TlfInterface
-	getChatInterface func() chat1.RemoteInterface
 }
 
 func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterface,
 	tlf func() keybase1.TlfInterface) *RemoteInboxSource {
 	return &RemoteInboxSource{
-		Contextified:     libkb.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "RemoteInboxSource", false),
-		baseInboxSource:  newBaseInboxSource(g),
-		getTlfInterface:  tlf,
-		getChatInterface: ri,
+		Contextified:    libkb.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g, "RemoteInboxSource", false),
+		baseInboxSource: newBaseInboxSource(g, ri, tlf),
 	}
 }
 
@@ -415,10 +423,8 @@ type HybridInboxSource struct {
 	utils.DebugLabeler
 	*baseInboxSource
 
-	syncer           *Syncer
-	getSecretUI      func() libkb.SecretUI
-	getTlfInterface  func() keybase1.TlfInterface
-	getChatInterface func() chat1.RemoteInterface
+	syncer      *Syncer
+	getSecretUI func() libkb.SecretUI
 }
 
 func NewHybridInboxSource(g *libkb.GlobalContext,
@@ -427,13 +433,11 @@ func NewHybridInboxSource(g *libkb.GlobalContext,
 	getSecretUI func() libkb.SecretUI,
 ) *HybridInboxSource {
 	return &HybridInboxSource{
-		Contextified:     libkb.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "HybridInboxSource", false),
-		baseInboxSource:  newBaseInboxSource(g),
-		getSecretUI:      getSecretUI,
-		getTlfInterface:  getTlfInterface,
-		getChatInterface: getChatInterface,
-		syncer:           NewSyncer(g),
+		Contextified:    libkb.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g, "HybridInboxSource", false),
+		baseInboxSource: newBaseInboxSource(g, getChatInterface, getTlfInterface),
+		getSecretUI:     getSecretUI,
+		syncer:          NewSyncer(g),
 	}
 }
 

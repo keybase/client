@@ -842,6 +842,10 @@ func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	g.GetUPAKLoader().Invalidate(g.NetContext, u)
 }
 
+func (g *GlobalContext) OverrideUPAKLoader(upak UPAKLoader) {
+	g.upakLoader = upak
+}
+
 func (g *GlobalContext) AddUserChangedHandler(h UserChangedHandler) {
 	g.uchMu.Lock()
 	g.UserChangedHandlers = append(g.UserChangedHandlers, h)

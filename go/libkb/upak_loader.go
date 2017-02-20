@@ -1,13 +1,14 @@
 package libkb
 
 import (
-	"context"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 // UPAK Loader is a loader for UserPlusAllKeys. It's a thin user object that is
@@ -203,6 +204,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	defer g.CTrace(ctx, culDebug(arg.UID), func() error { return err })()
 
+	debug.PrintStack()
 	if arg.UID.IsNil() {
 		err = errors.New("need a UID to load UPAK from loader")
 		return nil, nil, err

@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -12,21 +11,28 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type baseConversationSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
+	boxer       *Boxer
+	ri          func() chat1.RemoteInterface
 	getSecretUI func() libkb.SecretUI
 	offline     bool
 }
 
-func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *baseConversationSource {
+func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI,
+	ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
 	return &baseConversationSource{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
 		getSecretUI:  getSecretUI,
+		ri:           ri,
+		boxer:        boxer,
 	}
 }
 
@@ -38,6 +44,14 @@ func (s *baseConversationSource) Connected(ctx context.Context) {
 func (s *baseConversationSource) Disconnected(ctx context.Context) {
 	s.Debug(ctx, "disconnected")
 	s.offline = true
+}
+
+func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
+	s.ri = ri
+}
+
+func (s *baseConversationSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
+	s.boxer.tlf = ti
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -82,19 +96,14 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context, convID
 
 type RemoteConversationSource struct {
 	*baseConversationSource
-
 	libkb.Contextified
-	ri    func() chat1.RemoteInterface
-	boxer *Boxer
 }
 
 func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface,
 	si func() libkb.SecretUI) *RemoteConversationSource {
 	return &RemoteConversationSource{
 		Contextified:           libkb.NewContextified(g),
-		baseConversationSource: newBaseConversationSource(g, si),
-		ri:    ri,
-		boxer: b,
+		baseConversationSource: newBaseConversationSource(g, si, ri, b),
 	}
 }
 
@@ -194,8 +203,6 @@ type HybridConversationSource struct {
 	utils.DebugLabeler
 	*baseConversationSource
 
-	ri      func() chat1.RemoteInterface
-	boxer   *Boxer
 	storage *storage.Storage
 }
 
@@ -204,10 +211,8 @@ func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *stor
 	return &HybridConversationSource{
 		Contextified:           libkb.NewContextified(g),
 		DebugLabeler:           utils.NewDebugLabeler(g, "HybridConversationSource", false),
-		baseConversationSource: newBaseConversationSource(g, si),
-		ri:      ri,
-		boxer:   b,
-		storage: storage,
+		baseConversationSource: newBaseConversationSource(g, si, ri, b),
+		storage:                storage,
 	}
 }
 
@@ -268,7 +273,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 			if msg.Valid().ClientHeader.TlfPublic {
 				vis = chat1.TLFVisibility_PUBLIC
 			}
-			if _, err := LookupTLF(ctx, s.boxer.tlf, tlfName, vis); err != nil {
+			if _, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis); err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
 			}

@@ -1,11 +1,10 @@
 package interfaces
 
 import (
-	"context"
-
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type Offlinable interface {
@@ -27,6 +26,9 @@ type ConversationSource interface {
 		msgs []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 	TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
+
+	SetRemoteInterface(func() chat1.RemoteInterface)
+	SetTlfInterface(func() keybase1.TlfInterface)
 }
 
 type MessageDeliverer interface {
@@ -63,4 +65,7 @@ type InboxSource interface {
 		status chat1.ConversationStatus) (*chat1.ConversationLocal, error)
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
+
+	SetRemoteInterface(func() chat1.RemoteInterface)
+	SetTlfInterface(func() keybase1.TlfInterface)
 }

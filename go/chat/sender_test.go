@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
+	context "golang.org/x/net/context"
 )
 
 type chatListener struct {
@@ -106,7 +106,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
-	boxer := NewBoxer(tc.G, tlf)
+	boxer := NewBoxer(tc.G, func() keybase1.TlfInterface { return tlf })
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}

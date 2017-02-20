@@ -37,13 +37,13 @@ func init() {
 type Boxer struct {
 	utils.DebugLabeler
 
-	tlf    keybase1.TlfInterface
+	tlf    func() keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
 	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
 	libkb.Contextified
 }
 
-func NewBoxer(g *libkb.GlobalContext, tlf keybase1.TlfInterface) *Boxer {
+func NewBoxer(g *libkb.GlobalContext, tlf func() keybase1.TlfInterface) *Boxer {
 	return &Boxer{
 		DebugLabeler: utils.NewDebugLabeler(g, "Boxer", false),
 		tlf:          tlf,
@@ -76,7 +76,7 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) (chat1.MessageUnboxed, UnboxingError) {
 	tlfName := boxed.ClientHeader.TLFNameExpanded(finalizeInfo)
 	tlfPublic := boxed.ClientHeader.TlfPublic
-	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, tlfPublic)
+	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf(), tlfName, tlfPublic)
 	if err != nil {
 		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
@@ -388,7 +388,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
 
-	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlf, tlfName, msg.ClientHeader.TlfPublic)
+	cres, err := CtxKeyFinder(ctx).Find(ctx, b.tlf(), tlfName, msg.ClientHeader.TlfPublic)
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
 	}
