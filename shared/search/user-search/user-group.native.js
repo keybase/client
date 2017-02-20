@@ -66,36 +66,22 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {selected: boolean,
   )
 }
 
-function AddUser ({onClick}) {
-  return (
-    <ClickableBox onClick={onClick}>
-      <Box style={{...globalStyles.flexBoxRow, height: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: globalColors.blue}}>
-        <Icon type='icon-people-add-32' />
-        <Text style={{marginLeft: 12, color: globalColors.white}} type='Body'>Add a user...</Text>
-      </Box>
-    </ClickableBox>
-  )
-}
+const GroupAction = ({icon, label, onClick, style}: {icon: IconType, label: string, onClick: () => void, style?: ?Object}) => (
+  <ClickableBox onClick={onClick}>
+    <Box style={rowButtonStyle}>
+      <Icon type={icon} style={{...style}} />
+      <Text type='Body' style={{color: globalColors.blue, marginLeft: 8}}>{label}</Text>
+    </Box>
+  </ClickableBox>
+)
 
-function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClick: () => void}) {
+export default function UserGroup ({selectedUsers, onRemoveUserFromGroup, onClickUserInGroup, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, onGroupChat, userForInfoPane}: Props) {
   return (
-    <ClickableBox onClick={onClick}>
-      <Box style={rowButtonStyle}>
-        <Icon type={icon} />
-        <Text type='Body' style={{marginLeft: 8, color: globalColors.blue}}>{text}</Text>
-      </Box>
-    </ClickableBox>
-  )
-}
-
-export default function UserGroup ({selectedUsers, onAddUser, onRemoveUserFromGroup, onClickUserInGroup, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, onGroupChat, userForInfoPane}: Props) {
-  return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.lightGrey}}>
-      <AddUser onClick={onAddUser} />
+    <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.lightGrey, flex: 1}}>
       {selectedUsers.map(u => <User key={u.service + u.username} selected={!!userForInfoPane && u.username === userForInfoPane.username} user={u} onRemove={onRemoveUserFromGroup} onClickUser={onClickUserInGroup} insertSpacing={true} />)}
-      <RowButton icon='icon-folder-private-open-32' text='Open private folder' onClick={onOpenPrivateGroupFolder} />
-      <RowButton icon='icon-folder-public-open-32' text='Open public folder' onClick={onOpenPublicGroupFolder} />
-      <RowButton style={{color: globalColors.blue}} icon='iconfont-chat' text='Start a chat' onClick={onGroupChat} />
+      <GroupAction icon='icon-folder-private-open-32' label='Open private folder' onClick={onOpenPrivateGroupFolder} />
+      {selectedUsers.length === 1 && <GroupAction onClick={onOpenPublicGroupFolder} icon='icon-folder-public-open-24' label='Open public folder' />}
+      <GroupAction style={{color: globalColors.blue}} icon='iconfont-chat' label='Start a chat' onClick={onGroupChat} />
     </Box>
   )
 }
@@ -107,8 +93,8 @@ const avatarStyle = {
 
 const rowButtonStyle = {
   ...globalStyles.flexBoxRow,
+  alignItems: 'center',
   backgroundColor: globalColors.white,
   height: 48,
-  alignItems: 'center',
   justifyContent: 'center',
 }

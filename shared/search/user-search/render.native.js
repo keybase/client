@@ -1,6 +1,6 @@
 // @flow
-import React, {Component} from 'react'
-import {Avatar, Box, Icon, Input, Text, ListItem} from '../../common-adapters'
+import React from 'react'
+import {Avatar, Box, Icon, Text, ListItem} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './render'
@@ -93,22 +93,10 @@ function Result ({result, searchText, onClickResult}: {result: SearchResult, sea
   )
 }
 
-export default class UserSearchRender extends Component<void, Props, void> {
-  render () {
-    return (
-      <Box style={globalStyles.flexBoxColumn}>
-        <ListItem
-          type='Small'
-          containerStyle={{backgroundColor: globalColors.blue4}}
-          icon={<Icon type={this.props.searchIcon} style={{width: 32, height: 32}} />}
-          body={(
-            <Box style={{flex: 2, height: 32}}>
-              <Input small={true} type='text' value={this.props.searchText} hintText={this.props.searchHintText} hideUnderline={true} style={{height: 32}} onChangeText={text => this.props.onSearch(text)} />
-            </Box>
-          )}
-          action={<Box />} />
-        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} onClickResult={() => this.props.onClickResult(r)} searchText={this.props.searchText || ''} />)}
-      </Box>
-    )
-  }
-}
+const UserSearchRender = ({results, onClickResult, searchText}: Props) => (
+  <Box style={globalStyles.flexBoxColumn}>
+    {results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} onClickResult={() => onClickResult(r)} searchText={searchText || ''} />)}
+  </Box>
+)
+
+export default UserSearchRender

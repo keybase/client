@@ -4,7 +4,7 @@ import {Box, Text} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import UserSearch from './user-search/render.desktop'
 import UserGroup from './user-search/user-group'
-import SearchBar from './user-search/search-bar.desktop'
+import SearchBar from './user-search/search-bar'
 
 import type {Props, RootProps} from '.'
 import type {Props as UserSearchProps} from './user-search/render'
