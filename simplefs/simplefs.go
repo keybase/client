@@ -215,9 +215,21 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 // SimpleFSRemove - Remove file or directory from filesystem
 func (k *SimpleFS) SimpleFSRemove(ctx context.Context, arg keybase1.SimpleFSRemoveArg) error {
 	node, leaf, err := k.getRemoteNodeParent(ctx, arg.Path)
-	_, _, _ = node, leaf, err
-	// TODO
-	return errors.New("not implemented")
+	if err != nil {
+		return err
+	}
+	_, ei, err := k.config.KBFSOps().Lookup(ctx, node, leaf)
+	if err != nil {
+		return err
+	}
+	switch ei.Type {
+	case libkbfs.Dir:
+		err = k.config.KBFSOps().RemoveDir(ctx, node, leaf)
+	default:
+		err = k.config.KBFSOps().RemoveEntry(ctx, node, leaf)
+	}
+	// TODO Should this be async
+	return err
 }
 
 // SimpleFSStat - Get info about file
