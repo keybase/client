@@ -275,7 +275,7 @@ func (e *loginProvision) paper(ctx *Context, device *libkb.Device) error {
 		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
 			return err
 		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
 			// not a fatal error, session will stay in memory
 			e.G().Log.Warning("error saving session file: %s", err)
 		}
@@ -342,7 +342,7 @@ func (e *loginProvision) pgpProvision(ctx *Context) error {
 		if err := e.makeDeviceKeysWithSigner(ctx, signer); err != nil {
 			return err
 		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
 			// not a fatal error, session will stay in memory
 			e.G().Log.Warning("error saving session file: %s", err)
 			return err
@@ -675,7 +675,7 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 		if err := e.makeDeviceKeysWithSigner(ctx, signingKey); err != nil {
 			return err
 		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName())); err != nil {
 			// not a fatal error, session will stay in memory
 			e.G().Log.Warning("error saving session file: %s", err)
 		}
@@ -887,7 +887,7 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 		}
 
 		// save provisioned device id in the session
-		err = a.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID())
+		err = a.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName()))
 	}, "makeEldestDevice")
 	if err != nil {
 		return err
