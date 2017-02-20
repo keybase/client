@@ -44,7 +44,7 @@ const italicStyle = {color: undefined, fontStyle: 'italic', fontWeight: undefine
 const strikeStyle = {color: undefined, fontWeight: undefined, textDecorationLine: 'line-through'}
 
 function previewCreateComponent (style) {
-  return function (type, key, children, options, style) {
+  return function (type, key, children, options) {
     switch (type) {
       case 'emoji':
         return <EmojiIfExists key={key}>{children}</EmojiIfExists>
