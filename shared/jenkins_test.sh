@@ -4,6 +4,12 @@ test_type="$1"
 commit_hash="$2"
 change_target="origin/$3"
 
+if [ -z "$3" ]; then
+    against_master=1
+else
+    against_master=0
+fi
+
 echo "shared/jenkins_test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target}"
 
 check_rc() {
@@ -19,6 +25,10 @@ check_rc() {
 }
 
 has_js_files() {
+    if [ $against_master -eq 1 ]; then
+        echo 'Missing $change_target, forcing has_js_files to true'
+        return
+    fi
     echo 'git fetch'
     git fetch
     check_rc $? 'echo git fetch problem' 1
@@ -52,17 +62,26 @@ js_tests() {
 visdiff() {
     echo 'visdiff'
     has_js_files
-    node ../visdiff/dist/index.js "$change_target...$commit_hash"
-    check_rc $? 'visdiff fail' 1
+
+    if [ $against_master -eq 1 ]; then
+        echo 'No $change_target, skipping visdiff'
+    else
+        node ../visdiff/dist/index.js "$change_target...$commit_hash"
+        check_rc $? 'visdiff fail' 1
+    fi
 }
 
 visdiff_install() {
     echo 'visdiff-install'
     has_js_files
-    cd ../visdiff
-    yarn install --pure-lockfile
-    cd ../shared
-    check_rc $? 'visdiff fail' 1
+    if [ $against_master -eq 1 ]; then
+        echo 'No $change_target, skipping visdiff'
+    else
+        cd ../visdiff
+        yarn install --pure-lockfile
+        cd ../shared
+        check_rc $? 'visdiff fail' 1
+    fi
 }
 
 if [ $test_type == 'visdiff' ]; then
