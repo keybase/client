@@ -180,6 +180,21 @@ function log (plat, arch) {
       console.error(err)
       process.exit(1)
     }
+    const dir = path.join(filepath[0], 'resources/app/desktop/dist')
+    const files = ['index', 'launcher', 'main', 'remote-component-loader'].map(p => p + '.bundle.js')
+    files.forEach(file => {
+      try {
+        const stats = fs.statSync(path.join(dir, file))
+        if (!stats.isFile() && stats.size > 0) {
+          console.error(`Detected a problem with packaging ${file}: ${stats.isFile()} ${stats.size}`)
+          process.exit(1)
+        }
+      } catch (err) {
+        console.error(`${path.join(dir, file)} doesn't exist`)
+        console.error(err)
+        process.exit(1)
+      }
+    })
     console.log(`${plat}-${arch} finished!`)
   }
 }

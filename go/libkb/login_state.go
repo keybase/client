@@ -417,7 +417,9 @@ func (s *LoginState) ResetAccount(un string) (err error) {
 		}
 		pdpka.PopulateArgs(&arg.Args)
 		res, aerr := s.G().API.Post(arg)
-		s.G().Log.Info("NUKE Result: %+v\n", res.AppStatus)
+		if aerr == nil {
+			s.G().Log.Info("NUKE Result: %+v\n", res.AppStatus)
+		}
 		return aerr
 	}, nil, "ResetAccount")
 	if aerr != nil {
@@ -476,7 +478,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALo
 
 func (s *LoginState) saveLoginState(lctx LoginContext, res *loginAPIResult, nilPPStreamOK bool) error {
 	lctx.SetStreamGeneration(res.ppGen, nilPPStreamOK)
-	return lctx.SaveState(res.sessionID, res.csrfToken, NewNormalizedUsername(res.username), res.uid, s.G().Env.GetDeviceID())
+	return lctx.SaveState(res.sessionID, res.csrfToken, NewNormalizedUsername(res.username), res.uid, s.G().Env.GetDeviceIDForUsername(NewNormalizedUsername(res.username)))
 }
 
 func (r PostAuthProofRes) loginResult() (*loginAPIResult, error) {
@@ -610,9 +612,12 @@ func (s *LoginState) switchUser(lctx LoginContext, username string) error {
 	}
 	nu := NewNormalizedUsername(username)
 	if err := s.G().Env.GetConfigWriter().SwitchUser(nu); err != nil {
+		if _, ok := err.(UserNotFoundError); ok {
+			s.G().Log.Debug("| No user %s found; clearing out config", username)
+			return nil
+		}
 		s.G().Log.Debug("| Can't switch user to %s: %s", username, err)
-		// apparently this isn't an error either
-		return nil
+		return err
 	}
 
 	lctx.EnsureUsername(nu)
@@ -715,9 +720,9 @@ func (s *LoginState) verifyPlaintextPassphraseForLoggedInUser(lctx LoginContext,
 }
 
 func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase string, secretUI SecretUI, retryMsg string) (err error) {
-	s.G().Log.Debug("+ LoginState.passphraseLogin (username=%s)", username)
+	s.G().Log.Debug("+ LoginState#passphraseLogin (username=%s)", username)
 	defer func() {
-		s.G().Log.Debug("- LoginState.passphraseLogin -> %s", ErrToOk(err))
+		s.G().Log.Debug("- LoginState#passphraseLogin -> %s", ErrToOk(err))
 	}()
 
 	if err = lctx.LoadLoginSession(username); err != nil {
@@ -748,38 +753,54 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 
 	// If storeSecret is set and there is a device ID, then try to store the secret.
 	//
-	// Ignore most of the errors.
+	// Ignore some errors.
 	//
 	// Can get here without a device ID during device provisioning as this is used to establish a login
 	// session before the device keys are generated.
-	if storeSecret && !s.G().Env.GetDeviceID().IsNil() {
-		s.G().Log.Debug("passphraseLogin: storeSecret set, so saving secret in secret store")
-		pps := lctx.PassphraseStreamCache().PassphraseStream()
-		if pps == nil {
-			return errors.New("nil passphrase stream")
-		}
-		lks := NewLKSec(pps, res.uid, s.G())
-		secret, err := lks.GetSecret(lctx)
+	if storeSecret && !s.G().Env.GetDeviceIDForUsername(NewNormalizedUsername(username)).IsNil() {
+
+		err = s.doStoreSecret(lctx, username, res)
 		if err != nil {
-			// Ignore any errors storing the secret.
-			s.G().Log.Debug("(ignoring) error getting lksec secret for SecretStore: %s", err)
-			return nil
-		}
-		secretStore := NewSecretStore(s.G(), NewNormalizedUsername(username))
-		if secretStore == nil {
-			s.G().Log.Debug("secret store requested, but unable to create one")
-			return nil
-		}
-		storeSecretErr := secretStore.StoreSecret(secret)
-		if storeSecretErr != nil {
-			// Ignore any errors storing the secret.
-			s.G().Log.Debug("(ignoring) StoreSecret error: %s", storeSecretErr)
-			return nil
+			s.G().Log.Debug("| LoginState#passphraseLogin: emergency logout")
+			tmpErr := lctx.Logout()
+			if tmpErr != nil {
+				s.G().Log.Debug("error in emergency logout: %s", tmpErr)
+			}
+			return err
 		}
 	}
 
 	if repairErr := RunBug3964Repairman(s.G(), lctx, lctx.PassphraseStreamCache().PassphraseStream()); repairErr != nil {
 		s.G().Log.Debug("In Bug 3964 repair: %s", repairErr)
+	}
+
+	return nil
+}
+
+func (s *LoginState) doStoreSecret(lctx LoginContext, username string, res *loginAPIResult) (err error) {
+
+	defer s.G().Trace("LoginState#doStoreSecret", func() error { return err })()
+	pps := lctx.PassphraseStreamCache().PassphraseStream()
+	if pps == nil {
+		return errors.New("nil passphrase stream")
+	}
+	lks := NewLKSec(pps, res.uid, s.G())
+	secret, err := lks.GetSecret(lctx)
+	if err != nil {
+		s.G().Log.Debug("error getting lksec secret for SecretStore: %s", err)
+		return err
+	}
+
+	secretStore := NewSecretStore(s.G(), NewNormalizedUsername(username))
+	if secretStore == nil {
+		s.G().Log.Debug("secret store requested, but unable to create one")
+		return nil
+	}
+	storeSecretErr := secretStore.StoreSecret(secret)
+	if storeSecretErr != nil {
+		// Ignore any errors storing the secret.
+		s.G().Log.Debug("(ignoring) StoreSecret error: %s", storeSecretErr)
+		return nil
 	}
 
 	return nil

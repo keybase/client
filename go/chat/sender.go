@@ -20,7 +20,7 @@ import (
 
 type Sender interface {
 	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error)
-	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error)
+	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []chat1.Asset, error)
 }
 
 type BlockingSender struct {
@@ -28,11 +28,12 @@ type BlockingSender struct {
 	utils.DebugLabeler
 
 	boxer       *Boxer
+	store       *AttachmentStore
 	getSecretUI func() libkb.SecretUI
 	getRi       func() chat1.RemoteInterface
 }
 
-func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, getRi func() chat1.RemoteInterface,
+func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, store *AttachmentStore, getRi func() chat1.RemoteInterface,
 	getSecretUI func() libkb.SecretUI) *BlockingSender {
 	return &BlockingSender{
 		Contextified: libkb.NewContextified(g),
@@ -40,6 +41,7 @@ func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, getRi func() chat1.
 		getRi:        getRi,
 		getSecretUI:  getSecretUI,
 		boxer:        boxer,
+		store:        store,
 	}
 }
 
@@ -81,7 +83,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 	// mistake in the future. But if there's some use case in the future where
 	// a caller wants to specify custom prevs, we can relax this.
 	if len(msg.ClientHeader.Prev) != 0 {
-		return chat1.MessagePlaintext{}, fmt.Errorf("chatLocalHandler expects an empty prev list")
+		return chat1.MessagePlaintext{}, fmt.Errorf("addPrevPointersToMessage expects an empty prev list")
 	}
 
 	var prevs []chat1.MessagePreviousPointer
@@ -116,31 +118,35 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 	return updated, nil
 }
 
-// Get all messages to be deleted.
+// Get all messages to be deleted, and attachments to delete.
+// Returns (message, assetsToDelete, error)
 // If the entire conversation is cached locally, this will find all messages that should be deleted.
 // If the conversation is not cached, this relies on the server to get old messages, so the server
-// could omit messages. Those messages would then not be signed into the `Deletes` list.
+// could omit messages. Those messages would then not be signed into the `Deletes` list. And their
+// associated attachment assets would be left undeleted.
 func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.MessagePlaintext,
-	convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
+	convID chat1.ConversationID) (chat1.MessagePlaintext, []chat1.Asset, error) {
+
+	var pendingAssetDeletes []chat1.Asset
 
 	// Make sure this is a valid delete message
 	if msg.ClientHeader.MessageType != chat1.MessageType_DELETE {
-		return msg, nil
+		return msg, nil, nil
 	}
 
 	deleteTargetID := msg.ClientHeader.Supersedes
 	if deleteTargetID == 0 {
-		return msg, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
+		return msg, nil, fmt.Errorf("getAllDeletedEdits: no supersedes specified")
 	}
 
 	// Get the one message to be deleted by ID.
 	var uid gregor1.UID = s.G().Env.GetUID().ToBytes()
 	deleteTargets, err := s.G().ConvSource.GetMessages(ctx, convID, uid, []chat1.MessageID{deleteTargetID}, nil)
 	if err != nil {
-		return msg, err
+		return msg, nil, err
 	}
 	if len(deleteTargets) != 1 {
-		return msg, fmt.Errorf("getAllDeletedEdits: wrong number of delete targets found (%v but expected 1)", len(deleteTargets))
+		return msg, nil, fmt.Errorf("getAllDeletedEdits: wrong number of delete targets found (%v but expected 1)", len(deleteTargets))
 	}
 	deleteTarget := deleteTargets[0]
 	state, err := deleteTarget.State()
@@ -148,13 +154,21 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	case chat1.MessageUnboxedState_VALID:
 		// pass
 	case chat1.MessageUnboxedState_ERROR:
-		return msg, fmt.Errorf("getAllDeletedEdits: delete target: %s", deleteTarget.Error().ErrMsg)
+		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target: %s", deleteTarget.Error().ErrMsg)
 	case chat1.MessageUnboxedState_OUTBOX:
 		// TODO You should be able to delete messages that haven't been sent yet. But through a different mechanism.
-		return msg, fmt.Errorf("getAllDeletedEdits: delete target still in outbox")
+		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target still in outbox")
 	default:
-		return msg, fmt.Errorf("getAllDeletedEdits: delete target invalid (state:%v)", state)
+		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target invalid (state:%v)", state)
 	}
+
+	// Delete all assets on the deleted message.
+	// assetsForMessage logs instead of failing.
+	pads2, err := s.assetsForMessage(ctx, deleteTarget.Valid().MessageBody)
+	if err != nil {
+		return msg, nil, err
+	}
+	pendingAssetDeletes = append(pendingAssetDeletes, pads2...)
 
 	// Time of the first message to be deleted.
 	timeOfFirst := gregor1.FromTime(deleteTarget.Valid().ServerHeader.Ctime)
@@ -171,7 +185,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 		After:        &timeBeforeFirst,
 	}, nil)
 	if err != nil {
-		return msg, err
+		return msg, nil, err
 	}
 
 	// Get all affected messages to be deleted
@@ -194,6 +208,14 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 		case chat1.MessageType_ATTACHMENTUPLOADED:
 			if body.Attachmentuploaded().MessageID == deleteTargetID {
 				deletes = append(deletes, m.GetMessageID())
+
+				// Delete all assets on AttachmentUploaded's for the deleted message.
+				// assetsForMessage logs instead of failing.
+				pads2, err = s.assetsForMessage(ctx, body)
+				if err != nil {
+					return msg, nil, err
+				}
+				pendingAssetDeletes = append(pendingAssetDeletes, pads2...)
 			}
 		default:
 			s.Debug(ctx, "getAllDeletedEdits: unexpected message type: convID: %s msgID: %d typ: %v", convID, m.GetMessageID(), typ)
@@ -207,51 +229,83 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	//       careful to preserve them here.
 	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
 
-	return msg, nil
+	return msg, pendingAssetDeletes, nil
 }
 
-func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
+// assetsForMessage gathers all assets on a message
+func (s *BlockingSender) assetsForMessage(ctx context.Context, msgBody chat1.MessageBody) ([]chat1.Asset, error) {
+	var assets []chat1.Asset
+	typ, err := msgBody.MessageType()
+	if err != nil {
+		// Log and drop the error for a malformed MessageBody.
+		s.G().Log.Warning("error getting assets for message: %s", err)
+		return assets, nil
+	}
+	switch typ {
+	case chat1.MessageType_ATTACHMENT:
+		body := msgBody.Attachment()
+		if body.Object.Path != "" {
+			assets = append(assets, body.Object)
+		}
+		if body.Preview != nil {
+			assets = append(assets, *body.Preview)
+		}
+		assets = append(assets, body.Previews...)
+	case chat1.MessageType_ATTACHMENTUPLOADED:
+		body := msgBody.Attachmentuploaded()
+		if body.Object.Path != "" {
+			assets = append(assets, body.Object)
+		}
+		assets = append(assets, body.Previews...)
+	}
+	return assets, nil
+}
 
+// Prepare a message to be sent.
+// Returns (boxedMessage, pendingAssetDeletes, error)
+func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []chat1.Asset, error) {
 	// Make sure it is a proper length
 	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// convID will be nil in makeFirstMessage, for example
 	if convID != nil {
 		msg, err = s.addPrevPointersToMessage(ctx, msg, *convID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	// Make sure our delete message gets everything it should
+	var pendingAssetDeletes []chat1.Asset
 	if convID != nil {
-		msg, err = s.getAllDeletedEdits(ctx, msg, *convID)
+		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
+		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, msg, *convID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	// encrypt the message
 	skp, err := s.getSigningKeyPair()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
 	// it a bit to do it here.
 	boxed, err := s.boxer.BoxMessage(ctx, msg, skp)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return boxed, nil
+	return boxed, pendingAssetDeletes, nil
 }
 
 func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
@@ -268,11 +322,52 @@ func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err e
 	return kp, nil
 }
 
+// deleteAssets deletes assets from s3.
+// Logs but does not return errors. Assets may be left undeleted.
+func (s *BlockingSender) deleteAssets(ctx context.Context, convID chat1.ConversationID, assets []chat1.Asset) error {
+	ri := s.getRi()
+	if ri == nil {
+		return fmt.Errorf("deleteAssets(): no remote client found")
+	}
+
+	// get s3 params from server
+	params, err := s.getRi().GetS3Params(ctx, convID)
+	if err != nil {
+		s.G().Log.Warning("error getting s3 params: %s", err)
+		return nil
+	}
+
+	if err := s.store.DeleteAssets(ctx, params, s, assets); err != nil {
+		s.G().Log.Warning("error deleting assets: %s", err)
+
+		// there's no way to get asset information after this point.
+		// any assets not deleted will be stranded on s3.
+
+		return nil
+	}
+
+	s.G().Log.Debug("deleted %d assets", len(assets))
+	return nil
+}
+
+// Sign implements github.com/keybase/go/chat/s3.Signer interface.
+func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
+	ri := s.getRi()
+	if ri == nil {
+		return nil, fmt.Errorf("Sign(): no remote client found")
+	}
+	arg := chat1.S3SignArg{
+		Payload: payload,
+		Version: 1,
+	}
+	return ri.S3Sign(context.Background(), arg)
+}
+
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-	boxed, err := s.Prepare(ctx, msg, &convID)
+	boxed, pendingAssetDeletes, err := s.Prepare(ctx, msg, &convID)
 	if err != nil {
 		s.Debug(ctx, "error in Prepare: %s", err.Error())
 		return chat1.OutboxID{}, 0, nil, err
@@ -281,6 +376,13 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	ri := s.getRi()
 	if ri == nil {
 		return chat1.OutboxID{}, 0, nil, fmt.Errorf("Send(): no remote client found")
+	}
+
+	// Delete assets associated with a delete operation.
+	// Logs instead of returning an error. Assets can be left undeleted.
+	err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
+	if err != nil {
+		return chat1.OutboxID{}, 0, nil, err
 	}
 
 	rarg := chat1.PostRemoteArg{
@@ -553,7 +655,7 @@ func NewNonblockingSender(g *libkb.GlobalContext, sender Sender) *NonblockingSen
 	return s
 }
 
-func (s *NonblockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
+func (s *NonblockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []chat1.Asset, error) {
 	return s.sender.Prepare(ctx, plaintext, convID)
 }
 

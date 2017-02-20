@@ -46,7 +46,6 @@ type reachability struct {
 	libkb.Contextified
 	lastReachability keybase1.Reachability
 	started          bool
-	shutdownCh       chan bool
 	startMutex       sync.Mutex
 	setMutex         sync.Mutex
 }
@@ -54,7 +53,6 @@ type reachability struct {
 func newReachability(g *libkb.GlobalContext) *reachability {
 	return &reachability{
 		Contextified: libkb.NewContextified(g),
-		shutdownCh:   make(chan bool),
 	}
 }
 
@@ -82,10 +80,6 @@ func (h *reachability) start() keybase1.Reachability {
 				select {
 				case <-h.G().Clock().After(time.Second * 30):
 					h.check()
-				case <-h.shutdownCh:
-					h.G().Log.Debug("Shutdown")
-					h.setReachability(keybase1.Reachability{Reachable: keybase1.Reachable_NO})
-					return
 				}
 			}
 		}()
@@ -100,6 +94,7 @@ func (h *reachability) check() (k keybase1.Reachability) {
 	// notifications.
 	u, err := url.Parse(h.G().Env.GetGregorURI())
 	if err != nil {
+		h.G().Log.Errorf("Invalid URI for reachability check: %s", err)
 		return
 	}
 

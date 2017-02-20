@@ -5,7 +5,7 @@ import {CommonClientType, configGetConfigRpc, configGetExtendedStatusRpc, config
 import {isMobile} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login'
-import {registerGregorListeners, registerReachability} from '../../actions/gregor'
+import {checkReachabilityOnConnect, registerGregorListeners, registerReachability} from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
 
 import type {UpdateFollowing} from '../../constants/config'
@@ -156,11 +156,18 @@ let bootstrapSetup = false
 type BootstrapOptions = {isReconnect?: boolean}
 function bootstrap (opts?: BootstrapOptions = {}): AsyncAction {
   return (dispatch, getState) => {
+    const readyForBootstrap = getState().config.readyForBootstrap
+    if (!readyForBootstrap) {
+      console.warn('Not ready for bootstrap/connect')
+      return
+    }
+
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('[bootstrap] registered bootstrap')
       engine().listenOnConnect('bootstrap', () => {
         dispatch(daemonError(null))
+        dispatch(checkReachabilityOnConnect())
         console.log('[bootstrap] bootstrapping on connect')
         dispatch(bootstrap())
       })

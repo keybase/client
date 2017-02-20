@@ -13,7 +13,7 @@ type State = {
   text: string,
 }
 
-class Conversation extends Component<void, Props, State> {
+class ConversationInput extends Component<void, Props, State> {
   _input: any;
   _fileInput: any;
   state: State;
@@ -201,4 +201,4 @@ const styleFooter = {
   marginRight: globalMargins.tiny,
 }
 
-export default Conversation
+export default ConversationInput

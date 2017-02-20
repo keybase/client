@@ -8,6 +8,11 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses a single delimiter correctly', () => {
+    const ast = parser.parse('.')
+    expect(ast).toMatchSnapshot()
+  })
+
   it('parses a line with just whitespace correctly', () => {
     const ast = parser.parse('    ')
     expect(ast).toMatchSnapshot()

@@ -3,7 +3,7 @@ import React from 'react'
 import {Box, Button, Text} from '../../common-adapters'
 import {globalColors, globalStyles} from '../../styles'
 
-const ParticipantRekey = ({onRekey}: {onRekey: () => void}) => {
+const YouRekey = ({onRekey}: {onRekey: () => void}) => {
   return (
     <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
@@ -24,4 +24,4 @@ const containerStyle = {
   justifyContent: 'flex-start',
 }
 
-export default ParticipantRekey
+export default YouRekey

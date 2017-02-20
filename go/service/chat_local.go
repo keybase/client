@@ -45,7 +45,7 @@ type chatLocalHandler struct {
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
-func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
+func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, store *chat.AttachmentStore, gh *gregorHandler) *chatLocalHandler {
 	tlf := newTlfHandler(nil, g)
 	h := &chatLocalHandler{
 		BaseHandler:   NewBaseHandler(xp),
@@ -54,7 +54,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		gh:            gh,
 		tlf:           tlf,
 		boxer:         chat.NewBoxer(g, tlf),
-		store:         chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
+		store:         store,
 		identNotifier: chat.NewIdentifyNotifier(g),
 	}
 
@@ -345,8 +345,9 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 		}
 	}
 
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
-	return sender.Prepare(ctx, msg, nil)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient, h.getSecretUI)
+	mbox, _, err := sender.Prepare(ctx, msg, nil)
+	return mbox, err
 }
 
 func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
@@ -607,17 +608,12 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	arg.Msg.ClientHeader.Sender = uid.ToBytes()
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
-	// keep track of any assets that need to be deleted after deleting the message
-	pendingAssetDeletes := h.pendingAssetDeletes(ctx, arg)
-
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient, h.getSecretUI)
 
 	_, msgID, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
-
-	h.deleteAssets(ctx, arg.ConversationID, pendingAssetDeletes)
 
 	return chat1.PostLocalRes{
 		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
@@ -715,7 +711,7 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	// Create non block sender
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient, h.getSecretUI)
 	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
 
 	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev)
@@ -1379,18 +1375,6 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	return h.store.UploadAsset(ctx, &task)
 }
 
-func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) ([]chat1.Asset, error) {
-	attachment, _, err := h.attachmentMessage(ctx, conversationID, msgID, idBehavior)
-	if err != nil {
-		return nil, err
-	}
-
-	assets := []chat1.Asset{attachment.Object}
-	assets = append(assets, attachment.Previews...)
-
-	return assets, nil
-}
-
 func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) (*chat1.MessageAttachment, []chat1.RateLimit, error) {
 	arg := chat1.GetMessagesLocalArg{
 		ConversationID:   conversationID,
@@ -1438,25 +1422,6 @@ func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID
 
 	return nil, msgs.RateLimits, errors.New("not an attachment message")
 
-}
-
-func (h *chatLocalHandler) pendingAssetDeletes(ctx context.Context, arg chat1.PostLocalArg) []chat1.Asset {
-	var pending []chat1.Asset
-	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_DELETE {
-		// check to see if deleting an attachment
-		md := arg.Msg.MessageBody.Delete()
-		for _, msgID := range md.MessageIDs {
-			assets, err := h.assetsForMessage(ctx, arg.ConversationID, msgID, arg.IdentifyBehavior)
-			if err != nil {
-				h.G().Log.Debug("error getting assets for message: %s", err)
-				// continue despite error?  Or return error and let user try again.
-			}
-			if len(assets) > 0 {
-				pending = append(pending, assets...)
-			}
-		}
-	}
-	return pending
 }
 
 func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat1.ConversationID, assets []chat1.Asset) {

@@ -163,6 +163,18 @@ type TlfResolveArg struct {
 	ResolvedReaders []gregor1.UID `codec:"resolvedReaders" json:"resolvedReaders"`
 }
 
+type PublishReadMessageArg struct {
+	Uid    gregor1.UID    `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+}
+
+type PublishSetConversationStatusArg struct {
+	Uid    gregor1.UID        `codec:"uid" json:"uid"`
+	ConvID ConversationID     `codec:"convID" json:"convID"`
+	Status ConversationStatus `codec:"status" json:"status"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -179,6 +191,8 @@ type RemoteInterface interface {
 	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
 	TlfFinalize(context.Context, TlfFinalizeArg) error
 	TlfResolve(context.Context, TlfResolveArg) error
+	PublishReadMessage(context.Context, PublishReadMessageArg) error
+	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -425,6 +439,38 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"publishReadMessage": {
+				MakeArg: func() interface{} {
+					ret := make([]PublishReadMessageArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PublishReadMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PublishReadMessageArg)(nil), args)
+						return
+					}
+					err = i.PublishReadMessage(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"publishSetConversationStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]PublishSetConversationStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PublishSetConversationStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PublishSetConversationStatusArg)(nil), args)
+						return
+					}
+					err = i.PublishSetConversationStatus(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -509,5 +555,15 @@ func (c RemoteClient) TlfFinalize(ctx context.Context, __arg TlfFinalizeArg) (er
 
 func (c RemoteClient) TlfResolve(ctx context.Context, __arg TlfResolveArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.tlfResolve", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) PublishReadMessage(ctx context.Context, __arg PublishReadMessageArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.publishReadMessage", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) PublishSetConversationStatus(ctx context.Context, __arg PublishSetConversationStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.publishSetConversationStatus", []interface{}{__arg}, nil)
 	return
 }

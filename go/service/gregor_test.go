@@ -23,6 +23,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func broadcastMessageTesting(t *testing.T, h *gregorHandler, m gregor1.Message) error {
+	require.NoError(t, h.BroadcastMessage(context.TODO(), m))
+	select {
+	case err := <-h.testingEvents.broadcastSentCh:
+		return err
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "broadcast didn't complete")
+	}
+	return nil
+}
+
 func TestGregorHandler(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
@@ -33,17 +44,13 @@ func TestGregorHandler(t *testing.T) {
 	tc.G.NotifyRouter.SetListener(listener)
 
 	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var h *gregorHandler
-	if h, err = newGregorHandler(tc.G); err != nil {
-		t.Fatal(err)
-	}
-	if h.HandlerName() != "keybase service" {
-		t.Errorf("handler name: %q, expected \"keybase service\"", h.HandlerName())
-	}
+	h, err = newGregorHandler(tc.G)
+	require.NoError(t, err)
+	h.testingEvents = newTestingEvents()
+	require.Equal(t, "keybase service", h.HandlerName(), "wrong name")
 
 	kbUID := user.User.GetUID()
 	gUID := gregor1.UID(kbUID.ToBytes())
@@ -55,16 +62,10 @@ func TestGregorHandler(t *testing.T) {
 			Body_:   gregor1.Body(`{"action": "delete", "tlf":"/private/t_alice,t_bob"}`),
 		},
 	}
-	if err := h.BroadcastMessage(context.Background(), m); err != nil {
-		t.Fatal(err)
-	}
 
-	if len(listener.favoritesChanged) != 1 {
-		t.Fatalf("num favorites changed uids: %d, expected 1", len(listener.favoritesChanged))
-	}
-	if listener.favoritesChanged[0].NotEqual(kbUID) {
-		t.Errorf("fav change uid: %v, expected %v", listener.favoritesChanged[0], kbUID)
-	}
+	broadcastMessageTesting(t, h, m)
+	require.Equal(t, 1, len(listener.favoritesChanged), "num faves failure")
+	require.Equal(t, kbUID, listener.favoritesChanged[0], "wrong uid")
 }
 
 type nlistener struct {
@@ -174,20 +175,16 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	idhandler.toggleAlwaysAlive(true)
 
 	trackee, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// Create another test user to actually perform the track, because we can't track ourselves.
 	tracker, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var h *gregorHandler
-	if h, err = newGregorHandler(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	h, err = newGregorHandler(tc.G)
+	require.NoError(t, err)
+	h.testingEvents = newTestingEvents()
 
 	h.PushHandler(idhandler)
 
@@ -207,19 +204,9 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 		},
 	}
 
-	err = h.BroadcastMessage(context.Background(), m)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if identifyUI.startedUsername != trackee.Username {
-		t.Fatalf("Expected test user %#v to be tracked. Saw %#v. Did the track not happen?", trackee.Username, identifyUI.startedUsername)
-	}
-
-	// Assert that the tracker window hasn't been dismissed yet.
-	if identifyUI.dismissedUsername != "" {
-		t.Fatal("Expected no dismissed username yet.")
-	}
+	broadcastMessageTesting(t, h, m)
+	require.Equal(t, trackee.Username, identifyUI.startedUsername, "wrong username")
+	require.Equal(t, "", identifyUI.dismissedUsername, "dismissed username")
 
 	msgIDDis := gregor1.MsgID("my_random_id_dis")
 	dismissal := gregor1.Message{
@@ -235,15 +222,8 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 			},
 		},
 	}
-	err = h.BroadcastMessage(context.Background(), dismissal)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Now assert that the tracker window has been dismissed.
-	if identifyUI.dismissedUsername != trackee.User.GetName() {
-		t.Fatalf("Expected the tracker window for UID %s to be dismissed. current value: %s", trackee.User.GetUID().String(), identifyUI.dismissedUsername)
-	}
+	broadcastMessageTesting(t, h, dismissal)
+	require.Equal(t, trackee.User.GetName(), identifyUI.dismissedUsername, "dismissed")
 }
 
 func newMsgID() gregor1.MsgID {
@@ -387,6 +367,7 @@ func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGre
 	if h, err = newGregorHandler(tc.G); err != nil {
 		t.Fatal(err)
 	}
+	h.testingEvents = newTestingEvents()
 
 	server := newGregordMock(tc.G.Log)
 
@@ -457,7 +438,7 @@ func TestSyncNonFresh(t *testing.T) {
 		msg := server.newIbm(uid)
 		server.ConsumeMessage(context.TODO(), msg)
 		if i < msgLimit {
-			h.BroadcastMessage(context.TODO(), msg)
+			broadcastMessageTesting(t, h, msg)
 			// We end up picking up the last one in the sync, since its
 			// CTime is equal to when we start the sync, so just add it
 			if i == msgLimit-1 {
@@ -497,7 +478,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 		msg := server.newIbm(uid)
 		server.ConsumeMessage(context.TODO(), msg)
 		if i < msgLimit {
-			h.BroadcastMessage(context.TODO(), msg)
+			broadcastMessageTesting(t, h, msg)
 			// We end up picking up the last one in the sync, since its
 			// CTime is equal to when we start the sync, so just add it
 			if i == msgLimit-1 {
@@ -546,7 +527,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 		msg := server.newIbm(uid)
 		server.ConsumeMessage(context.TODO(), msg)
 		if i < msgLimit {
-			h.BroadcastMessage(context.TODO(), msg)
+			broadcastMessageTesting(t, h, msg)
 			// We end up picking up the last one in the sync, since its
 			// CTime is equal to when we start the sync, so just add it
 			if i == msgLimit-1 {
@@ -719,7 +700,7 @@ func TestSyncDismissalExistingState(t *testing.T) {
 	server.ConsumeMessage(context.TODO(), msg)
 
 	// Broadcast msg
-	h.BroadcastMessage(context.TODO(), msg)
+	broadcastMessageTesting(t, h, msg)
 
 	// Consume another message but don't broadcast
 	msg2 := server.newIbm(uid)
@@ -762,7 +743,7 @@ func TestSyncFutureDismissals(t *testing.T) {
 	refReplayMsgs = append(refReplayMsgs, msg.ToInBandMessage())
 
 	// Broadcast msg
-	h.BroadcastMessage(context.TODO(), msg)
+	broadcastMessageTesting(t, h, msg)
 
 	// Consume another message but don't broadcast
 	msg2 := server.newIbm(uid)
@@ -799,6 +780,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	if h, err = newGregorHandler(tc.G); err != nil {
 		t.Fatal(err)
 	}
+	h.testingEvents = newTestingEvents()
 
 	m, err := h.templateMessage()
 	if err != nil {
@@ -818,23 +800,11 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike!!")),
 	}
 
-	if err := h.BroadcastMessage(context.Background(), *m); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := h.BroadcastMessage(context.Background(), *m2); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := h.BroadcastMessage(context.Background(), *m); err == nil {
-		t.Fatal(err)
-	} else {
-		errMsg := "ignored repeat message"
-		if err.Error() != errMsg {
-			t.Fatalf("wrong error message %s != %s", err, errMsg)
-		}
-	}
-
+	broadcastMessageTesting(t, h, *m)
+	broadcastMessageTesting(t, h, *m2)
+	err = broadcastMessageTesting(t, h, *m)
+	require.Error(t, err)
+	require.Equal(t, "ignored repeat message", err.Error())
 }
 
 type BadgeStateStats struct {

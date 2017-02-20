@@ -1,4 +1,5 @@
 // @flow
+import Camera from 'react-native-camera'
 import {PermissionsAndroid} from 'react-native'
 import React, {Component} from 'react'
 import type {Props} from './index'
@@ -40,12 +41,15 @@ class QR extends Component<void, Props, State> {
   render () {
     if (this.props.scanning) {
       if (this.state.permissionGranted) {
-        return <Text type='Body'>TODO</Text>
-        // return <BarcodeScanner
-          // onBarCodeRead={this.props.onBarCodeRead}
-          // style={this.props.style || {flex: 1}}
-          // torchMode='off'
-          // cameraType='back' />
+        return (
+          <Camera
+            style={{...cameraStyle, ...this.props.style}}
+            captureAudio={false}
+            ref='cam'
+            onBarCodeRead={data => this.props.onBarCodeRead(data)}>
+            {this.props.children}
+          </Camera>
+        )
       } else {
         if (this.state.permissionGranted === false) {
           return <Text type='Body'>Couldn't get camera permissions</Text>
@@ -62,6 +66,12 @@ class QR extends Component<void, Props, State> {
       )
     }
   }
+}
+
+const cameraStyle = {
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
+  flex: 1,
 }
 
 export default QR
