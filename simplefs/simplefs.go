@@ -193,7 +193,6 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 		return keybase1.FileContent{}, errNoSuchHandle
 	}
 	bs := make([]byte, arg.Size)
-	// TODO fix offset
 	k.config.KBFSOps().Read(ctx, h.node, bs, arg.Offset)
 	return keybase1.FileContent{
 		Data: bs,
@@ -209,7 +208,6 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 	if !ok {
 		return errNoSuchHandle
 	}
-	// TODO fix offset
 	err := k.config.KBFSOps().Write(ctx, h.node, arg.Content, arg.Offset)
 	return err
 }
