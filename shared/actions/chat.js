@@ -1322,12 +1322,19 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
           const previewMetadata = preview && preview.metadata
           const previewSize = previewMetadata && Constants.parseMetadataPreviewSize(previewMetadata)
 
+          const previewIsVideo = previewMetadata && previewMetadata.assetType === LocalAssetMetadataType.video
+          let previewDurationMs = null
+          if (previewIsVideo) {
+            const previewVideoMetadata = previewMetadata && previewMetadata.assetType === LocalAssetMetadataType.video && previewMetadata.video
+            previewDurationMs = previewVideoMetadata ? previewVideoMetadata.durationMs : null
+          }
+
           const objectMetadata = attachment && attachment.object && attachment.object.metadata
           const objectIsVideo = objectMetadata && objectMetadata.assetType === LocalAssetMetadataType.video
-          let previewDurationMs = null
+          let attachmentDurationMs = null
           if (objectIsVideo) {
             const objectVideoMetadata = objectMetadata && objectMetadata.assetType === LocalAssetMetadataType.video && objectMetadata.video
-            previewDurationMs = objectVideoMetadata ? objectVideoMetadata.durationMs : null
+            attachmentDurationMs = objectVideoMetadata ? objectVideoMetadata.durationMs : null
           }
 
           let messageState
@@ -1344,6 +1351,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
             title: attachment.object.title,
             messageState,
             previewDurationMs,
+            attachmentDurationMs,
             previewType: mimeType && mimeType.indexOf('image') === 0 ? 'Image' : 'Other',
             previewPath: null,
             hdPreviewPath: null,
