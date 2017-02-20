@@ -15,6 +15,7 @@ class DevMenu extends Component {
       {name: 'Reset', onClick: this.props.onReset},
       {name: 'Sign Out', onClick: this.props.logout},
       {name: 'Log Send', onClick: this.props.onLogSend},
+      {name: 'Push Debug', onClick: this.props.onPushDebug},
     ]
     return (
       <Box style={{...globalStyles.flexBoxRow}}>
@@ -30,5 +31,6 @@ export default connect(
     onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
     onReset: () => engine().reset(),
     onLogSend: () => dispatch(navigateAppend(['logSend'])),
+    onPushDebug: () => dispatch(navigateAppend(['push'])),
     logout: () => dispatch(logout()),
   }))(DevMenu)

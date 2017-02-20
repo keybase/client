@@ -59,6 +59,9 @@ type Account struct {
 	testPostCleanHook func() // for testing, call this hook after cleaning
 }
 
+// Account implements a LoginContext
+var _ LoginContext = (*Account)(nil)
+
 func NewAccount(g *GlobalContext) *Account {
 	return &Account{
 		localSession: newSession(g),
@@ -299,8 +302,8 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	return a.skbKeyring, nil
 }
 
-func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyType) (GenericKey, error) {
-	did := a.G().Env.GetDeviceID()
+func (a *Account) getDeviceKey(ckf *ComputedKeyFamily, secretKeyType SecretKeyType, nun NormalizedUsername) (GenericKey, error) {
+	did := a.G().Env.GetDeviceIDForUsername(nun)
 	if did.IsNil() {
 		return nil, errors.New("Could not get device id")
 	}
@@ -339,7 +342,7 @@ func (a *Account) LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error) {
 	}
 
 	if (ska.KeyType == DeviceSigningKeyType) || (ska.KeyType == DeviceEncryptionKeyType) {
-		key, err := a.getDeviceKey(ckf, ska.KeyType)
+		key, err := a.getDeviceKey(ckf, ska.KeyType, me.GetNormalizedName())
 		if err != nil {
 			a.G().Log.Debug("| No key for current device: %s", err)
 			return nil, err

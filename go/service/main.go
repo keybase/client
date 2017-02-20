@@ -38,6 +38,7 @@ type Service struct {
 	logForwarder         *logFwd
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
+	attachmentstore      *chat.AttachmentStore
 	messageDeliverer     *chat.Deliverer
 	badger               *badges.Badger
 	reachability         *reachability
@@ -50,14 +51,15 @@ type Shutdowner interface {
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 	return &Service{
-		Contextified: libkb.NewContextified(g),
-		isDaemon:     isDaemon,
-		startCh:      make(chan struct{}),
-		stopCh:       make(chan keybase1.ExitCode),
-		logForwarder: newLogFwd(),
-		rekeyMaster:  newRekeyMaster(g),
-		badger:       badges.NewBadger(g),
-		reachability: newReachability(g),
+		Contextified:    libkb.NewContextified(g),
+		isDaemon:        isDaemon,
+		startCh:         make(chan struct{}),
+		stopCh:          make(chan keybase1.ExitCode),
+		logForwarder:    newLogFwd(),
+		rekeyMaster:     newRekeyMaster(g),
+		attachmentstore: chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
+		badger:          badges.NewBadger(g),
+		reachability:    newReachability(g),
 	}
 }
 
@@ -103,7 +105,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		chat1.LocalProtocol(newChatLocalHandler(xp, g, d.gregor)),
+		chat1.LocalProtocol(newChatLocalHandler(xp, g, d.attachmentstore, d.gregor)),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 	}
 	for _, proto := range protocols {
@@ -251,7 +253,7 @@ func (d *Service) createMessageDeliverer() {
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	tlf := newTlfHandler(nil, d.G())
 
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), ri, si)
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri, si)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 }
 

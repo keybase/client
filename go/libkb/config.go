@@ -205,6 +205,28 @@ func (f JSONConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
 	return
 }
 
+func (f JSONConfigFile) GetDeviceIDForUsername(nu NormalizedUsername) keybase1.DeviceID {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	ret, err := f.GetUserConfigForUsername(nu)
+	var empty keybase1.DeviceID
+	if err != nil {
+		return empty
+	}
+	return ret.GetDeviceID()
+}
+
+func (f JSONConfigFile) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	ret, err := f.GetUserConfigForUID(u)
+	var empty keybase1.DeviceID
+	if err != nil || ret == nil {
+		return empty
+	}
+	return ret.GetDeviceID()
+}
+
 func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
@@ -214,13 +236,22 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 		return nil
 	}
 
+	var err error
+	var val *jsonw.Wrapper
 	if f.jw.AtKey("users").AtKey(nu.String()).IsNil() {
-		return UserNotFoundError{Msg: nu.String()}
+		val = jsonw.NewNil()
+		err = UserNotFoundError{Msg: nu.String()}
+	} else {
+		val = jsonw.NewString(nu.String())
 	}
 
-	f.jw.SetKey("current_user", jsonw.NewString(nu.String()))
+	f.jw.SetKey("current_user", val)
 	f.userConfigWrapper.userConfig = nil
-	return f.Save()
+	saveErr := f.Save()
+	if err != nil {
+		err = saveErr
+	}
+	return err
 }
 
 func (f *JSONConfigFile) NukeUser(nu NormalizedUsername) error {
@@ -248,6 +279,19 @@ func (f *JSONConfigFile) NukeUser(nu NormalizedUsername) error {
 // username previously stored.
 func (f JSONConfigFile) GetUserConfigForUsername(nu NormalizedUsername) (*UserConfig, error) {
 	return ImportUserConfigFromJSONWrapper(f.jw.AtKey("users").AtKey(nu.String()))
+}
+
+// GetUserConfigForUID sees if there's a UserConfig object for the given UIDs previously stored.
+func (f JSONConfigFile) GetUserConfigForUID(u keybase1.UID) (*UserConfig, error) {
+	d := f.jw.AtKey("users")
+	keys, _ := d.Keys()
+	for _, key := range keys {
+		uc, err := f.GetUserConfigForUsername(NewNormalizedUsername(key))
+		if err == nil && uc != nil && uc.GetUID().Equal(u) {
+			return uc, nil
+		}
+	}
+	return nil, nil
 }
 
 func (f JSONConfigFile) GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error) {
@@ -377,7 +421,7 @@ func (f JSONConfigFile) GetDbFilename() string {
 	return f.GetTopLevelString("db")
 }
 func (f JSONConfigFile) GetChatDbFilename() string {
-	return f.GetTopLevelString("chat-db")
+	return f.GetTopLevelString("chat_db")
 }
 func (f JSONConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
@@ -414,8 +458,14 @@ func (f JSONConfigFile) GetGpgOptions() []string {
 func (f JSONConfigFile) GetRunMode() (RunMode, error) {
 	var err error
 	var ret RunMode = NoRunMode
-	if s, isSet := f.GetStringAtPath("run-mode"); isSet {
+	if s, isSet := f.GetStringAtPath("run_mode"); isSet {
 		ret, err = StringToRunMode(s)
+	}
+	return ret, err
+}
+func (f JSONConfigFile) GetFeatureFlags() (ret FeatureFlags, err error) {
+	if s, isSet := f.GetStringAtPath("features"); isSet {
+		ret = StringToFeatureFlags(s)
 	}
 	return ret, err
 }

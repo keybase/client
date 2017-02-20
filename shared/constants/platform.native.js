@@ -1,6 +1,6 @@
 // @flow
 import {Platform} from 'react-native'
-const runMode = 'staging' // TODO: make this properly set by env variables
+const runMode = 'prod'
 const isIOS = Platform.OS === 'ios'
 const isAndroid = !isIOS
 const isMobile = true

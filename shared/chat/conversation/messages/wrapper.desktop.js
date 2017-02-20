@@ -1,58 +1,17 @@
 // @flow
-import * as Constants from '../../../constants/chat'
 import React, {PureComponent} from 'react'
 import shallowEqual from 'shallowequal'
 import {Avatar, Icon, Text} from '../../../common-adapters'
-import {Map} from 'immutable'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {withHandlers} from 'recompose'
+import {marginColor, colorForAuthor} from './shared'
+import Retry from './retry'
 
-import type {FollowingMap, MetaDataMap} from '../../../constants/chat'
+import type {Props} from './wrapper'
 
-type Props = {
-  includeHeader: boolean,
-  isFirstNewMessage: boolean,
-  onRetry: () => void,
-  onAction: (message: Constants.ServerMessage, event: any) => void,
-  style: Object,
-  isSelected: boolean,
-  children: React$Element<*>,
-  message: Constants.TextMessage | Constants.AttachmentMessage,
-  you: string,
-  followingMap: FollowingMap,
-  metaDataMap: MetaDataMap,
-}
+type MessageProps = Props & {onIconClick: (event: any) => void, onRetry: () => void}
 
-const marginColor = (user: string, you: string, followingMap: FollowingMap, metaDataMap: MetaDataMap) => {
-  if (user === you) {
-    return globalColors.white
-  } else {
-    if (metaDataMap.get(user, Map()).get('brokenTracker', false)) {
-      return globalColors.red
-    }
-    return followingMap[user] ? globalColors.green2 : globalColors.blue
-  }
-}
-
-const colorForAuthor = (user: string, you: string, followingMap: FollowingMap, metaDataMap: MetaDataMap) => {
-  if (user === you) {
-    return globalColors.black_75
-  } else {
-    return marginColor(user, you, followingMap, metaDataMap)
-  }
-}
-
-const Retry = ({onRetry}: {onRetry: () => void}) => (
-  <div>
-    <Text type='BodySmall' style={{fontSize: 9, color: globalColors.red}}>{'┏(>_<)┓'}</Text>
-    <Text type='BodySmall' style={{color: globalColors.red}}> Failed to send. </Text>
-    <Text type='BodySmall' style={{color: globalColors.red, textDecoration: 'underline'}} onClick={onRetry}>Retry</Text>
-  </div>
-)
-
-type MessageProps = Props & {onIconClick: (event: any) => void}
-
-class _MessageComponent extends PureComponent<void, MessageProps, void> {
+class MessageWrapper extends PureComponent<void, MessageProps, void> {
   shouldComponentUpdate (nextProps: MessageProps) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
@@ -83,6 +42,7 @@ class _MessageComponent extends PureComponent<void, MessageProps, void> {
               <div style={_textContainerStyle} className='message' data-message-key={message.key}>
                 <div style={_childrenWrapStyle}>
                   {children}
+                  {message.type === 'Text' && message.editedCount > 0 && <Text type='BodySmall' style={_editedStyle}>EDITED</Text>}
                 </div>
                 <div className='action-button'>
                   {message.senderDeviceRevokedAt && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
@@ -150,6 +110,10 @@ const _avatarStyle = {
   marginRight: globalMargins.tiny,
 }
 
+const _editedStyle = {
+  color: globalColors.black_20,
+}
+
 export default withHandlers({
   onIconClick: (props: Props) => event => {
     props.onAction(props.message, event)
@@ -157,4 +121,4 @@ export default withHandlers({
   onRetry: (props: Props) => () => {
     props.message.outboxID && props.onRetry(props.message.outboxID)
   },
-})(_MessageComponent)
+})(MessageWrapper)

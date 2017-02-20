@@ -7,6 +7,10 @@ function requestPushPermissions (): Promise<*> {
   throw new Error('Push permissions unsupported on this platform')
 }
 
+function configurePush () {
+  throw new Error('Configure Push not needed on this platform')
+}
+
 function showMainWindow (): AsyncAction {
   return () => {
     ipcRenderer && ipcRenderer.send('showMain')
@@ -16,4 +20,5 @@ function showMainWindow (): AsyncAction {
 export {
   requestPushPermissions,
   showMainWindow,
+  configurePush,
 }

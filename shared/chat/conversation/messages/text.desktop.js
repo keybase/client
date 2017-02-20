@@ -1,8 +1,8 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Markdown, Text} from '../../../common-adapters'
+import {Markdown} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
-import MessageComponent from './shared.desktop'
+import MessageWrapper from './wrapper'
 
 import type {Props} from './text'
 import type {TextMessage} from '../../../constants/chat'
@@ -24,17 +24,11 @@ export default class MessageTextComponent extends PureComponent<void, Props & {o
     const {message} = this.props
 
     return (
-      <MessageComponent {...this.props}>
+      <MessageWrapper {...this.props}>
         <MessageText message={message} />
-        {message.editedCount > 0 && <Text type='BodySmall' style={editedStyle}>EDITED</Text>}
-      </MessageComponent>
+      </MessageWrapper>
     )
   }
-}
-
-const editedStyle = {
-  alignSelf: 'flex-start',
-  color: globalColors.black_20,
 }
 
 const _messageTextStyle = {

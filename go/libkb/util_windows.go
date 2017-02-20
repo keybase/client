@@ -7,6 +7,7 @@ package libkb
 
 import (
 	"errors"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -113,9 +114,82 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return err
 }
 
+func copyFile(src string, dest string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	destFile, err := os.Create(dest) // creates if file doesn't exist
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, srcFile) // check first var for number of bytes copied
+	if err != nil {
+		return err
+	}
+
+	err = destFile.Sync()
+	return err
+}
+
+// These are the really important ones, so we'll copy first and then delete the old ones,
+// undoing on failure.
+func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, error) {
+	var err error
+
+	// See if any secret key files are in the new location. If so, don't repair.
+	if newSecretKeyfiles, _ := filepath.Glob(filepath.Join(currentHome, "*.ss")); len(newSecretKeyfiles) > 0 {
+		return false, nil
+	}
+	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
+
+	files, _ := filepath.Glob(filepath.Join(oldHome, "*.mpack"))
+	oldSecretKeyfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
+	files = append(files, oldSecretKeyfiles...)
+	var newFiles []string
+	for _, oldPathName := range files {
+		_, name := filepath.Split(oldPathName)
+		newPathName := filepath.Join(currentHome, name)
+
+		// If both copies exist, skip
+		if exists, _ := FileExists(newPathName); !exists {
+			err = copyFile(oldPathName, newPathName)
+			if err != nil {
+				g.Log.Error("RemoteSettingsRepairman fatal error copying %s to %s - %s", oldPathName, newPathName, err)
+				break
+			} else {
+				newFiles = append(newFiles, newPathName)
+			}
+		}
+
+	}
+	if err != nil {
+		// Undo any of the new copies and quit
+		for _, newPathName := range newFiles {
+			os.Remove(newPathName)
+		}
+		return false, err
+	}
+	// Now that we've successfully copied, delete the old ones - BUT don't bail out on error here
+	for _, oldPathName := range files {
+		os.Remove(oldPathName)
+	}
+
+	// Return true if we copied any
+	if len(files) > 0 {
+		return true, err
+	}
+
+	return false, err
+}
+
 // helper for RemoteSettingsRepairman
 func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) error {
-	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
+
 	files, _ := filepath.Glob(filepath.Join(oldHome, "*"))
 	for _, oldPathName := range files {
 		_, name := filepath.Split(oldPathName)
@@ -154,8 +228,7 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 			}
 		}
 		if err != nil {
-			g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
-			return err
+			g.Log.Error("RemoteSettingsRepairman error moving %s to %s (continuing) - %s", oldPathName, newPathName, err)
 		}
 	}
 	return nil
@@ -173,19 +246,18 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 
 	currentHome := w.Home(false)
 	kbDir := filepath.Base(currentHome)
-	currentConfig := g.Env.GetConfigFilename()
 	oldDir, err := AppDataDir()
 	if err != nil {
 		return err
 	}
-	_, configName := filepath.Split(currentConfig)
 	oldHome := filepath.Join(oldDir, kbDir)
-	oldConfig := filepath.Join(oldHome, configName)
-	if oldExists, _ := FileExists(oldConfig); oldExists {
-		if currentExists, _ := FileExists(currentConfig); !currentExists {
-			return moveNonChromiumFiles(g, oldHome, currentHome)
-		}
+
+	// Only continue repairing if key files needed to be moved
+	if moved, err := moveKeyFiles(g, oldHome, currentHome); !moved || err != nil {
+		return err
 	}
+	// Don't fail the repairmain if these others can't be moved
+	moveNonChromiumFiles(g, oldHome, currentHome)
 	return nil
 }
 

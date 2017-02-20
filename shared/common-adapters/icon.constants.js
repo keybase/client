@@ -955,6 +955,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-80-x-80.png'),
   },
+  'icon-play-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-play-32.png'),
+  },
+  'icon-play-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-play-64.png'),
+  },
   'icon-progress-grey-animated': {
     isFont: false,
     extension: 'gif',

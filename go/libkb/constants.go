@@ -471,6 +471,7 @@ const (
 	SignaturePrefixChat           SignaturePrefix = "Keybase-Chat-1"
 	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
 	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
+	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
 )
 
 const (
@@ -482,5 +483,6 @@ const (
 	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
 )
 
-// Eventually, this will be set to the first merkle root block with skip pointers.
-var FirstProdMerkleSeqnoWithSkips *Seqno
+// FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
+// has skip pointers indicating log(n) previous merkle roots.
+var FirstProdMerkleSeqnoWithSkips = Seqno(835903)

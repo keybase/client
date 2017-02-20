@@ -26,8 +26,10 @@
 // 3) Concatenate the 16-byte nonce above with the 8-byte unsigned big-endian
 //    chunk number, where the first chunk is zero. This is the 24-byte chunk
 //    nonce.
-// 4) Concatenate four things:
-//    - "Keybase-Chat-Attachment-1\0" (that's a null byte at the end)
+// 4) Concatenate five things:
+//    - a signature prefix string which must contain no null bytes.
+//      for example "Keybase-Chat-Attachment-1"
+//    - a null byte terminator for the prefix string
 //    - the encryption key (why?! read below)
 //    - the chunk nonce from #3
 //    - the hash from #2.
@@ -122,6 +124,7 @@
 package signencrypt
 
 import (
+	"bytes"
 	"crypto/sha512"
 	"encoding/binary"
 	"fmt"
@@ -141,7 +144,6 @@ type VerifyKey *[ed25519.PublicKeySize]byte
 const NonceSize = 16
 const SecretboxKeySize = 32
 const SecretboxNonceSize = 24
-const SignaturePrefix = libkb.SignaturePrefixChatAttachment + "\x00"
 const DefaultPlaintextChunkLength = 1 << 20
 
 // ===================================
@@ -157,10 +159,18 @@ func makeChunkNonce(nonce Nonce, chunkNum uint64) SecretboxNonce {
 	return &ret
 }
 
-func makeSignatureInput(plaintext []byte, encKey SecretboxKey, chunkNonce SecretboxNonce) []byte {
+func makeSignatureInput(plaintext []byte, encKey SecretboxKey, signaturePrefix libkb.SignaturePrefix, chunkNonce SecretboxNonce) []byte {
+	// Check that the prefix does not include any null bytes.
+	if bytes.IndexByte([]byte(signaturePrefix), 0x00) != -1 {
+		panic(fmt.Sprintf("signature prefix contains null byte: %q", signaturePrefix))
+	}
+
 	chunkHash := sha512.Sum512(plaintext)
 	var ret []byte
-	ret = append(ret, SignaturePrefix...)
+	ret = append(ret, signaturePrefix...)
+	// We follow the "prefix signatures with an ASCII context string and a null byte" recommendation from
+	// https://www.ietf.org/mail-archive/web/tls/current/msg14734.html.
+	ret = append(ret, 0x00)
 	ret = append(ret, encKey[:]...)
 	ret = append(ret, chunkNonce[:]...)
 	ret = append(ret, chunkHash[:]...)
@@ -171,18 +181,16 @@ func getPacketLen(plaintextChunkLen int) int {
 	return plaintextChunkLen + secretbox.Overhead + ed25519.SignatureSize
 }
 
-func sealPacket(plaintext []byte, chunkNum uint64, encKey SecretboxKey, signKey SignKey, nonce Nonce) []byte {
-	chunkNonce := makeChunkNonce(nonce, chunkNum)
-	signatureInput := makeSignatureInput(plaintext, encKey, chunkNonce)
+func sealPacket(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) []byte {
+	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
 	signature := ed25519.Sign(signKey, signatureInput)
 	signedChunk := append(signature[:], plaintext...)
-	packet := secretbox.Seal(nil, signedChunk, chunkNonce, encKey)
+	packet := secretbox.Seal(nil, signedChunk, nonce, encKey)
 	return packet
 }
 
-func openPacket(packet []byte, chunkNum uint64, encKey SecretboxKey, verifyKey VerifyKey, nonce Nonce) ([]byte, error) {
-	chunkNonce := makeChunkNonce(nonce, chunkNum)
-	signedChunk, secretboxValid := secretbox.Open(nil, packet, chunkNonce, encKey)
+func openPacket(packet []byte, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce SecretboxNonce) ([]byte, error) {
+	signedChunk, secretboxValid := secretbox.Open(nil, packet, nonce, encKey)
 	if !secretboxValid {
 		return nil, NewError(BadSecretbox, "secretbox failed to open")
 	}
@@ -193,7 +201,7 @@ func openPacket(packet []byte, chunkNum uint64, encKey SecretboxKey, verifyKey V
 	var signature [ed25519.SignatureSize]byte
 	copy(signature[:], signedChunk[0:ed25519.SignatureSize])
 	plaintext := signedChunk[ed25519.SignatureSize:]
-	signatureInput := makeSignatureInput(plaintext, encKey, chunkNonce)
+	signatureInput := makeSignatureInput(plaintext, encKey, signaturePrefix, nonce)
 	signatureValid := ed25519.Verify(verifyKey, signatureInput, &signature)
 	if !signatureValid {
 		return nil, NewError(BadSignature, "signature failed to verify")
@@ -208,16 +216,18 @@ func openPacket(packet []byte, chunkNum uint64, encKey SecretboxKey, verifyKey V
 type Encoder struct {
 	encKey            SecretboxKey
 	signKey           SignKey
+	signaturePrefix   libkb.SignaturePrefix
 	nonce             Nonce
 	buf               []byte
 	chunkNum          uint64
 	plaintextChunkLen int
 }
 
-func NewEncoder(encKey SecretboxKey, signKey SignKey, nonce Nonce) *Encoder {
+func NewEncoder(encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) *Encoder {
 	return &Encoder{
 		encKey:            encKey,
 		signKey:           signKey,
+		signaturePrefix:   signaturePrefix,
 		nonce:             nonce,
 		buf:               nil,
 		chunkNum:          0,
@@ -231,7 +241,8 @@ func (e *Encoder) sealOnePacket(plaintextChunkLen int) []byte {
 		panic("encoder tried to seal a packet that was too big")
 	}
 	plaintextChunk := e.buf[0:plaintextChunkLen]
-	packet := sealPacket(plaintextChunk, e.chunkNum, e.encKey, e.signKey, e.nonce)
+	chunkNonce := makeChunkNonce(e.nonce, e.chunkNum)
+	packet := sealPacket(plaintextChunk, e.encKey, e.signKey, e.signaturePrefix, chunkNonce)
 	e.buf = e.buf[plaintextChunkLen:]
 	e.chunkNum++
 	return packet
@@ -273,24 +284,26 @@ func (e *Encoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int) {
 // ===================
 
 type Decoder struct {
-	encKey    SecretboxKey
-	verifyKey VerifyKey
-	nonce     Nonce
-	buf       []byte
-	chunkNum  uint64
-	err       error
-	packetLen int
+	encKey          SecretboxKey
+	verifyKey       VerifyKey
+	signaturePrefix libkb.SignaturePrefix
+	nonce           Nonce
+	buf             []byte
+	chunkNum        uint64
+	err             error
+	packetLen       int
 }
 
-func NewDecoder(encKey SecretboxKey, verifyKey VerifyKey, nonce Nonce) *Decoder {
+func NewDecoder(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) *Decoder {
 	return &Decoder{
-		encKey:    encKey,
-		verifyKey: verifyKey,
-		nonce:     nonce,
-		buf:       nil,
-		chunkNum:  0,
-		err:       nil,
-		packetLen: getPacketLen(DefaultPlaintextChunkLength),
+		encKey:          encKey,
+		verifyKey:       verifyKey,
+		signaturePrefix: signaturePrefix,
+		nonce:           nonce,
+		buf:             nil,
+		chunkNum:        0,
+		err:             nil,
+		packetLen:       getPacketLen(DefaultPlaintextChunkLength),
 	}
 }
 
@@ -299,7 +312,8 @@ func (d *Decoder) openOnePacket(packetLen int) ([]byte, error) {
 		panic("decoder tried to open a packet that was too big")
 	}
 	packet := d.buf[0:packetLen]
-	plaintext, err := openPacket(packet, d.chunkNum, d.encKey, d.verifyKey, d.nonce)
+	chunkNonce := makeChunkNonce(d.nonce, d.chunkNum)
+	plaintext, err := openPacket(packet, d.encKey, d.verifyKey, d.signaturePrefix, chunkNonce)
 	if err != nil {
 		return nil, err
 	}
@@ -450,17 +464,19 @@ func (r *codecReadWrapper) Read(callerBuf []byte) (int, error) {
 	return 0, io.EOF
 }
 
-func NewEncodingReader(encKey SecretboxKey, signKey SignKey, nonce Nonce, innerReader io.Reader) io.Reader {
+// NewEncodingReader creates a new streaming encoder.
+// The signaturePrefix argument must not contain the null container.
+func NewEncodingReader(encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce, innerReader io.Reader) io.Reader {
 	return &codecReadWrapper{
 		innerReader: innerReader,
-		codec:       &encoderCodecShim{NewEncoder(encKey, signKey, nonce)},
+		codec:       &encoderCodecShim{NewEncoder(encKey, signKey, signaturePrefix, nonce)},
 	}
 }
 
-func NewDecodingReader(encKey SecretboxKey, verifyKey VerifyKey, nonce Nonce, innerReader io.Reader) io.Reader {
+func NewDecodingReader(encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce, innerReader io.Reader) io.Reader {
 	return &codecReadWrapper{
 		innerReader: innerReader,
-		codec:       NewDecoder(encKey, verifyKey, nonce),
+		codec:       NewDecoder(encKey, verifyKey, signaturePrefix, nonce),
 	}
 }
 
@@ -478,15 +494,16 @@ func GetSealedSize(plaintextLen int) int {
 	return totalLen
 }
 
-func SealWhole(plaintext []byte, encKey SecretboxKey, signKey SignKey, nonce Nonce) []byte {
-	encoder := NewEncoder(encKey, signKey, nonce)
+// SealWhole seals all at once using the streaming encoding.
+func SealWhole(plaintext []byte, encKey SecretboxKey, signKey SignKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) []byte {
+	encoder := NewEncoder(encKey, signKey, signaturePrefix, nonce)
 	output := encoder.Write(plaintext)
 	output = append(output, encoder.Finish()...)
 	return output
 }
 
-func OpenWhole(sealed []byte, encKey SecretboxKey, verifyKey VerifyKey, nonce Nonce) ([]byte, error) {
-	decoder := NewDecoder(encKey, verifyKey, nonce)
+func OpenWhole(sealed []byte, encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce) ([]byte, error) {
+	decoder := NewDecoder(encKey, verifyKey, signaturePrefix, nonce)
 	output, err := decoder.Write(sealed)
 	if err != nil {
 		return nil, err

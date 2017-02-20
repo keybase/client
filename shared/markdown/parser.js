@@ -528,7 +528,7 @@ function peg$parse(input, options) {
         s1 = peg$FAILED;
       }
       if (s1 === peg$FAILED) {
-        s1 = peg$parseWhiteSpace();
+        s1 = peg$parseInlineDelimiter();
       }
     }
     while (s1 !== peg$FAILED) {
@@ -619,7 +619,7 @@ function peg$parse(input, options) {
           s1 = peg$FAILED;
         }
         if (s1 === peg$FAILED) {
-          s1 = peg$parseWhiteSpace();
+          s1 = peg$parseInlineDelimiter();
         }
       }
     }

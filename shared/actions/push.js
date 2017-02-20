@@ -1,14 +1,16 @@
 // @flow
 import * as Constants from '../constants/push'
+import {isMobile} from '../constants/platform'
 import {apiserverPostRpcPromise} from '../constants/types/flow-types'
-import {call, put, select, takeEvery, takeLatest} from 'redux-saga/effects'
+import {call, put, take, select} from 'redux-saga/effects'
+import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
 import type {PushNotification, PushNotificationAction, PushPermissionsPromptAction, PushPermissionsRequestAction, PushPermissionsRequestingAction, PushTokenAction, SavePushTokenAction, TokenType, UpdatePushTokenAction} from '../constants/push'
 
-import {requestPushPermissions} from './platform.specific'
+import {requestPushPermissions, configurePush} from './platform.specific'
 
 export function permissionsRequest (): PushPermissionsRequestAction {
   return {type: Constants.permissionsRequest, payload: undefined}
@@ -96,12 +98,24 @@ function * savePushTokenSaga (): SagaGenerator<any, any> {
   }
 }
 
+function * configurePushSaga (): SagaGenerator<any, any> {
+  if (isMobile) {
+    const chan = yield call(configurePush)
+
+    while (true) {
+      const action = yield take(chan)
+      yield put(action)
+    }
+  }
+}
+
 function * pushSaga (): SagaGenerator<any, any> {
   yield [
-    takeLatest(Constants.permissionsRequest, permissionsRequestSaga),
-    takeLatest(Constants.pushToken, pushTokenSaga),
-    takeLatest(Constants.savePushToken, savePushTokenSaga),
-    takeEvery(Constants.pushNotification, pushNotificationSaga),
+    safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga),
+    safeTakeLatest(Constants.pushToken, pushTokenSaga),
+    safeTakeLatest(Constants.savePushToken, savePushTokenSaga),
+    safeTakeLatest(Constants.configurePush, configurePushSaga),
+    safeTakeEvery(Constants.pushNotification, pushNotificationSaga),
   ]
 }
 
