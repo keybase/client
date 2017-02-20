@@ -33,8 +33,8 @@ go_tests() {
     echo 'go-tests'
     has_go_files
 
-    echo 'run_tests.sh'
-    ./run_tests.sh
+    echo './test/run_tests.sh'
+    ./test/run_tests.sh
     check_rc $? 'run_test.sh fail' 1
 }
 
