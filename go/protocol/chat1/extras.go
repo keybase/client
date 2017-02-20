@@ -84,6 +84,8 @@ func (t MessageType) String() string {
 		return "DELETE"
 	case MessageType_METADATA:
 		return "METADATA"
+	case MessageType_TLFNAME:
+		return "TLFNAME"
 	case MessageType_ATTACHMENTUPLOADED:
 		return "ATTACHMENTUPLOADED"
 	default:

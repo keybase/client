@@ -92,6 +92,16 @@ func (h *gregorFirehoseHandler) PushOutOfBandMessages(m []gregor1.OutOfBandMessa
 	}
 }
 
+type testingEvents struct {
+	broadcastSentCh chan error
+}
+
+func newTestingEvents() *testingEvents {
+	return &testingEvents{
+		broadcastSentCh: make(chan error),
+	}
+}
+
 type gregorHandler struct {
 	libkb.Contextified
 
@@ -103,6 +113,7 @@ type gregorHandler struct {
 	firehoseHandlers []libkb.GregorFirehoseHandler
 	badger           *badges.Badger
 	chatHandler      *chat.PushHandler
+	chatSync         *chat.Syncer
 
 	// This mutex protects the con object
 	connMutex     sync.Mutex
@@ -116,15 +127,16 @@ type gregorHandler struct {
 	skipRetryConnect bool
 	freshReplay      bool
 
-	chatSync *chat.Syncer
-
-	transportForTesting *connTransport
-
 	// Function for determining if a new BroadcastMessage should trigger
 	// a pushState call to firehose handlers
 	pushStateFilter func(m gregor.Message) bool
 
-	shutdownCh chan struct{}
+	shutdownCh  chan struct{}
+	broadcastCh chan gregor1.Message
+
+	// Testing
+	testingEvents       *testingEvents
+	transportForTesting *connTransport
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -159,6 +171,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 		badger:          nil,
 		chatSync:        chat.NewSyncer(g),
 		chatHandler:     chat.NewPushHandler(g),
+		broadcastCh:     make(chan gregor1.Message, 10000),
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -166,6 +179,9 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 	if err := gh.resetGregorClient(); err != nil {
 		g.Log.Warning("unable to create push service client: %s", err)
 	}
+
+	// Start broadcast handler goroutine
+	go gh.broadcastMessageHandler()
 
 	return gh, nil
 }
@@ -555,27 +571,28 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return true
 }
 
-// BroadcastMessage is called when we receive a new messages from gregord. Grabs
-// the lock protect the state machine and handleInBandMessage
-func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
+func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Message) error {
 	g.Lock()
 	defer g.Unlock()
 
 	// Handle the message
+	var obm gregor.OutOfBandMessage
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
 		gcli, err := g.getGregorCli()
 		if err != nil {
+			g.Debug("BroadcastMessage: failed to get Gregor client: %s", err.Error())
 			return err
 		}
 		// Check to see if this is already in our state
 		msgID := ibm.Metadata().MsgID()
 		state, err := gcli.StateMachineState(nil)
 		if err != nil {
+			g.Debug("BroadcastMessage: no state machine available: %s", err.Error())
 			return err
 		}
 		if _, ok := state.GetItem(msgID); ok {
-			g.Debug("msgID: %s already in state, ignoring", msgID)
+			g.Debug("BroadcastMessage: msgID: %s already in state, ignoring", msgID)
 			return errors.New("ignored repeat message")
 		}
 
@@ -593,15 +610,41 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 		return err
 	}
 
-	obm := m.ToOutOfBandMessage()
+	obm = m.ToOutOfBandMessage()
 	if obm != nil {
 		g.Debug("broadcast: out-of-band message: uid: %s",
 			m.ToOutOfBandMessage().UID())
-		return g.handleOutOfBandMessage(ctx, obm)
+		if err := g.handleOutOfBandMessage(ctx, obm); err != nil {
+			g.Debug("BroadcastMessage: error handling oobm: %s", err.Error())
+			return err
+		}
+		return nil
 	}
 
-	g.Warning("BroadcastMessage: both in-band and out-of-band message nil")
-	return errors.New("invalid gregor message")
+	g.Debug("BroadcastMessage: both in-band and out-of-band message nil")
+	return errors.New("invalid message, no ibm or oobm")
+}
+
+func (g *gregorHandler) broadcastMessageHandler() {
+	ctx := context.Background()
+	for {
+		m := <-g.broadcastCh
+		err := g.broadcastMessageOnce(ctx, m)
+
+		// Testing alerts
+		if g.testingEvents != nil {
+			g.testingEvents.broadcastSentCh <- err
+		}
+	}
+}
+
+// BroadcastMessage is called when we receive a new messages from gregord. Grabs
+// the lock protect the state machine and handleInBandMessage
+func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
+	// Send the message on a channel so we can return to Gregor as fast as possible. Note
+	// that this can block, but broadcastCh has a large buffer to try and mitigate
+	g.broadcastCh <- m
+	return nil
 }
 
 // handleInBandMessage runs a message on all the alive handlers. gregorHandler

@@ -389,6 +389,9 @@ func (mc *MerkleClient) dbLookup(ctx context.Context, k DbKey) (ret *MerkleRoot,
 // going to be most useful for development machines. On prod, we'll just hardcode
 // the first sequence that has them.
 func (mc *MerkleClient) loadFirstSkip(ctx context.Context) (err error) {
+	if mc.G().Env.GetRunMode() == ProductionRunMode {
+		return nil
+	}
 	defer mc.G().CTrace(ctx, "MerkleClient#loadFirstSkip()", func() error { return err })()
 	var mr *MerkleRoot
 	mr, err = mc.dbLookup(ctx, merkleFirstSkipKey())
@@ -685,13 +688,17 @@ func (mc *MerkleClient) LastRoot() *MerkleRoot {
 }
 
 func (mc *MerkleClient) FirstSeqnoWithSkips() *Seqno {
+
 	if mc.G().Env.GetRunMode() == ProductionRunMode {
-		return FirstProdMerkleSeqnoWithSkips
+		if mc.G().Env.GetFeatureFlags().Admin() {
+			return &FirstProdMerkleSeqnoWithSkips
+		}
+		return nil
 	}
 
 	mc.RLock()
 	defer mc.RUnlock()
-	if mc.firstSkip != nil && mc.G().Env.GetRunMode() != ProductionRunMode {
+	if mc.firstSkip != nil {
 		return mc.firstSkip.Seqno()
 	}
 	return nil

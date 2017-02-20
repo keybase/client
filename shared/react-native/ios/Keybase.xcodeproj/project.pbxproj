@@ -996,7 +996,7 @@
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 112;
+				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_BITCODE = NO;
@@ -1040,7 +1040,7 @@
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 112;
+				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_BITCODE = NO;
@@ -1179,7 +1179,7 @@
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 112;
+				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = NO;
 				ENABLE_BITCODE = NO;
 				HEADER_SEARCH_PATHS = (
@@ -1215,7 +1215,7 @@
 				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
-				CURRENT_PROJECT_VERSION = 112;
+				CURRENT_PROJECT_VERSION = 114;
 				DEAD_CODE_STRIPPING = NO;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (

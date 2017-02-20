@@ -187,13 +187,13 @@ protocol SimpleFS {
    Repeat until zero bytes are returned or error.
    If size is zero, read an arbitrary amount.
    */
-  FileContent simpleFSRead(OpID opID, int offset, int size);
+  FileContent simpleFSRead(OpID opID, long offset, int size);
 
   /**
    Append content to opened file.
    May be repeated until OpID is closed.
    */
-  void simpleFSWrite(OpID opID, int offset, bytes content);
+  void simpleFSWrite(OpID opID, long offset, bytes content);
 
   /**
    Remove file or directory from filesystem

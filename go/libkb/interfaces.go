@@ -72,6 +72,7 @@ type configGetter interface {
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
+	GetFeatureFlags() (FeatureFlags, error)
 }
 
 type CommandLine interface {
@@ -137,6 +138,8 @@ type ConfigReader interface {
 	GetNoPinentry() (bool, bool)
 	GetSalt() []byte
 	GetDeviceID() keybase1.DeviceID
+	GetDeviceIDForUsername(nu NormalizedUsername) keybase1.DeviceID
+	GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
 	GetUID() keybase1.UID

@@ -7,8 +7,8 @@ import type {Props} from './user-notice'
 
 const AVATAR_SIZE = 24
 
-const UserNotice = ({bgColor, username, children}: Props) => (
-  <Box style={{...styleBox, background: bgColor}}>
+const UserNotice = ({bgColor, username, children, style}: Props) => (
+  <Box style={{...styleBox, ...style, background: bgColor}}>
     <Avatar size={AVATAR_SIZE} username={username} style={{marginTop: -globalMargins.small - AVATAR_SIZE / 2, marginBottom: globalMargins.xtiny}} />
     {children}
   </Box>

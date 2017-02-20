@@ -194,6 +194,7 @@ baseurl=$REPOCONFIG/$DEFAULT_ARCH
 enabled=1
 gpgcheck=1
 gpgkey=https://keybase.io/docs/server_security/code_signing_key.asc
+metadata_expire=60
 REPOCONTENT
   fi
 }

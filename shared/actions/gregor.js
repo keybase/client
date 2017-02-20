@@ -71,6 +71,17 @@ function registerReachability () {
       }
     })
 
+    dispatch(checkReachabilityOnConnect())
+  }
+}
+
+function checkReachabilityOnConnect () {
+  return (dispatch: Dispatch) => {
+    // The startReachibility RPC call both starts and returns the current
+    // reachability state. Then we'll get updates of changes from this state
+    // via reachabilityChanged.
+    // This should be run on app start and service re-connect in case the
+    // service somehow crashed or was restarted manually.
     reachabilityStartReachabilityRpc({
       callback: (err, reachability) => {
         if (err) {
@@ -183,6 +194,7 @@ function * gregorSaga (): SagaGenerator<any, any> {
 
 export {
   checkReachability,
+  checkReachabilityOnConnect,
   pushState,
   registerGregorListeners,
   registerReachability,
