@@ -122,17 +122,21 @@ func (k *SimpleFS) SimpleFSReadList(ctx context.Context, opid keybase1.OpID) (ke
 func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyArg) error {
 	// Note this is also used by move, so if this changes update SimpleFSMove
 	// code also.
-	src, err := k.pathIO(ctx, arg.Src, keybase1.OpenFlags_READ|keybase1.OpenFlags_EXISTING)
+	src, err := k.pathIO(ctx, arg.Src, keybase1.OpenFlags_READ|keybase1.OpenFlags_EXISTING, nil)
 	if err != nil {
 		return err
 	}
 	defer src.Close()
-	dst, err := k.pathIO(ctx, arg.Dest, keybase1.OpenFlags_WRITE|keybase1.OpenFlags_REPLACE)
+
+	dst, err := k.pathIO(ctx, arg.Dest, keybase1.OpenFlags_WRITE|keybase1.OpenFlags_REPLACE, src)
 	if err != nil {
 		return err
 	}
 	defer dst.Close()
-	_, err = io.Copy(dst, src)
+
+	if src.Type() == keybase1.DirentType_FILE || src.Type() == keybase1.DirentType_EXEC {
+		_, err = io.Copy(dst, src)
+	}
 
 	// TODO: async handling could be better.
 	k.setAsyncErr(arg.OpID, err)
@@ -465,10 +469,13 @@ type ioer interface {
 }
 
 func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
-	flags keybase1.OpenFlags) (io.ReadWriteCloser, error) {
+	flags keybase1.OpenFlags, like ioer) (ioer, error) {
 	pt, err := path.PathType()
 	if err != nil {
 		return nil, err
+	}
+	if like != nil && like.Type() == keybase1.DirentType_DIR {
+		flags |= keybase1.OpenFlags_DIRECTORY
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
@@ -485,7 +492,12 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 		if flags&keybase1.OpenFlags_REPLACE == 1 {
 			cflags |= os.O_TRUNC
 		}
-		f, err := os.OpenFile(path.Local(), cflags, 0644)
+		var f *os.File
+		if (cflags&os.O_CREATE != 0) && (flags&keybase1.OpenFlags_DIRECTORY != 0) {
+			// Return value is ignored.
+			os.Mkdir(path.Local(), 0755)
+		}
+		f, err = os.OpenFile(path.Local(), cflags, 0644)
 		if err != nil {
 			return nil, err
 		}
