@@ -413,13 +413,6 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		return chat1.ThreadView{}, err
 	}
 
-	// Identify this TLF by running crypt keys
-	// XXX might need finalize info
-	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages, nil); ierr != nil {
-		s.Debug(ctx, "PullLocalOnly: identify failed: %s", ierr.Error())
-		return chat1.ThreadView{}, ierr
-	}
-
 	return tv, nil
 }
 

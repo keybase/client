@@ -348,6 +348,10 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
 	rquery *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
+	if s.offline {
+		return chat1.Inbox{}, nil, OfflineError{}
+	}
+
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      rquery,
 		Pagination: p,
@@ -419,6 +423,11 @@ func NewHybridInboxSource(g *libkb.GlobalContext,
 
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+
+	// Insta fail if we are offline
+	if s.offline {
+		return chat1.Inbox{}, nil, OfflineError{}
+	}
 
 	// We always want this on for fetches to fill the local inbox, otherwise we never get the
 	// full list for the conversations that come back
@@ -991,24 +1000,6 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	convErrorLocal := chat1.NewConversationErrorLocal(
 		fromErr.Error(), conversationRemote, s.isErrPermanent(err), unverifiedTLFName, convErrTyp, rekeyInfo)
 	return convErrorLocal, nil
-}
-
-func readRemote(ctx context.Context, ri chat1.RemoteInterface, uid gregor1.UID,
-	q *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
-	inbox, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query:      q,
-		Pagination: p,
-	})
-
-	if err != nil {
-		return chat1.Inbox{}, inbox.RateLimit, storage.RemoteError{Msg: err.Error()}
-	}
-
-	return chat1.Inbox{
-		ConvsUnverified: inbox.Inbox.Full().Conversations,
-		Pagination:      inbox.Inbox.Full().Pagination,
-		Version:         inbox.Inbox.Full().Vers,
-	}, inbox.RateLimit, nil
 }
 
 func GetInboxQueryLocalToRemote(ctx context.Context,
