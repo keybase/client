@@ -143,9 +143,18 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 }
 
 // SimpleFSRename - Rename file or directory, KBFS side only
-func (k *SimpleFS) SimpleFSRename(_ context.Context, arg keybase1.SimpleFSRenameArg) error {
-	// TODO
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRenameArg) error {
+	snode, sleaf, err := k.getRemoteNodeParent(ctx, arg.Src)
+	if err != nil {
+		return err
+	}
+	dnode, dleaf, err := k.getRemoteNodeParent(ctx, arg.Dest)
+	if err != nil {
+		return err
+	}
+	err = k.config.KBFSOps().Rename(ctx, snode, sleaf, dnode, dleaf)
+	// TODO should this be async?
+	return err
 }
 
 // SimpleFSOpen - Create/open a file and leave it open
