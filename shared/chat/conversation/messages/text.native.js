@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Text} from '../../../common-adapters'
+import {Markdown} from '../../../common-adapters'
 import {globalColors} from '../../../styles'
 import MessageWrapper from './wrapper'
 
@@ -12,7 +12,7 @@ const MessageText = (props: Props) => {
   const textStyle = messageState === 'failed' || messageState === 'pending' ? pendingFailStyle : {}
   return (
     <MessageWrapper {...props}>
-      <Text type='Body' style={textStyle}>{message.message.stringValue()}</Text>
+      <Markdown style={textStyle}>{message.message.stringValue()}</Markdown>
     </MessageWrapper>
   )
 }
