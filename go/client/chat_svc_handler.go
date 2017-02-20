@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -67,45 +66,40 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	rlimits = utils.AggRateLimits(res.RateLimits)
 
 	var cl ChatList
-	cl.Conversations = make([]ConvSummary, len(res.Conversations))
-	for i, conv := range res.Conversations {
-		readerInfo := conv.ReaderInfo
-		convUnread := false
-		var convMtime gregor1.Time
-
-		convUnread = readerInfo.ReadMsgid < readerInfo.MaxMsgid
-		convMtime = readerInfo.Mtime
-
-		maxID := chat1.MessageID(0)
-		for _, msg := range conv.MaxMessages {
-			if msg.IsValid() && msg.GetMessageID() > maxID {
-				tlf := msg.Valid().ClientHeader.TLFNameExpanded(conv.Info.FinalizeInfo)
-				pub := msg.Valid().ClientHeader.TlfPublic
-				cl.Conversations[i] = ConvSummary{
-					ID: conv.GetConvID().String(),
-					Channel: ChatChannel{
-						Name:      tlf,
-						Public:    pub,
-						TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
-					},
-					Unread:       convUnread,
-					ActiveAt:     convMtime.UnixSeconds(),
-					ActiveAtMs:   convMtime.UnixMilliseconds(),
-					FinalizeInfo: conv.Info.FinalizeInfo,
-				}
-				maxID = msg.GetMessageID()
+	for _, conv := range res.Conversations {
+		var convSummary ConvSummary
+		convSummary.ID = conv.GetConvID().String()
+		if conv.Error != nil {
+			// Handle error case
+			if opts.ShowErrors {
+				convSummary.Error = conv.Error.Message
+				cl.Conversations = append(cl.Conversations, convSummary)
 			}
+			continue
 		}
 
+		readerInfo := conv.ReaderInfo
+		convSummary.Unread = readerInfo.ReadMsgid < readerInfo.MaxMsgid
+		convSummary.ActiveAt = readerInfo.Mtime.UnixSeconds()
+		convSummary.ActiveAtMs = readerInfo.Mtime.UnixMilliseconds()
+		convSummary.FinalizeInfo = conv.Info.FinalizeInfo
 		for _, super := range conv.Supersedes {
-			cl.Conversations[i].Supersedes = append(cl.Conversations[i].Supersedes,
+			convSummary.Supersedes = append(convSummary.Supersedes,
 				super.ConversationID.String())
 		}
 		for _, super := range conv.SupersededBy {
-			cl.Conversations[i].SupersededBy = append(cl.Conversations[i].SupersededBy,
+			convSummary.SupersededBy = append(convSummary.SupersededBy,
 				super.ConversationID.String())
 		}
+		convSummary.Channel = ChatChannel{
+			Name:      conv.Info.TlfName,
+			Public:    conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
+			TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
+		}
+
+		cl.Conversations = append(cl.Conversations, convSummary)
 	}
+
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
 }
@@ -982,6 +976,7 @@ type ConvSummary struct {
 	FinalizeInfo *chat1.ConversationFinalizeInfo `json:"finalize_info,omitempty"`
 	Supersedes   []string                        `json:"supersedes,omitempty"`
 	SupersededBy []string                        `json:"superseded_by,omitempty"`
+	Error        string                          `json:"error,omitempty"`
 }
 
 // ChatList is a list of conversations in the inbox.
