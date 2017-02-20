@@ -5627,6 +5627,9 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	require.IsType(t, MDPrevRootMismatch{}, err)
 }
 
+// TODO: Test malicious mdserver and rekey flow against wrong
+// TLFs being introduced upon rekey.
+
 // Test that if GetTLFCryptKeys fails to create a TLF, the second
 // attempt will also fail with the same error.  Regression test for
 // KBFS-1929.
