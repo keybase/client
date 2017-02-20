@@ -1,6 +1,10 @@
 // @flow
 import {Component} from 'react'
 
+type MarkdownComponentType = 'inline-code' | 'code-block' | 'link' | 'text' | 'bold' | 'italic' | 'strike' | 'emoji' | 'native-emoji' | 'quote-block'
+
+export type MarkdownCreateComponent = (type: MarkdownComponentType, key: string, children: React$Element<*>, options: {href?: string}) => ?React$Element<*>
+
 export type Props = {
   children?: string,
   preview?: boolean, // if true render a simplified version

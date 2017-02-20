@@ -92,15 +92,23 @@ class ConversationList extends Component<void, Props, State> {
     if (this._toRemeasure.length) {
       this._toRemeasure.forEach(item => {
         this._cellCache.clearRowHeight(item)
-        this._list && this._list.recomputeRowHeights(item)
+        if (this._listIsGood()) {
+          this._list.recomputeRowHeights(item)
+        }
       })
       this._toRemeasure = []
     }
 
     if (this._shouldForceUpdateGrid) {
       this._shouldForceUpdateGrid = false
-      this._list && this._list.forceUpdateGrid()
+      if (this._listIsGood()) {
+        this._list.forceUpdateGrid()
+      }
     }
+  }
+
+  _listIsGood () {
+    return this._list && this._list.Grid
   }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
@@ -367,7 +375,10 @@ class ConversationList extends Component<void, Props, State> {
 
   _recomputeList () {
     this._cellCache.clearAllRowHeights()
-    this._list && this._list.recomputeRowHeights()
+
+    if (this._listIsGood()) {
+      this._list && this._list.recomputeRowHeights()
+    }
     this.state.isLockedToBottom && this._scrollToBottom()
   }
 
@@ -389,7 +400,9 @@ class ConversationList extends Component<void, Props, State> {
 
   _scrollToBottom = () => {
     const rowCount = this._rowCount()
-    this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: rowCount})
+    if (this._listIsGood()) {
+      this._list && this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: rowCount})
+    }
   }
 
   _handleListClick = () => {
@@ -419,7 +432,10 @@ class ConversationList extends Component<void, Props, State> {
     if (entry) {
       const idx: number = entry[0]
       const message: TextMessage = entry[1]
-      this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: idx})
+
+      if (this._listIsGood()) {
+        this._list.Grid.scrollToCell({columnIndex: 0, rowIndex: idx})
+      }
       const listNode = ReactDOM.findDOMNode(this._list)
       if (listNode) {
         const messageNodes = listNode.querySelectorAll(`[data-message-key="${message.key}"]`)
