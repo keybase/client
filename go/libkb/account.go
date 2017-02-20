@@ -292,6 +292,8 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 		return a.skbKeyring, nil
 	}
 
+	a.skbKeyring = nil
+
 	a.G().Log.Debug("Account: loading keyring for %s", *unp)
 	kr, err := LoadSKBKeyring(*unp, a.G())
 	if err != nil {
