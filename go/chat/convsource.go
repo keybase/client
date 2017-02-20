@@ -114,6 +114,11 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, []*chat1.RateLimit{}, errors.New("RemoteConversationSource.Pull called with empty convID")
 	}
 
+	// Insta fail if we are offline
+	if s.offline {
+		return chat1.ThreadView{}, []*chat1.RateLimit{}, OfflineError{}
+	}
+
 	var rl []*chat1.RateLimit
 
 	// Get conversation metadata
@@ -159,6 +164,11 @@ func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor
 
 func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+
+	// Insta fail if we are offline
+	if s.offline {
+		return nil, OfflineError{}
+	}
 
 	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 		ConversationID: convID,
@@ -331,6 +341,11 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			err.Error())
 	}
 
+	// Insta fail if we are offline
+	if s.offline {
+		return chat1.ThreadView{}, rl, OfflineError{}
+	}
+
 	// Fetch the entire request on failure
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: convID,
@@ -448,6 +463,12 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
 		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
+
+		// Insta fail if we are offline
+		if s.offline {
+			return nil, OfflineError{}
+		}
+
 		rmsgs, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 			ConversationID: convID,
 			MessageIDs:     remoteMsgs,
