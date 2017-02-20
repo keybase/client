@@ -1247,7 +1247,6 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
 
   // messageID 1 is an unhandled placeholder. We want to add a timestamp before
   // the first message, as well as between any two messages with long duration.
-  // $FlowIssue with checking messageID
   if (prevMessage.messageID === 1 || message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) {
     return {
       type: 'Timestamp',
