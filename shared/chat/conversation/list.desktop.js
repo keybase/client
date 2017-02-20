@@ -99,7 +99,8 @@ class ConversationList extends Component<void, Props, State> {
 
     if (this._shouldForceUpdateGrid) {
       this._shouldForceUpdateGrid = false
-      this._list && this._list.forceUpdateGrid()
+      // react virtualized doesn't check that .Grid is good so we do it
+      this._list && this._list.Grid && this._list.forceUpdateGrid()
     }
   }
 
