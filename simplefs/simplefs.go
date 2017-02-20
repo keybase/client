@@ -266,9 +266,24 @@ func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenAr
 }
 
 // SimpleFSSetStat - Set/clear file bits - only executable for now
-func (k *SimpleFS) SimpleFSSetStat(_ context.Context, arg keybase1.SimpleFSSetStatArg) error {
-	// TODO
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSetStatArg) error {
+	node, err := k.getRemoteNode(ctx, arg.Dest)
+	if err != nil {
+		return err
+	}
+	var exec bool
+	switch arg.Flag {
+	case keybase1.DirentType_EXEC:
+		exec = true
+		fallthrough
+	case keybase1.DirentType_FILE:
+		err = k.config.KBFSOps().SetEx(ctx, node, exec)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // SimpleFSRead - Read (possibly partial) contents of open file,
