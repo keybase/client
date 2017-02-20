@@ -63,6 +63,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
 func (k *SimpleFS) SimpleFSListRecursive(_ context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
+	// TODO
 	return errors.New("not implemented")
 }
 
@@ -88,6 +89,8 @@ func (k *SimpleFS) SimpleFSReadList(ctx context.Context, opid keybase1.OpID) (ke
 
 // SimpleFSCopy - Begin copy of file or directory
 func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyArg) error {
+	// Note this is also used by move, so if this changes update SimpleFSMove
+	// code also.
 	src, err := k.pathIO(ctx, arg.Src, keybase1.OpenFlags_READ|keybase1.OpenFlags_EXISTING)
 	if err != nil {
 		return err
@@ -101,25 +104,47 @@ func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyAr
 	_, err = io.Copy(dst, src)
 
 	// TODO: async handling could be better.
-	k.lock.Lock()
-	k.handles[arg.OpID] = &handle{async: err}
-	k.lock.Unlock()
+	k.setAsyncErr(arg.OpID, err)
 
 	return err
 }
 
 // SimpleFSCopyRecursive - Begin recursive copy of directory
 func (k *SimpleFS) SimpleFSCopyRecursive(_ context.Context, arg keybase1.SimpleFSCopyRecursiveArg) error {
+	// TODO
 	return errors.New("not implemented")
 }
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
-func (k *SimpleFS) SimpleFSMove(_ context.Context, arg keybase1.SimpleFSMoveArg) error {
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveArg) error {
+	err := k.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
+		OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest,
+	})
+	if err != nil {
+		return err
+	}
+	pt, err := arg.Src.PathType()
+	if err != nil {
+		// should really not happen...
+		return err
+	}
+	switch pt {
+	case keybase1.PathType_KBFS:
+		err = k.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+			OpID: arg.OpID, Path: arg.Src,
+		})
+	case keybase1.PathType_LOCAL:
+		err = os.Remove(arg.Src.Local())
+	}
+	if err != nil {
+		k.setAsyncErr(arg.OpID, err)
+	}
+	return err
 }
 
 // SimpleFSRename - Rename file or directory, KBFS side only
 func (k *SimpleFS) SimpleFSRename(_ context.Context, arg keybase1.SimpleFSRenameArg) error {
+	// TODO
 	return errors.New("not implemented")
 }
 
@@ -142,6 +167,7 @@ func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenAr
 
 // SimpleFSSetStat - Set/clear file bits - only executable for now
 func (k *SimpleFS) SimpleFSSetStat(_ context.Context, arg keybase1.SimpleFSSetStatArg) error {
+	// TODO
 	return errors.New("not implemented")
 }
 
@@ -183,6 +209,7 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 func (k *SimpleFS) SimpleFSRemove(ctx context.Context, arg keybase1.SimpleFSRemoveArg) error {
 	node, leaf, err := k.getRemoteNodeParent(ctx, arg.Path)
 	_, _, _ = node, leaf, err
+	// TODO
 	return errors.New("not implemented")
 }
 
@@ -220,6 +247,7 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) error 
 
 // SimpleFSCheck - Check progress of pending operation
 func (k *SimpleFS) SimpleFSCheck(_ context.Context, opid keybase1.OpID) (keybase1.Progress, error) {
+	// TODO
 	return 0, errors.New("not implemented")
 }
 
@@ -230,6 +258,7 @@ func (k *SimpleFS) SimpleFSGetOps(_ context.Context) ([]keybase1.OpDescription, 
 
 // SimpleFSWait - Blocking wait for the pending operation to finish
 func (k *SimpleFS) SimpleFSWait(_ context.Context, opid keybase1.OpID) error {
+	// TODO
 	return errors.New("not implemented")
 }
 
@@ -371,6 +400,12 @@ func deTy2Ty(ei *libkbfs.EntryInfo) keybase1.DirentType {
 		return keybase1.DirentType_SYM
 	}
 	panic("deTy2Ty unreachable")
+}
+
+func (k *SimpleFS) setAsyncErr(opid keybase1.OpID, err error) {
+	k.lock.Lock()
+	k.handles[opid] = &handle{async: err}
+	k.lock.Unlock()
 }
 
 type ioer interface {
