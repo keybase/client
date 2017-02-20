@@ -180,7 +180,8 @@ function log (plat, arch) {
       console.error(err)
       process.exit(1)
     }
-    const dir = path.join(filepath[0], 'resources/app/desktop/dist')
+    const subdir = (plat === 'darwin') ? 'Keybase.app/Contents/Resources' : 'resources'
+    const dir = path.join(filepath[0], subdir, 'app/desktop/dist')
     const files = ['index', 'launcher', 'main', 'remote-component-loader'].map(p => p + '.bundle.js')
     files.forEach(file => {
       try {
