@@ -62,9 +62,40 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 }
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
-func (k *SimpleFS) SimpleFSListRecursive(_ context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
-	// TODO
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
+	// A stack of paths to process - ordering does not matter.
+	// Here we don't walk symlinks, so no loops possible.
+	var paths = []keybase1.Path{arg.Path}
+	var des []keybase1.Dirent
+	for len(paths) > 0 {
+		// Take last element and shorten
+		path := paths[len(paths)-1]
+		paths = paths[:len(paths)-1]
+		node, err := k.getRemoteNode(ctx, path)
+		if err != nil {
+			return err
+		}
+		children, err := k.config.KBFSOps().GetDirChildren(ctx, node)
+		if err != nil {
+			return err
+		}
+		for name, ei := range children {
+			var de keybase1.Dirent
+			setStat(&de, &ei)
+			de.Name = name
+			des = append(des, de)
+			if ei.Type == libkbfs.Dir {
+				paths = append(paths, keybase1.NewPathWithKbfs(
+					path.Kbfs()+"/"+name,
+				))
+			}
+		}
+	}
+	k.lock.Lock()
+	k.handles[arg.OpID] = &handle{async: keybase1.SimpleFSListResult{Entries: des}}
+	k.lock.Unlock()
+
+	return nil
 }
 
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
@@ -360,6 +391,7 @@ func (k *SimpleFS) getRemoteNode(ctx context.Context, path keybase1.Path) (
 	}
 
 	// TODO: should we walk symlinks here?
+	// Some callers like List* don't want that.
 	for _, name := range ps {
 		node, _, err = k.config.KBFSOps().Lookup(ctx, node, name)
 		if err != nil {
