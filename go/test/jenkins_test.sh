@@ -3,6 +3,12 @@
 commit_hash="$1"
 change_target="origin/$2"
 
+if [ -z "$2" ]; then
+    against_master=1
+else
+    against_master=0
+fi
+
 echo "tests/jenkins_test.sh recieved commit_hash: ${commit_hash} change_target: ${change_target}"
 
 check_rc() {
@@ -18,6 +24,10 @@ check_rc() {
 }
 
 has_go_files() {
+    if [ $against_master -eq 1 ]; then
+        echo 'Missing $change_target, forcing has_go_files to true'
+        return
+    fi
     echo 'git fetch'
     git fetch
     check_rc $? 'echo git fetch problem' 1
