@@ -302,6 +302,12 @@ func (cki ComputedKeyInfos) InsertLocalEldestKey(kid keybase1.KID) {
 func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un NormalizedUsername) error {
 	kbid := KeybaseIdentity(un)
 	if pgp, ok := eldestKey.(*PGPKeyBundle); ok {
+
+		// In the future, we might chose to ignore this etime, as we do in
+		// InsertEldestLink below. When we do make that change, be certain
+		// to update the comment in PGPKeyBundle#CheckIdentity to reflect it.
+		// For now, we continue to honor the foo_user@keybase.io etime in the case
+		// there's no sigchain link over the key to specify a different etime.
 		match, ctime, etime := pgp.CheckIdentity(kbid)
 		if match {
 			eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime, "" /* activePGPHash */)
