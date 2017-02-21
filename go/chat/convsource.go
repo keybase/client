@@ -314,29 +314,32 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
-			// Before returning the stuff, update SenderDeviceRevokedAt on each message.
-			updatedMessages, err := s.updateMessages(ctx, thread.Messages)
-			if err != nil {
-				return chat1.ThreadView{}, rl, err
-			}
-			thread.Messages = updatedMessages
-
-			// Before returning the stuff, send remote request to mark as read if
-			// requested.
-			if !s.offline && query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
-				readMsgID := thread.Messages[0].GetMessageID()
-				res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
-					ConversationID: convID,
-					MsgID:          readMsgID,
-				})
+			// Do online only things
+			if !s.offline {
+				// Before returning the stuff, update SenderDeviceRevokedAt on each message.
+				updatedMessages, err := s.updateMessages(ctx, thread.Messages)
 				if err != nil {
-					return chat1.ThreadView{}, nil, err
+					return chat1.ThreadView{}, rl, err
 				}
-				if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
-					return chat1.ThreadView{}, nil, err
-				}
+				thread.Messages = updatedMessages
 
-				rl = append(rl, res.RateLimit)
+				// Before returning the stuff, send remote request to mark as read if
+				// requested.
+				if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
+					readMsgID := thread.Messages[0].GetMessageID()
+					res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
+						ConversationID: convID,
+						MsgID:          readMsgID,
+					})
+					if err != nil {
+						return chat1.ThreadView{}, nil, err
+					}
+					if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
+						return chat1.ThreadView{}, nil, err
+					}
+
+					rl = append(rl, res.RateLimit)
+				}
 			}
 
 			return thread, rl, nil

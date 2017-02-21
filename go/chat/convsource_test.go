@@ -283,10 +283,6 @@ func (f failingUpak) PutUserToCache(user *libkb.User) error {
 	require.Fail(f.t, "PutUserToCache call")
 	return nil
 }
-func (f failingUpak) loadWithInfo(arg libkb.LoadUserArg, info *libkb.CachedUserLoadInfo) (ret *keybase1.UserPlusAllKeys, user *libkb.User, err error) {
-	require.Fail(f.t, "loadWithInfo call")
-	return nil, nil, nil
-}
 
 func TestGetThreadCaching(t *testing.T) {
 	world, ri, _, sender, _, _, tlf := setupTest(t, 1)
@@ -321,8 +317,21 @@ func TestGetThreadCaching(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 
-	t.Logf("initial read to populate caches")
+	tc.G.ConvSource.Clear(res.ConvID, u.User.GetUID().ToBytes())
+	tc.G.ConvSource.Disconnected(context.TODO())
+	tc.G.InboxSource.Disconnected(context.TODO())
+	t.Logf("make sure we get offline error")
 	thread, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+		&chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+	require.Error(t, err)
+	require.IsType(t, OfflineError{}, err, "wrong error type")
+
+	t.Logf("read to populate caches")
+	tc.G.ConvSource.Connected(context.TODO())
+	tc.G.InboxSource.Connected(context.TODO())
+	thread, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -333,12 +342,13 @@ func TestGetThreadCaching(t *testing.T) {
 	t.Logf("reading thread again for total cache hit")
 	failingRI := newFailingRemote(t)
 	failingTI := newFailingTlf(t)
+	tc.G.ConvSource.Disconnected(context.TODO())
+	tc.G.InboxSource.Disconnected(context.TODO())
 	tc.G.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
 	tc.G.ConvSource.SetTlfInterface(func() keybase1.TlfInterface { return failingTI })
 	tc.G.InboxSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
 	tc.G.InboxSource.SetTlfInterface(func() keybase1.TlfInterface { return failingTI })
-	tc.G.ConvSource.Disconnected(context.TODO())
-	tc.G.InboxSource.Disconnected(context.TODO())
+
 	tc.G.OverrideUPAKLoader(newFailingUpak(t))
 
 	thread, _, err = tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
