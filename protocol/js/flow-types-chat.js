@@ -836,6 +836,7 @@ export type FailedMessageInfo = {
 
 export type FindConversationsLocalRes = {
   conversations?: ?Array<ConversationLocal>,
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
@@ -866,6 +867,7 @@ export type GetConversationMetadataRemoteRes = {
 export type GetInboxAndUnboxLocalRes = {
   conversations?: ?Array<ConversationLocal>,
   pagination?: ?Pagination,
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
@@ -893,13 +895,15 @@ export type GetInboxLocalQuery = {
 export type GetInboxLocalRes = {
   conversationsUnverified?: ?Array<Conversation>,
   pagination?: ?Pagination,
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type GetInboxNonblockLocalRes = {
-  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type GetInboxQuery = {
@@ -939,6 +943,7 @@ export type GetInboxSummaryForCLILocalRes = {
 
 export type GetMessagesLocalRes = {
   messages?: ?Array<MessageUnboxed>,
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
@@ -955,6 +960,7 @@ export type GetPublicConversationsRes = {
 
 export type GetThreadLocalRes = {
   thread: ThreadView,
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }

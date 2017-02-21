@@ -263,6 +263,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) error {
 
+	// If we are offline, then bail out of here with no error
+	if s.offline {
+		s.Debug(ctx, "identifyTLF: not performing identify because offline")
+		return nil
+	}
+
 	for _, msg := range msgs {
 		if msg.IsValid() {
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(finalizeInfo)
@@ -316,6 +322,13 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 			// Do online only things
 			if !s.offline {
+
+				// Identify this TLF by running crypt keys
+				if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
+					s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
+					return chat1.ThreadView{}, rl, ierr
+				}
+
 				// Before returning the stuff, update SenderDeviceRevokedAt on each message.
 				updatedMessages, err := s.updateMessages(ctx, thread.Messages)
 				if err != nil {
@@ -436,6 +449,13 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		return chat1.ThreadView{}, err
 	}
 
+	// Identify this TLF by running crypt keys
+	// XXX might need finalize info
+	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages, nil); ierr != nil {
+		s.Debug(ctx, "PullLocalOnly: identify failed: %s", ierr.Error())
+		return chat1.ThreadView{}, ierr
+	}
+
 	return tv, nil
 }
 
@@ -512,6 +532,12 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		}
 	}
 
+	// Identify this TLF by running crypt keys
+	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
+		s.Debug(ctx, "GetMessages: identify failed: %s", ierr.Error())
+		return nil, ierr
+	}
+
 	return res, nil
 }
 
@@ -556,6 +582,12 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if err = s.storage.Merge(ctx, convID, uid, merges); err != nil {
 			return res, err
 		}
+	}
+
+	// Identify this TLF by running crypt keys
+	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
+		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
+		return res, ierr
 	}
 
 	return res, nil

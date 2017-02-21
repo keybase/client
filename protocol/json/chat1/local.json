@@ -1173,6 +1173,10 @@
           "name": "thread"
         },
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -1205,6 +1209,10 @@
             "Pagination"
           ],
           "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
         },
         {
           "type": {
@@ -1322,6 +1330,10 @@
           "name": "pagination"
         },
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -1342,11 +1354,8 @@
       "name": "GetInboxNonblockLocalRes",
       "fields": [
         {
-          "type": {
-            "type": "array",
-            "items": "keybase1.TLFIdentifyFailure"
-          },
-          "name": "identifyFailures"
+          "type": "boolean",
+          "name": "offline"
         },
         {
           "type": {
@@ -1354,6 +1363,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
         }
       ]
     },
@@ -1581,6 +1597,10 @@
           "name": "messages"
         },
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -1654,6 +1674,10 @@
             "items": "ConversationLocal"
           },
           "name": "conversations"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
         },
         {
           "type": {
