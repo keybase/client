@@ -132,18 +132,8 @@ helpers.rootLinuxNode(env, {
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                             ]) {
                                 dir("shared") {
-                                    sh "node --version"
-                                    stage("yarn install") {
-                                        sh "yarn install --pure-lockfile --verbose --prefer-offline --no-emoji --no-progress"
-                                    }
-                                    stage("flow test") {
-                                        sh "yarn run flow"
-                                    }
-                                    stage("lint") {
-                                        sh "yarn run lint"
-                                    }
-                                    stage("js test") {
-                                        sh "yarn test"
+                                    stage("JS tests") {
+                                        sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                     }
                                 }
                                 // Only run visdiff for PRs
@@ -162,14 +152,14 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
-                                        dir("visdiff") {
-                                            sh "yarn install --pure-lockfile"
+                                        dir("shared") {
+                                            sh "./jenkins_test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                         }
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
                                                 dir("shared") {
                                                     stage("js visdiff") {
-                                                        sh "node ../visdiff/dist/index.js 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
+                                                        sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                                     }
                                                 }
                                             }
@@ -321,6 +311,6 @@ helpers.rootLinuxNode(env, {
 def testNixGo(prefix) {
     dir('go') {
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        sh './test/run_tests.sh'
+        sh "./test/jenkins_test.sh ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
     }
 }

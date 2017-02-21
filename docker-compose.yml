@@ -18,6 +18,7 @@ services:
         links:
             - mysql.local
             - gregor.local
+            - sqsd.local
         entrypoint: ["run/startup_for_container.sh"]
         environment:
             - KEYBASE_RUN_MODE=devel
@@ -49,3 +50,8 @@ services:
             options:
                 max-size: 50m
                 max-file: "2"
+    sqsd.local:
+        image: keybaseprivate/sqsd
+        restart: unless-stopped
+        ports:
+            - "9324"

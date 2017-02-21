@@ -5,23 +5,23 @@ import * as CommonConstants from '../constants/common'
 import type {NotificationKeys, NotificationAction, BadgeType, MenuNotificationState} from '../constants/notifications'
 
 type State = {
-  menuBadge: BadgeType,
-  menuBadgeCount: number,
-  menuNotifications: MenuNotificationState,
   keyState: {
     [key: NotificationKeys]: boolean,
   },
+  menuBadge: BadgeType,
+  menuBadgeCount: number,
+  menuNotifications: MenuNotificationState,
 }
 
 const initialState = {
+  keyState: {},
   menuBadge: 'regular',
   menuBadgeCount: 0,
-  keyState: {},
   menuNotifications: {
-    folderBadge: 0,
-    peopleBadge: 0,
     chatBadge: 0,
     deviceBadge: 0,
+    folderBadge: 0,
+    peopleBadge: 0,
   },
 }
 
@@ -60,9 +60,9 @@ export default function (state: State = initialState, action: NotificationAction
 
       return {
         ...state,
+        keyState,
         menuBadge,
         menuBadgeCount,
-        keyState,
         menuNotifications,
       }
     default:
