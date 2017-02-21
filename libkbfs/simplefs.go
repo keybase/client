@@ -185,7 +185,7 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context, arg keybase1.Simpl
 				if err != nil {
 					return err
 				}
-				for name, _ := range eis {
+				for name := range eis {
 					paths = append(paths, pathPair{
 						src:  pathAppend(path.src, name),
 						dest: pathAppend(path.dest, name),
