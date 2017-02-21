@@ -1,0 +1,28 @@
+// @flow
+import {Component} from 'react'
+
+import type {AvatarSize} from './avatar'
+
+export type URLMap = {
+  '200': string,
+  '360': string,
+  '40': string,
+}
+
+export type Props = {
+  borderColor?: string,
+  children?: any,
+  following?: ?boolean,
+  followsYou?: ?boolean,
+  loadingColor?: string,
+  onAvatarLoaded?: () => void,
+  onClick?: ?(() => void),
+  opacity?: number,
+  size: AvatarSize,
+  style?: ?Object,
+  // TODO flow type to allow one or the other, not both url and username etc
+  url?: ?string,
+  username?: ?string,
+}
+
+export default class Avatar extends Component<void, Props, void> { }
