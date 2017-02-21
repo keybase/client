@@ -56,6 +56,7 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 }
 
 func setupChatTest(t *testing.T, name string) (libkb.TestContext, *Boxer) {
+	t.Parallel()
 	tc := externals.SetupTest(t, name, 2)
 	return tc, NewBoxer(tc.G, nil)
 }

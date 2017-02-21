@@ -16,7 +16,12 @@ import (
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
-func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
+func SetupEngineTest(t *testing.T, name string) libkb.TestContext {
+	t.Parallel()
+	return SetupEngineTestBenchmark(t, name)
+}
+
+func SetupEngineTestBenchmark(tb testing.TB, name string) libkb.TestContext {
 	tc := externals.SetupTest(tb, name, 2)
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
 		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }

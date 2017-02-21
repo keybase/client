@@ -12,6 +12,7 @@ import (
 )
 
 func setupTest(t *testing.T, nm string) *libkb.TestContext {
+	t.Parallel()
 	tc := externals.SetupTest(t, nm, 2)
 	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "run"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {

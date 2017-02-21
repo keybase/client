@@ -16,7 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupOutboxTest(t testing.TB, name string) (libkb.TestContext, *Outbox, gregor1.UID, clockwork.FakeClock) {
+func setupOutboxTest(t *testing.T, name string) (libkb.TestContext, *Outbox, gregor1.UID, clockwork.FakeClock) {
+	t.Parallel()
 	tc := externals.SetupTest(t, name, 2)
 	u, err := kbtest.CreateAndSignupFakeUser("ob", tc.G)
 	require.NoError(t, err)
