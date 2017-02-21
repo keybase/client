@@ -78,7 +78,7 @@ func (h *TrackHandler) DismissWithToken(_ context.Context, arg keybase1.DismissW
 // Untrack creates an UntrackEngine and runs it.
 func (h *TrackHandler) Untrack(_ context.Context, arg keybase1.UntrackArg) error {
 	earg := engine.UntrackEngineArg{
-		Username: arg.Username,
+		Username: libkb.NewNormalizedUsername(arg.Username),
 	}
 	ctx := engine.Context{
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
@@ -103,6 +103,6 @@ func (h *TrackHandler) FakeTrackingChanged(_ context.Context, arg keybase1.FakeT
 	if err != nil {
 		return err
 	}
-	h.G().NotifyRouter.HandleTrackingChanged(user.GetUID(), user.GetName(), arg.IsTracking)
+	h.G().NotifyRouter.HandleTrackingChanged(user.GetUID(), user.GetNormalizedName(), arg.IsTracking)
 	return nil
 }

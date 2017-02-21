@@ -17,13 +17,13 @@ type IdentifyState struct {
 
 func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
 	if res == nil {
-		res = NewIdentifyOutcomeWithUsername(u.GetName())
+		res = NewIdentifyOutcomeWithUsername(u.GetNormalizedName())
 	}
 	return IdentifyState{res: res, u: u}
 }
 
 func NewIdentifyStateWithGregorItem(item gregor.Item, u *User) IdentifyState {
-	res := NewIdentifyOutcomeWithUsername(u.GetName())
+	res := NewIdentifyOutcomeWithUsername(u.GetNormalizedName())
 	res.ResponsibleGregorItem = item
 	return IdentifyState{res: res, u: u}
 }

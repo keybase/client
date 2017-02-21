@@ -1270,7 +1270,7 @@ func (e IdentifyFailedError) Error() string {
 //=============================================================================
 
 type IdentifySummaryError struct {
-	username string
+	username NormalizedUsername
 	problems []string
 }
 
