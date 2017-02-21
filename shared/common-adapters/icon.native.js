@@ -20,11 +20,13 @@ class Icon extends Component<void, Exact<Props>, void> {
 
     color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
 
-    const width = this.props.style && this.props.style.width && {width: this.props.style.width}
+    const styleWidth = this.props.style && this.props.style.width
+
+    const width = styleWidth && {width: this.props.style.width}
     const height = this.props.style && this.props.style.height && {height: this.props.style.height}
 
     const fontSizeHint = shared.fontSize(iconType)
-    const fontSize = (this.props.style && (this.props.style.fontSize || this.props.style.width) && {fontSize: this.props.style.fontSize || this.props.style.width}) || fontSizeHint
+    const fontSize = (this.props.style && (this.props.style.fontSize || styleWidth) && {fontSize: this.props.style.fontSize || styleWidth}) || fontSizeHint
     const textAlign = this.props.style && this.props.style.textAlign
 
     // Color is for our fontIcon and not the container

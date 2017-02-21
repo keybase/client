@@ -11,7 +11,7 @@ import type {Props} from './search-bar'
 
 const ServiceIcon = ({serviceName, iconType, selected, onClickService}) => (
   <ClickableBox style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
-    onClick={() => onClickService(serviceName)} >
+    onClick={() => onClickService(serviceName)}>
     <Box>
       <Icon type={iconType} style={{opacity: selected ? 1 : 0.6}} />
     </Box>
