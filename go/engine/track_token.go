@@ -131,8 +131,8 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		e.G().UserChanged(e.arg.Me.GetUID())
 
 		// Keep these:
-		e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetName(), false)
-		e.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetName(), true)
+		e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
+		e.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetNormalizedName(), true)
 
 		// Dismiss any associated gregor item.
 		if outcome.ResponsibleGregorItem != nil {
@@ -180,8 +180,8 @@ func (e *TrackToken) loadMe() error {
 	return nil
 }
 
-func (e *TrackToken) loadThem(username string) error {
-	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), username))
+func (e *TrackToken) loadThem(username libkb.NormalizedUsername) error {
+	them, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), username.String()))
 	if err != nil {
 		return err
 	}

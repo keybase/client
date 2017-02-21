@@ -31,7 +31,7 @@ type NotifyListener interface {
 	Login(username string)
 	ClientOutOfDate(to, uri, msg string)
 	UserChanged(uid keybase1.UID)
-	TrackingChanged(uid keybase1.UID, username string)
+	TrackingChanged(uid keybase1.UID, username NormalizedUsername)
 	FSActivity(activity keybase1.FSNotification)
 	FSEditListResponse(arg keybase1.FSEditListArg)
 	FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)
@@ -245,13 +245,13 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 // untracking chain link related to a given user. It will broadcast the
 // messages to all curious listeners.
 // isTracking is set to true if current user is tracking uid.
-func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string, isTracking bool) {
+func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username NormalizedUsername, isTracking bool) {
 	if n == nil {
 		return
 	}
 	arg := keybase1.TrackingChangedArg{
 		Uid:        uid,
-		Username:   username,
+		Username:   username.String(),
 		IsTracking: isTracking,
 	}
 	// For all connections we currently have open...

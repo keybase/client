@@ -392,7 +392,7 @@ func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 //
 type TrackChainLink struct {
 	GenericChainLink
-	whomUsername  string
+	whomUsername  NormalizedUsername
 	whomUID       keybase1.UID
 	untrack       *UntrackChainLink
 	local         bool
@@ -404,12 +404,13 @@ func (l TrackChainLink) IsRemote() bool {
 }
 
 func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
-	var whomUsername string
-	whomUsername, err = b.payloadJSON.AtPath("body.track.basics.username").GetString()
+	var tmp string
+	tmp, err = b.payloadJSON.AtPath("body.track.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
 	}
+	whomUsername := NewNormalizedUsername(tmp)
 
 	whomUID, err := GetUID(b.payloadJSON.AtPath("body.track.id"))
 	if err != nil {
@@ -424,7 +425,7 @@ func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
 func (l *TrackChainLink) Type() string { return "track" }
 
 func (l *TrackChainLink) ToDisplayString() string {
-	return l.whomUsername
+	return l.whomUsername.String()
 }
 
 func (l *TrackChainLink) GetTmpExpireTime() (ret time.Time) {
@@ -504,8 +505,12 @@ func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {
 	return GetUID(l.payloadJSON.AtPath("body.track.id"))
 }
 
-func (l *TrackChainLink) GetTrackedUsername() (string, error) {
-	return l.payloadJSON.AtPath("body.track.basics.username").GetString()
+func (l *TrackChainLink) GetTrackedUsername() (NormalizedUsername, error) {
+	tmp, err := l.payloadJSON.AtPath("body.track.basics.username").GetString()
+	if err != nil {
+		return NormalizedUsername(""), nil
+	}
+	return NewNormalizedUsername(tmp), err
 }
 
 func (l *TrackChainLink) IsRevoked() bool {
@@ -761,17 +766,18 @@ func (s *DeviceChainLink) insertIntoTable(tab *IdentityTable) {
 
 type UntrackChainLink struct {
 	GenericChainLink
-	whomUsername string
+	whomUsername NormalizedUsername
 	whomUID      keybase1.UID
 }
 
 func ParseUntrackChainLink(b GenericChainLink) (ret *UntrackChainLink, err error) {
-	var whomUsername string
-	whomUsername, err = b.payloadJSON.AtPath("body.untrack.basics.username").GetString()
+	var tmp string
+	tmp, err = b.payloadJSON.AtPath("body.untrack.basics.username").GetString()
 	if err != nil {
 		err = fmt.Errorf("Bad track statement @%s: %s", b.ToDebugString(), err)
 		return
 	}
+	whomUsername := NewNormalizedUsername(tmp)
 
 	whomUID, err := GetUID(b.payloadJSON.AtPath("body.untrack.id"))
 	if err != nil {
@@ -796,7 +802,7 @@ func (u *UntrackChainLink) insertIntoTable(tab *IdentityTable) {
 }
 
 func (u *UntrackChainLink) ToDisplayString() string {
-	return u.whomUsername
+	return u.whomUsername.String()
 }
 
 func (u *UntrackChainLink) Type() string { return "untrack" }
@@ -984,7 +990,7 @@ type IdentityTable struct {
 	revocations      map[keybase1.SigID]bool
 	links            map[keybase1.SigID]TypedChainLink
 	remoteProofLinks *RemoteProofLinks
-	tracks           map[string][]*TrackChainLink
+	tracks           map[NormalizedUsername][]*TrackChainLink
 	Order            []TypedChainLink
 	sigHints         *SigHints
 	cryptocurrency   []*CryptocurrencyChainLink
@@ -996,7 +1002,7 @@ func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofC
 	return idt.remoteProofLinks.ForService(st)
 }
 
-func (idt *IdentityTable) GetTrackMap() map[string][]*TrackChainLink {
+func (idt *IdentityTable) GetTrackMap() map[NormalizedUsername][]*TrackChainLink {
 	return idt.tracks
 }
 
@@ -1073,7 +1079,7 @@ func NewIdentityTable(g *GlobalContext, eldest keybase1.KID, sc *SigChain, h *Si
 		revocations:      make(map[keybase1.SigID]bool),
 		links:            make(map[keybase1.SigID]TypedChainLink),
 		remoteProofLinks: NewRemoteProofLinks(),
-		tracks:           make(map[string][]*TrackChainLink),
+		tracks:           make(map[NormalizedUsername][]*TrackChainLink),
 		sigHints:         h,
 		eldest:           eldest,
 	}
@@ -1144,7 +1150,7 @@ func (idt *IdentityTable) GetTrackList() (ret []*TrackChainLink) {
 	return
 }
 
-func (idt *IdentityTable) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (idt *IdentityTable) TrackChainLinkFor(username NormalizedUsername, uid keybase1.UID) (*TrackChainLink, error) {
 	list, found := idt.tracks[username]
 	if !found {
 		return nil, nil

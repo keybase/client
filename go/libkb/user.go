@@ -493,7 +493,7 @@ func TmpTrackChainLinkFor(me keybase1.UID, them keybase1.UID, g *GlobalContext) 
 	return tcl, err
 }
 
-func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (u *User) TrackChainLinkFor(username NormalizedUsername, uid keybase1.UID) (*TrackChainLink, error) {
 	u.G().Log.Debug("+ TrackChainLinkFor for %s", uid)
 	defer u.G().Log.Debug("- TrackChainLinkFor for %s", uid)
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
@@ -532,7 +532,7 @@ func TrackChainLinkFor(me keybase1.UID, them keybase1.UID, remote *TrackChainLin
 	return local, nil
 }
 
-func (u *User) remoteTrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (u *User) remoteTrackChainLinkFor(username NormalizedUsername, uid keybase1.UID) (*TrackChainLink, error) {
 	if u.IDTable() == nil {
 		return nil, nil
 	}
