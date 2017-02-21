@@ -3,16 +3,18 @@ package libkb
 import (
 	"encoding/base64"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"io"
 	"os"
 	"sync"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type SKBKeyringFile struct {
 	Contextified
 	sync.Mutex
+	username NormalizedUsername
 	filename string
 	Blocks   []*SKB
 	fpIndex  map[PGPFingerprint]*SKB
@@ -20,10 +22,11 @@ type SKBKeyringFile struct {
 	dirty    bool
 }
 
-func NewSKBKeyringFile(g *GlobalContext, n string) *SKBKeyringFile {
+func NewSKBKeyringFile(g *GlobalContext, un NormalizedUsername) *SKBKeyringFile {
 	return &SKBKeyringFile{
 		Contextified: NewContextified(g),
-		filename:     n,
+		username:     un,
+		filename:     g.SKBFilenameForUser(un),
 		fpIndex:      make(map[PGPFingerprint]*SKB),
 		kidIndex:     make(map[keybase1.KID]*SKB),
 		dirty:        false,
@@ -34,6 +37,14 @@ func (k *SKBKeyringFile) Load() (err error) {
 	k.Lock()
 	defer k.Unlock()
 	return k.loadLocked()
+}
+
+func (k *SKBKeyringFile) Username() NormalizedUsername {
+	return k.username
+}
+
+func (k *SKBKeyringFile) IsForUsername(un NormalizedUsername) bool {
+	return k.username.Eq(un)
 }
 
 func (k *SKBKeyringFile) MTime() (mtime time.Time, err error) {
@@ -379,7 +390,7 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 		return nil, nil, nil
 	}
 
-	ret = NewSKBKeyringFile(k.G(), k.filename)
+	ret = NewSKBKeyringFile(k.G(), k.username)
 	ret.dirty = true
 	ret.Blocks = newBlocks
 
