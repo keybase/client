@@ -66,19 +66,25 @@ class Avatar extends Component<void, Props, State> {
       console.warn('Recieved both url and username to avatar!')
     }
 
-    this.state = {
-      url: null,
+    this.state = this._getRawURLState(props.url, props.size)
+  }
+
+  _getRawURLState (url: ?string, size: number): {url: any} {
+    if (url) {
+      return {url: urlsToImgSet({[String(size)]: url}, size)}
+    } else {
+      return {url: null}
     }
   }
 
   componentWillMount () {
     if (this.props.url) {
-      this.setState({url: this.props.url})
+      this.setState(this._getRawURLState(this.props.url, this.props.size))
       // Just let it load the url, prefer this over username
     } else if (this.props.username) {
       this._loadUsername(this.props.username)
     } else { // Just show the no avatar state
-      this.setState({url: this._urlMapsToUrl(null)})
+      this.setState({url: this._noAvatar()})
     }
   }
 
@@ -86,7 +92,7 @@ class Avatar extends Component<void, Props, State> {
     this._onURLLoaded = (username: string, urlMap: ?URLMap) => {
       // Still looking at the same username?
       if (this.props.username === username) {
-        this.setState({url: this._urlMapsToUrl(urlMap)})
+        this.setState({url: this._urlMapsToUrl(urlMap) || this._noAvatar()})
       }
     }
   }
@@ -97,7 +103,7 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _noAvatar () {
-    return iconTypeToImgSet(placeHolders[String(this.props.size)])
+    return iconTypeToImgSet(placeHolders[String(this.props.size)], this.props.size)
   }
 
   _urlMapsToUrl (urlMap: ?URLMap) {
@@ -109,7 +115,7 @@ class Avatar extends Component<void, Props, State> {
       map[size] = urlMap && urlMap[size] || '' // this fallback never happens but makes flow happy
       return map
     }, {})
-    return urlsToImgSet(goodSizes, this.props.size) || this._noAvatar()
+    return urlsToImgSet(goodSizes, this.props.size)
   }
 
   _loadUsername (username: string) {
@@ -135,9 +141,11 @@ class Avatar extends Component<void, Props, State> {
     if (url !== nextUrl) {
       // Just show the url
       if (nextProps.url) {
-        this.setState({url: nextProps.url})
+        this.setState(this._getRawURLState(nextProps.url, nextProps.size))
       } else if (nextProps.username) {  // We need to convert a username to a url
         this._loadUsername(nextProps.username)
+      } else {
+        this.setState({url: this._noAvatar()})
       }
     }
   }

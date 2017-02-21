@@ -95,7 +95,7 @@ class AvatarRender extends PureComponent<void, Props, void> {
           width: size,
           ...style,
         }}>
-        <Box style={{width: size, height: size}}>
+        <Box style={{height: size, width: size}}>
           {!!url && <UserImage
             opacity={opacity}
             loadingColor={loadingColor}

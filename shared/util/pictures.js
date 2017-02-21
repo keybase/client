@@ -44,11 +44,16 @@ const _getUserImages = throttle(() => {
       } else {
         JSON.parse(response.body).pictures.forEach((picMap, idx) => {
           const username = usersToResolve[idx]
-          const urlMap = {
-            '200': picMap['square_200'],
-            '360': picMap['square_360'],
-            '40': picMap['square_40'],
+          let urlMap = {
+            ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+            ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+            ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
           }
+
+          if (!Object.keys(urlMap).length) {
+            urlMap = null
+          }
+
           const info = _usernameToURL[username]
           if (info) {
             info.done = true
