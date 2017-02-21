@@ -1495,6 +1495,11 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 	} else if arg.Visibility == chat1.TLFVisibility_PUBLIC {
 		h.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
 
+		// Check for offline and return an error
+		if res.Offline {
+			return res, chat.OfflineError{}
+		}
+
 		// If we miss the inbox, and we are looking for a public TLF, let's try and find
 		// any conversation that matches
 		_, tlfInfo, err := chat.GetInboxQueryLocalToRemote(ctx, h.tlf, &query)
