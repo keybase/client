@@ -28,12 +28,14 @@ const shouldBuildAnArch = argv.arch || false
 const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment || ''
 const outDir = argv.outDir || ''
+const appCopyright = 'Copyright (c) 2015, Keybase'
 
 const packagerOpts = {
   'app-bundle-id': 'keybase.Electron',
   'helper-bundle-id': 'keybase.ElectronHelper',
   'app-version': appVersion,
   'build-version': appVersion + comment,
+  'app-copyright': appCopyright,
   dir: desktopPath('./build'),
   name: appName,
   asar: shouldUseAsar,
