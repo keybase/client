@@ -35,7 +35,7 @@ const hoc = withProps(
       you,
     } = props
 
-    const listProps: ListProps = {
+    const listProps: $Shape<ListProps> = {
       firstNewMessageID,
       followingMap,
       listScrollDownState,
@@ -45,6 +45,7 @@ const hoc = withProps(
       muted,
       onDeleteMessage,
       onEditMessage,
+      onFocusInput: () => console.log('todo'),
       onLoadAttachment,
       onLoadMoreMessages,
       onOpenConversation,
@@ -64,6 +65,7 @@ const hoc = withProps(
       isLoading,
       onAttach,
       onEditMessage,
+      onEditLastMessage: () => console.log('todo'),
       onPostMessage,
       selectedConversation,
     }

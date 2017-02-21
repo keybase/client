@@ -1,13 +1,20 @@
 // @flow
 //
 import React, {Component} from 'react'
-import {NativeListView, Text} from '../../common-adapters'
+import {Text} from '../../common-adapters'
+import {NativeListView} from '../../common-adapters/index.native'
 import hoc from './list-hoc'
 import messageFactory from './messages'
 
 import type {Props} from './list'
 
-class ConversationList extends Component <void, Props, void> {
+type State = {
+  dataSource: NativeListView.DataSource,
+}
+
+class ConversationList extends Component <void, Props, State> {
+  state: State;
+
   constructor (props: Props) {
     super(props)
     const ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1.key !== r2.key})

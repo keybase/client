@@ -1,5 +1,8 @@
 // @flow
 
+import * as ChatConstants from '../../../constants/chat'
+import type {Message, AttachmentMessage, ConversationIDKey, ServerMessage, MetaDataMap, FollowingMap, OutboxIDKey} from '../../../constants/chat'
+
 export type Options = {
   message: Message,
   includeHeader: boolean,
@@ -20,5 +23,5 @@ export type Options = {
   followingMap: FollowingMap,
 }
 
-declare const factory: (options: Options) => React$Element
+declare var factory: (options: Options) => React$Element<*>
 export default factory

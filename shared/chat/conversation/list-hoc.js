@@ -5,8 +5,10 @@ import type {Props} from './list'
 import type {Options} from './messages'
 import {withProps} from 'recompose'
 
-function propsToMessageOptionsFn (props: Props): * => Options {
-  return function (message: ChatConstants.Message, prevMessage: ChatConstants.Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: () => void): Options {
+type OptionsFn = (message: ChatConstants.Message, prevMessage: ChatConstants.Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: () => void) => Options
+
+function propsToMessageOptionsFn (props: Props): OptionsFn {
+  return function (message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, onAction): Options {
     const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const isFirstNewMessage = message.messageID != null && props.firstNewMessageID ? props.firstNewMessageID === message.messageID : false
 

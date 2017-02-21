@@ -6,7 +6,7 @@ import type {Props} from './attachment'
 
 const AttachmentMessage = ({message}: Props) => (
   <Box>
-    <Text>Attachment Message (TODO) - {message.title}</Text>
+    <Text type='Body'>Attachment Message (TODO) - {message.title}</Text>
   </Box>
 )
 

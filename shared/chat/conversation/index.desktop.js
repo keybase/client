@@ -207,6 +207,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           onOpenInPopup={onOpenInPopup}
           onRetryAttachment={onRetryAttachment}
           onRetryMessage={onRetryMessage}
+          optionsFn={() => console.log('todo - remove this')}
           ref={onListRef}
           selectedConversation={selectedConversation}
           sidePanelOpen={sidePanelOpen}
