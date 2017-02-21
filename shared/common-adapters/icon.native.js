@@ -57,6 +57,10 @@ class Icon extends Component<void, Exact<Props>, void> {
   }
 }
 
+export function iconTypeToImgSet (type: IconType) {
+  return iconMeta[type].require
+}
+
 export function urlsToImgSet (imgMap: {[size: string]: string}, size: number): any {
   return Object.keys(imgMap).map(size => ({
     height: parseInt(size, 10),
