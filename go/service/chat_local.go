@@ -448,6 +448,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		res.Conversations = gires.Conversations
 	}
 
+	res.Offline = gires.Offline
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 
 	return res, nil
@@ -516,6 +517,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	return chat1.GetConversationForCLILocalRes{
 		Conversation: convLocal,
 		Messages:     messages,
+		Offline:      tv.Offline,
 		RateLimits:   utils.AggRateLimits(rlimits),
 	}, nil
 }

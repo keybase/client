@@ -856,6 +856,7 @@ export type GetConversationForCLILocalQuery = {
 export type GetConversationForCLILocalRes = {
   conversation: ConversationLocal,
   messages?: ?Array<MessageUnboxed>,
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -938,6 +939,7 @@ export type GetInboxSummaryForCLILocalQuery = {
 
 export type GetInboxSummaryForCLILocalRes = {
   conversations?: ?Array<ConversationLocal>,
+  offline: boolean,
   rateLimits?: ?Array<RateLimit>,
 }
 

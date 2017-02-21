@@ -1518,6 +1518,10 @@
           "name": "conversations"
         },
         {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
           "type": {
             "type": "array",
             "items": "RateLimit"
@@ -1575,6 +1579,10 @@
             "items": "MessageUnboxed"
           },
           "name": "messages"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
         },
         {
           "type": {

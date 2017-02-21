@@ -491,6 +491,7 @@ protocol local {
   }
   record GetInboxSummaryForCLILocalRes {
     array<ConversationLocal> conversations;
+    boolean offline;
     array<RateLimit> rateLimits;
   }
 
@@ -512,6 +513,7 @@ protocol local {
   record GetConversationForCLILocalRes {
     ConversationLocal conversation;
     array<MessageUnboxed> messages;
+    boolean offline;
     array<RateLimit> rateLimits;
   }
 

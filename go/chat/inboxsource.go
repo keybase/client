@@ -494,6 +494,9 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		return inbox, rl, err
 	}
 	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
+	if err != nil {
+		return inbox, rl, err
+	}
 
 	// Localize
 	inbox.Convs, err = localizer.Localize(ctx, uid, inbox)

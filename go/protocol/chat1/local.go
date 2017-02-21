@@ -1443,6 +1443,7 @@ type GetInboxSummaryForCLILocalQuery struct {
 
 type GetInboxSummaryForCLILocalRes struct {
 	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
+	Offline       bool                `codec:"offline" json:"offline"`
 	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
 }
 
@@ -1457,6 +1458,7 @@ type GetConversationForCLILocalQuery struct {
 type GetConversationForCLILocalRes struct {
 	Conversation ConversationLocal `codec:"conversation" json:"conversation"`
 	Messages     []MessageUnboxed  `codec:"messages" json:"messages"`
+	Offline      bool              `codec:"offline" json:"offline"`
 	RateLimits   []RateLimit       `codec:"rateLimits" json:"rateLimits"`
 }
 
