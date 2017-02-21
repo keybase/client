@@ -15,9 +15,12 @@ type State = {
 class Input extends Component<void, Props, State> {
   state: State;
   _input: any;
+  _isComposingIME: bool
 
   constructor (props: Props) {
     super(props)
+
+    this._isComposingIME = false
 
     this.state = {
       value: props.value || '',
@@ -93,12 +96,20 @@ class Input extends Component<void, Props, State> {
     this._input && this._inputNode().blur()
   }
 
+  _onCompositionStart = () => {
+    this._isComposingIME = true
+  }
+
+  _onCompositionEnd = () => {
+    this._isComposingIME = false
+  }
+
   _onKeyDown = (e: SyntheticKeyboardEvent) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e)
     }
 
-    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey) {
+    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       this.props.onEnterKeyDown(e)
     }
   }
@@ -212,6 +223,8 @@ class Input extends Component<void, Props, State> {
       onChange: this._onChange,
       onFocus: this._onFocus,
       onKeyDown: this._onKeyDown,
+      onCompositionStart: this._onCompositionStart,
+      onCompositionEnd: this._onCompositionEnd,
       placeholder: this.props.hintText,
       ref: r => { this._input = r },
       value: this.state.value,
