@@ -3,7 +3,7 @@
 commit_hash="$1"
 change_target="origin/$2"
 
-if [ -z "$2" ]; then
+if [ "$2" == "null" ]; then
     against_master=1
 else
     against_master=0

@@ -4,7 +4,7 @@ test_type="$1"
 commit_hash="$2"
 change_target="origin/$3"
 
-if [ -z "$3" ]; then
+if [ "$3" == "null" ]; then
     against_master=1
 else
     against_master=0
