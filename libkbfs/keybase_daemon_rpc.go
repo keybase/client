@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	//"github.com/keybase/kbfs/simplefs"
 	"golang.org/x/net/context"
 )
 
@@ -241,7 +240,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.NotifyPaperKeyProtocol(k),
 		keybase1.NotifyFSRequestProtocol(k),
 		keybase1.TlfKeysProtocol(k),
-		//		keybase1.SimpleFSProtocol(&simplefs.SimpleFS{}),
+		keybase1.SimpleFSProtocol(newSimpleFS(k.config)),
 	}
 
 	if k.protocols != nil {
