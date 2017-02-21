@@ -1,7 +1,7 @@
 // @flow
 /* eslint-env browser */
 import React, {Component} from 'react'
-import {Box, Icon, Input} from '../../common-adapters'
+import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './input'
@@ -69,7 +69,10 @@ class ConversationInput extends Component<void, Props, State> {
             value={this.state.text}
             multiline={false}
           />
-          <Icon onClick={this._openFilePicker} style={styleIcon} type='iconfont-attachment' />
+          <Box style={styleRight}>
+            {!this.state.text && <Icon onClick={this._openFilePicker} type='iconfont-attachment' />}
+            {!!this.state.text && <Text type='BodyBigLink' onClick={this._onSubmit}>Send</Text>}
+          </Box>
         </Box>
       </Box>
     )
@@ -83,9 +86,9 @@ const styleInput = {
   marginTop: globalMargins.tiny,
 }
 
-const styleIcon = {
-  paddingRight: globalMargins.tiny,
-  paddingTop: globalMargins.tiny,
+const styleRight = {
+  marginRight: globalMargins.tiny,
+  marginTop: globalMargins.tiny,
 }
 
 export default ConversationInput
