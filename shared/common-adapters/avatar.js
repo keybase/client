@@ -2,7 +2,7 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as I from 'immutable'
 import React, {Component} from 'react'
-import Render from './avatar.render.desktop'
+import Render from './avatar.render'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
 
@@ -10,7 +10,7 @@ import type {Props, AvatarLookup, AvatarLoad, URLMap} from './avatar'
 import type {IconType} from './icon'
 
 type State = {
-  url: ?string,
+  url: any, // can be a string or an array (desktop vs native)
 }
 
 const placeHolders: {[key: string]: IconType} = {
@@ -100,45 +100,16 @@ class Avatar extends Component<void, Props, State> {
     return iconTypeToImgSet(placeHolders[String(this.props.size)])
   }
 
-  // Figure out which 1x, 2x images to use for this size
   _urlMapsToUrl (urlMap: ?URLMap) {
     if (!urlMap) {
       return null
     }
 
-    const low = urlMap['40'] || urlMap['200'] || urlMap['360']
-    const medium = urlMap['200'] || urlMap['360'] || urlMap['40']
-    const high = urlMap['360'] || urlMap['200'] || urlMap['40']
-
-    let imgs = []
-    switch (this.props.size) {
-      case 176:
-      case 112: // fallthrough
-        imgs = [medium, high]
-        break
-      case 80:
-      case 64: // fallthrough
-      case 48: // fallthrough
-        imgs = [medium, medium]
-        break
-      case 40:
-      case 32: // fallthrough
-        imgs = [low, medium]
-        break
-      case 24:
-      case 16: // fallthrough
-        imgs = [low, low]
-        break
-    }
-
-    const m = imgs.reduce((map, img, idx) => {
-      if (img) {
-        map[String(idx + 1)] = img
-      }
+    const goodSizes = Object.keys(urlMap).filter(size => urlMap && urlMap[size]).reduce((map, size) => {
+      map[size] = urlMap && urlMap[size] || '' // this fallback never happens but makes flow happy
       return map
     }, {})
-
-    return urlsToImgSet(m) || this._noAvatar()
+    return urlsToImgSet(goodSizes, this.props.size) || this._noAvatar()
   }
 
   _loadUsername (username: string) {

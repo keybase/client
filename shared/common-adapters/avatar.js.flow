@@ -33,4 +33,3 @@ export default class Avatar extends Component<void, Props, void> { }
 
 export function initLookup (lookup: AvatarLookup) { }
 export function initLoad (load: AvatarLoad) { }
-export const NO_AVATAR: string = ''

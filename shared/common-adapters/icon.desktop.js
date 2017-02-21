@@ -1,6 +1,7 @@
 // @flow
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
+import _ from 'lodash'
 import shallowEqual from 'shallowequal'
 import {FontIcon} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
@@ -89,12 +90,42 @@ export function iconTypeToImgSet (type: IconType) {
   return `-webkit-image-set(${imgs})`
 }
 
-export function urlsToImgSet (imgMap: {[size: string]: string}): ?string {
-  const imgs = Object.keys(imgMap).map(size => `url('${imgMap[size]}') ${size}x`).join(', ')
-  if (!imgs) {
+export function urlsToImgSet (imgMap: {[size: string]: string}, targetSize: number): any {
+  const sizes = Object.keys(imgMap).map(size => parseInt(size, 10)).sort((a, b) => a - b)
+
+  if (!sizes.length) {
     return null
   }
-  return `-webkit-image-set(${imgs})`
+
+  // find appropriate 1x 2x images
+  const goodSizes = [1, 2].map(mult => {
+    let target = sizes[sizes.length - 1] // default value is best quality
+    sizes.some((size, idx) => {
+      // find threshold crossing size then decide which one to use
+      const multTargetSize = mult * targetSize
+      if (size > multTargetSize) {
+        if (idx > 0) {
+          const less = sizes[idx - 1]
+
+          if (Math.abs(less - multTargetSize) < 10) { // smaller size is pretty close?
+            target = less
+          } else {
+            target = size
+          }
+        } else {
+          target = size
+        }
+        return true
+      }
+
+      return false
+    })
+
+    return target
+  })
+
+  const str = _.uniq(goodSizes).map((size, idx) => `url('${imgMap[String(size)]}') ${idx + 1}x`).join(', ')
+  return `-webkit-image-set(${str})`
 }
 
 export const styles = {

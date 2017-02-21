@@ -57,4 +57,12 @@ class Icon extends Component<void, Exact<Props>, void> {
   }
 }
 
+export function urlsToImgSet (imgMap: {[size: string]: string}, size: number): any {
+  return Object.keys(imgMap).map(size => ({
+    height: parseInt(size, 10),
+    uri: imgMap[size],
+    width: parseInt(size, 10),
+  }))
+}
+
 export default Icon
