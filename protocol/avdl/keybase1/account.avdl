@@ -25,4 +25,6 @@ protocol account {
   record HasServerKeysRes {
     boolean hasServerKeys;
   }
+
+  void resetAccount(int sessionID);
 }
