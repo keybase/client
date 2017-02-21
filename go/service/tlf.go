@@ -61,7 +61,7 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 		arg.IdentifyBehavior = ident
 	}
 	defer h.Trace(ctx, func() error { return err },
-		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", arg.TlfName, arg.IdentifyBehavior))()
+		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v,handler=%v)", arg.TlfName, arg.IdentifyBehavior, h.BaseHandler.xp != nil))()
 
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {

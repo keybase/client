@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
-	"golang.org/x/net/context"
+	context "golang.org/x/net/context"
 )
 
 type Sender interface {
@@ -515,6 +515,10 @@ func (s *Deliverer) Connected(ctx context.Context) {
 func (s *Deliverer) Disconnected(ctx context.Context) {
 	s.Debug(ctx, "disconnected: all errors from now on will be permanent")
 	s.connected = false
+}
+
+func (s *Deliverer) IsOffline() bool {
+	return !s.connected
 }
 
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,

@@ -187,3 +187,12 @@ func NewBodyVersionError(version chat1.BodyPlaintextVersion, defaultBody chat1.B
 		Critical: defaultBody.Mi.Crit,
 	}
 }
+
+//=============================================================================
+
+type OfflineError struct {
+}
+
+func (e OfflineError) Error() string {
+	return "operation failed: no connection to chat server"
+}

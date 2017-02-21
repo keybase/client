@@ -6,13 +6,14 @@ import (
 
 	"strings"
 
+	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
+	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -29,6 +30,7 @@ type localizerPipeline struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
+	offline         bool
 	getTlfInterface func() keybase1.TlfInterface
 	getMessages     getMessagesFunc
 }
@@ -61,6 +63,10 @@ func NewBlockingLocalizer(g *libkb.GlobalContext, getTlfInterface func() keybase
 		Contextified: libkb.NewContextified(g),
 		pipeline:     newLocalizerPipeline(g, getTlfInterface),
 	}
+}
+
+func (b *BlockingLocalizer) SetOffline() {
+	b.pipeline.offline = true
 }
 
 func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) (res []chat1.ConversationLocal, err error) {
@@ -100,6 +106,10 @@ func NewNonblockingLocalizer(g *libkb.GlobalContext, localizeCb chan NonblockInb
 		pipeline:     newLocalizerPipeline(g, getTlfInterface),
 		localizeCb:   localizeCb,
 	}
+}
+
+func (b *NonblockingLocalizer) SetOffline() {
+	b.pipeline.offline = true
 }
 
 func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.Inbox, uid gregor1.UID) chat1.Inbox {
@@ -254,12 +264,19 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 type baseInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
+
+	getChatInterface func() chat1.RemoteInterface
+	getTlfInterface  func() keybase1.TlfInterface
+	offline          bool
 }
 
-func newBaseInboxSource(g *libkb.GlobalContext) *baseInboxSource {
+func newBaseInboxSource(g *libkb.GlobalContext, getChatInterface func() chat1.RemoteInterface,
+	getTlfInterface func() keybase1.TlfInterface) *baseInboxSource {
 	return &baseInboxSource{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "baseInboxSource", false),
+		Contextified:     libkb.NewContextified(g),
+		DebugLabeler:     utils.NewDebugLabeler(g, "baseInboxSource", false),
+		getChatInterface: getChatInterface,
+		getTlfInterface:  getTlfInterface,
 	}
 }
 
@@ -276,39 +293,52 @@ func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string
 	}
 }
 
+func (b *baseInboxSource) Connected(ctx context.Context) {
+	b.Debug(ctx, "connected")
+	b.offline = false
+}
+
+func (b *baseInboxSource) Disconnected(ctx context.Context) {
+	b.Debug(ctx, "disconnected")
+	b.offline = true
+}
+
+func (b *baseInboxSource) IsOffline() bool {
+	return b.offline
+}
+
+func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
+	b.getChatInterface = ri
+}
+
+func (b *baseInboxSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
+	b.getTlfInterface = ti
+}
+
 type RemoteInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
-
-	getTlfInterface  func() keybase1.TlfInterface
-	getChatInterface func() chat1.RemoteInterface
 }
 
 func NewRemoteInboxSource(g *libkb.GlobalContext, ri func() chat1.RemoteInterface,
 	tlf func() keybase1.TlfInterface) *RemoteInboxSource {
 	return &RemoteInboxSource{
-		Contextified:     libkb.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "RemoteInboxSource", false),
-		baseInboxSource:  newBaseInboxSource(g),
-		getTlfInterface:  tlf,
-		getChatInterface: ri,
+		Contextified:    libkb.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g, "RemoteInboxSource", false),
+		baseInboxSource: newBaseInboxSource(g, ri, tlf),
 	}
 }
 
-func (s *RemoteInboxSource) ReadNoCache(ctx context.Context, uid gregor1.UID,
-	localizer libkb.ChatLocalizer,
-	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
-	chat1.Inbox, *chat1.RateLimit, error) {
-	return s.Read(ctx, uid, localizer, query, p)
-}
-
-func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer libkb.ChatLocalizer,
-	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (
-	chat1.Inbox, *chat1.RateLimit, error) {
+func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
+	localizer interfaces.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
+	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+	}
+	if s.IsOffline() {
+		localizer.SetOffline()
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
@@ -316,6 +346,36 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 	if err != nil {
 		return chat1.Inbox{}, nil, err
 	}
+	inbox, rl, err := s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
+	if err != nil {
+		return chat1.Inbox{}, rl, err
+	}
+
+	res, err := localizer.Localize(ctx, uid, inbox)
+	if err != nil {
+		return chat1.Inbox{}, rl, err
+	}
+
+	res, err = filterConvLocals(res, rquery, query, tlfInfo)
+	if err != nil {
+		return chat1.Inbox{}, rl, err
+	}
+
+	return chat1.Inbox{
+		Version:         inbox.Version,
+		Convs:           res,
+		ConvsUnverified: inbox.ConvsUnverified,
+		Pagination:      inbox.Pagination,
+	}, rl, nil
+}
+
+func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
+	rquery *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+
+	if s.IsOffline() {
+		return chat1.Inbox{}, nil, OfflineError{}
+	}
+
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      rquery,
 		Pagination: p,
@@ -324,35 +384,11 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 		return chat1.Inbox{}, ib.RateLimit, err
 	}
 
-	res, err := localizer.Localize(ctx, uid, chat1.Inbox{
-		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: ib.Inbox.Full().Conversations,
-		Pagination:      ib.Inbox.Full().Pagination,
-	})
-	if err != nil {
-		return chat1.Inbox{}, ib.RateLimit, err
-	}
-
-	res, err = filterConvLocals(res, rquery, query, tlfInfo)
-	if err != nil {
-		return chat1.Inbox{}, ib.RateLimit, err
-	}
-
 	return chat1.Inbox{
 		Version:         ib.Inbox.Full().Vers,
-		Convs:           res,
 		ConvsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:      ib.Inbox.Full().Pagination,
 	}, ib.RateLimit, nil
-}
-
-func (s *RemoteInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
-	q *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
-	lq, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), q)
-	if err != nil {
-		return chat1.Inbox{}, nil, err
-	}
-	return readRemote(ctx, s.getChatInterface(), uid, lq, p)
 }
 
 func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
@@ -387,10 +423,8 @@ type HybridInboxSource struct {
 	utils.DebugLabeler
 	*baseInboxSource
 
-	syncer           *Syncer
-	getSecretUI      func() libkb.SecretUI
-	getTlfInterface  func() keybase1.TlfInterface
-	getChatInterface func() chat1.RemoteInterface
+	syncer      *Syncer
+	getSecretUI func() libkb.SecretUI
 }
 
 func NewHybridInboxSource(g *libkb.GlobalContext,
@@ -399,18 +433,21 @@ func NewHybridInboxSource(g *libkb.GlobalContext,
 	getSecretUI func() libkb.SecretUI,
 ) *HybridInboxSource {
 	return &HybridInboxSource{
-		Contextified:     libkb.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "HybridInboxSource", false),
-		baseInboxSource:  newBaseInboxSource(g),
-		getSecretUI:      getSecretUI,
-		getTlfInterface:  getTlfInterface,
-		getChatInterface: getChatInterface,
-		syncer:           NewSyncer(g),
+		Contextified:    libkb.NewContextified(g),
+		DebugLabeler:    utils.NewDebugLabeler(g, "HybridInboxSource", false),
+		baseInboxSource: newBaseInboxSource(g, getChatInterface, getTlfInterface),
+		getSecretUI:     getSecretUI,
+		syncer:          NewSyncer(g),
 	}
 }
 
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.GetInboxQuery,
 	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+
+	// Insta fail if we are offline
+	if s.IsOffline() {
+		return chat1.Inbox{}, nil, OfflineError{}
+	}
 
 	// We always want this on for fetches to fill the local inbox, otherwise we never get the
 	// full list for the conversations that come back
@@ -439,81 +476,26 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	}, ib.RateLimit, nil
 }
 
-func (s *HybridInboxSource) ReadNoCache(ctx context.Context, uid gregor1.UID,
-	localizer libkb.ChatLocalizer, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
+	localizer interfaces.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (inbox chat1.Inbox, rl *chat1.RateLimit, err error) {
 
+	defer s.Trace(ctx, func() error { return err }, "Read")()
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
 	}
-	s.Debug(ctx, "ReadNoCache: using localizer: %s", localizer.Name())
-
-	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
-	if err != nil {
-		return chat1.Inbox{}, nil, err
-	}
-
-	inbox, rl, err := s.fetchRemoteInbox(ctx, rquery, p)
-	if err != nil {
-		return inbox, rl, err
-	}
-
-	// Localize
-	inbox.Convs, err = localizer.Localize(ctx, uid, inbox)
-	if err != nil {
-		return inbox, rl, err
-	}
-
-	inbox.Convs, err = filterConvLocals(inbox.Convs, rquery, query, tlfInfo)
-	if err != nil {
-		return inbox, rl, err
-	}
-
-	return inbox, rl, err
-}
-
-func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer libkb.ChatLocalizer,
-	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
-
-	if localizer == nil {
-		localizer = NewBlockingLocalizer(s.G(), s.getTlfInterface)
+	if s.IsOffline() {
+		localizer.SetOffline()
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
+	// Read unverified inbox
 	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
-		return chat1.Inbox{}, nil, err
+		return inbox, rl, err
 	}
-
-	// Try local storage
-	var inbox chat1.Inbox
-	var rl *chat1.RateLimit
-	inboxStore := storage.NewInbox(s.G(), uid, s.getSecretUI)
-
-	vers, convs, pagination, cerr := inboxStore.Read(ctx, rquery, p)
-	if cerr != nil {
-		if _, ok := cerr.(storage.MissError); !ok {
-			s.Debug(ctx, "Read: error fetching inbox: %s", cerr.Error())
-		} else {
-			s.Debug(ctx, "Read: storage miss")
-		}
-
-		// Go to the remote on miss
-		inbox, rl, err = s.fetchRemoteInbox(ctx, rquery, p)
-		if err != nil {
-			return inbox, rl, err
-		}
-
-		// Write out to local storage
-		if cerr := inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, rquery, p); cerr != nil {
-			s.Debug(ctx, "Read: failed to write inbox to local storage: %s", cerr.Error())
-		}
-	} else {
-		s.Debug(ctx, "Read: hit local storage: uid: %s convs: %d", uid, len(convs))
-		inbox = chat1.Inbox{
-			Version:         vers,
-			ConvsUnverified: convs,
-			Pagination:      pagination,
-		}
+	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
+	if err != nil {
+		return inbox, rl, err
 	}
 
 	// Localize
@@ -522,6 +504,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 		return inbox, rl, err
 	}
 
+	// Run post filters
 	inbox.Convs, err = filterConvLocals(inbox.Convs, rquery, query, tlfInfo)
 	if err != nil {
 		return inbox, rl, err
@@ -530,13 +513,59 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, localizer
 	return inbox, rl, nil
 }
 
-func (s *HybridInboxSource) ReadRemote(ctx context.Context, uid gregor1.UID,
-	q *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
-	lq, _, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), q)
-	if err != nil {
-		return chat1.Inbox{}, nil, err
+func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
+	query *chat1.GetInboxQuery, p *chat1.Pagination) (res chat1.Inbox, rl *chat1.RateLimit, err error) {
+	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
+
+	var inbox chat1.Inbox
+	var cerr storage.Error
+	inboxStore := storage.NewInbox(s.G(), uid, s.getSecretUI)
+
+	// Try local storage (if enabled)
+	if useLocalData {
+		var vers chat1.InboxVers
+		var convs []chat1.Conversation
+		var pagination *chat1.Pagination
+		vers, convs, pagination, cerr = inboxStore.Read(ctx, query, p)
+		if cerr == nil {
+			s.Debug(ctx, "ReadUnverified: hit local storage: uid: %s convs: %d", uid, len(convs))
+			res = chat1.Inbox{
+				Version:         vers,
+				ConvsUnverified: convs,
+				Pagination:      pagination,
+			}
+		}
+	} else {
+		cerr = storage.MissError{}
 	}
-	return readRemote(ctx, s.getChatInterface(), uid, lq, p)
+
+	// If we hit an error reading from storage, then read from remote
+	if cerr != nil {
+		if _, ok := cerr.(storage.MissError); !ok {
+			s.Debug(ctx, "ReadUnverified: error fetching inbox: %s", cerr.Error())
+		} else {
+			s.Debug(ctx, "ReadUnverified: storage miss")
+		}
+
+		// Go to the remote on miss
+		inbox, rl, err = s.fetchRemoteInbox(ctx, query, p)
+		if err != nil {
+			return res, rl, err
+		}
+
+		// Write out to local storage
+		if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
+			s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+		}
+
+		res = chat1.Inbox{
+			Version:         inbox.Version,
+			ConvsUnverified: inbox.ConvsUnverified,
+			Pagination:      inbox.Pagination,
+		}
+	}
+
+	return res, rl, err
 }
 
 func (s *HybridInboxSource) handleInboxError(err storage.Error, uid gregor1.UID) error {
@@ -564,7 +593,7 @@ func (s *HybridInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 func (s *HybridInboxSource) getConvLocal(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) (conv *chat1.ConversationLocal, err error) {
 	// Read back affected conversation so we can send it to the frontend
-	ib, _, err := s.Read(ctx, uid, nil, &chat1.GetInboxLocalQuery{
+	ib, _, err := s.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
 		ConvID: &convID,
 	}, nil)
 	if err != nil {
@@ -658,6 +687,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 		conv  chat1.Conversation
 		index int
 	}
+
 	eg, ctx := errgroup.WithContext(ctx)
 	convCh := make(chan job)
 	retCh := make(chan jobRes)
@@ -742,6 +772,13 @@ func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string
 		}
 	}
 	return tlfName
+}
+
+type nullUsernameSource struct {
+}
+
+func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
+	return "", errors.New("null username loader always fails")
 }
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
@@ -877,8 +914,17 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Only do this check if there is a chance the TLF name might be an SBS name.
-	if s.needsCanonicalize(conversationLocal.Info.TlfName) {
+	// verify Conv matches ConversationIDTriple in MessageClientHeader
+	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {
+		errMsg := "server header conversation triple does not match client header triple"
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
+		return conversationLocal
+	}
+
+	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
+	// this if we are online
+	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
 		info, err := LookupTLF(ctx, s.getTlfInterface(), conversationLocal.Info.TLFNameExpanded(), conversationLocal.Info.Visibility)
 		if err != nil {
 			errMsg := err.Error()
@@ -890,23 +936,24 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.Info.TlfName = info.CanonicalName
 	}
 
+	// Pick a source of usernames based on offline status, if we are offline then just use a
+	// type that just returns errors all the time (this will just use TLF name as the ordering)
+	var uloader utils.ReorderUsernameSource
+	if s.offline {
+		uloader = nullUsernameSource{}
+	} else {
+		uloader = s.G().GetUPAKLoader()
+	}
+
 	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
 		ctx,
-		s.G().GetUPAKLoader(),
+		uloader,
 		conversationLocal.Info.TlfName,
 		conversationRemote.Metadata.ActiveList)
 	if err != nil {
 		errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
 			errMsg, conversationRemote, s.isErrPermanent(err), unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
-		return conversationLocal
-	}
-
-	// verify Conv matches ConversationIDTriple in MessageClientHeader
-	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {
-		errMsg := "server header conversation triple does not match client header triple"
-		conversationLocal.Error = chat1.NewConversationErrorLocal(
-			errMsg, conversationRemote, false, unverifiedTLFName, chat1.ConversationErrorType_MISC, nil)
 		return conversationLocal
 	}
 
@@ -998,24 +1045,6 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	return convErrorLocal, nil
 }
 
-func readRemote(ctx context.Context, ri chat1.RemoteInterface, uid gregor1.UID,
-	q *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
-	inbox, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query:      q,
-		Pagination: p,
-	})
-
-	if err != nil {
-		return chat1.Inbox{}, inbox.RateLimit, storage.RemoteError{Msg: err.Error()}
-	}
-
-	return chat1.Inbox{
-		ConvsUnverified: inbox.Inbox.Full().Conversations,
-		Pagination:      inbox.Inbox.Full().Pagination,
-		Version:         inbox.Inbox.Full().Vers,
-	}, inbox.RateLimit, nil
-}
-
 func GetInboxQueryLocalToRemote(ctx context.Context,
 	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery) (
 	rquery *chat1.GetInboxQuery, info *TLFInfo, err error) {
@@ -1049,7 +1078,7 @@ func GetInboxQueryLocalToRemote(ctx context.Context,
 }
 
 func NewInboxSource(g *libkb.GlobalContext, typ string, ri func() chat1.RemoteInterface,
-	si func() libkb.SecretUI, ti func() keybase1.TlfInterface) libkb.InboxSource {
+	si func() libkb.SecretUI, ti func() keybase1.TlfInterface) interfaces.InboxSource {
 	remoteInbox := NewRemoteInboxSource(g, ri, ti)
 	switch typ {
 	case "hybrid":

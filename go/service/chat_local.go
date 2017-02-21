@@ -53,7 +53,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, store *chat
 		DebugLabeler:  utils.NewDebugLabeler(g, "ChatLocalHandler", false),
 		gh:            gh,
 		tlf:           tlf,
-		boxer:         chat.NewBoxer(g, tlf),
+		boxer:         chat.NewBoxer(g, func() keybase1.TlfInterface { return tlf }),
 		store:         store,
 		identNotifier: chat.NewIdentifyNotifier(g),
 	}
@@ -88,7 +88,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
 	localizer := chat.NewNonblockingLocalizer(h.G(), localizeCb,
 		func() keybase1.TlfInterface { return h.tlf })
-	_, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, arg.Query, arg.Pagination)
+	_, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
 	if err != nil {
 		return res, err
 	}
@@ -105,6 +105,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 			Inbox: chat1.GetInboxLocalRes{
 				ConversationsUnverified: lres.InboxRes.ConvsUnverified,
 				Pagination:              lres.InboxRes.Pagination,
+				Offline:                 h.G().InboxSource.IsOffline(),
 				RateLimits:              res.RateLimits,
 			},
 		})
@@ -136,6 +137,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	}
 	wg.Wait()
 
+	res.Offline = h.G().InboxSource.IsOffline()
 	res.IdentifyFailures = breaks
 	return res, nil
 }
@@ -169,7 +171,8 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 
 	// Read inbox from the source
 	localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface { return h.tlf })
-	ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, arg.Query, arg.Pagination)
+	ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query,
+		arg.Pagination)
 	if err != nil {
 		return res, err
 	}
@@ -177,6 +180,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	res = chat1.GetInboxAndUnboxLocalRes{
 		Conversations:    ib.Convs,
 		Pagination:       ib.Pagination,
+		Offline:          h.G().InboxSource.IsOffline(),
 		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 		IdentifyFailures: identBreaks,
 	}
@@ -207,6 +211,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
+		Offline:          h.G().ConvSource.IsOffline(),
 		RateLimits:       utils.AggRateLimitsP(rl),
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -282,7 +287,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		// create succeeded; grabbing the conversation and returning
 		uid := h.G().Env.GetUID()
 
-		ib, rl, err := h.G().InboxSource.ReadNoCache(ctx, uid.ToBytes(), nil,
+		ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, false,
 			&chat1.GetInboxLocalQuery{
 				ConvID: &convID,
 			}, nil)
@@ -443,6 +448,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		res.Conversations = gires.Conversations
 	}
 
+	res.Offline = gires.Offline
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 
 	return res, nil
@@ -511,6 +517,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	return chat1.GetConversationForCLILocalRes{
 		Conversation: convLocal,
 		Messages:     messages,
+		Offline:      tv.Offline,
 		RateLimits:   utils.AggRateLimits(rlimits),
 	}, nil
 }
@@ -530,7 +537,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	// if arg.ConversationID is a finalized TLF, the TLF name in boxed.Msgs
 	// could need expansion.  Look up the conversation metadata.
 	uid := h.G().Env.GetUID()
-	conv, rl, err := utils.GetRemoteConv(ctx, h.G(), uid.ToBytes(), arg.ConversationID)
+	conv, rl, err := utils.GetUnverifiedConv(ctx, h.G(), uid.ToBytes(), arg.ConversationID, true)
 	if err != nil {
 		return deflt, err
 	}
@@ -554,6 +561,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 
 	return chat1.GetMessagesLocalRes{
 		Messages:         messages,
+		Offline:          h.G().ConvSource.IsOffline(),
 		RateLimits:       utils.AggRateLimits(rlimits),
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -1477,6 +1485,7 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 	}
 	res.RateLimits = append(res.RateLimits, inbox.RateLimits...)
 	res.IdentifyFailures = inbox.IdentifyFailures
+	res.Offline = h.G().InboxSource.IsOffline()
 
 	// If we have inbox hits, return those
 	if len(inbox.Conversations) > 0 {
@@ -1485,6 +1494,11 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 		res.Conversations = inbox.Conversations
 	} else if arg.Visibility == chat1.TLFVisibility_PUBLIC {
 		h.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
+
+		// Check for offline and return an error
+		if res.Offline {
+			return res, chat.OfflineError{}
+		}
 
 		// If we miss the inbox, and we are looking for a public TLF, let's try and find
 		// any conversation that matches

@@ -1365,6 +1365,7 @@ type GetThreadQuery struct {
 
 type GetThreadLocalRes struct {
 	Thread           ThreadView                    `codec:"thread" json:"thread"`
+	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
@@ -1372,6 +1373,7 @@ type GetThreadLocalRes struct {
 type GetInboxLocalRes struct {
 	ConversationsUnverified []Conversation                `codec:"conversationsUnverified" json:"conversationsUnverified"`
 	Pagination              *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline                 bool                          `codec:"offline" json:"offline"`
 	RateLimits              []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures        []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
@@ -1394,13 +1396,15 @@ type GetInboxLocalQuery struct {
 type GetInboxAndUnboxLocalRes struct {
 	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
 	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type GetInboxNonblockLocalRes struct {
-	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type PostLocalRes struct {
@@ -1439,6 +1443,7 @@ type GetInboxSummaryForCLILocalQuery struct {
 
 type GetInboxSummaryForCLILocalRes struct {
 	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
+	Offline       bool                `codec:"offline" json:"offline"`
 	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
 }
 
@@ -1453,11 +1458,13 @@ type GetConversationForCLILocalQuery struct {
 type GetConversationForCLILocalRes struct {
 	Conversation ConversationLocal `codec:"conversation" json:"conversation"`
 	Messages     []MessageUnboxed  `codec:"messages" json:"messages"`
+	Offline      bool              `codec:"offline" json:"offline"`
 	RateLimits   []RateLimit       `codec:"rateLimits" json:"rateLimits"`
 }
 
 type GetMessagesLocalRes struct {
 	Messages         []MessageUnboxed              `codec:"messages" json:"messages"`
+	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
@@ -1479,6 +1486,7 @@ type DownloadAttachmentLocalRes struct {
 
 type FindConversationsLocalRes struct {
 	Conversations    []ConversationLocal           `codec:"conversations" json:"conversations"`
+	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
