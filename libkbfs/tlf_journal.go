@@ -852,6 +852,9 @@ func (j *tlfJournal) flushBlockEntries(
 		return 0, maxMDRevToFlush, nil
 	}
 
+	j.log.CDebugf(ctx, "Flushing %d blocks, up to rev %d",
+		len(entries.puts.blockStates), maxMDRevToFlush)
+
 	// TODO: fill this in for logging/error purposes.
 	var tlfName CanonicalTlfName
 	err = flushBlockEntries(ctx, j.log, j.delegateBlockServer,

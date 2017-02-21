@@ -2657,12 +2657,43 @@ func (fbo *folderBranchOps) createEntryLocked(
 	return node, de, nil
 }
 
+func (fbo *folderBranchOps) maybeWaitForSquash(
+	ctx context.Context, bid BranchID) {
+	if bid != PendingLocalSquashBranchID {
+		return
+	}
+
+	fbo.log.CDebugf(ctx, "Blocking until squash finishes")
+	// Limit the time we wait to just under the ctx deadline if there
+	// is one, or 10s if there isn't.
+	deadline, ok := ctx.Deadline()
+	if ok {
+		deadline = deadline.Add(-1 * time.Second)
+	} else {
+		// Can't use config.Clock() since context doesn't respect it.
+		deadline = time.Now().Add(10 * time.Second)
+	}
+	ctx, cancel := context.WithDeadline(ctx, deadline)
+	defer cancel()
+	// Wait for CR to finish.  Note that if the user is issuing
+	// concurrent writes, the current CR could be canceled, and when
+	// the call belows returns, the branch still won't be squashed.
+	// That's ok, this is just an optimization.
+	err := fbo.cr.Wait(ctx)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Error while waiting for CR: %+v", err)
+	}
+}
+
 func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
 	lState *lockState, fn func(lState *lockState) error) error {
 	doUnlock := false
 	defer func() {
 		if doUnlock {
+			bid := fbo.bid
 			fbo.mdWriterLock.Unlock(lState)
+			// Don't let a pending squash get too big.
+			fbo.maybeWaitForSquash(ctx, bid)
 		}
 	}()
 
