@@ -8,8 +8,28 @@ describe('Markdown parser', () => {
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses a single delimiter correctly', () => {
+    const ast = parser.parse('.')
+    expect(ast).toMatchSnapshot()
+  })
+
   it('parses a line with just whitespace correctly', () => {
     const ast = parser.parse('    ')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('eats multiple empty lines at start', () => {
+    const ast = parser.parse('    \n\n\n\nstart')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('eats multiple empty lines at end', () => {
+    const ast = parser.parse('end\n\n\n\n   ')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('preserves multiple empty lines', () => {
+    const ast = parser.parse('be\n\n   \n\ntween')
     expect(ast).toMatchSnapshot()
   })
 
@@ -20,6 +40,11 @@ describe('Markdown parser', () => {
 
   it('parses invalid bold correctly', () => {
     const ast = parser.parse('*not bold**')
+    expect(ast).toMatchSnapshot()
+  })
+
+  it('parses formatting adjacent to punctuation', () => {
+    const ast = parser.parse('thisis(*bold*) and(_italic_) and,~striked~! (*woot*) another.*test*.case')
     expect(ast).toMatchSnapshot()
   })
 
@@ -87,6 +112,13 @@ this is a code block with two newline above\`\`\`
     expect(ast).toMatchSnapshot()
   })
 
+  it('parses incomplete code blocks correctly', () => {
+    for (let i = 1; i <= 7; i++) {
+      const ast = parser.parse('`'.repeat(i))
+      expect(ast).toMatchSnapshot()
+    }
+  })
+
   it('parses urls correctly', () => {
     const ast = parser.parse(`
   Ignore:
@@ -99,6 +131,7 @@ this is a code block with two newline above\`\`\`
     http://keybase.io
     *http://keybase.io*
     \`http://keybase.io\`
+    (https://keybase.io)
     https://keybase.io
     HTTP://cnn.com
     http://twitter.com

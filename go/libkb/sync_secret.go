@@ -132,6 +132,7 @@ func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 		Args:        hargs,
 		NeedSession: true,
 		SessionR:    sr,
+		RetryCount:  5, // It's pretty bad to fail this, so retry.
 	})
 	ss.G().Log.Debug("| syncFromServer -> %s", ErrToOk(err))
 	if err != nil {
@@ -214,11 +215,11 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 
 func (ss *SecretSyncer) FindDevice(id keybase1.DeviceID) (DeviceKey, error) {
 	if ss.keys == nil {
-		return DeviceKey{}, fmt.Errorf("SecretSyncer: no device found for ID = %s", id)
+		return DeviceKey{}, DeviceNotFoundError{"SecretSyncer", id, false}
 	}
 	dev, ok := ss.keys.Devices[id]
 	if !ok {
-		return DeviceKey{}, fmt.Errorf("SecretSyncer: no device found for ID = %s", id)
+		return DeviceKey{}, DeviceNotFoundError{"SecretSyncer", id, true}
 	}
 	return dev, nil
 }

@@ -6,7 +6,7 @@ import {Set, List, Map} from 'immutable'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord} = Constants
+const {StateRecord, ConversationStateRecord, MetaDataRecord, RekeyInfoRecord, pendingConversationIDKey} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -104,7 +104,7 @@ function sortInbox (inbox: List<InboxState>): List<InboxState> {
 function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return initialState
+      return new StateRecord()
     case 'chat:removeOutboxMessage': {
       const {conversationIDKey, outboxID} = action.payload
       // $FlowIssue
@@ -153,9 +153,7 @@ function reducer (state: State = initialState, action: Actions) {
             .set('isLoaded', true)
         })
 
-      return state
-        .set('conversationStates', newConversationStates)
-        .set('inbox', sortInbox(state.get('inbox')))
+      return state.set('conversationStates', newConversationStates)
     }
     case 'chat:appendMessages': {
       const appendAction: AppendMessages = action
@@ -245,12 +243,13 @@ function reducer (state: State = initialState, action: Actions) {
     }
     case 'chat:markSeenMessage': {
       const {messageID, conversationIDKey} = action.payload
+      const messageKey = Constants.messageKey('messageID', messageID)
       // $FlowIssue
       return state.update('conversationStates', conversationStates => updateConversation(
         conversationStates,
         conversationIDKey,
         // $FlowIssue
-        conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageID))
+        conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageKey))
       ))
     }
     case 'chat:createPendingFailure': {
@@ -336,8 +335,11 @@ function reducer (state: State = initialState, action: Actions) {
         conversation => conversation.set('firstNewMessageID', null))
       state = state.set('conversationStates', newConversationStates)
       return state
-    case 'chat:selectConversation':
-      return state
+    case 'chat:selectConversation': {
+      //  ensure selected converations are visible if they exist
+      const {conversationIDKey} = action.payload
+      return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
+    }
     case 'chat:loadingMessages': {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
@@ -365,6 +367,7 @@ function reducer (state: State = initialState, action: Actions) {
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
         return existingRow || newRow
       }))
+
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
     case 'chat:updateInboxComplete':
       return state.set('inbox', state.get('inbox').filter(i => i.get('validated')))
@@ -400,8 +403,36 @@ function reducer (state: State = initialState, action: Actions) {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').set(conversationIDKey, new RekeyInfoRecord({youCanRekey: true})))
     }
+    case 'chat:addPendingConversation': {
+      const {participants} = action.payload
+      const sorted = participants.sort()
+      const conversationIDKey = pendingConversationIDKey(sorted.join(','))
+      return state.set('pendingConversations', state.get('pendingConversations').set(conversationIDKey, List(sorted)))
+    }
+    case 'chat:pendingToRealConversation': {
+      const {oldKey} = action.payload
+      const oldPending = state.get('pendingConversations')
+      if (oldPending.get(oldKey)) {
+        return state.set('pendingConversations', oldPending.remove(oldKey))
+      } else {
+        console.warn("couldn't find pending to upgrade", oldKey)
+      }
+      break
+    }
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
+    case 'chat:updateFinalizedState': {
+      // $FlowIssue doesn't recognize updates
+      return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))
+    }
+    case 'chat:updateSupersedesState': {
+      // $FlowIssue doesn't recognize updates
+      return state.update('supersedesState', supersedesState => supersedesState.merge(action.payload.supersedesState))
+    }
+    case 'chat:updateSupersededByState': {
+      // $FlowIssue doesn't recognize updates
+      return state.update('supersededByState', supersededByState => supersededByState.merge(action.payload.supersededByState))
+    }
   }
 
   return state

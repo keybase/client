@@ -1,8 +1,10 @@
 // @flow
+import * as Immutable from 'immutable'
 import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
 import List from './list.desktop'
+import OldProfileResetNotice from './notices/old-profile-reset-notice'
 import NoConversation from './no-conversation.desktop'
 import ParticipantRekey from './participant-rekey.desktop'
 import React, {Component} from 'react'
@@ -11,10 +13,12 @@ import YouRekey from './you-rekey.desktop.js'
 import {Box, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
-import {nothingSelected} from '../../constants/chat'
+import * as Constants from '../../constants/chat'
 import {withHandlers, branch, renderComponent, compose} from 'recompose'
 
 import type {Props} from '.'
+
+const {participantFilter, usernamesToUserListItem} = Constants
 
 type State = {
   showDropOverlay: boolean,
@@ -97,6 +101,35 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
     }
   }
 
+  _decorateSupersedes (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
+    if (this.props.supersedes && !this.props.moreToLoad) {
+      const {conversationIDKey, finalizeInfo: {resetUser}} = this.props.supersedes
+      const supersedesMessage: Constants.SupersedesMessage = {
+        type: 'Supersedes',
+        supersedes: conversationIDKey,
+        username: resetUser,
+        timestamp: Date.now(),
+        key: `supersedes-${conversationIDKey}-${resetUser}`,
+      }
+      return messages.unshift(supersedesMessage)
+    }
+
+    return messages
+  }
+
+  _decorateMessages (messages: Immutable.List<Constants.Message>): Immutable.List<Constants.Message> {
+    return this._decorateSupersedes(messages)
+  }
+
+  _openNewerConversation = () => {
+    if (this.props.supersededBy) {
+      this.props.onOpenConversation(this.props.supersededBy.conversationIDKey)
+    } else {
+      // Open new conversation
+      this.props.restartConversation()
+    }
+  }
+
   render () {
     const {
     // $FlowIssue with variants
@@ -118,6 +151,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       onLoadAttachment,
       onLoadMoreMessages,
       onMuteConversation,
+      onOpenConversation,
       onOpenFolder,
       onOpenInFileUI,
       onOpenInPopup,
@@ -132,27 +166,27 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       sidePanelOpen,
       validated,
       you,
+      finalizeInfo,
     } = this.props
 
     const banner = bannerMessage && <Banner {...bannerMessage} />
-
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
         <Icon type='icon-file-dropping-48' />
       </Box>
     )
+
+    const decoratedMesssages = this._decorateMessages(messages)
+    const users = usernamesToUserListItem(participantFilter(participants, you).toArray(), you, metaDataMap, followingMap)
     return (
       <Box className='conversation' style={containerStyle} onDragEnter={this._onDragEnter} onPaste={this._onPaste}>
         <Header
-          onOpenFolder={onOpenFolder}
-          onToggleSidePanel={onToggleSidePanel}
-          participants={participants}
           muted={muted}
-          sidePanelOpen={sidePanelOpen}
-          you={you}
-          metaDataMap={metaDataMap}
-          followingMap={followingMap}
+          onOpenFolder={onOpenFolder}
           onShowProfile={onShowProfile}
+          onToggleSidePanel={onToggleSidePanel}
+          sidePanelOpen={sidePanelOpen}
+          users={users}
         />
         <List
           you={you}
@@ -160,7 +194,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           followingMap={followingMap}
           firstNewMessageID={firstNewMessageID}
           listScrollDownState={listScrollDownState}
-          messages={messages}
+          messages={decoratedMesssages}
           moreToLoad={moreToLoad}
           muted={muted}
           onDeleteMessage={onDeleteMessage}
@@ -168,26 +202,33 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           onFocusInput={this._onFocusInput}
           onLoadAttachment={onLoadAttachment}
           onLoadMoreMessages={onLoadMoreMessages}
+          onOpenConversation={onOpenConversation}
           onOpenInFileUI={onOpenInFileUI}
           onOpenInPopup={onOpenInPopup}
           onRetryAttachment={onRetryAttachment}
           onRetryMessage={onRetryMessage}
+          optionsFn={() => console.log('todo - remove this')}
           ref={onListRef}
           selectedConversation={selectedConversation}
           sidePanelOpen={sidePanelOpen}
           validated={validated}
         />
         {banner}
-        <Input
-          ref={this._onInputRef}
-          defaultText={this.props.inputText}
-          emojiPickerOpen={emojiPickerOpen}
-          isLoading={isLoading}
-          onAttach={onAttach}
-          onEditLastMessage={onEditLastMessage}
-          onPostMessage={onPostMessage}
-          selectedConversation={selectedConversation}
-        />
+        {finalizeInfo
+          ? <OldProfileResetNotice
+            onOpenNewerConversation={this._openNewerConversation}
+            username={finalizeInfo.resetUser}
+          />
+          : <Input
+            ref={this._onInputRef}
+            defaultText={this.props.inputText}
+            emojiPickerOpen={emojiPickerOpen}
+            isLoading={isLoading}
+            onAttach={onAttach}
+            onEditLastMessage={onEditLastMessage}
+            onPostMessage={onPostMessage}
+            selectedConversation={selectedConversation}
+          /> }
         {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
           <SidePanel
             you={you}
@@ -225,7 +266,7 @@ const dropOverlayStyle = {
 }
 
 export default branch(
-  (props: Props) => props.selectedConversation === nothingSelected,
+  (props: Props) => props.selectedConversation === Constants.nothingSelected,
   renderComponent(NoConversation),
   branch(
     (props: Props) => !!props.rekeyInfo,

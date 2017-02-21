@@ -2,11 +2,10 @@
 import React from 'react'
 import {Box, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {participantFilter, usernamesToUserListItem} from '../../constants/chat'
 
 import type {Props} from './header'
 
-const Header = ({participants, onOpenFolder, onToggleSidePanel, sidePanelOpen, you, metaDataMap, followingMap, onShowProfile, muted}: Props) => (
+const Header = ({muted, onOpenFolder, onShowProfile, onToggleSidePanel, sidePanelOpen, users}: Props) => (
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
       <Usernames
@@ -14,23 +13,32 @@ const Header = ({participants, onOpenFolder, onToggleSidePanel, sidePanelOpen, y
         inline={false}
         commaColor={globalColors.black_40}
         type='BodyBig'
-        users={usernamesToUserListItem(participantFilter(participants, you).toArray(), you, metaDataMap, followingMap)}
-        containerStyle={{textAlign: 'center', justifyContent: 'center'}}
+        users={users}
+        containerStyle={styleCenter}
         onUsernameClicked={onShowProfile} />
-      {muted && <Icon type='iconfont-shh' style={{marginLeft: globalMargins.tiny}} />}
+      {muted && <Icon type='iconfont-shh' style={styleLeft} />}
     </Box>
-    <Icon type='iconfont-folder-private' style={{marginLeft: globalMargins.tiny}} onClick={onOpenFolder} />
-    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={{marginLeft: globalMargins.tiny}} onClick={onToggleSidePanel} />
+    <Icon type='iconfont-folder-private' style={styleLeft} onClick={onOpenFolder} />
+    <Icon type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'} style={styleLeft} onClick={onToggleSidePanel} />
   </Box>
 )
 
 const containerStyle = {
   ...globalStyles.flexBoxRow,
-  minHeight: 32,
+  alignItems: 'center',
   borderBottom: `solid 1px ${globalColors.black_05}`,
   justifyContent: 'center',
-  alignItems: 'center',
+  minHeight: 32,
   padding: globalMargins.tiny,
+}
+
+const styleCenter = {
+  justifyContent: 'center',
+  textAlign: 'center',
+}
+
+const styleLeft = {
+  marginLeft: globalMargins.tiny,
 }
 
 export default Header

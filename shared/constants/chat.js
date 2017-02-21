@@ -3,10 +3,11 @@ import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
 
+import {clamp} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {AssetMetadata, ChatActivity, ConversationInfoLocal, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
 
 export type MessageType = 'Text'
@@ -16,7 +17,7 @@ export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
 export type AttachmentMessageState = MessageState | 'placeholder' | 'downloading-preview' | 'downloading' | 'uploading' | 'downloaded'
-export type AttachmentType = 'Image' | 'Other'
+export type AttachmentType = 'Image' | 'Video' | 'Other'
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
@@ -26,7 +27,7 @@ export type OutboxIDKey = string
 
 export type MessageID = RPCMessageID
 
-export type ClientMessage = TimestampMessage
+export type ClientMessage = TimestampMessage | SupersedesMessage
 export type ServerMessage = TextMessage | ErrorMessage | AttachmentMessage | DeletedMessage | UnhandledMessage | EditingMessage | UpdatingAttachment | InvisibleErrorMessage
 
 export type Message = ClientMessage | ServerMessage
@@ -44,7 +45,7 @@ export type TextMessage = {
   messageState: MessageState,
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
-  key: any,
+  key: MessageKey,
   editedCount: number, // increase as we edit it
 }
 
@@ -54,7 +55,7 @@ export type ErrorMessage = {
   timestamp?: number,
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
-  key: any,
+  key: MessageKey,
 }
 
 export type InvisibleErrorMessage = {
@@ -62,7 +63,7 @@ export type InvisibleErrorMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
-  key: any,
+  key: MessageKey,
   data: any,
 }
 
@@ -71,7 +72,7 @@ export type UnhandledMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
-  key: any,
+  key: MessageKey,
 }
 
 export type AttachmentSize = {
@@ -97,35 +98,45 @@ export type AttachmentMessage = {
   messageID?: MessageID,
   filename: ?string,
   title: ?string,
+  attachmentDurationMs: ?number,
   previewType: ?AttachmentType,
   previewPath: ?string,
   previewSize: ?AttachmentSize,
+  previewDurationMs: ?number,
   hdPreviewPath: ?string,
   downloadedPath: ?string,
   outboxID?: OutboxIDKey,
   progress?: number, /* between 0 - 1 */
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
-  key: any,
+  key: MessageKey,
 }
 
 export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
+  key: MessageKey,
+}
+
+export type SupersedesMessage = {
+  type: 'Supersedes',
+  username: string,
+  timestamp: number,
+  supersedes: ConversationIDKey,
   key: any,
 }
 
 export type DeletedMessage = {
   type: 'Deleted',
   timestamp: number,
-  key: any,
+  key: MessageKey,
   messageID: MessageID,
   deletedIDs: Array<MessageID>,
 }
 
 export type EditingMessage = {
   type: 'Edit',
-  key: any,
+  key: MessageKey,
   message: HiddenString,
   messageID: MessageID,
   outboxID?: ?OutboxIDKey,
@@ -135,7 +146,7 @@ export type EditingMessage = {
 
 export type UpdatingAttachment = {
   type: 'UpdateAttachment',
-  key: any,
+  key: MessageKey,
   messageID: MessageID,
   targetMessageID: MessageID,
   timestamp: number,
@@ -188,7 +199,6 @@ export const ConversationBadgeStateRecord = Record({
 export const InboxStateRecord = Record({
   info: null,
   isEmpty: false,
-  youCreated: false,
   participants: List(),
   conversationIDKey: '',
   muted: false,
@@ -201,7 +211,6 @@ export const InboxStateRecord = Record({
 export type InboxState = Record<{
   info: ConversationInfoLocal,
   isEmpty: boolean,
-  youCreated: boolean, // true if you made it this session
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
@@ -210,6 +219,18 @@ export type InboxState = Record<{
   snippetKey: any,
   validated: boolean,
 }>
+
+export type SupersedeInfo = {
+  conversationIDKey: ConversationID,
+  finalizeInfo: ConversationFinalizeInfo,
+}
+
+export type FinalizeInfo = ConversationFinalizeInfo
+
+export type FinalizedState = Map<ConversationIDKey, ConversationFinalizeInfo>
+
+export type SupersedesState = Map<ConversationIDKey, SupersedeInfo>
+export type SupersededByState = Map<ConversationIDKey, SupersedeInfo>
 
 export type MetaData = Record<{
   fullname: string,
@@ -223,13 +244,15 @@ export const MetaDataRecord = Record({
   brokenTracker: false,
 })
 
+export type Participants = List<string>
+
 export const RekeyInfoRecord = Record({
   rekeyParticipants: List(),
   youCanRekey: false,
 })
 
 export type RekeyInfo = Record<{
-  rekeyParticipants: List<string>,
+  rekeyParticipants: Participants,
   youCanRekey: boolean,
 }>
 
@@ -238,19 +261,29 @@ export const StateRecord = Record({
   conversationStates: Map(),
   focused: false,
   metaData: Map(),
+  finalizedState: Map(),
+  supersedesState: Map(),
+  supersededByState: Map(),
   pendingFailures: Set(),
   conversationUnreadCounts: Map(),
   rekeyInfos: Map(),
+  alwaysShow: Set(),
+  pendingConversations: Map(),
 })
 
 export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
+  finalizedState: FinalizedState,
+  supersedesState: SupersedesState,
+  supersededByState: SupersededByState,
   focused: boolean,
   metaData: MetaDataMap,
   pendingFailures: Set<OutboxIDKey>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
+  alwaysShow: Set<ConversationIDKey>,
+  pendingConversations: Map<ConversationIDKey, Participants>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -269,9 +302,11 @@ export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: M
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDKey: ?ConversationIDKey}>
+export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
+export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
+export type PendingToRealConversation = NoErrorTypedAction<'chat:pendingToRealConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext', {conversationIDKey: ConversationIDKey, paginationNext: Buffer}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
@@ -285,6 +320,8 @@ export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conver
 export type RemoveOutboxMessage = NoErrorTypedAction<'chat:removeOutboxMessage', {conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey}>
 export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type RetryMessage = NoErrorTypedAction<'chat:retryMessage', {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}>
+export type OpenConversation = NoErrorTypedAction<'chat:openConversation', {conversationIDKey: ConversationIDKey}>
+export type GetInboxAndUnbox = NoErrorTypedAction<'chat:getInboxAndUnbox', {conversationIDKey: ConversationIDKey}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ?ConversationIDKey, fromUser: boolean}>
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
@@ -293,6 +330,10 @@ export type UpdateConversationUnreadCounts = NoErrorTypedAction<'chat:updateConv
 export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInboxRekeyOthers = NoErrorTypedAction<'chat:updateInboxRekeyOthers', {conversationIDKey: ConversationIDKey, rekeyers: Array<string>}>
+export type UpdateFinalizedState = NoErrorTypedAction<'chat:updateFinalizedState', {finalizedState: FinalizedState}>
+export type UpdateSupersedesState = NoErrorTypedAction<'chat:updateSupersedesState', {supersedesState: SupersedesState}>
+export type UpdateSupersededByState = NoErrorTypedAction<'chat:updateSupersededByState', {supersededByState: SupersededByState}>
+
 export type UpdateInboxRekeySelf = NoErrorTypedAction<'chat:updateInboxRekeySelf', {conversationIDKey: ConversationIDKey}>
 export type UpdateLatestMessage = NoErrorTypedAction<'chat:updateLatestMessage', {conversationIDKey: ConversationIDKey}>
 export type UpdateMessage = NoErrorTypedAction<'chat:updateMessage', {conversationIDKey: ConversationIDKey, message: $Shape<AttachmentMessage> | $Shape<TextMessage>, messageID: MessageID}>
@@ -343,7 +384,8 @@ export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   messageID: MessageID,
 }>
 
-export type Actions = AppendMessages
+export type Actions = AddPendingConversation
+  | AppendMessages
   | DeleteMessage
   | EditMessage
   | LoadInbox
@@ -351,6 +393,7 @@ export type Actions = AppendMessages
   | LoadedInbox
   | NewChat
   | OpenFolder
+  | PendingToRealConversation
   | PrependMessages
   | SelectConversation
   | StartConversation
@@ -364,6 +407,9 @@ export type Actions = AppendMessages
   | UpdateTempMessage
   | MarkSeenMessage
   | AttachmentLoaded
+  | UpdateFinalizedState
+  | UpdateSupersedesState
+  | UpdateSupersededByState
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
@@ -438,10 +484,16 @@ function getBrokenUsers (participants: Array<string>, you: string, metaDataMap: 
 }
 
 function clampAttachmentPreviewSize ({width, height}: AttachmentSize) {
-  const maxSize = Math.max(width, height)
-  return {
-    width: maxAttachmentPreviewSize * (width / maxSize),
-    height: maxAttachmentPreviewSize * (height / maxSize),
+  if (height > width) {
+    return {
+      height: clamp(height, maxAttachmentPreviewSize),
+      width: clamp(height, maxAttachmentPreviewSize) * width / height,
+    }
+  } else {
+    return {
+      height: clamp(width, maxAttachmentPreviewSize) * height / width,
+      width: clamp(width, maxAttachmentPreviewSize),
+    }
   }
 }
 
@@ -453,16 +505,62 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
+function pendingConversationIDKey (tlfName: string) {
+  return `PendingConversation:${tlfName}`
+}
+
+function isPendingConversationIDKey (conversationIDKey: string) {
+  return conversationIDKey.startsWith('PendingConversation:')
+}
+
+function pendingConversationIDKeyToTlfName (conversationIDKey: string) {
+  if (isPendingConversationIDKey(conversationIDKey)) {
+    return conversationIDKey.substring('PendingConversation:'.length)
+  }
+
+  return null
+}
+
+function convSupersedesInfo (conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
+  return chat.get('supersedesState').get(conversationID)
+}
+
+function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
+  return chat.get('supersededByState').get(conversationID)
+}
+
+function newestConversationIDKey (conversationIDKey: ConversationIDKey, chat: State): ConversationIDKey {
+  const supersededBy = chat.get('supersededByState').get(conversationIDKey)
+  if (!supersededBy) {
+    return conversationIDKey
+  }
+
+  return newestConversationIDKey(supersededBy.conversationIDKey, chat)
+}
+
+type MessageKey = string
+type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
+function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
+  return `${kind}:${value}`
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
+  convSupersedesInfo,
+  convSupersededByInfo,
   keyToConversationID,
   keyToOutboxID,
   makeSnippet,
+  messageKey,
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
+  newestConversationIDKey,
   parseMetadataPreviewSize,
+  pendingConversationIDKey,
+  isPendingConversationIDKey,
+  pendingConversationIDKeyToTlfName,
 }

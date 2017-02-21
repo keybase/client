@@ -1,0 +1,19 @@
+// @flow
+import {Component} from 'react'
+import type {AttachmentMessage, FollowingMap, MetaDataMap, OutboxIDKey, TextMessage, ServerMessage} from '../../../constants/chat'
+
+export type Props = {
+  includeHeader: boolean,
+  isFirstNewMessage: boolean,
+  onRetry: (outboxID: OutboxIDKey) => void,
+  onAction: (message: ServerMessage, event: any) => void,
+  style: Object,
+  isSelected: boolean,
+  children?: React$Element<*>,
+  message: TextMessage | AttachmentMessage,
+  you: string,
+  followingMap: FollowingMap,
+  metaDataMap: MetaDataMap,
+}
+
+export default class MessageWrapper extends Component<void, Props, void> {}

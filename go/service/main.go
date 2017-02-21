@@ -249,11 +249,12 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 }
 
 func (d *Service) createMessageDeliverer() {
+	tlf := newTlfHandler(nil, d.G())
 	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
-	tlf := newTlfHandler(nil, d.G())
+	ti := func() keybase1.TlfInterface { return tlf }
 
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), d.attachmentstore, ri, si)
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), ti), d.attachmentstore, ri, si)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 }
 
@@ -265,11 +266,12 @@ func (d *Service) startMessageDeliverer() {
 }
 
 func (d *Service) createChatSources() {
+	tlf := newTlfHandler(nil, d.G())
 	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
-	tlf := newTlfHandler(nil, d.G())
-	boxer := chat.NewBoxer(d.G(), tlf)
+	ti := func() keybase1.TlfInterface { return tlf }
 
+	boxer := chat.NewBoxer(d.G(), ti)
 	d.G().InboxSource = chat.NewInboxSource(d.G(), d.G().Env.GetInboxSourceType(),
 		ri, si, func() keybase1.TlfInterface { return tlf })
 

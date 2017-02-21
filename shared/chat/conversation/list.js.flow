@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaDataMap, FollowingMap} from '../../constants/chat'
+import type {ConversationIDKey, AttachmentMessage, Message, MessageID, MetaDataMap, SupersedeInfo, FollowingMap} from '../../constants/chat'
 
 export type Props = {
   firstNewMessageID: ?MessageID,
@@ -18,12 +18,16 @@ export type Props = {
   onFocusInput: () => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
+  onOpenConversation: (conversationIDKey: ConversationIDKey) => void,
   onOpenInFileUI: (filename: string) => void,
   onOpenInPopup: (message: AttachmentMessage) => void,
   onRetryAttachment: (message: AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
   selectedConversation: ?ConversationIDKey,
   validated: boolean,
+  sidePanelOpen: boolean,
+  // TODO: better types will remove these
+  optionsFn: any,
 }
 
 export default class ConversationList extends Component<void, Props, void> {

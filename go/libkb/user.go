@@ -175,7 +175,7 @@ func (u *User) GetActivePGPKIDs(sibkey bool) (ret []keybase1.KID) {
 }
 
 func (u *User) GetDeviceSibkey() (GenericKey, error) {
-	did := u.G().Env.GetDeviceID()
+	did := u.G().Env.GetDeviceIDForUsername(u.GetNormalizedName())
 	if did.IsNil() {
 		return nil, NotProvisionedError{}
 	}
@@ -192,7 +192,7 @@ func (u *User) GetDeviceSubkey() (subkey GenericKey, err error) {
 		err = KeyFamilyError{"no key family available"}
 		return
 	}
-	did := u.G().Env.GetDeviceID()
+	did := u.G().Env.GetDeviceIDForUsername(u.GetNormalizedName())
 	if did.IsNil() {
 		err = NotProvisionedError{}
 		return
@@ -493,7 +493,7 @@ func TmpTrackChainLinkFor(me keybase1.UID, them keybase1.UID, g *GlobalContext) 
 	return tcl, err
 }
 
-func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (u *User) TrackChainLinkFor(username NormalizedUsername, uid keybase1.UID) (*TrackChainLink, error) {
 	u.G().Log.Debug("+ TrackChainLinkFor for %s", uid)
 	defer u.G().Log.Debug("- TrackChainLinkFor for %s", uid)
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
@@ -532,7 +532,7 @@ func TrackChainLinkFor(me keybase1.UID, them keybase1.UID, remote *TrackChainLin
 	return local, nil
 }
 
-func (u *User) remoteTrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
+func (u *User) remoteTrackChainLinkFor(username NormalizedUsername, uid keybase1.UID) (*TrackChainLink, error) {
 	if u.IDTable() == nil {
 		return nil, nil
 	}
@@ -628,7 +628,7 @@ func (u *User) HasDeviceInCurrentInstall(did keybase1.DeviceID) bool {
 }
 
 func (u *User) HasCurrentDeviceInCurrentInstall() bool {
-	did := u.G().Env.GetDeviceID()
+	did := u.G().Env.GetDeviceIDForUsername(u.GetNormalizedName())
 	if did.IsNil() {
 		return false
 	}

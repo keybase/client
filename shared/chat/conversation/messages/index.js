@@ -1,33 +1,14 @@
 // @flow
-import * as ChatConstants from '../../../constants/chat'
 import AttachmentMessageRender from './attachment'
 import MessageText from './text'
 import React from 'react'
 import Timestamp from './timestamp'
+import ProfileResetNotice from '../notices/profile-reset-notice'
 import {Box, Text} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
 import {globalStyles, globalColors} from '../../../styles'
 
-import type {Message, AttachmentMessage, ServerMessage, MetaDataMap, FollowingMap, OutboxIDKey} from '../../../constants/chat'
-
-type Options = {
-  message: Message,
-  includeHeader: boolean,
-  key: string,
-  isFirstNewMessage: boolean,
-  style: Object,
-  isScrolling: boolean,
-  onAction: (message: ServerMessage, event: any) => void,
-  isSelected: boolean,
-  onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,
-  onOpenInFileUI: (path: string) => void,
-  onOpenInPopup: (message: AttachmentMessage) => void,
-  onRetry: (outboxID: OutboxIDKey) => void,
-  onRetryAttachment: () => void,
-  you: string,
-  metaDataMap: MetaDataMap,
-  followingMap: FollowingMap,
-}
+import type {Options} from './index'
 
 const factory = (options: Options) => {
   const {
@@ -39,6 +20,7 @@ const factory = (options: Options) => {
     onAction,
     isSelected,
     onLoadAttachment,
+    onOpenConversation,
     onOpenInFileUI,
     onOpenInPopup,
     onRetry,
@@ -66,6 +48,13 @@ const factory = (options: Options) => {
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
         onAction={onAction}
+        />
+    case 'Supersedes':
+      return <ProfileResetNotice
+        onOpenOlderConversation={() => onOpenConversation(message.supersedes)}
+        username={message.username}
+        style={style}
+        key={`supersedes:${message.supersedes}`}
         />
     case 'Timestamp':
       return <Timestamp

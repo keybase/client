@@ -36,19 +36,28 @@
 }
 
 start
- = children:(QuoteBlock / Line / BlankLine)* { return {type: 'text', children: flatten(children)} }
-
-BlankLine
- = WhiteSpace* LineTerminatorSequence { return text() }
+ = BlankLine* WhiteSpace* children:((Line LineTerminatorSequence / NonEndBlankLine)* Line?) BlankLine* WhiteSpace* { return {type: 'markup', children: flatten(children)} }
 
 Line
- = (WhiteSpace* __INLINE_MACRO__<> / WhiteSpace+) LineTerminatorSequence?
+ = (QuoteBlock / CodeBlock / TextBlock)+
+
+BlankLine
+ = children:WhiteSpace* LineTerminatorSequence { return {type: 'text-block', children} }
+
+NonEndBlankLine
+ = BlankLine !(BlankLine* WhiteSpace* !.)  // excludes groups of blank lines at the end of the input
+
+TextBlock
+ = children:(__INLINE_MACRO__<> / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
 InlineStart
- = CodeBlock / InlineCode / Italic / Bold / Strike / Link / InlineCont
+ = InlineCode / Italic / Bold / Strike / Link / InlineCont
 
 InlineCont
- = Text / Emoji / EscapedChar / NativeEmoji / SpecialChar
+ = !CodeBlock (Text / Emoji / EscapedChar / NativeEmoji / SpecialChar)
+
+InlineDelimiter
+ = WhiteSpace / PunctuationMarker
 
 Ticks1 = "`"
 Ticks3 = "```"
@@ -59,8 +68,11 @@ ItalicMarker = "_"
 EmojiMarker = ":"
 QuoteBlockMarker = ">"
 
+// Can mark the beginning of a link
+PunctuationMarker = [()[\].,!?]
+
 SpecialChar
- = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 { return text() }
+ = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
 
 EscapedChar
  = EscapeMarker char:SpecialChar { return char }
@@ -73,7 +85,7 @@ Text
 
 // TODO: should coalesce multiple line quotes
 QuoteBlock
- = QuoteBlockMarker WhiteSpace* children:__INLINE_MACRO__<!LineTerminatorSequence> LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
+ = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)+ LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
 
 Bold
  = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
@@ -112,7 +124,7 @@ NativeEmoji
    let idx = 0
    while ((match = emojiExp.exec(emojiText)) !== null) {
      results.push(emojiText.substring(idx, match.index))
-     results.push({type: 'native-emoji', children: [emojiIndex[match[0]]]})
+     results.push({type: 'native-emoji', children: [emojiIndexByChar[match[0]]]})
      idx = match.index + match[0].length
    }
    results.push(emojiText.substring(idx, emojiText.length))
@@ -155,11 +167,13 @@ WhiteSpace
  = [\t\v\f \u00A0\uFEFF] / Space
 
 LineTerminatorSequence "end of line"
- = "\n"
- / "\r\n"
- / "\r"
- / "\u2028" // line spearator
- / "\u2029" // paragraph separator
+ = (
+   "\n"
+   / "\r\n"
+   / "\r"
+   / "\u2028" // line separator
+   / "\u2029" // paragraph separator
+ ) { /* consume */ }
 
 Space
  = [\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]

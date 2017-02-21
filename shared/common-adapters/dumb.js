@@ -821,9 +821,9 @@ const markdownDumbMap: DumbComponentMap<Markdown> = {
       children: `I think we should try to use \`if else\` statements \`\`\`
 if (var == "foo")
   echo "foo";
-else echo "bar";\`\`\`How about *bold* and _italic?_ nice.
+else echo "bar";\`\`\`How about *bold* and _italic?_ nice. :smile:
 Now youre thinking with ~portals~ crypto.
-how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_`,
+how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
     },
     'emoji': {
       children: 'hello there :santa::skin-tone-3: 🌸😎👍🏿!',
@@ -852,6 +852,7 @@ else echo "bar";
     http://keybase.io
     *http://keybase.io*
     \`http://keybase.io\`
+    (https://keybase.io)
     https://keybase.io
     HTTP://cnn.com
     http://twitter.com
@@ -890,6 +891,17 @@ this is a code block that starts with a newline and ends with a newline
 
 this is a code block with two newline above\`\`\`
 `,
+    },
+    'Blank lines': {
+      children: `
+
+        hello
+
+
+        world
+
+
+      `,
     },
   },
 }

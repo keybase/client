@@ -13,7 +13,7 @@ type State = {
   text: string,
 }
 
-class Conversation extends Component<void, Props, State> {
+class ConversationInput extends Component<void, Props, State> {
   _input: any;
   _fileInput: any;
   state: State;
@@ -29,13 +29,13 @@ class Conversation extends Component<void, Props, State> {
   }
 
   componentDidMount () {
-    document.body.addEventListener('keydown', this._globalKeyDownHandler)
-    document.body.addEventListener('keypress', this._globalKeyDownHandler)
+    document.body && document.body.addEventListener('keydown', this._globalKeyDownHandler)
+    document.body && document.body.addEventListener('keypress', this._globalKeyDownHandler)
   }
 
   componentWillUnmount () {
-    document.body.removeEventListener('keydown', this._globalKeyDownHandler)
-    document.body.removeEventListener('keypress', this._globalKeyDownHandler)
+    document.body && document.body.removeEventListener('keydown', this._globalKeyDownHandler)
+    document.body && document.body.removeEventListener('keypress', this._globalKeyDownHandler)
   }
 
   componentDidUpdate (prevProps: Props) {
@@ -201,4 +201,4 @@ const styleFooter = {
   marginRight: globalMargins.tiny,
 }
 
-export default Conversation
+export default ConversationInput
