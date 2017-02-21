@@ -315,40 +315,15 @@ func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un Norma
 
 func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username NormalizedUsername) (err error) {
 	kid := tcl.GetKID()
-	key, err := ckf.FindKeyWithKIDUnsafe(kid)
+	_, err = ckf.FindKeyWithKIDUnsafe(kid)
 	if err != nil {
 		return
 	}
 
-	// Figure out the creation time and expire time of the eldest key.
-	var ctimeKb, etimeKb int64 = 0, 0
-
 	// We don't need to check the signature on the first link, because
-	// verifySubchain will take care of that. These times will get overruled by
-	// times we get from PGP, if any.
-	ctimeKb = tcl.GetCTime().Unix()
-	etimeKb = tcl.GetETime().Unix()
-
-	// Also check PGP key times.
-	var ctimePGP, etimePGP int64 = -1, -1
-	if pgp, ok := key.(*PGPKeyBundle); ok {
-		kbid := KeybaseIdentity(username)
-		_, ctimePGP, etimePGP = pgp.CheckIdentity(kbid)
-	}
-
-	var ctime int64
-	if ctimePGP >= 0 {
-		ctime = ctimePGP
-	} else {
-		ctime = ctimeKb
-	}
-
-	var etime int64
-	if etimePGP >= 0 {
-		etime = etimePGP
-	} else {
-		etime = etimeKb
-	}
+	// verifySubchain will take care of that.
+	ctime := tcl.GetCTime().Unix()
+	etime := tcl.GetETime().Unix()
 
 	eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime, tcl.GetPGPFullHash())
 
