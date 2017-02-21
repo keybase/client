@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -65,7 +66,14 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	}
 	rlimits = utils.AggRateLimits(res.RateLimits)
 
-	var cl ChatList
+	// Check to see if this should fail offline
+	if opts.FailOffline && res.Offline {
+		return c.errReply(chat.OfflineError{})
+	}
+
+	cl := ChatList{
+		Offline: res.Offline,
+	}
 	for _, conv := range res.Conversations {
 		var convSummary ConvSummary
 		convSummary.ID = conv.GetConvID().String()
@@ -130,6 +138,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 	}
 	rlimits = append(rlimits, threadView.RateLimits...)
 
+	// Check to see if this was fetched offline and we should fail
+	if opts.FailOffline && threadView.Offline {
+		return c.errReply(chat.OfflineError{})
+	}
+
 	// This could be lower than the truth if any messages were
 	// posted between the last two gregor rpcs.
 	readMsgID := conv.ReaderInfo.ReadMsgid
@@ -139,7 +152,9 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		c.G().Log.Warning("Could not get self UID for api")
 	}
 
-	var thread Thread
+	thread := Thread{
+		Offline: threadView.Offline,
+	}
 	for _, m := range threadView.Thread.Messages {
 		st, err := m.State()
 		if err != nil {
@@ -954,6 +969,7 @@ type MsgSummary struct {
 	Prev          []chat1.MessagePreviousPointer `json:"prev"`
 	Unread        bool                           `json:"unread"`
 	RevokedDevice bool                           `json:"revoked_device,omitempty"`
+	Offline       bool                           `json:"offline,omitempty"`
 }
 
 // Message contains eiter a MsgSummary or an Error.  Used for JSON output.
@@ -965,6 +981,7 @@ type Message struct {
 // Thread is used for JSON output of a thread of messages.
 type Thread struct {
 	Messages []Message `json:"messages"`
+	Offline  bool      `json:"offline,omitempty"`
 	RateLimits
 }
 
@@ -984,6 +1001,7 @@ type ConvSummary struct {
 // ChatList is a list of conversations in the inbox.
 type ChatList struct {
 	Conversations []ConvSummary `json:"conversations"`
+	Offline       bool          `json:"offline"`
 	RateLimits
 }
 
