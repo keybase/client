@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package simplefs
+package libkbfs
 
 import (
 	"errors"
@@ -15,23 +15,29 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/libkbfs"
 )
 
 // SimpleFS - implement keybase1.SimpleFS
 type SimpleFS struct {
 	lock    sync.RWMutex
-	config  libkbfs.Config
+	config  Config
 	handles map[keybase1.OpID]*handle
 }
 
 type handle struct {
-	node  libkbfs.Node
+	node  Node
 	async interface{}
 }
 
 // make sure the interface is implemented
 var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
+
+func newSimpleFS(config Config) *SimpleFS {
+	return &SimpleFS{
+		config:  config,
+		handles: map[keybase1.OpID]*handle{},
+	}
+}
 
 // SimpleFSList - Begin list of items in directory at path
 // Retrieve results with readList()
@@ -62,8 +68,40 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 }
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
-func (k *SimpleFS) SimpleFSListRecursive(_ context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
+	// A stack of paths to process - ordering does not matter.
+	// Here we don't walk symlinks, so no loops possible.
+	var paths = []keybase1.Path{arg.Path}
+	var des []keybase1.Dirent
+	for len(paths) > 0 {
+		// Take last element and shorten
+		path := paths[len(paths)-1]
+		paths = paths[:len(paths)-1]
+		node, err := k.getRemoteNode(ctx, path)
+		if err != nil {
+			return err
+		}
+		children, err := k.config.KBFSOps().GetDirChildren(ctx, node)
+		if err != nil {
+			return err
+		}
+		for name, ei := range children {
+			var de keybase1.Dirent
+			setStat(&de, &ei)
+			de.Name = name
+			des = append(des, de)
+			if ei.Type == Dir {
+				paths = append(paths, keybase1.NewPathWithKbfs(
+					path.Kbfs()+"/"+name,
+				))
+			}
+		}
+	}
+	k.lock.Lock()
+	k.handles[arg.OpID] = &handle{async: keybase1.SimpleFSListResult{Entries: des}}
+	k.lock.Unlock()
+
+	return nil
 }
 
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
@@ -88,39 +126,132 @@ func (k *SimpleFS) SimpleFSReadList(ctx context.Context, opid keybase1.OpID) (ke
 
 // SimpleFSCopy - Begin copy of file or directory
 func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyArg) error {
-	src, err := k.pathIO(ctx, arg.Src, keybase1.OpenFlags_READ|keybase1.OpenFlags_EXISTING)
+	// Note this is also used by move, so if this changes update SimpleFSMove
+	// code also.
+	src, err := k.pathIO(ctx, arg.Src, keybase1.OpenFlags_READ|keybase1.OpenFlags_EXISTING, nil)
 	if err != nil {
 		return err
 	}
 	defer src.Close()
-	dst, err := k.pathIO(ctx, arg.Dest, keybase1.OpenFlags_WRITE|keybase1.OpenFlags_REPLACE)
+
+	dst, err := k.pathIO(ctx, arg.Dest, keybase1.OpenFlags_WRITE|keybase1.OpenFlags_REPLACE, src)
 	if err != nil {
 		return err
 	}
 	defer dst.Close()
-	_, err = io.Copy(dst, src)
+
+	if src.Type() == keybase1.DirentType_FILE || src.Type() == keybase1.DirentType_EXEC {
+		_, err = io.Copy(dst, src)
+	}
 
 	// TODO: async handling could be better.
-	k.lock.Lock()
-	k.handles[arg.OpID] = &handle{async: err}
-	k.lock.Unlock()
+	k.setAsyncErr(arg.OpID, err)
 
 	return err
 }
 
+type pathPair struct {
+	src, dest keybase1.Path
+}
+
 // SimpleFSCopyRecursive - Begin recursive copy of directory
-func (k *SimpleFS) SimpleFSCopyRecursive(_ context.Context, arg keybase1.SimpleFSCopyRecursiveArg) error {
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context, arg keybase1.SimpleFSCopyRecursiveArg) error {
+	var err error
+	var paths = []pathPair{{src: arg.Src, dest: arg.Dest}}
+	for len(paths) > 0 {
+		// wrap in a function for defers.
+		err = func() error {
+			path := paths[len(paths)-1]
+			paths = paths[:len(paths)-1]
+
+			src, err := k.pathIO(ctx, path.src, keybase1.OpenFlags_READ|keybase1.OpenFlags_EXISTING, nil)
+			if err != nil {
+				return err
+			}
+			defer src.Close()
+
+			dst, err := k.pathIO(ctx, path.dest, keybase1.OpenFlags_WRITE|keybase1.OpenFlags_REPLACE, src)
+			if err != nil {
+				return err
+			}
+			defer dst.Close()
+
+			// TODO symlinks
+			switch src.Type() {
+			case keybase1.DirentType_FILE, keybase1.DirentType_EXEC:
+				_, err = io.Copy(dst, src)
+			case keybase1.DirentType_DIR:
+				eis, err := src.Children()
+				if err != nil {
+					return err
+				}
+				for name := range eis {
+					paths = append(paths, pathPair{
+						src:  pathAppend(path.src, name),
+						dest: pathAppend(path.dest, name),
+					})
+				}
+			}
+			return nil
+		}()
+	}
+	// TODO: async handling could be better.
+	k.setAsyncErr(arg.OpID, err)
+
+	return err
+}
+
+func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
+	if p.Local__ != nil {
+		var s = *p.Local__ + "/" + leaf
+		p.Local__ = &s
+	} else if p.Kbfs__ != nil {
+		var s = *p.Kbfs__ + "/" + leaf
+		p.Kbfs__ = &s
+	}
+	return p
 }
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
-func (k *SimpleFS) SimpleFSMove(_ context.Context, arg keybase1.SimpleFSMoveArg) error {
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveArg) error {
+	err := k.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
+		OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest,
+	})
+	if err != nil {
+		return err
+	}
+	pt, err := arg.Src.PathType()
+	if err != nil {
+		// should really not happen...
+		return err
+	}
+	switch pt {
+	case keybase1.PathType_KBFS:
+		err = k.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+			OpID: arg.OpID, Path: arg.Src,
+		})
+	case keybase1.PathType_LOCAL:
+		err = os.Remove(arg.Src.Local())
+	}
+	if err != nil {
+		k.setAsyncErr(arg.OpID, err)
+	}
+	return err
 }
 
 // SimpleFSRename - Rename file or directory, KBFS side only
-func (k *SimpleFS) SimpleFSRename(_ context.Context, arg keybase1.SimpleFSRenameArg) error {
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRenameArg) error {
+	snode, sleaf, err := k.getRemoteNodeParent(ctx, arg.Src)
+	if err != nil {
+		return err
+	}
+	dnode, dleaf, err := k.getRemoteNodeParent(ctx, arg.Dest)
+	if err != nil {
+		return err
+	}
+	err = k.config.KBFSOps().Rename(ctx, snode, sleaf, dnode, dleaf)
+	// TODO should this be async?
+	return err
 }
 
 // SimpleFSOpen - Create/open a file and leave it open
@@ -141,8 +272,24 @@ func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenAr
 }
 
 // SimpleFSSetStat - Set/clear file bits - only executable for now
-func (k *SimpleFS) SimpleFSSetStat(_ context.Context, arg keybase1.SimpleFSSetStatArg) error {
-	return errors.New("not implemented")
+func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSetStatArg) error {
+	node, err := k.getRemoteNode(ctx, arg.Dest)
+	if err != nil {
+		return err
+	}
+	var exec bool
+	switch arg.Flag {
+	case keybase1.DirentType_EXEC:
+		exec = true
+		fallthrough
+	case keybase1.DirentType_FILE:
+		err = k.config.KBFSOps().SetEx(ctx, node, exec)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // SimpleFSRead - Read (possibly partial) contents of open file,
@@ -158,7 +305,6 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 		return keybase1.FileContent{}, errNoSuchHandle
 	}
 	bs := make([]byte, arg.Size)
-	// TODO fix offset
 	k.config.KBFSOps().Read(ctx, h.node, bs, arg.Offset)
 	return keybase1.FileContent{
 		Data: bs,
@@ -174,7 +320,6 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 	if !ok {
 		return errNoSuchHandle
 	}
-	// TODO fix offset
 	err := k.config.KBFSOps().Write(ctx, h.node, arg.Content, arg.Offset)
 	return err
 }
@@ -182,8 +327,21 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 // SimpleFSRemove - Remove file or directory from filesystem
 func (k *SimpleFS) SimpleFSRemove(ctx context.Context, arg keybase1.SimpleFSRemoveArg) error {
 	node, leaf, err := k.getRemoteNodeParent(ctx, arg.Path)
-	_, _, _ = node, leaf, err
-	return errors.New("not implemented")
+	if err != nil {
+		return err
+	}
+	_, ei, err := k.config.KBFSOps().Lookup(ctx, node, leaf)
+	if err != nil {
+		return err
+	}
+	switch ei.Type {
+	case Dir:
+		err = k.config.KBFSOps().RemoveDir(ctx, node, leaf)
+	default:
+		err = k.config.KBFSOps().RemoveEntry(ctx, node, leaf)
+	}
+	// TODO Should this be async
+	return err
 }
 
 // SimpleFSStat - Get info about file
@@ -220,6 +378,7 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) error 
 
 // SimpleFSCheck - Check progress of pending operation
 func (k *SimpleFS) SimpleFSCheck(_ context.Context, opid keybase1.OpID) (keybase1.Progress, error) {
+	// TODO
 	return 0, errors.New("not implemented")
 }
 
@@ -230,6 +389,7 @@ func (k *SimpleFS) SimpleFSGetOps(_ context.Context) ([]keybase1.OpDescription, 
 
 // SimpleFSWait - Blocking wait for the pending operation to finish
 func (k *SimpleFS) SimpleFSWait(_ context.Context, opid keybase1.OpID) error {
+	// TODO
 	return errors.New("not implemented")
 }
 
@@ -261,9 +421,9 @@ func remotePath(path keybase1.Path) (ps []string, public bool, err error) {
 }
 
 func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.OpenFlags) (
-	libkbfs.Node, libkbfs.EntryInfo, error) {
-	var node libkbfs.Node
-	var ei libkbfs.EntryInfo
+	Node, EntryInfo, error) {
+	var node Node
+	var ei EntryInfo
 
 	parent, name, err := k.getRemoteNodeParent(ctx, dest)
 	if err != nil {
@@ -285,18 +445,18 @@ func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.Open
 
 // getRemoteRootNode
 func (k *SimpleFS) getRemoteRootNode(ctx context.Context, path keybase1.Path) (
-	libkbfs.Node, []string, error) {
+	Node, []string, error) {
 	ps, public, err := remotePath(path)
 	if err != nil {
 		return nil, nil, err
 	}
-	tlf, err := libkbfs.ParseTlfHandlePreferred(
+	tlf, err := ParseTlfHandlePreferred(
 		ctx, k.config.KBPKI(), ps[0], public)
 	if err != nil {
 		return nil, nil, err
 	}
 	node, _, err := k.config.KBFSOps().GetOrCreateRootNode(
-		ctx, tlf, libkbfs.MasterBranch)
+		ctx, tlf, MasterBranch)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -305,13 +465,14 @@ func (k *SimpleFS) getRemoteRootNode(ctx context.Context, path keybase1.Path) (
 
 // getRemoteNode
 func (k *SimpleFS) getRemoteNode(ctx context.Context, path keybase1.Path) (
-	libkbfs.Node, error) {
+	Node, error) {
 	node, ps, err := k.getRemoteRootNode(ctx, path)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: should we walk symlinks here?
+	// Some callers like List* don't want that.
 	for _, name := range ps {
 		node, _, err = k.config.KBFSOps().Lookup(ctx, node, name)
 		if err != nil {
@@ -324,7 +485,7 @@ func (k *SimpleFS) getRemoteNode(ctx context.Context, path keybase1.Path) (
 
 // getRemoteNodeParent
 func (k *SimpleFS) getRemoteNodeParent(ctx context.Context, path keybase1.Path) (
-	libkbfs.Node, string, error) {
+	Node, string, error) {
 	node, ps, err := k.getRemoteRootNode(ctx, path)
 	if err != nil {
 		return nil, "", err
@@ -344,7 +505,7 @@ func (k *SimpleFS) getRemoteNodeParent(ctx context.Context, path keybase1.Path) 
 	return node, leaf, nil
 }
 
-func wrapStat(ei libkbfs.EntryInfo, err error) (keybase1.Dirent, error) {
+func wrapStat(ei EntryInfo, err error) (keybase1.Dirent, error) {
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
@@ -353,36 +514,46 @@ func wrapStat(ei libkbfs.EntryInfo, err error) (keybase1.Dirent, error) {
 	return de, nil
 }
 
-func setStat(de *keybase1.Dirent, ei *libkbfs.EntryInfo) {
+func setStat(de *keybase1.Dirent, ei *EntryInfo) {
 	de.Time = keybase1.Time(ei.Mtime)
 	de.Size = int(ei.Size) // TODO: FIX protocol
 	de.DirentType = deTy2Ty(ei)
 }
 
-func deTy2Ty(ei *libkbfs.EntryInfo) keybase1.DirentType {
+func deTy2Ty(ei *EntryInfo) keybase1.DirentType {
 	switch ei.Type {
-	case libkbfs.Exec:
+	case Exec:
 		return keybase1.DirentType_EXEC
-	case libkbfs.File:
+	case File:
 		return keybase1.DirentType_FILE
-	case libkbfs.Dir:
+	case Dir:
 		return keybase1.DirentType_DIR
-	case libkbfs.Sym:
+	case Sym:
 		return keybase1.DirentType_SYM
 	}
 	panic("deTy2Ty unreachable")
 }
 
+func (k *SimpleFS) setAsyncErr(opid keybase1.OpID, err error) {
+	k.lock.Lock()
+	k.handles[opid] = &handle{async: err}
+	k.lock.Unlock()
+}
+
 type ioer interface {
 	io.ReadWriteCloser
 	Type() keybase1.DirentType
+	Children() (map[string]EntryInfo, error)
 }
 
 func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
-	flags keybase1.OpenFlags) (io.ReadWriteCloser, error) {
+	flags keybase1.OpenFlags, like ioer) (ioer, error) {
 	pt, err := path.PathType()
 	if err != nil {
 		return nil, err
+	}
+	if like != nil && like.Type() == keybase1.DirentType_DIR {
+		flags |= keybase1.OpenFlags_DIRECTORY
 	}
 	switch pt {
 	case keybase1.PathType_KBFS:
@@ -399,7 +570,12 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 		if flags&keybase1.OpenFlags_REPLACE == 1 {
 			cflags |= os.O_TRUNC
 		}
-		f, err := os.OpenFile(path.Local(), cflags, 0644)
+		var f *os.File
+		if (cflags&os.O_CREATE != 0) && (flags&keybase1.OpenFlags_DIRECTORY != 0) {
+			// Return value is ignored.
+			os.Mkdir(path.Local(), 0755)
+		}
+		f, err = os.OpenFile(path.Local(), cflags, 0644)
 		if err != nil {
 			return nil, err
 		}
@@ -428,7 +604,7 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 type kbfsIO struct {
 	ctx    context.Context
 	sfs    *SimpleFS
-	node   libkbfs.Node
+	node   Node
 	offset int64
 	deType keybase1.DirentType
 }
@@ -456,12 +632,41 @@ func (r *kbfsIO) Type() keybase1.DirentType {
 	return r.deType
 }
 
+func (r *kbfsIO) Children() (map[string]EntryInfo, error) {
+	return r.sfs.config.KBFSOps().GetDirChildren(r.ctx, r.node)
+}
+
 type localIO struct {
 	*os.File
 	deType keybase1.DirentType
 }
 
 func (r *localIO) Type() keybase1.DirentType { return r.deType }
+func (r *localIO) Children() (map[string]EntryInfo, error) {
+	fis, err := r.File.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+	eis := make(map[string]EntryInfo, len(fis))
+	for _, fi := range fis {
+		eis[fi.Name()] = EntryInfo{
+			Type: ty2Kbfs(fi.Mode()),
+		}
+	}
+	return eis, nil
+}
+
+func ty2Kbfs(mode os.FileMode) EntryType {
+	switch {
+	case mode.IsDir():
+		return Dir
+	case mode&os.ModeSymlink == os.ModeSymlink:
+		return Sym
+	case mode.IsRegular() && (mode&0700 == 0700):
+		return Exec
+	}
+	return File
+}
 
 var errOnlyRemotePathSupported = errors.New("Only remote paths are supported for this operation")
 var errInvalidRemotePath = errors.New("Invalid remote path")

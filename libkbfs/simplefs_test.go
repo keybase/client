@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package simplefs
+package libkbfs
 
 import (
 	"context"
@@ -15,22 +15,14 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/libkbfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func newSimpleFS(config libkbfs.Config) *SimpleFS {
-	return &SimpleFS{
-		config:  config,
-		handles: map[keybase1.OpID]*handle{},
-	}
-}
-
 func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	err := fs.config.Shutdown(ctx)
 	require.NoError(t, err)
-	libkbfs.CleanupCancellationDelayer(ctx)
+	CleanupCancellationDelayer(ctx)
 }
 
 func newTempRemotePath() (keybase1.Path, error) {
@@ -49,14 +41,14 @@ func deleteTempLocalPath(path keybase1.Path) {
 }
 
 func TestList(t *testing.T) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
-	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	ctx := BackgroundContextWithCancellationDelayer()
+	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp remote directory + files we will clean up later
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
-	writeRemoteFile(ctx, t, sfs, `/private/jdoe/test1.txt`, []byte(`foo`))
-	writeRemoteFile(ctx, t, sfs, `/private/jdoe/test2.txt`, []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
@@ -84,13 +76,13 @@ func TestList(t *testing.T) {
 }
 
 func TestCopyToLocal(t *testing.T) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
-	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	ctx := BackgroundContextWithCancellationDelayer()
+	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp remote directory + file(s) we will clean up later
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
-	writeRemoteFile(ctx, t, sfs, filepath.Join(path1.Kbfs(), "test1.txt"), []byte("foo"))
+	writeRemoteFile(ctx, t, sfs, pathAppend(path1, "test1.txt"), []byte("foo"))
 
 	// make a temp local dest directory + files we will clean up later
 	tempdir2, err := ioutil.TempDir("", "simpleFstest")
@@ -103,8 +95,8 @@ func TestCopyToLocal(t *testing.T) {
 
 	err = sfs.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
 		OpID: opid,
-		Src:  keybase1.NewPathWithKbfs(filepath.Join(path1.Kbfs(), "test1.txt")),
-		Dest: keybase1.NewPathWithLocal(filepath.Join(path2.Local(), "test1.txt")),
+		Src:  pathAppend(path1, "test1.txt"),
+		Dest: pathAppend(path2, "test1.txt"),
 	})
 	require.NoError(t, err)
 
@@ -121,8 +113,8 @@ func TestCopyToLocal(t *testing.T) {
 }
 
 func TestCopyToRemote(t *testing.T) {
-	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
-	sfs := newSimpleFS(libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	ctx := BackgroundContextWithCancellationDelayer()
+	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
 	// make a temp remote directory + file(s) we will clean up later
@@ -143,7 +135,7 @@ func TestCopyToRemote(t *testing.T) {
 	err = sfs.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
 		OpID: opid,
 		Src:  keybase1.NewPathWithLocal(filepath.Join(path1.Local(), "test1.txt")),
-		Dest: keybase1.NewPathWithKbfs(filepath.Join(path2.Kbfs(), "test1.txt")),
+		Dest: pathAppend(path2, "test1.txt"),
 	})
 	require.NoError(t, err)
 
@@ -155,16 +147,16 @@ func TestCopyToRemote(t *testing.T) {
 	require.Error(t, err)
 
 	require.Equal(t, `foo`,
-		string(readRemoteFile(ctx, t, sfs, filepath.Join(path2.Kbfs(), "test1.txt"))))
+		string(readRemoteFile(ctx, t, sfs, pathAppend(path2, "test1.txt"))))
 }
 
-func writeRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path string, data []byte) {
+func writeRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keybase1.Path, data []byte) {
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
 	err = sfs.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
 		OpID:  opid,
-		Dest:  keybase1.NewPathWithKbfs(path),
+		Dest:  path,
 		Flags: keybase1.OpenFlags_REPLACE | keybase1.OpenFlags_WRITE,
 	})
 	defer sfs.SimpleFSClose(ctx, opid)
@@ -178,17 +170,17 @@ func writeRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path stri
 	require.NoError(t, err)
 }
 
-func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path string) []byte {
+func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keybase1.Path) []byte {
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
-	de, err := sfs.SimpleFSStat(ctx, keybase1.NewPathWithKbfs(path))
+	de, err := sfs.SimpleFSStat(ctx, path)
 	require.NoError(t, err)
 	t.Logf("Stat remote %q %d bytes", path, de.Size)
 
 	err = sfs.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
 		OpID:  opid,
-		Dest:  keybase1.NewPathWithKbfs(path),
+		Dest:  path,
 		Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
 	})
 	defer sfs.SimpleFSClose(ctx, opid)
