@@ -348,7 +348,6 @@ class ConversationList extends Component<void, Props, State> {
     const options = {
       followingMap: this.props.followingMap,
       includeHeader: isFirstMessage || !skipMsgHeader,
-      index,
       isFirstNewMessage,
       isScrolling,
       isSelected,

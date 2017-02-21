@@ -1,3 +1,64 @@
 // @flow
-const TODO = () => null
-export default TODO
+//
+import React, {Component} from 'react'
+import {NativeListView, Text} from '../../common-adapters'
+import hoc from './list-hoc'
+import messageFactory from './messages'
+
+import type {Props} from './list'
+
+class ConversationList extends Component <void, Props, void> {
+  constructor (props: Props) {
+    super(props)
+    const ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1.key !== r2.key})
+    this.state = {
+      dataSource: ds.cloneWithRows(props.messages.toArray()),
+    }
+  }
+
+  _updateDataSource (newMessages) {
+    this.setState({
+      dataSource: this.state.dataSource.cloneWithRows(newMessages.toArray()),
+    })
+  }
+
+  componentWillUpdate (nextProps: Props, nextState) {
+    if (this.props.messages !== nextProps.messages) {
+      this._updateDataSource(nextProps.messages)
+    }
+  }
+
+  _renderRow = (message, sectionID, rowID) => {
+    const isFirstMessage = rowID === 0
+    const prevMessage = this.props.messages.get(rowID - 1)
+    const isSelected = false
+    const isScrolling = false
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, 'key', {}, () => console.log('todo'))
+
+    return messageFactory(options)
+  }
+
+  render () {
+    const {
+      moreToLoad,
+      messages,
+    } = this.props
+
+    if (moreToLoad && messages.count() === 0) {
+      return <Text type='Body'>Loading Messages...</Text>
+    }
+
+    if (messages.count() === 0) {
+      return <Text type='Body'>No messages here</Text>
+    }
+
+    return (
+      <NativeListView
+        dataSource={this.state.dataSource}
+        renderRow={this._renderRow}
+      />
+    )
+  }
+}
+
+export default hoc(ConversationList)

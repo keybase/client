@@ -1,5 +1,4 @@
 // @flow
-import * as ChatConstants from '../../../constants/chat'
 import AttachmentMessageRender from './attachment'
 import MessageText from './text'
 import React from 'react'
@@ -9,27 +8,7 @@ import {Box, Text} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
 import {globalStyles, globalColors} from '../../../styles'
 
-import type {Message, AttachmentMessage, ConversationIDKey, ServerMessage, MetaDataMap, FollowingMap, OutboxIDKey} from '../../../constants/chat'
-
-type Options = {
-  message: Message,
-  includeHeader: boolean,
-  key: string,
-  isFirstNewMessage: boolean,
-  style: Object,
-  isScrolling: boolean,
-  onAction: (message: ServerMessage, event: any) => void,
-  isSelected: boolean,
-  onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,
-  onOpenConversation: (conversationIDKey: ConversationIDKey) => void,
-  onOpenInFileUI: (path: string) => void,
-  onOpenInPopup: (message: AttachmentMessage) => void,
-  onRetry: (outboxID: OutboxIDKey) => void,
-  onRetryAttachment: () => void,
-  you: string,
-  metaDataMap: MetaDataMap,
-  followingMap: FollowingMap,
-}
+import type {Options} from './index'
 
 const factory = (options: Options) => {
   const {

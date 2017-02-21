@@ -1,3 +1,24 @@
 // @flow
-const factory = (options: any) => {};
+
+export type Options = {
+  message: Message,
+  includeHeader: boolean,
+  key: string,
+  isFirstNewMessage: boolean,
+  style: Object,
+  isScrolling: boolean,
+  onAction: (message: ServerMessage, event: any) => void,
+  isSelected: boolean,
+  onLoadAttachment: (messageID: ChatConstants.MessageID, filename: string) => void,
+  onOpenConversation: (conversationIDKey: ConversationIDKey) => void,
+  onOpenInFileUI: (path: string) => void,
+  onOpenInPopup: (message: AttachmentMessage) => void,
+  onRetry: (outboxID: OutboxIDKey) => void,
+  onRetryAttachment: () => void,
+  you: string,
+  metaDataMap: MetaDataMap,
+  followingMap: FollowingMap,
+}
+
+declare const factory: (options: Options) => React$Element
 export default factory
