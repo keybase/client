@@ -86,16 +86,16 @@ type nlistener struct {
 
 var _ libkb.NotifyListener = (*nlistener)(nil)
 
-func (n *nlistener) Logout()                                                       {}
-func (n *nlistener) Login(username string)                                         {}
-func (n *nlistener) ClientOutOfDate(to, uri, msg string)                           {}
-func (n *nlistener) UserChanged(uid keybase1.UID)                                  {}
-func (n *nlistener) TrackingChanged(uid keybase1.UID, username string)             {}
-func (n *nlistener) FSActivity(activity keybase1.FSNotification)                   {}
-func (n *nlistener) FSEditListResponse(arg keybase1.FSEditListArg)                 {}
-func (n *nlistener) FSEditListRequest(arg keybase1.FSEditListRequest)              {}
-func (n *nlistener) FavoritesChanged(uid keybase1.UID)                             {}
-func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {}
+func (n *nlistener) Logout()                                                             {}
+func (n *nlistener) Login(username string)                                               {}
+func (n *nlistener) ClientOutOfDate(to, uri, msg string)                                 {}
+func (n *nlistener) UserChanged(uid keybase1.UID)                                        {}
+func (n *nlistener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
+func (n *nlistener) FSActivity(activity keybase1.FSNotification)                         {}
+func (n *nlistener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
+func (n *nlistener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
+func (n *nlistener) FavoritesChanged(uid keybase1.UID)                                   {}
+func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)       {}
 func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {
 	n.paperEncKIDs = append(n.paperEncKIDs, encKID)
 }

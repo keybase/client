@@ -8,21 +8,21 @@ import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
-  globalError: ?Error,
-  daemonError: ?Error,
-  status: ?GetCurrentStatusRes,
-  config: ?Config,
-  extendedConfig: ?ExtendedStatus,
-  username: ?string,
-  uid: ?string,
-  loggedIn: boolean,
-  kbfsPath: string,
-  error: ?any,
-  bootstrapTriesRemaining: number,
   bootStatus: BootStatus,
-  readyForBootstrap: boolean,
+  bootstrapTriesRemaining: number,
+  config: ?Config,
+  daemonError: ?Error,
+  error: ?any,
+  extendedConfig: ?ExtendedStatus,
   followers: {[key: string]: true},
   following: {[key: string]: true},
+  globalError: ?Error,
+  kbfsPath: string,
+  loggedIn: boolean,
+  readyForBootstrap: boolean,
+  status: ?GetCurrentStatusRes,
+  uid: ?string,
+  username: ?string,
 }
 
 // Mobile is ready for bootstrap automatically, desktop needs to wait for
@@ -30,27 +30,30 @@ export type ConfigState = {
 const readyForBootstrap = isMobile
 
 const initialState: ConfigState = {
-  globalError: null,
-  daemonError: null,
-  status: null,
-  config: null,
-  extendedConfig: null,
-  username: null,
-  uid: null,
-  loggedIn: false,
-  kbfsPath: Constants.defaultKBFSPath,
-  error: null,
-  bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   bootStatus: 'bootStatusLoading',
-  readyForBootstrap,
+  bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
+  config: null,
+  daemonError: null,
+  error: null,
+  extendedConfig: null,
   followers: {},
   following: {},
+  globalError: null,
+  kbfsPath: Constants.defaultKBFSPath,
+  loggedIn: false,
+  readyForBootstrap,
+  status: null,
+  uid: null,
+  username: null,
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return {...initialState}
+      return {
+        ...initialState,
+        readyForBootstrap: state.readyForBootstrap,
+      }
 
     case Constants.configLoaded:
       if (action.payload && action.payload.config) {
@@ -90,10 +93,10 @@ export default function (state: ConfigState = initialState, action: Action): Con
         const status = action.payload.status
         return {
           ...state,
-          status,
-          username: status.user && status.user.username,
-          uid: status.user && status.user.uid,
           loggedIn: status.loggedIn,
+          status,
+          uid: status.user && status.user.uid,
+          username: status.user && status.user.username,
         }
       }
       return state
@@ -122,8 +125,8 @@ export default function (state: ConfigState = initialState, action: Action): Con
     case Constants.bootstrapRetry: {
       return {
         ...state,
-        bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
         bootStatus: 'bootStatusLoading',
+        bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
       }
     }
 
@@ -157,15 +160,23 @@ export default function (state: ConfigState = initialState, action: Action): Con
       }
     }
     case Constants.globalError: {
+      const error = action.payload
+      if (error) {
+        console.warn('Error (global):', error)
+      }
       return {
         ...state,
-        globalError: action.payload,
+        globalError: error,
       }
     }
     case Constants.daemonError: {
+      const error = action.payload.daemonError
+      if (error) {
+        console.warn('Error (daemon):', error)
+      }
       return {
         ...state,
-        daemonError: action.payload.daemonError,
+        daemonError: error,
       }
     }
 

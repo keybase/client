@@ -7,37 +7,37 @@ import type {Actions, State} from '../constants/settings'
 
 const initialState: State = {
   allowDeleteAccount: false,
-  waitingForResponse: false,
-  invites: {
-    pendingInvites: [],
-    acceptedInvites: [],
-    error: null,
-  },
-  notifications: {
-    settings: null,
-    unsubscribedFromAll: null,
-    allowSave: false,
-    allowEdit: false,
-  },
   email: {
     emails: [],
-    newEmail: '',
     error: null,
+    newEmail: '',
+  },
+  invites: {
+    acceptedInvites: [],
+    error: null,
+    pendingInvites: [],
+  },
+  notifications: {
+    allowEdit: false,
+    allowSave: false,
+    settings: null,
+    unsubscribedFromAll: null,
   },
   passphrase: {
+    error: null,
+    hasPGPKeyOnServer: null,
     newPassphrase: new HiddenString(''),
     newPassphraseConfirm: new HiddenString(''),
-    error: null,
-    newPassphraseError: null,
     newPassphraseConfirmError: null,
-    hasPGPKeyOnServer: null,
+    newPassphraseError: null,
   },
   push: {
     permissionsPrompt: false,
     permissionsRequesting: false,
-    tokenType: '',
     token: '',
+    tokenType: '',
   },
+  waitingForResponse: false,
 }
 
 function reducer (state: State = initialState, action: Actions): State {
@@ -80,9 +80,9 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         notifications: {
           ...state.notifications,
+          allowSave: true,
           settings: state.notifications.settings.map(updateSubscribe),
           unsubscribedFromAll: name ? false : !state.notifications.unsubscribedFromAll,
-          allowSave: true,
         },
       }
     case Constants.notificationsSave:
@@ -98,8 +98,8 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         notifications: {
           ...state.notifications,
-          allowSave: false,
           allowEdit: true,
+          allowSave: false,
         },
       }
     case Constants.notificationsRefreshed:
@@ -107,8 +107,8 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         notifications: {
           ...action.payload,
-          allowSave: false,
           allowEdit: true,
+          allowSave: false,
         },
       }
     case Constants.invitesRefreshed:
@@ -148,8 +148,8 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         passphrase: {
           ...state.passphrase,
-          newPassphrase: action.payload.passphrase,
           error: null,
+          newPassphrase: action.payload.passphrase,
         },
       }
     case Constants.onChangeNewPassphraseConfirm:
@@ -157,8 +157,8 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         passphrase: {
           ...state.passphrase,
-          newPassphraseConfirm: action.payload.passphrase,
           error: null,
+          newPassphraseConfirm: action.payload.passphrase,
         },
       }
     case Constants.onUpdatedPGPSettings:
@@ -182,8 +182,8 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         email: {
           ...state.email,
-          newEmail: action.payload.email,
           error: null,
+          newEmail: action.payload.email,
         },
       }
     case Constants.onUpdateEmailError:

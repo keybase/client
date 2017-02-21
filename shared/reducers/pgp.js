@@ -14,9 +14,7 @@ const initialState: State = {
 export default function (state: State = initialState, action: Actions): State {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return {
-        ...initialState,
-      }
+      return {...initialState}
 
     case Constants.pgpKeyInSecretStoreFile:
       return {

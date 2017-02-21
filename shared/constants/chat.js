@@ -98,6 +98,7 @@ export type AttachmentMessage = {
   messageID?: MessageID,
   filename: ?string,
   title: ?string,
+  attachmentDurationMs: ?number,
   previewType: ?AttachmentType,
   previewPath: ?string,
   previewSize: ?AttachmentSize,

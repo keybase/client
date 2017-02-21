@@ -35,8 +35,9 @@ function routeStateReducer (routeDef, routeState, action) {
     case CommonConstants.resetStore:
       return routeSetProps(routeDef, null, [])
 
-    case Constants.setRouteDef:
+    case Constants.setRouteDef: {
       return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
+    }
 
     case Constants.switchTo:
       return routeSetProps(routeDef, routeState, action.payload.path, action.payload.parentPath)
