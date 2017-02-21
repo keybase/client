@@ -105,6 +105,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 			Inbox: chat1.GetInboxLocalRes{
 				ConversationsUnverified: lres.InboxRes.ConvsUnverified,
 				Pagination:              lres.InboxRes.Pagination,
+				Offline:                 h.G().InboxSource.IsOffline(),
 				RateLimits:              res.RateLimits,
 			},
 		})
@@ -136,6 +137,7 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	}
 	wg.Wait()
 
+	res.Offline = h.G().InboxSource.IsOffline()
 	res.IdentifyFailures = breaks
 	return res, nil
 }
@@ -178,6 +180,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	res = chat1.GetInboxAndUnboxLocalRes{
 		Conversations:    ib.Convs,
 		Pagination:       ib.Pagination,
+		Offline:          h.G().InboxSource.IsOffline(),
 		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 		IdentifyFailures: identBreaks,
 	}
@@ -208,6 +211,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
+		Offline:          h.G().ConvSource.IsOffline(),
 		RateLimits:       utils.AggRateLimitsP(rl),
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -555,6 +559,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 
 	return chat1.GetMessagesLocalRes{
 		Messages:         messages,
+		Offline:          h.G().ConvSource.IsOffline(),
 		RateLimits:       utils.AggRateLimits(rlimits),
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -1478,6 +1483,7 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 	}
 	res.RateLimits = append(res.RateLimits, inbox.RateLimits...)
 	res.IdentifyFailures = inbox.IdentifyFailures
+	res.Offline = h.G().InboxSource.IsOffline()
 
 	// If we have inbox hits, return those
 	if len(inbox.Conversations) > 0 {

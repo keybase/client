@@ -517,6 +517,10 @@ func (s *Deliverer) Disconnected(ctx context.Context) {
 	s.connected = false
 }
 
+func (s *Deliverer) IsOffline() bool {
+	return !s.connected
+}
+
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error) {
 

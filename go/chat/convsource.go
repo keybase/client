@@ -46,6 +46,10 @@ func (s *baseConversationSource) Disconnected(ctx context.Context) {
 	s.offline = true
 }
 
+func (s *baseConversationSource) IsOffline() bool {
+	return s.offline
+}
+
 func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 	s.ri = ri
 }
@@ -124,7 +128,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Insta fail if we are offline
-	if s.offline {
+	if s.IsOffline() {
 		return chat1.ThreadView{}, []*chat1.RateLimit{}, OfflineError{}
 	}
 
@@ -175,7 +179,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
 	// Insta fail if we are offline
-	if s.offline {
+	if s.IsOffline() {
 		return nil, OfflineError{}
 	}
 
@@ -264,7 +268,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 	uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) error {
 
 	// If we are offline, then bail out of here with no error
-	if s.offline {
+	if s.IsOffline() {
 		s.Debug(ctx, "identifyTLF: not performing identify because offline")
 		return nil
 	}
@@ -321,7 +325,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
 			// Do online only things
-			if !s.offline {
+			if !s.IsOffline() {
 
 				// Identify this TLF by running crypt keys
 				if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
@@ -363,7 +367,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Insta fail if we are offline
-	if s.offline {
+	if s.IsOffline() {
 		return chat1.ThreadView{}, rl, OfflineError{}
 	}
 
@@ -493,7 +497,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	if len(remoteMsgs) > 0 {
 
 		// Insta fail if we are offline
-		if s.offline {
+		if s.IsOffline() {
 			return nil, OfflineError{}
 		}
 
@@ -569,7 +573,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	for _, msg := range msgs {
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
-		} else if !s.offline {
+		} else if !s.IsOffline() {
 			unboxed, err := s.boxer.UnboxMessage(ctx, msg, finalizeInfo)
 			if err != nil {
 				return res, err

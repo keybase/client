@@ -8,6 +8,7 @@ import (
 )
 
 type Offlinable interface {
+	IsOffline() bool
 	Connected(ctx context.Context)
 	Disconnected(ctx context.Context)
 }
