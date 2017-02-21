@@ -27,7 +27,9 @@ protocol remote {
     EncryptedData bodyCiphertext;
 
     // V1: Missing
-    // V2: Public half of the signing key used on headerSealed
+    // V2: Public half of the signing key used on headerSealed.
+    //     Used to open and verify headerSealed.
+    //     Must be asserted to belong to the sender when unboxing.
     bytes headerVerificationKey;
 
     // [V1, V2]: Key generation of the encryption key
