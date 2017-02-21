@@ -95,7 +95,7 @@ export function loadUserImageMap (username: string, callback: (username: string,
   if (!validUsername(username)) {
     // set immediate so its always async
     setImmediate(() => {
-      callback(username, {})
+      callback(username, null)
     })
     return
   }
