@@ -3,7 +3,6 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	"runtime/debug"
 	"sync"
 	"time"
 
@@ -203,7 +202,6 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	defer g.CTrace(ctx, culDebug(arg.UID), func() error { return err })()
 
-	debug.PrintStack()
 	if arg.UID.IsNil() {
 		err = errors.New("need a UID to load UPAK from loader")
 		return nil, nil, err
