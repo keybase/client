@@ -199,6 +199,9 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	if s.IsOffline() {
+		return nil, nil
+	}
 	return s.boxer.UnboxMessages(ctx, msgs, finalizeInfo)
 }
 
