@@ -59,6 +59,7 @@ type DiskBlockCacheStandard struct {
 	maxBytes   uint64
 	maxBlockID []byte
 	tlfCounts  map[tlf.ID]int
+	tlfLRU     map[tlf.ID]time.Time
 	log        logger.Logger
 	// protects the disk caches from being shutdown while they're being
 	// accessed
@@ -120,6 +121,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		maxBytes:   maxBytes,
 		maxBlockID: maxBlockID.Bytes(),
 		tlfCounts:  map[tlf.ID]int{},
+		tlfLRU:     map[tlf.ID]time.Time{},
 		log:        log,
 		blockDb:    blockDb,
 		lruDb:      lruDb,
@@ -210,6 +212,7 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 
 	tlfIDLen := len(tlf.NullID.Bytes())
 	tlfCounts := make(map[tlf.ID]int)
+	tlfLRU := make(map[tlf.ID]time.Time)
 	iter := cache.lruDb.NewIterator(nil, nil)
 	for iter.Next() {
 		key := iter.Key()
@@ -220,7 +223,17 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 			return err
 		}
 		tlfCounts[tlfID] += 1
+
+		lruBytes := iter.Value()
+		lru, err := cache.timeFromBytes(lruBytes)
+		if err != nil {
+			return err
+		}
+		if oldLRU, isEmpty := tlfLRU[tlfID]; isEmpty || lru.Before(oldLRU) {
+			tlfLRU[tlfID] = lru
+		}
 	}
+	cache.tlfLRU = tlfLRU
 	cache.tlfCounts = tlfCounts
 	return nil
 }
