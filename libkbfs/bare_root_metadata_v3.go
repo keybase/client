@@ -494,7 +494,11 @@ func (md *BareRootMetadataV3) CheckValidSuccessor(
 	if !nextMd.IsWriterMetadataCopiedSet() {
 		expectedMDUsage += nextMd.MDRefBytes()
 	}
-	if nextMd.MDDiskUsage() != expectedMDUsage {
+	// Add an exception for the case where MDRefBytes is equal, since
+	// it probably indicates an older client just copied the previous
+	// MDRefBytes value as an unknown field.
+	if nextMd.MDDiskUsage() != expectedMDUsage &&
+		md.MDRefBytes() != nextMd.MDRefBytes() {
 		return MDDiskUsageMismatch{
 			expectedDiskUsage: expectedMDUsage,
 			actualDiskUsage:   nextMd.MDDiskUsage(),
