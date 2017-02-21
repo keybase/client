@@ -722,6 +722,10 @@ func (k *PGPKeyBundle) GetPGPIdentities() []keybase1.PGPIdentity {
 	return ret
 }
 
+// CheckIdentity finds the foo_user@keybase.io PGP identity and figures out when it
+// was created and when it's slated to expire. We plan to start phasing out use of
+// PGP-specified Expiration times as far as sigchain walking is concerned. But for now,
+// there are a few places where it's still used (see ComputedKeyInfos#InsertServerEldestKey).
 func (k *PGPKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
 	ctime, etime = -1, -1
 	for _, pgpIdentity := range k.Identities {
