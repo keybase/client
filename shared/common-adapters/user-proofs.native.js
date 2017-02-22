@@ -184,13 +184,6 @@ const styleStatusIcon = (statusIcon: IconType) => ({
   marginLeft: globalMargins.xtiny,
   fontSize: 24,
 })
-const styleStatusIconCaret = (statusIcon: IconType) => ({
-  ...globalStyles.clickable,
-  color: defaultColor(statusIcon),
-  fontSize: globalMargins.tiny,
-  marginLeft: globalMargins.xtiny / 2,
-  marginRight: -2 * globalMargins.tiny,
-})
 const styleSpinner = {
   width: 20,
   height: 20,
