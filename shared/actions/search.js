@@ -149,7 +149,7 @@ function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncActi
     const service = {
       'Coinbase': 'coinbase',
       'Facebook': 'facebook',
-      'Github': 'github',
+      'GitHub': 'github',
       'Hackernews': 'hackernews',
       'Keybase': '',
       'Pgp': 'pgp',
