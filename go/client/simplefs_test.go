@@ -100,11 +100,6 @@ func TestSimpleFSMultiPathRemote(t *testing.T) {
 	destPath := makeSimpleFSPath(tc.G, tempdir)
 	srcPath := makeSimpleFSPath(tc.G, "/keybase/public/foobar/test1.txt")
 
-	isDestDir, destPathString, err := getDirPathString(context.TODO(), SimpleFSTestStat{}, destPath)
-	require.NoError(tc.T, err, "bad path type")
-	require.True(tc.T, isDestDir)
-	require.Equal(tc.T, tempdir, destPathString)
-
 	destPath, err = makeDestPath(context.TODO(),
 		SimpleFSTestStat{},
 		srcPath,
@@ -117,8 +112,6 @@ func TestSimpleFSMultiPathRemote(t *testing.T) {
 	require.False(tc.T, isSrcDir)
 	require.Equal(tc.T, "/public/foobar/test1.txt", srcPathString)
 	require.Equal(tc.T, "test1.txt", filepath.Base(srcPathString))
-	//	newDestString := filepath.ToSlash(filepath.Join(destPathString, filepath.Base(srcPathString)))
-	//	destType, _ := dest.PathType()
 
 	pathType, err := destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
