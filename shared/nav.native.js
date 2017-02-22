@@ -10,6 +10,8 @@ import {loginTab, folderTab} from './constants/tabs'
 import TabBar from './tab-bar/index.render.native'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 import GlobalError from './global-errors/container'
+import {isAndroid} from './constants/platform'
+
 import type {Props} from './nav'
 import type {Tab} from './constants/tabs'
 
@@ -29,7 +31,7 @@ function Nav (props: Props) {
 
   return (
     <Box style={flexOne}>
-      <NativeKeyboardAvoidingView behavior='padding' style={{...flexOne, backgroundColor: globalColors.white}}>
+      <NativeKeyboardAvoidingView behavior={isAndroid ? 'height' : 'padding'} style={{...flexOne, backgroundColor: globalColors.white}}>
         <NavigationCardStack
           key={props.routeSelected}
           style={flexOne}
