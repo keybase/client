@@ -126,10 +126,12 @@ func (e *loginProvision) Run(ctx *Context) error {
 		return err
 	}
 
+	// Remove this after kbfs notification change complete
+	// For now, call it before we let KBFS know there are new keys.
+	e.G().UserChanged(e.arg.User.GetUID())
+
 	// provisioning was successful, so the user has changed:
 	e.G().NotifyRouter.HandleKeyfamilyChanged(e.arg.User.GetUID())
-	// Remove this after kbfs notification change complete
-	e.G().UserChanged(e.arg.User.GetUID())
 
 	return nil
 }
