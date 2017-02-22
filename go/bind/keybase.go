@@ -13,10 +13,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -99,9 +96,7 @@ type serviceCn struct {
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
 	keybaseService := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
-	keybaseService.AddProtocols([]rpc.Protocol{
-		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
-	})
+	// TODO: Add SimpleFS protocol
 	return keybaseService, nil
 }
 
