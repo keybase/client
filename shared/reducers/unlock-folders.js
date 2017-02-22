@@ -6,23 +6,23 @@ import {toDeviceType} from '../constants/types/more'
 import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
 
 export type State = {
-  started: boolean,
   closed: boolean,
-  phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
   devices: ?Array<Device>,
-  waiting: boolean,
   paperkeyError: ?string,
+  phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
   sessionID: ?number,
+  started: boolean,
+  waiting: boolean,
 }
 
 const initialState: State = {
-  started: false,
   closed: true,
-  phase: 'dead',
-  waiting: false,
   devices: null,
   paperkeyError: null,
+  phase: 'dead',
   sessionID: null,
+  started: false,
+  waiting: false,
 }
 
 export default function (state: State = initialState, action: UnlockFolderActions): State {
@@ -51,8 +51,8 @@ export default function (state: State = initialState, action: UnlockFolderAction
     case Constants.onBackFromPaperKey:
       return {
         ...state,
-        phase: 'promptOtherDevice',
         paperkeyError: '',
+        phase: 'promptOtherDevice',
       }
 
     case Constants.toPaperKeyInput:
@@ -75,8 +75,8 @@ export default function (state: State = initialState, action: UnlockFolderAction
     case Constants.finish:
       return {
         ...state,
-        phase: 'dead',
         closed: true,
+        phase: 'dead',
       }
 
     case Constants.registerRekeyListener:
@@ -91,15 +91,15 @@ export default function (state: State = initialState, action: UnlockFolderAction
     case Constants.newRekeyPopup:
       if (state.started && action.payload) {
         const devices = action.payload.devices.map(({name, type, deviceID}) => ({
-          type: toDeviceType(type),
-          name,
           deviceID,
+          name,
+          type: toDeviceType(type),
         }))
 
         return {
           ...state,
-          devices,
           closed: !devices.length,
+          devices,
           sessionID: action.payload.sessionID,
         }
       }

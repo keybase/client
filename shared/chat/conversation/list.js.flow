@@ -25,6 +25,9 @@ export type Props = {
   onRetryMessage: (outboxID: string) => void,
   selectedConversation: ?ConversationIDKey,
   validated: boolean,
+  sidePanelOpen: boolean,
+  // TODO: better types will remove these
+  optionsFn: any,
 }
 
 export default class ConversationList extends Component<void, Props, void> {

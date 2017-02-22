@@ -11,6 +11,7 @@
 @interface Options ()
 @property NSString *appPath;
 @property NSString *runMode;
+@property NSString *sourcePath;
 @property UninstallOptions uninstallOptions;
 @property KBInstallOptions installOptions;
 @property NSInteger installTimeout; // In (whole) seconds
@@ -45,6 +46,8 @@
   [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
   [parser registerSwitch:@"install-mountdir"];
+  [parser registerSwitch:@"install-app-bundle"];
+  [parser registerOption:@"source-path" requirement:GBValueOptional]; // If using install-app-bundle
   [parser registerSettings:self.settings];
   NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
   if (![parser parseOptionsWithArguments:subargs commandLine:args[0]]) {
@@ -83,6 +86,10 @@
   if ([[self.settings objectForKey:@"install-mountdir"] boolValue]) {
     self.installOptions |= KBInstallOptionMountDir;
   }
+  if ([[self.settings objectForKey:@"install-app-bundle"] boolValue]) {
+    self.installOptions |= KBInstallOptionAppBundle;
+    self.sourcePath = [self.settings objectForKey:@"source-path"];
+  }
   if (self.installOptions == 0) {
     self.installOptions = KBInstallOptionAll;
   }
@@ -97,7 +104,7 @@
 
 - (KBEnvironment *)environment {
   NSString *servicePath = [self.appPath stringByAppendingPathComponent:@"Contents/SharedSupport/bin"];
-  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:self.runMode installOptions:self.installOptions installTimeout:self.installTimeout];
+  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:self.runMode installOptions:self.installOptions installTimeout:self.installTimeout appPath:self.appPath sourcePath:self.sourcePath];
   KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath];
   return environment;
 }

@@ -58,7 +58,7 @@ func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, e
 		return nil, NoUsernameError{}
 	}
 
-	skbfile := NewSKBKeyringFile(g, g.SKBFilenameForUser(un))
+	skbfile := NewSKBKeyringFile(g, un)
 	err := skbfile.LoadAndIndex()
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
@@ -70,7 +70,7 @@ func StatSKBKeyringMTime(un NormalizedUsername, g *GlobalContext) (mtime time.Ti
 	if un.IsNil() {
 		return mtime, NoUsernameError{}
 	}
-	return NewSKBKeyringFile(g, g.SKBFilenameForUser(un)).MTime()
+	return NewSKBKeyringFile(g, un).MTime()
 }
 
 func (k *KeyringFile) LoadAndIndex() error {

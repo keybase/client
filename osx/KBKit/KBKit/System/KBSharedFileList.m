@@ -69,10 +69,12 @@
     BOOL matched = NO;
     if (name) {
       CFStringRef displayNameRef = LSSharedFileListItemCopyDisplayName(itemRef);
-      if ([name isEqual:(__bridge NSString *)(displayNameRef)]) {
-        matched = YES;
+      if (displayNameRef) {
+        if ([name isEqual:(__bridge NSString *)(displayNameRef)]) {
+          matched = YES;
+        }
+        CFRelease(displayNameRef);
       }
-      CFRelease(displayNameRef);
     }
 
     if (!matched && URL) {
@@ -80,12 +82,14 @@
       UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
       CFErrorRef errorRef;
       CFURLRef URLRef = LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, &errorRef);
-      NSURL *itemURL = (__bridge NSURL *)URLRef;
-      if ([URL isEqual:itemURL]) {
-        matched = YES;
-      }
-      if (URLRef != nil) {
-        CFRelease(URLRef);
+      if (URLRef) {
+        NSURL *itemURL = (__bridge NSURL *)URLRef;
+        if ([URL isEqual:itemURL]) {
+          matched = YES;
+        }
+        if (URLRef != nil) {
+          CFRelease(URLRef);
+        }
       }
     }
 

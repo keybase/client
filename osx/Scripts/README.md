@@ -23,7 +23,7 @@ and the "Bundle version string, short" (CFBundleShortVersionString) in [Installe
 
 ### Releasing Installer
 
-Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the latest release downloads at https://github.com/keybase/client/releases.
+Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the s3://prerelease.keybase.io/darwin-package folder.
 
 Update the scripts that reference the older version such to include this version:
 - `packaging/desktop/package_darwin.sh`

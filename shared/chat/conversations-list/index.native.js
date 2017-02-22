@@ -107,45 +107,45 @@ const BottomLine = ({participantNeedToRekey, youNeedToRekey, isMuted, showBold, 
 
 const _Row = (props: RowProps) => {
   return (
-    <Box
-      onClick={() => props.onSelectConversation(props.conversationIDKey)}
-      style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
-      title={`${props.unreadCount} unread`}
-    >
-      <Avatars
-        backgroundColor={props.backgroundColor}
-        hasUnread={props.hasUnread}
-        isMuted={props.isMuted}
-        isSelected={props.isSelected}
-        participantNeedToRekey={props.participantNeedToRekey}
-        participants={props.participants}
-        youNeedToRekey={props.youNeedToRekey}
-      />
-      <Box style={{
-        ...globalStyles.flexBoxColumn,
-        ...conversationRowStyle,
-        borderBottomColor: (!props.isSelected && !props.hasUnread) ? globalColors.black_10 : globalColors.transparent,
-        borderBottomWidth: 1,
-      }}>
-        <TopLine
-          commaColor={props.commaColor}
+    <ClickableBox onClick={() => props.onSelectConversation(props.conversationIDKey)}>
+      <Box
+        style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
+        title={`${props.unreadCount} unread`}>
+        <Avatars
+          backgroundColor={props.backgroundColor}
           hasUnread={props.hasUnread}
-          participants={props.participants}
-          showBold={props.showBold}
-          subColor={props.subColor}
-          timestamp={props.timestamp}
-          usernameColor={props.usernameColor}
-        />
-        <BottomLine
           isMuted={props.isMuted}
+          isSelected={props.isSelected}
           participantNeedToRekey={props.participantNeedToRekey}
-          showBold={props.showBold}
-          snippet={props.snippet}
-          subColor={props.subColor}
+          participants={props.participants}
           youNeedToRekey={props.youNeedToRekey}
         />
+        <Box style={{
+          ...globalStyles.flexBoxColumn,
+          ...conversationRowStyle,
+          borderBottomColor: (!props.isSelected && !props.hasUnread) ? globalColors.black_10 : globalColors.transparent,
+          borderBottomWidth: 1,
+        }}>
+          <TopLine
+            commaColor={props.commaColor}
+            hasUnread={props.hasUnread}
+            participants={props.participants}
+            showBold={props.showBold}
+            subColor={props.subColor}
+            timestamp={props.timestamp}
+            usernameColor={props.usernameColor}
+          />
+          <BottomLine
+            isMuted={props.isMuted}
+            participantNeedToRekey={props.participantNeedToRekey}
+            showBold={props.showBold}
+            snippet={props.snippet}
+            subColor={props.subColor}
+            youNeedToRekey={props.youNeedToRekey}
+          />
+        </Box>
       </Box>
-    </Box>
+    </ClickableBox>
   )
 }
 

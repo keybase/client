@@ -2,29 +2,60 @@ package chat
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
+	"github.com/keybase/client/go/chat/interfaces"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"golang.org/x/net/context"
+	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type baseConversationSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
+	boxer       *Boxer
+	ri          func() chat1.RemoteInterface
 	getSecretUI func() libkb.SecretUI
+	offline     bool
 }
 
-func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *baseConversationSource {
+func newBaseConversationSource(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI,
+	ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
 	return &baseConversationSource{
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
 		getSecretUI:  getSecretUI,
+		ri:           ri,
+		boxer:        boxer,
 	}
+}
+
+func (s *baseConversationSource) Connected(ctx context.Context) {
+	s.Debug(ctx, "connected")
+	s.offline = false
+}
+
+func (s *baseConversationSource) Disconnected(ctx context.Context) {
+	s.Debug(ctx, "disconnected")
+	s.offline = true
+}
+
+func (s *baseConversationSource) IsOffline() bool {
+	return s.offline
+}
+
+func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
+	s.ri = ri
+}
+
+func (s *baseConversationSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
+	s.boxer.tlf = ti
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
@@ -69,19 +100,14 @@ func (s *baseConversationSource) TransformSupersedes(ctx context.Context, convID
 
 type RemoteConversationSource struct {
 	*baseConversationSource
-
 	libkb.Contextified
-	ri    func() chat1.RemoteInterface
-	boxer *Boxer
 }
 
 func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri func() chat1.RemoteInterface,
 	si func() libkb.SecretUI) *RemoteConversationSource {
 	return &RemoteConversationSource{
 		Contextified:           libkb.NewContextified(g),
-		baseConversationSource: newBaseConversationSource(g, si),
-		ri:    ri,
-		boxer: b,
+		baseConversationSource: newBaseConversationSource(g, si, ri, b),
 	}
 }
 
@@ -101,14 +127,21 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, []*chat1.RateLimit{}, errors.New("RemoteConversationSource.Pull called with empty convID")
 	}
 
+	// Insta fail if we are offline
+	if s.IsOffline() {
+		return chat1.ThreadView{}, []*chat1.RateLimit{}, OfflineError{}
+	}
+
 	var rl []*chat1.RateLimit
 
-	conv, ratelim, err := utils.GetRemoteConv(ctx, s.G(), uid, convID)
+	// Get conversation metadata
+	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
 
+	// Fetch thread
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: convID,
 		Query:          query,
@@ -145,6 +178,11 @@ func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor
 func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
+	// Insta fail if we are offline
+	if s.IsOffline() {
+		return nil, OfflineError{}
+	}
+
 	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 		ConversationID: convID,
 		MessageIDs:     msgIDs,
@@ -161,6 +199,9 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	if s.IsOffline() {
+		return nil, nil
+	}
 	return s.boxer.UnboxMessages(ctx, msgs, finalizeInfo)
 }
 
@@ -169,8 +210,6 @@ type HybridConversationSource struct {
 	utils.DebugLabeler
 	*baseConversationSource
 
-	ri      func() chat1.RemoteInterface
-	boxer   *Boxer
 	storage *storage.Storage
 }
 
@@ -179,10 +218,8 @@ func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *stor
 	return &HybridConversationSource{
 		Contextified:           libkb.NewContextified(g),
 		DebugLabeler:           utils.NewDebugLabeler(g, "HybridConversationSource", false),
-		baseConversationSource: newBaseConversationSource(g, si),
-		ri:      ri,
-		boxer:   b,
-		storage: storage,
+		baseConversationSource: newBaseConversationSource(g, si, ri, b),
+		storage:                storage,
 	}
 }
 
@@ -191,6 +228,17 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 
 	var err error
 	continuousUpdate := false
+
+	// Check to see if we are "appending" this message to the current record.
+	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
+	switch err.(type) {
+	case storage.MissError:
+		continuousUpdate = true
+	case nil:
+		continuousUpdate = maxMsgID >= msg.GetMessageID()-1
+	default:
+		return chat1.MessageUnboxed{}, continuousUpdate, err
+	}
 
 	// leaving this empty for message Push.
 	// In a rare case, this will result in an error if a push message
@@ -212,16 +260,6 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		})
 	}
 
-	// Check to see if we are "appending" this message to the current record.
-	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
-	switch err.(type) {
-	case storage.MissError:
-		continuousUpdate = true
-	case nil:
-		continuousUpdate = maxMsgID >= decmsg.GetMessageID()-1
-	default:
-		return decmsg, continuousUpdate, err
-	}
 	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -231,6 +269,12 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) error {
+
+	// If we are offline, then bail out of here with no error
+	if s.IsOffline() {
+		s.Debug(ctx, "identifyTLF: not performing identify because offline")
+		return nil
+	}
 
 	for _, msg := range msgs {
 		if msg.IsValid() {
@@ -242,7 +286,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 			if msg.Valid().ClientHeader.TlfPublic {
 				vis = chat1.TLFVisibility_PUBLIC
 			}
-			if _, err := LookupTLF(ctx, s.boxer.tlf, tlfName, vis); err != nil {
+			if _, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis); err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
 			}
@@ -256,14 +300,17 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, rl []*chat1.RateLimit, err error) {
-
+	defer s.Trace(ctx, func() error { return err }, "Pull")()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
 
 	// Get conversation metadata
-	conv, ratelim, err := utils.GetRemoteConv(ctx, s.G(), uid, convID)
+	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
+	if err != nil {
+		return chat1.ThreadView{}, rl, fmt.Errorf("Pull(): error: %s", err.Error())
+	}
 
 	// Post process thread before returning
 	defer func() {
@@ -280,35 +327,39 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
-			// Identify this TLF by running crypt keys
-			if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
-				s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
-				return chat1.ThreadView{}, nil, ierr
-			}
+			// Do online only things
+			if !s.IsOffline() {
 
-			// Before returning the stuff, update SenderDeviceRevokedAt on each message.
-			updatedMessages, err := s.updateMessages(ctx, thread.Messages)
-			if err != nil {
-				return chat1.ThreadView{}, rl, err
-			}
-			thread.Messages = updatedMessages
+				// Identify this TLF by running crypt keys
+				if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
+					s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
+					return chat1.ThreadView{}, rl, ierr
+				}
 
-			// Before returning the stuff, send remote request to mark as read if
-			// requested.
-			if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
-				readMsgID := thread.Messages[0].GetMessageID()
-				res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
-					ConversationID: convID,
-					MsgID:          readMsgID,
-				})
+				// Before returning the stuff, update SenderDeviceRevokedAt on each message.
+				updatedMessages, err := s.updateMessages(ctx, thread.Messages)
 				if err != nil {
-					return chat1.ThreadView{}, nil, err
+					return chat1.ThreadView{}, rl, err
 				}
-				if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
-					return chat1.ThreadView{}, nil, err
-				}
+				thread.Messages = updatedMessages
 
-				rl = append(rl, res.RateLimit)
+				// Before returning the stuff, send remote request to mark as read if
+				// requested.
+				if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
+					readMsgID := thread.Messages[0].GetMessageID()
+					res, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
+						ConversationID: convID,
+						MsgID:          readMsgID,
+					})
+					if err != nil {
+						return chat1.ThreadView{}, nil, err
+					}
+					if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
+						return chat1.ThreadView{}, nil, err
+					}
+
+					rl = append(rl, res.RateLimit)
+				}
 			}
 
 			return thread, rl, nil
@@ -316,6 +367,11 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	} else {
 		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
 			err.Error())
+	}
+
+	// Insta fail if we are offline
+	if s.IsOffline() {
+		return chat1.ThreadView{}, rl, OfflineError{}
 	}
 
 	// Fetch the entire request on failure
@@ -442,6 +498,12 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
 		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
+
+		// Insta fail if we are offline
+		if s.IsOffline() {
+			return nil, OfflineError{}
+		}
+
 		rmsgs, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 			ConversationID: convID,
 			MessageIDs:     remoteMsgs,
@@ -514,7 +576,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	for _, msg := range msgs {
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
-		} else {
+		} else if !s.IsOffline() {
 			unboxed, err := s.boxer.UnboxMessage(ctx, msg, finalizeInfo)
 			if err != nil {
 				return res, err
@@ -531,15 +593,15 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 	// Identify this TLF by running crypt keys
 	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
-		s.Debug(ctx, "GetMessagesWithRemotes: identify failed: %s", ierr.Error())
-		return nil, ierr
+		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
+		return res, ierr
 	}
 
 	return res, nil
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
-	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) libkb.ConversationSource {
+	ri func() chat1.RemoteInterface, si func() libkb.SecretUI) interfaces.ConversationSource {
 	if typ == "hybrid" {
 		return NewHybridConversationSource(g, boxer, storage, ri, si)
 	}

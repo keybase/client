@@ -11,4 +11,4 @@ export type Props = {
   onClickService: (service: SearchPlatforms) => void,
 }
 
-export class SearchBar extends Component<void, Props, void> {}
+export default class SearchBar extends Component<void, Props, void> {}

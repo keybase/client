@@ -47,14 +47,14 @@ describe('routeTree reducer', () => {
       const action = navigateUp()
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
-      expect(newState.routeState).toEqual(routeSetProps(routeDef, null, ['foo']))
+      expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['foo']: Array<string>)))
     })
   })
 
   describe('navigateAppend action', () => {
     it('works correctly with a normal append', () => {
       const routeDef = demoRouteDef
-      const routeState = routeSetProps(routeDef, null, ['foo'])
+      const routeState = routeSetProps(routeDef, null, (['foo']: Array<string>))
 
       const action = navigateAppend(['bar'])
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
@@ -65,13 +65,13 @@ describe('routeTree reducer', () => {
     it('works correctly with a normal append with parentPath', () => {
       const routeDef = demoRouteDef
       const routeStatePre = routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>))
-      const routeState = routeNavigate(routeDef, routeStatePre, ['etc'])
+      const routeState = routeNavigate(routeDef, routeStatePre, (['etc']: Array<string>))
 
       const action = navigateAppend(['baz'], ['foo'])
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       const expectedStatePre = routeSetProps(routeDef, null, (['foo', 'bar', 'baz']: PropsPath<*>))
-      const expectedState = routeNavigate(routeDef, expectedStatePre, ['etc'])
+      const expectedState = routeNavigate(routeDef, expectedStatePre, (['etc']: Array<string>))
       expect(newState.routeState).toEqual(expectedState)
     })
 
@@ -96,7 +96,7 @@ describe('routeTree reducer', () => {
       const action = navigateAppend(['baz'], ['foo', 'bar'])
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
-      expect(newState.routeState).toEqual(routeSetProps(routeDef, null, ['baz'], ['foo', 'bar']))
+      expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['baz']: Array<string>), ['foo', 'bar']))
     })
   })
 })

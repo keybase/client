@@ -121,8 +121,10 @@ func (c ChatMessage) Valid() bool {
 }
 
 type listOptionsV1 struct {
-	UnreadOnly bool   `json:"unread_only,omitempty"`
-	TopicType  string `json:"topic_type,omitempty"`
+	UnreadOnly  bool   `json:"unread_only,omitempty"`
+	TopicType   string `json:"topic_type,omitempty"`
+	ShowErrors  bool   `json:"show_errors,omitempty"`
+	FailOffline bool   `json:"fail_offline,omitempty"`
 }
 
 func (l listOptionsV1) Check() error {
@@ -156,6 +158,7 @@ type readOptionsV1 struct {
 	Limit          string
 	Peek           bool
 	UnreadOnly     bool `json:"unread_only"`
+	FailOffline    bool `json:"fail_offline"`
 }
 
 func (r readOptionsV1) Check() error {

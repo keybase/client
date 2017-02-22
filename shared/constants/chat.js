@@ -45,7 +45,7 @@ export type TextMessage = {
   messageState: MessageState,
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
-  key: any,
+  key: MessageKey,
   editedCount: number, // increase as we edit it
 }
 
@@ -55,7 +55,7 @@ export type ErrorMessage = {
   timestamp?: number,
   conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
-  key: any,
+  key: MessageKey,
 }
 
 export type InvisibleErrorMessage = {
@@ -63,7 +63,7 @@ export type InvisibleErrorMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
-  key: any,
+  key: MessageKey,
   data: any,
 }
 
@@ -72,7 +72,7 @@ export type UnhandledMessage = {
   timestamp: number,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID,
-  key: any,
+  key: MessageKey,
 }
 
 export type AttachmentSize = {
@@ -98,6 +98,7 @@ export type AttachmentMessage = {
   messageID?: MessageID,
   filename: ?string,
   title: ?string,
+  attachmentDurationMs: ?number,
   previewType: ?AttachmentType,
   previewPath: ?string,
   previewSize: ?AttachmentSize,
@@ -108,13 +109,13 @@ export type AttachmentMessage = {
   progress?: number, /* between 0 - 1 */
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
-  key: any,
+  key: MessageKey,
 }
 
 export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
-  key: any,
+  key: MessageKey,
 }
 
 export type SupersedesMessage = {
@@ -128,14 +129,14 @@ export type SupersedesMessage = {
 export type DeletedMessage = {
   type: 'Deleted',
   timestamp: number,
-  key: any,
+  key: MessageKey,
   messageID: MessageID,
   deletedIDs: Array<MessageID>,
 }
 
 export type EditingMessage = {
   type: 'Edit',
-  key: any,
+  key: MessageKey,
   message: HiddenString,
   messageID: MessageID,
   outboxID?: ?OutboxIDKey,
@@ -145,7 +146,7 @@ export type EditingMessage = {
 
 export type UpdatingAttachment = {
   type: 'UpdateAttachment',
-  key: any,
+  key: MessageKey,
   messageID: MessageID,
   targetMessageID: MessageID,
   timestamp: number,
@@ -198,7 +199,6 @@ export const ConversationBadgeStateRecord = Record({
 export const InboxStateRecord = Record({
   info: null,
   isEmpty: false,
-  youCreated: false,
   participants: List(),
   conversationIDKey: '',
   muted: false,
@@ -211,7 +211,6 @@ export const InboxStateRecord = Record({
 export type InboxState = Record<{
   info: ConversationInfoLocal,
   isEmpty: boolean,
-  youCreated: boolean, // true if you made it this session
   participants: List<string>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
@@ -245,13 +244,15 @@ export const MetaDataRecord = Record({
   brokenTracker: false,
 })
 
+export type Participants = List<string>
+
 export const RekeyInfoRecord = Record({
   rekeyParticipants: List(),
   youCanRekey: false,
 })
 
 export type RekeyInfo = Record<{
-  rekeyParticipants: List<string>,
+  rekeyParticipants: Participants,
   youCanRekey: boolean,
 }>
 
@@ -266,6 +267,8 @@ export const StateRecord = Record({
   pendingFailures: Set(),
   conversationUnreadCounts: Map(),
   rekeyInfos: Map(),
+  alwaysShow: Set(),
+  pendingConversations: Map(),
 })
 
 export type State = Record<{
@@ -279,6 +282,8 @@ export type State = Record<{
   pendingFailures: Set<OutboxIDKey>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
+  alwaysShow: Set<ConversationIDKey>,
+  pendingConversations: Map<ConversationIDKey, Participants>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -297,9 +302,11 @@ export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: M
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', {newConversationIDKey: ?ConversationIDKey}>
+export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
+export type AddPendingConversation = NoErrorTypedAction<'chat:addPendingConversation', {participants: Array<string>}>
+export type PendingToRealConversation = NoErrorTypedAction<'chat:pendingToRealConversation', {oldKey: ConversationIDKey, newKey: ConversationIDKey}>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type UpdatePaginationNext = NoErrorTypedAction<'chat:updatePaginationNext', {conversationIDKey: ConversationIDKey, paginationNext: Buffer}>
 export type MarkThreadsStale = NoErrorTypedAction<'chat:markThreadsStale', {convIDs: Array<ConversationIDKey>}>
@@ -377,7 +384,8 @@ export type MarkSeenMessage = NoErrorTypedAction<'chat:markSeenMessage', {
   messageID: MessageID,
 }>
 
-export type Actions = AppendMessages
+export type Actions = AddPendingConversation
+  | AppendMessages
   | DeleteMessage
   | EditMessage
   | LoadInbox
@@ -385,6 +393,7 @@ export type Actions = AppendMessages
   | LoadedInbox
   | NewChat
   | OpenFolder
+  | PendingToRealConversation
   | PrependMessages
   | SelectConversation
   | StartConversation
@@ -496,6 +505,22 @@ function parseMetadataPreviewSize (metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
+function pendingConversationIDKey (tlfName: string) {
+  return `PendingConversation:${tlfName}`
+}
+
+function isPendingConversationIDKey (conversationIDKey: string) {
+  return conversationIDKey.startsWith('PendingConversation:')
+}
+
+function pendingConversationIDKeyToTlfName (conversationIDKey: string) {
+  if (isPendingConversationIDKey(conversationIDKey)) {
+    return conversationIDKey.substring('PendingConversation:'.length)
+  }
+
+  return null
+}
+
 function convSupersedesInfo (conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
   return chat.get('supersedesState').get(conversationID)
 }
@@ -513,6 +538,12 @@ function newestConversationIDKey (conversationIDKey: ConversationIDKey, chat: St
   return newestConversationIDKey(supersededBy.conversationIDKey, chat)
 }
 
+type MessageKey = string
+type MessageKeyKind = 'messageID' | 'outboxID' | 'tempAttachment' | 'timestamp' | 'error'
+function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
+  return `${kind}:${value}`
+}
+
 export {
   getBrokenUsers,
   conversationIDToKey,
@@ -521,6 +552,7 @@ export {
   keyToConversationID,
   keyToOutboxID,
   makeSnippet,
+  messageKey,
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,
@@ -528,4 +560,7 @@ export {
   clampAttachmentPreviewSize,
   newestConversationIDKey,
   parseMetadataPreviewSize,
+  pendingConversationIDKey,
+  isPendingConversationIDKey,
+  pendingConversationIDKeyToTlfName,
 }

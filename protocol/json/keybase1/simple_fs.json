@@ -455,7 +455,7 @@
         },
         {
           "name": "offset",
-          "type": "int"
+          "type": "long"
         },
         {
           "name": "size",
@@ -473,7 +473,7 @@
         },
         {
           "name": "offset",
-          "type": "int"
+          "type": "long"
         },
         {
           "name": "content",

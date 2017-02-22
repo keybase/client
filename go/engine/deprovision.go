@@ -55,8 +55,9 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(ctx *Context) error {
 		e.G().Log.Debug("DeprovisionEngine error loading current user: %s", err)
 		return err
 	}
+	nun := me.GetNormalizedName()
 
-	keys, err := me.GetComputedKeyFamily().GetAllActiveKeysForDevice(e.G().Env.GetDeviceID())
+	keys, err := me.GetComputedKeyFamily().GetAllActiveKeysForDevice(e.G().Env.GetDeviceIDForUsername(nun))
 	if err != nil {
 		e.G().Log.Debug("DeprovisionEngine error loading keys for current device: %s", err)
 		return err
@@ -69,7 +70,7 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(ctx *Context) error {
 	} else {
 		// Do the revoke. We expect this to succeed.
 		revokeArg := RevokeDeviceEngineArgs{
-			ID:    e.G().Env.GetDeviceID(),
+			ID:    e.G().Env.GetDeviceIDForUsername(nun),
 			Force: true,
 		}
 		revokeEng := NewRevokeDeviceEngine(revokeArg, e.G())

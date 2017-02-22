@@ -59,7 +59,7 @@ func TestPGPPurgeRemove(t *testing.T) {
 		t.Fatalf("number of exported key files: %d, expected 1", len(eng.KeyFiles()))
 	}
 
-	kr := libkb.NewSKBKeyringFile(tc.G, tc.G.SKBFilenameForUser(libkb.NewNormalizedUsername(u.Username)))
+	kr := libkb.NewSKBKeyringFile(tc.G, libkb.NewNormalizedUsername(u.Username))
 	if err := kr.LoadAndIndex(); err != nil {
 		t.Fatal(err)
 	}

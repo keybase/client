@@ -12,7 +12,7 @@ import (
 
 func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string) error {
 	arg := UntrackEngineArg{
-		Username: username,
+		Username: libkb.NewNormalizedUsername(username),
 	}
 	ctx := Context{
 		LogUI:    g.UI.GetLogUI(),
@@ -32,7 +32,7 @@ func assertUntracked(tc libkb.TestContext, username string) {
 		tc.T.Fatal(err)
 	}
 
-	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
+	s, err := me.TrackChainLinkFor(them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		tc.T.Fatal(err)
 	}
