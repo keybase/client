@@ -197,6 +197,7 @@ func (g *gregorHandler) resetGregorClient() (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
 	sm := storage.NewMemEngine(of, clockwork.NewRealClock())
+	ctx := context.Background()
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
@@ -231,10 +232,10 @@ func (g *gregorHandler) resetGregorClient() (err error) {
 	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g.G()), g.G().Env.GetGregorSaveInterval(), g.G().Log)
 
 	// Bring up local state
-	g.Debug(context.Background(), "restoring state from leveldb")
+	g.Debug(ctx, "restoring state from leveldb")
 	if err = gcli.Restore(); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
-		g.Debug(context.Background(), "restore local state failed: %s", err)
+		g.Debug(ctx, "restore local state failed: %s", err)
 	}
 
 	g.gregorCli = gcli
@@ -564,9 +565,10 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 		return false
 	}
 
-	g.Debug(context.Background(), "should retry on connect, err %v", err)
+	ctx := context.Background()
+	g.Debug(ctx, "should retry on connect, err %v", err)
 	if g.skipRetryConnect {
-		g.Debug(context.Background(), "should retry on connect, skip retry flag set, returning false")
+		g.Debug(ctx, "should retry on connect, skip retry flag set, returning false")
 		g.skipRetryConnect = false
 		return false
 	}
