@@ -40,8 +40,9 @@ func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
 	maxBytes uint64) (*DiskBlockCacheStandard, error) {
 	blockStorage := storage.NewMemStorage()
 	lruStorage := storage.NewMemStorage()
+	tlfStorage := storage.NewMemStorage()
 	return newDiskBlockCacheStandardFromStorage(config, blockStorage,
-		lruStorage, maxBytes)
+		lruStorage, tlfStorage, maxBytes)
 }
 
 func initDiskBlockCacheTest(t *testing.T) (*DiskBlockCacheStandard,
@@ -82,7 +83,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	t.Log("Put a block into the cache.")
 	err := cache.Put(ctx, tlf1, block1Id, block1Encoded, block1ServerHalf)
 	require.NoError(t, err)
-	putTime, err := cache.getLRU(tlf1, block1Id)
+	putTime, err := cache.getLRU(block1Id)
 	require.NoError(t, err)
 	config.TestClock().Add(time.Second)
 
@@ -93,7 +94,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	require.Equal(t, block1Encoded, buf)
 
 	t.Log("Verify that the Get updated the LRU time for the block.")
-	getTime, err := cache.getLRU(tlf1, block1Id)
+	getTime, err := cache.getLRU(block1Id)
 	require.NoError(t, err)
 	require.True(t, getTime.After(putTime))
 
@@ -106,7 +107,7 @@ func TestDiskBlockCachePutAndGet(t *testing.T) {
 	require.Nil(t, buf)
 
 	t.Log("Verify that the cache returns no LRU time for the missing block.")
-	_, err = cache.getLRU(tlf1, ptr2.ID)
+	_, err = cache.getLRU(ptr2.ID)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
 }
 
@@ -152,9 +153,9 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Verify that the cache returns no LRU time for the missing blocks.")
-	_, err = cache.getLRU(tlf1, block1Id)
+	_, err = cache.getLRU(block1Id)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
-	_, err = cache.getLRU(tlf1, block2Id)
+	_, err = cache.getLRU(block2Id)
 	require.EqualError(t, err, errors.ErrNotFound.Error())
 }
 
@@ -198,18 +199,22 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 	// about our measurement assertions.
 	for expectedCount != 0 {
 		t.Log("Evict 10 blocks from the cache.")
-		numRemoved, err := cache.evictLocked(ctx, tlf1, 10)
+		numRemoved, err := cache.evictFromTLFLocked(ctx, tlf1, 10)
 		require.NoError(t, err)
 		expectedCount -= numRemoved
 
 		blockCount := 0
 		var avgDuration time.Duration
 		func() {
-			tlf1Range := util.BytesPrefix(tlf1.Bytes())
-			iter := cache.lruDb.NewIterator(tlf1Range, nil)
+			tlfBytes := tlf1.Bytes()
+			tlf1Range := util.BytesPrefix(tlfBytes)
+			iter := cache.tlfDb.NewIterator(tlf1Range, nil)
 			defer iter.Release()
 			for iter.Next() {
-				putTime, err := cache.timeFromBytes(iter.Value())
+				blockIDBytes := iter.Key()[len(tlfBytes):]
+				value, err := cache.lruDb.Get(blockIDBytes, nil)
+				require.NoError(t, err)
+				putTime, err := cache.timeFromBytes(value)
 				require.NoError(t, err)
 				avgDuration += putTime.Sub(initialTime)
 				blockCount++
