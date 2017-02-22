@@ -8,3 +8,4 @@ export type Props = {
 }
 
 export default class InviteGenerated extends Component<void, Props, void> { }
+export class InviteGeneratedRender extends Component<void, Props, void> { }

@@ -11,7 +11,7 @@ export type Props = {
   onPress?: void,
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,
-  style?: Object,
+  style?: ?Object,
   opacity?: boolean,
   inheritColor?: boolean,
   underlayColor?: string,
@@ -19,3 +19,5 @@ export type Props = {
 }
 
 declare export default class Icon extends Component<void, Exact<Props>, void> {}
+declare export function iconTypeToImgSet (type: IconType): string;
+declare export function urlsToImgSet (imgMap: {[size: string]: string}): ?string;
