@@ -114,7 +114,7 @@ func getDirPathString(ctx context.Context, cli SimpleFSStatter, path keybase1.Pa
 		pathString = path.Local()
 		// An error is OK, could be a target filename
 		// that does not exist yet
-		fileInfo, _ := os.Stat(pathString)
+		fileInfo, err := os.Stat(pathString)
 		if err == nil {
 			if fileInfo.IsDir() {
 				isDir = true
@@ -125,7 +125,7 @@ func getDirPathString(ctx context.Context, cli SimpleFSStatter, path keybase1.Pa
 }
 
 // Make sure the destination ends with the same filename as the source,
-// if any
+// if any, unless the destination is not a directory
 func makeDestPath(ctx context.Context,
 	cli SimpleFSStatter,
 	src keybase1.Path,
@@ -135,7 +135,7 @@ func makeDestPath(ctx context.Context,
 
 	isSrcDir, srcPathString, err := getDirPathString(ctx, cli, src)
 
-	if !isSrcDir {
+	if !isSrcDir && isDestPath {
 		newDestString := filepath.ToSlash(filepath.Join(destPathString, filepath.Base(srcPathString)))
 		destType, _ := dest.PathType()
 		if destType == keybase1.PathType_KBFS {
@@ -145,4 +145,39 @@ func makeDestPath(ctx context.Context,
 		}
 	}
 	return dest, err
+}
+
+func parseFsSrcDest(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]keybase1.Path, keybase1.Path, error) {
+	nargs := len(ctx.Args())
+
+	var srcType, destType keybase1.PathType
+	var srcPaths []keybase1.Path
+	var destPath keybase1.Path
+
+	if nargs < 2 {
+		return srcPaths, destPath, errors.New(name + " requires one or more source arguments and a destination argument")
+	}
+	for i, src := range ctx.Args() {
+		argPath := makeSimpleFSPath(g, src)
+		tempPathType, err := argPath.PathType()
+		if err != nil {
+			return srcPaths, destPath, err
+		}
+		// Make sure all source paths are the same type
+		if i == 0 {
+			srcType = tempPathType
+		} else if i == nargs-1 {
+			destPath = argPath
+			destType = tempPathType
+			break
+		} else if tempPathType != srcType {
+			return srcPaths, destPath, errors.New(name + " requires all sources to be the same type")
+		}
+		srcPaths = append(srcPaths, argPath)
+	}
+
+	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
+		return srcPaths, destPath, errors.New(name + " reaquires KBFS source and/or destination")
+	}
+	return srcPaths, destPath, nil
 }

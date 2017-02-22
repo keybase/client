@@ -4,8 +4,6 @@
 package client
 
 import (
-	"errors"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -49,6 +47,8 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	ctx := context.TODO()
 
+	c.G().Log.Debug("SimpleFSCopy to: %s", pathToString(c.dest))
+
 	isDestDir, destPathString, err := getDirPathString(ctx, cli, c.dest)
 
 	if err != nil {
@@ -56,11 +56,13 @@ func (c *CmdSimpleFSCopy) Run() error {
 	}
 
 	for _, src := range c.src {
+		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
 		dest, err := makeDestPath(ctx, cli, src, c.dest, isDestDir, destPathString)
 		if err != nil {
 			return err
 		}
+		c.G().Log.Debug("SimpleFSCopy %s -> %s", pathToString(src), pathToString(dest))
 
 		opid, err := cli.SimpleFSMakeOpid(ctx)
 		if err != nil {
@@ -89,37 +91,11 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 // ParseArgv gets the rquired arguments for this command.
 func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
-	nargs := len(ctx.Args())
 	var err error
 
 	c.recurse = ctx.Bool("recurse")
-	var srcType, destType keybase1.PathType
 
-	if nargs < 2 {
-		return errors.New("cp requires one or more source arguments and a destination argument")
-	}
-	for i, src := range ctx.Args() {
-		argPath := makeSimpleFSPath(c.G(), src)
-		tempPathType, err := argPath.PathType()
-		if err != nil {
-			return err
-		}
-		// Make sure all source paths are the same type
-		if i == 0 {
-			srcType = tempPathType
-		} else if i == nargs-1 {
-			c.dest = argPath
-			destType = tempPathType
-			break
-		} else if tempPathType != srcType {
-			return errors.New("cp requires all sources to be the same type")
-		}
-		c.src = append(c.src, argPath)
-	}
-
-	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
-		return errors.New("cp reaquires KBFS source and/or destination")
-	}
+	c.src, c.dest, err = parseFsSrcDest(c.G(), ctx, "cp")
 
 	return err
 }

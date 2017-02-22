@@ -58,7 +58,7 @@ func (c *CmdSimpleFSRead) Run() error {
 	err = cli.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
 		OpID:  opid,
 		Dest:  c.path,
-		Flags: keybase1.OpenFlags_READ,
+		Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
 	})
 	if err != nil {
 		return err

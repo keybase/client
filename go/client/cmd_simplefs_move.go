@@ -4,8 +4,6 @@
 package client
 
 import (
-	"errors"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -42,7 +40,20 @@ func (c *CmdSimpleFSMove) Run() error {
 
 	ctx := context.TODO()
 
+	isDestDir, destPathString, err := getDirPathString(ctx, cli, c.dest)
+	if err != nil {
+		return err
+	}
+
 	for _, src := range c.src {
+		c.G().Log.Debug("SimpleFSMove %s -> %s, %v", pathToString(src), destPathString, isDestDir)
+
+		dest, err := makeDestPath(ctx, cli, src, c.dest, isDestDir, destPathString)
+		if err != nil {
+			return err
+		}
+		c.G().Log.Debug("SimpleFSMove %s -> %s", pathToString(src), pathToString(dest))
+
 		opid, err := cli.SimpleFSMakeOpid(ctx)
 		if err != nil {
 			return err
@@ -52,7 +63,7 @@ func (c *CmdSimpleFSMove) Run() error {
 		err = cli.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
 			OpID: opid,
 			Src:  src,
-			Dest: c.dest,
+			Dest: dest,
 		})
 		if err != nil {
 			break
@@ -63,37 +74,8 @@ func (c *CmdSimpleFSMove) Run() error {
 
 // ParseArgv does nothing for this command.
 func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
-	nargs := len(ctx.Args())
 	var err error
-
-	var srcType, destType keybase1.PathType
-
-	if nargs < 2 {
-		return errors.New("mv requires one or more source arguments and a destination argument")
-	}
-	for i, src := range ctx.Args() {
-		argPath := makeSimpleFSPath(c.G(), src)
-		tempPathType, err := argPath.PathType()
-		if err != nil {
-			return err
-		}
-		// Make sure all source paths are the same type
-		if i == 0 {
-			srcType = tempPathType
-		} else if i == nargs-1 {
-			c.dest = argPath
-			destType = tempPathType
-			break
-		} else if tempPathType != srcType {
-			return errors.New("mv requires all sources to be the same type")
-		}
-		c.src = append(c.src, argPath)
-	}
-
-	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
-		return errors.New("cp reaquires KBFS source and/or destination")
-	}
-
+	c.src, c.dest, err = parseFsSrcDest(c.G(), ctx, "mv")
 	return err
 }
 

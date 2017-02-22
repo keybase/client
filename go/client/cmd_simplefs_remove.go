@@ -17,15 +17,15 @@ import (
 // CmdSimpleFSRemove is the 'fs rm' command.
 type CmdSimpleFSRemove struct {
 	libkb.Contextified
-	path keybase1.Path
+	paths []keybase1.Path
 }
 
 // NewCmdSimpleFSRemove creates a new cli.Command.
 func NewCmdSimpleFSRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "rm",
-		ArgumentHelp: "<path>",
-		Usage:        "remove directory elements",
+		ArgumentHelp: "<path> [path...]",
+		Usage:        "remove one or more directory elements",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSRemove{Contextified: libkb.NewContextified(g)}, "rm", c)
 		},
@@ -41,16 +41,17 @@ func (c *CmdSimpleFSRemove) Run() error {
 
 	ctx := context.TODO()
 
-	opid, err := cli.SimpleFSMakeOpid(ctx)
-	if err != nil {
-		return err
+	for _, path := range c.paths {
+		opid, err := cli.SimpleFSMakeOpid(ctx)
+		if err != nil {
+			return err
+		}
+		defer cli.SimpleFSClose(ctx, opid)
+		err = cli.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+			OpID: opid,
+			Path: path,
+		})
 	}
-	defer cli.SimpleFSClose(ctx, opid)
-	err = cli.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
-		OpID: opid,
-		Path: c.path,
-	})
-
 	return err
 }
 
@@ -59,12 +60,20 @@ func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	if nargs == 1 {
-		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
+	if nargs < 1 {
+		return errors.New("rm requires at least one KBFS path argument")
 	}
 
-	if pathType, _ := c.path.PathType(); pathType != keybase1.PathType_KBFS {
-		err = errors.New("rm requires a KBFS path argument")
+	for _, src := range ctx.Args() {
+		argPath := makeSimpleFSPath(c.G(), src)
+		pathType, err := argPath.PathType()
+		if err != nil {
+			return err
+		}
+		if pathType != keybase1.PathType_KBFS {
+			return errors.New("rm requires KBFS path arguments")
+		}
+		c.paths = append(c.paths, argPath)
 	}
 
 	return err
