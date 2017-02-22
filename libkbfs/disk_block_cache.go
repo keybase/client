@@ -440,7 +440,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 }
 
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
+func (cache *DiskBlockCacheStandard) DeleteByTLF(ctx context.Context, tlfID tlf.ID,
 	blockIDs []kbfsblock.ID) error {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
