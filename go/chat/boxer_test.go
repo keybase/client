@@ -213,7 +213,8 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 	}
 
 	world := kbtest.NewChatMockWorld(t, "unbox", 4)
-	boxer.tlf = kbtest.NewTlfMock(world)
+	tlf := kbtest.NewTlfMock(world)
+	boxer.tlf = func() keybase1.TlfInterface { return tlf }
 
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
@@ -266,7 +267,8 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 	}
 
 	world := kbtest.NewChatMockWorld(t, "unbox", 4)
-	boxer.tlf = kbtest.NewTlfMock(world)
+	tlf := kbtest.NewTlfMock(world)
+	boxer.tlf = func() keybase1.TlfInterface { return tlf }
 
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
@@ -523,7 +525,8 @@ func TestChatMessagePublic(t *testing.T) {
 	}
 
 	world := kbtest.NewChatMockWorld(t, "unbox", 4)
-	boxer.tlf = kbtest.NewTlfMock(world)
+	tlf := kbtest.NewTlfMock(world)
+	boxer.tlf = func() keybase1.TlfInterface { return tlf }
 
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),

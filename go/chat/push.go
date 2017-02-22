@@ -94,7 +94,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	uid := m.UID().String()
 
 	// Get and localize the conversation to get the new tlfname.
-	inbox, _, err := g.G().InboxSource.Read(ctx, m.UID().Bytes(), nil, &chat1.GetInboxLocalQuery{
+	inbox, _, err := g.G().InboxSource.Read(ctx, m.UID().Bytes(), nil, true, &chat1.GetInboxLocalQuery{
 		ConvID: &update.ConvID,
 	}, nil)
 	if err != nil {
@@ -264,7 +264,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage, b
 
 		// We need to get this conversation and then localize it
 		var inbox chat1.Inbox
-		if inbox, _, err = g.G().InboxSource.ReadNoCache(ctx, uid, nil, &chat1.GetInboxLocalQuery{
+		if inbox, _, err = g.G().InboxSource.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
 		}, nil); err != nil {
 			g.Debug(ctx, "chat activity: unable to read conversation: %s", err.Error())

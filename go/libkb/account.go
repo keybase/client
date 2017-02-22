@@ -284,16 +284,20 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	if a.localSession == nil {
 		a.G().Log.Warning("local session after load is nil")
 	}
-	kr := a.skbKeyring
-	if kr != nil {
-		return kr, nil
-	}
-
 	unp := a.localSession.GetUsername()
 	// not sure how this could happen, but just in case:
 	if unp == nil {
 		return nil, NoUsernameError{}
 	}
+
+	if a.skbKeyring != nil && a.skbKeyring.IsForUsername(*unp) {
+		a.G().Log.Debug("Account: found loaded keyring for %s", *unp)
+		return a.skbKeyring, nil
+	}
+
+	a.skbKeyring = nil
+
+	a.G().Log.Debug("Account: loading keyring for %s", *unp)
 	kr, err := LoadSKBKeyring(*unp, a.G())
 	if err != nil {
 		return nil, err

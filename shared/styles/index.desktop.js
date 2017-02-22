@@ -5,8 +5,8 @@ import {resolveImageAsURL} from '../desktop/resolve-root'
 import path from 'path'
 
 const windowStyle = {
-  minWidth: 800,
-  minHeight: 600,
+  minWidth: 600,
+  minHeight: 400,
   width: 800, // Default width
   height: 600, // Default height
 }

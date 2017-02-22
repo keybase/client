@@ -8,16 +8,16 @@ import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/se
 const {equalSearchResult, platformToNiceName} = Constants
 
 export type State = {
+  requestTimestamp: ?Date,
+  results: Array<SearchResult>,
   searchHintText: string,
-  searchText: ?string,
   searchIcon: IconType,
   searchPlatform: SearchPlatforms,
+  searchText: ?string,
   searchTextClearTrigger: number,
-  results: Array<SearchResult>,
-  requestTimestamp: ?Date,
   selectedUsers: Array<SearchResult>,
-  userForInfoPane: ?SearchResult,
   showUserGroup: boolean,
+  userForInfoPane: ?SearchResult,
   waiting: boolean,
 }
 
@@ -31,16 +31,16 @@ const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>):
 )
 
 const initialState: State = {
-  searchHintText: searchHintText('Keybase', []),
-  searchText: '',
-  searchIcon: 'icon-keybase-logo-24',
-  searchTextClearTrigger: 1,
-  searchPlatform: 'Keybase',
-  selectedUsers: [],
-  results: [],
   requestTimestamp: null,
-  userForInfoPane: null,
+  results: [],
+  searchHintText: searchHintText('Keybase', []),
+  searchIcon: 'icon-keybase-logo-24',
+  searchPlatform: 'Keybase',
+  searchText: '',
+  searchTextClearTrigger: 1,
+  selectedUsers: [],
   showUserGroup: showUserGroup(null, []),
+  userForInfoPane: null,
   waiting: false,
 }
 
@@ -54,10 +54,10 @@ export default function (state: State = initialState, action: SearchActions): St
       if (!action.error) {
         return {
           ...state,
+          results: [],
+          searchPlatform: state.searchPlatform || initialState.searchPlatform,
           searchText: action.payload.term,
           showUserGroup: showUserGroup(action.payload.term, state.selectedUsers),
-          searchPlatform: state.searchPlatform || initialState.searchPlatform,
-          results: [],
         }
       }
       break
@@ -88,13 +88,13 @@ export default function (state: State = initialState, action: SearchActions): St
 
         return {
           ...state,
+          results: [],
+          searchHintText: searchHintText(state.searchPlatform, selectedUsers),
+          searchText: null,
+          searchTextClearTrigger: state.searchTextClearTrigger + 1,
           selectedUsers,
           showUserGroup: showUserGroup(null, selectedUsers),
           userForInfoPane: action.payload.users.length ? maybeUpgradeUser(action.payload.users[0]) : null,
-          searchHintText: searchHintText(state.searchPlatform, selectedUsers),
-          results: [],
-          searchText: null,
-          searchTextClearTrigger: state.searchTextClearTrigger + 1,
         }
       }
       break
@@ -122,8 +122,8 @@ export default function (state: State = initialState, action: SearchActions): St
 
           return {
             ...state,
-            showUserGroup: showUserGroup(null, selectedUsers),
             selectedUsers,
+            showUserGroup: showUserGroup(null, selectedUsers),
             userForInfoPane,
           }
         }
@@ -141,8 +141,8 @@ export default function (state: State = initialState, action: SearchActions): St
 
         return {
           ...state,
-          results: action.payload.results,
           requestTimestamp: action.payload.requestTimestamp,
+          results: action.payload.results,
         }
       }
       break

@@ -7,46 +7,46 @@ import {isMobile} from '../constants/platform'
 import type {SignupActions} from '../constants/signup'
 
 export type SignupState = {
-  inviteCode: ?string,
-  username: ?string,
-  email: ?string,
-  inviteCodeError: ?string,
-  usernameError: ?Error,
-  emailError: ?Error,
-  nameError: ?string,
-  passphraseError: ?HiddenString,
-  passphrase: ?HiddenString,
-  deviceNameError: ?string,
   deviceName: ?string,
+  deviceNameError: ?string,
+  email: ?string,
+  emailError: ?Error,
+  inviteCode: ?string,
+  inviteCodeError: ?string,
+  nameError: ?string,
   paperkey: ?HiddenString,
-  signupError: ?HiddenString,
-  waiting: boolean,
+  passphrase: ?HiddenString,
+  passphraseError: ?HiddenString,
   phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
+  signupError: ?HiddenString,
+  username: ?string,
+  usernameError: ?Error,
+  waiting: boolean,
 }
 
 const initialState: SignupState = {
-  inviteCode: null,
-  username: null,
-  email: null,
-  inviteCodeError: null,
-  usernameError: null,
-  emailError: null,
-  nameError: null,
-  passphraseError: null,
-  passphrase: null,
-  deviceNameError: null,
-  paperkey: null,
-  signupError: null,
   deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
-  waiting: false,
+  deviceNameError: null,
+  email: null,
+  emailError: null,
+  inviteCode: null,
+  inviteCodeError: null,
+  nameError: null,
+  paperkey: null,
+  passphrase: null,
+  passphraseError: null,
   phase: 'inviteCode',
+  signupError: null,
+  username: null,
+  usernameError: null,
+  waiting: false,
 }
 
 /* eslint-disable no-fallthrough */
 export default function (state: SignupState = initialState, action: SignupActions): SignupState {
   switch (action.type) {
     case CommonConstants.resetStore:
-    case Constants.resetSignup:
+    case Constants.resetSignup: // fallthrough
       return {...initialState}
 
     case Constants.signupWaiting:
@@ -76,19 +76,19 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {emailError, usernameError} = action.payload
         return {
           ...state,
-          emailError,
-          usernameError,
-          username,
           email,
+          emailError,
+          username,
+          usernameError,
         }
       } else {
         return {
           ...state,
-          phase: 'passphraseSignup',
-          emailError: null,
-          usernameError: null,
-          username,
           email,
+          emailError: null,
+          phase: 'passphraseSignup',
+          username,
+          usernameError: null,
         }
       }
 
@@ -103,18 +103,18 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {emailError, nameError, email, name} = action.payload
         return {
           ...state,
-          emailError,
-          nameError,
           email,
+          emailError,
           name,
+          nameError,
         }
       } else {
         const {email, name} = action.payload
         return {
           ...state,
-          phase: 'requestInviteSuccess',
           email,
           name,
+          phase: 'requestInviteSuccess',
         }
       }
 
@@ -129,9 +129,9 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {passphrase} = action.payload
         return {
           ...state,
-          phase: 'deviceName',
           passphrase,
           passphraseError: null,
+          phase: 'deviceName',
         }
       }
 
@@ -146,9 +146,9 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {deviceName} = action.payload
         return {
           ...state,
-          phase: 'signupLoading',
           deviceName,
           deviceNameError: null,
+          phase: 'signupLoading',
         }
       }
 
@@ -180,8 +180,8 @@ export default function (state: SignupState = initialState, action: SignupAction
       if (action.error) {
         return {
           ...state,
-          signupError: action.payload.signupError,
           phase: 'signupError',
+          signupError: action.payload.signupError,
         }
       } else {
         return state
@@ -190,9 +190,9 @@ export default function (state: SignupState = initialState, action: SignupAction
     case Constants.restartSignup:
       return {
         ...state,
-        phase: 'inviteCode',
-        passphraseError: null,
         inviteCodeError: null,
+        passphraseError: null,
+        phase: 'inviteCode',
       }
 
     default:

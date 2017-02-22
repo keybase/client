@@ -32,7 +32,7 @@
     [installables addObject:environment.helperTool];
   }
   if (options.uninstallOptions & UninstallOptionApp) {
-    [installables addObject:[[KBAppBundle alloc] initWithPath:options.appPath]];
+    [installables addObject:[[KBAppBundle alloc] initWithConfig:environment.config helperTool:environment.helperTool]];
   }
   [KBUninstaller uninstall:installables completion:completion];
 }

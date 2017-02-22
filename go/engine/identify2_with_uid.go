@@ -149,7 +149,7 @@ func loadIdentifyUser(ctx *Context, g *libkb.GlobalContext, arg libkb.LoadUserAr
 	return ret, err
 }
 
-func (i *identifyUser) trackChainLinkFor(ctx context.Context, name string, uid keybase1.UID, g *libkb.GlobalContext) (ret *libkb.TrackChainLink, err error) {
+func (i *identifyUser) trackChainLinkFor(ctx context.Context, name libkb.NormalizedUsername, uid keybase1.UID, g *libkb.GlobalContext) (ret *libkb.TrackChainLink, err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("identifyUser#trackChainLinkFor(%s)", name), func() error { return err })()
 
 	if i.full != nil {
@@ -166,7 +166,7 @@ func (i *identifyUser) trackChainLinkFor(ctx context.Context, name string, uid k
 		// go ahead and load that chain link from local level DB, and it's almost
 		// always going to be there, since it was written as a side effect of
 		// fetching the full user. There's a corner case, see just below...
-		ret, err = libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, libkb.NewNormalizedUsername(name), uid, g)
+		ret, err = libkb.TrackChainLinkFromUserPlusAllKeys(i.thin, name, uid, g)
 		if _, inconsistent := err.(libkb.InconsistentCacheStateError); !inconsistent {
 			g.Log.CDebugf(ctx, "| returning in common case -> (found=%v, err=%v)", (ret != nil), err)
 			return ret, err
@@ -745,7 +745,7 @@ func (e *Identify2WithUID) createIdentifyState(ctx *Context) (err error) {
 		return nil
 	}
 
-	tcl, err := e.me.trackChainLinkFor(ctx.GetNetContext(), them.GetName(), them.GetUID(), e.G())
+	tcl, err := e.me.trackChainLinkFor(ctx.GetNetContext(), them.GetNormalizedName(), them.GetUID(), e.G())
 	if tcl != nil {
 		e.G().Log.Debug("| using track token %s", tcl.LinkID())
 		e.useTracking = true

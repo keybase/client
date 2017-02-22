@@ -104,7 +104,7 @@ function sortInbox (inbox: List<InboxState>): List<InboxState> {
 function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return initialState
+      return new StateRecord()
     case 'chat:removeOutboxMessage': {
       const {conversationIDKey, outboxID} = action.payload
       // $FlowIssue

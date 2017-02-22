@@ -45,7 +45,10 @@ export type Props = {
   you: string,
   supersedes: ?SupersedeInfo,
   supersededBy: ?SupersedeInfo,
-  finalizeInfo: ?FinalizeInfo
+  finalizeInfo: ?FinalizeInfo,
+  // TODO: better types will remove these
+  inputProps: any,
+  listProps: any,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

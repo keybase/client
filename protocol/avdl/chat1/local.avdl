@@ -384,6 +384,8 @@ protocol local {
   }
   record GetThreadLocalRes {
     ThreadView thread;
+
+    boolean offline;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
@@ -391,8 +393,9 @@ protocol local {
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
     union { null, Pagination } pagination;
-    array<RateLimit> rateLimits;
 
+    boolean offline;
+    array<RateLimit> rateLimits;
     // This only contains identify failures if a TLF name is specified in arg.
     // It doesn't contain identifyFailures otherwise, since GetInboxLocal
     // doesn't run identify for each conversation in the inbox.
@@ -424,14 +427,17 @@ protocol local {
   record GetInboxAndUnboxLocalRes {
     array<ConversationLocal> conversations;
     union { null, Pagination } pagination;
+
+    boolean offline;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   GetInboxNonblockLocalRes getInboxNonblockLocal(int sessionID, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxNonblockLocalRes {
-    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    boolean offline;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
@@ -485,6 +491,7 @@ protocol local {
   }
   record GetInboxSummaryForCLILocalRes {
     array<ConversationLocal> conversations;
+    boolean offline;
     array<RateLimit> rateLimits;
   }
 
@@ -506,6 +513,7 @@ protocol local {
   record GetConversationForCLILocalRes {
     ConversationLocal conversation;
     array<MessageUnboxed> messages;
+    boolean offline;
     array<RateLimit> rateLimits;
   }
 
@@ -514,6 +522,8 @@ protocol local {
   GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, boolean disableResolveSupersedes, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
+
+    boolean offline;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
@@ -561,6 +571,7 @@ protocol local {
   record FindConversationsLocalRes {
     array<ConversationLocal> conversations;
 
+    boolean offline;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }

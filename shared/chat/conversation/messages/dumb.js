@@ -44,6 +44,7 @@ function attachmentMessageMock (messageState: MessageState, author: string, you:
     ...messageMock(messageState, author, you, extraProps),
     filename: 'yosemite.jpg',
     title: 'Yosemite!',
+    attachmentDurationMs: null,
     previewType: 'Image',
     previewPath: require('../../../images/mock/yosemite-preview.jpg'),
     previewDurationMs: null,
@@ -136,6 +137,7 @@ const attachmentBaseMessage = {
   messageID: 0,
   filename: '/tmp/Yosemite.jpg',
   title: 'Half Dome, Merced River, Winter',
+  attachmentDurationMs: null,
   previewDurationMs: null,
   previewType: 'Image',
   previewPath: null,
@@ -158,6 +160,7 @@ const attachmentMessageWithImg = {
   messageID: 0,
   filename: '/tmp/Yosemite.jpg',
   title: 'Half Dome, Merced River, Winter',
+  attachmentDurationMs: null,
   previewDurationMs: null,
   previewType: 'Image',
   previewPath: require('../../../images/mock/yosemite-preview.jpg'),
@@ -172,7 +175,7 @@ const attachmentMessageWithImg = {
 
 const attachmentMessageWithDuration = {
   ...attachmentMessageWithImg,
-  previewDurationMs: 14000,
+  attachmentDurationMs: 14000,
 }
 
 const attachmentMessageGeneric = {
@@ -185,6 +188,7 @@ const attachmentMessageGeneric = {
   messageID: 0,
   filename: '/tmp/The Nose - Topo.pdf',
   title: 'seattle-map.pdf',
+  attachmentDurationMs: null,
   previewDurationMs: null,
   previewType: 'Other',
   downloadedPath: '/tmp/somewhere', // eslint-disable-line

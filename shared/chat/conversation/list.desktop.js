@@ -348,7 +348,6 @@ class ConversationList extends Component<void, Props, State> {
     const options = {
       followingMap: this.props.followingMap,
       includeHeader: isFirstMessage || !skipMsgHeader,
-      index,
       isFirstNewMessage,
       isScrolling,
       isSelected,
@@ -412,6 +411,9 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _domNodeToRect (element) {
+    if (!document.body) {
+      throw new Error('Body not ready')
+    }
     const bodyRect = document.body.getBoundingClientRect()
     const elemRect = element.getBoundingClientRect()
 
@@ -449,7 +451,11 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _cellRangeRenderer = options => chatCellRangeRenderer(this.state.messages.count(), this._cellCache, options)
+  _cellRangeRenderer = options => {
+    const message = this.state.messages.get(cellMessageStartIndex)
+    const firstKey = message.key || '0'
+    return chatCellRangeRenderer(firstKey, this._cellCache, options)
+  }
 
   render () {
     if (!this.props.validated) {
@@ -533,8 +539,8 @@ const listStyle = {
   paddingBottom: listBottomMargin,
 }
 
-let lastMessageCount
-function chatCellRangeRenderer (messageCount: number, cellSizeCache: any, {
+let lastFirstKey
+function chatCellRangeRenderer (firstKey: string, cellSizeCache: any, {
   cellCache,
   cellRenderer,
   columnSizeAndPositionManager,
@@ -556,8 +562,9 @@ function chatCellRangeRenderer (messageCount: number, cellSizeCache: any, {
   const offsetAdjusted = verticalOffsetAdjustment || horizontalOffsetAdjustment
   const canCacheStyle = !isScrolling || !offsetAdjusted
 
-  if (messageCount !== lastMessageCount) {
-    lastMessageCount = messageCount
+  // Only if the list is prepended to does it cause all this redrawing
+  if (firstKey !== lastFirstKey) {
+    lastFirstKey = firstKey
     rowSizeAndPositionManager.resetCell(0)
     cellSizeCache.clearAllRowHeights()
   }
@@ -574,7 +581,7 @@ function chatCellRangeRenderer (messageCount: number, cellSizeCache: any, {
         rowIndex <= visibleRowIndices.stop
       )
 
-      let key = `${rowIndex}-${messageCount}`
+      let key = `${rowIndex}-${firstKey}`
       let style
 
       // Cache style objects so shallow-compare doesn't re-render unnecessarily.

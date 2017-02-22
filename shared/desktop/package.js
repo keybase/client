@@ -28,12 +28,14 @@ const shouldBuildAnArch = argv.arch || false
 const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment || ''
 const outDir = argv.outDir || ''
+const appCopyright = 'Copyright (c) 2015, Keybase'
 
 const packagerOpts = {
   'app-bundle-id': 'keybase.Electron',
   'helper-bundle-id': 'keybase.ElectronHelper',
   'app-version': appVersion,
   'build-version': appVersion + comment,
+  'app-copyright': appCopyright,
   dir: desktopPath('./build'),
   name: appName,
   asar: shouldUseAsar,
@@ -180,7 +182,8 @@ function log (plat, arch) {
       console.error(err)
       process.exit(1)
     }
-    const dir = path.join(filepath[0], 'resources/app/desktop/dist')
+    const subdir = (plat === 'darwin') ? 'Keybase.app/Contents/Resources' : 'resources'
+    const dir = path.join(filepath[0], subdir, 'app/desktop/dist')
     const files = ['index', 'launcher', 'main', 'remote-component-loader'].map(p => p + '.bundle.js')
     files.forEach(file => {
       try {

@@ -6,10 +6,10 @@ import * as CommonConstants from '../constants/common'
 import type {State} from '../constants/devices'
 
 const initialState: State = {
-  waitingForServer: false,
   devices: null,
   error: null,
   paperKey: null,
+  waitingForServer: false,
 }
 
 export default function (state: State = initialState, action: any) {
@@ -30,24 +30,24 @@ export default function (state: State = initialState, action: any) {
       } else {
         devices = _.chain(action.payload)
           .map(dev => ({
-            name: dev.device.name,
-            deviceID: dev.device.deviceID,
-            type: dev.device.type,
             created: dev.device.cTime,
             currentDevice: dev.currentDevice,
-            provisioner: dev.provisioner,
+            deviceID: dev.device.deviceID,
+            lastUsed: dev.device.lastUsedTime,
+            name: dev.device.name,
             provisionedAt: dev.provisionedAt,
+            provisioner: dev.provisioner,
             revokedAt: dev.revokedAt,
             revokedBy: dev.revokedByDevice,
-            lastUsed: dev.device.lastUsedTime,
+            type: dev.device.type,
           }))
           .orderBy(['currentDevice', 'name'], ['desc', 'asc'])
           .value()
       }
       return {
         ...state,
-        error: action.error && action.payload,
         devices,
+        error: action.error && action.payload,
         waitingForServer: false,
       }
     case Constants.removeDevice:

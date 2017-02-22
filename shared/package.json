@@ -126,7 +126,7 @@
     "eslint-plugin-standard": "2.0.1",
     "express": "4.14.1",
     "file-loader": "0.10.0",
-    "flow-bin": "0.36.0",
+    "flow-bin": "0.39.0",
     "fs-extra": "1.0.0",
     "jest": "18.1.0",
     "minimist": "1.2.0",

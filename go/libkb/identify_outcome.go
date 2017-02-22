@@ -13,7 +13,7 @@ import (
 )
 
 type IdentifyOutcome struct {
-	Username              string
+	Username              NormalizedUsername
 	Error                 error
 	KeyDiffs              []TrackDiff
 	Revoked               []TrackDiff
@@ -31,7 +31,7 @@ func NewIdentifyOutcome() *IdentifyOutcome {
 	return &IdentifyOutcome{}
 }
 
-func NewIdentifyOutcomeWithUsername(u string) *IdentifyOutcome {
+func NewIdentifyOutcomeWithUsername(u NormalizedUsername) *IdentifyOutcome {
 	return &IdentifyOutcome{Username: u}
 }
 

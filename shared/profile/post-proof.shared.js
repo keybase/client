@@ -93,7 +93,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'dns':
       return {
         ...base,
-        descriptionView: <Text type='BodySemibold' {...styleCentered}>Enter the following as a TXT entry in your DNS zone, <Text type='BodySemibold'>exactly as it appears</Text>. If you need a "name" for you entry, give it "@".</Text>,
+        descriptionView: <Text type='BodySemibold' {...styleCentered}>Enter the following as a TXT entry in your DNS zone, <Text type='BodySemibold'>exactly as it appears</Text>. If you need a "name" for your entry, give it "@".</Text>,
         onCompleteText: 'OK posted! Check for it!',
         proofText: props.proofText,
         noteText: null,
