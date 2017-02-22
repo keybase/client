@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 )
 
+// SimpleFS is the simple filesystem rpc layer implementation.
 type SimpleFS struct {
 	lock       sync.RWMutex
 	config     Config
