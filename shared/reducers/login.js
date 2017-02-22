@@ -12,57 +12,57 @@ type Error = string
 
 export type LoginState = {
   codePage: {
-    otherDeviceRole: ?DeviceRole,
-    myDeviceRole: ?DeviceRole,
-    mode: ?Mode,
     cameraBrokenMode: boolean,
     codeCountDown: number,
-    textCode: ?HiddenString,
-    qrScanned: ?QRCode,
+    mode: ?Mode,
+    myDeviceRole: ?DeviceRole,
+    otherDeviceRole: ?DeviceRole,
     qrCode: ?QRCode,
+    qrScanned: ?QRCode,
+    textCode: ?HiddenString,
   },
-  registerUserPassError: ?Error,
-  registerUserPassLoading: boolean,
+  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
   forgotPasswordEmailAddress: string | '',
+  forgotPasswordError: ?Error,
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
-  forgotPasswordError: ?Error,
-  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
-  waitingForResponse: boolean,
-  loginError: ?string,
-  justRevokedSelf: ?string,
   justDeletedSelf: ?string,
   justLoginFromRevokedDevice: ?boolean,
+  justRevokedSelf: ?string,
+  loginError: ?string,
+  registerUserPassError: ?Error,
+  registerUserPassLoading: boolean,
+  waitingForResponse: boolean,
 }
 
 const initialState: LoginState = {
   codePage: {
-    otherDeviceRole: null,
-    myDeviceRole: null,
-    mode: null,
     cameraBrokenMode: false,
     codeCountDown: 0,
-    textCode: null,
-    qrScanned: null,
+    mode: null,
+    myDeviceRole: null,
+    otherDeviceRole: null,
     qrCode: null,
-  },
-  registerUserPassError: null,
-  registerUserPassLoading: false,
-  forgotPasswordEmailAddress: '',
-  forgotPasswordSubmitting: false,
-  forgotPasswordSuccess: false,
-  forgotPasswordError: null,
-  deviceName: {
-    onSubmit: () => {},
-    existingDevices: [],
-    deviceName: '',
+    qrScanned: null,
+    textCode: null,
   },
   configuredAccounts: null,
-  waitingForResponse: false,
-  loginError: null,
-  justRevokedSelf: null,
+  deviceName: {
+    deviceName: '',
+    existingDevices: [],
+    onSubmit: () => {},
+  },
+  forgotPasswordEmailAddress: '',
+  forgotPasswordError: null,
+  forgotPasswordSubmitting: false,
+  forgotPasswordSuccess: false,
   justDeletedSelf: null,
   justLoginFromRevokedDevice: null,
+  justRevokedSelf: null,
+  loginError: null,
+  registerUserPassError: null,
+  registerUserPassLoading: false,
+  waitingForResponse: false,
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
@@ -98,22 +98,22 @@ export default function (state: LoginState = initialState, action: any): LoginSt
     case Constants.actionUpdateForgotPasswordEmailAddress:
       toMerge = {
         forgotPasswordEmailAddress: action.error ? null : action.payload,
-        forgotPasswordSuccess: false,
         forgotPasswordError: action.error ? action.payload : null,
+        forgotPasswordSuccess: false,
       }
       break
     case Constants.actionSetForgotPasswordSubmitting:
       toMerge = {
+        forgotPasswordError: null,
         forgotPasswordSubmitting: true,
         forgotPasswordSuccess: false,
-        forgotPasswordError: null,
       }
       break
     case Constants.actionForgotPasswordDone:
       toMerge = {
+        forgotPasswordError: action.error,
         forgotPasswordSubmitting: false,
         forgotPasswordSuccess: !action.error,
-        forgotPasswordError: action.error,
       }
       break
     case Constants.cameraBrokenMode:
@@ -123,9 +123,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       toMerge = {
         codePage: {
           codeCountDown: 0,
-          textCode: null,
-          qrScanned: null,
           qrCode: null,
+          qrScanned: null,
+          textCode: null,
         },
       }
       break

@@ -194,7 +194,7 @@ services:
     { assert_regex_match: {
       , pattern: "^Listing$"
       , from: "kind"
-      , error: ["CONTENT_FAILURE", "Wanted a post of type 'Listing', but got %{kind}"] } },
+      , error: ["CONTENT_FAILURE", "Wanted a post of type 'Listing', but got '%{kind}'"] } },
     # check that the inner thing is a t3
     { selector_json: {
       , selectors: [0, "data", "children", 0, "kind"]
@@ -203,7 +203,7 @@ services:
     { assert_regex_match: {
       , pattern: "^t3$"
       , from: "inner_kind"
-      , error: ["CONTENT_FAILURE", "Wanted a child of type 't3' but got %{inner_kind}"] } },
+      , error: ["CONTENT_FAILURE", "Wanted a child of type 't3' but got '%{inner_kind}'"] } },
     # check the subreddit
     { selector_json: {
       , selectors: [0, "data", "children", 0, "data", "subreddit"]
@@ -223,7 +223,7 @@ services:
       , cmp: "cicmp"
       , a: "author"
       , b: "username_service"
-      , error: ["BAD_USERNAME", "Bad post author; wanted '%{username_service} but got '%{author}'"] } },
+      , error: ["BAD_USERNAME", "Bad post author; wanted '%{username_service}' but got '%{author}'"] } },
     # check the title
     { selector_json: {
       , selectors: [0, "data", "children", 0, "data", "title"]
@@ -297,7 +297,7 @@ services:
       , cmp: "cicmp"
       , a: "data_screen_name"
       , b: "username_service"
-      , error: ["BAD_USERNAME", "Bad post authored: wanted ${username_service} but got %{data_screen_name}"] } },
+      , error: ["BAD_USERNAME", "Bad post authored: wanted '%{username_service}' but got '%{data_screen_name}'"] } },
     # Check the username in the tweet. Case insensitive.
     { selector_css: {
       , selectors: ["div.permalink-tweet-container div.permalink-tweet", 0, "p.tweet-text", 0]

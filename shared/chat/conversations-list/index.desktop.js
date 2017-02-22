@@ -39,12 +39,10 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   }
 
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
-    backgroundColor,
+    loadingColor: globalColors.blue3_40,
     borderColor: rowBorderColor(idx, idx === (avatarCount - 1), backgroundColor),
     size: 24,
-    style: {
-      opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
-    },
+    opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
     username,
   })).toArray()
 

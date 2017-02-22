@@ -11,7 +11,7 @@ import SettingsContainer from './render'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
 import Notifications from './notifications'
-import InviteGenerated from './invite-generated'
+import {InviteGeneratedRender} from './invite-generated'
 import PlanDetails from './plan-details'
 import Invites from './invites'
 import {landingTab} from '../constants/settings'
@@ -333,8 +333,8 @@ const commonInvite = {
   onClose: () => console.log('onClose clicked'),
 }
 
-const inviteGeneratedMap: DumbComponentMap<InviteGenerated> = {
-  component: InviteGenerated,
+const inviteGeneratedMap: DumbComponentMap<InviteGeneratedRender> = {
+  component: InviteGeneratedRender,
   mocks: {
     'Normal': {
       ...commonInvite,

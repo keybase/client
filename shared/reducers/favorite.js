@@ -5,24 +5,24 @@ import type {FavoriteAction, FavoriteState} from '../constants/favorite'
 
 const initialState: FavoriteState = {
   folderState: {
-    privateBadge: 0,
     private: {
       isPublic: false,
       tlfs: [],
     },
-    publicBadge: 0,
+    privateBadge: 0,
     public: {
       isPublic: true,
       tlfs: [],
     },
-  },
-  viewState: {
-    showingPrivate: true,
-    publicIgnoredOpen: false,
-    privateIgnoredOpen: false,
+    publicBadge: 0,
   },
   kbfsStatus: {
     isAsyncWriteHappening: false,
+  },
+  viewState: {
+    privateIgnoredOpen: false,
+    publicIgnoredOpen: false,
+    showingPrivate: true,
   },
 }
 
@@ -90,8 +90,8 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
         ...state,
         viewState: {
           ...state.viewState,
-          publicIgnoredOpen: action.payload.isPrivate ? state.viewState.publicIgnoredOpen : !state.viewState.publicIgnoredOpen,
           privateIgnoredOpen: action.payload.isPrivate ? !state.viewState.privateIgnoredOpen : state.viewState.privateIgnoredOpen,
+          publicIgnoredOpen: action.payload.isPrivate ? state.viewState.publicIgnoredOpen : !state.viewState.publicIgnoredOpen,
         },
       }
 

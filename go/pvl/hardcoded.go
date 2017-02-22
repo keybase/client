@@ -385,7 +385,7 @@ var hardcodedPVLString = `
           "assert_regex_match": {
             "error": [
               "CONTENT_FAILURE",
-              "Wanted a post of type 'Listing', but got %{kind}"
+              "Wanted a post of type 'Listing', but got '%{kind}'"
             ],
             "from": "kind",
             "pattern": "^Listing$"
@@ -411,7 +411,7 @@ var hardcodedPVLString = `
           "assert_regex_match": {
             "error": [
               "CONTENT_FAILURE",
-              "Wanted a child of type 't3' but got %{inner_kind}"
+              "Wanted a child of type 't3' but got '%{inner_kind}'"
             ],
             "from": "inner_kind",
             "pattern": "^t3$"
@@ -469,7 +469,7 @@ var hardcodedPVLString = `
             "cmp": "cicmp",
             "error": [
               "BAD_USERNAME",
-              "Bad post author; wanted '%{username_service} but got '%{author}'"
+              "Bad post author; wanted '%{username_service}' but got '%{author}'"
             ]
           }
         },
@@ -630,7 +630,7 @@ var hardcodedPVLString = `
             "cmp": "cicmp",
             "error": [
               "BAD_USERNAME",
-              "Bad post authored: wanted ${username_service} but got %{data_screen_name}"
+              "Bad post authored: wanted '%{username_service}' but got '%{data_screen_name}'"
             ]
           }
         },

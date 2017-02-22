@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
+	context "golang.org/x/net/context"
 )
 
 type chatListener struct {
@@ -28,22 +28,22 @@ type chatListener struct {
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
 
-func (n *chatListener) Logout()                                                      {}
-func (n *chatListener) Login(username string)                                        {}
-func (n *chatListener) ClientOutOfDate(to, uri, msg string)                          {}
-func (n *chatListener) UserChanged(uid keybase1.UID)                                 {}
-func (n *chatListener) TrackingChanged(uid keybase1.UID, username string)            {}
-func (n *chatListener) FSActivity(activity keybase1.FSNotification)                  {}
-func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                {}
-func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)             {}
-func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)            {}
-func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                    {}
-func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {}
-func (n *chatListener) FavoritesChanged(uid keybase1.UID)                            {}
-func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                            {}
-func (n *chatListener) PGPKeyInSecretStoreFile()                                     {}
-func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                    {}
-func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                  {}
+func (n *chatListener) Logout()                                                             {}
+func (n *chatListener) Login(username string)                                               {}
+func (n *chatListener) ClientOutOfDate(to, uri, msg string)                                 {}
+func (n *chatListener) UserChanged(uid keybase1.UID)                                        {}
+func (n *chatListener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
+func (n *chatListener) FSActivity(activity keybase1.FSNotification)                         {}
+func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
+func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
+func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                   {}
+func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                           {}
+func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)        {}
+func (n *chatListener) FavoritesChanged(uid keybase1.UID)                                   {}
+func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                                   {}
+func (n *chatListener) PGPKeyInSecretStoreFile()                                            {}
+func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
+func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }
@@ -106,7 +106,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
-	boxer := NewBoxer(tc.G, tlf)
+	boxer := NewBoxer(tc.G, func() keybase1.TlfInterface { return tlf })
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}

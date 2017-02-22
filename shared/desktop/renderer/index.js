@@ -20,7 +20,7 @@ import {bootstrap} from '../../actions/config'
 import {changedFocus} from '../../actions/window'
 import {devEditAction} from '../../reducers/dev-edit'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {getUserImage, loadUserImage} from '../../util/pictures'
+import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
 import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
@@ -45,8 +45,8 @@ function setupStore () {
 }
 
 function setupAvatar () {
-  initAvatarLookup(getUserImage)
-  initAvatarLoad(loadUserImage)
+  initAvatarLookup(getUserImageMap)
+  initAvatarLoad(loadUserImageMap)
 }
 
 function setupApp (store) {

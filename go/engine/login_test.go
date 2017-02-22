@@ -457,6 +457,11 @@ func TestProvisionPassphraseSyncedPGP(t *testing.T) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	// should be able to sign and to track someone (no passphrase prompt)
+	testSign(t, tc)
+	simulateServiceRestart(t, tc, u1)
+	testSign(t, tc)
 }
 
 // If a user has (only) a synced pgp key, provision via passphrase
@@ -565,6 +570,28 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 	}
 }
 
+func testSign(t *testing.T, tc libkb.TestContext) {
+
+	// should be able to sign something with new device keys without
+	// entering a passphrase
+	var sink bytes.Buffer
+
+	sarg := &SaltpackSignArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: ioutil.NopCloser(bytes.NewBufferString("hello")),
+	}
+
+	signEng := NewSaltpackSign(sarg, tc.G)
+	ctx := &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   &libkb.TestSecretUI{}, // empty
+	}
+
+	if err := RunEngine(signEng, ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestProvisionPaperOnly(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -655,29 +682,7 @@ func TestProvisionPaperOnly(t *testing.T) {
 		t.Errorf("Got a non-null paper encryption key after timeout")
 	}
 
-	testSign := func() {
-
-		// should be able to sign something with new device keys without
-		// entering a passphrase
-		var sink bytes.Buffer
-
-		sarg := &SaltpackSignArg{
-			Sink:   libkb.NopWriteCloser{W: &sink},
-			Source: ioutil.NopCloser(bytes.NewBufferString("hello")),
-		}
-
-		signEng := NewSaltpackSign(sarg, tc2.G)
-		ctx := &Context{
-			IdentifyUI: &FakeIdentifyUI{},
-			SecretUI:   &libkb.TestSecretUI{}, // empty
-		}
-
-		if err := RunEngine(signEng, ctx); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	testSign()
+	testSign(t, tc2)
 
 	testTrack := func(whom string) {
 
@@ -703,7 +708,7 @@ func TestProvisionPaperOnly(t *testing.T) {
 	simulateServiceRestart(t, tc2, fu)
 
 	// should be able to sign and to track someone (no passphrase prompt)
-	testSign()
+	testSign(t, tc2)
 	testTrack("t_bob")
 }
 

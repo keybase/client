@@ -26,6 +26,7 @@ typedef NS_OPTIONS (NSUInteger, UninstallOptions) {
 
 @property (readonly) NSString *appPath;
 @property (readonly) NSString *runMode;
+@property (readonly) NSString *sourcePath;
 @property (readonly) UninstallOptions uninstallOptions;
 
 - (instancetype)initWithSettings:(GBSettings *)settings;

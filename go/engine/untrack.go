@@ -9,7 +9,7 @@ import (
 )
 
 type UntrackEngineArg struct {
-	Username string
+	Username libkb.NormalizedUsername
 	Me       *libkb.User
 }
 
@@ -102,8 +102,8 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 	e.G().UserChanged(e.arg.Me.GetUID())
 	e.G().UserChanged(them.GetUID())
 
-	e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetName(), false)
-	e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetName(), false)
+	e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
+	e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
 
 	return
 }
@@ -129,7 +129,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 	}
 
 	if uid.IsNil() {
-		res := e.G().Resolver.Resolve(e.arg.Username)
+		res := e.G().Resolver.Resolve(e.arg.Username.String())
 		if err = res.GetError(); err != nil {
 			return
 		}
@@ -158,13 +158,13 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 			return
 		}
 
-		var trackedUsername string
+		var trackedUsername libkb.NormalizedUsername
 		trackedUsername, err = lLink.GetTrackedUsername()
 		if err != nil {
 			return
 		}
 
-		if e.arg.Username != trackedUsername {
+		if !e.arg.Username.Eq(trackedUsername) {
 			err = libkb.NewUntrackError("Username mismatch: expected @%s, got @%s", e.arg.Username, trackedUsername)
 			return
 		}
@@ -172,7 +172,7 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 		uidTrusted = true
 	}
 
-	them = libkb.NewUserThin(e.arg.Username, uid)
+	them = libkb.NewUserThin(e.arg.Username.String(), uid)
 	remoteLink = rLink
 	localLink = lLink
 	return

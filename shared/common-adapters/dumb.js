@@ -727,7 +727,8 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
   },
 }
 
-const mockAvatarSizes = (title, sizes, modifiers) => _.chain(sizes)
+const avatarSizes = [176, 112, 80, 64, 48, 40, 32, 24, 16]
+const mockAvatarSizes = (title, modifiers) => _.chain(avatarSizes)
   .map(size => ({size, username: 'awendland', ...modifiers}))
   .keyBy(props => `${title} x${props.size}`)
   .value()
@@ -735,14 +736,15 @@ const mockAvatarSizes = (title, sizes, modifiers) => _.chain(sizes)
 const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,
   mocks: {
-    ...mockAvatarSizes('Normal', [32], {}),
-    ...mockAvatarSizes('Following', [48], {
+    ...mockAvatarSizes('Normal', {}),
+    ...mockAvatarSizes('Fallback', {username: 'FALLBACK'}),
+    ...mockAvatarSizes('Following', {
       following: true,
     }),
-    ...mockAvatarSizes('Follows You', [64], {
+    ...mockAvatarSizes('Follows You', {
       followsYou: true,
     }),
-    ...mockAvatarSizes('Mutual Follow', [112], {
+    ...mockAvatarSizes('Mutual Follow', {
       following: true,
       followsYou: true,
     }),
@@ -821,7 +823,7 @@ const markdownDumbMap: DumbComponentMap<Markdown> = {
       children: `I think we should try to use \`if else\` statements \`\`\`
 if (var == "foo")
   echo "foo";
-else echo "bar";\`\`\`How about *bold* and _italic?_ nice.
+else echo "bar";\`\`\`How about *bold* and _italic?_ nice. :smile:
 Now youre thinking with ~portals~ crypto.
 how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
     },
@@ -891,6 +893,17 @@ this is a code block that starts with a newline and ends with a newline
 
 this is a code block with two newline above\`\`\`
 `,
+    },
+    'Blank lines': {
+      children: `
+
+        hello
+
+
+        world
+
+
+      `,
     },
   },
 }

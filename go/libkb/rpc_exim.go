@@ -289,7 +289,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		ret := IdentifySummaryError{}
 		for _, pair := range s.Fields {
 			if pair.Key == "username" {
-				ret.username = pair.Value
+				ret.username = NewNormalizedUsername(pair.Value)
 			} else {
 				// The other keys are expected to be "problem_%d".
 				ret.problems = append(ret.problems, pair.Value)
@@ -596,10 +596,10 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 		del[i] = *ExportTrackDiff(d)
 	}
 	ret := &keybase1.IdentifyOutcome{
-		Username:          ir.Username,
+		Username:          ir.Username.String(),
 		Status:            ExportErrorAsStatus(ir.Error),
 		Warnings:          v,
-		TrackUsed:         ExportTrackSummary(ir.TrackUsed, ir.Username),
+		TrackUsed:         ExportTrackSummary(ir.TrackUsed, ir.Username.String()),
 		TrackStatus:       ir.TrackStatus(),
 		NumTrackFailures:  ir.NumTrackFailures(),
 		NumTrackChanges:   ir.NumTrackChanges(),
@@ -1035,7 +1035,7 @@ func (i LinkID) Export() keybase1.LinkID {
 func (t TrackChainLink) Export() keybase1.RemoteTrack {
 	return keybase1.RemoteTrack{
 		Uid:      t.whomUID,
-		Username: strings.ToLower(t.whomUsername),
+		Username: t.whomUsername.String(),
 		LinkID:   t.id.Export(),
 	}
 }
@@ -1272,7 +1272,7 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 
 func (e IdentifySummaryError) ToStatus() keybase1.Status {
 	kvpairs := []keybase1.StringKVPair{
-		keybase1.StringKVPair{Key: "username", Value: e.username},
+		keybase1.StringKVPair{Key: "username", Value: e.username.String()},
 	}
 	for index, problem := range e.problems {
 		kvpairs = append(kvpairs, keybase1.StringKVPair{

@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	chatinterfaces "github.com/keybase/client/go/chat/interfaces"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -99,9 +100,9 @@ type GlobalContext struct {
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 
-	InboxSource      InboxSource        // source of remote inbox entries for chat
-	ConvSource       ConversationSource // source of remote message bodies for chat
-	MessageDeliverer MessageDeliverer   // background message delivery service
+	InboxSource      chatinterfaces.InboxSource        // source of remote inbox entries for chat
+	ConvSource       chatinterfaces.ConversationSource // source of remote message bodies for chat
+	MessageDeliverer chatinterfaces.MessageDeliverer   // background message delivery service
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -841,6 +842,10 @@ func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	g.GetUPAKLoader().Invalidate(g.NetContext, u)
 }
 
+func (g *GlobalContext) OverrideUPAKLoader(upak UPAKLoader) {
+	g.upakLoader = upak
+}
+
 func (g *GlobalContext) AddUserChangedHandler(h UserChangedHandler) {
 	g.uchMu.Lock()
 	g.UserChangedHandlers = append(g.UserChangedHandlers, h)
@@ -855,6 +860,9 @@ func (g *GlobalContext) GetOutOfDateInfo() keybase1.OutOfDateInfo {
 }
 
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
+	g.Log.Debug("+ UserChanged(%s)", u)
+	defer g.Log.Debug("- UserChanged(%s)", u)
+
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)

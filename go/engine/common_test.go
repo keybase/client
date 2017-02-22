@@ -379,7 +379,6 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 }
 
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
-	tc.T.Skip("reset account tests broken")
 	err := tc.G.LoginState().ResetAccount(u.Username)
 	if err != nil {
 		tc.T.Fatalf("In account reset: %s", err)

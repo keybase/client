@@ -48,6 +48,10 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "t, timeout",
 				Usage: "Timeout as duration, such as '10s' or '1m'.",
 			},
+			cli.StringFlag{
+				Name:  "source-path",
+				Usage: "Source path to app bundle.",
+			},
 		},
 		ArgumentHelp: "",
 		Usage:        "Installs Keybase components",
@@ -65,6 +69,7 @@ type CmdInstall struct {
 	format     string
 	binPath    string
 	installer  string
+	sourcePath string
 	timeout    time.Duration
 	components []string
 }
@@ -92,6 +97,7 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.binPath = ctx.String("bin-path")
 	v.installer = ctx.String("installer")
 	v.timeout = ctx.Duration("timeout")
+	v.sourcePath = ctx.String("source-path")
 	if v.timeout == 0 {
 		v.timeout = 11 * time.Second
 	}
@@ -119,7 +125,7 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 	if v.installer == "auto" {
 		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force, v.timeout, v.G().Log)
 	} else if v.installer == "" {
-		return install.Install(v.G(), v.binPath, v.components, v.force, v.timeout, v.G().Log)
+		return install.Install(v.G(), v.binPath, v.sourcePath, v.components, v.force, v.timeout, v.G().Log)
 	}
 
 	return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, fmt.Sprintf("Invalid installer: %s", v.installer))}

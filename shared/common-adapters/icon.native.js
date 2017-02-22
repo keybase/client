@@ -1,12 +1,13 @@
 // @flow
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
-import type {Exact} from '../constants/types/more'
-import type {Props} from './icon'
 import {NativeText, NativeImage} from './native-wrappers.native'
 import {TouchableHighlight} from 'react-native'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
+
+import type {Exact} from '../constants/types/more'
+import type {IconType, Props} from './icon'
 
 class Icon extends Component<void, Exact<Props>, void> {
   render () {
@@ -20,10 +21,13 @@ class Icon extends Component<void, Exact<Props>, void> {
 
     color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
 
-    const width = this.props.style && this.props.style.width && {width: this.props.style.width}
+    const styleWidth = this.props.style && this.props.style.width
+
+    const width = styleWidth && {width: this.props.style.width}
     const height = this.props.style && this.props.style.height && {height: this.props.style.height}
 
-    const fontSize = this.props.style && (this.props.style.fontSize || this.props.style.width)
+    const fontSizeHint = shared.fontSize(iconType)
+    const fontSize = (this.props.style && (this.props.style.fontSize || styleWidth) && {fontSize: this.props.style.fontSize || styleWidth}) || fontSizeHint
     const textAlign = this.props.style && this.props.style.textAlign
 
     // Color is for our fontIcon and not the container
@@ -40,7 +44,7 @@ class Icon extends Component<void, Exact<Props>, void> {
     }
 
     const icon = iconMeta[iconType].isFont
-      ? <NativeText style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, ...width}}>{
+      ? <NativeText style={{color, textAlign, fontFamily: 'kb', ...fontSize, ...width}}>{
         String.fromCharCode(iconMeta[iconType].charCode || 0)}</NativeText>
       : <NativeImage source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height}} />
 
@@ -55,6 +59,18 @@ class Icon extends Component<void, Exact<Props>, void> {
       </TouchableHighlight>
     )
   }
+}
+
+export function iconTypeToImgSet (type: IconType) {
+  return iconMeta[type].require
+}
+
+export function urlsToImgSet (imgMap: {[size: string]: string}, size: number): any {
+  return Object.keys(imgMap).map(size => ({
+    height: parseInt(size, 10),
+    uri: imgMap[size],
+    width: parseInt(size, 10),
+  }))
 }
 
 export default Icon
