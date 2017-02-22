@@ -1,16 +1,17 @@
 // @flow
 import * as shared from './user-proofs.shared'
+import Box from './box'
+import ClickableBox from './clickable-box'
+import Icon from './icon'
+import Meta from './meta'
+import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
+import Text from './text'
 import openUrl from '../util/open-url'
 import type {IconType} from './icon.constants'
 import type {Proof} from '../constants/tracker'
 import type {Props, MissingProof} from './user-proofs'
 import {defaultColor} from './icon.shared'
-import Box from './box'
-import ClickableBox from './clickable-box'
-import Icon from './icon'
-import Text from './text'
-import Meta from './meta'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 import {omit} from 'lodash'
@@ -57,15 +58,15 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
         <Box style={styleProofNameLabelContainer}>
           <Text type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
             <Text type='Body' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
-            <Text type='Body' style={styleProofType}>@{proof.type}</Text>
+            {!!proof.id && <Text type='Body' style={styleProofType}>@{proof.type}</Text>}
           </Text>
           {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
         </Box>
       </Box>
       <ClickableBox style={styleStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onClick={() => onClickStatus(proof)}>
         <Box style={styleStatusIconContainer} onClick={() => onClickStatus(proof)}>
-          {proofStatusIconType && <Icon type={proofStatusIconType} style={styleStatusIcon(proofStatusIconType)} onClick={() => onClickStatus(proof)} />}
-          {proofStatusIconType && hasMenu && <Icon type='iconfont-caret-down' style={styleStatusIconCaret(proofStatusIconType)} />}
+          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} />)}
+          {hasMenu && <Icon type='iconfont-caret-down' />}
         </Box>
       </ClickableBox>
     </Box>
@@ -190,6 +191,10 @@ const styleStatusIconCaret = (statusIcon: IconType) => ({
   marginLeft: globalMargins.xtiny / 2,
   marginRight: -2 * globalMargins.tiny,
 })
+const styleSpinner = {
+  width: 20,
+  height: 20,
+}
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
