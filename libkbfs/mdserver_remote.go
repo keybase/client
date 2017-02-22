@@ -351,6 +351,10 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 		md.serverOffset = 0
 	}()
 
+	md.authenticatedMtx.Lock()
+	md.isAuthenticated = false
+	md.authenticatedMtx.Unlock()
+
 	md.cancelObservers()
 	md.resetPingTicker(0)
 	if md.authToken != nil {
