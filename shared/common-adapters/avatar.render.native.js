@@ -28,11 +28,11 @@ type Props = {
 }
 
 // The actual image
-type UserImageType = {
+type UserImageState = {
   loaded: boolean,
 }
-class UserImage extends PureComponent<void, ImageProps, UserImageType> {
-  state: UserImageType = {
+class UserImage extends PureComponent<void, ImageProps, UserImageState> {
+  state: UserImageState = {
     loaded: false,
   }
 

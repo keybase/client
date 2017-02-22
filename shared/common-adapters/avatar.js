@@ -3,14 +3,15 @@
 import * as I from 'immutable'
 import React, {Component} from 'react'
 import Render from './avatar.render'
+import _ from 'lodash'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
 
-import type {Props, AvatarLookup, AvatarLoad, URLMap} from './avatar'
+import type {Props, AvatarLookup, AvatarLoad, URLMap, URLType} from './avatar'
 import type {IconType} from './icon'
 
 type State = {
-  url: any, // can be a string or an array (desktop vs native)
+  url: URLType,
 }
 
 const placeHolders: {[key: string]: IconType} = {
@@ -111,11 +112,7 @@ class Avatar extends Component<void, Props, State> {
       return null
     }
 
-    const goodSizes = Object.keys(urlMap).filter(size => urlMap && urlMap[size]).reduce((map, size) => {
-      map[size] = urlMap && urlMap[size] || '' // this fallback never happens but makes flow happy
-      return map
-    }, {})
-    return urlsToImgSet(goodSizes, this.props.size)
+    return urlsToImgSet(_.pickBy(urlMap, value => value), this.props.size)
   }
 
   _loadUsername (username: string) {

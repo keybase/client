@@ -115,7 +115,6 @@ class AvatarRender extends PureComponent<void, Props, State> {
       if (match) {
         const single = match[1]
         if (!this._image) {
-          // $FlowIssue
           this._image = new Image() // eslint-disable-line
           this._image.onload = this._onLoadOrError
           this._image.onerror = this._onLoadOrError

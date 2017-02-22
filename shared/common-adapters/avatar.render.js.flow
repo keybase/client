@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {AvatarSize} from './avatar'
+import type {AvatarSize, URLType} from './avatar'
 
 export type URLMap = {
   '200': string,
@@ -21,7 +21,7 @@ export type Props = {
   size: AvatarSize,
   style?: ?Object,
   // TODO flow type to allow one or the other, not both url and username etc
-  url?: ?string,
+  url?: URLType,
   username?: ?string,
 }
 

@@ -1,7 +1,6 @@
 // @flow
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
-import _ from 'lodash'
 import shallowEqual from 'shallowequal'
 import {FontIcon} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
