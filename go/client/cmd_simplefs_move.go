@@ -5,7 +5,6 @@ package client
 
 import (
 	"errors"
-	"os"
 
 	"golang.org/x/net/context"
 
@@ -18,7 +17,7 @@ import (
 // CmdSimpleFSMove is the 'fs list' command.
 type CmdSimpleFSMove struct {
 	libkb.Contextified
-	src  keybase1.Path
+	src  []keybase1.Path
 	dest keybase1.Path
 }
 
@@ -26,8 +25,8 @@ type CmdSimpleFSMove struct {
 func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "mv",
-		ArgumentHelp: "<source> [dest]",
-		Usage:        "move directory elements",
+		ArgumentHelp: "<source> [source] <dest>",
+		Usage:        "copy one or more directory elements to dest",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSMove{Contextified: libkb.NewContextified(g)}, "mv", c)
 		},
@@ -43,18 +42,22 @@ func (c *CmdSimpleFSMove) Run() error {
 
 	ctx := context.TODO()
 
-	opid, err := cli.SimpleFSMakeOpid(ctx)
-	if err != nil {
-		return err
+	for _, src := range c.src {
+		opid, err := cli.SimpleFSMakeOpid(ctx)
+		if err != nil {
+			return err
+		}
+		defer cli.SimpleFSClose(ctx, opid)
+
+		err = cli.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
+			OpID: opid,
+			Src:  src,
+			Dest: c.dest,
+		})
+		if err != nil {
+			break
+		}
 	}
-	defer cli.SimpleFSClose(ctx, opid)
-
-	err = cli.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
-		OpID: opid,
-		Src:  c.src,
-		Dest: c.dest,
-	})
-
 	return err
 }
 
@@ -63,22 +66,32 @@ func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	if nargs < 1 || nargs > 2 {
-		return errors.New("mv requires a source path (and optional destination) argument")
+	var srcType, destType keybase1.PathType
+
+	if nargs < 2 {
+		return errors.New("mv requires one or more source arguments and a destination argument")
+	}
+	for i, src := range ctx.Args() {
+		argPath := makeSimpleFSPath(c.G(), src)
+		tempPathType, err := argPath.PathType()
+		if err != nil {
+			return err
+		}
+		// Make sure all source paths are the same type
+		if i == 0 {
+			srcType = tempPathType
+		} else if i == nargs-1 {
+			c.dest = argPath
+			destType = tempPathType
+			break
+		} else if tempPathType != srcType {
+			return errors.New("mv requires all sources to be the same type")
+		}
+		c.src = append(c.src, argPath)
 	}
 
-	c.src = makeSimpleFSPath(c.G(), ctx.Args()[0])
-	if nargs == 2 {
-		c.dest = makeSimpleFSPath(c.G(), ctx.Args()[1])
-	} else {
-		// use the current local directory as a default
-		wd, _ := os.Getwd()
-		c.dest = makeSimpleFSPath(c.G(), wd)
-	}
-	srcType, _ := c.src.PathType()
-	destType, _ := c.dest.PathType()
 	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
-		return errors.New("mv requires KBFS source and/or destination")
+		return errors.New("cp reaquires KBFS source and/or destination")
 	}
 
 	return err
