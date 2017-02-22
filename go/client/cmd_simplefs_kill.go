@@ -27,7 +27,7 @@ func NewCmdSimpleFSKill(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		ArgumentHelp: "<opid>",
 		Usage:        "kill operation",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "kill", c)
+			cl.ChooseCommand(&CmdSimpleFSKill{Contextified: libkb.NewContextified(g)}, "kill", c)
 		},
 	}
 }

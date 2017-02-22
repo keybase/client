@@ -76,7 +76,6 @@ func (c *CmdSimpleFSList) Run() error {
 		}
 		c.output(listResult)
 
-		// TODO: do we need to wait?
 	}
 
 	return err

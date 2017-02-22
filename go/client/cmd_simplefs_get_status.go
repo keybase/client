@@ -27,7 +27,7 @@ func NewCmdSimpleFSGetStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		ArgumentHelp: "<opid>",
 		Usage:        "get status of pending operation",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "get-status", c)
+			cl.ChooseCommand(&CmdSimpleFSGetStatus{Contextified: libkb.NewContextified(g)}, "get-status", c)
 		},
 	}
 }

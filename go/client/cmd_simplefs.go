@@ -42,6 +42,10 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 	mountDir := "/keybase"
 
+	if strings.HasPrefix(path, mountDir) {
+		return keybase1.NewPathWithKbfs(path[len(mountDir):])
+	}
+
 	// make absolute
 	if !filepath.IsAbs(path) {
 		if wd, err := os.Getwd(); err == nil {
@@ -56,9 +60,6 @@ func makeSimpleFSPath(g *libkb.GlobalContext, path string) keybase1.Path {
 
 	path = filepath.ToSlash(filepath.Clean(path))
 
-	if strings.HasPrefix(path, mountDir) {
-		return keybase1.NewPathWithKbfs(path[len(mountDir):])
-	}
 	return keybase1.NewPathWithLocal(path)
 }
 

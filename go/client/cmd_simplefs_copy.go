@@ -30,7 +30,7 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		ArgumentHelp: "<source> [dest]",
 		Usage:        "copy directory elements",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceList{Contextified: libkb.NewContextified(g)}, "cp", c)
+			cl.ChooseCommand(&CmdSimpleFSCopy{Contextified: libkb.NewContextified(g)}, "cp", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -68,10 +68,6 @@ func (c *CmdSimpleFSCopy) Run() error {
 			Dest: c.dest,
 		})
 	}
-	if err != nil {
-		return err
-	}
-	err = cli.SimpleFSWait(ctx, opid)
 	return err
 }
 

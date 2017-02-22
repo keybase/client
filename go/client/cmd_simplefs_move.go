@@ -55,12 +55,6 @@ func (c *CmdSimpleFSMove) Run() error {
 		Dest: c.dest,
 	})
 
-	if err != nil {
-		return err
-	}
-
-	err = cli.SimpleFSWait(ctx, opid)
-
 	return err
 }
 
