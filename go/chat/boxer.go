@@ -37,13 +37,13 @@ func init() {
 
 type Boxer struct {
 	utils.DebugLabeler
+	libkb.Contextified
 
 	tlf                       func() keybase1.TlfInterface
 	hashV1                    func(data []byte) chat1.Hash
 	sign                      func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
 	testingValidSenderKey     func(context.Context, gregor1.UID, []byte, gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr UnboxingError)
 	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
-	libkb.Contextified
 }
 
 func NewBoxer(g *libkb.GlobalContext, tlf func() keybase1.TlfInterface) *Boxer {
@@ -98,7 +98,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
-	unboxed, ierr := b.unlock(ctx, boxed, encryptionKey)
+	unboxed, ierr := b.unbox(ctx, boxed, encryptionKey)
 	if ierr != nil {
 		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
@@ -110,12 +110,12 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
 }
 
-func (b *Boxer) unlock(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
 	switch boxed.Version {
 	case chat1.MessageBoxedVersion_VNONE, chat1.MessageBoxedVersion_V1:
-		return b.unlockV1(ctx, boxed, encryptionKey)
+		return b.unboxV1(ctx, boxed, encryptionKey)
 	case chat1.MessageBoxedVersion_V2:
-		return b.unlockV2(ctx, boxed, encryptionKey)
+		return b.unboxV2(ctx, boxed, encryptionKey)
 	default:
 		return nil,
 			NewPermanentUnboxingError(NewMessageBoxedVersionError(boxed.Version))
@@ -184,9 +184,9 @@ func (b *Boxer) bodyUnsupported(ctx context.Context, bodyVersion chat1.BodyPlain
 	}
 }
 
-// unlockV1 unboxes a chat1.MessageBoxed into a keybase1.Message given
+// unboxV1 unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
-func (b *Boxer) unlockV1(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
 	var err error
 	if boxed.ServerHeader == nil {
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
@@ -303,8 +303,8 @@ func (b *Boxer) unlockV1(ctx context.Context, boxed chat1.MessageBoxed, encrypti
 	}, nil
 }
 
-func (b *Boxer) unlockV2(ctx context.Context, msg chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
-	return nil, NewTransientUnboxingError(fmt.Errorf("unlockV2 not implemented"))
+func (b *Boxer) unboxV2(ctx context.Context, msg chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+	return nil, NewTransientUnboxingError(fmt.Errorf("unboxV2 not implemented"))
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
@@ -430,7 +430,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError(msg, true)
 	}
 
-	boxed, err := b.lock(msg, encryptionKey, signingKeyPair, chat1.MessageBoxedVersion_V1)
+	boxed, err := b.box(msg, encryptionKey, signingKeyPair, chat1.MessageBoxedVersion_V1)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
@@ -438,13 +438,13 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 	return boxed, nil
 }
 
-func (b *Boxer) lock(messagePlaintext chat1.MessagePlaintext, encryptionKey *keybase1.CryptKey,
+func (b *Boxer) box(messagePlaintext chat1.MessagePlaintext, encryptionKey *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
 	switch version {
 	case chat1.MessageBoxedVersion_V1:
-		return b.lockV1(messagePlaintext, encryptionKey, signingKeyPair)
+		return b.boxV1(messagePlaintext, encryptionKey, signingKeyPair)
 	case chat1.MessageBoxedVersion_V2:
-		return b.lockV2(messagePlaintext, encryptionKey, signingKeyPair)
+		return b.boxV2(messagePlaintext, encryptionKey, signingKeyPair)
 	default:
 		return nil, fmt.Errorf("invalid version for boxing: %v", version)
 	}
@@ -452,7 +452,7 @@ func (b *Boxer) lock(messagePlaintext chat1.MessagePlaintext, encryptionKey *key
 
 // boxMessageWithKeys encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *Boxer) lockV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.CryptKey,
+func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 
 	body := chat1.BodyPlaintextV1{
@@ -504,9 +504,9 @@ func (b *Boxer) lockV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cr
 	return boxed, nil
 }
 
-func (b *Boxer) lockV2(messagePlaintext chat1.MessagePlaintext, key *keybase1.CryptKey,
+func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, key *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
-	return nil, fmt.Errorf("lockV2 not implemented")
+	return nil, fmt.Errorf("boxV2 not implemented")
 }
 
 // seal encrypts data into chat1.EncryptedData.
