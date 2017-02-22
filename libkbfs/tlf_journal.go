@@ -202,11 +202,11 @@ type tlfJournal struct {
 	// signals. They're buffered for one object, and all sends are
 	// asynchronous, so multiple sends get collapsed into one
 	// signal.
-	hasWorkCh      chan struct{}
-	needPauseCh    chan struct{}
-	needResumeCh   chan struct{}
-	needShutdownCh chan struct{}
-	checkMDLenCh   chan struct{}
+	hasWorkCh         chan struct{}
+	needPauseCh       chan struct{}
+	needResumeCh      chan struct{}
+	needShutdownCh    chan struct{}
+	needBranchCheckCh chan struct{}
 
 	// Track the ways in which the journal is paused.  We don't allow
 	// work to resume unless a resume has come in corresponding to
@@ -223,7 +223,8 @@ type tlfJournal struct {
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
 
-	// Protects all operations on blockJournal and mdJournal.
+	// Protects all operations on blockJournal and mdJournal, and all
+	// the fields until the next blank line.
 	//
 	// TODO: Consider using https://github.com/pkg/singlefile
 	// instead.
@@ -352,7 +353,7 @@ func makeTLFJournal(
 		needPauseCh:          make(chan struct{}, 1),
 		needResumeCh:         make(chan struct{}, 1),
 		needShutdownCh:       make(chan struct{}, 1),
-		checkMDLenCh:         make(chan struct{}, 1),
+		needBranchCheckCh:    make(chan struct{}, 1),
 		backgroundShutdownCh: make(chan struct{}),
 		blockJournal:         blockJournal,
 		mdJournal:            mdJournal,
@@ -874,7 +875,8 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 func (j *tlfJournal) flushBlockEntries(
 	ctx context.Context, end journalOrdinal) (
-	int, MetadataRevision, bool, error) {
+	numFlushed int, maxMDRevToFlush MetadataRevision,
+	converted bool, err error) {
 	entries, maxMDRevToFlush, err := j.getNextBlockEntriesToFlush(ctx, end)
 	if err != nil {
 		return 0, MetadataRevisionUninitialized, false, err
@@ -895,7 +897,10 @@ func (j *tlfJournal) flushBlockEntries(
 	cleared := false
 	defer func() {
 		if !cleared {
-			_ = j.clearFlushingBlockIDs(entries)
+			clearErr := j.clearFlushingBlockIDs(entries)
+			if err != nil {
+				err = clearErr
+			}
 		}
 	}()
 
@@ -923,11 +928,11 @@ func (j *tlfJournal) flushBlockEntries(
 			j.config.BlockCache(), j.config.Reporter(),
 			j.tlfID, tlfName, entries)
 	})
-	converted := false
+	converted = false
 	eg.Go(func() error {
 		for {
 			select {
-			case <-j.checkMDLenCh:
+			case <-j.needBranchCheckCh:
 				// Don't signal a pause when doing this conversion in
 				// a separate goroutine, because it ends up canceling
 				// the flush context, which means all the block puts
@@ -1863,7 +1868,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	j.signalWork()
 
 	select {
-	case j.checkMDLenCh <- struct{}{}:
+	case j.needBranchCheckCh <- struct{}{}:
 	default:
 	}
 
