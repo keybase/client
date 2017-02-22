@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -93,6 +94,11 @@ func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID,
 
 func validateBlockPut(
 	id kbfsblock.ID, context kbfsblock.Context, buf []byte) error {
+	var emptyUID keybase1.UID
+	if context.GetCreator() == emptyUID {
+		return fmt.Errorf("Can't Put() a block %v with an empty UID", id)
+	}
+
 	if context.GetCreator() != context.GetWriter() {
 		return fmt.Errorf("Can't Put() a block with creator=%s != writer=%s",
 			context.GetCreator(), context.GetWriter())

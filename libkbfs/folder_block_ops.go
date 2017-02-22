@@ -640,7 +640,10 @@ func (fbo *folderBlockOps) DeepCopyFile(
 	// so only a read lock is needed.
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	var uid keybase1.UID // Data reads don't depend on the uid.
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return BlockPointer{}, nil, err
+	}
 	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
 	return fd.deepCopy(ctx, dataVer)
 }
@@ -650,7 +653,10 @@ func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
-	var uid keybase1.UID // Data reads don't depend on the uid.
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
 	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
 	return fd.undupChildrenInCopy(ctx, fbo.config.BlockCache(),
 		fbo.config.BlockOps(), bps, topBlock)
@@ -661,7 +667,10 @@ func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock) ([]BlockInfo, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	var uid keybase1.UID // Data reads don't depend on the uid.
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
 	fd := fbo.newFileDataWithCache(lState, file, uid, kmd, dirtyBcache)
 	return fd.readyNonLeafBlocksInCopy(ctx, fbo.config.BlockCache(),
 		fbo.config.BlockOps(), bps, topBlock)
