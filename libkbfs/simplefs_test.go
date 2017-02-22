@@ -22,7 +22,6 @@ import (
 func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	err := fs.config.Shutdown(ctx)
 	require.NoError(t, err)
-	CleanupCancellationDelayer(ctx)
 }
 
 func newTempRemotePath() (keybase1.Path, error) {
@@ -41,7 +40,7 @@ func deleteTempLocalPath(path keybase1.Path) {
 }
 
 func TestList(t *testing.T) {
-	ctx := BackgroundContextWithCancellationDelayer()
+	ctx := context.Background()
 	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
@@ -76,7 +75,7 @@ func TestList(t *testing.T) {
 }
 
 func TestCopyToLocal(t *testing.T) {
-	ctx := BackgroundContextWithCancellationDelayer()
+	ctx := context.Background()
 	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
@@ -113,7 +112,7 @@ func TestCopyToLocal(t *testing.T) {
 }
 
 func TestCopyToRemote(t *testing.T) {
-	ctx := BackgroundContextWithCancellationDelayer()
+	ctx := context.Background()
 	sfs := newSimpleFS(MakeTestConfigOrBust(t, "jdoe"))
 	defer closeSimpleFS(ctx, t, sfs)
 
