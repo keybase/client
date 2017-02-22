@@ -3,16 +3,22 @@ package chat
 import (
 	"context"
 
+	"encoding/hex"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type identifyModeKey int
 type keyfinderKey int
 type identifyNotifierKey int
+type chatTrace int
 
 var identModeKey identifyModeKey
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
+var chatTraceKey chatTrace
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -53,11 +59,21 @@ func CtxIdentifyNotifier(ctx context.Context) *IdentifyNotifier {
 	return nil
 }
 
+func addLogTags(ctx context.Context) context.Context {
+	tags := make(map[interface{}]string)
+	id, _ := libkb.RandBytes(4)
+	tags[chatTraceKey] = "chat-trace"
+	ctx = logger.NewContextWithLogTags(ctx, tags)
+	ctx = context.WithValue(ctx, chatTraceKey, hex.EncodeToString(id))
+	return ctx
+}
+
 func Context(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier *IdentifyNotifier) context.Context {
 	res := identifyModeCtx(ctx, mode, breaks)
 	res = context.WithValue(res, kfKey, NewKeyFinder())
 	res = context.WithValue(res, inKey, notifier)
+	res = addLogTags(res)
 	return res
 }
 
