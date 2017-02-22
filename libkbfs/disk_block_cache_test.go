@@ -159,7 +159,7 @@ func TestDiskBlockCacheDelete(t *testing.T) {
 	require.EqualError(t, err, errors.ErrNotFound.Error())
 }
 
-func TestDiskBlockCacheEvict(t *testing.T) {
+func TestDiskBlockCacheTLFEvict(t *testing.T) {
 	t.Parallel()
 	t.Log("Test that disk cache eviction works.")
 	cache, config := initDiskBlockCacheTest(t)
@@ -196,7 +196,7 @@ func TestDiskBlockCacheEvict(t *testing.T) {
 	t.Log("Incrementally evict all the tlf1 blocks in the cache.")
 	// Because the eviction algorithm is probabilistic, we can't rely on the
 	// same number of blocks being evicted every time. So we have to be smart
-	// about our measurement assertions.
+	// about our assertions.
 	for expectedCount != 0 {
 		t.Log("Evict 10 blocks from the cache.")
 		numRemoved, err := cache.evictFromTLFLocked(ctx, tlf1, 10)

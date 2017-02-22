@@ -45,6 +45,12 @@ type diskBlockCacheEntry struct {
 	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
 }
 
+// diskBlockCacheDeleteKey specifies a blockID and TLF pair to delete.
+type diskBlockCacheDeleteKey struct {
+	TlfID   tlf.ID
+	BlockID kbfsblock.ID
+}
+
 // diskBlockCacheConfig specifies the interfaces that a DiskBlockCacheStandard
 // needs to perform its functions. This adheres to the standard libkbfs Config
 // API.
@@ -399,20 +405,21 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 }
 
 func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
-	tlfID tlf.ID, blockIDs []kbfsblock.ID) error {
+	blockIDs []diskBlockCacheDeleteKey) error {
 	if len(blockIDs) == 0 {
 		return nil
 	}
-	cache.log.CDebugf(ctx, "Cache Delete tlf=%s numBlocks=%d", tlfID, len(blockIDs))
 	blockBatch := new(leveldb.Batch)
 	lruBatch := new(leveldb.Batch)
 	tlfBatch := new(leveldb.Batch)
+	removalCounts := make(map[tlf.ID]int)
 	for _, id := range blockIDs {
-		blockKey := id.Bytes()
+		blockKey := id.BlockID.Bytes()
 		blockBatch.Delete(blockKey)
 		lruBatch.Delete(blockKey)
-		tlfDbKey := cache.lruKey(tlfID, blockKey)
+		tlfDbKey := cache.lruKey(id.TlfID, blockKey)
 		tlfBatch.Delete(tlfDbKey)
+		removalCounts[id.TlfID]++
 	}
 	if err := cache.blockDb.Write(blockBatch, nil); err != nil {
 		return err
@@ -425,7 +432,9 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	}
 
 	cache.compactCachesLocked(ctx)
-	cache.tlfCounts[tlfID] -= len(blockIDs)
+	for k, v := range removalCounts {
+		cache.tlfCounts[k] -= v
+	}
 
 	return nil
 }
@@ -438,12 +447,59 @@ func (cache *DiskBlockCacheStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	if cache.blockDb == nil {
 		return errors.WithStack(DiskCacheClosedError{"Delete"})
 	}
-	return cache.deleteLocked(ctx, tlfID, blockIDs)
+	cache.log.CDebugf(ctx, "Cache Delete tlf=%s numBlocks=%d", tlfID, len(blockIDs))
+	deleteEntries := make([]diskBlockCacheDeleteKey, 0, len(blockIDs))
+	for _, v := range blockIDs {
+		deleteEntries = append(deleteEntries,
+			diskBlockCacheDeleteKey{tlfID, v})
+	}
+	return cache.deleteLocked(ctx, deleteEntries)
+}
+
+// getRandomBlockID gives us a pivot block ID for picking a random range of
+// blocks to consider deleting.  We pick a point to start our range based on
+// the proportion of the TLF space taken up by numElements/totalElements. E.g.
+// if we need to consider 100 out of 400 blocks, and we assume that the block
+// IDs are uniformly distributed, then our random start point should be in the
+// [0,0.75) interval on the [0,1.0) block ID space.
+func (*DiskBlockCacheStandard) getRandomBlockID(numElements,
+	totalElements int) (kbfsblock.ID, error) {
+	if totalElements == 0 {
+		return kbfsblock.ID{}, errors.New("")
+	}
+	// Return a 0 block ID pivot if we require more elements than the total
+	// number available.
+	if numElements >= totalElements {
+		return kbfsblock.ID{}, nil
+	}
+	// Generate a random block ID to start the range.
+	pivot := uint64(
+		float64(math.MaxUint64) *
+			(1.0 -
+				(float64(numElements) / float64(totalElements))))
+	return kbfsblock.MakeRandomIDInRange(0, pivot)
+}
+
+func (cache *DiskBlockCacheStandard) evictSomeBlocks(ctx context.Context,
+	numBlocks int, blockIDs blockIDsByTime) (numRemoved int, err error) {
+	if len(blockIDs) <= numBlocks {
+		numBlocks = len(blockIDs)
+	} else {
+		// Only sort if we need to grab a subset of blocks.
+		sort.Sort(blockIDs)
+	}
+
+	blocksToDelete := blockIDs.ToBlockIDSlice(numBlocks)
+	err = cache.deleteLocked(ctx, blocksToDelete)
+	if err != nil {
+		return 0, err
+	}
+	return numBlocks, nil
 }
 
 // evictFromTLFLocked evicts a number of blocks from the cache for a given TLF.
 // We choose a pivot variable b randomly. Then begin an iterator into
-// cache.lruDb.Range(tlfID + b, tlfID + MaxBlockID) and iterate from there to
+// cache.tlfDb.Range(tlfID + b, tlfID + MaxBlockID) and iterate from there to
 // get numBlocks * evictionConsiderationFactor block IDs.  We sort the
 // resulting blocks by value (LRU time) and pick the minimum numBlocks. We then
 // call cache.Delete() on that list of block IDs.
@@ -451,28 +507,13 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 	tlfID tlf.ID, numBlocks int) (numRemoved int, err error) {
 	tlfBytes := tlfID.Bytes()
 	numElements := numBlocks * evictionConsiderationFactor
-	// We need a random range, not a random block ID. So, we pick a point to
-	// start our range, based on the proportion of the TLF space taken up by
-	// numBlocks/cache.tlfCounts[tlfID]. E.g. if we need to consider 100 out of
-	// 400 blocks, and we assume that the block IDs are uniformly distributed,
-	// then our random start point should be in the [0,0.75) interval on the
-	// [0,1.0) block ID space. If the iterator reaches the end of the TLF, we
-	// simply stop and return the number of blocks removed.
-	rng := util.BytesPrefix(tlfBytes)
-	if numElements < cache.tlfCounts[tlfID] {
-		// Generate a random block ID to start the range.
-		pivot := uint64(
-			float64(math.MaxUint64) *
-				(1.0 -
-					(float64(numElements) / float64(cache.tlfCounts[tlfID]))))
-		randomBlockID, err := kbfsblock.MakeRandomIDInRange(0, pivot)
-		if err != nil {
-			return 0, err
-		}
-		rng = &util.Range{
-			append(tlfBytes, randomBlockID.Bytes()...),
-			append(tlfBytes, cache.maxBlockID...),
-		}
+	blockID, err := cache.getRandomBlockID(numElements, cache.tlfCounts[tlfID])
+	if err != nil {
+		return 0, err
+	}
+	rng := &util.Range{
+		append(tlfBytes, blockID.Bytes()...),
+		append(tlfBytes, cache.maxBlockID...),
 	}
 	iter := cache.tlfDb.NewIterator(rng, nil)
 	defer iter.Release()
@@ -500,23 +541,21 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 			cache.log.CWarningf(ctx, "Error decoding LRU time for block %s", blockID)
 			continue
 		}
-		blockIDs = append(blockIDs, lruEntry{blockID, lru})
+		blockIDs = append(blockIDs, lruEntry{tlfID, blockID, lru})
 	}
 
-	// Remove all blocks in this TLF.
-	if len(blockIDs) <= numBlocks {
-		numBlocks = len(blockIDs)
-	} else {
-		// Only sort if we need to grab a subset of blocks.
-		sort.Sort(blockIDs)
-	}
+	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
+}
 
-	blocksToDelete := blockIDs.ToBlockIDSlice(numBlocks)
-	err = cache.deleteLocked(ctx, tlfID, blocksToDelete)
-	if err != nil {
-		return 0, err
-	}
-	return numBlocks, nil
+// evictLocked evicts a number of blocks from the cache.  We choose a pivot
+// variable b randomly. Then begin an iterator into cache.lruDb.Range(b,
+// MaxBlockID) and iterate from there to get numBlocks *
+// evictionConsiderationFactor block IDs.  We sort the resulting blocks by
+// value (LRU time) and pick the minimum numBlocks. We then call cache.Delete()
+// on that list of block IDs.
+func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
+	numBlocks int) (numRemoved int, err error) {
+	return cache.evictSomeBlocks(ctx, numBlocks, blockIDsByTime{})
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
