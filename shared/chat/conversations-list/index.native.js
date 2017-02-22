@@ -43,6 +43,7 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   const avatarProps = participants.slice(0, 2).map((username, idx) => ({
     backgroundColor,
     borderColor: rowBorderColor(idx, idx === (avatarCount - 1), backgroundColor),
+    loadingColor: globalColors.blue3_40,
     size: 24,
     style: {
       opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
@@ -111,6 +112,7 @@ const _Row = (props: RowProps) => {
         style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
         title={`${props.unreadCount} unread`}>
         <Avatars
+          backgroundColor={props.backgroundColor}
           hasUnread={props.hasUnread}
           isMuted={props.isMuted}
           isSelected={props.isSelected}
@@ -118,7 +120,12 @@ const _Row = (props: RowProps) => {
           participants={props.participants}
           youNeedToRekey={props.youNeedToRekey}
         />
-        <Box style={{...globalStyles.flexBoxColumn, ...conversationRowStyle}}>
+        <Box style={{
+          ...globalStyles.flexBoxColumn,
+          ...conversationRowStyle,
+          borderBottomColor: (!props.isSelected && !props.hasUnread) ? globalColors.black_10 : globalColors.transparent,
+          borderBottomWidth: 1,
+        }}>
           <TopLine
             commaColor={props.commaColor}
             hasUnread={props.hasUnread}

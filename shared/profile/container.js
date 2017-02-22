@@ -31,34 +31,7 @@ type EitherProps<P> = {
   propError: string,
 }
 
-type State = {
-  avatarLoaded: boolean,
-}
-
-class ProfileContainer extends PureComponent<void, EitherProps<Props>, State> {
-  state: State;
-
-  constructor () {
-    super()
-    this.state = {avatarLoaded: false}
-  }
-
-  componentWillReceiveProps (nextProps: EitherProps<Props>) {
-    if (this.props.type === 'error' || nextProps.type === 'error') {
-      return
-    }
-
-    const {username} = this.props.okProps
-    const {username: nextUsername} = nextProps.okProps
-    if (username !== nextUsername) {
-      this.setState({avatarLoaded: false})
-    }
-  }
-
-  _onAvatarLoaded = () => {
-    this.setState({avatarLoaded: true})
-  }
-
+class ProfileContainer extends PureComponent<void, EitherProps<Props>, void> {
   render () {
     if (this.props.type === 'error') {
       return <ErrorComponent error={this.props.propError} />
@@ -68,9 +41,8 @@ class ProfileContainer extends PureComponent<void, EitherProps<Props>, State> {
 
     return <Profile
       {...props}
-      onAvatarLoaded={this._onAvatarLoaded}
-      followers={this.state.avatarLoaded ? props.followers : null}
-      following={this.state.avatarLoaded ? props.following : null} />
+      followers={props.followers}
+      following={props.following} />
   }
 }
 
