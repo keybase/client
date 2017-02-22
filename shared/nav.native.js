@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {NavigationExperimental} from 'react-native'
-import {Box} from './common-adapters/index.native'
+import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {globalColors, statusBarHeight} from './styles/index.native'
@@ -28,23 +28,26 @@ function Nav (props: Props) {
   }
 
   return (
-    <Box style={{flex: 1}}>
-      <NavigationCardStack
-        key={props.routeSelected}
-        navigationState={navigationState}
-        renderScene={({scene}) => {
-          return (
-            <Box style={{
-              flex: 1,
-              backgroundColor: globalColors.white,
-              paddingTop: scene.route.tags.underStatusBar ? 0 : statusBarHeight,
-            }}>
-              {scene.route.component}
-            </Box>
-          )
-        }}
-        onNavigateBack={props.navigateUp}
-      />
+    <Box style={flexOne}>
+      <NativeKeyboardAvoidingView behavior='padding' style={{...flexOne, backgroundColor: globalColors.white}}>
+        <NavigationCardStack
+          key={props.routeSelected}
+          style={flexOne}
+          navigationState={navigationState}
+          renderScene={({scene}) => {
+            return (
+              <Box style={{
+                ...flexOne,
+                backgroundColor: globalColors.white,
+                paddingTop: scene.route.tags.underStatusBar ? 0 : statusBarHeight,
+              }}>
+                {scene.route.component}
+              </Box>
+            )
+          }}
+          onNavigateBack={props.navigateUp}
+        />
+      </NativeKeyboardAvoidingView>
       {props.routeSelected !== loginTab &&
         <TabBar
           onTabClick={props.switchTab}
@@ -56,6 +59,10 @@ function Nav (props: Props) {
       <GlobalError />
     </Box>
   )
+}
+
+const flexOne = {
+  flex: 1,
 }
 
 export default connect(
