@@ -1027,12 +1027,6 @@ func (g *gregorHandler) pingLoop() {
 			var err error
 			ctx := context.Background()
 
-			// Check to see if we are logged in, if not kill ping loop
-			if _, _, ok := g.loggedIn(ctx); !ok {
-				g.Debug(ctx, "ping loop: id: %x not logged in, stopping", id)
-				return
-			}
-
 			if g.IsConnected() {
 				// If we are connected, subject the ping call to a fairly
 				// aggressive timeout so our chat stuff can be responsive
