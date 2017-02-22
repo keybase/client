@@ -5,7 +5,6 @@ package client
 
 import (
 	"errors"
-	"os"
 
 	"golang.org/x/net/context"
 
@@ -18,7 +17,7 @@ import (
 // CmdSimpleFSCopy is the 'fs cp' command.
 type CmdSimpleFSCopy struct {
 	libkb.Contextified
-	src     keybase1.Path
+	src     []keybase1.Path
 	dest    keybase1.Path
 	recurse bool
 }
@@ -27,8 +26,8 @@ type CmdSimpleFSCopy struct {
 func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "cp",
-		ArgumentHelp: "<source> [dest]",
-		Usage:        "copy directory elements",
+		ArgumentHelp: "<source> [source] <dest>",
+		Usage:        "copy one or more directory elements to dest",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSCopy{Contextified: libkb.NewContextified(g)}, "cp", c)
 		},
@@ -50,23 +49,40 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	ctx := context.TODO()
 
-	opid, err := cli.SimpleFSMakeOpid(ctx)
+	isDestDir, destPathString, err := getDirPathString(ctx, cli, c.dest)
+
 	if err != nil {
 		return err
 	}
-	defer cli.SimpleFSClose(ctx, opid)
-	if c.recurse {
-		err = cli.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
-			OpID: opid,
-			Src:  c.src,
-			Dest: c.dest,
-		})
-	} else {
-		err = cli.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
-			OpID: opid,
-			Src:  c.src,
-			Dest: c.dest,
-		})
+
+	for _, src := range c.src {
+
+		dest, err := makeDestPath(ctx, cli, src, c.dest, isDestDir, destPathString)
+		if err != nil {
+			return err
+		}
+
+		opid, err := cli.SimpleFSMakeOpid(ctx)
+		if err != nil {
+			return err
+		}
+		defer cli.SimpleFSClose(ctx, opid)
+		if c.recurse {
+			err = cli.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
+				OpID: opid,
+				Src:  src,
+				Dest: dest,
+			})
+		} else {
+			err = cli.SimpleFSCopy(ctx, keybase1.SimpleFSCopyArg{
+				OpID: opid,
+				Src:  src,
+				Dest: dest,
+			})
+		}
+		if err != nil {
+			break
+		}
 	}
 	return err
 }
@@ -77,24 +93,30 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	c.recurse = ctx.Bool("recurse")
+	var srcType, destType keybase1.PathType
 
-	if nargs < 1 || nargs > 2 {
-		return errors.New("cp requires a source path (and optional destination) argument")
+	if nargs < 2 {
+		return errors.New("cp requires one or more source arguments and a destination argument")
 	}
-
-	c.src = makeSimpleFSPath(c.G(), ctx.Args()[0])
-	if nargs == 2 {
-		c.dest = makeSimpleFSPath(c.G(), ctx.Args()[1])
-	} else {
-		// use the current local directory as a default
-		wd, err := os.Getwd()
+	for i, src := range ctx.Args() {
+		argPath := makeSimpleFSPath(c.G(), src)
+		tempPathType, err := argPath.PathType()
 		if err != nil {
 			return err
 		}
-		c.dest = makeSimpleFSPath(c.G(), wd)
+		// Make sure all source paths are the same type
+		if i == 0 {
+			srcType = tempPathType
+		} else if i == nargs-1 {
+			c.dest = argPath
+			destType = tempPathType
+			break
+		} else if tempPathType != srcType {
+			return errors.New("cp requires all sources to be the same type")
+		}
+		c.src = append(c.src, argPath)
 	}
-	srcType, _ := c.src.PathType()
-	destType, _ := c.dest.PathType()
+
 	if srcType == keybase1.PathType_LOCAL && destType == keybase1.PathType_LOCAL {
 		return errors.New("cp reaquires KBFS source and/or destination")
 	}
