@@ -1069,18 +1069,19 @@ func (g *gregorHandler) connectTLS() error {
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
+	ctx := context.Background()
 	if g.conn != nil {
-		g.Debug(context.Background(), "skipping connect, conn is not nil")
+		g.Debug(ctx, "skipping connect, conn is not nil")
 		return nil
 	}
 
 	uri := g.uri
-	g.Debug(context.Background(), "connecting to gregord via TLS at %s", uri)
+	g.Debug(ctx, "connecting to gregord via TLS at %s", uri)
 	rawCA := g.G().Env.GetBundledCA(uri.Host)
 	if len(rawCA) == 0 {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
-	g.Debug(context.Background(), "Using CA for gregor: %s", libkb.ShortCA(rawCA))
+	g.Debug(ctx, "Using CA for gregor: %s", libkb.ShortCA(rawCA))
 
 	opts := rpc.ConnectionOpts{
 		WrapErrorFunc:    libkb.WrapError,
@@ -1107,12 +1108,13 @@ func (g *gregorHandler) connectNoTLS() error {
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
+	ctx := context.Background()
 	if g.conn != nil {
-		g.Debug(context.Background(), "skipping connect, conn is not nil")
+		g.Debug(ctx, "skipping connect, conn is not nil")
 		return nil
 	}
 	uri := g.uri
-	g.Debug(context.Background(), "connecting to gregord without TLS at %s", uri)
+	g.Debug(ctx, "connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
 
