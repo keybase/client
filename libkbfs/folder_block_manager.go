@@ -944,10 +944,9 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 		gco.AddUnrefBlock(BlockPointer{ID: id})
 	}
 
-	// For now, pretend to be a rekey so the service suppresses
-	// popups.  TODO: add a more specific behavior type for QR.
 	ctx, err := makeExtendedIdentify(
-		ctx, keybase1.TLFIdentifyBehavior_KBFS_REKEY)
+		// TLFIdentifyBehavior_KBFS_QR makes service suppress the tracker popup.
+		ctx, keybase1.TLFIdentifyBehavior_KBFS_QR)
 	if err != nil {
 		return err
 	}

@@ -16,6 +16,7 @@ const (
 	TLFIdentifyBehavior_CHAT_GUI        TLFIdentifyBehavior = 2
 	TLFIdentifyBehavior_CHAT_GUI_STRICT TLFIdentifyBehavior = 3
 	TLFIdentifyBehavior_KBFS_REKEY      TLFIdentifyBehavior = 4
+	TLFIdentifyBehavior_KBFS_QR         TLFIdentifyBehavior = 5
 )
 
 var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
@@ -24,6 +25,7 @@ var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
 	"CHAT_GUI":        2,
 	"CHAT_GUI_STRICT": 3,
 	"KBFS_REKEY":      4,
+	"KBFS_QR":         5,
 }
 
 var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
@@ -32,6 +34,7 @@ var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
 	2: "CHAT_GUI",
 	3: "CHAT_GUI_STRICT",
 	4: "KBFS_REKEY",
+	5: "KBFS_QR",
 }
 
 func (e TLFIdentifyBehavior) String() string {
