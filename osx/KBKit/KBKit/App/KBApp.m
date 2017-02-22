@@ -96,7 +96,7 @@
 - (void)selectEnv:(void (^)(KBEnvironment *env))completion {
   NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
   NSString *servicePath = [KBPath pathInDir:NSBundle.mainBundle.sharedSupportPath path:@"bin" options:0];
-  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:runMode installOptions:KBInstallOptionAll installTimeout:10];
+  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:runMode installOptions:KBInstallOptionAll installTimeout:10 appPath:nil sourcePath:nil];
   if (envConfig) {
     [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath]];
   } else {

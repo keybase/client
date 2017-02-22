@@ -25,6 +25,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionUpdater = 1 << 5,
   KBInstallOptionMountDir = 1 << 6,
   KBInstallOptionCLI = 1 << 10,
+  KBInstallOptionAppBundle = 1 << 11,
 
   KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI,
 };
@@ -41,12 +42,14 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 @property (readonly, getter=isInstallDisabled) BOOL installDisabled;
 @property (readonly) KBInstallOptions installOptions;
 @property (readonly) NSTimeInterval installTimeout;
+@property (readonly) NSString *appPath;
+@property (readonly) NSString *sourcePath;
 
 - (instancetype)initWithRunMode:(KBRunMode)runMode;
 
 + (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
-+ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout;
++ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath;
 + (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults;
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults;

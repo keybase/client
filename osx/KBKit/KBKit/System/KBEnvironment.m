@@ -15,6 +15,7 @@
 #import "KBCommandLine.h"
 #import "KBUpdaterService.h"
 #import "KBMountDir.h"
+#import "KBAppBundle.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
@@ -41,6 +42,10 @@
     _helperTool = [[KBHelperTool alloc] initWithConfig:config];
     if (config.installOptions&KBInstallOptionHelper) {
       [_installables addObject:_helperTool];
+    }
+
+    if (config.installOptions&KBInstallOptionAppBundle) {
+      [_installables addObject:[[KBAppBundle alloc] initWithConfig:config helperTool:_helperTool]];
     }
 
     _updater = [[KBUpdaterService alloc] initWithConfig:config label:[config launchdUpdaterLabel] servicePath:servicePath];
