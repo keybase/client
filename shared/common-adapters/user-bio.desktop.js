@@ -15,13 +15,12 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
       <Box style={{position: 'absolute'}}>
         <Box style={stylesContainer}>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', zIndex: 2, position: 'relative', ...globalStyles.fadeOpacity, opacity: this.props.loading ? 1 : 0}}>
-            <Avatar
-              style={globalStyles.clickable}
-              url={''}
-              loadingColor={globalColors.lightGrey}
-              size={this.props.avatarSize}
-              following={false}
-              followsYou={false} />
+            <Box style={{
+              backgroundColor: globalColors.lightGrey,
+              borderRadius: '50%',
+              height: this.props.avatarSize,
+              width: this.props.avatarSize,
+            }} />
           </Box>
           <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: this.props.loading ? 1 : 0}}>
             <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 157}} />

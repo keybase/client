@@ -1,12 +1,13 @@
 // @flow
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
-import type {Exact} from '../constants/types/more'
-import type {Props} from './icon'
 import {NativeText, NativeImage} from './native-wrappers.native'
 import {TouchableHighlight} from 'react-native'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
+
+import type {Exact} from '../constants/types/more'
+import type {IconType, Props} from './icon'
 
 class Icon extends Component<void, Exact<Props>, void> {
   render () {
@@ -55,6 +56,18 @@ class Icon extends Component<void, Exact<Props>, void> {
       </TouchableHighlight>
     )
   }
+}
+
+export function iconTypeToImgSet (type: IconType) {
+  return iconMeta[type].require
+}
+
+export function urlsToImgSet (imgMap: {[size: string]: string}, size: number): any {
+  return Object.keys(imgMap).map(size => ({
+    height: parseInt(size, 10),
+    uri: imgMap[size],
+    width: parseInt(size, 10),
+  }))
 }
 
 export default Icon

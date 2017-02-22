@@ -89,12 +89,15 @@ export function iconTypeToImgSet (type: IconType) {
   return `-webkit-image-set(${imgs})`
 }
 
-export function urlsToImgSet (imgMap: {[size: string]: string}): ?string {
-  const imgs = Object.keys(imgMap).map(size => `url('${imgMap[size]}') ${size}x`).join(', ')
-  if (!imgs) {
+export function urlsToImgSet (imgMap: {[size: string]: string}, targetSize: number): any {
+  const sizes = Object.keys(imgMap)
+
+  if (!sizes.length) {
     return null
   }
-  return `-webkit-image-set(${imgs})`
+
+  const str = sizes.map(size => `url('${imgMap[size]}') ${parseInt(size, 10) / targetSize}x`).join(', ')
+  return `-webkit-image-set(${str})`
 }
 
 export const styles = {

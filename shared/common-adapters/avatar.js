@@ -2,15 +2,16 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as I from 'immutable'
 import React, {Component} from 'react'
-import Render from './avatar.render.desktop'
+import Render from './avatar.render'
+import _ from 'lodash'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
 
-import type {Props, AvatarLookup, AvatarLoad, URLMap} from './avatar'
+import type {Props, AvatarLookup, AvatarLoad, URLMap, URLType} from './avatar'
 import type {IconType} from './icon'
 
 type State = {
-  url: ?string,
+  url: URLType,
 }
 
 const placeHolders: {[key: string]: IconType} = {
@@ -66,19 +67,25 @@ class Avatar extends Component<void, Props, State> {
       console.warn('Recieved both url and username to avatar!')
     }
 
-    this.state = {
-      url: null,
+    this.state = this._getRawURLState(props.url, props.size)
+  }
+
+  _getRawURLState (url: ?string, size: number): {url: any} {
+    if (url) {
+      return {url: urlsToImgSet({[String(size)]: url}, size)}
+    } else {
+      return {url: null}
     }
   }
 
   componentWillMount () {
     if (this.props.url) {
-      this.setState({url: this.props.url})
+      this.setState(this._getRawURLState(this.props.url, this.props.size))
       // Just let it load the url, prefer this over username
     } else if (this.props.username) {
       this._loadUsername(this.props.username)
     } else { // Just show the no avatar state
-      this.setState({url: this._urlMapsToUrl(null)})
+      this.setState({url: this._noAvatar()})
     }
   }
 
@@ -86,7 +93,7 @@ class Avatar extends Component<void, Props, State> {
     this._onURLLoaded = (username: string, urlMap: ?URLMap) => {
       // Still looking at the same username?
       if (this.props.username === username) {
-        this.setState({url: this._urlMapsToUrl(urlMap)})
+        this.setState({url: this._urlMapsToUrl(urlMap) || this._noAvatar()})
       }
     }
   }
@@ -97,48 +104,15 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _noAvatar () {
-    return iconTypeToImgSet(placeHolders[String(this.props.size)])
+    return iconTypeToImgSet(placeHolders[String(this.props.size)], this.props.size)
   }
 
-  // Figure out which 1x, 2x images to use for this size
   _urlMapsToUrl (urlMap: ?URLMap) {
     if (!urlMap) {
       return null
     }
 
-    const low = urlMap['40'] || urlMap['200'] || urlMap['360']
-    const medium = urlMap['200'] || urlMap['360'] || urlMap['40']
-    const high = urlMap['360'] || urlMap['200'] || urlMap['40']
-
-    let imgs = []
-    switch (this.props.size) {
-      case 176:
-      case 112: // fallthrough
-        imgs = [medium, high]
-        break
-      case 80:
-      case 64: // fallthrough
-      case 48: // fallthrough
-        imgs = [medium, medium]
-        break
-      case 40:
-      case 32: // fallthrough
-        imgs = [low, medium]
-        break
-      case 24:
-      case 16: // fallthrough
-        imgs = [low, low]
-        break
-    }
-
-    const m = imgs.reduce((map, img, idx) => {
-      if (img) {
-        map[String(idx + 1)] = img
-      }
-      return map
-    }, {})
-
-    return urlsToImgSet(m) || this._noAvatar()
+    return urlsToImgSet(_.pickBy(urlMap, value => value), this.props.size)
   }
 
   _loadUsername (username: string) {
@@ -164,9 +138,11 @@ class Avatar extends Component<void, Props, State> {
     if (url !== nextUrl) {
       // Just show the url
       if (nextProps.url) {
-        this.setState({url: nextProps.url})
+        this.setState(this._getRawURLState(nextProps.url, nextProps.size))
       } else if (nextProps.username) {  // We need to convert a username to a url
         this._loadUsername(nextProps.username)
+      } else {
+        this.setState({url: this._noAvatar()})
       }
     }
   }
