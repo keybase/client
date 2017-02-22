@@ -15,52 +15,235 @@ import (
 	"golang.org/x/net/context"
 )
 
-// backpressureDiskLimiter is an implementation of diskLimiter that
-// uses backpressure to slow down block puts before they hit the disk
-// limits.
+// backpressureTracker keeps track of the variables used to calculate
+// backpressure. It keeps track of a generic resource (which can be
+// either bytes or files).
 //
-// Let J be the (approximate) byte usage of the journal and F be the
-// free bytes on disk. Then we want to enforce
+// Let U be the (approximate) resource usage of the journal and F be
+// the free resources. Then we want to enforce
 //
-//   J <= min(k(J+F), L),
+//   U <= min(k(U+F), L),
 //
-// where 0 < k <= 1 is some fraction, and L > 0 is the absolute byte
-// usage limit. But in addition to that, we want to set thresholds 0
-// <= m <= M <= 1 such that we apply proportional backpressure (with a
-// given maximum delay) when
+// where 0 < k <= 1 is some fraction, and L > 0 is the absolute
+// resource usage limit. But in addition to that, we want to set
+// thresholds 0 <= m <= M <= 1 such that we apply proportional
+// backpressure (with a given maximum delay) when
 //
-//   m <= max(J/(k(J+F)), J/L) <= M,
+//   m <= max(U/(k(U+F)), J/L) <= M,
 //
 // which is equivalent to
 //
-//   m <= J/min(k(J+F), L) <= M.
+//   m <= U/min(k(U+F), L) <= M.
 //
-// TODO: Also do limiting based on file counts.
+// Note that this type doesn't do any locking, so it's the caller's
+// responsibility to do so.
+type backpressureTracker struct {
+	// minThreshold is m in the above.
+	minThreshold float64
+	// maxThreshold is M in the above.
+	maxThreshold float64
+	// limitFrac is k in the above.
+	limitFrac float64
+	// limit is L in the above.
+	limit int64
+
+	// used is U in the above.
+	used int64
+	// free is F in the above.
+	free int64
+
+	semaphoreMax int64
+	semaphore    *kbfssync.Semaphore
+}
+
+func newBackpressureTracker(minThreshold, maxThreshold, limitFrac float64,
+	limit, initialFree int64) (*backpressureTracker, error) {
+	if minThreshold < 0.0 {
+		return nil, errors.Errorf("minThreshold=%f < 0.0",
+			minThreshold)
+	}
+	if maxThreshold < minThreshold {
+		return nil, errors.Errorf(
+			"maxThreshold=%f < minThreshold=%f",
+			maxThreshold, minThreshold)
+	}
+	if 1.0 < maxThreshold {
+		return nil, errors.Errorf("1.0 < maxThreshold=%f",
+			maxThreshold)
+	}
+	if limitFrac < 0.01 {
+		return nil, errors.Errorf("limitFrac=%f < 0.01", limitFrac)
+	}
+	if limitFrac > 1.0 {
+		return nil, errors.Errorf("limitFrac=%f > 1.0", limitFrac)
+	}
+	if limit < 0 {
+		return nil, errors.Errorf("limit=%d < 0", limit)
+	}
+	if initialFree < 0 {
+		return nil, errors.Errorf("initialFree=%d < 0", initialFree)
+	}
+	bt := &backpressureTracker{
+		minThreshold, maxThreshold, limitFrac, limit,
+		0, initialFree, 0, kbfssync.NewSemaphore(),
+	}
+	bt.updateSemaphoreMax()
+	return bt, nil
+}
+
+// currLimit returns the resource limit, taking into account the
+// amount of free resources left. This is min(k(U+F), L).
+func (bt backpressureTracker) currLimit() float64 {
+	// Calculate k(U+F), converting to float64 first to avoid
+	// overflow, although losing some precision in the process.
+	usedFloat := float64(bt.used)
+	freeFloat := float64(bt.free)
+	limit := bt.limitFrac * (usedFloat + freeFloat)
+	return math.Min(limit, float64(bt.limit))
+}
+
+func (bt backpressureTracker) freeFrac() float64 {
+	return float64(bt.used) / bt.currLimit()
+}
+
+// delayScale returns a number between 0 and 1, which should be
+// multiplied with the maximum delay to get the backpressure delay to
+// apply.
+func (bt backpressureTracker) delayScale() float64 {
+	freeSpaceFrac := bt.freeFrac()
+
+	// We want the delay to be 0 if freeSpaceFrac <= m and the
+	// max delay if freeSpaceFrac >= M, so linearly interpolate
+	// the delay scale.
+	m := bt.minThreshold
+	M := bt.maxThreshold
+	return math.Min(1.0, math.Max(0.0, (freeSpaceFrac-m)/(M-m)))
+}
+
+// updateSemaphoreMax must be called whenever bt.used or bt.free
+// changes.
+func (bt *backpressureTracker) updateSemaphoreMax() {
+	newMax := int64(bt.currLimit())
+	delta := newMax - bt.semaphoreMax
+	// These operations are adjusting the *maximum* value of
+	// bt.semaphore.
+	if delta > 0 {
+		bt.semaphore.Release(delta)
+	} else if delta < 0 {
+		bt.semaphore.ForceAcquire(-delta)
+	}
+	bt.semaphoreMax = newMax
+}
+
+func (bt *backpressureTracker) onJournalEnable(journalResources int64) (
+	availableResources int64) {
+	bt.used += journalResources
+	bt.updateSemaphoreMax()
+	if journalResources == 0 {
+		return bt.semaphore.Count()
+	}
+	return bt.semaphore.ForceAcquire(journalResources)
+}
+
+func (bt *backpressureTracker) onJournalDisable(journalResources int64) {
+	bt.used -= journalResources
+	bt.updateSemaphoreMax()
+	if journalResources > 0 {
+		bt.semaphore.Release(journalResources)
+	}
+}
+
+func (bt *backpressureTracker) updateFree(freeResources int64) {
+	bt.free = freeResources
+	bt.updateSemaphoreMax()
+}
+
+func (bt *backpressureTracker) beforeBlockPut(
+	ctx context.Context, blockResources int64) (
+	availableResources int64, err error) {
+	return bt.semaphore.Acquire(ctx, blockResources)
+}
+
+func (bt *backpressureTracker) afterBlockPut(
+	blockResources int64, putData bool) {
+	if putData {
+		bt.used += blockResources
+		bt.updateSemaphoreMax()
+	} else {
+		bt.semaphore.Release(blockResources)
+	}
+}
+
+func (bt *backpressureTracker) onBlockDelete(blockResources int64) {
+	if blockResources == 0 {
+		return
+	}
+
+	bt.semaphore.Release(blockResources)
+
+	bt.used -= blockResources
+	bt.updateSemaphoreMax()
+}
+
+type backpressureTrackerStatus struct {
+	// Derived numbers.
+	FreeFrac   float64
+	UsageFrac  float64
+	DelayScale float64
+
+	// Constants.
+	MinThreshold float64
+	MaxThreshold float64
+	LimitFrac    float64
+	Limit        int64
+
+	// Raw numbers.
+	Used  int64
+	Free  int64
+	Max   int64
+	Count int64
+}
+
+func (bt *backpressureTracker) getStatus() backpressureTrackerStatus {
+	freeFrac := bt.freeFrac()
+	delayScale := bt.delayScale()
+
+	max := bt.semaphoreMax
+	count := bt.semaphore.Count()
+	usageFrac := 1 - float64(count)/float64(max)
+
+	return backpressureTrackerStatus{
+		FreeFrac:   freeFrac,
+		UsageFrac:  usageFrac,
+		DelayScale: delayScale,
+
+		MinThreshold: bt.minThreshold,
+		MaxThreshold: bt.maxThreshold,
+		LimitFrac:    bt.limitFrac,
+		Limit:        bt.limit,
+
+		Used:  bt.used,
+		Free:  bt.free,
+		Max:   max,
+		Count: count,
+	}
+}
+
+// backpressureDiskLimiter is an implementation of diskLimiter that
+// uses backpressure to slow down block puts before they hit the disk
+// limits.
 type backpressureDiskLimiter struct {
 	log logger.Logger
-	// backpressureMinThreshold is m in the above.
-	backpressureMinThreshold float64
-	// backpressureMaxThreshold is M in the above.
-	backpressureMaxThreshold float64
-	// byteLimitFrac is k in the above.
-	byteLimitFrac float64
-	// byteLimit is L in the above.
-	byteLimit int64
 
-	maxDelay    time.Duration
-	delayFn     func(context.Context, time.Duration) error
-	freeBytesFn func() (int64, error)
+	maxDelay            time.Duration
+	delayFn             func(context.Context, time.Duration) error
+	freeBytesAndFilesFn func() (int64, int64, error)
 
-	// bytesLock protects freeBytes, journalBytes,
-	// bytesSemaphoreMax, and the (implicit) maximum value of
-	// bytesSemaphore (== bytesSemaphoreMax).
-	bytesLock sync.Mutex
-	// journalBytes is J in the above.
-	journalBytes int64
-	// freeBytes is F in the above.
-	freeBytes        int64
-	byteSemaphoreMax int64
-	byteSemaphore    *kbfssync.Semaphore
+	// lock protects everything in the trackers, including the
+	// (implicit) maximum values of the semaphores, but not the
+	// actual semaphore itself.
+	lock                     sync.RWMutex
+	byteTracker, fileTracker *backpressureTracker
 }
 
 var _ diskLimiter = (*backpressureDiskLimiter)(nil)
@@ -70,47 +253,31 @@ var _ diskLimiter = (*backpressureDiskLimiter)(nil)
 // given delay function, which is overridden in tests.
 func newBackpressureDiskLimiterWithFunctions(
 	log logger.Logger,
-	backpressureMinThreshold, backpressureMaxThreshold, byteLimitFrac float64,
-	byteLimit int64, maxDelay time.Duration,
+	backpressureMinThreshold, backpressureMaxThreshold, limitFrac float64,
+	byteLimit, fileLimit int64, maxDelay time.Duration,
 	delayFn func(context.Context, time.Duration) error,
-	freeBytesFn func() (int64, error)) (
+	freeBytesAndFilesFn func() (int64, int64, error)) (
 	*backpressureDiskLimiter, error) {
-	if backpressureMinThreshold < 0.0 {
-		return nil, errors.Errorf("backpressureMinThreshold=%f < 0.0",
-			backpressureMinThreshold)
+	freeBytes, freeFiles, err := freeBytesAndFilesFn()
+	if err != nil {
+		return nil, err
 	}
-	if backpressureMaxThreshold < backpressureMinThreshold {
-		return nil, errors.Errorf(
-			"backpressureMaxThreshold=%f < backpressureMinThreshold=%f",
-			backpressureMaxThreshold, backpressureMinThreshold)
+	byteTracker, err := newBackpressureTracker(
+		backpressureMinThreshold, backpressureMaxThreshold,
+		limitFrac, byteLimit, freeBytes)
+	if err != nil {
+		return nil, err
 	}
-	if 1.0 < backpressureMaxThreshold {
-		return nil, errors.Errorf("1.0 < backpressureMaxThreshold=%f",
-			backpressureMaxThreshold)
-	}
-	if byteLimitFrac < 0.01 {
-		return nil, errors.Errorf("byteLimitFrac=%f < 0.01",
-			byteLimitFrac)
-	}
-	if byteLimitFrac > 1.0 {
-		return nil, errors.Errorf("byteLimitFrac=%f > 1.0",
-			byteLimitFrac)
-	}
-	freeBytes, err := freeBytesFn()
+	fileTracker, err := newBackpressureTracker(
+		backpressureMinThreshold, backpressureMaxThreshold,
+		limitFrac, fileLimit, freeFiles)
 	if err != nil {
 		return nil, err
 	}
 	bdl := &backpressureDiskLimiter{
-		log, backpressureMinThreshold, backpressureMaxThreshold,
-		byteLimitFrac, byteLimit, maxDelay,
-		delayFn, freeBytesFn, sync.Mutex{}, 0,
-		freeBytes, 0, kbfssync.NewSemaphore(),
+		log, maxDelay, delayFn, freeBytesAndFilesFn, sync.RWMutex{},
+		byteTracker, fileTracker,
 	}
-	func() {
-		bdl.bytesLock.Lock()
-		defer bdl.bytesLock.Unlock()
-		bdl.updateBytesSemaphoreMaxLocked()
-	}()
 	return bdl, nil
 }
 
@@ -130,118 +297,81 @@ func defaultDoDelay(ctx context.Context, delay time.Duration) error {
 	}
 }
 
-func defaultGetFreeBytes(path string) (int64, error) {
-	// getDiskLimits returns availableBytes, but we want to avoid
-	// confusing that with availBytes in the sense of the
-	// semaphore value.
-	freeBytes, err := getDiskLimits(path)
+func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
+	// getDiskLimits returns availableBytes and availableFiles,
+	// but we want to avoid confusing that with availBytes and
+	// availFiles in the sense of the semaphore value.
+	freeBytes, freeFiles, err := getDiskLimits(path)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	if freeBytes > uint64(math.MaxInt64) {
-		return math.MaxInt64, nil
+		freeBytes = math.MaxInt64
 	}
-	return int64(freeBytes), nil
+	if freeFiles > uint64(math.MaxInt64) {
+		freeFiles = math.MaxInt64
+	}
+	return int64(freeBytes), int64(freeFiles), nil
 }
 
 // newBackpressureDiskLimiter constructs a new backpressureDiskLimiter
 // with the given parameters.
 func newBackpressureDiskLimiter(
 	log logger.Logger,
-	backpressureMinThreshold, backpressureMaxThreshold, byteLimitFrac float64,
-	byteLimit int64, maxDelay time.Duration,
+	backpressureMinThreshold, backpressureMaxThreshold, limitFrac float64,
+	byteLimit, fileLimit int64, maxDelay time.Duration,
 	journalPath string) (*backpressureDiskLimiter, error) {
 	return newBackpressureDiskLimiterWithFunctions(
 		log, backpressureMinThreshold, backpressureMaxThreshold,
-		byteLimitFrac, byteLimit, maxDelay,
-		defaultDoDelay, func() (int64, error) {
-			return defaultGetFreeBytes(journalPath)
+		limitFrac, byteLimit, fileLimit, maxDelay,
+		defaultDoDelay, func() (int64, int64, error) {
+			return defaultGetFreeBytesAndFiles(journalPath)
 		})
 }
 
-func (bdl *backpressureDiskLimiter) getLockedVarsForTest() (
-	journalBytes int64, freeBytes int64, byteSemaphoreMax int64) {
-	bdl.bytesLock.Lock()
-	defer bdl.bytesLock.Unlock()
-	return bdl.journalBytes, bdl.freeBytes, bdl.byteSemaphoreMax
+type bdlSnapshot struct {
+	used  int64
+	free  int64
+	max   int64
+	count int64
 }
 
-// getMaxJournalBytes returns the byte limit for the journal, taking
-// into account the amount of free space left. This is min(k(J+F), L).
-func (bdl *backpressureDiskLimiter) getMaxJournalBytes(
-	journalBytes, freeBytes int64) float64 {
-	// Calculate k(J+F), converting to float64 first to avoid
-	// overflow, although losing some precision in the process.
-	journalBytesFloat := float64(journalBytes)
-	freeBytesFloat := float64(freeBytes)
-	byteLimit :=
-		bdl.byteLimitFrac * (journalBytesFloat + freeBytesFloat)
-	return math.Min(byteLimit, float64(bdl.byteLimit))
-}
-
-// updateBytesSemaphoreMaxLocked must be called (under s.bytesLock)
-// whenever s.journalBytes or s.freeBytes changes.
-func (bdl *backpressureDiskLimiter) updateBytesSemaphoreMaxLocked() {
-	newMax := int64(bdl.getMaxJournalBytes(bdl.journalBytes, bdl.freeBytes))
-	delta := newMax - bdl.byteSemaphoreMax
-	// These operations are adjusting the *maximum* value of
-	// bdl.byteSemaphore.
-	if delta > 0 {
-		bdl.byteSemaphore.Release(delta)
-	} else if delta < 0 {
-		bdl.byteSemaphore.ForceAcquire(-delta)
-	}
-	bdl.byteSemaphoreMax = newMax
+func (bdl *backpressureDiskLimiter) getSnapshotsForTest() (
+	byteSnapshot, fileSnapshot bdlSnapshot) {
+	bdl.lock.RLock()
+	defer bdl.lock.RUnlock()
+	return bdlSnapshot{bdl.byteTracker.used, bdl.byteTracker.free,
+			bdl.byteTracker.semaphoreMax,
+			bdl.byteTracker.semaphore.Count()},
+		bdlSnapshot{bdl.fileTracker.used, bdl.fileTracker.free,
+			bdl.fileTracker.semaphoreMax,
+			bdl.fileTracker.semaphore.Count()}
 }
 
 func (bdl *backpressureDiskLimiter) onJournalEnable(
 	ctx context.Context, journalBytes, journalFiles int64) (
 	availableBytes, availableFiles int64) {
-	bdl.bytesLock.Lock()
-	defer bdl.bytesLock.Unlock()
-	bdl.journalBytes += journalBytes
-	bdl.updateBytesSemaphoreMaxLocked()
-	if journalBytes == 0 {
-		return bdl.byteSemaphore.Count(), defaultAvailableFiles
-	}
-	availableBytes = bdl.byteSemaphore.ForceAcquire(journalBytes)
-	return availableBytes, defaultAvailableFiles
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
+	availableBytes = bdl.byteTracker.onJournalEnable(journalBytes)
+	availableFiles = bdl.fileTracker.onJournalEnable(journalFiles)
+	return availableBytes, availableFiles
 }
 
 func (bdl *backpressureDiskLimiter) onJournalDisable(
 	ctx context.Context, journalBytes, journalFiles int64) {
-	bdl.bytesLock.Lock()
-	defer bdl.bytesLock.Unlock()
-	bdl.journalBytes -= journalBytes
-	bdl.updateBytesSemaphoreMaxLocked()
-	if journalBytes > 0 {
-		bdl.byteSemaphore.Release(journalBytes)
-	}
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
+	bdl.byteTracker.onJournalDisable(journalBytes)
+	bdl.fileTracker.onJournalDisable(journalFiles)
 }
 
-func (bdl *backpressureDiskLimiter) calculateFreeSpaceFrac(
-	journalBytes, freeBytes int64) float64 {
-	journalBytesFloat := float64(journalBytes)
-	return journalBytesFloat /
-		bdl.getMaxJournalBytes(journalBytes, freeBytes)
-}
-
-func (bdl *backpressureDiskLimiter) calculateDelayScale(
-	freeSpaceFrac float64) float64 {
-	// We want the delay to be 0 if freeSpaceFrac <= m and the
-	// max delay if freeSpaceFrac >= M, so linearly interpolate
-	// the delay scale.
-	m := bdl.backpressureMinThreshold
-	M := bdl.backpressureMaxThreshold
-	return math.Min(1.0, math.Max(0.0, (freeSpaceFrac-m)/(M-m)))
-}
-
-func (bdl *backpressureDiskLimiter) calculateDelay(
-	ctx context.Context, journalBytes, freeBytes int64,
-	now time.Time) time.Duration {
-	freeSpaceFrac := bdl.calculateFreeSpaceFrac(journalBytes, freeBytes)
-	delayScale := bdl.calculateDelayScale(freeSpaceFrac)
+func (bdl *backpressureDiskLimiter) getDelayLocked(
+	ctx context.Context, now time.Time) time.Duration {
+	byteDelayScale := bdl.byteTracker.delayScale()
+	fileDelayScale := bdl.fileTracker.delayScale()
+	delayScale := math.Max(byteDelayScale, fileDelayScale)
 
 	// Set maxDelay to min(bdl.maxDelay, time until deadline - 1s).
 	maxDelay := bdl.maxDelay
@@ -261,126 +391,107 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 	availableBytes, availableFiles int64, err error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in Acquire.
-		return bdl.byteSemaphore.Count(), defaultAvailableFiles, errors.New(
-			"backpressureDiskLimiter.beforeBlockPut called with 0 blockBytes")
+		return bdl.byteTracker.semaphore.Count(),
+			bdl.fileTracker.semaphore.Count(), errors.New(
+				"backpressureDiskLimiter.beforeBlockPut called with 0 blockBytes")
+	}
+	if blockFiles == 0 {
+		// Better to return an error than to panic in Acquire.
+		return bdl.byteTracker.semaphore.Count(),
+			bdl.fileTracker.semaphore.Count(), errors.New(
+				"backpressureDiskLimiter.beforeBlockPut called with 0 blockFiles")
 	}
 
-	journalBytes, freeBytes, err := func() (int64, int64, error) {
-		bdl.bytesLock.Lock()
-		defer bdl.bytesLock.Unlock()
+	delay, err := func() (time.Duration, error) {
+		bdl.lock.Lock()
+		defer bdl.lock.Unlock()
 
-		freeBytes, err := bdl.freeBytesFn()
+		freeBytes, freeFiles, err := bdl.freeBytesAndFilesFn()
 		if err != nil {
-			return 0, 0, err
+			return 0, err
 		}
 
-		bdl.freeBytes = freeBytes
-		bdl.updateBytesSemaphoreMaxLocked()
-		return bdl.journalBytes, bdl.freeBytes, nil
+		bdl.byteTracker.updateFree(freeBytes)
+		bdl.fileTracker.updateFree(freeFiles)
+
+		delay := bdl.getDelayLocked(ctx, time.Now())
+		if delay > 0 {
+			bdl.log.CDebugf(ctx, "Delaying block put of %d bytes and %d files by %f s ("+
+				"journalBytes=%d, freeBytes=%d, "+
+				"journalFiles=%d, freeFiles=%d)",
+				blockBytes, blockFiles, delay.Seconds(),
+				bdl.byteTracker.used, freeBytes,
+				bdl.fileTracker.used, freeFiles)
+		}
+
+		return delay, nil
 	}()
 	if err != nil {
-		return bdl.byteSemaphore.Count(), defaultAvailableFiles, err
+		return bdl.byteTracker.semaphore.Count(),
+			bdl.fileTracker.semaphore.Count(), err
 	}
 
-	delay := bdl.calculateDelay(ctx, journalBytes, freeBytes, time.Now())
-	if delay > 0 {
-		bdl.log.CDebugf(ctx, "Delaying block put of %d bytes by %f s ("+
-			"journalBytes=%d freeBytes=%d)",
-			blockBytes, delay.Seconds(), journalBytes, freeBytes)
-	}
 	// TODO: Update delay if any variables change (i.e., we
 	// suddenly free up a lot of space).
 	err = bdl.delayFn(ctx, delay)
 	if err != nil {
-		return bdl.byteSemaphore.Count(), defaultAvailableFiles, err
+		return bdl.byteTracker.semaphore.Count(),
+			bdl.fileTracker.semaphore.Count(), err
 	}
 
-	availableFiles, err = bdl.byteSemaphore.Acquire(ctx, blockBytes)
-	return availableFiles, defaultAvailableFiles, err
+	availableBytes, err = bdl.byteTracker.beforeBlockPut(ctx, blockBytes)
+	if err != nil {
+		return availableFiles, bdl.fileTracker.semaphore.Count(), err
+	}
+	defer func() {
+		if err != nil {
+			bdl.byteTracker.afterBlockPut(blockBytes, false)
+			availableBytes = bdl.byteTracker.semaphore.Count()
+		}
+	}()
+
+	availableFiles, err = bdl.fileTracker.beforeBlockPut(ctx, blockFiles)
+	return availableBytes, availableFiles, err
 }
 
 func (bdl *backpressureDiskLimiter) afterBlockPut(
 	ctx context.Context, blockBytes, blockFiles int64, putData bool) {
-	if putData {
-		bdl.bytesLock.Lock()
-		defer bdl.bytesLock.Unlock()
-		bdl.journalBytes += blockBytes
-		bdl.updateBytesSemaphoreMaxLocked()
-	} else {
-		bdl.byteSemaphore.Release(blockBytes)
-	}
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
+	bdl.byteTracker.afterBlockPut(blockBytes, putData)
+	bdl.fileTracker.afterBlockPut(blockFiles, putData)
 }
 
 func (bdl *backpressureDiskLimiter) onBlockDelete(
 	ctx context.Context, blockBytes, blockFiles int64) {
-	if blockBytes == 0 {
-		return
-	}
-
-	bdl.byteSemaphore.Release(blockBytes)
-
-	bdl.bytesLock.Lock()
-	defer bdl.bytesLock.Unlock()
-	bdl.journalBytes -= blockBytes
-	bdl.updateBytesSemaphoreMaxLocked()
+	bdl.lock.Lock()
+	defer bdl.lock.Unlock()
+	bdl.byteTracker.onBlockDelete(blockBytes)
+	bdl.fileTracker.onBlockDelete(blockFiles)
 }
 
 type backpressureDiskLimiterStatus struct {
 	Type string
 
 	// Derived numbers.
-	FreeSpaceFrac   float64
-	ByteUsageFrac   float64
-	DelayScale      float64
 	CurrentDelaySec float64
 
-	// Constants.
-	BackpressureMinThreshold float64
-	BackpressureMaxThreshold float64
-	ByteLimitFrac            float64
-	FixedLimitMB             float64
-	MaxDelaySec              float64
-
-	// Raw numbers.
-	JournalMB   float64
-	FreeMB      float64
-	LimitMB     float64
-	AvailableMB float64
+	ByteTrackerStatus backpressureTrackerStatus
+	FileTrackerStatus backpressureTrackerStatus
 }
 
 func (bdl *backpressureDiskLimiter) getStatus() interface{} {
-	bdl.bytesLock.Lock()
-	defer bdl.bytesLock.Unlock()
+	bdl.lock.RLock()
+	defer bdl.lock.RUnlock()
 
-	freeSpaceFrac := bdl.calculateFreeSpaceFrac(
-		bdl.journalBytes, bdl.freeBytes)
-	delayScale := bdl.calculateDelayScale(freeSpaceFrac)
-	currentDelay := bdl.calculateDelay(context.Background(),
-		bdl.journalBytes, bdl.freeBytes, time.Now())
-
-	const MB float64 = 1024 * 1024
-
-	limitMB := float64(bdl.byteSemaphoreMax) / MB
-	availableMB := float64(bdl.byteSemaphore.Count()) / MB
-	byteUsageFrac := 1 - availableMB/limitMB
+	currentDelay := bdl.getDelayLocked(context.Background(), time.Now())
 
 	return backpressureDiskLimiterStatus{
 		Type: "BackpressureDiskLimiter",
 
-		FreeSpaceFrac:   freeSpaceFrac,
-		ByteUsageFrac:   byteUsageFrac,
-		DelayScale:      delayScale,
 		CurrentDelaySec: currentDelay.Seconds(),
 
-		BackpressureMinThreshold: bdl.backpressureMinThreshold,
-		BackpressureMaxThreshold: bdl.backpressureMaxThreshold,
-		ByteLimitFrac:            bdl.byteLimitFrac,
-		FixedLimitMB:             float64(bdl.byteLimit) / MB,
-		MaxDelaySec:              bdl.maxDelay.Seconds(),
-
-		JournalMB:   float64(bdl.journalBytes) / MB,
-		FreeMB:      float64(bdl.freeBytes) / MB,
-		LimitMB:     limitMB,
-		AvailableMB: availableMB,
+		ByteTrackerStatus: bdl.byteTracker.getStatus(),
+		FileTrackerStatus: bdl.fileTracker.getStatus(),
 	}
 }

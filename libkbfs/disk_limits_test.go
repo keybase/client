@@ -12,13 +12,14 @@ import (
 )
 
 // TestDiskLimits checks that getDiskLimits() doesn't return an error,
-// and returns a non-zero value. This assumes that the partition with
-// the root directory actually has free space, which may fail in
+// and returns non-zero values. This assumes that the partition with
+// the root directory actually has free space/files, which may fail in
 // certain weird configs.
 func TestDiskLimits(t *testing.T) {
-	availableBytes, err := getDiskLimits("/")
+	availableBytes, availableFiles, err := getDiskLimits("/")
 	require.NoError(t, err)
 	require.NotEqual(t, uint64(0), availableBytes)
+	require.NotEqual(t, uint64(0), availableFiles)
 }
 
 // TestDiskLimitsNonExistentFile checks that getDiskLimits() returns
@@ -26,7 +27,7 @@ func TestDiskLimits(t *testing.T) {
 // doesn't exist.
 func TestDiskLimitsNonExistentFile(t *testing.T) {
 	// Of course, we're assuming this file doesn't exist.
-	_, err := getDiskLimits("/non-existent-file")
+	_, _, err := getDiskLimits("/non-existent-file")
 	require.True(t, ioutil.IsNotExist(err))
 }
 
