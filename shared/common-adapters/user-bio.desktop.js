@@ -68,7 +68,7 @@ class BioRender extends Component<void, Props, void> {
             <Avatar
               onClick={() => this.props.onClickAvatar(username)}
               style={globalStyles.clickable}
-              url={userInfo.avatar}
+              username={username}
               size={avatarSize}
               following={currentlyFollowing && !editFns}
               followsYou={followsYou && !editFns} />
