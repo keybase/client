@@ -868,8 +868,7 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 	// server.  Since this doesn't rely directly on the network,
 	// there's no need for an adaptive sync buffer size, so we
 	// always set the min and max to the same thing.
-	maxSyncBufferSize :=
-		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
+	maxSyncBufferSize := int64(ForcedBranchSquashBytesThresholdDefault)
 	log := c.MakeLogger("DBCJ")
 	journalCache := NewDirtyBlockCacheStandard(c.clock, log,
 		maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)

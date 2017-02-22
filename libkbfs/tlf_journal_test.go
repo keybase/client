@@ -1184,6 +1184,39 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	delegate.requireNextState(ctx, bwBusy)
 }
 
+func testTLFJournalSquashByBytes(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+	tlfJournal.forcedSquashByBytes = 10
+
+	data := make([]byte, tlfJournal.forcedSquashByBytes+1)
+	bid, bCtx, serverHalf := config.makeBlock(data)
+	err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 3
+
+	prevRoot := firstPrevRoot
+	for i := 0; i < mdCount; i++ {
+		revision := firstRevision + MetadataRevision(i)
+		md := config.makeMD(revision, prevRoot)
+		mdID, err := tlfJournal.putMD(ctx, md)
+		require.NoError(t, err)
+		prevRoot = mdID
+	}
+
+	// This should convert it to a branch, based on the number of
+	// outstanding bytes.
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	require.Equal(
+		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+}
+
 func TestTLFJournal(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
 		testTLFJournalBasic,
@@ -1205,6 +1238,7 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalFlushInterleaving,
 		testTLFJournalFlushRetry,
 		testTLFJournalResolveBranch,
+		testTLFJournalSquashByBytes,
 	}
 	runTestsOverMetadataVers(t, "testTLFJournal", tests)
 }

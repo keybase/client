@@ -76,10 +76,14 @@ const (
 	// This will be the final entry for unflushed paths if there are
 	// too many revisions to process at once.
 	incompleteUnflushedPathsMarker = "..."
-	// ForcedBranchSquashThreshold is the minimum number of MD
+	// ForcedBranchSquashRevThreshold is the minimum number of MD
 	// revisions in the journal that will trigger an automatic branch
 	// conversion (and subsequent resolution).
-	ForcedBranchSquashThreshold = 20
+	ForcedBranchSquashRevThreshold = 20
+	// ForcedBranchSquashBytesThresholdDefault is the minimum number of
+	// unsquashed MD bytes in the journal that will trigger an
+	// automatic branch conversion (and subsequent resolution).
+	ForcedBranchSquashBytesThresholdDefault = uint64(25 << 20) // 25 MB
 	// Maximum number of blocks to delete from the local saved block
 	// journal at a time while holding the lock.
 	maxSavedBlockRemovalsAtATime = uint64(500)
@@ -186,6 +190,7 @@ type tlfJournal struct {
 	deferLog            logger.Logger
 	onBranchChange      branchChangeListener
 	onMDFlush           mdFlushListener
+	forcedSquashByBytes uint64
 
 	// Invariant: this tlfJournal acquires exactly
 	// blockJournal.getStoredBytes() and
@@ -227,6 +232,9 @@ type tlfJournal struct {
 	disabled       bool
 	lastFlushErr   error
 	unflushedPaths unflushedPathCache
+	// An estimate of how many bytes have been written since the last
+	// squash.
+	unsquashedBytes uint64
 
 	bwDelegate tlfJournalBWDelegate
 }
@@ -335,6 +343,7 @@ func makeTLFJournal(
 		deferLog:             log.CloneWithAddedDepth(1),
 		onBranchChange:       onBranchChange,
 		onMDFlush:            onMDFlush,
+		forcedSquashByBytes:  ForcedBranchSquashBytesThresholdDefault,
 		diskLimiter:          diskLimiter,
 		hasWorkCh:            make(chan struct{}, 1),
 		needPauseCh:          make(chan struct{}, 1),
@@ -891,6 +900,7 @@ func (j *tlfJournal) convertMDsToBranchLocked(
 	if err != nil {
 		return err
 	}
+	j.unsquashedBytes = 0
 
 	// Pause while on a conflict branch.
 	j.pause(journalPauseConflict)
@@ -925,18 +935,56 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
 		return false, err
 	}
 
-	ok, err := j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashThreshold)
+	atLeastOneRev, err := j.mdJournal.atLeastNNonLocalSquashes(1)
 	if err != nil {
 		return false, err
 	}
-	if !ok {
-		// Most of what's in the log are already local squashes, so no
-		// need to squash it more.
+	if !atLeastOneRev {
+		// If there isn't at least one non-local-squash revision, we can
+		// bail early since there's definitely nothing to do.
 		return false, nil
 	}
 
-	j.log.CDebugf(ctx, "Converting journal with more than %d "+
-		"non-local-squash entries to a branch", ForcedBranchSquashThreshold)
+	squashByRev, err :=
+		j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashRevThreshold)
+	if err != nil {
+		return false, err
+	}
+	// Note that j.unsquashedBytes is just an estimate -- it doesn't
+	// account for blocks that will be eliminated as part of the
+	// squash, and it doesn't count unsquashed bytes that were written
+	// to disk before this tlfJournal instance started.  But it should
+	// be close enough to work for the purposes of this optimization.
+	squashByBytes := j.unsquashedBytes >= j.forcedSquashByBytes
+	if !squashByRev && !squashByBytes {
+		// Not over either threshold yet.
+		return false, nil
+	}
+
+	j.log.CDebugf(ctx, "Converting journal with %d unsquashed bytes "+
+		"to a branch", j.unsquashedBytes)
+
+	// If we're squashing by bytes, and there's exactly one
+	// non-local-squash revision, just directly mark it as squashed to
+	// avoid the CR overhead.
+	if !squashByRev {
+		moreThanOneRev, err := j.mdJournal.atLeastNNonLocalSquashes(2)
+		if err != nil {
+			return false, err
+		}
+
+		if !moreThanOneRev {
+			j.log.CDebugf(ctx, "Avoiding CR when there is only one "+
+				"revision that needs squashing; marking as local squash")
+			err = j.mdJournal.markLatestAsLocalSquash(ctx)
+			if err != nil {
+				return false, err
+			}
+			j.unsquashedBytes = 0
+			return true, nil
+		}
+	}
+
 	err = j.convertMDsToBranchLocked(ctx, PendingLocalSquashBranchID)
 	if err != nil {
 		return false, err
@@ -1537,12 +1585,16 @@ func (j *tlfJournal) putBlockData(
 			storedBytesBefore, storedBytesAfter))
 	}
 
+	if putData && j.mdJournal.branchID == NullBranchID {
+		j.unsquashedBytes += uint64(bufLen)
+	}
+
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		PublicTopLevelFolder: j.tlfID.IsPublic(),
 		// Path: TODO,
 		// TODO: should this be the complete total for the file/directory,
 		// rather than the diff?
-		SyncingBytes: int64(len(buf)),
+		SyncingBytes: bufLen,
 		// SyncingOps: TODO,
 	})
 
