@@ -51,12 +51,6 @@ func (c *CmdSimpleFSRemove) Run() error {
 		Path: c.path,
 	})
 
-	if err != nil {
-		return err
-	}
-
-	err = cli.SimpleFSWait(ctx, opid)
-
 	return err
 }
 
