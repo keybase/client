@@ -658,6 +658,12 @@ Object {
     },
     Object {
       "children": Array [
+        "    ~http://keybase.io~",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
         "  Include:",
       ],
       "type": "text-block",
@@ -805,6 +811,19 @@ Object {
             "keybase.io?blah=true",
           ],
           "href": "http://keybase.io?blah=true",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io/~user/cool",
+          ],
+          "href": "http://keybase.io/~user/cool",
           "type": "link",
         },
       ],
