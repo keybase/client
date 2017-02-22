@@ -11,6 +11,8 @@ export type Props = {
   onPostMessage: (text: string) => void,
   onEditLastMessage: () => void,
   selectedConversation: ?ConversationIDKey,
+  focusInputCounter: number,
+  onUnmountText: (text: string) => void,
 }
 
 export default class Input extends Component<void, Props, void> { }

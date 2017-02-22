@@ -23,13 +23,8 @@ const conversationRoute = new RouteDefNode({
 })
 
 const routeTree = new RouteDefNode({
-  defaultSelected: nothingSelected,
-  children: (name) => {
-    if (name === nothingSelected) {
-      return new RouteDefNode({component: ConversationList})
-    }
-    return conversationRoute
-  },
+  component: ConversationList,
+  children: () => conversationRoute,
 })
 
 export default routeTree

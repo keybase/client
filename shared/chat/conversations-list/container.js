@@ -69,7 +69,7 @@ class ConversationListContainer extends Component {
       const participants = participantFilter(conversation.get('participants'), this.props.you)
       const isSelected = this.props.selectedConversation === conversationIDKey
       const isMuted = conversation.get('muted')
-      const rekeyInfo = this.props.selectedConversation && this.props.rekeyInfos.get(conversationIDKey)
+      const rekeyInfo = this.props.rekeyInfos.get(conversationIDKey)
       const timestamp = formatTimeForConversationList(conversation.get('time'), this.props.nowOverride)
       const snippet = conversation.get('snippet')
       const onSelectConversation = this.props.onSelectConversation

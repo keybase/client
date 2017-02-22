@@ -117,6 +117,10 @@ class ConversationList extends Component<void, Props, State> {
       this.state.isLockedToBottom && this._scrollToBottom()
     }
 
+    if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
+      this.onEditLastMessage()
+    }
+
     if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
       // Figure out how many new items we have
       const prependedCount = this.state.messages.indexOf(prevState.messages.first())

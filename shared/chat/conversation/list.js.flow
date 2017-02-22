@@ -26,6 +26,7 @@ export type Props = {
   selectedConversation: ?ConversationIDKey,
   validated: boolean,
   sidePanelOpen: boolean,
+  editLastMessageCounter: number,
   // TODO: better types will remove these
   optionsFn: any,
 }
