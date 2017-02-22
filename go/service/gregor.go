@@ -118,10 +118,9 @@ type gregorHandler struct {
 	chatSync         *chat.Syncer
 
 	// This mutex protects the con object
-	connMutex     sync.Mutex
-	conn          *rpc.Connection
-	uri           *rpc.FMPURI
-	startPingLoop sync.Once
+	connMutex sync.Mutex
+	conn      *rpc.Connection
+	uri       *rpc.FMPURI
 
 	cli              rpc.GenericClient
 	pingCli          rpc.GenericClient
@@ -1016,10 +1015,11 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err er
 
 func (g *gregorHandler) pingLoop() {
 
+	id, _ := libkb.RandBytes(4)
 	duration := g.G().Env.GetGregorPingInterval()
 	timeout := g.G().Env.GetGregorPingTimeout()
-	g.Debug(context.Background(), "ping loop: starting up: duration: %v timeout: %v", duration, timeout)
-	defer g.Debug(context.Background(), "ping loop: terminating")
+	g.Debug(context.Background(), "ping loop: starting up: id: %x duration: %v timeout: %v", id, duration, timeout)
+	defer g.Debug(context.Background(), "ping loop: id: %x terminating", id)
 
 	for {
 		select {
@@ -1027,9 +1027,10 @@ func (g *gregorHandler) pingLoop() {
 			var err error
 			ctx := context.Background()
 
-			// Check to see if we are logged in, and don't ping if we aren't
+			// Check to see if we are logged in, if not kill ping loop
 			if _, _, ok := g.loggedIn(ctx); !ok {
-				continue
+				g.Debug(ctx, "ping loop: id: %x not logged in, stopping", id)
+				return
 			}
 
 			if g.IsConnected() {
@@ -1044,27 +1045,39 @@ func (g *gregorHandler) pingLoop() {
 				// If we are not connected, we don't want to timeout anything
 				// Just hook into the normal reconnect chan stuff in the RPC
 				// library
-				g.Debug(ctx, "ping loop: normal ping, not connected")
+				g.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
 				_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
 			}
 
 			if err != nil {
-				g.Debug(ctx, "ping loop: error: %s", err.Error())
+				g.Debug(ctx, "ping loop: id: %x error: %s", id, err.Error())
 				if err == context.DeadlineExceeded {
 					g.Debug(ctx, "ping loop: timeout: terminating connection")
 					g.Shutdown()
 
 					if err := g.Connect(g.uri); err != nil {
-						g.Debug(ctx, "ping loop: error connecting: %s", err.Error())
+						g.Debug(ctx, "ping loop: id: %x error connecting: %s", id, err.Error())
 					}
+					return
 				}
 			}
+		case <-g.shutdownCh:
+			g.Debug(context.Background(), "ping loop: id: %x shutdown received", id)
+			return
 		}
 	}
 
 }
 
 func (g *gregorHandler) connectTLS() error {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+
+	if g.conn != nil {
+		g.Debug(context.Background(), "skipping connect, conn is not nil")
+		return nil
+	}
+
 	uri := g.uri
 	g.Debug(context.Background(), "connecting to gregord via TLS at %s", uri)
 	rawCA := g.G().Env.GetBundledCA(uri.Host)
@@ -1073,13 +1086,11 @@ func (g *gregorHandler) connectTLS() error {
 	}
 	g.Debug(context.Background(), "Using CA for gregor: %s", libkb.ShortCA(rawCA))
 
-	g.connMutex.Lock()
 	opts := rpc.ConnectionOpts{
 		WrapErrorFunc:    libkb.WrapError,
 		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
 	}
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G()), g.G().Log, opts)
-	g.connMutex.Unlock()
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
@@ -1091,29 +1102,36 @@ func (g *gregorHandler) connectTLS() error {
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
-	g.startPingLoop.Do(func() { go g.pingLoop() })
+	go g.pingLoop()
 
 	return nil
 }
 
 func (g *gregorHandler) connectNoTLS() error {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+
+	if g.conn != nil {
+		g.Debug(context.Background(), "skipping connect, conn is not nil")
+		return nil
+	}
 	uri := g.uri
 	g.Debug(context.Background(), "connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
-	g.connMutex.Lock()
+
 	opts := rpc.ConnectionOpts{
 		WrapErrorFunc:    libkb.WrapError,
 		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
 	}
 	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
-	g.connMutex.Unlock()
+
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout, ErrGregorTimeout)
 	g.pingCli = g.conn.GetClient()
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
 	// off the reconnect logic in the RPC library
-	g.startPingLoop.Do(func() { go g.pingLoop() })
+	go g.pingLoop()
 
 	return nil
 }
