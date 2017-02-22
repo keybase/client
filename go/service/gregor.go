@@ -961,35 +961,43 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 	return nil
 }
 
-func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err error) {
-	var token string
-	var uid keybase1.UID
+func (g *gregorHandler) loggedIn(ctx context.Context) bool {
 
 	// Check to see if we have been shutdown,
 	select {
 	case <-g.shutdownCh:
-		msg := "not logged in, not attempting authentication"
-		g.Debug(msg)
-		return errors.New(msg)
+		return false
 	default:
 		// if we were going to block, then that means we are still alive
 	}
 
+	var token string
+	var uid keybase1.UID
 	// Continue on and authenticate
 	aerr := g.G().LoginState().LocalSession(func(s *libkb.Session) {
 		token = s.GetToken()
 		uid = s.GetUID()
 	}, "gregor handler - login session")
 	if token == "" {
-		return errors.New("blank session token would have been sent to gregor")
+		return false
 	}
 	if aerr != nil {
-		g.skipRetryConnect = true
-		return aerr
+		return false
 	}
-	g.Debug("have session token")
 
-	g.Debug("authenticating")
+	return true
+}
+
+func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err error) {
+	var token string
+	var uid keybase1.UID
+
+	if !g.loggedIn(ctx) {
+		g.skipRetryConnect = true
+		return errors.New("not logged in for auth")
+	}
+
+	g.Debug("logged in: authenticating")
 	ac := gregor1.AuthClient{Cli: cli}
 	auth, err := ac.AuthenticateSessionToken(ctx, gregor1.SessionToken(token))
 	if err != nil {
@@ -1019,6 +1027,12 @@ func (g *gregorHandler) pingLoop() {
 		case <-g.G().Clock().After(duration):
 			var err error
 			ctx := context.Background()
+
+			// Check to see if we are logged in, and don't ping if we aren't
+			if !g.loggedIn(ctx) {
+				continue
+			}
+
 			if g.IsConnected() {
 				// If we are connected, subject the ping call to a fairly
 				// aggressive timeout so our chat stuff can be responsive
