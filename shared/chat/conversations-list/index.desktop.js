@@ -1,5 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
+import ReactList from 'react-list'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {shouldUpdate} from 'recompose'
@@ -156,17 +157,34 @@ const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
   return different
 })(_Row)
 
-const ConversationList = (props: Props) => (
-  <div style={{...globalStyles.flexBoxRow, flex: 1}}>
-    <div style={containerStyle}>
-      <AddNewRow onNewChat={props.onNewChat} />
-      <div style={scrollableStyle}>
-        {props.rows.map(rowProps => <Row {...rowProps} key={rowProps.conversationIDKey} />)}
+class ConversationList extends PureComponent<void, Props, void> {
+  _itemRenderer = (index) => {
+    const rowProp = this.props.rows.get(index)
+    return <Row {...rowProp} key={rowProp.conversationIDKey} />
+  }
+
+  render () {
+    return <div style={{...globalStyles.flexBoxRow, flex: 1}}>
+      <div style={containerStyle}>
+        <AddNewRow onNewChat={this.props.onNewChat} />
+        <div style={scrollableStyle}>
+          <ReactList
+            style={listStyle}
+            useTranslate3d={true}
+            useStaticSize={true}
+            itemRenderer={this._itemRenderer}
+            length={this.props.rows.count()}
+            type='uniform' />
+        </div>
       </div>
+      {this.props.children}
     </div>
-    {props.children}
-  </div>
-)
+  }
+}
+
+const listStyle = {
+  flex: 1,
+}
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
@@ -202,8 +220,6 @@ const containerStyle = {
 }
 
 const scrollableStyle = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
   overflowY: 'auto',
   willChange: 'transform',
 }
