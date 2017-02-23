@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 )
@@ -23,6 +25,7 @@ type SimpleFS struct {
 	config     Config
 	handles    map[keybase1.OpID]*handle
 	inProgress map[keybase1.OpID]*inprogress
+	log        logger.Logger
 }
 
 type inprogress struct {
@@ -40,10 +43,12 @@ type handle struct {
 var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
 
 func newSimpleFS(config Config) *SimpleFS {
+	log := config.MakeLogger("simplefs")
 	return &SimpleFS{
 		config:     config,
 		handles:    map[keybase1.OpID]*handle{},
 		inProgress: map[keybase1.OpID]*inprogress{},
+		log:        log,
 	}
 }
 
@@ -59,7 +64,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 	if err != nil {
 		return err
 	}
-	defer CleanupCancellationDelayer(ctx)
+	defer k.doneOp(ctx, arg.OpID)
 
 	node, err := k.getRemoteNode(ctx, arg.Path)
 	if err != nil {
@@ -294,7 +299,7 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 
 // SimpleFSRename - Rename file or directory, KBFS side only
 func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRenameArg) error {
-	ctx, err := k.startSyncOp(ctx)
+	ctx, err := k.startSyncOp(ctx, "Rename", arg)
 	if err != nil {
 		return err
 	}
@@ -317,7 +322,7 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 // or create a directory
 // Files must be closed afterwards.
 func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenArg) error {
-	ctx, err := k.startSyncOp(ctx)
+	ctx, err := k.startSyncOp(ctx, "Open", arg)
 	if err != nil {
 		return err
 	}
@@ -338,7 +343,7 @@ func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenAr
 
 // SimpleFSSetStat - Set/clear file bits - only executable for now
 func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSetStatArg) error {
-	ctx, err := k.startSyncOp(ctx)
+	ctx, err := k.startSyncOp(ctx, "SetStat", arg)
 	if err != nil {
 		return err
 	}
@@ -452,7 +457,7 @@ func (k *SimpleFS) simpleFSRemove(ctx context.Context, arg keybase1.SimpleFSRemo
 
 // SimpleFSStat - Get info about file
 func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (keybase1.Dirent, error) {
-	ctx, err := k.startSyncOp(ctx)
+	ctx, err := k.startSyncOp(ctx, "Stat", path)
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
@@ -475,7 +480,7 @@ func (k *SimpleFS) SimpleFSMakeOpid(_ context.Context) (keybase1.OpID, error) {
 // SimpleFSClose - Close OpID, cancels any pending operation.
 // Must be called after list/copy/remove
 func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) error {
-	ctx, err := k.startSyncOp(ctx)
+	ctx, err := k.startSyncOp(ctx, "Close", opid)
 	if err != nil {
 		return err
 	}
@@ -799,14 +804,21 @@ func ty2Kbfs(mode os.FileMode) EntryType {
 	return File
 }
 
-func (k *SimpleFS) startOp(outer context.Context, opid keybase1.OpID,
+func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 	desc keybase1.OpDescription) (context.Context, error) {
 	k.lock.Lock()
 	k.inProgress[opid] = &inprogress{desc, make(chan struct{})}
 	k.lock.Unlock()
-	return k.startSyncOp(outer)
+	// ignore error, this is just for logging.
+	descBS, _ := json.Marshal(desc)
+	k.log.CDebugf(ctx, "start %X %s", opid, descBS)
+	return k.startOpWrapContext(ctx)
 }
-func (k *SimpleFS) startSyncOp(outer context.Context) (context.Context, error) {
+func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interface{}) (context.Context, error) {
+	k.log.CDebugf(ctx, "start sync %s %v", name, logarg)
+	return k.startOpWrapContext(ctx)
+}
+func (k *SimpleFS) startOpWrapContext(outer context.Context) (context.Context, error) {
 	return NewContextWithCancellationDelayer(NewContextReplayable(
 		outer, func(c context.Context) context.Context {
 			return c
@@ -824,6 +836,7 @@ func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID) {
 	k.doneSyncOp(ctx)
 }
 func (k *SimpleFS) doneSyncOp(ctx context.Context) {
+	k.log.CDebugf(ctx, "done")
 	CleanupCancellationDelayer(ctx)
 }
 
