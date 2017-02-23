@@ -32,7 +32,7 @@ class Text extends Component<void, Props, void> {
   }
 
   shouldComponentUpdate (nextProps: Props): boolean {
-    const TEMP = !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)
       } else if (key === 'children' && this.props.plainText && nextProps.plainText) { // child will be plain text
@@ -40,23 +40,6 @@ class Text extends Component<void, Props, void> {
       }
       return undefined
     })
-
-    if (TEMP) {
-      const a = {
-        ...this.props,
-        children: null,
-      }
-
-      const b = {
-        ...nextProps,
-        children: null,
-      }
-      if (JSON.stringify(a) === JSON.stringify(b)) {
-        console.log('aaaaa', this.props, nextProps, JSON.stringify(a, null, 4), JSON.stringify(b, null, 4))
-      }
-    }
-
-    return TEMP
   }
 
   _style (props) {

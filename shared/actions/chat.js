@@ -1029,6 +1029,9 @@ function * _loadInbox (): SagaGenerator<any, any> {
     },
   })
 
+  console.log('START')
+  console.time('INBOX') // TEMP
+
   const chatInboxUnverified = yield takeFromChannelMap(loadInboxChanMap, 'chat.1.chatUi.chatInboxUnverified')
 
   if (!chatInboxUnverified) {
@@ -1114,6 +1117,8 @@ function * _loadInbox (): SagaGenerator<any, any> {
     } else if (incoming.finished) {
       finishedCalled = true
       yield put({type: 'chat:updateInboxComplete', payload: undefined})
+
+      console.timeEnd('INBOX') // TEMP
       break
     } else if (incoming.timeout) {
       console.warn('Inbox loading timed out')

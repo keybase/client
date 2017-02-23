@@ -114,8 +114,10 @@ function _filterInboxes (inboxes: List<InboxState>, supersededByState: Supersede
 export default connect(
   (state: TypedState, {routeSelected}) => ({
     conversationUnreadCounts: state.chat.get('conversationUnreadCounts'),
-    inbox: _filterInboxes(state.chat.get('inbox'), state.chat.get('supersededByState'), state.chat.get('alwaysShow')),
     pending: state.chat.get('pendingConversations'),
+    rawAlwaysShow: state.chat.get('alwaysShow'),
+    rawInbox: state.chat.get('inbox'),
+    rawSupersededByState: state.chat.get('supersededByState'),
     rekeyInfos: state.chat.get('rekeyInfos'),
     selectedConversation: newestConversationIDKey(routeSelected, state.chat),
     you: state.config.username || '',
@@ -124,6 +126,11 @@ export default connect(
     loadInbox: () => dispatch(loadInbox()),
     onNewChat: () => dispatch(newChat([])),
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
+  }),
+  (stateProps, dispatchProps) => ({
+    ...stateProps,
+    ...dispatchProps,
+    inbox: _filterInboxes(stateProps.rawInbox, stateProps.rawSupersededByState, stateProps.rawAlwaysShow),
   })
 )(ConversationListContainer)
 

@@ -87,31 +87,7 @@ function messageCreateComponent (type, key, children, options) {
 
 class Markdown extends PureComponent<void, Props, void> {
   shouldComponentUpdate (nextProps: Props): boolean {
-    const TEMP = !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      // if (key === 'style') {
-        // return shallowEqual(obj, oth)
-      // } else if (key === 'children' && this.props.plainText && nextProps.plainText) { // child will be plain text
-        // return shallowEqual(obj, oth)
-      // }
-      return undefined
-    })
-
-    if (TEMP) {
-      const a = {
-        ...this.props,
-        children: null,
-      }
-
-      const b = {
-        ...nextProps,
-        children: null,
-      }
-      if (JSON.stringify(a) === JSON.stringify(b)) {
-        console.log('aaaaa markdown', this.props, nextProps, JSON.stringify(a, null, 4), JSON.stringify(b, null, 4))
-      }
-    }
-
-    return TEMP
+    return !shallowEqual(this.props, nextProps)
   }
 
   render () {
