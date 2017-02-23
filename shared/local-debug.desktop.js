@@ -14,10 +14,12 @@ let config: {[key: string]: any} = {
   devStoreChangingFunctions: false,
   enableActionLogging: true,
   enableStoreLogging: false,
+  featureFlagsOverride: null,
   forceImmediateLogging: false,
   forceMainWindowPosition: null,
   forwardLogs: true,
   ignoreDisconnectOverlay: false,
+  immediateStateLogging: false,
   initialTabState: {},
   isTesting: false,
   logStatFrequency: 0,
@@ -33,7 +35,6 @@ let config: {[key: string]: any} = {
   showAllTrackers: false,
   showDevTools: false,
   skipSecondaryDevtools: true,
-  featureFlagsOverride: null,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -90,6 +91,7 @@ export const {
   forceMainWindowPosition,
   forwardLogs,
   ignoreDisconnectOverlay,
+  immediateStateLogging,
   isTesting,
   logStatFrequency,
   overrideLoggedInTab,

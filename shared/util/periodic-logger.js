@@ -1,14 +1,8 @@
 // @flow
 
-// needs.
-// store stuff  in ring buffer
-// ability to dump entire buffer
-// ability to dump most recent value
-// logger for redux
-// logger for rpc?
-// logger during debug
-// // maybe logs some id instead of the actual payload
-
+// Keeps a ring buffer of things to log
+// Can periodically log out the last thing written
+// Can dump all logs
 const PREFIX_LOG: string = 'PLL:'
 const PREFIX_WARN: string = 'PLW:'
 const PREFIX_ERROR: string = 'PLE:'
@@ -55,17 +49,17 @@ class PeriodicLogger {
   }
 
   log (...args: Array<any>) {
-    console.log(PREFIX_LOG, this._lastWrite + 1) // output current index so we can see the order of things and correlate a full dump
+    !this._logIncoming && console.log(PREFIX_LOG, this._lastWrite + 1) // output current index so we can see the order of things and correlate a full dump
     this._write(args)
   }
 
   warn (...args: Array<any>) {
-    console.warn(PREFIX_WARN, this._lastWrite + 1)
+    !this._logIncoming && console.warn(PREFIX_WARN, this._lastWrite + 1)
     this._write(args)
   }
 
   error (...args: Array<any>) {
-    console.error(PREFIX_ERROR, this._lastWrite + 1)
+    !this._logIncoming && console.error(PREFIX_ERROR, this._lastWrite + 1)
     this._write(args)
   }
 
@@ -83,6 +77,11 @@ class PeriodicLogger {
     if (args) {
       this._dump(`${PREFIX_DUMP_CURRENT}${this._lastWrite}:`, args)
     }
+  }
+
+  clear () {
+    this._lastWrite = -1
+    this._messages = []
   }
 
   dumpAll () {

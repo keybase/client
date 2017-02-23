@@ -8,13 +8,11 @@ import {Iterable} from 'immutable'
 import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
 import {createStore} from 'redux'
-import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
+import {enableStoreLogging, enableActionLogging, closureStoreCheck, immediateStateLogging} from '../local-debug'
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
 import {convertToError} from '../util/errors'
 import {setupLogger} from '../util/periodic-logger'
-
-const logActionsImmediately = false
 
 // Transform objects from Immutable on printing
 const objToJS = ([prefix, state]) => {
@@ -31,7 +29,7 @@ const objToJS = ([prefix, state]) => {
   return [prefix, newState]
 }
 
-const logger = setupLogger('storeLogger', 100, logActionsImmediately, objToJS, 50)
+const logger = setupLogger('storeLogger', 100, immediateStateLogging, objToJS, 50)
 let theStore: Store
 
 const crashHandler = (error) => {
