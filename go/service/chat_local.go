@@ -1499,7 +1499,7 @@ func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 
 		// If we miss the inbox, and we are looking for a public TLF, let's try and find
 		// any conversation that matches
-		_, tlfInfo, err := chat.GetInboxQueryLocalToRemote(ctx, h.tlf, &query)
+		tlfInfo, err := chat.GetInboxQueryTLFInfo(ctx, h.tlf, &query)
 		if err != nil {
 			return res, err
 		}
