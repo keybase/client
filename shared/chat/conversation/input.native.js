@@ -34,8 +34,7 @@ class ConversationInput extends Component<void, Props, State> {
   }
 
   componentWillUnmount () {
-    // TODO(mm) fix this when we figure out a solution that will store this in the route state
-    // this.props.onUnmountText && this.props.onUnmountText(this.getValue())
+    this.props.onUnmountText && this.props.onUnmountText(this.getValue())
   }
 
   focusInput = () => {
