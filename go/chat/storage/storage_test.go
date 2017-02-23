@@ -413,7 +413,7 @@ func TestStorageTypeFilter(t *testing.T) {
 	res, err := storage.Fetch(context.TODO(), conv, uid, &query, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
-	restexts := utils.FilterByType(res.Messages, &query)
+	restexts := utils.FilterByType(res.Messages, &query, true)
 	require.Equal(t, len(textmsgs), len(restexts), "wrong amount of text messages")
 	for i := 0; i < len(restexts); i++ {
 		require.Equal(t, textmsgs[i].GetMessageID(), restexts[i].GetMessageID(), "msg mismatch")
