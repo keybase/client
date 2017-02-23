@@ -63,10 +63,12 @@ type diskBlockCacheConfig interface {
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
 type DiskBlockCacheStandard struct {
 	config     diskBlockCacheConfig
+	log        logger.Logger
 	maxBytes   uint64
 	maxBlockID []byte
-	tlfCounts  map[tlf.ID]int
-	log        logger.Logger
+	// Track the number of blocks in the cache per TLF and overall.
+	tlfCounts map[tlf.ID]int
+	numBlocks int
 	// protects the disk caches from being shutdown while they're being
 	// accessed
 	lock    sync.RWMutex
@@ -248,6 +250,7 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 
 	tlfIDLen := len(tlf.NullID.Bytes())
 	tlfCounts := make(map[tlf.ID]int)
+	numBlocks := 0
 	iter := cache.tlfDb.NewIterator(nil, nil)
 	for iter.Next() {
 		key := iter.Key()
@@ -258,8 +261,10 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 			return err
 		}
 		tlfCounts[tlfID] += 1
+		numBlocks += 1
 	}
 	cache.tlfCounts = tlfCounts
+	cache.numBlocks = numBlocks
 	return nil
 }
 
@@ -400,26 +405,27 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	}
 	if !hasKey {
 		cache.tlfCounts[tlfID] += 1
+		cache.numBlocks += 1
 	}
 	return cache.updateLRULocked(ctx, tlfID, blockKey)
 }
 
 func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
-	blockIDs []diskBlockCacheDeleteKey) error {
-	if len(blockIDs) == 0 {
+	blockEntries []diskBlockCacheDeleteKey) error {
+	if len(blockEntries) == 0 {
 		return nil
 	}
 	blockBatch := new(leveldb.Batch)
 	lruBatch := new(leveldb.Batch)
 	tlfBatch := new(leveldb.Batch)
 	removalCounts := make(map[tlf.ID]int)
-	for _, id := range blockIDs {
-		blockKey := id.BlockID.Bytes()
+	for _, entry := range blockEntries {
+		blockKey := entry.BlockID.Bytes()
 		blockBatch.Delete(blockKey)
 		lruBatch.Delete(blockKey)
-		tlfDbKey := cache.lruKey(id.TlfID, blockKey)
+		tlfDbKey := cache.lruKey(entry.TlfID, blockKey)
 		tlfBatch.Delete(tlfDbKey)
-		removalCounts[id.TlfID]++
+		removalCounts[entry.TlfID]++
 	}
 	if err := cache.blockDb.Write(blockBatch, nil); err != nil {
 		return err
@@ -434,6 +440,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	cache.compactCachesLocked(ctx)
 	for k, v := range removalCounts {
 		cache.tlfCounts[k] -= v
+		cache.numBlocks -= v
 	}
 
 	return nil
@@ -555,6 +562,7 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 // on that list of block IDs.
 func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	numBlocks int) (numRemoved int, err error) {
+	// TODO: implement
 	return cache.evictSomeBlocks(ctx, numBlocks, blockIDsByTime{})
 }
 
