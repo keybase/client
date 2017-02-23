@@ -11,11 +11,13 @@ import {createStore} from 'redux'
 import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
-import {requestIdleCallback} from '../util/idle-callback'
 import {convertToError} from '../util/errors'
+import {setupLogger} from '../util/periodic-logger'
+
+const logActionsImmediately = false
 
 // Transform objects from Immutable on printing
-const objToJS = state => {
+const objToJS = ([prefix, state]) => {
   var newState = {}
 
   Object.keys(state).forEach(i => {
@@ -26,21 +28,10 @@ const objToJS = state => {
     }
   })
 
-  return newState
+  return [prefix, newState]
 }
 
-const logger = {}
-
-for (const method in console) {
-  if (typeof console[method] === 'function') {
-    logger[method] = (...args) => {
-      requestIdleCallback(() => {
-        console[method](...args)
-      }, {timeout: 1e3})
-    }
-  }
-}
-
+const logger = setupLogger('storeLogger', 100, logActionsImmediately, objToJS, 50)
 let theStore: Store
 
 const crashHandler = (error) => {
@@ -49,8 +40,8 @@ const crashHandler = (error) => {
   }
   if (theStore) {
     theStore.dispatch({
-      type: globalError,
       payload: convertToError(error),
+      type: globalError,
     })
   } else {
     console.warn('Got crash before store created?', error)
@@ -58,11 +49,22 @@ const crashHandler = (error) => {
 }
 
 const loggerMiddleware: any = enableStoreLogging ? createLogger({
-  duration: true,
-  stateTransformer: objToJS,
-  actionTransformer: objToJS,
+  actionTransformer: (...args) => {
+    console.log('Action:', ...args)
+    return null
+  },
   collapsed: true,
-  logger,
+  duration: true,
+  logger: {
+    error: () => {},
+    log: () => {},
+    warn: () => {},
+  },
+  stateTransformer: (...args) => {
+    logger.log('State:', ...args)
+    return null
+  },
+  titleFormatter: () => null,
 }) : null
 
 let lastError = new Error('')
