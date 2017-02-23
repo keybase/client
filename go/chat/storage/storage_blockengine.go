@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const blockIndexVersion = 3
+const blockIndexVersion = 4
 const blockSize = 100
 
 type blockEngine struct {
