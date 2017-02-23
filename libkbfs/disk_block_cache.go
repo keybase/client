@@ -542,8 +542,39 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 // on that list of block IDs.
 func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	numBlocks int) (numRemoved int, err error) {
-	// TODO: implement
-	return cache.evictSomeBlocks(ctx, numBlocks, blockIDsByTime{})
+	numElements := numBlocks * evictionConsiderationFactor
+	blockID, err := cache.getRandomBlockID(numElements, cache.numBlocks)
+	if err != nil {
+		return 0, err
+	}
+	rng := &util.Range{blockID.Bytes(), cache.maxBlockID}
+	iter := cache.metaDb.NewIterator(rng, nil)
+	defer iter.Release()
+
+	blockIDs := make(blockIDsByTime, 0, numElements)
+
+	for i := 0; i < numElements; i++ {
+		if !iter.Next() {
+			break
+		}
+		key := iter.Key()
+
+		if err != nil {
+			cache.log.CWarningf(ctx, "Error decoding block ID %x", key)
+			continue
+		}
+		blockID, err := kbfsblock.IDFromBytes(key)
+		metadata := diskBlockCacheMetadata{}
+		err = cache.config.Codec().Decode(iter.Value(), &metadata)
+		if err != nil {
+			cache.log.CWarningf(ctx, "Error decoding metadata for block %s", blockID)
+			continue
+		}
+		blockIDs = append(blockIDs, lruEntry{metadata.TlfID, blockID,
+			metadata.LRUTime})
+	}
+
+	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
 }
 
 // Shutdown implements the DiskBlockCache interface for DiskBlockCacheStandard.
