@@ -3,6 +3,7 @@ import AttachmentMessageRender from './attachment'
 import MessageText from './text'
 import React from 'react'
 import Timestamp from './timestamp'
+import LoadingMore from './loading-more'
 import ProfileResetNotice from '../notices/profile-reset-notice'
 import {Box, Text} from '../../../common-adapters'
 import {formatTimeForMessages} from '../../../util/timestamp'
@@ -28,6 +29,7 @@ const factory = (options: Options) => {
     you,
     metaDataMap,
     followingMap,
+    moreToLoad,
   } = options
 
   if (!message) {
@@ -79,6 +81,8 @@ const factory = (options: Options) => {
         messageID={message.messageID}
         onAction={onAction}
         />
+    case 'LoadingMore':
+      return <LoadingMore style={style} key={key} hasMoreItems={moreToLoad} />
     case 'Error':
       return (
         <Box key={key} style={{...style, ...errorStyle}}>

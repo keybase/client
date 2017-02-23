@@ -40,7 +40,7 @@ class ConversationList extends Component <void, Props, State> {
     const prevMessage = this.props.messages.get(rowID - 1)
     const isSelected = false
     const isScrolling = false
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, 'key', {}, () => console.log('todo'))
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, message.key || `other-${rowID}`, {}, () => console.log('todo'))
 
     return messageFactory(options)
   }

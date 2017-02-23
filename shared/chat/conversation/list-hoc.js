@@ -12,24 +12,38 @@ function propsToMessageOptionsFn (props: Props): OptionsFn {
     const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const isFirstNewMessage = message.messageID != null && props.firstNewMessageID ? props.firstNewMessageID === message.messageID : false
 
+    const {
+      followingMap,
+      metaDataMap,
+      onLoadAttachment,
+      onOpenConversation,
+      onOpenInFileUI,
+      onOpenInPopup,
+      onRetryAttachment,
+      onRetryMessage,
+      moreToLoad,
+      you,
+    } = props
+
     const options = {
-      followingMap: props.followingMap,
+      followingMap,
       includeHeader: isFirstMessage || !skipMsgHeader,
       isFirstNewMessage,
       isScrolling,
       isSelected,
       key,
-      message: message,
-      metaDataMap: props.metaDataMap,
-      onAction: onAction,
-      onLoadAttachment: props.onLoadAttachment,
-      onOpenConversation: props.onOpenConversation,
-      onOpenInFileUI: props.onOpenInFileUI,
-      onRetryAttachment: () => { message.type === 'Attachment' && props.onRetryAttachment(message) },
-      onOpenInPopup: props.onOpenInPopup,
-      onRetry: props.onRetryMessage,
+      message,
+      metaDataMap,
+      moreToLoad,
+      onAction,
+      onLoadAttachment,
+      onOpenConversation,
+      onOpenInFileUI,
+      onRetryAttachment: () => { message.type === 'Attachment' && onRetryAttachment(message) },
+      onOpenInPopup,
+      onRetry: onRetryMessage,
       style,
-      you: props.you,
+      you,
     }
     return options
   }

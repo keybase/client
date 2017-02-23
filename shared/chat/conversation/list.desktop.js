@@ -10,6 +10,7 @@ import ReactDOM from 'react-dom'
 import _ from 'lodash'
 import messageFactory from './messages'
 import shallowEqual from 'shallowequal'
+import hoc from './list-hoc'
 import {AutoSizer, CellMeasurer, List as VirtualizedList, defaultCellMeasurerCellSizeCache as DefaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Icon} from '../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from './messages/popup'
@@ -345,29 +346,9 @@ class ConversationList extends Component<void, Props, State> {
     const message = this.state.messages.get(index - cellMessageStartIndex)
     const prevMessage = this.state.messages.get(index - cellMessageStartIndex - 1)
     const isFirstMessage = index - cellMessageStartIndex === 0
-    const skipMsgHeader = (message.author != null && prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
-    const isFirstNewMessage = message.messageID != null && this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
 
-    const options = {
-      followingMap: this.props.followingMap,
-      includeHeader: isFirstMessage || !skipMsgHeader,
-      isFirstNewMessage,
-      isScrolling,
-      isSelected,
-      key,
-      message: message,
-      metaDataMap: this.props.metaDataMap,
-      onAction: this._onAction,
-      onLoadAttachment: this.props.onLoadAttachment,
-      onRetryAttachment: () => { message.type === 'Attachment' && this.props.onRetryAttachment(message) },
-      onOpenConversation: this.props.onOpenConversation,
-      onOpenInFileUI: this.props.onOpenInFileUI,
-      onOpenInPopup: this.props.onOpenInPopup,
-      onRetry: this.props.onRetryMessage,
-      style,
-      you: this.props.you,
-    }
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction)
 
     return messageFactory(options)
   }
@@ -668,7 +649,7 @@ type DefaultCellRangeRendererParams = {
   visibleRowIndices: Object,
 }
 
-export default ConversationList
+export default hoc(ConversationList)
 
 if (__DEV__ && typeof window !== 'undefined') {
   window.showReactVirtualListMeasurer = () => {
