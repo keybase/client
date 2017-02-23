@@ -11,9 +11,14 @@ import {List} from 'immutable'
 import type {ConversationIDKey, InboxState, SupersededByState} from '../../constants/chat'
 import type {TypedState} from '../../constants/reducer'
 
+let _loaded = false
+
 class ConversationListContainer extends Component {
   componentWillMount () {
-    this.props.loadInbox()
+    if (!_loaded) {
+      _loaded = true
+      this.props.loadInbox()
+    }
   }
 
   _derivedProps (rekeyInfo, unreadCount, isSelected) {

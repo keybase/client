@@ -6,6 +6,7 @@ import Render from './avatar.render'
 import _ from 'lodash'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
+import shallowEqual from 'shallowequal'
 
 import type {Props, AvatarLookup, AvatarLoad, URLMap, URLType} from './avatar'
 import type {IconType} from './icon'
@@ -149,6 +150,16 @@ class Avatar extends Component<void, Props, State> {
 
   _followIconType () {
     return followStateToType.getIn([String(this.props.size), `they${this.props.followsYou ? 'Yes' : 'No'}`, `you${this.props.following ? 'Yes' : 'No'}`])
+  }
+
+  shouldComponentUpdate (nextProps: Props, nextState: any): boolean {
+    return (this.state.url !== nextState.url) ||
+      !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+        if (key === 'style') {
+          return shallowEqual(obj, oth)
+        }
+        return undefined
+      })
   }
 
   render () {

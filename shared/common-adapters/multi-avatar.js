@@ -2,7 +2,7 @@
 // Simple control to show multiple avatars. Just used in chat but could be expanded. Keeping this simple for now
 import Avatar from './avatar'
 import Box from './box'
-import React from 'react'
+import React, {Component} from 'react'
 
 import type {Props as AvatarProps, AvatarSize} from './avatar'
 
@@ -13,28 +13,35 @@ export type Props = {
   style?: ?Object,
 }
 
-const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
-  if (avatarProps.length <= 0) {
-    return null
-  }
-  if (avatarProps.length > 2) {
-    console.warn('MultiAvatar only handles up to 2 avatars')
-    return null
+class MultiAvatar extends Component<void, Props, void> {
+  shouldComponentUpdate (nextProps: Props, nextState: any): boolean {
+    return JSON.stringify(this.props) !== JSON.stringify(nextProps)
   }
 
-  const leftProps: AvatarProps = avatarProps[1]
-  const rightProps: AvatarProps = avatarProps[0]
+  render () {
+    const {avatarProps, singleSize, multiSize, style} = this.props
+    if (avatarProps.length <= 0) {
+      return null
+    }
+    if (avatarProps.length > 2) {
+      console.warn('MultiAvatar only handles up to 2 avatars')
+      return null
+    }
 
-  if (avatarProps.length === 1) {
-    return <Avatar {...rightProps} size={singleSize} />
+    const leftProps: AvatarProps = avatarProps[1]
+    const rightProps: AvatarProps = avatarProps[0]
+
+    if (avatarProps.length === 1) {
+      return <Avatar {...rightProps} size={singleSize} />
+    }
+
+    return (
+      <Box style={{...containerStyle, ...style}}>
+        <Avatar {...leftProps} style={{...leftAvatar, ...leftProps.style}} size={multiSize} />
+        <Avatar {...rightProps} style={{...rightAvatar, ...rightProps.style}} size={multiSize} />
+      </Box>
+    )
   }
-
-  return (
-    <Box style={{...containerStyle, ...style}}>
-      <Avatar {...leftProps} style={{...leftAvatar, ...leftProps.style}} size={multiSize} />
-      <Avatar {...rightProps} style={{...rightAvatar, ...rightProps.style}} size={multiSize} />
-    </Box>
-  )
 }
 
 const containerStyle = {

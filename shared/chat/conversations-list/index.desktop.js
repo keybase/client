@@ -1,20 +1,24 @@
 // @flow
-import React from 'react'
+import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {shouldUpdate} from 'recompose'
 
 import type {Props, RowProps} from './'
 
-const AddNewRow = ({onNewChat}: {onNewChat: () => void}) => (
-  <div
-    style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
-    <div style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, alignItems: 'center', justifyContent: 'center'}} onClick={onNewChat}>
-      <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
-      <Text type='BodyBigLink'>New chat</Text>
-    </div>
-  </div>
-)
+class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
+  render () {
+    return (
+      <div
+        style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
+        <div style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, alignItems: 'center', justifyContent: 'center'}} onClick={this.props.onNewChat}>
+          <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
+          <Text type='BodyBigLink'>New chat</Text>
+        </div>
+      </div>
+    )
+  }
+}
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
@@ -54,7 +58,7 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   )
 }
 
-const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor, commaColor}) => {
+const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
     <div style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
@@ -64,7 +68,7 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
             inline={true}
             type='BodySemibold'
             style={{...boldOverride, color: usernameColor}}
-            commaColor={commaColor}
+            plainText={true}
             containerStyle={{color: usernameColor, paddingRight: 7}}
             users={participants.map(p => ({username: p})).toArray()}
             title={participants.join(', ')} />
@@ -118,7 +122,6 @@ const _Row = (props: RowProps) => {
       />
       <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!props.isSelected && !props.hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
         <TopLine
-          commaColor={props.commaColor}
           hasUnread={props.hasUnread}
           participants={props.participants}
           showBold={props.showBold}

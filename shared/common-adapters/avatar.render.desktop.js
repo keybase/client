@@ -31,18 +31,21 @@ type State = {
 
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
 const backgroundOffset = 1
-const Background = ({loaded, loadingColor}) => (
-  <div
-    style={{
-      backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
-      borderRadius: '50%',
-      bottom: backgroundOffset,
-      left: backgroundOffset,
-      position: 'absolute',
-      right: backgroundOffset,
-      top: backgroundOffset,
-    }} />
-)
+class Background extends PureComponent<void, {loaded: boolean, loadingColor: ?string}, void> {
+  render () {
+    const {loaded, loadingColor} = this.props
+    return <div
+      style={{
+        backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
+        borderRadius: '50%',
+        bottom: backgroundOffset,
+        left: backgroundOffset,
+        position: 'absolute',
+        right: backgroundOffset,
+        top: backgroundOffset,
+      }} />
+  }
+}
 
 // The actual image
 class UserImage extends PureComponent<void, ImageProps, void> {

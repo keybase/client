@@ -1,17 +1,17 @@
 // @flow
 import createLogger from 'redux-logger'
-import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import rootReducer from '../reducers'
 import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
 import {Iterable} from 'immutable'
 import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
+import {convertToError} from '../util/errors'
 import {createStore} from 'redux'
 import {enableStoreLogging, enableActionLogging, closureStoreCheck, immediateStateLogging} from '../local-debug'
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
-import {convertToError} from '../util/errors'
+import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import {setupLogger} from '../util/periodic-logger'
 
 // Transform objects from Immutable on printing

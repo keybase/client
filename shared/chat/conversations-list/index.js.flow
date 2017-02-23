@@ -6,7 +6,6 @@ import type {ConversationIDKey} from '../../constants/chat'
 
 export type RowProps = {
   backgroundColor: string,
-  commaColor: string,
   conversationIDKey: ConversationIDKey,
   hasUnread: boolean,
   isMuted: boolean,
