@@ -90,7 +90,7 @@ export function navigateAppend (path: PropsPath<*>, parentPath?: Path): Navigate
 export function navigateUp (persistState: ?boolean = false): NavigateUp {
   return {
     type: Constants.navigateUp,
-    payload: {persistState},
+    payload: {persistState: !!persistState},
   }
 }
 
