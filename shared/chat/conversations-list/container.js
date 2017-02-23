@@ -127,9 +127,10 @@ export default connect(
     onNewChat: () => dispatch(newChat([])),
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
   }),
-  (stateProps, dispatchProps) => ({
+  (stateProps, dispatchProps, ownProps) => ({
     ...stateProps,
     ...dispatchProps,
+    ...ownProps,
     inbox: _filterInboxes(stateProps.rawInbox, stateProps.rawSupersededByState, stateProps.rawAlwaysShow),
   })
 )(ConversationListContainer)

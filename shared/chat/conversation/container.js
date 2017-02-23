@@ -54,7 +54,6 @@ class ConversationContainer extends Component<void, Props, State> {
   }
 
   render () {
-    return null // TEMP
     if (!this.props.selectedConversation) {
       return <Box style={{flex: 1}} />
     }
