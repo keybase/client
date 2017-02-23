@@ -499,7 +499,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 			req.Header.Set("X-Keybase-Install-ID", i.String())
 		}
 		if tags := LogTagsToString(arg.NetContext); tags != "" {
-			req.Header.Set("X-Keybase-Debug-Tags", tags)
+			req.Header.Set("X-Keybase-Log-Tags", tags)
 		}
 	}
 }
