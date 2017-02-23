@@ -506,15 +506,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return err
 	}
 
-	// Sync down events since we have been dead
-	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli})
-	if err != nil {
-		g.Errorf("sync failure: %s", err)
-	} else {
-		g.Debug(ctx, "sync success: replayed: %d consumed: %d",
-			len(replayedMsgs), len(consumedMsgs))
-	}
-
 	// Sync chat data using a Syncer object
 	gcli, err := g.getGregorCli()
 	if err == nil {
@@ -523,6 +514,15 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		if err := g.chatSync.Connected(ctx, chatCli, uid); err != nil {
 			return err
 		}
+	}
+
+	// Sync down events since we have been dead
+	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: timeoutCli})
+	if err != nil {
+		g.Errorf("sync failure: %s", err)
+	} else {
+		g.Debug(ctx, "sync success: replayed: %d consumed: %d",
+			len(replayedMsgs), len(consumedMsgs))
 	}
 
 	// Sync badge state in the background
