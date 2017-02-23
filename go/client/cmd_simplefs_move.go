@@ -15,8 +15,9 @@ import (
 // CmdSimpleFSMove is the 'fs list' command.
 type CmdSimpleFSMove struct {
 	libkb.Contextified
-	src  []keybase1.Path
-	dest keybase1.Path
+	src         []keybase1.Path
+	dest        keybase1.Path
+	interactive bool
 }
 
 // NewCmdSimpleFSMove creates a new cli.Command.
@@ -27,6 +28,12 @@ func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "copy one or more directory elements to dest",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSMove{Contextified: libkb.NewContextified(g)}, "mv", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "i, interactive",
+				Usage: "Prompt before overwrite",
+			},
 		},
 	}
 }
@@ -49,6 +56,9 @@ func (c *CmdSimpleFSMove) Run() error {
 		c.G().Log.Debug("SimpleFSMove %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
 		dest, err := makeDestPath(ctx, cli, src, c.dest, isDestDir, destPathString)
+		if err == TargetFileExistsError && c.interactive == true {
+			err = doOverwritePrompt(c.G(), pathToString(dest))
+		}
 		if err != nil {
 			return err
 		}

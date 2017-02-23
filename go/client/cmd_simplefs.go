@@ -18,6 +18,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+var TargetFileExistsError = errors.New("target file exists")
+
 type SimpleFSStatter interface {
 	SimpleFSStat(ctx context.Context, path keybase1.Path) (res keybase1.Dirent, err error)
 }
@@ -134,14 +136,31 @@ func makeDestPath(ctx context.Context,
 	destPathString string) (keybase1.Path, error) {
 
 	isSrcDir, srcPathString, err := getDirPathString(ctx, cli, src)
+	destType, _ := dest.PathType()
 
-	if !isSrcDir && isDestPath {
-		newDestString := filepath.ToSlash(filepath.Join(destPathString, filepath.Base(srcPathString)))
-		destType, _ := dest.PathType()
+	if !isSrcDir {
+		if isDestPath {
+			// In this case, we must append the destination filename
+			newDestString := filepath.ToSlash(filepath.Join(destPathString, filepath.Base(srcPathString)))
+			if destType == keybase1.PathType_KBFS {
+				dest = keybase1.NewPathWithKbfs(newDestString)
+			} else {
+				dest = keybase1.NewPathWithLocal(newDestString)
+			}
+		}
+		// Check for overwriting
 		if destType == keybase1.PathType_KBFS {
-			dest = keybase1.NewPathWithKbfs(newDestString)
+			// See if the dest file exists
+			_, err := cli.SimpleFSStat(ctx, dest)
+			if err == nil {
+				return dest, TargetFileExistsError
+			}
 		} else {
-			dest = keybase1.NewPathWithLocal(newDestString)
+			_, err := os.Stat(dest.Local())
+			if err == nil {
+				// we should have already tested whether it's a directory
+				return dest, TargetFileExistsError
+			}
 		}
 	}
 	return dest, err
@@ -180,4 +199,14 @@ func parseFsSrcDest(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]ke
 		return srcPaths, destPath, errors.New(name + " reaquires KBFS source and/or destination")
 	}
 	return srcPaths, destPath, nil
+}
+
+func doOverwritePrompt(g *libkb.GlobalContext, dest string) error {
+	prompt := dest + " exists. Do you want to overwrite?"
+	if owrite, err := g.UI.GetTerminalUI().PromptYesNo(PromptDescriptorFSOverwrite, prompt, libkb.PromptDefaultNo); err != nil {
+		return err
+	} else if !owrite {
+		return NotConfirmedError{}
+	}
+	return nil
 }

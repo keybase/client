@@ -15,9 +15,10 @@ import (
 // CmdSimpleFSCopy is the 'fs cp' command.
 type CmdSimpleFSCopy struct {
 	libkb.Contextified
-	src     []keybase1.Path
-	dest    keybase1.Path
-	recurse bool
+	src         []keybase1.Path
+	dest        keybase1.Path
+	recurse     bool
+	interactive bool
 }
 
 // NewCmdSimpleFSCopy creates a new cli.Command.
@@ -33,6 +34,10 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "r, recursive",
 				Usage: "Recurse into subdirectories",
+			},
+			cli.BoolFlag{
+				Name:  "i, interactive",
+				Usage: "Prompt before overwrite",
 			},
 		},
 	}
@@ -59,6 +64,10 @@ func (c *CmdSimpleFSCopy) Run() error {
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
 		dest, err := makeDestPath(ctx, cli, src, c.dest, isDestDir, destPathString)
+		if err == TargetFileExistsError && c.interactive == true {
+			err = doOverwritePrompt(c.G(), pathToString(dest))
+		}
+
 		if err != nil {
 			return err
 		}
@@ -94,6 +103,7 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	var err error
 
 	c.recurse = ctx.Bool("recurse")
+	c.interactive = ctx.Bool("interactive")
 
 	c.src, c.dest, err = parseFsSrcDest(c.G(), ctx, "cp")
 
