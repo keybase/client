@@ -4,8 +4,31 @@ import (
 	"time"
 
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 )
+
+// diskBlockCacheEntry packages an encoded block and serverHalf into one data
+// structure, allowing us to encode it as one set of bytes.
+type diskBlockCacheEntry struct {
+	Buf        []byte
+	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
+}
+
+// diskBlockCacheDeleteKey specifies a blockID and TLF pair to delete.
+type diskBlockCacheDeleteKey struct {
+	TlfID   tlf.ID
+	BlockID kbfsblock.ID
+}
+
+// diskBlockCacheMetadata packages the metadata needed to make decisions on
+// cache eviction.
+type diskBlockCacheMetadata struct {
+	// the TLF ID for the block
+	TlfID tlf.ID
+	// the last time the block was used
+	LRUTime time.Time
+}
 
 // lruEntry is an entry for sorting LRU times
 type lruEntry struct {
