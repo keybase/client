@@ -66,7 +66,7 @@ class Avatar extends Component<void, Props, State> {
     // Mounted and still looking at the same username?
     requestIdleCallback(() => {
       if (this._mounted && this.props.username === username) {
-        this.setState({url: this._urlMapsToUrl(urlMap) || this._noAvatar()})
+        this.setState({url: this._urlMapsToUrl(urlMap)})
       }
     }, {timeout: 300})
   }
@@ -112,8 +112,8 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _urlMapsToUrl (urlMap: ?URLMap) {
-    if (!urlMap) {
-      return null
+    if (!urlMap || !Object.keys(urlMap).length) {
+      return this._noAvatar()
     }
 
     return urlsToImgSet(_.pickBy(urlMap, value => value), this.props.size)
