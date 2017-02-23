@@ -394,10 +394,11 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 	defer k.doneOp(ctx, arg.OpID)
 
 	bs := make([]byte, arg.Size)
-	k.config.KBFSOps().Read(ctx, h.node, bs, arg.Offset)
+	n, err := k.config.KBFSOps().Read(ctx, h.node, bs, arg.Offset)
+	bs = bs[:n]
 	return keybase1.FileContent{
 		Data: bs,
-	}, nil
+	}, err
 }
 
 // SimpleFSWrite - Append content to opened file.
