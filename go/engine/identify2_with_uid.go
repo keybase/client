@@ -881,11 +881,11 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 	key := e.dbKey(e.them.GetUID())
 	found, err := e.G().LocalDb.GetInto(&ktm, key)
 	if err != nil {
-		e.G().Log.Debug("| Error loading key %s from cache: %s", key, err)
+		e.G().Log.Debug("| Error loading key %+v from cache: %s", key, err)
 		return nil
 	}
 	if !found {
-		e.G().Log.Debug("| Key wasn't found: %s", key)
+		e.G().Log.Debug("| Key wasn't found: %+v", key)
 		return nil
 	}
 	tm := ktm.Time()
