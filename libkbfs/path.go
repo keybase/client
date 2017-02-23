@@ -86,6 +86,17 @@ func (p path) isValid() bool {
 	return true
 }
 
+// isValidForNotification() returns true if the path has at least one
+// node (for the root), and the first element of the path is non-empty
+// and does not start with "<", which indicates an unnotifiable path.
+func (p path) isValidForNotification() bool {
+	if !p.isValid() {
+		return false
+	}
+
+	return len(p.path[0].Name) > 0 && !strings.HasPrefix(p.path[0].Name, "<")
+}
+
 // hasValidParent() returns true if this path is valid and
 // parentPath() is a valid path.
 func (p path) hasValidParent() bool {

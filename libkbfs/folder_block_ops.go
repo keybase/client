@@ -292,7 +292,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 
 	bops := fbo.config.BlockOps()
 
-	if notifyPath.isValid() {
+	if notifyPath.isValidForNotification() {
 		fbo.config.Reporter().Notify(ctx, readNotification(notifyPath, false))
 		defer fbo.config.Reporter().Notify(ctx,
 			readNotification(notifyPath, true))

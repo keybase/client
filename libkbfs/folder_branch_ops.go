@@ -3638,9 +3638,11 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		return true, err
 	}
 
-	// notify the daemon that a write is being performed
-	fbo.config.Reporter().Notify(ctx, writeNotification(file, false))
-	defer fbo.config.Reporter().Notify(ctx, writeNotification(file, true))
+	if file.isValidForNotification() {
+		// notify the daemon that a write is being performed
+		fbo.config.Reporter().Notify(ctx, writeNotification(file, false))
+		defer fbo.config.Reporter().Notify(ctx, writeNotification(file, true))
+	}
 
 	// Filled in by doBlockPuts below.
 	var blocksToRemove []BlockPointer
