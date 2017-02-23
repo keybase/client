@@ -1,5 +1,6 @@
 // @flow
 
+import * as Immutable from 'immutable'
 import {compose, withState, withProps} from 'recompose'
 import * as Constants from '../../constants/chat'
 

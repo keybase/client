@@ -85,6 +85,7 @@ class Conversation extends Component<void, Props, State> {
       finalizeInfo,
     } = this.props
 
+    // $FlowIssue with variants
     const banner = bannerMessage && <Banner {...bannerMessage} />
     const dropOverlay = this.state.showDropOverlay && (
       <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
@@ -99,7 +100,7 @@ class Conversation extends Component<void, Props, State> {
         {banner}
         {finalizeInfo
           ? <OldProfileResetNotice
-            onOpenNewerConversation={this.props.openNewerConversation}
+            onOpenNewerConversation={this.props.onOpenNewerConversation}
             username={finalizeInfo.resetUser}
           />
           : <Input {...this.props.inputProps} /> }
