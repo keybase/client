@@ -453,7 +453,7 @@ class ConversationList extends Component<void, Props, State> {
 
   _cellRangeRenderer = options => {
     const message = this.state.messages.get(cellMessageStartIndex)
-    const firstKey = message.key || '0'
+    const firstKey = message && message.key || '0'
     return chatCellRangeRenderer(firstKey, this._cellCache, options)
   }
 
