@@ -40,6 +40,7 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	// Grab the latest inbox version, and compare it to what we have
 	// If we don't have the latest, then we clear the Inbox cache and
 	// send alerts to clients that they should refresh.
+	ctx = CtxAddLogTags(ctx)
 	vers, err := cli.GetInboxVersion(ctx, uid)
 	if err != nil {
 		s.Debug(ctx, "Connected: failed to sync inbox version: uid: %s error: %s", uid, err.Error())

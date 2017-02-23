@@ -515,7 +515,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 			len(replayedMsgs), len(consumedMsgs))
 	}
 
-	// Sync chat data using a Syncer object
+	// Sync chat data using a Syncer object in the background
 	gcli, err := g.getGregorCli()
 	if err == nil {
 		chatCli := chat1.RemoteClient{Cli: cli}

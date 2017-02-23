@@ -69,10 +69,13 @@ func (h *chatLocalHandler) getChatUI(sessionID int) libkb.ChatUI {
 }
 
 func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.GetInboxNonblockLocalRes, err error) {
+	var breaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetInboxNonblockLocal")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
+
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
 		return res, libkb.LoginRequiredError{}
@@ -81,9 +84,6 @@ func (h *chatLocalHandler) GetInboxNonblockLocal(ctx context.Context, arg chat1.
 	// Create localized conversation callback channel
 	chatUI := h.getChatUI(arg.SessionID)
 	localizeCb := make(chan chat.NonblockInboxResult, 1)
-
-	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, h.identNotifier)
 
 	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
 	localizer := chat.NewNonblockingLocalizer(h.G(), localizeCb,
@@ -155,6 +155,8 @@ func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAs
 
 // GetInboxAndUnboxLocal implements keybase.chatLocal.getInboxAndUnboxLocal protocol.
 func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (res chat1.GetInboxAndUnboxLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetInboxAndUnboxLocal")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
@@ -165,9 +167,6 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 		err = libkb.LoginRequiredError{}
 		return res, err
 	}
-
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 
 	// Read inbox from the source
 	localizer := chat.NewBlockingLocalizer(h.G(), func() keybase1.TlfInterface { return h.tlf })
@@ -190,6 +189,8 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (res chat1.GetThreadLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetThreadLocal")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetThreadLocalRes{}, err
@@ -201,8 +202,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		err = libkb.LoginRequiredError{}
 		return chat1.GetThreadLocalRes{}, err
 	}
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+
 	thread, rl, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
 		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
 	if err != nil {
@@ -220,13 +220,13 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 // Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return reserr }, "NewConversationLocal")()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	info, err := chat.LookupTLF(ctx, h.tlf, arg.TlfName, arg.TlfVisibility)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
@@ -356,13 +356,13 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 }
 
 func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetInboxSummaryForCLILocal")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetInboxSummaryForCLILocalRes{}, err
 	}
 
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks, h.identNotifier)
 	var after time.Time
 	if len(arg.After) > 0 {
 		after, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
@@ -455,13 +455,12 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 }
 
 func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg chat1.GetConversationForCLILocalQuery) (res chat1.GetConversationForCLILocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetConversationForCLILocal")()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetConversationForCLILocalRes{}, err
 	}
-
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, keybase1.TLFIdentifyBehavior_CHAT_CLI, &identBreaks, h.identNotifier)
 
 	var rlimits []chat1.RateLimit
 
@@ -523,14 +522,14 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 }
 
 func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLocalArg) (res chat1.GetMessagesLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetMessagesLocal")()
 	deflt := chat1.GetMessagesLocalRes{}
 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return deflt, err
 	}
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 
 	var rlimits []chat1.RateLimit
 
@@ -568,13 +567,13 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 }
 
 func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg chat1.SetConversationStatusLocalArg) (res chat1.SetConversationStatusLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetConversationStatusLocal")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.SetConversationStatusLocalRes{}, err
 	}
 
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	scsres, err := h.remoteClient().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
 		ConversationID: arg.ConversationID,
 		Status:         arg.Status,
@@ -591,6 +590,8 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res chat1.PostLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocal")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalRes{}, err
@@ -603,9 +604,6 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 			arg.ConversationID, uid)
 		return chat1.PostLocalRes{}, fmt.Errorf("no TLF name specified")
 	}
-
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 
 	// Make sure sender is set
 	db := make([]byte, 16)
@@ -683,6 +681,8 @@ func (h *chatLocalHandler) PostTextNonblock(ctx context.Context, arg chat1.PostT
 }
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalNonblockRes{}, err
@@ -717,8 +717,6 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	}
 
 	// Create non block sender
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient, h.getSecretUI)
 	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
 
@@ -1067,6 +1065,8 @@ func (h *chatLocalHandler) postAttachmentLocalInOrder(ctx context.Context, arg p
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
 func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadAttachmentLocal")()
 	darg := downloadAttachmentArg{
 		SessionID:        arg.SessionID,
@@ -1078,8 +1078,6 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	cli := h.getStreamUICli()
 	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	return h.downloadAttachmentLocal(ctx, darg)
 }
 
@@ -1458,15 +1456,14 @@ func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat
 
 func (h *chatLocalHandler) FindConversationsLocal(ctx context.Context,
 	arg chat1.FindConversationsLocalArg) (res chat1.FindConversationsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "FindConversationsLocal")()
 
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
 	uid := h.G().Env.GetUID()
-
-	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 
 	// First look in the local user inbox
 	query := chat1.GetInboxLocalQuery{

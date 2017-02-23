@@ -3,11 +3,10 @@ package chat
 import (
 	"context"
 
-	"encoding/hex"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type identifyModeKey int
@@ -59,12 +58,21 @@ func CtxIdentifyNotifier(ctx context.Context) *IdentifyNotifier {
 	return nil
 }
 
-func addLogTags(ctx context.Context) context.Context {
+func CtxAddLogTags(ctx context.Context) context.Context {
+
+	// Add trace context value
+	ctx = context.WithValue(ctx, chatTraceKey, libkb.RandStringB64(3))
+
+	// Add log tags
 	tags := make(map[interface{}]string)
-	id, _ := libkb.RandBytes(4)
 	tags[chatTraceKey] = "chat-trace"
 	ctx = logger.NewContextWithLogTags(ctx, tags)
-	ctx = context.WithValue(ctx, chatTraceKey, hex.EncodeToString(id))
+
+	// Add RPC only log tags
+	rpcTags := make(map[string]interface{})
+	rpcTags["useragent"] = libkb.UserAgent
+	ctx = rpc.AddRpcTagsToContext(ctx, rpcTags)
+
 	return ctx
 }
 
@@ -73,7 +81,7 @@ func Context(ctx context.Context, mode keybase1.TLFIdentifyBehavior,
 	res := identifyModeCtx(ctx, mode, breaks)
 	res = context.WithValue(res, kfKey, NewKeyFinder())
 	res = context.WithValue(res, inKey, notifier)
-	res = addLogTags(res)
+	res = CtxAddLogTags(res)
 	return res
 }
 
