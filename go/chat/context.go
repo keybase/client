@@ -6,7 +6,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type identifyModeKey int
@@ -67,11 +66,6 @@ func CtxAddLogTags(ctx context.Context) context.Context {
 	tags := make(map[interface{}]string)
 	tags[chatTraceKey] = "chat-trace"
 	ctx = logger.NewContextWithLogTags(ctx, tags)
-
-	// Add RPC only log tags
-	rpcTags := make(map[string]interface{})
-	rpcTags["useragent"] = libkb.UserAgent
-	ctx = rpc.AddRpcTagsToContext(ctx, rpcTags)
 
 	return ctx
 }
