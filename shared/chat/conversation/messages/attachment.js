@@ -4,13 +4,14 @@ import MessageWrapper from './wrapper'
 import moment from 'moment'
 import React, {PureComponent} from 'react'
 import {Box, Icon, ProgressIndicator, Text} from '../../../common-adapters'
-import {fileUIName} from '../../../constants/platform'
+import {isMobile, fileUIName} from '../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {ImageRender} from './attachment.render'
 
 import type {Props, ProgressBarProps, ImageIconProps} from './attachment'
 
 function _showProgressBar (messageState, progress) {
-  return !!progress && (messageState === 'uploading' || messageState === 'downloading')
+  return !!progress && (messageState === 'uploading' || (!isMobile && messageState === 'downloading'))
 }
 
 function _showPreviewProgress (messageState, progress) {
@@ -34,7 +35,6 @@ function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previ
     let style = {
       ...globalStyles.flexBoxRow,
       marginTop: globalMargins.xtiny,
-      flex: 1,
       position: 'relative',
       alignItems: 'flex-end',
     }
@@ -50,8 +50,10 @@ function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previ
 
     return (
       <Box style={style} onClick={onOpenInPopup}>
-        <img style={imgStyle} src={previewPath} />
-        {(messageState === 'downloading' || messageState === 'downloaded') &&
+        <Box style={{...imgStyle, backgroundColor: globalColors.black_05}}>
+          {previewPath && <ImageRender style={imgStyle} src={previewPath} />}
+        </Box>
+        {!isMobile && (messageState === 'downloading' || messageState === 'downloaded') &&
           <ImageIcon
             style={{position: 'relative', right: 19, top: 3}}
             type={messageState === 'downloading' ? 'Downloading' : 'Downloaded'} />}
@@ -63,7 +65,7 @@ function PreviewImage ({message: {attachmentDurationMs, previewDurationMs, previ
         {attachmentDurationMs && previewType === 'Video' &&
           <Text
             type='BodySemibold'
-            style={{position: 'absolute', color: 'white', fontSize: 12, right: globalMargins.tiny, bottom: globalMargins.xtiny}}
+            style={{position: 'absolute', backgroundColor: globalColors.transparent, color: 'white', fontSize: 12, right: globalMargins.tiny, bottom: globalMargins.xtiny}}
           >{moment.utc(attachmentDurationMs).format('m:ss')}</Text>
         }
       </Box>
@@ -97,15 +99,14 @@ function ProgressBar ({text, progress, style}: ProgressBarProps) {
 
 function ImageIcon ({type, style}: ImageIconProps) {
   const iconStyle = {
+    ...globalStyles.flexBoxColumn,
     color: type === 'Downloading' ? globalColors.blue : globalColors.green,
-    lineHeight: 0,
-    top: 2,
   }
 
   const wrapperStyle = {
     backgroundColor: globalColors.white,
-    borderRadius: '100%',
     padding: 3,
+    borderRadius: 19,
   }
 
   return (
@@ -134,23 +135,15 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
     paddingBottom: globalMargins.xtiny,
   }
 
-  const previewProgressIndicatorStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: 32,
-    marginLeft: -16,
-    marginTop: -16,
-  }
-
   return (
     <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
-      <Box style={{display: 'inline-flex', alignSelf: 'flex-start', position: 'relative'}}>
+      <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'flex-start', position: 'relative'}}>
         <PreviewImage message={message} onOpenInPopup={onOpenInPopup} />
         {_showPreviewProgress(messageState, message.progress) && !!message.progress &&
-          <ProgressIndicator
-            style={previewProgressIndicatorStyle}
-          />}
+          <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>
+            <ProgressIndicator style={{width: 32}} />
+          </Box>
+        }
       </Box>
       <Box style={{marginTop: globalMargins.xtiny}}>
         {_showProgressBar(messageState, message.progress) && !!message.progress &&
@@ -158,7 +151,7 @@ function PreviewImageWithInfo ({message, onOpenInFileUI, onOpenInPopup}: {messag
             style={messageState === 'uploading' ? overlayProgressBarStyle : {}}
             text={messageState === 'downloading' ? 'Downloading' : 'Encrypting'}
             progress={message.progress} />}
-        {downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
+        {!isMobile && downloadedPath && <ShowInFileUi downloadedPath={downloadedPath} onOpenInFileUI={onOpenInFileUI} />}
       </Box>
     </Box>
   )
@@ -190,7 +183,7 @@ function AttachmentMessageGeneric ({message, onOpenInFileUI, onLoadAttachment}: 
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
         <AttachmentTitle {...message} />
 
-        {(_showProgressBar(messageState, progress) || downloadedPath) &&
+        {!isMobile && (_showProgressBar(messageState, progress) || downloadedPath) &&
           <Box style={{height: 14}}>
             {_showProgressBar(messageState, progress) && !!progress &&
               <ProgressBar
