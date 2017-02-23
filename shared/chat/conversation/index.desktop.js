@@ -1,5 +1,4 @@
 // @flow
-import * as Immutable from 'immutable'
 import Banner from './banner'
 import Header from './header.desktop'
 import Input from './input.desktop'
