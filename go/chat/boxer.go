@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"flag"
 	"fmt"
 	"time"
 
@@ -39,9 +40,15 @@ type Boxer struct {
 	utils.DebugLabeler
 	libkb.Contextified
 
-	tlf                       func() keybase1.TlfInterface
-	hashV1                    func(data []byte) chat1.Hash
-	sign                      func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
+	tlf func() keybase1.TlfInterface
+
+	// Replaceable for testing.
+	// Normally set to normal implementations.
+	hashV1 func(data []byte) chat1.Hash
+	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
+
+	// Slots for replacing with with test implementations.
+	// These are normally nil.
 	testingValidSenderKey     func(context.Context, gregor1.UID, []byte, gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr UnboxingError)
 	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
 }
@@ -267,6 +274,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		return nil, NewPermanentUnboxingError(fmt.Errorf("sender device does not match"))
 	}
 
+	// Any of (senderUsername, senderDeviceName, senderDeviceType) could be empty strings because of non-critical failures.
 	senderUsername, senderDeviceName, senderDeviceType := b.getSenderInfoLocal(
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
 
@@ -341,6 +349,9 @@ func (b *Boxer) getUsername(ctx context.Context, uid keybase1.UID) (string, erro
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
 	if b.testingGetSenderInfoLocal != nil {
 		b.log().Warning("Using TESTING jig. Not suitable for normal use.")
+		if flag.Lookup("test.v") == nil {
+			panic("testing jig installed in normal mode")
+		}
 		return b.testingGetSenderInfoLocal(ctx, uid1, deviceID1)
 	}
 
@@ -650,6 +661,9 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Signatu
 func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr UnboxingError) {
 	if b.testingValidSenderKey != nil {
 		b.log().Warning("Using TESTING jig. Not suitable for normal use.")
+		if flag.Lookup("test.v") == nil {
+			panic("testing jig installed in normal mode")
+		}
 		return b.testingValidSenderKey(ctx, sender, key, ctime)
 	}
 
