@@ -836,6 +836,9 @@ func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
 	if i >= len(u.RemoteTracks) {
 		return nil
 	}
+	if u.RemoteTracks[i].Username != s {
+		return nil
+	}
 	return &u.RemoteTracks[i]
 }
 
