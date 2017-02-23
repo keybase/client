@@ -1090,6 +1090,21 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 	return true, nil
 }
 
+func (j *tlfJournal) getMDFlushRange() (
+	blockJournal *blockJournal, length int, earliest, latest journalOrdinal,
+	err error) {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return nil, 0, 0, 0, err
+	}
+	length, earliest, latest, err = j.blockJournal.getDeferredGCRange()
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	return j.blockJournal, length, earliest, latest, nil
+}
+
 func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 	rmds *RootMetadataSigned) error {
 	if j.onMDFlush != nil {
@@ -1097,22 +1112,19 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 			rmds.MD.RevisionNumber())
 	}
 
-	blockJournal, err := func() (*blockJournal, error) {
-		j.journalLock.Lock()
-		defer j.journalLock.Unlock()
-		if err := j.checkEnabledLocked(); err != nil {
-			return nil, err
-		}
-		return j.blockJournal, nil
-	}()
+	blockJournal, length, earliest, latest, err := j.getMDFlushRange()
 	if err != nil {
 		return err
+	}
+	if length == 0 {
+		return nil
 	}
 
 	// onMDFlush() only needs to be called under the flushLock, not
 	// the journalLock, as it doesn't touch the actual journal, only
 	// the deferred GC journal.
-	removedBytes, removedFiles, err := blockJournal.onMDFlush(ctx)
+	removedBytes, removedFiles, err := blockJournal.onMDFlush(
+		ctx, earliest, latest)
 	if err != nil {
 		return err
 	}
@@ -1124,6 +1136,12 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 	if err := j.checkEnabledLocked(); err != nil {
 		return err
 	}
+
+	err = j.blockJournal.clearDeferredGCRange(earliest, latest)
+	if err != nil {
+		return err
+	}
+
 	// TODO: if we crash before calling this, the journal bytes/files
 	// counts will be inaccurate.  I think the only way to fix that is
 	// a periodic repair scan?

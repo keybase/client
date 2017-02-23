@@ -969,29 +969,38 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 	return j.ignoreBlocksAndMDRevMarkersInJournal(ctx, idsToIgnore, rev, j.j)
 }
 
+// getDeferredRange gets the earliest and latest revision of the
+// deferred GC journal.  If the returned length is 0, there's no need
+// for further GC.  Should be called under lock.
+func (j *blockJournal) getDeferredGCRange() (
+	len int, earliest, latest journalOrdinal, err error) {
+	earliest, err = j.deferredGC.readEarliestOrdinal()
+	if ioutil.IsNotExist(err) {
+		return 0, 0, 0, nil
+	} else if err != nil {
+		return 0, 0, 0, err
+	}
+
+	latest, err = j.deferredGC.readLatestOrdinal()
+	if ioutil.IsNotExist(err) {
+		return 0, 0, 0, nil
+	} else if err != nil {
+		return 0, 0, 0, err
+	}
+
+	return int(latest - earliest + 1), earliest, latest, nil
+}
+
 // onMDFlush drains the deferred GC journal.  This doesn't touch the
 // regular block journal, and so doesn't need to be called under the
 // same locks as the other methods.
-func (j *blockJournal) onMDFlush(ctx context.Context) (
+func (j *blockJournal) onMDFlush(ctx context.Context,
+	earliest, latest journalOrdinal) (
 	removedBytes, removedFiles int64, err error) {
 	// Delete the block data for anything in the GC journal.
-	first, err := j.deferredGC.readEarliestOrdinal()
-	if ioutil.IsNotExist(err) {
-		return 0, 0, nil
-	} else if err != nil {
-		return 0, 0, err
-	}
-
-	last, err := j.deferredGC.readLatestOrdinal()
-	if ioutil.IsNotExist(err) {
-		return 0, 0, nil
-	} else if err != nil {
-		return 0, 0, err
-	}
-
 	j.log.CDebugf(ctx, "Garbage-collecting blocks for entries [%d, %d]",
-		first, last)
-	for i := first; i <= last; i++ {
+		earliest, latest)
+	for i := earliest; i <= latest; i++ {
 		e, err := j.deferredGC.readJournalEntry(i)
 		if err != nil {
 			return 0, 0, err
@@ -1003,6 +1012,8 @@ func (j *blockJournal) onMDFlush(ctx context.Context) (
 		}
 
 		for id := range entry.Contexts {
+			// TODO: once we support references, this needs to be made
+			// goroutine-safe.
 			hasRef, err := j.s.hasAnyRef(id)
 			if err != nil {
 				return 0, 0, err
@@ -1018,14 +1029,22 @@ func (j *blockJournal) onMDFlush(ctx context.Context) (
 				removedFiles += idRemovedFiles
 			}
 		}
-
-		_, err = j.deferredGC.removeEarliest()
-		if err != nil {
-			return 0, 0, err
-		}
 	}
 
 	return removedBytes, removedFiles, nil
+}
+
+// clearDeferredGCRange removes the given range from the deferred
+// journal.  It should be called under lock.
+func (j *blockJournal) clearDeferredGCRange(
+	earliest, latest journalOrdinal) error {
+	for i := earliest; i <= latest; i++ {
+		_, err := j.deferredGC.removeEarliest()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (j *blockJournal) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error) {

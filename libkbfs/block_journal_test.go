@@ -402,6 +402,20 @@ func testBlockJournalGCd(t *testing.T, j *blockJournal) {
 	require.NoError(t, err)
 }
 
+func onMDFlushForTest(t *testing.T, ctx context.Context, j *blockJournal) (
+	int64, int64) {
+	length, earliest, latest, err := j.getDeferredGCRange()
+	require.NoError(t, err)
+	if length == 0 {
+		return 0, 0
+	}
+	removedBytes, removedFiles, err := j.onMDFlush(ctx, earliest, latest)
+	require.NoError(t, err)
+	err = j.clearDeferredGCRange(earliest, latest)
+	require.NoError(t, err)
+	return removedBytes, removedFiles
+}
+
 func TestBlockJournalFlush(t *testing.T) {
 	ctx, cancel, tempdir, log, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, ctx, cancel, tempdir, j)
@@ -462,9 +476,7 @@ func TestBlockJournalFlush(t *testing.T) {
 		err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
 		require.NoError(t, err)
 
-		removedBytes, removedFiles, err := j.onMDFlush(ctx)
-		require.NoError(t, err)
-		return removedBytes, removedFiles
+		return onMDFlushForTest(t, ctx, j)
 	}
 
 	// Flushing all the reference adds should remove the
@@ -535,7 +547,7 @@ func flushBlockJournalOne(ctx context.Context, t *testing.T,
 	require.NoError(t, err)
 	err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
-	removedBytes, removedFiles, err = j.onMDFlush(ctx)
+	removedBytes, removedFiles = onMDFlushForTest(t, ctx, j)
 	require.NoError(t, err)
 	j.unstoreBlock(removedBytes, removedFiles)
 
@@ -712,7 +724,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.NoError(t, err)
 	err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
-	removedBytes, removedFiles, err := j.onMDFlush(ctx)
+	removedBytes, removedFiles := onMDFlushForTest(t, ctx, j)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data)), removedBytes)
 	require.Equal(t, int64(filesPerBlockMax), removedFiles)
@@ -774,7 +786,7 @@ func TestBlockJournalFlushMDRevMarkerForPendingLocalSquash(t *testing.T) {
 	require.NoError(t, err)
 	err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
-	removedBytes, removedFiles, err := j.onMDFlush(ctx)
+	removedBytes, removedFiles := onMDFlushForTest(t, ctx, j)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data1)+len(data2)+len(data3)+len(data4)),
 		removedBytes)
@@ -846,7 +858,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.NoError(t, err)
 
 	// Flush everything.
-	removedBytes, removedFiles, err := j.onMDFlush(ctx)
+	removedBytes, removedFiles := onMDFlushForTest(t, ctx, j)
 	require.NoError(t, err)
 	require.Equal(t, int64(len(data1)+len(data2)+len(data3)+len(data4)),
 		removedBytes)
@@ -948,7 +960,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	expectedBytes += 4
 	expectedFiles += filesPerBlockMax
 
-	removedBytes, removedFiles, err := j.onMDFlush(ctx)
+	removedBytes, removedFiles := onMDFlushForTest(t, ctx, j)
 	require.NoError(t, err)
 	require.Equal(t, expectedBytes, removedBytes)
 	require.Equal(t, expectedFiles, removedFiles)
