@@ -144,6 +144,9 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		if state == MessageUnboxedState_ERROR {
 			return m.Error().MessageType
 		}
+		if state == MessageUnboxedState_OUTBOX {
+			return m.Outbox().Msg.ClientHeader.MessageType
+		}
 	}
 	return MessageType_NONE
 }
