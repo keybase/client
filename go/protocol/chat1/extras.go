@@ -261,6 +261,10 @@ func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeI
 	return ExpandTLFName(h.TlfName, finalizeInfo)
 }
 
+func (h MessageClientHeaderVerified) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+	return ExpandTLFName(h.TlfName, finalizeInfo)
+}
+
 // ExpandTLFName returns a TLF name with a reset suffix if it exists.
 // This version can be used in requests to lookup the TLF.
 func ExpandTLFName(name string, finalizeInfo *ConversationFinalizeInfo) string {

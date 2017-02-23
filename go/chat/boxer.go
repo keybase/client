@@ -235,7 +235,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}
 
 	// create a chat1.MessageClientHeader from versioned HeaderPlaintext
-	var clientHeader chat1.MessageClientHeader
+	var clientHeader chat1.MessageClientHeaderVerified
 	headerVersion, err := header.Version()
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
@@ -244,9 +244,10 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	var headerSignature *chat1.SignatureInfo
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
+		// Verified above in verifyMessageV1
 		headerSignature = header.V1().HeaderSignature
 		hp := header.V1()
-		clientHeader = chat1.MessageClientHeader{
+		clientHeader = chat1.MessageClientHeaderVerified{
 			Conv:         hp.Conv,
 			TlfName:      hp.TlfName,
 			TlfPublic:    hp.TlfPublic,

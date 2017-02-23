@@ -143,6 +143,23 @@ func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedA
 }
 
 func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation) (chat1.ConversationLocal, error) {
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	panic("TODO DON'T MERGE THIS")
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	// ===============
+	// ===============
 
 	if len(conv.MaxMsgs) == 0 {
 		return chat1.ConversationLocal{}, fmt.Errorf("no max messages")
@@ -178,7 +195,24 @@ func (c *ChatUI) getUnverifiedConvo(ctx context.Context, conv chat1.Conversation
 							Body: "<pending>",
 						},
 					},
-					ClientHeader:   txtMsg.ClientHeader,
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// TODO THIS SHOULDN'T BE BLANK
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ===============
+					// ClientHeader:   txtMsg.ClientHeader,
 					ServerHeader:   *txtMsg.ServerHeader,
 					SenderUsername: "???",
 				},
