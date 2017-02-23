@@ -87,10 +87,10 @@ export function navigateAppend (path: PropsPath<*>, parentPath?: Path): Navigate
 }
 
 // Navigate one step up from the current path.
-export function navigateUp (): NavigateUp {
+export function navigateUp (persistState: ?boolean = false): NavigateUp {
   return {
     type: Constants.navigateUp,
-    payload: null,
+    payload: {persistState},
   }
 }
 

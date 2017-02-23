@@ -15,7 +15,7 @@ export const navigateAppend = 'routeTree:navigateAppend'
 export type NavigateAppend = NoErrorTypedAction<'routeTree:navigateAppend', {path: PropsPath<*>, parentPath: ?Path}>
 
 export const navigateUp = 'routeTree:navigateUp'
-export type NavigateUp = NoErrorTypedAction<'routeTree:navigateUp', null>
+export type NavigateUp = NoErrorTypedAction<'routeTree:navigateUp', {persistState: boolean}>
 
 export const setRouteState = 'routeTree:setRouteState'
 export type SetRouteState = NoErrorTypedAction<'routeTree:setRouteState', {path: Path, partialState: {}}>
