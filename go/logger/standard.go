@@ -63,6 +63,14 @@ func LogTagsFromContext(ctx context.Context) (CtxLogTags, bool) {
 	return logTags, ok
 }
 
+// LogTagsFromContextRPC is a wrapper around LogTagsFromContext
+// that simply casts the result to the type expected by
+// rpc.Connection.
+func LogTagsFromContextRPC(ctx context.Context) (map[interface{}]string, bool) {
+	tags, ok := LogTagsFromContext(ctx)
+	return map[interface{}]string(tags), ok
+}
+
 type ExternalLogger interface {
 	Log(level keybase1.LogLevel, format string, args []interface{})
 }

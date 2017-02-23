@@ -19,6 +19,7 @@ import (
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -1084,6 +1085,7 @@ func (g *gregorHandler) connectTLS() error {
 	g.Debug(ctx, "Using CA for gregor: %s", libkb.ShortCA(rawCA))
 
 	opts := rpc.ConnectionOpts{
+		TagsFunc:         logger.LogTagsFromContextRPC,
 		WrapErrorFunc:    libkb.WrapError,
 		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
 	}
@@ -1119,6 +1121,7 @@ func (g *gregorHandler) connectNoTLS() error {
 	g.transportForTesting = t
 
 	opts := rpc.ConnectionOpts{
+		TagsFunc:         logger.LogTagsFromContextRPC,
 		WrapErrorFunc:    libkb.WrapError,
 		ReconnectBackoff: backoff.NewConstantBackOff(GregorConnectionRetryInterval),
 	}
