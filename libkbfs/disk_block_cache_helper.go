@@ -28,6 +28,8 @@ type diskBlockCacheMetadata struct {
 	TlfID tlf.ID
 	// the last time the block was used
 	LRUTime time.Time
+	// the size of the block
+	BlockSize uint32
 }
 
 // lruEntry is an entry for sorting LRU times

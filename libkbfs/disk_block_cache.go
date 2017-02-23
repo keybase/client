@@ -55,7 +55,9 @@ type DiskBlockCacheStandard struct {
 	maxBlockID []byte
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
+	tlfSizes  map[tlf.ID]uint64
 	numBlocks int
+	currBytes uint64
 	// protects the disk caches from being shutdown while they're being
 	// accessed
 	lock    sync.RWMutex
@@ -127,6 +129,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		maxBytes:   maxBytes,
 		maxBlockID: maxBlockID.Bytes(),
 		tlfCounts:  map[tlf.ID]int{},
+		tlfSizes:   map[tlf.ID]uint64{},
 		log:        log,
 		blockDb:    blockDb,
 		metaDb:     metaDb,
@@ -235,23 +238,27 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 
-	tlfIDLen := len(tlf.NullID.Bytes())
 	tlfCounts := make(map[tlf.ID]int)
+	tlfSizes := make(map[tlf.ID]uint64)
 	numBlocks := 0
-	iter := cache.tlfDb.NewIterator(nil, nil)
+	totalSize := uint64(0)
+	iter := cache.metaDb.NewIterator(nil, nil)
 	for iter.Next() {
-		key := iter.Key()
-		tlfIDBytes := key[:tlfIDLen]
-		tlfID := tlf.NullID
-		err := tlfID.UnmarshalBinary(tlfIDBytes)
+		metadata := diskBlockCacheMetadata{}
+		err := cache.config.Codec().Decode(iter.Value(), &metadata)
 		if err != nil {
 			return err
 		}
-		tlfCounts[tlfID] += 1
+		size := uint64(metadata.BlockSize)
+		tlfCounts[metadata.TlfID] += 1
+		tlfSizes[metadata.TlfID] += size
 		numBlocks += 1
+		totalSize += size
 	}
 	cache.tlfCounts = tlfCounts
 	cache.numBlocks = numBlocks
+	cache.tlfSizes = tlfSizes
+	cache.currBytes = totalSize
 	return nil
 }
 
@@ -269,11 +276,15 @@ func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 	return append(tlfID.Bytes(), blockKey...)
 }
 
-// updateLRULocked updates the LRU time of a block in the LRU cache to
+// updateMetadataLocked updates the LRU time of a block in the LRU cache to
 // the current time.
-func (cache *DiskBlockCacheStandard) updateLRULocked(ctx context.Context,
-	tlfID tlf.ID, blockKey []byte) error {
-	metadata := diskBlockCacheMetadata{tlfID, cache.config.Clock().Now()}
+func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
+	tlfID tlf.ID, blockKey []byte, encodeLen int) error {
+	metadata := diskBlockCacheMetadata{
+		tlfID,
+		cache.config.Clock().Now(),
+		uint32(encodeLen),
+	}
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
 	if err != nil {
 		return err
@@ -352,7 +363,7 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			NoSuchBlockError{blockID}
 	}
-	err = cache.updateLRULocked(ctx, tlfID, blockKey)
+	err = cache.updateMetadataLocked(ctx, tlfID, blockKey, len(entry))
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -369,14 +380,13 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		return errors.WithStack(DiskCacheClosedError{"Put"})
 	}
 	blockLen := len(buf)
-	// TODO: accounting
 	entry, err := cache.encodeBlockCacheEntry(buf, serverHalf)
 	if err != nil {
 		return err
 	}
-	encodeLen := len(entry)
+	encodedLen := len(entry)
 	defer func() {
-		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d err=%+v", blockID, tlfID, blockLen, encodeLen, err)
+		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d err=%+v", blockID, tlfID, blockLen, encodedLen, err)
 	}()
 	blockKey := blockID.Bytes()
 	hasKey, err := cache.blockDb.Has(blockKey, nil)
@@ -390,10 +400,16 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	if !hasKey {
 		cache.tlfCounts[tlfID] += 1
 		cache.numBlocks += 1
+		encodedLenUint := uint64(encodedLen)
+		cache.tlfSizes[tlfID] += encodedLenUint
+		cache.currBytes += encodedLenUint
 	}
-	return cache.updateLRULocked(ctx, tlfID, blockKey)
+	return cache.updateMetadataLocked(ctx, tlfID, blockKey, encodedLen)
 }
 
+// deleteLocked deletes a set of blocks from the disk block cache.
+// TODO: Fix the accounting so it only subtracts totals if the entry was
+// already in the cache.
 func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	blockEntries []diskBlockCacheDeleteKey) error {
 	if len(blockEntries) == 0 {
@@ -403,6 +419,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	lruBatch := new(leveldb.Batch)
 	tlfBatch := new(leveldb.Batch)
 	removalCounts := make(map[tlf.ID]int)
+	removalSizes := make(map[tlf.ID]uint64)
 	for _, entry := range blockEntries {
 		blockKey := entry.BlockID.Bytes()
 		blockBatch.Delete(blockKey)
@@ -410,6 +427,9 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 		tlfDbKey := cache.tlfKey(entry.TlfID, blockKey)
 		tlfBatch.Delete(tlfDbKey)
 		removalCounts[entry.TlfID]++
+		// TODO: get the block from the metaDb so we:
+		// 1) Know it exists so we need to account for it
+		// 2) Know the block size
 	}
 	if err := cache.blockDb.Write(blockBatch, nil); err != nil {
 		return err
@@ -425,6 +445,8 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	for k, v := range removalCounts {
 		cache.tlfCounts[k] -= v
 		cache.numBlocks -= v
+		cache.tlfSizes[k] -= removalSizes[k]
+		cache.currBytes -= removalSizes[k]
 	}
 
 	return nil
