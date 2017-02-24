@@ -17,13 +17,13 @@ var getKeyMu sync.Mutex
 
 func GetMySecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
 
-	g.Log.Debug("getMySecretKey: acquiring lock")
+	g.Log.Debug("GetMySecretKey: acquiring lock")
 	getKeyMu.Lock()
 	defer func() {
 		getKeyMu.Unlock()
-		g.Log.Debug("getMySecretKey: lock released")
+		g.Log.Debug("GetMySecretKey: lock released")
 	}()
-	g.Log.Debug("getMySecretKey: lock acquired")
+	g.Log.Debug("GetMySecretKey: lock acquired")
 
 	// check cache after acquiring lock
 	var key libkb.GenericKey
@@ -35,10 +35,14 @@ func GetMySecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, s
 		return key, nil
 	}
 	if aerr != nil {
-		g.Log.Debug("error getting account: %s", aerr)
+		g.Log.Debug("error getting account for CachedSecretKey: %s", aerr)
 	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
+	var me *libkb.User
+	err = g.GetFullSelfer().WithSelf(func(tmp *libkb.User) error {
+		me = tmp.PartialCopy()
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
