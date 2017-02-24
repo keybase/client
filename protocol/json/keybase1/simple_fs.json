@@ -48,10 +48,11 @@
       "type": "enum",
       "name": "DirentType",
       "symbols": [
-        "FILE_0",
-        "DIR_1",
-        "SYM_2",
-        "EXEC_3"
+        "NONE_0",
+        "FILE_1",
+        "DIR_2",
+        "SYM_3",
+        "EXEC_4"
       ]
     },
     {
@@ -98,13 +99,14 @@
       "type": "enum",
       "name": "AsyncOps",
       "symbols": [
-        "LIST_0",
-        "LIST_RECURSIVE_1",
-        "READ_2",
-        "WRITE_3",
-        "COPY_4",
-        "MOVE_5",
-        "REMOVE_6"
+        "NONE_0",
+        "LIST_1",
+        "LIST_RECURSIVE_2",
+        "READ_3",
+        "WRITE_4",
+        "COPY_5",
+        "MOVE_6",
+        "REMOVE_7"
       ]
     },
     {

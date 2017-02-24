@@ -14,14 +14,14 @@ protocol SimpleFS {
     simpleFSOpen
     simpleFSMove
     simpleFSRemove
-  then calls one of the following until until status is no longer pending
-  or operation is cancelled:
-    simpleFSReadList (after list or listRecursive)
-    simpleFSRead (after open)
-    simpleFSWrite (after open)
-    simpleFSCheck (after copy, move or remove)
-  Caller can optionally block by calling wait()
-  Operation must be closed by calling close
+    simpleFSRead
+    simpleFSWrite
+  then calls simpleFSWait to block until the operation is finished
+  or cancelled,
+  then callse simpleFSCheck to retrieve results.
+    simpleFSWaitList (after list or listRecursive) is used for partial results.
+  
+  Operation can be cancelled by calling simpleFSClose
 */
 
   // Random GUID provided by caller 
@@ -38,10 +38,11 @@ protocol SimpleFS {
   }
 
   enum DirentType {
-    FILE_0,
-    DIR_1,
-    SYM_2,
-    EXEC_3
+    NONE_0,
+    FILE_1,
+    DIR_2,
+    SYM_3,
+    EXEC_4
   }
   
   record Dirent {
@@ -64,13 +65,14 @@ protocol SimpleFS {
   }
 
   enum AsyncOps {
-    LIST_0,
-    LIST_RECURSIVE_1,
-    READ_2,
-    WRITE_3,
-    COPY_4,
-    MOVE_5,
-    REMOVE_6
+    NONE_0,
+    LIST_1,
+    LIST_RECURSIVE_2,
+    READ_3,
+    WRITE_4,
+    COPY_5,
+    MOVE_6,
+    REMOVE_7
   }
 
   record ListArgs {

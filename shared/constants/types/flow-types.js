@@ -445,20 +445,22 @@ export const SaltpackUiSaltpackSenderType = {
 }
 
 export const SimpleFSAsyncOps = {
-  list: 0,
-  listRecursive: 1,
-  read: 2,
-  write: 3,
-  copy: 4,
-  move: 5,
-  remove: 6,
+  none: 0,
+  list: 1,
+  listRecursive: 2,
+  read: 3,
+  write: 4,
+  copy: 5,
+  move: 6,
+  remove: 7,
 }
 
 export const SimpleFSDirentType = {
-  file: 0,
-  dir: 1,
-  sym: 2,
-  exec: 3,
+  none: 0,
+  file: 1,
+  dir: 2,
+  sym: 3,
+  exec: 4,
 }
 
 export const SimpleFSOpenFlags = {
@@ -3078,13 +3080,14 @@ export type APIRes = {
 }
 
 export type AsyncOps =
-    0 // LIST_0
-  | 1 // LIST_RECURSIVE_1
-  | 2 // READ_2
-  | 3 // WRITE_3
-  | 4 // COPY_4
-  | 5 // MOVE_5
-  | 6 // REMOVE_6
+    0 // NONE_0
+  | 1 // LIST_1
+  | 2 // LIST_RECURSIVE_2
+  | 3 // READ_3
+  | 4 // WRITE_4
+  | 5 // COPY_5
+  | 6 // MOVE_6
+  | 7 // REMOVE_7
 
 export type BTCRegisterBTCRpcParam = Exact<{
   address: string,
@@ -3307,10 +3310,11 @@ export type Dirent = {
 }
 
 export type DirentType =
-    0 // FILE_0
-  | 1 // DIR_1
-  | 2 // SYM_2
-  | 3 // EXEC_3
+    0 // NONE_0
+  | 1 // FILE_1
+  | 2 // DIR_2
+  | 3 // SYM_3
+  | 4 // EXEC_4
 
 export type DismissReason = {
   type: DismissReasonType,
@@ -3874,13 +3878,13 @@ export type NotifyUsersUserChangedRpcParam = Exact<{
 }>
 
 export type OpDescription =
-    { asyncOp: 0, list: ?ListArgs }
-  | { asyncOp: 1, listRecursive: ?ListArgs }
-  | { asyncOp: 2, read: ?ReadArgs }
-  | { asyncOp: 3, write: ?WriteArgs }
-  | { asyncOp: 4, copy: ?CopyArgs }
-  | { asyncOp: 5, move: ?MoveArgs }
-  | { asyncOp: 6, remove: ?RemoveArgs }
+    { asyncOp: 1, list: ?ListArgs }
+  | { asyncOp: 2, listRecursive: ?ListArgs }
+  | { asyncOp: 3, read: ?ReadArgs }
+  | { asyncOp: 4, write: ?WriteArgs }
+  | { asyncOp: 5, copy: ?CopyArgs }
+  | { asyncOp: 6, move: ?MoveArgs }
+  | { asyncOp: 7, remove: ?RemoveArgs }
 
 export type OpID = any
 
@@ -4404,13 +4408,13 @@ export type SimpleFSListResult = {
 }
 
 export type SimpleFSOpResult =
-    { asyncOp: 0, list: ?SimpleFSListResult }
-  | { asyncOp: 1, listRecursive: ?SimpleFSListResult }
-  | { asyncOp: 2, read: ?ReadResult }
-  | { asyncOp: 3, write: ?WriteResult }
-  | { asyncOp: 4, copy: ?CopyResult }
-  | { asyncOp: 5, move: ?MoveResult }
-  | { asyncOp: 6, remove: ?RemoveResult }
+    { asyncOp: 1, list: ?SimpleFSListResult }
+  | { asyncOp: 2, listRecursive: ?SimpleFSListResult }
+  | { asyncOp: 3, read: ?ReadResult }
+  | { asyncOp: 4, write: ?WriteResult }
+  | { asyncOp: 5, copy: ?CopyResult }
+  | { asyncOp: 6, move: ?MoveResult }
+  | { asyncOp: 7, remove: ?RemoveResult }
 
 export type SimpleFSSimpleFSCheckRpcParam = Exact<{
   opID: OpID

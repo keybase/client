@@ -93,24 +93,27 @@ func NewPathWithKbfs(v string) Path {
 type DirentType int
 
 const (
-	DirentType_FILE DirentType = 0
-	DirentType_DIR  DirentType = 1
-	DirentType_SYM  DirentType = 2
-	DirentType_EXEC DirentType = 3
+	DirentType_NONE DirentType = 0
+	DirentType_FILE DirentType = 1
+	DirentType_DIR  DirentType = 2
+	DirentType_SYM  DirentType = 3
+	DirentType_EXEC DirentType = 4
 )
 
 var DirentTypeMap = map[string]DirentType{
-	"FILE": 0,
-	"DIR":  1,
-	"SYM":  2,
-	"EXEC": 3,
+	"NONE": 0,
+	"FILE": 1,
+	"DIR":  2,
+	"SYM":  3,
+	"EXEC": 4,
 }
 
 var DirentTypeRevMap = map[DirentType]string{
-	0: "FILE",
-	1: "DIR",
-	2: "SYM",
-	3: "EXEC",
+	0: "NONE",
+	1: "FILE",
+	2: "DIR",
+	3: "SYM",
+	4: "EXEC",
 }
 
 func (e DirentType) String() string {
@@ -167,33 +170,36 @@ func (e OpenFlags) String() string {
 type AsyncOps int
 
 const (
-	AsyncOps_LIST           AsyncOps = 0
-	AsyncOps_LIST_RECURSIVE AsyncOps = 1
-	AsyncOps_READ           AsyncOps = 2
-	AsyncOps_WRITE          AsyncOps = 3
-	AsyncOps_COPY           AsyncOps = 4
-	AsyncOps_MOVE           AsyncOps = 5
-	AsyncOps_REMOVE         AsyncOps = 6
+	AsyncOps_NONE           AsyncOps = 0
+	AsyncOps_LIST           AsyncOps = 1
+	AsyncOps_LIST_RECURSIVE AsyncOps = 2
+	AsyncOps_READ           AsyncOps = 3
+	AsyncOps_WRITE          AsyncOps = 4
+	AsyncOps_COPY           AsyncOps = 5
+	AsyncOps_MOVE           AsyncOps = 6
+	AsyncOps_REMOVE         AsyncOps = 7
 )
 
 var AsyncOpsMap = map[string]AsyncOps{
-	"LIST":           0,
-	"LIST_RECURSIVE": 1,
-	"READ":           2,
-	"WRITE":          3,
-	"COPY":           4,
-	"MOVE":           5,
-	"REMOVE":         6,
+	"NONE":           0,
+	"LIST":           1,
+	"LIST_RECURSIVE": 2,
+	"READ":           3,
+	"WRITE":          4,
+	"COPY":           5,
+	"MOVE":           6,
+	"REMOVE":         7,
 }
 
 var AsyncOpsRevMap = map[AsyncOps]string{
-	0: "LIST",
-	1: "LIST_RECURSIVE",
-	2: "READ",
-	3: "WRITE",
-	4: "COPY",
-	5: "MOVE",
-	6: "REMOVE",
+	0: "NONE",
+	1: "LIST",
+	2: "LIST_RECURSIVE",
+	3: "READ",
+	4: "WRITE",
+	5: "COPY",
+	6: "MOVE",
+	7: "REMOVE",
 }
 
 func (e AsyncOps) String() string {
