@@ -307,16 +307,26 @@ func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
 	return nil
 }
 
+// getMetadata retrieves the metadata for a block in the cache, or returns
+// leveldb.ErrNotFound and a zero-valued metadata otherwise.
+func (cache *DiskBlockCacheStandard) getMetadata(blockIDBytes []byte) (
+	metadata diskBlockCacheMetadata, err error) {
+	metadataBytes, err := cache.metaDb.Get(blockIDBytes, nil)
+	if err != nil {
+		return metadata, err
+	}
+	err = cache.config.Codec().Decode(metadataBytes, &metadata)
+	return metadata, err
+}
+
 // getLRU retrieves the LRU time for a block in the cache, or returns
 // leveldb.ErrNotFound and a zero-valued time.Time otherwise.
 func (cache *DiskBlockCacheStandard) getLRU(
 	blockIDBytes []byte) (time.Time, error) {
-	metadataBytes, err := cache.metaDb.Get(blockIDBytes, nil)
+	metadata, err := cache.getMetadata(blockIDBytes)
 	if err != nil {
 		return time.Time{}, err
 	}
-	metadata := diskBlockCacheMetadata{}
-	err = cache.config.Codec().Decode(metadataBytes, &metadata)
 	return metadata.LRUTime, nil
 }
 
@@ -416,25 +426,32 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 		return nil
 	}
 	blockBatch := new(leveldb.Batch)
-	lruBatch := new(leveldb.Batch)
+	metadataBatch := new(leveldb.Batch)
 	tlfBatch := new(leveldb.Batch)
 	removalCounts := make(map[tlf.ID]int)
 	removalSizes := make(map[tlf.ID]uint64)
 	for _, entry := range blockEntries {
 		blockKey := entry.BlockID.Bytes()
+		metadataBytes, err := cache.metaDb.Get(blockKey, nil)
+		if err != nil {
+			continue
+		}
+		metadata := diskBlockCacheMetadata{}
+		err = cache.config.Codec().Decode(metadataBytes, &metadata)
+		if err != nil {
+			return err
+		}
 		blockBatch.Delete(blockKey)
-		lruBatch.Delete(blockKey)
+		metadataBatch.Delete(blockKey)
 		tlfDbKey := cache.tlfKey(entry.TlfID, blockKey)
 		tlfBatch.Delete(tlfDbKey)
 		removalCounts[entry.TlfID]++
-		// TODO: get the block from the metaDb so we:
-		// 1) Know it exists so we need to account for it
-		// 2) Know the block size
+		removalSizes[entry.TlfID] += uint64(metadata.BlockSize)
 	}
 	if err := cache.blockDb.Write(blockBatch, nil); err != nil {
 		return err
 	}
-	if err := cache.metaDb.Write(lruBatch, nil); err != nil {
+	if err := cache.metaDb.Write(metadataBatch, nil); err != nil {
 		return err
 	}
 	if err := cache.tlfDb.Write(tlfBatch, nil); err != nil {
