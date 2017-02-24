@@ -187,6 +187,12 @@ protocol common {
     bytes k; // Verifying key
   }
 
+  record SignEncryptedData {
+    int   v; // version = 1
+    bytes b; // signEncryptedData (output of signencrypt.SealWhole)
+    bytes n; // nonce
+  }
+
   record MerkleRoot {
     long seqno;
     bytes hash;
