@@ -131,11 +131,8 @@ NativeEmoji
    return results.filter(Boolean)
  }
 
-LinkSpecialChar
- = EscapeMarker / BoldMarker
-
 LinkChar
- = !LinkSpecialChar char:NonBlank { return char }
+ = !(SpecialChar+ (InlineDelimiter / LineTerminatorSequence / !.)) char:NonBlank { return char }
 
 Link
  = proto:("http"i "s"i? ":")? url:(LinkChar+) & {
