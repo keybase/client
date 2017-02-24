@@ -46,7 +46,7 @@ protocol SimpleFS {
   
   record Dirent {
     Time time;
-    int size;   // size of file or count of dir entries (TBD - mmay be expensive/unnecessary)
+    long size;   // size of file, undefined for dir entries
     string name;
     DirentType direntType;
   }
@@ -62,19 +62,6 @@ protocol SimpleFS {
     APPEND_8,
     DIRECTORY_16
   }
-
-  @typedef("int")
-  record Progress {}
-
-  record SimpleFSListResult {
-    array<Dirent> entries;
-    Progress progress;
-  }
-  
-  record FileContent {
-    bytes data;         // Zero bytes when read is complete
-    Progress progress;  // Amount of data copied so far during this and previous reads
-  }                     // (TBD: should this be percentage?)
 
   enum AsyncOps {
     LIST_0,
@@ -131,9 +118,48 @@ protocol SimpleFS {
     case REMOVE: RemoveArgs;
   }
 
+  @typedef("int")
+  record Progress {}
+
+  record ListResult {
+    array<Dirent> entries;
+    Progress progress;
+  }
+  
+  record ReadResult {
+    bytes data;         // Zero bytes when read is complete
+    Progress progress;  // Amount of data copied so far during this and previous reads
+  }                     // (TBD: should this be percentage?)
+
+  record WriteResult{
+    Progress progress;    
+  }
+
+  record CopyResult{
+    Progress progress;
+  }
+
+  record MoveResult{
+    Progress progress;    
+  }
+
+  record RemoveResult{
+    Progress progress;    
+  }
+
+  variant SimpleFSOpResult switch (AsyncOps asyncOp) {
+    case LIST: ListResult;
+    case LIST_RECURSIVE: ListResult;
+    case READ: ReadResult;
+    case WRITE: WritResult;
+    case COPY: CopyResult;
+    case MOVE: MoveResult;
+    case REMOVE: RemoveResult;
+  }
+
   /**
    Begin list of items in directory at path
-   Retrieve results with readList()
+   Retrieve results with check()
    Can be a single file to get flags/status
    */
   void simpleFSList(OpID opID, Path path);
@@ -144,10 +170,9 @@ protocol SimpleFS {
   void simpleFSListRecursive(OpID opID, Path path);
 
   /**
-   Get list of Paths in progress. Can indicate status of pending
-   to get more entries.
-   */
-  SimpleFSListResult simpleFSReadList(OpID opID);
+   Get list of Paths in progress. Can return partial results.
+  */
+   SimpleFSListResult simpleFSWaitList(OpID opID);
 
   /**
    Begin copy of file or directory 
@@ -219,7 +244,7 @@ protocol SimpleFS {
   /**
    Check progress of pending operation
    */
-  Progress simpleFSCheck(OpID opID);
+  SimpleFSOpResult simpleFSCheck(OpID opID);
 
   /**
    Get all the outstanding operations
