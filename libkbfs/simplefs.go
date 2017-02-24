@@ -567,7 +567,17 @@ func (k *SimpleFS) open(ctx context.Context, dest keybase1.Path, f keybase1.Open
 		return node, ei, err
 	}
 
-	// TODO: OpenFlags_REPLACE
+	// On REPLACE return existing results and if it is a file then truncate it.
+	// TODO: What are the desired semantics on non-matching types?
+	if f&keybase1.OpenFlags_REPLACE != 0 {
+		node, ei, err = k.config.KBFSOps().Lookup(ctx, parent, name)
+		if err == nil {
+			if ei.Type != Dir {
+				err = k.config.KBFSOps().Truncate(ctx, node, 0)
+			}
+			return node, ei, err
+		}
+	}
 	switch {
 	case (f&keybase1.OpenFlags_EXISTING == 0) && (f&keybase1.OpenFlags_DIRECTORY == keybase1.OpenFlags_DIRECTORY):
 		node, ei, err = k.config.KBFSOps().CreateDir(ctx, parent, name)
