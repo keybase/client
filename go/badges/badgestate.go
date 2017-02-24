@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	"github.com/keybase/gregor/base/log"
 )
 
 // BadgeState represents the number of badges on the app. It's threadsafe.
@@ -73,12 +72,12 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 		case "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
-				log.Warning("BadgeState encountered non-json 'tlf' item: %v", err)
+				b.log.Warning("BadgeState encountered non-json 'tlf' item: %v", err)
 				continue
 			}
 			itemType, err := jsw.AtKey("type").GetString()
 			if err != nil {
-				log.Warning("BadgeState encountered gregor 'tlf' item without 'type': %v", err)
+				b.log.Warning("BadgeState encountered gregor 'tlf' item without 'type': %v", err)
 				continue
 			}
 			if itemType != "created" {
