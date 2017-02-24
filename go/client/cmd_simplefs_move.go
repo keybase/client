@@ -47,7 +47,7 @@ func (c *CmdSimpleFSMove) Run() error {
 
 	ctx := context.TODO()
 
-	isDestDir, destPathString, err := getDirPathString(ctx, cli, c.dest)
+	isDestDir, destPathString, err := checkPathIsDir(ctx, cli, c.dest)
 	if err != nil {
 		return err
 	}

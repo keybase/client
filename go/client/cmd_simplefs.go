@@ -95,7 +95,7 @@ func pathToString(path keybase1.Path) string {
 }
 
 // Cheeck whether the given path is a directory and return its string
-func getDirPathString(ctx context.Context, cli SimpleFSStatter, path keybase1.Path) (bool, string, error) {
+func checkPathIsDir(ctx context.Context, cli SimpleFSStatter, path keybase1.Path) (bool, string, error) {
 	var isDir bool
 	var pathString string
 	var err error
@@ -137,7 +137,7 @@ func makeDestPath(
 	isDestPath bool,
 	destPathString string) (keybase1.Path, error) {
 
-	isSrcDir, srcPathString, err := getDirPathString(ctx, cli, src)
+	isSrcDir, srcPathString, err := checkPathIsDir(ctx, cli, src)
 	destType, _ := dest.PathType()
 
 	g.Log.Debug("makeDestPath: srcPathString: %s", pathToString(src))
@@ -171,6 +171,7 @@ func makeDestPath(
 	return dest, err
 }
 
+// Make a list of source paths and one destination path from the given command line args
 func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]keybase1.Path, keybase1.Path, error) {
 	nargs := len(ctx.Args())
 

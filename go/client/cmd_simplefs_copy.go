@@ -56,7 +56,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	c.G().Log.Debug("SimpleFSCopy to: %s", pathToString(c.dest))
 
-	isDestDir, destPathString, err := getDirPathString(ctx, cli, c.dest)
+	isDestDir, destPathString, err := checkPathIsDir(ctx, cli, c.dest)
 
 	if err != nil {
 		return err
