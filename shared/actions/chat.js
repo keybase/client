@@ -1063,7 +1063,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
     if (incoming.chatInboxConversation) {
       requestIdleCallback(() => {
         incoming.chatInboxConversation.response.result()
-      }, 100)
+      }, {timeout: 100})
 
       yield call(delay, 1)
       let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
@@ -1091,7 +1091,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
       console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
       requestIdleCallback(() => {
         incoming.chatInboxFailed.response.result()
-      }, 100)
+      }, {timeout: 100})
 
       yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
