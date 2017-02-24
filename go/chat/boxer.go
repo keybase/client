@@ -346,6 +346,10 @@ func (b *Boxer) getUsername(ctx context.Context, uid keybase1.UID) (string, erro
 }
 
 // Any of (senderUsername, senderDeviceName, senderDeviceType) could be empty strings because of non-critical failures.
+// This first tries to username and device info, falling back to just username, falling back to empty strings.
+// The reason for this soft error handling is that a permanent failure would be inappropriate, a transient
+// failure could cause an entire thread not to load, and loading the names of revoked devices may not work this way.
+// This deserves to be reconsidered.
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
 	if b.testingGetSenderInfoLocal != nil {
 		b.log().Warning("Using TESTING jig. Not suitable for normal use.")
