@@ -16,6 +16,7 @@ class DevMenu extends Component {
       {name: 'Sign Out', onClick: this.props.logout},
       {name: 'Log Send', onClick: this.props.onLogSend},
       {name: 'Push Debug', onClick: this.props.onPushDebug},
+      {name: 'Test Popup', onClick: this.props.onTestPopup},
     ]
     return (
       <Box style={{...globalStyles.flexBoxRow}}>
@@ -32,5 +33,6 @@ export default connect(
     onReset: () => engine().reset(),
     onLogSend: () => dispatch(navigateAppend(['logSend'])),
     onPushDebug: () => dispatch(navigateAppend(['push'])),
+    onTestPopup: () => dispatch(navigateAppend(['testPopup'])),
     logout: () => dispatch(logout()),
   }))(DevMenu)

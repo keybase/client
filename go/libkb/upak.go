@@ -60,7 +60,7 @@ func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revoke
 }
 
 func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
-	defer g.Trace(fmt.Sprintf("UPAK.GetRemoteChainLinkFor(%s,%s,%s)", u.Base.Uid, username, uid), func() error { return err })()
+	defer g.Trace(fmt.Sprintf("UPAK#GetRemoteChainLinkFor(%s,%s,%s)", u.Base.Uid, username, uid), func() error { return err })()
 	g.VDL.Log(VLog1, "| Full user: %+v\n", *u)
 	rtl := u.GetRemoteTrack(username.String())
 	if rtl == nil {
@@ -68,7 +68,7 @@ func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsern
 		return nil, nil
 	}
 	if !rtl.Uid.Equal(uid) {
-		return nil, UIDMismatchError{Msg: fmt.Sprintf("didn't match username %q", username.String())}
+		return nil, UIDMismatchError{Msg: fmt.Sprintf("UIDs didn't match for (%s,%q); got %s", uid, username.String(), rtl.Uid)}
 	}
 	var lid LinkID
 	g.Log.Debug("| remote track found with linkID=%s", rtl.LinkID)

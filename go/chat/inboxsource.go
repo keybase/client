@@ -315,6 +315,46 @@ func (b *baseInboxSource) SetTlfInterface(ti func() keybase1.TlfInterface) {
 	b.getTlfInterface = ti
 }
 
+func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
+	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery) (
+	rquery *chat1.GetInboxQuery, info *TLFInfo, err error) {
+
+	if lquery == nil {
+		return nil, nil, nil
+	}
+
+	rquery = &chat1.GetInboxQuery{}
+	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
+		var err error
+		info, err = LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility())
+		if err != nil {
+			return nil, nil, err
+		}
+		rquery.TlfID = &info.ID
+		b.Debug(ctx, "getInboxQueryLocalToRemote: mapped TLF %q to TLFID %v", *lquery.TlfName, info.ID)
+	}
+
+	rquery.After = lquery.After
+	rquery.Before = lquery.Before
+	rquery.TlfVisibility = lquery.TlfVisibility
+	rquery.TopicType = lquery.TopicType
+	rquery.UnreadOnly = lquery.UnreadOnly
+	rquery.ReadOnly = lquery.ReadOnly
+	rquery.ComputeActiveList = lquery.ComputeActiveList
+	rquery.ConvID = lquery.ConvID
+	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
+	rquery.Status = lquery.Status
+
+	return rquery, info, nil
+}
+
+func GetInboxQueryTLFInfo(ctx context.Context, tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery) (*TLFInfo, error) {
+	if lquery.TlfName == nil || len(*lquery.TlfName) == 0 {
+		return nil, nil
+	}
+	return LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility())
+}
+
 type RemoteInboxSource struct {
 	libkb.Contextified
 	utils.DebugLabeler
@@ -342,7 +382,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
-	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, tlfInfo, err := s.getInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
 		return chat1.Inbox{}, nil, err
 	}
@@ -489,7 +529,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
 	// Read unverified inbox
-	rquery, tlfInfo, err := GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, tlfInfo, err := s.getInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
 	if err != nil {
 		return inbox, rl, err
 	}
@@ -1043,38 +1083,6 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	convErrorLocal := chat1.NewConversationErrorLocal(
 		fromErr.Error(), conversationRemote, s.isErrPermanent(err), unverifiedTLFName, convErrTyp, rekeyInfo)
 	return convErrorLocal, nil
-}
-
-func GetInboxQueryLocalToRemote(ctx context.Context,
-	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery) (
-	rquery *chat1.GetInboxQuery, info *TLFInfo, err error) {
-
-	if lquery == nil {
-		return nil, nil, nil
-	}
-
-	rquery = &chat1.GetInboxQuery{}
-	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
-		var err error
-		info, err = LookupTLF(ctx, tlfInterface, *lquery.TlfName, lquery.Visibility())
-		if err != nil {
-			return nil, nil, err
-		}
-		rquery.TlfID = &info.ID
-	}
-
-	rquery.After = lquery.After
-	rquery.Before = lquery.Before
-	rquery.TlfVisibility = lquery.TlfVisibility
-	rquery.TopicType = lquery.TopicType
-	rquery.UnreadOnly = lquery.UnreadOnly
-	rquery.ReadOnly = lquery.ReadOnly
-	rquery.ComputeActiveList = lquery.ComputeActiveList
-	rquery.ConvID = lquery.ConvID
-	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
-	rquery.Status = lquery.Status
-
-	return rquery, info, nil
 }
 
 func NewInboxSource(g *libkb.GlobalContext, typ string, ri func() chat1.RemoteInterface,

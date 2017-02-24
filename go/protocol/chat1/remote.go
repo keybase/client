@@ -10,11 +10,41 @@ import (
 )
 
 type MessageBoxed struct {
-	ServerHeader     *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
-	ClientHeader     MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
-	HeaderCiphertext EncryptedData        `codec:"headerCiphertext" json:"headerCiphertext"`
-	BodyCiphertext   EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
-	KeyGeneration    int                  `codec:"keyGeneration" json:"keyGeneration"`
+	Version               MessageBoxedVersion  `codec:"version" json:"version"`
+	ServerHeader          *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
+	ClientHeader          MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
+	HeaderCiphertext      EncryptedData        `codec:"headerCiphertext" json:"headerCiphertext"`
+	HeaderSealed          SignEncryptedData    `codec:"headerSealed" json:"headerSealed"`
+	BodyCiphertext        EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
+	HeaderVerificationKey []byte               `codec:"headerVerificationKey" json:"headerVerificationKey"`
+	KeyGeneration         int                  `codec:"keyGeneration" json:"keyGeneration"`
+}
+
+type MessageBoxedVersion int
+
+const (
+	MessageBoxedVersion_VNONE MessageBoxedVersion = 0
+	MessageBoxedVersion_V1    MessageBoxedVersion = 1
+	MessageBoxedVersion_V2    MessageBoxedVersion = 2
+)
+
+var MessageBoxedVersionMap = map[string]MessageBoxedVersion{
+	"VNONE": 0,
+	"V1":    1,
+	"V2":    2,
+}
+
+var MessageBoxedVersionRevMap = map[MessageBoxedVersion]string{
+	0: "VNONE",
+	1: "V1",
+	2: "V2",
+}
+
+func (e MessageBoxedVersion) String() string {
+	if v, ok := MessageBoxedVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type ThreadViewBoxed struct {

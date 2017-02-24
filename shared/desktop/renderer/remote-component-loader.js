@@ -12,7 +12,9 @@ import purgeMessage from '../../pgp/container.desktop'
 import tracker from '../../tracker'
 import unlockFolders from '../../unlock-folders'
 import {disable as disableDragDrop} from '../../util/drag-drop'
+import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
 import {globalColors} from '../../styles'
+import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {remote, ipcRenderer} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
@@ -20,6 +22,11 @@ import {setupSource} from '../../util/forward-logs'
 setupSource()
 disableDragDrop()
 makeEngine()
+
+function setupAvatar () {
+  initAvatarLookup(getUserImageMap)
+  initAvatarLoad(loadUserImageMap)
+}
 
 module.hot && module.hot.accept()
 module.hot && module.hot.dispose(() => {
@@ -71,7 +78,7 @@ class RemoteComponentLoader extends Component<void, any, State> {
     loadPerf()
 
     const title = this.props.title
-    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
+    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__, false) // eslint-disable-line no-undef
   }
 
   componentWillMount () {
@@ -180,6 +187,7 @@ const styles = {
 }
 
 function load (options) {
+  setupAvatar()
   ReactDOM.render(<RemoteComponentLoader
     title={options.title}
     component={options.component}

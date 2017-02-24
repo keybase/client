@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -576,8 +575,10 @@ func (t ClientType) String() string {
 		return "command-line client"
 	case ClientType_KBFS:
 		return "KBFS"
-	case ClientType_GUI:
+	case ClientType_GUI_MAIN:
 		return "desktop"
+	case ClientType_GUI_HELPER:
+		return "desktop helper"
 	default:
 		return "other"
 	}
@@ -753,6 +754,17 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 		b == TLFIdentifyBehavior_CHAT_GUI_STRICT
 }
 
+func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
+	switch b {
+	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_CHAT_GUI_STRICT:
+		return true
+	default:
+		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
+		// doesn't have any other UI to report errors with.
+		return false
+	}
+}
+
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	// The chat GUI (in non-strict mode) is specifically exempted from broken
 	// track errors, because people need to be able to use it to ask each other
@@ -815,18 +827,24 @@ func (u UserPlusKeys) GetName() string {
 	return u.Username
 }
 
-func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
-	handle := &codec.MsgpackHandle{
-		WriteExt:    true,
-		RawToString: true,
+func (u *UserPlusKeys) DeepCopy() UserPlusKeys {
+	return UserPlusKeys{
+		Uid:               u.Uid,
+		Username:          u.Username,
+		DeviceKeys:        append([]PublicKey{}, u.DeviceKeys...),
+		RevokedDeviceKeys: append([]RevokedKey{}, u.RevokedDeviceKeys...),
+		PGPKeyCount:       u.PGPKeyCount,
+		Uvv:               u.Uvv,
+		DeletedDeviceKeys: append([]PublicKey{}, u.DeletedDeviceKeys...),
 	}
-	v := make([]byte, 100)
-	enc := codec.NewEncoderBytes(&v, handle)
-	enc.Encode(*u)
-	dec := codec.NewDecoderBytes(v, handle)
-	var ret UserPlusAllKeys
-	dec.Decode(&ret)
-	return &ret
+}
+
+func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
+	return &UserPlusAllKeys{
+		Base:         u.Base.DeepCopy(),
+		PGPKeys:      append([]PublicKey{}, u.PGPKeys...),
+		RemoteTracks: append([]RemoteTrack{}, u.RemoteTracks...),
+	}
 }
 
 func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
@@ -834,6 +852,9 @@ func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
 		return u.RemoteTracks[j].Username >= s
 	})
 	if i >= len(u.RemoteTracks) {
+		return nil
+	}
+	if u.RemoteTracks[i].Username != s {
 		return nil
 	}
 	return &u.RemoteTracks[i]
