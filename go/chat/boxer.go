@@ -312,7 +312,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 }
 
 func (b *Boxer) unboxV2(ctx context.Context, msg chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
-	return nil, NewTransientUnboxingError(fmt.Errorf("unboxV2 not implemented"))
+	return nil, NewPermanentUnboxingError(NewMessageBoxedVersionError(chat1.MessageBoxedVersion_V2))
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
