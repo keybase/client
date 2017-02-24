@@ -874,6 +874,18 @@ export function accountPassphrasePromptRpcPromise (request: $Exact<requestCommon
   return new Promise((resolve, reject) => { accountPassphrasePromptRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function accountResetAccountRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.account.resetAccount'})
+}
+
+export function accountResetAccountRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => accountResetAccountRpc({...request, incomingCallMap, callback}))
+}
+
+export function accountResetAccountRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { accountResetAccountRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function apiserverGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.apiserver.Get'})
 }
@@ -6022,6 +6034,7 @@ export type rpc =
   | accountHasServerKeysRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
+  | accountResetAccountRpc
   | apiserverGetRpc
   | apiserverPostJSONRpc
   | apiserverPostRpc

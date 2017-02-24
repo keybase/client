@@ -6,12 +6,14 @@ import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './index.native'
 import {globalStyles, globalColors} from '../styles'
+import {isIOS} from '../constants/platform'
 
 import type {Props} from './input'
 
 type State = {
-  value: string,
   focused: boolean,
+  height: ?number,
+  value: string,
 }
 
 class Input extends Component<void, Props, State> {
@@ -22,19 +24,15 @@ class Input extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      value: props.value || '',
       focused: false,
+      height: null,
+      value: props.value || '',
     }
-  }
-
-  componentDidMount () {
-    this._autoResize()
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.hasOwnProperty('value')) {
       this.setState({value: nextProps.value || ''})
-      this._autoResize()
     }
   }
 
@@ -44,8 +42,21 @@ class Input extends Component<void, Props, State> {
     }
   }
 
-  _autoResize () {
-    // maybe support this later. Keeping this flow so it matches desktop
+  _onContentSizeChange = (event) => {
+    if (this.props.multiline && event && event.nativeEvent && event.nativeEvent.contentSize && event.nativeEvent.contentSize.height) {
+      let height = event.nativeEvent.contentSize.height
+      const minHeight = this.props.rowsMin && this._rowsToHeight(this.props.rowsMin)
+      const maxHeight = this.props.rowsMax && this._rowsToHeight(this.props.rowsMax)
+      if (minHeight && (height < minHeight)) {
+        height = minHeight
+      } else if (maxHeight && (height > maxHeight)) {
+        height = maxHeight
+      }
+
+      if (height !== this.state.height && this.state.value !== '') {
+        this.setState({height})
+      }
+    }
   }
 
   _setPasswordVisible (passwordVisible: boolean) {
@@ -67,7 +78,6 @@ class Input extends Component<void, Props, State> {
 
   _onChangeText = (text: string) => {
     this.setState({value: text || ''})
-    this._autoResize()
 
     this.props.onChangeText && this.props.onChangeText(text || '')
   }
@@ -172,6 +182,11 @@ class Input extends Component<void, Props, State> {
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : null),
     }
 
+    // Override height if we received an onContentSizeChange() earlier.
+    if (isIOS && this.state.height) {
+      multilineStyle.height = this.state.height
+    }
+
     const floatingHintText = !!this.state.value.length &&
       (this.props.hasOwnProperty('floatingHintTextOverride')
        ? this.props.floatingHintTextOverride
@@ -210,6 +225,7 @@ class Input extends Component<void, Props, State> {
     const multilineProps = {
       ...commonProps,
       multiline: true,
+      onContentSizeChange: isIOS ? this._onContentSizeChange : null,
       style: {...multilineStyle, ...this.props.inputStyle},
     }
 

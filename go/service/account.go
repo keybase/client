@@ -4,6 +4,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -70,4 +72,21 @@ func (h *AccountHandler) HasServerKeys(_ context.Context, sessionID int) (keybas
 		return res, err
 	}
 	return eng.GetResult(), nil
+}
+
+func (h *AccountHandler) ResetAccount(ctx context.Context, sessionID int) error {
+	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
+		return errors.New("ResetAccount only supported in devel run mode")
+	}
+
+	h.G().Log.Debug("resetting account for %s", h.G().Env.GetUsername())
+
+	err := h.G().LoginState().ResetAccount(h.G().Env.GetUsername().String())
+	if err != nil {
+		return err
+	}
+
+	h.G().Log.Debug("reset account succeeded, logging out.")
+
+	return h.G().Logout()
 }

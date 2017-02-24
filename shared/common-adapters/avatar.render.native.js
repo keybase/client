@@ -8,7 +8,7 @@ import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
 
 type ImageProps = {
-  loadingColor: ?string,
+  onLoadEnd: () => void,
   opacity: ?number,
   size: AvatarSize,
   url: string,
@@ -27,28 +27,34 @@ type Props = {
   url: ?string,
 }
 
-// The actual image
-type UserImageState = {
+type State = {
   loaded: boolean,
 }
-class UserImage extends PureComponent<void, ImageProps, UserImageState> {
-  state: UserImageState = {
-    loaded: false,
-  }
 
-  _onLoadEnd = () => {
-    this.setState({loaded: true})
-  }
+// Android doesn't handle background colors border radius setting
+const backgroundOffset = 1
+const Background = ({loaded, loadingColor, size}) => (
+  <Box
+    style={{
+      backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
+      borderRadius: size / 2,
+      bottom: backgroundOffset,
+      left: backgroundOffset,
+      position: 'absolute',
+      right: backgroundOffset,
+      top: backgroundOffset,
+    }} />
+)
 
+class UserImage extends PureComponent<void, ImageProps, void> {
   render () {
-    const {url, size, loadingColor, opacity = 1} = this.props
+    const {url, size, onLoadEnd, opacity = 1} = this.props
 
     return (
       <NativeImage
         source={url}
-        onLoadEnd={this._onLoadEnd}
+        onLoadEnd={onLoadEnd}
         style={{
-          backgroundColor: this.state.loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
           borderRadius: size / 2,
           bottom: 0,
           height: size,
@@ -82,7 +88,33 @@ const Border = ({borderColor, size}) => (
   />
 )
 
-class AvatarRender extends PureComponent<void, Props, void> {
+class AvatarRender extends PureComponent<void, Props, State> {
+  state: State = {
+    loaded: false,
+  }
+
+  _mounted: boolean = false
+
+  _onLoadOrError = () => {
+    if (this._mounted) {
+      this.setState({loaded: true})
+    }
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.url !== nextProps.url) {
+      this.setState({loaded: false})
+    }
+  }
+
+  componentDidMount () {
+    this._mounted = true
+  }
+
+  componentWillUnmount () {
+    this._mounted = false
+  }
+
   render () {
     const {url, onClick, style, size, loadingColor, borderColor, opacity, followIconType, followIconStyle, children} = this.props
 
@@ -96,9 +128,10 @@ class AvatarRender extends PureComponent<void, Props, void> {
           ...style,
         }}>
         <Box style={{height: size, width: size}}>
+          <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />
           {!!url && <UserImage
             opacity={opacity}
-            loadingColor={loadingColor}
+            onLoadEnd={this._onLoadOrError}
             size={size}
             url={url}
           /> }
