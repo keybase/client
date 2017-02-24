@@ -121,7 +121,7 @@ protocol SimpleFS {
   @typedef("int")
   record Progress {}
 
-  record ListResult {
+  record SimpleFSListResult {
     array<Dirent> entries;
     Progress progress;
   }
@@ -148,10 +148,10 @@ protocol SimpleFS {
   }
 
   variant SimpleFSOpResult switch (AsyncOps asyncOp) {
-    case LIST: ListResult;
-    case LIST_RECURSIVE: ListResult;
+    case LIST: SimpleFSListResult;
+    case LIST_RECURSIVE: SimpleFSListResult;
     case READ: ReadResult;
-    case WRITE: WritResult;
+    case WRITE: WriteResult;
     case COPY: CopyResult;
     case MOVE: MoveResult;
     case REMOVE: RemoveResult;
@@ -209,10 +209,9 @@ protocol SimpleFS {
   /**
    Read (possibly partial) contents of open file,
    up to the amount specified by size.
-   Repeat until zero bytes are returned or error.
    If size is zero, read an arbitrary amount.
    */
-  FileContent simpleFSRead(OpID opID, long offset, int size);
+  void simpleFSRead(OpID opID, long offset, int size);
 
   /**
    Append content to opened file.

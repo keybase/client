@@ -278,7 +278,7 @@
     },
     {
       "type": "record",
-      "name": "ListResult",
+      "name": "SimpleFSListResult",
       "fields": [
         {
           "type": {
@@ -360,14 +360,14 @@
             "name": "LIST",
             "def": false
           },
-          "body": "ListResult"
+          "body": "SimpleFSListResult"
         },
         {
           "label": {
             "name": "LIST_RECURSIVE",
             "def": false
           },
-          "body": "ListResult"
+          "body": "SimpleFSListResult"
         },
         {
           "label": {
@@ -381,7 +381,7 @@
             "name": "WRITE",
             "def": false
           },
-          "body": "WritResult"
+          "body": "WriteResult"
         },
         {
           "label": {
@@ -561,8 +561,8 @@
           "type": "int"
         }
       ],
-      "response": "FileContent",
-      "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   Repeat until zero bytes are returned or error.\n   If size is zero, read an arbitrary amount."
+      "response": null,
+      "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   If size is zero, read an arbitrary amount."
     },
     "simpleFSWrite": {
       "request": [

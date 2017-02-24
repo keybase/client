@@ -410,7 +410,7 @@ func NewOpDescriptionWithRemove(v RemoveArgs) OpDescription {
 }
 
 type Progress int
-type ListResult struct {
+type SimpleFSListResult struct {
 	Entries  []Dirent `codec:"entries" json:"entries"`
 	Progress Progress `codec:"progress" json:"progress"`
 }
@@ -437,14 +437,14 @@ type RemoveResult struct {
 }
 
 type SimpleFSOpResult struct {
-	AsyncOp__       AsyncOps      `codec:"asyncOp" json:"asyncOp"`
-	List__          *ListResult   `codec:"list,omitempty" json:"list,omitempty"`
-	ListRecursive__ *ListResult   `codec:"listRecursive,omitempty" json:"listRecursive,omitempty"`
-	Read__          *ReadResult   `codec:"read,omitempty" json:"read,omitempty"`
-	Write__         *WritResult   `codec:"write,omitempty" json:"write,omitempty"`
-	Copy__          *CopyResult   `codec:"copy,omitempty" json:"copy,omitempty"`
-	Move__          *MoveResult   `codec:"move,omitempty" json:"move,omitempty"`
-	Remove__        *RemoveResult `codec:"remove,omitempty" json:"remove,omitempty"`
+	AsyncOp__       AsyncOps            `codec:"asyncOp" json:"asyncOp"`
+	List__          *SimpleFSListResult `codec:"list,omitempty" json:"list,omitempty"`
+	ListRecursive__ *SimpleFSListResult `codec:"listRecursive,omitempty" json:"listRecursive,omitempty"`
+	Read__          *ReadResult         `codec:"read,omitempty" json:"read,omitempty"`
+	Write__         *WriteResult        `codec:"write,omitempty" json:"write,omitempty"`
+	Copy__          *CopyResult         `codec:"copy,omitempty" json:"copy,omitempty"`
+	Move__          *MoveResult         `codec:"move,omitempty" json:"move,omitempty"`
+	Remove__        *RemoveResult       `codec:"remove,omitempty" json:"remove,omitempty"`
 }
 
 func (o *SimpleFSOpResult) AsyncOp() (ret AsyncOps, err error) {
@@ -488,22 +488,22 @@ func (o *SimpleFSOpResult) AsyncOp() (ret AsyncOps, err error) {
 	return o.AsyncOp__, nil
 }
 
-func (o SimpleFSOpResult) List() ListResult {
+func (o SimpleFSOpResult) List() SimpleFSListResult {
 	if o.AsyncOp__ != AsyncOps_LIST {
 		panic("wrong case accessed")
 	}
 	if o.List__ == nil {
-		return ListResult{}
+		return SimpleFSListResult{}
 	}
 	return *o.List__
 }
 
-func (o SimpleFSOpResult) ListRecursive() ListResult {
+func (o SimpleFSOpResult) ListRecursive() SimpleFSListResult {
 	if o.AsyncOp__ != AsyncOps_LIST_RECURSIVE {
 		panic("wrong case accessed")
 	}
 	if o.ListRecursive__ == nil {
-		return ListResult{}
+		return SimpleFSListResult{}
 	}
 	return *o.ListRecursive__
 }
@@ -518,12 +518,12 @@ func (o SimpleFSOpResult) Read() ReadResult {
 	return *o.Read__
 }
 
-func (o SimpleFSOpResult) Write() WritResult {
+func (o SimpleFSOpResult) Write() WriteResult {
 	if o.AsyncOp__ != AsyncOps_WRITE {
 		panic("wrong case accessed")
 	}
 	if o.Write__ == nil {
-		return WritResult{}
+		return WriteResult{}
 	}
 	return *o.Write__
 }
@@ -558,14 +558,14 @@ func (o SimpleFSOpResult) Remove() RemoveResult {
 	return *o.Remove__
 }
 
-func NewSimpleFSOpResultWithList(v ListResult) SimpleFSOpResult {
+func NewSimpleFSOpResultWithList(v SimpleFSListResult) SimpleFSOpResult {
 	return SimpleFSOpResult{
 		AsyncOp__: AsyncOps_LIST,
 		List__:    &v,
 	}
 }
 
-func NewSimpleFSOpResultWithListRecursive(v ListResult) SimpleFSOpResult {
+func NewSimpleFSOpResultWithListRecursive(v SimpleFSListResult) SimpleFSOpResult {
 	return SimpleFSOpResult{
 		AsyncOp__:       AsyncOps_LIST_RECURSIVE,
 		ListRecursive__: &v,
@@ -579,7 +579,7 @@ func NewSimpleFSOpResultWithRead(v ReadResult) SimpleFSOpResult {
 	}
 }
 
-func NewSimpleFSOpResultWithWrite(v WritResult) SimpleFSOpResult {
+func NewSimpleFSOpResultWithWrite(v WriteResult) SimpleFSOpResult {
 	return SimpleFSOpResult{
 		AsyncOp__: AsyncOps_WRITE,
 		Write__:   &v,
@@ -719,9 +719,8 @@ type SimpleFSInterface interface {
 	SimpleFSSetStat(context.Context, SimpleFSSetStatArg) error
 	// Read (possibly partial) contents of open file,
 	// up to the amount specified by size.
-	// Repeat until zero bytes are returned or error.
 	// If size is zero, read an arbitrary amount.
-	SimpleFSRead(context.Context, SimpleFSReadArg) (FileContent, error)
+	SimpleFSRead(context.Context, SimpleFSReadArg) error
 	// Append content to opened file.
 	// May be repeated until OpID is closed.
 	SimpleFSWrite(context.Context, SimpleFSWriteArg) error
@@ -901,7 +900,7 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]SimpleFSReadArg)(nil), args)
 						return
 					}
-					ret, err = i.SimpleFSRead(ctx, (*typedArgs)[0])
+					err = i.SimpleFSRead(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1093,10 +1092,9 @@ func (c SimpleFSClient) SimpleFSSetStat(ctx context.Context, __arg SimpleFSSetSt
 
 // Read (possibly partial) contents of open file,
 // up to the amount specified by size.
-// Repeat until zero bytes are returned or error.
 // If size is zero, read an arbitrary amount.
-func (c SimpleFSClient) SimpleFSRead(ctx context.Context, __arg SimpleFSReadArg) (res FileContent, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRead", []interface{}{__arg}, &res)
+func (c SimpleFSClient) SimpleFSRead(ctx context.Context, __arg SimpleFSReadArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSRead", []interface{}{__arg}, nil)
 	return
 }
 

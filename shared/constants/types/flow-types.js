@@ -730,15 +730,15 @@ export function SimpleFSSimpleFSOpenRpcPromise (request: $Exact<requestCommon & 
   return new Promise((resolve, reject) => { SimpleFSSimpleFSOpenRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function SimpleFSSimpleFSReadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadResult) => void} & {param: SimpleFSSimpleFSReadRpcParam}>) {
+export function SimpleFSSimpleFSReadRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSReadRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.simpleFSRead'})
 }
 
-export function SimpleFSSimpleFSReadRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadResult) => void} & {param: SimpleFSSimpleFSReadRpcParam}>): ChannelMap<*> {
+export function SimpleFSSimpleFSReadRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSReadRpcParam}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSSimpleFSReadRpc({...request, incomingCallMap, callback}))
 }
 
-export function SimpleFSSimpleFSReadRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadResult) => void} & {param: SimpleFSSimpleFSReadRpcParam}>): Promise<SimpleFSSimpleFSReadResult> {
+export function SimpleFSSimpleFSReadRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSReadRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { SimpleFSSimpleFSReadRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
@@ -4398,11 +4398,16 @@ export type SignupRes = {
   writeOk: boolean,
 }
 
+export type SimpleFSListResult = {
+  entries?: ?Array<Dirent>,
+  progress: Progress,
+}
+
 export type SimpleFSOpResult =
-    { asyncOp: 0, list: ?ListResult }
-  | { asyncOp: 1, listRecursive: ?ListResult }
+    { asyncOp: 0, list: ?SimpleFSListResult }
+  | { asyncOp: 1, listRecursive: ?SimpleFSListResult }
   | { asyncOp: 2, read: ?ReadResult }
-  | { asyncOp: 3, write: ?WritResult }
+  | { asyncOp: 3, write: ?WriteResult }
   | { asyncOp: 4, copy: ?CopyResult }
   | { asyncOp: 5, move: ?MoveResult }
   | { asyncOp: 6, remove: ?RemoveResult }
@@ -5768,8 +5773,6 @@ type SimpleFSSimpleFSCheckResult = SimpleFSOpResult
 type SimpleFSSimpleFSGetOpsResult = ?Array<OpDescription>
 
 type SimpleFSSimpleFSMakeOpidResult = OpID
-
-type SimpleFSSimpleFSReadResult = FileContent
 
 type SimpleFSSimpleFSStatResult = Dirent
 
