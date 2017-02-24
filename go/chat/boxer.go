@@ -6,6 +6,7 @@ package chat
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -575,19 +576,9 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 		}
 	}
 
-	// check signature
-	hcopy := header
-	hcopy.HeaderSignature = nil
-	hpack, err := b.marshal(hcopy)
-	if err != nil {
-		return verifyMessageRes{}, NewPermanentUnboxingError(err)
-	}
-	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChat) {
-		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.BadSigError{E: "header signature invalid"})
-	}
-
 	// check key validity
-	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
+	var verifyKey keybase1.BinaryKID = append([]byte{}, header.HeaderSignature.K...)
+	found, validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, verifyKey, msg.ServerHeader.Ctime)
 	if ierr != nil {
 		return verifyMessageRes{}, ierr
 	}
@@ -598,13 +589,24 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
 	}
 
+	// check signature
+	hcopy := header
+	hcopy.HeaderSignature = nil
+	hpack, err := b.marshal(hcopy)
+	if err != nil {
+		return verifyMessageRes{}, NewPermanentUnboxingError(err)
+	}
+	if !b.verify(verifyKey, hpack, *header.HeaderSignature, libkb.SignaturePrefixChat) {
+		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.BadSigError{E: "header signature invalid"})
+	}
+
 	return verifyMessageRes{
 		senderDeviceRevokedAt: revoked,
 	}, nil
 }
 
 // verify verifies the signature of data using SignatureInfo.
-func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.SignaturePrefix) bool {
+func (b *Boxer) verify(verifyKey keybase1.BinaryKID, data []byte, si chat1.SignatureInfo, prefix libkb.SignaturePrefix) bool {
 	sigInfo := libkb.NaclSigInfo{
 		Version: si.V,
 		Prefix:  prefix,
@@ -612,14 +614,22 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Signatu
 		Payload: data,
 	}
 	copy(sigInfo.Sig[:], si.S)
-	_, err := sigInfo.Verify()
-	return (err == nil)
+	usedKey, err := sigInfo.Verify()
+	if err != nil {
+		// Verify failed
+		return false
+	}
+	if subtle.ConstantTimeCompare(verifyKey, usedKey.GetBinaryKID()) != 1 {
+		// Wrong key used
+		return false
+	}
+	return true
 }
 
 // ValidSenderKey checks that the key was active for sender at ctime.
 // This trusts the server for ctime, so a colluding server could use a revoked key and this check wouldn't notice.
 // Returns (validAtCtime, revoked, err)
-func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr UnboxingError) {
+func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key keybase1.BinaryKID, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr UnboxingError) {
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
 		return false, false, nil, NewPermanentUnboxingError(err)
