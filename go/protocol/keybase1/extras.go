@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -815,18 +814,24 @@ func (u UserPlusKeys) GetName() string {
 	return u.Username
 }
 
-func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
-	handle := &codec.MsgpackHandle{
-		WriteExt:    true,
-		RawToString: true,
+func (u *UserPlusKeys) DeepCopy() UserPlusKeys {
+	return UserPlusKeys{
+		Uid:               u.Uid,
+		Username:          u.Username,
+		DeviceKeys:        append([]PublicKey{}, u.DeviceKeys...),
+		RevokedDeviceKeys: append([]RevokedKey{}, u.RevokedDeviceKeys...),
+		PGPKeyCount:       u.PGPKeyCount,
+		Uvv:               u.Uvv,
+		DeletedDeviceKeys: append([]PublicKey{}, u.DeletedDeviceKeys...),
 	}
-	v := make([]byte, 100)
-	enc := codec.NewEncoderBytes(&v, handle)
-	enc.Encode(*u)
-	dec := codec.NewDecoderBytes(v, handle)
-	var ret UserPlusAllKeys
-	dec.Decode(&ret)
-	return &ret
+}
+
+func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
+	return &UserPlusAllKeys{
+		Base:         u.Base.DeepCopy(),
+		PGPKeys:      append([]PublicKey{}, u.PGPKeys...),
+		RemoteTracks: append([]RemoteTrack{}, u.RemoteTracks...),
+	}
 }
 
 func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
