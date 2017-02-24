@@ -118,7 +118,7 @@ export function login (): AsyncAction {
         },
         incomingCallMap,
         param: {
-          clientType: CommonClientType.gui,
+          clientType: CommonClientType.guiMain,
           deviceType,
           usernameOrEmail: usernameOrEmail,
         },

@@ -17,7 +17,7 @@ import {setupSource} from '../../util/forward-logs'
 setupSource()
 disableDragDrop()
 makeEngine()
-hello(process.pid, 'Menubar', process.argv, __VERSION__) // eslint-disable-line no-undef
+hello(process.pid, 'Menubar', process.argv, __VERSION__, false) // eslint-disable-line no-undef
 
 if (module.hot) {
   module.hot.accept()

@@ -78,7 +78,7 @@ class RemoteComponentLoader extends Component<void, any, State> {
     loadPerf()
 
     const title = this.props.title
-    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
+    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__, false) // eslint-disable-line no-undef
   }
 
   componentWillMount () {
