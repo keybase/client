@@ -1,4 +1,5 @@
 // @flow
+import {Iterable} from 'immutable'
 
 // Keeps a ring buffer of things to log
 // Can periodically log out the last thing written
@@ -116,7 +117,26 @@ function getLogger (name: string) {
   return _loggers[name]
 }
 
+// Transform objects from Immutable on printing
+type ImmutableToJSType = ?Array<any>
+
+// $FlowIssue this is a generic mechanism where the caller is making sure it'll match. Not clear how to encode that simply
+const immutableToJS = ([prefix, state]: ImmutableToJSType) => { // eslint-disable-line
+  var newState = {}
+
+  Object.keys(state).forEach(i => {
+    if (Iterable.isIterable(state[i])) {
+      newState[i] = state[i].toJS()
+    } else {
+      newState[i] = state[i]
+    }
+  })
+
+  return [prefix, newState]
+}
+
 export {
   getLogger,
+  immutableToJS,
   setupLogger,
 }

@@ -3,7 +3,6 @@ import createLogger from 'redux-logger'
 import rootReducer from '../reducers'
 import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
-import {Iterable} from 'immutable'
 import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
 import {convertToError} from '../util/errors'
@@ -12,24 +11,8 @@ import {enableStoreLogging, enableActionLogging, closureStoreCheck, immediateSta
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
 import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
-import {setupLogger} from '../util/periodic-logger'
+import {setupLogger, immutableToJS} from '../util/periodic-logger'
 
-// Transform objects from Immutable on printing
-const objToJS = ([prefix, state]) => {
-  var newState = {}
-
-  Object.keys(state).forEach(i => {
-    if (Iterable.isIterable(state[i])) {
-      newState[i] = state[i].toJS()
-    } else {
-      newState[i] = state[i]
-    }
-  })
-
-  return [prefix, newState]
-}
-
-const logger = setupLogger('storeLogger', 100, immediateStateLogging, objToJS, 50)
 let theStore: Store
 
 const crashHandler = (error) => {
@@ -46,24 +29,29 @@ const crashHandler = (error) => {
   }
 }
 
-const loggerMiddleware: any = enableStoreLogging ? createLogger({
-  actionTransformer: (...args) => {
-    console.log('Action:', ...args)
-    return null
-  },
-  collapsed: true,
-  duration: true,
-  logger: {
-    error: () => {},
-    log: () => {},
-    warn: () => {},
-  },
-  stateTransformer: (...args) => {
-    logger.log('State:', ...args)
-    return null
-  },
-  titleFormatter: () => null,
-}) : null
+let loggerMiddleware: any
+
+if (enableStoreLogging) {
+  const logger = setupLogger('storeLogger', 100, immediateStateLogging, immutableToJS, 50)
+  loggerMiddleware = createLogger({
+    actionTransformer: (...args) => {
+      console.log('Action:', ...args)
+      return null
+    },
+    collapsed: true,
+    duration: true,
+    logger: {
+      error: () => {},
+      log: () => {},
+      warn: () => {},
+    },
+    stateTransformer: (...args) => {
+      logger.log('State:', ...args)
+      return null
+    },
+    titleFormatter: () => null,
+  })
+}
 
 let lastError = new Error('')
 
