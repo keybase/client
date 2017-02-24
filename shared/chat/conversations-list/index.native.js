@@ -59,7 +59,7 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   )
 }
 
-const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor, commaColor}) => {
+const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
@@ -67,9 +67,9 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
         <Box style={{...globalStyles.flexBoxColumn, bottom: 0, justifyContent: 'flex-start', left: 0, position: 'absolute', right: 0, top: 0}}>
           <Usernames
             inline={true}
+            plainText={true}
             type='BodySemibold'
             style={{...boldOverride, color: usernameColor}}
-            commaColor={commaColor}
             containerStyle={{color: usernameColor, paddingRight: 7}}
             users={participants.map(p => ({username: p})).toArray()}
             title={participants.join(', ')} />
@@ -127,7 +127,6 @@ const _Row = (props: RowProps) => {
           borderBottomWidth: 1,
         }}>
           <TopLine
-            commaColor={props.commaColor}
             hasUnread={props.hasUnread}
             participants={props.participants}
             showBold={props.showBold}

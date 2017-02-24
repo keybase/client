@@ -378,7 +378,7 @@ function reducer (state: State = initialState, action: Actions) {
       const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
       let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
       // time changed so we need to sort
-      if (!existing || existing[1].time !== convo.time) {
+      if (!existing || existing[1].time !== convo.get('time')) {
         updatedInbox = sortInbox(updatedInbox)
       }
       return state.set('inbox', updatedInbox)

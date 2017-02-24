@@ -30,11 +30,9 @@ class ConversationListContainer extends Component {
     const showBold = !isSelected && hasUnread
     const backgroundColor = isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
     const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
-    const commaColor = isSelected ? globalColors.black_60 : hasUnread ? globalColors.white_75 : globalColors.blue3_40
 
     return {
       backgroundColor,
-      commaColor,
       hasUnread,
       participantNeedToRekey,
       showBold,
