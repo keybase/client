@@ -342,3 +342,12 @@ func GetSimpleFSClient(g *libkb.GlobalContext) (cli keybase1.SimpleFSClient, err
 	cli = keybase1.SimpleFSClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetLogsendClient(g *libkb.GlobalContext) (cli keybase1.LogsendClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.LogsendClient{Cli: rcli}
+	return cli, nil
+}

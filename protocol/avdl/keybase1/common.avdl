@@ -127,8 +127,9 @@ protocol Common {
   enum ClientType {
     NONE_0,
     CLI_1,
-    GUI_2,
-    KBFS_3
+    GUI_MAIN_2,
+    KBFS_3,
+    GUI_HELPER_4
   }
 
   record UserVersionVector {
@@ -154,7 +155,7 @@ protocol Common {
       int pgpKeyCount;
 
       UserVersionVector uvv;
-      
+
       // deletedDeviceKeys is a list of deleted device keys.
       // (i.e. keys that were used before an account reset)
       array<PublicKey> deletedDeviceKeys;

@@ -314,8 +314,9 @@
       "symbols": [
         "NONE_0",
         "CLI_1",
-        "GUI_2",
-        "KBFS_3"
+        "GUI_MAIN_2",
+        "KBFS_3",
+        "GUI_HELPER_4"
       ],
       "go": "nostring"
     },

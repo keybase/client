@@ -60,8 +60,9 @@ export const BackendCommonBlockType = {
 export const CommonClientType = {
   none: 0,
   cli: 1,
-  gui: 2,
+  guiMain: 2,
   kbfs: 3,
+  guiHelper: 4,
 }
 
 export const CommonDeviceType = {
@@ -1870,6 +1871,18 @@ export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestComm
   return new Promise((resolve, reject) => { loginUnlockWithPassphraseRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function logsendPrepareLogsendRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.logsend.prepareLogsend'})
+}
+
+export function logsendPrepareLogsendRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => logsendPrepareLogsendRpc({...request, incomingCallMap, callback}))
+}
+
+export function logsendPrepareLogsendRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { logsendPrepareLogsendRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataAuthenticateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.metadata.authenticate'})
 }
@@ -3189,8 +3202,9 @@ export type ClientDetails = {
 export type ClientType =
     0 // NONE_0
   | 1 // CLI_1
-  | 2 // GUI_2
+  | 2 // GUI_MAIN_2
   | 3 // KBFS_3
+  | 4 // GUI_HELPER_4
 
 export type ComponentResult = {
   name: string,
@@ -6117,6 +6131,7 @@ export type rpc =
   | loginRecoverAccountFromEmailAddressRpc
   | loginUnlockRpc
   | loginUnlockWithPassphraseRpc
+  | logsendPrepareLogsendRpc
   | metadataAuthenticateRpc
   | metadataDeleteKeyRpc
   | metadataGetChallengeRpc
