@@ -1089,6 +1089,9 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 	}
 	// Set the final flag.
 	newBareMd.SetFinalBit()
+	// Set the copied bit, so that clients don't take the ops and byte
+	// counts in it seriously.
+	newBareMd.SetWriterMetadataCopiedBit()
 	// Increment revision but keep the PrevRoot --
 	// We want the client to be able to verify the signature by masking out the final
 	// bit, decrementing the revision, and nulling out the finalized extension info.
@@ -1141,6 +1144,7 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		// things allowed to change in the finalized metadata
 		// block.
 		mutableMdCopy.ClearFinalBit()
+		mutableMdCopy.ClearWriterMetadataCopiedBit()
 		mutableMdCopy.SetRevision(md.RevisionNumber() - 1)
 		mutableMdCopy.SetFinalizedInfo(nil)
 		md = mutableMdCopy
