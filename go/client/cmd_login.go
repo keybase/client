@@ -140,7 +140,7 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 		}
 
 		if ctx.Bool("emulate-gui") {
-			c.clientType = keybase1.ClientType_GUI
+			c.clientType = keybase1.ClientType_GUI_MAIN
 		}
 	}
 	return nil

@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+protocol logsend {
+  import idl "common.avdl";
+
+  // Prepare your component's logs for an upcoming logsend.
+  void prepareLogsend();
+}

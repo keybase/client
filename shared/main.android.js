@@ -28,7 +28,7 @@ class Main extends Component {
     this.props.listenForNotifications()
 
     // Introduce ourselves to the service
-    hello(0, 'Android app', [], '0.0.0') // TODO real version
+    hello(0, 'Android app', [], '0.0.0', true) // TODO real version
   }
 
   componentWillMount () {

@@ -128,7 +128,7 @@ function setupApp (store) {
   store.dispatch(listenForNotifications())
 
   // Introduce ourselves to the service
-  hello(process.pid, 'Main Renderer', process.argv, __VERSION__) // eslint-disable-line no-undef
+  hello(process.pid, 'Main Renderer', process.argv, __VERSION__, true) // eslint-disable-line no-undef
 
   store.dispatch(updateDebugConfig(require('../../local-debug-live')))
 }

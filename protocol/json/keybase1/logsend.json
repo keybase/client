@@ -1,0 +1,17 @@
+{
+  "protocol": "logsend",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "prepareLogsend": {
+      "request": [],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

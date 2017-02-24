@@ -155,24 +155,27 @@ func (e LogLevel) String() string {
 type ClientType int
 
 const (
-	ClientType_NONE ClientType = 0
-	ClientType_CLI  ClientType = 1
-	ClientType_GUI  ClientType = 2
-	ClientType_KBFS ClientType = 3
+	ClientType_NONE       ClientType = 0
+	ClientType_CLI        ClientType = 1
+	ClientType_GUI_MAIN   ClientType = 2
+	ClientType_KBFS       ClientType = 3
+	ClientType_GUI_HELPER ClientType = 4
 )
 
 var ClientTypeMap = map[string]ClientType{
-	"NONE": 0,
-	"CLI":  1,
-	"GUI":  2,
-	"KBFS": 3,
+	"NONE":       0,
+	"CLI":        1,
+	"GUI_MAIN":   2,
+	"KBFS":       3,
+	"GUI_HELPER": 4,
 }
 
 var ClientTypeRevMap = map[ClientType]string{
 	0: "NONE",
 	1: "CLI",
-	2: "GUI",
+	2: "GUI_MAIN",
 	3: "KBFS",
+	4: "GUI_HELPER",
 }
 
 type UserVersionVector struct {

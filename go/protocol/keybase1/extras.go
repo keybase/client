@@ -575,8 +575,10 @@ func (t ClientType) String() string {
 		return "command-line client"
 	case ClientType_KBFS:
 		return "KBFS"
-	case ClientType_GUI:
+	case ClientType_GUI_MAIN:
 		return "desktop"
+	case ClientType_GUI_HELPER:
+		return "desktop helper"
 	default:
 		return "other"
 	}

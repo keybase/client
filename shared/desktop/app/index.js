@@ -54,7 +54,7 @@ function start () {
     app.commandLine.appendSwitch('v', 3)
   }
 
-  hello(process.pid, 'Main Thread', process.argv, __VERSION__) // eslint-disable-line no-undef
+  hello(process.pid, 'Main Thread', process.argv, __VERSION__, false) // eslint-disable-line no-undef
 
   setupTarget()
   devTools()

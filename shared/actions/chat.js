@@ -859,7 +859,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const conversationIsFocused = conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
         const messageIsYours = (message.type === 'Text' || message.type === 'Attachment') && message.author === yourName
 
-        if (message && message.messageID && (conversationIsFocused || messageIsYours)) {
+        if (message && message.messageID && conversationIsFocused && !messageIsYours) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
