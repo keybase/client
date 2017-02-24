@@ -46,8 +46,35 @@ const userEntryUsernameStyle = followsYou => ({
   textAlign: 'center',
 })
 
-class FriendshipsRender extends Component<void, Props, void> {
+type State = {
+  dataSource: any,
+}
+
+class FriendshipsRender extends Component<void, Props, State> {
+  state: State ={
+    dataSource: null,
+  }
   _dataSource = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+
+  _setDataSource = (props) => {
+    const data = props.currentTab === 'Followers' ? props.followers : props.following
+    const dataSource = this._dataSource.cloneWithRows(_.chunk(data || [], 3))
+    this.setState({dataSource})
+  }
+
+  componentWillMount () {
+    this._setDataSource(this.props)
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.currentTab !== nextProps.currentTab) {
+      this._setDataSource(nextProps)
+    } else if (this.props.currentTab === 'Followers' && this.props.followers !== nextProps.followers) {
+      this._setDataSource(nextProps)
+    } else if (this.props.currentTab === 'Following' && this.props.following !== nextProps.following) {
+      this._setDataSource(nextProps)
+    }
+  }
 
   _renderRow = users => {
     return (
@@ -69,8 +96,6 @@ class FriendshipsRender extends Component<void, Props, void> {
     return (
       <TabBar>
         {['Followers', 'Following'].map(tab => {
-          const data = tab === 'Followers' ? this.props.followers : this.props.following
-          const dataSource = this._dataSource.cloneWithRows(_.chunk(data || [], 3))
           return <TabBarItem
             key={tab}
             selected={this.props.currentTab === tab}
@@ -80,10 +105,11 @@ class FriendshipsRender extends Component<void, Props, void> {
             <Box style={{...tabItemContainerStyle, maxHeight: height - 160, width: width}}>
               <Box style={tabItemContainerTopBorder} />
               <Box style={tabItemContainerUsers}>
+                {this.props.currentTab === tab && !!this.state.dataSource &&
                 <NativeListView
-                  dataSource={dataSource}
+                  dataSource={this.state.dataSource}
                   renderRow={this._renderRow}
-                />
+                />}
               </Box>
             </Box>
           </TabBarItem>
