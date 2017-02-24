@@ -17,14 +17,20 @@ import (
 
 var locktab libkb.LockTable
 
+type Identify2TestStats struct {
+	untrackedFastPaths int
+}
+
 type Identify2WithUIDTestArgs struct {
-	noMe             bool                  // don't load ME
-	tcl              *libkb.TrackChainLink // the track chainlink to use
-	selfLoad         bool                  // on if this is a self load
-	noCache          bool                  // on if we shouldn't use the cache
-	cache            libkb.Identify2Cacher
-	clock            func() time.Time
-	forceRemoteCheck bool // on if we should force remote checks (like busting caches)
+	noMe                   bool                  // don't load ME
+	tcl                    *libkb.TrackChainLink // the track chainlink to use
+	selfLoad               bool                  // on if this is a self load
+	noCache                bool                  // on if we shouldn't use the cache
+	cache                  libkb.Identify2Cacher
+	clock                  func() time.Time
+	forceRemoteCheck       bool // on if we should force remote checks (like busting caches)
+	allowUntrackedFastPath bool // on if we can allow untracked fast path in test
+	stats                  Identify2TestStats
 }
 
 type identify2TrackType int
@@ -59,6 +65,10 @@ func (i *identifyUser) GetName() string {
 		return i.full.GetName()
 	}
 	panic("null user")
+}
+
+func (i *identifyUser) GetNormalizedName() libkb.NormalizedUsername {
+	return libkb.NewNormalizedUsername(i.GetName())
 }
 
 func (i *identifyUser) BaseProofSet() *libkb.ProofSet {
@@ -309,7 +319,7 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 	}
 
 	// Only the first send matters, but we don't want to block the subsequent no-op
-	// sends. This code will break when we have more than 100 unblocking opportunities.
+	// sends. This code will break when we have more than 100 unblocking opporttunities.
 	ch := make(chan error, 100)
 
 	e.resultCh = ch
@@ -349,6 +359,46 @@ func (e *Identify2WithUID) hitFastCache() bool {
 	return true
 }
 
+func (e *Identify2WithUID) untrackedFastPath(ctx *Context) (ret bool) {
+
+	nctx := ctx.GetNetContext()
+	defer e.G().CTraceOK(nctx, "Identify2WithUID#untrackedFastPath", func() bool { return ret })()
+
+	if !e.arg.IdentifyBehavior.CanUseUntrackedFastPath() {
+		e.G().Log.Debug("| Can't use untracked fast path due to identify behavior %v", e.arg.IdentifyBehavior)
+		return false
+	}
+
+	if e.me == nil || e.them == nil {
+		e.G().Log.Debug("| Can't use untracked fast path since failed to load users")
+		return false
+	}
+
+	if e.testArgs != nil && !e.testArgs.allowUntrackedFastPath {
+		e.G().Log.Debug("| Can't use untracked fast path since disallowed in test")
+		return false
+	}
+
+	nun := e.them.GetNormalizedName()
+
+	tcl, err := e.me.trackChainLinkFor(nctx, nun, e.them.GetUID(), e.G())
+	if err != nil {
+		e.G().Log.CDebugf(nctx, "| Error getting track chain link: %s", err)
+		return false
+	}
+
+	if tcl != nil {
+		e.G().Log.CDebugf(nctx, "| Track found for %s", nun.String())
+		return false
+	}
+
+	if e.testArgs != nil {
+		e.testArgs.stats.untrackedFastPaths++
+	}
+
+	return true
+}
+
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
 	e.G().Log.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
@@ -385,9 +435,17 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return nil
 	}
 
-	if !e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit() {
-		e.G().Log.Debug("| hit slow cache, first check")
-		return nil
+	if !e.useRemoteAssertions() && e.allowEarlyOuts() {
+
+		if e.untrackedFastPath(ctx) {
+			e.G().Log.Debug("| used untracked fast path")
+			return nil
+		}
+
+		if e.checkSlowCacheHit() {
+			e.G().Log.Debug("| hit slow cache, first check")
+			return nil
+		}
 	}
 
 	e.G().Log.Debug("| Identify2WithUID.createIdentifyState")
@@ -877,6 +935,12 @@ func (e *Identify2WithUID) dbKey(them keybase1.UID) libkb.DbKey {
 
 func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 	defer e.G().ExitTraceOK("Identify2WithUID#loadSlowCacheFromDB", func() bool { return ret != nil })()
+
+	if e.getCache() != nil && !e.getCache().UseDiskCache() {
+		e.G().Log.Debug("| Disk cached disabled")
+		return nil
+	}
+
 	var ktm keybase1.Time
 	key := e.dbKey(e.them.GetUID())
 	found, err := e.G().LocalDb.GetInto(&ktm, key)
@@ -889,8 +953,10 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 		return nil
 	}
 	tm := ktm.Time()
-	if time.Since(tm) > libkb.Identify2CacheLongTimeout {
-		e.G().Log.Debug("| Object timed out %s ago", time.Now().Sub(tm))
+	now := e.getNow()
+	diff := now.Sub(tm)
+	if diff > libkb.Identify2CacheLongTimeout {
+		e.G().Log.Debug("| Object timed out %s ago", diff)
 		return nil
 	}
 	var tmp keybase1.Identify2Res

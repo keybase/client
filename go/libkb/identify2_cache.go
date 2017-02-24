@@ -23,6 +23,7 @@ type Identify2Cacher interface {
 	DidFullUserLoad(keybase1.UID)
 	Shutdown()
 	Delete(uid keybase1.UID) error
+	UseDiskCache() bool
 }
 
 type GetCheckTimeFunc func(keybase1.Identify2Res) keybase1.Time
@@ -92,3 +93,5 @@ func (c *Identify2Cache) Shutdown() {
 
 // DidFullUserLoad is a noop unless we're testing...
 func (c *Identify2Cache) DidFullUserLoad(_ keybase1.UID) {}
+
+func (c *Identify2Cache) UseDiskCache() bool { return true }

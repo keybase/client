@@ -752,6 +752,17 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 		b == TLFIdentifyBehavior_CHAT_GUI_STRICT
 }
 
+func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
+	switch b {
+	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_CHAT_GUI_STRICT:
+		return true
+	default:
+		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
+		// doesn't have any other UI to report errors with.
+		return false
+	}
+}
+
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	// The chat GUI (in non-strict mode) is specifically exempted from broken
 	// track errors, because people need to be able to use it to ask each other
