@@ -9,6 +9,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
+	"time"
 )
 
 type LogsendHandler struct {
@@ -28,6 +29,10 @@ func (h *LogsendHandler) PrepareLogsend(ctx context.Context) error {
 	if xp == nil {
 		return errors.New("GUI main process wasn't found")
 	}
+
 	cli := keybase1.LogsendClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{})}
+	var cancel func()
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	return cli.PrepareLogsend(ctx)
 }
