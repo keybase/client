@@ -89,7 +89,7 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 //     independent of the device ID.]
 //   - (TODO) The sender has write permission in the TLF.
 //   - (TODO) The TLF name, public flag, and finalized info resolve to the TLF ID.
-//   - (TODO) The conversation ID derives from the ConversationIDTriple.
+//   - The conversation ID derives from the ConversationIDTriple.
 //   - The body hash is not a replay from another message we know about.
 //   - The prev pointers are consistent with other messages we know about.
 //   - (TODO) The prev pointers are not absurdly ancient.
@@ -128,6 +128,13 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 			return b.makeErrorMessage(boxed, ierr), nil
 		}
 		return chat1.MessageUnboxed{}, ierr
+	}
+
+	// Check that the ConversationIDTriple in the signed message header matches
+	// the conversation ID we were expecting.
+	if !unboxed.ClientHeader.Conv.Derivable(convID) {
+		err := fmt.Errorf("conversation ID mismatch")
+		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
 	}
 
 	// Make sure the body hash is unique to this message, and then record it.

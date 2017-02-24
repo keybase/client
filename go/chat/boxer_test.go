@@ -983,6 +983,50 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 	})
 }
 
+func TestChatMessageBadConvID(t *testing.T) {
+	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
+		text := "hi"
+		tc, boxer := setupChatTest(t, "unbox")
+		defer tc.Cleanup()
+
+		// need a real user
+		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		signKP := getSigningKeyPairForTest(t, tc, u)
+
+		// Generate an encryption key and create a fake finder to fetch it.
+		key := cryptKey(t)
+		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
+		boxerContext := context.WithValue(context.Background(), kfKey, finder)
+
+		// This message has an all zeros ConversationIDTriple, but that's fine. We
+		// can still extract the ConvID from it.
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		if err != nil {
+			t.Fatal(err)
+		}
+		boxed.ServerHeader = &chat1.MessageServerHeader{
+			Ctime:     gregor1.ToTime(time.Now()),
+			MessageID: 1,
+		}
+
+		// Confirm that this message fails to unbox if we use a convID that doesn't
+		// derive from the same triple.
+		badTriple := chat1.ConversationIDTriple{
+			Tlfid: []byte("random non-matching TLF ID"),
+		}
+		badConvID := badTriple.ToConversationID([2]byte{0, 0})
+		_, err = boxer.UnboxMessage(boxerContext, *boxed, badConvID, nil)
+		if err == nil {
+			t.Fatal("expected a bad convID to fail the unboxing")
+		}
+	})
+}
+
 type KeyFinderMock struct {
 	cryptKeys []keybase1.CryptKey
 }
