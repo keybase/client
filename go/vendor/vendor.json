@@ -188,9 +188,16 @@
 			"revisionTime": "2016-04-25T17:22:39-04:00"
 		},
 		{
+			"checksumSHA1": "F5++ZQS5Vt7hd6lxPCKTffvph1A=",
+			"path": "github.com/keybase/go-crypto/curve25519",
+			"revision": "e721397a850bd2d1433ecf6fbbb5dcfcd58131de",
+			"revisionTime": "2017-02-06T19:27:00Z"
+		},
+		{
+			"checksumSHA1": "xwvuGCY6HbedEtk9BFpkSDmvTl0=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "df314da3158786e5ea7ae99889366febe828fbd7",
-			"revisionTime": "2016-12-07T20:54:25-05:00"
+			"revision": "95833b1d77cdcc574fa3f0c85fd216598f289ab5",
+			"revisionTime": "2017-02-24T12:24:59Z"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
@@ -203,6 +210,12 @@
 			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
+			"checksumSHA1": "nWhmwjBJqPSvkCWqaap2Z9EiS1k=",
+			"path": "github.com/keybase/go-crypto/openpgp/ecdh",
+			"revision": "e721397a850bd2d1433ecf6fbbb5dcfcd58131de",
+			"revisionTime": "2017-02-06T19:27:00Z"
+		},
+		{
 			"path": "github.com/keybase/go-crypto/openpgp/elgamal",
 			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
 			"revisionTime": "2016-03-19T10:18:54-07:00"
@@ -213,9 +226,10 @@
 			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
+			"checksumSHA1": "esp0WrWFo5Ohk/bXhjC5NrzWnS0=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "e1fec59b86429250614193d5a3fe2d268b179c09",
-			"revisionTime": "2016-12-07T17:47:47-05:00"
+			"revision": "e721397a850bd2d1433ecf6fbbb5dcfcd58131de",
+			"revisionTime": "2017-02-06T19:27:00Z"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
