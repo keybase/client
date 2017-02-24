@@ -57,6 +57,9 @@ func TestList(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
 	listResult, err := sfs.SimpleFSReadList(ctx, opid)
 	require.NoError(t, err)
 
@@ -66,11 +69,8 @@ func TestList(t *testing.T) {
 	_, err = sfs.SimpleFSReadList(ctx, opid)
 	require.Error(t, err)
 
-	err = sfs.SimpleFSClose(ctx, opid)
-	require.NoError(t, err)
-
-	// Verify error on double close
-	err = sfs.SimpleFSClose(ctx, opid)
+	// Verify error on double wait
+	err = sfs.SimpleFSWait(ctx, opid)
 	require.Error(t, err)
 }
 
@@ -99,11 +99,11 @@ func TestCopyToLocal(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = sfs.SimpleFSClose(ctx, opid)
+	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
 
-	// Verify error on double close
-	err = sfs.SimpleFSClose(ctx, opid)
+	// Verify error on double wait
+	err = sfs.SimpleFSWait(ctx, opid)
 	require.Error(t, err)
 
 	exists, err := libkb.FileExists(filepath.Join(tempdir2, "test1.txt"))
@@ -138,11 +138,11 @@ func TestCopyToRemote(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = sfs.SimpleFSClose(ctx, opid)
+	err = sfs.SimpleFSWait(ctx, opid)
 	require.NoError(t, err)
 
-	// Verify error on double close
-	err = sfs.SimpleFSClose(ctx, opid)
+	// Verify error on double wait
+	err = sfs.SimpleFSWait(ctx, opid)
 	require.Error(t, err)
 
 	require.Equal(t, `foo`,
