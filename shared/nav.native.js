@@ -19,6 +19,14 @@ const {
   CardStack: NavigationCardStack,
 } = NavigationExperimental
 
+const StackWrapper = ({children}) => {
+  if (isAndroid) {
+    return children
+  } else {
+    return <NativeKeyboardAvoidingView behavior={'padding'} style={{...flexOne, backgroundColor: globalColors.white}} children={children} />
+  }
+}
+
 function Nav (props: Props) {
   const navigationState = {
     index: props.routeStack.size - 1,
@@ -31,7 +39,7 @@ function Nav (props: Props) {
 
   return (
     <Box style={flexOne}>
-      <NativeKeyboardAvoidingView behavior={isAndroid ? 'height' : 'padding'} style={{...flexOne, backgroundColor: globalColors.white}}>
+      <StackWrapper>
         <NavigationCardStack
           key={props.routeSelected}
           style={flexOne}
@@ -49,7 +57,7 @@ function Nav (props: Props) {
           }}
           onNavigateBack={props.navigateUp}
         />
-      </NativeKeyboardAvoidingView>
+      </StackWrapper>
       {props.routeSelected !== loginTab &&
         <TabBar
           onTabClick={props.switchTab}
