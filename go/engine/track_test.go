@@ -380,3 +380,15 @@ func TestIdentifyTrackRaceDetection(t *testing.T) {
 
 	runUntrack(dev1.G, user, trackee)
 }
+
+func TestTrackNoKeys(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	nk, pp := createFakeUserWithNoKeys(tc)
+	_ = pp
+	Logout(tc)
+
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	trackUser(tc, fu, libkb.NewNormalizedUsername(nk))
+}
