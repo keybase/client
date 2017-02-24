@@ -122,7 +122,7 @@ func (e DirentType) String() string {
 
 type Dirent struct {
 	Time       Time       `codec:"time" json:"time"`
-	Size       int        `codec:"size" json:"size"`
+	Size       int64      `codec:"size" json:"size"`
 	Name       string     `codec:"name" json:"name"`
 	DirentType DirentType `codec:"direntType" json:"direntType"`
 }
@@ -162,17 +162,6 @@ func (e OpenFlags) String() string {
 		return v
 	}
 	return ""
-}
-
-type Progress int
-type SimpleFSListResult struct {
-	Entries  []Dirent `codec:"entries" json:"entries"`
-	Progress Progress `codec:"progress" json:"progress"`
-}
-
-type FileContent struct {
-	Data     []byte   `codec:"data" json:"data"`
-	Progress Progress `codec:"progress" json:"progress"`
 }
 
 type AsyncOps int
@@ -420,6 +409,204 @@ func NewOpDescriptionWithRemove(v RemoveArgs) OpDescription {
 	}
 }
 
+type Progress int
+type ListResult struct {
+	Entries  []Dirent `codec:"entries" json:"entries"`
+	Progress Progress `codec:"progress" json:"progress"`
+}
+
+type ReadResult struct {
+	Data     []byte   `codec:"data" json:"data"`
+	Progress Progress `codec:"progress" json:"progress"`
+}
+
+type WriteResult struct {
+	Progress Progress `codec:"progress" json:"progress"`
+}
+
+type CopyResult struct {
+	Progress Progress `codec:"progress" json:"progress"`
+}
+
+type MoveResult struct {
+	Progress Progress `codec:"progress" json:"progress"`
+}
+
+type RemoveResult struct {
+	Progress Progress `codec:"progress" json:"progress"`
+}
+
+type SimpleFSOpResult struct {
+	AsyncOp__       AsyncOps      `codec:"asyncOp" json:"asyncOp"`
+	List__          *ListResult   `codec:"list,omitempty" json:"list,omitempty"`
+	ListRecursive__ *ListResult   `codec:"listRecursive,omitempty" json:"listRecursive,omitempty"`
+	Read__          *ReadResult   `codec:"read,omitempty" json:"read,omitempty"`
+	Write__         *WritResult   `codec:"write,omitempty" json:"write,omitempty"`
+	Copy__          *CopyResult   `codec:"copy,omitempty" json:"copy,omitempty"`
+	Move__          *MoveResult   `codec:"move,omitempty" json:"move,omitempty"`
+	Remove__        *RemoveResult `codec:"remove,omitempty" json:"remove,omitempty"`
+}
+
+func (o *SimpleFSOpResult) AsyncOp() (ret AsyncOps, err error) {
+	switch o.AsyncOp__ {
+	case AsyncOps_LIST:
+		if o.List__ == nil {
+			err = errors.New("unexpected nil value for List__")
+			return ret, err
+		}
+	case AsyncOps_LIST_RECURSIVE:
+		if o.ListRecursive__ == nil {
+			err = errors.New("unexpected nil value for ListRecursive__")
+			return ret, err
+		}
+	case AsyncOps_READ:
+		if o.Read__ == nil {
+			err = errors.New("unexpected nil value for Read__")
+			return ret, err
+		}
+	case AsyncOps_WRITE:
+		if o.Write__ == nil {
+			err = errors.New("unexpected nil value for Write__")
+			return ret, err
+		}
+	case AsyncOps_COPY:
+		if o.Copy__ == nil {
+			err = errors.New("unexpected nil value for Copy__")
+			return ret, err
+		}
+	case AsyncOps_MOVE:
+		if o.Move__ == nil {
+			err = errors.New("unexpected nil value for Move__")
+			return ret, err
+		}
+	case AsyncOps_REMOVE:
+		if o.Remove__ == nil {
+			err = errors.New("unexpected nil value for Remove__")
+			return ret, err
+		}
+	}
+	return o.AsyncOp__, nil
+}
+
+func (o SimpleFSOpResult) List() ListResult {
+	if o.AsyncOp__ != AsyncOps_LIST {
+		panic("wrong case accessed")
+	}
+	if o.List__ == nil {
+		return ListResult{}
+	}
+	return *o.List__
+}
+
+func (o SimpleFSOpResult) ListRecursive() ListResult {
+	if o.AsyncOp__ != AsyncOps_LIST_RECURSIVE {
+		panic("wrong case accessed")
+	}
+	if o.ListRecursive__ == nil {
+		return ListResult{}
+	}
+	return *o.ListRecursive__
+}
+
+func (o SimpleFSOpResult) Read() ReadResult {
+	if o.AsyncOp__ != AsyncOps_READ {
+		panic("wrong case accessed")
+	}
+	if o.Read__ == nil {
+		return ReadResult{}
+	}
+	return *o.Read__
+}
+
+func (o SimpleFSOpResult) Write() WritResult {
+	if o.AsyncOp__ != AsyncOps_WRITE {
+		panic("wrong case accessed")
+	}
+	if o.Write__ == nil {
+		return WritResult{}
+	}
+	return *o.Write__
+}
+
+func (o SimpleFSOpResult) Copy() CopyResult {
+	if o.AsyncOp__ != AsyncOps_COPY {
+		panic("wrong case accessed")
+	}
+	if o.Copy__ == nil {
+		return CopyResult{}
+	}
+	return *o.Copy__
+}
+
+func (o SimpleFSOpResult) Move() MoveResult {
+	if o.AsyncOp__ != AsyncOps_MOVE {
+		panic("wrong case accessed")
+	}
+	if o.Move__ == nil {
+		return MoveResult{}
+	}
+	return *o.Move__
+}
+
+func (o SimpleFSOpResult) Remove() RemoveResult {
+	if o.AsyncOp__ != AsyncOps_REMOVE {
+		panic("wrong case accessed")
+	}
+	if o.Remove__ == nil {
+		return RemoveResult{}
+	}
+	return *o.Remove__
+}
+
+func NewSimpleFSOpResultWithList(v ListResult) SimpleFSOpResult {
+	return SimpleFSOpResult{
+		AsyncOp__: AsyncOps_LIST,
+		List__:    &v,
+	}
+}
+
+func NewSimpleFSOpResultWithListRecursive(v ListResult) SimpleFSOpResult {
+	return SimpleFSOpResult{
+		AsyncOp__:       AsyncOps_LIST_RECURSIVE,
+		ListRecursive__: &v,
+	}
+}
+
+func NewSimpleFSOpResultWithRead(v ReadResult) SimpleFSOpResult {
+	return SimpleFSOpResult{
+		AsyncOp__: AsyncOps_READ,
+		Read__:    &v,
+	}
+}
+
+func NewSimpleFSOpResultWithWrite(v WritResult) SimpleFSOpResult {
+	return SimpleFSOpResult{
+		AsyncOp__: AsyncOps_WRITE,
+		Write__:   &v,
+	}
+}
+
+func NewSimpleFSOpResultWithCopy(v CopyResult) SimpleFSOpResult {
+	return SimpleFSOpResult{
+		AsyncOp__: AsyncOps_COPY,
+		Copy__:    &v,
+	}
+}
+
+func NewSimpleFSOpResultWithMove(v MoveResult) SimpleFSOpResult {
+	return SimpleFSOpResult{
+		AsyncOp__: AsyncOps_MOVE,
+		Move__:    &v,
+	}
+}
+
+func NewSimpleFSOpResultWithRemove(v RemoveResult) SimpleFSOpResult {
+	return SimpleFSOpResult{
+		AsyncOp__: AsyncOps_REMOVE,
+		Remove__:  &v,
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 	Path Path `codec:"path" json:"path"`
@@ -430,7 +617,7 @@ type SimpleFSListRecursiveArg struct {
 	Path Path `codec:"path" json:"path"`
 }
 
-type SimpleFSReadListArg struct {
+type SimpleFSWaitListArg struct {
 	OpID OpID `codec:"opID" json:"opID"`
 }
 
@@ -509,14 +696,13 @@ type SimpleFSWaitArg struct {
 
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path
-	// Retrieve results with readList()
+	// Retrieve results with check()
 	// Can be a single file to get flags/status
 	SimpleFSList(context.Context, SimpleFSListArg) error
 	// Begin recursive list of items in directory at path
 	SimpleFSListRecursive(context.Context, SimpleFSListRecursiveArg) error
-	// Get list of Paths in progress. Can indicate status of pending
-	// to get more entries.
-	SimpleFSReadList(context.Context, OpID) (SimpleFSListResult, error)
+	// Get list of Paths in progress. Can return partial results.
+	SimpleFSWaitList(context.Context, OpID) (SimpleFSListResult, error)
 	// Begin copy of file or directory
 	SimpleFSCopy(context.Context, SimpleFSCopyArg) error
 	// Begin recursive copy of directory
@@ -549,7 +735,7 @@ type SimpleFSInterface interface {
 	// Must be called after list/copy/remove
 	SimpleFSClose(context.Context, OpID) error
 	// Check progress of pending operation
-	SimpleFSCheck(context.Context, OpID) (Progress, error)
+	SimpleFSCheck(context.Context, OpID) (SimpleFSOpResult, error)
 	// Get all the outstanding operations
 	SimpleFSGetOps(context.Context) ([]OpDescription, error)
 	// Blocking wait for the pending operation to finish
@@ -592,18 +778,18 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"simpleFSReadList": {
+			"simpleFSWaitList": {
 				MakeArg: func() interface{} {
-					ret := make([]SimpleFSReadListArg, 1)
+					ret := make([]SimpleFSWaitListArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SimpleFSReadListArg)
+					typedArgs, ok := args.(*[]SimpleFSWaitListArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]SimpleFSReadListArg)(nil), args)
+						err = rpc.NewTypeError((*[]SimpleFSWaitListArg)(nil), args)
 						return
 					}
-					ret, err = i.SimpleFSReadList(ctx, (*typedArgs)[0].OpID)
+					ret, err = i.SimpleFSWaitList(ctx, (*typedArgs)[0].OpID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -847,7 +1033,7 @@ type SimpleFSClient struct {
 }
 
 // Begin list of items in directory at path
-// Retrieve results with readList()
+// Retrieve results with check()
 // Can be a single file to get flags/status
 func (c SimpleFSClient) SimpleFSList(ctx context.Context, __arg SimpleFSListArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSList", []interface{}{__arg}, nil)
@@ -860,11 +1046,10 @@ func (c SimpleFSClient) SimpleFSListRecursive(ctx context.Context, __arg SimpleF
 	return
 }
 
-// Get list of Paths in progress. Can indicate status of pending
-// to get more entries.
-func (c SimpleFSClient) SimpleFSReadList(ctx context.Context, opID OpID) (res SimpleFSListResult, err error) {
-	__arg := SimpleFSReadListArg{OpID: opID}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSReadList", []interface{}{__arg}, &res)
+// Get list of Paths in progress. Can return partial results.
+func (c SimpleFSClient) SimpleFSWaitList(ctx context.Context, opID OpID) (res SimpleFSListResult, err error) {
+	__arg := SimpleFSWaitListArg{OpID: opID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSWaitList", []interface{}{__arg}, &res)
 	return
 }
 
@@ -950,7 +1135,7 @@ func (c SimpleFSClient) SimpleFSClose(ctx context.Context, opID OpID) (err error
 }
 
 // Check progress of pending operation
-func (c SimpleFSClient) SimpleFSCheck(ctx context.Context, opID OpID) (res Progress, err error) {
+func (c SimpleFSClient) SimpleFSCheck(ctx context.Context, opID OpID) (res SimpleFSOpResult, err error) {
 	__arg := SimpleFSCheckArg{OpID: opID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCheck", []interface{}{__arg}, &res)
 	return

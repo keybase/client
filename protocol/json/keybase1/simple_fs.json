@@ -63,7 +63,7 @@
           "name": "time"
         },
         {
-          "type": "int",
+          "type": "long",
           "name": "size"
         },
         {
@@ -92,43 +92,6 @@
         "WRITE_4",
         "APPEND_8",
         "DIRECTORY_16"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "Progress",
-      "fields": [],
-      "typedef": "int"
-    },
-    {
-      "type": "record",
-      "name": "SimpleFSListResult",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "Dirent"
-          },
-          "name": "entries"
-        },
-        {
-          "type": "Progress",
-          "name": "progress"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "FileContent",
-      "fields": [
-        {
-          "type": "bytes",
-          "name": "data"
-        },
-        {
-          "type": "Progress",
-          "name": "progress"
-        }
       ]
     },
     {
@@ -306,6 +269,142 @@
           "body": "RemoveArgs"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "Progress",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "ListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Dirent"
+          },
+          "name": "entries"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadResult",
+      "fields": [
+        {
+          "type": "bytes",
+          "name": "data"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WriteResult",
+      "fields": [
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CopyResult",
+      "fields": [
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MoveResult",
+      "fields": [
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoveResult",
+      "fields": [
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SimpleFSOpResult",
+      "switch": {
+        "type": "AsyncOps",
+        "name": "asyncOp"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LIST",
+            "def": false
+          },
+          "body": "ListResult"
+        },
+        {
+          "label": {
+            "name": "LIST_RECURSIVE",
+            "def": false
+          },
+          "body": "ListResult"
+        },
+        {
+          "label": {
+            "name": "READ",
+            "def": false
+          },
+          "body": "ReadResult"
+        },
+        {
+          "label": {
+            "name": "WRITE",
+            "def": false
+          },
+          "body": "WritResult"
+        },
+        {
+          "label": {
+            "name": "COPY",
+            "def": false
+          },
+          "body": "CopyResult"
+        },
+        {
+          "label": {
+            "name": "MOVE",
+            "def": false
+          },
+          "body": "MoveResult"
+        },
+        {
+          "label": {
+            "name": "REMOVE",
+            "def": false
+          },
+          "body": "RemoveResult"
+        }
+      ]
     }
   ],
   "messages": {
@@ -321,7 +420,7 @@
         }
       ],
       "response": null,
-      "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
+      "doc": "Begin list of items in directory at path\n   Retrieve results with check()\n   Can be a single file to get flags/status"
     },
     "simpleFSListRecursive": {
       "request": [
@@ -337,7 +436,7 @@
       "response": null,
       "doc": "Begin recursive list of items in directory at path"
     },
-    "simpleFSReadList": {
+    "simpleFSWaitList": {
       "request": [
         {
           "name": "opID",
@@ -345,7 +444,7 @@
         }
       ],
       "response": "SimpleFSListResult",
-      "doc": "Get list of Paths in progress. Can indicate status of pending\n   to get more entries."
+      "doc": "Get list of Paths in progress. Can return partial results."
     },
     "simpleFSCopy": {
       "request": [
@@ -529,7 +628,7 @@
           "type": "OpID"
         }
       ],
-      "response": "Progress",
+      "response": "SimpleFSOpResult",
       "doc": "Check progress of pending operation"
     },
     "simpleFSGetOps": {

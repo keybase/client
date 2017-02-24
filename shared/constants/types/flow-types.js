@@ -730,18 +730,6 @@ export function SimpleFSSimpleFSOpenRpcPromise (request: $Exact<requestCommon & 
   return new Promise((resolve, reject) => { SimpleFSSimpleFSOpenRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function SimpleFSSimpleFSReadListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadListResult) => void} & {param: SimpleFSSimpleFSReadListRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.simpleFSReadList'})
-}
-
-export function SimpleFSSimpleFSReadListRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadListResult) => void} & {param: SimpleFSSimpleFSReadListRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSSimpleFSReadListRpc({...request, incomingCallMap, callback}))
-}
-
-export function SimpleFSSimpleFSReadListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadListResult) => void} & {param: SimpleFSSimpleFSReadListRpcParam}>): Promise<SimpleFSSimpleFSReadListResult> {
-  return new Promise((resolve, reject) => { SimpleFSSimpleFSReadListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
 export function SimpleFSSimpleFSReadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSReadResult) => void} & {param: SimpleFSSimpleFSReadRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.simpleFSRead'})
 }
@@ -800,6 +788,18 @@ export function SimpleFSSimpleFSStatRpcChannelMap (channelConfig: ChannelConfig<
 
 export function SimpleFSSimpleFSStatRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSStatResult) => void} & {param: SimpleFSSimpleFSStatRpcParam}>): Promise<SimpleFSSimpleFSStatResult> {
   return new Promise((resolve, reject) => { SimpleFSSimpleFSStatRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SimpleFSSimpleFSWaitListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSWaitListResult) => void} & {param: SimpleFSSimpleFSWaitListRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.SimpleFS.simpleFSWaitList'})
+}
+
+export function SimpleFSSimpleFSWaitListRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSWaitListResult) => void} & {param: SimpleFSSimpleFSWaitListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => SimpleFSSimpleFSWaitListRpc({...request, incomingCallMap, callback}))
+}
+
+export function SimpleFSSimpleFSWaitListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SimpleFSSimpleFSWaitListResult) => void} & {param: SimpleFSSimpleFSWaitListRpcParam}>): Promise<SimpleFSSimpleFSWaitListResult> {
+  return new Promise((resolve, reject) => { SimpleFSSimpleFSWaitListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function SimpleFSSimpleFSWaitRpc (request: Exact<requestCommon & requestErrorCallback & {param: SimpleFSSimpleFSWaitRpcParam}>) {
@@ -3238,6 +3238,10 @@ export type CopyArgs = {
   dest: Path,
 }
 
+export type CopyResult = {
+  progress: Progress,
+}
+
 export type CryptKey = {
   KeyGeneration: int,
   Key: Bytes32,
@@ -3297,7 +3301,7 @@ export type DeviceType =
 
 export type Dirent = {
   time: Time,
-  size: int,
+  size: long,
   name: string,
   direntType: DirentType,
 }
@@ -3451,11 +3455,6 @@ export type Feature = {
 
 export type File = {
   path: string,
-}
-
-export type FileContent = {
-  data: bytes,
-  progress: Progress,
 }
 
 export type FileDescriptor = {
@@ -3779,6 +3778,10 @@ export type MoveArgs = {
   opID: OpID,
   src: Path,
   dest: Path,
+}
+
+export type MoveResult = {
+  progress: Progress,
 }
 
 export type NaclDHKeyPrivate = any
@@ -4141,6 +4144,11 @@ export type ReadArgs = {
   size: int,
 }
 
+export type ReadResult = {
+  data: bytes,
+  progress: Progress,
+}
+
 export type RegisterAddressRes = {
   type: string,
   family: string,
@@ -4185,6 +4193,10 @@ export type RemoteTrack = {
 export type RemoveArgs = {
   opID: OpID,
   path: Path,
+}
+
+export type RemoveResult = {
+  progress: Progress,
 }
 
 export type RevokeWarning = {
@@ -4386,10 +4398,14 @@ export type SignupRes = {
   writeOk: boolean,
 }
 
-export type SimpleFSListResult = {
-  entries?: ?Array<Dirent>,
-  progress: Progress,
-}
+export type SimpleFSOpResult =
+    { asyncOp: 0, list: ?ListResult }
+  | { asyncOp: 1, listRecursive: ?ListResult }
+  | { asyncOp: 2, read: ?ReadResult }
+  | { asyncOp: 3, write: ?WritResult }
+  | { asyncOp: 4, copy: ?CopyResult }
+  | { asyncOp: 5, move: ?MoveResult }
+  | { asyncOp: 6, remove: ?RemoveResult }
 
 export type SimpleFSSimpleFSCheckRpcParam = Exact<{
   opID: OpID
@@ -4433,10 +4449,6 @@ export type SimpleFSSimpleFSOpenRpcParam = Exact<{
   flags: OpenFlags
 }>
 
-export type SimpleFSSimpleFSReadListRpcParam = Exact<{
-  opID: OpID
-}>
-
 export type SimpleFSSimpleFSReadRpcParam = Exact<{
   opID: OpID,
   offset: long,
@@ -4460,6 +4472,10 @@ export type SimpleFSSimpleFSSetStatRpcParam = Exact<{
 
 export type SimpleFSSimpleFSStatRpcParam = Exact<{
   path: Path
+}>
+
+export type SimpleFSSimpleFSWaitListRpcParam = Exact<{
+  opID: OpID
 }>
 
 export type SimpleFSSimpleFSWaitRpcParam = Exact<{
@@ -4791,6 +4807,10 @@ export type WriteArgs = {
   opID: OpID,
   path: Path,
   offset: long,
+}
+
+export type WriteResult = {
+  progress: Progress,
 }
 
 export type accountEmailChangeRpcParam = Exact<{
@@ -5743,17 +5763,17 @@ type Kex2ProvisioneeHelloResult = HelloRes
 
 type SecretKeysGetSecretKeysResult = SecretKeys
 
-type SimpleFSSimpleFSCheckResult = Progress
+type SimpleFSSimpleFSCheckResult = SimpleFSOpResult
 
 type SimpleFSSimpleFSGetOpsResult = ?Array<OpDescription>
 
 type SimpleFSSimpleFSMakeOpidResult = OpID
 
-type SimpleFSSimpleFSReadListResult = SimpleFSListResult
-
 type SimpleFSSimpleFSReadResult = FileContent
 
 type SimpleFSSimpleFSStatResult = Dirent
+
+type SimpleFSSimpleFSWaitListResult = SimpleFSListResult
 
 type accountHasServerKeysResult = HasServerKeysRes
 
@@ -6022,12 +6042,12 @@ export type rpc =
   | SimpleFSSimpleFSMakeOpidRpc
   | SimpleFSSimpleFSMoveRpc
   | SimpleFSSimpleFSOpenRpc
-  | SimpleFSSimpleFSReadListRpc
   | SimpleFSSimpleFSReadRpc
   | SimpleFSSimpleFSRemoveRpc
   | SimpleFSSimpleFSRenameRpc
   | SimpleFSSimpleFSSetStatRpc
   | SimpleFSSimpleFSStatRpc
+  | SimpleFSSimpleFSWaitListRpc
   | SimpleFSSimpleFSWaitRpc
   | SimpleFSSimpleFSWriteRpc
   | accountEmailChangeRpc
