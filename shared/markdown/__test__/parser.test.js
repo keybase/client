@@ -127,6 +127,7 @@ this is a code block with two newline above\`\`\`
     gopher://blah.com,
     mailto:blah@blah.com
     _http://keybase.io_
+    ~http://keybase.io~
   Include:
     http://keybase.io
     *http://keybase.io*
@@ -139,6 +140,7 @@ this is a code block with two newline above\`\`\`
     keybase.io/a/user/lookup?one=1&two=2
     keybase.io/a/user/path_with_underscore
     keybase.io?blah=true
+    keybase.io/~user/cool
     http://keybase.io/blah/../up-one/index.html
   These should have the trailing punctuation outside the link:
     amazon.co.uk.

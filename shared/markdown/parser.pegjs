@@ -132,7 +132,7 @@ NativeEmoji
  }
 
 LinkSpecialChar
- = EscapeMarker / StrikeMarker / BoldMarker
+ = EscapeMarker / BoldMarker
 
 LinkChar
  = !LinkSpecialChar char:NonBlank { return char }

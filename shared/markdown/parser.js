@@ -2284,10 +2284,7 @@ function peg$parse(input, options) {
 
     s0 = peg$parseEscapeMarker();
     if (s0 === peg$FAILED) {
-      s0 = peg$parseStrikeMarker();
-      if (s0 === peg$FAILED) {
-        s0 = peg$parseBoldMarker();
-      }
+      s0 = peg$parseBoldMarker();
     }
 
     return s0;
