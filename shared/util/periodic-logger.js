@@ -33,11 +33,7 @@ class PeriodicLogger {
   }
 
   _write (args: Array<any>) {
-    if (this._lastWrite === -1) {
-      this._lastWrite = 0
-    } else {
-      this._lastWrite++
-    }
+    this._lastWrite++
     this._messages[this._lastWrite % this._size] = args
 
     if (this._logIncoming) {
@@ -101,6 +97,12 @@ class PeriodicLogger {
   }
 }
 
+function dumpLoggers () {
+  Object.keys(_loggers).forEach(name => {
+    _loggers[name].dumpAll()
+  })
+}
+
 function setupLogger (name: string, size: number, logIncoming: boolean, logTransform: ?(Array<any>) => Array<any>, logAfterXActions: number): PeriodicLogger {
   if (_loggers[name]) {
     throw new Error(`logger already named ${name} exists`)
@@ -136,6 +138,7 @@ const immutableToJS = ([prefix, state]: ImmutableToJSType) => { // eslint-disabl
 }
 
 export {
+  dumpLoggers,
   getLogger,
   immutableToJS,
   setupLogger,
