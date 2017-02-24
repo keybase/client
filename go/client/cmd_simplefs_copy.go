@@ -4,8 +4,6 @@
 package client
 
 import (
-	"os"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -66,12 +64,6 @@ func (c *CmdSimpleFSCopy) Run() error {
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
 		dest, err := makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
-		destType, _ := c.dest.PathType()
-		if err == TargetFileExistsError && destType == keybase1.PathType_LOCAL {
-			fileInfo, err := os.Stat(dest.Local())
-
-			c.G().Log.Debug("makeDestPath stat %s: %v %s", dest.Local(), fileInfo, err)
-		}
 		if err == TargetFileExistsError && c.interactive == true {
 			err = doOverwritePrompt(c.G(), pathToString(dest))
 		}
@@ -99,6 +91,11 @@ func (c *CmdSimpleFSCopy) Run() error {
 				Dest: dest,
 			})
 		}
+		if err != nil {
+			break
+		}
+
+		err = cli.SimpleFSWait(ctx, opid)
 		if err != nil {
 			break
 		}

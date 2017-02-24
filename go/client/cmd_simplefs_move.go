@@ -78,6 +78,10 @@ func (c *CmdSimpleFSMove) Run() error {
 		if err != nil {
 			break
 		}
+		err = cli.SimpleFSWait(ctx, opid)
+		if err != nil {
+			break
+		}
 	}
 	return err
 }
@@ -85,6 +89,7 @@ func (c *CmdSimpleFSMove) Run() error {
 // ParseArgv does nothing for this command.
 func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
 	var err error
+	c.interactive = ctx.Bool("interactive")
 	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "mv")
 	return err
 }

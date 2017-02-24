@@ -17,7 +17,6 @@ import (
 // CmdSimpleFSList is the 'fs ls' command.
 type CmdSimpleFSList struct {
 	libkb.Contextified
-	opid    keybase1.OpID
 	path    keybase1.Path
 	recurse bool
 }
@@ -49,33 +48,37 @@ func (c *CmdSimpleFSList) Run() error {
 
 	ctx := context.TODO()
 
-	c.opid, err = cli.SimpleFSMakeOpid(ctx)
+	opid, err := cli.SimpleFSMakeOpid(ctx)
 	if err != nil {
 		return err
 	}
-	defer cli.SimpleFSClose(ctx, c.opid)
+	defer cli.SimpleFSClose(ctx, opid)
 	if c.recurse {
 		err = cli.SimpleFSListRecursive(ctx, keybase1.SimpleFSListRecursiveArg{
-			OpID: c.opid,
+			OpID: opid,
 			Path: c.path,
 		})
 	} else {
 		err = cli.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-			OpID: c.opid,
+			OpID: opid,
 			Path: c.path,
 		})
 	}
+	if err != nil {
+		return err
+	}
+
+	err = cli.SimpleFSWait(ctx, opid)
 	if err != nil {
 		return err
 	}
 
 	for {
-		listResult, err := cli.SimpleFSReadList(ctx, c.opid)
+		listResult, err := cli.SimpleFSReadList(ctx, opid)
 		if err != nil {
 			break
 		}
 		c.output(listResult)
-
 	}
 
 	return err

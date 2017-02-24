@@ -140,7 +140,7 @@ func makeDestPath(
 	isSrcDir, srcPathString, err := checkPathIsDir(ctx, cli, src)
 	destType, _ := dest.PathType()
 
-	g.Log.Debug("makeDestPath: srcPathString: %s", pathToString(src))
+	g.Log.Debug("makeDestPath: srcPathString: %s path: ", pathToString(src), isSrcDir)
 
 	if !isSrcDir {
 		if isDestPath {
