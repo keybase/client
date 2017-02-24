@@ -5,7 +5,7 @@ package client
 
 import (
 	"bufio"
-	"errors"
+	"fmt"
 	"io"
 	"os"
 
@@ -38,7 +38,7 @@ func NewCmdSimpleFSWrite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			cl.ChooseCommand(&CmdSimpleFSWrite{Contextified: libkb.NewContextified(g)}, "write", c)
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{
+			cli.BoolFlag{
 				Name:  "a, append",
 				Usage: "add to existing file",
 			},
@@ -116,7 +116,7 @@ func (c *CmdSimpleFSWrite) ParseArgv(ctx *cli.Context) error {
 	c.bufSize = ctx.Int("buffersize")
 
 	if ctx.Bool("append") {
-		c.flags = keybase1.OpenFlags_WRITE | keybase1.OpenFlags_APPEND
+		c.flags = keybase1.OpenFlags_WRITE | keybase1.OpenFlags_APPEND | keybase1.OpenFlags_EXISTING
 	} else {
 		c.flags = keybase1.OpenFlags_WRITE | keybase1.OpenFlags_REPLACE
 	}
@@ -124,7 +124,7 @@ func (c *CmdSimpleFSWrite) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		c.path = makeSimpleFSPath(c.G(), ctx.Args()[0])
 	} else {
-		err = errors.New("write requires a path argument")
+		err = fmt.Errorf("write requires a path argument")
 	}
 
 	return err

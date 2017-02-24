@@ -4,6 +4,8 @@
 package client
 
 import (
+	"os"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -63,15 +65,21 @@ func (c *CmdSimpleFSCopy) Run() error {
 	for _, src := range c.src {
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
-		dest, err := makeDestPath(ctx, cli, src, c.dest, isDestDir, destPathString)
+		dest, err := makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
+		destType, _ := c.dest.PathType()
+		if err == TargetFileExistsError && destType == keybase1.PathType_LOCAL {
+			fileInfo, err := os.Stat(dest.Local())
+
+			c.G().Log.Debug("makeDestPath stat %s: %v %s", dest.Local(), fileInfo, err)
+		}
 		if err == TargetFileExistsError && c.interactive == true {
 			err = doOverwritePrompt(c.G(), pathToString(dest))
 		}
+		c.G().Log.Debug("SimpleFSCopy %s -> %s", pathToString(src), pathToString(dest))
 
 		if err != nil {
 			return err
 		}
-		c.G().Log.Debug("SimpleFSCopy %s -> %s", pathToString(src), pathToString(dest))
 
 		opid, err := cli.SimpleFSMakeOpid(ctx)
 		if err != nil {
@@ -105,7 +113,7 @@ func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	c.recurse = ctx.Bool("recurse")
 	c.interactive = ctx.Bool("interactive")
 
-	c.src, c.dest, err = parseFsSrcDest(c.G(), ctx, "cp")
+	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "cp")
 
 	return err
 }

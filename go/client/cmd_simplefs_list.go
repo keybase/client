@@ -86,7 +86,11 @@ func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) {
 	ui := c.G().UI.GetTerminalUI()
 
 	for _, e := range listResult.Entries {
-		ui.Printf("%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
+		if e.DirentType == keybase1.DirentType_DIR {
+			ui.Printf("%s\t<%s>\t\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Name)
+		} else {
+			ui.Printf("%s\t%s\t%d\t%s\n", keybase1.FormatTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Size, e.Name)
+		}
 	}
 }
 

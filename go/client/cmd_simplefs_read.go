@@ -66,6 +66,8 @@ func (c *CmdSimpleFSRead) Run() error {
 	defer cli.SimpleFSClose(ctx, opid)
 	var offset int64
 	for {
+		c.G().Log.Debug("SimpleFS: Reading at %d", offset)
+
 		content, err := cli.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{
 			OpID:   opid,
 			Offset: offset,
@@ -74,6 +76,8 @@ func (c *CmdSimpleFSRead) Run() error {
 		if err != nil {
 			return err
 		}
+		c.G().Log.Debug("SimpleFS: Read %d", len(content.Data))
+
 		if len(content.Data) > 0 {
 			offset += int64(len(content.Data))
 			c.output(content.Data)

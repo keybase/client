@@ -55,7 +55,7 @@ func (c *CmdSimpleFSMove) Run() error {
 	for _, src := range c.src {
 		c.G().Log.Debug("SimpleFSMove %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 
-		dest, err := makeDestPath(ctx, cli, src, c.dest, isDestDir, destPathString)
+		dest, err := makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
 		if err == TargetFileExistsError && c.interactive == true {
 			err = doOverwritePrompt(c.G(), pathToString(dest))
 		}
@@ -85,7 +85,7 @@ func (c *CmdSimpleFSMove) Run() error {
 // ParseArgv does nothing for this command.
 func (c *CmdSimpleFSMove) ParseArgv(ctx *cli.Context) error {
 	var err error
-	c.src, c.dest, err = parseFsSrcDest(c.G(), ctx, "mv")
+	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "mv")
 	return err
 }
 

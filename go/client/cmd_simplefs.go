@@ -128,7 +128,9 @@ func getDirPathString(ctx context.Context, cli SimpleFSStatter, path keybase1.Pa
 
 // Make sure the destination ends with the same filename as the source,
 // if any, unless the destination is not a directory
-func makeDestPath(ctx context.Context,
+func makeDestPath(
+	g *libkb.GlobalContext,
+	ctx context.Context,
 	cli SimpleFSStatter,
 	src keybase1.Path,
 	dest keybase1.Path,
@@ -137,6 +139,8 @@ func makeDestPath(ctx context.Context,
 
 	isSrcDir, srcPathString, err := getDirPathString(ctx, cli, src)
 	destType, _ := dest.PathType()
+
+	g.Log.Debug("makeDestPath: srcPathString: %s", pathToString(src))
 
 	if !isSrcDir {
 		if isDestPath {
@@ -147,6 +151,7 @@ func makeDestPath(ctx context.Context,
 			} else {
 				dest = keybase1.NewPathWithLocal(newDestString)
 			}
+			g.Log.Debug("makeDestPath: new path with file: %s", newDestString)
 		}
 		// Check for overwriting
 		if destType == keybase1.PathType_KBFS {
@@ -156,9 +161,9 @@ func makeDestPath(ctx context.Context,
 				return dest, TargetFileExistsError
 			}
 		} else {
-			_, err := os.Stat(dest.Local())
-			if err == nil {
+			if exists, _ := libkb.FileExists(dest.Local()); exists == true {
 				// we should have already tested whether it's a directory
+				g.Log.Debug("makeDestPath: local file exists: %s", dest.Local())
 				return dest, TargetFileExistsError
 			}
 		}
@@ -166,7 +171,7 @@ func makeDestPath(ctx context.Context,
 	return dest, err
 }
 
-func parseFsSrcDest(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]keybase1.Path, keybase1.Path, error) {
+func parseSrcDestArgs(g *libkb.GlobalContext, ctx *cli.Context, name string) ([]keybase1.Path, keybase1.Path, error) {
 	nargs := len(ctx.Args())
 
 	var srcType, destType keybase1.PathType
