@@ -562,6 +562,7 @@ type HeaderPlaintextV1 struct {
 	Sender          gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice    gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
 	BodyHash        Hash                     `codec:"bodyHash" json:"bodyHash"`
+	MerkleRoot      *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	OutboxID        *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`

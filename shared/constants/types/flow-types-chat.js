@@ -1011,6 +1011,7 @@ export type HeaderPlaintextV1 = {
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
   bodyHash: Hash,
+  merkleRoot?: ?MerkleRoot,
   outboxInfo?: ?OutboxInfo,
   outboxID?: ?OutboxID,
   headerSignature?: ?SignatureInfo,

@@ -540,6 +540,13 @@
         {
           "type": [
             null,
+            "MerkleRoot"
+          ],
+          "name": "merkleRoot"
+        },
+        {
+          "type": [
+            null,
             "OutboxInfo"
           ],
           "name": "outboxInfo"

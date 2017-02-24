@@ -566,6 +566,56 @@ func TestChatMessagePublic(t *testing.T) {
 	}
 }
 
+// Test that the latest merkle root is included in the message.
+func TestChatMerkleRoot(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+	fakeMerkleRoot := chat1.MerkleRoot{
+		Seqno: 9,
+		Hash:  []byte{1, 2, 3, 4},
+	}
+	fakeMerkleRoot2 := fakeMerkleRoot
+	msg.ClientHeader.MerkleRoot = &fakeMerkleRoot2
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	boxed, err := boxer.boxMessageWithKeys(msg, key, signKP)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	umwkr, err := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	messagePlaintext := umwkr.messagePlaintext
+	body := messagePlaintext.MessageBody
+	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
+		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
+	}
+	if body.Text().Body != text {
+		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
+	}
+
+	require.NotNil(t, messagePlaintext.ClientHeader.MerkleRoot, "required merkle root")
+	require.Equal(t, messagePlaintext.ClientHeader.MerkleRoot.Seqno, int64(9), "wrong merkle root seqno")
+	require.Equal(t, *messagePlaintext.ClientHeader.MerkleRoot, fakeMerkleRoot, "wrong merkle root")
+}
+
 type KeyFinderMock struct{}
 
 func NewKeyFinderMock() KeyFinder {

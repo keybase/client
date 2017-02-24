@@ -265,6 +265,7 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			Prev:         hp.Prev,
 			Sender:       hp.Sender,
 			SenderDevice: hp.SenderDevice,
+			MerkleRoot:   hp.MerkleRoot,
 			OutboxInfo:   hp.OutboxInfo,
 			OutboxID:     hp.OutboxID,
 		}
@@ -454,6 +455,7 @@ func (b *Boxer) boxMessageWithKeys(msg chat1.MessagePlaintext, key *keybase1.Cry
 		Sender:       msg.ClientHeader.Sender,
 		SenderDevice: msg.ClientHeader.SenderDevice,
 		BodyHash:     bodyHash[:],
+		MerkleRoot:   msg.ClientHeader.MerkleRoot,
 		OutboxInfo:   msg.ClientHeader.OutboxInfo,
 		OutboxID:     msg.ClientHeader.OutboxID,
 	}
