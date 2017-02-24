@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -25,8 +24,6 @@ import (
 type InitParams struct {
 	// Whether to print debug messages.
 	Debug bool
-	// If non-empty, where to write a CPU profile.
-	CPUProfile string
 
 	// If non-empty, the host:port of the block server. If empty,
 	// a default value is used depending on the run mode. Can also
@@ -148,7 +145,6 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 
 	var params InitParams
 	flags.BoolVar(&params.Debug, "debug", defaultParams.Debug, "Print debug messages")
-	flags.StringVar(&params.CPUProfile, "cpuprofile", "", "write cpu profile to file")
 
 	flags.StringVar(&params.BServerAddr, "bserver", defaultParams.BServerAddr, "host:port of the block server, 'memory', or 'dir:/path/to/dir'")
 	flags.StringVar(&params.MDServerAddr, "mdserver", defaultParams.MDServerAddr, "host:port of the metadata server, 'memory', or 'dir:/path/to/dir'")
@@ -176,7 +172,7 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 // GetRemoteUsageString returns a string describing the flags to use
 // to run against remote KBFS servers.
 func GetRemoteUsageString() string {
-	return `    [-debug] [-cpuprofile=path/to/dir]
+	return `    [-debug]
     [-bserver=host:port] [-mdserver=host:port]
     [-log-to-file] [-log-file=path/to/file] [-clean-bcache-cap=0]`
 }
@@ -184,7 +180,7 @@ func GetRemoteUsageString() string {
 // GetLocalUsageString returns a string describing the flags to use to
 // run in a local testing environment.
 func GetLocalUsageString() string {
-	return `    [-debug] [-cpuprofile=path/to/dir]
+	return `    [-debug]
     [-bserver=(memory | dir:/path/to/dir | host:port)]
     [-mdserver=(memory | dir:/path/to/dir | host:port)]
     [-localuser=<user>]
@@ -346,15 +342,6 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // crypto (for non-RPC environments) like mobile. If this is nil, we'll
 // use the default RPC implementation.
 func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onInterruptFn func(), log logger.Logger) (cfg Config, err error) {
-
-	if params.CPUProfile != "" {
-		// Let the GC/OS clean up the file handle.
-		f, err := os.Create(params.CPUProfile)
-		if err != nil {
-			return nil, err
-		}
-		pprof.StartCPUProfile(f)
-	}
 
 	done := make(chan struct{})
 	interruptChan := make(chan os.Signal, 1)
@@ -521,6 +508,4 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, l
 
 // Shutdown does any necessary shutdown tasks for libkbfs. Shutdown
 // should be called at the end of main.
-func Shutdown() {
-	pprof.StopCPUProfile()
-}
+func Shutdown() {}

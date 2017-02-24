@@ -5,8 +5,13 @@
 package libfuse
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"runtime/pprof"
+	"runtime/trace"
+	"strings"
+	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -15,7 +20,76 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO: Also have a file for CPU profiles.
+type timedProfile interface {
+	Start(w io.Writer) error
+	Stop()
+}
+
+type cpuProfile struct{}
+
+func (p cpuProfile) Start(w io.Writer) error {
+	return pprof.StartCPUProfile(w)
+}
+
+func (p cpuProfile) Stop() {
+	pprof.StopCPUProfile()
+}
+
+type traceProfile struct{}
+
+func (p traceProfile) Start(w io.Writer) error {
+	return trace.Start(w)
+}
+
+func (p traceProfile) Stop() {
+	trace.Stop()
+}
+
+// timedProfileFile represents a file whose contents are determined by
+// taking a profile for some duration.
+type timedProfileFile struct {
+	duration time.Duration
+	profile  timedProfile
+}
+
+var _ fs.Node = timedProfileFile{}
+
+func (f timedProfileFile) Attr(ctx context.Context, a *fuse.Attr) error {
+	// Have a low non-zero value for Valid to avoid being swamped
+	// with requests.
+	a.Valid = 1 * time.Second
+	now := time.Now()
+	a.Size = 0
+	a.Mtime = now
+	a.Ctime = now
+	a.Mode = 0444
+	return nil
+}
+
+var _ fs.Handle = timedProfileFile{}
+
+var _ fs.NodeOpener = timedProfileFile{}
+
+func (f timedProfileFile) Open(ctx context.Context,
+	req *fuse.OpenRequest, resp *fuse.OpenResponse) (fs.Handle, error) {
+	var buf bytes.Buffer
+	err := f.profile.Start(&buf)
+	if err != nil {
+		return nil, err
+	}
+
+	select {
+	case <-time.After(f.duration):
+	case <-ctx.Done():
+		// Don't return an error and fall through, so we
+		// return the partial profile data.
+	}
+
+	f.profile.Stop()
+
+	resp.Flags |= fuse.OpenDirectIO
+	return fs.DataHandle(buf.Bytes()), nil
+}
 
 // ProfileList is a node that can list all of the available profiles.
 type ProfileList struct{}
@@ -30,8 +104,29 @@ func (ProfileList) Attr(_ context.Context, a *fuse.Attr) error {
 
 var _ fs.NodeRequestLookuper = ProfileList{}
 
+const cpuProfilePrefix = "profile."
+const traceProfilePrefix = "trace."
+
 // Lookup implements the fs.NodeRequestLookuper interface.
 func (pl ProfileList) Lookup(_ context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
+	// Handle timed profiles first.
+	if strings.HasPrefix(req.Name, cpuProfilePrefix) {
+		durationStr := strings.TrimPrefix(req.Name, cpuProfilePrefix)
+		duration, err := time.ParseDuration(durationStr)
+		if err != nil {
+			return nil, err
+		}
+
+		return timedProfileFile{duration, cpuProfile{}}, nil
+	} else if strings.HasPrefix(req.Name, traceProfilePrefix) {
+		durationStr := strings.TrimPrefix(req.Name, traceProfilePrefix)
+		duration, err := time.ParseDuration(durationStr)
+		if err != nil {
+			return nil, err
+		}
+		return timedProfileFile{duration, traceProfile{}}, nil
+	}
+
 	f := libfs.ProfileGet(req.Name)
 	if f == nil {
 		return nil, fuse.ENOENT
@@ -54,10 +149,18 @@ func (pl ProfileList) ReadDirAll(_ context.Context) (res []fuse.Dirent, err erro
 			continue
 		}
 		res = append(res, fuse.Dirent{
-			Type: fuse.DT_Dir,
+			Type: fuse.DT_File,
 			Name: name,
 		})
 	}
+	res = append(res, fuse.Dirent{
+		Type: fuse.DT_File,
+		Name: cpuProfilePrefix + "30s",
+	})
+	res = append(res, fuse.Dirent{
+		Type: fuse.DT_File,
+		Name: traceProfilePrefix + "1s",
+	})
 	return res, nil
 }
 
