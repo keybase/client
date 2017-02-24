@@ -41,7 +41,7 @@ a different license, that license applies instead.
 
 ### Development Guidlines
 
-We check all git commits with pre-commit hooks generated via [pre-commit.com](https://pre-commit.com) pre-commit hooks.
+We check all git commits with pre-commit hooks generated via [pre-commit.com](http://pre-commit.com) pre-commit hooks.
 To enable use of these pre-commit hooks:
 
 * [Install](http://pre-commit.com/#install) the `pre-commit` utility. For some common cases:
