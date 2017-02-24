@@ -23,6 +23,7 @@ import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType, unsafeUnwrap} from '../constants/types/more'
 import {showMainWindow} from './platform.specific'
+import {requestIdleCallback} from '../util/idle-callback'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
@@ -1060,7 +1061,11 @@ function * _loadInbox (): SagaGenerator<any, any> {
     })
 
     if (incoming.chatInboxConversation) {
-      incoming.chatInboxConversation.response.result()
+      requestIdleCallback(() => {
+        incoming.chatInboxConversation.response.result()
+      }, 100)
+
+      yield call(delay, 1)
       let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
 
       // TODO this is ugly, ideally we should just call _updateInbox here
@@ -1084,7 +1089,11 @@ function * _loadInbox (): SagaGenerator<any, any> {
       // find it
     } else if (incoming.chatInboxFailed) {
       console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
-      incoming.chatInboxFailed.response.result()
+      requestIdleCallback(() => {
+        incoming.chatInboxFailed.response.result()
+      }, 100)
+
+      yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
       const conversation = new InboxStateRecord({
