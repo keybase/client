@@ -37,9 +37,15 @@ func (s *Syncer) SendChatStaleNotifications(uid gregor1.UID) {
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID) error {
 	s.Debug(ctx, "Connected: running")
 
+	// Let the Offlinables know that we are back online
+	for _, o := range s.offlinables {
+		o.Connected(ctx)
+	}
+
 	// Grab the latest inbox version, and compare it to what we have
 	// If we don't have the latest, then we clear the Inbox cache and
 	// send alerts to clients that they should refresh.
+	ctx = CtxAddLogTags(ctx)
 	vers, err := cli.GetInboxVersion(ctx, uid)
 	if err != nil {
 		s.Debug(ctx, "Connected: failed to sync inbox version: uid: %s error: %s", uid, err.Error())
@@ -56,11 +62,6 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 		s.SendChatStaleNotifications(uid)
 	} else {
 		s.Debug(ctx, "Connected: version sync success! version: %d", vers)
-	}
-
-	// Let the Offlinables know that we are back online
-	for _, o := range s.offlinables {
-		o.Connected(ctx)
 	}
 
 	return nil

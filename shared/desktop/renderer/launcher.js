@@ -7,6 +7,8 @@ import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
 import reactDOM from 'react-dom'
 import {disable as disableDragDrop} from '../../util/drag-drop'
+import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
+import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {makeEngine} from '../../engine'
 import {remote} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
@@ -22,6 +24,11 @@ if (module.hot) {
 }
 
 let _store
+
+function setupAvatar () {
+  initAvatarLookup(getUserImageMap)
+  initAvatarLoad(loadUserImageMap)
+}
 
 class RemoteMenubar extends Component {
   constructor () {
@@ -40,6 +47,7 @@ class RemoteMenubar extends Component {
 setupContextMenu(remote.getCurrentWindow())
 
 function load () {
+  setupAvatar()
   if (!_store) {
     _store = new RemoteStore({component: 'menubar'})
   }
