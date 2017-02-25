@@ -65,7 +65,8 @@ func newConfigForTest(loggerFn func(module string) logger.Logger) *ConfigLocal {
 // MakeTestBlockServerOrBust makes a block server from the given
 // arguments and environment variables.
 func MakeTestBlockServerOrBust(t logger.TestLogBackend,
-	config blockServerRemoteConfig, rpcLogFactory *libkb.RPCLogFactory) BlockServer {
+	config blockServerRemoteConfig, signer kbfscrypto.Signer,
+	rpcLogFactory *libkb.RPCLogFactory) BlockServer {
 	// see if a local remote server is specified
 	bserverAddr := os.Getenv(EnvTestBServerAddr)
 	switch {
@@ -78,7 +79,7 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 		return blockServer
 
 	case len(bserverAddr) != 0:
-		return NewBlockServerRemote(config, bserverAddr, rpcLogFactory)
+		return NewBlockServerRemote(config, signer, bserverAddr, rpcLogFactory)
 
 	default:
 		return NewBlockServerMemory(config.MakeLogger(""))
@@ -116,7 +117,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
-	blockServer := MakeTestBlockServerOrBust(t, config,
+	blockServer := MakeTestBlockServerOrBust(t, config, config.Signer(),
 		env.NewContext().NewRPCLogFactory())
 	config.SetBlockServer(blockServer)
 
@@ -228,7 +229,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.noBGFlush = config.noBGFlush
 
 	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
-		blockServer := NewBlockServerRemote(c, s.RemoteAddress(),
+		blockServer := NewBlockServerRemote(c, c.Signer(), s.RemoteAddress(),
 			env.NewContext().NewRPCLogFactory())
 		c.SetBlockServer(blockServer)
 	} else {

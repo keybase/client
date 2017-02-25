@@ -143,7 +143,8 @@ var _ rpc.ConnectionHandler = (*blockServerRemoteClientHandler)(nil)
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(config blockServerRemoteConfig, blkSrvAddr string,
+func NewBlockServerRemote(config blockServerRemoteConfig,
+	signer kbfscrypto.Signer, blkSrvAddr string,
 	rpcLogFactory *libkb.RPCLogFactory) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
@@ -164,7 +165,7 @@ func NewBlockServerRemote(config blockServerRemoteConfig, blkSrvAddr string,
 		bs:   bs,
 		name: "BlockServerRemotePut",
 	}
-	bs.putAuthToken = kbfscrypto.NewAuthToken(config.Signer(),
+	bs.putAuthToken = kbfscrypto.NewAuthToken(signer,
 		BServerTokenServer, BServerTokenExpireIn,
 		"libkbfs_bserver_remote", VersionString(), putClientHandler)
 	putClientHandler.authToken = bs.putAuthToken
@@ -172,7 +173,7 @@ func NewBlockServerRemote(config blockServerRemoteConfig, blkSrvAddr string,
 		bs:   bs,
 		name: "BlockServerRemoteGet",
 	}
-	bs.getAuthToken = kbfscrypto.NewAuthToken(config.Signer(),
+	bs.getAuthToken = kbfscrypto.NewAuthToken(signer,
 		BServerTokenServer, BServerTokenExpireIn,
 		"libkbfs_bserver_remote", VersionString(), getClientHandler)
 	getClientHandler.authToken = bs.getAuthToken

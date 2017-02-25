@@ -341,7 +341,8 @@ func makeBlockServer(config Config, bserverAddr string,
 	}
 
 	log.Debug("Using remote bserver %s", bserverAddr)
-	return NewBlockServerRemote(config, bserverAddr, rpcLogFactory), nil
+	return NewBlockServerRemote(config, config.Signer(), bserverAddr,
+		rpcLogFactory), nil
 }
 
 // InitLog sets up logging switching to a log file if necessary.
