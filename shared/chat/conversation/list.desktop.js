@@ -4,7 +4,6 @@
 // We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling.
 
 import EditPopup from './edit-popup.desktop'
-import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import _ from 'lodash'
@@ -32,7 +31,6 @@ type State = {
 const scrollbarWidth = 20
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
-const cellMessageStartIndex = 2 // Header and loading cells
 const DEBUG_ROW_RENDER = __DEV__ && false
 
 class ConversationList extends Component<void, Props, State> {
@@ -123,12 +121,19 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
+      // TODO clean this up
+      const realMessage = message => message.type === 'Text' || message.type === 'Attachment'
+      // const firstRealMessage = this.state.messages.findIndex(realMessage)
+      const prevFirstRealMessage = prevState.messages.get(2)
+      const firstRealMessageIndex = this.state.messages.indexOf(prevFirstRealMessage)
+      // const indexOfPrevFirstRealMessage = this.state.messages.indexOf(prevFirstRealMessage)
       // Figure out how many new items we have
-      const prependedCount = this.state.messages.indexOf(prevState.messages.first())
-      if (prependedCount !== -1) {
+      console.log('firstRealMessageIndex is', firstRealMessageIndex)
+      if (firstRealMessageIndex !== 2) {
+      // if (prependedCount !== -1) {
         // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-        const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
-          .map(index => this._cellMeasurer.getRowHeight({index: index + cellMessageStartIndex}))
+        const scrollTop = this.state.scrollTop + _.range(0, firstRealMessageIndex)
+          .map(index => this._cellMeasurer.getRowHeight({index}))
           .reduce((total, height) => total + height, 0)
 
         // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
@@ -166,11 +171,11 @@ class ConversationList extends Component<void, Props, State> {
         (item.messageState !== oldMessage.messageState ||
         item.editedCount !== oldMessage.editedCount)
       ) {
-        this._toRemeasure.push(index + cellMessageStartIndex)
+        this._toRemeasure.push(index)
       } else if (item.type === 'Attachment' && oldMessage.type === 'Attachment' &&
                  (item.previewPath !== oldMessage.previewPath ||
                   !shallowEqual(item.previewSize, oldMessage.previewSize))) {
-        this._toRemeasure.push(index + cellMessageStartIndex)
+        this._toRemeasure.push(index)
       } else if (!shallowEqual(item, oldMessage)) {
         this._shouldForceUpdateGrid = true
       }
@@ -334,18 +339,9 @@ class ConversationList extends Component<void, Props, State> {
       }
     }
 
-    if (index === 0) {
-      return (
-        <div key={key || index} style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
-          {!this.props.moreToLoad && <Icon type='icon-secure-266' />}
-        </div>
-      )
-    } else if (index === 1) {
-      return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
-    }
-    const message = this.state.messages.get(index - cellMessageStartIndex)
-    const prevMessage = this.state.messages.get(index - cellMessageStartIndex - 1)
-    const isFirstMessage = index - cellMessageStartIndex === 0
+    const message = this.state.messages.get(index)
+    const prevMessage = this.state.messages.get(index - 1)
+    const isFirstMessage = index === 0
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
 
     const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, key, style, this._onAction)
@@ -380,7 +376,7 @@ class ConversationList extends Component<void, Props, State> {
     this._list = r
   }
 
-  _rowCount = () => this.state.messages.count() + cellMessageStartIndex
+  _rowCount = () => this.state.messages.count()
 
   _scrollToBottom = () => {
     const rowCount = this._rowCount()
@@ -437,7 +433,7 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _cellRangeRenderer = options => {
-    const message = this.state.messages.get(cellMessageStartIndex)
+    const message = this.state.messages.get(0)
     const firstKey = message && message.key || '0'
     return chatCellRangeRenderer(firstKey, this._cellCache, options)
   }

@@ -49,8 +49,17 @@ function propsToMessageOptionsFn (props: Props): OptionsFn {
   }
 }
 
+function _decorateLoadingMore (moreToLoad: boolean, messages: Immutable.List<ChatConstants.Message>): Immutable.List<ChatConstants.Message> {
+  messages = messages.unshift({type: 'LoadingMore', key: `loadingMore-${messages.count()}`})
+  if (!moreToLoad) {
+    messages = messages.unshift({type: 'ChatSecuredHeader', key: `chatSecuredHeader-${messages.count()}`})
+  }
+  return messages
+}
+
 const hoc = withProps((props: Props) => ({
   optionsFn: propsToMessageOptionsFn(props),
+  messages: _decorateLoadingMore(props.moreToLoad, props.messages),
 }))
 
 export default hoc
