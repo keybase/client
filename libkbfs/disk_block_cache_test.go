@@ -169,7 +169,7 @@ func TestDiskBlockCacheEvictFromTLF(t *testing.T) {
 	ctx := context.Background()
 	clock := config.TestClock()
 	initialTime := clock.Now()
-	t.Log("Seed the cache with some other TLFs")
+	t.Log("Seed the cache with some other TLFs.")
 	//fakeTlfs := []byte{}
 	fakeTlfs := []byte{0, 1, 2, 4, 5}
 	for _, f := range fakeTlfs {
@@ -252,7 +252,7 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 	numBlocksPerTlf := 10
 	totalBlocks := numTlfs * numBlocksPerTlf
 
-	t.Log("Seed the cache with some other TLFs")
+	t.Log("Seed the cache with some other TLFs.")
 	for i := byte(0); int(i) < numTlfs; i++ {
 		currTlf := tlf.FakeID(i, false)
 		for j := 0; j < numBlocksPerTlf; j++ {
@@ -311,4 +311,40 @@ func TestDiskBlockCacheEvictOverall(t *testing.T) {
 	averageDifference /= float64(numEvictionDifferences)
 	require.True(t, averageDifference > 3.0,
 		"Average overall LRU delta from an eviction: %.2f", averageDifference)
+}
+
+func TestDiskBlockCacheLimit(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that disk cache eviction works overall.")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+
+	ctx := context.Background()
+	clock := config.TestClock()
+
+	numTlfs := 10
+	numBlocksPerTlf := 5
+
+	t.Log("Seed the cache with some blocks.")
+	for i := byte(0); int(i) < numTlfs; i++ {
+		currTlf := tlf.FakeID(i, false)
+		for j := 0; j < numBlocksPerTlf; j++ {
+			blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
+			err := cache.Put(ctx, currTlf, blockId, blockEncoded, serverHalf)
+			require.NoError(t, err)
+			clock.Add(time.Second)
+		}
+	}
+
+	t.Log("Set the cache maximum bytes to the current total.")
+	cache.maxBytes = cache.currBytes
+	currBytes := cache.maxBytes
+
+	t.Log("Add a block to the cache. Verify that blocks were evicted.")
+	blockId, blockEncoded, serverHalf := setupBlockForDiskCache(t, config)
+	err := cache.Put(ctx, tlf.FakeID(10, false), blockId, blockEncoded, serverHalf)
+	require.NoError(t, err)
+
+	require.True(t, cache.currBytes < currBytes)
+	require.Equal(t, 41, cache.numBlocks)
 }

@@ -30,6 +30,7 @@ const (
 	// 10 GB maximum storage by default
 	defaultDiskBlockCacheMaxBytes uint64 = 10 * (1 << 30)
 	evictionConsiderationFactor   int    = 3
+	defaultNumBlocksToEvict       int    = 10
 	blockDbFilename               string = "diskCacheBlocks.leveldb"
 	metaDbFilename                string = "diskCacheMetadata.leveldb"
 	tlfDbFilename                 string = "diskCacheTLF.leveldb"
@@ -403,11 +404,14 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	if err != nil {
 		return err
 	}
-	err = cache.blockDb.Put(blockKey, entry, nil)
-	if err != nil {
-		return err
-	}
 	if !hasKey {
+		if cache.currBytes+uint64(encodedLen) > cache.maxBytes {
+			cache.evictLocked(ctx, defaultNumBlocksToEvict)
+		}
+		err = cache.blockDb.Put(blockKey, entry, nil)
+		if err != nil {
+			return err
+		}
 		cache.tlfCounts[tlfID] += 1
 		cache.numBlocks += 1
 		encodedLenUint := uint64(encodedLen)
