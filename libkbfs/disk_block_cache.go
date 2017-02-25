@@ -31,6 +31,7 @@ const (
 	lruDbFilename                 string = "diskCacheLRU.leveldb"
 	versionFilename               string = "version"
 	initialDiskCacheVersion       uint64 = 1
+	currentDiskCacheVersion       uint64 = initialDiskCacheVersion
 )
 
 // diskBlockCacheEntry packages an encoded block and serverHalf into one data
@@ -115,7 +116,7 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 	versionBytes, err := ioutil.ReadFile(versionFilepath)
 	// We expect the file to open successfully or not exist. Anything else is a
 	// problem.
-	version := initialDiskCacheVersion
+	version := currentDiskCacheVersion
 	if ioutil.IsNotExist(err) {
 		// Do nothing, meaning that we will create the version file below.
 	} else if err != nil {
@@ -124,19 +125,21 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 		// We expect a successfully opened version file to parse a single unsigned
 		// integer representing the version. Anything else is a corrupted version
 		// file. However, this we can solve by deleting everything in the cache.
+		// TODO: Eventually delete the whole disk cache if we have an out of
+		// date version.
 		version, err = strconv.ParseUint(string(versionBytes), 10, strconv.IntSize)
 		if err != nil {
 			return "", err
 		}
-		if version < initialDiskCacheVersion {
+		if version < currentDiskCacheVersion {
 			return "", errors.WithStack(
 				InvalidVersionError{fmt.Sprintf("New disk cache version."+
 					" Delete the existing disk cache at path: %s", dirPath)})
 		}
-		// Disk cache version is newer than we expect for this client. This is an
-		// error, and we shouldn't initialize the disk cache.
-		if version > initialDiskCacheVersion {
-			return "", OutdatedVersionError{}
+		// Existing disk cache version is newer than we expect for this client.
+		// This is an error since our client won't understand its format.
+		if version > currentDiskCacheVersion {
+			return "", errors.WithStack(OutdatedVersionError{})
 		}
 	}
 	versionString := strconv.FormatUint(version, 10)
