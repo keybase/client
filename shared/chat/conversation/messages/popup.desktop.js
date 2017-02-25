@@ -31,7 +31,7 @@ const MessagePopupHeader = ({message: {author, deviceName, deviceType, timestamp
       </div>
       <div style={globalStyles.flexBoxRow}>
         <Text type='BodySmall' style={{color: globalColors.black_40}}>by</Text>
-        <Text type='BodySmallItalic' style={{color: globalColors.black_60}}>&nbsp;{deviceName}</Text>
+        <Text type={author === you ? 'BodySmallItalic' : 'BodySmall'} style={{color: globalColors.black_60}}>&nbsp;{deviceName}</Text>
       </div>
       <Text type='BodySmall' style={{color: globalColors.black_40}}>{formatTimeForPopup(timestamp)}</Text>
       {senderDeviceRevokedAt &&
