@@ -497,6 +497,102 @@ func TestJournalCoalescingCreatesPlusCR(t *testing.T) {
 	)
 }
 
+// bob creates a bunch of files in a subdirectory and the operations
+// get coalesced together.  Then alice writes something
+// non-conflicting, forcing CR to happen on top of the unmerged local
+// squashes -- this happens multiple times before bob's flush is able
+// to succeed.  This is a regression for KBFS-1979.
+func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
+	var busyWork []fileOp
+	var busyWork2 []fileOp
+	listing := m{}
+	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
+	unflushedPaths := []string{"alice,bob/a"}
+	targetMtime := time.Now().Add(1 * time.Minute)
+	for i := 0; i < iters; i++ {
+		name := fmt.Sprintf("%d", i)
+		contents := fmt.Sprintf("hello%d", i)
+		busyWork = append(busyWork, mkfile("a/"+name+".tmp", contents))
+		busyWork = append(busyWork, setmtime("a/"+name+".tmp", targetMtime))
+		busyWork2 = append(busyWork2, rename("a/"+name+".tmp", "a/"+name))
+
+		listing["^"+name+"$"] = "FILE"
+		unflushedPaths = append(unflushedPaths, "alice,bob/a/"+name)
+	}
+	busyWork = append(busyWork, setmtime("a", targetMtime))
+
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+		),
+		as(bob, busyWork...),
+		as(bob,
+			// Coalescing, round 1.
+			flushJournal(),
+		),
+		// Second sync to wait for the CR caused by `flushJournal`.
+		as(bob,
+			flushJournal(),
+		),
+		as(bob, busyWork2...),
+		as(bob,
+			// Coalescing, round 2.
+			flushJournal(),
+		),
+		// Second sync to wait for the CR caused by `flushJournal`.
+		as(bob,
+			flushJournal(),
+		),
+		as(alice,
+			// Non-conflict write to force CR on top of the local
+			// squashes.
+			mkdir("b"),
+		),
+		as(bob,
+			flushJournal(),
+		),
+		// Second sync to wait for the CR caused by `flushJournal`.
+		as(bob,
+			flushJournal(),
+			// Disable updates to make sure we don't get notified of
+			// alice's next write until we attempt a journal flush, so
+			// that we have two subsequent CRs that run to completion.
+			disableUpdates(),
+		),
+		as(alice,
+			// Non-conflict write to force CR on top of the local
+			// squashes.
+			mkdir("c"),
+		),
+		as(bob,
+			reenableUpdates(),
+			resumeJournal(),
+			flushJournal(),
+		),
+		as(bob,
+			// Force CR to finish before the flush call with another
+			// disable/reenable.
+			disableUpdates(),
+			reenableUpdates(),
+			flushJournal(),
+		),
+		as(bob,
+			checkUnflushedPaths(nil),
+			lsdir("", m{"^a$": "DIR", "^b$": "DIR", "^c$": "DIR"}),
+			lsdir("a", listing),
+		),
+		as(alice,
+			lsdir("", m{"^a$": "DIR", "^b$": "DIR", "^c$": "DIR"}),
+			lsdir("a", listing),
+		),
+	)
+}
+
 // bob creates and appends to a file in a journal and the operations
 // get coalesced together.
 func TestJournalCoalescingWrites(t *testing.T) {

@@ -3457,8 +3457,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 					resOp.AddUpdate(update.Unref, update.Ref)
 				} else if !isMostRecent {
 					cr.log.CDebugf(ctx, "Unrefing an update from old resOp: "+
-						"%v and %v", update.Unref, update.Ref)
-					newOps = addUnrefToFinalResOp(newOps, update.Unref)
+						"%v (original=%v)", update.Ref, update.Unref)
 					newOps = addUnrefToFinalResOp(newOps, update.Ref)
 				}
 			}
