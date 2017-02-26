@@ -40,8 +40,6 @@ func (f *SpecialReadFile) Attr(ctx context.Context, a *fuse.Attr) error {
 	return nil
 }
 
-var _ fs.Handle = (*SpecialReadFile)(nil)
-
 var _ fs.NodeOpener = (*SpecialReadFile)(nil)
 
 // Open implements the fs.NodeOpener interface for SpecialReadFile.
