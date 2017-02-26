@@ -583,7 +583,7 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 
 func (be blockEntriesToFlush) revIsLocalSquash(rev MetadataRevision) bool {
 	for _, entry := range be.other {
-		if entry.Op == mdRevMarkerOp && entry.Revision == rev {
+		if !entry.Ignore && entry.Op == mdRevMarkerOp && entry.Revision == rev {
 			return entry.Unignorable
 		}
 	}
@@ -1262,6 +1262,37 @@ func (j *blockJournal) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error)
 		}
 	}
 	return refs, nil
+}
+
+func (j *blockJournal) markLatestRevMarkerAsUnignorable() error {
+	first, err := j.j.readEarliestOrdinal()
+	if ioutil.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	last, err := j.j.readLatestOrdinal()
+	if err != nil {
+		return err
+	}
+
+	// Iterate backwards to find the latest md marker.
+	for i := last; i >= first && i <= last; i-- {
+		entry, err := j.j.readJournalEntry(i)
+		if err != nil {
+			return err
+		}
+		e := entry.(blockJournalEntry)
+		if e.Ignore || e.Op != mdRevMarkerOp {
+			continue
+		}
+
+		e.Unignorable = true
+		return j.j.writeJournalEntry(i, e)
+	}
+
+	return errors.Errorf("Couldn't find an md rev marker between %d and %d",
+		first, last)
 }
 
 func (j *blockJournal) checkInSyncForTest() error {

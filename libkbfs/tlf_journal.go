@@ -1088,6 +1088,12 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 			if err != nil {
 				return false, err
 			}
+
+			err = j.blockJournal.markLatestRevMarkerAsUnignorable()
+			if err != nil {
+				return false, err
+			}
+
 			j.unsquashedBytes = 0
 			return true, nil
 		}
