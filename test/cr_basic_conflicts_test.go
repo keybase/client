@@ -558,6 +558,7 @@ func TestCrConflictUnmergedRenameDirOverNonemptyDir(t *testing.T) {
 			mkfile("a/b/e", "uh oh"),
 		),
 		as(bob, noSync(),
+			rm("a/b"),
 			rename("a/c", "a/b"),
 			reenableUpdates(),
 			lsdir("a/", m{"b$": "DIR", crnameEsc("b", bob): "DIR"}),

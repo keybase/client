@@ -25,25 +25,6 @@ func TestRenameFileOverFile(t *testing.T) {
 	)
 }
 
-func TestRenameDirOverDir(t *testing.T) {
-	test(t,
-		users("alice"),
-		as(alice,
-			mkdir("a/b"),
-			mkfile("a/c/d", "hello"),
-			rename("a/c", "a/b"),
-			lsdir("a/", m{"b": "DIR"}),
-			lsdir("a/b", m{"d": "FILE"}),
-			read("a/b/d", "hello"),
-
-			// Rename over a non-empty dir should fail
-			mkfile("a/c/e", "world"),
-			expectError(rename("a/c", "a/b"),
-				"Directory b is not empty and can't be removed"),
-		),
-	)
-}
-
 func TestSetMtime(t *testing.T) {
 	targetMtime := time.Now().Add(1 * time.Minute)
 	test(t,

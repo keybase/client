@@ -631,6 +631,7 @@ func TestCrUnmergedRenameDirOverEmptyDir(t *testing.T) {
 			write("a/e", "just another file"),
 		),
 		as(bob, noSync(),
+			rm("a/b"),
 			rename("a/c", "a/b"),
 			reenableUpdates(),
 			lsdir("a/", m{"b": "DIR", "e": "FILE"}),
