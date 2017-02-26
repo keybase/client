@@ -11,10 +11,8 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
-
 	"golang.org/x/net/context"
 )
 
@@ -38,6 +36,7 @@ type KBFSOpsStandard struct {
 	favs *Favorites
 
 	currentStatus kbfsCurrentStatus
+	quotaUsage    *EventuallyConsistentQuotaUsage
 }
 
 var _ KBFSOps = (*KBFSOpsStandard)(nil)
@@ -52,7 +51,8 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 		ops:                   make(map[FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[Favorite]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
-		favs: NewFavorites(config),
+		favs:       NewFavorites(config),
+		quotaUsage: NewEventuallyConsistentQuotaUsage(config, "KBFSOps"),
 	}
 	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
@@ -667,14 +667,12 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	// service/GUI by handling multiple simultaneous passphrase
 	// requests at once.
 	if err == nil && fs.config.MDServer().IsConnected() {
-		quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
-		if err == nil {
-			limitBytes = quotaInfo.Limit
-			if quotaInfo.Total != nil {
-				usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
-			} else {
-				usageBytes = 0
-			}
+		var quErr error
+		usageBytes, limitBytes, quErr = fs.quotaUsage.Get(ctx, 0)
+		if quErr != nil {
+			// The error is ignored here so that other fields can still be populated
+			// even if this fails.
+			fs.log.CDebugf(ctx, "Getting quota usage error: %v", quErr)
 		}
 	}
 	failures, ch := fs.currentStatus.CurrentStatus()

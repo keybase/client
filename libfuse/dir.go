@@ -372,6 +372,7 @@ func (f *Folder) fillAttrWithUIDAndWritePerm(
 	a.Valid = 1 * time.Minute
 
 	a.Size = ei.Size
+	a.Blocks = getNumBlocksFromSize(ei.Size)
 	a.Mtime = time.Unix(0, ei.Mtime)
 	a.Ctime = time.Unix(0, ei.Ctime)
 

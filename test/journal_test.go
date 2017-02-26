@@ -111,14 +111,19 @@ func TestJournalCrSimple(t *testing.T) {
 	)
 }
 
+func makeBusyWork(filename string, iters int) (busyWork []fileOp) {
+	busyWork = append(busyWork, mkfile(filename, "hello"))
+	for i := 0; i < iters; i++ {
+		content := fmt.Sprintf("a%d", i)
+		busyWork = append(busyWork, write(filename, content))
+	}
+	busyWork = append(busyWork, rm(filename))
+	return busyWork
+}
+
 // bob creates many conflicting files while running the journal.
 func TestJournalCrManyFiles(t *testing.T) {
-	var busyWork []fileOp
-	iters := 20
-	for i := 0; i < iters; i++ {
-		name := fmt.Sprintf("a%d", i)
-		busyWork = append(busyWork, mkfile(name, "hello"), rm(name))
-	}
+	busyWork := makeBusyWork("hi", 20)
 
 	test(t, journal(),
 		users("alice", "bob"),
@@ -127,13 +132,14 @@ func TestJournalCrManyFiles(t *testing.T) {
 		),
 		as(bob,
 			enableJournal(),
+			checkUnflushedPaths(nil),
 			pauseJournal(),
 		),
 		as(bob, busyWork...),
 		as(bob,
 			checkUnflushedPaths([]string{
-				"",
 				"alice,bob",
+				"alice,bob/hi",
 			}),
 			// Don't flush yet.
 		),
@@ -399,6 +405,7 @@ func TestJournalCoalescingBasicCreates(t *testing.T) {
 		),
 		as(bob,
 			enableJournal(),
+			checkUnflushedPaths(nil),
 			pauseJournal(),
 		),
 		as(bob, busyWork...),
@@ -453,6 +460,7 @@ func TestJournalCoalescingCreatesPlusCR(t *testing.T) {
 		),
 		as(bob,
 			enableJournal(),
+			checkUnflushedPaths(nil),
 			pauseJournal(),
 		),
 		as(bob, busyWork...),
@@ -507,6 +515,7 @@ func TestJournalCoalescingWrites(t *testing.T) {
 		),
 		as(bob,
 			enableJournal(),
+			checkUnflushedPaths(nil),
 			pauseJournal(),
 		),
 		as(bob, busyWork...),
@@ -536,12 +545,7 @@ func TestJournalCoalescingWrites(t *testing.T) {
 // bob does a bunch of operations in a journal and the operations get
 // coalesced together.
 func TestJournalCoalescingMixedOperations(t *testing.T) {
-	var busyWork []fileOp
-	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
-	for i := 0; i < iters; i++ {
-		name := fmt.Sprintf("a%d", i)
-		busyWork = append(busyWork, mkfile(name, "hello"), rm(name))
-	}
+	busyWork := makeBusyWork("hi", libkbfs.ForcedBranchSquashRevThreshold+1)
 
 	targetMtime := time.Now().Add(1 * time.Minute)
 	test(t, journal(), blockSize(100), blockChangeSize(5),
@@ -555,6 +559,7 @@ func TestJournalCoalescingMixedOperations(t *testing.T) {
 		),
 		as(bob,
 			enableJournal(),
+			checkUnflushedPaths(nil),
 			pauseJournal(),
 			// bob does a bunch of stuff:
 			//  * writes to an existing file a/b
@@ -576,7 +581,6 @@ func TestJournalCoalescingMixedOperations(t *testing.T) {
 		as(bob, busyWork...),
 		as(bob,
 			checkUnflushedPaths([]string{
-				"",
 				"alice,bob",
 				"alice,bob/a",
 				"alice,bob/a/b",
@@ -584,6 +588,7 @@ func TestJournalCoalescingMixedOperations(t *testing.T) {
 				"alice,bob/f",
 				"alice,bob/f/g",
 				"alice,bob/h",
+				"alice,bob/hi",
 			}),
 			resumeJournal(),
 			// This should kick off conflict resolution.
@@ -618,12 +623,7 @@ func TestJournalCoalescingMixedOperations(t *testing.T) {
 // bob makes a bunch of changes that cancel each other out, and get
 // coalesced together.
 func TestJournalCoalescingNoChanges(t *testing.T) {
-	var busyWork []fileOp
-	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
-	for i := 0; i < iters; i++ {
-		name := fmt.Sprintf("a%d", i)
-		busyWork = append(busyWork, mkfile(name, "hello"), rm(name))
-	}
+	busyWork := makeBusyWork("hi", libkbfs.ForcedBranchSquashRevThreshold+1)
 
 	test(t, journal(),
 		users("alice", "bob"),
@@ -632,13 +632,14 @@ func TestJournalCoalescingNoChanges(t *testing.T) {
 		),
 		as(bob,
 			enableJournal(),
+			checkUnflushedPaths(nil),
 			pauseJournal(),
 		),
 		as(bob, busyWork...),
 		as(bob,
 			checkUnflushedPaths([]string{
-				"",
 				"alice,bob",
+				"alice,bob/hi",
 			}),
 			resumeJournal(),
 			// This should kick off conflict resolution.

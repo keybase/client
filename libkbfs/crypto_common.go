@@ -294,15 +294,16 @@ func (c CryptoCommon) DecryptPrivateMetadata(
 
 const minBlockSize = 256
 
-// nextPowerOfTwo returns next power of 2 greater than the input n.
+// powerOfTwoEqualOrGreater returns smallest power of 2 greater than or equal
+// to the input n.
 // https://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
-func nextPowerOfTwo(n uint32) uint32 {
-	if n < minBlockSize {
+func powerOfTwoEqualOrGreater(n int) int {
+	if n <= minBlockSize {
 		return minBlockSize
 	}
 	if n&(n-1) == 0 {
-		// if n is already power of 2, get the next one
-		n++
+		// if n is already power of 2, return it
+		return n
 	}
 
 	n--
@@ -311,6 +312,7 @@ func nextPowerOfTwo(n uint32) uint32 {
 	n = n | (n >> 4)
 	n = n | (n >> 8)
 	n = n | (n >> 16)
+	n = n | (n >> 16 >> 16) // make it work with 64 bit int; no effect on 32bit.
 	n++
 
 	return n
@@ -320,14 +322,14 @@ const padPrefixSize = 4
 
 // padBlock adds random padding to an encoded block.
 func (c CryptoCommon) padBlock(block []byte) ([]byte, error) {
-	blockLen := uint32(len(block))
-	overallLen := nextPowerOfTwo(blockLen)
+	blockLen := len(block)
+	overallLen := powerOfTwoEqualOrGreater(blockLen)
 	padLen := int64(overallLen - blockLen)
 
 	buf := bytes.NewBuffer(make([]byte, 0, overallLen+padPrefixSize))
 
 	// first 4 bytes contain the length of the block data
-	if err := binary.Write(buf, binary.LittleEndian, blockLen); err != nil {
+	if err := binary.Write(buf, binary.LittleEndian, int32(blockLen)); err != nil {
 		return nil, errors.WithStack(err)
 	}
 

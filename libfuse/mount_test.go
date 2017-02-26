@@ -42,6 +42,7 @@ func makeFS(t testing.TB, ctx context.Context, config *libkbfs.ConfigLocal) (
 		log:           log,
 		errLog:        log,
 		notifications: libfs.NewFSNotifications(log),
+		quotaUsage:    libkbfs.NewEventuallyConsistentQuotaUsage(config, "FSTest"),
 	}
 	filesys.root.private = &FolderList{
 		fs:      filesys,

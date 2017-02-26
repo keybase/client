@@ -270,8 +270,10 @@ type KBFSOps interface {
 		FolderBranchStatus, <-chan StatusUpdate, error)
 	// Status returns the status of KBFS, along with a channel that will be
 	// closed when the status has been updated (to eliminate the need for
-	// polling this method). KBFSStatus can be non-empty even if there is an
-	// error.
+	// polling this method). Note that this channel only applies to
+	// connection status changes.
+	//
+	// KBFSStatus can be non-empty even if there is an error.
 	Status(ctx context.Context) (
 		KBFSStatus, <-chan StatusUpdate, error)
 	// UnstageForTesting clears out this device's staged state, if
