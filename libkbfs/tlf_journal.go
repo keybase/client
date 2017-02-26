@@ -1123,8 +1123,7 @@ func (j *tlfJournal) doOnMDFlush(ctx context.Context,
 	// onMDFlush() only needs to be called under the flushLock, not
 	// the journalLock, as it doesn't touch the actual journal, only
 	// the deferred GC journal.
-	removedBytes, removedFiles, err := blockJournal.onMDFlush(
-		ctx, earliest, latest)
+	removedBytes, removedFiles, err := blockJournal.doGC(ctx, earliest, latest)
 	if err != nil {
 		return err
 	}

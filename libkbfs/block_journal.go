@@ -971,7 +971,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 
 // getDeferredRange gets the earliest and latest revision of the
 // deferred GC journal.  If the returned length is 0, there's no need
-// for further GC.  Should be called under lock.
+// for further GC.
 func (j *blockJournal) getDeferredGCRange() (
 	len int, earliest, latest journalOrdinal, err error) {
 	earliest, err = j.deferredGC.readEarliestOrdinal()
@@ -991,12 +991,27 @@ func (j *blockJournal) getDeferredGCRange() (
 	return int(latest - earliest + 1), earliest, latest, nil
 }
 
-// onMDFlush drains the deferred GC journal.  This doesn't touch the
-// regular block journal, and so doesn't need to be called under the
-// same locks as the other methods.
-func (j *blockJournal) onMDFlush(ctx context.Context,
+// doGC collects any unreferenced blocks from flushed
+// entries. earliest and latest should be from a call to
+// getDeferredGCRange, and clearDeferredGCRange should be called after
+// this function. This function only reads the deferred GC journal at
+// the given range and reads/writes the block store, so callers may
+// use that to relax any synchronization requirements.
+func (j *blockJournal) doGC(ctx context.Context,
 	earliest, latest journalOrdinal) (
 	removedBytes, removedFiles int64, err error) {
+	// Safe to check the earliest ordinal, even if the caller is using
+	// relaxed synchronization, since this is the only function that
+	// removes items from the deferred journal.
+	first, err := j.deferredGC.readEarliestOrdinal()
+	if err != nil {
+		return 0, 0, err
+	}
+	if first != earliest {
+		return 0, 0, errors.Errorf("Expected deferred earliest %d, "+
+			"but actual earliest is %d", earliest, first)
+	}
+
 	// Delete the block data for anything in the GC journal.
 	j.log.CDebugf(ctx, "Garbage-collecting blocks for entries [%d, %d]",
 		earliest, latest)
@@ -1034,8 +1049,7 @@ func (j *blockJournal) onMDFlush(ctx context.Context,
 	return removedBytes, removedFiles, nil
 }
 
-// clearDeferredGCRange removes the given range from the deferred
-// journal.  It should be called under lock.
+// clearDeferredGCRange removes the given range from the deferred journal.
 func (j *blockJournal) clearDeferredGCRange(
 	earliest, latest journalOrdinal) error {
 	for i := earliest; i <= latest; i++ {
