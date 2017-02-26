@@ -930,6 +930,8 @@ func (j *tlfJournal) flushBlockEntries(
 	})
 	converted = false
 	eg.Go(func() error {
+		// We might need to run multiple conversions during a single
+		// batch of block flushes, so loop until the batch finishes.
 		for {
 			select {
 			case <-j.needBranchCheckCh:
