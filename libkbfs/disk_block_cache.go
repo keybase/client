@@ -385,8 +385,8 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
 	if cache.blockDb == nil {
 		return errors.WithStack(DiskCacheClosedError{"Put"})
 	}
@@ -405,7 +405,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 	if !hasKey {
-		if cache.currBytes+uint64(encodedLen) > cache.maxBytes {
+		for cache.currBytes+uint64(encodedLen) > cache.maxBytes {
 			cache.evictLocked(ctx, defaultNumBlocksToEvict)
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)
@@ -476,8 +476,8 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 // Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) DeleteByTLF(ctx context.Context, tlfID tlf.ID,
 	blockIDs []kbfsblock.ID) error {
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
+	cache.lock.Lock()
+	defer cache.lock.Unlock()
 	if cache.blockDb == nil {
 		return errors.WithStack(DiskCacheClosedError{"Delete"})
 	}
