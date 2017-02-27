@@ -1871,18 +1871,6 @@ export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestComm
   return new Promise((resolve, reject) => { loginUnlockWithPassphraseRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function logsendPrepareLogsendRpc (request: Exact<requestCommon & requestErrorCallback>) {
-  engineRpcOutgoing({...request, method: 'keybase.1.logsend.prepareLogsend'})
-}
-
-export function logsendPrepareLogsendRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => logsendPrepareLogsendRpc({...request, incomingCallMap, callback}))
-}
-
-export function logsendPrepareLogsendRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
-  return new Promise((resolve, reject) => { logsendPrepareLogsendRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
 export function metadataAuthenticateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.metadata.authenticate'})
 }
@@ -6131,7 +6119,6 @@ export type rpc =
   | loginRecoverAccountFromEmailAddressRpc
   | loginUnlockRpc
   | loginUnlockWithPassphraseRpc
-  | logsendPrepareLogsendRpc
   | metadataAuthenticateRpc
   | metadataDeleteKeyRpc
   | metadataGetChallengeRpc
@@ -6465,6 +6452,10 @@ export type incomingCallMapType = Exact<{
       sessionID: int,
       phrase: string
     }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.logsend.prepareLogsend'?: (
+    params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyApp.exit'?: (
