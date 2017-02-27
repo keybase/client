@@ -191,8 +191,11 @@ func (u *CachedUPAKLoader) PutUserToCache(user *User) error {
 // loadWithInfo loads a user by UID from the CachedUPAKLoader object. The 'info'
 // object contains information about how the request was handled, but otherwise,
 // this method behaves like (and implements) the public CachedUPAKLoader#Load
-// method below.
-func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, fn func(k *keybase1.UserPlusAllKeys) error) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
+// method below. If `accessor` is nil, then a deep copy of the UPAK is returned.
+// In some cases, that deep copy can be expensive, so as for users who have lots of
+// followees. So if you provide accessor, the UPAK won't be deep-copied, but you'll
+// be able to access it from inside the accessor with exclusion.
+func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusAllKeys) error) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
 
 	// Shorthand
 	g := u.G()
@@ -211,8 +214,8 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	defer lock.Release(ctx)
 
 	returnUPAK := func(upak *keybase1.UserPlusAllKeys, needCopy bool) (*keybase1.UserPlusAllKeys, *User, error) {
-		if fn != nil {
-			err := fn(upak)
+		if accessor != nil {
+			err := accessor(upak)
 			if err != nil {
 				return nil, nil, err
 			}
