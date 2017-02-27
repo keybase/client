@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 	"testing/quick"
 
@@ -582,5 +583,42 @@ func TestBlockEncryptedLen(t *testing.T) {
 			continue
 		}
 		require.Equal(t, expectedLen, len(encBlock.EncryptedData))
+	}
+}
+
+func benchmarkEncryptBlock(b *testing.B, blockSize int) {
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
+
+	// Fill in the block with varying data to make sure not to
+	// trigger any encoding optimizations.
+	data := make([]byte, 512<<10)
+	for i := 0; i < len(data); i++ {
+		data[i] = byte(i)
+	}
+	block := FileBlock{
+		Contents: data,
+	}
+	key := kbfscrypto.BlockCryptKey{}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		c.EncryptBlock(&block, key)
+	}
+}
+
+func BenchmarkEncryptBlock(b *testing.B) {
+	blockSizes := []int{
+		0,
+		1024,
+		32 * 1024,
+		512 * 1024,
+	}
+	for _, blockSize := range blockSizes {
+		// Capture range variable.
+		blockSize := blockSize
+		b.Run(fmt.Sprintf("blockSize=%d", blockSize),
+			func(b *testing.B) {
+				benchmarkEncryptBlock(b, blockSize)
+			})
 	}
 }
