@@ -39,7 +39,7 @@ We check and update both frequently.
 Most code is released under the New BSD (3 Clause) License.  If subdirectories include
 a different license, that license applies instead.
 
-### Development Guidlines
+### Development Guidelines
 
 We check all git commits with pre-commit hooks generated via [pre-commit.com](http://pre-commit.com) pre-commit hooks.
 To enable use of these pre-commit hooks:
