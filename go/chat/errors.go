@@ -171,6 +171,14 @@ func (e VersionError) ExportType() chat1.MessageUnboxedErrorType {
 	return chat1.MessageUnboxedErrorType_BADVERSION
 }
 
+func NewMessageBoxedVersionError(version chat1.MessageBoxedVersion) VersionError {
+	return VersionError{
+		Kind:     "messageboxed",
+		Version:  int(version),
+		Critical: true,
+	}
+}
+
 func NewHeaderVersionError(version chat1.HeaderPlaintextVersion,
 	defaultHeader chat1.HeaderPlaintextUnsupported) VersionError {
 	return VersionError{
