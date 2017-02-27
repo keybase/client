@@ -267,13 +267,13 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 }
 
 // SimpleFSRename - Rename file or directory, KBFS side only
-func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRenameArg) error {
+func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRenameArg) (err error) {
 	// This is not async.
-	ctx, err := k.startSyncOp(ctx, "Rename", arg)
+	ctx, err = k.startSyncOp(ctx, "Rename", arg)
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx)
+	defer k.doneSyncOp(ctx, err)
 
 	snode, sleaf, err := k.getRemoteNodeParent(ctx, arg.Src)
 	if err != nil {
@@ -290,12 +290,12 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 // SimpleFSOpen - Create/open a file and leave it open
 // or create a directory
 // Files must be closed afterwards.
-func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenArg) error {
-	ctx, err := k.startSyncOp(ctx, "Open", arg)
+func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenArg) (err error) {
+	ctx, err = k.startSyncOp(ctx, "Open", arg)
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx)
+	defer k.doneSyncOp(ctx, err)
 
 	node, _, err := k.open(ctx, arg.Dest, arg.Flags)
 
@@ -311,12 +311,12 @@ func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenAr
 }
 
 // SimpleFSSetStat - Set/clear file bits - only executable for now
-func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSetStatArg) error {
-	ctx, err := k.startSyncOp(ctx, "SetStat", arg)
+func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSetStatArg) (err error) {
+	ctx, err = k.startSyncOp(ctx, "SetStat", arg)
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx)
+	defer k.doneSyncOp(ctx, err)
 
 	node, err := k.getRemoteNode(ctx, arg.Dest)
 	if err != nil {
@@ -342,15 +342,14 @@ func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSet
 // Repeat until zero bytes are returned or error.
 // If size is zero, read an arbitrary amount.
 func (k *SimpleFS) SimpleFSRead(ctx context.Context,
-	arg keybase1.SimpleFSReadArg) (keybase1.FileContent, error) {
+	arg keybase1.SimpleFSReadArg) (_ keybase1.FileContent, err error) {
 	k.lock.RLock()
 	h, ok := k.handles[arg.OpID]
 	k.lock.RUnlock()
 	if !ok {
 		return keybase1.FileContent{}, errNoSuchHandle
 	}
-
-	ctx, err := k.startSyncOp(ctx, "Read", keybase1.NewOpDescriptionWithRead(
+	ctx, err = k.startSyncOp(ctx, "Read", keybase1.NewOpDescriptionWithRead(
 		keybase1.ReadArgs{
 			OpID:   arg.OpID,
 			Path:   h.path,
@@ -360,7 +359,7 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 	if err != nil {
 		return keybase1.FileContent{}, err
 	}
-	defer k.doneSyncOp(ctx)
+	defer k.doneSyncOp(ctx, err)
 
 	bs := make([]byte, arg.Size)
 	n, err := k.config.KBFSOps().Read(ctx, h.node, bs, arg.Offset)
@@ -387,7 +386,7 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx)
+	defer k.doneSyncOp(ctx, err)
 
 	err = k.config.KBFSOps().Write(ctx, h.node, arg.Content, arg.Offset)
 	return err
@@ -428,12 +427,12 @@ func (k *SimpleFS) doRemove(ctx context.Context, path keybase1.Path) error {
 }
 
 // SimpleFSStat - Get info about file
-func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (keybase1.Dirent, error) {
-	ctx, err := k.startSyncOp(ctx, "Stat", path)
+func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (_ keybase1.Dirent, err error) {
+	ctx, err = k.startSyncOp(ctx, "Stat", path)
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
-	defer k.doneSyncOp(ctx)
+	defer k.doneSyncOp(ctx, err)
 
 	node, err := k.getRemoteNode(ctx, path)
 	if err != nil {
@@ -451,12 +450,12 @@ func (k *SimpleFS) SimpleFSMakeOpid(_ context.Context) (keybase1.OpID, error) {
 
 // SimpleFSClose - Close OpID, cancels any pending operation.
 // Must be called after list/copy/remove
-func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) error {
-	ctx, err := k.startSyncOp(ctx, "Close", opid)
+func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err error) {
+	ctx, err = k.startSyncOp(ctx, "Close", opid)
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx)
+	defer k.doneSyncOp(ctx, err)
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
@@ -831,11 +830,14 @@ func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
 		w.done <- err
 		close(w.done)
 	}
-	k.doneSyncOp(ctx)
+	k.log.CDebugf(ctx, "done op %X, status=%v", opid, err)
+	if ctx != nil {
+		CleanupCancellationDelayer(ctx)
+	}
 }
 
-func (k *SimpleFS) doneSyncOp(ctx context.Context) {
-	k.log.CDebugf(ctx, "done")
+func (k *SimpleFS) doneSyncOp(ctx context.Context, err error) {
+	k.log.CDebugf(ctx, "done sync op, status=%v", err)
 	if ctx != nil {
 		CleanupCancellationDelayer(ctx)
 	}
