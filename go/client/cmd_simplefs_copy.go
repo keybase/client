@@ -77,7 +77,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 		if err != nil {
 			return err
 		}
-		defer cli.SimpleFSClose(ctx, opid)
+
 		if c.recurse {
 			err = cli.SimpleFSCopyRecursive(ctx, keybase1.SimpleFSCopyRecursiveArg{
 				OpID: opid,

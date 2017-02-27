@@ -51,21 +51,21 @@ func (c *CmdSimpleFSRead) Run() error {
 
 	ctx := context.TODO()
 
+	opid, err := cli.SimpleFSMakeOpid(ctx)
+	if err != nil {
+		return err
+	}
+	err = cli.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
+		OpID:  opid,
+		Dest:  c.path,
+		Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
+	})
+	if err != nil {
+		return err
+	}
+	defer cli.SimpleFSClose(ctx, opid)
 	var offset int64
 	for {
-		opid, err := cli.SimpleFSMakeOpid(ctx)
-		if err != nil {
-			return err
-		}
-		err = cli.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
-			OpID:  opid,
-			Dest:  c.path,
-			Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
-		})
-		if err != nil {
-			return err
-		}
-
 		c.G().Log.Debug("SimpleFS: Reading at %d", offset)
 
 		content, err := cli.SimpleFSRead(ctx, keybase1.SimpleFSReadArg{
@@ -76,8 +76,6 @@ func (c *CmdSimpleFSRead) Run() error {
 		if err != nil {
 			return err
 		}
-		cli.SimpleFSClose(ctx, opid)
-
 		c.G().Log.Debug("SimpleFS: Read %d", len(content.Data))
 
 		if len(content.Data) > 0 {
