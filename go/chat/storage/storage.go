@@ -441,15 +441,15 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	return res, nil
 }
 
-func (s *Storage) UpdateConvIdentifyBreak(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, breaks []keybase1.TLFIdentifyFailure) error {
-	return s.breakTracker.UpdateConv(ctx, convID, uid, breaks)
+func (s *Storage) UpdateTLFIdentifyBreak(ctx context.Context, tlfID chat1.TLFID,
+	breaks []keybase1.TLFIdentifyFailure) error {
+	return s.breakTracker.UpdateTLF(ctx, tlfID, breaks)
 }
 
-func (s *Storage) IsConvIdentifyBroken(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) bool {
-	idBroken, err := s.breakTracker.IsConvBroken(ctx, convID, uid)
+func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bool {
+	idBroken, err := s.breakTracker.IsTLFBroken(ctx, tlfID)
 	if err != nil {
-		s.Debug(ctx, "IsConvIdentifyBroken: got error, so returning broken: %s", err.Error())
+		s.Debug(ctx, "IsTLFIdentifyBroken: got error, so returning broken: %s", err.Error())
 		return true
 	}
 	return idBroken

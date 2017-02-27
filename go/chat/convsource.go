@@ -276,16 +276,17 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 		return nil
 	}
 
-	// Early out if we are in GUI mode and don't have any breaks stored
-	idBroken := s.storage.IsConvIdentifyBroken(ctx, convID, uid)
-	idMode, _, ok := IdentifyMode(ctx)
-	if ok && idMode == keybase1.TLFIdentifyBehavior_CHAT_GUI && !idBroken {
-		s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
-		return nil
-	}
-
+	idMode, _, haveMode := IdentifyMode(ctx)
 	for _, msg := range msgs {
 		if msg.IsValid() {
+
+			// Early out if we are in GUI mode and don't have any breaks stored
+			idBroken := s.storage.IsTLFIdentifyBroken(ctx, msg.Valid().ClientHeader.Conv.Tlfid)
+			if haveMode && idMode == keybase1.TLFIdentifyBehavior_CHAT_GUI && !idBroken {
+				s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
+				return nil
+			}
+
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(finalizeInfo)
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, convID)
@@ -295,15 +296,10 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 				vis = chat1.TLFVisibility_PUBLIC
 			}
 
-			info, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis)
+			_, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis)
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
-			}
-
-			// Update conv break status, charge through any errors here
-			if err = s.storage.UpdateConvIdentifyBreak(ctx, convID, uid, info.IdentifyFailures); err != nil {
-				s.Debug(ctx, "identifyTLF: update conv breaks failure: %s", err.Error())
 			}
 
 			return nil

@@ -7,7 +7,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -23,17 +22,17 @@ func newBreakTracker(g *libkb.GlobalContext) *breakTracker {
 	}
 }
 
-func (b *breakTracker) makeKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
+func (b *breakTracker) makeKey(tlfID chat1.TLFID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatBlocks,
-		Key: fmt.Sprintf("breaks:%s:%s", uid, convID),
+		Key: fmt.Sprintf("breaks:%s", tlfID),
 	}
 }
 
-func (b *breakTracker) UpdateConv(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+func (b *breakTracker) UpdateTLF(ctx context.Context, tlfID chat1.TLFID,
 	breaks []keybase1.TLFIdentifyFailure) error {
 
-	key := b.makeKey(convID, uid)
+	key := b.makeKey(tlfID)
 
 	dat, err := encode(breaks)
 	if err != nil {
@@ -46,9 +45,9 @@ func (b *breakTracker) UpdateConv(ctx context.Context, convID chat1.Conversation
 	return nil
 }
 
-func (b *breakTracker) IsConvBroken(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error) {
+func (b *breakTracker) IsTLFBroken(ctx context.Context, tlfID chat1.TLFID) (bool, error) {
 
-	key := b.makeKey(convID, uid)
+	key := b.makeKey(tlfID)
 	raw, found, err := b.G().LocalChatDb.GetRaw(key)
 	if err != nil {
 		return true, NewInternalError(ctx, b.DebugLabeler, "GetRaw error: %s", err.Error())
