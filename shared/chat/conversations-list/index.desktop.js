@@ -256,14 +256,23 @@ const Row = connect(
   // return different
 // })(_Row)
 
+let _loaded = false
 class ConversationList extends PureComponent<void, Props, void> {
+  componentWillMount () {
+    if (!_loaded) {
+      _loaded = true
+      this.props.loadInbox()
+    }
+  }
+
   _itemRenderer = (index) => {
     const conversationIDKey = this.props.rows.get(index)
     return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
   }
 
   render () {
-    return <div style={{...globalStyles.flexBoxRow, flex: 1}}>
+    console.log('bbb inbox')
+    return (
       <div style={containerStyle}>
         <AddNewRow onNewChat={this.props.onNewChat} />
         <div style={scrollableStyle}>
@@ -276,8 +285,7 @@ class ConversationList extends PureComponent<void, Props, void> {
             type='uniform' />
         </div>
       </div>
-      {this.props.children}
-    </div>
+    )
   }
 }
 

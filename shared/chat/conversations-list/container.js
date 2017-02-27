@@ -1,25 +1,25 @@
 // @flow
 import ConversationList from './index'
-import React, {Component} from 'react'
+// import React, {PureComponent} from 'react'
 import {connect} from 'react-redux'
 import {loadInbox, newChat} from '../../actions/chat'
-import {List} from 'immutable'
+import {createSelectorCreator, defaultMemoize} from 'reselect'
+import * as I from 'immutable'
 
-import type {ConversationIDKey, InboxState, SupersededByState} from '../../constants/chat'
 import type {TypedState} from '../../constants/reducer'
 
-let _loaded = false
+// let _loaded = false
 
-class ConversationListContainer extends Component {
-  componentWillMount () {
-    if (!_loaded) {
-      _loaded = true
-      this.props.loadInbox()
-    }
-  }
+// class ConversationListContainer extends PureComponent {
+  // componentWillMount () {
+    // if (!_loaded) {
+      // _loaded = true
+      // this.props.loadInbox()
+    // }
+  // }
 
-  render () {
-    const pendingRows = this.props.pending.toList()
+  // render () {
+    // const pendingRows = this.props.pending.toList()
     // const pendingRows = this.props.pending.map((users, conversationIDKey) => {
       // const unreadCount = 0
       // const participants = participantFilter(users, this.props.you)
@@ -72,28 +72,49 @@ class ConversationListContainer extends Component {
       // ...this._derivedProps(props.rekeyInfo, props.unreadCount, props.isSelected),
     // }))
     //
-    const rows = pendingRows.concat(this.props.inbox)
+    // const rows = pendingRows.concat(this.props.inbox)
 
-    return <ConversationList
-      children={this.props.children}
-      rows={rows}
-      onNewChat={this.props.onNewChat}
-    />
-      // onSelectConversation={this.props.onSelectConversation}
+    // console.log('aaa', this.props.rows.toJS())
+    // return <ConversationList
+      // rows={this.props.rows}
+      // onNewChat={this.props.onNewChat}
+    // />
+      // // onSelectConversation={this.props.onSelectConversation}
+  // }
+// }
+
+// function _filterInboxes (inboxes: List<InboxState>, supersededByState: SupersededByState, alwaysShow: Set<ConversationIDKey>): List<ConversationIDKey> {
+  // return inboxes.filter(i => (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) && !supersededByState.get(i.conversationIDKey)).map(i => i.conversationIDKey)
+// }
+
+const getInbox = (state: TypedState) => state.chat.get('inbox')
+const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
+const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
+const getPending = (state: TypedState) => state.chat.get('pendingConversations')
+
+const createImuutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
+
+const filteredInbox = createImuutableEqualSelector(
+  [getInbox, getSupersededByState, getAlwaysShow],
+  (inbox, supersededByState, alwaysShow) => {
+    return inbox.filter(i => (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) &&
+        !supersededByState.get(i.conversationIDKey)).map(i => i.conversationIDKey)
   }
-}
-
-function _filterInboxes (inboxes: List<InboxState>, supersededByState: SupersededByState, alwaysShow: Set<ConversationIDKey>): List<ConversationIDKey> {
-  // $FlowIssue with records and accessing things inside them
-  return inboxes.filter(i => (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) && !supersededByState.get(i.conversationIDKey)).map(i => i.conversationIDKey)
-}
+)
+const getRows = createImuutableEqualSelector(
+  [filteredInbox, getPending],
+  (inbox, pending) => pending.toList().concat(inbox)
+)
 
 export default connect(
-  (state: TypedState, {routeSelected}) => ({
-    pending: state.chat.get('pendingConversations'),
-    rawAlwaysShow: state.chat.get('alwaysShow'),
-    rawInbox: state.chat.get('inbox'),
-    rawSupersededByState: state.chat.get('supersededByState'),
+  (state: TypedState) => ({
+    // pending: state.chat.get('pendingConversations'),
+    // inbox: getFilteredInbox(state),
+    rows: getRows(state),
+
+    // rawAlwaysShow: state.chat.get('alwaysShow'),
+    // rawInbox: state.chat.get('inbox'),
+    // rawSupersededByState: state.chat.get('supersededByState'),
     // rekeyInfos: state.chat.get('rekeyInfos'),
     // selectedConversation: newestConversationIDKey(routeSelected, state.chat),
     // you: state.config.username || '',
@@ -102,14 +123,11 @@ export default connect(
     loadInbox: () => dispatch(loadInbox()),
     onNewChat: () => dispatch(newChat([])),
     // onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
-  }),
-  (stateProps, dispatchProps, ownProps) => ({
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-    inbox: _filterInboxes(stateProps.rawInbox, stateProps.rawSupersededByState, stateProps.rawAlwaysShow),
   })
-)(ConversationListContainer)
+)(ConversationList)
+
+// TEMP
+const ConversationListContainer = () => null
 
 export {
   ConversationListContainer,

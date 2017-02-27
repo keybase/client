@@ -28,6 +28,7 @@ export type Props = {
   rows: List<ConversationIDKey>,
   // onSelectConversation: (key: ConversationIDKey) => void,
   onNewChat: () => void,
+  loadInbox: () => void,
   children?: React$Element<*>,
 }
 
