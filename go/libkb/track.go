@@ -364,7 +364,7 @@ func (t TrackDiffNewEldest) GetTrackDiffType() keybase1.TrackDiffType {
 }
 func (t TrackDiffNewEldest) ToDisplayString() string {
 	if t.tracked.IsNil() {
-		return fmt.Sprintf("No key when tracked; established new eldest key %s", t.observed)
+		return fmt.Sprintf("No key when followed; established new eldest key %s", t.observed)
 	}
 	return fmt.Sprintf("Account reset! Old key was %s; new key is %s", t.tracked, t.observed)
 }

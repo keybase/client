@@ -150,12 +150,11 @@ func (u *User) ToTrackingStatementSeqTail() *jsonw.Wrapper {
 func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (err error) {
 
 	track := jsonw.NewDictionary()
-	var keyErr error
-	key := u.ToTrackingStatementKey(&keyErr)
-	if keyErr != nil {
-		u.G().Log.Debug("ignoring ToTrackingStatementKey error: %s", keyErr)
-	} else if key != nil {
-		track.SetKey("key", key)
+	if u.HasActiveKey() {
+		key := u.ToTrackingStatementKey(&err)
+		if key != nil {
+			track.SetKey("key", key)
+		}
 	}
 	if pgpkeys := u.ToTrackingStatementPGPKeys(&err); pgpkeys != nil {
 		track.SetKey("pgp_keys", pgpkeys)
