@@ -73,7 +73,7 @@ const ErrorBanner = (props: ErrorVariant) => {
 const InviteBanner = (props: InviteVariant) => {
   return (
     <Header style={{backgroundColor: globalColors.blue}}>
-      <BannerText backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter}}>Your messages to {props.users.join(' & ')} will unlock when they join Keybase.</BannerText>
+      <BannerText style={{flex: 1, ...globalStyles.flexBoxCenter}}>Your messages to {props.users.join(' & ')} will unlock when they join Keybase.</BannerText>
     </Header>
   )
 }
