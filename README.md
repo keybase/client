@@ -21,7 +21,6 @@ But - some of the things in this repo are explorations, and the app you build fr
 * **media**: Icons, graphics, media for Keybase apps.
 * **osx**: The macOS Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
 
-
 ### Problems?
 
 Report any issues with client software on this GitHub [issue tracker](https://github.com/keybase/client/issues).
@@ -39,6 +38,19 @@ We check and update both frequently.
 
 Most code is released under the New BSD (3 Clause) License.  If subdirectories include
 a different license, that license applies instead.
+
+### Development Guidlines
+
+We check all git commits with pre-commit hooks generated via [pre-commit.com](http://pre-commit.com) pre-commit hooks.
+To enable use of these pre-commit hooks:
+
+* [Install](http://pre-commit.com/#install) the `pre-commit` utility. For some common cases:
+  * `pip install pre-commit`
+  * `brew install pre-commit`
+* Remove any existing pre-commit hooks via `rm .git/hooks/pre-commit`
+* Configure via `pre-commit install`
+
+Then proceed as normal.
 
 ### Cryptography Notice
 
