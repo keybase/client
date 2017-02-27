@@ -86,7 +86,7 @@ func TestRandomIDInRange(t *testing.T) {
 		id, err := MakeRandomIDInRange(0, math.MaxUint64)
 		require.NoError(t, err)
 		asInt := idToInt(id)
-		buckets[asInt>>60] += 1
+		buckets[asInt>>60]++
 	}
 	t.Log("Buckets:")
 	for i, v := range buckets {

@@ -251,9 +251,9 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 			return err
 		}
 		size := uint64(metadata.BlockSize)
-		tlfCounts[metadata.TlfID] += 1
+		tlfCounts[metadata.TlfID]++
 		tlfSizes[metadata.TlfID] += size
-		numBlocks += 1
+		numBlocks++
 		totalSize += size
 	}
 	cache.tlfCounts = tlfCounts
@@ -412,8 +412,8 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		if err != nil {
 			return err
 		}
-		cache.tlfCounts[tlfID] += 1
-		cache.numBlocks += 1
+		cache.tlfCounts[tlfID]++
+		cache.numBlocks++
 		encodedLenUint := uint64(encodedLen)
 		cache.tlfSizes[tlfID] += encodedLenUint
 		cache.currBytes += encodedLenUint
@@ -473,7 +473,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	return nil
 }
 
-// Delete implements the DiskBlockCache interface for DiskBlockCacheStandard.
+// DeleteByTLF implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) DeleteByTLF(ctx context.Context, tlfID tlf.ID,
 	blockIDs []kbfsblock.ID) error {
 	cache.lock.Lock()
@@ -546,8 +546,8 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 		return 0, err
 	}
 	rng := &util.Range{
-		append(tlfBytes, blockID.Bytes()...),
-		append(tlfBytes, cache.maxBlockID...),
+		Start: append(tlfBytes, blockID.Bytes()...),
+		Limit: append(tlfBytes, cache.maxBlockID...),
 	}
 	iter := cache.tlfDb.NewIterator(rng, nil)
 	defer iter.Release()
@@ -590,7 +590,7 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 	if err != nil {
 		return 0, err
 	}
-	rng := &util.Range{blockID.Bytes(), cache.maxBlockID}
+	rng := &util.Range{Start: blockID.Bytes(), Limit: cache.maxBlockID}
 	iter := cache.metaDb.NewIterator(rng, nil)
 	defer iter.Release()
 
