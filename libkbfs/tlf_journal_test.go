@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -70,11 +69,11 @@ func (d testBWDelegate) requireNextState(
 // testTLFJournalConfig is the config we pass to the tlfJournal, and
 // also contains some helper functions for testing.
 type testTLFJournalConfig struct {
+	codecGetter
+	logMaker
 	t            *testing.T
-	log          logger.Logger
 	tlfID        tlf.ID
 	splitter     BlockSplitter
-	codec        kbfscodec.Codec
 	crypto       CryptoLocal
 	bcache       BlockCache
 	bops         BlockOps
@@ -95,10 +94,6 @@ func (c testTLFJournalConfig) BlockSplitter() BlockSplitter {
 
 func (c testTLFJournalConfig) Clock() Clock {
 	return wallClock{}
-}
-
-func (c testTLFJournalConfig) Codec() kbfscodec.Codec {
-	return c.codec
 }
 
 func (c testTLFJournalConfig) Crypto() Crypto {
@@ -143,10 +138,6 @@ func (c testTLFJournalConfig) usernameGetter() normalizedUsernameGetter {
 
 func (c testTLFJournalConfig) MDServer() MDServer {
 	return c.mdserver
-}
-
-func (c testTLFJournalConfig) MakeLogger(module string) logger.Logger {
-	return c.log
 }
 
 func (c testTLFJournalConfig) diskLimitTimeout() time.Duration {
@@ -222,12 +213,11 @@ func setupTLFJournalTest(
 			VerifyingKey: verifyingKey,
 		},
 	}
-	log := logger.NewTestLogger(t)
-	mdserver, err := NewMDServerMemory(newTestMDServerLocalConfig(log, cig))
+	mdserver, err := NewMDServerMemory(newTestMDServerLocalConfig(t, cig))
 	require.NoError(t, err)
 
 	config = &testTLFJournalConfig{
-		t, log, tlf.FakeID(1, false), bsplitter, codec, crypto,
+		newTestCodecGetter(), newTestLogMaker(t), t, tlf.FakeID(1, false), bsplitter, crypto,
 		nil, nil, NewMDCacheStandard(10), ver,
 		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver, defaultDiskLimitMaxDelay + time.Second,
 	}
@@ -262,7 +252,7 @@ func setupTLFJournalTest(
 		}
 	}()
 
-	delegateBlockServer := NewBlockServerMemory(log)
+	delegateBlockServer := NewBlockServerMemory(config.MakeLogger(""))
 
 	diskLimitSemaphore := newSemaphoreDiskLimiter(
 		math.MaxInt64, math.MaxInt64)

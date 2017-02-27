@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -79,21 +78,17 @@ func (kg fakeBlockKeyGetter) GetTLFCryptKeyForBlockDecryption(
 }
 
 type testBlockOpsConfig struct {
-	bserver   BlockServer
-	testCodec kbfscodec.Codec
-	cp        cryptoPure
-	cache     BlockCache
-	t         *testing.T
+	testCodecGetter
+	logMaker
+	bserver BlockServer
+	cp      cryptoPure
+	cache   BlockCache
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
 
 func (config testBlockOpsConfig) BlockServer() BlockServer {
 	return config.bserver
-}
-
-func (config testBlockOpsConfig) Codec() kbfscodec.Codec {
-	return config.testCodec
 }
 
 func (config testBlockOpsConfig) cryptoPure() cryptoPure {
@@ -108,20 +103,17 @@ func (config testBlockOpsConfig) BlockCache() BlockCache {
 	return config.cache
 }
 
-func (config testBlockOpsConfig) MakeLogger(module string) logger.Logger {
-	return logger.NewTestLogger(config.t)
-}
-
 func (config testBlockOpsConfig) DataVersion() DataVer {
 	return ChildHolesDataVer
 }
 
 func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
-	bserver := NewBlockServerMemory(logger.NewTestLogger(t))
-	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
+	lm := newTestLogMaker(t)
+	codecGetter := newTestCodecGetter()
+	bserver := NewBlockServerMemory(lm.MakeLogger(""))
+	crypto := MakeCryptoCommon(codecGetter.Codec())
 	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
-	return testBlockOpsConfig{bserver, codec, crypto, cache, t}
+	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
@@ -139,7 +131,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 		Contents: []byte{1, 2, 3, 4, 5},
 	}
 
-	encodedBlock, err := config.testCodec.Encode(block)
+	encodedBlock, err := config.Codec().Encode(block)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -152,7 +144,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	var encryptedBlock EncryptedBlock
-	err = config.testCodec.Decode(readyBlockData.buf, &encryptedBlock)
+	err = config.Codec().Decode(readyBlockData.buf, &encryptedBlock)
 	require.NoError(t, err)
 
 	blockCryptKey := kbfscrypto.UnmaskBlockCryptKey(
@@ -261,7 +253,7 @@ func (c badEncoder) Encode(o interface{}) ([]byte, error) {
 // fails properly if we fail to encode the encrypted block.
 func TestBlockOpsReadyFailEncode(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
-	config.testCodec = badEncoder{config.testCodec}
+	config.testCodecGetter.codec = badEncoder{config.codec}
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
@@ -286,7 +278,7 @@ func (c tooSmallEncoder) Encode(o interface{}) ([]byte, error) {
 // encodes to a too-small buffer.
 func TestBlockOpsReadyTooSmallEncode(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
-	config.testCodec = tooSmallEncoder{config.testCodec}
+	config.codec = tooSmallEncoder{config.codec}
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 
@@ -468,10 +460,10 @@ func (c *badDecoder) Decode(buf []byte, o interface{}) error {
 func TestBlockOpsGetFailDecode(t *testing.T) {
 	config := makeTestBlockOpsConfig(t)
 	badDecoder := badDecoder{
-		Codec:  config.testCodec,
+		Codec:  config.Codec(),
 		errors: make(map[string]error),
 	}
-	config.testCodec = &badDecoder
+	config.codec = &badDecoder
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	defer bops.Shutdown()
 

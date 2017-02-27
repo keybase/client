@@ -47,33 +47,34 @@ const (
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	lock        sync.RWMutex
-	kbfs        KBFSOps
-	keyman      KeyManager
-	rep         Reporter
-	kcache      KeyCache
-	kbcache     KeyBundleCache
-	bcache      BlockCache
-	dirtyBcache DirtyBlockCache
-	codec       kbfscodec.Codec
-	mdops       MDOps
-	kops        KeyOps
-	crypto      Crypto
-	mdcache     MDCache
-	bops        BlockOps
-	mdserv      MDServer
-	bserv       BlockServer
-	keyserv     KeyServer
-	service     KeybaseService
-	bsplit      BlockSplitter
-	notifier    Notifier
-	clock       Clock
-	kbpki       KBPKI
-	renamer     ConflictRenamer
-	registry    metrics.Registry
-	loggerFn    func(prefix string) logger.Logger
-	noBGFlush   bool // logic opposite so the default value is the common setting
-	rwpWaitTime time.Duration
+	lock           sync.RWMutex
+	kbfs           KBFSOps
+	keyman         KeyManager
+	rep            Reporter
+	kcache         KeyCache
+	kbcache        KeyBundleCache
+	bcache         BlockCache
+	dirtyBcache    DirtyBlockCache
+	diskBlockCache DiskBlockCache
+	codec          kbfscodec.Codec
+	mdops          MDOps
+	kops           KeyOps
+	crypto         Crypto
+	mdcache        MDCache
+	bops           BlockOps
+	mdserv         MDServer
+	bserv          BlockServer
+	keyserv        KeyServer
+	service        KeybaseService
+	bsplit         BlockSplitter
+	notifier       Notifier
+	clock          Clock
+	kbpki          KBPKI
+	renamer        ConflictRenamer
+	registry       metrics.Registry
+	loggerFn       func(prefix string) logger.Logger
+	noBGFlush      bool // logic opposite so the default value is the common setting
+	rwpWaitTime    time.Duration
 
 	maxNameBytes uint32
 	maxDirBytes  uint64
@@ -283,6 +284,13 @@ func (c *ConfigLocal) KBPKI() KBPKI {
 	return c.kbpki
 }
 
+// currentSessionGetter implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) currentSessionGetter() currentSessionGetter {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.kbpki
+}
+
 // SetKBPKI implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetKBPKI(k KBPKI) {
 	c.lock.Lock()
@@ -381,8 +389,22 @@ func (c *ConfigLocal) SetDirtyBlockCache(d DirtyBlockCache) {
 	c.dirtyBcache = d
 }
 
+// DiskBlockCache implements the COnfig interface for ConfigLocal.
+func (c *ConfigLocal) DiskBlockCache() DiskBlockCache {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.diskBlockCache
+}
+
 // Crypto implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Crypto() Crypto {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.crypto
+}
+
+// Signer implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) Signer() kbfscrypto.Signer {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.crypto
@@ -840,6 +862,9 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	if err != nil {
 		errorList = append(errorList, err)
 	}
+	if c.DiskBlockCache() != nil {
+		c.DiskBlockCache().Shutdown(ctx)
+	}
 
 	if len(errorList) == 1 {
 		return errorList[0]
@@ -961,4 +986,14 @@ func (c *ConfigLocal) EnableJournaling(
 	}
 
 	return nil
+}
+
+// EnableDiskBlockCache creates and enables a new disk block cache.
+func (c *ConfigLocal) EnableDiskBlockCache(ctx context.Context,
+	diskCacheRoot string) (err error) {
+	// TODO: maybe factor out into a SetDiskBlockCache if we need it.
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.diskBlockCache, err = newDiskBlockCacheStandard(c, diskCacheRoot, defaultDiskBlockCacheMaxBytes)
+	return err
 }

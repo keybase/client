@@ -77,6 +77,14 @@ type InitParams struct {
 	// CreateSimpleFSInstance creates a SimpleFSInterface from config.
 	// If this is nil then simplefs will be omitted in the rpc api.
 	CreateSimpleFSInstance func(Config) keybase1.SimpleFSInterface
+
+	// DiskCacheRoot, if non-empty, points to a path to a local directory to
+	// put the block cache database. If non-default, enables disk caching.
+	DiskCacheRoot string
+	// EnableDiskCache toggles whether the disk cache is enabled in the default
+	// data directory. Note that specifying a non-default DiskCacheRoot
+	// overrides this setting.
+	EnableDiskCache bool
 }
 
 // defaultBServer returns the default value for the -bserver flag.
@@ -141,6 +149,8 @@ func DefaultInitParams(ctx Context) InitParams {
 		TLFJournalBackgroundWorkStatus: TLFJournalBackgroundWorkEnabled,
 		WriteJournalRoot: filepath.Join(
 			ctx.GetDataDir(), "kbfs_journal"),
+		DiskCacheRoot: filepath.Join(
+			ctx.GetDataDir(), "kbfs_block_cache"),
 	}
 }
 
@@ -189,6 +199,11 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 		defaultParams.CleanBlockCacheCapacity,
 		"If non-zero, specify the capacity of clean block cache. If zero, "+
 			"the capacity is set based on system RAM.")
+	flags.StringVar(&params.DiskCacheRoot, "disk-cache-root",
+		defaultParams.DiskCacheRoot, "(EXPERIMENTAL) If non-empty, permits "+
+			"a block database to be saved in the specified directory.")
+	flags.BoolVar(&params.EnableDiskCache, "enable-disk-cache", false,
+		"(EXPERIMENTAL) Enables the disk cache for the default data directory.")
 
 	// No real need to enable setting
 	// params.TLFJournalBackgroundWorkStatus via a flag.
@@ -326,9 +341,8 @@ func makeBlockServer(config Config, bserverAddr string,
 	}
 
 	log.Debug("Using remote bserver %s", bserverAddr)
-	bserverLog := config.MakeLogger("BSR")
-	return NewBlockServerRemote(config.Codec(), config.Crypto(),
-		config.KBPKI(), bserverLog, bserverAddr, rpcLogFactory), nil
+	return NewBlockServerRemote(config, config.Signer(), bserverAddr,
+		rpcLogFactory), nil
 }
 
 // InitLog sets up logging switching to a log file if necessary.
@@ -558,6 +572,19 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
 			log.Warning("Could not initialize journal server: %+v", err)
+		}
+	}
+	defaultParams := DefaultInitParams(ctx)
+	// Only enable the disk block cache if the user has explicitly specified a
+	// caching root directory, or enabled caching in the default directory.
+	if len(params.DiskCacheRoot) != 0 && (params.EnableDiskCache ||
+		params.DiskCacheRoot != defaultParams.DiskCacheRoot) {
+		err := config.EnableDiskBlockCache(context.TODO(),
+			params.DiskCacheRoot)
+		if err != nil {
+			log.Warning("Could not initialize disk cache: %+v", err)
+			// TODO: Make this error less fatal later.
+			return nil, err
 		}
 	}
 
