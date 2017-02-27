@@ -711,6 +711,9 @@ func TestChatMessageDeletedNotSuperseded(t *testing.T) {
 		boxed.BodyCiphertext.E = []byte{}
 
 		unboxed, err := boxer.unbox(context.TODO(), *boxed, key)
+		// The server was not setting supersededBy on EDITs when their TEXT got deleted.
+		// So there are existing messages which have no supersededBy but are legitimately deleted.
+		// Tracked in CORE-4662
 		require.NoError(t, err, "suprisingly, should be able to unbox with deleted but no supersededby")
 		require.Equal(t, chat1.MessageBody{}, unboxed.MessageBody)
 	})
@@ -839,6 +842,8 @@ func TestV1Message3(t *testing.T) {
 	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", boxed.ClientHeader.Conv.TopicID.String())
 	require.Equal(t, canned.encryptionKeyGeneration, boxed.KeyGeneration)
 	require.Equal(t, chat1.MessageID(3), boxed.ServerHeader.MessageID)
+	require.Equal(t, chat1.MessageID(0), boxed.ClientHeader.Supersedes)
+	require.Nil(t, boxed.ClientHeader.Deletes)
 
 	// Unbox
 	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), canned.EncryptionKey(t))
@@ -852,13 +857,11 @@ func TestV1Message3(t *testing.T) {
 	require.Equal(t, "alice25,bob25", unboxed.ClientHeader.TlfName)
 	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
 	require.Equal(t, chat1.MessageType_TEXT, unboxed.ClientHeader.MessageType)
-	require.Equal(t, chat1.MessageID(0), unboxed.ClientHeader.Supersedes)
-	require.Nil(t, unboxed.ClientHeader.Deletes)
 	expectedPrevs := []chat1.MessagePreviousPointer{chat1.MessagePreviousPointer{Id: 2, Hash: chat1.Hash{0xbe, 0xb2, 0x7c, 0x41, 0xdb, 0xeb, 0x2e, 0x90, 0x04, 0xf2, 0x48, 0xf2, 0x78, 0x24, 0x3a, 0xde, 0x5e, 0x12, 0x0c, 0xb7, 0xc4, 0x1f, 0x40, 0xe8, 0x47, 0xa2, 0xe2, 0x2f, 0xe8, 0x2c, 0xd3, 0xb4}}}
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
-	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	require.Nil(t, unboxed.ClientHeader.OutboxID)
 	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
 
@@ -895,6 +898,8 @@ func TestV1Message4(t *testing.T) {
 	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", boxed.ClientHeader.Conv.TopicID.String())
 	require.Equal(t, canned.encryptionKeyGeneration, boxed.KeyGeneration)
 	require.Equal(t, chat1.MessageID(4), boxed.ServerHeader.MessageID)
+	require.Equal(t, chat1.MessageID(3), boxed.ClientHeader.Supersedes)
+	require.Nil(t, boxed.ClientHeader.Deletes)
 
 	// Unbox
 	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), canned.EncryptionKey(t))
@@ -909,19 +914,11 @@ func TestV1Message4(t *testing.T) {
 	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
 	require.Equal(t, chat1.MessageType_EDIT, unboxed.ClientHeader.MessageType)
 
-	// Supersedes was not a part of HeaderPlaintextV1 at the time this message was sent.
-	// So instead of being 3 like it is on the ClientHeader, it is 0 after unboxing.
-	require.Equal(t, chat1.MessageID(3), boxed.ClientHeader.Supersedes)
-	require.Equal(t, chat1.MessageID(0), unboxed.ClientHeader.Supersedes)
-
-	require.Nil(t, boxed.ClientHeader.Deletes)
-	require.Nil(t, unboxed.ClientHeader.Deletes)
-
 	expectedPrevs := []chat1.MessagePreviousPointer{chat1.MessagePreviousPointer{Id: 3, Hash: chat1.Hash{0x3b, 0x54, 0x7a, 0x7a, 0xdd, 0x32, 0x5c, 0xcc, 0x9f, 0x4d, 0x30, 0x12, 0xc5, 0x6e, 0xb1, 0xab, 0xa0, 0x1c, 0xf7, 0x68, 0x7e, 0x26, 0x13, 0x49, 0x3f, 0xf5, 0xc9, 0xb7, 0x16, 0xaf, 0xd5, 0x07}}}
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
-	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	expectedOutboxID := chat1.OutboxID{0x8e, 0xcc, 0x94, 0xb7, 0xff, 0x50, 0x5c, 0x4}
 	require.Equal(t, &expectedOutboxID, unboxed.ClientHeader.OutboxID)
 	expectedOutboxInfo := &chat1.OutboxInfo{Prev: 0x3, ComposeTime: 1487708373568}
@@ -961,6 +958,9 @@ func TestV1Message5(t *testing.T) {
 	require.Equal(t, "1fb5a5e7585a43aba1a59520939e2420", boxed.ClientHeader.Conv.TopicID.String())
 	require.Equal(t, canned.encryptionKeyGeneration, boxed.KeyGeneration)
 	require.Equal(t, chat1.MessageID(5), boxed.ServerHeader.MessageID)
+	require.Equal(t, chat1.MessageID(3), boxed.ClientHeader.Supersedes)
+	expectedDeletesIDs := []chat1.MessageID{3, 4}
+	require.Equal(t, expectedDeletesIDs, boxed.ClientHeader.Deletes)
 
 	// Unbox
 	unboxed, err := boxer.unbox(context.TODO(), canned.AsBoxed(t), canned.EncryptionKey(t))
@@ -975,21 +975,11 @@ func TestV1Message5(t *testing.T) {
 	require.Equal(t, false, unboxed.ClientHeader.TlfPublic)
 	require.Equal(t, chat1.MessageType_DELETE, unboxed.ClientHeader.MessageType)
 
-	// Supersedes was not a part of HeaderPlaintextV1 at the time this message was sent.
-	// So instead of being 3 like it is on the ClientHeader, it is 0 after unboxing.
-	require.Equal(t, chat1.MessageID(3), boxed.ClientHeader.Supersedes)
-	require.Equal(t, chat1.MessageID(0), unboxed.ClientHeader.Supersedes)
-
-	// Same deal as Supersedes
-	expectedDeletesIDs := []chat1.MessageID{3, 4}
-	require.Equal(t, expectedDeletesIDs, boxed.ClientHeader.Deletes)
-	require.Nil(t, unboxed.ClientHeader.Deletes)
-
 	expectedPrevs := []chat1.MessagePreviousPointer{chat1.MessagePreviousPointer{Id: 4, Hash: chat1.Hash{0xea, 0x68, 0x5e, 0x0f, 0x26, 0xb5, 0xb4, 0xfc, 0x1d, 0xe4, 0x15, 0x11, 0x34, 0x40, 0xcc, 0x3d, 0x54, 0x65, 0xa1, 0x52, 0x42, 0xd6, 0x83, 0xa7, 0xf4, 0x88, 0x96, 0xec, 0xd2, 0xc6, 0xd6, 0x26}}}
 	require.Equal(t, expectedPrevs, unboxed.ClientHeader.Prev)
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
-	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	expectedOutboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 	require.Equal(t, &expectedOutboxID, unboxed.ClientHeader.OutboxID)
 	expectedOutboxInfo := &chat1.OutboxInfo{Prev: 0x3, ComposeTime: 1487708384552}
