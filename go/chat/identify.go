@@ -32,6 +32,7 @@ func NewIdentifyNotifier(g *libkb.GlobalContext) *IdentifyNotifier {
 }
 
 func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+
 	i.RLock()
 	tlfName := update.CanonicalName.String()
 	stored, ok := i.identCache[tlfName]

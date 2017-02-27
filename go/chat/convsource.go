@@ -268,8 +268,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 }
 
 func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo,
-	idBroken bool) error {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) error {
 
 	// If we are offline, then bail out of here with no error
 	if s.IsOffline() {
@@ -277,7 +276,8 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 		return nil
 	}
 
-	// Early out if
+	// Early out if we are in GUI mode and don't have any breaks stored
+	idBroken := s.storage.IsConvIdentifyBroken(ctx, convID, uid)
 	idMode, _, ok := IdentifyMode(ctx)
 	if ok && idMode == keybase1.TLFIdentifyBehavior_CHAT_GUI && !idBroken {
 		s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
@@ -302,7 +302,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 			}
 
 			// Update conv break status, charge through any errors here
-			if err = s.storage.UpdateConvBreak(ctx, convID, uid, info.IdentifyFailures); err != nil {
+			if err = s.storage.UpdateConvIdentifyBreak(ctx, convID, uid, info.IdentifyFailures); err != nil {
 				s.Debug(ctx, "identifyTLF: update conv breaks failure: %s", err.Error())
 			}
 
@@ -336,23 +336,21 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		}
 	}()
 
+	// Identify this TLF by running crypt keys
+	if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
+		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
+		return chat1.ThreadView{}, rl, ierr
+	}
+
 	if err == nil {
 		// Try locally first
-		var idBroken bool
-		thread, idBroken, err = s.storage.Fetch(ctx, conv, uid, query, pagination)
+		thread, err = s.storage.Fetch(ctx, conv, uid, query, pagination)
 		if err == nil {
 			// If found, then return the stuff
 			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s", convID, uid)
 
 			// Do online only things
 			if !s.IsOffline() {
-
-				// Identify this TLF by running crypt keys
-				if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo,
-					idBroken); ierr != nil {
-					s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
-					return chat1.ThreadView{}, rl, ierr
-				}
 
 				// Before returning the stuff, update SenderDeviceRevokedAt on each message.
 				updatedMessages, err := s.updateMessages(ctx, thread.Messages)
@@ -468,7 +466,7 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
 
-	tv, idBroken, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
+	tv, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
 	if err != nil {
 		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
 		return chat1.ThreadView{}, err
@@ -476,7 +474,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 	// Identify this TLF by running crypt keys
 	// XXX might need finalize info
-	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages, nil, idBroken); ierr != nil {
+	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages, nil); ierr != nil {
 		s.Debug(ctx, "PullLocalOnly: identify failed: %s", ierr.Error())
 		return chat1.ThreadView{}, ierr
 	}
@@ -499,7 +497,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 
 	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
 
-	msgs, idBroken, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
+	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -558,7 +556,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	}
 
 	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo, idBroken); ierr != nil {
+	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
 		s.Debug(ctx, "GetMessages: identify failed: %s", ierr.Error())
 		return nil, ierr
 	}
@@ -578,7 +576,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 	lmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
 
-	lmsgs, idBroken, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
+	lmsgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -586,6 +584,12 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if lmsg != nil {
 			lmsgsTab[lmsg.GetMessageID()] = *lmsg
 		}
+	}
+
+	// Identify this TLF by running crypt keys
+	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
+		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
+		return res, ierr
 	}
 
 	s.Debug(ctx, "GetMessagesWithRemotes: convID: %s uid: %s total msgs: %d hits: %d", convID, uid,
@@ -607,12 +611,6 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if err = s.storage.Merge(ctx, convID, uid, merges); err != nil {
 			return res, err
 		}
-	}
-
-	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo, idBroken); ierr != nil {
-		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
-		return res, ierr
 	}
 
 	return res, nil

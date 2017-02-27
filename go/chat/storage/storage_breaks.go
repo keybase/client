@@ -62,5 +62,6 @@ func (b *breakTracker) IsConvBroken(ctx context.Context, convID chat1.Conversati
 		return len(breaks) != 0, nil
 	}
 
-	return false, nil
+	// Assume to be broken if we have no record
+	return true, nil
 }

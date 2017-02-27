@@ -304,26 +304,19 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 }
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, bool, Error) {
+	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
-		return chat1.ThreadView{}, true,
+		return chat1.ThreadView{},
 			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
-	}
-
-	// Check to see if this conv is identify broken
-	idBroken, ierr := s.breakTracker.IsConvBroken(ctx, convID, uid)
-	if ierr != nil {
-		idBroken = true
-		s.Debug(ctx, "Fetch: break tracker error, assuming broken: msg: %s", ierr.Error())
 	}
 
 	// Init storage engine first
 	var err Error
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, idBroken, s.MaybeNuke(false, err, convID, uid)
+		return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 	}
 
 	// Calculate seek parameters
@@ -340,13 +333,13 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, idBroken, s.MaybeNuke(false, err, convID, uid)
+				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = pid - 1
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, idBroken, s.MaybeNuke(false, err, convID, uid)
+				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
 		}
@@ -366,7 +359,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	// Run seek looking for all the messages
 	var res []chat1.MessageUnboxed
 	if err = s.engine.readMessages(ctx, rc, convID, uid, maxID); err != nil {
-		return chat1.ThreadView{}, idBroken, err
+		return chat1.ThreadView{}, err
 	}
 	res = rc.result()
 
@@ -377,17 +370,17 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 		pmsgs = append(pmsgs, m)
 	}
 	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num); ierr != nil {
-		return chat1.ThreadView{}, idBroken,
+		return chat1.ThreadView{},
 			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
 	tres.Messages = res
 
 	s.Debug(ctx, "Fetch: cache hit: num: %d", len(res))
-	return tres, idBroken, nil
+	return tres, nil
 }
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, bool, Error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -395,7 +388,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, true, err
+		return chat1.ThreadView{}, err
 	}
 	s.Debug(ctx, "FetchUpToLocalMaxMsgID: using max msgID: %d", maxMsgID)
 
@@ -403,7 +396,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, bool, Error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -413,26 +406,19 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 }
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, bool, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, error) {
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
-		return nil, true, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
-	}
-
-	// Check to see if this conv is identify broken
-	idBroken, ierr := s.breakTracker.IsConvBroken(ctx, convID, uid)
-	if ierr != nil {
-		idBroken = true
-		s.Debug(ctx, "Fetch: break tracker error, assuming broken: msg: %s", ierr.Error())
+		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
 
 	// Init storage engine first
 	var err Error
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
-		return nil, idBroken, s.MaybeNuke(false, err, convID, uid)
+		return nil, s.MaybeNuke(false, err, convID, uid)
 	}
 
 	// Run seek looking for each message
@@ -445,17 +431,26 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 				res = append(res, nil)
 				continue
 			} else {
-				return nil, idBroken, s.MaybeNuke(false, err, convID, uid)
+				return nil, s.MaybeNuke(false, err, convID, uid)
 			}
 		}
 		sres = rc.result()
 		res = append(res, &sres[0])
 	}
 
-	return res, idBroken, nil
+	return res, nil
 }
 
-func (s *Storage) UpdateConvBreak(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	breaks []keybase1.TLFIdentifyFailure) error {
+func (s *Storage) UpdateConvIdentifyBreak(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, breaks []keybase1.TLFIdentifyFailure) error {
 	return s.breakTracker.UpdateConv(ctx, convID, uid, breaks)
+}
+
+func (s *Storage) IsConvIdentifyBroken(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) bool {
+	idBroken, err := s.breakTracker.IsConvBroken(ctx, convID, uid)
+	if err != nil {
+		s.Debug(ctx, "IsConvIdentifyBroken: got error, so returning broken: %s", err.Error())
+		return true
+	}
+	return idBroken
 }
