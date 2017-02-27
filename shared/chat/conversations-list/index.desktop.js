@@ -3,9 +3,17 @@ import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {shouldUpdate} from 'recompose'
+// import {shouldUpdate} from 'recompose'
+import {getPath} from '../../route-tree'
+import {connect} from 'react-redux'
+import {isPendingConversationIDKey, newestConversationIDKey, participantFilter, nothingSelected} from '../../constants/chat'
+import {formatTimeForConversationList} from '../../util/timestamp'
+import {chatTab} from '../../constants/tabs'
+import {selectConversation} from '../../actions/chat'
 
+import type {TypedState} from '../../constants/reducer'
 import type {Props, RowProps} from './'
+import type {ConversationIDKey} from '../../constants/chat'
 
 class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
   render () {
@@ -143,24 +151,115 @@ const _Row = (props: RowProps) => {
   )
 }
 
-const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
-  const different =
-    props.conversationIDKey !== nextProps.conversationIDKey ||
-    props.unreadCount !== nextProps.unreadCount ||
-    props.isSelected !== nextProps.isSelected ||
-    props.isMuted !== nextProps.isMuted ||
-    props.youNeedToRekey !== nextProps.youNeedToRekey ||
-    props.participantNeedToRekey !== nextProps.participantNeedToRekey ||
-    props.timestamp !== nextProps.timestamp ||
-    props.snippet !== nextProps.snippet ||
-    !props.participants.equals(nextProps.participants)
-  return different
-})(_Row)
+const _selectedSelector = (state: TypedState) => {
+  const chatPath = getPath(state.routeTree.routeState, [chatTab])
+  if (chatPath.get(0) !== chatTab) {
+    return null
+  }
+  const selected = chatPath.get(1)
+  if (selected === nothingSelected) {
+    return null
+  }
+  return selected
+}
+
+function _rowDerivedProps (rekeyInfo, unreadCount, isSelected) {
+  // Derived props
+  const youNeedToRekey = rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
+  const participantNeedToRekey = rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
+  const hasUnread = !!unreadCount
+  const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
+  const showBold = !isSelected && hasUnread
+  const backgroundColor = isSelected ? globalColors.white : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
+  const usernameColor = isSelected ? globalColors.black_75 : hasUnread ? globalColors.white : globalColors.blue3_60
+
+  return {
+    backgroundColor,
+    hasUnread,
+    participantNeedToRekey,
+    showBold,
+    subColor,
+    usernameColor,
+    youNeedToRekey,
+  }
+}
+
+// $FlowIssue
+const Row = connect(
+  (state: TypedState, {conversationIDKey, nowOverride}) => {
+    // returns a closure!
+    const isPending = isPendingConversationIDKey(conversationIDKey)
+    const users = state.chat.get('pendingConversations').findKey(v => v === conversationIDKey)
+    return (state: TypedState) => {
+      const you = state.config.username || ''
+      const selectedConversation = newestConversationIDKey(_selectedSelector(state), state.chat)
+      const isSelected = selectedConversation === conversationIDKey
+      const rekeyInfos = state.chat.get('rekeyInfos')
+
+      if (isPending) {
+        const unreadCount = 0
+        const participants = participantFilter(users, you)
+        const isMuted = false
+        const rekeyInfo = null
+        const timestamp = formatTimeForConversationList(Date.now(), nowOverride)
+        const snippet = ''
+
+        return {
+          conversationIDKey,
+          isMuted,
+          isSelected,
+          participants,
+          rekeyInfo,
+          snippet,
+          timestamp,
+          unreadCount,
+          ..._rowDerivedProps(rekeyInfo, unreadCount, isSelected),
+        }
+      } else {
+        const conversation = state.chat.get('inbox').find(i => i.get('conversationIDKey') === conversationIDKey)
+        const unreadCount = state.chat.get('conversationUnreadCounts').get(conversationIDKey)
+        const participants = participantFilter(conversation.get('participants'), you)
+        const isMuted = conversation.get('muted')
+        const rekeyInfo = rekeyInfos.get(conversationIDKey)
+        const timestamp = formatTimeForConversationList(conversation.get('time'), nowOverride)
+        const snippet = conversation.get('snippet')
+
+        return {
+          conversationIDKey,
+          isMuted,
+          isSelected,
+          participants,
+          rekeyInfo,
+          snippet,
+          timestamp,
+          unreadCount,
+          ..._rowDerivedProps(rekeyInfo, unreadCount, isSelected),
+        }
+      }
+    }
+  },
+  (dispatch) => ({
+    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
+  })
+)(_Row)
+// const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
+  // const different =
+    // props.conversationIDKey !== nextProps.conversationIDKey ||
+    // props.unreadCount !== nextProps.unreadCount ||
+    // props.isSelected !== nextProps.isSelected ||
+    // props.isMuted !== nextProps.isMuted ||
+    // props.youNeedToRekey !== nextProps.youNeedToRekey ||
+    // props.participantNeedToRekey !== nextProps.participantNeedToRekey ||
+    // props.timestamp !== nextProps.timestamp ||
+    // props.snippet !== nextProps.snippet ||
+    // !props.participants.equals(nextProps.participants)
+  // return different
+// })(_Row)
 
 class ConversationList extends PureComponent<void, Props, void> {
   _itemRenderer = (index) => {
-    const rowProp = this.props.rows.get(index)
-    return <Row {...rowProp} key={rowProp.conversationIDKey} />
+    const conversationIDKey = this.props.rows.get(index)
+    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
   }
 
   render () {

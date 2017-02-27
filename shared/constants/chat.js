@@ -529,7 +529,7 @@ function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): 
   return chat.get('supersededByState').get(conversationID)
 }
 
-function newestConversationIDKey (conversationIDKey: ConversationIDKey, chat: State): ConversationIDKey {
+function newestConversationIDKey (conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
   const supersededBy = chat.get('supersededByState').get(conversationIDKey)
   if (!supersededBy) {
     return conversationIDKey
