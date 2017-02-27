@@ -3,7 +3,6 @@ import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-// import {shouldUpdate} from 'recompose'
 import {getPath} from '../../route-tree'
 import {connect} from 'react-redux'
 import {isPendingConversationIDKey, newestConversationIDKey, participantFilter, nothingSelected} from '../../constants/chat'
@@ -242,19 +241,6 @@ const Row = connect(
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
   })
 )(_Row)
-// const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
-  // const different =
-    // props.conversationIDKey !== nextProps.conversationIDKey ||
-    // props.unreadCount !== nextProps.unreadCount ||
-    // props.isSelected !== nextProps.isSelected ||
-    // props.isMuted !== nextProps.isMuted ||
-    // props.youNeedToRekey !== nextProps.youNeedToRekey ||
-    // props.participantNeedToRekey !== nextProps.participantNeedToRekey ||
-    // props.timestamp !== nextProps.timestamp ||
-    // props.snippet !== nextProps.snippet ||
-    // !props.participants.equals(nextProps.participants)
-  // return different
-// })(_Row)
 
 let _loaded = false
 class ConversationList extends PureComponent<void, Props, void> {
