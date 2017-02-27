@@ -60,5 +60,7 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Scanning codes</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Attaching images to Chat messages</string>
 </dict>
 </plist>

@@ -170,4 +170,5 @@ dependencies {
     compile project(':keybaselib')
     testCompile 'junit:junit:4.12'
     compile project(':react-native-camera')
+    compile project(':react-native-image-picker')
 }

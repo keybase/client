@@ -10,6 +10,7 @@ export type Props = {
   onAttach: (inputs: Array<AttachmentInput>) => void,
   onPostMessage: (text: string) => void,
   onEditLastMessage: () => void,
+  onSelectAttachment: (input: AttachmentInput) => void,
   selectedConversation: ?ConversationIDKey,
 }
 
