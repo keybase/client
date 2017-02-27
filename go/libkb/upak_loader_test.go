@@ -24,7 +24,7 @@ func TestCachedUserLoad(t *testing.T) {
 		UID: keybase1.UID("295a7eea607af32040647123732bc819"),
 	}
 	var info CachedUserLoadInfo
-	upk, user, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info)
+	upk, user, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil)
 
 	checkLoad := func(upk *keybase1.UserPlusAllKeys, err error) {
 		if err != nil {
@@ -43,7 +43,7 @@ func TestCachedUserLoad(t *testing.T) {
 
 	fakeClock.Advance(CachedUserTimeout / 100)
 	info = CachedUserLoadInfo{}
-	upk, user, err = tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info)
+	upk, user, err = tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil)
 	checkLoad(upk, err)
 	if user != nil {
 		t.Fatal("expected no full user load")
@@ -55,7 +55,7 @@ func TestCachedUserLoad(t *testing.T) {
 
 	fakeClock.Advance(2 * CachedUserTimeout)
 	info = CachedUserLoadInfo{}
-	upk, user, err = tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info)
+	upk, user, err = tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil)
 	checkLoad(upk, err)
 	if user != nil {
 		t.Fatal("expected no full user load")
@@ -110,7 +110,7 @@ func TestCacheFallbacks(t *testing.T) {
 		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 		var arg LoadUserArg
 		arg.UID = uid
-		upk, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &ret)
+		upk, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &ret, nil)
 		require.NoError(t, err)
 		require.Equal(t, upk.Base.Username, "t_tracy", "tracy was right")
 		return &ret
