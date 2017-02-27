@@ -8,8 +8,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/kbfs/kbfsblock"
-	"github.com/keybase/kbfs/kbfscrypto"
-
 	"golang.org/x/net/context"
 )
 
@@ -21,40 +19,6 @@ type blockGetter interface {
 // realBlockGetter obtains real blocks using the APIs available in Config.
 type realBlockGetter struct {
 	config blockOpsConfig
-}
-
-func (bg *realBlockGetter) assembleBlock(
-	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block,
-	buf []byte, blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {
-		return err
-	}
-
-	tlfCryptKey, err := bg.config.keyGetter().
-		GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
-	if err != nil {
-		return err
-	}
-
-	// construct the block crypt key
-	blockCryptKey := kbfscrypto.UnmaskBlockCryptKey(
-		blockServerHalf, tlfCryptKey)
-
-	var encryptedBlock EncryptedBlock
-	err = bg.config.Codec().Decode(buf, &encryptedBlock)
-	if err != nil {
-		return err
-	}
-
-	// decrypt the block
-	err = bg.config.cryptoPure().DecryptBlock(
-		encryptedBlock, blockCryptKey, block)
-	if err != nil {
-		return err
-	}
-
-	block.SetEncodedSize(uint32(len(buf)))
-	return nil
 }
 
 // getBlock implements the interface for realBlockGetter.
@@ -73,5 +37,7 @@ func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 		return err
 	}
 
-	return bg.assembleBlock(ctx, kmd, blockPtr, block, buf, blockServerHalf)
+	return assembleBlock(
+		ctx, bg.config.keyGetter(), bg.config.Codec(), bg.config.cryptoPure(),
+		kmd, blockPtr, block, buf, blockServerHalf)
 }

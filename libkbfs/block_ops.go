@@ -26,7 +26,6 @@ type blockOpsConfig interface {
 type BlockOpsStandard struct {
 	config blockOpsConfig
 	queue  *blockRetrievalQueue
-	bg     *realBlockGetter
 }
 
 var _ BlockOps = (*BlockOpsStandard)(nil)
@@ -43,7 +42,6 @@ func NewBlockOpsStandard(config blockOpsConfig,
 	bops := &BlockOpsStandard{
 		config: config,
 		queue:  q,
-		bg:     bg,
 	}
 	return bops
 }
@@ -60,8 +58,9 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 			return err
 		}
 		if found {
-			return b.bg.assembleBlock(
-				ctx, kmd, blockPtr, block, data, serverHalf)
+			return assembleBlock(
+				ctx, b.config.keyGetter(), b.config.Codec(),
+				b.config.cryptoPure(), kmd, blockPtr, block, data, serverHalf)
 		}
 	}
 

@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -140,4 +142,38 @@ func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
 		}
 	}
 	return blocksToRemove, err
+}
+
+func assembleBlock(ctx context.Context, keyGetter blockKeyGetter,
+	codec kbfscodec.Codec, cryptoPure cryptoPure, kmd KeyMetadata,
+	blockPtr BlockPointer, block Block, buf []byte,
+	blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {
+		return err
+	}
+
+	tlfCryptKey, err := keyGetter.GetTLFCryptKeyForBlockDecryption(
+		ctx, kmd, blockPtr)
+	if err != nil {
+		return err
+	}
+
+	// construct the block crypt key
+	blockCryptKey := kbfscrypto.UnmaskBlockCryptKey(
+		blockServerHalf, tlfCryptKey)
+
+	var encryptedBlock EncryptedBlock
+	err = codec.Decode(buf, &encryptedBlock)
+	if err != nil {
+		return err
+	}
+
+	// decrypt the block
+	err = cryptoPure.DecryptBlock(encryptedBlock, blockCryptKey, block)
+	if err != nil {
+		return err
+	}
+
+	block.SetEncodedSize(uint32(len(buf)))
+	return nil
 }
