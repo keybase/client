@@ -701,6 +701,9 @@ func TestChatMessageDeletedNotSuperseded(t *testing.T) {
 		boxed.BodyCiphertext.E = []byte{}
 
 		unboxed, err := boxer.unbox(context.TODO(), *boxed, key)
+		// The server was not setting supersededBy on EDITs when their TEXT got deleted.
+		// So there are existing messages which have no supersededBy but are legitimately deleted.
+		// Tracked in CORE-4662
 		require.NoError(t, err, "suprisingly, should be able to unbox with deleted but no supersededby")
 		require.Equal(t, chat1.MessageBody{}, unboxed.MessageBody)
 	})
