@@ -20,24 +20,40 @@ type journalBlockServer struct {
 
 var _ BlockServer = journalBlockServer{}
 
+func (j journalBlockServer) getBlockFromJournal(
+	tlfID tlf.ID, id kbfsblock.ID) (
+	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	found bool, err error) {
+	tlfJournal, ok := j.jServer.getTLFJournal(tlfID)
+	if !ok {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, nil
+	}
+
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
+	data, serverHalf, err = tlfJournal.getBlockData(id)
+	switch errors.Cause(err).(type) {
+	case nil:
+		return data, serverHalf, true, nil
+	case blockNonExistentError:
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, nil
+	case errTLFJournalDisabled:
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, nil
+	default:
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
+	}
+}
+
 func (j journalBlockServer) Get(
 	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
-		defer func() {
-			err = translateToBlockServerError(err)
-		}()
-		data, serverHalf, err := tlfJournal.getBlockData(id)
-		switch errors.Cause(err).(type) {
-		case nil:
-			return data, serverHalf, nil
-		case blockNonExistentError:
-			break
-		case errTLFJournalDisabled:
-			break
-		default:
-			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-		}
+	data, serverHalf, found, err := j.getBlockFromJournal(tlfID, id)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+	}
+	if found {
+		return data, serverHalf, nil
 	}
 
 	return j.BlockServer.Get(ctx, tlfID, id, context)

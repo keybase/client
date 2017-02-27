@@ -23,22 +23,9 @@ type realBlockGetter struct {
 	config blockOpsConfig
 }
 
-// getBlock implements the interface for realBlockGetter.
-func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
-	bserv := bg.config.BlockServer()
-	buf, blockServerHalf, err := bserv.Get(
-		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.Context)
-	if err != nil {
-		// Temporary code to track down bad block
-		// requests. Remove when not needed anymore.
-		if _, ok := err.(kbfsblock.BServerErrorBadRequest); ok {
-			panic(fmt.Sprintf("Bad BServer request detected: err=%s, blockPtr=%s",
-				err, blockPtr))
-		}
-
-		return err
-	}
-
+func (bg *realBlockGetter) assembleBlock(
+	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block,
+	buf []byte, blockServerHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	if err := kbfsblock.VerifyID(buf, blockPtr.ID); err != nil {
 		return err
 	}
@@ -68,4 +55,23 @@ func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 
 	block.SetEncodedSize(uint32(len(buf)))
 	return nil
+}
+
+// getBlock implements the interface for realBlockGetter.
+func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
+	bserv := bg.config.BlockServer()
+	buf, blockServerHalf, err := bserv.Get(
+		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.Context)
+	if err != nil {
+		// Temporary code to track down bad block
+		// requests. Remove when not needed anymore.
+		if _, ok := err.(kbfsblock.BServerErrorBadRequest); ok {
+			panic(fmt.Sprintf("Bad BServer request detected: err=%s, blockPtr=%s",
+				err, blockPtr))
+		}
+
+		return err
+	}
+
+	return bg.assembleBlock(ctx, kmd, blockPtr, block, buf, blockServerHalf)
 }

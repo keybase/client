@@ -273,6 +273,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		fbo.id(), ptr, branch); err == nil {
 		return block, nil
 	}
+
 	if block, hasPrefetched, lifetime, err := fbo.config.BlockCache().GetWithPrefetch(ptr); err == nil {
 		// If the block was cached in the past, we need to handle it as if it's
 		// an on-demand request so that its downstream prefetches are triggered
@@ -286,11 +287,6 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	if err := checkDataVersion(fbo.config, notifyPath, ptr); err != nil {
 		return nil, err
 	}
-
-	// fetch the block, and add to cache
-	block := newBlock()
-
-	bops := fbo.config.BlockOps()
 
 	if notifyPath.isValidForNotification() {
 		fbo.config.Reporter().Notify(ctx, readNotification(notifyPath, false))
@@ -308,6 +304,9 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	// same lState, we can't safely unlock since some of the other
 	// goroutines may be operating on the data assuming they have the
 	// lock.
+	// fetch the block, and add to cache
+	block := newBlock()
+	bops := fbo.config.BlockOps()
 	var err error
 	if rtype != blockReadParallel && rtype != blockLookup {
 		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
