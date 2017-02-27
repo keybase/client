@@ -123,7 +123,7 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.I
 		}
 
 		st := storage.New(b.G(), func() libkb.SecretUI { return DelivererSecretUI{} })
-		res, err := st.FetchMessages(ctx, convID, uid, msgIDs)
+		res, _, err := st.FetchMessages(ctx, convID, uid, msgIDs)
 		if err != nil {
 			// Just say we didn't find it in this case
 			return getMessagesRes{

@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
@@ -27,9 +28,10 @@ type Storage struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	getSecretUI func() libkb.SecretUI
-	engine      storageEngine
-	idtracker   *msgIDTracker
+	getSecretUI  func() libkb.SecretUI
+	engine       storageEngine
+	idtracker    *msgIDTracker
+	breakTracker *breakTracker
 }
 
 type storageEngine interface {
@@ -47,6 +49,7 @@ func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
 		getSecretUI:  getSecretUI,
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
+		breakTracker: newBreakTracker(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Storage", false),
 	}
 }
@@ -301,19 +304,26 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 }
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, bool, Error) {
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
-		return chat1.ThreadView{},
+		return chat1.ThreadView{}, true,
 			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+	}
+
+	// Check to see if this conv is identify broken
+	idBroken, ierr := s.breakTracker.IsConvBroken(ctx, convID, uid)
+	if ierr != nil {
+		idBroken = true
+		s.Debug(ctx, "Fetch: break tracker error, assuming broken: msg: %s", ierr.Error())
 	}
 
 	// Init storage engine first
 	var err Error
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
+		return chat1.ThreadView{}, idBroken, s.MaybeNuke(false, err, convID, uid)
 	}
 
 	// Calculate seek parameters
@@ -330,13 +340,13 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
+				return chat1.ThreadView{}, idBroken, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = pid - 1
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
 				err = RemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
+				return chat1.ThreadView{}, idBroken, s.MaybeNuke(false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
 		}
@@ -356,7 +366,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 	// Run seek looking for all the messages
 	var res []chat1.MessageUnboxed
 	if err = s.engine.readMessages(ctx, rc, convID, uid, maxID); err != nil {
-		return chat1.ThreadView{}, err
+		return chat1.ThreadView{}, idBroken, err
 	}
 	res = rc.result()
 
@@ -367,16 +377,17 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 		pmsgs = append(pmsgs, m)
 	}
 	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num); ierr != nil {
-		return chat1.ThreadView{}, NewInternalError(s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
+		return chat1.ThreadView{}, idBroken,
+			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
 	tres.Messages = res
 
 	s.Debug(ctx, "Fetch: cache hit: num: %d", len(res))
-	return tres, nil
+	return tres, idBroken, nil
 }
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, bool, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -384,7 +395,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
-		return chat1.ThreadView{}, err
+		return chat1.ThreadView{}, true, err
 	}
 	s.Debug(ctx, "FetchUpToLocalMaxMsgID: using max msgID: %d", maxMsgID)
 
@@ -392,7 +403,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, bool, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -402,19 +413,26 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 }
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, bool, error) {
 
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
-		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+		return nil, true, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+	}
+
+	// Check to see if this conv is identify broken
+	idBroken, ierr := s.breakTracker.IsConvBroken(ctx, convID, uid)
+	if ierr != nil {
+		idBroken = true
+		s.Debug(ctx, "Fetch: break tracker error, assuming broken: msg: %s", ierr.Error())
 	}
 
 	// Init storage engine first
 	var err Error
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
-		return nil, s.MaybeNuke(false, err, convID, uid)
+		return nil, idBroken, s.MaybeNuke(false, err, convID, uid)
 	}
 
 	// Run seek looking for each message
@@ -427,12 +445,17 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 				res = append(res, nil)
 				continue
 			} else {
-				return nil, s.MaybeNuke(false, err, convID, uid)
+				return nil, idBroken, s.MaybeNuke(false, err, convID, uid)
 			}
 		}
 		sres = rc.result()
 		res = append(res, &sres[0])
 	}
 
-	return res, nil
+	return res, idBroken, nil
+}
+
+func (s *Storage) UpdateConvBreak(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	breaks []keybase1.TLFIdentifyFailure) error {
+	return s.breakTracker.UpdateConv(ctx, convID, uid, breaks)
 }

@@ -8,8 +8,9 @@ import (
 )
 
 type TLFInfo struct {
-	ID            chat1.TLFID
-	CanonicalName string
+	ID               chat1.TLFID
+	CanonicalName    string
+	IdentifyFailures []keybase1.TLFIdentifyFailure
 }
 
 func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string,
@@ -20,8 +21,9 @@ func LookupTLF(ctx context.Context, tlfcli keybase1.TlfInterface, tlfName string
 		return nil, err
 	}
 	info := &TLFInfo{
-		ID:            chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
-		CanonicalName: res.NameIDBreaks.CanonicalName.String(),
+		ID:               chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
+		CanonicalName:    res.NameIDBreaks.CanonicalName.String(),
+		IdentifyFailures: res.NameIDBreaks.Breaks.Breaks,
 	}
 	return info, nil
 }
