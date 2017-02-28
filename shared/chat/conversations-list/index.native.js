@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeScrollView} from '../../common-adapters/index.native'
+import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 
@@ -151,24 +151,64 @@ const _Row = (props: RowProps) => {
 const Row = RowConnector(_Row)
 
 let _loaded = false
-class ConversationList extends PureComponent<void, Props, void> {
+type State = {
+  dataSource: any,
+}
+
+class ConversationList extends PureComponent<void, Props, State> {
+  state: State = {
+    dataSource: null,
+  }
+
+  _itemRenderer = (conversationIDKey) => {
+    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
+  }
+
+  _ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+
+  _setupDataSource = (props: Props) => {
+    this.setState({
+      dataSource: this._ds.cloneWithRows(props.rows.toArray()),
+    })
+  }
+
   componentWillMount () {
     if (!_loaded) {
       _loaded = true
       this.props.loadInbox()
     }
+
+    this._setupDataSource(this.props)
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.rows !== nextProps.rows) {
+      this._setupDataSource(nextProps)
+    }
   }
 
   render () {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.darkBlue4, flex: 1}}>
+      <Box style={boxStyle}>
         <AddNewRow onNewChat={this.props.onNewChat} />
-        <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          {this.props.rows.map(conversationIDKey => <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />)}
-        </NativeScrollView>
+        <NativeListView
+          style={listStyle}
+          dataSource={this.state.dataSource}
+          renderRow={this._itemRenderer} />
       </Box>
     )
   }
+}
+
+const boxStyle = {
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.darkBlue4,
+  flex: 1,
+}
+
+const listStyle = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
 }
 
 const unreadDotStyle = {
