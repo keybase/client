@@ -62,6 +62,7 @@ class ConversationInput extends Component<void, Props, State> {
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
           <Input
+            autoCorrect={true}
             autoFocus={true}
             small={true}
             style={styleInput}
