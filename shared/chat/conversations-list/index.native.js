@@ -150,7 +150,6 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-let _loaded = false
 type State = {
   dataSource: any,
 }
@@ -173,11 +172,7 @@ class ConversationList extends PureComponent<void, Props, State> {
   }
 
   componentWillMount () {
-    if (!_loaded) {
-      _loaded = true
-      this.props.loadInbox()
-    }
-
+    this.props.loadInbox()
     this._setupDataSource(this.props)
   }
 

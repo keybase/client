@@ -996,6 +996,14 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
 
 const followingSelector = (state: TypedState) => state.config.following
 
+let _loadedInboxOnce = false
+function * _loadInboxOnce (): SagaGenerator<any, any> {
+  if (!_loadedInboxOnce) {
+    _loadedInboxOnce = true
+    yield call(_loadInbox)
+  }
+}
+
 function * _loadInbox (): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
     'chat.1.chatUi.chatInboxUnverified',
@@ -1988,7 +1996,7 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    safeTakeSerially('chat:loadInbox', _loadInbox),
+    safeTakeSerially('chat:loadInbox', _loadInboxOnce),
     safeTakeLatest('chat:inboxStale', _loadInbox),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),

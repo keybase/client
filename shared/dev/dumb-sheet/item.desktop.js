@@ -40,7 +40,7 @@ class DumbSheetItem extends Component<void, Props<*>, void> {
       <Box id={this.props.id} style={{...styleBox, ...this.props.style}}>
         <Text type='Body' style={{marginBottom: 5}}>{this.props.mockKey}</Text>
         <Box {...parentProps}>
-          {mockStore ? <Provider store={this._mockStore}>{component}</Provider> : <Box>{component}</Box>}
+          {mockStore ? <Provider store={this._mockStore}>{component}</Provider> : component}
         </Box>
       </Box>
     )

@@ -145,13 +145,9 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-let _loaded = false
 class ConversationList extends PureComponent<void, Props, void> {
   componentWillMount () {
-    if (!_loaded) {
-      _loaded = true
-      this.props.loadInbox()
-    }
+    this.props.loadInbox()
   }
 
   _itemRenderer = (index) => {
