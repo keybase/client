@@ -3,7 +3,7 @@ import React from 'react'
 import Inbox from './conversations-list/container'
 import {globalStyles} from '../styles'
 
-const Render = ({children}) => (
+const Render = ({children}: {children: any}) => (
   <div style={style}>
     <Inbox />
     {children}

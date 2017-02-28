@@ -1,8 +1,8 @@
 // @flow
-import React from 'react'
+import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeScrollView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {shouldUpdate} from 'recompose'
+import {RowConnector} from './row'
 
 import type {Props, RowProps} from './'
 
@@ -148,28 +148,28 @@ const _Row = (props: RowProps) => {
   )
 }
 
-const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
-  const different =
-    props.conversationIDKey !== nextProps.conversationIDKey ||
-    props.unreadCount !== nextProps.unreadCount ||
-    props.isSelected !== nextProps.isSelected ||
-    props.isMuted !== nextProps.isMuted ||
-    props.youNeedToRekey !== nextProps.youNeedToRekey ||
-    props.participantNeedToRekey !== nextProps.participantNeedToRekey ||
-    props.timestamp !== nextProps.timestamp ||
-    props.snippet !== nextProps.snippet ||
-    !props.participants.equals(nextProps.participants)
-  return different
-})(_Row)
+const Row = RowConnector(_Row)
 
-const ConversationList = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.darkBlue4, flex: 1}}>
-    <AddNewRow {...props} />
-    <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      {props.rows.map(rowProps => <Row {...rowProps} key={rowProps.conversationIDKey} />)}
-    </NativeScrollView>
-  </Box>
-)
+let _loaded = false
+class ConversationList extends PureComponent<void, Props, void> {
+  componentWillMount () {
+    if (!_loaded) {
+      _loaded = true
+      this.props.loadInbox()
+    }
+  }
+
+  render () {
+    return (
+      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.darkBlue4, flex: 1}}>
+        <AddNewRow onNewChat={this.props.onNewChat} />
+        <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          {this.props.rows.map(conversationIDKey => <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />)}
+        </NativeScrollView>
+      </Box>
+    )
+  }
+}
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,

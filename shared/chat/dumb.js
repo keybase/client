@@ -5,12 +5,13 @@ import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import ConversationSidePanel from './conversation/side-panel'
 import HiddenString from '../util/hidden-string'
+import Inbox from './conversations-list/container'
 import ParticipantRekey from './conversation/participant-rekey'
 import YouRekey from './conversation/you-rekey'
-import {ConversationListContainer} from './conversations-list/container'
-import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord} from '../constants/chat'
+import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord, StateRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
+import {RouteStateNode} from '../route-tree'
 
 import type {ConversationIDKey} from '../constants/chat'
 
@@ -161,22 +162,40 @@ const conversationUnreadCounts = {
   convo6: 1,
 }
 
-const commonConversationsProps = {
-  nowOverride: now,
-  inbox: List(inbox),
-  conversationUnreadCounts: Map(conversationUnreadCounts),
-  onSelectConversation: (key: ConversationIDKey) => console.log('selected', key),
-  selectedConversation: null,
-  onNewChat: () => console.log('new chat'),
-  you: 'chris',
-  rekeyInfos: Map(),
+const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) => ({
+  mockStore: {
+    chat: new StateRecord({
+      conversationUnreadCounts: Map(conversationUnreadCounts),
+      inbox: _inbox || List(inbox),
+      nowOverride: now,
+      pending: List(),
+      pendingConversations: List(),
+      rekeyInfos: rekeyInfos || Map(),
+      selectedConversation: null,
+      supersededByState: Map(),
+    }),
+    config: {
+      you: 'chris',
+    },
+    routeTree: {
+      routeState: new RouteStateNode({
+        selected: 'tabs:chatTab',
+        children: Map({
+          'tabs:chatTab': new RouteStateNode({
+            selected,
+            children: Map({}),
+          }),
+        }),
+      }),
+    },
+  },
   loadInbox: () => {},
-  pending: List(),
-}
+  onNewChat: () => console.log('new chat'),
+  onSelectConversation: (key: ConversationIDKey) => console.log('selected', key),
+})
 
 const emptyConversationsProps = {
-  ...commonConversationsProps,
-  inbox: List(),
+  ...commonConversationsProps({inbox: List()}),
 }
 
 const header = {
@@ -218,16 +237,18 @@ const listParentProps = {
   },
 }
 
-const rekeyConvo = (youCanRekey) => ({
-  ...commonConversationsProps,
-  rekeyInfos: Map({
-    convo1: new RekeyInfoRecord({
-      rekeyParticipants: List(youCanRekey ? [] : ['jzila']),
-      youCanRekey,
-    }),
-    convo3: new RekeyInfoRecord({
-      rekeyParticipants: List(youCanRekey ? [] : ['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
-      youCanRekey,
+const rekeyConvo = (convo, youCanRekey) => ({
+  ...commonConversationsProps({
+    selected: convo,
+    rekeyInfos: Map({
+      convo1: new RekeyInfoRecord({
+        rekeyParticipants: List(youCanRekey ? [] : ['jzila']),
+        youCanRekey,
+      }),
+      convo3: new RekeyInfoRecord({
+        rekeyParticipants: List(youCanRekey ? [] : ['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
+        youCanRekey,
+      }),
     }),
   }),
 })
@@ -239,7 +260,7 @@ const participantRekey = {
       ...commonConvoProps,
       onUsernameClicked: (user: string) => { console.log(user, 'clicked') },
       parentProps: listParentProps,
-      rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
+      rekeyInfo: rekeyConvo(null, false).mockStore.chat.rekeyInfos.get('convo3'),
     },
   },
 }
@@ -251,7 +272,7 @@ const youRekey = {
       ...commonConvoProps,
       onRekey: () => { console.log('Reykey clicked') },
       parentProps: listParentProps,
-      rekeyInfo: rekeyConvo(false).rekeyInfos.get('convo3'),
+      rekeyInfo: rekeyConvo(null, false).mockStore.chat.rekeyInfos.get('convo3'),
     },
   },
 }
@@ -306,75 +327,71 @@ const inboxParentProps = {
 }
 
 const conversationsList = {
-  component: ConversationListContainer,
+  component: Inbox,
   mocks: {
     'Normal': {
-      ...commonConversationsProps,
+      ...commonConversationsProps({}),
       parentProps: inboxParentProps,
     },
     'Selected Normal': {
-      ...commonConversationsProps,
+      ...commonConversationsProps({selected: 'convo1'}),
       parentProps: inboxParentProps,
-      selectedConversation: 'convo1',
     },
     'SelectedMuted': {
-      ...commonConversationsProps,
+      ...commonConversationsProps({selected: 'convo3'}),
       parentProps: inboxParentProps,
-      selectedConversation: 'convo3',
     },
     'Empty': {
       ...emptyConversationsProps,
       parentProps: inboxParentProps,
     },
     'PartRekey': {
-      ...rekeyConvo(false),
+      ...rekeyConvo('convo3', false),
       parentProps: inboxParentProps,
-      selectedConversation: 'convo3',
     },
     'PartRekeySelected': {
-      ...rekeyConvo(false),
+      ...rekeyConvo('convo1', false),
       parentProps: inboxParentProps,
-      selectedConversation: 'convo1',
     },
     'YouRekey': {
-      ...rekeyConvo(true),
+      ...rekeyConvo('convo3', true),
       parentProps: inboxParentProps,
-      selectedConversation: 'convo3',
     },
     'YouRekeySelected': {
-      ...rekeyConvo(true),
+      ...rekeyConvo('convo1', true),
       parentProps: inboxParentProps,
-      selectedConversation: 'convo1',
     },
     'LongTop': {
-      ...commonConversationsProps,
+      ...commonConversationsProps({
+        inbox: List([
+          new InboxStateRecord({
+            conversationIDKey: 'convo1',
+            info: null,
+            muted: false,
+            participants: List(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
+            snippet: 'look up!',
+            time: now,
+            unreadCount: 3,
+          }),
+        ]),
+      }),
       parentProps: inboxParentProps,
-      inbox: List([
-        new InboxStateRecord({
-          conversationIDKey: 'convo1',
-          info: null,
-          muted: false,
-          participants: List(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
-          snippet: 'look up!',
-          time: now,
-          unreadCount: 3,
-        }),
-      ]),
     },
     'LongBottom': {
-      ...commonConversationsProps,
+      ...commonConversationsProps({
+        inbox: List([
+          new InboxStateRecord({
+            conversationIDKey: 'convo1',
+            info: null,
+            muted: false,
+            participants: List(['look down!']),
+            snippet: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
+            time: now,
+            unreadCount: 3,
+          }),
+        ]),
+      }),
       parentProps: inboxParentProps,
-      inbox: List([
-        new InboxStateRecord({
-          conversationIDKey: 'convo1',
-          info: null,
-          muted: false,
-          participants: List(['look down!']),
-          snippet: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
-          time: now,
-          unreadCount: 3,
-        }),
-      ]),
     },
   },
 }

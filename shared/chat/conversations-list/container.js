@@ -1,10 +1,9 @@
 // @flow
-import ConversationList from './index'
-// import React, {PureComponent} from 'react'
-import {connect} from 'react-redux'
-import {loadInbox, newChat} from '../../actions/chat'
-import {createSelectorCreator, defaultMemoize} from 'reselect'
 import * as I from 'immutable'
+import ConversationList from './index'
+import {connect} from 'react-redux'
+import {createSelectorCreator, defaultMemoize} from 'reselect'
+import {loadInbox, newChat} from '../../actions/chat'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -13,16 +12,16 @@ const getSupersededByState = (state: TypedState) => state.chat.get('supersededBy
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 
-const createImuutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
+const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
-const filteredInbox = createImuutableEqualSelector(
+const filteredInbox = createImmutableEqualSelector(
   [getInbox, getSupersededByState, getAlwaysShow],
   (inbox, supersededByState, alwaysShow) => {
     return inbox.filter(i => (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) &&
         !supersededByState.get(i.conversationIDKey)).map(i => i.conversationIDKey)
   }
 )
-const getRows = createImuutableEqualSelector(
+const getRows = createImmutableEqualSelector(
   [filteredInbox, getPending],
   (inbox, pending) => pending.toList().concat(inbox)
 )
@@ -36,10 +35,3 @@ export default connect(
     onNewChat: () => dispatch(newChat([])),
   })
 )(ConversationList)
-
-// TEMP
-const ConversationListContainer = () => null
-
-export {
-  ConversationListContainer,
-}
