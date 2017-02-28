@@ -776,7 +776,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         for (const outboxRecord of failedMessage.outboxRecords) {
           const conversationIDKey = conversationIDToKey(outboxRecord.convID)
           const outboxID = outboxIDToKey(outboxRecord.outboxID)
-          const failureDescription = 'fixme'
+          // $FlowIssue
+          const failureDescription = _decodeFailureDescription(outboxRecord.state.error.typ)
           // There's an RPC race condition here.  Two possibilities:
           //
           // Either we've already finished in _postMessage() and have recorded
@@ -1263,22 +1264,16 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
 // used to key errors
 let errorIdx = 1
 
-function _decodeFailureDescription (message: MessageUnboxed): string {
-  if (message && message.state === LocalMessageUnboxedState.outbox && message.outbox && message.outbox.payload && message.outbox.payload.state) {
-    // $FlowIssue
-    const state: ChatTypes.OutboxState = message.outbox.payload.state
-    if (state.state === ChatTypes.LocalOutboxStateType.error && state.error) {
-      switch (state.error.typ) {
-        case ChatTypes.LocalOutboxErrorType.misc:
-          return 'unknown error'
-        case ChatTypes.LocalOutboxErrorType.offline:
-          return 'disconnected from chat server'
-        case ChatTypes.LocalOutboxErrorType.identify:
-          return 'proofs failed for recipient user'
-        case ChatTypes.LocalOutboxErrorType.toolong:
-          return 'message is too long'
-      }
-    }
+function _decodeFailureDescription (typ: ChatTypes.OutboxErrorType): string {
+  switch (typ) {
+    case ChatTypes.LocalOutboxErrorType.misc:
+      return 'unknown error'
+    case ChatTypes.LocalOutboxErrorType.offline:
+      return 'disconnected from chat server'
+    case ChatTypes.LocalOutboxErrorType.identify:
+      return 'proofs failed for recipient user'
+    case ChatTypes.LocalOutboxErrorType.toolong:
+      return 'message is too long'
   }
   return 'unknown error'
 }
@@ -1289,7 +1284,8 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
     const payload: OutboxRecord = message.outbox
     const messageState: MessageState = (payload && payload.state && payload.state.state === ChatTypes.LocalOutboxStateType.error) ? 'failed' : 'pending'
     const messageBody: MessageBody = payload.Msg.messageBody
-    const failureDescription = _decodeFailureDescription(message)
+    // $FlowIssue
+    const failureDescription = messageState === 'failed' ? _decodeFailureDescription(payload.state.error.typ) : null
     // $FlowIssue
     const messageText: MessageText = messageBody.text
     return {
