@@ -52,15 +52,16 @@ func (b *breakTracker) IsTLFBroken(ctx context.Context, tlfID chat1.TLFID) (bool
 	if err != nil {
 		return true, NewInternalError(ctx, b.DebugLabeler, "GetRaw error: %s", err.Error())
 	}
-	if found {
-		var breaks []keybase1.TLFIdentifyFailure
-		if err = decode(raw, &breaks); err != nil {
-			return true, NewInternalError(ctx, b.DebugLabeler, "decode error: %s", err.Error())
-		}
-
-		return len(breaks) != 0, nil
-	}
 
 	// Assume to be broken if we have no record
-	return true, nil
+	if !found {
+		return true, nil
+	}
+
+	var breaks []keybase1.TLFIdentifyFailure
+	if err = decode(raw, &breaks); err != nil {
+		return true, NewInternalError(ctx, b.DebugLabeler, "decode error: %s", err.Error())
+	}
+
+	return len(breaks) != 0, nil
 }
