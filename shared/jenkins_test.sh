@@ -3,6 +3,7 @@
 test_type="$1"
 commit_hash="$2"
 change_target="origin/$3"
+change_base=$(git merge-base $change_target $commit_hash)
 
 if [ "$3" == "null" ]; then
     against_master=1
@@ -10,7 +11,7 @@ else
     against_master=0
 fi
 
-echo "shared/jenkins_test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target}"
+echo "shared/jenkins_test.sh recieved type: ${test_type} commit_hash: ${commit_hash} change_target: ${change_target} change_base: ${change_base}"
 
 check_rc() {
   # exit if passed in value is not = 0
@@ -33,9 +34,9 @@ has_js_files() {
     git fetch
     check_rc $? 'echo git fetch problem' 1
     echo 'git diff'
-    git diff --name-only "$change_target...$commit_hash"
+    git diff --name-only "$change_base...$commit_hash"
     # ignore test.sh for now
-    diff_files=`git diff --name-only "$change_target...$commit_hash" | grep '^shared/' | grep -v '^shared/jenkins_test\.sh'`
+    diff_files=`git diff --name-only "$change_base...$commit_hash" | grep '^shared/' | grep -v '^shared/jenkins_test\.sh'`
     check_rc $? 'no files js cares about' 0
     echo "continuing due to changes in $diff_files"
 }
@@ -66,7 +67,7 @@ visdiff() {
     if [ $against_master -eq 1 ]; then
         echo 'No $change_target, skipping visdiff'
     else
-        node ../visdiff/dist/index.js "$change_target...$commit_hash"
+        node ../visdiff/dist/index.js "$change_base...$commit_hash"
         check_rc $? 'visdiff fail' 1
     fi
 }
