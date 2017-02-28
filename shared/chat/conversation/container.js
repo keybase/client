@@ -176,10 +176,7 @@ export default connect(
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
     onRetryMessage: (conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => dispatch(retryMessage(conversationIDKey, outboxID)),
-    onSelectAttachment: (conversationIDKey: ConversationIDKey, input: AttachmentInput) => {
-      input.conversationIDKey = conversationIDKey
-      dispatch(selectAttachment(input))
-    },
+    onSelectAttachment: (conversationIDKey: ConversationIDKey, input: AttachmentInput) => dispatch(selectAttachment(input)),
     startConversation: (users: Array<string>) => dispatch(startConversation(users)),
     onStoreInputText: (inputText: string) => setRouteState({inputText}),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
