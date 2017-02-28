@@ -165,6 +165,7 @@ protocol local {
   // HeaderPlaintextV1 is version 1 of HeaderPlaintext.
   // The fields here cannot change.  To modify,
   // create a new record type with a new version.
+  // CORE-4540: Update note about how compatibility works.
   record HeaderPlaintextV1 {
     ConversationIDTriple conv;
     string tlfName;
@@ -262,6 +263,7 @@ protocol local {
 
     // MessageBoxed.V1: Hash of the encrypted header ciphertext.
     // MessageBoxed.V2: Hash of MessageBoxed.headerSealed (.v || .n || .b)
+    //                  Where V is a big-endian int32
     Hash headerHash;
 
     // TOOD Maybe get rid of this field in favor of verificationKey.

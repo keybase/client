@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"flag"
@@ -16,6 +17,8 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
+	"github.com/agl/ed25519"
+	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -41,26 +44,29 @@ type Boxer struct {
 	utils.DebugLabeler
 	libkb.Contextified
 
+	boxWithVersion chat1.MessageBoxedVersion
+
 	tlf func() keybase1.TlfInterface
 
 	// Replaceable for testing.
 	// Normally set to normal implementations.
 	hashV1 func(data []byte) chat1.Hash
-	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
 
 	// Slots for replacing with with test implementations.
 	// These are normally nil.
 	testingValidSenderKey     func(context.Context, gregor1.UID, []byte, gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxingErr UnboxingError)
 	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
+	// Post-process signatures and signencrypts
+	testingSignatureMangle func([]byte) []byte
 }
 
 func NewBoxer(g *libkb.GlobalContext, tlf func() keybase1.TlfInterface) *Boxer {
 	return &Boxer{
-		DebugLabeler: utils.NewDebugLabeler(g, "Boxer", false),
-		tlf:          tlf,
-		hashV1:       hashSha256V1,
-		sign:         sign,
-		Contextified: libkb.NewContextified(g),
+		DebugLabeler:   utils.NewDebugLabeler(g, "Boxer", false),
+		boxWithVersion: chat1.MessageBoxedVersion_V1,
+		tlf:            tlf,
+		hashV1:         hashSha256V1,
+		Contextified:   libkb.NewContextified(g),
 	}
 }
 
@@ -95,7 +101,7 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 //   - (TODO) The prev pointers are not absurdly ancient.
 //   - The ClientHeader provided with the BoxedMessage matches the one we decrypt.
 //
-// The first return value is unusable if the err != nil Returns (_, err) for
+// The first return value is unusable if the err != nil. Returns (_, err) for
 // non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
@@ -135,16 +141,6 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	// the conversation ID we were expecting.
 	if !unboxed.ClientHeader.Conv.Derivable(convID) {
 		err := fmt.Errorf("conversation ID mismatch")
-		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
-	}
-
-	// Confirm that other fields in the server-supplied ClientHeader match what
-	// we decrypt. It would be preferable if the server didn't supply this data
-	// at all (so that we didn't have to worry about anyone trusting it
-	// *before* we get to this check, for example), but since we have it we
-	// need to check it.
-	err = compareClientHeaders(boxed.ClientHeader, unboxed.ClientHeader)
-	if err != nil {
 		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
 	}
 
@@ -284,6 +280,14 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
 	}
 
+	if len(boxed.HeaderSealed.B) != 0 {
+		return nil, NewPermanentUnboxingError(errors.New("populated HeaderSealed in MBV1"))
+	}
+
+	if len(boxed.HeaderVerificationKey) != 0 {
+		return nil, NewPermanentUnboxingError(errors.New("populated HeaderVerificationKey in MBV1"))
+	}
+
 	// compute the header hash
 	headerHash := b.hashV1(boxed.HeaderCiphertext.E)
 
@@ -347,8 +351,9 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 			Prev:         hp.Prev,
 			Sender:       hp.Sender,
 			SenderDevice: hp.SenderDevice,
-			OutboxID:     hp.OutboxID,
-			OutboxInfo:   hp.OutboxInfo,
+			// CORE-4540: MerkleRoot will be in signed header, but probably not in any V1 messages.
+			OutboxID:   hp.OutboxID,
+			OutboxInfo: hp.OutboxInfo,
 		}
 	default:
 		return nil,
@@ -386,6 +391,11 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		}
 	}
 
+	ierr = b.compareHeadersV1(ctx, boxed.ClientHeader, clientHeader)
+	if ierr != nil {
+		return nil, ierr
+	}
+
 	// create an unboxed message
 	return &chat1.MessageUnboxedValid{
 		ClientHeader:          clientHeader,
@@ -402,8 +412,276 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}, nil
 }
 
-func (b *Boxer) unboxV2(ctx context.Context, msg chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
-	return nil, NewPermanentUnboxingError(NewMessageBoxedVersionError(chat1.MessageBoxedVersion_V2))
+func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey *keybase1.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
+	if boxed.ServerHeader == nil {
+		return nil, NewPermanentUnboxingError(errors.New("nil ServerHeader in MessageBoxed"))
+	}
+
+	// Check that V1-only fields are empty.
+	if len(boxed.HeaderCiphertext.E) != 0 {
+		return nil, NewPermanentUnboxingError(errors.New("populated HeaderSealed in MBV2"))
+	}
+
+	// Validate verification key against unverified sender id.
+	// Later it is asserted that the claimed and signing sender are the same.
+	senderKeyFound, senderKeyValidAtCtime, senderDeviceRevokedAt, ierr := b.ValidSenderKey(
+		ctx, boxed.ClientHeader.Sender, boxed.HeaderVerificationKey, boxed.ServerHeader.Ctime)
+	if ierr != nil {
+		return nil, ierr
+	}
+	if !senderKeyFound {
+		return nil, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "sender key not found"})
+	}
+	if !senderKeyValidAtCtime {
+		return nil, NewPermanentUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
+	}
+
+	// Open header and verify against HeaderVerificationKey
+	headerPacked, err := b.signEncryptOpen(boxed.HeaderSealed, encryptionKey, boxed.HeaderVerificationKey)
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
+	}
+	var headerVersioned chat1.HeaderPlaintext
+	err = b.unmarshal(headerPacked, &headerVersioned)
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
+	}
+
+	// Unversion header
+	// Also check that the HeaderSignature field from MessageBoxed V1 is nil
+	// This object has been signed
+	clientHeader, bodyHashSigned, ierr := b.unversionHeader(ctx, headerVersioned)
+	if ierr != nil {
+		return nil, ierr
+	}
+
+	// Whether the body is missing (deleted)
+	isBodyDeleted := (len(boxed.BodyCiphertext.E) == 0)
+
+	// TODO We should check whether the body is allowed to have been deleted by checking
+	// the there is in fact a message that deleted it.
+	// We should fetch that message and check its signed body.
+	// That involves fetching a message whose ID is not known here.
+
+	// Verify body hash
+	// The hash of the encrypted body must match that signed into the header.
+	if !isBodyDeleted {
+		ierr = b.verifyBodyHash(ctx, boxed.BodyCiphertext, bodyHashSigned)
+		if ierr != nil {
+			return nil, ierr
+		}
+	}
+
+	// Compare the signed and unsigned header.
+	// Checks that [Sender, SenderDevice] match, and other things.
+	ierr = b.compareHeadersV2(ctx, boxed.ClientHeader, clientHeader)
+	if ierr != nil {
+		return nil, ierr
+	}
+
+	// Decrypt body
+	// If the body is deleted, this is left blank.
+	var body chat1.MessageBody
+	if !isBodyDeleted {
+		bodyPacked, err := b.open(boxed.BodyCiphertext, encryptionKey)
+		if err != nil {
+			return nil, NewPermanentUnboxingError(err)
+		}
+		var bodyVersioned chat1.BodyPlaintext
+		err = b.unmarshal(bodyPacked, &bodyVersioned)
+		if err != nil {
+			return nil, NewPermanentUnboxingError(err)
+		}
+
+		// Unversion the body
+		body, ierr = b.unversionBody(ctx, bodyVersioned)
+		if ierr != nil {
+			return nil, ierr
+		}
+	}
+
+	// Compute the header hash
+	headerHash, ierr := b.makeHeaderHash(ctx, boxed.HeaderSealed)
+	if ierr != nil {
+		return nil, ierr
+	}
+
+	// Get sender info
+	// Any of (senderUsername, senderDeviceName, senderDeviceType) could be empty strings because of non-critical failures.
+	senderUsername, senderDeviceName, senderDeviceType := b.getSenderInfoLocal(
+		ctx, clientHeader.Sender, clientHeader.SenderDevice)
+
+	// create an unboxed message
+	return &chat1.MessageUnboxedValid{
+		ClientHeader:          clientHeader,
+		ServerHeader:          *boxed.ServerHeader,
+		MessageBody:           body,
+		SenderUsername:        senderUsername,
+		SenderDeviceName:      senderDeviceName,
+		SenderDeviceType:      senderDeviceType,
+		BodyHash:              bodyHashSigned,
+		HeaderHash:            headerHash,
+		HeaderSignature:       nil,
+		VerificationKey:       &boxed.HeaderVerificationKey,
+		SenderDeviceRevokedAt: senderDeviceRevokedAt,
+	}, nil
+}
+
+// Unversions a header.
+// Also check that the HeaderSignature field from MessageBoxed V1 is nil.
+// Therefore only for use with MessageBoxed V2.
+// Returns (header, bodyHash, err)
+func (b *Boxer) unversionHeader(ctx context.Context, headerVersioned chat1.HeaderPlaintext) (chat1.MessageClientHeaderVerified, []byte, UnboxingError) {
+	headerVersion, err := headerVersioned.Version()
+	if err != nil {
+		return chat1.MessageClientHeaderVerified{}, nil, NewPermanentUnboxingError(err)
+	}
+	switch headerVersion {
+	case chat1.HeaderPlaintextVersion_V1:
+		hp := headerVersioned.V1()
+		if hp.HeaderSignature != nil {
+			return chat1.MessageClientHeaderVerified{}, nil,
+				NewPermanentUnboxingError(fmt.Errorf("HeaderSignature non-nil in MBV2"))
+		}
+		return chat1.MessageClientHeaderVerified{
+			Conv:         hp.Conv,
+			TlfName:      hp.TlfName,
+			TlfPublic:    hp.TlfPublic,
+			MessageType:  hp.MessageType,
+			Prev:         hp.Prev,
+			Sender:       hp.Sender,
+			SenderDevice: hp.SenderDevice,
+			// CORE-4540: MerkleRoot will be in signed header.
+			OutboxID:   hp.OutboxID,
+			OutboxInfo: hp.OutboxInfo,
+		}, hp.BodyHash, nil
+	default:
+		return chat1.MessageClientHeaderVerified{}, nil,
+			NewPermanentUnboxingError(NewHeaderVersionError(headerVersion,
+				b.headerUnsupported(ctx, headerVersion, headerVersioned)))
+	}
+}
+
+func (b *Boxer) unversionBody(ctx context.Context, bodyVersioned chat1.BodyPlaintext) (chat1.MessageBody, UnboxingError) {
+	bodyVersion, err := bodyVersioned.Version()
+	if err != nil {
+		return chat1.MessageBody{}, NewPermanentUnboxingError(err)
+	}
+	switch bodyVersion {
+	case chat1.BodyPlaintextVersion_V1:
+		return bodyVersioned.V1().MessageBody, nil
+	default:
+		return chat1.MessageBody{},
+			NewPermanentUnboxingError(NewBodyVersionError(bodyVersion,
+				b.bodyUnsupported(ctx, bodyVersion, bodyVersioned)))
+	}
+}
+
+func (b *Boxer) verifyBodyHash(ctx context.Context, bodyEncrypted chat1.EncryptedData, bodyHashSigned []byte) UnboxingError {
+	bodyHashObserved := b.hashV1(bodyEncrypted.E)
+
+	if len(bodyHashSigned) == 0 {
+		return NewPermanentUnboxingError(BodyHashInvalid{})
+	}
+
+	if !libkb.SecureByteArrayEq(bodyHashObserved, bodyHashSigned) {
+		return NewPermanentUnboxingError(BodyHashInvalid{})
+	}
+	return nil
+}
+
+// Compare the unsigned and signed header for MessageBoxedVersion_V1.
+// The V1 and V2 checks are different methods because they are strict on slightly different things.
+// Confirm that fields in the server-supplied ClientHeader match what
+// we decrypt. It would be preferable if the server didn't supply this data
+// at all (so that we didn't have to worry about anyone trusting it
+// *before* we get to this check, for example), but since we have it we
+// need to check it.
+// The most important check here is that the Sender and SenderDevice match.
+// That is the only thing that gives the verification key used credibility.
+func (b *Boxer) compareHeadersV2(ctx context.Context, hServer chat1.MessageClientHeader, hSigned chat1.MessageClientHeaderVerified) UnboxingError {
+	// Conv
+	if !hServer.Conv.Eq(hSigned.Conv) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("Conv"))
+	}
+
+	// TlfName
+	if hServer.TlfName != hSigned.TlfName {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("TlfName"))
+	}
+
+	// TlfPublic
+	if hServer.TlfPublic != hSigned.TlfPublic {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("TlfPublic"))
+	}
+
+	// MessageType
+	if hServer.MessageType != hSigned.MessageType {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("MessageType"))
+	}
+
+	// Note: Supersedes and Deletes are not checked because they are not
+	//       part of MessageClientHeaderVerified.
+
+	// Prev
+	if len(hServer.Prev) != len(hSigned.Prev) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("Prev"))
+	}
+	for i, a := range hServer.Prev {
+		b := hSigned.Prev[i]
+		if !a.Eq(b) {
+			return NewPermanentUnboxingError(NewHeaderMismatchError("Prev"))
+		}
+	}
+
+	// Sender
+	// This prevents someone from re-using a header for another sender
+	if !hServer.Sender.Eq(hSigned.Sender) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("Sender"))
+	}
+
+	// SenderDevice
+	if !bytes.Equal(hServer.SenderDevice.Bytes(), hSigned.SenderDevice.Bytes()) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("SenderDevice"))
+	}
+
+	// MerkleRoot (disabled)
+	// CORE-4540: Enable this check.
+	//            This check is disabled because MerkleRoot is not yet signed.
+	//            Simultaneously with enabling boxing MBV2, it will be added to the signed header.
+	//            And will match from then on.
+	// if hServer.MerkleRoot != hSigned.MerkleRoot {
+	// 	return NewPermanentUnboxingError(NewHeaderMismatchError("MerkleRoot"))
+	// }
+
+	// OutboxID
+	if hServer.OutboxID != hSigned.OutboxID {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("OutboxID"))
+	}
+
+	// OutboxInfo
+	if hServer.OutboxInfo != hSigned.OutboxInfo {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("OutboxInfo"))
+	}
+
+	return nil
+}
+
+func (b *Boxer) makeHeaderHash(ctx context.Context, headerSealed chat1.SignEncryptedData) (chat1.Hash, UnboxingError) {
+	buf := bytes.Buffer{}
+	err := binary.Write(&buf, binary.BigEndian, int32(headerSealed.V))
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
+	}
+	_, err = buf.Write(headerSealed.N)
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
+	}
+	_, err = buf.Write(headerSealed.B)
+	if err != nil {
+		return nil, NewPermanentUnboxingError(err)
+	}
+	return b.hashV1(buf.Bytes()), nil
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
@@ -443,10 +721,7 @@ func (b *Boxer) getUsername(ctx context.Context, uid keybase1.UID) (string, erro
 // This deserves to be reconsidered.
 func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
 	if b.testingGetSenderInfoLocal != nil {
-		b.log().Warning("Using TESTING jig. Not suitable for normal use.")
-		if flag.Lookup("test.v") == nil {
-			panic("testing jig installed in normal mode")
-		}
+		b.assertInTest()
 		return b.testingGetSenderInfoLocal(ctx, uid1, deviceID1)
 	}
 
@@ -524,11 +799,13 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError(msg, false)
 	}
 
-	merkleRoot, err := b.latestMerkleRoot()
-	if err != nil {
-		return nil, NewBoxingError(err.Error(), false)
-	}
-	msg.ClientHeader.MerkleRoot = merkleRoot
+	// CORE-4540: MerkleRoot will be in signed header.
+	//            It is useless to put it in the unsigned header in the meantime.
+	// merkleRoot, err := b.latestMerkleRoot()
+	// if err != nil {
+	// 	return nil, NewBoxingError(err.Error(), false)
+	// }
+	// msg.ClientHeader.MerkleRoot = merkleRoot
 
 	if len(msg.ClientHeader.TlfName) == 0 {
 		msg := fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName,
@@ -536,7 +813,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 		return nil, NewBoxingError(msg, true)
 	}
 
-	boxed, err := b.box(msg, encryptionKey, signingKeyPair, chat1.MessageBoxedVersion_V1)
+	boxed, err := b.box(msg, encryptionKey, signingKeyPair, b.boxWithVersion)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
@@ -581,9 +858,10 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cry
 		Prev:         messagePlaintext.ClientHeader.Prev,
 		Sender:       messagePlaintext.ClientHeader.Sender,
 		SenderDevice: messagePlaintext.ClientHeader.SenderDevice,
-		BodyHash:     bodyHash[:],
-		OutboxInfo:   messagePlaintext.ClientHeader.OutboxInfo,
-		OutboxID:     messagePlaintext.ClientHeader.OutboxID,
+		// CORE-4540: Add MerkleRoot to signed header.
+		BodyHash:   bodyHash[:],
+		OutboxInfo: messagePlaintext.ClientHeader.OutboxInfo,
+		OutboxID:   messagePlaintext.ClientHeader.OutboxID,
 	}
 
 	// sign the header and insert the signature
@@ -601,6 +879,7 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cry
 	}
 
 	boxed := &chat1.MessageBoxed{
+		Version:          chat1.MessageBoxedVersion_V1,
 		ClientHeader:     messagePlaintext.ClientHeader,
 		BodyCiphertext:   *encryptedBody,
 		HeaderCiphertext: *encryptedHeader,
@@ -610,9 +889,60 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key *keybase1.Cry
 	return boxed, nil
 }
 
-func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, key *keybase1.CryptKey,
+func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, encryptionKey *keybase1.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
-	return nil, fmt.Errorf("boxV2 not implemented")
+
+	bodyVersioned := chat1.NewBodyPlaintextWithV1(chat1.BodyPlaintextV1{
+		MessageBody: messagePlaintext.MessageBody,
+	})
+	bodyEncrypted, err := b.seal(bodyVersioned, encryptionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	bodyHash := b.hashV1(bodyEncrypted.E)
+
+	// create the v1 header, adding hash
+	headerVersioned := chat1.NewHeaderPlaintextWithV1(chat1.HeaderPlaintextV1{
+		Conv:         messagePlaintext.ClientHeader.Conv,
+		TlfName:      messagePlaintext.ClientHeader.TlfName,
+		TlfPublic:    messagePlaintext.ClientHeader.TlfPublic,
+		MessageType:  messagePlaintext.ClientHeader.MessageType,
+		Prev:         messagePlaintext.ClientHeader.Prev,
+		Sender:       messagePlaintext.ClientHeader.Sender,
+		SenderDevice: messagePlaintext.ClientHeader.SenderDevice,
+		// CORE-4540: Add MerkleRoot to signed header.
+		BodyHash:   bodyHash[:],
+		OutboxInfo: messagePlaintext.ClientHeader.OutboxInfo,
+		OutboxID:   messagePlaintext.ClientHeader.OutboxID,
+		// In MessageBoxed.V2 HeaderSignature is nil.
+		HeaderSignature: nil,
+	})
+
+	// signencrypt the header
+	headerSealed, err := b.signEncryptMarshal(headerVersioned, encryptionKey, signingKeyPair)
+	if err != nil {
+		return nil, err
+	}
+
+	// verify
+	verifyKey := signingKeyPair.GetBinaryKID()
+
+	boxed := &chat1.MessageBoxed{
+		Version:      chat1.MessageBoxedVersion_V2,
+		ServerHeader: nil,
+		ClientHeader: messagePlaintext.ClientHeader,
+
+		// HeaderCiphertext not used in MessageBoxed.V2
+		HeaderCiphertext: chat1.EncryptedData{},
+
+		HeaderSealed:          headerSealed,
+		BodyCiphertext:        *bodyEncrypted,
+		HeaderVerificationKey: verifyKey,
+		KeyGeneration:         encryptionKey.KeyGeneration,
+	}
+
+	return boxed, nil
 }
 
 // seal encrypts data into chat1.EncryptedData.
@@ -663,8 +993,19 @@ func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefi
 	return b.sign(encoded, kp, prefix)
 }
 
+// signEncryptMarshal signencrypts data given an encryption and signing key, returning a chat1.SignEncryptedData.
+// It marshals data before signing.
+func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (chat1.SignEncryptedData, error) {
+	encoded, err := b.marshal(data)
+	if err != nil {
+		return chat1.SignEncryptedData{}, err
+	}
+
+	return b.signEncrypt(encoded, encryptionKey, signingKeyPair)
+}
+
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
 	sig, err := kp.SignV2(msg, prefix)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
@@ -674,7 +1015,65 @@ func sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix)
 		S: sig.Sig[:],
 		K: sig.Kid,
 	}
+
+	if b.testingSignatureMangle != nil {
+		b.assertInTest()
+		sigInfo.S = b.testingSignatureMangle(sigInfo.S)
+	}
+
 	return sigInfo, nil
+}
+
+// signEncrypt signencrypts msg.
+func (b *Boxer) signEncrypt(msg []byte, encryptionKey *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (chat1.SignEncryptedData, error) {
+	if signingKeyPair.Private == nil {
+		return chat1.SignEncryptedData{}, libkb.NoSecretKeyError{}
+	}
+
+	var nonce [signencrypt.NonceSize]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		return chat1.SignEncryptedData{}, err
+	}
+
+	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey.Key
+	var signKey [ed25519.PrivateKeySize]byte = *signingKeyPair.Private
+
+	signEncryptedBytes := signencrypt.SealWhole(
+		msg, &encKey, &signKey, libkb.SignaturePrefixChat, &nonce)
+	signEncryptedInfo := chat1.SignEncryptedData{
+		V: 1,
+		B: signEncryptedBytes,
+		N: nonce[:],
+	}
+
+	if b.testingSignatureMangle != nil {
+		b.assertInTest()
+		signEncryptedInfo.B = b.testingSignatureMangle(signEncryptedInfo.B)
+	}
+
+	return signEncryptedInfo, nil
+}
+
+// signEncryptOpen opens and verifies chat1.SignEncryptedData.
+func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey *keybase1.CryptKey, verifyKID []byte) ([]byte, error) {
+	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey.Key
+
+	verifyKey := libkb.KIDToNaclSigningKeyPublic(verifyKID)
+	if verifyKey == nil {
+		return nil, libkb.BadKeyError{}
+	}
+	var verKey [ed25519.PublicKeySize]byte = *verifyKey
+
+	var nonce [signencrypt.NonceSize]byte
+	if copy(nonce[:], data.N) != signencrypt.NonceSize {
+		return nil, libkb.DecryptBadNonceError{}
+	}
+
+	plain, err := signencrypt.OpenWhole(data.B, &encKey, &verKey, libkb.SignaturePrefixChat, &nonce)
+	if err != nil {
+		return nil, err
+	}
+	return plain, nil
 }
 
 type verifyMessageRes struct {
@@ -755,10 +1154,7 @@ func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Signatu
 // Returns (validAtCtime, revoked, err)
 func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (found, validAtCTime bool, revoked *gregor1.Time, unboxErr UnboxingError) {
 	if b.testingValidSenderKey != nil {
-		b.log().Warning("Using TESTING jig. Not suitable for normal use.")
-		if flag.Lookup("test.v") == nil {
-			panic("testing jig installed in normal mode")
-		}
+		b.assertInTest()
 		return b.testingValidSenderKey(ctx, sender, key, ctime)
 	}
 
@@ -827,42 +1223,69 @@ func (b *Boxer) unmarshal(data []byte, v interface{}) error {
 	return dec.Decode(&v)
 }
 
+func (b *Boxer) assertInTest() {
+	b.log().Warning("Using TESTING jig. Not suitable for normal use.")
+	if flag.Lookup("test.v") == nil {
+		panic("testing jig installed in normal mode")
+	}
+}
+
 func hashSha256V1(data []byte) chat1.Hash {
 	sum := sha256.Sum256(data)
 	return sum[:]
 }
 
-func compareClientHeaders(server chat1.MessageClientHeader, verified chat1.MessageClientHeaderVerified) error {
-	if !server.Conv.Eq(verified.Conv) {
-		return fmt.Errorf("Conv mismatch in chat message headers: %#v %#v", server.Conv, verified.Conv)
+// See note on compareHeadersV2.
+func (b *Boxer) compareHeadersV1(ctx context.Context, hServer chat1.MessageClientHeader, hSigned chat1.MessageClientHeaderVerified) UnboxingError {
+	// Conv
+	if !hServer.Conv.Eq(hSigned.Conv) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("Conv"))
 	}
-	if server.TlfName != verified.TlfName {
-		return fmt.Errorf("TlfName mismatch in chat message headers: %#v %#v", server.TlfName, verified.TlfName)
+
+	// TlfName
+	if hServer.TlfName != hSigned.TlfName {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("TlfName"))
 	}
-	if server.TlfPublic != verified.TlfPublic {
-		return fmt.Errorf("TlfPublic mismatch in chat message headers: %#v %#v", server.TlfPublic, verified.TlfPublic)
+
+	// TlfPublic
+	if hServer.TlfPublic != hSigned.TlfPublic {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("TlfPublic"))
 	}
-	if server.MessageType != verified.MessageType {
-		return fmt.Errorf("MessageType mismatch in chat message headers: %#v %#v", server.MessageType, verified.MessageType)
+
+	// MessageType
+	if hServer.MessageType != hSigned.MessageType {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("MessageType"))
 	}
-	if !bytes.Equal(server.Sender, verified.Sender) {
-		return fmt.Errorf("Sender mismatch in chat message headers: %#v %#v", server.Sender, verified.Sender)
+
+	// Note: Supersedes and Deletes are not checked because they are not
+	//       part of MessageClientHeaderVerified.
+
+	// Prev
+	if len(hServer.Prev) != len(hSigned.Prev) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("Prev"))
 	}
-	if !bytes.Equal(server.SenderDevice, verified.SenderDevice) {
-		return fmt.Errorf("SenderDevice mismatch in chat message headers: %#v %#v", server.SenderDevice, verified.SenderDevice)
-	}
-	if len(server.Prev) != len(verified.Prev) {
-		return fmt.Errorf("Prev mismatch in chat message headers: %#v %#v", server.Prev, verified.Prev)
-	}
-	for i := 0; i < len(server.Prev); i++ {
-		prev1 := server.Prev[i]
-		prev2 := verified.Prev[i]
-		if prev1.Id != prev2.Id || !bytes.Equal(prev1.Hash, prev2.Hash) {
-			return fmt.Errorf("Prev mismatch in chat message headers: %#v %#v", prev1, prev2)
+	for i, a := range hServer.Prev {
+		b := hSigned.Prev[i]
+		if !a.Eq(b) {
+			return NewPermanentUnboxingError(NewHeaderMismatchError("Prev"))
 		}
 	}
-	// TODO: Supersedes and other fields currently don't match after
-	// decryption. The easiest thing might be to stop using the same data
-	// structure on both sides.
+
+	// Sender
+	// This prevents someone from re-using a header for another sender
+	if !hServer.Sender.Eq(hSigned.Sender) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("Sender"))
+	}
+
+	// SenderDevice
+	if !bytes.Equal(hServer.SenderDevice.Bytes(), hSigned.SenderDevice.Bytes()) {
+		return NewPermanentUnboxingError(NewHeaderMismatchError("SenderDevice"))
+	}
+
+	// CORE-4540: _Don't_ enable this check! There are V1 messages in the wild with
+	//            hServer.MerkleRoot set but nothing signed.
+
+	// OutboxID, OutboxInfo: Left unchecked as I'm not sure whether these hold in V1 messages.
+
 	return nil
 }

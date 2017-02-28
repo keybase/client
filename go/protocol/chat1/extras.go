@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"flag"
 	"fmt"
 	"strconv"
 	"strings"
@@ -267,6 +268,23 @@ func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeI
 
 func (h MessageClientHeaderVerified) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
 	return ExpandTLFName(h.TlfName, finalizeInfo)
+}
+
+func (h MessageClientHeader) ToVerifiedForTesting() MessageClientHeaderVerified {
+	if flag.Lookup("test.v") == nil {
+		panic("MessageClientHeader.ToVerifiedForTesting used outside of test")
+	}
+	return MessageClientHeaderVerified{
+		Conv:         h.Conv,
+		TlfName:      h.TlfName,
+		TlfPublic:    h.TlfPublic,
+		MessageType:  h.MessageType,
+		Prev:         h.Prev,
+		Sender:       h.Sender,
+		SenderDevice: h.SenderDevice,
+		OutboxID:     h.OutboxID,
+		OutboxInfo:   h.OutboxInfo,
+	}
 }
 
 // ExpandTLFName returns a TLF name with a reset suffix if it exists.

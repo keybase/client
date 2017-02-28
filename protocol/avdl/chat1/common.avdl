@@ -163,6 +163,8 @@ protocol common {
   record MessageClientHeader {
     // This type is attached to MessageBoxed.
     // When on a received message these fields are server-set and have not been verified.
+    // If adding fields, consider whether they should be signed,
+    // and if so add them to MessageClientHeaderVerified as well.
 
     ConversationIDTriple conv;
     string tlfName;
@@ -183,6 +185,8 @@ protocol common {
     // This type is the result of unboxing.
     // And to be used locally to the client only.
     // All fields have been verified signed by the sender.
+    // If adding fields, consider updating Boxer's compareHeaders methods
+    // to check invariants early.
 
     ConversationIDTriple conv;
     string tlfName;
