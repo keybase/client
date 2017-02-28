@@ -75,7 +75,7 @@
     "react-list": "0.8.0",
     "react-native": "0.41.2",
     "react-native-camera": "0.6.0",
-    "react-native-image-picker": "^0.25.6",
+    "react-native-image-picker": "0.25.6",
     "react-native-push-notification": "2.2.1",
     "react-redux": "5.0.2",
     "react-tap-event-plugin": "2.0.1",
