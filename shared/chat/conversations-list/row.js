@@ -1,6 +1,8 @@
 // @flow
+import * as I from 'immutable'
 import {chatTab} from '../../constants/tabs'
 import {connect} from 'react-redux'
+import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {getPath} from '../../route-tree'
 import {globalColors} from '../../styles'
@@ -43,59 +45,65 @@ function _rowDerivedProps (rekeyInfo, unreadCount, isSelected) {
   }
 }
 
+const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
+const makeGetIsSelected = conversationIDKey => state => newestConversationIDKey(_selectedSelector(state), state.chat) === conversationIDKey
+const makeGetParticipants = conversationIDKey => state => {
+  return participantFilter(
+    state.chat.get('pendingConversations').findKey(v => v === conversationIDKey),
+    state.config.username || ''
+  )
+}
+
+const makeGetConversation = conversationIDKey => state => state.chat.get('inbox').find(i => i.get('conversationIDKey') === conversationIDKey)
+const makeGetUnreadCounts = conversationIDKey => state => state.chat.get('conversationUnreadCounts').get(conversationIDKey)
+const getYou = state => state.config.username || ''
+const makeGetRekeyInfo = conversationIDKey => state => state.chat.get('rekeyInfos').get(conversationIDKey)
+
+const makeSelector = (conversationIDKey, nowOverride) => {
+  const isPending = isPendingConversationIDKey(conversationIDKey)
+  if (isPending) {
+    return createImmutableEqualSelector(
+      [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey)],
+      (isSelected, participants) => ({
+        conversationIDKey,
+        isMuted: false,
+        isSelected,
+        participants,
+        rekeyInfo: null,
+        snippet: '',
+        timestamp: formatTimeForConversationList(Date.now(), nowOverride),
+        unreadCount: 0,
+        ..._rowDerivedProps(null, 0, isSelected),
+      })
+    )
+  } else {
+    const getConversation = createImmutableEqualSelector(
+      [makeGetConversation(conversationIDKey)],
+      conversation => conversation
+    )
+
+    return createImmutableEqualSelector(
+      [getConversation, makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey)],
+      (conversation, isSelected, unreadCount, you, rekeyInfo) => ({
+        conversationIDKey,
+        isMuted: conversation.get('muted'),
+        isSelected,
+        participants: participantFilter(conversation.get('participants'), you),
+        rekeyInfo,
+        snippet: conversation.get('snippet'),
+        timestamp: formatTimeForConversationList(conversation.get('time'), nowOverride),
+        unreadCount,
+        ..._rowDerivedProps(rekeyInfo, unreadCount, isSelected),
+      })
+    )
+  }
+}
+
 // $FlowIssue
 const RowConnector = connect(
   (state: TypedState, {conversationIDKey, nowOverride}) => {
-    // returns a closure!
-    const isPending = isPendingConversationIDKey(conversationIDKey)
-    const users = state.chat.get('pendingConversations').findKey(v => v === conversationIDKey)
-    return (state: TypedState) => {
-      const you = state.config.username || ''
-      const selectedConversation = newestConversationIDKey(_selectedSelector(state), state.chat)
-      const isSelected = selectedConversation === conversationIDKey
-      const rekeyInfos = state.chat.get('rekeyInfos')
-
-      if (isPending) {
-        const unreadCount = 0
-        const participants = participantFilter(users, you)
-        const isMuted = false
-        const rekeyInfo = null
-        const timestamp = formatTimeForConversationList(Date.now(), nowOverride)
-        const snippet = ''
-
-        return {
-          conversationIDKey,
-          isMuted,
-          isSelected,
-          participants,
-          rekeyInfo,
-          snippet,
-          timestamp,
-          unreadCount,
-          ..._rowDerivedProps(rekeyInfo, unreadCount, isSelected),
-        }
-      } else {
-        const conversation = state.chat.get('inbox').find(i => i.get('conversationIDKey') === conversationIDKey)
-        const unreadCount = state.chat.get('conversationUnreadCounts').get(conversationIDKey)
-        const participants = participantFilter(conversation.get('participants'), you)
-        const isMuted = conversation.get('muted')
-        const rekeyInfo = rekeyInfos.get(conversationIDKey)
-        const timestamp = formatTimeForConversationList(conversation.get('time'), nowOverride)
-        const snippet = conversation.get('snippet')
-
-        return {
-          conversationIDKey,
-          isMuted,
-          isSelected,
-          participants,
-          rekeyInfo,
-          snippet,
-          timestamp,
-          unreadCount,
-          ..._rowDerivedProps(rekeyInfo, unreadCount, isSelected),
-        }
-      }
-    }
+    const selector = makeSelector(conversationIDKey, nowOverride)
+    return (state: TypedState) => selector(state)
   },
   (dispatch) => ({
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
