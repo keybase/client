@@ -8,6 +8,7 @@ import React from 'react'
 import SidePanel from './side-panel'
 import YouRekey from './you-rekey'
 import hoc from './index-hoc'
+import Banner from './banner'
 import {Box} from '../../common-adapters'
 import {branch, renderComponent} from 'recompose'
 import {globalStyles} from '../../styles'
@@ -18,6 +19,7 @@ const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
     <Header {...props.headerProps} />
     <List {...props.listProps} />
+    {props.bannerMessage && <Banner {...props.bannerMessage} />}
     {props.finalizeInfo
       ? <OldProfileResetNotice
         onOpenNewerConversation={props.onOpenNewerConversation}
