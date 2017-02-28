@@ -729,9 +729,15 @@ function * _updateInbox (conv: ?ConversationLocal) {
   const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
   const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
 
-  yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
-  yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  if (supersedesState.count()) {
+    yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+  }
+  if (supersededByState.count()) {
+    yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+  }
+  if (finalizedState.count()) {
+    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  }
 
   if (inboxState) {
     yield put(({
@@ -1040,7 +1046,9 @@ function * _loadInbox (): SagaGenerator<any, any> {
   const finalizedState: FinalizedState = _inboxToFinalized(inbox)
 
   yield put(({type: 'chat:loadedInbox', payload: {inbox: conversations}, logTransformer: loadedInboxActionTransformer}: Constants.LoadedInbox))
-  yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  if (finalizedState.count()) {
+    yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+  }
 
   chatInboxUnverified.response.result()
 
@@ -1067,9 +1075,16 @@ function * _loadInbox (): SagaGenerator<any, any> {
       const supersededByState: Constants.SupersededByState = _inboxConversationLocalToSupersededByState(conv)
       const finalizedState: Constants.FinalizedState = _conversationLocalToFinalized(conv)
 
-      yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
-      yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
-      yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+      if (supersedesState.count()) {
+        yield put(({type: 'chat:updateSupersedesState', payload: {supersedesState}}: Constants.UpdateSupersedesState))
+      }
+      if (supersededByState.count()) {
+        yield put(({type: 'chat:updateSupersededByState', payload: {supersededByState}}: Constants.UpdateSupersededByState))
+      }
+
+      if (finalizedState.count()) {
+        yield put(({type: 'chat:updateFinalizedState', payload: {finalizedState}}: Constants.UpdateFinalizedState))
+      }
 
       if (conversation) {
         yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))

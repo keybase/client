@@ -3,7 +3,7 @@ import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
-import {List, Map} from 'immutable'
+import {List, Map, is} from 'immutable'
 import {connect} from 'react-redux'
 import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, startConversation, loadAttachment, retryAttachment} from '../../actions/chat'
 import * as ChatConstants from '../../constants/chat'
@@ -13,6 +13,7 @@ import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
 import {pick} from 'lodash'
+import {createSelectorCreator, defaultMemoize} from 'reselect'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
@@ -72,89 +73,119 @@ class ConversationContainer extends Component<void, Props, State> {
   }
 }
 
-export default connect(
-  (state: TypedState, {routePath, routeState}) => {
-    const selectedConversation = routePath.last()
+const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, is)
+const getYou = state => state.config.username || ''
+const getSelectedConversation = props => props.routePath.last()
+const getFollowingMap = (state, props) => state.config.following
+const getMetaDataMap = state => state.chat.get('metaData')
+const getConversationStates = (state, props) => state.chat.get('conversationStates').get(getSelectedConversation(state, props))
+const getSelectedInbox = (state, props) => {
+  const selectedConversation = getSelectedConversation(state, props)
+  return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selectedConversation)
+}
+const getRekeyInfo = (state, props) => state.chat.get('rekeyInfos').get(getSelectedConversation(state, props))
+const getFinalizeInfo = (state, props) => state.chat.get('finalizedState').get(getSelectedConversation(state, props))
+const getInputText = (state, props) => props.routeState.inputText
+const getSupersedes = (state, props) => ChatConstants.convSupersedesInfo(getSelectedConversation(state, props), state.chat)
+const getSupersededBy = (state, props) => ChatConstants.convSupersededByInfo(getSelectedConversation(state, props), state.chat)
 
-    const you = state.config.username || ''
-    const followingMap = state.config.following
-    const metaDataMap = state.chat.get('metaData')
+const pendingSelector = createImmutableEqualSelector(
+  [getYou, getSelectedConversation, getFollowingMap, getMetaDataMap, getInputText],
+  (you, selectedConversation, followingMap, metaDataMap, inputText) => {
+    const tlfName = pendingConversationIDKeyToTlfName(selectedConversation)
+    if (tlfName) {
+      const participants = tlfName.split(',')
 
-    if (isPendingConversationIDKey(selectedConversation)) {
-      const tlfName = pendingConversationIDKeyToTlfName(selectedConversation)
-      if (tlfName) {
-        const participants = List(tlfName.split(','))
-
-        return {
-          bannerMessage: null,
-          emojiPickerOpen: false,
-          followingMap: pick(followingMap, participants.toArray()),
-          inputText: routeState.inputText,
-          isLoading: false,
-          messages: List(),
-          metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
-          moreToLoad: false,
-          muted: false,
-          participants,
-          rekeyInfo: null,
-          selectedConversation,
-          validated: true,
-          you,
-        }
+      return {
+        bannerMessage: null,
+        emojiPickerOpen: false,
+        followingMap: pick(followingMap, participants),
+        inputText: inputText,
+        isLoading: false,
+        messages: List(),
+        metaDataMap: metaDataMap.filter((k, v) => participants.includes(v)),
+        moreToLoad: false,
+        muted: false,
+        participants,
+        rekeyInfo: null,
+        selectedConversation,
+        validated: true,
+        you,
       }
     }
+  }
+)
 
-    if (selectedConversation !== nothingSelected) {
-      const conversationState = state.chat.get('conversationStates').get(selectedConversation)
-      if (conversationState) {
-        const inbox = state.chat.get('inbox')
-        const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
-        const muted = selected && selected.get('muted')
-        const participants = selected && selected.participants || List()
-        const rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversation)
-
-        const supersedes = ChatConstants.convSupersedesInfo(selectedConversation, state.chat)
-        const supersededBy = ChatConstants.convSupersededByInfo(selectedConversation, state.chat)
-        const finalizeInfo = state.chat.get('finalizedState').get(selectedConversation)
-
-        return {
-          bannerMessage: null,
-          emojiPickerOpen: false,
-          firstNewMessageID: conversationState.firstNewMessageID,
-          followingMap: pick(followingMap, participants.toArray()),
-          inputText: routeState.inputText,
-          isLoading: conversationState.isLoading,
-          messages: conversationState.messages,
-          metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
-          moreToLoad: conversationState.moreToLoad,
-          muted,
-          participants,
-          rekeyInfo,
-          selectedConversation,
-          validated: selected && selected.validated,
-          you,
-          supersedes,
-          supersededBy,
-          finalizeInfo,
-        }
-      }
+const normalSelector = createImmutableEqualSelector(
+  [getSelectedConversation, getConversationStates, getYou, getFollowingMap, getMetaDataMap, getSelectedInbox, getRekeyInfo, getFinalizeInfo, getInputText, getSupersedes, getSupersededBy],
+  (selectedConversation, conversationState, you, followingMap, metaDataMap, selectedInbox, rekeyInfo, finalizeInfo, inputText, supersedes, supersededBy) => {
+    // console.log('aaaa normal selector', {you, selectedConversation, followingMap, metaDataMap, conversationStates, selectedInbox, rekeyInfo, finalizeInfo, inputText, supersedes, supersededBy})
+    if (!conversationState) {
+      return emptyState(you, selectedConversation)
     }
 
+    const muted = selectedInbox && selectedInbox.get('muted')
+    const participants = selectedInbox && selectedInbox.participants || List()
     return {
       bannerMessage: null,
-      followingMap,
-      isLoading: false,
-      messages: List(),
-      metaDataMap: Map(),
-      moreToLoad: false,
-      participants: List(),
-      rekeyInfo: null,
+      emojiPickerOpen: false,
+      finalizeInfo,
+      firstNewMessageID: conversationState.firstNewMessageID,
+      followingMap: pick(followingMap, participants.toArray()),
+      inputText: inputText,
+      isLoading: conversationState.isLoading,
+      messages: conversationState.messages,
+      metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
+      moreToLoad: conversationState.moreToLoad,
+      muted,
+      participants,
+      rekeyInfo,
       selectedConversation,
-      validated: false,
+      supersededBy,
+      supersedes,
+      validated: selectedInbox && selectedInbox.validated,
       you,
-      supersedes: null,
-      supersededBy: null,
     }
+  }
+)
+
+const emptyState = (you, selectedConversation) => ({
+  bannerMessage: null,
+  followingMap: {},
+  isLoading: false,
+  messages: List(),
+  metaDataMap: Map(),
+  moreToLoad: false,
+  participants: List(),
+  rekeyInfo: null,
+  selectedConversation,
+  supersededBy: null,
+  supersedes: null,
+  validated: false,
+  you,
+})
+
+const emptySelector = (state, props, selectedConversation) => {
+  return createImmutableEqualSelector(
+    [getYou],
+    (you) => emptyState(you, selectedConversation)
+  )
+}
+
+const selector = (state, props) => {
+  const selectedConversation = getSelectedConversation(props)
+  if (isPendingConversationIDKey(selectedConversation)) {
+    return pendingSelector(state, props, selectedConversation)
+  } else if (selectedConversation !== nothingSelected) {
+    return normalSelector(state, props, selectedConversation)
+  } else {
+    return emptySelector(state, props, selectedConversation)
+  }
+}
+
+export default connect(
+  (state: TypedState, props) => {
+    return selector(state, props)
   },
   (dispatch: Dispatch, {setRouteState}) => ({
     onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),

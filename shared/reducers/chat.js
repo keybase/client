@@ -3,6 +3,7 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
+import shallowEqual from 'shallowequal'
 
 import type {Actions, State, Message, ConversationState, AppendMessages, ServerMessage, InboxState, TextMessage} from '../constants/chat'
 
@@ -426,8 +427,21 @@ function reducer (state: State = initialState, action: Actions) {
     case WindowConstants.changedFocus:
       return state.set('focused', action.payload)
     case 'chat:updateFinalizedState': {
-      // $FlowIssue doesn't recognize updates
-      return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))
+      // We get raw ojects from the service so its possible to overwrite with the same values
+      let different = false
+      const old = state.get('finalizedState')
+      action.payload.finalizedState.forEach((v, k) => {
+        if (!shallowEqual(old.get(k), v)) {
+          different = true
+          return false
+        }
+      })
+      if (different) {
+        // $FlowIssue doesn't recognize updates
+        return state.update('finalizedState', finalizedState => finalizedState.merge(action.payload.finalizedState))
+      } else {
+        return state
+      }
     }
     case 'chat:updateSupersedesState': {
       // $FlowIssue doesn't recognize updates
