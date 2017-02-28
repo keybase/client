@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"golang.org/x/net/context"
 
@@ -53,6 +55,11 @@ func NewCmdSimpleFSWrite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSWrite) Run() error {
+
+	// Disable the default signal/interrupt handler so that
+	// we can uplodad the buffer after ctl-C
+	signal.Reset(os.Interrupt, syscall.SIGTERM, os.Kill)
+
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
 		return err
@@ -66,7 +73,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 	}
 
 	// if we're appending, we'll need the size
-	if c.flags|keybase1.OpenFlags_APPEND != 0 {
+	if c.flags&keybase1.OpenFlags_APPEND != 0 {
 		e, err := cli.SimpleFSStat(context.TODO(), c.path)
 		if err != nil {
 			return err
@@ -84,27 +91,40 @@ func (c *CmdSimpleFSWrite) Run() error {
 	}
 	defer cli.SimpleFSClose(context.TODO(), opid)
 
-	bytes := make([]byte, 0, c.bufSize)
-	buf := bufio.NewReaderSize(os.Stdin, c.bufSize)
+	buf := make([]byte, 0, c.bufSize)
+	r := bufio.NewReader(os.Stdin)
+
 	for {
-		count, err := buf.Read(bytes)
+		n, err := r.Read(buf[:cap(buf)])
+		buf = buf[:n]
+		if n == 0 {
+			if err == nil {
+				continue
+			}
+			if err == io.EOF {
+				break
+			}
+		}
+
+		err2 := cli.SimpleFSWrite(context.TODO(), keybase1.SimpleFSWriteArg{
+			OpID:    opid,
+			Offset:  c.offset,
+			Content: buf[:],
+		})
+		if err2 != nil {
+			err = err2
+			break
+		}
+		c.offset += int64(n)
+
 		if err != nil {
-			if count == 0 && err == io.EOF {
+			if err == io.EOF {
 				err = nil
 			}
 			break
 		}
-		err = cli.SimpleFSWrite(context.TODO(), keybase1.SimpleFSWriteArg{
-			OpID:    opid,
-			Offset:  c.offset,
-			Content: bytes[:count],
-		})
-		if err != nil {
-			break
-		}
-		c.offset += int64(count)
 	}
-
+	c.G().Log.Debug("SimpleFS: return with error %v", err)
 	return err
 }
 
