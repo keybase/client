@@ -310,8 +310,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	rl = append(rl, ratelim)
 	if err == nil {
 		finalizeInfo = conv.Metadata.FinalizeInfo
-	} else {
-		s.Debug(ctx, "Pull: failed to get remote conv, not reading from cache: %s", err.Error())
 	}
 
 	// Post process thread before returning
