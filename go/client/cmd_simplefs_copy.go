@@ -57,7 +57,6 @@ func (c *CmdSimpleFSCopy) Run() error {
 	isDestDir, destPathString, destErr := checkPathIsDir(ctx, cli, c.dest)
 
 	for _, src := range c.src {
-		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), destPathString, isDestDir)
 		var dest keybase1.Path
 		if destErr != nil {
 			// This means the destination could not be found,
@@ -67,12 +66,14 @@ func (c *CmdSimpleFSCopy) Run() error {
 		} else {
 			dest, err = makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
 		}
+		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), pathToString(dest), isDestDir)
+
 		if err == TargetFileExistsError && c.interactive == true {
 			err = doOverwritePrompt(c.G(), pathToString(dest))
 		}
-		c.G().Log.Debug("SimpleFSCopy %s -> %s", pathToString(src), pathToString(dest))
 
 		if err != nil {
+			c.G().Log.Debug("SimpleFSCopy can't get paths together")
 			return err
 		}
 
