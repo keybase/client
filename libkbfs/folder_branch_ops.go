@@ -5186,7 +5186,8 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	for {
 		doSelect := true
 		if fbo.blocks.GetState(lState) == dirtyState &&
-			fbo.config.DirtyBlockCache().ShouldForceSync(fbo.id()) {
+			fbo.config.DirtyBlockCache().ShouldForceSync(fbo.id()) &&
+			sameDirtyRefCount < 10 {
 			// We have dirty files, and the system has a full buffer,
 			// so don't bother waiting for a signal, just get right to
 			// the main attraction.
@@ -5218,10 +5219,6 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 		} else {
 			sameDirtyRefCount = 0
 		}
-		if sameDirtyRefCount >= 10 {
-			panic(fmt.Sprintf("Making no Sync progress on dirty refs: %v",
-				dirtyRefs))
-		}
 		prevDirtyRefMap = currDirtyRefMap
 
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
@@ -5231,6 +5228,16 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 				func(ctx context.Context) context.Context {
 					return context.WithValue(ctx, CtxBackgroundSyncKey, "1")
 				})
+
+			if sameDirtyRefCount >= 10 {
+				// If the local journal is full, we might not be able to
+				// make progress until more data is flushed to the
+				// servers, so just warn here rather than just an outright
+				// panic.
+				fbo.log.CWarningf(ctx, "Making no Sync progress on dirty refs "+
+					"after %d attempts: %v", sameDirtyRefCount, dirtyRefs)
+			}
+
 			// Just in case network access or a bug gets stuck for a
 			// long time, time out the sync eventually.
 			longCtx, longCancel :=
