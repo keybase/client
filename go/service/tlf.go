@@ -69,13 +69,13 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keyb
 	}
 
 	resp, err := tlfClient.GetTLFCryptKeys(ctx, arg)
+	if in := chat.CtxIdentifyNotifier(ctx); in != nil {
+		in.Send(resp.NameIDBreaks)
+	}
 	if err != nil {
 		return resp, err
 	}
 
-	if in := chat.CtxIdentifyNotifier(ctx); in != nil {
-		in.Send(resp.NameIDBreaks)
-	}
 	if ok {
 		*breaks = appendBreaks(*breaks, resp.NameIDBreaks.Breaks.Breaks)
 	}
