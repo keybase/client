@@ -1138,6 +1138,18 @@ export type MessageClientHeader = {
   outboxInfo?: ?OutboxInfo,
 }
 
+export type MessageClientHeaderVerified = {
+  conv: ConversationIDTriple,
+  tlfName: string,
+  tlfPublic: boolean,
+  messageType: MessageType,
+  prev?: ?Array<MessagePreviousPointer>,
+  sender: gregor1.UID,
+  senderDevice: gregor1.DeviceID,
+  outboxID?: ?OutboxID,
+  outboxInfo?: ?OutboxInfo,
+}
+
 export type MessageConversationMetadata = {
   conversationTitle: string,
 }
@@ -1213,7 +1225,7 @@ export type MessageUnboxedState =
   | 3 // OUTBOX_3
 
 export type MessageUnboxedValid = {
-  clientHeader: MessageClientHeader,
+  clientHeader: MessageClientHeaderVerified,
   serverHeader: MessageServerHeader,
   messageBody: MessageBody,
   senderUsername: string,

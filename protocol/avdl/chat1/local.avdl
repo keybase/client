@@ -252,7 +252,7 @@ protocol local {
   }
 
   record MessageUnboxedValid {
-    MessageClientHeader clientHeader;
+    MessageClientHeaderVerified clientHeader;
     MessageServerHeader serverHeader;
     MessageBody messageBody;
     string senderUsername;

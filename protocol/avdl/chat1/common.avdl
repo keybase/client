@@ -159,22 +159,8 @@ protocol common {
   }
 
   record MessageClientHeader {
-    // This type is used for 2 things:
-    // 1. Included in the clear on MessageBoxed's.
-    // 2. Passed internally after unboxing.
-    // When in use (1) the data is not verified at all.
-    // When in use (2) all contained data has been verified by unboxing.
-    // There are fields present in MessageClientHeader that are _not_
-    // signed into the message. Therefore they are always 0-valued in (2)
-    // for a message even though the values may be set in (1).
-
-    // Which fields are asserted to be the same between (1) and (2)
-    // is not trivial. So if you need verified info, never use (1).
-
-    // As of this note, those mismatched fields are:
-    // - Supersedes
-    // - Deletes
-    // - MerkleRoot
+    // This type is attached to MessageBoxed.
+    // When on a received message these fields are server-set and have not been verified.
 
     ConversationIDTriple conv;
     string tlfName;
@@ -187,6 +173,22 @@ protocol common {
     gregor1.DeviceID senderDevice;
     // Latest merkle root when sent. Can be nil.
     union { null, MerkleRoot } merkleRoot;
+    union { null, OutboxID } outboxID;
+    union { null, OutboxInfo } outboxInfo;
+  }
+
+  record MessageClientHeaderVerified {
+    // This type is the result of unboxing.
+    // And to be used locally to the client only.
+    // All fields have been verified signed by the sender.
+
+    ConversationIDTriple conv;
+    string tlfName;
+    boolean tlfPublic;
+    MessageType messageType;
+    array<MessagePreviousPointer> prev;
+    gregor1.UID sender;
+    gregor1.DeviceID senderDevice;
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
   }

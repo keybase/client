@@ -794,7 +794,7 @@
       "name": "MessageUnboxedValid",
       "fields": [
         {
-          "type": "MessageClientHeader",
+          "type": "MessageClientHeaderVerified",
           "name": "clientHeader"
         },
         {

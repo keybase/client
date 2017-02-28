@@ -37,9 +37,8 @@ func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnbox
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
-		ClientHeader: chat1.MessageClientHeader{
+		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_EDIT,
-			Supersedes:  supersedes,
 		},
 		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
 			MessageID: supersedes,
@@ -54,9 +53,8 @@ func makeDelete(id chat1.MessageID, originalMessage chat1.MessageID, allEdits []
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
-		ClientHeader: chat1.MessageClientHeader{
+		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_DELETE,
-			Supersedes:  originalMessage,
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: append([]chat1.MessageID{originalMessage}, allEdits...),
@@ -70,7 +68,7 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
-		ClientHeader: chat1.MessageClientHeader{
+		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -80,14 +78,13 @@ func makeText(id chat1.MessageID, text string) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
-func makeMsgWithType(id chat1.MessageID, supersedes chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
+func makeMsgWithType(id chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageID: id,
 		},
-		ClientHeader: chat1.MessageClientHeader{
+		ClientHeader: chat1.MessageClientHeaderVerified{
 			MessageType: typ,
-			Supersedes:  supersedes,
 		},
 	}
 	return chat1.NewMessageUnboxedWithValid(msg)
@@ -401,11 +398,11 @@ func TestStorageTypeFilter(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "basic")
 
 	textmsgs := makeMsgRange(300)
-	msgs := append(mkarray(makeMsgWithType(chat1.MessageID(301), 0, chat1.MessageType_EDIT)), textmsgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(302), 0, chat1.MessageType_TLFNAME)), msgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(303), 0, chat1.MessageType_ATTACHMENT)), msgs...)
-	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), 0, chat1.MessageType_TEXT)), msgs...)
-	textmsgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), 0, chat1.MessageType_TEXT)), textmsgs...)
+	msgs := append(mkarray(makeMsgWithType(chat1.MessageID(301), chat1.MessageType_EDIT)), textmsgs...)
+	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(302), chat1.MessageType_TLFNAME)), msgs...)
+	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(303), chat1.MessageType_ATTACHMENT)), msgs...)
+	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), chat1.MessageType_TEXT)), msgs...)
+	textmsgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), chat1.MessageType_TEXT)), textmsgs...)
 	conv := makeConversation(msgs[0].GetMessageID())
 
 	query := chat1.GetThreadQuery{
