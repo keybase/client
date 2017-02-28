@@ -1020,6 +1020,32 @@ func TestFindConversations(t *testing.T) {
 	require.Equal(t, 1, len(res.Conversations), "no conv found")
 	require.Equal(t, created.Id, res.Conversations[0].GetConvID(), "wrong conv")
 
+	t.Logf("simple post")
+	_, err = ctc.as(t, users[2]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
+		ConversationID:   created.Id,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        created.Triple,
+				MessageType: chat1.MessageType_TEXT,
+				TlfName:     created.TlfName,
+				TlfPublic:   true,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "PUBLIC",
+			}),
+		},
+	})
+	require.NoError(t, err)
+
+	t.Logf("read from conversation")
+	tres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.TODO(), chat1.GetThreadLocalArg{
+		ConversationID:   res.Conversations[0].GetConvID(),
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(tres.Thread.Messages), "wrong length")
+
 	t.Logf("test topic name")
 	_, err = ctc.as(t, users[2]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
 		ConversationID:   created.Id,
