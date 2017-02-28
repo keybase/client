@@ -23,7 +23,7 @@ const filteredInbox = createImmutableEqualSelector(
 )
 const getRows = createImmutableEqualSelector(
   [filteredInbox, getPending],
-  (inbox, pending) => pending.toList().concat(inbox)
+  (inbox, pending) => I.List(pending.keys()).concat(inbox)
 )
 
 export default connect(

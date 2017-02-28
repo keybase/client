@@ -49,7 +49,7 @@ const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 const makeGetIsSelected = conversationIDKey => state => newestConversationIDKey(_selectedSelector(state), state.chat) === conversationIDKey
 const makeGetParticipants = conversationIDKey => state => {
   return participantFilter(
-    state.chat.get('pendingConversations').findKey(v => v === conversationIDKey),
+    state.chat.get('pendingConversations').get(conversationIDKey),
     state.config.username || ''
   )
 }
