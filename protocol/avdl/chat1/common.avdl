@@ -158,6 +158,8 @@ protocol common {
     gregor1.Time composeTime;
   }
 
+  // The Boxer's compareClientHeaders function checks each of these fields. If
+  // we add a field here, it needs to be updated.
   record MessageClientHeader {
     // This type is attached to MessageBoxed.
     // When on a received message these fields are server-set and have not been verified.

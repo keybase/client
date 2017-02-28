@@ -93,6 +93,7 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 //   - The body hash is not a replay from another message we know about.
 //   - The prev pointers are consistent with other messages we know about.
 //   - (TODO) The prev pointers are not absurdly ancient.
+//   - The ClientHeader provided with the BoxedMessage matches the one we decrypt.
 //
 // The first return value is unusable if the err != nil Returns (_, err) for
 // non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
@@ -134,6 +135,16 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	// the conversation ID we were expecting.
 	if !unboxed.ClientHeader.Conv.Derivable(convID) {
 		err := fmt.Errorf("conversation ID mismatch")
+		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+	}
+
+	// Confirm that other fields in the server-supplied ClientHeader match what
+	// we decrypt. It would be preferable if the server didn't supply this data
+	// at all (so that we didn't have to worry about anyone trusting it
+	// *before* we get to this check, for example), but since we have it we
+	// need to check it.
+	err = compareClientHeaders(boxed.ClientHeader, unboxed.ClientHeader)
+	if err != nil {
 		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
 	}
 
@@ -817,4 +828,39 @@ func (b *Boxer) unmarshal(data []byte, v interface{}) error {
 func hashSha256V1(data []byte) chat1.Hash {
 	sum := sha256.Sum256(data)
 	return sum[:]
+}
+
+func compareClientHeaders(server chat1.MessageClientHeader, verified chat1.MessageClientHeaderVerified) error {
+	if !server.Conv.Eq(verified.Conv) {
+		return fmt.Errorf("Conv mismatch in chat message headers: %#v %#v", server.Conv, verified.Conv)
+	}
+	if server.TlfName != verified.TlfName {
+		return fmt.Errorf("TlfName mismatch in chat message headers: %#v %#v", server.TlfName, verified.TlfName)
+	}
+	if server.TlfPublic != verified.TlfPublic {
+		return fmt.Errorf("TlfPublic mismatch in chat message headers: %#v %#v", server.TlfPublic, verified.TlfPublic)
+	}
+	if server.MessageType != verified.MessageType {
+		return fmt.Errorf("MessageType mismatch in chat message headers: %#v %#v", server.MessageType, verified.MessageType)
+	}
+	if !bytes.Equal(server.Sender, verified.Sender) {
+		return fmt.Errorf("Sender mismatch in chat message headers: %#v %#v", server.Sender, verified.Sender)
+	}
+	if !bytes.Equal(server.SenderDevice, verified.SenderDevice) {
+		return fmt.Errorf("SenderDevice mismatch in chat message headers: %#v %#v", server.SenderDevice, verified.SenderDevice)
+	}
+	if len(server.Prev) != len(verified.Prev) {
+		return fmt.Errorf("Prev mismatch in chat message headers: %#v %#v", server.Prev, verified.Prev)
+	}
+	for i := 0; i < len(server.Prev); i++ {
+		prev1 := server.Prev[i]
+		prev2 := verified.Prev[i]
+		if prev1.Id != prev2.Id || !bytes.Equal(prev1.Hash, prev2.Hash) {
+			return fmt.Errorf("Prev mismatch in chat message headers: %#v %#v", prev1, prev2)
+		}
+	}
+	// TODO: Supersedes and other fields currently don't match after
+	// decryption. The easiest thing might be to stop using the same data
+	// structure on both sides.
+	return nil
 }
