@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"golang.org/x/net/context"
 
@@ -55,10 +53,6 @@ func NewCmdSimpleFSWrite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 
 // Run runs the command in client/server mode.
 func (c *CmdSimpleFSWrite) Run() error {
-
-	// Disable the default signal/interrupt handler so that
-	// we can uplodad the buffer after ctl-C
-	signal.Reset(os.Interrupt, syscall.SIGTERM, os.Kill)
 
 	cli, err := GetSimpleFSClient(c.G())
 	if err != nil {
