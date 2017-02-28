@@ -1088,13 +1088,24 @@ func testTLFJournalFlushInterleaving(t *testing.T, ver MetadataVer) {
 	}
 	require.NotZero(t, md1Slot)
 	require.NotZero(t, md2Slot)
-
 }
+
+type testBranchChangeListener struct {
+	c chan<- struct{}
+}
+
+func (tbcl testBranchChangeListener) onTLFBranchChange(_ tlf.ID, _ BranchID) {
+	tbcl.c <- struct{}{}
+}
+
 func testTLFJournalPauseBlocksAndConvertBranch(t *testing.T,
 	ctx context.Context, tlfJournal *tlfJournal, config *testTLFJournalConfig) (
 	firstRev MetadataRevision, firstRoot MdID,
 	retUnpauseBlockPutCh chan<- struct{}, retErrCh <-chan error,
 	blocksLeftAfterFlush uint64, mdsLeftAfterFlush uint64) {
+	branchCh := make(chan struct{}, 1)
+	tlfJournal.onBranchChange = testBranchChangeListener{branchCh}
+
 	var lock sync.Mutex
 	var puts []interface{}
 
@@ -1146,6 +1157,13 @@ func testTLFJournalPauseBlocksAndConvertBranch(t *testing.T,
 		}
 		require.NoError(t, err)
 		markers++
+	}
+
+	// Wait for the local squash branch to appear.
+	select {
+	case <-branchCh:
+	case <-ctx.Done():
+		t.Fatalf("Timeout while waiting for branch change")
 	}
 
 	return firstRev, firstRoot, unpauseBlockPutCh, errCh,
