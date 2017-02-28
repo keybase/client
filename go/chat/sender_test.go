@@ -22,7 +22,7 @@ type chatListener struct {
 	sync.Mutex
 	obids          []chat1.OutboxID
 	incoming       chan int
-	failing        chan []chat1.OutboxID
+	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
@@ -65,9 +65,9 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 				n.incoming <- len(n.obids)
 			}
 		} else if typ == chat1.ChatActivityType_FAILED_MESSAGE {
-			var rmsg []chat1.OutboxID
+			var rmsg []chat1.OutboxRecord
 			for _, obr := range activity.FailedMessage().OutboxRecords {
-				rmsg = append(rmsg, obr.OutboxID)
+				rmsg = append(rmsg, obr)
 			}
 			n.failing <- rmsg
 		}
@@ -114,7 +114,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	sender := NewNonblockingSender(tc.G, baseSender)
 	listener := chatListener{
 		incoming:       make(chan int),
-		failing:        make(chan []chat1.OutboxID),
+		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 	}
 	tc.G.ConvSource = NewHybridConversationSource(tc.G, boxer, storage.New(tc.G, f),
@@ -333,6 +333,13 @@ func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, 
 	return nil, nil, nil
 }
 
+func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxRecord) {
+	require.Equal(t, len(obids), len(obrs), "wrong length")
+	for i := 0; i < len(obids); i++ {
+		require.Equal(t, obids[i], obrs[i].OutboxID)
+	}
+}
+
 func TestFailingSender(t *testing.T) {
 
 	world, ri, sender, _, listener, _, tlf := setupTest(t, 1)
@@ -374,7 +381,7 @@ func TestFailingSender(t *testing.T) {
 		tc.G.MessageDeliverer.ForceDeliverLoop(context.TODO())
 	}
 
-	var recvd []chat1.OutboxID
+	var recvd []chat1.OutboxRecord
 	for i := 0; i < 5; i++ {
 		select {
 		case fid := <-listener.failing:
@@ -385,7 +392,10 @@ func TestFailingSender(t *testing.T) {
 	}
 
 	require.Equal(t, len(obids), len(recvd), "invalid length")
-	require.Equal(t, obids, recvd, "list mismatch")
+	recordCompare(t, obids, recvd)
+	state, err := recvd[0].State.State()
+	require.NoError(t, err)
+	require.Equal(t, chat1.OutboxStateType_ERROR, state, "wrong state type")
 }
 
 func TestDisconnectedFailure(t *testing.T) {
@@ -429,16 +439,16 @@ func TestDisconnectedFailure(t *testing.T) {
 		cl.Advance(time.Millisecond)
 	}
 
-	var allrecvd []chat1.OutboxID
-	var recvd []chat1.OutboxID
-	appendUnique := func(a []chat1.OutboxID, r []chat1.OutboxID) (res []chat1.OutboxID) {
+	var allrecvd []chat1.OutboxRecord
+	var recvd []chat1.OutboxRecord
+	appendUnique := func(a []chat1.OutboxRecord, r []chat1.OutboxRecord) (res []chat1.OutboxRecord) {
 		m := make(map[string]bool)
 		for _, i := range a {
-			m[hex.EncodeToString(i)] = true
+			m[hex.EncodeToString(i.OutboxID)] = true
 			res = append(res, i)
 		}
 		for _, i := range r {
-			if !m[hex.EncodeToString(i)] {
+			if !m[hex.EncodeToString(i.OutboxID)] {
 				res = append(res, i)
 			}
 		}
@@ -460,7 +470,7 @@ func TestDisconnectedFailure(t *testing.T) {
 	}
 
 	require.Equal(t, len(obids), len(allrecvd), "invalid length")
-	require.Equal(t, obids, allrecvd, "list mismatch")
+	recordCompare(t, obids, allrecvd)
 
 	t.Logf("reconnecting and checking for successes")
 	<-tc.G.MessageDeliverer.Stop(context.TODO())
