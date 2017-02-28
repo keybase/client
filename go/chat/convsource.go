@@ -2,7 +2,6 @@ package chat
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/interfaces"
@@ -306,17 +305,20 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
+	var finalizeInfo *chat1.ConversationFinalizeInfo
 	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
-	if err != nil {
-		return chat1.ThreadView{}, rl, fmt.Errorf("Pull(): error: %s", err.Error())
+	if err == nil {
+		finalizeInfo = conv.Metadata.FinalizeInfo
+	} else {
+		s.Debug(ctx, "Pull: failed to get remote conv, not reading from cache: %s", err.Error())
 	}
 
 	// Post process thread before returning
 	defer func() {
 		if err == nil {
 			err = s.postProcessThread(ctx, uid, convID, &thread, query,
-				conv.Metadata.FinalizeInfo)
+				finalizeInfo)
 		}
 	}()
 

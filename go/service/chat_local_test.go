@@ -1042,6 +1042,9 @@ func TestFindConversations(t *testing.T) {
 	tres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.TODO(), chat1.GetThreadLocalArg{
 		ConversationID:   res.Conversations[0].GetConvID(),
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		Query: &chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		},
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tres.Thread.Messages), "wrong length")
