@@ -86,7 +86,7 @@ const factory = (options: Options) => {
     case 'ChatSecuredHeader':
       return (
         <Box key={key} style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center', height: 116}}>
-          <Icon type='icon-secure-266' />
+          {!moreToLoad && <Icon type='icon-secure-266' />}
         </Box>
       )
     case 'Error':

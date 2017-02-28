@@ -121,18 +121,11 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     if (this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
-      // TODO clean this up
-      const realMessage = message => message.type === 'Text' || message.type === 'Attachment'
-      // const firstRealMessage = this.state.messages.findIndex(realMessage)
-      const prevFirstRealMessage = prevState.messages.get(2)
-      const firstRealMessageIndex = this.state.messages.indexOf(prevFirstRealMessage)
-      // const indexOfPrevFirstRealMessage = this.state.messages.indexOf(prevFirstRealMessage)
-      // Figure out how many new items we have
-      console.log('firstRealMessageIndex is', firstRealMessageIndex)
-      if (firstRealMessageIndex !== 2) {
-      // if (prependedCount !== -1) {
+      const prependedCount = this.state.messages.indexOf(prevState.messages.first())
+      const headerCount = this.props.headerMessages.count()
+      if (prependedCount !== -1) {
         // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-        const scrollTop = this.state.scrollTop + _.range(0, firstRealMessageIndex)
+        const scrollTop = this.state.scrollTop + _.range(headerCount, headerCount + prependedCount)
           .map(index => this._cellMeasurer.getRowHeight({index}))
           .reduce((total, height) => total + height, 0)
 
@@ -339,8 +332,9 @@ class ConversationList extends Component<void, Props, State> {
       }
     }
 
-    const message = this.state.messages.get(index)
-    const prevMessage = this.state.messages.get(index - 1)
+    const messages = this.props.headerMessages.concat(this.state.messages)
+    const message = messages.get(index)
+    const prevMessage = messages.get(index - 1)
     const isFirstMessage = index === 0
     const isSelected = message.messageID != null && this.state.selectedMessageID === message.messageID
 
@@ -376,7 +370,7 @@ class ConversationList extends Component<void, Props, State> {
     this._list = r
   }
 
-  _rowCount = () => this.state.messages.count()
+  _rowCount = () => this.props.headerMessages.count() + this.state.messages.count()
 
   _scrollToBottom = () => {
     const rowCount = this._rowCount()

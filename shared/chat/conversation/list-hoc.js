@@ -1,9 +1,11 @@
 // @flow
 
 import * as ChatConstants from '../../constants/chat'
+import {List} from 'immutable'
+import {withProps} from 'recompose'
+
 import type {Props} from './list'
 import type {Options} from './messages'
-import {withProps} from 'recompose'
 
 type OptionsFn = (message: ChatConstants.Message, prevMessage: ChatConstants.Message, isFirstMessage: boolean, isSelected: boolean, isScrolling: boolean, key: any, style: Object, onAction: () => void) => Options
 
@@ -49,17 +51,16 @@ function propsToMessageOptionsFn (props: Props): OptionsFn {
   }
 }
 
-function _decorateLoadingMore (moreToLoad: boolean, messages: Immutable.List<ChatConstants.Message>): Immutable.List<ChatConstants.Message> {
-  messages = messages.unshift({type: 'LoadingMore', key: `loadingMore-${messages.count()}`})
-  if (!moreToLoad) {
-    messages = messages.unshift({type: 'ChatSecuredHeader', key: `chatSecuredHeader-${messages.count()}`})
-  }
-  return messages
+function _headerMessages (moreToLoad: boolean): List<ChatConstants.Message> {
+  return List([
+    {type: 'ChatSecuredHeader', key: `chatSecuredHeader`},
+    {type: 'LoadingMore', key: `loadingMore`},
+  ])
 }
 
 const hoc = withProps((props: Props) => ({
   optionsFn: propsToMessageOptionsFn(props),
-  messages: _decorateLoadingMore(props.moreToLoad, props.messages),
+  headerMessages: _headerMessages(props.moreToLoad),
 }))
 
 export default hoc
