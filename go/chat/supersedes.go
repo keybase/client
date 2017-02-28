@@ -86,25 +86,47 @@ func (t *supersedesTransform) run(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
-	// MessageIDs that supersede
-	var superMsgIDs []chat1.MessageID
-	// Map from MessageIDs to their superseder messages
-	smap := make(map[chat1.MessageID]chat1.MessageUnboxed)
+	// MessageIDs of superseders
+	// This set may be a superset of real superseders
+	superMsgIDSet := make(map[chat1.MessageID]bool)
 
 	// Collect all superseder messages for messages in the current thread view
+	// Use SupersededBy (server) as well as GetSupersedes (verified)
+	// It's ok to use SupersededBy because we check GetSupersedes later as well.
+	// It's good to SupersededBy in case it helps us out by pointing to superseders
+	// that are not in originalMsgs.
+	// Use GetSupersedes in case the server is omitting SupersededBy pointers.
 	for _, msg := range originalMsgs {
 		if msg.IsValid() {
 			supersededBy := msg.Valid().ServerHeader.SupersededBy
 			if supersededBy > 0 {
-				superMsgIDs = append(superMsgIDs, supersededBy)
+				superMsgIDSet[supersededBy] = true
+			}
+			supers, err := utils.GetSupersedes(msg)
+			if err != nil {
+				continue
+			}
+			if len(supers) > 0 {
+				superMsgIDSet[msg.GetMessageID()] = true
 			}
 		}
 	}
+
+	// Turn the set superMsgIDSet into the list superMsgIDs
+	var superMsgIDs []chat1.MessageID
+	for k := range superMsgIDSet {
+		superMsgIDs = append(superMsgIDs, k)
+	}
+
 	if len(superMsgIDs) == 0 {
 		return originalMsgs, nil
 	}
 
+	// Map from MessageIDs to their superseder messages
+	smap := make(map[chat1.MessageID]chat1.MessageUnboxed)
+
 	// Get superseding messages
+	// This time only use the verified GetSupersedes info
 	msgs, err := t.G().ConvSource.GetMessages(ctx, convID, uid, superMsgIDs, finalizeInfo)
 	if err != nil {
 		return nil, err
