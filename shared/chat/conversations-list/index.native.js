@@ -1,8 +1,8 @@
 // @flow
-import React from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeScrollView} from '../../common-adapters/index.native'
+import React, {PureComponent} from 'react'
+import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox, NativeListView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {shouldUpdate} from 'recompose'
+import {RowConnector} from './row'
 
 import type {Props, RowProps} from './'
 
@@ -148,28 +148,63 @@ const _Row = (props: RowProps) => {
   )
 }
 
-const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
-  const different =
-    props.conversationIDKey !== nextProps.conversationIDKey ||
-    props.unreadCount !== nextProps.unreadCount ||
-    props.isSelected !== nextProps.isSelected ||
-    props.isMuted !== nextProps.isMuted ||
-    props.youNeedToRekey !== nextProps.youNeedToRekey ||
-    props.participantNeedToRekey !== nextProps.participantNeedToRekey ||
-    props.timestamp !== nextProps.timestamp ||
-    props.snippet !== nextProps.snippet ||
-    !props.participants.equals(nextProps.participants)
-  return different
-})(_Row)
+const Row = RowConnector(_Row)
 
-const ConversationList = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.darkBlue4, flex: 1}}>
-    <AddNewRow {...props} />
-    <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      {props.rows.map(rowProps => <Row {...rowProps} key={rowProps.conversationIDKey} />)}
-    </NativeScrollView>
-  </Box>
-)
+type State = {
+  dataSource: any,
+}
+
+class ConversationList extends PureComponent<void, Props, State> {
+  state: State = {
+    dataSource: null,
+  }
+
+  _itemRenderer = (conversationIDKey) => {
+    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
+  }
+
+  _ds = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+
+  _setupDataSource = (props: Props) => {
+    this.setState({
+      dataSource: this._ds.cloneWithRows(props.rows.toArray()),
+    })
+  }
+
+  componentWillMount () {
+    this.props.loadInbox()
+    this._setupDataSource(this.props)
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.rows !== nextProps.rows) {
+      this._setupDataSource(nextProps)
+    }
+  }
+
+  render () {
+    return (
+      <Box style={boxStyle}>
+        <AddNewRow onNewChat={this.props.onNewChat} />
+        <NativeListView
+          style={listStyle}
+          dataSource={this.state.dataSource}
+          renderRow={this._itemRenderer} />
+      </Box>
+    )
+  }
+}
+
+const boxStyle = {
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.darkBlue4,
+  flex: 1,
+}
+
+const listStyle = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+}
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,

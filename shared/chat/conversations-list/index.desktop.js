@@ -3,7 +3,7 @@ import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {shouldUpdate} from 'recompose'
+import {RowConnector} from './row'
 
 import type {Props, RowProps} from './'
 
@@ -143,28 +143,20 @@ const _Row = (props: RowProps) => {
   )
 }
 
-const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
-  const different =
-    props.conversationIDKey !== nextProps.conversationIDKey ||
-    props.unreadCount !== nextProps.unreadCount ||
-    props.isSelected !== nextProps.isSelected ||
-    props.isMuted !== nextProps.isMuted ||
-    props.youNeedToRekey !== nextProps.youNeedToRekey ||
-    props.participantNeedToRekey !== nextProps.participantNeedToRekey ||
-    props.timestamp !== nextProps.timestamp ||
-    props.snippet !== nextProps.snippet ||
-    !props.participants.equals(nextProps.participants)
-  return different
-})(_Row)
+const Row = RowConnector(_Row)
 
 class ConversationList extends PureComponent<void, Props, void> {
+  componentWillMount () {
+    this.props.loadInbox()
+  }
+
   _itemRenderer = (index) => {
-    const rowProp = this.props.rows.get(index)
-    return <Row {...rowProp} key={rowProp.conversationIDKey} />
+    const conversationIDKey = this.props.rows.get(index)
+    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
   }
 
   render () {
-    return <div style={{...globalStyles.flexBoxRow, flex: 1}}>
+    return (
       <div style={containerStyle}>
         <AddNewRow onNewChat={this.props.onNewChat} />
         <div style={scrollableStyle}>
@@ -177,8 +169,7 @@ class ConversationList extends PureComponent<void, Props, void> {
             type='uniform' />
         </div>
       </div>
-      {this.props.children}
-    </div>
+    )
   }
 }
 

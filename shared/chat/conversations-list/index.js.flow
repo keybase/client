@@ -25,9 +25,9 @@ export type RowProps = {
 
 export type Props = {
   nowOverride?: number, // just for dumb rendering
-  rows: List<RowProps>,
-  onSelectConversation: (key: ConversationIDKey) => void,
+  rows: List<ConversationIDKey>,
   onNewChat: () => void,
+  loadInbox: () => void,
   children?: React$Element<*>,
 }
 
