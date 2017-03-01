@@ -234,6 +234,18 @@ type MessageClientHeader struct {
 	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
 
+type MessageClientHeaderVerified struct {
+	Conv         ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName      string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic    bool                     `codec:"tlfPublic" json:"tlfPublic"`
+	MessageType  MessageType              `codec:"messageType" json:"messageType"`
+	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
+	Sender       gregor1.UID              `codec:"sender" json:"sender"`
+	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+}
+
 type EncryptedData struct {
 	V int    `codec:"v" json:"v"`
 	E []byte `codec:"e" json:"e"`
