@@ -115,7 +115,6 @@ func TestCRInput(t *testing.T) {
 	mergedHead := MetadataRevision(15)
 
 	cr.fbo.head = crMakeFakeRMD(unmergedHead, cr.fbo.bid)
-	cr.fbo.headStatus = headTrusted
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
@@ -171,7 +170,6 @@ func TestCRInputFracturedRange(t *testing.T) {
 	mergedHead := MetadataRevision(15)
 
 	cr.fbo.head = crMakeFakeRMD(unmergedHead, cr.fbo.bid)
-	cr.fbo.headStatus = headTrusted
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
