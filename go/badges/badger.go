@@ -26,7 +26,7 @@ type Badger struct {
 func NewBadger(g *libkb.GlobalContext) *Badger {
 	return &Badger{
 		Contextified: libkb.NewContextified(g),
-		badgeState:   NewBadgeState(g),
+		badgeState:   NewBadgeState(g.Log),
 	}
 }
 

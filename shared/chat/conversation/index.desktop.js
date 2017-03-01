@@ -100,9 +100,8 @@ class Conversation extends Component<void, Props, State> {
         {banner}
         {finalizeInfo
           ? <OldProfileResetNotice
-            onOpenNewerConversation={this.props.onOpenNewerConversation}
-            username={finalizeInfo.resetUser}
-          />
+              onOpenNewerConversation={this.props.onOpenNewerConversation}
+              username={finalizeInfo.resetUser} />
           : <Input {...this.props.inputProps} /> }
         {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>
           <SidePanel

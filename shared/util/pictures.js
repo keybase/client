@@ -1,10 +1,11 @@
 // @flow
 import {apiserverGetRpc} from '../constants/types/flow-types'
-import {throttle} from 'lodash'
+import {throttle, partition} from 'lodash'
 
+type URLMap = {[key: string]: string}
 type Info = {
-  url: ?string,
-  callbacks: Array<(username: string, url: ?string) => void>,
+  urlMap: ?URLMap,
+  callbacks: Array<(username: string, urlMap: ?URLMap) => void>,
   done: boolean,
   error: boolean,
 }
@@ -27,37 +28,57 @@ const _getUserImages = throttle(() => {
     delete _pendingUsernameToURL[username]
   })
 
+  const [good, bad] = partition(usersToResolve, u => validUsername(u))
+
+  bad.forEach(username => {
+    const info = _usernameToURL[username]
+    const urlMap = {}
+    if (info) {
+      info.done = true
+      info.error = true
+      info.callbacks.forEach(cb => cb(username, urlMap))
+      info.callbacks = []
+    }
+  })
+
   apiserverGetRpc({
-    param: {
-      endpoint: 'image/username_pic_lookups',
-      args: [
-        {key: 'usernames', value: usersToResolve.join(',')},
-        {key: 'formats', value: 'square_200'},
-      ],
-    },
     callback: (error, response) => {
       if (error) {
-        usersToResolve.forEach(username => {
+        good.forEach(username => {
           const info = _usernameToURL[username]
-          const url = null
+          const urlMap = {}
           if (info) {
             info.done = true
             info.error = true
-            info.callbacks.forEach(cb => cb(username, url))
+            info.callbacks.forEach(cb => cb(username, urlMap))
+            info.callbacks = []
           }
         })
       } else {
         JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-          const username = usersToResolve[idx]
-          const url = picMap['square_200']
+          const username = good[idx]
+          let urlMap = {
+            ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+            ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+            ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+          }
+
           const info = _usernameToURL[username]
           if (info) {
             info.done = true
-            info.url = url
-            info.callbacks.forEach(cb => cb(username, url))
+            info.urlMap = urlMap
+            info.callbacks.forEach(cb => cb(username, urlMap))
+            info.callbacks = []
           }
         })
       }
+    },
+    param: {
+      args: [
+        {key: 'usernames', value: good.join(',')},
+        {key: 'formats', value: 'square_360,square_200,square_40'},
+      ],
+      endpoint: 'image/username_pic_lookups',
     },
   })
 }, 200)
@@ -70,32 +91,28 @@ function validUsername (name: ?string) {
   return !!name.match(/^([a-z0-9][a-z0-9_]{1,15})$/i)
 }
 
-export function getUserImage (username: string): ?string {
-  if (!validUsername(username)) {
-    return null
-  }
-
+export function getUserImageMap (username: string): ?URLMap {
   const info = _usernameToURL[username]
-  return info ? info.url : null
+  return info ? info.urlMap : null
 }
 
-export function loadUserImage (username: string, callback: (username: string, url: ?string) => void) {
-  if (!validUsername(username)) {
-    return
-  }
-
+export function loadUserImageMap (username: string, callback: (username: string, urlMap: ?URLMap) => void) {
   const info = _usernameToURL[username] || _pendingUsernameToURL[username]
   if (info) {
     if (!info.done) {
       info.callbacks.push(callback)
+    } else {
+      setImmediate(() => {
+        callback(username, info.urlMap)
+      })
     }
   } else {
     _pendingUsernameToURL[username] = {
-      url: null,
       callbacks: [callback],
-      requested: false,
       done: false,
       error: false,
+      requested: false,
+      urlMap: null,
     }
     _getUserImages()
   }

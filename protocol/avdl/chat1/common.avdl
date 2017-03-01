@@ -158,7 +158,12 @@ protocol common {
     gregor1.Time composeTime;
   }
 
+  // The Boxer's compareClientHeaders function checks each of these fields. If
+  // we add a field here, it needs to be updated.
   record MessageClientHeader {
+    // This type is attached to MessageBoxed.
+    // When on a received message these fields are server-set and have not been verified.
+
     ConversationIDTriple conv;
     string tlfName;
     boolean tlfPublic;
@@ -174,6 +179,22 @@ protocol common {
     union { null, OutboxInfo } outboxInfo;
   }
 
+  record MessageClientHeaderVerified {
+    // This type is the result of unboxing.
+    // And to be used locally to the client only.
+    // All fields have been verified signed by the sender.
+
+    ConversationIDTriple conv;
+    string tlfName;
+    boolean tlfPublic;
+    MessageType messageType;
+    array<MessagePreviousPointer> prev;
+    gregor1.UID sender;
+    gregor1.DeviceID senderDevice;
+    union { null, OutboxID } outboxID;
+    union { null, OutboxInfo } outboxInfo;
+  }
+
   // The same format as in KBFS (see libkbfs/data_types.go)
   record EncryptedData {
     int   v;  // version = 1
@@ -185,6 +206,12 @@ protocol common {
     int   v; // version = 1
     bytes s; // signature; output of EdDSA
     bytes k; // Verifying key
+  }
+
+  record SignEncryptedData {
+    int   v; // version = 1
+    bytes b; // signEncryptedData (output of signencrypt.SealWhole)
+    bytes n; // nonce
   }
 
   record MerkleRoot {

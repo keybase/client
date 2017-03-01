@@ -20,6 +20,7 @@ type IdentifyNotifier struct {
 	utils.DebugLabeler
 
 	sync.RWMutex
+	storage    *storage.Storage
 	identCache map[string]keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
@@ -28,10 +29,18 @@ func NewIdentifyNotifier(g *libkb.GlobalContext) *IdentifyNotifier {
 		Contextified: libkb.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
+		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
 	}
 }
 
 func (i *IdentifyNotifier) Send(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+
+	// Send to storage as well (charge forward on error)
+	if err := i.storage.UpdateTLFIdentifyBreak(context.Background(), update.TlfID.ToBytes(), update.Breaks.Breaks); err != nil {
+		i.Debug(context.Background(), "failed to update storage with TLF identify info: %s", err.Error())
+	}
+
+	// Send notification to GUI about identify status
 	i.RLock()
 	tlfName := update.CanonicalName.String()
 	stored, ok := i.identCache[tlfName]

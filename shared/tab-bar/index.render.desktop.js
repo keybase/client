@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react'
+import React, {PureComponent} from 'react'
 import {Box, Avatar} from '../common-adapters'
 import {TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
@@ -24,78 +24,83 @@ const _peopleSource = {type: 'nav', icon: 'iconfont-people'}
 const _devicesSource = {type: 'nav', icon: 'iconfont-device'}
 const _settingsSource = {type: 'nav', icon: 'iconfont-settings'}
 
-export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers}: Props) {
-  const avatar = (
-    <Avatar
-      size={32}
-      onClick={() => onTabClick(profileTab)}
-      username={username}
-      borderColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
-      backgroundColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
-    />
-  )
+class TabBar extends PureComponent<void, Props, void> {
+  _onSearch = () => this.props.onTabClick(searchTab)
+  _onFolder = () => this.props.onTabClick(folderTab)
+  _onChat = () => this.props.onTabClick(chatTab)
+  _onPeople = () => this.props.onTabClick(peopleTab)
+  _onDevice = () => this.props.onTabClick(devicesTab)
+  _onSettings = () => this.props.onTabClick(settingsTab)
+  _onProfile = () => this.props.onTabClick(profileTab)
 
-  return (
-    <Box style={stylesTabBar}>
-      <TabBarButton
-        label='Search'
-        selected={selectedTab === searchTab}
-        onClick={() => onTabClick(searchTab)}
-        source={_searchSource}
-        style={stylesTabButton}
+  render () {
+    const {selectedTab, username, badgeNumbers} = this.props
+    const avatar = (
+      <Avatar
+        size={32}
+        onClick={this._onProfile}
+        username={username}
+        borderColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
+        loadingColor={globalColors.blue3_40}
+        backgroundColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
       />
-      <TabBarButton
-        label='Folders'
-        selected={selectedTab === folderTab}
-        onClick={() => onTabClick(folderTab)}
-        badgeNumber={badgeNumbers[folderTab]}
-        source={_folderSource}
-        style={stylesTabButton}
-      />
-      <TabBarButton
-        label='Chat'
-        selected={selectedTab === chatTab}
-        onClick={() => onTabClick(chatTab)}
-        badgeNumber={badgeNumbers[chatTab]}
-        source={_chatSource}
-        style={stylesTabButton}
-      />
-      {flags.tabPeopleEnabled &&
+    )
+
+    return (
+      <Box style={stylesTabBar}>
         <TabBarButton
-          label='People'
-          selected={selectedTab === peopleTab}
-          onClick={() => onTabClick(peopleTab)}
-          badgeNumber={badgeNumbers[peopleTab]}
-          source={_peopleSource}
-          style={stylesTabButton}
-        />
-      }
-      <TabBarButton
-        label='Devices'
-        selected={selectedTab === devicesTab}
-        onClick={() => onTabClick(devicesTab)}
-        badgeNumber={badgeNumbers[devicesTab]}
-        source={_devicesSource}
-        style={stylesTabButton}
-      />
-      <TabBarButton
-        label='Settings'
-        selected={selectedTab === settingsTab}
-        onClick={() => onTabClick(settingsTab)}
-        badgeNumber={badgeNumbers[settingsTab]}
-        source={_settingsSource}
-        style={stylesTabButton}
-      />
-      <Box style={{flex: 1}} />
-      <TabBarButton
-        label={username}
-        selected={selectedTab === profileTab}
-        onClick={() => onTabClick(profileTab)}
-        badgeNumber={badgeNumbers[profileTab]}
-        source={{type: 'avatar', avatar}}
-      />
-    </Box>
-  )
+          label='Search'
+          selected={selectedTab === searchTab}
+          onClick={this._onSearch}
+          source={_searchSource}
+          style={stylesTabButton} />
+        <TabBarButton
+          label='Folders'
+          selected={selectedTab === folderTab}
+          onClick={this._onFolder}
+          badgeNumber={badgeNumbers[folderTab]}
+          source={_folderSource}
+          style={stylesTabButton} />
+        <TabBarButton
+          label='Chat'
+          selected={selectedTab === chatTab}
+          onClick={this._onChat}
+          badgeNumber={badgeNumbers[chatTab]}
+          source={_chatSource}
+          style={stylesTabButton} />
+        {flags.tabPeopleEnabled &&
+          <TabBarButton
+            label='People'
+            selected={selectedTab === peopleTab}
+            onClick={this._onPeople}
+            badgeNumber={badgeNumbers[peopleTab]}
+            source={_peopleSource}
+            style={stylesTabButton} />
+        }
+        <TabBarButton
+          label='Devices'
+          selected={selectedTab === devicesTab}
+          onClick={this._onDevice}
+          badgeNumber={badgeNumbers[devicesTab]}
+          source={_devicesSource}
+          style={stylesTabButton} />
+        <TabBarButton
+          label='Settings'
+          selected={selectedTab === settingsTab}
+          onClick={this._onSettings}
+          badgeNumber={badgeNumbers[settingsTab]}
+          source={_settingsSource}
+          style={stylesTabButton} />
+        <Box style={{flex: 1}} />
+        <TabBarButton
+          label={username}
+          selected={selectedTab === profileTab}
+          onClick={this._onProfile}
+          badgeNumber={badgeNumbers[profileTab]}
+          source={{type: 'avatar', avatar}} />
+      </Box>
+    )
+  }
 }
 
 const stylesTabBar = {
@@ -109,3 +114,5 @@ const stylesTabBar = {
 const stylesTabButton = {
   height: 56,
 }
+
+export default TabBar

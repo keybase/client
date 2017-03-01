@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/gregor"
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -17,9 +17,9 @@ import (
 // Useable from both the client service and gregor server.
 // See service:Badger for the service part that owns this.
 type BadgeState struct {
-	libkb.Contextified
 	sync.Mutex
 
+	log   logger.Logger
 	state keybase1.BadgeState
 
 	inboxVers chat1.InboxVers
@@ -28,9 +28,9 @@ type BadgeState struct {
 }
 
 // NewBadgeState creates a new empty BadgeState.
-func NewBadgeState(g *libkb.GlobalContext) *BadgeState {
+func NewBadgeState(log logger.Logger) *BadgeState {
 	return &BadgeState{
-		Contextified:  libkb.NewContextified(g),
+		log:           log,
 		inboxVers:     chat1.InboxVers(0),
 		chatUnreadMap: make(map[string]keybase1.BadgeConversationInfo),
 	}
@@ -72,12 +72,12 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 		case "tlf":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
-				b.G().Log.Warning("BadgeState encountered non-json 'tlf' item: %v", err)
+				b.log.Warning("BadgeState encountered non-json 'tlf' item: %v", err)
 				continue
 			}
 			itemType, err := jsw.AtKey("type").GetString()
 			if err != nil {
-				b.G().Log.Warning("BadgeState encountered gregor 'tlf' item without 'type': %v", err)
+				b.log.Warning("BadgeState encountered gregor 'tlf' item without 'type': %v", err)
 				continue
 			}
 			if itemType != "created" {

@@ -169,6 +169,12 @@ export const NotifyChatChatActivityType = {
   failedMessage: 5,
 }
 
+export const RemoteMessageBoxedVersion = {
+  vnone: 0,
+  v1: 1,
+  v2: 2,
+}
+
 export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.CancelPost'})
 }
@@ -1102,12 +1108,20 @@ export type MessageBody =
   | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
 
 export type MessageBoxed = {
+  version: MessageBoxedVersion,
   serverHeader?: ?MessageServerHeader,
   clientHeader: MessageClientHeader,
   headerCiphertext: EncryptedData,
+  headerSealed: SignEncryptedData,
   bodyCiphertext: EncryptedData,
+  headerVerificationKey: bytes,
   keyGeneration: int,
 }
+
+export type MessageBoxedVersion =
+    0 // VNONE_0
+  | 1 // V1_1
+  | 2 // V2_2
 
 export type MessageClientHeader = {
   conv: ConversationIDTriple,
@@ -1120,6 +1134,18 @@ export type MessageClientHeader = {
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
   merkleRoot?: ?MerkleRoot,
+  outboxID?: ?OutboxID,
+  outboxInfo?: ?OutboxInfo,
+}
+
+export type MessageClientHeaderVerified = {
+  conv: ConversationIDTriple,
+  tlfName: string,
+  tlfPublic: boolean,
+  messageType: MessageType,
+  prev?: ?Array<MessagePreviousPointer>,
+  sender: gregor1.UID,
+  senderDevice: gregor1.DeviceID,
   outboxID?: ?OutboxID,
   outboxInfo?: ?OutboxInfo,
 }
@@ -1199,14 +1225,16 @@ export type MessageUnboxedState =
   | 3 // OUTBOX_3
 
 export type MessageUnboxedValid = {
-  clientHeader: MessageClientHeader,
+  clientHeader: MessageClientHeaderVerified,
   serverHeader: MessageServerHeader,
   messageBody: MessageBody,
   senderUsername: string,
   senderDeviceName: string,
   senderDeviceType: string,
+  bodyHash: Hash,
   headerHash: Hash,
   headerSignature?: ?SignatureInfo,
+  verificationKey?: ?bytes,
   senderDeviceRevokedAt?: ?gregor1.Time,
 }
 
@@ -1382,6 +1410,12 @@ export type SetStatusPayload = {
   status: ConversationStatus,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
+}
+
+export type SignEncryptedData = {
+  v: int,
+  b: bytes,
+  n: bytes,
 }
 
 export type SignatureInfo = {

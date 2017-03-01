@@ -45,6 +45,7 @@ const propsHoc = withProps(
       onStoreInputText,
       onToggleSidePanel,
       participants,
+      onSelectAttachment,
       selectedConversation,
       sidePanelOpen,
       validated,
@@ -92,6 +93,7 @@ const propsHoc = withProps(
       onUnmountText: onStoreInputText,
       focusInputCounter: focusInputCounter,
       onPostMessage,
+      onSelectAttachment,
       selectedConversation,
     }
 

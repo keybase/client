@@ -152,10 +152,22 @@ typedef NS_ENUM (NSInteger, KBExit) {
 - (void)showErrorDialog:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:@"Keybase Error"];
-  [alert setInformativeText:error.localizedDescription];
+
+  NSString *info = error.localizedDescription;
+  if (![NSString gh_isBlank:error.localizedRecoverySuggestion]) {
+    info = NSStringWithFormat(@"%@\n\n%@", info, error.localizedRecoverySuggestion);
+  }
+
+  [alert setInformativeText:info];
   [alert addButtonWithTitle:@"Quit"];
   [alert addButtonWithTitle:@"Ignore"];
-  [alert addButtonWithTitle:@"More Details"];
+
+  NSURL *URL = error.userInfo[NSURLErrorKey];
+  if (URL) {
+    [alert addButtonWithTitle:@"Troubleshoot"];
+  } else {
+    [alert addButtonWithTitle:@"More Details"];
+  }
 
   [alert setAlertStyle:NSWarningAlertStyle];
   NSModalResponse response = [alert runModal];
@@ -164,7 +176,11 @@ typedef NS_ENUM (NSInteger, KBExit) {
   } else if (response == NSAlertSecondButtonReturn) {
     completion(error, KBExitIgnoreError);
   } else if (response == NSAlertThirdButtonReturn) {
-    [self showMoreDetails:error environment:environment completion:completion];
+    if (URL) {
+      [[NSWorkspace sharedWorkspace] openURL:URL];
+    } else {
+      [self showMoreDetails:error environment:environment completion:completion];
+    }
   } else {
     DDLogError(@"Unknown error dialog return button");
     completion(error, KBExitError);

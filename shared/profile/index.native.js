@@ -6,7 +6,7 @@ import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import moment from 'moment'
-import {BackButton, Box, ComingSoon, Icon, PopupMenu, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters/index.native'
+import {BackButton, Box, Icon, PopupMenu, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters/index.native'
 import {friendlyName as platformFriendlyName} from '../util/platforms'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 import {normal as proofNormal, metaPending, metaUnreachable} from '../constants/tracker'
@@ -35,10 +35,6 @@ class Profile extends Component<void, Props, State> {
       currentFriendshipsTab: 'Followers',
       activeMenuProof: null,
     }
-  }
-
-  _renderComingSoon () {
-    return <ComingSoon />
   }
 
   _handleToggleMenu (idx: number) {
@@ -130,10 +126,6 @@ class Profile extends Component<void, Props, State> {
   }
 
   render () {
-    if (this.props.showComingSoon) {
-      return this._renderComingSoon()
-    }
-
     if (this.props.error) {
       return <ErrorComponent error={this.props.error} />
     }
@@ -167,7 +159,7 @@ class Profile extends Component<void, Props, State> {
         <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background, paddingTop: statusBarHeight}}>
           {this.props.onBack && <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: globalColors.white}} />}
         </Box>
-        <NativeScrollView style={{flex: 1, backgroundColor: globalColors.white}} contentContainerStyle={{backgroundColor: globalColors.white}}>
+        <NativeScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{backgroundColor: globalColors.white}}>
           {proofNotice && (
             <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
               <Text type='BodySemibold' style={{color: globalColors.white}}>{proofNotice}</Text>

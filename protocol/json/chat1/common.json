@@ -482,6 +482,57 @@
     },
     {
       "type": "record",
+      "name": "MessageClientHeaderVerified",
+      "fields": [
+        {
+          "type": "ConversationIDTriple",
+          "name": "conv"
+        },
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "boolean",
+          "name": "tlfPublic"
+        },
+        {
+          "type": "MessageType",
+          "name": "messageType"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessagePreviousPointer"
+          },
+          "name": "prev"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "sender"
+        },
+        {
+          "type": "gregor1.DeviceID",
+          "name": "senderDevice"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
+        },
+        {
+          "type": [
+            null,
+            "OutboxInfo"
+          ],
+          "name": "outboxInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "EncryptedData",
       "fields": [
         {
@@ -513,6 +564,24 @@
         {
           "type": "bytes",
           "name": "k"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SignEncryptedData",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "b"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
         }
       ]
     },

@@ -60,8 +60,9 @@ export const BackendCommonBlockType = {
 export const CommonClientType = {
   none: 0,
   cli: 1,
-  gui: 2,
+  guiMain: 2,
   kbfs: 3,
+  guiHelper: 4,
 }
 
 export const CommonDeviceType = {
@@ -481,6 +482,7 @@ export const TlfKeysTLFIdentifyBehavior = {
   chatGui: 2,
   chatGuiStrict: 3,
   kbfsRekey: 4,
+  kbfsQr: 5,
 }
 
 export const UiPromptDefault = {
@@ -871,6 +873,18 @@ export function accountPassphrasePromptRpcChannelMap (channelConfig: ChannelConf
 
 export function accountPassphrasePromptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>): Promise<accountPassphrasePromptResult> {
   return new Promise((resolve, reject) => { accountPassphrasePromptRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function accountResetAccountRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.account.resetAccount'})
+}
+
+export function accountResetAccountRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => accountResetAccountRpc({...request, incomingCallMap, callback}))
+}
+
+export function accountResetAccountRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { accountResetAccountRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function apiserverGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>) {
@@ -3176,8 +3190,9 @@ export type ClientDetails = {
 export type ClientType =
     0 // NONE_0
   | 1 // CLI_1
-  | 2 // GUI_2
+  | 2 // GUI_MAIN_2
   | 3 // KBFS_3
+  | 4 // GUI_HELPER_4
 
 export type ComponentResult = {
   name: string,
@@ -4593,6 +4608,7 @@ export type TLFIdentifyBehavior =
   | 2 // CHAT_GUI_2
   | 3 // CHAT_GUI_STRICT_3
   | 4 // KBFS_REKEY_4
+  | 5 // KBFS_QR_5
 
 export type TLFIdentifyFailure = {
   user: User,
@@ -6020,6 +6036,7 @@ export type rpc =
   | accountHasServerKeysRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
+  | accountResetAccountRpc
   | apiserverGetRpc
   | apiserverPostJSONRpc
   | apiserverPostRpc
@@ -6435,6 +6452,10 @@ export type incomingCallMapType = Exact<{
       sessionID: int,
       phrase: string
     }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.logsend.prepareLogsend'?: (
+    params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyApp.exit'?: (

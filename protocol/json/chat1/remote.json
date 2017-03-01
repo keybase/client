@@ -13,6 +13,10 @@
       "name": "MessageBoxed",
       "fields": [
         {
+          "type": "MessageBoxedVersion",
+          "name": "version"
+        },
+        {
           "type": [
             null,
             "MessageServerHeader"
@@ -28,13 +32,30 @@
           "name": "headerCiphertext"
         },
         {
+          "type": "SignEncryptedData",
+          "name": "headerSealed"
+        },
+        {
           "type": "EncryptedData",
           "name": "bodyCiphertext"
+        },
+        {
+          "type": "bytes",
+          "name": "headerVerificationKey"
         },
         {
           "type": "int",
           "name": "keyGeneration"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MessageBoxedVersion",
+      "symbols": [
+        "VNONE_0",
+        "V1_1",
+        "V2_2"
       ]
     },
     {

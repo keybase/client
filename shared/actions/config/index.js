@@ -135,9 +135,7 @@ function getExtendedStatus (): AsyncAction {
 function registerListeners (): AsyncAction {
   return dispatch => {
     dispatch(registerGregorListeners())
-    if (!isMobile) {
-      dispatch(registerReachability())
-    }
+    dispatch(registerReachability())
   }
 }
 

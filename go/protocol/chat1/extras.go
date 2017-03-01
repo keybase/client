@@ -110,10 +110,10 @@ func (t TopicID) String() string {
 	return hex.EncodeToString(t)
 }
 
-func (me ConversationIDTriple) Eq(other ConversationIDTriple) bool {
-	return me.Tlfid.Eq(other.Tlfid) &&
-		bytes.Equal([]byte(me.TopicID), []byte(other.TopicID)) &&
-		me.TopicType == other.TopicType
+func (t ConversationIDTriple) Eq(other ConversationIDTriple) bool {
+	return t.Tlfid.Eq(other.Tlfid) &&
+		bytes.Equal([]byte(t.TopicID), []byte(other.TopicID)) &&
+		t.TopicType == other.TopicType
 }
 
 func (hash Hash) String() string {
@@ -143,6 +143,9 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		}
 		if state == MessageUnboxedState_ERROR {
 			return m.Error().MessageType
+		}
+		if state == MessageUnboxedState_OUTBOX {
+			return m.Outbox().Msg.ClientHeader.MessageType
 		}
 	}
 	return MessageType_NONE
@@ -208,6 +211,10 @@ func (o OutboxID) String() string {
 	return hex.EncodeToString(o)
 }
 
+func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
+	return (p.Id == other.Id) && (p.Hash.Eq(other.Hash))
+}
+
 func (t TLFVisibility) Eq(r TLFVisibility) bool {
 	return int(t) == int(r)
 }
@@ -255,6 +262,10 @@ func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
 // TLFNameExpanded returns a TLF name with a reset suffix if it exists.
 // This version can be used in requests to lookup the TLF.
 func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
+	return ExpandTLFName(h.TlfName, finalizeInfo)
+}
+
+func (h MessageClientHeaderVerified) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
 	return ExpandTLFName(h.TlfName, finalizeInfo)
 }
 

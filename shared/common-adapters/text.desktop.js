@@ -4,6 +4,7 @@ import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
 import {globalStyles} from '../styles'
+import shallowEqual from 'shallowequal'
 
 import type {Props, TextType, Background} from './text'
 
@@ -31,18 +32,14 @@ class Text extends Component<void, Props, void> {
   }
 
   shouldComponentUpdate (nextProps: Props): boolean {
-    if (
-      this.props.onClickURL === nextProps.onClickURL &&
-      this.props.onClick === nextProps.onClick &&
-      this.props.title === nextProps.title &&
-      this.props.children === nextProps.children &&
-      this._className(this.props) === this._className(nextProps) &&
-      JSON.stringify(this._style(this.props)) === JSON.stringify(this._style(nextProps))
-    ) {
-      return false
-    }
-
-    return true
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'style') {
+        return shallowEqual(obj, oth)
+      } else if (key === 'children' && this.props.plainText && nextProps.plainText) { // child will be plain text
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
   }
 
   _style (props) {

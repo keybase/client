@@ -179,6 +179,7 @@ type FakeIdentifyUI struct {
 	Confirmed       bool
 	Keys            map[libkb.PGPFingerprint]*keybase1.TrackDiff
 	DisplayKeyCalls int
+	DisplayKeyDiffs []*keybase1.TrackDiff
 	Outcome         *keybase1.IdentifyOutcome
 	StartCount      int
 	Token           keybase1.TrackToken
@@ -248,9 +249,16 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) error {
 	if ui.Keys == nil {
 		ui.Keys = make(map[libkb.PGPFingerprint]*keybase1.TrackDiff)
 	}
-	fp := libkb.ImportPGPFingerprintSlice(ik.PGPFingerprint)
 
-	ui.Keys[*fp] = ik.TrackDiff
+	fp := libkb.ImportPGPFingerprintSlice(ik.PGPFingerprint)
+	if fp != nil {
+		ui.Keys[*fp] = ik.TrackDiff
+	}
+
+	if ik.TrackDiff != nil {
+		ui.DisplayKeyDiffs = append(ui.DisplayKeyDiffs, ik.TrackDiff)
+	}
+
 	ui.DisplayKeyCalls++
 	return nil
 }

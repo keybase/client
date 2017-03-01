@@ -181,7 +181,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		}
 	}
 
-	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI); desktop != nil {
+	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI_MAIN); desktop != nil {
 		status.Desktop.Running = true
 		status.Desktop.Version = desktop.Version
 	}

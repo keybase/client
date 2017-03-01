@@ -2,7 +2,6 @@ package chat
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/interfaces"
@@ -188,7 +187,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 		MessageIDs:     msgIDs,
 	})
 
-	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, finalizeInfo)
+	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, convID, finalizeInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +201,7 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	if s.IsOffline() {
 		return nil, nil
 	}
-	return s.boxer.UnboxMessages(ctx, msgs, finalizeInfo)
+	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
 }
 
 type HybridConversationSource struct {
@@ -245,7 +244,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	// coincides with an account reset.
 	var emptyFinalizeInfo *chat1.ConversationFinalizeInfo
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, msg, emptyFinalizeInfo)
+	decmsg, err := s.boxer.UnboxMessage(ctx, msg, convID, emptyFinalizeInfo)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -276,8 +275,17 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 		return nil
 	}
 
+	idMode, _, haveMode := IdentifyMode(ctx)
 	for _, msg := range msgs {
 		if msg.IsValid() {
+
+			// Early out if we are in GUI mode and don't have any breaks stored
+			idBroken := s.storage.IsTLFIdentifyBroken(ctx, msg.Valid().ClientHeader.Conv.Tlfid)
+			if haveMode && idMode == keybase1.TLFIdentifyBehavior_CHAT_GUI && !idBroken {
+				s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
+				return nil
+			}
+
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(finalizeInfo)
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, convID)
@@ -286,10 +294,13 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 			if msg.Valid().ClientHeader.TlfPublic {
 				vis = chat1.TLFVisibility_PUBLIC
 			}
-			if _, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis); err != nil {
+
+			_, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis)
+			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
 			}
+
 			return nil
 		}
 	}
@@ -306,17 +317,18 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
+	var finalizeInfo *chat1.ConversationFinalizeInfo
 	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
-	if err != nil {
-		return chat1.ThreadView{}, rl, fmt.Errorf("Pull(): error: %s", err.Error())
+	if err == nil {
+		finalizeInfo = conv.Metadata.FinalizeInfo
 	}
 
 	// Post process thread before returning
 	defer func() {
 		if err == nil {
 			err = s.postProcessThread(ctx, uid, convID, &thread, query,
-				conv.Metadata.FinalizeInfo)
+				finalizeInfo)
 		}
 	}()
 
@@ -513,7 +525,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		}
 
 		// Unbox all the remote messages
-		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, finalizeInfo)
+		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, convID, finalizeInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -577,7 +589,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
 		} else if !s.IsOffline() {
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg, finalizeInfo)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, convID, finalizeInfo)
 			if err != nil {
 				return res, err
 			}

@@ -794,7 +794,7 @@
       "name": "MessageUnboxedValid",
       "fields": [
         {
-          "type": "MessageClientHeader",
+          "type": "MessageClientHeaderVerified",
           "name": "clientHeader"
         },
         {
@@ -819,6 +819,10 @@
         },
         {
           "type": "Hash",
+          "name": "bodyHash"
+        },
+        {
+          "type": "Hash",
           "name": "headerHash"
         },
         {
@@ -827,6 +831,13 @@
             "SignatureInfo"
           ],
           "name": "headerSignature"
+        },
+        {
+          "type": [
+            null,
+            "bytes"
+          ],
+          "name": "verificationKey"
         },
         {
           "type": [

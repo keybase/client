@@ -365,6 +365,20 @@ func (m *ChatRemoteMock) GetConversationMetadataRemote(ctx context.Context, conv
 	return res, err
 }
 
+func (m *ChatRemoteMock) headerToVerifiedForTesting(h chat1.MessageClientHeader) chat1.MessageClientHeaderVerified {
+	return chat1.MessageClientHeaderVerified{
+		Conv:         h.Conv,
+		TlfName:      h.TlfName,
+		TlfPublic:    h.TlfPublic,
+		MessageType:  h.MessageType,
+		Prev:         h.Prev,
+		Sender:       h.Sender,
+		SenderDevice: h.SenderDevice,
+		OutboxID:     h.OutboxID,
+		OutboxInfo:   h.OutboxInfo,
+	}
+}
+
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
@@ -382,7 +396,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	if m.world.TcsByID[uid.String()].G.NotifyRouter != nil {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
-				ClientHeader: inserted.ClientHeader,
+				ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
 				ServerHeader: *inserted.ServerHeader,
 			}),
 		})

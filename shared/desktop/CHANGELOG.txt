@@ -1,5 +1,7 @@
 Recent changes:
 ---------------
+- Performance! Chats should load faster now.
+
 - Keybase has a new icon. We thank our departing ferret-dog mascot for his years of loyalty.
 
 - Keybase Chat has launched! You can read more about it on the Keybase blog.

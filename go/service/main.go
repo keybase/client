@@ -107,6 +107,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
 		chat1.LocalProtocol(newChatLocalHandler(xp, g, d.attachmentstore, d.gregor)),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
+		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {

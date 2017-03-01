@@ -690,10 +690,7 @@ func (mc *MerkleClient) LastRoot() *MerkleRoot {
 func (mc *MerkleClient) FirstSeqnoWithSkips() *Seqno {
 
 	if mc.G().Env.GetRunMode() == ProductionRunMode {
-		if mc.G().Env.GetFeatureFlags().Admin() {
-			return &FirstProdMerkleSeqnoWithSkips
-		}
-		return nil
+		return &FirstProdMerkleSeqnoWithSkips
 	}
 
 	mc.RLock()

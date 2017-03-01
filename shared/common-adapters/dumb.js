@@ -727,7 +727,8 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
   },
 }
 
-const mockAvatarSizes = (title, sizes, modifiers) => _.chain(sizes)
+const avatarSizes = [176, 112, 80, 64, 48, 40, 32, 24, 16]
+const mockAvatarSizes = (title, modifiers) => _.chain(avatarSizes)
   .map(size => ({size, username: 'awendland', ...modifiers}))
   .keyBy(props => `${title} x${props.size}`)
   .value()
@@ -735,14 +736,15 @@ const mockAvatarSizes = (title, sizes, modifiers) => _.chain(sizes)
 const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,
   mocks: {
-    ...mockAvatarSizes('Normal', [32], {}),
-    ...mockAvatarSizes('Following', [48], {
+    ...mockAvatarSizes('Normal', {}),
+    ...mockAvatarSizes('Fallback', {username: 'FALLBACK'}),
+    ...mockAvatarSizes('Following', {
       following: true,
     }),
-    ...mockAvatarSizes('Follows You', [64], {
+    ...mockAvatarSizes('Follows You', {
       followsYou: true,
     }),
-    ...mockAvatarSizes('Mutual Follow', [112], {
+    ...mockAvatarSizes('Mutual Follow', {
       following: true,
       followsYou: true,
     }),
@@ -847,10 +849,13 @@ else echo "bar";
     ftp://blah.com,
     gopher://blah.com,
     mailto:blah@blah.com
-    _http://keybase.io_
   Include:
     http://keybase.io
+    http://keybase.io/
     *http://keybase.io*
+    *http://keybase.io/~test*
+    _http://keybase.io_
+    ~http://keybase.io~
     \`http://keybase.io\`
     (https://keybase.io)
     https://keybase.io
@@ -860,12 +865,15 @@ else echo "bar";
     keybase.io/a/user/lookup?one=1&two=2
     keybase.io/a/user/path_with_underscore
     keybase.io?blah=true
+    keybase.io/~user/cool
     http://keybase.io/blah/../up-one/index.html
   These should have the trailing punctuation outside the link:
     amazon.co.uk.
     keybase.io,
     keybase.io.
     keybase.io?
+    *http://keybase.io/*.
+    *http://keybase.io/~_*
 `,
     },
     'Quotes': {

@@ -126,10 +126,13 @@ this is a code block with two newline above\`\`\`
     ftp://blah.com,
     gopher://blah.com,
     mailto:blah@blah.com
-    _http://keybase.io_
   Include:
     http://keybase.io
+    http://keybase.io/
     *http://keybase.io*
+    *http://keybase.io/~test*
+    _http://keybase.io_
+    ~http://keybase.io~
     \`http://keybase.io\`
     (https://keybase.io)
     https://keybase.io
@@ -139,12 +142,15 @@ this is a code block with two newline above\`\`\`
     keybase.io/a/user/lookup?one=1&two=2
     keybase.io/a/user/path_with_underscore
     keybase.io?blah=true
+    keybase.io/~user/cool
     http://keybase.io/blah/../up-one/index.html
   These should have the trailing punctuation outside the link:
     amazon.co.uk.
     keybase.io,
     keybase.io.
     keybase.io?
+    *http://keybase.io/*.
+    *http://keybase.io/~_*
 `)
     expect(ast).toMatchSnapshot()
   })
