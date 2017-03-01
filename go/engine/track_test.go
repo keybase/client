@@ -82,6 +82,14 @@ func trackUser(tc libkb.TestContext, fu *FakeUser, un libkb.NormalizedUsername) 
 	}
 }
 
+func trackUserGetUI(tc libkb.TestContext, fu *FakeUser, un libkb.NormalizedUsername) *FakeIdentifyUI {
+	ui, _, err := runTrackWithOptions(tc, fu, un.String(), keybase1.TrackOptions{BypassConfirm: true}, fu.NewSecretUI(), false)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	return ui
+}
+
 func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions, secretUI libkb.SecretUI) {
 	idUI, res, err := runTrackWithOptions(tc, fu, "t_alice", options, secretUI, false)
 	if err != nil {
@@ -133,10 +141,10 @@ func TestTrack(t *testing.T) {
 	trackBob(tc, fu)
 	defer untrackBob(tc, fu)
 
-	// try tracking a user with no keys
+	// try tracking a user with no keys (which is now allowed)
 	_, _, err = runTrack(tc, fu, "t_ellen")
-	if err == nil {
-		t.Errorf("expected error tracking t_ellen, got nil")
+	if err != nil {
+		t.Errorf("expected no error tracking t_ellen (user with no keys), got %s", err)
 	}
 	return
 }
@@ -379,4 +387,36 @@ func TestIdentifyTrackRaceDetection(t *testing.T) {
 	}
 
 	runUntrack(dev1.G, user, trackee)
+}
+
+func TestTrackNoKeys(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	nk, pp := createFakeUserWithNoKeys(tc)
+	Logout(tc)
+
+	fu := CreateAndSignupFakeUser(tc, "track")
+	trackUser(tc, fu, libkb.NewNormalizedUsername(nk))
+
+	// provision nk on a new device
+	Logout(tc)
+	nku := &FakeUser{Username: nk, Passphrase: pp}
+	if err := nku.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+
+	// track nk again
+	if err := fu.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	ui := trackUserGetUI(tc, fu, libkb.NewNormalizedUsername(nk))
+
+	// ensure track diff for new eldest key
+	if len(ui.DisplayKeyDiffs) != 1 {
+		t.Fatal("no key diffs displayed")
+	}
+	if ui.DisplayKeyDiffs[0].Type != keybase1.TrackDiffType_NEW_ELDEST {
+		t.Errorf("track diff type: %v, expected NEW_ELDEST (%v)", ui.DisplayKeyDiffs[0].Type, keybase1.TrackDiffType_NEW_ELDEST)
+	}
 }

@@ -110,10 +110,10 @@ func (t TopicID) String() string {
 	return hex.EncodeToString(t)
 }
 
-func (me ConversationIDTriple) Eq(other ConversationIDTriple) bool {
-	return me.Tlfid.Eq(other.Tlfid) &&
-		bytes.Equal([]byte(me.TopicID), []byte(other.TopicID)) &&
-		me.TopicType == other.TopicType
+func (t ConversationIDTriple) Eq(other ConversationIDTriple) bool {
+	return t.Tlfid.Eq(other.Tlfid) &&
+		bytes.Equal([]byte(t.TopicID), []byte(other.TopicID)) &&
+		t.TopicType == other.TopicType
 }
 
 func (hash Hash) String() string {

@@ -44,36 +44,12 @@ IF %DOKANVER%=="" (
   EXIT /B 1
 )
 
-:: Other alternate time servers:
-::   http://timestamp.verisign.com/scripts/timstamp.dll
-::   http://timestamp.globalsign.com/scripts/timestamp.dll
-::   http://tsa.starfieldtech.com
-::   http://timestamp.comodoca.com/authenticode
-::   http://timestamp.digicert.com
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %PathName%
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
-IF %ERRORLEVEL% NEQ 0 (k
-  EXIT /B 1
-)
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
-IF %ERRORLEVEL% NEQ 0 (k
-  EXIT /B 1
-)
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
-IF %ERRORLEVEL% NEQ 0 (k
-  EXIT /B 1
-)
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
-IF %ERRORLEVEL% NEQ 0 (k
-  EXIT /B 1
-)
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
+call:dosignexe %PathName%
+call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 
 :: Double check that keybase is codesigned
 signtool verify /pa %PathName%
@@ -170,3 +146,25 @@ echo %JSON_UPDATE_FILENAME%
 %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\shared\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %JSON_UPDATE_FILENAME%
 
 :end_update_json
+
+goto:eof
+
+
+:dosignexe
+:: Other alternate time servers:
+::   http://timestamp.verisign.com/scripts/timstamp.dll
+::   http://timestamp.globalsign.com/scripts/timestamp.dll
+::   http://tsa.starfieldtech.com
+::   http://timestamp.comodoca.com/authenticode
+::   http://timestamp.digicert.com
+
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %~1
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+SignTool.exe sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+goto:eof
