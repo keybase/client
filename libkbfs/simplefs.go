@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"os"
 	"strings"
@@ -273,7 +272,7 @@ func (k *SimpleFS) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRena
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx, err)
+	defer func() { k.doneSyncOp(ctx, err) }()
 
 	snode, sleaf, err := k.getRemoteNodeParent(ctx, arg.Src)
 	if err != nil {
@@ -295,7 +294,7 @@ func (k *SimpleFS) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenAr
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx, err)
+	defer func() { k.doneSyncOp(ctx, err) }()
 
 	node, _, err := k.open(ctx, arg.Dest, arg.Flags)
 
@@ -316,7 +315,7 @@ func (k *SimpleFS) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSet
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx, err)
+	defer func() { k.doneSyncOp(ctx, err) }()
 
 	node, err := k.getRemoteNode(ctx, arg.Dest)
 	if err != nil {
@@ -359,7 +358,7 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 	if err != nil {
 		return keybase1.FileContent{}, err
 	}
-	defer k.doneSyncOp(ctx, err)
+	defer func() { k.doneSyncOp(ctx, err) }()
 
 	bs := make([]byte, arg.Size)
 	n, err := k.config.KBFSOps().Read(ctx, h.node, bs, arg.Offset)
@@ -386,7 +385,7 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx, err)
+	defer func() { k.doneSyncOp(ctx, err) }()
 
 	err = k.config.KBFSOps().Write(ctx, h.node, arg.Content, arg.Offset)
 	return err
@@ -432,7 +431,7 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (_ keyb
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
-	defer k.doneSyncOp(ctx, err)
+	defer func() { k.doneSyncOp(ctx, err) }()
 
 	node, err := k.getRemoteNode(ctx, path)
 	if err != nil {
@@ -455,7 +454,7 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err e
 	if err != nil {
 		return err
 	}
-	defer k.doneSyncOp(ctx, err)
+	defer func() { k.doneSyncOp(ctx, err) }()
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
@@ -473,7 +472,7 @@ func (k *SimpleFS) SimpleFSClose(ctx context.Context, opid keybase1.OpID) (err e
 // SimpleFSCheck - Check progress of pending operation
 func (k *SimpleFS) SimpleFSCheck(_ context.Context, opid keybase1.OpID) (keybase1.Progress, error) {
 	// TODO
-	return 0, errors.New("not implemented")
+	return 0, SimpleFSError{"Not implemented"}
 }
 
 // SimpleFSGetOps - Get all the outstanding operations
@@ -683,11 +682,15 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 		}
 		return &kbfsIO{ctx, k, node, 0, deTy2Ty(&ei)}, nil
 	case keybase1.PathType_LOCAL:
-		var cflags = os.O_RDWR
+		var cflags = os.O_RDONLY
+		// This must be first since it writes the flag, not just ors into it
+		if flags&keybase1.OpenFlags_WRITE != 0 {
+			cflags = os.O_RDWR
+		}
 		if flags&keybase1.OpenFlags_EXISTING == 0 {
 			cflags |= os.O_CREATE
 		}
-		if flags&keybase1.OpenFlags_REPLACE == 1 {
+		if flags&keybase1.OpenFlags_REPLACE != 0 {
 			cflags |= os.O_TRUNC
 		}
 		var f *os.File
@@ -696,6 +699,7 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 			os.Mkdir(path.Local(), 0755)
 		}
 		f, err = os.OpenFile(path.Local(), cflags, 0644)
+		k.log.CDebugf(ctx, "Local open %q -> %v,%v", path.Local(), f, err)
 		if err != nil {
 			return nil, err
 		}
@@ -718,7 +722,7 @@ func (k *SimpleFS) pathIO(ctx context.Context, path keybase1.Path,
 		}
 		return &localIO{f, det}, nil
 	}
-	return nil, errors.New("Invalid path type")
+	return nil, SimpleFSError{"Invalid path type"}
 }
 
 type kbfsIO struct {
@@ -790,12 +794,12 @@ func ty2Kbfs(mode os.FileMode) EntryType {
 
 func (k *SimpleFS) startAsync(opid keybase1.OpID, desc keybase1.OpDescription,
 	callback func(context.Context) error) error {
-	ctx, err := k.startOp(context.Background(), opid, desc)
-	if err != nil {
-		return err
+	ctx, e0 := k.startOp(context.Background(), opid, desc)
+	if e0 != nil {
+		return e0
 	}
 	go func() (err error) {
-		defer k.doneOp(ctx, opid, err)
+		defer func() { k.doneOp(ctx, opid, err) }()
 		return callback(ctx)
 	}()
 	return nil
@@ -849,7 +853,7 @@ func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
 	k.lock.Unlock()
 }
 
-var errOnlyRemotePathSupported = errors.New("Only remote paths are supported for this operation")
-var errInvalidRemotePath = errors.New("Invalid remote path")
-var errNoSuchHandle = errors.New("No such handle")
-var errNoResult = errors.New("Async result not found")
+var errOnlyRemotePathSupported = SimpleFSError{"Only remote paths are supported for this operation"}
+var errInvalidRemotePath = SimpleFSError{"Invalid remote path"}
+var errNoSuchHandle = SimpleFSError{"No such handle"}
+var errNoResult = SimpleFSError{"Async result not found"}

@@ -1221,3 +1221,20 @@ type NoMergedMDError struct {
 func (e NoMergedMDError) Error() string {
 	return fmt.Sprintf("No MD yet for TLF %s", e.tlf)
 }
+
+// SimpleFSError wraps errors for SimpleFS
+type SimpleFSError struct {
+	reason string
+}
+
+// Error implements the error interface for SimpleFSError
+func (e SimpleFSError) Error() string { return e.reason }
+
+// ToStatus implements the keybase1.ToStatusAble interface for SimpleFSError
+func (e SimpleFSError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Name: e.reason,
+		Code: int(keybase1.StatusCode_SCGeneric),
+		Desc: e.Error(),
+	}
+}
