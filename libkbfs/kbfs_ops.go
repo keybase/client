@@ -207,7 +207,7 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 		return fs.opsByFav[fav]
 	}()
 	if ops != nil {
-		err := ops.deleteFromFavorites(ctx, fs.favs)
+		err := ops.doFavoritesOp(ctx, fs.favs, FavoritesOpRemove, nil)
 		if _, ok := err.(OpsCantHandleFavorite); !ok {
 			return err
 		}
@@ -253,10 +253,10 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(fb FolderBranch) *folderBranchOps {
 	return ops
 }
 
-func (fs *KBFSOpsStandard) getOps(
-	ctx context.Context, fb FolderBranch) *folderBranchOps {
+func (fs *KBFSOpsStandard) getOps(ctx context.Context,
+	fb FolderBranch, fop FavoritesOp) *folderBranchOps {
 	ops := fs.getOpsNoAdd(fb)
-	if err := ops.addToFavorites(ctx, fs.favs, false); err != nil {
+	if err := ops.doFavoritesOp(ctx, fs.favs, fop, nil); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
@@ -266,14 +266,13 @@ func (fs *KBFSOpsStandard) getOps(
 
 func (fs *KBFSOpsStandard) getOpsByNode(ctx context.Context,
 	node Node) *folderBranchOps {
-	return fs.getOps(ctx, node.GetFolderBranch())
+	return fs.getOps(ctx, node.GetFolderBranch(), FavoritesOpAdd)
 }
 
 func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
-	handle *TlfHandle, fb FolderBranch) *folderBranchOps {
+	handle *TlfHandle, fb FolderBranch, fop FavoritesOp) *folderBranchOps {
 	ops := fs.getOpsNoAdd(fb)
-	if err := ops.addToFavoritesByHandle(
-		ctx, fs.favs, handle, false); err != nil {
+	if err := ops.doFavoritesOp(ctx, fs.favs, fop, handle); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
@@ -298,8 +297,8 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
-func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
-	ctx context.Context, mdops MDOps, h *TlfHandle, create bool) (
+func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
+	mdops MDOps, h *TlfHandle, create bool, fop FavoritesOp) (
 	initialized bool, md ImmutableRootMetadata, id tlf.ID, err error) {
 	defer func() {
 		if getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() &&
@@ -330,7 +329,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 	// Init new MD.
 
 	fb := FolderBranch{Tlf: id, Branch: MasterBranch}
-	fops := fs.getOpsByHandle(ctx, h, fb)
+	fops := fs.getOpsByHandle(ctx, h, fb, fop)
 
 	err = fops.SetInitialHeadToNew(ctx, id, h)
 	if err != nil {
@@ -347,7 +346,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 }
 
 func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
-	tlfHandle *TlfHandle) (rmd ImmutableRootMetadata, err error) {
+	tlfHandle *TlfHandle, fop FavoritesOp) (rmd ImmutableRootMetadata, err error) {
 	fbo := func() *folderBranchOps {
 		fs.opsLock.Lock()
 		defer fs.opsLock.Unlock()
@@ -370,8 +369,13 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 	}
 
 	if rmd == (ImmutableRootMetadata{}) {
-		_, rmd, _, err = fs.getOrInitializeNewMDMaster(
-			ctx, fs.config.MDOps(), tlfHandle, true)
+		if fop == FavoritesOpAdd {
+			_, rmd, _, err = fs.getOrInitializeNewMDMaster(
+				ctx, fs.config.MDOps(), tlfHandle, true, FavoritesOpAddNewlyCreated)
+		} else {
+			_, rmd, _, err = fs.getOrInitializeNewMDMaster(
+				ctx, fs.config.MDOps(), tlfHandle, true, fop)
+		}
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
@@ -381,7 +385,7 @@ func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
 	// don't need to hit server even when there isn't any FS activity.
 	if fbo == nil {
 		fb := FolderBranch{Tlf: rmd.TlfID(), Branch: MasterBranch}
-		fbo = fs.getOpsByHandle(ctx, tlfHandle, fb)
+		fbo = fs.getOpsByHandle(ctx, tlfHandle, fb, fop)
 	}
 	if err = fbo.SetInitialHeadFromServer(ctx, rmd); err != nil {
 		return ImmutableRootMetadata{}, err
@@ -398,7 +402,7 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 	fs.log.CDebugf(ctx, "GetTLFCryptKeys(%s)", tlfHandle.GetCanonicalPath())
 	defer func() { fs.deferLog.CDebugf(ctx, "Done: %+v", err) }()
 
-	rmd, err := fs.getMDByHandle(ctx, tlfHandle)
+	rmd, err := fs.getMDByHandle(ctx, tlfHandle, FavoritesOpNoChange)
 	if err != nil {
 		return nil, tlf.ID{}, err
 	}
@@ -412,7 +416,7 @@ func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context,
 	fs.log.CDebugf(ctx, "GetTLFID(%s)", tlfHandle.GetCanonicalPath())
 	defer func() { fs.deferLog.CDebugf(ctx, "Done: %+v", err) }()
 
-	rmd, err := fs.getMDByHandle(ctx, tlfHandle)
+	rmd, err := fs.getMDByHandle(ctx, tlfHandle, FavoritesOpNoChange)
 	if err != nil {
 		return tlf.ID{}, err
 	}
@@ -439,23 +443,17 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		var id tlf.ID
 		var initialized bool
 		initialized, md, id, err = fs.getOrInitializeNewMDMaster(
-			ctx, mdops, h, create)
+			ctx, mdops, h, create, FavoritesOpAdd)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
 		if initialized {
 			fb := FolderBranch{Tlf: id, Branch: MasterBranch}
-			fops := fs.getOpsByHandle(ctx, h, fb)
+			fops := fs.getOpsByHandle(ctx, h, fb, FavoritesOpAddNewlyCreated)
 
 			node, ei, _, err = fops.getRootNode(ctx)
 			if err != nil {
 				return nil, EntryInfo{}, err
-			}
-
-			if err := fops.addToFavoritesByHandle(ctx, fs.favs, h, true); err != nil {
-				// Failure to favorite shouldn't cause a failure.  Just log
-				// and move on.
-				fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
 			}
 
 			return node, ei, nil
@@ -467,13 +465,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 				return nil, EntryInfo{}, err
 			}
 			fb := FolderBranch{Tlf: id, Branch: MasterBranch}
-			fops := fs.getOpsByHandle(ctx, h, fb)
-			if err := fops.addToFavoritesByHandle(
-				ctx, fs.favs, h, false); err != nil {
-				// Failure to favorite shouldn't cause a failure.  Just log
-				// and move on.
-				fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
-			}
+			fs.getOpsByHandle(ctx, h, fb, FavoritesOpAdd)
 			return nil, EntryInfo{}, nil
 		}
 	}
@@ -495,7 +487,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		return nil, EntryInfo{}, err
 	}
 
-	ops := fs.getOpsByHandle(ctx, h, fb)
+	ops := fs.getOpsByHandle(ctx, h, fb, FavoritesOpAdd)
 
 	err = ops.SetInitialHeadFromServer(ctx, md)
 	if err != nil {
@@ -507,7 +499,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		return nil, EntryInfo{}, err
 	}
 
-	if err := ops.addToFavoritesByHandle(ctx, fs.favs, h, false); err != nil {
+	if err := ops.doFavoritesOp(ctx, fs.favs, FavoritesOpAdd, h); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
@@ -652,7 +644,7 @@ func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
 func (fs *KBFSOpsStandard) FolderStatus(
 	ctx context.Context, folderBranch FolderBranch) (
 	FolderBranchStatus, <-chan StatusUpdate, error) {
-	ops := fs.getOpsNoAdd(folderBranch)
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpNoChange)
 	return ops.FolderStatus(ctx, folderBranch)
 }
 
@@ -702,35 +694,36 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 // TODO: remove once we have automatic conflict resolution
 func (fs *KBFSOpsStandard) UnstageForTesting(
 	ctx context.Context, folderBranch FolderBranch) error {
-	ops := fs.getOps(ctx, folderBranch)
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
 	return ops.UnstageForTesting(ctx, folderBranch)
 }
 
 // Rekey implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Rekey(ctx context.Context, id tlf.ID) error {
 	// We currently only support rekeys of master branches.
-	ops := fs.getOpsNoAdd(FolderBranch{Tlf: id, Branch: MasterBranch})
+	ops := fs.getOps(ctx,
+		FolderBranch{Tlf: id, Branch: MasterBranch}, FavoritesOpNoChange)
 	return ops.Rekey(ctx, id)
 }
 
 // SyncFromServerForTesting implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) SyncFromServerForTesting(
 	ctx context.Context, folderBranch FolderBranch) error {
-	ops := fs.getOps(ctx, folderBranch)
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
 	return ops.SyncFromServerForTesting(ctx, folderBranch)
 }
 
 // GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
 	folderBranch FolderBranch) (history TLFUpdateHistory, err error) {
-	ops := fs.getOps(ctx, folderBranch)
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
 	return ops.GetUpdateHistory(ctx, folderBranch)
 }
 
 // GetEditHistory implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetEditHistory(ctx context.Context,
 	folderBranch FolderBranch) (edits TlfWriterEdits, err error) {
-	ops := fs.getOps(ctx, folderBranch)
+	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
 	return ops.GetEditHistory(ctx, folderBranch)
 }
 
@@ -763,7 +756,7 @@ func (fs *KBFSOpsStandard) RegisterForChanges(
 	folderBranches []FolderBranch, obs Observer) error {
 	for _, fb := range folderBranches {
 		// TODO: add branch parameter to notifier interface
-		ops := fs.getOpsNoAdd(fb)
+		ops := fs.getOps(context.Background(), fb, FavoritesOpNoChange)
 		return ops.RegisterForChanges(obs)
 	}
 	return nil
@@ -774,20 +767,22 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 	folderBranches []FolderBranch, obs Observer) error {
 	for _, fb := range folderBranches {
 		// TODO: add branch parameter to notifier interface
-		ops := fs.getOpsNoAdd(fb)
+		ops := fs.getOps(context.Background(), fb, FavoritesOpNoChange)
 		return ops.UnregisterFromChanges(obs)
 	}
 	return nil
 }
 
 func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID tlf.ID, newBID BranchID) {
-	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
+	ops := fs.getOps(context.Background(),
+		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
 	ops.onTLFBranchChange(newBID) // folderBranchOps makes a goroutine
 }
 
 func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid BranchID,
 	rev MetadataRevision) {
-	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
+	ops := fs.getOps(context.Background(),
+		FolderBranch{Tlf: tlfID, Branch: MasterBranch}, FavoritesOpNoChange)
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
 }
 

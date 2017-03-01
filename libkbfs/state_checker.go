@@ -93,8 +93,8 @@ func (sc *StateChecker) getLastGCData(ctx context.Context,
 	var latestTime time.Time
 	var latestRev MetadataRevision
 	for _, c := range *config.allKnownConfigsForTesting {
-		ops := c.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(
-			FolderBranch{tlf, MasterBranch})
+		ops := c.KBFSOps().(*KBFSOpsStandard).getOps(context.Background(),
+			FolderBranch{tlf, MasterBranch}, FavoritesOpNoChange)
 		rt, rev := ops.fbm.getLastQRData()
 		if rt.After(latestTime) && rev > latestRev {
 			latestTime = rt
@@ -138,7 +138,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 	}
 
 	fb := FolderBranch{tlf, MasterBranch}
-	ops := kbfsOps.getOpsNoAdd(fb)
+	ops := kbfsOps.getOps(context.Background(), fb, FavoritesOpNoChange)
 	lastGCRevisionTime, lastGCRev := sc.getLastGCData(ctx, tlf)
 
 	// Build the expected block list.

@@ -712,3 +712,19 @@ type NodeMetadata struct {
 	LastWriterUnverified libkb.NormalizedUsername
 	BlockInfo            BlockInfo
 }
+
+// FavoritesOp defines an operation related to favorites.
+type FavoritesOp int
+
+const (
+	_ FavoritesOp = iota
+	// FavoritesOpAdd means TLF should be added to favorites.
+	FavoritesOpAdd
+	// FavoritesOpAddNewlyCreated means TLF should be added to favorites, and it
+	// should be considered newly created.
+	FavoritesOpAddNewlyCreated
+	// FavoritesOpRemove means TLF should be removed from favorites.
+	FavoritesOpRemove
+	// FavoritesOpNoChange means no changes regarding to favorites should be made.
+	FavoritesOpNoChange
+)

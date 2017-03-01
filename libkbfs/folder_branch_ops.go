@@ -496,6 +496,28 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	return favorites.Delete(ctx, h.ToFavorite())
 }
 
+func (fbo *folderBranchOps) doFavoritesOp(ctx context.Context,
+	favs *Favorites, fop FavoritesOp, handle *TlfHandle) error {
+	switch fop {
+	case FavoritesOpNoChange:
+		return nil
+	case FavoritesOpAdd:
+		if handle != nil {
+			return fbo.addToFavoritesByHandle(ctx, favs, handle, false)
+		}
+		return fbo.addToFavorites(ctx, favs, false)
+	case FavoritesOpAddNewlyCreated:
+		if handle != nil {
+			return fbo.addToFavoritesByHandle(ctx, favs, handle, true)
+		}
+		return fbo.addToFavorites(ctx, favs, true)
+	case FavoritesOpRemove:
+		return fbo.deleteFromFavorites(ctx, favs)
+	default:
+		return InvalidFavoritesOpError{}
+	}
+}
+
 // getHead should not be called outside of folder_branch_ops.go.
 func (fbo *folderBranchOps) getHead(lState *lockState) ImmutableRootMetadata {
 	fbo.headLock.RLock(lState)
