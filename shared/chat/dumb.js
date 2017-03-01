@@ -175,7 +175,7 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       supersededByState: Map(),
     }),
     config: {
-      you: 'chris',
+      username: 'chris',
     },
     routeTree: {
       routeState: new RouteStateNode({

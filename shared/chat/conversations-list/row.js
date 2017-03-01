@@ -40,13 +40,14 @@ const makeGetUnreadCounts = conversationIDKey => state => state.chat.get('conver
 const makeGetParticipants = conversationIDKey => state => (
   participantFilter(state.chat.get('pendingConversations').get(conversationIDKey), state.config.username || '')
 )
+const getNowOverride = state => state.chat.get('nowOverride')
 
-const makeSelector = (conversationIDKey, nowOverride) => {
+const makeSelector = (conversationIDKey) => {
   const isPending = isPendingConversationIDKey(conversationIDKey)
   if (isPending) {
     return createImmutableEqualSelector(
-      [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey)],
-      (isSelected, participants) => ({
+      [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey), getNowOverride],
+      (isSelected, participants, nowOverride) => ({
         conversationIDKey,
         isMuted: false,
         isSelected,
@@ -60,8 +61,8 @@ const makeSelector = (conversationIDKey, nowOverride) => {
     )
   } else {
     return createImmutableEqualSelector(
-      [makeGetConversation(conversationIDKey), makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey)],
-      (conversation, isSelected, unreadCount, you, rekeyInfo) => ({
+      [makeGetConversation(conversationIDKey), makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey), getNowOverride],
+      (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride) => ({
         conversationIDKey,
         isMuted: conversation.get('muted'),
         isSelected,
@@ -78,8 +79,8 @@ const makeSelector = (conversationIDKey, nowOverride) => {
 
 // $FlowIssue
 const RowConnector = connect(
-  (state: TypedState, {conversationIDKey, nowOverride}) => {
-    const selector = makeSelector(conversationIDKey, nowOverride)
+  (state: TypedState, {conversationIDKey}) => {
+    const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
   },
   (dispatch) => ({

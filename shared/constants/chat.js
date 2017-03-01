@@ -272,6 +272,7 @@ export const StateRecord = Record({
   rekeyInfos: Map(),
   alwaysShow: Set(),
   pendingConversations: Map(),
+  nowOverride: null,
 })
 
 export type State = Record<{
@@ -287,6 +288,7 @@ export type State = Record<{
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
+  nowOverride: ?Date,
 }>
 
 export const maxAttachmentPreviewSize = 320
