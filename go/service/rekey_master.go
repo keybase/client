@@ -465,12 +465,15 @@ func (r *rekeyMaster) changeNotification(newProblems keybase1.ProblemSet) {
 			r.G().Log.Debug("changeNotification: error getting conversation id: %s", err)
 			continue
 		}
+		r.G().Log.Debug("rekeyMaster: will send notification for conv %v, tlf %s", cid, p.Tlf.Name)
 		cids = append(cids, cid)
 	}
 
 	if len(cids) > 0 {
 		// notify clients that inbox is stale and which threads are stale
+		r.G().Log.Debug("rekeyMaster: sending ChatInboxStale notification")
 		r.G().NotifyRouter.HandleChatInboxStale(context.Background(), r.G().Env.GetUID())
+		r.G().Log.Debug("rekeyMaster: sending ChatThreadsStale notification %v", cids)
 		r.G().NotifyRouter.HandleChatThreadsStale(context.Background(), r.G().Env.GetUID(), cids)
 	}
 
