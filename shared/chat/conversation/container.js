@@ -12,6 +12,7 @@ import {getProfile} from '../../actions/tracker'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
+import {pick} from 'lodash'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
@@ -87,11 +88,11 @@ export default connect(
         return {
           bannerMessage: null,
           emojiPickerOpen: false,
-          followingMap,
+          followingMap: pick(followingMap, participants.toArray()),
           inputText: routeState.inputText,
           isLoading: false,
           messages: List(),
-          metaDataMap,
+          metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
           moreToLoad: false,
           muted: false,
           participants,
@@ -120,11 +121,11 @@ export default connect(
           bannerMessage: null,
           emojiPickerOpen: false,
           firstNewMessageID: conversationState.firstNewMessageID,
-          followingMap,
+          followingMap: pick(followingMap, participants.toArray()),
           inputText: routeState.inputText,
           isLoading: conversationState.isLoading,
           messages: conversationState.messages,
-          metaDataMap,
+          metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
           moreToLoad: conversationState.moreToLoad,
           muted,
           participants,

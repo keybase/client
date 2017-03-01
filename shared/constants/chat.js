@@ -2,13 +2,16 @@
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-
 import {clamp} from 'lodash'
 import * as ChatTypes from './types/flow-types-chat'
+import {getPath} from '../route-tree'
+import {chatTab} from './tabs'
+
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
 import type {AssetMetadata, ChatActivity, ConversationInfoLocal, ConversationFinalizeInfo, MessageBody, MessageID as RPCMessageID, OutboxID as RPCOutboxID, ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {DeviceType} from './types/more'
+import type {TypedState} from './reducer'
 
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: boolean}
@@ -269,6 +272,7 @@ export const StateRecord = Record({
   rekeyInfos: Map(),
   alwaysShow: Set(),
   pendingConversations: Map(),
+  nowOverride: null,
 })
 
 export type State = Record<{
@@ -284,6 +288,7 @@ export type State = Record<{
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
+  nowOverride: ?Date,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -529,13 +534,25 @@ function convSupersededByInfo (conversationID: ConversationIDKey, chat: State): 
   return chat.get('supersededByState').get(conversationID)
 }
 
-function newestConversationIDKey (conversationIDKey: ConversationIDKey, chat: State): ConversationIDKey {
+function newestConversationIDKey (conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
   const supersededBy = chat.get('supersededByState').get(conversationIDKey)
   if (!supersededBy) {
     return conversationIDKey
   }
 
   return newestConversationIDKey(supersededBy.conversationIDKey, chat)
+}
+
+const getSelectedConversation = (state: TypedState) => {
+  const chatPath = getPath(state.routeTree.routeState, [chatTab])
+  if (chatPath.get(0) !== chatTab) {
+    return null
+  }
+  const selected = chatPath.get(1)
+  if (selected === nothingSelected) {
+    return null
+  }
+  return selected
 }
 
 type MessageKey = string
@@ -546,6 +563,7 @@ function messageKey (kind: MessageKeyKind, value: string | number): MessageKey {
 
 export {
   getBrokenUsers,
+  getSelectedConversation,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,

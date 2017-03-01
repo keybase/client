@@ -10,7 +10,6 @@ import {badgeApp} from './notifications'
 import {call, put, take, select, race, cancel, fork, join} from 'redux-saga/effects'
 import {changedFocus} from '../constants/window'
 import {delay} from 'redux-saga'
-import {getPath} from '../route-tree'
 import {navigateAppend, navigateTo, switchTo} from './route-tree'
 import {openInKBFS} from './kbfs'
 import {parseFolderNameToUsers} from '../util/kbfs'
@@ -23,6 +22,7 @@ import {usernameSelector} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
 import {toDeviceType, unsafeUnwrap} from '../constants/types/more'
 import {showMainWindow} from './platform.specific'
+import {requestIdleCallback} from '../util/idle-callback'
 
 import * as ChatTypes from '../constants/types/flow-types-chat'
 
@@ -111,6 +111,7 @@ const {
   pendingConversationIDKey,
   pendingConversationIDKeyToTlfName,
   serverMessageToMessageBody,
+  getSelectedConversation,
 } = Constants
 
 // Whitelisted action loggers
@@ -181,18 +182,6 @@ const appendMessageActionTransformer = action => ({
   },
   type: action.type,
 })
-
-const _selectedSelector = (state: TypedState) => {
-  const chatPath = getPath(state.routeTree.routeState, [chatTab])
-  if (chatPath.get(0) !== chatTab) {
-    return null
-  }
-  const selected = chatPath.get(1)
-  if (selected === Constants.nothingSelected) {
-    return null
-  }
-  return selected
-}
 
 const _selectedInboxSelector = (state: TypedState, conversationIDKey) => {
   return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
@@ -570,7 +559,7 @@ function * _startNewConversation (conversationIDKey: ConversationIDKey) {
     // Remove the pending conversation
     yield put(_pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
     // Select the new version if the old one was selected
-    const selectedConversation = yield select(_selectedSelector)
+    const selectedConversation = yield select(getSelectedConversation)
     if (selectedConversation === oldConversationIDKey) {
       yield put(selectConversation(newConversationIDKey, false))
     }
@@ -653,7 +642,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     }
 
     messages.push(message)
-    const selectedConversation = yield select(_selectedSelector)
+    const selectedConversation = yield select(getSelectedConversation)
     yield put({
       logTransformer: appendMessageActionTransformer,
       payload: {
@@ -852,7 +841,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         // true, mark it as read ASAP to avoid badging it -- we don't need to
         // badge, the user's looking at it already.  Also mark as read ASAP if
         // it was written by the current user.
-        const selectedConversationIDKey = yield select(_selectedSelector)
+        const selectedConversationIDKey = yield select(getSelectedConversation)
         const appFocused = yield select(_focusedSelector)
         const selectedTab = yield select(_routeSelector)
         const chatTabSelected = (selectedTab === chatTab)
@@ -981,7 +970,7 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
   }
   const inbox = yield select(inboxSelector)
   if (inbox.count()) {
-    const conversationIDKey = yield select(_selectedSelector)
+    const conversationIDKey = yield select(getSelectedConversation)
 
     if (onlyIfNoSelection && conversationIDKey) {
       return
@@ -1006,6 +995,14 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean) {
 }
 
 const followingSelector = (state: TypedState) => state.config.following
+
+let _loadedInboxOnce = false
+function * _loadInboxOnce (): SagaGenerator<any, any> {
+  if (!_loadedInboxOnce) {
+    _loadedInboxOnce = true
+    yield call(_loadInbox)
+  }
+}
 
 function * _loadInbox (): SagaGenerator<any, any> {
   const channelConfig = singleFixedChannelConfig([
@@ -1057,7 +1054,11 @@ function * _loadInbox (): SagaGenerator<any, any> {
     })
 
     if (incoming.chatInboxConversation) {
-      incoming.chatInboxConversation.response.result()
+      requestIdleCallback(() => {
+        incoming.chatInboxConversation.response.result()
+      }, {timeout: 100})
+
+      yield call(delay, 1)
       let conversation: ?InboxState = _inboxConversationToInboxState(incoming.chatInboxConversation.params.conv, author, following || {}, metaData)
 
       // TODO this is ugly, ideally we should just call _updateInbox here
@@ -1072,7 +1073,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
 
       if (conversation) {
         yield put(({type: 'chat:updateInbox', payload: {conversation}}: Constants.UpdateInbox))
-        const selectedConversation = yield select(_selectedSelector)
+        const selectedConversation = yield select(getSelectedConversation)
         if (selectedConversation === conversation.get('conversationIDKey')) {
           // load validated selected
           yield put(loadMoreMessages(selectedConversation, false))
@@ -1081,7 +1082,11 @@ function * _loadInbox (): SagaGenerator<any, any> {
       // find it
     } else if (incoming.chatInboxFailed) {
       console.log('ignoring chatInboxFailed', incoming.chatInboxFailed)
-      incoming.chatInboxFailed.response.result()
+      requestIdleCallback(() => {
+        incoming.chatInboxFailed.response.result()
+      }, {timeout: 100})
+
+      yield call(delay, 1)
       const error = incoming.chatInboxFailed.params.error
       const conversationIDKey = conversationIDToKey(incoming.chatInboxFailed.params.convID)
       const conversation = new InboxStateRecord({
@@ -1490,7 +1495,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
 }
 
 function * _openFolder (): SagaGenerator<any, any> {
-  const conversationIDKey = yield select(_selectedSelector)
+  const conversationIDKey = yield select(getSelectedConversation)
 
   const inbox = yield select(_selectedInboxSelector, conversationIDKey)
   if (inbox) {
@@ -1608,7 +1613,7 @@ function * _updateBadging (action: UpdateBadging): SagaGenerator<any, any> {
 function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
   const appFocused = action.payload
-  const conversationIDKey = yield select(_selectedSelector)
+  const conversationIDKey = yield select(getSelectedConversation)
   const selectedTab = yield select(_routeSelector)
   const chatTabSelected = (selectedTab === chatTab)
 
@@ -1620,7 +1625,7 @@ function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
 
 function * _badgeAppForChat (action: BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
-  const selectedConversationIDKey = yield select(_selectedSelector)
+  const selectedConversationIDKey = yield select(getSelectedConversation)
   const windowFocused = yield select(_focusedSelector)
 
   const newConversations = conversations.reduce((acc, conv) => {
@@ -1926,7 +1931,7 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
 }
 
 function * _markThreadsStale (action: MarkThreadsStale): SagaGenerator<any, any> {
-  const selectedConversation = yield select(_selectedSelector)
+  const selectedConversation = yield select(getSelectedConversation)
   if (!selectedConversation) {
     return
   }
@@ -1991,7 +1996,7 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    safeTakeSerially('chat:loadInbox', _loadInbox),
+    safeTakeSerially('chat:loadInbox', _loadInboxOnce),
     safeTakeLatest('chat:inboxStale', _loadInbox),
     safeTakeEvery('chat:loadMoreMessages', cancelWhen(_threadIsCleared, _loadMoreMessages)),
     safeTakeLatest('chat:selectConversation', _selectConversation),

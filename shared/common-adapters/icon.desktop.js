@@ -85,7 +85,7 @@ function iconTypeToSrcSet (type: IconType) {
 
 export function iconTypeToImgSet (type: IconType) {
   const ext = shared.typeExtension(type)
-  const imgs = [1, 2].map(mult => `url${imgName(type, ext, mult, '("', '")')}`).join(', ')
+  const imgs = [1, 2].map(mult => `url${imgName(type, ext, mult, '(\'', '\')')}`).join(', ')
   return `-webkit-image-set(${imgs})`
 }
 

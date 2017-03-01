@@ -31,18 +31,21 @@ type State = {
 
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
 const backgroundOffset = 1
-const Background = ({loaded, loadingColor}) => (
-  <div
-    style={{
-      backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
-      borderRadius: '50%',
-      bottom: backgroundOffset,
-      left: backgroundOffset,
-      position: 'absolute',
-      right: backgroundOffset,
-      top: backgroundOffset,
-    }} />
-)
+class Background extends PureComponent<void, {loaded: boolean, loadingColor: ?string}, void> {
+  render () {
+    const {loaded, loadingColor} = this.props
+    return <div
+      style={{
+        backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
+        borderRadius: '50%',
+        bottom: backgroundOffset,
+        left: backgroundOffset,
+        position: 'absolute',
+        right: backgroundOffset,
+        top: backgroundOffset,
+      }} />
+  }
+}
 
 // The actual image
 class UserImage extends PureComponent<void, ImageProps, void> {
@@ -87,6 +90,8 @@ const Border = ({borderColor, size}) => (
   />
 )
 
+const _alreadyLoaded: {[name: string]: ?true} = {}
+
 class AvatarRender extends PureComponent<void, Props, State> {
   state: State = {
     loaded: false,
@@ -96,6 +101,9 @@ class AvatarRender extends PureComponent<void, Props, State> {
   _image: any
 
   _onLoadOrError = (event) => {
+    if (this.props.url) {
+      _alreadyLoaded[this.props.url] = true
+    }
     if (this._mounted) {
       this.setState({loaded: true})
     }
@@ -104,8 +112,12 @@ class AvatarRender extends PureComponent<void, Props, State> {
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.url !== nextProps.url) {
-      this.setState({loaded: false})
-      this._internalLoad(nextProps.url)
+      if (nextProps.url && !_alreadyLoaded[nextProps.url]) {
+        this.setState({loaded: false})
+        this._internalLoad(nextProps.url)
+      } else {
+        this.setState({loaded: true})
+      }
     }
   }
 
@@ -127,9 +139,18 @@ class AvatarRender extends PureComponent<void, Props, State> {
     }
   }
 
+  componentWillMount () {
+    if (this.props.url && _alreadyLoaded[this.props.url]) {
+      this.setState({loaded: true})
+    }
+  }
+
   componentDidMount () {
     this._mounted = true
-    this._internalLoad(this.props.url)
+
+    if (this.props.url && !_alreadyLoaded[this.props.url]) {
+      this._internalLoad(this.props.url)
+    }
   }
 
   componentWillUnmount () {
