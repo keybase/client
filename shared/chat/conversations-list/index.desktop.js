@@ -68,9 +68,9 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
           <Usernames
             inline={true}
             type='BodySemibold'
-            style={{...boldOverride, color: usernameColor}}
             plainText={true}
-            containerStyle={{color: usernameColor, paddingRight: 7}}
+            plainDivider={',\u200a'}
+            containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
             users={participants.map(p => ({username: p})).toArray()}
             title={participants.join(', ')} />
         </div>
