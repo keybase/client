@@ -3085,32 +3085,35 @@ func (cr *ConflictResolver) updateResolutionUsageAndPointers(
 	}
 
 	if isLocalSquash {
+		unmergedUsage := mostRecentUnmergedMD.DiskUsage()
+		mergedUsage := mostRecentMergedMD.DiskUsage()
+
 		// Local squashes can just use the bytes and usage from the
 		// latest unmerged MD, and we can avoid all the block fetching
 		// done by `updateResolutionUsage()`.
-		md.SetDiskUsage(mostRecentUnmergedMD.DiskUsage())
+		md.SetDiskUsage(unmergedUsage)
 		// TODO: it might be better to add up all the ref bytes, and
 		// all the unref bytes, from all unmerged MDs, instead of just
 		// calculating the difference between the usages.  But that's
 		// not quite right either since it counts blocks that are
 		// ref'd and unref'd within the squash.
-		if md.DiskUsage() > mostRecentMergedMD.DiskUsage() {
-			md.SetRefBytes(md.DiskUsage() - mostRecentMergedMD.DiskUsage())
+		if md.DiskUsage() > mergedUsage {
+			md.SetRefBytes(md.DiskUsage() - mergedUsage)
 			md.SetUnrefBytes(0)
 		} else {
 			md.SetRefBytes(0)
-			md.SetUnrefBytes(mostRecentMergedMD.DiskUsage() - md.DiskUsage())
+			md.SetUnrefBytes(mergedUsage - md.DiskUsage())
 		}
 
-		if md.MDDiskUsage() < mostRecentMergedMD.MDDiskUsage() {
+		mergedMDUsage := mostRecentMergedMD.MDDiskUsage()
+		if md.MDDiskUsage() < mergedMDUsage {
 			return nil, fmt.Errorf("MD disk usage went down on unmerged "+
-				"branch: %d vs %d", md.MDDiskUsage(),
-				mostRecentMergedMD.MDDiskUsage())
+				"branch: %d vs %d", md.MDDiskUsage(), mergedMDUsage)
 		}
 
 		// Additional MD disk usage will be determined entirely by the
 		// later `unembedBlockChanges()` call.
-		md.SetMDDiskUsage(mostRecentMergedMD.MDDiskUsage())
+		md.SetMDDiskUsage(mergedMDUsage)
 		md.SetMDRefBytes(0)
 	} else {
 		err = cr.updateResolutionUsage(
