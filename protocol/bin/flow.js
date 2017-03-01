@@ -158,7 +158,7 @@ function analyzeMessages (json, project) {
   // ui means an incoming rpc. simple regexp to filter this but it might break in the future if
   // the core side doesn't have a consisten naming convention. (must be case insensitive to pass correctly)
   const isUIProtocol = ['notifyCtl'].indexOf(json.protocol) === -1 &&
-    !!json.protocol.match(/^notify.*|.*ui$/i) &&
+    !!json.protocol.match(/^(notify.*|.*ui|logsend)$/i) &&
     !json.protocol.match(/NotifyFSRequest/)
 
   return Object.keys(json.messages).map(m => {

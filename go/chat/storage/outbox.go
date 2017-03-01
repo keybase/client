@@ -57,7 +57,7 @@ func (o *Outbox) readDiskOutbox(ctx context.Context) (diskOutbox, Error) {
 	var obox diskOutbox
 	found, err := o.readDiskBox(o.dbKey(), &obox)
 	if err != nil {
-		return obox, NewInternalError(o.DebugLabeler, "failure to read chat outbox: %s",
+		return obox, NewInternalError(ctx, o.DebugLabeler, "failure to read chat outbox: %s",
 			err.Error())
 	}
 	if !found {
@@ -66,7 +66,7 @@ func (o *Outbox) readDiskOutbox(ctx context.Context) (diskOutbox, Error) {
 	if obox.Version != outboxVersion {
 		o.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
 			obox.Version, outboxVersion)
-		if cerr := o.clear(); cerr != nil {
+		if cerr := o.clear(ctx); cerr != nil {
 			return obox, cerr
 		}
 		return diskOutbox{Version: outboxVersion}, nil
@@ -74,10 +74,10 @@ func (o *Outbox) readDiskOutbox(ctx context.Context) (diskOutbox, Error) {
 	return obox, nil
 }
 
-func (o *Outbox) clear() Error {
+func (o *Outbox) clear(ctx context.Context) Error {
 	err := o.G().LocalChatDb.Delete(o.dbKey())
 	if err != nil {
-		return NewInternalError(o.DebugLabeler, "error clearing outbox: uid: %s err: %s", o.uid,
+		return NewInternalError(ctx, o.DebugLabeler, "error clearing outbox: uid: %s err: %s", o.uid,
 			err.Error())
 	}
 	return nil
@@ -124,7 +124,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	var ierr error
 	outboxID, ierr := o.newOutboxID()
 	if ierr != nil {
-		return rec, o.maybeNuke(NewInternalError(o.DebugLabeler,
+		return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error getting outboxID: err: %s", ierr.Error()), o.dbKey())
 	}
 
@@ -143,7 +143,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	// Write out box
 	obox.Version = outboxVersion
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-		return rec, o.maybeNuke(NewInternalError(o.DebugLabeler,
+		return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
@@ -184,7 +184,7 @@ func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, r
 		obox.Records = errors
 		obox.Version = outboxVersion
 		if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-			return nil, o.maybeNuke(NewInternalError(o.DebugLabeler,
+			return nil, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 				"error writing outbox: err: %s", err.Error()), o.dbKey())
 		}
 
@@ -242,7 +242,7 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 	// Write out box
 	obox.Records = recs
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(o.DebugLabeler,
+		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
@@ -280,7 +280,7 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 	// Write out box
 	obox.Records = recs
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(o.DebugLabeler,
+		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
@@ -309,7 +309,7 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID) error {
 	// Write out box
 	obox.Records = recs
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(o.DebugLabeler,
+		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 
@@ -337,7 +337,7 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 
 	// Write out box
 	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
-		return o.maybeNuke(NewInternalError(o.DebugLabeler,
+		return o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
 			"error writing outbox: err: %s", err.Error()), o.dbKey())
 	}
 

@@ -1,16 +1,17 @@
 // @flow
 import * as shared from './user-proofs.shared'
+import Box from './box'
+import ClickableBox from './clickable-box'
+import Icon from './icon'
+import Meta from './meta'
+import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
+import Text from './text'
 import openUrl from '../util/open-url'
 import type {IconType} from './icon.constants'
 import type {Proof} from '../constants/tracker'
 import type {Props, MissingProof} from './user-proofs'
 import {defaultColor} from './icon.shared'
-import Box from './box'
-import ClickableBox from './clickable-box'
-import Icon from './icon'
-import Text from './text'
-import Meta from './meta'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 import {omit} from 'lodash'
@@ -19,18 +20,18 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
-    <ClickableBox style={{...stylesRow, flex: 1, ...style}} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
-      <Box style={stylesRow}>
-        <Icon style={{...stylesService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
-        <Box style={stylesProofNameSection}>
-          <Box style={stylesProofNameLabelContainer}>
-            <Text type='Body' style={stylesProofName}>
+    <ClickableBox style={{...styleRow, flex: 1, ...style}} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
+      <Box style={styleRow}>
+        <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
+        <Box style={styleProofNameSection}>
+          <Box style={styleProofNameLabelContainer}>
+            <Text type='Body' style={styleProofName}>
               <Text type='Body' style={{color: missingColor}}>{missingProof.message}</Text>
             </Text>
           </Box>
         </Box>
-        <Box style={stylesStatusIconContainer}>
-          <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon('iconfont-proof-placeholder'), color: missingColor}} />
+        <Box style={styleStatusIconContainer}>
+          <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: missingColor}} />
         </Box>
       </Box>
     </ClickableBox>
@@ -49,21 +50,23 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (
-    <Box style={{...stylesRow, ...style}} key={`${proof.id}${proof.type}`}>
-      <Icon style={stylesService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
-      <Box style={stylesProofNameSection}>
-        <Box style={stylesProofNameLabelContainer}>
-          <Text type='Body' onClick={() => onClickProfile(proof)} style={stylesProofName}>
+    <Box style={{...styleRow, ...style}} key={`${proof.id}${proof.type}`}>
+      <Box style={iconContainer}>
+        <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
+      </Box>
+      <Box style={styleProofNameSection}>
+        <Box style={styleProofNameLabelContainer}>
+          <Text type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
             <Text type='Body' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
-            <Text type='Body' style={stylesProofType}>@{proof.type}</Text>
+            {!!proof.id && <Text type='Body' style={styleProofType}>@{proof.type}</Text>}
           </Text>
           {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
         </Box>
       </Box>
-      <ClickableBox style={stylesStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onClick={() => onClickStatus(proof)}>
-        <Box style={stylesStatusIconContainer} onClick={() => onClickStatus(proof)}>
-          {proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon(proofStatusIconType)} onClick={() => onClickStatus(proof)} />}
-          {proofStatusIconType && hasMenu && <Icon type='iconfont-caret-down' style={stylesStatusIconCaret(proofStatusIconType)} />}
+      <ClickableBox style={styleStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onClick={() => onClickStatus(proof)}>
+        <Box style={styleStatusIconContainer} onClick={() => onClickStatus(proof)}>
+          {proofStatusIconType && (proof.state === proofChecking ? <ProgressIndicator style={styleSpinner} /> : <Icon type={proofStatusIconType} />)}
+          {hasMenu && <Icon type='iconfont-caret-down' />}
         </Box>
       </ClickableBox>
     </Box>
@@ -72,14 +75,14 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
 
 function LoadingProofRow ({width, style}: {width: number, style: Object}): React$Element<*> {
   return (
-    <Box style={{...stylesRow, ...style}}>
-      <Box style={{...(omit(stylesService, ['fontSize', 'textAlign', 'color']))}} />
-      <Box style={stylesProofNameSection}>
-        <Box style={stylesProofNameLabelContainer}>
+    <Box style={{...styleRow, ...style}}>
+      <Box style={{...(omit(styleService, ['fontSize', 'textAlign', 'color']))}} />
+      <Box style={styleProofNameSection}>
+        <Box style={styleProofNameLabelContainer}>
           <Box style={{...globalStyles.loadingTextStyle, width, marginTop: 8, height: 16}} />
         </Box>
       </Box>
-      <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
+      <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
     </Box>
   )
 }
@@ -114,14 +117,14 @@ class ProofsRender extends Component<void, Props, void> {
     const pad = idx => idx > 0 ? {paddingTop: globalMargins.tiny} : {}
     if (this.props.loading) {
       return (
-        <Box style={{...stylesContainer, backgroundColor: 'transparent', ...this.props.style}}>
+        <Box style={{...styleContainer, backgroundColor: 'transparent', ...this.props.style}}>
           <LoadingProofs pad={pad} />
         </Box>
       )
     }
 
     return (
-      <Box style={{...stylesContainer, ...this.props.style}}>
+      <Box style={{...styleContainer, ...this.props.style}}>
         {this.props.type === 'proofs' && this.props.proofs.map((p, idx) =>
           <ProofRow
             key={`${p.id || ''}${p.type}`}
@@ -142,59 +145,64 @@ class ProofsRender extends Component<void, Props, void> {
   }
 }
 
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  alignItems: 'stretch',
+const iconContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  height: 24,
+  minHeight: 24,
+  minWidth: 24,
+  width: 24,
 }
-const stylesRow = {
+
+const styleContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'stretch',
+  backgroundColor: globalColors.white,
+}
+const styleRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   // RN-BUG: set maxWidth once that prop is supported
 }
-const stylesService = {
+const styleService = {
   ...globalStyles.clickable,
-  fontSize: 20,
-  width: 22,
-  textAlign: 'center',
   color: globalColors.black_75,
-  marginRight: globalMargins.small,
+  marginRight: globalMargins.tiny,
+  textAlign: 'center',
 }
-const stylesStatusIconTouchable = {
+const styleStatusIconTouchable = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   justifyContent: 'flex-end',
 }
-const stylesStatusIconContainer = {
-  ...stylesStatusIconTouchable,
+const styleStatusIconContainer = {
+  ...styleStatusIconTouchable,
 }
-const stylesStatusIcon = (statusIcon: IconType) => ({
+const styleStatusIcon = (statusIcon: IconType) => ({
   color: defaultColor(statusIcon),
   marginLeft: globalMargins.xtiny,
   fontSize: 24,
 })
-const stylesStatusIconCaret = (statusIcon: IconType) => ({
-  ...globalStyles.clickable,
-  color: defaultColor(statusIcon),
-  fontSize: globalMargins.tiny,
-  marginLeft: globalMargins.xtiny / 2,
-  marginRight: -2 * globalMargins.tiny,
-})
-const stylesProofNameSection = {
+const styleSpinner = {
+  width: 20,
+  height: 20,
+}
+const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
+  alignSelf: 'flex-start',
   flex: 1,
 }
-const stylesProofNameLabelContainer = {
+const styleProofNameLabelContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
 }
-const stylesProofName = {
+const styleProofName = {
   ...globalStyles.clickable,
   flex: 1,
 }
-const stylesProofType = {
+const styleProofType = {
   color: globalColors.black_20,
 }
 

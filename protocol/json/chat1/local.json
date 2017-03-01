@@ -831,6 +831,13 @@
         {
           "type": [
             null,
+            "bytes"
+          ],
+          "name": "verificationKey"
+        },
+        {
+          "type": [
+            null,
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"

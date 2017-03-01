@@ -1,6 +1,10 @@
+// Copyright 2017 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package logger
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -95,6 +99,8 @@ func (lfw *logFileWriter) Close() error {
 }
 
 const zeroDuration time.Duration = 0
+const oldLogFileTimeRangeTimeLayout = "20060102T150405Z0700"
+const oldLogFileTimeRangeTimeLayoutLegacy = "20060102T150405"
 
 func (lfw *logFileWriter) Write(bs []byte) (int, error) {
 	lfw.lock.Lock()
@@ -119,8 +125,8 @@ func (lfw *logFileWriter) Write(bs []byte) (int, error) {
 	lfw.file.Close()
 	lfw.file = nil
 	now := time.Now()
-	start := lfw.currentStart.Format("20060102T150405Z0700")
-	end := now.Format("20060102T150405Z0700")
+	start := lfw.currentStart.Format(oldLogFileTimeRangeTimeLayout)
+	end := now.Format(oldLogFileTimeRangeTimeLayout)
 	tgt := fmt.Sprintf("%s-%s-%s", lfw.config.Path, start, end)
 	// Handle the error further down
 	err = os.Rename(lfw.config.Path, tgt)
@@ -169,6 +175,63 @@ func deleteOldLogFilesIfNeededWorker(config LogFileConfig) error {
 	return err
 }
 
+type logFilename struct {
+	fName string
+	start time.Time
+}
+
+type logFilenamesByTime []logFilename
+
+func (a logFilenamesByTime) Len() int      { return len(a) }
+func (a logFilenamesByTime) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a logFilenamesByTime) Less(i, j int) bool {
+	return a[i].start.Before(a[j].start)
+}
+
+// getLogFilenamesOrderByTime filters fNames to return only old log files
+// starting with baseName, followed by a timestamp-range suffix. It also sorts
+// them by start time, in increasing order.
+//
+// Both baseName and fNames are base names not including dir names.
+//
+// This function supports both old (no timezone) and current (with timezone)
+// format of log file names. TODO: simplify this when we don't care about old
+// format any more.
+func getLogFilenamesOrderByTime(
+	baseName string, fNames []string) (names []string, err error) {
+	re, err := regexp.Compile(`^` + regexp.QuoteMeta(baseName) +
+		`-(\d{8}T\d{6}(?:(?:[Z\+-]\d{4})|(?:Z))?)-\d{8}T\d{6}(?:(?:[Z\+-]\d{4})|(?:Z))?$`)
+	if err != nil {
+		return nil, err
+	}
+
+	var logFilenames []logFilename
+	for _, fName := range fNames {
+		match := re.FindStringSubmatch(fName)
+		if len(match) != 2 {
+			continue
+		}
+		t, err1 := time.ParseInLocation(oldLogFileTimeRangeTimeLayout, match[1], time.Local)
+		if err1 != nil {
+			var err2 error
+			t, err2 = time.ParseInLocation(oldLogFileTimeRangeTimeLayoutLegacy, match[1], time.Local)
+			if err2 != nil {
+				return nil, errors.New(err1.Error() + " | " + err2.Error())
+			}
+		}
+		logFilenames = append(logFilenames, logFilename{fName: fName, start: t})
+	}
+
+	sort.Sort(logFilenamesByTime(logFilenames))
+
+	names = make([]string, 0, len(logFilenames))
+	for _, f := range logFilenames {
+		names = append(names, f.fName)
+	}
+
+	return names, nil
+}
+
 // scanOldLogFiles finds old archived log files corresponding to the log file path.
 // Returns the list of such log files sorted with the eldest one first.
 func scanOldLogFiles(path string) ([]string, error) {
@@ -185,16 +248,13 @@ func scanOldLogFiles(path string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var res []string
-	re, err := regexp.Compile(`^` + regexp.QuoteMeta(fname) + `-\d{8}T\d{6}(?:[Z-]\d{4})?-\d{8}T\d{6}(?:[Z-]\d{4})?$`)
+	names, err := getLogFilenamesOrderByTime(fname, ns)
 	if err != nil {
 		return nil, err
 	}
-	for _, name := range ns {
-		if re.MatchString(name) {
-			res = append(res, filepath.Join(dname, name))
-		}
+	var res []string
+	for _, name := range names {
+		res = append(res, filepath.Join(dname, name))
 	}
-	sort.Strings(res)
 	return res, nil
 }

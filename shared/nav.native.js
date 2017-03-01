@@ -1,15 +1,17 @@
 // @flow
 import React from 'react'
 import {NavigationExperimental} from 'react-native'
-import {Box} from './common-adapters/index.native'
+import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
-import {globalColors, statusBarHeight} from './styles/index.native'
+import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
 import {listenForNotifications} from './actions/notifications'
 import {loginTab, folderTab} from './constants/tabs'
 import TabBar from './tab-bar/index.render.native'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 import GlobalError from './global-errors/container'
+import {isAndroid} from './constants/platform'
+
 import type {Props} from './nav'
 import type {Tab} from './constants/tabs'
 
@@ -17,34 +19,52 @@ const {
   CardStack: NavigationCardStack,
 } = NavigationExperimental
 
+const StackWrapper = ({children}) => {
+  if (isAndroid) {
+    return children
+  } else {
+    return <NativeKeyboardAvoidingView behavior={'padding'} style={{...flexOne, backgroundColor: globalColors.white}} children={children} />
+  }
+}
+
 function Nav (props: Props) {
+  const visibleScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
+  if (!visibleScreens.size) {
+    throw new Error('no route component to render without layerOnTop tag')
+  }
   const navigationState = {
-    index: props.routeStack.size - 1,
-    routes: props.routeStack.map(r => ({
+    index: visibleScreens.size - 1,
+    routes: visibleScreens.map(r => ({
       key: r.path.join('/'),
       component: r.component,
       tags: r.tags,
     })).toArray(),
   }
+  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
 
   return (
-    <Box style={{flex: 1}}>
-      <NavigationCardStack
-        key={props.routeSelected}
-        navigationState={navigationState}
-        renderScene={({scene}) => {
-          return (
-            <Box style={{
-              flex: 1,
-              backgroundColor: globalColors.white,
-              paddingTop: scene.route.tags.underStatusBar ? 0 : statusBarHeight,
-            }}>
-              {scene.route.component}
-            </Box>
-          )
-        }}
-        onNavigateBack={props.navigateUp}
-      />
+    <Box style={flexOne}>
+      <StackWrapper>
+        <Box style={flexColumnOne}>
+          <NavigationCardStack
+            key={props.routeSelected}
+            navigationState={navigationState}
+            renderScene={({scene}) => {
+              return (
+                <Box style={{
+                  flex: 1,
+                  backgroundColor: globalColors.white,
+                  paddingTop: scene.route.tags.underStatusBar ? 0 : statusBarHeight,
+                }}>
+                  {scene.route.component}
+                </Box>
+              )
+            }}
+            onNavigateBack={props.navigateUp}
+          />
+          {layerScreens.map(r => r.leafComponent)}
+        </Box>
+      </StackWrapper>
       {props.routeSelected !== loginTab &&
         <TabBar
           onTabClick={props.switchTab}
@@ -56,6 +76,15 @@ function Nav (props: Props) {
       <GlobalError />
     </Box>
   )
+}
+
+const flexColumnOne = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+}
+
+const flexOne = {
+  flex: 1,
 }
 
 export default connect(

@@ -9,6 +9,8 @@ import {listenForNotifications} from './actions/notifications'
 import RenderRoute from './route-tree/render-route'
 import Push from './push/push.native'
 import {setRouteState} from './actions/route-tree'
+import {initAvatarLookup, initAvatarLoad} from './common-adapters'
+import {getUserImageMap, loadUserImageMap} from './util/pictures'
 
 module.hot && module.hot.accept(() => {
   console.log('accepted update in main.ios')
@@ -18,11 +20,13 @@ class Main extends Component {
   constructor (props) {
     super(props)
 
+    initAvatarLookup(getUserImageMap)
+    initAvatarLoad(loadUserImageMap)
     this.props.bootstrap()
     this.props.listenForNotifications()
 
     // Introduce ourselves to the service
-    hello(0, 'iOS app', [], '0.0.0') // TODO real version
+    hello(0, 'iOS app', [], '0.0.0', true) // TODO real version
   }
 
   render () {

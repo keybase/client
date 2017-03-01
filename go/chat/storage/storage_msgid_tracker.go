@@ -18,7 +18,7 @@ type msgIDTracker struct {
 func newMsgIDTracker(g *libkb.GlobalContext) *msgIDTracker {
 	return &msgIDTracker{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "MsgIDTracker", true),
+		DebugLabeler: utils.NewDebugLabeler(g, "MsgIDTracker", false),
 	}
 }
 
@@ -38,12 +38,12 @@ func (t *msgIDTracker) bumpMaxMessageID(
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)
 	if err != nil {
-		return NewInternalError(t.DebugLabeler, "GetRaw error: %s", err.Error())
+		return NewInternalError(ctx, t.DebugLabeler, "GetRaw error: %s", err.Error())
 	}
 	if found {
 		var maxMsgID chat1.MessageID
 		if err = decode(raw, &maxMsgID); err != nil {
-			return NewInternalError(t.DebugLabeler, "decode error: %s", err.Error())
+			return NewInternalError(ctx, t.DebugLabeler, "decode error: %s", err.Error())
 		}
 		if maxMsgID >= msgID {
 			return nil
@@ -52,10 +52,10 @@ func (t *msgIDTracker) bumpMaxMessageID(
 
 	dat, err := encode(msgID)
 	if err != nil {
-		return NewInternalError(t.DebugLabeler, "encode error: %s", err.Error())
+		return NewInternalError(ctx, t.DebugLabeler, "encode error: %s", err.Error())
 	}
 	if err = t.G().LocalChatDb.PutRaw(maxMsgIDKey, dat); err != nil {
-		return NewInternalError(t.DebugLabeler, "PutRaw error: %s", err.Error())
+		return NewInternalError(ctx, t.DebugLabeler, "PutRaw error: %s", err.Error())
 	}
 
 	return nil
@@ -68,7 +68,7 @@ func (t *msgIDTracker) getMaxMessageID(
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)
 	if err != nil {
-		return 0, NewInternalError(t.DebugLabeler, "GetRaw error: %s", err.Error())
+		return 0, NewInternalError(ctx, t.DebugLabeler, "GetRaw error: %s", err.Error())
 	}
 	if !found {
 		return 0, MissError{}
@@ -76,7 +76,7 @@ func (t *msgIDTracker) getMaxMessageID(
 
 	var maxMsgID chat1.MessageID
 	if err = decode(raw, &maxMsgID); err != nil {
-		return 0, NewInternalError(t.DebugLabeler, "decode error: %s", err.Error())
+		return 0, NewInternalError(ctx, t.DebugLabeler, "decode error: %s", err.Error())
 	}
 
 	return maxMsgID, nil

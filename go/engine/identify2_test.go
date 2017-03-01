@@ -63,6 +63,7 @@ type Identify2WithUIDTester struct {
 	now             time.Time
 	card            keybase1.UserCard
 	userLoads       map[keybase1.UID]int
+	noDiskCache     bool
 }
 
 func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
@@ -217,6 +218,9 @@ func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2Res) error {
 func (i *Identify2WithUIDTester) DidFullUserLoad(uid keybase1.UID) {
 	i.userLoads[uid]++
 }
+func (i *Identify2WithUIDTester) UseDiskCache() bool {
+	return !i.noDiskCache
+}
 
 func (i *Identify2WithUIDTester) Delete(uid keybase1.UID) error {
 	delete(i.cache, uid)
@@ -370,6 +374,34 @@ func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
 	testIdentify2WithUIDWithBrokenTrack(t, true)
 }
 
+func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
+	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithUntrackedFastPath")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	runID2 := func(expectFastPath bool) {
+
+		tester := newIdentify2WithUIDTester(tc.G)
+		tester.noDiskCache = true
+
+		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: aliceUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
+		eng.testArgs = &Identify2WithUIDTestArgs{
+			cache: tester,
+			allowUntrackedFastPath: true,
+		}
+		ctx := Context{IdentifyUI: tester}
+		err := eng.Run(&ctx)
+		require.NoError(t, err)
+		require.Equal(t, expectFastPath, (eng.testArgs.stats.untrackedFastPaths == 1), "right number of untracked fast paths")
+	}
+
+	runID2(true)
+	trackAlice(tc, fu)
+	defer untrackAlice(tc, fu)
+	runID2(false)
+}
+
 func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrackFromChatGUI")
@@ -388,7 +420,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	origUI = tester
 
 	checkBrokenRes := func(res *keybase1.Identify2Res) {
-		if !res.Upk.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
+		if !res.Upk.Uid.Equal(tracyUID) {
 			t.Fatal("bad UID for t_tracy")
 		}
 		if res.Upk.Username != "t_tracy" {
@@ -417,6 +449,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 			noMe:  true,
 			cache: tester,
 			tcl:   importTrackingLink(t, tc.G),
+			allowUntrackedFastPath: true,
 		}
 
 		ctx := Context{IdentifyUI: tester}
@@ -432,6 +465,9 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 			t.Fatalf("expected no ID2 error; got %v\n", err)
 		}
 		checkBrokenRes(res)
+		if n := eng.testArgs.stats.untrackedFastPaths; n > 0 {
+			t.Fatalf("Didn't expect any untracked fast paths, but got %d", n)
+		}
 	}
 
 	runStandard := func() {

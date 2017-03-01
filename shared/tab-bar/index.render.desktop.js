@@ -31,6 +31,7 @@ export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers
       onClick={() => onTabClick(profileTab)}
       username={username}
       borderColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
+      loadingColor={globalColors.blue3_40}
       backgroundColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
     />
   )

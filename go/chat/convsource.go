@@ -2,7 +2,6 @@ package chat
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/keybase/client/go/chat/interfaces"
@@ -276,8 +275,17 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 		return nil
 	}
 
+	idMode, _, haveMode := IdentifyMode(ctx)
 	for _, msg := range msgs {
 		if msg.IsValid() {
+
+			// Early out if we are in GUI mode and don't have any breaks stored
+			idBroken := s.storage.IsTLFIdentifyBroken(ctx, msg.Valid().ClientHeader.Conv.Tlfid)
+			if haveMode && idMode == keybase1.TLFIdentifyBehavior_CHAT_GUI && !idBroken {
+				s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
+				return nil
+			}
+
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(finalizeInfo)
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, convID)
@@ -286,10 +294,13 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 			if msg.Valid().ClientHeader.TlfPublic {
 				vis = chat1.TLFVisibility_PUBLIC
 			}
-			if _, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis); err != nil {
+
+			_, err := LookupTLF(ctx, s.boxer.tlf(), tlfName, vis)
+			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
 				return err
 			}
+
 			return nil
 		}
 	}
@@ -306,17 +317,18 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
+	var finalizeInfo *chat1.ConversationFinalizeInfo
 	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
-	if err != nil {
-		return chat1.ThreadView{}, rl, fmt.Errorf("Pull(): error: %s", err.Error())
+	if err == nil {
+		finalizeInfo = conv.Metadata.FinalizeInfo
 	}
 
 	// Post process thread before returning
 	defer func() {
 		if err == nil {
 			err = s.postProcessThread(ctx, uid, convID, &thread, query,
-				conv.Metadata.FinalizeInfo)
+				finalizeInfo)
 		}
 	}()
 

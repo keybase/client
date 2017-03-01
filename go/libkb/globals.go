@@ -860,6 +860,9 @@ func (g *GlobalContext) GetOutOfDateInfo() keybase1.OutOfDateInfo {
 }
 
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
+	g.Log.Debug("+ UserChanged(%s)", u)
+	defer g.Log.Debug("- UserChanged(%s)", u)
+
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)

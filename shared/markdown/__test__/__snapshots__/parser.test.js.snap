@@ -646,18 +646,6 @@ Object {
     },
     Object {
       "children": Array [
-        "    ",
-        Object {
-          "children": Array [
-            "http://keybase.io",
-          ],
-          "type": "italic",
-        },
-      ],
-      "type": "text-block",
-    },
-    Object {
-      "children": Array [
         "  Include:",
       ],
       "type": "text-block",
@@ -680,6 +668,19 @@ Object {
         "    ",
         Object {
           "children": Array [
+            "http://keybase.io/",
+          ],
+          "href": "http://keybase.io/",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
             Object {
               "children": Array [
                 "http://keybase.io",
@@ -689,6 +690,60 @@ Object {
             },
           ],
           "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io/~test",
+              ],
+              "href": "http://keybase.io/~test",
+              "type": "link",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io",
+              ],
+              "href": "http://keybase.io",
+              "type": "link",
+            },
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io",
+              ],
+              "href": "http://keybase.io",
+              "type": "link",
+            },
+          ],
+          "type": "strike",
         },
       ],
       "type": "text-block",
@@ -815,6 +870,19 @@ Object {
         "    ",
         Object {
           "children": Array [
+            "keybase.io/~user/cool",
+          ],
+          "href": "http://keybase.io/~user/cool",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
             "http://keybase.io/blah/../up-one/index.html",
           ],
           "href": "http://keybase.io/blah/../up-one/index.html",
@@ -882,6 +950,44 @@ Object {
           "type": "link",
         },
         "?",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io/",
+              ],
+              "href": "http://keybase.io/",
+              "type": "link",
+            },
+          ],
+          "type": "bold",
+        },
+        ".",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io/",
+              ],
+              "href": "http://keybase.io/",
+              "type": "link",
+            },
+            "~_",
+          ],
+          "type": "bold",
+        },
       ],
       "type": "text-block",
     },

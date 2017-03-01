@@ -17,13 +17,12 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
     return (
       <Box style={stylesContainer}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', zIndex: 2, position: 'relative', opacity: loading ? 1 : 0, alignSelf: 'center'}}>
-          <Avatar
-            url={''}
-            loadingColor={globalColors.lightGrey}
-            forceLoading={true}
-            size={avatarSize}
-            following={false}
-            followsYou={false} />
+          <Box style={{
+            backgroundColor: globalColors.lightGrey,
+            borderRadius: avatarSize / 2,
+            height: avatarSize,
+            width: avatarSize,
+          }} />
         </Box>
         <Box style={{...stylesContent, opacity: this.props.loading ? 1 : 0}}>
           <Box style={{...globalStyles.loadingTextStyle, width: 157, marginTop: 10, height: 26}} />
@@ -68,7 +67,7 @@ class BioRender extends Component<void, Props, void> {
           <Avatar
             style={stylesAvatar}
             onClick={() => this.props.onClickAvatar(username)}
-            url={userInfo.avatar}
+            username={username}
             size={avatarSize}
             following={currentlyFollowing}
             followsYou={followsYou} />

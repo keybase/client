@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import {RouteDefNode} from '../route-tree'
+import TestPopup from '../dev/test-popup.native'
 import DevMenu from '../dev/dev-menu'
 import DumbSheet from '../dev/dumb-sheet'
 import LogSend from '../dev/log-send'
@@ -17,6 +18,10 @@ const routeTree = new RouteDefNode({
     },
     push: {
       component: () => <Push prompt={true} />,
+    },
+    testPopup: {
+      component: TestPopup,
+      tags: {layerOnTop: true},
     },
   },
 })

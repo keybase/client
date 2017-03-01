@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"os"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
+	"os"
 )
 
 const (
@@ -76,6 +76,11 @@ func (c *CmdLogSend) Run() error {
 		}
 	}
 
+	err = c.pokeUI()
+	if err != nil {
+		c.G().Log.Info("ignoring UI logs: %s", err)
+	}
+
 	logs := c.logFiles(status)
 	// So far, install logs are Windows only
 	if logs.Install != "" {
@@ -94,6 +99,14 @@ func (c *CmdLogSend) Run() error {
 
 	c.outputInstructions(id)
 	return nil
+}
+
+func (c *CmdLogSend) pokeUI() error {
+	cli, err := GetLogsendClient(c.G())
+	if err != nil {
+		return err
+	}
+	return cli.PrepareLogsend(context.Background())
 }
 
 func (c *CmdLogSend) confirm() error {

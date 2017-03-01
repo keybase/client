@@ -69,7 +69,7 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 		// Encode message
 		dat, err := encode(msg)
 		if err != nil {
-			return NewInternalError(ms.DebugLabeler, "writeMessages: failed to encode: %s",
+			return NewInternalError(ctx, ms.DebugLabeler, "writeMessages: failed to encode: %s",
 				err.Error())
 		}
 
@@ -97,13 +97,13 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 		}
 		dat, err = encode(payload)
 		if err != nil {
-			return NewInternalError(ms.DebugLabeler, "writeMessages: failed to encode: %s",
+			return NewInternalError(ctx, ms.DebugLabeler, "writeMessages: failed to encode: %s",
 				err.Error())
 		}
 
 		// Store
 		if err = ms.G().LocalChatDb.PutRaw(ms.makeMsgKey(convID, uid, msg.GetMessageID()), dat); err != nil {
-			return NewInternalError(ms.DebugLabeler, "writeMessages: failed to write msg: %s", err.Error())
+			return NewInternalError(ctx, ms.DebugLabeler, "writeMessages: failed to write msg: %s", err.Error())
 		}
 	}
 
@@ -124,7 +124,7 @@ func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
 	for msgID := maxID; !rc.done() && msgID > 0; msgID-- {
 		raw, found, err := ms.G().LocalChatDb.GetRaw(ms.makeMsgKey(convID, uid, msgID))
 		if err != nil {
-			return NewInternalError(ms.DebugLabeler, "readMessages: failed to read msg: %s", err.Error())
+			return NewInternalError(ctx, ms.DebugLabeler, "readMessages: failed to read msg: %s", err.Error())
 		}
 		if !found {
 			return MissError{}
@@ -133,13 +133,13 @@ func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
 		// Decode and check to see if this is a cache hit
 		var bmsg boxedLocalMessage
 		if err = decode(raw, &bmsg); err != nil {
-			return NewInternalError(ms.DebugLabeler, "readMessages: failed to decode msg: %s", err.Error())
+			return NewInternalError(ctx, ms.DebugLabeler, "readMessages: failed to decode msg: %s", err.Error())
 		}
 		if bmsg.GetMessageID() == 0 {
 			return MissError{}
 		}
 		if bmsg.V > cryptoVersion {
-			return NewInternalError(ms.DebugLabeler, "readMessages: bad crypto version: %d current: %d id: %d", bmsg.V, cryptoVersion, bmsg.GetMessageID())
+			return NewInternalError(ctx, ms.DebugLabeler, "readMessages: bad crypto version: %d current: %d id: %d", bmsg.V, cryptoVersion, bmsg.GetMessageID())
 		}
 
 		// Decrypt
@@ -149,13 +149,13 @@ func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
 		}
 		pt, ok := secretbox.Open(nil, bmsg.E, &bmsg.N, &fkey)
 		if !ok {
-			return NewInternalError(ms.DebugLabeler, "readMessages: failed to decrypt msg: %d err: %s", bmsg.GetMessageID(), err.Error())
+			return NewInternalError(ctx, ms.DebugLabeler, "readMessages: failed to decrypt msg: %d err: %s", bmsg.GetMessageID(), err.Error())
 		}
 
 		// Decode payload
 		var msg chat1.MessageUnboxed
 		if err = decode(pt, &msg); err != nil {
-			return NewInternalError(ms.DebugLabeler, "readMessages: failed to decode: %s", err.Error())
+			return NewInternalError(ctx, ms.DebugLabeler, "readMessages: failed to decode: %s", err.Error())
 		}
 
 		rc.push(msg)

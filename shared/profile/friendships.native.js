@@ -1,42 +1,39 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Avatar, Text, ClickableBox, TabBar} from '../common-adapters'
+import _ from 'lodash'
+import {Box, Avatar, Text, ClickableBox, TabBar, NativeListView, NativeDimensions} from '../common-adapters/index.native'
 import {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 
 import type {Props, FriendshipUserInfo} from './friendships'
-
-const ITEM_WIDTH = 105
 
 type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void,
 }
 
 const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: UserEntryProps) => (
-  <ClickableBox onClick={() => { onClick && onClick(username) }}>
-    <Box style={userEntryContainerStyle}>
+  <ClickableBox onClick={() => { onClick && onClick(username) }} style={userEntryContainerStyle}>
+    <Box style={userEntryInnerContainerStyle}>
       <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
       <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
     </Box>
   </ClickableBox>
 )
 
-// Pad an array of grid entries with enough placeholders to fill the final row
-function padGridEntries (entries, multiple) {
-  for (let i = 0; i < entries.length % multiple; i++) {
-    entries.push(<Box key={`pad${i}`} style={{width: ITEM_WIDTH, margin: 2}} />)
-  }
-  return entries
-}
-
 const userEntryContainerStyle = {
-  ...globalStyles.clickable,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'flex-start',
-  width: ITEM_WIDTH,
   height: 108,
+  justifyContent: 'flex-start',
   margin: 2,
+  width: 105,
+}
+
+const userEntryInnerContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  height: 108,
+  justifyContent: 'flex-start',
 }
 
 const userEntryAvatarStyle = {
@@ -49,34 +46,74 @@ const userEntryUsernameStyle = followsYou => ({
   textAlign: 'center',
 })
 
-class FriendshipsRender extends Component<void, Props, void> {
+type State = {
+  dataSource: any,
+}
+
+class FriendshipsRender extends Component<void, Props, State> {
+  state: State ={
+    dataSource: null,
+  }
+  _dataSource = new NativeListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+
+  _setDataSource = (props) => {
+    const data = props.currentTab === 'Followers' ? props.followers : props.following
+    const dataSource = this._dataSource.cloneWithRows(_.chunk(data || [], 3))
+    this.setState({dataSource})
+  }
+
+  componentWillMount () {
+    this._setDataSource(this.props)
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.currentTab !== nextProps.currentTab) {
+      this._setDataSource(nextProps)
+    } else if (this.props.currentTab === 'Followers' && this.props.followers !== nextProps.followers) {
+      this._setDataSource(nextProps)
+    } else if (this.props.currentTab === 'Following' && this.props.following !== nextProps.following) {
+      this._setDataSource(nextProps)
+    }
+  }
+
+  _renderRow = users => {
+    return (
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 108, justifyContent: 'space-around'}}>
+        {[0, 1, 2].map(idx => {
+          const user = users[idx]
+          if (user) {
+            return <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+          } else {
+            return null
+          }
+        })}
+      </Box>
+    )
+  }
+
   render () {
+    const {height, width} = NativeDimensions.get('window')
     return (
       <TabBar>
-        <TabBarItem
-          selected={this.props.currentTab === 'Followers'}
-          label={'FOLLOWERS'}
-          styleContainer={{flex: 1}}
-          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
-          <Box style={tabItemContainerStyle}>
-            <Box style={tabItemContainerTopBorder} />
-            <Box style={tabItemContainerUsers}>
-              {padGridEntries(this.props.followers.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
+        {['Followers', 'Following'].map(tab => {
+          return <TabBarItem
+            key={tab}
+            selected={this.props.currentTab === tab}
+            label={tab.toUpperCase()}
+            styleContainer={{flex: 1}}
+            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(tab) }}>
+            <Box style={{...tabItemContainerStyle, maxHeight: height - 160, width: width}}>
+              <Box style={tabItemContainerTopBorder} />
+              <Box style={tabItemContainerUsers}>
+                {this.props.currentTab === tab && !!this.state.dataSource &&
+                <NativeListView
+                  dataSource={this.state.dataSource}
+                  renderRow={this._renderRow}
+                />}
+              </Box>
             </Box>
-          </Box>
-        </TabBarItem>
-        <TabBarItem
-          selected={this.props.currentTab === 'Following'}
-          label={'FOLLOWING'}
-          styleContainer={{flex: 1}}
-          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
-          <Box style={tabItemContainerStyle}>
-            <Box style={tabItemContainerTopBorder} />
-            <Box style={tabItemContainerUsers}>
-              {padGridEntries(this.props.following.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
-            </Box>
-          </Box>
-        </TabBarItem>
+          </TabBarItem>
+        })}
       </TabBar>
     )
   }
@@ -84,14 +121,16 @@ class FriendshipsRender extends Component<void, Props, void> {
 
 const tabItemContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexBasis: 1,
+  flexGrow: 1,
+  flexShrink: 0,
 }
 
 const tabItemContainerTopBorder = {
-  flex: 1,
-  height: 1,
-  backgroundColor: globalColors.black_10,
   alignSelf: 'stretch',
+  backgroundColor: globalColors.black_10,
+  flexGrow: 1,
+  height: 1,
 }
 
 const tabItemContainerUsers = {

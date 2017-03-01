@@ -77,6 +77,15 @@
       ],
       "response": "HasServerKeysRes",
       "doc": "* Whether the logged-in user has uploaded private keys\n   * Will error if not logged in."
+    },
+    "resetAccount": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
