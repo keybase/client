@@ -53,8 +53,8 @@ function propsToMessageOptionsFn (props: Props): OptionsFn {
 
 function _headerMessages (moreToLoad: boolean): List<ChatConstants.Message> {
   return List([
-    {type: 'ChatSecuredHeader', key: `chatSecuredHeader`},
-    {type: 'LoadingMore', key: `loadingMore`},
+    {type: 'ChatSecuredHeader', key: `chatSecuredHeader-${moreToLoad}`},
+    {type: 'LoadingMore', key: `loadingMore-${moreToLoad}`},
   ])
 }
 
