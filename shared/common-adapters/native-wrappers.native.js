@@ -21,6 +21,7 @@ import {
   TextInput as NativeTextInput,
   TouchableNativeFeedback as NativeTouchableNativeFeedback,
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
+  TouchableHighlight as NativeTouchableHighlight,
 } from 'react-native'
 
 export {
@@ -45,4 +46,5 @@ export {
   NativeTextInput,
   NativeTouchableNativeFeedback,
   NativeTouchableWithoutFeedback,
+  NativeTouchableHighlight,
 }

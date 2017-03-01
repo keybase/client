@@ -1,7 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {TouchableHighlight} from 'react-native'
-import {Avatar, Box, Icon, Text} from '../../../common-adapters'
+import {Avatar, Box, Icon, NativeTouchableHighlight, Text} from '../../../common-adapters/index.native'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {withHandlers} from 'recompose'
 import {marginColor, colorForAuthor} from './shared'
@@ -16,10 +15,10 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
   render () {
     const {children, message, style, includeHeader, isFirstNewMessage, onAction, onRetry, isSelected, you, followingMap, metaDataMap} = this.props
     return (
-      <TouchableHighlight onLongPress={(event) => onAction(message, event)} underlayColor={globalColors.black_10}>
+      <NativeTouchableHighlight onLongPress={(event) => onAction(message, event)} underlayColor={globalColors.black_10}>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}}>
           <Box style={_marginContainerStyle}>
-            <Box style={{width: 3, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: marginColor(message.author, you, followingMap, metaDataMap)}} />
+            <Box style={{alignSelf: 'stretch', backgroundColor: marginColor(message.author, you, followingMap, metaDataMap), marginRight: globalMargins.tiny, width: 3}} />
             <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
               {includeHeader
                 ? <Avatar size={32} username={message.author} style={_avatarStyle} />
@@ -40,7 +39,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
             </Box>
           </Box>
         </Box>
-      </TouchableHighlight>
+      </NativeTouchableHighlight>
     )
   }
 }

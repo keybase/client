@@ -4,7 +4,6 @@ import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import Box from './box'
 import Text from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
-import {buttonAlertStyle} from './button.native'
 
 import type {Props, MenuItem} from './popup-menu'
 
@@ -35,7 +34,7 @@ const styleRow = ({isHeader, danger, index, numItems}: {isHeader?: boolean, dang
     }
   }
   return {
-    ...buttonAlertStyle,
+    ...styleButtonAlert,
     backgroundColor: globalColors.white,
     borderColor: '#d7d7d7',
     ...(index === 1 ? {borderTopWidth: 1} : {}),
@@ -108,6 +107,15 @@ const styleMenuGroup = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'flex-end',
   alignItems: 'stretch',
+}
+
+const styleButtonAlert = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  height: 56,
+  justifyContent: 'center',
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 export {PopupHeaderText}
