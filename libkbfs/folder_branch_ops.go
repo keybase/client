@@ -1386,6 +1386,16 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
+	err = fbo.finalizeBlocks(bps)
+	if err != nil {
+		return err
+	}
+
+	key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return err
+	}
+
 	// finally, write out the new metadata
 	mdID, err := fbo.config.MDOps().Put(ctx, md)
 	if err != nil {
@@ -1394,22 +1404,12 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	md.loadCachedBlockChanges(ctx, bps)
 
-	err = fbo.finalizeBlocks(bps)
-	if err != nil {
-		return err
-	}
-
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 	if fbo.head != (ImmutableRootMetadata{}) {
 		return errors.Errorf(
 			"%v: Unexpected MD ID during new MD initialization: %v",
 			md.TlfID(), fbo.head.mdID)
-	}
-
-	key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return err
 	}
 
 	fbo.setNewInitialHeadLocked(ctx, lState, MakeImmutableRootMetadata(
@@ -2331,6 +2331,16 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	// have already succeeded. Returning EINTR makes application thinks the file
 	// is not created successfully.
 
+	err = fbo.finalizeBlocks(bps)
+	if err != nil {
+		return err
+	}
+
+	key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return err
+	}
+
 	if fbo.isMasterBranchLocked(lState) {
 		// only do a normal Put if we're not already staged.
 		mdID, err = mdops.Put(ctx, md)
@@ -2389,22 +2399,12 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	md.loadCachedBlockChanges(ctx, bps)
 
-	err = fbo.finalizeBlocks(bps)
-	if err != nil {
-		return err
-	}
-
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
 		bid := md.BID()
 		fbo.setBranchIDLocked(lState, bid)
 		doResolve = true
 		resolveMergedRev = MetadataRevisionUninitialized
-	}
-
-	key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return err
 	}
 
 	fbo.headLock.Lock(lState)
@@ -2568,6 +2568,16 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 	oldPrevRoot := md.PrevRoot()
 
+	err = fbo.finalizeBlocks(bps)
+	if err != nil {
+		return err
+	}
+
+	key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return err
+	}
+
 	// finally, write out the new metadata
 	mdID, err := fbo.config.MDOps().Put(ctx, md)
 	if err != nil {
@@ -2579,11 +2589,6 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	fbo.setBranchIDLocked(lState, NullBranchID)
 	md.loadCachedBlockChanges(ctx, bps)
 
-	err = fbo.finalizeBlocks(bps)
-	if err != nil {
-		return err
-	}
-
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
 		bid := md.BID()
@@ -2593,10 +2598,6 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return err
-	}
 	irmd := MakeImmutableRootMetadata(
 		md, key, mdID, fbo.config.Clock().Now())
 	err = fbo.setHeadSuccessorLocked(ctx, lState, irmd, rebased)
@@ -5433,11 +5434,6 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	}
 
 	md.loadCachedBlockChanges(ctx, bps)
-
-	err = fbo.finalizeBlocks(bps)
-	if err != nil {
-		return err
-	}
 
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)
