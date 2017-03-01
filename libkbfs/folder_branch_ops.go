@@ -24,23 +24,18 @@ import (
 	"golang.org/x/net/context"
 )
 
-// mdReadType indicates whether a read needs identifies.
-type mdReadType int
+// mdReqType indicates whether an operation makes MD modifications or not
+type mdReqType int
 
 const (
 	// A read request that doesn't need an identify to be
 	// performed.
-	mdReadNoIdentify mdReadType = iota
+	mdReadNoIdentify mdReqType = iota
 	// A read request that needs an identify to be performed (if
 	// it hasn't been already).
 	mdReadNeedIdentify
-)
-
-// mdUpdateType indicates update type.
-type mdUpdateType int
-
-const (
-	mdWrite mdUpdateType = iota
+	// A write request.
+	mdWrite
 	// A rekey request.  Doesn't need an identify to be performed, as
 	// a rekey does its own (finer-grained) identifies.
 	mdRekey
@@ -170,16 +165,6 @@ func (bl *blockLock) DoRUnlockedIfPossible(lState *lockState, f func(*lockState)
 	f(lState)
 }
 
-// headTrustStatus marks whether the head is from a trusted or
-// untrusted source. When rekeying we get the head MD by folder id
-// and do not check the tlf handle
-type headTrustStatus int
-
-const (
-	headUntrusted headTrustStatus = iota
-	headTrusted
-)
-
 // folderBranchOps implements the KBFSOps interface for a specific
 // branch of a specific folder.  It is go-routine safe for operations
 // within the folder.
@@ -245,11 +230,9 @@ type folderBranchOps struct {
 	// should only be taken in the following order to avoid deadlock:
 	mdWriterLock leveledMutex // taken by any method making MD modifications
 
-	// protects access to head, headStatus, latestMergedRevision,
-	// and hasBeenCleared.
-	headLock   leveledRWMutex
-	head       ImmutableRootMetadata
-	headStatus headTrustStatus
+	// protects access to head, latestMergedRevision and hasBeenCleared.
+	headLock leveledRWMutex
+	head     ImmutableRootMetadata
 	// latestMergedRevision tracks the latest heard merged revision on server
 	latestMergedRevision MetadataRevision
 	// Has this folder ever been cleared?
@@ -476,7 +459,7 @@ func (fbo *folderBranchOps) AddFavorite(ctx context.Context,
 func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	favorites *Favorites, created bool) (err error) {
 	lState := makeFBOLockState()
-	head := fbo.getTrustedHead(lState)
+	head := fbo.getHead(lState)
 	if head == (ImmutableRootMetadata{}) {
 		return OpsCantHandleFavorite{"Can't add a favorite without a handle"}
 	}
@@ -503,7 +486,7 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	}
 
 	lState := makeFBOLockState()
-	head := fbo.getTrustedHead(lState)
+	head := fbo.getHead(lState)
 	if head == (ImmutableRootMetadata{}) {
 		// This can happen when identifies fail and the head is never set.
 		return OpsCantHandleFavorite{"Can't delete a favorite without a handle"}
@@ -513,24 +496,11 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	return favorites.Delete(ctx, h.ToFavorite())
 }
 
-// getTrustedHead should not be called outside of folder_branch_ops.go.
-// Returns ImmutableRootMetadata{} when the head is not trusted.
-// See the comment on headTrustedStatus for more information.
-func (fbo *folderBranchOps) getTrustedHead(lState *lockState) ImmutableRootMetadata {
-	fbo.headLock.RLock(lState)
-	defer fbo.headLock.RUnlock(lState)
-	if fbo.headStatus == headUntrusted {
-		return ImmutableRootMetadata{}
-	}
-	return fbo.head
-}
-
 // getHead should not be called outside of folder_branch_ops.go.
-func (fbo *folderBranchOps) getHead(lState *lockState) (
-	ImmutableRootMetadata, headTrustStatus) {
+func (fbo *folderBranchOps) getHead(lState *lockState) ImmutableRootMetadata {
 	fbo.headLock.RLock(lState)
 	defer fbo.headLock.RUnlock(lState)
-	return fbo.head, fbo.headStatus
+	return fbo.head
 }
 
 // isMasterBranch should not be called if mdWriterLock is already taken.
@@ -601,45 +571,15 @@ func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
 	return jStatus.RevisionStart - 1, nil
 }
 
-// validateHeadLocked validates an untrusted head and sets it as trusted.
-// see headTrustedState comment for more information.
-func (fbo *folderBranchOps) validateHeadLocked(
-	ctx context.Context, lState *lockState, md ImmutableRootMetadata) error {
-	fbo.headLock.AssertLocked(lState)
-
-	// Validate fbo against fetched md and discard the fetched one.
-	if fbo.head.TlfID() != md.TlfID() {
-		fbo.log.CCriticalf(ctx, "Fake untrusted TLF encountered %v %v %v %v", fbo.head.TlfID(), md.TlfID(), fbo.head.mdID, md.mdID)
-		return MDTlfIDMismatch{fbo.head.TlfID(), md.TlfID()}
-	}
-	fbo.headStatus = headTrusted
-	return nil
-}
-
 func (fbo *folderBranchOps) setHeadLocked(
-	ctx context.Context, lState *lockState,
-	md ImmutableRootMetadata, headStatus headTrustStatus) error {
+	ctx context.Context, lState *lockState, md ImmutableRootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
 	isFirstHead := fbo.head == ImmutableRootMetadata{}
 	wasReadable := false
 	if !isFirstHead {
-		if headStatus == headUntrusted {
-			panic("setHeadLocked: Trying to set an untrusted head over an existing head")
-		}
-
 		wasReadable = fbo.head.IsReadable()
-
-		if fbo.headStatus == headUntrusted {
-			err := fbo.validateHeadLocked(ctx, lState, md)
-			if err != nil {
-				return err
-			}
-			if fbo.head.mdID == md.mdID {
-				return nil
-			}
-		}
 
 		if fbo.head.mdID == md.mdID {
 			panic(errors.Errorf("Re-putting the same MD: %s", md.mdID))
@@ -723,9 +663,6 @@ func (fbo *folderBranchOps) setHeadLocked(
 	}
 
 	fbo.head = md
-	if isFirstHead && headStatus == headTrusted {
-		fbo.headStatus = headTrusted
-	}
 	fbo.status.setRootMetadata(md)
 	if isFirstHead {
 		// Start registering for updates right away, using this MD
@@ -755,11 +692,10 @@ func (fbo *folderBranchOps) setInitialHeadUntrustedLocked(ctx context.Context,
 	if fbo.head != (ImmutableRootMetadata{}) {
 		return errors.New("Unexpected non-nil head in setInitialHeadUntrustedLocked")
 	}
-	return fbo.setHeadLocked(ctx, lState, md, headUntrusted)
+	return fbo.setHeadLocked(ctx, lState, md)
 }
 
 // setNewInitialHeadLocked is for when we're creating a brand-new TLF.
-// This is trusted.
 func (fbo *folderBranchOps) setNewInitialHeadLocked(ctx context.Context,
 	lState *lockState, md ImmutableRootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -770,10 +706,10 @@ func (fbo *folderBranchOps) setNewInitialHeadLocked(ctx context.Context,
 	if md.Revision() != MetadataRevisionInitial {
 		return errors.Errorf("setNewInitialHeadLocked unexpectedly called with revision %d", md.Revision())
 	}
-	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	return fbo.setHeadLocked(ctx, lState, md)
 }
 
-// setInitialHeadTrustedLocked is for when the given RootMetadata
+// setInitialHeadUntrustedLocked is for when the given RootMetadata
 // was fetched due to a user action, and will be checked against the
 // TLF name.
 func (fbo *folderBranchOps) setInitialHeadTrustedLocked(ctx context.Context,
@@ -783,7 +719,7 @@ func (fbo *folderBranchOps) setInitialHeadTrustedLocked(ctx context.Context,
 	if fbo.head != (ImmutableRootMetadata{}) {
 		return errors.New("Unexpected non-nil head in setInitialHeadUntrustedLocked")
 	}
-	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	return fbo.setHeadLocked(ctx, lState, md)
 }
 
 // setHeadSuccessorLocked is for when we're applying updates from the
@@ -830,7 +766,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 		}
 	}
 
-	err = fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	err = fbo.setHeadLocked(ctx, lState, md)
 	if err != nil {
 		return err
 	}
@@ -890,7 +826,7 @@ func (fbo *folderBranchOps) setHeadPredecessorLocked(ctx context.Context,
 			oldHandle, newHandle)
 	}
 
-	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	return fbo.setHeadLocked(ctx, lState, md)
 }
 
 // setHeadConflictResolvedLocked is for when we're setting the merged
@@ -906,7 +842,7 @@ func (fbo *folderBranchOps) setHeadConflictResolvedLocked(ctx context.Context,
 		return errors.New("Unexpected unmerged update in setHeadConflictResolvedLocked")
 	}
 
-	return fbo.setHeadLocked(ctx, lState, md, headTrusted)
+	return fbo.setHeadLocked(ctx, lState, md)
 }
 
 func (fbo *folderBranchOps) identifyOnce(
@@ -944,48 +880,35 @@ func (fbo *folderBranchOps) identifyOnce(
 	return nil
 }
 
-// getMDForReadLocked returns an existing md for a read
-// operation. Note that mds will not be fetched here.
-func (fbo *folderBranchOps) getMDForReadLocked(
-	ctx context.Context, lState *lockState, rtype mdReadType) (
-	md ImmutableRootMetadata, err error) {
-	if rtype != mdReadNeedIdentify && rtype != mdReadNoIdentify {
-		panic("Invalid rtype in getMDLockedForRead")
-	}
-
-	md = fbo.getTrustedHead(lState)
-	if md != (ImmutableRootMetadata{}) {
-		if rtype != mdReadNoIdentify {
-			err = fbo.identifyOnce(ctx, md.ReadOnly())
-		}
-		return md, err
-	}
-
-	return ImmutableRootMetadata{}, MDWriteNeededInRequest{}
-}
-
-// getMDForWriteOrRekeyLocked can fetch MDs, identify them and
-// contains the fancy logic. For reading use getMDLockedForRead.
-// Here we actually can fetch things from the server.
-// rekeys are untrusted.
-func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
-	ctx context.Context, lState *lockState, mdType mdUpdateType) (
+// if rtype == mdWrite || mdRekey, then mdWriterLock must be taken
+func (fbo *folderBranchOps) getMDLocked(
+	ctx context.Context, lState *lockState, rtype mdReqType) (
 	md ImmutableRootMetadata, err error) {
 	defer func() {
-		if err != nil || mdType == mdRekey {
+		if err != nil || rtype == mdReadNoIdentify || rtype == mdRekey {
 			return
 		}
 		err = fbo.identifyOnce(ctx, md.ReadOnly())
 	}()
 
-	md = fbo.getTrustedHead(lState)
+	md = fbo.getHead(lState)
 	if md != (ImmutableRootMetadata{}) {
 		return md, nil
 	}
 
-	// MDs coming from from rekey notifications are marked untrusted.
+	// Unless we're in mdWrite or mdRekey mode, we can't safely fetch
+	// the new MD without causing races, so bail.
+	if rtype != mdWrite && rtype != mdRekey {
+		return ImmutableRootMetadata{}, MDWriteNeededInRequest{}
+	}
+
+	// We go down this code path either due to a rekey
+	// notification for an unseen TLF, or in some tests.
 	//
-	// TODO: Make tests not take this code path.
+	// TODO: Make tests not take this code path, and keep track of
+	// the fact that MDs coming from rekey notifications are
+	// untrusted.
+
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// Not in cache, fetch from server and add to cache.  First, see
@@ -1028,11 +951,7 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	headStatus := headTrusted
-	if mdType == mdRekey {
-		headStatus = headUntrusted
-	}
-	err = fbo.setHeadLocked(ctx, lState, md, headStatus)
+	err = fbo.setInitialHeadUntrustedLocked(ctx, lState, md)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1041,8 +960,8 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 }
 
 func (fbo *folderBranchOps) getMDForReadHelper(
-	ctx context.Context, lState *lockState, rtype mdReadType) (ImmutableRootMetadata, error) {
-	md, err := fbo.getMDForReadLocked(ctx, lState, rtype)
+	ctx context.Context, lState *lockState, rtype mdReqType) (ImmutableRootMetadata, error) {
+	md, err := fbo.getMDLocked(ctx, lState, rtype)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1106,33 +1025,19 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentify(
 // one must be created by the caller.
 func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 	ctx context.Context, lState *lockState) (ImmutableRootMetadata, error) {
-	md, err := fbo.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	irmd, err := fbo.getMDForReadHelper(ctx, lState, mdReadNeedIdentify)
 
 	if _, ok := err.(MDWriteNeededInRequest); ok {
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
-		md, err = fbo.getMDForWriteOrRekeyLocked(ctx, lState, mdWrite)
+		irmd, err = fbo.getMDForReadHelper(ctx, lState, mdWrite)
 	}
 
 	if _, noMD := errors.Cause(err).(NoMergedMDError); noMD {
 		return ImmutableRootMetadata{}, nil
 	}
 
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	if !md.TlfID().IsPublic() {
-		username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-		if err != nil {
-			return ImmutableRootMetadata{}, err
-		}
-		if !md.GetTlfHandle().IsReader(uid) {
-			return ImmutableRootMetadata{}, NewReadAccessError(md.GetTlfHandle(), username, md.GetTlfHandle().GetCanonicalPath())
-		}
-	}
-
-	return md, nil
+	return irmd, err
 }
 
 // getMDForWriteLocked returns a new RootMetadata object with an
@@ -1148,7 +1053,7 @@ func (fbo *folderBranchOps) getMDForWriteLockedForFilename(
 	ctx context.Context, lState *lockState, filename string) (*RootMetadata, error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	md, err := fbo.getMDForWriteOrRekeyLocked(ctx, lState, mdWrite)
+	md, err := fbo.getMDLocked(ctx, lState, mdWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -1180,7 +1085,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	wasRekeySet bool, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	md, err := fbo.getMDForWriteOrRekeyLocked(ctx, lState, mdRekey)
+	md, err := fbo.getMDLocked(ctx, lState, mdRekey)
 	if err != nil {
 		return nil, kbfscrypto.VerifyingKey{}, false, err
 	}
@@ -1339,7 +1244,7 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	// Some other thread got here first, so give up and let it go
 	// before we push anything to the servers.
-	if h, _ := fbo.getHead(lState); h != (ImmutableRootMetadata{}) {
+	if fbo.getHead(lState) != (ImmutableRootMetadata{}) {
 		fbo.log.CDebugf(ctx, "Head was already set, aborting")
 		return nil
 	}
@@ -1459,8 +1364,8 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	// (e.g., calling `identifyOnce` and downloading the merged
 	// head) if head is already set.
 	lState := makeFBOLockState()
-	head, headStatus := fbo.getHead(lState)
-	if headStatus == headTrusted && head != (ImmutableRootMetadata{}) && head.mdID == md.mdID {
+	head := fbo.getHead(lState)
+	if head != (ImmutableRootMetadata{}) && head.mdID == md.mdID {
 		fbo.log.CDebugf(ctx, "Head MD already set to revision %d (%s), no "+
 			"need to set initial head again", md.Revision(), md.MergedStatus())
 		return nil
@@ -1506,17 +1411,11 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
-
 		// Only update the head the first time; later it will be
 		// updated either directly via writes or through the
 		// background update processor.
 		if fbo.head == (ImmutableRootMetadata{}) {
 			err = fbo.setInitialHeadTrustedLocked(ctx, lState, md)
-			if err != nil {
-				return err
-			}
-		} else if headStatus == headUntrusted {
-			err = fbo.validateHeadLocked(ctx, lState, md)
 			if err != nil {
 				return err
 			}
@@ -1526,7 +1425,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 }
 
 // SetInitialHeadToNew creates a brand-new ImmutableRootMetadata
-// object and sets the head to that. This is trusted.
+// object and sets the head to that.
 func (fbo *folderBranchOps) SetInitialHeadToNew(
 	ctx context.Context, id tlf.ID, handle *TlfHandle) (err error) {
 	fbo.log.CDebugf(ctx, "SetInitialHeadToNew %s", id)
@@ -1567,6 +1466,26 @@ func (fbo *folderBranchOps) SetInitialHeadToNew(
 	})
 }
 
+// execMDReadNoIdentifyThenMDWrite first tries to execute the
+// passed-in method in mdReadNoIdentify mode.  If it fails with an
+// MDWriteNeededInRequest error, it re-executes the method as in
+// mdWrite mode.  The passed-in method must note whether or not this
+// is an mdWrite call.
+//
+// This must only be used by getRootNode().
+func (fbo *folderBranchOps) execMDReadNoIdentifyThenMDWrite(
+	lState *lockState, f func(*lockState, mdReqType) error) error {
+	err := f(lState, mdReadNoIdentify)
+
+	// Redo as an MD write request if needed
+	if _, ok := err.(MDWriteNeededInRequest); ok {
+		fbo.mdWriterLock.Lock(lState)
+		defer fbo.mdWriterLock.Unlock(lState)
+		err = f(lState, mdWrite)
+	}
+	return err
+}
+
 func getNodeIDStr(n Node) string {
 	if n == nil {
 		return "NodeID(nil)"
@@ -1585,14 +1504,11 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 	lState := makeFBOLockState()
 
 	var md ImmutableRootMetadata
-	md, err = fbo.getMDForReadLocked(ctx, lState, mdReadNoIdentify)
-	if _, ok := err.(MDWriteNeededInRequest); ok {
-		func() {
-			fbo.mdWriterLock.Lock(lState)
-			defer fbo.mdWriterLock.Unlock(lState)
-			md, err = fbo.getMDForWriteOrRekeyLocked(ctx, lState, mdWrite)
-		}()
-	}
+	err = fbo.execMDReadNoIdentifyThenMDWrite(lState,
+		func(lState *lockState, rtype mdReqType) error {
+			md, err = fbo.getMDLocked(ctx, lState, rtype)
+			return err
+		})
 	if err != nil {
 		return nil, EntryInfo{}, nil, err
 	}
@@ -3456,7 +3372,7 @@ func (fbo *folderBranchOps) Write(
 		// Get the MD for reading.  We won't modify it; we'll track the
 		// unref changes on the side, and put them into the MD during the
 		// sync.
-		md, err := fbo.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+		md, err := fbo.getMDLocked(ctx, lState, mdReadNeedIdentify)
 		if err != nil {
 			return err
 		}
@@ -3491,7 +3407,7 @@ func (fbo *folderBranchOps) Truncate(
 		// Get the MD for reading.  We won't modify it; we'll track the
 		// unref changes on the side, and put them into the MD during the
 		// sync.
-		md, err := fbo.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+		md, err := fbo.getMDLocked(ctx, lState, mdReadNeedIdentify)
 		if err != nil {
 			return err
 		}
@@ -4607,8 +4523,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return errors.New("can't rekey while staged")
 	}
 
-	// untrusted head is ok here.
-	head, _ := fbo.getHead(lState)
+	head := fbo.getHead(lState)
 	if head != (ImmutableRootMetadata{}) {
 		// If we already have a cached revision, make sure we're
 		// up-to-date with the latest revision before inspecting the
@@ -5721,7 +5636,6 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 	}
 
 	fbo.head = ImmutableRootMetadata{}
-	fbo.headStatus = headUntrusted
 	fbo.latestMergedRevision = MetadataRevisionUninitialized
 	fbo.hasBeenCleared = true
 }

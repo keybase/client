@@ -357,7 +357,6 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(
 		t, config, rmd, fakeMdID(tlf.FakeIDByte(id)))
-	ops.headStatus = headTrusted
 	rmd.SetSerializedPrivateMetadata(make([]byte, 1))
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{{id, MasterBranch}}, config.observer)
@@ -390,7 +389,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 
 	// Trigger identify.
 	lState := makeFBOLockState()
-	_, err = ops.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 }
@@ -419,7 +418,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 
 	// Trigger identify.
 	lState := makeFBOLockState()
-	_, err = ops.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 
@@ -433,7 +432,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 
 	// Trigger new identify.
 	lState = makeFBOLockState()
-	_, err = ops.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 }
@@ -470,7 +469,7 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 
 	// Trigger identify.
 	lState := makeFBOLockState()
-	_, err := ops.getMDForReadLocked(ctx, lState, mdReadNeedIdentify)
+	_, err := ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	assert.Equal(t, expectedErr, err)
 	assert.False(t, fboIdentityDone(ops))
 }
@@ -593,7 +592,6 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(2))
-	ops.headStatus = headTrusted
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	require.NoError(t, err)
@@ -775,7 +773,6 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 	expectedErr := NewReadAccessError(h, "alice", "/keybase/private/bob#alice")
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
@@ -819,7 +816,6 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 
@@ -863,7 +859,6 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 
@@ -908,7 +903,6 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -948,7 +942,6 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -985,7 +978,6 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -1028,7 +1020,6 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -5166,7 +5157,6 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -5188,7 +5178,6 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	ops.headStatus = headTrusted
 
 	u := h.FirstResolvedWriter()
 	rootID := kbfsblock.FakeID(42)
@@ -5626,9 +5615,6 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	// have MDOps do the handle check, that'll trigger first.
 	require.IsType(t, MDPrevRootMismatch{}, err)
 }
-
-// TODO: Test malicious mdserver and rekey flow against wrong
-// TLFs being introduced upon rekey.
 
 // Test that if GetTLFCryptKeys fails to create a TLF, the second
 // attempt will also fail with the same error.  Regression test for
