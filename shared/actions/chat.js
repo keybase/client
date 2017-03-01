@@ -236,8 +236,8 @@ function openTlfInChat (tlf: string): OpenTlfInChat {
   return {type: 'chat:openTlfInChat', payload: tlf}
 }
 
-function startConversation (users: Array<string>, forceImmediate: ?boolean): StartConversation {
-  return {type: 'chat:startConversation', payload: {users, forceImmediate}}
+function startConversation (users: Array<string>, forceImmediate: ?boolean = false): StartConversation {
+  return {type: 'chat:startConversation', payload: {forceImmediate, users}}
 }
 
 function newChat (existingParticipants: Array<string>): NewChat {
@@ -1477,8 +1477,15 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   const existing = yield select(inboxSelector, tlfName)
 
   if (forceImmediate) {
-    const conversationIDKey = pendingConversationIDKey(tlfName)
-    yield call(_startNewConversation, conversationIDKey)
+    const newConversationIDKey = yield call(_startNewConversation, pendingConversationIDKey(tlfName))
+    const oldConversationIDKey = existing.get('conversationIDKey')
+    // Upgrade the conversation
+    yield put(_pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
+    // Select the new version if the old one was selected
+    const selectedConversation = yield select(_selectedSelector)
+    if (selectedConversation === oldConversationIDKey) {
+      yield put(selectConversation(newConversationIDKey, false))
+    }
   } else if (existing) { // Select existing conversations
     yield put(selectConversation(existing.get('conversationIDKey'), false))
     yield put(switchTo([chatTab]))
