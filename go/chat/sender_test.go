@@ -247,6 +247,7 @@ func TestNonblockTimer(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		obr, err := outbox.PushMessage(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:      trip,
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
 				TlfPublic: false,
