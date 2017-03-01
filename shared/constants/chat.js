@@ -46,6 +46,7 @@ export type TextMessage = {
   messageID?: MessageID,
   you: string,
   messageState: MessageState,
+  failureDescription: ?string,
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
@@ -113,6 +114,7 @@ export type AttachmentMessage = {
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
+  failureDescription?: ?string,
 }
 
 export type TimestampMessage = {
@@ -302,7 +304,7 @@ export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversa
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ConversationSetStatus = NoErrorTypedAction<'chat:conversationSetStatus', {conversationIDKey: ConversationIDKey, muted: boolean}>
-export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {outboxID: OutboxIDKey}>
+export type CreatePendingFailure = NoErrorTypedAction<'chat:createPendingFailure', {failureDescription: string, outboxID: OutboxIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>

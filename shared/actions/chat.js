@@ -615,19 +615,20 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     const outboxID = outboxIDToKey(sent.outboxID)
     const hasPendingFailure = yield select(_pendingFailureSelector, outboxID)
     const message: Message = {
-      type: 'Text',
       author,
-      editedCount: 0,
-      outboxID,
-      key: Constants.messageKey('outboxID', outboxID),
-      timestamp: Date.now(),
-      messageState: hasPendingFailure ? 'failed' : 'pending',
-      message: new HiddenString(action.payload.text.stringValue()),
-      you: author,
-      deviceType: isMobile ? 'mobile' : 'desktop',
-      deviceName: '',
       conversationIDKey: action.payload.conversationIDKey,
+      deviceName: '',
+      deviceType: isMobile ? 'mobile' : 'desktop',
+      editedCount: 0,
+      failureDescription: null,
+      key: Constants.messageKey('outboxID', outboxID),
+      message: new HiddenString(action.payload.text.stringValue()),
+      messageState: hasPendingFailure ? 'failed' : 'pending',
+      outboxID,
       senderDeviceRevokedAt: null,
+      timestamp: Date.now(),
+      type: 'Text',
+      you: author,
     }
 
     // Time to decide: should we add a timestamp before our new message?
@@ -764,7 +765,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         for (const outboxRecord of failedMessage.outboxRecords) {
           const conversationIDKey = conversationIDToKey(outboxRecord.convID)
           const outboxID = outboxIDToKey(outboxRecord.outboxID)
-
+          // $FlowIssue
+          const failureDescription = _decodeFailureDescription(outboxRecord.state.error.typ)
           // There's an RPC race condition here.  Two possibilities:
           //
           // Either we've already finished in _postMessage() and have recorded
@@ -785,6 +787,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
                 conversationIDKey,
                 message: {
                   ...pendingMessage,
+                  failureDescription,
                   messageState: 'failed',
                 },
                 outboxID,
@@ -794,6 +797,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           } else {
             yield put(({
               payload: {
+                failureDescription,
                 outboxID,
               },
               type: 'chat:createPendingFailure',
@@ -1265,12 +1269,28 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
 // used to key errors
 let errorIdx = 1
 
+function _decodeFailureDescription (typ: ChatTypes.OutboxErrorType): string {
+  switch (typ) {
+    case ChatTypes.LocalOutboxErrorType.misc:
+      return 'unknown error'
+    case ChatTypes.LocalOutboxErrorType.offline:
+      return 'disconnected from chat server'
+    case ChatTypes.LocalOutboxErrorType.identify:
+      return 'proofs failed for recipient user'
+    case ChatTypes.LocalOutboxErrorType.toolong:
+      return 'message is too long'
+  }
+  return `unknown error type ${typ}`
+}
+
 function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
   if (message && message.state === LocalMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: OutboxRecord = message.outbox
-    const messageState: MessageState = (payload && payload.state && payload.state.state === 1) ? 'failed' : 'pending'
+    const messageState: MessageState = (payload && payload.state && payload.state.state === ChatTypes.LocalOutboxStateType.error) ? 'failed' : 'pending'
     const messageBody: MessageBody = payload.Msg.messageBody
+    // $FlowIssue
+    const failureDescription = messageState === 'failed' ? _decodeFailureDescription(payload.state.error.typ) : null
     // $FlowIssue
     const messageText: MessageText = messageBody.text
     return {
@@ -1279,6 +1299,7 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
       deviceName: yourDeviceName,
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
+      failureDescription,
       key: Constants.messageKey('outboxID', payload.outboxID),
       message: new HiddenString(messageText && messageText.body || ''),
       messageState,
@@ -1295,13 +1316,14 @@ function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, c
     if (payload) {
       const common = {
         author: payload.senderUsername,
-        you: yourName,
+        conversationIDKey,
         deviceName: payload.senderDeviceName,
         deviceType: toDeviceType(payload.senderDeviceType),
-        timestamp: payload.serverHeader.ctime,
+        failureDescription: null,
         messageID: payload.serverHeader.messageID,
-        conversationIDKey,
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
+        timestamp: payload.serverHeader.ctime,
+        you: yourName,
       }
 
       switch (payload.messageBody.messageType) {

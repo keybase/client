@@ -52,7 +52,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
                   <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
                 </div>
               </div>
-              {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
+              {message.messageState === 'failed' && <Retry failureDescription={message.failureDescription} onRetry={onRetry} />}
             </div>
           </div>
         </div>
