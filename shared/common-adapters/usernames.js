@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Text from './text'
+import shallowEqual from 'shallowequal'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 
@@ -42,20 +43,31 @@ const inlineStyle = isMobile ? { } : {
   whiteSpace: 'nowrap',
   width: '100%',
 }
+
+const nonInlineStyle = {...globalStyles.flexBoxRow, flexWrap: 'wrap', textDecoration: 'inherit'}
 const inlineProps = isMobile ? {lineClamp: 1} : { }
 
 class Usernames extends Component<void, Props, void> {
   shouldComponentUpdate (nextProps: Props) {
-    return JSON.stringify(this.props) !== JSON.stringify(nextProps)
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (['style', 'containerStyle', 'users'].includes(key)) {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
   }
 
   render () {
-    const containerStyle = this.props.inline ? inlineStyle : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
+    const containerStyle = this.props.inline ? inlineStyle : nonInlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
+    if (this.props.plainText) {
+      return <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...containerStyle, ...this.props.containerStyle}} title={this.props.title} {...(this.props.inline ? inlineProps : { })}>{this.props.prefix}{rwers.map(u => u.username).join(', ')}{this.props.suffix}</Text>
+    }
+
     return (
-      <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'}), ...this.props.containerStyle}} title={this.props.title} {...(this.props.inline ? inlineProps : { })}>
+      <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...containerStyle, ...this.props.containerStyle}} title={this.props.title} {...(this.props.inline ? inlineProps : { })}>
         {!!this.props.prefix && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>{this.props.prefix}</Text>}
         {usernameText({...this.props, users: rwers})}
         {!!readers.length && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...this.props.style, marginRight: 1}}>#</Text>}

@@ -1,6 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import shallowEqual from 'shallowequal'
+import * as I from 'immutable'
 import {Avatar, Icon, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {withHandlers} from 'recompose'
@@ -14,15 +15,17 @@ type MessageProps = Props & {onIconClick: (event: any) => void, onRetry: () => v
 class MessageWrapper extends PureComponent<void, MessageProps, void> {
   shouldComponentUpdate (nextProps: MessageProps) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (key === 'style') {
+      if (['style', 'message', 'followingMap'].includes(key)) {
         return shallowEqual(obj, oth)
       }
 
-      // Messages can be updated, for example progress state on attachments
-      if (key === 'message') {
-        return shallowEqual(obj, oth)
+      if (key === 'metaDataMap') {
+        return I.is(obj, oth)
       }
 
+      if (key === 'children') {
+        return shallowEqual(obj.props, oth.props)
+      }
       return undefined
     })
   }
