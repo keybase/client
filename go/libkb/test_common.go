@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 
@@ -270,6 +271,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	return
 }
 
+// The depth argument is now ignored.
 func SetupTest(tb testing.TB, name string, depth int) (tc TestContext) {
 	var err error
 	tc, err = setupTestContext(tb, name, nil)
@@ -277,10 +279,25 @@ func SetupTest(tb testing.TB, name string, depth int) (tc TestContext) {
 		tb.Fatal(err)
 	}
 	if os.Getenv("KEYBASE_LOG_SETUPTEST_FUNCS") != "" {
-		pc, file, line, ok := runtime.Caller(depth)
-		if ok {
-			fn := runtime.FuncForPC(pc)
-			fmt.Fprintf(os.Stderr, "- SetupTest %s %s:%d\n", filepath.Base(fn.Name()), filepath.Base(file), line)
+		depth := 0
+		// Walk up the stackframe looking for the function that starts with "Test".
+		for {
+			pc, file, line, ok := runtime.Caller(depth)
+			if ok {
+				fn := runtime.FuncForPC(pc)
+				fnName := filepath.Base(fn.Name())
+				if !strings.Contains(fnName, ".Test") {
+					// Not the right frame. Bump depth and loop again.
+					depth++
+					continue
+				}
+				// This is the right frame.
+				fmt.Fprintf(os.Stderr, "- SetupTest %s %s:%d\n", filepath.Base(fn.Name()), filepath.Base(file), line)
+			} else {
+				// We've walked off the end of the stack without finding what we were looking for.
+				fmt.Fprintf(os.Stderr, "- SetupTest FAILED TO GET STACKFRAME")
+			}
+			break
 		}
 	}
 	return tc
