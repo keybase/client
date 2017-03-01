@@ -17,7 +17,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// diskJournal stores an ordered list of entries.
+// diskJournal stores an ordered list of entries in a directory, which
+// is assumed to not be used by anything else.
 //
 // The directory layout looks like:
 //
@@ -38,6 +39,8 @@ import (
 // level.
 //
 // TODO: Make IO ops cancellable.
+//
+// TODO: Read ordinals into memory on startup.
 type diskJournal struct {
 	codec     kbfscodec.Codec
 	dir       string
@@ -146,17 +149,16 @@ func (j diskJournal) writeLatestOrdinal(o journalOrdinal) error {
 	return j.writeOrdinal(j.latestPath(), o)
 }
 
-func (j diskJournal) clearOrdinals() error {
-	earliestOrdinal, err := j.readEarliestOrdinal()
-	if err != nil {
-		return err
-	}
-	latestOrdinal, err := j.readLatestOrdinal()
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.Remove(j.earliestPath())
+// clear completely removes the journal directory.
+func (j diskJournal) clear() error {
+	// Clear ordinals first to reduce the chances of leaving the
+	// journal in a weird state if we crash in the middle of
+	// removing the files.
+	//
+	// TODO: When we read ordinals into memory on startup, treat
+	// the absence of either ordinal as the journal being empty,
+	// so as to make clearing atomic.
+	err := ioutil.Remove(j.earliestPath())
 	if err != nil {
 		return err
 	}
@@ -165,16 +167,10 @@ func (j diskJournal) clearOrdinals() error {
 		return err
 	}
 
-	// Garbage-collect the old entries.  TODO: we'll eventually need a
-	// sweeper to clean up entries left behind if we crash right here.
-	for ordinal := earliestOrdinal; ordinal <= latestOrdinal; ordinal++ {
-		p := j.journalEntryPath(ordinal)
-		err = ioutil.Remove(p)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	// j.dir will be recreated on the next call to
+	// writeJournalEntry (via kbfscodec.SerializeToFile), which
+	// must always come before any ordinal write.
+	return ioutil.RemoveAll(j.dir)
 }
 
 func (j diskJournal) removeEarliest() (empty bool, err error) {
@@ -189,7 +185,7 @@ func (j diskJournal) removeEarliest() (empty bool, err error) {
 	}
 
 	if earliestOrdinal == latestOrdinal {
-		err := j.clearOrdinals()
+		err := j.clear()
 		if err != nil {
 			return false, err
 		}
@@ -201,8 +197,9 @@ func (j diskJournal) removeEarliest() (empty bool, err error) {
 		return false, err
 	}
 
-	// Garbage-collect the old entry.  TODO: we'll eventually need a
-	// sweeper to clean up entries left behind if we crash right here.
+	// Garbage-collect the old entry. If we crash here and leave
+	// behind an entry, it'll be cleaned up the next time clear()
+	// is called.
 	p := j.journalEntryPath(earliestOrdinal)
 	err = ioutil.Remove(p)
 	if err != nil {
@@ -293,9 +290,11 @@ func (j diskJournal) appendJournalEntry(
 	return next, nil
 }
 
+// move moves the journal to the given directory, which should share
+// the same parent directory as the current journal directory.
 func (j *diskJournal) move(newDir string) (oldDir string, err error) {
 	err = ioutil.Rename(j.dir, newDir)
-	if err != nil {
+	if err != nil && !ioutil.IsNotExist(err) {
 		return "", err
 	}
 	oldDir = j.dir

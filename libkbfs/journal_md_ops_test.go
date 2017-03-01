@@ -129,12 +129,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	id, head, err := mdOps.GetForHandle(ctx, h, Merged)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(7), head.Revision())
 
 	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(7), head.Revision())
 
 	head, err = oldMDOps.GetForTLF(ctx, id)
@@ -146,12 +146,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(7), head.Revision())
 
 	head, err = oldMDOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(7), head.Revision())
 
 	// (3) trigger a conflict
@@ -175,12 +175,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(8), head.Revision())
 
 	head, err = oldMDOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(8), head.Revision())
 
 	// Find the branch ID.
@@ -190,12 +190,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	head, err = mdOps.GetUnmergedForTLF(ctx, id, bid)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(10), head.Revision())
 
 	_, head, err = mdOps.GetForHandle(ctx, h, Unmerged)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(10), head.Revision())
 	require.Equal(t, bid, head.BID())
 
@@ -215,7 +215,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (5) check for proper unmerged head
 	head, err = mdOps.GetUnmergedForTLF(ctx, id, bid)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(40), head.Revision())
 
 	// (6a) try to get unmerged range
@@ -251,7 +251,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (10) check for proper merged head
 	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
-	require.NotNil(t, head)
+	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, MetadataRevision(8), head.Revision())
 
 	// (11) try to get merged range

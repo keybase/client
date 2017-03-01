@@ -459,6 +459,7 @@ func testMDJournalPutCase3NonEmptyAppend(t *testing.T, ver MetadataVer) {
 
 	head, err := j.getHead(bid)
 	require.NoError(t, err)
+	require.NotEqual(t, ImmutableBareRootMetadata{}, head)
 
 	md2 := makeMDForTest(t, ver, id, MetadataRevision(11), j.uid, signer, head.mdID)
 	md2.SetUnmerged()
@@ -484,6 +485,7 @@ func testMDJournalPutCase3NonEmptyReplace(t *testing.T, ver MetadataVer) {
 
 	head, err := j.getHead(bid)
 	require.NoError(t, err)
+	require.NotEqual(t, ImmutableBareRootMetadata{}, head)
 
 	md.SetUnmerged()
 	md.SetBranchID(head.BID())
@@ -897,6 +899,55 @@ func testMDJournalClear(t *testing.T, ver MetadataVer) {
 	flushAllMDs(t, ctx, signer, j)
 }
 
+func testMDJournalClearPendingWithMaster(t *testing.T, ver MetadataVer) {
+	_, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t, ver)
+	defer teardownMDJournalTest(t, tempdir)
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 10
+
+	_, prevRoot := putMDRangeHelper(t, ver, id, signer, firstRevision,
+		firstPrevRoot, mdCount, j.uid,
+		func(ctx context.Context, md *RootMetadata) (MdID, error) {
+			return j.put(ctx, signer, ekg, bsplit, md, true)
+		})
+
+	putMDRange(t, ver, id, signer, ekg, bsplit,
+		firstRevision+MetadataRevision(mdCount), prevRoot, mdCount, j)
+
+	ctx := context.Background()
+
+	err := j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(), id,
+		NewMDCacheStandard(10))
+	require.NoError(t, err)
+	require.NotEqual(t, NullBranchID, j.branchID)
+
+	bid := j.branchID
+
+	// Clearing the correct branch ID should clear just the last
+	// half of the journal and reset the branch ID.
+	err = j.clear(ctx, bid)
+	require.NoError(t, err)
+	require.Equal(t, NullBranchID, j.branchID)
+
+	length, err := j.length()
+	require.NoError(t, err)
+	require.Equal(t, uint64(mdCount), length)
+
+	head, err := j.getHead(bid)
+	require.NoError(t, err)
+	require.Equal(t, ImmutableBareRootMetadata{}, head)
+
+	head, err = j.getHead(NullBranchID)
+	require.NoError(t, err)
+	require.NotEqual(t, ImmutableBareRootMetadata{}, head)
+	require.Equal(t, firstRevision+MetadataRevision(mdCount-1),
+		head.RevisionNumber())
+	require.Equal(t, NullBranchID, head.BID())
+}
+
 func testMDJournalRestart(t *testing.T, ver MetadataVer) {
 	codec, crypto, id, signer, ekg,
 		bsplit, tempdir, j := setupMDJournalTest(t, ver)
@@ -991,6 +1042,7 @@ func TestMDJournal(t *testing.T) {
 		testMDJournalResolveAndClearLocalSquash,
 		testMDJournalBranchConversionPreservesUnknownFields,
 		testMDJournalClear,
+		testMDJournalClearPendingWithMaster,
 		testMDJournalRestart,
 		testMDJournalRestartAfterBranchConversion,
 	}
