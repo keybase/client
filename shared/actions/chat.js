@@ -236,8 +236,8 @@ function openTlfInChat (tlf: string): OpenTlfInChat {
   return {type: 'chat:openTlfInChat', payload: tlf}
 }
 
-function startConversation (users: Array<string>): StartConversation {
-  return {type: 'chat:startConversation', payload: {users}}
+function startConversation (users: Array<string>, forceImmediate: ?boolean): StartConversation {
+  return {type: 'chat:startConversation', payload: {users, forceImmediate}}
 }
 
 function newChat (existingParticipants: Array<string>): NewChat {
@@ -1468,7 +1468,7 @@ function * _openTlfInChat (action: OpenTlfInChat): SagaGenerator<any, any> {
 }
 
 function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
-  const {users} = action.payload
+  const {users, forceImmediate} = action.payload
 
   const inboxSelector = (state: TypedState, tlfName: string) => {
     return state.chat.get('inbox').find(convo => convo.get('participants').sort().join(',') === tlfName)
@@ -1476,8 +1476,10 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   const tlfName = users.sort().join(',')
   const existing = yield select(inboxSelector, tlfName)
 
-  // Select existing conversations
-  if (existing) {
+  if (forceImmediate) {
+    const conversationIDKey = pendingConversationIDKey(tlfName)
+    yield call(_startNewConversation, conversationIDKey)
+  } else if (existing) { // Select existing conversations
     yield put(selectConversation(existing.get('conversationIDKey'), false))
     yield put(switchTo([chatTab]))
   } else {
