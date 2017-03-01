@@ -2,6 +2,7 @@
 import 'core-js/es6/reflect'  // required for babel-plugin-transform-builtin-extend in RN iOS and Android
 import './globals.native'
 import DumbSheet from './dev/dumb-sheet'
+import DumbChatOnly from './dev/chat-only'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from './store/configure-store'
@@ -9,7 +10,7 @@ import {AppRegistry, NativeAppEventEmitter, AsyncStorage} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from './engine'
 import {serializeRestore, serializeSave, timeTravel, timeTravelForward, timeTravelBack} from './constants/dev'
-import {setup as setupLocalDebug, dumbSheetOnly} from './local-debug'
+import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from './local-debug'
 import {stateKey} from './constants/reducer'
 import routeDefs from './routes'
 import {setRouteDef} from './actions/route-tree'
@@ -58,9 +59,19 @@ class Keybase extends Component {
   }
 
   render () {
+    let child
+
+    if (dumbSheetOnly) {
+      child = <DumbSheet />
+    } else if (dumbChatOnly) {
+      child = <DumbChatOnly />
+    } else {
+      child = <Main />
+    }
+
     return (
       <Provider store={this.store}>
-        {dumbSheetOnly ? <DumbSheet /> : <Main />}
+        {child}
       </Provider>
     )
   }
