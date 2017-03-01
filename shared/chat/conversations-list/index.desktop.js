@@ -1,20 +1,25 @@
 // @flow
-import React from 'react'
+import React, {PureComponent} from 'react'
+import ReactList from 'react-list'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {shouldUpdate} from 'recompose'
+import {RowConnector} from './row'
 
 import type {Props, RowProps} from './'
 
-const AddNewRow = ({onNewChat}: {onNewChat: () => void}) => (
-  <div
-    style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
-    <div style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, alignItems: 'center', justifyContent: 'center'}} onClick={onNewChat}>
-      <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
-      <Text type='BodyBigLink'>New chat</Text>
-    </div>
-  </div>
-)
+class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
+  render () {
+    return (
+      <div
+        style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 0, justifyContent: 'center', minHeight: 48}}>
+        <div style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, alignItems: 'center', justifyContent: 'center'}} onClick={this.props.onNewChat}>
+          <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
+          <Text type='BodyBigLink'>New chat</Text>
+        </div>
+      </div>
+    )
+  }
+}
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
@@ -54,7 +59,7 @@ const Avatars = ({participants, youNeedToRekey, participantNeedToRekey, isMuted,
   )
 }
 
-const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor, commaColor}) => {
+const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
     <div style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 17, minHeight: 17}}>
@@ -63,9 +68,9 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
           <Usernames
             inline={true}
             type='BodySemibold'
-            style={{...boldOverride, color: usernameColor}}
-            commaColor={commaColor}
-            containerStyle={{color: usernameColor, paddingRight: 7}}
+            plainText={true}
+            plainDivider={',\u200a'}
+            containerStyle={{...boldOverride, color: usernameColor, paddingRight: 6}}
             users={participants.map(p => ({username: p})).toArray()}
             title={participants.join(', ')} />
         </div>
@@ -118,7 +123,6 @@ const _Row = (props: RowProps) => {
       />
       <div style={{...globalStyles.flexBoxColumn, ...conversationRowStyle, borderBottom: (!props.isSelected && !props.hasUnread) ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent'}}>
         <TopLine
-          commaColor={props.commaColor}
           hasUnread={props.hasUnread}
           participants={props.participants}
           showBold={props.showBold}
@@ -139,31 +143,39 @@ const _Row = (props: RowProps) => {
   )
 }
 
-const Row = shouldUpdate((props: RowProps, nextProps: RowProps) => {
-  const different =
-    props.conversationIDKey !== nextProps.conversationIDKey ||
-    props.unreadCount !== nextProps.unreadCount ||
-    props.isSelected !== nextProps.isSelected ||
-    props.isMuted !== nextProps.isMuted ||
-    props.youNeedToRekey !== nextProps.youNeedToRekey ||
-    props.participantNeedToRekey !== nextProps.participantNeedToRekey ||
-    props.timestamp !== nextProps.timestamp ||
-    props.snippet !== nextProps.snippet ||
-    !props.participants.equals(nextProps.participants)
-  return different
-})(_Row)
+const Row = RowConnector(_Row)
 
-const ConversationList = (props: Props) => (
-  <div style={{...globalStyles.flexBoxRow, flex: 1}}>
-    <div style={containerStyle}>
-      <AddNewRow onNewChat={props.onNewChat} />
-      <div style={scrollableStyle}>
-        {props.rows.map(rowProps => <Row {...rowProps} key={rowProps.conversationIDKey} />)}
+class ConversationList extends PureComponent<void, Props, void> {
+  componentWillMount () {
+    this.props.loadInbox()
+  }
+
+  _itemRenderer = (index) => {
+    const conversationIDKey = this.props.rows.get(index)
+    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
+  }
+
+  render () {
+    return (
+      <div style={containerStyle}>
+        <AddNewRow onNewChat={this.props.onNewChat} />
+        <div style={scrollableStyle}>
+          <ReactList
+            style={listStyle}
+            useTranslate3d={true}
+            useStaticSize={true}
+            itemRenderer={this._itemRenderer}
+            length={this.props.rows.count()}
+            type='uniform' />
+        </div>
       </div>
-    </div>
-    {props.children}
-  </div>
-)
+    )
+  }
+}
+
+const listStyle = {
+  flex: 1,
+}
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
@@ -199,8 +211,6 @@ const containerStyle = {
 }
 
 const scrollableStyle = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
   overflowY: 'auto',
   willChange: 'transform',
 }

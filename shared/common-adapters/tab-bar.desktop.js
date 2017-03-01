@@ -5,6 +5,7 @@ import React, {Component} from 'react'
 import Text from './text'
 import Badge from './badge'
 import _ from 'lodash'
+import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -15,6 +16,15 @@ class TabBarItem extends Component<void, ItemProps, void> {
 }
 
 class SimpleTabBarButton extends Component<void, ItemProps, void> {
+  shouldComponentUpdate (nextProps: ItemProps, nextState: any): boolean {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (['style', 'styleContainer', 'children'].includes(key)) {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
+  }
+
   render () {
     const selectedColor = this.props.selectedColor || globalColors.blue
     const borderLocation = this.props.onBottom ? 'borderTop' : 'borderBottom'
@@ -43,6 +53,15 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 }
 
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
+  shouldComponentUpdate (nextProps: TabBarButtonProps, nextState: any): boolean {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (['style', 'styleContainer', 'styleBadge', 'styleIcon', 'styleBadgeNumber', 'styleLabel', 'children'].includes(key)) {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
+  }
+
   _renderAvatar (color: string, badgeNumber: number) {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
     return (
@@ -126,8 +145,15 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
   }
 }
 
-class TabBar extends Component {
-  props: Props;
+class TabBar extends Component<void, Props, void> {
+  shouldComponentUpdate (nextProps: Props, nextState: any): boolean {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (['style', 'styleTabBar', 'children'].includes(key)) {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
+  }
 
   _labels (): Array<React$Element<*>> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
