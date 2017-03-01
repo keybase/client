@@ -1,6 +1,6 @@
 // @flow
 import {apiserverGetRpc} from '../constants/types/flow-types'
-import {throttle} from 'lodash'
+import {throttle, partition} from 'lodash'
 
 type URLMap = {[key: string]: string}
 type Info = {
@@ -28,12 +28,25 @@ const _getUserImages = throttle(() => {
     delete _pendingUsernameToURL[username]
   })
 
+  const [good, bad] = partition(usersToResolve, u => validUsername(u))
+
+  bad.forEach(username => {
+    const info = _usernameToURL[username]
+    const urlMap = {}
+    if (info) {
+      info.done = true
+      info.error = true
+      info.callbacks.forEach(cb => cb(username, urlMap))
+      info.callbacks = []
+    }
+  })
+
   apiserverGetRpc({
     callback: (error, response) => {
       if (error) {
-        usersToResolve.forEach(username => {
+        good.forEach(username => {
           const info = _usernameToURL[username]
-          const urlMap = null
+          const urlMap = {}
           if (info) {
             info.done = true
             info.error = true
@@ -43,15 +56,11 @@ const _getUserImages = throttle(() => {
         })
       } else {
         JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-          const username = usersToResolve[idx]
+          const username = good[idx]
           let urlMap = {
             ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
             ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
             ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
-          }
-
-          if (!Object.keys(urlMap).length) {
-            urlMap = null
           }
 
           const info = _usernameToURL[username]
@@ -66,7 +75,7 @@ const _getUserImages = throttle(() => {
     },
     param: {
       args: [
-        {key: 'usernames', value: usersToResolve.join(',')},
+        {key: 'usernames', value: good.join(',')},
         {key: 'formats', value: 'square_360,square_200,square_40'},
       ],
       endpoint: 'image/username_pic_lookups',
@@ -83,23 +92,11 @@ function validUsername (name: ?string) {
 }
 
 export function getUserImageMap (username: string): ?URLMap {
-  if (!validUsername(username)) {
-    return null
-  }
-
   const info = _usernameToURL[username]
   return info ? info.urlMap : null
 }
 
 export function loadUserImageMap (username: string, callback: (username: string, urlMap: ?URLMap) => void) {
-  if (!validUsername(username)) {
-    // set immediate so its always async
-    setImmediate(() => {
-      callback(username, null)
-    })
-    return
-  }
-
   const info = _usernameToURL[username] || _pendingUsernameToURL[username]
   if (info) {
     if (!info.done) {

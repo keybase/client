@@ -29,6 +29,7 @@ const hoc = withProps(
       onPostMessage,
       onRetryAttachment,
       onRetryMessage,
+      onSelectAttachment,
       selectedConversation,
       sidePanelOpen,
       validated,
@@ -67,6 +68,7 @@ const hoc = withProps(
       onEditMessage,
       onEditLastMessage: () => console.log('todo'),
       onPostMessage,
+      onSelectAttachment,
       selectedConversation,
     }
 

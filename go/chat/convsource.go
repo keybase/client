@@ -187,7 +187,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 		MessageIDs:     msgIDs,
 	})
 
-	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, finalizeInfo)
+	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, convID, finalizeInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	if s.IsOffline() {
 		return nil, nil
 	}
-	return s.boxer.UnboxMessages(ctx, msgs, finalizeInfo)
+	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
 }
 
 type HybridConversationSource struct {
@@ -244,7 +244,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	// coincides with an account reset.
 	var emptyFinalizeInfo *chat1.ConversationFinalizeInfo
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, msg, emptyFinalizeInfo)
+	decmsg, err := s.boxer.UnboxMessage(ctx, msg, convID, emptyFinalizeInfo)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -525,7 +525,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		}
 
 		// Unbox all the remote messages
-		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, finalizeInfo)
+		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, convID, finalizeInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -589,7 +589,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		if lmsg, ok := lmsgsTab[msg.GetMessageID()]; ok {
 			res = append(res, lmsg)
 		} else if !s.IsOffline() {
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg, finalizeInfo)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, convID, finalizeInfo)
 			if err != nil {
 				return res, err
 			}

@@ -1,8 +1,10 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as I from 'immutable'
+import MessageWrapper from './wrapper'
+import React, {Component} from 'react'
+import shallowEqual from 'shallowequal'
 import {Markdown} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
-import MessageWrapper from './wrapper'
 
 import type {Props} from './text'
 import type {TextMessage} from '../../../constants/chat'
@@ -19,7 +21,19 @@ const MessageText = ({message}: {message: TextMessage}) => {
   }
 }
 
-export default class MessageTextComponent extends PureComponent<void, Props & {onIconClick: (event: any) => void}, void> {
+class MessageTextComponent extends Component<void, Props & {onIconClick: (event: any) => void}, void> {
+  shouldComponentUpdate (nextProps: Props, nextState: any): boolean {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (['style', 'followingMap'].includes(key)) {
+        return shallowEqual(obj, oth)
+      }
+      if (key === 'metaDataMap') {
+        return I.is(obj, oth)
+      }
+      return undefined
+    })
+  }
+
   render () {
     const {message} = this.props
 
@@ -46,3 +60,5 @@ const pendingFailStyle = {
   ...globalStyles.selectable,
   ..._messageTextStyle,
 }
+
+export default MessageTextComponent

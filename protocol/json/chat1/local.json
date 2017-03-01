@@ -794,7 +794,7 @@
       "name": "MessageUnboxedValid",
       "fields": [
         {
-          "type": "MessageClientHeader",
+          "type": "MessageClientHeaderVerified",
           "name": "clientHeader"
         },
         {
@@ -816,6 +816,10 @@
         {
           "type": "string",
           "name": "senderDeviceType"
+        },
+        {
+          "type": "Hash",
+          "name": "bodyHash"
         },
         {
           "type": "Hash",

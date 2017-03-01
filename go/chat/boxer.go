@@ -16,6 +16,7 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -77,13 +78,28 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 	})
 }
 
-// UnboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
-// the appropriate keybase1.CryptKey.
-// The first return value is unusable if the err != nil
-// Returns (_, err) for non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
-// Permanent errors can be cached and must be treated as a value to deal with.
-// Whereas temporary errors are transient failures.
-func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) (chat1.MessageUnboxed, UnboxingError) {
+// UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
+// finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
+// several things:
+//   - The message's signature is valid.
+//   - (TODO) The signing KID was valid when the signature was made.
+//   - (TODO) The signing KID belongs to the sending device.
+//   - (TODO) The sending device belongs to the sender.
+//     [Note that we do currently check the KID -> UID relationship,
+//     independent of the device ID.]
+//   - (TODO) The sender has write permission in the TLF.
+//   - (TODO) The TLF name, public flag, and finalized info resolve to the TLF ID.
+//   - The conversation ID derives from the ConversationIDTriple.
+//   - The body hash is not a replay from another message we know about.
+//   - The prev pointers are consistent with other messages we know about.
+//   - (TODO) The prev pointers are not absurdly ancient.
+//   - The ClientHeader provided with the BoxedMessage matches the one we decrypt.
+//
+// The first return value is unusable if the err != nil Returns (_, err) for
+// non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
+// Permanent errors can be cached and must be treated as a value to deal with,
+// whereas temporary errors are transient failures.
+func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, convID chat1.ConversationID, finalizeInfo *chat1.ConversationFinalizeInfo) (chat1.MessageUnboxed, UnboxingError) {
 	tlfName := boxed.ClientHeader.TLFNameExpanded(finalizeInfo)
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlf(), tlfName, tlfPublic)
@@ -114,6 +130,75 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, fina
 		}
 		return chat1.MessageUnboxed{}, ierr
 	}
+
+	// Check that the ConversationIDTriple in the signed message header matches
+	// the conversation ID we were expecting.
+	if !unboxed.ClientHeader.Conv.Derivable(convID) {
+		err := fmt.Errorf("conversation ID mismatch")
+		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+	}
+
+	// Confirm that other fields in the server-supplied ClientHeader match what
+	// we decrypt. It would be preferable if the server didn't supply this data
+	// at all (so that we didn't have to worry about anyone trusting it
+	// *before* we get to this check, for example), but since we have it we
+	// need to check it.
+	err = compareClientHeaders(boxed.ClientHeader, unboxed.ClientHeader)
+	if err != nil {
+		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+	}
+
+	// Make sure the body hash is unique to this message, and then record it.
+	// This detects attempts by the server to replay a message. Right now we
+	// use a "first writer wins" rule here, though we could also consider a
+	// "duplication invalidates both" rule if we wanted to be stricter. Note
+	// that this only prevents replays of messages you *know about*. There's
+	// currently nothing stopping the server from replaying an ancient message
+	// if you're never going to fetch enough history to notice.
+	//
+	// But...wait...why aren't we using the header hash here? It covers more
+	// stuff, and we're using it below, when we check the consistency of
+	// messages and prev pointers...
+	//
+	// The reason we can't use the header hash to prevent replays is that it's
+	// a hash *of* a signature, rather than a hash that's *been signed*.
+	// Unfortunately, most signature schemes are "malleable" in some way,
+	// depending on the implementation. See
+	// http://crypto.stackexchange.com/a/14719/21442. If I have the shared
+	// encryption key (and recall that in public chats, everyone does), I can
+	// decrypt the message, twiddle your signature into another valid signature
+	// over the same plaintext, reencrypt the whole thing, and pass it off as a
+	// new valid message with a seemingly new signature and therefore a unique
+	// header hash. Because the body hash is unique to each message (derived
+	// from a random nonce), and because it's *inside* the signature, we use
+	// that to detect replays instead.
+	replayErr := storage.CheckAndRecordBodyHash(b.G(), unboxed.BodyHash, boxed.ServerHeader.MessageID, convID)
+	if replayErr != nil {
+		b.Debug(ctx, "UnboxMessage found a replayed body hash: %s", replayErr)
+		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(replayErr)
+	}
+
+	// Make sure the header hash and prev pointers of this message are
+	// consistent with every other message we've seen, and record them.
+	//
+	// The discussion above explains why we have to use the body hash there to
+	// prevent replays. But we need to use the header hash here, because it's
+	// the only thing that covers the entire message. The goal isn't to prevent
+	// the creation of new messages (as it was above), but to prevent an old
+	// message from changing.
+	prevPtrErr := storage.CheckAndRecordPrevPointer(b.G(), boxed.ServerHeader.MessageID, convID, unboxed.HeaderHash)
+	if prevPtrErr != nil {
+		b.Debug(ctx, "UnboxMessage found an inconsistent header hash: %s", prevPtrErr)
+		return chat1.MessageUnboxed{}, NewPermanentUnboxingError(prevPtrErr)
+	}
+	for _, prevPtr := range unboxed.ClientHeader.Prev {
+		prevPtrErr := storage.CheckAndRecordPrevPointer(b.G(), prevPtr.Id, convID, prevPtr.Hash)
+		if prevPtrErr != nil {
+			b.Debug(ctx, "UnboxMessage found an inconsistent prev pointer: %s", prevPtrErr)
+			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(prevPtrErr)
+		}
+	}
+
 	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
 }
 
@@ -238,18 +323,21 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	}
 
 	// create a chat1.MessageClientHeader from versioned HeaderPlaintext
-	var clientHeader chat1.MessageClientHeader
+	var clientHeader chat1.MessageClientHeaderVerified
 	headerVersion, err := header.Version()
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
 
 	var headerSignature *chat1.SignatureInfo
+	var bodyHash chat1.Hash
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
+		// Verified above in verifyMessageV1
 		headerSignature = header.V1().HeaderSignature
 		hp := header.V1()
-		clientHeader = chat1.MessageClientHeader{
+		bodyHash = hp.BodyHash
+		clientHeader = chat1.MessageClientHeaderVerified{
 			Conv:         hp.Conv,
 			TlfName:      hp.TlfName,
 			TlfPublic:    hp.TlfPublic,
@@ -304,6 +392,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		SenderUsername:        senderUsername,
 		SenderDeviceName:      senderDeviceName,
 		SenderDeviceType:      senderDeviceType,
+		BodyHash:              bodyHash,
 		HeaderHash:            headerHash,
 		HeaderSignature:       headerSignature,
 		VerificationKey:       nil,
@@ -322,7 +411,7 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 		Pagination: boxed.Pagination,
 	}
 
-	if thread.Messages, err = b.UnboxMessages(ctx, boxed.Messages, finalizeInfo); err != nil {
+	if thread.Messages, err = b.UnboxMessages(ctx, boxed.Messages, convID, finalizeInfo); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
@@ -375,9 +464,9 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 	return username, deviceName, deviceType
 }
 
-func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, finalizeInfo *chat1.ConversationFinalizeInfo) (unboxed []chat1.MessageUnboxed, err error) {
+func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, convID chat1.ConversationID, finalizeInfo *chat1.ConversationFinalizeInfo) (unboxed []chat1.MessageUnboxed, err error) {
 	for _, msg := range boxed {
-		decmsg, err := b.UnboxMessage(ctx, msg, finalizeInfo)
+		decmsg, err := b.UnboxMessage(ctx, msg, convID, finalizeInfo)
 		if err != nil {
 			return unboxed, err
 		}
@@ -739,4 +828,39 @@ func (b *Boxer) unmarshal(data []byte, v interface{}) error {
 func hashSha256V1(data []byte) chat1.Hash {
 	sum := sha256.Sum256(data)
 	return sum[:]
+}
+
+func compareClientHeaders(server chat1.MessageClientHeader, verified chat1.MessageClientHeaderVerified) error {
+	if !server.Conv.Eq(verified.Conv) {
+		return fmt.Errorf("Conv mismatch in chat message headers: %#v %#v", server.Conv, verified.Conv)
+	}
+	if server.TlfName != verified.TlfName {
+		return fmt.Errorf("TlfName mismatch in chat message headers: %#v %#v", server.TlfName, verified.TlfName)
+	}
+	if server.TlfPublic != verified.TlfPublic {
+		return fmt.Errorf("TlfPublic mismatch in chat message headers: %#v %#v", server.TlfPublic, verified.TlfPublic)
+	}
+	if server.MessageType != verified.MessageType {
+		return fmt.Errorf("MessageType mismatch in chat message headers: %#v %#v", server.MessageType, verified.MessageType)
+	}
+	if !bytes.Equal(server.Sender, verified.Sender) {
+		return fmt.Errorf("Sender mismatch in chat message headers: %#v %#v", server.Sender, verified.Sender)
+	}
+	if !bytes.Equal(server.SenderDevice, verified.SenderDevice) {
+		return fmt.Errorf("SenderDevice mismatch in chat message headers: %#v %#v", server.SenderDevice, verified.SenderDevice)
+	}
+	if len(server.Prev) != len(verified.Prev) {
+		return fmt.Errorf("Prev mismatch in chat message headers: %#v %#v", server.Prev, verified.Prev)
+	}
+	for i := 0; i < len(server.Prev); i++ {
+		prev1 := server.Prev[i]
+		prev2 := verified.Prev[i]
+		if prev1.Id != prev2.Id || !bytes.Equal(prev1.Hash, prev2.Hash) {
+			return fmt.Errorf("Prev mismatch in chat message headers: %#v %#v", prev1, prev2)
+		}
+	}
+	// TODO: Supersedes and other fields currently don't match after
+	// decryption. The easiest thing might be to stop using the same data
+	// structure on both sides.
+	return nil
 }
