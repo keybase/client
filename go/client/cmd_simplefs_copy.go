@@ -52,7 +52,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	ctx := context.TODO()
 
-	c.G().Log.Debug("SimpleFSCopy to: %s", pathToString(c.dest))
+	c.G().Log.Debug("SimpleFSCopy (recursive: %v) to: %s", c.recurse, pathToString(c.dest))
 
 	// Eat the error because it's ok here if the dest doesn't exist
 	isDestDir, destPathString, _ := checkPathIsDir(ctx, cli, c.dest)
@@ -105,7 +105,7 @@ func (c *CmdSimpleFSCopy) Run() error {
 func (c *CmdSimpleFSCopy) ParseArgv(ctx *cli.Context) error {
 	var err error
 
-	c.recurse = ctx.Bool("recurse")
+	c.recurse = ctx.Bool("recursive")
 	c.interactive = ctx.Bool("interactive")
 
 	c.src, c.dest, err = parseSrcDestArgs(c.G(), ctx, "cp")
