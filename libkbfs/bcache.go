@@ -129,9 +129,16 @@ func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
 	}
 	block := bc.block
 
+	size := uint64(getCachedBlockSize(block))
 	b.bytesLock.Lock()
 	defer b.bytesLock.Unlock()
-	b.cleanTotalBytes -= uint64(getCachedBlockSize(block))
+	if b.cleanTotalBytes >= size {
+		b.cleanTotalBytes -= size
+	} else {
+		// In case the race mentioned in `PutWithPrefetch` causes us
+		// to undercut the byte count.
+		b.cleanTotalBytes = 0
+	}
 }
 
 // CheckForKnownPtr implements the BlockCache interface for BlockCacheStandard.
@@ -208,6 +215,7 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 		doUnlock = true
 		b.bytesLock.Lock()
 	}
+
 	if b.cleanTotalBytes+size > cleanBytesCapacity {
 		// There must be too many permanent clean blocks, so we
 		// couldn't make room.
@@ -310,9 +318,16 @@ func (b *BlockCacheStandard) DeletePermanent(id kbfsblock.ID) error {
 	block, ok := b.cleanPermanent[id]
 	if ok {
 		delete(b.cleanPermanent, id)
+		size := uint64(getCachedBlockSize(block))
 		b.bytesLock.Lock()
 		defer b.bytesLock.Unlock()
-		b.cleanTotalBytes -= uint64(getCachedBlockSize(block))
+		if b.cleanTotalBytes >= size {
+			b.cleanTotalBytes -= size
+		} else {
+			// In case the race mentioned in `PutWithPrefetch` causes us
+			// to undercut the byte count.
+			b.cleanTotalBytes = 0
+		}
 	}
 	return nil
 }
