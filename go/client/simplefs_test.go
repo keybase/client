@@ -254,13 +254,13 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
 
-	// Test when dest. does not exist.
+	// Test when dest. does not exist by adding "foobar" on the end of the source.
 	// Dest name should remain as-is in that case
 	testStatter.localExists = false
-	os.RemoveAll(tempdir)
-	isDestDir, destPathString, err = checkPathIsDir(context.TODO(), testStatter, destPath)
-	require.NoError(tc.T, err, "bad path type")
-	require.True(tc.T, isDestDir)
+	tempdir = filepath.Join(tempdir, "foobar")
+	destPathInitial = keybase1.NewPathWithLocal(tempdir)
+	isDestDir, destPathString, err = checkPathIsDir(context.TODO(), testStatter, destPathInitial)
+	assert.Equal(tc.T, tempdir, destPathString, "should use dest dir as-is")
 
 	destPath, err = makeDestPath(tc.G,
 		context.TODO(),
@@ -269,7 +269,7 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 		destPathInitial,
 		true,
 		tempdir)
-	assert.Equal(tc.T, tempdir, destPath.Local())
+	assert.Equal(tc.T, filepath.ToSlash(tempdir), destPath.Local())
 	require.NoError(tc.T, err, "bad path type")
 
 	pathType, err = destPath.PathType()
