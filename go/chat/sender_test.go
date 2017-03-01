@@ -62,14 +62,22 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 			header := activity.IncomingMessage().Message.Valid().ClientHeader
 			if header.OutboxID != nil {
 				n.obids = append(n.obids, *activity.IncomingMessage().Message.Valid().ClientHeader.OutboxID)
-				n.incoming <- len(n.obids)
+				select {
+				case n.incoming <- len(n.obids):
+				case <-time.After(5 * time.Second):
+					panic("timeout on the incoming channel")
+				}
 			}
 		} else if typ == chat1.ChatActivityType_FAILED_MESSAGE {
 			var rmsg []chat1.OutboxRecord
 			for _, obr := range activity.FailedMessage().OutboxRecords {
 				rmsg = append(rmsg, obr)
 			}
-			n.failing <- rmsg
+			select {
+			case n.failing <- rmsg:
+			case <-time.After(5 * time.Second):
+				panic("timeout on the failing channel")
+			}
 		}
 	}
 }
