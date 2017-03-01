@@ -111,6 +111,7 @@ export type AttachmentMessage = {
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
+  failureDescription?: ?string,
 }
 
 export type TimestampMessage = {

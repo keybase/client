@@ -28,7 +28,6 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
   }
 
   render () {
-    // $FlowIssue
     const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, isSelected, you, followingMap, metaDataMap} = this.props
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}}>

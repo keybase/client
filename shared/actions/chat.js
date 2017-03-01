@@ -1275,7 +1275,7 @@ function _decodeFailureDescription (typ: ChatTypes.OutboxErrorType): string {
     case ChatTypes.LocalOutboxErrorType.toolong:
       return 'message is too long'
   }
-  return 'unknown error'
+  return `unknown error type ${typ}`
 }
 
 function _unboxedToMessage (message: MessageUnboxed, yourName, yourDeviceName, conversationIDKey: ConversationIDKey): Message {
