@@ -537,7 +537,7 @@ function * _editMessage (action: EditMessage): SagaGenerator<any, any> {
 }
 
 // Actually start a new conversation
-function * _startNewConversation (conversationIDKey: ConversationIDKey) {
+function * _startNewConversation (conversationIDKey: ConversationIDKey, upgradePendingAndSelect: boolean = true) {
   const oldConversationIDKey = conversationIDKey
   // Find the participants
   const tlfName = pendingConversationIDKeyToTlfName(conversationIDKey)
@@ -557,11 +557,13 @@ function * _startNewConversation (conversationIDKey: ConversationIDKey) {
     }
 
     // Remove the pending conversation
-    yield put(_pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
-    // Select the new version if the old one was selected
-    const selectedConversation = yield select(getSelectedConversation)
-    if (selectedConversation === oldConversationIDKey) {
-      yield put(selectConversation(newConversationIDKey, false))
+    if (upgradePendingAndSelect) {
+      yield put(_pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
+      // Select the new version if the old one was selected
+      const selectedConversation = yield select(getSelectedConversation)
+      if (selectedConversation === oldConversationIDKey) {
+        yield put(selectConversation(newConversationIDKey, false))
+      }
     }
     // Load the inbox so we can post, we wait till this is done
     yield call(_getInboxAndUnbox, {payload: {conversationIDKey: newConversationIDKey}, type: 'chat:getInboxAndUnbox'})
@@ -1482,12 +1484,12 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   const existing = yield select(inboxSelector, tlfName)
 
   if (forceImmediate) {
-    const newConversationIDKey = yield call(_startNewConversation, pendingConversationIDKey(tlfName))
+    const newConversationIDKey = yield call(_startNewConversation, pendingConversationIDKey(tlfName), false)
     const oldConversationIDKey = existing.get('conversationIDKey')
     // Upgrade the conversation
     yield put(_pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
     // Select the new version if the old one was selected
-    const selectedConversation = yield select(_selectedSelector)
+    const selectedConversation = yield select(getSelectedConversation)
     if (selectedConversation === oldConversationIDKey) {
       yield put(selectConversation(newConversationIDKey, false))
     }
