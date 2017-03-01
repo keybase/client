@@ -12,6 +12,7 @@ type MessageProps = Props & {onRetry: () => void}
 
 class MessageWrapper extends PureComponent<void, MessageProps, void> {
   render () {
+    // $FlowIssue
     const {children, message, style, includeHeader, isFirstNewMessage, onRetry, isSelected, you, followingMap, metaDataMap} = this.props
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}}>
@@ -32,7 +33,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
                   {message.senderDeviceRevokedAt && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
                 </Box>
               </Box>
-              {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
+              {message.messageState === 'failed' && <Retry failureDescription={message.failureDescription} onRetry={onRetry} />}
             </Box>
           </Box>
         </Box>

@@ -28,6 +28,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
   }
 
   render () {
+    // $FlowIssue
     const {children, message, style, includeHeader, isFirstNewMessage, onRetry, onIconClick, isSelected, you, followingMap, metaDataMap} = this.props
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}}>
@@ -49,7 +50,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
                   <Icon type='iconfont-ellipsis' style={_ellipsisStyle} onClick={onIconClick} />
                 </div>
               </div>
-              {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
+              {message.messageState === 'failed' && <Retry failureDescription={message.failureDescription} onRetry={onRetry} />}
             </div>
           </div>
         </div>
