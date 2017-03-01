@@ -74,6 +74,7 @@ class Button extends Component<void, Props, void> {
 const smallHeight = 32
 const regularHeight = 40
 const fullWidthHeight = 48
+const alertHeight = 56
 
 const common = {
   ...globalStyles.flexBoxColumn,
@@ -186,6 +187,15 @@ const CustomLabel = {
 
 const progress = {
   marginTop: -regularHeight / 2,
+}
+
+export const buttonAlertStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  height: alertHeight,
+  justifyContent: 'center',
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 export default Button

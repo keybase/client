@@ -5,6 +5,7 @@ import {connect} from 'react-redux'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {loadInbox, selectConversation, newChat} from '../../actions/chat'
+import {navigateAppend} from '../../actions/route-tree'
 import {participantFilter, newestConversationIDKey} from '../../constants/chat'
 import {List} from 'immutable'
 
