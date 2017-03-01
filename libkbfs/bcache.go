@@ -199,6 +199,8 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 		b.bytesLock.Unlock()
 		doUnlock = false
 		if oldLen == b.cleanTransient.Len() {
+			doUnlock = true
+			b.bytesLock.Lock()
 			break
 		}
 		oldLen = b.cleanTransient.Len()
