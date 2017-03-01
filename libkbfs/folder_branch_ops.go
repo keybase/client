@@ -171,9 +171,8 @@ func (bl *blockLock) DoRUnlockedIfPossible(lState *lockState, f func(*lockState)
 }
 
 // headTrustStatus marks whether the head is from a trusted or
-// untrusted source. When rekeying we get the fbo by folder
-// id and do not check the tlf id, thus resulting in untrusted
-// fbo heads.
+// untrusted source. When rekeying we get the head MD by folder id
+// and do not check the tlf handle
 type headTrustStatus int
 
 const (
@@ -515,7 +514,7 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 }
 
 // getTrustedHead should not be called outside of folder_branch_ops.go.
-// Returns  ImmutableRootMetadata{} when the head is not trusted.
+// Returns ImmutableRootMetadata{} when the head is not trusted.
 // See the comment on headTrustedStatus for more information.
 func (fbo *folderBranchOps) getTrustedHead(lState *lockState) ImmutableRootMetadata {
 	fbo.headLock.RLock(lState)
@@ -945,7 +944,7 @@ func (fbo *folderBranchOps) identifyOnce(
 	return nil
 }
 
-// getMDForReadLocked returns an existing md for read
+// getMDForReadLocked returns an existing md for a read
 // operation. Note that mds will not be fetched here.
 func (fbo *folderBranchOps) getMDForReadLocked(
 	ctx context.Context, lState *lockState, rtype mdReadType) (
@@ -1029,7 +1028,7 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	var headStatus = headTrusted
+	headStatus := headTrusted
 	if mdType == mdRekey {
 		headStatus = headUntrusted
 	}
@@ -5722,7 +5721,7 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 	}
 
 	fbo.head = ImmutableRootMetadata{}
-	fbo.headStatus = headTrusted
+	fbo.headStatus = headUntrusted
 	fbo.latestMergedRevision = MetadataRevisionUninitialized
 	fbo.hasBeenCleared = true
 }
