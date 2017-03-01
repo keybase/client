@@ -7,6 +7,7 @@ import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.lwansbrough.RCTCamera.RCTCameraPackage;
+import com.imagepicker.ImagePickerPackage;
 
 import java.io.File;
 import java.util.Arrays;
@@ -35,7 +36,8 @@ public class MainApplication extends Application implements ReactApplication {
               new MainReactPackage(),
               new KBReactPackage(logFile.getAbsolutePath()),
               new ReactNativePushNotificationPackage(),
-              new RCTCameraPackage()
+              new RCTCameraPackage(),
+              new ImagePickerPackage()
       );
     }
 
