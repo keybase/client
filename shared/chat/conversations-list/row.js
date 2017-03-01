@@ -59,13 +59,8 @@ const makeSelector = (conversationIDKey, nowOverride) => {
       })
     )
   } else {
-    const getConversation = createImmutableEqualSelector(
-      [makeGetConversation(conversationIDKey)],
-      conversation => conversation
-    )
-
     return createImmutableEqualSelector(
-      [getConversation, makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey)],
+      [makeGetConversation(conversationIDKey), makeGetIsSelected(conversationIDKey), makeGetUnreadCounts(conversationIDKey), getYou, makeGetRekeyInfo(conversationIDKey)],
       (conversation, isSelected, unreadCount, you, rekeyInfo) => ({
         conversationIDKey,
         isMuted: conversation.get('muted'),
