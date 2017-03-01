@@ -1053,6 +1053,11 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 	headStatus := headTrusted
 	if mdType == mdRekey {
 		headStatus = headUntrusted
+		// If we already have a head (that has been filled  after the initial
+		// check, but before we acquired the lock. Then use that.
+		if fbo.head != (ImmutableRootMetadata{}) {
+			return fbo.head, nil
+		}
 	}
 	err = fbo.setHeadLocked(ctx, lState, md, headStatus)
 	if err != nil {
