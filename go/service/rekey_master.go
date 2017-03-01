@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/chat"
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -38,6 +40,13 @@ type rekeyMaster struct {
 	// TLF rekey events. We should only be running if there are (since we want to respect
 	// the 3-minute delay on rekey harassment after a new key is added).
 	gregor *gregorHandler
+
+	// keep track of the previous problem set to see if any rekeys have occurred in
+	// an iteration
+	prevProblems keybase1.ProblemSet
+
+	// need a tlf client to get conversation IDs
+	tlfCli keybase1.TlfInterface
 }
 
 type RekeyInterrupt int
@@ -65,6 +74,7 @@ func newRekeyMaster(g *libkb.GlobalContext) *rekeyMaster {
 	return &rekeyMaster{
 		Contextified: libkb.NewContextified(g),
 		interruptCh:  make(chan interruptArg),
+		tlfCli:       newTlfHandler(nil, g),
 	}
 }
 
@@ -374,7 +384,7 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 	}
 
 	if !hasGregor {
-		r.G().Log.Debug("| has gregor TLF rekey messages")
+		r.G().Log.Debug("| has no gregor TLF rekey messages")
 		nextWait = rekeyTimeoutBackground
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NO_GREGOR_MESSAGES}, err
 	}
@@ -391,8 +401,14 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 
 	r.G().Log.Debug("| rekeyMaster#computeProblems: queried API server for rekey info")
 
+	// send notifications if problems changed since last iteration
+	r.changeNotification(problems)
+
 	if len(problems.Tlfs) == 0 {
 		r.G().Log.Debug("| no problem TLFs found")
+
+		r.prevProblems = keybase1.ProblemSet{}
+
 		nextWait = rekeyTimeoutBackground
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NO_PROBLEMS}, err
 	}
@@ -425,8 +441,67 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 
 	r.G().Log.Debug("| rekeyMaster#computeProblems: made problem set devices")
 
+	r.prevProblems = problems
+
 	nextWait = rekeyTimeoutActive
 	return nextWait, &tmp, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_HARASS}, err
+}
+
+func (r *rekeyMaster) changeNotification(newProblems keybase1.ProblemSet) {
+	newTLFIDs := make(map[keybase1.TLFID]bool)
+	for _, p := range newProblems.Tlfs {
+		newTLFIDs[p.Tlf.Id] = true
+	}
+
+	var cids []chat1.ConversationID
+	for _, p := range r.prevProblems.Tlfs {
+		if newTLFIDs[p.Tlf.Id] {
+			continue
+		}
+
+		// p.Tlf is no longer a problem, add its conversation id to the notification list.
+		cid, err := r.conversationID(p.Tlf)
+		if err != nil {
+			r.G().Log.Debug("changeNotification: error getting conversation id: %s", err)
+			continue
+		}
+		cids = append(cids, cid)
+	}
+
+	if len(cids) > 0 {
+		// notify clients that inbox is stale and which threads are stale
+		r.G().NotifyRouter.HandleChatInboxStale(context.Background(), r.G().Env.GetUID())
+		r.G().NotifyRouter.HandleChatThreadsStale(context.Background(), r.G().Env.GetUID(), cids)
+	}
+
+	// to make sure we don't notify more than once, change prevProblems here
+	r.prevProblems = newProblems
+}
+
+func (r *rekeyMaster) conversationID(tlf keybase1.TLF) (chat1.ConversationID, error) {
+	uid := r.G().Env.GetUID()
+	if uid.IsNil() {
+		return chat1.ConversationID{}, libkb.LoginRequiredError{}
+	}
+	vis := chat1.TLFVisibility_PUBLIC
+	if tlf.IsPrivate {
+		vis = chat1.TLFVisibility_PRIVATE
+	}
+	toptype := chat1.TopicType_CHAT
+	query := chat1.GetInboxLocalQuery{
+		TlfName:       &tlf.Name,
+		TlfVisibility: &vis,
+		TopicType:     &toptype,
+	}
+	localizer := chat.NewBlockingLocalizer(r.G(), func() keybase1.TlfInterface { return r.tlfCli })
+	ib, _, err := r.G().InboxSource.Read(context.Background(), uid.ToBytes(), localizer, true, &query, nil)
+	if err != nil {
+		return chat1.ConversationID{}, err
+	}
+	if len(ib.Convs) != 1 {
+		return chat1.ConversationID{}, errors.New("multiple conversations matched query")
+	}
+	return ib.Convs[0].Info.Id, nil
 }
 
 // currentDeviceSolvesProblemSet returns true if the current device can fix all
