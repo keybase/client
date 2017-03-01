@@ -37,7 +37,7 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   _onAction = (message: ServerMessage, event: any) => {
-    if (this.props.onMessageAction) { this.props.onMessageAction(message) }
+    this.props.onMessageAction(message)
   }
 
   _renderRow = (message, sectionID, rowID) => {
