@@ -79,11 +79,18 @@ func (f timedProfileFile) Open(ctx context.Context,
 	// and stream the profile data, one problem is that the CPU
 	// profile is, at least as of go 1.8, buffered until it's
 	// stopped anyway, so we'd run into timeouts.
+	//
+	// TODO: Maybe keep around a special last_profile file to
+	// solve the problem above, which would also be useful in
+	// general, since you be able to save a profile even if you
+	// open it up with a tool.
 	var buf bytes.Buffer
 	err := f.profile.Start(&buf)
 	if err != nil {
 		return nil, err
 	}
+
+	defer f.profile.Stop()
 
 	select {
 	case <-time.After(f.duration):
