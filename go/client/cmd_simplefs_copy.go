@@ -54,18 +54,12 @@ func (c *CmdSimpleFSCopy) Run() error {
 
 	c.G().Log.Debug("SimpleFSCopy to: %s", pathToString(c.dest))
 
-	isDestDir, destPathString, destErr := checkPathIsDir(ctx, cli, c.dest)
+	// Eat the error because it's ok here if the dest doesn't exist
+	isDestDir, destPathString, _ := checkPathIsDir(ctx, cli, c.dest)
 
 	for _, src := range c.src {
 		var dest keybase1.Path
-		if destErr != nil {
-			// This means the destination could not be found,
-			// so we don't append any filename
-			dest = c.dest
-			err = nil
-		} else {
-			dest, err = makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
-		}
+		dest, err = makeDestPath(c.G(), ctx, cli, src, c.dest, isDestDir, destPathString)
 		c.G().Log.Debug("SimpleFSCopy %s -> %s, %v", pathToString(src), pathToString(dest), isDestDir)
 
 		if err == TargetFileExistsError && c.interactive == true {

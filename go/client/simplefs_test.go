@@ -14,6 +14,21 @@ import (
 	"golang.org/x/net/context"
 )
 
+/*
+ file source cases:
+ 1. file
+ 2. dir
+
+ file source/dest types:
+ 1. kbfs
+ 2. local
+
+ file dest cases:
+ 1. file
+ 2. dir
+ 3. not found
+*/
+
 func TestSimpleFSPathRemote(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
 
@@ -57,7 +72,7 @@ func (s SimpleFSTestStat) SimpleFSStat(_ context.Context, path keybase1.Path) (k
 	return keybase1.Dirent{}, errors.New(pathString + " does not exist")
 }
 
-func TestSimpleFSMultiPathLocal(t *testing.T) {
+func TestSimpleFSLocalSrcFile(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
 
 	// make a temp local dest directory + files we will clean up later
@@ -97,7 +112,7 @@ func TestSimpleFSMultiPathLocal(t *testing.T) {
 	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
 }
 
-func TestSimpleFSMultiPathRemote(t *testing.T) {
+func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	tc := libkb.SetupTest(t, "simplefs_path", 0)
 
 	// make a temp local dest directory + files we will clean up later
@@ -133,4 +148,132 @@ func TestSimpleFSMultiPathRemote(t *testing.T) {
 	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
 
 	assert.Equal(tc.T, filepath.ToSlash(filepath.Join(tempdir, "test1.txt")), destPath.Local())
+}
+
+func TestSimpleFSLocalSrcDir(t *testing.T) {
+	tc := libkb.SetupTest(t, "simplefs_path", 0)
+
+	// make a temp local dest directory + files we will clean up later
+	tempdir, err := ioutil.TempDir("", "simpleFStest")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	path1 := keybase1.NewPathWithLocal(tempdir)
+	require.NoError(t, err)
+	testStatter := SimpleFSTestStat{localExists: true}
+
+	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), testStatter, path1)
+	require.NoError(tc.T, err, "bad path type")
+	require.True(tc.T, isSrcDir)
+	require.Equal(tc.T, path1.Local(), srcPathString)
+
+	destPathInitial := makeSimpleFSPath(tc.G, "/keybase/public/foobar")
+
+	// Test when dest. exists.
+	// We append the last element of the source in that case.
+	testStatter.remoteExists = true
+	isDestDir, destPathString, err := checkPathIsDir(context.TODO(), testStatter, destPathInitial)
+	require.NoError(tc.T, err, "bad path type")
+	require.True(tc.T, isDestDir)
+	require.Equal(tc.T, "/public/foobar", destPathString)
+
+	destPath, err := makeDestPath(tc.G,
+		context.TODO(),
+		testStatter,
+		path1,
+		destPathInitial,
+		true,
+		"/public/foobar")
+	assert.Equal(tc.T, filepath.ToSlash(filepath.Join("/public/foobar", filepath.Base(tempdir))), destPath.Kbfs())
+	assert.Equal(tc.T, err, TargetFileExistsError, "Expected that remote target path exists because of SimpleFSTestStat")
+	//	require.NoError(tc.T, err, "bad path type")
+
+	pathType, err := destPath.PathType()
+	require.NoError(tc.T, err, "bad path type")
+	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
+
+	// Test when dest. does not exist.
+	// Dest name should remain as-is in that case
+	testStatter.localExists = false
+	isDestDir, destPathString, err = checkPathIsDir(context.TODO(), testStatter, destPath)
+	require.NoError(tc.T, err, "bad path type")
+	require.True(tc.T, isDestDir)
+
+	destPath, err = makeDestPath(tc.G,
+		context.TODO(),
+		SimpleFSTestStat{},
+		path1,
+		destPathInitial,
+		true,
+		"/public/foobar")
+	assert.Equal(tc.T, "/public/foobar", destPath.Kbfs())
+	require.NoError(tc.T, err, "bad path type")
+
+	pathType, err = destPath.PathType()
+	require.NoError(tc.T, err, "bad path type")
+	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
+
+}
+
+func TestSimpleFSRemoteSrcDir(t *testing.T) {
+	tc := libkb.SetupTest(t, "simplefs_path", 0)
+
+	// make a temp local dest directory + files we will clean up later
+	tempdir, err := ioutil.TempDir("", "simpleFStest")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	destPathInitial := keybase1.NewPathWithLocal(tempdir)
+	require.NoError(t, err)
+	testStatter := SimpleFSTestStat{remoteExists: true}
+
+	srcPathInitial := makeSimpleFSPath(tc.G, "/keybase/public/foobar")
+
+	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), testStatter, srcPathInitial)
+	require.NoError(tc.T, err, "bad path type")
+	require.True(tc.T, isSrcDir)
+	require.Equal(tc.T, srcPathInitial.Kbfs(), srcPathString)
+
+	// Test when dest. exists.
+	// We append the last element of the source in that case.
+	testStatter.localExists = true
+	isDestDir, destPathString, err := checkPathIsDir(context.TODO(), testStatter, destPathInitial)
+	require.NoError(tc.T, err, "bad path type")
+	require.True(tc.T, isDestDir)
+	require.Equal(tc.T, tempdir, destPathString)
+
+	destPath, err := makeDestPath(tc.G,
+		context.TODO(),
+		testStatter,
+		srcPathInitial,
+		destPathInitial,
+		true,
+		tempdir)
+	assert.Equal(tc.T, filepath.ToSlash(filepath.Join(tempdir, "foobar")), destPath.Local())
+	require.NoError(tc.T, err, "Expected that remote target path does not exist")
+
+	pathType, err := destPath.PathType()
+	require.NoError(tc.T, err, "bad path type")
+	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected local path, got remote")
+
+	// Test when dest. does not exist.
+	// Dest name should remain as-is in that case
+	testStatter.localExists = false
+	os.RemoveAll(tempdir)
+	isDestDir, destPathString, err = checkPathIsDir(context.TODO(), testStatter, destPath)
+	require.NoError(tc.T, err, "bad path type")
+	require.True(tc.T, isDestDir)
+
+	destPath, err = makeDestPath(tc.G,
+		context.TODO(),
+		SimpleFSTestStat{},
+		srcPathInitial,
+		destPathInitial,
+		true,
+		tempdir)
+	assert.Equal(tc.T, tempdir, destPath.Local())
+	require.NoError(tc.T, err, "bad path type")
+
+	pathType, err = destPath.PathType()
+	require.NoError(tc.T, err, "bad path type")
+	assert.Equal(tc.T, keybase1.PathType_LOCAL, pathType, "Expected remote path, got local")
+
 }

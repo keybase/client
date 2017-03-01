@@ -126,6 +126,34 @@ func checkPathIsDir(ctx context.Context, cli SimpleFSStatter, path keybase1.Path
 	return isDir, pathString, err
 }
 
+func joinSimpleFSPaths(destType keybase1.PathType, destPathString, srcPathString string) keybase1.Path {
+	newDestString := filepath.ToSlash(filepath.Join(destPathString, filepath.Base(srcPathString)))
+	if destType == keybase1.PathType_KBFS {
+		return keybase1.NewPathWithKbfs(newDestString)
+	}
+	return keybase1.NewPathWithLocal(newDestString)
+}
+
+func checkElementExists(ctx context.Context, cli SimpleFSStatter, dest keybase1.Path) error {
+	destType, _ := dest.PathType()
+	var err error
+
+	// Check for overwriting
+	if destType == keybase1.PathType_KBFS {
+		// See if the dest file exists
+		_, err2 := cli.SimpleFSStat(ctx, dest)
+		if err2 == nil {
+			err = TargetFileExistsError
+		}
+	} else {
+		if exists, _ := libkb.FileExists(dest.Local()); exists == true {
+			// we should have already tested whether it's a directory
+			err = TargetFileExistsError
+		}
+	}
+	return err
+}
+
 // Make sure the destination ends with the same filename as the source,
 // if any, unless the destination is not a directory
 func makeDestPath(
@@ -138,36 +166,31 @@ func makeDestPath(
 	destPathString string) (keybase1.Path, error) {
 
 	isSrcDir, srcPathString, err := checkPathIsDir(ctx, cli, src)
-	destType, _ := dest.PathType()
 
-	g.Log.Debug("makeDestPath: srcPathString: %s path: ", pathToString(src), isSrcDir)
+	g.Log.Debug("makeDestPath: srcPathString: %s isSrcDir: %v", pathToString(src), isSrcDir)
 
-	if !isSrcDir {
-		if isDestPath {
-			// In this case, we must append the destination filename
-			newDestString := filepath.ToSlash(filepath.Join(destPathString, filepath.Base(srcPathString)))
-			if destType == keybase1.PathType_KBFS {
-				dest = keybase1.NewPathWithKbfs(newDestString)
-			} else {
-				dest = keybase1.NewPathWithLocal(newDestString)
+	if isDestPath {
+		// Source file and dest dir is an append case
+		appendDest := !isSrcDir
+		if isSrcDir {
+			// Here, we have both source and dest as paths, so
+			// we have to check whether dest exists. If so, append.
+			err2 := checkElementExists(ctx, cli, dest)
+			if err2 == TargetFileExistsError {
+				appendDest = true
 			}
-			g.Log.Debug("makeDestPath: new path with file: %s", newDestString)
+			g.Log.Debug("makeDestPath: src and dest both dir. append: %v", appendDest)
 		}
-		// Check for overwriting
-		if destType == keybase1.PathType_KBFS {
-			// See if the dest file exists
-			_, err := cli.SimpleFSStat(ctx, dest)
-			if err == nil {
-				return dest, TargetFileExistsError
-			}
-		} else {
-			if exists, _ := libkb.FileExists(dest.Local()); exists == true {
-				// we should have already tested whether it's a directory
-				g.Log.Debug("makeDestPath: local file exists: %s", dest.Local())
-				return dest, TargetFileExistsError
-			}
+		if appendDest {
+			destType, _ := dest.PathType()
+			// In this case, we must append the destination filename
+			dest = joinSimpleFSPaths(destType, destPathString, srcPathString)
+			g.Log.Debug("makeDestPath: new path with file: %s", pathToString(dest))
 		}
 	}
+
+	err = checkElementExists(ctx, cli, dest)
+
 	return dest, err
 }
 
