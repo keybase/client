@@ -568,6 +568,8 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 			s.outbox.GetUID(), err.Error())
 		return err
 	}
+
+	obr.State = chat1.NewOutboxStateWithError(oserr)
 	act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 		OutboxRecords: []chat1.OutboxRecord{obr},
 	})

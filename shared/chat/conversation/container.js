@@ -5,13 +5,14 @@ import React, {Component} from 'react'
 import {Box} from '../../common-adapters'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, startConversation, loadAttachment, retryAttachment} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, muteConversation, newChat, openFolder, postMessage, retryMessage, selectAttachment, startConversation, loadAttachment, retryAttachment} from '../../actions/chat'
 import * as ChatConstants from '../../constants/chat'
 import {downloadFilePath} from '../../util/file'
 import {getProfile} from '../../actions/tracker'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 import {onUserClick} from '../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../actions/unlock-folders'
+import {pick} from 'lodash'
 
 import type {TypedState} from '../../constants/reducer'
 import type {OpenInFileUI} from '../../constants/kbfs'
@@ -87,11 +88,11 @@ export default connect(
         return {
           bannerMessage: null,
           emojiPickerOpen: false,
-          followingMap,
+          followingMap: pick(followingMap, participants.toArray()),
           inputText: routeState.inputText,
           isLoading: false,
           messages: List(),
-          metaDataMap,
+          metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
           moreToLoad: false,
           muted: false,
           participants,
@@ -120,11 +121,11 @@ export default connect(
           bannerMessage: null,
           emojiPickerOpen: false,
           firstNewMessageID: conversationState.firstNewMessageID,
-          followingMap,
+          followingMap: pick(followingMap, participants.toArray()),
           inputText: routeState.inputText,
           isLoading: conversationState.isLoading,
           messages: conversationState.messages,
-          metaDataMap,
+          metaDataMap: metaDataMap.filter((k, v) => participants.contains(v)),
           moreToLoad: conversationState.moreToLoad,
           muted,
           participants,
@@ -182,6 +183,7 @@ export default connect(
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
     onRetryAttachment: (message: AttachmentMessage) => dispatch(retryAttachment(message)),
     onRetryMessage: (conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey) => dispatch(retryMessage(conversationIDKey, outboxID)),
+    onSelectAttachment: (conversationIDKey: ConversationIDKey, input: AttachmentInput) => dispatch(selectAttachment(input)),
     startConversation: (users: Array<string>) => dispatch(startConversation(users)),
     onStoreInputText: (inputText: string) => setRouteState({inputText}),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
@@ -222,6 +224,7 @@ export default connect(
       onMuteConversation: (muted: boolean) => dispatchProps.onMuteConversation(stateProps.selectedConversation, muted),
       onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
       onRetryMessage: (outboxID: OutboxIDKey) => dispatchProps.onRetryMessage(stateProps.selectedConversation, outboxID),
+      onSelectAttachment: (input) => dispatchProps.onSelectAttachment(stateProps.selectedConversation, input),
       restartConversation: () => dispatchProps.startConversation(stateProps.participants.toArray()),
     }
   },

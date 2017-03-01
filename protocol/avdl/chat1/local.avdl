@@ -252,12 +252,13 @@ protocol local {
   }
 
   record MessageUnboxedValid {
-    MessageClientHeader clientHeader;
+    MessageClientHeaderVerified clientHeader;
     MessageServerHeader serverHeader;
     MessageBody messageBody;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
+    Hash bodyHash;
 
     // MessageBoxed.V1: Hash of the encrypted header ciphertext.
     // MessageBoxed.V2: Hash of MessageBoxed.headerSealed (.v || .n || .b)

@@ -29,7 +29,7 @@ func threadViewFromDummies(dummies []dummyMessage) chat1.ThreadView {
 			ServerHeader: chat1.MessageServerHeader{
 				MessageID: dummy.id,
 			},
-			ClientHeader: chat1.MessageClientHeader{
+			ClientHeader: chat1.MessageClientHeaderVerified{
 				Prev: dummy.prevs,
 			},
 			// no need for a body

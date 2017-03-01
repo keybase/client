@@ -35,7 +35,7 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
                     {message.senderDeviceRevokedAt && <Icon type='iconfont-exclamation' style={_exclamationStyle} />}
                   </Box>
                 </Box>
-                {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
+                {message.messageState === 'failed' && <Retry failureDescription={message.failureDescription} onRetry={onRetry} />}
               </Box>
             </Box>
           </Box>

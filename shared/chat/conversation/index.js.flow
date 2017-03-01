@@ -32,6 +32,7 @@ export type Props = {
   onPostMessage: (text: string) => void,
   onRetryAttachment: (message: AttachmentMessage) => void,
   onRetryMessage: (outboxID: string) => void,
+  onSelectAttachment: (input: AttachmentInput) => void,
   onShowProfile: (username: string) => void,
   onStoreInputText: (inputText: string) => void,
   onToggleSidePanel: () => void,

@@ -525,16 +525,7 @@ func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, secretStore SecretStore, me *
 		return s.UnlockSecretKey(arg.LoginContext, pw, nil, nil, secretStorer)
 	}
 
-	keyUnlocker := KeyUnlocker{
-		Tries:          4,
-		Reason:         arg.Reason,
-		KeyDesc:        desc,
-		Which:          WhichPassphraseKeybase,
-		UseSecretStore: secretStore != nil,
-		Unlocker:       unlocker,
-		UI:             arg.SecretUI,
-		Contextified:   NewContextified(s.G()),
-	}
+	keyUnlocker := NewKeyUnlocker(s.G(), 4, arg.Reason, desc, PassphraseTypeKeybase, (secretStore != nil), arg.SecretUI, unlocker)
 
 	key, err := keyUnlocker.Run()
 	if err != nil {

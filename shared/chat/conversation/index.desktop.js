@@ -160,6 +160,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       onRetryAttachment,
       onRetryMessage,
       onShowProfile,
+      onSelectAttachment,
       onToggleSidePanel,
       muted,
       participants,
@@ -229,6 +230,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
             onAttach={onAttach}
             onEditLastMessage={onEditLastMessage}
             onPostMessage={onPostMessage}
+            onSelectAttachment={onSelectAttachment}
             selectedConversation={selectedConversation}
           /> }
         {sidePanelOpen && <div style={{...globalStyles.flexBoxColumn, bottom: 0, position: 'absolute', right: 0, top: 35, width: 320}}>

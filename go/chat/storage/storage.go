@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
@@ -27,9 +28,10 @@ type Storage struct {
 	libkb.Contextified
 	utils.DebugLabeler
 
-	getSecretUI func() libkb.SecretUI
-	engine      storageEngine
-	idtracker   *msgIDTracker
+	getSecretUI  func() libkb.SecretUI
+	engine       storageEngine
+	idtracker    *msgIDTracker
+	breakTracker *breakTracker
 }
 
 type storageEngine interface {
@@ -47,6 +49,7 @@ func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
 		getSecretUI:  getSecretUI,
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
+		breakTracker: newBreakTracker(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Storage", false),
 	}
 }
@@ -367,7 +370,8 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 		pmsgs = append(pmsgs, m)
 	}
 	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num); ierr != nil {
-		return chat1.ThreadView{}, NewInternalError(s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
+		return chat1.ThreadView{},
+			NewInternalError(ctx, s.DebugLabeler, "Fetch: failed to encode pager: %s", ierr.Error())
 	}
 	tres.Messages = res
 
@@ -435,4 +439,18 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	}
 
 	return res, nil
+}
+
+func (s *Storage) UpdateTLFIdentifyBreak(ctx context.Context, tlfID chat1.TLFID,
+	breaks []keybase1.TLFIdentifyFailure) error {
+	return s.breakTracker.UpdateTLF(ctx, tlfID, breaks)
+}
+
+func (s *Storage) IsTLFIdentifyBroken(ctx context.Context, tlfID chat1.TLFID) bool {
+	idBroken, err := s.breakTracker.IsTLFBroken(ctx, tlfID)
+	if err != nil {
+		s.Debug(ctx, "IsTLFIdentifyBroken: got error, so returning broken: %s", err.Error())
+		return true
+	}
+	return idBroken
 }

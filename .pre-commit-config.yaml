@@ -5,16 +5,19 @@
         entry: sh
         language: system
         files: \.js$
-        args: [-c, 'cd shared && yarn run lint']
+        args:
+        - -c
+        - cd shared && yarn run lint
     -   id: flow
         name: flow
         entry: sh
         language: system
         files: \.js$
-        args: [-c, 'cd shared && yarn run flow']
-
+        args:
+        - -c
+        - cd shared && yarn run flow
 -   repo: git@github.com:keybase/pre-commit-golang.git
-    sha: 'b15b3e743ccca9eeaa7fd4f8a064d2ab32b157bd'
+    sha: 06cb541d5ec2ec6adc218f7862098c55b5b24fc1
     hooks:
     -   id: go-fmt
     -   id: go-vet

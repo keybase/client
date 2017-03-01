@@ -629,15 +629,7 @@ func (k *PGPKeyBundle) Unlock(g *GlobalContext, reason string, secretUI SecretUI
 		return k, nil
 	}
 
-	_, err := KeyUnlocker{
-		Tries:        5,
-		Reason:       reason,
-		KeyDesc:      k.VerboseDescription(),
-		Unlocker:     unlocker,
-		UI:           secretUI,
-		Which:        "the PGP key",
-		Contextified: NewContextified(g),
-	}.Run()
+	_, err := NewKeyUnlocker(g, 5, reason, k.VerboseDescription(), PassphraseTypePGP, false, secretUI, unlocker).Run()
 	return err
 }
 
