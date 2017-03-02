@@ -133,7 +133,7 @@ func main() {
 	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
 	iconPtr := flag.String("i", "../../media/icons/Keybase.ico", "icon pathname")
-	kbfsIconPtr := flag.String("kbfsicon", "../../media/icons/windows/keybase-root-icon.ico", "icon pathname")
+	kbfsIconPtr := flag.String("kbfsicon", "", "icon pathname")
 	fileDescriptionPtr := flag.String("d", "Keybase utility", "File Description")
 	originalFilenamePtr := flag.String("n", "keybase.exe", "File name")
 

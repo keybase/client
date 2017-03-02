@@ -3,7 +3,7 @@ import {Component} from 'react'
 import {List} from 'immutable'
 
 import type {Props as BannerMessage} from './banner'
-import type {AttachmentInput, AttachmentType, AttachmentMessage, ConversationIDKey, FinalizeInfo, Message, MessageID, MetaDataMap, FollowingMap, RekeyInfo, SupersedeInfo} from '../../constants/chat'
+import type {AttachmentInput, AttachmentType, AttachmentMessage, ConversationIDKey, FinalizeInfo, Message, MessageID, MetaDataMap, FollowingMap, RekeyInfo, ServerMessage, SupersedeInfo} from '../../constants/chat'
 
 export type Props = {
   bannerMessage: ?BannerMessage,
@@ -25,6 +25,7 @@ export type Props = {
   onEditMessage: (message: Message, body: string) => void,
   onLoadAttachment: (messageID: MessageID, filename: string) => void,
   onLoadMoreMessages: () => void,
+  onMessageAction: (message: ServerMessage) => void,
   onMuteConversation: (muted: boolean) => void,
   onOpenConversation: (conversationIDKey: ConversationIDKey) => void,
   onOpenFolder: () => void,

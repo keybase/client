@@ -15,6 +15,7 @@ pushd %GOPATH%\src\github.com\keybase\client\go\keybase
 del keybase.exe
 go version
 go generate
+winresource.exe -kbfsicon=../../media/icons/windows/keybase-root-icon.ico
 
 if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
 

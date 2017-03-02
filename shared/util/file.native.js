@@ -14,8 +14,7 @@ function copy (from: string, to: string) {
 }
 
 function exists (from: string, to: string): boolean {
-  // TODO implement
-  return false
+  throw new Error('Unimplemented')
 }
 
 export {
