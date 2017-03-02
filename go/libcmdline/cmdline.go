@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -336,6 +337,18 @@ func NewCommandLine(addHelp bool, extraFlags []cli.Flag) *CommandLine {
 	return ret
 }
 
+type flagset []cli.Flag
+
+func (f flagset) Len() int      { return len(f) }
+func (f flagset) Swap(i, j int) { f[i], f[j] = f[j], f[i] }
+
+func (f flagset) Less(i, j int) bool {
+	return strings.Compare(
+		strings.ToLower(cli.Flag(f[i]).GetName()),
+		strings.ToLower(cli.Flag(f[j]).GetName()),
+	) < 0
+}
+
 func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app := p.app
 	app.Name = "keybase"
@@ -511,6 +524,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	if extraFlags != nil {
 		app.Flags = append(app.Flags, extraFlags...)
 	}
+	sort.Sort(flagset(app.Flags))
 
 	app.Commands = []cli.Command{}
 }

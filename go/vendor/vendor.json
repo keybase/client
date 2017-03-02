@@ -164,8 +164,8 @@
 		},
 		{
 			"path": "github.com/keybase/cli",
-			"revision": "18b3e3986cf707f059fd443667525dbc664a5716",
-			"revisionTime": "2016-03-08T10:58:20-08:00"
+			"revision": "e255e51a3fb80f31b0380c39e91308d4c2b0c0c5",
+			"revisionTime": "2016-07-01T09:46:39-04:00"
 		},
 		{
 			"path": "github.com/keybase/clockwork",
