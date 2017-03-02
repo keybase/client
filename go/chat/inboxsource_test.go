@@ -47,7 +47,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(0), ib.Version, "wrong version")
 
-	// Spawn to goroutines to try and update the inbox at the same time with a self-update, and a
+	// Spawn two goroutines to try and update the inbox at the same time with a self-update, and a
 	// Gregor style update
 	t.Logf("spawning update goroutines")
 	var wg sync.WaitGroup
