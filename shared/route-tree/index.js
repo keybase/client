@@ -154,8 +154,8 @@ export function routeSetProps (routeDef: RouteDefNode, routeState: ?RouteStateNo
   return _routeSet(routeDef, routeState, parentPathSeq.concat(pathSeq), persistState)
 }
 
-export function routeNavigate (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathProps: PathParam<*>, parentPath: ?Path, persistState: ?boolean = false): RouteStateNode {
-  return routeSetProps(routeDef, routeState, I.List(pathProps).push({selected: null, props: {}}), parentPath, !!persistState)
+export function routeNavigate (routeDef: RouteDefNode, routeState: ?RouteStateNode, pathProps: PathParam<*>, parentPath: ?Path, persistState?: boolean = false): RouteStateNode {
+  return routeSetProps(routeDef, routeState, I.List(pathProps).push({selected: null, props: {}}), parentPath, persistState)
 }
 
 export function routeSetState (routeDef: RouteDefNode, routeState: RouteStateNode, path: Path, partialState: {}): RouteStateNode {
