@@ -115,8 +115,12 @@ func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByN
 	return
 }
 
-func (h *UserHandler) LoadUserPlusKeys(ctx context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
-	return libkb.LoadUserPlusKeys(ctx, h.G(), arg.Uid, arg.PollForKID)
+func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
+	netCtx = libkb.WithLogTag(netCtx, "LUPK")
+	h.G().Log.CDebugf(netCtx, "+ UserHandler#LoadUserPlusKeys(%+v)", arg)
+	ret, err := libkb.LoadUserPlusKeys(netCtx, h.G(), arg.Uid, arg.PollForKID)
+	h.G().Log.CDebugf(netCtx, "- UserHandler#LoadUserPlusKeys(%+v) -> (%+v,%s)", arg, ret, libkb.ErrToOk(err))
+	return ret, err
 }
 
 func (h *UserHandler) Search(_ context.Context, arg keybase1.SearchArg) (results []keybase1.SearchResult, err error) {
