@@ -6,7 +6,7 @@ import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
 import {listenForNotifications} from './actions/notifications'
-import {loginTab, folderTab} from './constants/tabs'
+import {chatTab, loginTab, folderTab} from './constants/tabs'
 import TabBar from './tab-bar/index.render.native'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 import GlobalError from './global-errors/container'
@@ -97,6 +97,12 @@ export default connect(
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
     switchTab: (tab: Tab) => {
+      if (tab === chatTab && routeSelected === tab) {
+        // clicking the chat tab when already selected should persistState and nav to the chat tab
+        dispatch(navigateTo(routePath.push(tab), null, true))
+        return
+      }
+
       const action = routeSelected === tab ? navigateTo : switchTo
       dispatch(action(routePath.push(tab)))
     },

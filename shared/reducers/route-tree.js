@@ -43,7 +43,7 @@ function routeStateReducer (routeDef, routeState, action) {
       return routeSetProps(routeDef, routeState, action.payload.path, action.payload.parentPath)
 
     case Constants.navigateTo:
-      return routeNavigate(routeDef, routeState, action.payload.path, action.payload.parentPath)
+      return routeNavigate(routeDef, routeState, action.payload.path, action.payload.parentPath, action.payload.persistState)
 
     case Constants.navigateAppend: {
       const parentPath = I.List(action.payload.parentPath)

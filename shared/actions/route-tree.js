@@ -67,10 +67,10 @@ export function switchTo (path: Path, parentPath?: Path): SwitchTo {
 //
 // If parentPath is provided, the path will be navigated to relative to
 // parentPath without navigating to it.
-export function navigateTo (path: PropsPath<*>, parentPath?: Path): NavigateTo {
+export function navigateTo (path: PropsPath<*>, parentPath?: Path, persistState?: boolean = false): NavigateTo {
   return {
     type: Constants.navigateTo,
-    payload: {path, parentPath},
+    payload: {path, parentPath, persistState},
     logTransformer: pathActionTransformer,
   }
 }
@@ -87,7 +87,7 @@ export function navigateAppend (path: PropsPath<*>, parentPath?: Path): Navigate
 }
 
 // Navigate one step up from the current path.
-export function navigateUp (persistState: ?boolean = false): NavigateUp {
+export function navigateUp (persistState?: boolean = false): NavigateUp {
   return {
     type: Constants.navigateUp,
     payload: {persistState: !!persistState},
