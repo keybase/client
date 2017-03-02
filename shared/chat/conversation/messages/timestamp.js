@@ -1,9 +1,13 @@
 // @flow
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {Text} from '../../../common-adapters'
+import {Text, Box} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
-import type {Props} from './timestamp'
+
+export type Props = {
+  timestamp: string,
+  style: Object,
+}
 
 class Timestamp extends Component<void, Props, void> {
   shouldComponentUpdate (nextProps: Props, nextState: any): boolean {
@@ -17,9 +21,9 @@ class Timestamp extends Component<void, Props, void> {
 
   render () {
     const {timestamp, style} = this.props
-    return <div style={{...globalStyles.flexBoxRow, ...style}}>
+    return <Box style={{...globalStyles.flexBoxRow, ...style}}>
       <Text style={styleText} type='BodySmallSemibold'>{timestamp}</Text>
-    </div>
+    </Box>
   }
 }
 
