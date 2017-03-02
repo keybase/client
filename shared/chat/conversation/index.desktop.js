@@ -150,6 +150,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
       onListRef,
       onLoadAttachment,
       onLoadMoreMessages,
+      onMessageAction,
       onMuteConversation,
       onOpenConversation,
       onOpenFolder,
@@ -203,6 +204,7 @@ class Conversation extends Component<void, Props & EditLastHandlerProps, State> 
           onFocusInput={this._onFocusInput}
           onLoadAttachment={onLoadAttachment}
           onLoadMoreMessages={onLoadMoreMessages}
+          onMessageAction={onMessageAction}
           onOpenConversation={onOpenConversation}
           onOpenInFileUI={onOpenInFileUI}
           onOpenInPopup={onOpenInPopup}

@@ -7,6 +7,7 @@ import hoc from './list-hoc'
 import messageFactory from './messages'
 
 import type {Props} from './list'
+import type {ServerMessage} from '../../constants/chat'
 
 type State = {
   dataSource: NativeListView.DataSource,
@@ -35,12 +36,16 @@ class ConversationList extends Component <void, Props, State> {
     }
   }
 
+  _onAction = (message: ServerMessage, event: any) => {
+    this.props.onMessageAction(message)
+  }
+
   _renderRow = (message, sectionID, rowID) => {
     const isFirstMessage = rowID === 0
     const prevMessage = this.props.messages.get(rowID - 1)
     const isSelected = false
     const isScrolling = false
-    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, 'key', {}, () => console.log('todo'))
+    const options = this.props.optionsFn(message, prevMessage, isFirstMessage, isSelected, isScrolling, 'key', {}, this._onAction)
 
     return messageFactory(options)
   }
