@@ -17,7 +17,8 @@ function copy (from: string, to: string) {
 }
 
 function exists (from: string, to: string): boolean {
-  throw new Error('Unimplemented')
+  // FIXME implement
+  return false
 }
 
 export {
