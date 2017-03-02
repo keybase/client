@@ -135,22 +135,21 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
   let user = getState().config.username
+  let rateLimitKey
 
   const isError = notification.statusCode === KbfsCommonFSStatusCode.error
   // Don't show starting or finished, but do show error.
   if (isError) {
     ({title, body} = decodeKBFSError(user, notification))
-  }
-
-  let rateLimitKey
-
-  // limit all rekeys
-  switch (action) {
-    case 'Rekeying':
-      rateLimitKey = 'rekey'
-      break
-    default:
-      rateLimitKey = usernames
+    rateLimitKey = body // show unique errors
+  } else {
+    switch (action) {
+      case 'Rekeying': // limit all rekeys, no matter the tlf
+        rateLimitKey = 'rekey'
+        break
+      default:
+        rateLimitKey = usernames // by tlf
+    }
   }
 
   notify(title, {body}, 10, rateLimitKey)
