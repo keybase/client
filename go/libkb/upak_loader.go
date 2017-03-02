@@ -370,7 +370,7 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 
-	u.G().Log.Debug("CachedUPAKLoader#Invalidate(%s)", uid)
+	u.G().Log.Debug("| CachedUPAKLoader#Invalidate(%s)", uid)
 
 	if u.noCache {
 		return

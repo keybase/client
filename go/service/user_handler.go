@@ -37,9 +37,7 @@ func (r *userHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 }
 
 func (r *userHandler) keyChange() error {
-	r.G().NotifyRouter.HandleKeyfamilyChanged(r.G().Env.GetUID())
-	// TODO: remove this when KBFS handles KeyfamilyChanged
-	r.G().NotifyRouter.HandleUserChanged(r.G().Env.GetUID())
+	r.G().KeyfamilyChanged(r.G().Env.GetUID())
 
 	// check if this device was just revoked and if so, logout
 	return r.G().LogoutIfRevoked()

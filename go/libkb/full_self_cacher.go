@@ -135,8 +135,10 @@ func (m *CachedFullSelf) HandleUserChanged(u keybase1.UID) error {
 	m.Lock()
 	defer m.Unlock()
 	if m.me != nil && m.me.GetUID().Equal(u) {
-		m.G().Log.Debug("| Invalidating me for UID=%s", u)
+		m.G().Log.Debug("| CachedFullSelf#HandleUserChanged: Invalidating me for UID=%s", u)
 		m.me = nil
+	} else {
+		m.G().Log.Debug("| CachedFullSelf#HandleUserChanged: Ignoring cache bust for UID=%s", u)
 	}
 	return nil
 }

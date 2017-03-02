@@ -840,6 +840,7 @@ func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, err
 
 func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
 	g.GetUPAKLoader().Invalidate(g.NetContext, u)
+	g.GetFullSelfer().HandleUserChanged(u)
 }
 
 func (g *GlobalContext) OverrideUPAKLoader(upak UPAKLoader) {
@@ -859,6 +860,20 @@ func (g *GlobalContext) GetOutOfDateInfo() keybase1.OutOfDateInfo {
 	return ret
 }
 
+func (g *GlobalContext) KeyfamilyChanged(u keybase1.UID) {
+	g.Log.Debug("+ KeyfamilyChanged(%s)", u)
+	defer g.Log.Debug("- KeyfamilyChanged(%s)", u)
+
+	// Make sure we kill the UPAK and full self cache for this user
+	g.BustLocalUserCache(u)
+
+	if g.NotifyRouter != nil {
+		g.NotifyRouter.HandleKeyfamilyChanged(u)
+		// TODO: remove this when KBFS handles KeyfamilyChanged
+		g.NotifyRouter.HandleUserChanged(u)
+	}
+}
+
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
@@ -867,7 +882,6 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	if g.NotifyRouter != nil {
 		g.NotifyRouter.HandleUserChanged(u)
 	}
-	g.GetFullSelfer().HandleUserChanged(u)
 
 	g.uchMu.Lock()
 	list := g.UserChangedHandlers
