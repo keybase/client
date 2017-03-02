@@ -1,16 +1,14 @@
 // @flow
+import GlobalError from './global-errors/container'
 import React from 'react'
-import {NavigationExperimental} from 'react-native'
+import TabBar from './tab-bar/index.render.native'
 import {Box, NativeKeyboardAvoidingView} from './common-adapters/index.native'
-import {bootstrap} from './actions/config'
+import {NavigationExperimental} from 'react-native'
+import {chatTab, loginTab, folderTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
-import {listenForNotifications} from './actions/notifications'
-import {chatTab, loginTab, folderTab} from './constants/tabs'
-import TabBar from './tab-bar/index.render.native'
-import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
-import GlobalError from './global-errors/container'
 import {isAndroid} from './constants/platform'
+import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 
 import type {Props} from './nav'
 import type {Tab} from './constants/tabs'
@@ -23,7 +21,7 @@ const StackWrapper = ({children}) => {
   if (isAndroid) {
     return children
   } else {
-    return <NativeKeyboardAvoidingView behavior={'padding'} style={{...flexOne, backgroundColor: globalColors.white}} children={children} />
+    return <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder} children={children} />
   }
 }
 
@@ -35,8 +33,8 @@ function Nav (props: Props) {
   const navigationState = {
     index: visibleScreens.size - 1,
     routes: visibleScreens.map(r => ({
-      key: r.path.join('/'),
       component: r.component,
+      key: r.path.join('/'),
       tags: r.tags,
     })).toArray(),
   }
@@ -51,11 +49,7 @@ function Nav (props: Props) {
             navigationState={navigationState}
             renderScene={({scene}) => {
               return (
-                <Box style={{
-                  flex: 1,
-                  backgroundColor: globalColors.white,
-                  paddingTop: scene.route.tags.underStatusBar ? 0 : statusBarHeight,
-                }}>
+                <Box style={scene.route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
                   {scene.route.component}
                 </Box>
               )
@@ -70,12 +64,26 @@ function Nav (props: Props) {
           onTabClick={props.switchTab}
           selectedTab={props.routeSelected}
           username={props.username}
-          badgeNumbers={{[folderTab]: props.folderBadge}}
+          badgeNumbers={{
+            [chatTab]: props.chatBadge,
+            [folderTab]: props.folderBadge,
+          }}
         />
       }
       <GlobalError />
     </Box>
   )
+}
+
+const sceneWrapStyleUnder = {
+  backgroundColor: globalColors.white,
+  flex: 1,
+}
+
+const sceneWrapStyleOver = {
+  backgroundColor: globalColors.white,
+  flex: 1,
+  paddingTop: statusBarHeight,
 }
 
 const flexColumnOne = {
@@ -88,14 +96,19 @@ const flexOne = {
 }
 
 export default connect(
-  ({favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
-    bootstrapped,
+  ({
+    config: {extendedConfig, username},
+    dev: {debugConfig: {dumbFullscreen}},
+    notifications: {menuBadge, menuNotifications},
+  }) => ({
+    chatBadge: menuNotifications.chatBadge,
+    dumbFullscreen,
+    folderBadge: menuNotifications.folderBadge,
     provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
-    dumbFullscreen,
-    folderBadge: privateBadge + publicBadge,
   }),
   (dispatch: any, {routeSelected, routePath}) => ({
+    navigateUp: () => dispatch(navigateUp()),
     switchTab: (tab: Tab) => {
       if (tab === chatTab && routeSelected === tab) {
         // clicking the chat tab when already selected should persistState and nav to the chat tab
@@ -106,8 +119,5 @@ export default connect(
       const action = routeSelected === tab ? navigateTo : switchTo
       dispatch(action(routePath.push(tab)))
     },
-    navigateUp: () => dispatch(navigateUp()),
-    bootstrap: () => dispatch(bootstrap()),
-    listenForNotifications: () => dispatch(listenForNotifications()),
   })
 )(Nav)
