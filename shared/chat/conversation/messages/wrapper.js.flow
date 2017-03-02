@@ -4,6 +4,7 @@ import type {AttachmentMessage, FollowingMap, MetaDataMap, OutboxIDKey, TextMess
 
 export type Props = {
   includeHeader: boolean,
+  isEditing: boolean,
   isFirstNewMessage: boolean,
   onRetry: (outboxID: OutboxIDKey) => void,
   onAction: (message: ServerMessage, event: any) => void,

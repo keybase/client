@@ -17,6 +17,7 @@ const factory = (options: Options) => {
     message,
     includeHeader,
     key,
+    isEditing,
     isFirstNewMessage,
     style,
     onAction,
@@ -50,6 +51,7 @@ const factory = (options: Options) => {
         includeHeader={includeHeader}
         isFirstNewMessage={isFirstNewMessage}
         isSelected={isSelected}
+        isEditing={isEditing}
         onAction={onAction}
         />
     case 'Supersedes':

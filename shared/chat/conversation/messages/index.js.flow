@@ -7,6 +7,7 @@ export type Options = {
   message: Message,
   includeHeader: boolean,
   key: string,
+  isEditing: boolean,
   isFirstNewMessage: boolean,
   style: Object,
   isScrolling: boolean,

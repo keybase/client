@@ -10,11 +10,6 @@ import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {ServerMessage, TextMessage} from '../../../constants/chat'
 
-function onCopy (text: string, onClose: () => void) {
-  NativeClipboard.setString(text)
-  onClose()
-}
-
 function MessagePopup ({message, onShowEditor, onHidden}: TextProps) {
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
@@ -23,8 +18,20 @@ function MessagePopup ({message, onShowEditor, onHidden}: TextProps) {
   if (message.type === 'Text') {
     const textMessage: TextMessage = message
 
-    items.push({onClick: () => onShowEditor(message), title: 'Edit'})
-    items.push({onClick: () => onCopy(textMessage.message.stringValue(), onHidden), title: 'Copy Text'})
+    items.push({
+      onClick: () => {
+        onShowEditor(message)
+        onHidden()
+      },
+      title: 'Edit',
+    })
+    items.push({
+      onClick: () => {
+        NativeClipboard.setString(textMessage.message.stringValue())
+        onHidden()
+      },
+      title: 'Copy Text',
+    })
   }
 
   const menuProps = {
@@ -43,17 +50,19 @@ function MessagePopup ({message, onShowEditor, onHidden}: TextProps) {
 
 type MessagePopupRouteProps = RouteProps<{
   message: ServerMessage,
+  onShowEditor: () => void,
 }, {}>
 type OwnProps = MessagePopupRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
-    const {message} = routeProps
+    const {message, onShowEditor} = routeProps
     return {
       message,
+      onShowEditor,
     }
   },
   (dispatch: Dispatch) => ({
-    onClose: () => dispatch(navigateUp()),
+    onHidden: () => dispatch(navigateUp()),
   })
 )(MessagePopup)

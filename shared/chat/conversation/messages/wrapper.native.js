@@ -13,10 +13,10 @@ type MessageProps = Props & {onRetry: () => void}
 class MessageWrapper extends PureComponent<void, MessageProps, void> {
 
   render () {
-    const {children, message, style, includeHeader, isFirstNewMessage, onAction, onRetry, isSelected, you, followingMap, metaDataMap} = this.props
+    const {children, message, style, includeHeader, isEditing, isFirstNewMessage, onAction, onRetry, isSelected, you, followingMap, metaDataMap} = this.props
     return (
       <NativeTouchableHighlight onLongPress={(event) => onAction(message, event)} underlayColor={globalColors.black_10}>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...style}}>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? _stylesFirstNewMessage : null), ...(isSelected ? _stylesSelected : null), ...(isEditing ? _editingStyle : null), ...style}}>
           <Box style={_marginContainerStyle}>
             <Box style={{alignSelf: 'stretch', backgroundColor: marginColor(message.author, you, followingMap, metaDataMap), marginRight: globalMargins.tiny, width: 3}} />
             <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
@@ -42,6 +42,10 @@ class MessageWrapper extends PureComponent<void, MessageProps, void> {
       </NativeTouchableHighlight>
     )
   }
+}
+
+const _editingStyle = {
+  borderColor: globalColors.blue,
 }
 
 const _childrenWrapStyle = {

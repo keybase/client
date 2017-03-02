@@ -164,9 +164,10 @@ export default connect(
     onEditMessage: (message: Message, body: string) => { dispatch(editMessage(message, new HiddenString(body))) },
     onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, false, downloadFilePath(filename))),
     onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
-    onMessageAction: (message: ServerMessage) => dispatch(navigateAppend([{
+    onMessageAction: (message: ServerMessage, otherProps: any) => dispatch(navigateAppend([{
       props: {
         message,
+        ...otherProps,
       },
       selected: 'messageAction',
     }])),
