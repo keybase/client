@@ -261,6 +261,11 @@ func (g *GlobalContext) Logout() error {
 		}
 	}
 
+	// reload config to clear anything in memory
+	if err := g.ConfigReload(); err != nil {
+		g.Log.Debug("Logout ConfigReload error: %s", err)
+	}
+
 	return nil
 }
 
