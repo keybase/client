@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/chat"
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -44,9 +43,6 @@ type rekeyMaster struct {
 	// keep track of the previous problem set to see if any rekeys have occurred in
 	// an iteration
 	prevProblems keybase1.ProblemSet
-
-	// need a tlf client to get conversation IDs
-	tlfCli keybase1.TlfInterface
 }
 
 type RekeyInterrupt int
@@ -74,7 +70,6 @@ func newRekeyMaster(g *libkb.GlobalContext) *rekeyMaster {
 	return &rekeyMaster{
 		Contextified: libkb.NewContextified(g),
 		interruptCh:  make(chan interruptArg),
-		tlfCli:       newTlfHandler(nil, g),
 	}
 }
 
@@ -460,13 +455,13 @@ func (r *rekeyMaster) changeNotification(newProblems keybase1.ProblemSet) {
 		}
 
 		// p.Tlf is no longer a problem, add its conversation id to the notification list.
-		cid, err := r.conversationID(p.Tlf)
+		ids, err := r.conversationIDs(p.Tlf)
 		if err != nil {
 			r.G().Log.Debug("changeNotification: error getting conversation id: %s", err)
 			continue
 		}
-		r.G().Log.Debug("rekeyMaster: will send notification for conv %v, tlf %s", cid, p.Tlf.Name)
-		cids = append(cids, cid)
+		r.G().Log.Debug("rekeyMaster: will send notification for convs %v, tlf %s", ids, p.Tlf.Name)
+		cids = append(cids, ids...)
 	}
 
 	if len(cids) > 0 {
@@ -481,10 +476,10 @@ func (r *rekeyMaster) changeNotification(newProblems keybase1.ProblemSet) {
 	r.prevProblems = newProblems
 }
 
-func (r *rekeyMaster) conversationID(tlf keybase1.TLF) (chat1.ConversationID, error) {
+func (r *rekeyMaster) conversationIDs(tlf keybase1.TLF) ([]chat1.ConversationID, error) {
 	uid := r.G().Env.GetUID()
 	if uid.IsNil() {
-		return chat1.ConversationID{}, libkb.LoginRequiredError{}
+		return nil, libkb.LoginRequiredError{}
 	}
 	vis := chat1.TLFVisibility_PUBLIC
 	if tlf.IsPrivate {
@@ -496,15 +491,15 @@ func (r *rekeyMaster) conversationID(tlf keybase1.TLF) (chat1.ConversationID, er
 		TlfVisibility: &vis,
 		TopicType:     &toptype,
 	}
-	localizer := chat.NewBlockingLocalizer(r.G(), func() keybase1.TlfInterface { return r.tlfCli })
-	ib, _, err := r.G().InboxSource.Read(context.Background(), uid.ToBytes(), localizer, true, &query, nil)
+	ib, _, err := r.G().InboxSource.Read(context.Background(), uid.ToBytes(), nil, true, &query, nil)
 	if err != nil {
-		return chat1.ConversationID{}, err
+		return nil, err
 	}
-	if len(ib.Convs) != 1 {
-		return chat1.ConversationID{}, errors.New("multiple conversations matched query")
+	ids := make([]chat1.ConversationID, len(ib.Convs))
+	for i, c := range ib.Convs {
+		ids[i] = c.Info.Id
 	}
-	return ib.Convs[0].Info.Id, nil
+	return ids, nil
 }
 
 // currentDeviceSolvesProblemSet returns true if the current device can fix all
