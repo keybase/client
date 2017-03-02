@@ -219,13 +219,13 @@ const metaData: {[key: TextType]: MetaType} = {
   // Terminal
   'Terminal': {
     colorForBackgroundMode: {
-      'Normal': globalColors.blue3,
+      'Normal': globalColors.darkBlue,
       'Terminal': globalColors.blue3,
     },
     fontSize: 13,
     styleOverride: {
       ...globalStyles.fontTerminal,
-      lineHeight: '20px',
+      lineHeight: '17px',
     },
   },
   'TerminalComment': {
@@ -236,7 +236,7 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: {
       ...globalStyles.fontTerminal,
-      lineHeight: '20px',
+      lineHeight: '17px',
     },
   },
   'TerminalEmpty': {
@@ -247,8 +247,8 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: {
       ...globalStyles.fontTerminal,
-      height: 20,
-      lineHeight: '20px',
+      height: 17,
+      lineHeight: '17px',
     },
   },
   'TerminalInline': {
