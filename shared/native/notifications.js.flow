@@ -1,4 +1,2 @@
 // @flow
-import type {Dispatch} from '../constants/types/flux'
-
-export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds?: number): void {}
+export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds?: number, rateLimitKey?: string, onClick: ?() => void): void {}

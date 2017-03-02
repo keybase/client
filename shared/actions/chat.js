@@ -1961,7 +1961,7 @@ function * _sendNotifications (action: AppendMessages): SagaGenerator<any, any> 
       if (message && message.type === 'Text') {
         const snippet = makeSnippet(serverMessageToMessageBody(message))
         yield put((dispatch: Dispatch) => {
-          NotifyPopup(message.author, {body: snippet}, -1, () => {
+          NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
             dispatch(selectConversation(action.payload.conversationIDKey, false))
             dispatch(switchTo([chatTab]))
             dispatch(showMainWindow())
