@@ -64,8 +64,7 @@ class ConversationList extends Component <void, Props, State> {
   }
 
   componentDidUpdate (prevProps: Props, prevState: State) {
-    if ((this.props.selectedConversation !== prevProps.selectedConversation) ||
-        (this.state.dataSource !== prevState.dataSource)) {
+    if (this.state.dataSource.getRowCount() !== prevState.dataSource.getRowCount()) {
       this.state.isLockedToBottom && this._scrollToBottom()
     }
   }
