@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -174,6 +175,10 @@ func getVersionedPathForDiskCache(dirPath string) (versionedDirPath string,
 		if version > currentDiskCacheVersion {
 			return "", errors.WithStack(OutdatedVersionError{})
 		}
+	}
+	err = os.MkdirAll(dirPath, 0700)
+	if err != nil {
+		return "", err
 	}
 	versionString := strconv.FormatUint(version, 10)
 	err = ioutil.WriteFile(versionFilepath, []byte(versionString), 0600)
