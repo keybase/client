@@ -125,6 +125,7 @@ class ConversationList extends Component <void, Props, State> {
 
     return (
       <NativeListView
+        enableEmptySections={true}
         ref={r => { this._listRef = r; window._listRef = r }}
         dataSource={this.state.dataSource}
         renderRow={this._renderRow}

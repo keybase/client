@@ -44,7 +44,7 @@ const inlineStyle = isMobile ? { } : {
   width: '100%',
 }
 
-const nonInlineStyle = {...globalStyles.flexBoxRow, flexWrap: 'wrap', textDecoration: 'inherit'}
+const nonInlineStyle = {...globalStyles.flexBoxRow, flexWrap: 'wrap', ...(isMobile ? null : {textDecoration: 'inherit'})}
 const inlineProps = isMobile ? {lineClamp: 1} : { }
 
 class Usernames extends Component<void, Props, void> {

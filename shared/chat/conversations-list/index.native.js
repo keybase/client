@@ -187,6 +187,7 @@ class ConversationList extends PureComponent<void, Props, State> {
       <Box style={boxStyle}>
         <AddNewRow onNewChat={this.props.onNewChat} />
         <NativeListView
+          enableEmptySections={true}
           style={listStyle}
           dataSource={this.state.dataSource}
           renderRow={this._itemRenderer} />
