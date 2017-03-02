@@ -287,16 +287,18 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 	// compute the header hash
 	headerHash := b.hashV1(boxed.HeaderCiphertext.E)
 
+	// Whether the body is missing (deleted)
+	skipBodyVerification := (len(boxed.BodyCiphertext.E) == 0)
+
+	// TODO We should check whether the body is allowed to have been deleted by checking
+	// the there is in fact a message that deleted it.
+	// We should fetch that message and check its signed body.
+	// That involves fetching a message whose ID is not known here.
+
 	// decrypt body
 	// will remain empty if the body was deleted
 	var bodyVersioned chat1.BodyPlaintext
-	skipBodyVerification := false
-	if len(boxed.BodyCiphertext.E) == 0 {
-		if boxed.ServerHeader.SupersededBy == 0 {
-			return nil, NewPermanentUnboxingError(errors.New("empty body and not superseded in MessageBoxed"))
-		}
-		skipBodyVerification = true
-	} else {
+	if !skipBodyVerification {
 		packedBody, err := b.open(boxed.BodyCiphertext, encryptionKey)
 		if err != nil {
 			return nil, NewPermanentUnboxingError(err)
@@ -345,8 +347,8 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 			Prev:         hp.Prev,
 			Sender:       hp.Sender,
 			SenderDevice: hp.SenderDevice,
-			OutboxInfo:   hp.OutboxInfo,
 			OutboxID:     hp.OutboxID,
+			OutboxInfo:   hp.OutboxInfo,
 		}
 	default:
 		return nil,

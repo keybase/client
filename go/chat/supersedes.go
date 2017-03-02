@@ -86,7 +86,9 @@ func (t *supersedesTransform) run(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
 	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
 
+	// MessageIDs that supersede
 	var superMsgIDs []chat1.MessageID
+	// Map from MessageIDs to their superseder messages
 	smap := make(map[chat1.MessageID]chat1.MessageUnboxed)
 
 	// Collect all superseder messages for messages in the current thread view

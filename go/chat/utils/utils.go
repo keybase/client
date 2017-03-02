@@ -344,19 +344,35 @@ func GetUnverifiedConv(ctx context.Context, g *libkb.GlobalContext, uid gregor1.
 	return inbox.ConvsUnverified[0], ratelim, nil
 }
 
-func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery) (res []chat1.MessageUnboxed) {
-	if query != nil && len(query.MessageTypes) > 0 {
-		typmap := make(map[chat1.MessageType]bool)
+// FilterByType filters messages based on a query.
+// If includeAllErrors then MessageUnboxedError are all returned. Otherwise, they are filtered based on type.
+// Messages whose type cannot be determined are considered errors.
+func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, includeAllErrors bool) (res []chat1.MessageUnboxed) {
+	useTypeFilter := (query != nil && len(query.MessageTypes) > 0)
+
+	typmap := make(map[chat1.MessageType]bool)
+	if useTypeFilter {
 		for _, mt := range query.MessageTypes {
 			typmap[mt] = true
 		}
-		for _, msg := range msgs {
-			if _, ok := typmap[msg.GetMessageType()]; ok {
+	}
+
+	for _, msg := range msgs {
+		state, err := msg.State()
+		if err != nil {
+			if includeAllErrors {
+				res = append(res, msg)
+			}
+			continue
+		}
+		if includeAllErrors && state == chat1.MessageUnboxedState_ERROR {
+			res = append(res, msg)
+		} else {
+			_, match := typmap[msg.GetMessageType()]
+			if !useTypeFilter || match {
 				res = append(res, msg)
 			}
 		}
-	} else {
-		res = msgs
 	}
 	return res
 }

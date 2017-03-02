@@ -214,17 +214,20 @@ func TestNonblockTimer(t *testing.T) {
 	u := world.GetUsers()[0]
 	clock := world.Fc
 	trip := newConvTriple(t, tlf, u.Username)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple: trip,
-		TLFMessage: chat1.MessageBoxed{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:        trip,
-				TlfName:     u.Username,
-				TlfPublic:   false,
-				MessageType: chat1.MessageType_TLFNAME,
-			},
-			KeyGeneration: 1,
+	firstMessagePlaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TLFNAME,
 		},
+		MessageBody: chat1.MessageBody{},
+	}
+	firstMessageBoxed, _, err := baseSender.Prepare(context.TODO(), firstMessagePlaintext, nil)
+	require.NoError(t, err)
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple:   trip,
+		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
@@ -301,7 +304,7 @@ func TestNonblockTimer(t *testing.T) {
 	typs := []chat1.MessageType{chat1.MessageType_TEXT}
 	tres, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
-	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
+	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs}, true)
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
 	require.NoError(t, outbox.SprinkleIntoThread(context.TODO(), res.ConvID, &tres))
