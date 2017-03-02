@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"sort"
 
@@ -16,7 +15,6 @@ import (
 )
 
 type Outbox struct {
-	sync.Mutex
 	libkb.Contextified
 	*baseBox
 	utils.DebugLabeler
@@ -105,8 +103,8 @@ func (o *Outbox) SetClock(cl clockwork.Clock) {
 
 func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
-	o.Lock()
-	defer o.Unlock()
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
@@ -153,8 +151,8 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 // PullAllConversations grabs all outbox entries for the current outbox, and optionally deletes them
 // from storage
 func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, remove bool) ([]chat1.OutboxRecord, error) {
-	o.Lock()
-	defer o.Unlock()
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
@@ -196,8 +194,8 @@ func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, r
 // RecordFailedAttempt will either modify an existing matching record (if sending) to next attempt
 // number, or if the record doesn't exist it adds it in.
 func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRecord) error {
-	o.Lock()
-	defer o.Unlock()
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
@@ -252,8 +250,8 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 // MarkAsError will either mark an existing record as an error, or it will add the passed
 // record as an error with the specified error state
 func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec chat1.OutboxStateError) error {
-	o.Lock()
-	defer o.Unlock()
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
@@ -288,8 +286,8 @@ func (o *Outbox) MarkAsError(ctx context.Context, obr chat1.OutboxRecord, errRec
 }
 
 func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID) error {
-	o.Lock()
-	defer o.Unlock()
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
@@ -317,8 +315,8 @@ func (o *Outbox) RetryMessage(ctx context.Context, obid chat1.OutboxID) error {
 }
 
 func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
-	o.Lock()
-	defer o.Unlock()
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)
@@ -387,8 +385,8 @@ func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, ob
 
 func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.ConversationID,
 	thread *chat1.ThreadView) error {
-	o.Lock()
-	defer o.Unlock()
+	locks.Outbox.Lock()
+	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox(ctx)

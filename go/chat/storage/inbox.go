@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"time"
 
@@ -75,7 +74,6 @@ type inboxDiskData struct {
 }
 
 type Inbox struct {
-	sync.Mutex
 	libkb.Contextified
 	*baseBox
 	utils.DebugLabeler
@@ -177,8 +175,8 @@ func (i *Inbox) hashQuery(ctx context.Context, query *chat1.GetInboxQuery) (quer
 
 func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1.Conversation,
 	query *chat1.GetInboxQuery, p *chat1.Pagination) (err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "Merge: vers: %d", vers)
@@ -393,8 +391,8 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 }
 
 func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []chat1.Conversation, err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	ibox, err := i.readDiskInbox(ctx)
@@ -409,8 +407,8 @@ func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []chat1.
 }
 
 func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.Pagination) (vers chat1.InboxVers, res []chat1.Conversation, pagination *chat1.Pagination, err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	ibox, err := i.readDiskInbox(ctx)
@@ -473,8 +471,8 @@ func (i *Inbox) handleVersion(ctx context.Context, ourvers chat1.InboxVers, upda
 }
 
 func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv chat1.Conversation) (err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "NewConversation: vers: %d convID: %s", vers, conv.GetConvID())
@@ -565,8 +563,8 @@ func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers [
 
 func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
 	msg chat1.MessageBoxed) (err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "NewMessage: vers: %d convID: %s", vers, convID)
@@ -645,8 +643,8 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 
 func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
 	msgID chat1.MessageID) (err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "ReadMessage: vers: %d convID: %s", vers, convID)
@@ -690,8 +688,8 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 
 func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
 	status chat1.ConversationStatus) (err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
@@ -730,8 +728,8 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 
 func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs []chat1.ConversationID,
 	finalizeInfo chat1.ConversationFinalizeInfo) (err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	i.Debug(ctx, "TlfFinalize: vers: %d convIDs: %v finalizeInfo: %v", vers, convIDs, finalizeInfo)
@@ -770,8 +768,8 @@ func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs [
 }
 
 func (i *Inbox) VersionSync(ctx context.Context, vers chat1.InboxVers) (err Error) {
-	i.Lock()
-	defer i.Unlock()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	ibox, err := i.readDiskInbox(ctx)

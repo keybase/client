@@ -426,7 +426,6 @@ type Deliverer struct {
 
 	sender        Sender
 	outbox        *storage.Outbox
-	storage       *storage.Storage
 	identNotifier *IdentifyNotifier
 	shutdownCh    chan chan struct{}
 	msgSentCh     chan struct{}
@@ -444,7 +443,6 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 		msgSentCh:     make(chan struct{}, 100),
 		reconnectCh:   make(chan struct{}, 100),
 		sender:        sender,
-		storage:       storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
 		identNotifier: NewIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 	}

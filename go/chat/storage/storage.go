@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
@@ -24,7 +23,6 @@ type resultCollector interface {
 }
 
 type Storage struct {
-	sync.Mutex
 	libkb.Contextified
 	utils.DebugLabeler
 
@@ -188,8 +186,8 @@ func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, 
 }
 
 func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, error) {
-	s.Lock()
-	defer s.Unlock()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
@@ -201,8 +199,8 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) Error {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
-	s.Lock()
-	defer s.Unlock()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 
 	var err Error
 	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
@@ -383,8 +381,8 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
-	s.Lock()
-	defer s.Unlock()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
@@ -399,8 +397,8 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
-	s.Lock()
-	defer s.Unlock()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 
 	return s.fetchUpToMsgIDLocked(ctx, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid, query, pagination)
 }
