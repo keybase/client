@@ -5,6 +5,7 @@ import {navigateUp} from '../../../actions/route-tree'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import MessagePopupHeader from './popup-header'
 
+import type {TextProps} from './popup'
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {ServerMessage, TextMessage} from '../../../constants/chat'
@@ -14,14 +15,16 @@ function onCopy (text: string, onClose: () => void) {
   onClose()
 }
 
-function MessagePopup ({message, onClose}: {message: ServerMessage, onClose: () => void}) {
+function MessagePopup ({message, onShowEditor, onHidden}: TextProps) {
   if (message.type !== 'Text' && message.type !== 'Attachment') return null
 
   const items = []
 
   if (message.type === 'Text') {
     const textMessage: TextMessage = message
-    items.push({onClick: () => onCopy(textMessage.message.stringValue(), onClose), title: 'Copy Text'})
+
+    items.push({onClick: () => onShowEditor(message), title: 'Edit'})
+    items.push({onClick: () => onCopy(textMessage.message.stringValue(), onHidden), title: 'Copy Text'})
   }
 
   const menuProps = {
@@ -30,7 +33,7 @@ function MessagePopup ({message, onClose}: {message: ServerMessage, onClose: () 
       view: <MessagePopupHeader message={message} />,
     },
     items,
-    onHidden: onClose,
+    onHidden,
   }
 
   return (
