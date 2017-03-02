@@ -61,7 +61,7 @@ function routeStateReducer (routeDef, routeState, action) {
 
     case Constants.navigateUp: {
       const path = getPath(routeState)
-      return routeNavigate(routeDef, routeState, path.skipLast(1))
+      return routeNavigate(routeDef, routeState, path.skipLast(1), null, action.payload.persistState)
     }
 
     case Constants.setRouteState:
