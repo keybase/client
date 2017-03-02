@@ -80,7 +80,7 @@ const renderError = (error: RPCError) => {
           <p style={{...styleText, textAlign: 'left', marginTop: 16}}><Text type='BodySemibold'>You have options:</Text></p>
           <p style={styleList}>
             <Text type='Body'> - Use <Text type='TerminalInline'>keybase login</Text> on the command line to log in</Text><br/>
-            <Text type='Body'> - Install GPG and put your PGP private key on this machine and try again</Text><br/>
+            <Text type='Body'> - Install GPG, put your PGP private key on this machine and try again</Text><br/>
             <Text type='Body'> - Go back and provision with another device or paper key</Text><br/>
             <Text type='Body'> - Or, </Text> <Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>reset your account and start fresh</Text>
           </p>
